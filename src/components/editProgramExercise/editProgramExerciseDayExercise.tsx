@@ -13,7 +13,7 @@ import { EditProgramExerciseRepeat } from "./editProgramExerciseRepeat";
 import { LinkButton } from "../linkButton";
 import { useState } from "preact/hooks";
 import { EditProgramExerciseOrder } from "./editProgramExerciseOrder";
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_isEqual } from "../../utils/object";
 import { EditProgramExerciseSupersets } from "./editProgramExerciseSupersets";
 
 interface IEditProgramExerciseDayExerciseProps {
@@ -33,7 +33,7 @@ export function EditProgramExerciseDayExercise(props: IEditProgramExerciseDayExe
   const reuse = plannerExercise.reuse;
   const [isOverriding, setIsOverriding] = useState<boolean>(
     plannerExercise.reuse != null &&
-      !ObjectUtils.isEqual(
+      !ObjectUtils_isEqual(
         { v: plannerExercise.evaluatedSetVariations },
         { v: plannerExercise.reuse.exercise?.evaluatedSetVariations || [] }
       )

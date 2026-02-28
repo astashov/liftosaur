@@ -10,15 +10,21 @@ import { ILensDispatch } from "../../utils/useLensReducer";
 import { Footer2View } from "../footer2";
 import { NavbarView } from "../navbar";
 import { Surface } from "../surface";
-import { Program } from "../../models/program";
-import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
+import { Program_evaluate, Program_getFirstProgramExercise } from "../../models/program";
+import {
+  PlannerProgramExercise_buildProgress,
+  PlannerProgramExercise_getProgressDefaultArgs,
+} from "../../pages/planner/models/plannerProgramExercise";
 import { EditProgramExerciseWarmups } from "./editProgramExerciseWarmups";
 import { buildPlannerDispatch } from "../../utils/plannerDispatch";
 import { IconKebab } from "../icons/iconKebab";
 import { DropdownMenu, DropdownMenuItem } from "../dropdownMenu";
 import { EditProgramExerciseProgress } from "./editProgramExerciseProgress";
 import { EditProgramExerciseUpdate } from "./editProgramExerciseUpdate";
-import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import {
+  EditProgramUiHelpers_changeFirstInstance,
+  EditProgramUiHelpers_changeAllInstances,
+} from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { EditProgramExerciseSets } from "./editProgramExerciseSets";
 import { BottomSheetEditProgramExerciseSet } from "./bottomSheetEditProgramExerciseSet";
 import { EditProgramExerciseNavbar } from "./editProgramExerciseNavbar";
@@ -40,10 +46,11 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
     buildPlannerDispatch(
       props.dispatch,
       (
-        lb<IState>().p("screenStack").findBy("name", "editProgramExercise", true).p("params") as LensBuilder<
+        lb<IState>().p("screenStack").findBy("name", "editProgramExercise", true).pi("params") as LensBuilder<
           IState,
           { plannerState: IPlannerExerciseState },
-          {}
+          {},
+          undefined
         >
       ).pi("plannerState"),
       plannerState
@@ -52,13 +59,13 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
   );
   useUndoRedo(plannerState, plannerDispatch);
 
-  const evaluatedProgram = Program.evaluate(plannerState.current.program, props.settings);
+  const evaluatedProgram = Program_evaluate(plannerState.current.program, props.settings);
   let plannerExercise = evaluatedProgram.weeks[props.dayData.week - 1]?.days[
     props.dayData.dayInWeek - 1
   ].exercises.find((e) => e.key === props.exerciseKey);
 
   if (!plannerExercise) {
-    plannerExercise = Program.getFirstProgramExercise(evaluatedProgram, props.exerciseKey);
+    plannerExercise = Program_getFirstProgramExercise(evaluatedProgram, props.exerciseKey);
   }
 
   const editProgramScreen = props.navCommon.screenStack.find((s) => s.name === "editProgram");
@@ -123,7 +130,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
                               .p("isProgressEnabled")
                               .record(!plannerState.ui.isProgressEnabled),
                             lbProgram.recordModify((program) => {
-                              return EditProgramUiHelpers.changeFirstInstance(
+                              return EditProgramUiHelpers_changeFirstInstance(
                                 program,
                                 plannerExercise,
                                 props.settings,
@@ -132,9 +139,9 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
                                   if (plannerState.ui.isProgressEnabled) {
                                     e.progress = undefined;
                                   } else {
-                                    const result = PlannerProgramExercise.buildProgress(
+                                    const result = PlannerProgramExercise_buildProgress(
                                       "lp",
-                                      PlannerProgramExercise.getProgressDefaultArgs("lp")
+                                      PlannerProgramExercise_getProgressDefaultArgs("lp")
                                     );
                                     if (result.success) {
                                       e.progress = result.data;
@@ -165,7 +172,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
                               .p("isUpdateEnabled")
                               .record(!plannerState.ui.isUpdateEnabled),
                             lbProgram.recordModify((program) => {
-                              return EditProgramUiHelpers.changeFirstInstance(
+                              return EditProgramUiHelpers_changeFirstInstance(
                                 program,
                                 plannerExercise,
                                 props.settings,
@@ -196,7 +203,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
                           [
                             lbProgram.recordModify((program) => {
                               const notused = plannerExercise.notused;
-                              return EditProgramUiHelpers.changeAllInstances(
+                              return EditProgramUiHelpers_changeAllInstances(
                                 program,
                                 plannerExercise.fullName,
                                 props.settings,
@@ -266,11 +273,10 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
                     props.dispatch,
                     [
                       (
-                        lb<IState>().p("screenStack").findBy("name", "editProgramExercise").p("params") as LensBuilder<
-                          IState,
-                          { key: string },
-                          {}
-                        >
+                        lb<IState>()
+                          .p("screenStack")
+                          .findBy("name", "editProgramExercise", true)
+                          .pi("params") as LensBuilder<IState, { key: string }, {}, undefined>
                       )
                         .pi("key")
                         .record(newKey),

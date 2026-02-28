@@ -2,7 +2,7 @@ import { h, JSX, Fragment } from "preact";
 import { useState, useEffect } from "preact/hooks";
 import { Service } from "../api/service";
 import { IAccount } from "../models/account";
-import { UidFactory } from "../utils/generator";
+import { UidFactory_generateUid } from "../utils/generator";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
 import { Button } from "./button";
 import { IconApple } from "./icons/iconApple";
@@ -11,7 +11,7 @@ import { IconDumbbell } from "./icons/iconDumbbell";
 import { IconGoogle } from "./icons/iconGoogle";
 import { IconSpinner } from "./icons/iconSpinner";
 import { IDispatch } from "../ducks/types";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_googleSignIn, Thunk_appleSignIn } from "../ducks/thunks";
 import { track } from "../utils/posthog";
 
 interface IAccountProps {
@@ -143,12 +143,12 @@ function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
                 track({ name: "SignUp" });
                 setIsLoading(true);
                 if (props.dispatch) {
-                  props.dispatch(Thunk.googleSignIn(() => setIsLoading(false)));
+                  props.dispatch(Thunk_googleSignIn(() => setIsLoading(false)));
                   return;
                 }
                 const accessToken = await getGoogleAccessToken();
                 if (accessToken != null) {
-                  const userId = UidFactory.generateUid(8);
+                  const userId = UidFactory_generateUid(8);
                   const result = await props.service.googleSignIn(accessToken, userId, {});
                   if (result.email) {
                     if (props.redirectUrl) {
@@ -176,7 +176,7 @@ function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
                 track({ name: "SignUp" });
                 setIsLoading(true);
                 if (props.dispatch) {
-                  props.dispatch(Thunk.appleSignIn(() => setIsLoading(false)));
+                  props.dispatch(Thunk_appleSignIn(() => setIsLoading(false)));
                   return;
                 }
                 if (!window.AppleID?.auth) {
@@ -187,7 +187,7 @@ function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
                 const response = await window.AppleID.auth.signIn();
                 const { id_token, code } = response.authorization;
                 if (id_token != null && code != null) {
-                  const userId = UidFactory.generateUid(8);
+                  const userId = UidFactory_generateUid(8);
                   const result = await props.service.appleSignIn(code, id_token, userId);
                   if (result.email) {
                     window.location.reload();

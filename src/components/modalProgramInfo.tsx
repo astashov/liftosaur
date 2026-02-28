@@ -4,8 +4,8 @@ import { Modal } from "./modal";
 import { IProgram, ISettings } from "../types";
 import { Link } from "./link";
 import { IconWatch } from "./icons/iconWatch";
-import { TimeUtils } from "../utils/time";
-import { Program } from "../models/program";
+import { TimeUtils_formatHHMM } from "../utils/time";
+import { Program_evaluate, Program_dayAverageTimeMs } from "../models/program";
 import { Markdown } from "./markdown";
 
 interface IProps {
@@ -18,9 +18,9 @@ interface IProps {
 }
 
 export function ModalProgramInfo(props: IProps): JSX.Element {
-  const evaluatedProgram = Program.evaluate(props.program, props.settings);
-  const time = Program.dayAverageTimeMs(evaluatedProgram, props.settings);
-  const formattedTime = time > 0 ? TimeUtils.formatHHMM(time) : undefined;
+  const evaluatedProgram = Program_evaluate(props.program, props.settings);
+  const time = Program_dayAverageTimeMs(evaluatedProgram, props.settings);
+  const formattedTime = time > 0 ? TimeUtils_formatHHMM(time) : undefined;
   return (
     <Modal shouldShowClose={true} onClose={props.onClose}>
       <h2 className="pr-6 text-lg font-bold">

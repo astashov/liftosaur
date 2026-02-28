@@ -1,4 +1,4 @@
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_keys } from "../../utils/object";
 import {
   IVersionTypes,
   IVersions,
@@ -9,7 +9,7 @@ import {
   isCollectionVersions,
   isVersionsObject,
 } from "./types";
-import { VersionTrackerUtils } from "./utils";
+import { VersionTrackerUtils_isRecord, VersionTrackerUtils_isControlledType, VersionTrackerUtils_getId } from "./utils";
 
 export class VersionTrackerExtractByVersions<TAtomicType extends string, TControlledType extends string> {
   private readonly versionTypes: IVersionTypes<TAtomicType, TControlledType>;
@@ -21,7 +21,7 @@ export class VersionTrackerExtractByVersions<TAtomicType extends string, TContro
   public run<T extends Record<string, unknown>>(obj: T, versionsDiff: IVersions<T>): Partial<T> {
     const result: Partial<T> = {};
 
-    for (const key of ObjectUtils.keys(versionsDiff)) {
+    for (const key of ObjectUtils_keys(versionsDiff)) {
       const version = versionsDiff[key];
       const value = obj[key];
 
@@ -45,8 +45,8 @@ export class VersionTrackerExtractByVersions<TAtomicType extends string, TContro
       return this.extractCollectionByVersion(value, version);
     }
 
-    if (isVersionsObject(version) && VersionTrackerUtils.isRecord(value)) {
-      if (VersionTrackerUtils.isControlledType(value, this.versionTypes)) {
+    if (isVersionsObject(version) && VersionTrackerUtils_isRecord(value)) {
+      if (VersionTrackerUtils_isControlledType(value, this.versionTypes)) {
         return this.extractControlledTypeByVersion(value, version);
       }
 
@@ -90,10 +90,10 @@ export class VersionTrackerExtractByVersions<TAtomicType extends string, TContro
       const result: unknown[] = [];
 
       for (const item of value) {
-        const itemId = VersionTrackerUtils.getId(item, this.versionTypes);
+        const itemId = VersionTrackerUtils_getId(item, this.versionTypes);
         if (itemId && itemId in (collectionVersion.items || {})) {
           const itemVersion = collectionVersion.items![itemId];
-          if (typeof itemVersion === "object" && VersionTrackerUtils.isRecord(item)) {
+          if (typeof itemVersion === "object" && VersionTrackerUtils_isRecord(item)) {
             const extracted = this.extractFieldByVersion(item, itemVersion);
             if (extracted != null) {
               result.push(extracted);
@@ -106,7 +106,7 @@ export class VersionTrackerExtractByVersions<TAtomicType extends string, TContro
 
       // Return the array even if empty - deletions are still changes
       return result;
-    } else if (VersionTrackerUtils.isRecord(value)) {
+    } else if (VersionTrackerUtils_isRecord(value)) {
       const result: Record<string, unknown> = {};
 
       for (const key in collectionVersion.items) {
@@ -114,7 +114,7 @@ export class VersionTrackerExtractByVersions<TAtomicType extends string, TContro
           const itemVersion = collectionVersion.items[key];
           const itemValue = value[key];
 
-          if (typeof itemVersion === "object" && VersionTrackerUtils.isRecord(itemValue)) {
+          if (typeof itemVersion === "object" && VersionTrackerUtils_isRecord(itemValue)) {
             const extracted = this.extractFieldByVersion(itemValue, itemVersion);
             if (extracted != null) {
               result[key] = extracted;

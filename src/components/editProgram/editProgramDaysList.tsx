@@ -6,7 +6,7 @@ import { Surface } from "../surface";
 import { NavbarView } from "../navbar";
 import { Footer2View } from "../footer2";
 import { MigrationBanner } from "../migrationBanner";
-import { Thunk } from "../../ducks/thunks";
+import { Thunk_pushScreen } from "../../ducks/thunks";
 import { GroupHeader } from "../groupHeader";
 import { MenuItem } from "../menuItem";
 
@@ -31,7 +31,7 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
           value={props.editProgram.name}
           expandValue={true}
           shouldShowRightArrow={true}
-          onClick={() => props.dispatch(Thunk.pushScreen("programs"))}
+          onClick={() => props.dispatch(Thunk_pushScreen("programs"))}
         />
       </section>
     </Surface>

@@ -3,7 +3,7 @@ import { memo, useCallback, useEffect, useRef, useState } from "preact/compat";
 import { IProgram, ISettings, IUnit } from "../../../types";
 import { MenuItemValue } from "../../../components/menuItemEditable";
 import { ProgramPreviewPlayground } from "../../../components/preview/programPreviewPlayground";
-import { Stats } from "../../../models/stats";
+import { Stats_getEmpty } from "../../../models/stats";
 import { track } from "../../../utils/posthog";
 import { ProgramDetailsLiftoscript } from "./programDetailsLiftoscript";
 import { IconArrowRight } from "../../../components/icons/iconArrowRight";
@@ -137,7 +137,7 @@ export const ProgramDetailsWorkoutPlayground = memo((props: IPlaygroundProps): J
             showAllWeeks={!weeksAsTabs}
             key={`preview-${units}`}
             program={props.program}
-            stats={Stats.getEmpty()}
+            stats={Stats_getEmpty()}
             settings={settings}
             isPlayground={false}
             onEngage={() => {
@@ -157,7 +157,7 @@ export const ProgramDetailsWorkoutPlayground = memo((props: IPlaygroundProps): J
         <ProgramPreviewPlayground
           key={`playground-${units}`}
           program={props.program}
-          stats={Stats.getEmpty()}
+          stats={Stats_getEmpty()}
           settings={settings}
           isPlayground={true}
           onEngage={() => {

@@ -4,7 +4,7 @@ import { undo, canUndo, canRedo, redo } from "../../pages/builder/utils/undoredo
 import { IPlannerState } from "../../pages/planner/models/types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IconUiMode } from "../icons/iconUiMode";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { IconDayTextMode } from "../icons/iconDayTextMode";
 import { IconFullTextMode } from "../icons/iconFullTextMode";
 import { Button } from "../button";
@@ -14,12 +14,12 @@ import { lb } from "lens-shmens";
 import { IconReorder } from "../icons/iconReorder";
 import { EditProgramV2Weeks } from "./editProgramV2Weeks";
 import { EditProgramV2Full } from "./editProgramV2Full";
-import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
+import { PlannerProgram_evaluate } from "../../pages/planner/models/plannerProgram";
 import { ScrollableTabs } from "../scrollableTabs";
-import { IEvaluatedProgram, Program } from "../../models/program";
-import { Thunk } from "../../ducks/thunks";
+import { IEvaluatedProgram, Program_cleanPlannerProgram } from "../../models/program";
+import { Thunk_pushScreen } from "../../ducks/thunks";
 import { updateState, IState } from "../../models/state";
-import { CollectionUtils } from "../../utils/collection";
+import { CollectionUtils_setBy } from "../../utils/collection";
 import { IDispatch } from "../../ducks/types";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
 
@@ -107,7 +107,7 @@ interface IEditProgramNavbarProps {
 function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
   const isValidFull = !props.state.ui.fullTextError;
   const planner = props.state.current.program.planner!;
-  const evaluatedWeeks = PlannerProgram.evaluate(planner, props.settings).evaluatedWeeks;
+  const evaluatedWeeks = PlannerProgram_evaluate(planner, props.settings).evaluatedWeeks;
   const isValidPerDay = evaluatedWeeks.every((week) => week.every((day) => day.success)) ?? true;
   const isValid = isValidFull && isValidPerDay;
 
@@ -130,7 +130,7 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
           <IconUndo
             width={20}
             height={20}
-            color={!canUndo(props.state) ? Tailwind.semantic().icon.light : Tailwind.semantic().icon.neutral}
+            color={!canUndo(props.state) ? Tailwind_semantic().icon.light : Tailwind_semantic().icon.neutral}
           />
         </button>
         <button
@@ -144,7 +144,7 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
             width={20}
             height={20}
             style={{ transform: "scale(-1,  1)" }}
-            color={!canRedo(props.state) ? Tailwind.semantic().icon.light : Tailwind.semantic().icon.neutral}
+            color={!canRedo(props.state) ? Tailwind_semantic().icon.light : Tailwind_semantic().icon.neutral}
           />
         </button>
       </div>
@@ -196,7 +196,7 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
           buttonSize="md"
           data-cy="save-program"
           onClick={() => {
-            const newProgram: IProgram = Program.cleanPlannerProgram({ ...props.originalProgram, planner });
+            const newProgram: IProgram = Program_cleanPlannerProgram({ ...props.originalProgram, planner });
             updateState(
               props.dispatch,
               [
@@ -204,12 +204,12 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
                   .p("storage")
                   .p("programs")
                   .recordModify((programs) => {
-                    return CollectionUtils.setBy(programs, "id", props.originalProgram.id, newProgram);
+                    return CollectionUtils_setBy(programs, "id", props.originalProgram.id, newProgram);
                   }),
               ],
               `Save program '${newProgram.name}'`
             );
-            props.dispatch(Thunk.pushScreen("main", undefined, true));
+            props.dispatch(Thunk_pushScreen("main", undefined, true));
           }}
         >
           Save
@@ -240,7 +240,7 @@ function EditProgramModeSwitchButton(props: IEditProgramModeSwitchButtonProps): 
         }
       }}
     >
-      {props.children(isSelected ? Tailwind.semantic().icon.purple : Tailwind.semantic().icon.neutral)}
+      {props.children(isSelected ? Tailwind_semantic().icon.purple : Tailwind_semantic().icon.neutral)}
     </button>
   );
 }

@@ -5,13 +5,13 @@ import { ILensDispatch } from "../../../utils/useLensReducer";
 import { lb, LensBuilder } from "lens-shmens";
 import { PlannerEditorView } from "./plannerEditorView";
 import { LinkButton } from "../../../components/linkButton";
-import { CollectionUtils } from "../../../utils/collection";
+import { CollectionUtils_removeAt } from "../../../utils/collection";
 import { PlannerDayStats } from "./plannerDayStats";
 import { getExerciseForStats, PlannerExerciseStats } from "./plannerExerciseStats";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
-import { Exercise } from "../../../models/exercise";
-import { TimeUtils } from "../../../utils/time";
-import { PlannerStatsUtils } from "../models/plannerStatsUtils";
+import { Exercise_findByName } from "../../../models/exercise";
+import { TimeUtils_formatHHMM } from "../../../utils/time";
+import { PlannerStatsUtils_dayApproxTimeMs } from "../models/plannerStatsUtils";
 import { IconWatch } from "../../../components/icons/iconWatch";
 import { Service } from "../../../api/service";
 import { PlannerEditorCustomCta } from "./plannerEditorCustomCta";
@@ -38,22 +38,22 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
   const { day, dispatch, lbProgram, weekIndex, dayIndex } = props;
   const { exercises } = props.settings;
   const focusedExercise = props.ui.focusedExercise;
-  const evaluatedDay = props.evaluatedWeeks[weekIndex][dayIndex];
+  const evaluatedDay = props.evaluatedWeeks[weekIndex]?.[dayIndex];
   const isFocused = focusedExercise?.weekIndex === weekIndex && focusedExercise?.dayIndex === dayIndex;
   let approxDayTime: string | undefined;
-  if (evaluatedDay.success) {
+  if (evaluatedDay?.success) {
     for (const plannerExercise of evaluatedDay.data) {
-      const exercise = Exercise.findByName(plannerExercise.name, {});
+      const exercise = Exercise_findByName(plannerExercise.name, {});
       if (exercise) {
         exercise.equipment = plannerExercise.equipment || exercise.defaultEquipment;
       }
     }
-    approxDayTime = TimeUtils.formatHHMM(
-      PlannerStatsUtils.dayApproxTimeMs(evaluatedDay.data, props.settings.timers.workout ?? 180)
+    approxDayTime = TimeUtils_formatHHMM(
+      PlannerStatsUtils_dayApproxTimeMs(evaluatedDay.data, props.settings.timers.workout ?? 180)
     );
   }
   const showProgramDescription = day.description != null;
-  const repeats: IPlannerProgramExercise[] = evaluatedDay.success ? evaluatedDay.data.filter((e) => e.isRepeat) : [];
+  const repeats: IPlannerProgramExercise[] = evaluatedDay?.success ? evaluatedDay.data.filter((e) => e.isRepeat) : [];
 
   return (
     <div className="flex flex-col md:flex-row">
@@ -207,7 +207,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
                     .p("weeks")
                     .i(weekIndex)
                     .p("days")
-                    .recordModify((days) => CollectionUtils.removeAt(days, dayIndex)),
+                    .recordModify((days) => CollectionUtils_removeAt(days, dayIndex)),
                   "Delete day"
                 );
               }
@@ -218,12 +218,12 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
         </div>
       </div>
       <div className="w-56 ml-0 sm:ml-4">
-        {isFocused && (
+        {isFocused && evaluatedDay && (
           <PlannerDayStats
             dispatch={dispatch}
             focusedExercise={focusedExercise}
             settings={props.settings}
-            evaluatedDay={props.evaluatedWeeks[props.weekIndex][props.dayIndex]}
+            evaluatedDay={evaluatedDay}
           />
         )}
       </div>

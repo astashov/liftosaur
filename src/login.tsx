@@ -1,9 +1,9 @@
 import { h } from "preact";
 import { ILoginContentProps, LoginContent } from "./pages/login/loginContent";
-import { HydrateUtils } from "./utils/hydrate";
+import { HydrateUtils_hydratePage } from "./utils/hydrate";
 
 function main(): void {
-  HydrateUtils.hydratePage<ILoginContentProps>((pageWrapperProps, data) => (
+  HydrateUtils_hydratePage<ILoginContentProps>((pageWrapperProps, data) => (
     <LoginContent {...data} client={window.fetch.bind(window)} />
   ));
 }

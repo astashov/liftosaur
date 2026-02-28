@@ -26,7 +26,7 @@ export function ProgramsListHtml(props: IProps): JSX.Element {
       canonical={url}
       ogUrl={url}
       data={data}
-      account={props.account}
+      isLoggedIn={!!props.account}
       client={client}
       url="/user/programs"
     >

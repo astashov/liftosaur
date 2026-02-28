@@ -1,22 +1,24 @@
 import { h, JSX } from "preact";
 import { useState } from "preact/hooks";
 import { IProgram, ISettings } from "../../../types";
-import { IAccount } from "../../../models/account";
-import { Program } from "../../../models/program";
+import { Program_exportProgram } from "../../../models/program";
 import { Service } from "../../../api/service";
-import { PlannerProgram } from "../../planner/models/plannerProgram";
-import { Weight } from "../../../models/weight";
+import {
+  PlannerProgram_hasNonSelectedWeightUnit,
+  PlannerProgram_switchToUnit,
+} from "../../planner/models/plannerProgram";
+import { Weight_oppositeUnit } from "../../../models/weight";
 import { Button } from "../../../components/button";
 import { IconSpinner } from "../../../components/icons/iconSpinner";
-import { UidFactory } from "../../../utils/generator";
-import { Tailwind } from "../../../utils/tailwindConfig";
+import { UidFactory_generateUid } from "../../../utils/generator";
+import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 
 declare let __HOST__: string;
 
 interface IProps {
   program: IProgram;
   settings: ISettings;
-  account?: IAccount;
+  isLoggedIn?: boolean;
   client: Window["fetch"];
 }
 
@@ -28,26 +30,26 @@ export function ProgramDetailsAddButton(props: IProps): JSX.Element {
     <Button
       className="w-full"
       name="add-program-to-account"
-      kind={props.account ? "purple" : "grayv2"}
+      kind={props.isLoggedIn ? "purple" : "grayv2"}
       disabled={isLoading}
       onClick={async () => {
-        if (!props.account) {
+        if (!props.isLoggedIn) {
           alert("You should be logged in");
           return;
         }
-        const exportProgram = Program.exportProgram(
+        const exportProgram = Program_exportProgram(
           {
             ...program,
-            id: UidFactory.generateUid(8),
+            id: UidFactory_generateUid(8),
           },
           settings
         );
         const pg = exportProgram.program;
-        if (pg.planner && PlannerProgram.hasNonSelectedWeightUnit(pg.planner, settings)) {
-          const fromUnit = Weight.oppositeUnit(settings.units);
+        if (pg.planner && PlannerProgram_hasNonSelectedWeightUnit(pg.planner, settings)) {
+          const fromUnit = Weight_oppositeUnit(settings.units);
           const toUnit = settings.units;
           if (confirm(`The program has weights in ${fromUnit}, do you want to convert them to ${toUnit}?`)) {
-            pg.planner = PlannerProgram.switchToUnit(pg.planner, settings);
+            pg.planner = PlannerProgram_switchToUnit(pg.planner, settings);
           }
         }
         setIsLoading(true);
@@ -61,7 +63,7 @@ export function ProgramDetailsAddButton(props: IProps): JSX.Element {
         }
       }}
     >
-      {isLoading ? <IconSpinner color={Tailwind.semantic().icon.white} width={16} height={16} /> : "Add to account"}
+      {isLoading ? <IconSpinner color={Tailwind_semantic().icon.white} width={16} height={16} /> : "Add to account"}
     </Button>
   );
 }

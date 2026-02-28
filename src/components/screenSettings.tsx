@@ -1,16 +1,21 @@
 import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { MenuItem, MenuItemWrapper } from "./menuItem";
-import { Thunk } from "../ducks/thunks";
+import {
+  Thunk_pushScreen,
+  Thunk_exportStorage,
+  Thunk_exportHistoryToCSV,
+  Thunk_exportProgramsToText,
+} from "../ducks/thunks";
 import { MenuItemEditable } from "./menuItemEditable";
 import { lb } from "lens-shmens";
 import { InternalLink } from "../internalLink";
 import { IUser } from "../models/user";
-import { ClipboardUtils } from "../utils/clipboard";
-import { Share } from "../models/share";
+import { ClipboardUtils_copy } from "../utils/clipboard";
+import { Share_generateProfileLink } from "../models/share";
 import { useEffect, useState } from "preact/hooks";
 import { ILengthUnit, ISettings, IStats, ISubscription, IUnit } from "../types";
-import { WhatsNew } from "../models/whatsnew";
+import { WhatsNew_showWhatsNew } from "../models/whatsnewUtils";
 import { ImporterStorage } from "./importerStorage";
 import { ImporterProgram } from "./importerProgram";
 import { NavbarView } from "./navbar";
@@ -18,21 +23,26 @@ import { Surface } from "./surface";
 import { Footer2View } from "./footer2";
 import { GroupHeader } from "./groupHeader";
 import { HelpSettings } from "./help/helpSettings";
-import { StringUtils } from "../utils/string";
+import { StringUtils_truncate } from "../utils/string";
 import { IconDiscord } from "./icons/iconDiscord";
-import { SendMessage } from "../utils/sendMessage";
+import {
+  SendMessage_isIos,
+  SendMessage_iosAppVersion,
+  SendMessage_isAndroid,
+  SendMessage_androidAppVersion,
+} from "../utils/sendMessage";
 import { IconSpeaker } from "./icons/iconSpeaker";
 import { ModalImportFromOtherApps } from "./modalImportFromOtherApps";
 import { ModalAffiliate } from "./modalAffiliate";
 import { ImporterLiftosaurCsv } from "./importerLiftosaurCsv";
-import { Subscriptions } from "../utils/subscriptions";
-import { HealthSync } from "../lib/healthSync";
+import { Subscriptions_hasSubscription } from "../utils/subscriptions";
+import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
 import { INavCommon } from "../models/state";
-import { Stats } from "../models/stats";
-import { Weight } from "../models/weight";
-import { ImagePreloader } from "../utils/imagePreloader";
-import { Settings } from "../models/settings";
-import { Features } from "../utils/features";
+import { Stats_getCurrentBodyweight, Stats_getCurrentBodyfat, Stats_isEmpty } from "../models/stats";
+import { Weight_print } from "../models/weight";
+import { ImagePreloader_preload, ImagePreloader_dynoflex } from "../utils/imagePreloader";
+import { Settings_getTheme, Settings_applyTheme } from "../models/settings";
+import { Features_isEnabled } from "../utils/features";
 
 interface IProps {
   dispatch: IDispatch;
@@ -49,12 +59,12 @@ export function ScreenSettings(props: IProps): JSX.Element {
   const [isCopied, setIsCopied] = useState<boolean>(false);
   const [showImportFromOtherAppsModal, setShowImportFromOtherAppsModal] = useState(false);
   const [showAffiliateModal, setShowAffiliateModal] = useState(false);
-  const currentBodyweight = Stats.getCurrentBodyweight(props.stats);
-  const currentBodyfat = Stats.getCurrentBodyfat(props.stats);
+  const currentBodyweight = Stats_getCurrentBodyweight(props.stats);
+  const currentBodyfat = Stats_getCurrentBodyfat(props.stats);
 
   useEffect(() => {
-    if (Stats.isEmpty(props.stats)) {
-      ImagePreloader.preload(ImagePreloader.dynoflex);
+    if (Stats_isEmpty(props.stats)) {
+      ImagePreloader_preload(ImagePreloader_dynoflex);
     }
   }, []);
 
@@ -104,11 +114,11 @@ export function ScreenSettings(props: IProps): JSX.Element {
             ) : props.user?.email === "noemail@example.com" ? (
               "Signed In"
             ) : (
-              StringUtils.truncate(props.user?.email || "", 30)
+              StringUtils_truncate(props.user?.email || "", 30)
             )
           }
           shouldShowRightArrow={true}
-          onClick={() => props.dispatch(Thunk.pushScreen("account"))}
+          onClick={() => props.dispatch(Thunk_pushScreen("account"))}
         />
         <MenuItemEditable
           type="text"
@@ -141,9 +151,9 @@ export function ScreenSettings(props: IProps): JSX.Element {
                     <button
                       className="mr-auto text-xs text-left underline text-text-link nm-copy-profile-link-to-clipboard"
                       onClick={() => {
-                        const text = Share.generateProfileLink(props.user!.id);
+                        const text = Share_generateProfileLink(props.user!.id);
                         if (text != null) {
-                          ClipboardUtils.copy(text);
+                          ClipboardUtils_copy(text);
                           setIsCopied(true);
                         }
                       }}
@@ -182,39 +192,39 @@ export function ScreenSettings(props: IProps): JSX.Element {
         {currentBodyweight && (
           <MenuItem
             name="Bodyweight"
-            value={Weight.print(currentBodyweight)}
+            value={Weight_print(currentBodyweight)}
             shouldShowRightArrow={true}
-            onClick={() => props.dispatch(Thunk.pushScreen("measurements", { key: "weight" }))}
+            onClick={() => props.dispatch(Thunk_pushScreen("measurements", { key: "weight" }))}
           />
         )}
         {currentBodyfat && (
           <MenuItem
             name="Bodyfat"
-            value={Weight.print(currentBodyfat)}
+            value={Weight_print(currentBodyfat)}
             shouldShowRightArrow={true}
-            onClick={() => props.dispatch(Thunk.pushScreen("measurements", { key: "bodyfat" }))}
+            onClick={() => props.dispatch(Thunk_pushScreen("measurements", { key: "bodyfat" }))}
           />
         )}
         <MenuItem
           name="Measurements"
           shouldShowRightArrow={true}
-          onClick={() => props.dispatch(Thunk.pushScreen("measurements"))}
+          onClick={() => props.dispatch(Thunk_pushScreen("measurements"))}
         />
 
         <GroupHeader name="Workout" topPadding={true} />
         <MenuItem
           name="Exercises"
-          onClick={() => props.dispatch(Thunk.pushScreen("exercises"))}
+          onClick={() => props.dispatch(Thunk_pushScreen("exercises"))}
           shouldShowRightArrow={true}
         />
         <MenuItem
           name="Muscle Groups"
-          onClick={() => props.dispatch(Thunk.pushScreen("muscleGroups"))}
+          onClick={() => props.dispatch(Thunk_pushScreen("muscleGroups"))}
           shouldShowRightArrow={true}
         />
         <MenuItem
           name="Timers"
-          onClick={() => props.dispatch(Thunk.pushScreen("timers"))}
+          onClick={() => props.dispatch(Thunk_pushScreen("timers"))}
           shouldShowRightArrow={true}
         />
         {props.settings.gyms.length > 1 && (
@@ -239,9 +249,9 @@ export function ScreenSettings(props: IProps): JSX.Element {
           name="Available Equipment"
           onClick={() => {
             if (props.settings.gyms.length > 1) {
-              props.dispatch(Thunk.pushScreen("gyms"));
+              props.dispatch(Thunk_pushScreen("gyms"));
             } else {
-              props.dispatch(Thunk.pushScreen("plates"));
+              props.dispatch(Thunk_pushScreen("plates"));
             }
           }}
         />
@@ -299,8 +309,8 @@ export function ScreenSettings(props: IProps): JSX.Element {
             });
           }}
         />
-        {((SendMessage.isIos() && SendMessage.iosAppVersion() >= 6) ||
-          (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 13)) && (
+        {((SendMessage_isIos() && SendMessage_iosAppVersion() >= 6) ||
+          (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 13)) && (
           <MenuItemEditable
             type="boolean"
             name="Always On Display"
@@ -316,8 +326,8 @@ export function ScreenSettings(props: IProps): JSX.Element {
             }}
           />
         )}
-        {((SendMessage.isIos() && SendMessage.iosAppVersion() >= 7) ||
-          (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 14)) && (
+        {((SendMessage_isIos() && SendMessage_iosAppVersion() >= 7) ||
+          (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 14)) && (
           <div>
             <GroupHeader name="Sound" topPadding={true} />
             <MenuItemEditable
@@ -362,9 +372,9 @@ export function ScreenSettings(props: IProps): JSX.Element {
                 </div>
               </div>
             </MenuItemWrapper>
-            {Subscriptions.hasSubscription(props.subscription) &&
-              SendMessage.isAndroid() &&
-              SendMessage.androidAppVersion() >= 17 && (
+            {Subscriptions_hasSubscription(props.subscription) &&
+              SendMessage_isAndroid() &&
+              SendMessage_androidAppVersion() >= 17 && (
                 <MenuItemEditable
                   type="boolean"
                   name="Ignore Do Not Disturb"
@@ -387,21 +397,21 @@ export function ScreenSettings(props: IProps): JSX.Element {
               )}
           </div>
         )}
-        {(HealthSync.eligibleForAppleHealth() || HealthSync.eligibleForGoogleHealth()) && (
+        {(HealthSync_eligibleForAppleHealth() || HealthSync_eligibleForGoogleHealth()) && (
           <>
             <GroupHeader name="Sync" topPadding={true} />
-            {HealthSync.eligibleForGoogleHealth() && (
+            {HealthSync_eligibleForGoogleHealth() && (
               <MenuItem
                 shouldShowRightArrow={true}
                 name="Google Health Connect"
-                onClick={() => props.dispatch(Thunk.pushScreen("googleHealth"))}
+                onClick={() => props.dispatch(Thunk_pushScreen("googleHealth"))}
               />
             )}
-            {HealthSync.eligibleForAppleHealth() && (
+            {HealthSync_eligibleForAppleHealth() && (
               <MenuItem
                 shouldShowRightArrow={true}
                 name="Apple Health"
-                onClick={() => props.dispatch(Thunk.pushScreen("appleHealth"))}
+                onClick={() => props.dispatch(Thunk_pushScreen("appleHealth"))}
               />
             )}
           </>
@@ -439,10 +449,10 @@ export function ScreenSettings(props: IProps): JSX.Element {
         <MenuItemEditable
           type="boolean"
           name="Dark mode"
-          value={Settings.getTheme(props.settings) === "dark" ? "true" : "false"}
+          value={Settings_getTheme(props.settings) === "dark" ? "true" : "false"}
           onChange={(newValue) => {
             const newTheme = newValue === "true" ? "dark" : "light";
-            Settings.applyTheme(newTheme);
+            Settings_applyTheme(newTheme);
             props.dispatch({
               type: "UpdateSettings",
               lensRecording: lb<ISettings>().p("theme").record(newTheme),
@@ -450,7 +460,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
             });
           }}
         />
-        {Features.isEnabled("affiliates", props.user?.id ?? props.tempUserId) && (
+        {Features_isEnabled("affiliates", props.user?.id ?? props.tempUserId) && (
           <>
             <GroupHeader name="Earn money with Liftosaur" topPadding={true} />
             <MenuItem
@@ -464,19 +474,19 @@ export function ScreenSettings(props: IProps): JSX.Element {
         )}
         <GroupHeader name="Import / Export" topPadding={true} />
         <div className="ls-export-data">
-          <MenuItemWrapper name="Export data to JSON file" onClick={() => props.dispatch(Thunk.exportStorage())}>
+          <MenuItemWrapper name="Export data to JSON file" onClick={() => props.dispatch(Thunk_exportStorage())}>
             <button className="py-3 nm-export-data-to-json-file">Export data to JSON file</button>
           </MenuItemWrapper>
         </div>
         <div className="ls-export-history">
-          <MenuItemWrapper name="Export history to CSV file" onClick={() => props.dispatch(Thunk.exportHistoryToCSV())}>
+          <MenuItemWrapper name="Export history to CSV file" onClick={() => props.dispatch(Thunk_exportHistoryToCSV())}>
             <button className="py-3 nm-export-history-to-csv-file">Export history to CSV file</button>
           </MenuItemWrapper>
         </div>
         <div className="ls-export-programs-to-text">
           <MenuItemWrapper
             name="Export all programs to text file"
-            onClick={() => props.dispatch(Thunk.exportProgramsToText())}
+            onClick={() => props.dispatch(Thunk_exportProgramsToText())}
           >
             <button className="py-3 nm-export-programs-to-text-file">Export all programs to text file</button>
           </MenuItemWrapper>
@@ -498,7 +508,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
 
         <GroupHeader name="Miscellaneous" topPadding={true} />
         <div className="ls-changelog">
-          <MenuItem name="Changelog" onClick={() => WhatsNew.showWhatsNew(props.dispatch)} />
+          <MenuItem name="Changelog" onClick={() => WhatsNew_showWhatsNew(props.dispatch)} />
         </div>
         <InternalLink
           name="contact-us"

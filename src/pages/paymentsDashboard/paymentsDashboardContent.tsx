@@ -1,10 +1,10 @@
 import { h, JSX } from "preact";
 import { useState } from "preact/hooks";
 import { IPaymentsDashboardData } from "../../../lambda/paymentsDashboard";
-import { StringUtils } from "../../utils/string";
-import { TimeUtils } from "../../utils/time";
-import { DateUtils } from "../../utils/date";
-import { PriceUtils } from "../../utils/price";
+import { StringUtils_truncate } from "../../utils/string";
+import { TimeUtils_formatUTCHHMM } from "../../utils/time";
+import { DateUtils_dayOfWeekStr, DateUtils_formatUTCYYYYMMDD, DateUtils_formatUTCYYYYMMDDHHMM } from "../../utils/date";
+import { PriceUtils_exchangeRate } from "../../utils/price";
 
 export interface IPaymentsDashboardContentProps {
   client: Window["fetch"];
@@ -133,7 +133,7 @@ function formatCurrencyWithUSD(amount: number, currency?: string): JSX.Element {
   const formatted = formatCurrency(amount, curr);
 
   if (curr !== "USD") {
-    const conversion = PriceUtils.exchangeRate(amount, curr);
+    const conversion = PriceUtils_exchangeRate(amount, curr);
     if (conversion.success) {
       const usdFormatted = formatCurrency(conversion.value, "USD");
       return (
@@ -276,7 +276,7 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
       if (payment.paymentType === "refund") {
         dayTotalsByCurrency[curr].refunds += payment.amount;
         currencyTotals[curr].refunds += payment.amount;
-        const usdConversion = PriceUtils.exchangeRate(payment.amount, curr);
+        const usdConversion = PriceUtils_exchangeRate(payment.amount, curr);
         if (usdConversion.success) {
           refundsUSD += usdConversion.value;
           dayRefundsUSD += usdConversion.value;
@@ -284,7 +284,7 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
       } else {
         dayTotalsByCurrency[curr].total += netAmount;
         currencyTotals[curr].total += netAmount;
-        const usdConversion = PriceUtils.exchangeRate(netAmount, curr);
+        const usdConversion = PriceUtils_exchangeRate(netAmount, curr);
         if (usdConversion.success) {
           totalUSD += usdConversion.value;
           dayTotalUSD += usdConversion.value;
@@ -292,13 +292,13 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
 
         if (isSubscription) {
           dayTotalsByTypeAndCurrency[curr].subscription += netAmount;
-          const usdConv = PriceUtils.exchangeRate(netAmount, curr);
+          const usdConv = PriceUtils_exchangeRate(netAmount, curr);
           if (usdConv.success) {
             daySubscriptionUSD += usdConv.value;
           }
         } else {
           dayTotalsByTypeAndCurrency[curr].inapp += netAmount;
-          const usdConv = PriceUtils.exchangeRate(netAmount, curr);
+          const usdConv = PriceUtils_exchangeRate(netAmount, curr);
           if (usdConv.success) {
             dayInappUSD += usdConv.value;
           }
@@ -306,13 +306,13 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
 
         if (platform === "apple") {
           dayTotalsByPlatformAndCurrency[curr].apple += netAmount;
-          const usdConv = PriceUtils.exchangeRate(netAmount, curr);
+          const usdConv = PriceUtils_exchangeRate(netAmount, curr);
           if (usdConv.success) {
             dayAppleUSD += usdConv.value;
           }
         } else if (platform === "google") {
           dayTotalsByPlatformAndCurrency[curr].google += netAmount;
-          const usdConv = PriceUtils.exchangeRate(netAmount, curr);
+          const usdConv = PriceUtils_exchangeRate(netAmount, curr);
           if (usdConv.success) {
             dayGoogleUSD += usdConv.value;
           }
@@ -430,8 +430,8 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
                   // Convert to USD for sorting
                   const amountA = totalsA.total - totalsA.refunds;
                   const amountB = totalsB.total - totalsB.refunds;
-                  const usdA = currencyA === "USD" ? amountA : PriceUtils.exchangeRate(amountA, currencyA).value;
-                  const usdB = currencyB === "USD" ? amountB : PriceUtils.exchangeRate(amountB, currencyB).value;
+                  const usdA = currencyA === "USD" ? amountA : PriceUtils_exchangeRate(amountA, currencyA).value;
+                  const usdB = currencyB === "USD" ? amountB : PriceUtils_exchangeRate(amountB, currencyB).value;
                   return usdB - usdA; // Descending order
                 })
                 .map(([currency, totals]) => (
@@ -527,7 +527,7 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
                     ];
                     return `${monthNames[parseInt(month, 10) - 1]} ${year}`;
                   })()
-                : `${DateUtils.dayOfWeekStr(periodData.date)}, ${periodData.date}`}
+                : `${DateUtils_dayOfWeekStr(periodData.date)}, ${periodData.date}`}
             </h3>
             <div className="flex flex-col gap-1">
               <div className="flex gap-4 text-sm">
@@ -557,8 +557,8 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
                     // Convert to USD for sorting
                     const amountA = totalsA.total - totalsA.refunds;
                     const amountB = totalsB.total - totalsB.refunds;
-                    const usdA = currencyA === "USD" ? amountA : PriceUtils.exchangeRate(amountA, currencyA).value;
-                    const usdB = currencyB === "USD" ? amountB : PriceUtils.exchangeRate(amountB, currencyB).value;
+                    const usdA = currencyA === "USD" ? amountA : PriceUtils_exchangeRate(amountA, currencyA).value;
+                    const usdB = currencyB === "USD" ? amountB : PriceUtils_exchangeRate(amountB, currencyB).value;
                     return usdB - usdA; // Descending order
                   })
                   .map(([currency, totals]) => {
@@ -622,13 +622,13 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
                   <tr key={`${payment.transactionId}-${idx}`} className="border-b hover:bg-gray-50">
                     <td className="px-2 py-2">
                       {payment.subscriptionStartTimestamp != null
-                        ? DateUtils.formatUTCYYYYMMDD(payment.subscriptionStartTimestamp)
+                        ? DateUtils_formatUTCYYYYMMDD(payment.subscriptionStartTimestamp)
                         : "Unknown"}
                     </td>
                     <td className="px-2 py-2">
                       {viewMode === "month"
-                        ? DateUtils.formatUTCYYYYMMDDHHMM(payment.timestamp)
-                        : TimeUtils.formatUTCHHMM(payment.timestamp)}
+                        ? DateUtils_formatUTCYYYYMMDDHHMM(payment.timestamp)
+                        : TimeUtils_formatUTCHHMM(payment.timestamp)}
                     </td>
                     <td className="px-2 py-2">
                       <a
@@ -640,7 +640,7 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
                         {payment.userId}
                       </a>
                     </td>
-                    <td className="px-2 py-2 font-mono text-xs">{StringUtils.truncate(payment.transactionId, 20)}</td>
+                    <td className="px-2 py-2 font-mono text-xs">{StringUtils_truncate(payment.transactionId, 20)}</td>
                     <td className="px-2 py-2">{getProductType(payment.productId)}</td>
                     <td className={`py-2 px-2 ${getPaymentTypeColor(payment.paymentType)}`}>
                       {payment.paymentType}
@@ -664,11 +664,11 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
                     key={`cancellation-${cancellation.userId}-${idx}`}
                     className="bg-orange-50 border-b hover:bg-orange-100"
                   >
-                    <td className="px-2 py-2">{DateUtils.formatUTCYYYYMMDD(cancellation.lastPaymentTimestamp)}</td>
+                    <td className="px-2 py-2">{DateUtils_formatUTCYYYYMMDD(cancellation.lastPaymentTimestamp)}</td>
                     <td className="px-2 py-2">
                       {viewMode === "month"
-                        ? DateUtils.formatUTCYYYYMMDDHHMM(cancellation.expectedRenewalTimestamp)
-                        : TimeUtils.formatUTCHHMM(cancellation.expectedRenewalTimestamp)}
+                        ? DateUtils_formatUTCYYYYMMDDHHMM(cancellation.expectedRenewalTimestamp)
+                        : TimeUtils_formatUTCHHMM(cancellation.expectedRenewalTimestamp)}
                     </td>
                     <td className="px-2 py-2">
                       <a

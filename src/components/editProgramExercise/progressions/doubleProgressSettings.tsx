@@ -1,10 +1,10 @@
 import { JSX, h } from "preact";
 import { lb } from "lens-shmens";
-import { PlannerProgramExercise } from "../../../pages/planner/models/plannerProgramExercise";
+import { PlannerProgramExercise_progressionType } from "../../../pages/planner/models/plannerProgramExercise";
 import { IPlannerProgramExercise, IPlannerExerciseState } from "../../../pages/planner/models/types";
 import { IProgram, ISettings } from "../../../types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
-import { EditProgramUiHelpers } from "../../editProgram/editProgramUi/editProgramUiHelpers";
+import { EditProgramUiHelpers_changeFirstInstance } from "../../editProgram/editProgramUi/editProgramUiHelpers";
 import { InputNumber2 } from "../../inputNumber2";
 import { InputWeight2 } from "../../inputWeight2";
 
@@ -17,7 +17,7 @@ interface IDoubleProgressSettingsProps {
 
 export function DoubleProgressSettings(props: IDoubleProgressSettingsProps): JSX.Element {
   const { plannerExercise, settings } = props;
-  const progression = PlannerProgramExercise.progressionType(plannerExercise);
+  const progression = PlannerProgramExercise_progressionType(plannerExercise);
   if (progression?.type !== "double") {
     return <div />;
   }
@@ -37,7 +37,7 @@ export function DoubleProgressSettings(props: IDoubleProgressSettingsProps): JSX
             onInput={(value) => {
               props.plannerDispatch(
                 lbProgram.recordModify((program) => {
-                  return EditProgramUiHelpers.changeFirstInstance(
+                  return EditProgramUiHelpers_changeFirstInstance(
                     program,
                     plannerExercise,
                     props.settings,
@@ -70,7 +70,7 @@ export function DoubleProgressSettings(props: IDoubleProgressSettingsProps): JSX
               onInput={(value) => {
                 props.plannerDispatch(
                   lbProgram.recordModify((program) => {
-                    return EditProgramUiHelpers.changeFirstInstance(
+                    return EditProgramUiHelpers_changeFirstInstance(
                       program,
                       plannerExercise,
                       props.settings,
@@ -100,7 +100,7 @@ export function DoubleProgressSettings(props: IDoubleProgressSettingsProps): JSX
               onInput={(value) => {
                 props.plannerDispatch(
                   lbProgram.recordModify((program) => {
-                    return EditProgramUiHelpers.changeFirstInstance(
+                    return EditProgramUiHelpers_changeFirstInstance(
                       program,
                       plannerExercise,
                       props.settings,

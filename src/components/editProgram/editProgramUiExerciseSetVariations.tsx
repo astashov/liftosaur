@@ -1,5 +1,9 @@
 import { JSX, h, Fragment } from "preact";
-import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
+import {
+  PlannerProgramExercise_setVariations,
+  PlannerProgramExercise_sets,
+  PlannerProgramExercise_setsToDisplaySets,
+} from "../../pages/planner/models/plannerProgramExercise";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { GroupHeader } from "../groupHeader";
 import { HistoryRecordSet } from "../historyRecordSets";
@@ -14,14 +18,14 @@ interface IEditProgramUiExerciseSetVariationsProps {
 
 export function EditProgramUiExerciseSetVariations(props: IEditProgramUiExerciseSetVariationsProps): JSX.Element {
   const { plannerExercise } = props;
-  const setVariations = PlannerProgramExercise.setVariations(plannerExercise);
+  const setVariations = PlannerProgramExercise_setVariations(plannerExercise);
   return (
     <>
       {setVariations.map((_, i) => {
-        const sets = PlannerProgramExercise.sets(plannerExercise, i);
+        const sets = PlannerProgramExercise_sets(plannerExercise, i);
         const hasCurrentSets = !!plannerExercise.setVariations[i]?.sets;
         const globals = plannerExercise.globals;
-        const displayGroups = PlannerProgramExercise.setsToDisplaySets(sets, hasCurrentSets, globals, props.settings);
+        const displayGroups = PlannerProgramExercise_setsToDisplaySets(sets, hasCurrentSets, globals, props.settings);
         let currentIndex = setVariations.findIndex((v) => v.isCurrent);
         currentIndex = currentIndex === -1 ? 0 : currentIndex;
         return (

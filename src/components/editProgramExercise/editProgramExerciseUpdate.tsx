@@ -3,17 +3,17 @@ import { IPlannerProgramExercise, IPlannerExerciseState, IPlannerExerciseUi } fr
 import { IProgram, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { LinkButton } from "../linkButton";
-import { IEvaluatedProgram, Program } from "../../models/program";
-import { PP } from "../../models/pp";
+import { IEvaluatedProgram, Program_evaluate, Program_getReusingUpdateExercises } from "../../models/program";
+import { PP_iterate2 } from "../../models/pp";
 import { MenuItemWrapper } from "../menuItem";
 import { InputSelect } from "../inputSelect";
 import { lb } from "lens-shmens";
-import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import { EditProgramUiHelpers_changeFirstInstance } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { useState } from "preact/hooks";
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_entries } from "../../utils/object";
 import { ModalEditUpdateScript } from "./progressions/modalEditUpdateScript";
 import { EditProgramUiUpdate } from "../editProgram/editProgramUiUpdate";
-import { CollectionUtils } from "../../utils/collection";
+import { CollectionUtils_uniqBy } from "../../utils/collection";
 
 interface IEditProgramExerciseUpdateProps {
   program: IProgram;
@@ -29,7 +29,7 @@ function getUpdateReuseCandidates(
   evaluatedProgram: IEvaluatedProgram
 ): [string, string][] {
   const result: Record<string, string> = { "": "None" };
-  PP.iterate2(evaluatedProgram.weeks, (exercise) => {
+  PP_iterate2(evaluatedProgram.weeks, (exercise) => {
     if (exercise.key === key) {
       return;
     }
@@ -39,13 +39,13 @@ function getUpdateReuseCandidates(
     }
     result[exercise.key] = exercise.fullName;
   });
-  return ObjectUtils.entries(result);
+  return ObjectUtils_entries(result);
 }
 
 export function EditProgramExerciseUpdate(props: IEditProgramExerciseUpdateProps): JSX.Element {
   const { plannerExercise } = props;
   const ownUpdate = plannerExercise.update;
-  const evaluatedProgram = Program.evaluate(props.program, props.settings);
+  const evaluatedProgram = Program_evaluate(props.program, props.settings);
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
   const lbUi = lb<IPlannerExerciseState>().p("ui");
   const [isOverriding, setIsOverriding] = useState(false);
@@ -110,7 +110,7 @@ export function EditProgramExerciseUpdate(props: IEditProgramExerciseUpdateProps
           onChange={(script) => {
             props.plannerDispatch(
               lbProgram.recordModify((program) => {
-                return EditProgramUiHelpers.changeFirstInstance(program, plannerExercise, props.settings, true, (e) => {
+                return EditProgramUiHelpers_changeFirstInstance(program, plannerExercise, props.settings, true, (e) => {
                   e.update = {
                     ...e.update,
                     type: "custom",
@@ -154,8 +154,8 @@ function UpdateContent(props: IUpdateContentProps): JSX.Element {
   const ownUpdate = plannerExercise.update;
   const reuseCandidates = getUpdateReuseCandidates(plannerExercise.key, !!plannerExercise.notused, evaluatedProgram);
   const reuseKey = ownUpdate?.reuse?.exercise?.key;
-  const reusingUpdateExercises = CollectionUtils.uniqBy(
-    Program.getReusingUpdateExercises(evaluatedProgram, plannerExercise),
+  const reusingUpdateExercises = CollectionUtils_uniqBy(
+    Program_getReusingUpdateExercises(evaluatedProgram, plannerExercise),
     "fullName"
   );
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
@@ -205,7 +205,7 @@ function UpdateContent(props: IUpdateContentProps): JSX.Element {
                     onChange={(fullName) => {
                       props.plannerDispatch(
                         lbProgram.recordModify((program) => {
-                          return EditProgramUiHelpers.changeFirstInstance(
+                          return EditProgramUiHelpers_changeFirstInstance(
                             program,
                             plannerExercise,
                             props.settings,

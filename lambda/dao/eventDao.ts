@@ -1,7 +1,7 @@
 import { IEventPayload } from "../../src/api/service";
-import { DateUtils } from "../../src/utils/date";
+import { DateUtils_formatYYYYMMDDHHMM } from "../../src/utils/date";
 import { IStorageUpdate2 } from "../../src/utils/sync";
-import { Utils } from "../utils";
+import { Utils_getEnv } from "../utils";
 import { IDI } from "../utils/di";
 
 export const eventsTableNames = {
@@ -28,8 +28,8 @@ export class EventDao {
         dayName: h.dayName,
         numEntries: h.entries.length,
         numSets: h.entries.reduce((acc, e) => acc + e.sets.length, 0),
-        startTime: DateUtils.formatYYYYMMDDHHMM(h.startTime),
-        endTime: h.endTime ? DateUtils.formatYYYYMMDDHHMM(h.endTime) : undefined,
+        startTime: DateUtils_formatYYYYMMDDHHMM(h.startTime),
+        endTime: h.endTime ? DateUtils_formatYYYYMMDDHHMM(h.endTime) : undefined,
       };
     });
     preparedStorageUpdate.programs = storageUpdate.storage?.programs?.map((p) => {
@@ -44,7 +44,7 @@ export class EventDao {
 
   public async post(event: IEventPayload): Promise<void> {
     try {
-      const env = Utils.getEnv();
+      const env = Utils_getEnv();
       await this.di.dynamo.put({
         tableName: eventsTableNames[env].events,
         item: { ...event, ttl: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30 },
@@ -55,7 +55,7 @@ export class EventDao {
   }
 
   public async batchPost(events: IEventPayload[]): Promise<void> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     await this.di.dynamo.batchPut({
       tableName: eventsTableNames[env].events,
       items: events.map((event) => ({ ...event, ttl: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30 })),
@@ -63,7 +63,7 @@ export class EventDao {
   }
 
   public getByUserId(userid: string): Promise<IEventPayload[]> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     return this.di.dynamo.query<IEventPayload>({
       tableName: eventsTableNames[env].events,
       expression: "#userId = :userid",
@@ -73,7 +73,7 @@ export class EventDao {
   }
 
   public scanByName(name: string): Promise<IEventPayload[]> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     return this.di.dynamo.scan<IEventPayload>({
       tableName: eventsTableNames[env].events,
       filterExpression: "#name = :name",
@@ -83,7 +83,7 @@ export class EventDao {
   }
 
   public async scanByNames(names: string[], timestamp: number): Promise<IEventPayload[]> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     const allEvents = await Promise.all(
       names.map((name) =>
         this.di.dynamo.query<IEventPayload>({

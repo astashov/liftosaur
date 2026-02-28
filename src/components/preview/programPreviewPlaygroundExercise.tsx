@@ -2,25 +2,31 @@ import { h } from "preact";
 import { JSX, memo } from "preact/compat";
 import { ExerciseImage } from "../exerciseImage";
 import { Markdown } from "../markdown";
-import { equipmentName, Exercise } from "../../models/exercise";
+import {
+  equipmentName,
+  Exercise_get,
+  Exercise_getNotes,
+  Exercise_nameWithEquipment,
+  Exercise_fullName,
+} from "../../models/exercise";
 import { IHistoryEntry, IHistoryRecord, IProgramState, ISettings, IStats } from "../../types";
-import { ComparerUtils } from "../../utils/comparer";
+import { ComparerUtils_noFns } from "../../utils/comparer";
 import { IDispatch } from "../../ducks/types";
-import { Reps } from "../../models/set";
+import { Reps_isFinished, Reps_isCompleted } from "../../models/set";
 import { IconCheckCircle } from "../icons/iconCheckCircle";
 import { IconEditSquare } from "../icons/iconEditSquare";
 import { lb } from "lens-shmens";
-import { IEvaluatedProgram, Program } from "../../models/program";
+import { IEvaluatedProgram, Program_getDayData } from "../../models/program";
 import { HistoryRecordSetsView } from "../historyRecordSets";
-import { StringUtils } from "../../utils/string";
+import { StringUtils_dashcase } from "../../utils/string";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
-import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
+import { PlannerProgramExercise_currentDescription } from "../../pages/planner/models/plannerProgramExercise";
 import { WorkoutExerciseAllSets } from "../workoutExerciseAllSets";
-import { WorkoutExerciseUtils } from "../../utils/workoutExerciseUtils";
-import { Tailwind } from "../../utils/tailwindConfig";
-import { Equipment } from "../../models/equipment";
+import { WorkoutExerciseUtils_getBgColor50 } from "../../utils/workoutExerciseUtils";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
+import { Equipment_getEquipmentNameForExerciseType } from "../../models/equipment";
 import { GroupHeader } from "../groupHeader";
-import { Progress } from "../../models/progress";
+import { Progress_getNextSupersetEntry } from "../../models/progress";
 
 interface IProps {
   entry: IHistoryEntry;
@@ -40,8 +46,8 @@ function getColor(entry: IHistoryEntry): string {
   if (entry.sets.length === 0) {
     return "purple";
   }
-  if (Reps.isFinished(entry.sets)) {
-    if (Reps.isCompleted(entry.sets)) {
+  if (Reps_isFinished(entry.sets)) {
+    if (Reps_isCompleted(entry.sets)) {
       return "green";
     } else {
       return "red";
@@ -85,7 +91,7 @@ export const ProgramPreviewPlaygroundExercise = memo((props: IProps): JSX.Elemen
       dispatch={props.dispatch}
     />
   );
-}, ComparerUtils.noFns);
+}, ComparerUtils_noFns);
 
 interface IProgramPreviewHistoryRecordSetsProps {
   entry: IHistoryEntry;
@@ -96,15 +102,15 @@ interface IProgramPreviewHistoryRecordSetsProps {
 }
 
 function ProgramPreviewHistoryRecordSets(props: IProgramPreviewHistoryRecordSetsProps): JSX.Element {
-  const exercise = Exercise.get(props.entry.exercise, props.settings.exercises);
+  const exercise = Exercise_get(props.entry.exercise, props.settings.exercises);
   const equipment = exercise.equipment;
   const programExercise = props.programExercise;
-  const description = PlannerProgramExercise.currentDescription(programExercise);
+  const description = PlannerProgramExercise_currentDescription(programExercise);
 
   return (
     <div
       className={`py-2 px-2 mx-4 mb-3 rounded-lg ${getBgColor100(props.entry)} relative`}
-      data-cy={StringUtils.dashcase(exercise.name)}
+      data-cy={StringUtils_dashcase(exercise.name)}
     >
       <div className="flex items-center gap-2">
         <PlaygroundExerciseTopBar
@@ -152,19 +158,19 @@ interface IProgramPreviewPlaygroundProps {
 }
 
 function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.Element {
-  const exercise = Exercise.get(props.entry.exercise, props.settings.exercises);
+  const exercise = Exercise_get(props.entry.exercise, props.settings.exercises);
   const programExercise = props.programExercise;
-  const dayData = Program.getDayData(props.program, props.dayIndex);
-  const description = PlannerProgramExercise.currentDescription(programExercise);
-  const currentEquipmentName = Equipment.getEquipmentNameForExerciseType(props.settings, exercise);
-  const exerciseNotes = Exercise.getNotes(props.entry.exercise, props.settings);
-  const supersetEntry = Progress.getNextSupersetEntry(props.progress.entries, props.entry);
-  const supersetExercise = supersetEntry ? Exercise.get(supersetEntry.exercise, props.settings.exercises) : undefined;
+  const dayData = Program_getDayData(props.program, props.dayIndex);
+  const description = PlannerProgramExercise_currentDescription(programExercise);
+  const currentEquipmentName = Equipment_getEquipmentNameForExerciseType(props.settings, exercise);
+  const exerciseNotes = Exercise_getNotes(props.entry.exercise, props.settings);
+  const supersetEntry = Progress_getNextSupersetEntry(props.progress.entries, props.entry);
+  const supersetExercise = supersetEntry ? Exercise_get(supersetEntry.exercise, props.settings.exercises) : undefined;
 
   return (
     <div
-      className={`pt-2 pb-2 mb-6 rounded-lg ${WorkoutExerciseUtils.getBgColor50(props.entry.sets, false)} relative`}
-      data-cy={`entry-${StringUtils.dashcase(exercise.name)}`}
+      className={`pt-2 pb-2 mb-6 rounded-lg ${WorkoutExerciseUtils_getBgColor50(props.entry.sets, false)} relative`}
+      data-cy={`entry-${StringUtils_dashcase(exercise.name)}`}
     >
       <div>
         <PlaygroundExerciseTopBar
@@ -183,14 +189,14 @@ function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.El
           </div>
           <div className="flex-1 ml-auto" style={{ minWidth: "4rem" }}>
             <div className="flex items-center">
-              <div className="flex-1 mr-1 font-bold">{Exercise.nameWithEquipment(exercise, props.settings)}</div>
+              <div className="flex-1 mr-1 font-bold">{Exercise_nameWithEquipment(exercise, props.settings)}</div>
             </div>
             <div data-cy="exercise-equipment" className="text-xs text-text-secondary">
               Equipment: <strong>{currentEquipmentName || "None"}</strong>
             </div>
             {supersetExercise && (
               <div data-cy="exercise-superset" className="text-xs text-text-secondary">
-                Supersets with: <strong>{Exercise.fullName(supersetExercise, props.settings)}</strong>
+                Supersets with: <strong>{Exercise_fullName(supersetExercise, props.settings)}</strong>
               </div>
             )}
           </div>
@@ -265,7 +271,7 @@ function PlaygroundExerciseTopBar(props: IPlaygroundExerciseTopBarProps): JSX.El
             });
           }}
         >
-          <IconEditSquare color={Tailwind.semantic().icon.neutralsubtle} />
+          <IconEditSquare color={Tailwind_semantic().icon.neutralsubtle} />
         </button>
         {props.isPlayground && (
           <button
@@ -304,7 +310,7 @@ function PlaygroundExerciseTopBar(props: IPlaygroundExerciseTopBarProps): JSX.El
               });
             }}
           >
-            <IconCheckCircle isChecked={true} color={Reps.isCompleted(props.entry.sets) ? "#38A169" : "#BAC4CD"} />
+            <IconCheckCircle isChecked={true} color={Reps_isCompleted(props.entry.sets) ? "#38A169" : "#BAC4CD"} />
           </button>
         )}
       </div>

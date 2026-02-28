@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { PlaywrightUtils, startpage } from "./playwrightUtils";
+import { startpage, PlaywrightUtils_clearCodeMirror, PlaywrightUtils_typeCodeMirror } from "./playwrightUtils";
 
 test("updates reps in a workout", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
@@ -11,8 +11,8 @@ test("updates reps in a workout", async ({ page }) => {
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-perday-program").click();
 
-  await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
-  await PlaywrightUtils.typeCodeMirror(
+  await PlaywrightUtils_clearCodeMirror(page, "planner-editor");
+  await PlaywrightUtils_typeCodeMirror(
     page,
     "planner-editor",
     `Squat / 1x6+, 3x3 / 100lb / update: custom() {~

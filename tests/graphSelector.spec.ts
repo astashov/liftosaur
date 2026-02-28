@@ -1,10 +1,10 @@
 import { expect, test } from "@playwright/test";
-import { PlaywrightUtils, startpage } from "./playwrightUtils";
+import { startpage, PlaywrightUtils_disableSubscriptions, PlaywrightUtils_finishExercise } from "./playwrightUtils";
 
 test("Graphs", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1&nosync=true");
   await page.click("button:has-text('Basic Beginner Routine')");
-  await PlaywrightUtils.disableSubscriptions(page);
+  await PlaywrightUtils_disableSubscriptions(page);
   await page.getByTestId("clone-program").click();
   await page.getByTestId("footer-graphs").click();
 
@@ -19,9 +19,9 @@ test("Graphs", async ({ page }) => {
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
   // Complete workout
-  await PlaywrightUtils.finishExercise(page, "bent-over-row", [1, 1, { amrap: { reps: 5 } }]);
-  await PlaywrightUtils.finishExercise(page, "bench-press", [1, 1, { amrap: { reps: 5 } }]);
-  await PlaywrightUtils.finishExercise(page, "squat", [1, 1, { amrap: { reps: 5 } }]);
+  await PlaywrightUtils_finishExercise(page, "bent-over-row", [1, 1, { amrap: { reps: 5 } }]);
+  await PlaywrightUtils_finishExercise(page, "bench-press", [1, 1, { amrap: { reps: 5 } }]);
+  await PlaywrightUtils_finishExercise(page, "squat", [1, 1, { amrap: { reps: 5 } }]);
   await page.getByTestId("finish-workout").click();
   await page.getByTestId("finish-day-continue").click();
 

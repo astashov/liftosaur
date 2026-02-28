@@ -1,6 +1,6 @@
 import { h, JSX } from "preact";
-import { IScreen, ITab, Screen } from "../models/screen";
-import { StringUtils } from "../utils/string";
+import { IScreen, ITab, Screen_tab } from "../models/screen";
+import { StringUtils_dashcase } from "../utils/string";
 
 export interface IProps {
   name: ITab;
@@ -13,8 +13,8 @@ export interface IProps {
 }
 
 export function FooterButton(props: IProps): JSX.Element {
-  const isActive = Screen.tab(props.screen) === props.name;
-  const dataCy = `footer-${StringUtils.dashcase(props.text)}`;
+  const isActive = Screen_tab(props.screen) === props.name;
+  const dataCy = `footer-${StringUtils_dashcase(props.text)}`;
   return (
     <button
       className={`touch-manipulation inline-block px-2 text-center relative nm-${dataCy}`}

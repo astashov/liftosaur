@@ -1,15 +1,15 @@
 import { h, JSX, Fragment } from "preact";
-import { IEvaluatedProgram, Program } from "../models/program";
-import { ObjectUtils } from "../utils/object";
-import { Weight } from "../models/weight";
-import { StringUtils } from "../utils/string";
-import { Reps } from "../models/set";
+import { IEvaluatedProgram, Program_runExerciseFinishDayScript } from "../models/program";
+import { ObjectUtils_isNotEmpty, ObjectUtils_keys } from "../utils/object";
+import { Weight_print, Weight_eq, Weight_display, Weight_convertTo, Weight_printOrNumber } from "../models/weight";
+import { StringUtils_dashcase } from "../utils/string";
+import { Reps_isFinished } from "../models/set";
 import { IHistoryEntry, ISettings, IProgramState, IDayData, IUnit, IPercentage, IWeight, IStats } from "../types";
-import { Exercise } from "../models/exercise";
+import { Exercise_onerm } from "../models/exercise";
 import { IScriptBindings } from "../models/progress";
 import { ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
-import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
+import { PlannerProgramExercise_getState } from "../pages/planner/models/plannerProgramExercise";
 import { LinkButton } from "./linkButton";
 
 interface IProps {
@@ -25,10 +25,10 @@ interface IProps {
 }
 
 export function ProgressStateChanges(props: IProps): JSX.Element | null {
-  const state = PlannerProgramExercise.getState(props.programExercise);
+  const state = PlannerProgramExercise_getState(props.programExercise);
   const { entry, settings, dayData } = props;
   const { units } = settings;
-  const result = Program.runExerciseFinishDayScript(
+  const result = Program_runExerciseFinishDayScript(
     entry,
     dayData,
     settings,
@@ -38,7 +38,7 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
     props.stats,
     props.userPromptedStateVars
   );
-  const isFinished = Reps.isFinished(entry.sets);
+  const isFinished = Reps_isFinished(entry.sets);
   const updatePrints = entry.updatePrints || [];
   const showEndOfDay = props.forceShow || isFinished;
   const onSuppressProgress = props.onSuppressProgress;
@@ -50,8 +50,8 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
     const prints = result.data.prints;
 
     if (
-      (showEndOfDay && ObjectUtils.isNotEmpty(diffState)) ||
-      (showEndOfDay && ObjectUtils.isNotEmpty(diffVars)) ||
+      (showEndOfDay && ObjectUtils_isNotEmpty(diffState)) ||
+      (showEndOfDay && ObjectUtils_isNotEmpty(diffVars)) ||
       (showEndOfDay && prints.length > 0) ||
       updatePrints.length > 0
     ) {
@@ -62,12 +62,12 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
           data-help="This shows how state variables of the exercise are going to change after finishing this workout day. It usually indicates progression or deload, so next time you'd do more/less reps, or lift more/less weight."
         >
           <div>
-            {showEndOfDay && ObjectUtils.isNotEmpty(diffVars) && (
+            {showEndOfDay && ObjectUtils_isNotEmpty(diffVars) && (
               <div className={props.entry.isSuppressed ? "line-through" : ""}>
                 <ExerciseChanges diffVars={diffVars} />
               </div>
             )}
-            {showEndOfDay && ObjectUtils.isNotEmpty(diffState) && (
+            {showEndOfDay && ObjectUtils_isNotEmpty(diffState) && (
               <div className={props.entry.isSuppressed ? "line-through" : ""}>
                 <StateVariablesChanges diffState={diffState} />
               </div>
@@ -98,15 +98,15 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
 }
 
 function ExerciseChanges({ diffVars }: { diffVars: Record<string, string | undefined> }): JSX.Element | null {
-  if (ObjectUtils.isNotEmpty(diffVars)) {
+  if (ObjectUtils_isNotEmpty(diffVars)) {
     return (
       <>
         <header className="font-bold">Exercise Changes</header>
         <ul data-cy="variable-changes">
-          {ObjectUtils.keys(diffVars).map((key) => (
-            <li data-cy={`variable-changes-key-${StringUtils.dashcase(key)}`}>
+          {ObjectUtils_keys(diffVars).map((key) => (
+            <li data-cy={`variable-changes-key-${StringUtils_dashcase(key)}`}>
               <span className="italic">{key}</span>:{" "}
-              <strong data-cy={`variable-changes-value-${StringUtils.dashcase(key)}`}>{diffVars[key]}</strong>
+              <strong data-cy={`variable-changes-value-${StringUtils_dashcase(key)}`}>{diffVars[key]}</strong>
             </li>
           ))}
         </ul>
@@ -117,15 +117,15 @@ function ExerciseChanges({ diffVars }: { diffVars: Record<string, string | undef
 }
 
 function StateVariablesChanges({ diffState }: { diffState: Record<string, string | undefined> }): JSX.Element | null {
-  if (ObjectUtils.isNotEmpty(diffState)) {
+  if (ObjectUtils_isNotEmpty(diffState)) {
     return (
       <>
         <header className="font-bold">State Variables changes</header>
         <ul data-cy="state-changes">
-          {ObjectUtils.keys(diffState).map((key) => (
-            <li data-cy={`state-changes-key-${StringUtils.dashcase(key)}`}>
+          {ObjectUtils_keys(diffState).map((key) => (
+            <li data-cy={`state-changes-key-${StringUtils_dashcase(key)}`}>
               <span className="italic">{key}</span>:{" "}
-              <strong data-cy={`state-changes-value-${StringUtils.dashcase(key)}`}>{diffState[key]}</strong>
+              <strong data-cy={`state-changes-value-${StringUtils_dashcase(key)}`}>{diffState[key]}</strong>
             </li>
           ))}
         </ul>
@@ -153,7 +153,7 @@ function Prints({
                 return (
                   <>
                     {i > 0 ? <span>, </span> : <></>}
-                    <span>{Weight.print(p)}</span>
+                    <span>{Weight_print(p)}</span>
                   </>
                 );
               })}
@@ -167,12 +167,12 @@ function Prints({
 }
 
 function getDiffState(state: IProgramState, newState: IProgramState, units: IUnit): Record<string, string | undefined> {
-  return ObjectUtils.keys(state).reduce<Record<string, string | undefined>>((memo, key) => {
+  return ObjectUtils_keys(state).reduce<Record<string, string | undefined>>((memo, key) => {
     const oldValue = state[key];
     const newValue = newState[key];
-    if (newValue != null && !Weight.eq(oldValue, newValue)) {
-      const oldValueStr = Weight.display(Weight.convertTo(oldValue as number, units));
-      const newValueStr = Weight.display(Weight.convertTo(newValue as number, units));
+    if (newValue != null && !Weight_eq(oldValue, newValue)) {
+      const oldValueStr = Weight_display(Weight_convertTo(oldValue as number, units));
+      const newValueStr = Weight_display(Weight_convertTo(newValue as number, units));
       memo[key] = `${oldValueStr} -> ${newValueStr}`;
     }
     return memo;
@@ -187,10 +187,10 @@ function getDiffVars(
 ): Record<string, string | undefined> {
   const diffVars: Record<string, string | undefined> = {};
   if (bindings.rm1 != null) {
-    const oldOnerm = Exercise.onerm(entry.exercise, settings);
-    if (!Weight.eq(oldOnerm, bindings.rm1)) {
-      diffVars["1 RM"] = `${Weight.display(Weight.convertTo(oldOnerm, settings.units))} -> ${Weight.display(
-        Weight.convertTo(bindings.rm1, settings.units)
+    const oldOnerm = Exercise_onerm(entry.exercise, settings);
+    if (!Weight_eq(oldOnerm, bindings.rm1)) {
+      diffVars["1 RM"] = `${Weight_display(Weight_convertTo(oldOnerm, settings.units))} -> ${Weight_display(
+        Weight_convertTo(bindings.rm1, settings.units)
       )}`;
     }
   }
@@ -202,7 +202,7 @@ function getDiffVars(
       target.shift();
     }
     const keyStr = `${key}${target.length > 0 ? `[${target.join(":")}]` : ""}`;
-    diffVars[keyStr] = `${value.op !== "=" ? `${value.op} ` : ""}${Weight.printOrNumber(value.value)}`;
+    diffVars[keyStr] = `${value.op !== "=" ? `${value.op} ` : ""}${Weight_printOrNumber(value.value)}`;
   }
   return diffVars;
 }

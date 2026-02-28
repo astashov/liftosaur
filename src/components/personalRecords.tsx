@@ -1,12 +1,12 @@
 import { JSX, h, Fragment } from "preact";
-import { Exercise } from "../models/exercise";
-import { Weight } from "../models/weight";
-import { History } from "../models/history";
+import { Exercise_fromKey, Exercise_get } from "../models/exercise";
+import { Weight_display, Weight_build, Weight_getOneRepMax } from "../models/weight";
+import { History_getNumberOfPersonalRecords } from "../models/history";
 import { ISettings, ISet, IHistoryRecord } from "../types";
-import { ObjectUtils } from "../utils/object";
-import { StringUtils } from "../utils/string";
+import { ObjectUtils_keys } from "../utils/object";
+import { StringUtils_pluralize } from "../utils/string";
 import { IPersonalRecords } from "../models/history";
-import { Reps } from "../models/set";
+import { Reps_avgUnilateralCompletedReps } from "../models/set";
 
 interface IPersonalRecordsProps {
   historyRecords: IHistoryRecord[];
@@ -20,7 +20,7 @@ interface IPersonalRecordItems {
 }
 
 export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
-  if (History.getNumberOfPersonalRecords(props.historyRecords, props.prs) === 0) {
+  if (History_getNumberOfPersonalRecords(props.historyRecords, props.prs) === 0) {
     return (
       <section className="px-4 pt-8 pb-4 text-center">
         <div>No new personal records this time</div>
@@ -34,7 +34,7 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
       if (!prs) {
         return memo;
       }
-      for (const key of ObjectUtils.keys(prs)) {
+      for (const key of ObjectUtils_keys(prs)) {
         const maxWeight = prs[key]?.maxWeightSet;
         if (maxWeight) {
           memo.maxWeight[key] = memo.maxWeight[key] || [];
@@ -57,13 +57,13 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
         className="pb-1 font-bold text-yellow-600"
         dangerouslySetInnerHTML={{ __html: "&#x1F3C6 Personal Records" }}
       />
-      {ObjectUtils.keys(items.maxWeight).length > 0 && (
+      {ObjectUtils_keys(items.maxWeight).length > 0 && (
         <>
           <h4 className="my-1 text-xs text-text-secondary">Max Weight</h4>
           <ul className="pb-2">
-            {ObjectUtils.keys(items.maxWeight).map((exerciseKey) => {
-              const exerciseType = Exercise.fromKey(exerciseKey);
-              const exercise = Exercise.get(exerciseType, props.settings.exercises);
+            {ObjectUtils_keys(items.maxWeight).map((exerciseKey) => {
+              const exerciseType = Exercise_fromKey(exerciseKey);
+              const exercise = Exercise_get(exerciseType, props.settings.exercises);
               return (items.maxWeight[exerciseKey] || []).map((item, i) => {
                 return (
                   <li key={i}>
@@ -71,18 +71,18 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
                       <strong>{exercise.name}</strong>:{" "}
                       <span className="whitespace-nowrap">
                         <strong className="text-text-success">
-                          {Weight.display(
-                            item.set.completedWeight ?? item.set.weight ?? Weight.build(0, props.settings.units)
+                          {Weight_display(
+                            item.set.completedWeight ?? item.set.weight ?? Weight_build(0, props.settings.units)
                           )}
                         </strong>
-                        , {item.set.completedReps || 0} {StringUtils.pluralize("rep", item.set.completedReps || 0)}
+                        , {item.set.completedReps || 0} {StringUtils_pluralize("rep", item.set.completedReps || 0)}
                       </span>
                     </div>
                     {item.prev != null && (
                       <div className="text-xs italic text-text-secondarysubtle">
                         (was {item.prev.completedReps || 0} ×{" "}
-                        {Weight.display(
-                          item.prev.completedWeight ?? item.prev.weight ?? Weight.build(0, props.settings.units)
+                        {Weight_display(
+                          item.prev.completedWeight ?? item.prev.weight ?? Weight_build(0, props.settings.units)
                         )}
                         )
                       </div>
@@ -94,23 +94,23 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
           </ul>
         </>
       )}
-      {ObjectUtils.keys(items.max1RM).length > 0 && (
+      {ObjectUtils_keys(items.max1RM).length > 0 && (
         <>
           <h4 className="my-1 text-xs text-text-secondary">Max Estimated One Rep Max</h4>
           <ul className="pb-2">
-            {ObjectUtils.keys(items.max1RM).map((exerciseKey) => {
-              const exerciseType = Exercise.fromKey(exerciseKey);
-              const exercise = Exercise.get(exerciseType, props.settings.exercises);
+            {ObjectUtils_keys(items.max1RM).map((exerciseKey) => {
+              const exerciseType = Exercise_fromKey(exerciseKey);
+              const exercise = Exercise_get(exerciseType, props.settings.exercises);
               return (items.max1RM[exerciseKey] || []).map((item, i) => {
-                const estimated1RM = Weight.getOneRepMax(
-                  item.set.completedWeight ?? item.set.weight ?? Weight.build(0, props.settings.units),
-                  Reps.avgUnilateralCompletedReps(item.set) || 0,
+                const estimated1RM = Weight_getOneRepMax(
+                  item.set.completedWeight ?? item.set.weight ?? Weight_build(0, props.settings.units),
+                  Reps_avgUnilateralCompletedReps(item.set) || 0,
                   item.set.completedRpe ?? item.set.rpe
                 );
                 const previous1RM = item.prev
-                  ? Weight.getOneRepMax(
-                      item.prev.completedWeight ?? item.prev.weight ?? Weight.build(0, props.settings.units),
-                      Reps.avgUnilateralCompletedReps(item.prev) || 0,
+                  ? Weight_getOneRepMax(
+                      item.prev.completedWeight ?? item.prev.weight ?? Weight_build(0, props.settings.units),
+                      Reps_avgUnilateralCompletedReps(item.prev) || 0,
                       item.prev.completedRpe ?? item.prev.rpe
                     )
                   : undefined;
@@ -121,20 +121,20 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
                     <div>
                       <strong>{exercise.name}</strong>:{" "}
                       <span className="whitespace-nowrap">
-                        <strong className="text-text-success">{Weight.display(estimated1RM)}</strong> (
-                        {Reps.avgUnilateralCompletedReps(item.set) || 0} ×{" "}
-                        {Weight.display(
-                          item.set.completedWeight ?? item.set.weight ?? Weight.build(0, props.settings.units)
+                        <strong className="text-text-success">{Weight_display(estimated1RM)}</strong> (
+                        {Reps_avgUnilateralCompletedReps(item.set) || 0} ×{" "}
+                        {Weight_display(
+                          item.set.completedWeight ?? item.set.weight ?? Weight_build(0, props.settings.units)
                         )}
                         {setRpe ? ` @${setRpe}` : ""})
                       </span>
                     </div>
                     {item.prev != null && previous1RM && (
                       <div className="text-xs italic text-text-secondarysubtle">
-                        (was <strong>{Weight.display(previous1RM)}</strong>,{" "}
-                        {Reps.avgUnilateralCompletedReps(item.prev) || 0} ×{" "}
-                        {Weight.display(
-                          item.prev.completedWeight ?? item.prev.weight ?? Weight.build(0, props.settings.units)
+                        (was <strong>{Weight_display(previous1RM)}</strong>,{" "}
+                        {Reps_avgUnilateralCompletedReps(item.prev) || 0} ×{" "}
+                        {Weight_display(
+                          item.prev.completedWeight ?? item.prev.weight ?? Weight_build(0, props.settings.units)
                         )}
                         {prevRpe ? ` @${prevRpe}` : ""})
                       </div>

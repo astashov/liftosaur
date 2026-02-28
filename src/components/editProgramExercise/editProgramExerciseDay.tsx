@@ -2,14 +2,19 @@ import { h, JSX } from "preact";
 import { IPlannerExerciseState, IPlannerExerciseUi } from "../../pages/planner/models/types";
 import { IExerciseType, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { IEvaluatedProgram, Program } from "../../models/program";
+import { IEvaluatedProgram, Program_getDayNumber } from "../../models/program";
 import { EditProgramExerciseDayExercise } from "./editProgramExerciseDayExercise";
 import { Button } from "../button";
 import { IconKebab } from "../icons/iconKebab";
 import { useState } from "preact/hooks";
 import { DropdownMenu, DropdownMenuItem } from "../dropdownMenu";
-import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
-import { ObjectUtils } from "../../utils/object";
+import {
+  EditProgramUiHelpers_changeCurrentInstanceExercise,
+  EditProgramUiHelpers_deleteCurrentInstance,
+  EditProgramUiHelpers_changeRepeating,
+  EditProgramUiHelpers_addInstance,
+} from "../editProgram/editProgramUi/editProgramUiHelpers";
+import { ObjectUtils_clone } from "../../utils/object";
 import { lb } from "lens-shmens";
 
 interface IEditProgramExerciseDayProps {
@@ -61,7 +66,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
                   isTop={true}
                   onClick={() => {
                     setIsKebabMenuOpen(false);
-                    EditProgramUiHelpers.changeCurrentInstanceExercise(
+                    EditProgramUiHelpers_changeCurrentInstanceExercise(
                       props.plannerDispatch,
                       plannerExercise,
                       props.settings,
@@ -84,12 +89,12 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
                     data-cy="program-exercise-toggle-set-variations"
                     onClick={() => {
                       setIsKebabMenuOpen(false);
-                      EditProgramUiHelpers.changeCurrentInstanceExercise(
+                      EditProgramUiHelpers_changeCurrentInstanceExercise(
                         props.plannerDispatch,
                         plannerExercise,
                         props.settings,
                         (ex) => {
-                          const lastSetVariation = ObjectUtils.clone(ex.evaluatedSetVariations[0]);
+                          const lastSetVariation = ObjectUtils_clone(ex.evaluatedSetVariations[0]);
                           ex.evaluatedSetVariations.push(lastSetVariation);
                         }
                       );
@@ -106,11 +111,11 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
                     const dayData = {
                       week: props.weekIndex + 1,
                       dayInWeek: props.dayInWeekIndex + 1,
-                      day: Program.getDayNumber(props.evaluatedProgram, props.weekIndex, props.dayInWeekIndex),
+                      day: Program_getDayNumber(props.evaluatedProgram, props.weekIndex, props.dayInWeekIndex),
                     };
                     props.plannerDispatch(
                       lbProgram.recordModify((program) => {
-                        return EditProgramUiHelpers.deleteCurrentInstance(
+                        return EditProgramUiHelpers_deleteCurrentInstance(
                           program,
                           dayData,
                           props.fullName,
@@ -135,7 +140,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
                       if (showRepeat) {
                         props.plannerDispatch(
                           lbProgram.recordModify((program) => {
-                            return EditProgramUiHelpers.changeRepeating(
+                            return EditProgramUiHelpers_changeRepeating(
                               program,
                               plannerExercise.dayData,
                               plannerExercise.dayData.week,
@@ -159,7 +164,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
                   data-cy="edit-menu-exercise-toggle-order"
                   onClick={() => {
                     if (showOrder) {
-                      EditProgramUiHelpers.changeCurrentInstanceExercise(
+                      EditProgramUiHelpers_changeCurrentInstanceExercise(
                         props.plannerDispatch,
                         plannerExercise,
                         props.settings,
@@ -178,7 +183,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
                   data-cy="edit-menu-exercise-toggle-supersets"
                   onClick={() => {
                     if (showSupersets) {
-                      EditProgramUiHelpers.changeCurrentInstanceExercise(
+                      EditProgramUiHelpers_changeCurrentInstanceExercise(
                         props.plannerDispatch,
                         plannerExercise,
                         props.settings,
@@ -221,11 +226,11 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
               const dayData = {
                 week: props.weekIndex + 1,
                 dayInWeek: props.dayInWeekIndex + 1,
-                day: Program.getDayNumber(props.evaluatedProgram, props.weekIndex, props.dayInWeekIndex),
+                day: Program_getDayNumber(props.evaluatedProgram, props.weekIndex, props.dayInWeekIndex),
               };
               props.plannerDispatch(
                 lbProgram.recordModify((program) => {
-                  return EditProgramUiHelpers.addInstance(
+                  return EditProgramUiHelpers_addInstance(
                     program,
                     dayData,
                     props.fullName,

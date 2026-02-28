@@ -1,16 +1,23 @@
 import { h, JSX } from "preact";
 import { memo, useMemo } from "preact/compat";
 import { IHistoryRecord, IProgram, ISettings, IStats } from "../../types";
-import { IEvaluatedProgram, Program } from "../../models/program";
+import {
+  IEvaluatedProgram,
+  Program_runAllFinishDayScripts,
+  Program_nextHistoryRecord,
+  Program_evaluate,
+  Program_getProgramDay,
+  Program_getProgramDayUsedExercises,
+} from "../../models/program";
 import { ProgramPreviewPlaygroundDay } from "./programPreviewPlaygroundDay";
 import { ILensDispatch, useLensReducer } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
-import { Progress } from "../../models/progress";
+import { Progress_applyProgramDay, Progress_runInitialUpdateScripts } from "../../models/progress";
 import { IScrollableTabsProps, ScrollableTabs } from "../scrollableTabs";
 import { IProgramPreviewPlaygroundDaySetup, IProgramPreviewPlaygroundWeekSetup } from "./programPreviewPlaygroundSetup";
 import deepmerge from "deepmerge";
 import { Markdown } from "../markdown";
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_filter } from "../../utils/object";
 import { ProgramToPlanner } from "../../models/programToPlanner";
 
 type IProgramPreviewPlaygroundDaySetupWithProgress = IProgramPreviewPlaygroundDaySetup & {
@@ -74,8 +81,8 @@ function onProgramChange(
             return {
               ...wk,
               days: wk.days.map((day: IProgramPreviewPlaygroundDaySetupWithProgress) => {
-                let newProgress = Progress.applyProgramDay(day.progress, newEvaluatedProgram, day.day, state.settings);
-                newProgress = Progress.runInitialUpdateScripts(
+                let newProgress = Progress_applyProgramDay(day.progress, newEvaluatedProgram, day.day, state.settings);
+                newProgress = Progress_runInitialUpdateScripts(
                   newProgress,
                   undefined,
                   day.day,
@@ -112,8 +119,8 @@ function onSettingsChange(
             return {
               ...wk,
               days: wk.days.map((day: IProgramPreviewPlaygroundDaySetupWithProgress) => {
-                let newProgress = Progress.applyProgramDay(day.progress, evaluatedProgram, day.day, newSettings);
-                newProgress = Progress.runInitialUpdateScripts(
+                let newProgress = Progress_applyProgramDay(day.progress, evaluatedProgram, day.day, newSettings);
+                newProgress = Progress_runInitialUpdateScripts(
                   newProgress,
                   undefined,
                   day.day,
@@ -141,7 +148,7 @@ function onFinish(
   state: IProgramPreviewPlaygroundState,
   d: IProgramPreviewPlaygroundDaySetupWithProgress
 ): void {
-  const { program: newProgram, exerciseData } = Program.runAllFinishDayScripts(
+  const { program: newProgram, exerciseData } = Program_runAllFinishDayScripts(
     state.program,
     d.progress,
     props.stats,
@@ -160,7 +167,7 @@ function onFinish(
             return {
               ...wk,
               days: wk.days.map((day: IProgramPreviewPlaygroundDaySetupWithProgress) => {
-                const newProgress = Program.nextHistoryRecord(newProgram, newSettings, props.stats, day.day);
+                const newProgress = Program_nextHistoryRecord(newProgram, newSettings, props.stats, day.day);
                 return {
                   ...day,
                   progress: newProgress,
@@ -178,7 +185,7 @@ function onFinish(
 
 export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundProps): JSX.Element => {
   const initialEvaluatedProgram = useMemo(
-    () => Program.evaluate(props.program, props.settings),
+    () => Program_evaluate(props.program, props.settings),
     [props.program, props.settings]
   );
   let dayNumber = 0;
@@ -191,11 +198,11 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
         name: week.name,
         days: week.days.map(() => {
           dayNumber += 1;
-          const progress = Program.nextHistoryRecord(props.program, props.settings, props.stats, dayNumber);
-          const programDay = Program.getProgramDay(initialEvaluatedProgram, dayNumber);
-          const dayExercises = programDay ? Program.getProgramDayUsedExercises(programDay) : [];
+          const progress = Program_nextHistoryRecord(props.program, props.settings, props.stats, dayNumber);
+          const programDay = Program_getProgramDay(initialEvaluatedProgram, dayNumber);
+          const dayExercises = programDay ? Program_getProgramDayUsedExercises(programDay) : [];
           const exerciseTags = new Set(dayExercises.map((e) => e.tags).flat());
-          const states = ObjectUtils.filter(initialEvaluatedProgram.states, (key, state) => {
+          const states = ObjectUtils_filter(initialEvaluatedProgram.states, (key, state) => {
             return exerciseTags.has(key);
           });
           return { day: dayNumber, states, progress };
@@ -211,7 +218,7 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
     },
   ]);
   const evaluatedProgram = useMemo(() => {
-    return Program.evaluate(state.program, state.settings);
+    return Program_evaluate(state.program, state.settings);
   }, [state.program, state.settings]);
 
   if (props.showAllWeeks && !props.isPlayground) {

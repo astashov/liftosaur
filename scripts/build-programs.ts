@@ -3,11 +3,10 @@ import * as path from "path";
 import { execSync } from "child_process";
 import matter from "gray-matter";
 import { programOrder } from "../lambda/dao/programDao";
-import { IExerciseType, IPlannerProgramWeek } from "../src/types";
-import { PlannerProgram } from "../src/pages/planner/models/plannerProgram";
-import { CollectionUtils } from "../src/utils/collection";
-import { Settings } from "../src/models/settings";
+import { CollectionUtils_sortInOrder } from "../src/utils/collection";
 import { IProgramIndexEntry } from "../src/models/program";
+import { parseProgramMarkdownContent } from "../src/utils/programUtils";
+import { IProgramDetail } from "../src/api/service";
 
 const programsSources = [
   { dir: path.resolve(__dirname, "../programs/builtin"), category: "builtin" },
@@ -15,26 +14,6 @@ const programsSources = [
 ];
 const outputDir = path.resolve(__dirname, "../programdata");
 const programsOutputDir = path.join(outputDir, "programs");
-
-function extractLiftoscriptBlock(content: string): { markdown: string; liftoscript: string } {
-  const liftoscriptRegex = /^```liftoscript\s*\n([\s\S]*?)^```\s*$/m;
-  const match = content.match(liftoscriptRegex);
-  if (!match) {
-    return { markdown: content, liftoscript: "" };
-  }
-  const markdown = content.slice(0, match.index) + content.slice(match.index! + match[0].length);
-  return { markdown: markdown.trim(), liftoscript: match[1].trim() };
-}
-
-interface IProgramDetail {
-  fullDescription: string;
-  faq?: string;
-  planner: {
-    vtype: "planner";
-    name: string;
-    weeks: IPlannerProgramWeek[];
-  };
-}
 
 function collectMdFiles(): { file: string; dir: string; category: string }[] {
   const results: { file: string; dir: string; category: string }[] = [];
@@ -47,57 +26,6 @@ function collectMdFiles(): { file: string; dir: string; category: string }[] {
     }
   }
   return results;
-}
-
-function extractExerciseData(liftoscript: string): {
-  exercises: IExerciseType[];
-  equipment: string[];
-  exercisesRange: [number, number];
-} {
-  const settings = Settings.build();
-  const { evaluatedWeeks } = PlannerProgram.evaluateFull(liftoscript, settings);
-
-  const exerciseMap = new Map<string, IExerciseType>();
-  let minExercises = Infinity;
-  let maxExercises = 0;
-
-  if (evaluatedWeeks.success) {
-    for (const week of evaluatedWeeks.data) {
-      for (const day of week.days) {
-        const dayExercises = day.exercises.filter((e) => !e.notused);
-        const count = dayExercises.length;
-        minExercises = Math.min(minExercises, count);
-        maxExercises = Math.max(maxExercises, count);
-
-        for (const exercise of dayExercises) {
-          if (exercise.exerciseType) {
-            const key = `${exercise.exerciseType.id}:${exercise.exerciseType.equipment}`;
-            if (!exerciseMap.has(key)) {
-              exerciseMap.set(key, exercise.exerciseType);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  if (minExercises === Infinity) {
-    minExercises = 0;
-  }
-
-  const exercises = Array.from(exerciseMap.values());
-  const equipmentSet = new Set<string>();
-  for (const e of exercises) {
-    if (e.equipment && e.equipment !== "bodyweight") {
-      equipmentSet.add(e.equipment);
-    }
-  }
-
-  return {
-    exercises,
-    equipment: Array.from(equipmentSet),
-    exercisesRange: [minExercises, maxExercises],
-  };
 }
 
 function getGitDates(filePath: string): { datePublished?: string; dateModified?: string } {
@@ -130,65 +58,8 @@ function buildPrograms(): void {
     const { data: frontmatter, content } = matter(raw);
 
     const id = (frontmatter.id as string) || path.basename(file, ".md");
-    const { markdown, liftoscript } = extractLiftoscriptBlock(content);
-
-    const moreSeparator = "<!-- more -->";
-    const faqSeparator = "<!-- faq -->";
-    const moreIndex = markdown.indexOf(moreSeparator);
-    let description: string;
-    let fullDescription: string;
-    let faq: string | undefined;
-    if (moreIndex !== -1) {
-      description = markdown.slice(0, moreIndex).trim();
-      const afterMore = markdown.slice(moreIndex + moreSeparator.length).trim();
-      const faqIndex = afterMore.indexOf(faqSeparator);
-      if (faqIndex !== -1) {
-        fullDescription = afterMore.slice(0, faqIndex).trim();
-        faq = afterMore.slice(faqIndex + faqSeparator.length).trim();
-      } else {
-        fullDescription = afterMore;
-      }
-    } else {
-      description = markdown.trim();
-      fullDescription = "";
-    }
-
-    const weeks: IPlannerProgramWeek[] = liftoscript
-      ? PlannerProgram.evaluateText(liftoscript)
-      : [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }];
-
-    const { exercises, equipment, exercisesRange } = liftoscript
-      ? extractExerciseData(liftoscript)
-      : { exercises: [], equipment: [], exercisesRange: [0, 0] as [number, number] };
-
-    const entry: IProgramIndexEntry = {
-      id,
-      name: (frontmatter.name as string) || id,
-      author: (frontmatter.author as string) || "",
-      authorUrl: (frontmatter.authorUrl as string) || "",
-      url: (frontmatter.url as string) || "",
-      shortDescription: (frontmatter.shortDescription as string) || "",
-      description,
-      isMultiweek: (frontmatter.isMultiweek as boolean) || false,
-      tags: (frontmatter.tags as string[]) || [],
-      weeksCount: weeks.length,
-      exercises: exercises.filter((e) => e.equipment != null).map((e) => ({ id: e.id, equipment: e.equipment! })),
-      equipment,
-      exercisesRange,
-    };
-
-    if (frontmatter.frequency != null) {
-      entry.frequency = frontmatter.frequency as number;
-    }
-    if (frontmatter.age != null) {
-      entry.age = frontmatter.age as string;
-    }
-    if (frontmatter.duration != null) {
-      entry.duration = frontmatter.duration as string;
-    }
-    if (frontmatter.goal != null) {
-      entry.goal = frontmatter.goal as string;
-    }
+    const fm = { ...frontmatter, id } as Record<string, unknown>;
+    const { indexEntry: entry, detail } = parseProgramMarkdownContent(content, fm);
 
     const gitDates = getGitDates(path.join(dir, file));
     if (gitDates.datePublished) {
@@ -199,20 +70,12 @@ function buildPrograms(): void {
     }
 
     index.push(entry);
+    programsById[entry.id] = { detail, category };
 
-    programsById[id] = {
-      detail: {
-        fullDescription,
-        ...(faq ? { faq } : {}),
-        planner: { vtype: "planner", name: (frontmatter.name as string) || id, weeks },
-      },
-      category,
-    };
-
-    console.log(`  ✓ ${id}`);
+    console.log(`  ✓ ${entry.id}`);
   }
 
-  const sorted = CollectionUtils.sortInOrder(index, "id", programOrder);
+  const sorted = CollectionUtils_sortInOrder(index, "id", programOrder);
 
   fs.mkdirSync(programsOutputDir, { recursive: true });
   fs.writeFileSync(path.join(outputDir, "index.json"), JSON.stringify(sorted));

@@ -1,6 +1,6 @@
-import { Utils } from "../utils";
+import { Utils_getEnv } from "../utils";
 import { IDI } from "../utils/di";
-import { UidFactory } from "../utils/generator";
+import { UidFactory_generateUid } from "../utils/generator";
 
 const tableNames = {
   dev: {
@@ -29,13 +29,13 @@ export class AiLogsDao {
   constructor(private readonly di: IDI) {}
 
   public async create(log: Omit<IAiLogDao, "id" | "ttl">): Promise<void> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     try {
       await this.di.dynamo.put({
         tableName: tableNames[env].aiLogs,
         item: {
           ...log,
-          id: UidFactory.generateUid(16),
+          id: UidFactory_generateUid(16),
           ttl: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60, // 30 days from now in seconds
         },
       });
@@ -45,7 +45,7 @@ export class AiLogsDao {
   }
 
   public async getByUserId(userId: string, limit: number = 100): Promise<IAiLogDao[]> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     const result = await this.di.dynamo.query<IAiLogDao>({
       tableName: tableNames[env].aiLogs,
       indexName: tableNames[env].userIdIndex,
@@ -58,7 +58,7 @@ export class AiLogsDao {
   }
 
   public async getByDateRange(startTime: number, endTime: number, limit: number = 1000): Promise<IAiLogDao[]> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     const result = await this.di.dynamo.scan<IAiLogDao>({
       tableName: tableNames[env].aiLogs,
       filterExpression: "timestamp BETWEEN :start AND :end",
@@ -71,7 +71,7 @@ export class AiLogsDao {
   }
 
   public async getAll(limit: number = 1000): Promise<IAiLogDao[]> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     const result = await this.di.dynamo.scan<IAiLogDao>({
       tableName: tableNames[env].aiLogs,
     });

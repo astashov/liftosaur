@@ -3,7 +3,7 @@ import { Page } from "../../components/page";
 import { IAccount } from "../../models/account";
 import { IExportedProgram } from "../../models/program";
 import { IStorage } from "../../types";
-import { HtmlUtils } from "../../utils/html";
+import { HtmlUtils_escapeHtml } from "../../utils/html";
 import { ProgramOrPlannerSyncer } from "./programOrPlannerSyncer";
 
 interface IProps {
@@ -23,7 +23,7 @@ export function ProgramHtml(props: IProps): JSX.Element {
   const programName = data.exportedProgram?.program?.name;
   const title =
     programName != null
-      ? `${HtmlUtils.escapeHtml(programName)} | Workout Editor | Liftosaur`
+      ? `${HtmlUtils_escapeHtml(programName)} | Workout Editor | Liftosaur`
       : "Weightlifting Workout Planner | Liftosaur";
   const url = "https://www.liftosaur.com" + (data.exportedProgram?.program?.planner ? "/planner" : "/program");
 
@@ -37,7 +37,7 @@ export function ProgramHtml(props: IProps): JSX.Element {
       canonical={url}
       ogUrl={url}
       data={data}
-      account={props.account}
+      isLoggedIn={!!props.account}
       client={client}
       url={data.exportedProgram?.program?.planner ? "/planner" : "/program"}
       postHead={<script>window.webeditor = true</script>}

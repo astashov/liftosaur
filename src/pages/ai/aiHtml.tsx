@@ -13,7 +13,7 @@ export function AiHtml(props: IAiHtmlProps): JSX.Element {
 
   return (
     <Page
-      account={props.account}
+      isLoggedIn={!!props.account}
       client={client}
       css={["ai"]}
       js={["ai"]}

@@ -1,13 +1,13 @@
 import { getLatestMigrationVersion, migrations } from "./migrations";
-import { ObjectUtils } from "../utils/object";
+import { ObjectUtils_keys } from "../utils/object";
 import { IPartialStorage, IStorage } from "../types";
-import { Storage } from "../models/storage";
+import { Storage_partialStorageToStorage } from "../models/storage";
 import RB from "rollbar";
 declare const Rollbar: RB;
 
 export function unrunMigrations(storage: { version: string }, maxVersion?: string): Array<keyof typeof migrations> {
   const currentVersion = storage.version != null ? parseInt(storage.version.toString(), 10) : 0;
-  const keys = ObjectUtils.keys(migrations);
+  const keys = ObjectUtils_keys(migrations);
   keys.sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
   const maxVersionInt = maxVersion != null ? parseInt(maxVersion, 10) : undefined;
   return keys.filter((versionStr) => {
@@ -18,7 +18,7 @@ export function unrunMigrations(storage: { version: string }, maxVersion?: strin
 
 export function runMigrations(storage: IStorage | IPartialStorage, maxVersion?: string): IStorage {
   const newVersions = unrunMigrations(storage, maxVersion);
-  let result = Storage.partialStorageToStorage(storage);
+  let result = Storage_partialStorageToStorage(storage);
   for (const version of newVersions) {
     try {
       result = migrations[version](result);

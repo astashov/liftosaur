@@ -3,11 +3,11 @@ import { IPlannerExerciseState, IPlannerExerciseUi, IPlannerProgramExercise } fr
 import { ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IconArrowDown3 } from "../icons/iconArrowDown3";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_colors } from "../../utils/tailwindConfig";
 import { EditProgramExerciseSetVariation } from "./editProgramExerciseSetVariation";
 import { IconPlus2 } from "../icons/iconPlus2";
-import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
-import { ObjectUtils } from "../../utils/object";
+import { EditProgramUiHelpers_changeCurrentInstanceExercise } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import { ObjectUtils_clone } from "../../utils/object";
 import { useRef } from "preact/hooks";
 
 interface IEditProgramExerciseSetVariationsListProps {
@@ -31,12 +31,12 @@ export function EditProgramExerciseSetVariationsList(props: IEditProgramExercise
               data-cy="set-variations-add"
               className="p-1 mr-4 border rounded-full border-border-neutral"
               onClick={() => {
-                return EditProgramUiHelpers.changeCurrentInstanceExercise(
+                return EditProgramUiHelpers_changeCurrentInstanceExercise(
                   props.plannerDispatch,
                   props.plannerExercise,
                   props.settings,
                   (ex) => {
-                    const lastSetVariation = ObjectUtils.clone(
+                    const lastSetVariation = ObjectUtils_clone(
                       ex.evaluatedSetVariations[ex.evaluatedSetVariations.length - 1]
                     );
                     ex.evaluatedSetVariations.push(lastSetVariation);
@@ -44,7 +44,7 @@ export function EditProgramExerciseSetVariationsList(props: IEditProgramExercise
                 );
               }}
             >
-              <IconPlus2 color={Tailwind.colors().lightgray[600]} size={14} />
+              <IconPlus2 color={Tailwind_colors().lightgray[600]} size={14} />
             </button>
             <button
               className="p-1 border rounded-full border-border-neutral"
@@ -56,7 +56,7 @@ export function EditProgramExerciseSetVariationsList(props: IEditProgramExercise
                 });
               }}
             >
-              <IconArrowDown3 className="rotate-90" color={Tailwind.colors().lightgray[600]} size={14} />
+              <IconArrowDown3 className="rotate-90" color={Tailwind_colors().lightgray[600]} size={14} />
             </button>
             <button
               data-cy="set-variations-scroll-right"
@@ -68,7 +68,7 @@ export function EditProgramExerciseSetVariationsList(props: IEditProgramExercise
                 });
               }}
             >
-              <IconArrowDown3 className="-rotate-90" color={Tailwind.colors().lightgray[600]} size={14} />
+              <IconArrowDown3 className="-rotate-90" color={Tailwind_colors().lightgray[600]} size={14} />
             </button>
           </div>
         </div>

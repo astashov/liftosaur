@@ -3,7 +3,11 @@ import { Modal } from "./modal";
 import { IDispatch } from "../ducks/types";
 import { MenuItemEditable } from "./menuItemEditable";
 import { ISettings, IStatsLength, IStatsPercentage, IStatsWeight } from "../types";
-import { EditStats } from "../models/editStats";
+import {
+  EditStats_toggleWeightStats,
+  EditStats_toggleLengthStats,
+  EditStats_togglePercentageStats,
+} from "../models/editStats";
 import { GroupHeader } from "./groupHeader";
 
 interface IModalStatsProps {
@@ -18,19 +22,19 @@ export function ModalStats(props: IModalStatsProps): JSX.Element {
 
   function saveWeight(name: keyof IStatsWeight): (v?: string) => void {
     return function (v?: string) {
-      EditStats.toggleWeightStats(props.dispatch, name, v === "true");
+      EditStats_toggleWeightStats(props.dispatch, name, v === "true");
     };
   }
 
   function saveLength(name: keyof IStatsLength): (v?: string) => void {
     return function (v?: string) {
-      EditStats.toggleLengthStats(props.dispatch, name, v === "true");
+      EditStats_toggleLengthStats(props.dispatch, name, v === "true");
     };
   }
 
   function savePercentage(name: keyof IStatsPercentage): (v?: string) => void {
     return function (v?: string) {
-      EditStats.togglePercentageStats(props.dispatch, name, v === "true");
+      EditStats_togglePercentageStats(props.dispatch, name, v === "true");
     };
   }
 

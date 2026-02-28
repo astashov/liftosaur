@@ -10,16 +10,16 @@ import {
   IVectorClock,
 } from "../../src/models/versionTracker";
 import { IAtomicType, IControlledType, ISubscriptionReceipt, STORAGE_VERSION_TYPES } from "../../src/types";
-import { Storage } from "../../src/models/storage";
+import { Storage_getDefault, Storage_mergeStorage } from "../../src/models/storage";
 import { IStorage, IProgram, IHistoryRecord, ICustomExercise, IHistoryEntry } from "../../src/types";
-import { ObjectUtils } from "../../src/utils/object";
-import { UidFactory } from "../../src/utils/generator";
+import { ObjectUtils_clone } from "../../src/utils/object";
+import { UidFactory_generateUid } from "../../src/utils/generator";
 
 describe("VersionTracker", () => {
   describe("vector clocks", () => {
     it("should create vector clock versions when deviceId is provided", () => {
       const trackerWithDevice = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc123" });
-      const oldStorage = Storage.getDefault();
+      const oldStorage = Storage_getDefault();
       const newStorage = { ...oldStorage, currentProgramId: "program-123" };
       const timestamp = 1000;
 
@@ -32,7 +32,7 @@ describe("VersionTracker", () => {
 
     it("should create plain timestamp versions when deviceId is not provided", () => {
       const trackerNoDevice = new VersionTracker(STORAGE_VERSION_TYPES);
-      const oldStorage = Storage.getDefault();
+      const oldStorage = Storage_getDefault();
       const newStorage = { ...oldStorage, currentProgramId: "program-123" };
       const timestamp = 1000;
 
@@ -43,7 +43,7 @@ describe("VersionTracker", () => {
 
     it("should increment vector clock counter for same device", () => {
       const trackerWithDevice = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc123" });
-      const storage1 = Storage.getDefault();
+      const storage1 = Storage_getDefault();
       const storage2 = { ...storage1, currentProgramId: "program-1" };
       const storage3 = { ...storage2, currentProgramId: "program-2" };
 
@@ -59,7 +59,7 @@ describe("VersionTracker", () => {
       const trackerDevice2 = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "ios_xyz" });
 
       // Device 1 makes first change
-      const storage1 = Storage.getDefault();
+      const storage1 = Storage_getDefault();
       const storage2 = { ...storage1, currentProgramId: "program-1" };
       const versions1 = trackerDevice1.updateVersions(storage1, storage2, {}, {}, 1000);
       // versions1.currentProgramId = { vc: { web_abc: 1 }, t: 1000 }
@@ -84,7 +84,7 @@ describe("VersionTracker", () => {
       const trackerDevice2 = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "ios_xyz" });
 
       // Device 1 makes a change
-      const storage1 = Storage.getDefault();
+      const storage1 = Storage_getDefault();
       const storage2Web = { ...storage1, currentProgramId: "program-web" };
       const versionsWeb = trackerDevice1.updateVersions(storage1, storage2Web, {}, {}, 1000);
       // versionsWeb.currentProgramId = { vc: { web_abc: 1 }, t: 1000 }
@@ -109,7 +109,7 @@ describe("VersionTracker", () => {
       const trackerDevice2 = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "ios_xyz" });
 
       // Device 1 makes a change
-      const storage1 = Storage.getDefault();
+      const storage1 = Storage_getDefault();
       const storage2Web = { ...storage1, currentProgramId: "program-web" };
       const versionsWeb = trackerDevice1.updateVersions(storage1, storage2Web, {}, {}, 3000);
 
@@ -131,7 +131,7 @@ describe("VersionTracker", () => {
       const trackerWithDevice = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc" });
 
       // Start with plain timestamp (old version without deviceId)
-      const storage1 = Storage.getDefault();
+      const storage1 = Storage_getDefault();
       const storage2 = { ...storage1, currentProgramId: "program-1" };
       const versionsPlain = { currentProgramId: 1000 }; // Plain timestamp
 
@@ -192,7 +192,7 @@ describe("VersionTracker", () => {
       };
 
       const oldStorage = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         programs: [program1],
       };
 
@@ -213,7 +213,7 @@ describe("VersionTracker", () => {
     it("should compare equal vector clocks correctly", () => {
       const trackerDevice1 = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc" });
 
-      const storage1 = Storage.getDefault();
+      const storage1 = Storage_getDefault();
       const storage2 = { ...storage1, currentProgramId: "program-1" };
       const versions1 = trackerDevice1.updateVersions(storage1, storage2, {}, {}, 1000);
 
@@ -230,7 +230,7 @@ describe("VersionTracker", () => {
     it("should work with vector clocks in nested structures", () => {
       const trackerWithDevice = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc" });
 
-      const oldStorage = Storage.getDefault();
+      const oldStorage = Storage_getDefault();
       const newStorage = {
         ...oldStorage,
         settings: {
@@ -272,7 +272,7 @@ describe("VersionTracker", () => {
       };
 
       const oldStorage = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         programs: [program],
       };
 
@@ -297,7 +297,7 @@ describe("VersionTracker", () => {
       const trackerB = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "ios_xyz" });
 
       // Device A makes 2 changes
-      const storage1 = Storage.getDefault();
+      const storage1 = Storage_getDefault();
       const storage2 = { ...storage1, currentProgramId: "program-1" };
       const versionsA1 = trackerA.updateVersions(storage1, storage2, {}, {}, 1000);
       // versionsA1.currentProgramId = { vc: { web_abc: 1 }, t: 1000 }
@@ -333,7 +333,7 @@ describe("VersionTracker", () => {
       const trackerNoDevice = new VersionTracker(STORAGE_VERSION_TYPES); // Old client
 
       // Old client (no vector clocks) makes a change at time 5000
-      const storage1 = Storage.getDefault();
+      const storage1 = Storage_getDefault();
       const storage2Old = { ...storage1, currentProgramId: "Latest Change" };
       const versionsOld = trackerNoDevice.updateVersions(storage1, storage2Old, {}, {}, 5000);
       // versionsOld.currentProgramId = 5000 (plain timestamp)
@@ -403,7 +403,7 @@ describe("VersionTracker", () => {
         };
 
         // iOS device creates program
-        const storage1 = { ...Storage.getDefault(), programs: [] };
+        const storage1 = { ...Storage_getDefault(), programs: [] };
         const storage2 = { ...storage1, programs: [program] };
         const versionsIos = trackerIos.updateVersions(storage1, storage2, {}, {}, 1000);
         // versionsIos.programs.items["1"].name = { vc: { ios_xyz: 1 }, t: 1000 }
@@ -441,9 +441,9 @@ describe("VersionTracker", () => {
 
         // iOS device creates a custom exercise
         const storage1 = {
-          ...Storage.getDefault(),
+          ...Storage_getDefault(),
           settings: {
-            ...Storage.getDefault().settings,
+            ...Storage_getDefault().settings,
             exercises: { "custom-ex": customExercise },
           },
         };
@@ -483,8 +483,8 @@ describe("VersionTracker", () => {
 
         // iOS device modifies a non-trackable array
         const storage1 = {
-          ...Storage.getDefault(),
-          settings: { ...Storage.getDefault().settings, timers: [30, 60] },
+          ...Storage_getDefault(),
+          settings: { ...Storage_getDefault().settings, timers: [30, 60] },
         };
         const storage2 = {
           ...storage1,
@@ -527,7 +527,7 @@ describe("VersionTracker", () => {
         };
 
         // iOS device creates program and updates name
-        const storage1 = { ...Storage.getDefault(), programs: [program] };
+        const storage1 = { ...Storage_getDefault(), programs: [program] };
         const storage2 = { ...storage1, programs: [{ ...program, name: "Updated by iOS" }] };
         const versionsIos = trackerIos.updateVersions(storage1, storage2, {}, {}, 1000);
 
@@ -562,7 +562,7 @@ describe("VersionTracker", () => {
         };
 
         // iOS device creates history record
-        const storage1 = { ...Storage.getDefault(), history: [] };
+        const storage1 = { ...Storage_getDefault(), history: [] };
         const storage2 = { ...storage1, history: [record] };
         const versionsIos = trackerIos.updateVersions(storage1, storage2, {}, {}, 1000);
 
@@ -585,7 +585,7 @@ describe("VersionTracker", () => {
         const trackerIos = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "ios_xyz" });
 
         // iOS device changes currentProgramId
-        const storage1 = Storage.getDefault();
+        const storage1 = Storage_getDefault();
         const storage2 = { ...storage1, currentProgramId: "program-1" };
         const versionsIos = trackerIos.updateVersions(storage1, storage2, {}, {}, 1000);
 
@@ -606,7 +606,7 @@ describe("VersionTracker", () => {
         const trackerAndroid = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "android_def" });
 
         // iOS makes first change
-        const storage1 = Storage.getDefault();
+        const storage1 = Storage_getDefault();
         const storage2 = { ...storage1, currentProgramId: "program-1" };
         const versionsIos = trackerIos.updateVersions(storage1, storage2, {}, {}, 1000);
 
@@ -633,7 +633,7 @@ describe("VersionTracker", () => {
         const trackerIos = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "ios_xyz" });
 
         // Initial state with a program
-        const storage1 = Storage.getDefault();
+        const storage1 = Storage_getDefault();
         const program: IProgram = {
           vtype: "program",
           id: "test-program",
@@ -653,12 +653,12 @@ describe("VersionTracker", () => {
         const versions1 = trackerWeb.fillVersions(storage1, {}, 1000);
 
         // iOS modifies only the 'name' field
-        const storage2 = ObjectUtils.clone(storage1);
+        const storage2 = ObjectUtils_clone(storage1);
         storage2.programs[0].name = "Modified by iOS";
         const versions2 = trackerIos.updateVersions(storage1, storage2, versions1, {}, 2000);
 
         // Web modifies only the 'nextDay' field (concurrent change)
-        const storage3 = ObjectUtils.clone(storage1);
+        const storage3 = ObjectUtils_clone(storage1);
         storage3.programs[0].nextDay = 2;
         const versions3 = trackerWeb.updateVersions(storage1, storage3, versions1, {}, 2500);
 
@@ -839,11 +839,11 @@ describe("VersionTracker", () => {
         createdAt: now,
       };
 
-      const oldStorage = Storage.getDefault();
+      const oldStorage = Storage_getDefault();
       const newStorage = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         subscription: {
-          ...Storage.getDefault().subscription,
+          ...Storage_getDefault().subscription,
           apple: [receipt], // Add a new receipt to trigger field update
         },
       };
@@ -892,17 +892,17 @@ describe("VersionTracker", () => {
       };
 
       const oldStorage = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         subscription: {
-          ...Storage.getDefault().subscription,
+          ...Storage_getDefault().subscription,
           google: [receipt],
         },
       };
 
       const newStorage = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         subscription: {
-          ...Storage.getDefault().subscription,
+          ...Storage_getDefault().subscription,
           google: [], // Deleted the receipt
         },
       };
@@ -920,7 +920,7 @@ describe("VersionTracker", () => {
   describe("controlled type ID conflict resolution", () => {
     it("should generate ID version for controlled types in updateVersions", () => {
       const tracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "device1" });
-      const oldStorage = Storage.getDefault();
+      const oldStorage = Storage_getDefault();
       const newStorage = {
         ...oldStorage,
         progress: [
@@ -955,7 +955,7 @@ describe("VersionTracker", () => {
     it("should fill ID version for controlled types in fillVersions", () => {
       const tracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "device1" });
       const storage = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         progress: {
           vtype: "progress" as const,
           startTime: 1000,
@@ -1037,7 +1037,7 @@ describe("VersionTracker", () => {
 
       // Full object (Device A's progress)
       const fullObj = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         progress: {
           vtype: "progress" as const,
           startTime: 1000,
@@ -1096,7 +1096,7 @@ describe("VersionTracker", () => {
 
       // Full object (Device A's progress)
       const fullObj = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         progress: {
           vtype: "progress" as const,
           startTime: 1000,
@@ -1157,7 +1157,7 @@ describe("VersionTracker", () => {
         id: "entry-a",
         vtype: "history_entry",
         exercise: { id: "squat" },
-        sets: [{ vtype: "set", index: 0, reps: 5, weight: { value: 100, unit: "kg" }, id: UidFactory.generateUid(6) }],
+        sets: [{ vtype: "set", index: 0, reps: 5, weight: { value: 100, unit: "kg" }, id: UidFactory_generateUid(6) }],
         warmupSets: [],
         index: 0,
       };
@@ -1166,14 +1166,14 @@ describe("VersionTracker", () => {
         id: "entry-b",
         vtype: "history_entry",
         exercise: { id: "benchPress" },
-        sets: [{ vtype: "set", index: 0, reps: 8, weight: { value: 60, unit: "kg" }, id: UidFactory.generateUid(6) }],
+        sets: [{ vtype: "set", index: 0, reps: 8, weight: { value: 60, unit: "kg" }, id: UidFactory_generateUid(6) }],
         warmupSets: [],
         index: 1,
       };
 
       // Full object (Device A's progress) - now an array
       const fullObj = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         progress: [
           {
             vtype: "progress" as const,
@@ -1263,7 +1263,7 @@ describe("VersionTracker", () => {
       };
 
       // 1. Phone creates progress with an entry that has empty sets
-      const storageBase = Storage.getDefault();
+      const storageBase = Storage_getDefault();
       const storageWithProgress = {
         ...storageBase,
         progress: [
@@ -1283,7 +1283,7 @@ describe("VersionTracker", () => {
       const phoneVersions1 = phoneTracker.updateVersions(storageBase, storageWithProgress, {}, {}, 1000);
 
       // 2. Watch receives the phone's storage (entry with 0 sets) and creates its own versions
-      const watchStorage1 = ObjectUtils.clone(storageWithProgress);
+      const watchStorage1 = ObjectUtils_clone(storageWithProgress);
       const watchVersions1 = watchTracker.fillVersions(watchStorage1, phoneVersions1, 1000);
 
       // 3. Phone adds a set to the entry
@@ -1318,7 +1318,7 @@ describe("VersionTracker", () => {
       //    This simulates the watch sending before receiving the phone's updated storage
       const phoneStorage = { ...storageWithSet, _versions: phoneVersions2 } as any;
       const watchStorageToSend = { ...watchStorage1, _versions: watchVersions1 } as any;
-      const merged = Storage.mergeStorage(phoneStorage, watchStorageToSend, "ios_phone");
+      const merged = Storage_mergeStorage(phoneStorage, watchStorageToSend, "ios_phone");
 
       // Phone's set must be preserved
       expect(merged.progress[0].entries[0].sets).to.have.lengthOf(1);
@@ -1338,7 +1338,7 @@ describe("VersionTracker", () => {
       };
 
       // 1. Phone creates progress with empty sets
-      const storageBase = Storage.getDefault();
+      const storageBase = Storage_getDefault();
       const storageWithProgress = {
         ...storageBase,
         progress: [
@@ -1358,8 +1358,8 @@ describe("VersionTracker", () => {
       const phoneVersions1 = phoneTracker.updateVersions(storageBase, storageWithProgress, {}, {}, 1000);
 
       // 2. Watch gets phone's storage
-      const watchStorage = ObjectUtils.clone(storageWithProgress) as any;
-      watchStorage._versions = ObjectUtils.clone(phoneVersions1);
+      const watchStorage = ObjectUtils_clone(storageWithProgress) as any;
+      watchStorage._versions = ObjectUtils_clone(phoneVersions1);
 
       // 3. Phone adds a set
       const setToAdd = {
@@ -1388,11 +1388,11 @@ describe("VersionTracker", () => {
 
       for (let i = 0; i < 5; i++) {
         // Phone merges watch's storage
-        const phoneMerged = Storage.mergeStorage(phoneState, watchState, "ios_phone");
+        const phoneMerged = Storage_mergeStorage(phoneState, watchState, "ios_phone");
         phoneState = phoneMerged;
 
         // Watch merges phone's storage
-        const watchMerged = Storage.mergeStorage(watchState, phoneState, "watch_abc");
+        const watchMerged = Storage_mergeStorage(watchState, phoneState, "watch_abc");
         watchState = watchMerged;
       }
 

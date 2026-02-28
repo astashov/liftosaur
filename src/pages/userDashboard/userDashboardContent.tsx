@@ -1,8 +1,8 @@
 import { h, JSX } from "preact";
 import { IEventPayload } from "../../api/service";
-import { CollectionUtils } from "../../utils/collection";
-import { DateUtils } from "../../utils/date";
-import { ObjectUtils } from "../../utils/object";
+import { CollectionUtils_groupByExpr, CollectionUtils_sort, CollectionUtils_sortBy } from "../../utils/collection";
+import { DateUtils_formatYYYYMMDD, DateUtils_formatHHMMSS } from "../../utils/date";
+import { ObjectUtils_keys } from "../../utils/object";
 
 export interface IUserDashboardContentProps {
   adminKey: string;
@@ -22,7 +22,7 @@ export function UserDashboardContent(props: IUserDashboardContentProps): JSX.Ele
   const { userDao, events: allEvents } = props;
   const userId = userDao ? userDao.id : (allEvents[0].userId ?? "");
 
-  const groupedEvents = CollectionUtils.groupByExpr(allEvents, (event) => DateUtils.formatYYYYMMDD(event.timestamp));
+  const groupedEvents = CollectionUtils_groupByExpr(allEvents, (event) => DateUtils_formatYYYYMMDD(event.timestamp));
 
   return (
     <div className="mx-4">
@@ -70,14 +70,14 @@ export function UserDashboardContent(props: IUserDashboardContentProps): JSX.Ele
 
       <h2 className="mb-2 text-2xl font-bold">Events</h2>
 
-      {CollectionUtils.sort(ObjectUtils.keys(groupedEvents))
+      {CollectionUtils_sort(ObjectUtils_keys(groupedEvents))
         .reverse()
         .map((date) => {
           const events = groupedEvents[date];
           if (!events) {
             return null;
           }
-          const sortedEvents = CollectionUtils.sortBy(events, "timestamp", true);
+          const sortedEvents = CollectionUtils_sortBy(events, "timestamp", true);
           return (
             <div key={date}>
               <h3 className="sticky top-0 left-0 w-full py-2 mt-4 mb-2 text-lg font-bold leading-none bg-background-default">
@@ -107,7 +107,7 @@ interface IEventViewProps {
 
 function EventView(props: IEventViewProps): JSX.Element | null {
   const { event } = props;
-  const time = DateUtils.formatHHMMSS(event.timestamp);
+  const time = DateUtils_formatHHMMSS(event.timestamp);
   if (event.type === "event") {
     return (
       <div>

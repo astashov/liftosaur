@@ -7,17 +7,20 @@ import {
   ISettings,
   IShortDayData,
 } from "../../types";
-import { IEvaluatedProgram, Program } from "../../models/program";
+import { IEvaluatedProgram, Program_getExerciseTypesForWeekDay } from "../../models/program";
 import { BottomSheetExercisePicker } from "../exercisePicker/bottomSheetExercisePicker";
-import { Settings } from "../../models/settings";
+import { Settings_toggleStarredExercise, Settings_changePickerSettings } from "../../models/settings";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { IDispatch } from "../../ducks/types";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { Exercise } from "../../models/exercise";
-import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
+import { Exercise_get, Exercise_fullName, Exercise_handleCustomExerciseChange } from "../../models/exercise";
+import { PlannerProgram_replaceExercise } from "../../pages/planner/models/plannerProgram";
 import { lb } from "lens-shmens";
-import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
-import { ObjectUtils } from "../../utils/object";
+import {
+  EditProgramUiHelpers_duplicateCurrentInstance,
+  EditProgramUiHelpers_getChangedKeys,
+} from "./editProgramUi/editProgramUiHelpers";
+import { ObjectUtils_clone } from "../../utils/object";
 
 function onChange(
   planner: IPlannerProgram,
@@ -39,7 +42,7 @@ function onChange(
   window.isUndoing = true;
   if (plannerExercise) {
     if (change === "one") {
-      const newPlanner = PlannerProgram.replaceExercise(
+      const newPlanner = PlannerProgram_replaceExercise(
         planner,
         plannerExercise.key,
         newLabel,
@@ -54,7 +57,7 @@ function onChange(
       const lb1 = lb<IPlannerProgram>();
       plannerDispatch(lb1.record(newPlanner), "Replace one exercise in planner");
     } else if (change === "duplicate") {
-      const newPlannerProgram = EditProgramUiHelpers.duplicateCurrentInstance(
+      const newPlannerProgram = EditProgramUiHelpers_duplicateCurrentInstance(
         planner,
         { week: dayData.week, dayInWeek: dayData.dayInWeek, day: 1 },
         plannerExercise.fullName,
@@ -64,7 +67,7 @@ function onChange(
       );
       plannerDispatch(lb<IPlannerProgram>().record(newPlannerProgram), "Duplicate exercise in planner");
     } else {
-      const newPlanner = PlannerProgram.replaceExercise(
+      const newPlanner = PlannerProgram_replaceExercise(
         planner,
         plannerExercise.key,
         newLabel,
@@ -73,7 +76,7 @@ function onChange(
       );
       plannerDispatch(lb<IPlannerProgram>().record(newPlanner), "Replace all exercises in planner");
       if (onNewKey) {
-        const changedKeys = EditProgramUiHelpers.getChangedKeys(planner, newPlanner, settings);
+        const changedKeys = EditProgramUiHelpers_getChangedKeys(planner, newPlanner, settings);
         const newKey = changedKeys[plannerExercise.key];
         if (newKey != null) {
           onNewKey(newKey);
@@ -81,7 +84,7 @@ function onChange(
       }
     }
   } else {
-    const newPlanner = ObjectUtils.clone(planner);
+    const newPlanner = ObjectUtils_clone(planner);
     const day = newPlanner.weeks[dayData.week - 1]?.days[dayData.dayInWeek - 1];
     const exerciseText = day?.exerciseText;
     if (exerciseText != null) {
@@ -89,8 +92,8 @@ function onChange(
       if (typeof newExerciseType === "string") {
         fullName = `${newLabel ? `${newLabel}: ` : ""}${newExerciseType} / used: none`;
       } else if (newExerciseType != null) {
-        const exercise = Exercise.get(newExerciseType, settings.exercises);
-        fullName = Exercise.fullName(exercise, settings, newLabel);
+        const exercise = Exercise_get(newExerciseType, settings.exercises);
+        fullName = Exercise_fullName(exercise, settings, newLabel);
       }
       if (fullName != null) {
         const newLine = `${fullName} / 1x1 100${settings.units}`;
@@ -133,7 +136,7 @@ export function EditProgramBottomSheetPicker(props: IEditProgramBottomSheetPicke
       exercisePicker={exercisePickerState}
       isLoggedIn={props.isLoggedIn}
       evaluatedProgram={props.evaluatedProgram}
-      usedExerciseTypes={Program.getExerciseTypesForWeekDay(
+      usedExerciseTypes={Program_getExerciseTypesForWeekDay(
         props.evaluatedProgram,
         props.dayData.week,
         props.dayData.dayInWeek
@@ -157,11 +160,11 @@ export function EditProgramBottomSheetPicker(props: IEditProgramBottomSheetPicke
         props.onClose();
       }}
       onChangeCustomExercise={(action, exercise, notes) => {
-        Exercise.handleCustomExerciseChange(props.dispatch, action, exercise, notes, props.settings, props.program);
+        Exercise_handleCustomExerciseChange(props.dispatch, action, exercise, notes, props.settings, props.program);
       }}
       onClose={props.onClose}
-      onStar={(key) => Settings.toggleStarredExercise(props.dispatch, key)}
-      onChangeSettings={(pickerSettings) => Settings.changePickerSettings(props.dispatch, pickerSettings)}
+      onStar={(key) => Settings_toggleStarredExercise(props.dispatch, key)}
+      onChangeSettings={(pickerSettings) => Settings_changePickerSettings(props.dispatch, pickerSettings)}
       dispatch={props.pickerDispatch}
     />
   );

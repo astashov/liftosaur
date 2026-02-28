@@ -1,10 +1,10 @@
 import fetch from "node-fetch";
-import { Utils } from "../utils";
+import { Utils_getEnv } from "../utils";
 import { ILogUtil } from "./log";
 import JWT from "jsonwebtoken";
 import { ISecretsUtil } from "./secrets";
 import { ILimitedUserDao } from "../dao/userDao";
-import { CollectionUtils } from "../../src/utils/collection";
+import { CollectionUtils_sort, CollectionUtils_compact } from "../../src/utils/collection";
 import { ISubscriptionDetailsDao } from "../dao/subscriptionDetailsDao";
 import { ISubscription } from "../../src/types";
 import { FreeUserDao } from "../dao/freeUserDao";
@@ -192,7 +192,7 @@ export class Subscriptions {
 
   public async verifyAppleReceipt(
     appleReceipt?: string,
-    env: "dev" | "prod" = Utils.getEnv()
+    env: "dev" | "prod" = Utils_getEnv()
   ): Promise<string | undefined | null> {
     if (appleReceipt == null) {
       return undefined;
@@ -231,7 +231,7 @@ export class Subscriptions {
 
   public async getAppleVerificationJson(
     appleReceipt: string,
-    env: "dev" | "prod" = Utils.getEnv()
+    env: "dev" | "prod" = Utils_getEnv()
   ): Promise<IVerifyAppleReceiptResponse | undefined> {
     const url =
       env === "prod" ? "https://buy.itunes.apple.com/verifyReceipt" : "https://sandbox.itunes.apple.com/verifyReceipt";
@@ -312,7 +312,7 @@ export class Subscriptions {
     json: IVerifyAppleReceiptResponse
   ): ISubscriptionDetailsDao | undefined {
     try {
-      const latestReceipt = CollectionUtils.sort(
+      const latestReceipt = CollectionUtils_sort(
         json.latest_receipt_info || [],
         (a, b) => Number(b.purchase_date_ms) - Number(a.purchase_date_ms)
       )[0];
@@ -382,8 +382,8 @@ export class Subscriptions {
 
   public async getAppleVerificationInfoFromUser(user: ILimitedUserDao): Promise<ISubscriptionDetailsDao | undefined> {
     const receipts = Object.keys(user.storage?.subscription?.apple || {});
-    const jsons = CollectionUtils.compact(await Promise.all(receipts.map((v) => this.getAppleVerificationJson(v))));
-    const json = CollectionUtils.sort(
+    const jsons = CollectionUtils_compact(await Promise.all(receipts.map((v) => this.getAppleVerificationJson(v))));
+    const json = CollectionUtils_sort(
       jsons,
       (a, b) => Number(b.receipt?.receipt_creation_date_ms) - Number(a.receipt?.receipt_creation_date_ms)
     )[0];

@@ -16,7 +16,7 @@ You MUST deeply research the program before writing anything. Program descriptio
 - Fetch and analyze the spreadsheet page - it usually has the actual numbers that blog posts gloss over
 
 ### Step 3: Cross-Reference with Community Sources
-- Search Reddit (/r/fitness, /r/weightroom, /r/gzcl, /r/531Discussion) for discussions
+- Search Reddit (/r/fitness, /r/weightroom, /r/gzcl, /r/531Discussion) for discussions. Use WebSearch to find relevant threads, then fetch their content with: `npm run r ./lambda/scripts/fetch_reddit.ts <reddit-url>` (do NOT use WebFetch on reddit.com — it blocks automated requests)
 - Look for "program review" posts from people who actually ran it
 - Look for common questions - these reveal where the original description was ambiguous
 - Search for FAQ posts or wiki entries about the program
@@ -210,6 +210,7 @@ Write 5-8 frequently asked questions about the program. These generate FAQPage s
 - Answers should be 2-4 sentences, direct and specific
 - Include the program name in at least 2-3 questions for SEO
 - Don't repeat information verbatim from the main description — rephrase and summarize
+- **Do NOT use exercise directives** (`[{Exercise Name}]`) in the FAQ section. Use plain capitalized exercise names instead (e.g., write "Squat" not `[{Squat}]`). The FAQ content generates structured data for Google search results, where directives won't render.
 
 ## Validation Phase (AFTER Writing)
 
@@ -221,7 +222,7 @@ Write the complete markdown file to `programs/builtin/<program-id>.md`.
 ### Step 2: Validate
 Run:
 ```bash
-TS_NODE_TRANSPILE_ONLY=1 npx ts-node lambda/scripts/validate_liftoscript.ts programs/builtin/<program-id>.md
+TS_NODE_TRANSPILE_ONLY=1 npx ts-node scripts/validate_liftoscript.ts programs/builtin/<program-id>.md
 ```
 
 ### Step 3: Handle validation errors

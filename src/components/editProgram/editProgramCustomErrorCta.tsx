@@ -3,7 +3,7 @@ import { h, JSX, Fragment } from "preact";
 import { IPlannerState } from "../../pages/planner/models/types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IShortDayData } from "../../types";
-import { Exercise } from "../../models/exercise";
+import { Exercise_createCustomExercise } from "../../models/exercise";
 
 interface IPlannerEditorCustomCtaProps {
   err: string;
@@ -31,7 +31,7 @@ export function EditProgramCustomErrorCta(props: IPlannerEditorCustomCtaProps): 
                   selectedExercises: [],
                   mode: "program",
                   customExerciseName,
-                  editCustomExercise: Exercise.createCustomExercise(customExerciseName, [], [], []),
+                  editCustomExercise: Exercise_createCustomExercise(customExerciseName, [], [], []),
                 },
                 change: "all",
                 dayData: props.dayData,

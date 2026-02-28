@@ -8,12 +8,12 @@ import * as htmlToImage from "html-to-image";
 import { Ref, useEffect, useRef, useState } from "preact/hooks";
 import { IconSpinner } from "../../../components/icons/iconSpinner";
 import { MenuItemEditable } from "../../../components/menuItemEditable";
-import { CollectionUtils } from "../../../utils/collection";
+import { CollectionUtils_removeAll, CollectionUtils_remove } from "../../../utils/collection";
 import { LinkButton } from "../../../components/linkButton";
-import { StringUtils } from "../../../utils/string";
+import { StringUtils_dashcase } from "../../../utils/string";
 import { ImageShareUtils } from "../../../utils/imageshare";
 import { ScrollableTabs } from "../../../components/scrollableTabs";
-import { Program } from "../../../models/program";
+import { Program_toUrl } from "../../../models/program";
 
 interface IModalPlannerPictureExportProps {
   settings: ISettings;
@@ -55,7 +55,7 @@ export function ModalPlannerPictureExport(props: IModalPlannerPictureExportProps
   useEffect(() => {
     new Promise(async (resolve) => {
       if (url == null) {
-        const url2 = await Program.toUrl(props.program, props.settings, props.client, props.userId);
+        const url2 = await Program_toUrl(props.program, props.settings, props.client, props.userId);
         setUrl(url2);
         resolve(undefined);
       }
@@ -166,7 +166,7 @@ function SettingsTab(props: ISettingsTabProps): JSX.Element {
       })
       .then((dataUrl) => {
         setIsLoading(false);
-        const filename = StringUtils.dashcase(props.program.name) + ".png";
+        const filename = StringUtils_dashcase(props.program.name) + ".png";
         const imageShareUtils = new ImageShareUtils(dataUrl, filename);
         imageShareUtils.shareOrDownload();
       })
@@ -253,7 +253,7 @@ function SettingsTab(props: ISettingsTabProps): JSX.Element {
                 if (v === "true") {
                   setConfig({ ...config, daysToShow: Array.from(new Set([...config.daysToShow, ...dayIndexes])) });
                 } else {
-                  setConfig({ ...config, daysToShow: CollectionUtils.removeAll(config.daysToShow, dayIndexes) });
+                  setConfig({ ...config, daysToShow: CollectionUtils_removeAll(config.daysToShow, dayIndexes) });
                 }
               }}
             />
@@ -271,7 +271,7 @@ function SettingsTab(props: ISettingsTabProps): JSX.Element {
                     if (v === "true") {
                       setConfig({ ...config, daysToShow: Array.from(new Set([...config.daysToShow, dayIndex])) });
                     } else {
-                      setConfig({ ...config, daysToShow: CollectionUtils.remove(config.daysToShow, dayIndex) });
+                      setConfig({ ...config, daysToShow: CollectionUtils_remove(config.daysToShow, dayIndex) });
                     }
                   }}
                 />

@@ -2,11 +2,11 @@ import { h, JSX, Fragment } from "preact";
 import { IPlannerProgramExercise, IPlannerExerciseState } from "../../pages/planner/models/types";
 import { ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { IEvaluatedProgram, Program } from "../../models/program";
+import { IEvaluatedProgram, Program_getSupersetExercises } from "../../models/program";
 import { useState } from "preact/hooks";
 import { BottomSheetEditProgramExerciseSuperset } from "./bottomSheetEditProgramExerciseSuperset";
 import { LinkButton } from "../linkButton";
-import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import { EditProgramUiHelpers_changeCurrentInstanceExercise } from "../editProgram/editProgramUi/editProgramUiHelpers";
 
 interface IEditProgramExerciseSupersetsProps {
   plannerExercise: IPlannerProgramExercise;
@@ -18,7 +18,7 @@ interface IEditProgramExerciseSupersetsProps {
 export function EditProgramExerciseSupersets(props: IEditProgramExerciseSupersetsProps): JSX.Element {
   const [showSupersetPicker, setShowSupersetPicker] = useState(false);
   const superset = props.plannerExercise.superset;
-  const supersetExercises = Program.getSupersetExercises(props.evaluatedProgram, props.plannerExercise);
+  const supersetExercises = Program_getSupersetExercises(props.evaluatedProgram, props.plannerExercise);
   return (
     <div>
       <div
@@ -53,7 +53,7 @@ export function EditProgramExerciseSupersets(props: IEditProgramExerciseSuperset
           evaluatedProgram={props.evaluatedProgram}
           settings={props.settings}
           onSelect={(group: string | undefined) => {
-            EditProgramUiHelpers.changeCurrentInstanceExercise(
+            EditProgramUiHelpers_changeCurrentInstanceExercise(
               props.plannerDispatch,
               props.plannerExercise,
               props.settings,

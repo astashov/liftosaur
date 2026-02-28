@@ -1,6 +1,6 @@
 import { JSX, h } from "preact";
 import { useRef, useState } from "preact/hooks";
-import { Weight } from "../models/weight";
+import { Weight_buildPct, Weight_build, Weight_decrement, Weight_increment } from "../models/weight";
 import { IExerciseType, IPercentage, ISettings, IUnit, IWeight } from "../types";
 import { IconCalculator } from "./icons/iconCalculator";
 import { Input } from "./input";
@@ -28,9 +28,9 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
     if (inputValue && !isNaN(value)) {
       const unit = unitRef.current.value as IUnit | "%";
       if (unit === "%") {
-        return Weight.buildPct(value);
+        return Weight_buildPct(value);
       } else {
-        return Weight.build(value, unit);
+        return Weight_build(value, unit);
       }
     }
     return undefined;
@@ -48,9 +48,9 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
               const value = getValue();
               if (value) {
                 if (value.unit === "%") {
-                  props.onUpdate(Weight.buildPct(value.value));
+                  props.onUpdate(Weight_buildPct(value.value));
                 } else {
-                  const newWeight = Weight.decrement(value, props.settings, props.exerciseType);
+                  const newWeight = Weight_decrement(value, props.settings, props.exerciseType);
                   props.onUpdate(newWeight);
                 }
               }
@@ -124,9 +124,9 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
               if (value) {
                 if (value.unit === "%") {
                   const newValue = value.value + 1;
-                  props.onUpdate(Weight.buildPct(newValue));
+                  props.onUpdate(Weight_buildPct(newValue));
                 } else {
-                  const newWeight = Weight.increment(value, props.settings, props.exerciseType);
+                  const newWeight = Weight_increment(value, props.settings, props.exerciseType);
                   props.onUpdate(newWeight);
                 }
               }
@@ -144,7 +144,7 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
               unit={unit}
               onSelect={(weightValue) => {
                 if (weightValue != null) {
-                  props.onUpdate(Weight.build(weightValue, unit));
+                  props.onUpdate(Weight_build(weightValue, unit));
                 }
                 setIsCalculatorOpen(false);
               }}

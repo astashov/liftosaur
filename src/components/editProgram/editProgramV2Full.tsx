@@ -3,7 +3,11 @@ import { IPlannerProgram, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { lb, LensBuilder } from "lens-shmens";
-import { PlannerProgram } from "../../pages/planner/models/plannerProgram";
+import {
+  PlannerProgram_generateFullText,
+  PlannerProgram_evaluateFull,
+  PlannerProgram_evaluateText,
+} from "../../pages/planner/models/plannerProgram";
 import { useEffect, useMemo, useRef } from "preact/hooks";
 import { PlannerEditorView } from "../../pages/planner/components/plannerEditorView";
 import { EditProgramCustomErrorCta } from "./editProgramCustomErrorCta";
@@ -17,16 +21,16 @@ export interface IEditProgramV2FullProps {
 }
 
 export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
-  const fulltext = PlannerProgram.generateFullText(props.plannerProgram.weeks);
+  const fulltext = PlannerProgram_generateFullText(props.plannerProgram.weeks);
   const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
   const lbUi = lb<IPlannerState>().p("ui");
   const { evaluatedWeeks, exerciseFullNames } = useMemo(() => {
-    return PlannerProgram.evaluateFull(fulltext, props.settings);
+    return PlannerProgram_evaluateFull(fulltext, props.settings);
   }, [fulltext, props.settings]);
   const settingsRef = useRef(props.settings);
   useEffect(() => {
     settingsRef.current = props.settings;
-    const { evaluatedWeeks: evaluatedWeeks2 } = PlannerProgram.evaluateFull(fulltext, settingsRef.current);
+    const { evaluatedWeeks: evaluatedWeeks2 } = PlannerProgram_evaluateFull(fulltext, settingsRef.current);
     const newError = evaluatedWeeks2.success ? undefined : evaluatedWeeks2.error;
     if (
       props.ui.fullTextError?.message !== newError?.message ||
@@ -61,8 +65,8 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
               />
             )}
             onChange={(text) => {
-              const weeks = PlannerProgram.evaluateText(text);
-              const { evaluatedWeeks: evaluatedWeeks2 } = PlannerProgram.evaluateFull(text, settingsRef.current);
+              const weeks = PlannerProgram_evaluateText(text);
+              const { evaluatedWeeks: evaluatedWeeks2 } = PlannerProgram_evaluateFull(text, settingsRef.current);
               props.plannerDispatch(
                 [
                   lbUi.p("fullTextError").record(evaluatedWeeks2.success ? undefined : evaluatedWeeks2.error),

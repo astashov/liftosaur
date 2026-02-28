@@ -1,9 +1,9 @@
 import { h, JSX } from "preact";
 import { useState } from "preact/hooks";
-import { Settings } from "../../models/settings";
+import { Settings_build } from "../../models/settings";
 import { ProgramsTabContent } from "./programList/programsTabContent";
 import { IProgramIndexEntry } from "../../models/program";
-import { IProgramFilter, IProgramSort, ProgramFilter } from "../../utils/programFilter";
+import { IProgramFilter, IProgramSort, ProgramFilter_sort, ProgramFilter_filter } from "../../utils/programFilter";
 import { ProgramsFilterSort } from "./programsFilterSort";
 
 export interface IProgramsPageContentProps {
@@ -15,9 +15,9 @@ export function ProgramsPageContent(props: IProgramsPageContentProps): JSX.Eleme
   const [filter, setFilter] = useState<IProgramFilter>({});
   const [sort, setSort] = useState<IProgramSort>(undefined);
   const [search, setSearch] = useState("");
-  const settings = Settings.build();
+  const settings = Settings_build();
 
-  const filteredPrograms = ProgramFilter.sort(ProgramFilter.filter(props.programs, filter, search), sort);
+  const filteredPrograms = ProgramFilter_sort(ProgramFilter_filter(props.programs, filter, search), sort);
 
   return (
     <div className="px-4 pb-8">

@@ -1,23 +1,36 @@
 import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
-import { History } from "../models/history";
+import {
+  History_getPersonalRecords,
+  History_totalRecordWeight,
+  History_getStartedEntries,
+  History_totalRecordReps,
+  History_totalRecordSets,
+  History_collectMuscleGroups,
+  History_workoutTime,
+} from "../models/history";
 import { Button } from "./button";
-import { ScreenActions } from "../actions/screenActions";
-import { Weight } from "../models/weight";
+import { ScreenActions_setScreen } from "../actions/screenActions";
+import { Weight_display } from "../models/weight";
 import { useState } from "preact/hooks";
 import { Confetti } from "./confetti";
 import { IHistoryRecord, IScreenMuscle, ISettings } from "../types";
 import { NavbarView } from "./navbar";
 import { Surface } from "./surface";
 import { INavCommon } from "../models/state";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_maybeRequestReview, Thunk_maybeRequestSignup } from "../ducks/thunks";
 import { GroupHeader } from "./groupHeader";
 import { HistoryEntryView } from "./historyEntry";
 import { Collector } from "../utils/collector";
-import { CollectionUtils } from "../utils/collection";
-import { ObjectUtils } from "../utils/object";
-import { TimeUtils } from "../utils/time";
-import { SendMessage } from "../utils/sendMessage";
+import { CollectionUtils_splitIntoNGroups } from "../utils/collection";
+import { ObjectUtils_keys } from "../utils/object";
+import { TimeUtils_formatHHMM } from "../utils/time";
+import {
+  SendMessage_isIos,
+  SendMessage_iosAppVersion,
+  SendMessage_isAndroid,
+  SendMessage_androidAppVersion,
+} from "../utils/sendMessage";
 import { WorkoutSocialShareSheet } from "./workoutSocialShareSheet";
 import { BottomSheet } from "./bottomSheet";
 import { IconInstagram } from "./icons/iconInstagram";
@@ -25,16 +38,16 @@ import { WorkoutShareButton } from "./workoutShareButton";
 import { IconLink } from "./icons/iconLink";
 import { IconKebab } from "./icons/iconKebab";
 import { IconPicture } from "./icons/iconPicture";
-import { Share } from "../models/share";
-import { ClipboardUtils } from "../utils/clipboard";
+import { Share_generateLink } from "../models/share";
+import { ClipboardUtils_copy } from "../utils/clipboard";
 import { InternalLink } from "../internalLink";
 import { LinkButton } from "./linkButton";
 import { IconTiktok } from "./icons/iconTiktok";
 import { PersonalRecords } from "./personalRecords";
 import { ModalDayFromAdhoc } from "./modalDayFromAdhoc";
-import { ImagePreloader } from "../utils/imagePreloader";
+import { ImagePreloader_dynohappy } from "../utils/imagePreloader";
 import { n } from "../utils/math";
-import { Muscle } from "../models/muscle";
+import { Muscle_getMuscleGroupName } from "../models/muscle";
 
 interface IProps {
   history: IHistoryRecord[];
@@ -47,16 +60,16 @@ interface IProps {
 export function ScreenFinishDay(props: IProps): JSX.Element {
   const record = props.history[0];
 
-  const allPrs = History.getPersonalRecords(props.history);
-  const totalWeight = History.totalRecordWeight(record, props.settings.units);
+  const allPrs = History_getPersonalRecords(props.history);
+  const totalWeight = History_totalRecordWeight(record, props.settings.units);
 
-  const startedEntries = History.getStartedEntries(record);
-  const totalReps = History.totalRecordReps(record);
-  const totalSets = History.totalRecordSets(record);
+  const startedEntries = History_getStartedEntries(record);
+  const totalReps = History_totalRecordReps(record);
+  const totalSets = History_totalRecordSets(record);
 
-  const historyCollector = Collector.build([record]).addFn(History.collectMuscleGroups(props.settings));
+  const historyCollector = Collector.build([record]).addFn(History_collectMuscleGroups(props.settings));
   const [muscleGroupsData] = historyCollector.run();
-  const muscleGroups = ObjectUtils.keys(muscleGroupsData).reduce<[IScreenMuscle, number][]>((memo, mg) => {
+  const muscleGroups = ObjectUtils_keys(muscleGroupsData).reduce<[IScreenMuscle, number][]>((memo, mg) => {
     const values = muscleGroupsData[mg];
     if (values[2][0] > 0 && mg !== "total") {
       memo.push([mg, values[2][0]]);
@@ -64,7 +77,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
     return memo;
   }, []);
   muscleGroups.sort((a, b) => b[1] - a[1]);
-  const muscleGroupsGrouped = CollectionUtils.splitIntoNGroups(muscleGroups, 2);
+  const muscleGroupsGrouped = CollectionUtils_splitIntoNGroups(muscleGroups, 2);
   const [showCreateProgramDay, setShowCreateProgramDay] = useState(false);
   const eligibleForCreateProgramDay = props.navCommon.allPrograms.every((p) => p.id !== record.programId);
 
@@ -91,7 +104,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
       <section className="px-4 text-sm">
         <div className="flex items-center justify-center pb-2">
           <div>
-            <img src={ImagePreloader.dynohappy} className="block" style={{ width: 170, height: 150 }} />
+            <img src={ImagePreloader_dynohappy} className="block" style={{ width: 170, height: 150 }} />
           </div>
         </div>
         <section className="px-4 pb-2 text-center">
@@ -104,10 +117,10 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
             <ul className="flex-1">
               <li>
                 <span className="mr-1">🕐</span> Time:{" "}
-                <strong>{TimeUtils.formatHHMM(History.workoutTime(record))} h</strong>
+                <strong>{TimeUtils_formatHHMM(History_workoutTime(record))} h</strong>
               </li>
               <li>
-                <span className="mr-1">🏋</span> Volume: <strong>{Weight.display(totalWeight)}</strong>
+                <span className="mr-1">🏋</span> Volume: <strong>{Weight_display(totalWeight)}</strong>
               </li>
             </ul>
             <ul className="flex-1">
@@ -151,7 +164,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
                   {group.map(([mg, value]) => {
                     return (
                       <li>
-                        {Muscle.getMuscleGroupName(mg, props.settings)}: <strong>{n(value)}</strong>
+                        {Muscle_getMuscleGroupName(mg, props.settings)}: <strong>{n(value)}</strong>
                       </li>
                     );
                   })}
@@ -165,8 +178,8 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
           <PersonalRecords prs={allPrs} historyRecords={[record]} settings={props.settings} />
         </section>
 
-        {(SendMessage.isIos() && SendMessage.iosAppVersion() >= 11) ||
-        (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 20) ? (
+        {(SendMessage_isIos() && SendMessage_iosAppVersion() >= 11) ||
+        (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 20) ? (
           <MobileShare userId={props.userId} history={props.history} settings={props.settings} />
         ) : (
           <WebappShare userId={props.userId} history={props.history} settings={props.settings} />
@@ -200,9 +213,9 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
               className="w-36"
               data-cy="finish-day-continue"
               onClick={() => {
-                ScreenActions.setScreen(props.dispatch, "main");
-                props.dispatch(Thunk.maybeRequestReview());
-                props.dispatch(Thunk.maybeRequestSignup());
+                ScreenActions_setScreen(props.dispatch, "main");
+                props.dispatch(Thunk_maybeRequestReview());
+                props.dispatch(Thunk_maybeRequestSignup());
               }}
             >
               Continue
@@ -281,8 +294,8 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
             name="copy-workout-link"
             onClick={() => {
               if (props.userId) {
-                const link = Share.generateLink(props.userId, props.history[0].id);
-                ClipboardUtils.copy(link);
+                const link = Share_generateLink(props.userId, props.history[0].id);
+                ClipboardUtils_copy(link);
                 alert("Copied!");
               } else {
                 alert("You should be logged in to copy link to a workout");
@@ -335,8 +348,8 @@ function WebappShare(props: IWebappShareProps): JSX.Element {
               className="w-10 h-10 rounded-full bg-background-subtle"
               onClick={() => {
                 if (userId) {
-                  const link = Share.generateLink(userId, props.history[0].id);
-                  ClipboardUtils.copy(link);
+                  const link = Share_generateLink(userId, props.history[0].id);
+                  ClipboardUtils_copy(link);
                   setCopiedLink(link);
                 } else {
                   alert("You should be logged in to copy link to a workout");

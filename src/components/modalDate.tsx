@@ -3,9 +3,9 @@ import { useRef } from "preact/hooks";
 import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
 import { Modal } from "./modal";
-import { DateUtils } from "../utils/date";
+import { DateUtils_formatYYYYMMDD } from "../utils/date";
 import { Input } from "./input";
-import { MathUtils } from "../utils/math";
+import { MathUtils_clamp } from "../utils/math";
 
 interface IModalDateProps {
   dispatch: IDispatch;
@@ -19,7 +19,7 @@ export function ModalDate(props: IModalDateProps): JSX.Element {
   const hoursInput = useRef<HTMLInputElement>(null);
   const minutesInput = useRef<HTMLInputElement>(null);
   const date = new Date(Date.parse(props.date));
-  const formattedDate = DateUtils.formatYYYYMMDD(date);
+  const formattedDate = DateUtils_formatYYYYMMDD(date);
   const hours = Math.floor(props.time / 3600000);
   const hoursStr = hours.toString().padStart(2, "0");
   const minutes = Math.floor((props.time % 3600000) / 60000);
@@ -79,7 +79,7 @@ export function ModalDate(props: IModalDateProps): JSX.Element {
               const newTime =
                 isNaN(newHoursValue) || isNaN(newMinutesValue)
                   ? props.time
-                  : MathUtils.clamp(newHoursValue, 0, 99) * 3600000 + MathUtils.clamp(newMinutesValue, 0, 60) * 60000;
+                  : MathUtils_clamp(newHoursValue, 0, 99) * 3600000 + MathUtils_clamp(newMinutesValue, 0, 60) * 60000;
               props.dispatch({ type: "ConfirmDate", date: newDate, time: newTime });
             }}
           >

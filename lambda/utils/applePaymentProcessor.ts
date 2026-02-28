@@ -2,7 +2,7 @@ import { IDI } from "../utils/di";
 import { PaymentDao } from "../dao/paymentDao";
 import { IAppleTransaction, IAppleTransactionHistory, Subscriptions } from "./subscriptions";
 import { AppleJWTVerifier } from "./appleJwtVerifier";
-import { CollectionUtils } from "../../src/utils/collection";
+import { CollectionUtils_sort } from "../../src/utils/collection";
 
 interface IAppleReceiptInfo {
   product_id: string;
@@ -50,7 +50,7 @@ export class ApplePaymentProcessor {
       return;
     }
 
-    const latestReceipt = CollectionUtils.sort(
+    const latestReceipt = CollectionUtils_sort(
       latestReceiptInfo,
       (a, b) => Number(b.purchase_date_ms) - Number(a.purchase_date_ms)
     )[0];

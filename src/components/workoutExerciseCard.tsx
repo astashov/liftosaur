@@ -3,33 +3,58 @@ import { IHistoryEntry, IHistoryRecord, IProgramState, ISettings, IStats, ISubsc
 import { IState, updateProgress, updateSettings, updateState } from "../models/state";
 import { lb } from "lens-shmens";
 import { ExerciseImage } from "./exerciseImage";
-import { Exercise } from "../models/exercise";
+import {
+  Exercise_get,
+  Exercise_getNotes,
+  Exercise_onerm,
+  Exercise_nameWithEquipment,
+  Exercise_fullName,
+} from "../models/exercise";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import { LinkButton } from "./linkButton";
-import { ProgramExercise } from "../models/programExercise";
-import { Weight } from "../models/weight";
+import { ProgramExercise_doesUse1RM } from "../models/programExercise";
+import {
+  Weight_eqNull,
+  Weight_print,
+  Weight_build,
+  Weight_calculatePlates,
+  Weight_eq,
+  Weight_formatOneSide,
+} from "../models/weight";
 import { Markdown } from "./markdown";
-import { CollectionUtils } from "../utils/collection";
+import { CollectionUtils_removeAt } from "../utils/collection";
 import { IconKebab } from "./icons/iconKebab";
-import { Subscriptions } from "../utils/subscriptions";
-import { Thunk } from "../ducks/thunks";
+import { Subscriptions_hasSubscription } from "../utils/subscriptions";
+import { Thunk_pushExerciseStatsScreen, Thunk_pushToEditProgramExercise, Thunk_pushScreen } from "../ducks/thunks";
 import { WorkoutExerciseAllSets } from "./workoutExerciseAllSets";
-import { WorkoutExerciseUtils } from "../utils/workoutExerciseUtils";
+import {
+  WorkoutExerciseUtils_getBgColor50,
+  WorkoutExerciseUtils_getBorderColor100,
+  WorkoutExerciseUtils_getBgColor100,
+} from "../utils/workoutExerciseUtils";
 import { DropdownMenu, DropdownMenuItem } from "./dropdownMenu";
 import { IconSwap } from "./icons/iconSwap";
 import { IconTrash } from "./icons/iconTrash";
 import { IconEdit2 } from "./icons/iconEdit2";
 import { TextareaAutogrow } from "./textareaAutogrow";
-import { Progress } from "../models/progress";
-import { StringUtils } from "../utils/string";
+import {
+  Progress_getNextSupersetEntry,
+  Progress_doesUse1RM,
+  Progress_editExerciseNotes,
+  Progress_isCurrent,
+} from "../models/progress";
+import { StringUtils_dashcase } from "../utils/string";
 import { GroupHeader } from "./groupHeader";
-import { Settings } from "../models/settings";
-import { History } from "../models/history";
-import { DateUtils } from "../utils/date";
+import { Settings_getNextTargetType } from "../models/settings";
+import { History_collectLastEntry, History_collectLastNote } from "../models/history";
+import { DateUtils_format } from "../utils/date";
 import { IDispatch } from "../ducks/types";
-import { IEvaluatedProgram, IEvaluatedProgramDay, Program } from "../models/program";
-import { Equipment } from "../models/equipment";
-import { PlannerProgramExercise } from "../pages/planner/models/plannerProgramExercise";
+import { IEvaluatedProgram, IEvaluatedProgramDay, Program_getProgramExerciseForKeyAndDay } from "../models/program";
+import {
+  Equipment_getEquipmentNameForExerciseType,
+  Equipment_getEquipmentDataForExerciseType,
+} from "../models/equipment";
+import { PlannerProgramExercise_currentDescription } from "../pages/planner/models/plannerProgramExercise";
 import { useMemo, useState } from "preact/hooks";
 import { Collector } from "../utils/collector";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
@@ -57,24 +82,24 @@ interface IWorkoutExerciseCardProps {
 export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Element {
   const programExercise =
     props.program && props.entry.programExerciseId
-      ? Program.getProgramExerciseForKeyAndDay(props.program, props.day, props.entry.programExerciseId)
+      ? Program_getProgramExerciseForKeyAndDay(props.program, props.day, props.entry.programExerciseId)
       : undefined;
   const exerciseType = props.entry.exercise;
-  const exercise = Exercise.get(exerciseType, props.settings.exercises);
-  const currentEquipmentName = Equipment.getEquipmentNameForExerciseType(props.settings, exercise);
-  const currentEquipmentNotes = Equipment.getEquipmentDataForExerciseType(props.settings, exercise)?.notes;
-  const exerciseNotes = Exercise.getNotes(exerciseType, props.settings);
-  const description = programExercise ? PlannerProgramExercise.currentDescription(programExercise) : undefined;
-  const onerm = Exercise.onerm(exercise, props.settings);
-  const hasUnequalWeights = props.entry.sets.some((w) => !Weight.eqNull(w.originalWeight, w.weight));
+  const exercise = Exercise_get(exerciseType, props.settings.exercises);
+  const currentEquipmentName = Equipment_getEquipmentNameForExerciseType(props.settings, exercise);
+  const currentEquipmentNotes = Equipment_getEquipmentDataForExerciseType(props.settings, exercise)?.notes;
+  const exerciseNotes = Exercise_getNotes(exerciseType, props.settings);
+  const description = programExercise ? PlannerProgramExercise_currentDescription(programExercise) : undefined;
+  const onerm = Exercise_onerm(exercise, props.settings);
+  const hasUnequalWeights = props.entry.sets.some((w) => !Weight_eqNull(w.originalWeight, w.weight));
   const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter((s) => !s.isCompleted)[0];
   const lbSets = lb<IHistoryRecord>().p("entries").i(props.entryIndex).p("sets");
   const lbWarmupSets = lb<IHistoryRecord>().p("entries").i(props.entryIndex).p("warmupSets");
   const programExerciseId = props.entry.programExerciseId;
 
   const historyCollector = Collector.build(props.history)
-    .addFn(History.collectLastEntry(props.progress.startTime, exerciseType))
-    .addFn(History.collectLastNote(props.progress.startTime, exerciseType));
+    .addFn(History_collectLastEntry(props.progress.startTime, exerciseType))
+    .addFn(History_collectLastNote(props.progress.startTime, exerciseType));
 
   const [{ lastHistoryEntry }, { lastNote, timestamp }] = useMemo(
     () => historyCollector.run(),
@@ -82,22 +107,22 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
   );
 
   const [isKebabMenuOpen, setIsKebabMenuOpen] = useState(false);
-  const supersetEntry = Progress.getNextSupersetEntry(props.progress.entries, props.entry);
-  const supersetExercise = supersetEntry ? Exercise.get(supersetEntry.exercise, props.settings.exercises) : undefined;
+  const supersetEntry = Progress_getNextSupersetEntry(props.progress.entries, props.entry);
+  const supersetExercise = supersetEntry ? Exercise_get(supersetEntry.exercise, props.settings.exercises) : undefined;
 
   return (
     <section
-      data-cy={`entry-${StringUtils.dashcase(exercise.name)}`}
-      className={`py-1 border rounded-xl ${WorkoutExerciseUtils.getBgColor50(
+      data-cy={`entry-${StringUtils_dashcase(exercise.name)}`}
+      className={`py-1 border rounded-xl ${WorkoutExerciseUtils_getBgColor50(
         props.entry.sets,
         false
-      )} ${WorkoutExerciseUtils.getBorderColor100(props.entry.sets, false)}`}
+      )} ${WorkoutExerciseUtils_getBorderColor100(props.entry.sets, false)}`}
     >
       <div className="px-4">
         <header className="flex">
           <div className="w-16">
             <button
-              onClick={() => props.dispatch(Thunk.pushExerciseStatsScreen(props.entry.exercise))}
+              onClick={() => props.dispatch(Thunk_pushExerciseStatsScreen(props.entry.exercise))}
               className="w-full h-full px-2 rounded-lg bg-background-image nm-workout-exercise-image"
               style={{ marginLeft: "-0.5rem" }}
             >
@@ -109,9 +134,9 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
               <button
                 className="text-left nm-workout-exercise-name"
                 data-cy="exercise-name"
-                onClick={() => props.dispatch(Thunk.pushExerciseStatsScreen(props.entry.exercise))}
+                onClick={() => props.dispatch(Thunk_pushExerciseStatsScreen(props.entry.exercise))}
               >
-                <span className="pr-1 text-lg font-bold">{Exercise.nameWithEquipment(exercise, props.settings)}</span>{" "}
+                <span className="pr-1 text-lg font-bold">{Exercise_nameWithEquipment(exercise, props.settings)}</span>{" "}
                 <IconArrowRight style={{ marginBottom: "2px" }} className="inline-block" />
               </button>
             </div>
@@ -145,7 +170,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                     );
                   }}
                 >
-                  {Exercise.fullName(supersetExercise, props.settings)}
+                  {Exercise_fullName(supersetExercise, props.settings)}
                 </LinkButton>
               </div>
             )}
@@ -154,7 +179,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                 <Markdown value={currentEquipmentNotes} />
               </div>
             )}
-            {((programExercise && ProgramExercise.doesUse1RM(programExercise)) || Progress.doesUse1RM(props.entry)) && (
+            {((programExercise && ProgramExercise_doesUse1RM(programExercise)) || Progress_doesUse1RM(props.entry)) && (
               <div data-cy="exercise-rm1" className="text-sm text-text-secondary">
                 1RM:{" "}
                 <LinkButton
@@ -168,7 +193,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                     );
                   }}
                 >
-                  {Weight.print(onerm)}
+                  {Weight_print(onerm)}
                 </LinkButton>
               </div>
             )}
@@ -190,7 +215,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                     data-cy="exercise-edit-mode"
                     onClick={() => {
                       setIsKebabMenuOpen(false);
-                      props.dispatch(Thunk.pushToEditProgramExercise(programExercise.key, programExercise.dayData));
+                      props.dispatch(Thunk_pushToEditProgramExercise(programExercise.key, programExercise.dayData));
                     }}
                   >
                     <div className="flex items-center gap-2">
@@ -265,7 +290,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                             setIsKebabMenuOpen(false);
                             if (confirm("Do you want to remove this exercise in this workout only?")) {
                               const entryIdToDelete = props.entry.id;
-                              const newEntries = CollectionUtils.removeAt(entries, props.entryIndex);
+                              const newEntries = CollectionUtils_removeAt(entries, props.entryIndex);
                               for (const entry of newEntries) {
                                 if (entry.superset && entry.superset === entryIdToDelete) {
                                   entry.superset = undefined;
@@ -312,7 +337,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
         )}
         {lastNote && timestamp && (
           <div>
-            <GroupHeader name={`Previous Note (from ${DateUtils.format(timestamp)})`} />
+            <GroupHeader name={`Previous Note (from ${DateUtils_format(timestamp)})`} />
             <div className="pl-1 mb-1 text-sm border-purplev3-300" style={{ borderWidth: "0 0 0 4px" }}>
               {lastNote}
             </div>
@@ -328,7 +353,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
             placeholder="Add workout notes for this exercise here..."
             value={props.entry.notes}
             onChangeText={(text) => {
-              Progress.editExerciseNotes(props.dispatch, props.entryIndex, text);
+              Progress_editExerciseNotes(props.dispatch, props.entryIndex, text);
             }}
             className="mt-1"
           />
@@ -341,7 +366,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
           <div className="mx-4">
             <WorkoutPlatesCalculator
               entry={props.entry}
-              weight={nextSet.completedWeight ?? nextSet.weight ?? Weight.build(0, props.settings.units)}
+              weight={nextSet.completedWeight ?? nextSet.weight ?? Weight_build(0, props.settings.units)}
               subscription={props.subscription}
               settings={props.settings}
               dispatch={props.dispatch}
@@ -372,7 +397,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
               );
             }
           }}
-          isCurrentProgress={Progress.isCurrent(props.progress)}
+          isCurrentProgress={Progress_isCurrent(props.progress)}
           day={props.day}
           program={props.program}
           userPromptedStateVars={
@@ -387,9 +412,9 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                 .p("workoutSettings")
                 .p("targetType")
                 .recordModify((type) => {
-                  return Settings.getNextTargetType(
+                  return Settings_getNextTargetType(
                     type,
-                    !Subscriptions.hasSubscription(props.subscription) || !currentEquipmentName
+                    !Subscriptions_hasSubscription(props.subscription) || !currentEquipmentName
                   );
                 }),
               "Change target type"
@@ -464,8 +489,8 @@ interface IWorkoutPlatesCalculatorProps {
 }
 
 function WorkoutPlatesCalculator(props: IWorkoutPlatesCalculatorProps): JSX.Element {
-  const isSubscribed = Subscriptions.hasSubscription(props.subscription);
-  const { plates, totalWeight: weight } = Weight.calculatePlates(
+  const isSubscribed = Subscriptions_hasSubscription(props.subscription);
+  const { plates, totalWeight: weight } = Weight_calculatePlates(
     props.weight,
     props.settings,
     props.weight.unit,
@@ -474,7 +499,7 @@ function WorkoutPlatesCalculator(props: IWorkoutPlatesCalculatorProps): JSX.Elem
   return (
     <div className="my-1">
       <div
-        className={`p-1 inline-block ${WorkoutExerciseUtils.getBgColor100(props.entry.sets, false)} rounded-lg`}
+        className={`p-1 inline-block ${WorkoutExerciseUtils_getBgColor100(props.entry.sets, false)} rounded-lg`}
         style={{
           backgroundImage: "url(/images/icon-barbell.svg)",
           backgroundPosition: "10px center",
@@ -487,17 +512,17 @@ function WorkoutPlatesCalculator(props: IWorkoutPlatesCalculatorProps): JSX.Elem
               <span>Plates: </span>
               <span className="font-semibold break-all">
                 <span
-                  className={Weight.eq(weight, props.weight) ? "text-text-primary" : "text-text-error"}
+                  className={Weight_eq(weight, props.weight) ? "text-text-primary" : "text-text-error"}
                   data-cy="plates-list"
                 >
-                  {plates.length > 0 ? Weight.formatOneSide(props.settings, plates, props.entry.exercise) : "None"}
+                  {plates.length > 0 ? Weight_formatOneSide(props.settings, plates, props.entry.exercise) : "None"}
                 </span>
               </span>
             </span>
           ) : (
             <LinkButton
               name="see-plates-for-each-side"
-              onClick={() => props.dispatch(Thunk.pushScreen("subscription"))}
+              onClick={() => props.dispatch(Thunk_pushScreen("subscription"))}
             >
               See plates for each side
             </LinkButton>

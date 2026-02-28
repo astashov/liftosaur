@@ -1,6 +1,6 @@
 import { JSX, h } from "preact";
 import { IScreenMuscle, screenMuscles } from "../types";
-import { Tailwind } from "../utils/tailwindConfig";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
 
 interface IMuscleImageProps {
   muscleGroup: IScreenMuscle;
@@ -12,9 +12,9 @@ export function MuscleGroupImage(props: IMuscleImageProps): JSX.Element | null {
     return null;
   }
   const muscleColors = [
-    `--muscle-fill: ${Tailwind.semantic().background.default}`,
-    `--muscle-primary: ${Tailwind.semantic().icon.blue}`,
-    `--muscle-light: ${Tailwind.semantic().icon.light}`,
+    `--muscle-fill: ${Tailwind_semantic().background.default}`,
+    `--muscle-primary: ${Tailwind_semantic().icon.blue}`,
+    `--muscle-light: ${Tailwind_semantic().icon.light}`,
   ];
   const width = props.size;
   const height = Math.round((props.size / 61) * 48);

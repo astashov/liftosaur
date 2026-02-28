@@ -1,22 +1,28 @@
 import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
-import { DateUtils } from "../utils/date";
-import { TimeUtils } from "../utils/time";
-import { Progress } from "../models/progress";
-import { ComparerUtils } from "../utils/comparer";
+import { DateUtils_format } from "../utils/date";
+import { TimeUtils_formatHOrMin } from "../utils/time";
+import { Progress_isCurrent, Progress_isFullyEmptySet } from "../models/progress";
+import { ComparerUtils_noFns } from "../utils/comparer";
 import { memo, useRef } from "preact/compat";
 import { IHistoryRecord, ISettings } from "../types";
-import { HtmlUtils } from "../utils/html";
-import { History, IPersonalRecords } from "../models/history";
+import { HtmlUtils_classInParents } from "../utils/html";
+import {
+  IPersonalRecords,
+  History_workoutTime,
+  History_totalRecordWeight,
+  History_totalRecordReps,
+  History_totalRecordSets,
+} from "../models/history";
 import { IconWatch } from "./icons/iconWatch";
 import { HistoryEntryView } from "./historyEntry";
 import { Button } from "./button";
-import { Exercise } from "../models/exercise";
+import { Exercise_toKey } from "../models/exercise";
 import { Markdown } from "./markdown";
-import { StringUtils } from "../utils/string";
+import { StringUtils_pluralize } from "../utils/string";
 import { n } from "../utils/math";
 import { IEvaluatedProgramDay } from "../models/program";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_startProgramDay } from "../ducks/thunks";
 
 interface IProps {
   historyRecord: IHistoryRecord;
@@ -30,7 +36,7 @@ interface IProps {
 
 export const HistoryRecordView = memo((props: IProps): JSX.Element => {
   const { historyRecord, dispatch } = props;
-  const isCurrent = Progress.isCurrent(historyRecord);
+  const isCurrent = Progress_isCurrent(historyRecord);
   const description = isCurrent ? props.programDay?.description : undefined;
   const ref = useRef<HTMLDivElement>(null);
 
@@ -45,7 +51,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
     >
       {props.showTitle && (
         <div data-cy="history-record-date" className="mx-1 mb-1 font-semibold">
-          {!isCurrent ? DateUtils.format(historyRecord.date) : props.isOngoing ? "Ongoing workout" : "Next workout"}
+          {!isCurrent ? DateUtils_format(historyRecord.date) : props.isOngoing ? "Ongoing workout" : "Next workout"}
         </div>
       )}
       <div
@@ -58,14 +64,14 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
         }`}
         style={{ boxShadow: "0 3px 3px -3px rgba(0, 0, 0, 0.1)" }}
         onClick={(event) => {
-          if (!HtmlUtils.classInParents(event.target as Element, "button")) {
-            if (Progress.isCurrent(historyRecord)) {
-              dispatch(Thunk.startProgramDay());
+          if (!HtmlUtils_classInParents(event.target as Element, "button")) {
+            if (Progress_isCurrent(historyRecord)) {
+              dispatch(Thunk_startProgramDay());
             } else {
               editHistoryRecord(
                 historyRecord,
                 dispatch,
-                Progress.isCurrent(historyRecord) && Progress.isFullyEmptySet(historyRecord)
+                Progress_isCurrent(historyRecord) && Progress_isFullyEmptySet(historyRecord)
               );
             }
           }
@@ -87,8 +93,8 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
           )}
           <div className="flex flex-col" data-cy="history-entry">
             {entries.map((entry, i) => {
-              const isNext = isCurrent && Progress.isFullyEmptySet(historyRecord);
-              const exerciseKey = Exercise.toKey(entry.exercise);
+              const isNext = isCurrent && Progress_isFullyEmptySet(historyRecord);
+              const exerciseKey = Exercise_toKey(entry.exercise);
               const pr = props.prs?.[props.historyRecord.id]?.[exerciseKey] || undefined;
               return (
                 <HistoryEntryView
@@ -139,7 +145,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
       </div>
     </div>
   );
-}, ComparerUtils.noFns);
+}, ComparerUtils_noFns);
 
 interface IHistoryRecordStats {
   historyRecord: IHistoryRecord;
@@ -148,12 +154,12 @@ interface IHistoryRecordStats {
 
 function HistoryRecordStats(props: IHistoryRecordStats): JSX.Element {
   const record = props.historyRecord;
-  const { value: time, unit: timeUnit } = TimeUtils.formatHOrMin(History.workoutTime(record));
-  const totalWeight = History.totalRecordWeight(record, props.settings.units);
-  const totalReps = History.totalRecordReps(record);
-  const totalSets = History.totalRecordSets(record);
-  const setsUnit = StringUtils.pluralize("set", totalSets);
-  const repsUnit = StringUtils.pluralize("rep", totalReps);
+  const { value: time, unit: timeUnit } = TimeUtils_formatHOrMin(History_workoutTime(record));
+  const totalWeight = History_totalRecordWeight(record, props.settings.units);
+  const totalReps = History_totalRecordReps(record);
+  const totalSets = History_totalRecordSets(record);
+  const setsUnit = StringUtils_pluralize("set", totalSets);
+  const repsUnit = StringUtils_pluralize("rep", totalReps);
 
   return (
     <div className="flex justify-between mt-4">

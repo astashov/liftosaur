@@ -17,23 +17,23 @@ import {
 import { highlightSelectionMatches } from "@codemirror/search";
 import { tags } from "@lezer/highlight";
 import { IProgramState } from "../../../types";
-import { ObjectUtils } from "../../../utils/object";
+import { ObjectUtils_isEqual } from "../../../utils/object";
 import { buildLiftoscriptLanguageSupport } from "../../../liftoscriptCodemirror";
 import { LiftoscriptSyntaxError } from "../../../liftoscriptEvaluator";
-import { Tailwind } from "../../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 
 const buildHighlightStyle = (): HighlightStyle => {
   return HighlightStyle.define([
-    { tag: tags.keyword, color: Tailwind.semantic().syntax.keyword },
-    { tag: [tags.literal, tags.inserted], color: Tailwind.semantic().syntax.literal },
-    { tag: tags.variableName, color: Tailwind.semantic().syntax.variable },
-    { tag: tags.comment, color: Tailwind.semantic().syntax.comment },
-    { tag: tags.blockComment, color: Tailwind.semantic().syntax.blockComment },
-    { tag: tags.atom, color: Tailwind.semantic().syntax.atom },
-    { tag: tags.attributeName, color: Tailwind.semantic().syntax.attributeName },
-    { tag: tags.attributeValue, color: Tailwind.semantic().syntax.attributeValue },
-    { tag: tags.annotation, color: Tailwind.semantic().syntax.annotation },
-    { tag: tags.docComment, color: Tailwind.semantic().syntax.docComment },
+    { tag: tags.keyword, color: Tailwind_semantic().syntax.keyword },
+    { tag: [tags.literal, tags.inserted], color: Tailwind_semantic().syntax.literal },
+    { tag: tags.variableName, color: Tailwind_semantic().syntax.variable },
+    { tag: tags.comment, color: Tailwind_semantic().syntax.comment },
+    { tag: tags.blockComment, color: Tailwind_semantic().syntax.blockComment },
+    { tag: tags.atom, color: Tailwind_semantic().syntax.atom },
+    { tag: tags.attributeName, color: Tailwind_semantic().syntax.attributeName },
+    { tag: tags.attributeValue, color: Tailwind_semantic().syntax.attributeValue },
+    { tag: tags.annotation, color: Tailwind_semantic().syntax.annotation },
+    { tag: tags.docComment, color: Tailwind_semantic().syntax.docComment },
   ]);
 };
 
@@ -144,7 +144,7 @@ export class ScriptEditor {
   }
 
   public setState(state: IProgramState): void {
-    const changed = !ObjectUtils.isEqual({ args: state }, { arr: this.args.state });
+    const changed = !ObjectUtils_isEqual({ args: state }, { arr: this.args.state });
     if (changed) {
       this.args.state = state;
       this.relint();

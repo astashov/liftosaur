@@ -3,8 +3,12 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { IconSpinner } from "./icons/iconSpinner";
 import { IExerciseType, ISettings } from "../types";
 import { IconDefaultExercise } from "./icons/iconDefaultExercise";
-import { ExerciseImageUtils } from "../models/exerciseImage";
-import { Exercise } from "../models/exercise";
+import {
+  ExerciseImageUtils_url,
+  ExerciseImageUtils_exists,
+  ExerciseImageUtils_existsCustom,
+} from "../models/exerciseImage";
+import { Exercise_get, Exercise_nameWithEquipment } from "../models/exercise";
 
 interface IProps {
   exerciseType: IExerciseType;
@@ -15,11 +19,12 @@ interface IProps {
   settings?: ISettings;
   className?: string;
   customClassName?: string;
+  width?: number;
 }
 
 export function ExerciseImage(props: IProps): JSX.Element | null {
   const { size } = props;
-  const exercise = Exercise.get(props.exerciseType, props.settings?.exercises || {});
+  const exercise = Exercise_get(props.exerciseType, props.settings?.exercises || {});
   const exerciseType = {
     id: props.exerciseType.id,
     equipment: props.exerciseType.equipment || exercise.defaultEquipment,
@@ -42,19 +47,25 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
       }
     }
   }, []);
-  let className = `inline ${props.className} `;
-  if (isLoading || isError) {
-    className += "invisible h-0";
-  }
-  const src = ExerciseImageUtils.url(exerciseType, size, props.settings);
+  const src = ExerciseImageUtils_url(exerciseType, size, props.settings);
   const doesExist =
-    ExerciseImageUtils.exists(exerciseType, size) ||
-    ExerciseImageUtils.existsCustom(exerciseType, size, !!props.suppressCustom, props.settings);
+    ExerciseImageUtils_exists(exerciseType, size) ||
+    ExerciseImageUtils_existsCustom(exerciseType, size, !!props.suppressCustom, props.settings);
 
   if (size === "small") {
+    let className = `inline ${props.className} `;
+    const imgAttrs: { width?: number; height?: number } = {};
+    if (props.width) {
+      imgAttrs.width = props.width;
+      imgAttrs.height = Math.round(props.width * 1.5);
+    } else if (isLoading || isError) {
+      className += "invisible h-0";
+    }
     return (
       <>
-        {!isError && doesExist && <img data-cy="exercise-image-small" ref={imgRef} className={className} src={src} />}
+        {!isError && doesExist && (
+          <img data-cy="exercise-image-small" ref={imgRef} className={className} src={src} {...imgAttrs} />
+        )}
         {isError ||
           (!doesExist &&
             (props.useTextForCustomExercise ? (
@@ -64,7 +75,7 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
                     className="flex items-stretch justify-start w-full h-full p-1 leading-3 fade-mask"
                     style={{ fontSize: "0.7rem" }}
                   >
-                    {Exercise.nameWithEquipment(exercise, props.settings)}
+                    {Exercise_nameWithEquipment(exercise, props.settings)}
                   </div>
                 </div>
               </div>
@@ -81,6 +92,10 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
       </>
     );
   } else {
+    let className = `inline ${props.className} `;
+    if (isLoading || isError) {
+      className += "invisible h-0";
+    }
     return doesExist ? (
       <>
         <img ref={imgRef} data-cy="exercise-image-large" className={className} src={src} />

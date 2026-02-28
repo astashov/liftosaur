@@ -1,5 +1,4 @@
 import { h } from "preact";
-import { IAccount } from "../src/models/account";
 import { ExerciseHtml } from "../src/pages/exercise/exerciseHtml";
 import { IExerciseType } from "../src/types";
 
@@ -10,9 +9,15 @@ export function renderExerciseHtml(
   id: string,
   exerciseType: IExerciseType,
   filterTypes: string[],
-  account?: IAccount
+  isLoggedIn?: boolean
 ): string {
   return renderPage(
-    <ExerciseHtml filterTypes={filterTypes} exerciseType={exerciseType} id={id} account={account} client={client} />
+    <ExerciseHtml
+      filterTypes={filterTypes}
+      exerciseType={exerciseType}
+      id={id}
+      isLoggedIn={isLoggedIn}
+      client={client}
+    />
   );
 }

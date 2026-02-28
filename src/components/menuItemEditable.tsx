@@ -1,10 +1,10 @@
 import { h, JSX, ComponentChildren } from "preact";
 import { MenuItemWrapper } from "./menuItem";
 import { useState, StateUpdater } from "preact/hooks";
-import { StringUtils } from "../utils/string";
+import { StringUtils_dashcase } from "../utils/string";
 import { ScrollBarrell } from "./scrollBarrell";
 import { IconTrash } from "./icons/iconTrash";
-import { SendMessage } from "../utils/sendMessage";
+import { SendMessage_isIos } from "../utils/sendMessage";
 import { lg } from "../utils/posthog";
 
 type IMenuItemType = "text" | "number" | "select" | "boolean" | "desktop-select" | "select2";
@@ -42,7 +42,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
     numberOfVisibleItems += 1;
   }
   const onChange = (v?: string, e?: Event): void => {
-    lg(`menu-item-edit-${StringUtils.dashcase(props.name)}`);
+    lg(`menu-item-edit-${StringUtils_dashcase(props.name)}`);
     if (props.onChange != null) {
       props.onChange(v, e);
     }
@@ -61,7 +61,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
         <div className="flex items-center flex-1">
           {props.prefix}
           <span
-            data-cy={`menu-item-name-${StringUtils.dashcase(props.name)}`}
+            data-cy={`menu-item-name-${StringUtils_dashcase(props.name)}`}
             className={`flex flex-col min-w-0 break-all items-start pr-2 ${props.isNameBold ? "font-bold" : ""}`}
             {...(props.isNameHtml ? { dangerouslySetInnerHTML: { __html: props.name } } : {})}
           >
@@ -84,10 +84,10 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
           {props.value != null && <span className="flex items-center text-text-secondary">{props.valueUnits}</span>}
           {props.value != null && props.hasClear && (
             <button
-              data-cy={`menu-item-delete-${StringUtils.dashcase(props.name)}`}
+              data-cy={`menu-item-delete-${StringUtils_dashcase(props.name)}`}
               onClick={() => onChange(undefined)}
               style={{ marginRight: "-0.5rem" }}
-              className={`p-2 nm-menu-item-delete-${StringUtils.dashcase(props.name)}`}
+              className={`p-2 nm-menu-item-delete-${StringUtils_dashcase(props.name)}`}
             >
               <IconTrash />
             </button>
@@ -123,7 +123,7 @@ export function MenuItemValue(
   if (props.type === "desktop-select") {
     return (
       <select
-        data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
+        data-cy={`menu-item-value-${StringUtils_dashcase(props.name)}`}
         className="border rounded border-border-neutral bg-background-default"
         value={props.value || undefined}
         onChange={handleChange(props.onChange, props.setPatternError)}
@@ -139,7 +139,7 @@ export function MenuItemValue(
     const keyValue = (props.values || []).filter(([v]) => v === props.value)[0];
     return (
       <div
-        data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
+        data-cy={`menu-item-value-${StringUtils_dashcase(props.name)}`}
         className="flex-1 py-2 pl-2 text-right text-text-link"
         style={{ minHeight: "2.5rem" }}
       >
@@ -149,7 +149,7 @@ export function MenuItemValue(
   } else if (props.type === "text") {
     return (
       <input
-        data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
+        data-cy={`menu-item-value-${StringUtils_dashcase(props.name)}`}
         key={props.value}
         type="text"
         className="flex-1 w-full py-2 text-right bg-transparent text-text-link"
@@ -174,7 +174,7 @@ export function MenuItemValue(
       <div className="flex items-center flex-1 text-right">
         <label className="flex items-center justify-end flex-1 p-2">
           <input
-            data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
+            data-cy={`menu-item-value-${StringUtils_dashcase(props.name)}`}
             style={{ marginRight: "-0.5rem" }}
             key={props.value}
             type="checkbox"
@@ -194,10 +194,10 @@ export function MenuItemValue(
     return (
       <span className="flex flex-1 text-right">
         <input
-          data-cy={`menu-item-value-${StringUtils.dashcase(props.name)}`}
+          data-cy={`menu-item-value-${StringUtils_dashcase(props.name)}`}
           key={props.value}
           onBlur={handleChange(props.onChange, props.setPatternError)}
-          type={SendMessage.isIos() ? "number" : "tel"}
+          type={SendMessage_isIos() ? "number" : "tel"}
           step="0.01"
           onFocus={(e) => {
             const target = e.target;

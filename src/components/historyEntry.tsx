@@ -1,13 +1,13 @@
 import { h, JSX } from "preact";
 import { memo } from "preact/compat";
-import { Equipment } from "../models/equipment";
-import { Exercise } from "../models/exercise";
-import { Weight } from "../models/weight";
+import { Equipment_getUnitOrDefaultForExerciseType } from "../models/equipment";
+import { Exercise_get, Exercise_nameWithEquipment } from "../models/exercise";
+import { Weight_roundConvertTo } from "../models/weight";
 import { IHistoryEntry, ISettings } from "../types";
 import { ExerciseImage } from "./exerciseImage";
 import { IHistoryEntryPersonalRecords } from "../models/history";
 import { HistoryRecordSetsView } from "./historyRecordSets";
-import { ObjectUtils } from "../utils/object";
+import { ObjectUtils_values } from "../utils/object";
 
 interface IHistoryEntryProps {
   entry: IHistoryEntry;
@@ -21,9 +21,9 @@ interface IHistoryEntryProps {
 
 export const HistoryEntryView = memo((props: IHistoryEntryProps): JSX.Element => {
   const { entry, isNext, settings, showNotes, isOngoing, isLast } = props;
-  const exercise = Exercise.get(entry.exercise, settings.exercises);
-  const exerciseUnit = Equipment.getUnitOrDefaultForExerciseType(settings, exercise);
-  const isPr = ObjectUtils.values(props.prs || {}).some((v) => v);
+  const exercise = Exercise_get(entry.exercise, settings.exercises);
+  const exerciseUnit = Equipment_getUnitOrDefaultForExerciseType(settings, exercise);
+  const isPr = ObjectUtils_values(props.prs || {}).some((v) => v);
   return (
     <div data-cy="history-entry-exercise" className={`flex flex-row items-center flex-1 gap-2`}>
       <div
@@ -43,7 +43,7 @@ export const HistoryEntryView = memo((props: IHistoryEntryProps): JSX.Element =>
         <div className="flex items-center gap-2 min-h-8">
           <div>
             <div data-cy="history-entry-exercise-name" className="font-semibold">
-              {Exercise.nameWithEquipment(exercise, props.settings)}
+              {Exercise_nameWithEquipment(exercise, props.settings)}
               {isPr && " 🏆"}
             </div>
           </div>
@@ -53,7 +53,7 @@ export const HistoryEntryView = memo((props: IHistoryEntryProps): JSX.Element =>
                 ...set,
                 weight:
                   isNext && set.weight
-                    ? Weight.roundConvertTo(set.weight, props.settings, exerciseUnit, entry.exercise)
+                    ? Weight_roundConvertTo(set.weight, props.settings, exerciseUnit, entry.exercise)
                     : set.weight,
               }))}
               prs={props.prs}

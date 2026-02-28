@@ -3,7 +3,7 @@ import { IconLink } from "../../../components/icons/iconLink";
 import { useState } from "preact/compat";
 import { Service } from "../../../api/service";
 import { useEffect } from "preact/hooks";
-import { ClipboardUtils } from "../../../utils/clipboard";
+import { ClipboardUtils_copy } from "../../../utils/clipboard";
 
 interface IBuilderCopyLinkProps<T> {
   rightAligned?: boolean;
@@ -46,7 +46,7 @@ export function BuilderCopyLink<T>(props: IBuilderCopyLinkProps<T>): JSX.Element
           const service = new Service(props.client);
           const encodedProgram = props.encodedProgram ? await props.encodedProgram() : window.location.href;
           const url = await service.postShortUrl(encodedProgram, props.type, props.source);
-          ClipboardUtils.copy(url);
+          ClipboardUtils_copy(url);
           if (props.onShowInfo) {
             props.onShowInfo(url);
           }

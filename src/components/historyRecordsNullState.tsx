@@ -1,13 +1,13 @@
 import { h, JSX, Fragment } from "preact";
 import { IconArrowDown3 } from "./icons/iconArrowDown3";
-import { ImagePreloader } from "../utils/imagePreloader";
+import { ImagePreloader_dynocoach } from "../utils/imagePreloader";
 
 export function HistoryRecordsNullState(): JSX.Element {
   return (
     <>
       <div className="absolute flex items-center justify-center" style={{ top: 130, left: 0, right: 0 }}>
         <div>
-          <img src={ImagePreloader.dynocoach} className="block" style={{ width: 188, height: 240 }} />
+          <img src={ImagePreloader_dynocoach} className="block" style={{ width: 188, height: 240 }} />
         </div>
       </div>
       <div className="fixed bottom-0 left-0 w-full py-4 pb-20 text-center border border-border-cardpurple bg-background-cardpurple rounded-2xl">

@@ -1,5 +1,5 @@
 import { IExerciseType, ISettings } from "../types";
-import { Exercise } from "./exercise";
+import { Exercise_toUrlSlug } from "./exercise";
 const availableSmallImages = new Set([
   "abwheel_bodyweight",
   "arnoldpress_dumbbell",
@@ -672,49 +672,51 @@ const availableLargeImages = new Set([
   "zerchersquat_barbell",
 ]);
 
-export namespace ExerciseImageUtils {
-  export function id(type: IExerciseType): string {
-    const equipment = type.equipment || "bodyweight";
-    return `${type.id.toLowerCase()}_${(equipment || "bodyweight").toLowerCase()}`;
-  }
+export function ExerciseImageUtils_id(type: IExerciseType): string {
+  const equipment = type.equipment || "bodyweight";
+  return `${type.id.toLowerCase()}_${(equipment || "bodyweight").toLowerCase()}`;
+}
 
-  export function exists(type: IExerciseType, size: "small" | "large"): boolean {
-    return size === "small" ? availableSmallImages.has(id(type)) : availableLargeImages.has(id(type));
-  }
+export function ExerciseImageUtils_exists(type: IExerciseType, size: "small" | "large"): boolean {
+  return size === "small"
+    ? availableSmallImages.has(ExerciseImageUtils_id(type))
+    : availableLargeImages.has(ExerciseImageUtils_id(type));
+}
 
-  export function existsCustom(
-    type: IExerciseType,
-    size: "small" | "large",
-    checkDomain: boolean,
-    settings?: ISettings
-  ): boolean {
+export function ExerciseImageUtils_existsCustom(
+  type: IExerciseType,
+  size: "small" | "large",
+  checkDomain: boolean,
+  settings?: ISettings
+): boolean {
+  const customExercise = settings?.exercises?.[type.id];
+  const imageUrl =
+    size === "small" ? customExercise?.smallImageUrl : (customExercise?.largeImageUrl ?? customExercise?.smallImageUrl);
+  return checkDomain ? !!(imageUrl?.startsWith("/") || imageUrl?.includes("liftosaur.com")) : !!imageUrl;
+}
+
+export function ExerciseImageUtils_ogImageUrl(type: IExerciseType): string {
+  const key = Exercise_toUrlSlug(type);
+  return `/externalimages/exercises/ogimages/${key}.png`;
+}
+
+export function ExerciseImageUtils_url(
+  type: IExerciseType,
+  size: "small" | "large",
+  settings?: ISettings
+): string | undefined {
+  if (ExerciseImageUtils_exists(type, size)) {
+    const src =
+      size === "large"
+        ? `/externalimages/exercises/full/large/${ExerciseImageUtils_id(type)}_full_large.png`
+        : `/externalimages/exercises/single/small/${ExerciseImageUtils_id(type)}_single_small.png`;
+    return src;
+  } else if (ExerciseImageUtils_existsCustom(type, size, false, settings)) {
     const customExercise = settings?.exercises?.[type.id];
-    const imageUrl =
-      size === "small"
-        ? customExercise?.smallImageUrl
-        : (customExercise?.largeImageUrl ?? customExercise?.smallImageUrl);
-    return checkDomain ? !!(imageUrl?.startsWith("/") || imageUrl?.includes("liftosaur.com")) : !!imageUrl;
-  }
-
-  export function ogImageUrl(type: IExerciseType): string {
-    const key = Exercise.toUrlSlug(type);
-    return `/externalimages/exercises/ogimages/${key}.png`;
-  }
-
-  export function url(type: IExerciseType, size: "small" | "large", settings?: ISettings): string | undefined {
-    if (exists(type, size)) {
-      const src =
-        size === "large"
-          ? `/externalimages/exercises/full/large/${id(type)}_full_large.png`
-          : `/externalimages/exercises/single/small/${id(type)}_single_small.png`;
-      return src;
-    } else if (existsCustom(type, size, false, settings)) {
-      const customExercise = settings?.exercises?.[type.id];
-      return size === "large"
-        ? (customExercise?.largeImageUrl ?? customExercise?.smallImageUrl)
-        : customExercise?.smallImageUrl;
-    } else {
-      return undefined;
-    }
+    return size === "large"
+      ? (customExercise?.largeImageUrl ?? customExercise?.smallImageUrl)
+      : customExercise?.smallImageUrl;
+  } else {
+    return undefined;
   }
 }

@@ -1,7 +1,12 @@
 import { JSX, h } from "preact";
 import { ISettings } from "../types";
 import { BottomSheetOrModal } from "./bottomSheetOrModal";
-import { Muscle } from "../models/muscle";
+import {
+  Muscle_createMuscleGroup,
+  Muscle_deleteMuscleGroup,
+  Muscle_updateMuscleGroup,
+  Muscle_restoreMuscleGroup,
+} from "../models/muscle";
 import { lf } from "lens-shmens";
 import { MuscleGroupsContent } from "./muscleGroupsContent";
 
@@ -21,7 +26,7 @@ export function BottomSheetOrModalMuscleGroupsContent(props: IBottomSheetOrModal
               lf(props.settings)
                 .p("muscleGroups")
                 .modify((muscleGroups) => {
-                  return Muscle.createMuscleGroup(muscleGroups, name);
+                  return Muscle_createMuscleGroup(muscleGroups, name);
                 })
             );
           }}
@@ -30,7 +35,7 @@ export function BottomSheetOrModalMuscleGroupsContent(props: IBottomSheetOrModal
               lf(props.settings)
                 .p("muscleGroups")
                 .modify((muscleGroups) => {
-                  return Muscle.deleteMuscleGroup(muscleGroups, muscleGroup);
+                  return Muscle_deleteMuscleGroup(muscleGroups, muscleGroup);
                 })
             );
           }}
@@ -39,7 +44,7 @@ export function BottomSheetOrModalMuscleGroupsContent(props: IBottomSheetOrModal
               lf(props.settings)
                 .p("muscleGroups")
                 .modify((muscleGroups) => {
-                  return Muscle.updateMuscleGroup(muscleGroups, muscleGroup, muscles);
+                  return Muscle_updateMuscleGroup(muscleGroups, muscleGroup, muscles);
                 })
             );
           }}
@@ -48,7 +53,7 @@ export function BottomSheetOrModalMuscleGroupsContent(props: IBottomSheetOrModal
               lf(props.settings)
                 .p("muscleGroups")
                 .modify((muscleGroups) => {
-                  return Muscle.restoreMuscleGroup(muscleGroups, muscleGroup);
+                  return Muscle_restoreMuscleGroup(muscleGroups, muscleGroup);
                 })
             );
           }}

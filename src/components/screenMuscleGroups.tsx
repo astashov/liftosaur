@@ -7,7 +7,12 @@ import { Footer2View } from "./footer2";
 import { INavCommon, updateSettings } from "../models/state";
 import { MuscleGroupsContent } from "./muscleGroupsContent";
 import { lb } from "lens-shmens";
-import { Muscle } from "../models/muscle";
+import {
+  Muscle_createMuscleGroup,
+  Muscle_deleteMuscleGroup,
+  Muscle_updateMuscleGroup,
+  Muscle_restoreMuscleGroup,
+} from "../models/muscle";
 
 interface IProps {
   dispatch: IDispatch;
@@ -29,7 +34,7 @@ export function ScreenMuscleGroups(props: IProps): JSX.Element {
               lb<ISettings>()
                 .p("muscleGroups")
                 .recordModify((muscleGroups) => {
-                  return Muscle.createMuscleGroup(muscleGroups, name);
+                  return Muscle_createMuscleGroup(muscleGroups, name);
                 }),
               "Create Muscle Group"
             );
@@ -40,7 +45,7 @@ export function ScreenMuscleGroups(props: IProps): JSX.Element {
               lb<ISettings>()
                 .p("muscleGroups")
                 .recordModify((muscleGroups) => {
-                  return Muscle.deleteMuscleGroup(muscleGroups, muscleGroup);
+                  return Muscle_deleteMuscleGroup(muscleGroups, muscleGroup);
                 }),
               "Toggle Muscle Group"
             );
@@ -51,7 +56,7 @@ export function ScreenMuscleGroups(props: IProps): JSX.Element {
               lb<ISettings>()
                 .p("muscleGroups")
                 .recordModify((muscleGroups) => {
-                  return Muscle.updateMuscleGroup(muscleGroups, muscleGroup, muscles);
+                  return Muscle_updateMuscleGroup(muscleGroups, muscleGroup, muscles);
                 }),
               "Update Muscle Group"
             );
@@ -62,7 +67,7 @@ export function ScreenMuscleGroups(props: IProps): JSX.Element {
               lb<ISettings>()
                 .p("muscleGroups")
                 .recordModify((muscleGroups) => {
-                  return Muscle.restoreMuscleGroup(muscleGroups, muscleGroup);
+                  return Muscle_restoreMuscleGroup(muscleGroups, muscleGroup);
                 }),
               "Restore Muscle Group"
             );

@@ -1,6 +1,6 @@
 import { unsafeCoerce } from "fp-ts/lib/function";
 import * as t from "io-ts";
-import { ObjectUtils } from "./utils/object";
+import { ObjectUtils_keys } from "./utils/object";
 import { IArrayElement } from "./utils/types";
 import { IVersions, IVersionTypes } from "./models/versionTracker";
 
@@ -1060,7 +1060,7 @@ export type IStatsPercentage = t.TypeOf<typeof TStatsPercentage>;
 export type IStatsKey = keyof IStatsLength | keyof IStatsWeight | keyof IStatsPercentage;
 
 export const TStatsWeightEnabled = t.partial(
-  ObjectUtils.keys(statsWeightDef).reduce<Record<keyof IStatsWeight, t.BooleanC>>(
+  ObjectUtils_keys(statsWeightDef).reduce<Record<keyof IStatsWeight, t.BooleanC>>(
     (memo, key) => {
       memo[key] = t.boolean;
       return memo;
@@ -1072,7 +1072,7 @@ export const TStatsWeightEnabled = t.partial(
 export type IStatsWeightEnabled = t.TypeOf<typeof TStatsWeightEnabled>;
 
 export const TStatsLengthEnabled = t.partial(
-  ObjectUtils.keys(statsLengthDef).reduce<Record<keyof IStatsLength, t.BooleanC>>(
+  ObjectUtils_keys(statsLengthDef).reduce<Record<keyof IStatsLength, t.BooleanC>>(
     (memo, key) => {
       memo[key] = t.boolean;
       return memo;
@@ -1084,7 +1084,7 @@ export const TStatsLengthEnabled = t.partial(
 export type IStatsLengthEnabled = t.TypeOf<typeof TStatsLengthEnabled>;
 
 export const TStatsPercentageEnabled = t.partial(
-  ObjectUtils.keys(statsPercentageDef).reduce<Record<keyof IStatsPercentage, t.BooleanC>>(
+  ObjectUtils_keys(statsPercentageDef).reduce<Record<keyof IStatsPercentage, t.BooleanC>>(
     (memo, key) => {
       memo[key] = t.boolean;
       return memo;

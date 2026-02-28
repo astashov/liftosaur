@@ -1,6 +1,13 @@
 import { h, JSX, ComponentChildren } from "preact";
-import { SendMessage } from "./utils/sendMessage";
-import { UrlUtils } from "./utils/url";
+import {
+  SendMessage_isIos,
+  SendMessage_iosAppVersion,
+  SendMessage_toIos,
+  SendMessage_isAndroid,
+  SendMessage_androidAppVersion,
+  SendMessage_toAndroid,
+} from "./utils/sendMessage";
+import { UrlUtils_build } from "./utils/url";
 
 interface IProps {
   href: string;
@@ -10,14 +17,14 @@ interface IProps {
 }
 
 export function InternalLink(props: IProps): JSX.Element {
-  if (SendMessage.isIos()) {
-    if (SendMessage.iosAppVersion() > 4) {
+  if (SendMessage_isIos()) {
+    if (SendMessage_iosAppVersion() > 4) {
       return (
         <button
           className={`block w-full ${props.className} nm-${props.name}`}
           onClick={() => {
-            const url = UrlUtils.build(props.href, window.location.href.replace("liftosaur://", "https://"));
-            SendMessage.toIos({ type: "openUrl", url: url.toString() });
+            const url = UrlUtils_build(props.href, window.location.href.replace("liftosaur://", "https://"));
+            SendMessage_toIos({ type: "openUrl", url: url.toString() });
           }}
         >
           {props.children}
@@ -30,13 +37,13 @@ export function InternalLink(props: IProps): JSX.Element {
         </a>
       );
     }
-  } else if (SendMessage.isAndroid() && SendMessage.androidAppVersion() > 11) {
+  } else if (SendMessage_isAndroid() && SendMessage_androidAppVersion() > 11) {
     return (
       <button
         className={`block w-full ${props.className} nm-${props.name}`}
         onClick={() => {
-          const url = UrlUtils.build(props.href, window.location.href);
-          SendMessage.toAndroid({ type: "openUrl", url: url.toString() });
+          const url = UrlUtils_build(props.href, window.location.href);
+          SendMessage_toAndroid({ type: "openUrl", url: url.toString() });
         }}
       >
         {props.children}

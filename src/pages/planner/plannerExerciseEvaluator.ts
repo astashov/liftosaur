@@ -1,7 +1,7 @@
 // import util from "util";
 import { SyntaxNode } from "@lezer/common";
-import { Exercise } from "../../models/exercise";
-import { CollectionUtils } from "../../utils/collection";
+import { Exercise_findByNameAndEquipment } from "../../models/exercise";
+import { CollectionUtils_compact } from "../../utils/collection";
 import { parser as plannerExerciseParser } from "./plannerExerciseParser";
 import { IEither } from "../../utils/types";
 import {
@@ -30,16 +30,19 @@ import {
 import * as W from "../../models/weight";
 import { PlannerNodeName } from "./plannerExerciseStyles";
 import { ScriptRunner } from "../../parser";
-import { Progress } from "../../models/progress";
+import { Progress_createEmptyScriptBindings, Progress_createScriptFunctions } from "../../models/progress";
 import { LiftoscriptSyntaxError, LiftoscriptEvaluator } from "../../liftoscriptEvaluator";
-import { Weight } from "../../models/weight";
-import { MathUtils } from "../../utils/math";
-import { PlannerKey } from "./plannerKey";
-import { UidFactory } from "../../utils/generator";
-import { ObjectUtils } from "../../utils/object";
-import { PlannerProgramExercise } from "./models/plannerProgramExercise";
+import { Weight_parse, Weight_buildPct, Weight_print, Weight_smartConvert } from "../../models/weight";
+import { MathUtils_roundFloat } from "../../utils/math";
+import { PlannerKey_fromFullName } from "./plannerKey";
+import { UidFactory_generateUid } from "../../utils/generator";
+import { ObjectUtils_pick, ObjectUtils_isEqual } from "../../utils/object";
+import {
+  PlannerProgramExercise_buildProgress,
+  PlannerProgramExercise_shortNameFromFullName,
+} from "./models/plannerProgramExercise";
 import memoize from "micro-memoize";
-import { StringUtils } from "../../utils/string";
+import { StringUtils_unindent } from "../../utils/string";
 
 export interface IPlannerTopLineItem {
   type: "exercise" | "comment" | "description" | "empty";
@@ -159,20 +162,20 @@ export class PlannerExerciseEvaluator {
 
   public static isEqualProgress(a: IProgramExerciseProgress, b: IProgramExerciseProgress): boolean {
     const pickA = {
-      ...ObjectUtils.pick(a, ["type", "state", "stateMetadata", "script"]),
+      ...ObjectUtils_pick(a, ["type", "state", "stateMetadata", "script"]),
       reuse: a.reuse?.fullName,
     };
     const pickB = {
-      ...ObjectUtils.pick(b, ["type", "state", "stateMetadata", "script"]),
+      ...ObjectUtils_pick(b, ["type", "state", "stateMetadata", "script"]),
       reuse: b.reuse?.fullName,
     };
-    return ObjectUtils.isEqual(pickA, pickB);
+    return ObjectUtils_isEqual(pickA, pickB);
   }
 
   public static isEqualUpdate(a: IProgramExerciseUpdate, b: IProgramExerciseUpdate): boolean {
-    const pickA = { ...ObjectUtils.pick(a, ["type", "script"]), reuse: a.reuse?.fullName };
-    const pickB = { ...ObjectUtils.pick(b, ["type", "script"]), reuse: b.reuse?.fullName };
-    return ObjectUtils.isEqual(pickA, pickB);
+    const pickA = { ...ObjectUtils_pick(a, ["type", "script"]), reuse: a.reuse?.fullName };
+    const pickB = { ...ObjectUtils_pick(b, ["type", "script"]), reuse: b.reuse?.fullName };
+    return ObjectUtils_isEqual(pickA, pickB);
   }
 
   private getPoint(node: SyntaxNode): IPlannerSyntaxPointer {
@@ -257,7 +260,7 @@ export class PlannerExerciseEvaluator {
     if (expr?.type.name === PlannerNodeName.WeightWithPlus || expr?.type.name === PlannerNodeName.Weight) {
       const value = this.getValue(expr).replace("+", "");
       const unit = value.indexOf("kg") !== -1 ? "kg" : "lb";
-      return W.Weight.build(parseFloat(value), unit);
+      return W.Weight_build(parseFloat(value), unit);
     } else {
       return undefined;
     }
@@ -316,10 +319,10 @@ export class PlannerExerciseEvaluator {
       }
       try {
         const fnArgVal = fnArgValStr.match(/(lb|kg)/)
-          ? Weight.parse(fnArgValStr)
+          ? Weight_parse(fnArgValStr)
           : fnArgValStr.match(/%/)
-            ? Weight.buildPct(parseFloat(fnArgValStr))
-            : MathUtils.roundFloat(parseFloat(fnArgValStr), 2);
+            ? Weight_buildPct(parseFloat(fnArgValStr))
+            : MathUtils_roundFloat(parseFloat(fnArgValStr), 2);
         state[fnArgKey] = fnArgVal ?? 0;
       } catch (e) {
         if (onError) {
@@ -435,8 +438,8 @@ export class PlannerExerciseEvaluator {
             script,
             {},
             {},
-            Progress.createEmptyScriptBindings(this.dayData, this.settings),
-            Progress.createScriptFunctions(this.settings),
+            Progress_createEmptyScriptBindings(this.dayData, this.settings),
+            Progress_createScriptFunctions(this.settings),
             this.settings.units,
             { exerciseType, unit: this.settings.units, prints: [] },
             "update"
@@ -567,7 +570,7 @@ export class PlannerExerciseEvaluator {
       if (valueNode == null) {
         const none = expr.getChild(PlannerNodeName.None);
         if (none != null) {
-          return PlannerProgramExercise.buildProgress("none", []);
+          return PlannerProgramExercise_buildProgress("none", []);
         } else {
           throw this.error(`Missing value for the property 'progress'`, expr);
         }
@@ -592,8 +595,8 @@ export class PlannerExerciseEvaluator {
             script,
             state,
             {},
-            Progress.createEmptyScriptBindings(this.dayData, this.settings),
-            Progress.createScriptFunctions(this.settings),
+            Progress_createEmptyScriptBindings(this.dayData, this.settings),
+            Progress_createScriptFunctions(this.settings),
             this.settings.units,
             { exerciseType, unit: this.settings.units, prints: [] },
             "planner"
@@ -620,12 +623,12 @@ export class PlannerExerciseEvaluator {
           ?.getChild(PlannerNodeName.ReuseSection)
           ?.getChild(PlannerNodeName.ExerciseName);
         const body = reuseLiftoscriptNode ? this.getValue(reuseLiftoscriptNode) : undefined;
-        return PlannerProgramExercise.buildProgress(type, fnArgs, {
+        return PlannerProgramExercise_buildProgress(type, fnArgs, {
           script,
           reuseFullname: body,
         });
       } else {
-        return PlannerProgramExercise.buildProgress(type, fnArgs);
+        return PlannerProgramExercise_buildProgress(type, fnArgs);
       }
     } else {
       assert(PlannerNodeName.ExerciseProperty);
@@ -787,7 +790,7 @@ export class PlannerExerciseEvaluator {
         label = label.trim();
       }
       const nameEquipment = nameEquipmentItems.join(":").trim();
-      const matchingExercise = Exercise.findByNameAndEquipment(nameEquipment, exercises);
+      const matchingExercise = Exercise_findByNameAndEquipment(nameEquipment, exercises);
       if (matchingExercise) {
         return { name: matchingExercise.name, label: label ? label : undefined, equipment: matchingExercise.equipment };
       }
@@ -947,9 +950,9 @@ export class PlannerExerciseEvaluator {
       const fullName = this.getValue(nameNode);
       // eslint-disable-next-line prefer-const
       let { label, name, equipment } = PlannerExerciseEvaluator.extractNameParts(fullName, this.settings.exercises);
-      const key = PlannerKey.fromFullName(fullName, this.settings.exercises);
-      const shortName = PlannerProgramExercise.shortNameFromFullName(fullName, this.settings);
-      const exercise = Exercise.findByNameAndEquipment(shortName, this.settings.exercises);
+      const key = PlannerKey_fromFullName(fullName, this.settings.exercises);
+      const shortName = PlannerProgramExercise_shortNameFromFullName(fullName, this.settings);
+      const exercise = Exercise_findByNameAndEquipment(shortName, this.settings.exercises);
       let notused = this.getIsNotUsed(expr);
       const sectionNodes = expr.getChildren(PlannerNodeName.ExerciseSection);
       const setVariations: IPlannerProgramExerciseSetVariation[] = [];
@@ -1005,7 +1008,7 @@ export class PlannerExerciseEvaluator {
       if (descriptions.length > 1) {
         descriptions = descriptions.filter((d) => d.value);
       }
-      descriptions = descriptions.map((d) => ({ ...d, value: StringUtils.unindent(d.value) }));
+      descriptions = descriptions.map((d) => ({ ...d, value: StringUtils_unindent(d.value) }));
       this.latestDescriptions = [];
       const fullNamePoint = this.getPoint(nameNode);
 
@@ -1059,7 +1062,7 @@ export class PlannerExerciseEvaluator {
       const supersetPoint = supersetNode ? this.getPoint(supersetNode) : undefined;
 
       const plannerExercise: IPlannerProgramExercise = {
-        id: UidFactory.generateUid(8),
+        id: UidFactory_generateUid(8),
         key,
         fullName,
         shortName,
@@ -1119,7 +1122,7 @@ export class PlannerExerciseEvaluator {
     if (expr.type.name === PlannerNodeName.Program) {
       this.weeks = [];
       this.exerciseIndex = 0;
-      for (const child of CollectionUtils.compact(getChildren(expr))) {
+      for (const child of CollectionUtils_compact(getChildren(expr))) {
         this.evaluateExercise(child);
       }
       return this.weeks;
@@ -1166,8 +1169,8 @@ export class PlannerExerciseEvaluator {
           if (weight.unit !== settings.units) {
             const from = cursor.node.from;
             const to = cursor.node.to;
-            const oldWeightStr = Weight.print(weight);
-            const newWeightStr = Weight.print(Weight.smartConvert(weight, settings.units));
+            const oldWeightStr = Weight_print(weight);
+            const newWeightStr = Weight_print(Weight_smartConvert(weight, settings.units));
             script = script.substring(0, from + shift) + newWeightStr + script.substring(to + shift);
             shift = shift + newWeightStr.length - oldWeightStr.length;
           }
@@ -1178,8 +1181,8 @@ export class PlannerExerciseEvaluator {
           oldLiftoscript,
           {},
           {},
-          Progress.createEmptyScriptBindings({ day: 1, week: 1, dayInWeek: 1 }, settings),
-          Progress.createScriptFunctions(settings),
+          Progress_createEmptyScriptBindings({ day: 1, week: 1, dayInWeek: 1 }, settings),
+          Progress_createScriptFunctions(settings),
           settings.units,
           { unit: settings.units, prints: [] },
           "planner"
@@ -1243,7 +1246,7 @@ export class PlannerExerciseEvaluator {
         ongoingDescriptions = false;
         const nameNode = child.getChild(PlannerNodeName.ExerciseName)!;
         const fullName = this.getValue(nameNode);
-        const key = PlannerKey.fromFullName(fullName, this.settings.exercises);
+        const key = PlannerKey_fromFullName(fullName, this.settings.exercises);
         const repeat = this.getRepeat(child);
         const repeatRanges = this.getRepeatRanges(repeat);
         const order = this.getOrder(child);

@@ -1,8 +1,8 @@
 import { h, JSX, Fragment } from "preact";
-import { IDisplaySet, Reps } from "../models/set";
+import { IDisplaySet, Reps_group, Reps_setToDisplaySet } from "../models/set";
 import { ISet, ISettings } from "../types";
-import { CollectionUtils } from "../utils/collection";
-import { ObjectUtils } from "../utils/object";
+import { CollectionUtils_groupBy, CollectionUtils_compact } from "../utils/collection";
+import { ObjectUtils_keys } from "../utils/object";
 import { IHistoryEntryPersonalRecords } from "../models/history";
 
 function isSameDisplaySet(a: IDisplaySet, b: IDisplaySet): boolean {
@@ -12,7 +12,7 @@ function isSameDisplaySet(a: IDisplaySet, b: IDisplaySet): boolean {
 }
 
 export function groupDisplaySets(displaySets: IDisplaySet[]): IDisplaySet[][] {
-  return CollectionUtils.groupBy(displaySets, (last, set) => {
+  return CollectionUtils_groupBy(displaySets, (last, set) => {
     return !isSameDisplaySet(last, set);
   });
 }
@@ -27,9 +27,9 @@ interface IHistoryRecordSetsProps {
 
 export function HistoryRecordSetsView(props: IHistoryRecordSetsProps): JSX.Element {
   const { sets, isNext } = props;
-  const groups = Reps.group(sets, isNext);
+  const groups = Reps_group(sets, isNext);
   const displayGroups = groups.map((g) => {
-    return g.map((set) => Reps.setToDisplaySet(set, isNext, props.settings));
+    return g.map((set) => Reps_setToDisplaySet(set, isNext, props.settings));
   });
   return (
     <div className="text-sm text-right">
@@ -61,13 +61,13 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
   if (set == null) {
     return <div />;
   }
-  const prTypes = CollectionUtils.compact(
-    ObjectUtils.keys(props.prs || {}).map<"e1RM" | "Weight" | undefined>((k) => {
+  const prTypes = CollectionUtils_compact(
+    ObjectUtils_keys(props.prs || {}).map<"e1RM" | "Weight" | undefined>((k) => {
       const prset = (props.prs || {})[k];
       if (!prset) {
         return undefined;
       }
-      const displayPrSet = Reps.setToDisplaySet(prset, isNext, props.settings);
+      const displayPrSet = Reps_setToDisplaySet(prset, isNext, props.settings);
       return isSameDisplaySet(set, displayPrSet)
         ? k === "max1RMSet"
           ? "e1RM"

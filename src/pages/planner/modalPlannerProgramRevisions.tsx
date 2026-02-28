@@ -5,7 +5,7 @@ import { Button } from "../../components/button";
 import { IconSpinner } from "../../components/icons/iconSpinner";
 import { LinkButton } from "../../components/linkButton";
 import { Modal } from "../../components/modal";
-import { DateUtils } from "../../utils/date";
+import { DateUtils_parseYYYYMMDDHHMM, DateUtils_formatWithTime } from "../../utils/date";
 import { IEither } from "../../utils/types";
 import { PlannerCodeBlock } from "./components/plannerCodeBlock";
 
@@ -73,11 +73,11 @@ export function ModalPlannerProgramRevisions(props: IModalPlannerProgramRevision
           <h3 className="mb-2 text-lg font-bold">Version History</h3>
           <ul>
             {props.revisions.map((revision) => {
-              const date = DateUtils.parseYYYYMMDDHHMM(revision);
+              const date = DateUtils_parseYYYYMMDDHHMM(revision);
               if (!date) {
                 return null;
               }
-              const text = DateUtils.formatWithTime(date);
+              const text = DateUtils_formatWithTime(date);
               return (
                 <li className="text-left">
                   {revision === currentRevision ? (

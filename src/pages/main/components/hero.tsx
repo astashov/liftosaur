@@ -1,13 +1,12 @@
 import { h, JSX } from "preact";
 import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
-import { ITestimonial, Testimonials } from "../testimonitals";
+import { ITestimonial, Testimonials_getHighRatingTitles } from "../testimonitals";
 import { IconStar } from "../../../components/icons/iconStar";
-import { Tailwind } from "../../../utils/tailwindConfig";
-import { Platform } from "../../../utils/platform";
+import { Tailwind_colors } from "../../../utils/tailwindConfig";
 import { Onelink } from "../../../components/onelink";
 import { track } from "../../../utils/posthog";
 
-export function Hero(props: { userAgent?: string; testimonials: ITestimonial[] }): JSX.Element {
+export function Hero(props: { deviceType?: "ios" | "android" | "desktop"; testimonials: ITestimonial[] }): JSX.Element {
   return (
     <div>
       <div className="relative mx-auto" style={{ maxWidth: 1200 }}>
@@ -29,7 +28,7 @@ export function Hero(props: { userAgent?: string; testimonials: ITestimonial[] }
               stronger.
             </p>
             <div className="mb-4">
-              <StoresLinks userAgent={props.userAgent} />
+              <StoresLinks deviceType={props.deviceType} />
             </div>
             <div className="block md:hidden">
               <TopTestimonials testimonials={props.testimonials} />
@@ -62,7 +61,7 @@ function TopTestimonials(props: { testimonials: ITestimonial[] }): JSX.Element {
   const [index, setIndex] = useState(0);
   const [visible, setVisible] = useState(true);
 
-  const titles = useMemo(() => Testimonials.getHighRatingTitles(props.testimonials), [props.testimonials]);
+  const titles = useMemo(() => Testimonials_getHighRatingTitles(props.testimonials), [props.testimonials]);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
@@ -94,7 +93,7 @@ function TopTestimonials(props: { testimonials: ITestimonial[] }): JSX.Element {
   const stars = Array.from({ length: 5 }, (_, i) => (
     <IconStar
       isSelected={true}
-      color={Tailwind.colors().yellow[500]}
+      color={Tailwind_colors().yellow[500]}
       style={{ marginLeft: i !== 0 ? "-0.25rem" : 0 }}
     />
   ));
@@ -124,9 +123,9 @@ function TopTestimonials(props: { testimonials: ITestimonial[] }): JSX.Element {
   );
 }
 
-function StoresLinks(props: { userAgent?: string }): JSX.Element {
-  const isiOS = Platform.isiOS(props.userAgent);
-  const isAndroid = Platform.isAndroid(props.userAgent);
+function StoresLinks(props: { deviceType?: "ios" | "android" | "desktop" }): JSX.Element {
+  const isiOS = props.deviceType === "ios";
+  const isAndroid = props.deviceType === "android";
   const isMobile = isiOS || isAndroid;
   return (
     <div className="flex flex-col items-center md:items-start">

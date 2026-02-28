@@ -1,6 +1,6 @@
 import { h, JSX } from "preact";
 import { useState, useRef, useEffect } from "preact/hooks";
-import { StringUtils } from "../utils/string";
+import { StringUtils_dashcase } from "../utils/string";
 import { inputClassName } from "./input";
 
 interface IMultiselectProps {
@@ -118,7 +118,7 @@ export function Multiselect(props: IMultiselectProps): JSX.Element {
             {filteredValues.map((value) => {
               return (
                 <button
-                  data-cy={`multiselect-option-${StringUtils.dashcase(value)}`}
+                  data-cy={`multiselect-option-${StringUtils_dashcase(value)}`}
                   onClick={() => {
                     const newValues = new Set([...selectedValues, value]);
                     setSelectedValues(newValues);

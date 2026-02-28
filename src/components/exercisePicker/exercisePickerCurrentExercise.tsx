@@ -2,7 +2,7 @@ import { JSX, h } from "preact";
 import { ISettings, IExerciseType, IExercisePickerState } from "../../types";
 import { GroupHeader } from "../groupHeader";
 import { ExercisePickerExerciseItem } from "./exercisePickerExerciseItem";
-import { Exercise } from "../../models/exercise";
+import { Exercise_get } from "../../models/exercise";
 
 interface IExercisePickerCurrentExerciseProps {
   exerciseType: IExerciseType;
@@ -11,7 +11,7 @@ interface IExercisePickerCurrentExerciseProps {
 }
 
 export function ExercisePickerCurrentExercise(props: IExercisePickerCurrentExerciseProps): JSX.Element {
-  const exercise = Exercise.get(props.exerciseType, props.settings.exercises);
+  const exercise = Exercise_get(props.exerciseType, props.settings.exercises);
   return (
     <div className="mx-4 mb-3">
       <GroupHeader name="Current Exercise" />

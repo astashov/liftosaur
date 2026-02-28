@@ -1,10 +1,16 @@
 import { test, expect } from "@playwright/test";
-import { PlaywrightUtils, startpage } from "./playwrightUtils";
+import {
+  startpage,
+  PlaywrightUtils_disableSubscriptions,
+  PlaywrightUtils_clearCodeMirror,
+  PlaywrightUtils_typeCodeMirror,
+  PlaywrightUtils_clickAll,
+} from "./playwrightUtils";
 
 test("custom equipment", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1&nosync=true");
   await page.getByTestId("create-program").click();
-  PlaywrightUtils.disableSubscriptions(page);
+  PlaywrightUtils_disableSubscriptions(page);
 
   await page.getByTestId("modal-create-program-input").clear();
   await page.getByTestId("modal-create-program-input").type("My Program");
@@ -12,8 +18,8 @@ test("custom equipment", async ({ page }) => {
 
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
-  await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
-  await PlaywrightUtils.typeCodeMirror(
+  await PlaywrightUtils_clearCodeMirror(page, "planner-editor");
+  await PlaywrightUtils_typeCodeMirror(
     page,
     "planner-editor",
     `# Week 1
@@ -25,7 +31,7 @@ Bicep Curl / 1x5 20lb / warmup: none`
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("start-workout").click();
-  await PlaywrightUtils.clickAll(page.getByTestId("entry-bicep-curl").getByTestId("complete-set"));
+  await PlaywrightUtils_clickAll(page.getByTestId("entry-bicep-curl").getByTestId("complete-set"));
 
   await page.getByTestId("finish-workout").click();
   await page.getByTestId("finish-day-continue").click();

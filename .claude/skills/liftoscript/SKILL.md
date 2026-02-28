@@ -172,7 +172,7 @@ Specify per-exercise or per-set: `3x5 / 120s` or `1x5 60s, 3x5 120s`.
 After writing, ALWAYS validate:
 
 ```bash
-TS_NODE_TRANSPILE_ONLY=1 npx ts-node lambda/scripts/validate_liftoscript.ts programs/builtin/<id>.md
+TS_NODE_TRANSPILE_ONLY=1 npx ts-node scripts/validate_liftoscript.ts programs/builtin/<id>.md
 ```
 
 Use validation output to sanity-check:

@@ -1,5 +1,5 @@
-import { ObjectUtils } from "../../utils/object";
-import { SetUtils } from "../../utils/setUtils";
+import { ObjectUtils_keys } from "../../utils/object";
+import { SetUtils_areEqual } from "../../utils/setUtils";
 import {
   IVersions,
   IVersionsObject,
@@ -9,14 +9,14 @@ import {
   isCollectionVersions,
   isVersionsObject,
 } from "./types";
-import { VersionTrackerUtils } from "./utils";
+import { VersionTrackerUtils_compareVersions } from "./utils";
 
 export class VersionTrackerDiffVersions {
   public run<T>(oldVersions: IVersions<T> | undefined, newVersions: IVersions<T>): IVersions<T> | undefined {
     const diff: IVersions<T> = {};
     let hasChanges = false;
 
-    for (const key of ObjectUtils.keys(newVersions)) {
+    for (const key of ObjectUtils_keys(newVersions)) {
       const oldVersion = oldVersions?.[key];
       const newVersion = newVersions[key];
 
@@ -35,7 +35,7 @@ export class VersionTrackerDiffVersions {
     newVersion: IVersionValue | undefined
   ): IVersionValue | undefined {
     if (isFieldVersion(oldVersion) && isFieldVersion(newVersion)) {
-      const comparison = VersionTrackerUtils.compareVersions(oldVersion, newVersion);
+      const comparison = VersionTrackerUtils_compareVersions(oldVersion, newVersion);
       return comparison === "equal" ? undefined : newVersion;
     }
 
@@ -50,7 +50,7 @@ export class VersionTrackerDiffVersions {
 
       const oldDeletedKeys = new Set(Object.keys(oldCollection?.deleted || {}));
       const newDeletedKeys = new Set(Object.keys(newVersion.deleted || {}));
-      if (!SetUtils.areEqual(oldDeletedKeys, newDeletedKeys)) {
+      if (!SetUtils_areEqual(oldDeletedKeys, newDeletedKeys)) {
         hasChanges = true;
       }
       diffCollection.deleted = { ...(oldCollection?.deleted || {}), ...(newVersion.deleted || {}) };

@@ -5,8 +5,8 @@ import { Input } from "../../../components/input";
 import { MenuItemValue } from "../../../components/menuItemEditable";
 import { Modal } from "../../../components/modal";
 import { ISettings, IUnit } from "../../../types";
-import { ObjectUtils } from "../../../utils/object";
-import { Muscle } from "../../../models/muscle";
+import { ObjectUtils_keys, ObjectUtils_fromArray } from "../../../utils/object";
+import { Muscle_getAvailableMuscleGroups, Muscle_getMuscleGroupName } from "../../../models/muscle";
 import { LinkButton } from "../../../components/linkButton";
 
 interface IModalPlannerSettingsProps {
@@ -20,7 +20,7 @@ interface IModalPlannerSettingsProps {
 export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Element {
   let allWeeklySetsMin: number | undefined;
   if (
-    ObjectUtils.keys(props.settings.planner.weeklyRangeSets).every(
+    ObjectUtils_keys(props.settings.planner.weeklyRangeSets).every(
       (k) => props.settings.planner.weeklyRangeSets[k]?.[0] === props.settings.planner.weeklyRangeSets.abs?.[0]
     )
   ) {
@@ -31,7 +31,7 @@ export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Ele
 
   let allWeeklySetsMax: number | undefined;
   if (
-    ObjectUtils.keys(props.settings.planner.weeklyRangeSets).every(
+    ObjectUtils_keys(props.settings.planner.weeklyRangeSets).every(
       (k) => props.settings.planner.weeklyRangeSets[k]?.[1] === props.settings.planner.weeklyRangeSets.abs?.[1]
     )
   ) {
@@ -42,7 +42,7 @@ export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Ele
 
   let allWeeklyFrequency: number | undefined;
   if (
-    ObjectUtils.keys(props.settings.planner.weeklyFrequency).every(
+    ObjectUtils_keys(props.settings.planner.weeklyFrequency).every(
       (k) => props.settings.planner.weeklyFrequency[k] === props.settings.planner.weeklyFrequency.abs
     )
   ) {
@@ -50,7 +50,7 @@ export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Ele
   } else {
     allWeeklyFrequency = undefined;
   }
-  const availableMuscleGroups = Muscle.getAvailableMuscleGroups(props.settings);
+  const availableMuscleGroups = Muscle_getAvailableMuscleGroups(props.settings);
 
   return (
     <Modal shouldShowClose={true} onClose={props.onClose}>
@@ -221,31 +221,31 @@ export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Ele
                   let newSettings = lf(props.settings)
                     .p("planner")
                     .p("weeklyRangeSets")
-                    .set(ObjectUtils.fromArray(availableMuscleGroups.map((e) => [e, [10, 12]])));
+                    .set(ObjectUtils_fromArray(availableMuscleGroups.map((e) => [e, [10, 12]])));
                   newSettings = lf(newSettings)
                     .p("planner")
                     .p("weeklyFrequency")
-                    .set(ObjectUtils.fromArray(availableMuscleGroups.map((e) => [e, 2])));
+                    .set(ObjectUtils_fromArray(availableMuscleGroups.map((e) => [e, 2])));
                   props.onNewSettings(newSettings);
                 } else if (newValue === "intermediate") {
                   let newSettings = lf(props.settings)
                     .p("planner")
                     .p("weeklyRangeSets")
-                    .set(ObjectUtils.fromArray(availableMuscleGroups.map((e) => [e, [13, 15]])));
+                    .set(ObjectUtils_fromArray(availableMuscleGroups.map((e) => [e, [13, 15]])));
                   newSettings = lf(newSettings)
                     .p("planner")
                     .p("weeklyFrequency")
-                    .set(ObjectUtils.fromArray(availableMuscleGroups.map((e) => [e, 3])));
+                    .set(ObjectUtils_fromArray(availableMuscleGroups.map((e) => [e, 3])));
                   props.onNewSettings(newSettings);
                 } else if (newValue === "advanced") {
                   let newSettings = lf(props.settings)
                     .p("planner")
                     .p("weeklyRangeSets")
-                    .set(ObjectUtils.fromArray(availableMuscleGroups.map((e) => [e, [16, 20]])));
+                    .set(ObjectUtils_fromArray(availableMuscleGroups.map((e) => [e, [16, 20]])));
                   newSettings = lf(newSettings)
                     .p("planner")
                     .p("weeklyFrequency")
-                    .set(ObjectUtils.fromArray(availableMuscleGroups.map((e) => [e, 4])));
+                    .set(ObjectUtils_fromArray(availableMuscleGroups.map((e) => [e, 4])));
                   props.onNewSettings(newSettings);
                 }
               }}
@@ -268,7 +268,7 @@ export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Ele
                       const value = parseInt(e.data, 10);
                       if (!isNaN(value)) {
                         const clampedValue = Math.max(0, value);
-                        const newValues = ObjectUtils.fromArray(
+                        const newValues = ObjectUtils_fromArray(
                           availableMuscleGroups.map((v) => [
                             v,
                             [clampedValue, props.settings.planner.weeklyRangeSets[v]?.[1] ?? 0] as [number, number],
@@ -292,7 +292,7 @@ export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Ele
                       const value = parseInt(e.data, 10);
                       if (!isNaN(value)) {
                         const clampedValue = Math.max(0, value);
-                        const newValues = ObjectUtils.fromArray(
+                        const newValues = ObjectUtils_fromArray(
                           availableMuscleGroups.map((v) => [
                             v,
                             [props.settings.planner.weeklyRangeSets[v]?.[0] ?? 0, clampedValue] as [number, number],
@@ -316,7 +316,7 @@ export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Ele
                       const value = parseInt(e.data, 10);
                       if (!isNaN(value)) {
                         const clampedValue = Math.max(0, value);
-                        const newValues = ObjectUtils.fromArray(availableMuscleGroups.map((v) => [v, clampedValue]));
+                        const newValues = ObjectUtils_fromArray(availableMuscleGroups.map((v) => [v, clampedValue]));
                         props.onNewSettings(lf(props.settings).p("planner").p("weeklyFrequency").set(newValues));
                       }
                     }
@@ -329,7 +329,7 @@ export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Ele
             return (
               <li className={`${!props.inApp ? "flex" : ""} flex-col items-start mb-2 sm:items-center sm:flex-row`}>
                 <div className="w-32 text-xs font-bold sm:text-sm">
-                  {Muscle.getMuscleGroupName(muscleGroup, props.settings)}
+                  {Muscle_getMuscleGroupName(muscleGroup, props.settings)}
                 </div>
                 <div className="flex flex-1" style={{ gap: "0.5rem" }}>
                   <div className="min-w-0" style={{ flex: 2 }}>

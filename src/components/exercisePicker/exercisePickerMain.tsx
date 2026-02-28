@@ -1,7 +1,7 @@
 import { h, JSX, Fragment } from "preact";
 import { IconMuscles2 } from "../icons/iconMuscles2";
 import { IconStar } from "../icons/iconStar";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { ScrollableTabs } from "../scrollableTabs";
 import { ExercisePickerFromProgram } from "./exercisePickerFromProgram";
 import { IEvaluatedProgram } from "../../models/program";
@@ -10,9 +10,9 @@ import { ExercisePickerAdhocExercises } from "./exercisePickerAdhocExercises";
 import { Button } from "../button";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
-import { Exercise } from "../../models/exercise";
-import { ExercisePickerUtils } from "./exercisePickerUtils";
-import { CollectionUtils } from "../../utils/collection";
+import { Exercise_get, Exercise_fullName } from "../../models/exercise";
+import { ExercisePickerUtils_getProgramExercisefullName } from "./exercisePickerUtils";
+import { CollectionUtils_compact } from "../../utils/collection";
 import { ExercisePickerCurrentExercise } from "./exercisePickerCurrentExercise";
 import { Input, IValidationError } from "../input";
 import { useRef } from "preact/hooks";
@@ -110,7 +110,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
                 );
               }}
             >
-              <IconMuscles2 color={Tailwind.semantic().icon.purple} isSelected={props.state.showMuscles} />
+              <IconMuscles2 color={Tailwind_semantic().icon.purple} isSelected={props.state.showMuscles} />
             </button>
           </div>
           <div>
@@ -123,7 +123,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
                 );
               }}
             >
-              <IconStar isSelected={isStarred} color={Tailwind.semantic().icon.purple} />
+              <IconStar isSelected={isStarred} color={Tailwind_semantic().icon.purple} />
             </button>
           </div>
         </div>
@@ -224,14 +224,14 @@ interface IBottomButtonProps {
 }
 
 function BottomButton(props: IBottomButtonProps): JSX.Element {
-  const selectedExercises = CollectionUtils.compact(
+  const selectedExercises = CollectionUtils_compact(
     props.state.selectedExercises.map((e) => {
       if (e.type === "adhoc") {
-        const ex = Exercise.get(e.exerciseType, props.settings.exercises);
-        return Exercise.fullName(ex, props.settings);
+        const ex = Exercise_get(e.exerciseType, props.settings.exercises);
+        return Exercise_fullName(ex, props.settings);
       } else if (e.type === "program") {
         return props.evaluatedProgram
-          ? ExercisePickerUtils.getProgramExercisefullName(e, props.evaluatedProgram, props.settings)
+          ? ExercisePickerUtils_getProgramExercisefullName(e, props.evaluatedProgram, props.settings)
           : undefined;
       } else {
         return undefined;

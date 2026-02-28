@@ -4,8 +4,8 @@ import { BottomSheetItem } from "./bottomSheetItem";
 import { IHistoryRecord, ISettings } from "../types";
 import { WorkoutShareBottomSheetItem } from "./workoutShareBottomSheetItem";
 import { IconLink } from "./icons/iconLink";
-import { ClipboardUtils } from "../utils/clipboard";
-import { Share } from "../models/share";
+import { ClipboardUtils_copy } from "../utils/clipboard";
+import { Share_generateLink } from "../models/share";
 
 interface IProps {
   record: IHistoryRecord;
@@ -29,8 +29,8 @@ export function BottomSheetWebappShareOptions(props: IProps): JSX.Element {
             icon={<IconLink />}
             onClick={() => {
               if (props.userId) {
-                const link = Share.generateLink(props.userId, props.record.id);
-                ClipboardUtils.copy(link);
+                const link = Share_generateLink(props.userId, props.record.id);
+                ClipboardUtils_copy(link);
                 alert("Copied!");
               } else {
                 alert("You should be logged in to copy link to a workout");

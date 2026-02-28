@@ -1,10 +1,11 @@
-import { IStorage, IHistoryRecord, ISettings, IMuscleGeneratorResponse, IPlannerProgramWeek } from "../types";
+import { IStorage, IHistoryRecord, ISettings, IUnit, IMuscleGeneratorResponse, IPlannerProgramWeek } from "../types";
+import { IAccount } from "../models/account";
 import { IEither } from "../utils/types";
-import { UrlUtils } from "../utils/url";
+import { UrlUtils_build } from "../utils/url";
 import { IStorageUpdate2 } from "../utils/sync";
 import { IExportedProgram, IProgramIndexEntry } from "../models/program";
-import { CollectionUtils } from "../utils/collection";
-import { Encoder } from "../utils/encoder";
+import { CollectionUtils_uniqBy } from "../utils/collection";
+import { Encoder_encode } from "../utils/encoder";
 import { IAppleOffer, IGoogleOffer } from "../models/state";
 
 export interface IProgramDetail {
@@ -176,12 +177,12 @@ export class Service {
         break;
       }
     }
-    history = CollectionUtils.uniqBy(history, "id");
+    history = CollectionUtils_uniqBy(history, "id");
     return history;
   }
 
   public async getHistory(args: { after?: number; limit?: number }): Promise<IHistoryRecord[]> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/history`);
+    const url = UrlUtils_build(`${__API_HOST__}/api/history`);
     if (args.after) {
       url.searchParams.set("after", args.after.toString());
     }
@@ -253,7 +254,7 @@ export class Service {
     signal?: AbortSignal;
     deviceId?: string;
   }): Promise<IPostSyncResponse> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/sync2`);
+    const url = UrlUtils_build(`${__API_HOST__}/api/sync2`);
     if (args.tempUserId) {
       url.searchParams.set("tempuserid", args.tempUserId);
     }
@@ -263,7 +264,7 @@ export class Service {
       historylimit: 20,
       deviceId: args.deviceId,
     });
-    const compressedBody = await Encoder.encode(body);
+    const compressedBody = await Encoder_encode(body);
     const payload = JSON.stringify({ data: compressedBody });
     const result = await this.client(url.toString(), {
       method: "POST",
@@ -283,7 +284,7 @@ export class Service {
 
   public async postDebug(id: string, state: string, meta: Record<string, string>): Promise<boolean> {
     try {
-      const compressed = await Encoder.encode(JSON.stringify({ state, meta }));
+      const compressed = await Encoder_encode(JSON.stringify({ state, meta }));
       const response = await this.client(`${__API_HOST__}/api/debug`, {
         method: "POST",
         body: JSON.stringify({ id, data: compressed }),
@@ -306,7 +307,7 @@ export class Service {
   }
 
   public async postAddFreeUser(userid: string, adminKey: string): Promise<void> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/addfreeuser/${userid}`);
+    const url = UrlUtils_build(`${__API_HOST__}/api/addfreeuser/${userid}`);
     url.searchParams.set("key", adminKey);
     await this.client(url.toString(), {
       method: "POST",
@@ -315,7 +316,7 @@ export class Service {
   }
 
   public async postSaveProgram(program: IExportedProgram, deviceId?: string): Promise<IEither<string, string>> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/program`);
+    const url = UrlUtils_build(`${__API_HOST__}/api/program`);
     try {
       const response = await this.client(url.toString(), {
         method: "POST",
@@ -336,7 +337,7 @@ export class Service {
   }
 
   public async deleteProgram(id: string): Promise<IEither<string, string>> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/program/${id}`);
+    const url = UrlUtils_build(`${__API_HOST__}/api/program/${id}`);
     try {
       const response = await this.client(url.toString(), {
         method: "DELETE",
@@ -370,7 +371,7 @@ export class Service {
       IRedeemCouponError
     >
   > {
-    const url = UrlUtils.build(`${__API_HOST__}/api/coupon/claim/${code}`);
+    const url = UrlUtils_build(`${__API_HOST__}/api/coupon/claim/${code}`);
     const result = await this.client(url.toString(), {
       method: "POST",
       credentials: "include",
@@ -410,7 +411,7 @@ export class Service {
     adminKey?: string
   ): Promise<IGetStorageResponse> {
     const historylimit = 20;
-    const url = UrlUtils.build(`${__API_HOST__}/api/storage`);
+    const url = UrlUtils_build(`${__API_HOST__}/api/storage`);
     if (tempUserId) {
       url.searchParams.set("tempuserid", tempUserId);
     }
@@ -424,10 +425,12 @@ export class Service {
     url.searchParams.set("historylimit", historylimit.toString());
     const result = await this.client(url.toString(), { credentials: "include" });
     const json = await result.json();
-    json.storage.history = await this.getAllHistoryRecords({
-      alreadyFetchedHistory: json.storage.history,
-      historyLimit: historylimit,
-    });
+    if (json.storage?.history) {
+      json.storage.history = await this.getAllHistoryRecords({
+        alreadyFetchedHistory: json.storage.history,
+        historyLimit: historylimit,
+      });
+    }
     return {
       email: json.email,
       storage: json.storage,
@@ -438,7 +441,7 @@ export class Service {
   }
 
   public async getExceptionData(id: string): Promise<string | undefined> {
-    const apiUrl = UrlUtils.build(`${__API_HOST__}/api/exception/${id}`);
+    const apiUrl = UrlUtils_build(`${__API_HOST__}/api/exception/${id}`);
     try {
       const result = await this.client(apiUrl.toString(), { credentials: "include" });
       const json = await result.json();
@@ -458,11 +461,11 @@ export class Service {
 
   public async postEvent(event: IEventPayload): Promise<void> {
     const nosync =
-      typeof window !== "undefined" && UrlUtils.build(window.location.href).searchParams.get("nosync") === "true";
+      typeof window !== "undefined" && UrlUtils_build(window.location.href).searchParams.get("nosync") === "true";
     if (nosync) {
       return;
     }
-    const url = UrlUtils.build(`${__API_HOST__}/api/event`);
+    const url = UrlUtils_build(`${__API_HOST__}/api/event`);
     await this.client(url.toString(), {
       method: "POST",
       body: JSON.stringify(event),
@@ -471,7 +474,7 @@ export class Service {
   }
 
   public async getUploadedImages(): Promise<string[]> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/uploadedimages`);
+    const url = UrlUtils_build(`${__API_HOST__}/api/uploadedimages`);
     const response = await this.client(url.toString(), { credentials: "include" });
     if (response.ok) {
       const json: { data: { images: string[] } } = await response.json();
@@ -485,7 +488,7 @@ export class Service {
     fileName: string,
     contentType: string
   ): Promise<{ uploadUrl: string; imageUrl: string; key: string }> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/imageuploadurl`);
+    const url = UrlUtils_build(`${__API_HOST__}/api/imageuploadurl`);
     const response = await this.client(url.toString(), {
       method: "POST",
       body: JSON.stringify({ fileName, contentType }),
@@ -506,7 +509,7 @@ export class Service {
   public async verifyAppleReceipt(userId: string, appleReceipt: string): Promise<boolean> {
     const json = await this.cache(`verifyAppleReceipt:${userId}:${appleReceipt}`, async () => {
       try {
-        const url = UrlUtils.build(`${__API_HOST__}/api/verifyapplereceipt`);
+        const url = UrlUtils_build(`${__API_HOST__}/api/verifyapplereceipt`);
         const result = await this.client(url.toString(), {
           method: "POST",
           body: JSON.stringify({ appleReceipt, userId }),
@@ -523,7 +526,7 @@ export class Service {
   public async verifyGooglePurchaseToken(userId: string, googlePurchaseToken: string): Promise<boolean> {
     const json = await this.cache(`verifyGooglePurchaseToken:${userId}:${googlePurchaseToken}`, async () => {
       try {
-        const url = UrlUtils.build(`${__API_HOST__}/api/verifygooglepurchasetoken`);
+        const url = UrlUtils_build(`${__API_HOST__}/api/verifygooglepurchasetoken`);
         const result = await this.client(url.toString(), {
           method: "POST",
           body: JSON.stringify({ googlePurchaseToken, userId }),
@@ -538,14 +541,14 @@ export class Service {
   }
 
   public async deleteAccount(): Promise<boolean> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/deleteaccount`);
+    const url = UrlUtils_build(`${__API_HOST__}/api/deleteaccount`);
     const response = await this.client(url.toString(), { method: "DELETE", credentials: "include" });
     const json = await response.json();
     return json.data === "ok";
   }
 
   public async postShortUrl(urlToShorten: string, type: string, src?: string): Promise<string> {
-    const url = UrlUtils.build(`${__API_HOST__}/shorturl/${type}`);
+    const url = UrlUtils_build(`${__API_HOST__}/shorturl/${type}`);
     const result = await this.client(url.toString(), {
       method: "POST",
       credentials: "include",
@@ -553,14 +556,14 @@ export class Service {
     });
     if (result.ok) {
       const json: { url: string } = await result.json();
-      return UrlUtils.build(json.url, __HOST__).toString();
+      return UrlUtils_build(json.url, __HOST__).toString();
     } else {
       throw new Error("Couldn't shorten url");
     }
   }
 
   public async getDataFromShortUrl(type: "p" | "n", id: string): Promise<{ data: string; s?: string; u?: string }> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/${type}/${id}`);
+    const url = UrlUtils_build(`${__API_HOST__}/api/${type}/${id}`);
     const result = await this.client(url.toString(), { credentials: "include" });
     if (result.ok) {
       const json: { data: string; s?: string; u?: string } = await result.json();
@@ -581,7 +584,7 @@ export class Service {
   }
 
   public async getMuscles(exercise: string): Promise<IMuscleGeneratorResponse | undefined> {
-    const url = UrlUtils.build(`${__API_HOST__}/api/muscles`);
+    const url = UrlUtils_build(`${__API_HOST__}/api/muscles`);
     url.searchParams.set("exercise", exercise);
     if (typeof window !== "undefined" && window.tempUserId) {
       url.searchParams.set("tempuserid", window.tempUserId);
@@ -669,5 +672,17 @@ export class Service {
     } catch (error) {
       yield { type: "error", data: error instanceof Error ? error.message : "Unknown error" };
     }
+  }
+
+  public async getUserContext(): Promise<{ account?: IAccount; units?: IUnit }> {
+    const result = await this.client(`${__API_HOST__}/api/usercontext`, {
+      method: "GET",
+      credentials: "include",
+    });
+    if (result.ok) {
+      const json = await result.json();
+      return { account: json.account || undefined, units: json.units || undefined };
+    }
+    return {};
   }
 }

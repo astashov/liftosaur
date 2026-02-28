@@ -1,5 +1,5 @@
 import { h, JSX, ComponentChildren } from "preact";
-import { StringUtils } from "../utils/string";
+import { StringUtils_dashcase } from "../utils/string";
 import { useState } from "preact/hooks";
 
 interface IProps {
@@ -15,7 +15,7 @@ export function Tabs2(props: IProps): JSX.Element {
     <div>
       <div className="flex">
         {tabs.map(([name, content], index) => {
-          const nameClass = `tab-${StringUtils.dashcase(name.toLowerCase())}`;
+          const nameClass = `tab-${StringUtils_dashcase(name.toLowerCase())}`;
 
           return (
             <div className="flex-1 text-center border-b border-border-neutral">

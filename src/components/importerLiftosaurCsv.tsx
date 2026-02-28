@@ -1,7 +1,7 @@
 import { IDispatch } from "../ducks/types";
 import { h, JSX } from "preact";
 import { MenuItemWrapper } from "./menuItem";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_importCsvData } from "../ducks/thunks";
 import { Importer } from "./importer";
 import { useCallback, useState } from "preact/hooks";
 import { IconHelp } from "./icons/iconHelp";
@@ -16,7 +16,7 @@ export function ImporterLiftosaurCsv(props: IImporterLiftosaurCsvProps): JSX.Ele
     (contents: string) => {
       const warningLabel = "Importing new data WILL NOT wipe out your current data.";
       if (confirm(warningLabel)) {
-        props.dispatch(Thunk.importCsvData(contents));
+        props.dispatch(Thunk_importCsvData(contents));
       }
     },
     [props.dispatch]

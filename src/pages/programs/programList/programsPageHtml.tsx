@@ -11,7 +11,7 @@ interface IProps {
 }
 
 export function ProgramsPageHtml(props: IProps): JSX.Element {
-  const { client, ...data } = props;
+  const { client, account, ...data } = props;
   const count = props.programs.length;
   const title = `${count}+ Free Weightlifting Programs & Workout Plans | Liftosaur`;
   const url = "https://www.liftosaur.com/programs";
@@ -39,7 +39,7 @@ export function ProgramsPageHtml(props: IProps): JSX.Element {
       maxWidth={1200}
       title={title}
       canonical={url}
-      account={props.account}
+      isLoggedIn={!!account}
       description={description}
       ogDescription={description}
       ogUrl={url}

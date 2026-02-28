@@ -1,5 +1,5 @@
 import { h, JSX, ComponentChildren } from "preact";
-import { StringUtils } from "../utils/string";
+import { StringUtils_dashcase } from "../utils/string";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { Scroller } from "./scroller";
 
@@ -53,7 +53,7 @@ export function ScrollableTabs(props: IScrollableTabsProps): JSX.Element {
               ref={tabsRef}
             >
               {tabs.map(({ label, isInvalid }, index) => {
-                const nameClass = `tab-${StringUtils.dashcase(label.toLowerCase())}`;
+                const nameClass = `tab-${StringUtils_dashcase(label.toLowerCase())}`;
 
                 const containerClassName =
                   props.type === "squares" ? "" : `flex-1 text-center border-b whitespace-nowrap border-border-neutral`;

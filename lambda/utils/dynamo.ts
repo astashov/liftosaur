@@ -13,7 +13,7 @@ import {
   BatchWriteCommand,
   NativeAttributeValue,
 } from "@aws-sdk/lib-dynamodb";
-import { CollectionUtils } from "../../src/utils/collection";
+import { CollectionUtils_inGroupsOf, CollectionUtils_compact } from "../../src/utils/collection";
 import { ILogUtil } from "./log";
 
 export interface IDynamoUtil {
@@ -385,12 +385,12 @@ export class DynamoUtil implements IDynamoUtil {
     const startTime = Date.now();
     try {
       const result = await Promise.all(
-        CollectionUtils.inGroupsOf(95, args.keys).map((group) => {
+        CollectionUtils_inGroupsOf(95, args.keys).map((group) => {
           return this.dynamo.send(new BatchGetCommand({ RequestItems: { [args.tableName]: { Keys: group } } }));
         })
       );
       this.log.log(`Dynamo batch get: ${args.tableName} - `, args.keys, ` - ${Date.now() - startTime}ms`);
-      return CollectionUtils.compact(result.map((r) => r.Responses?.[args.tableName] || [])).flat() as T[];
+      return CollectionUtils_compact(result.map((r) => r.Responses?.[args.tableName] || [])).flat() as T[];
     } catch (e) {
       this.log.log(`FAILED Dynamo batch get: ${args.tableName} - `, args.keys, ` - ${Date.now() - startTime}ms`);
       throw e;
@@ -402,7 +402,7 @@ export class DynamoUtil implements IDynamoUtil {
       return;
     }
     await Promise.all(
-      CollectionUtils.inGroupsOf(25, args.keys).map(async (group) => {
+      CollectionUtils_inGroupsOf(25, args.keys).map(async (group) => {
         const startTime = Date.now();
         try {
           await this.dynamo.send(
@@ -430,7 +430,7 @@ export class DynamoUtil implements IDynamoUtil {
       return;
     }
     await Promise.all(
-      CollectionUtils.inGroupsOf(25, args.items).map(async (group) => {
+      CollectionUtils_inGroupsOf(25, args.items).map(async (group) => {
         const startTime = Date.now();
         try {
           await this.dynamo.send(

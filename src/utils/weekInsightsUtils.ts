@@ -1,90 +1,97 @@
-import { Exercise, IExercise } from "../models/exercise";
-import { Reps } from "../models/set";
-import { Weight } from "../models/weight";
+import {
+  IExercise,
+  Exercise_get,
+  Exercise_targetMusclesGroups,
+  Exercise_synergistMusclesGroupMultipliers,
+  Exercise_synergistMusclesGroups,
+} from "../models/exercise";
+import { Reps_setVolume } from "../models/set";
+import { Weight_build, Weight_add } from "../models/weight";
 import { ISetResults, ISetSplit } from "../pages/planner/models/types";
 import { IHistoryRecord, IScreenMuscle, ISettings } from "../types";
 
 type IResultsSetSplit = Omit<ISetResults, "total" | "strength" | "hypertrophy" | "muscleGroup" | "volume">;
 
-export class WeekInsightsUtils {
-  public static calculateSetResults(historyRecords: IHistoryRecord[], settings: ISettings): ISetResults {
-    const results: ISetResults = {
-      volume: Weight.build(0, settings.units),
-      total: 0,
-      strength: 0,
-      hypertrophy: 0,
-      upper: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-      lower: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-      core: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-      push: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-      pull: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-      legs: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
-      muscleGroup: {},
-    };
+export function WeekInsightsUtils_calculateSetResults(
+  historyRecords: IHistoryRecord[],
+  settings: ISettings
+): ISetResults {
+  const results: ISetResults = {
+    volume: Weight_build(0, settings.units),
+    total: 0,
+    strength: 0,
+    hypertrophy: 0,
+    upper: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
+    lower: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
+    core: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
+    push: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
+    pull: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
+    legs: { strength: 0, hypertrophy: 0, frequency: {}, exercises: [] },
+    muscleGroup: {},
+  };
 
-    for (const record of historyRecords) {
-      const dayIndex = new Date(record.startTime).getDay();
-      for (const entry of record.entries) {
-        const exercise = Exercise.get(entry.exercise, settings.exercises);
-        if (exercise == null) {
-          continue;
-        }
-        for (const set of entry.sets) {
-          const completedReps = set.completedReps || 0;
-          if (completedReps > 0) {
-            results.volume = Weight.add(results.volume, Reps.setVolume(set, settings.units));
-            results.total += 1;
-            if (completedReps < 8) {
-              results.strength += 1;
-            } else {
-              results.hypertrophy += 1;
-            }
-            if (exercise.types.indexOf("core") !== -1) {
-              add(results, "core", completedReps, dayIndex, exercise);
-            }
-            if (exercise.types.indexOf("push") !== -1) {
-              add(results, "push", completedReps, dayIndex, exercise);
-            }
-            if (exercise.types.indexOf("pull") !== -1) {
-              add(results, "pull", completedReps, dayIndex, exercise);
-            }
-            if (exercise.types.indexOf("legs") !== -1) {
-              add(results, "legs", completedReps, dayIndex, exercise);
-            }
-            if (exercise.types.indexOf("upper") !== -1) {
-              add(results, "upper", completedReps, dayIndex, exercise);
-            }
-            if (exercise.types.indexOf("lower") !== -1) {
-              add(results, "lower", completedReps, dayIndex, exercise);
-            }
-            const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings);
-            const synergistMusclesGroupMultipliers = Exercise.synergistMusclesGroupMultipliers(exercise, settings);
-            for (const muscle of targetMuscleGroups) {
+  for (const record of historyRecords) {
+    const dayIndex = new Date(record.startTime).getDay();
+    for (const entry of record.entries) {
+      const exercise = Exercise_get(entry.exercise, settings.exercises);
+      if (exercise == null) {
+        continue;
+      }
+      for (const set of entry.sets) {
+        const completedReps = set.completedReps || 0;
+        if (completedReps > 0) {
+          results.volume = Weight_add(results.volume, Reps_setVolume(set, settings.units));
+          results.total += 1;
+          if (completedReps < 8) {
+            results.strength += 1;
+          } else {
+            results.hypertrophy += 1;
+          }
+          if (exercise.types.indexOf("core") !== -1) {
+            add(results, "core", completedReps, dayIndex, exercise);
+          }
+          if (exercise.types.indexOf("push") !== -1) {
+            add(results, "push", completedReps, dayIndex, exercise);
+          }
+          if (exercise.types.indexOf("pull") !== -1) {
+            add(results, "pull", completedReps, dayIndex, exercise);
+          }
+          if (exercise.types.indexOf("legs") !== -1) {
+            add(results, "legs", completedReps, dayIndex, exercise);
+          }
+          if (exercise.types.indexOf("upper") !== -1) {
+            add(results, "upper", completedReps, dayIndex, exercise);
+          }
+          if (exercise.types.indexOf("lower") !== -1) {
+            add(results, "lower", completedReps, dayIndex, exercise);
+          }
+          const targetMuscleGroups = Exercise_targetMusclesGroups(exercise, settings);
+          const synergistMusclesGroupMultipliers = Exercise_synergistMusclesGroupMultipliers(exercise, settings);
+          for (const muscle of targetMuscleGroups) {
+            const synergistMultiplier =
+              synergistMusclesGroupMultipliers[muscle] ?? settings.planner.synergistMultiplier;
+            addMuscleGroup(results.muscleGroup, muscle, completedReps, dayIndex, true, synergistMultiplier, exercise);
+          }
+          for (const muscle of Exercise_synergistMusclesGroups(exercise, settings)) {
+            if (targetMuscleGroups.indexOf(muscle) === -1) {
               const synergistMultiplier =
                 synergistMusclesGroupMultipliers[muscle] ?? settings.planner.synergistMultiplier;
-              addMuscleGroup(results.muscleGroup, muscle, completedReps, dayIndex, true, synergistMultiplier, exercise);
-            }
-            for (const muscle of Exercise.synergistMusclesGroups(exercise, settings)) {
-              if (targetMuscleGroups.indexOf(muscle) === -1) {
-                const synergistMultiplier =
-                  synergistMusclesGroupMultipliers[muscle] ?? settings.planner.synergistMultiplier;
-                addMuscleGroup(
-                  results.muscleGroup,
-                  muscle,
-                  completedReps,
-                  dayIndex,
-                  false,
-                  synergistMultiplier,
-                  exercise
-                );
-              }
+              addMuscleGroup(
+                results.muscleGroup,
+                muscle,
+                completedReps,
+                dayIndex,
+                false,
+                synergistMultiplier,
+                exercise
+              );
             }
           }
         }
       }
     }
-    return results;
   }
+  return results;
 }
 
 function add(

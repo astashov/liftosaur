@@ -1,7 +1,7 @@
 import { IAffiliateData } from "../../src/types";
-import { CollectionUtils } from "../../src/utils/collection";
-import { ObjectUtils } from "../../src/utils/object";
-import { Utils } from "../utils";
+import { CollectionUtils_inGroupsOf } from "../../src/utils/collection";
+import { ObjectUtils_mapValues, ObjectUtils_filter } from "../../src/utils/object";
+import { Utils_getEnv } from "../utils";
 import { IDI } from "../utils/di";
 import { AffiliateDao } from "./affiliateDao";
 
@@ -35,12 +35,12 @@ export class LogDao {
   constructor(private readonly di: IDI) {}
 
   public async getAll(): Promise<ILogDao[]> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     return this.di.dynamo.scan({ tableName: logTableNames[env].logs });
   }
 
   public async getAllSince(ts: number): Promise<ILogDao[]> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     return this.di.dynamo.scan({
       tableName: logTableNames[env].logs,
       filterExpression: "ts > :ts",
@@ -49,7 +49,7 @@ export class LogDao {
   }
 
   public async getAllForYearAndMonth(year: number, month: number): Promise<ILogDao[]> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     return this.di.dynamo.query({
       tableName: logTableNames[env].logs,
       indexName: logTableNames[env].logsDate,
@@ -61,14 +61,14 @@ export class LogDao {
 
   public async getFirstEventTimestamp(userId: string): Promise<number | undefined> {
     const event = await this.di.dynamo.get<ILogDao>({
-      tableName: logTableNames[Utils.getEnv()].logs,
+      tableName: logTableNames[Utils_getEnv()].logs,
       key: { userId, action: "ls-initialize-user" },
     });
     return event?.ts || undefined;
   }
 
   public async getFinishWorkoutForUsers(userIds: string[]): Promise<ILogDao[]> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     return this.di.dynamo.batchGet<ILogDao>({
       tableName: logTableNames[env].logs,
       keys: userIds.map((uid) => ({ userId: uid, action: "ls-finish-workout" })),
@@ -76,9 +76,9 @@ export class LogDao {
   }
 
   public async getForUsers(userIds: string[]): Promise<ILogDao[]> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     let results: ILogDao[] = [];
-    for (const group of CollectionUtils.inGroupsOf(50, userIds)) {
+    for (const group of CollectionUtils_inGroupsOf(50, userIds)) {
       results = results.concat(
         (
           await Promise.all(
@@ -104,11 +104,11 @@ export class LogDao {
     maybeAffiliates?: Partial<Record<string, IAffiliateData>>,
     referrer?: string
   ): Promise<void> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     const item = await this.di.dynamo.get<ILogDao>({ tableName: logTableNames[env].logs, key: { userId, action } });
     const itemProgramAffiliates = item?.affiliates || {};
-    const programAffiliates = ObjectUtils.mapValues(
-      ObjectUtils.filter(maybeAffiliates || {}, (k, v) => v?.type === "program"),
+    const programAffiliates = ObjectUtils_mapValues(
+      ObjectUtils_filter(maybeAffiliates || {}, (k, v) => v?.type === "program"),
       (a: IAffiliateData | undefined) => a?.timestamp
     );
     const combinedProgramAffiliates = [...Object.keys(programAffiliates), ...Object.keys(itemProgramAffiliates)].reduce<
@@ -118,8 +118,8 @@ export class LogDao {
       memo[key] = minTs;
       return memo;
     }, {});
-    const couponAffiliates = ObjectUtils.mapValues(
-      ObjectUtils.filter(maybeAffiliates || {}, (k, v) => v?.type === "coupon"),
+    const couponAffiliates = ObjectUtils_mapValues(
+      ObjectUtils_filter(maybeAffiliates || {}, (k, v) => v?.type === "coupon"),
       (a: IAffiliateData | undefined) => a?.timestamp
     );
     const itemCouponAffiliates = item?.affiliatesCoupons || {};

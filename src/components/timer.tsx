@@ -1,10 +1,10 @@
 import { JSX, h } from "preact";
-import { TimeUtils } from "../utils/time";
+import { TimeUtils_formatHH, TimeUtils_formatMM } from "../utils/time";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { IconPlay } from "./icons/iconPlay";
 import { IconPause } from "./icons/iconPause";
 import { IHistoryRecord } from "../types";
-import { History } from "../models/history";
+import { History_workoutTime, History_isPaused } from "../models/history";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -29,8 +29,8 @@ export function Timer(props: IProps): JSX.Element {
     };
   });
 
-  const workoutTime = History.workoutTime(props.progress);
-  const isPaused = History.isPaused(props.progress.intervals);
+  const workoutTime = History_workoutTime(props.progress);
+  const isPaused = History_isPaused(props.progress.intervals);
   return (
     <span style={{ marginLeft: "-0.5rem" }}>
       {isPaused ? (
@@ -43,9 +43,9 @@ export function Timer(props: IProps): JSX.Element {
         </button>
       )}
       <span className={`leading-none align-middle ${isPaused ? "text-text-error" : "text-text-success"}`}>
-        {TimeUtils.formatHH(workoutTime)}
+        {TimeUtils_formatHH(workoutTime)}
         <span className={isPaused ? "" : "blinking"}>:</span>
-        {TimeUtils.formatMM(workoutTime)} h
+        {TimeUtils_formatMM(workoutTime)} h
       </span>
     </span>
   );

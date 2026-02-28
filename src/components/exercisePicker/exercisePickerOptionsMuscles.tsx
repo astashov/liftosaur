@@ -1,8 +1,8 @@
 import { h, JSX } from "preact";
 import { availableMuscles, IMuscle, IScreenMuscle, ISettings } from "../../types";
-import { Muscle } from "../../models/muscle";
-import { ObjectUtils } from "../../utils/object";
-import { StringUtils } from "../../utils/string";
+import { Muscle_getScreenMusclesFromMuscle, Muscle_getMuscleGroupName } from "../../models/muscle";
+import { ObjectUtils_keys } from "../../utils/object";
+import { StringUtils_dashcase } from "../../utils/string";
 import { IFilterValue } from "./exercisePickerOptions";
 import { MuscleImage } from "../muscleImage";
 
@@ -24,7 +24,7 @@ export function ExercisePickerOptionsMuscles(props: IProps): JSX.Element {
       }
     : availableMuscles.reduce(
         (memo, muscle) => {
-          const group = Muscle.getScreenMusclesFromMuscle(muscle, props.settings)?.[0];
+          const group = Muscle_getScreenMusclesFromMuscle(muscle, props.settings)?.[0];
           if (group != null) {
             memo[group] = memo[group] || {};
             const isSelected = selectedValues.includes(muscle);
@@ -34,16 +34,16 @@ export function ExercisePickerOptionsMuscles(props: IProps): JSX.Element {
         },
         {} as Record<IScreenMuscle | string, Record<IMuscle, IFilterValue>>
       );
-  const sortedGroupedMuscles = ObjectUtils.keys(groupedMuscles).sort(([a], [b]) => a.localeCompare(b));
+  const sortedGroupedMuscles = ObjectUtils_keys(groupedMuscles).sort(([a], [b]) => a.localeCompare(b));
 
   return (
     <div>
       {sortedGroupedMuscles.map((group) => {
         const muscles = groupedMuscles[group];
-        const sortedMuscles = ObjectUtils.keys(muscles).sort(([a], [b]) => a.localeCompare(b));
+        const sortedMuscles = ObjectUtils_keys(muscles).sort(([a], [b]) => a.localeCompare(b));
         return (
           <div className="mb-4">
-            <h3 className="mb-2 font-semibold">{Muscle.getMuscleGroupName(group, props.settings)}</h3>
+            <h3 className="mb-2 font-semibold">{Muscle_getMuscleGroupName(group, props.settings)}</h3>
             <div className="grid grid-cols-2 gap-4 mt-2">
               {sortedMuscles.map((key) => {
                 const value = muscles[key];
@@ -58,7 +58,7 @@ export function ExercisePickerOptionsMuscles(props: IProps): JSX.Element {
                       : "text-base";
                 return (
                   <button
-                    data-cy={`select-muscle-${StringUtils.dashcase(value.label)}`}
+                    data-cy={`select-muscle-${StringUtils_dashcase(value.label)}`}
                     className={`bg-background-subtle ${fontSize} flex gap-2 h-12 leading-none overflow-hidden bg-no-repeat items-center rounded-lg border text-left ${value.isSelected ? "border-text-purple text-text-purple" : "border-border-neutral"}`}
                     style={{ borderWidth: value.isSelected ? "2px" : "1px" }}
                     onClick={() => props.onSelect(key)}

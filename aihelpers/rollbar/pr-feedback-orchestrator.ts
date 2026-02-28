@@ -117,7 +117,10 @@ async function getCommentsAfterDate(prNumber: number, afterDate: string): Promis
   }
 
   return comments.filter(
-    (c) => !c.body.includes("Automated follow-up by Claude Code") && !c.body.includes("Automated Code Review")
+    (c) =>
+      c.author.login !== "astashovai" &&
+      !c.body.includes("Automated follow-up by Claude Code") &&
+      !c.body.includes("Automated Code Review")
   );
 }
 

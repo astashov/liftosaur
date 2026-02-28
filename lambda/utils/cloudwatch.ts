@@ -3,10 +3,10 @@ import {
   DescribeLogGroupsCommand,
   FilterLogEventsCommand,
 } from "@aws-sdk/client-cloudwatch-logs";
-import { DateUtils } from "../../src/utils/date";
+import { DateUtils_formatYYYYMMDD, DateUtils_formatHHMMSS } from "../../src/utils/date";
 import { ILogUtil } from "./log";
 import fs from "fs";
-import { Utils } from "../utils";
+import { Utils_getEnv } from "../utils";
 
 export interface ICloudwatchUtil {
   getLogs(date: Date, userid?: string, endpoint?: string): Promise<void>;
@@ -33,7 +33,7 @@ export class CloudwatchUtil implements ICloudwatchUtil {
         ...(endpoint ? ["endpoint", endpoint] : []),
       ]
     );
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     const logGroupsResponse = await this.cloudwatch.send(new DescribeLogGroupsCommand({}));
     const logGroupName = logGroupsResponse.logGroups?.find((r) =>
       r.logGroupName?.includes(`LftLambda${env === "dev" ? "Dev" : ""}`)
@@ -50,7 +50,7 @@ export class CloudwatchUtil implements ICloudwatchUtil {
     endOfDay.setHours(23, 59, 59, 999);
 
     const endpointSuffix = endpoint ? `-${endpoint.replace(/\//g, "-")}` : "";
-    const outputFile = `logs-${DateUtils.formatYYYYMMDD(date, "-")}${userid ? `-${userid}` : ""}${endpointSuffix}.txt`;
+    const outputFile = `logs-${DateUtils_formatYYYYMMDD(date, "-")}${userid ? `-${userid}` : ""}${endpointSuffix}.txt`;
     const tempFile = `${outputFile}.tmp`;
     const writeStream = fs.createWriteStream(tempFile, { encoding: "utf8" });
 
@@ -77,7 +77,7 @@ export class CloudwatchUtil implements ICloudwatchUtil {
       for (const event of events) {
         const strippedMsg = (event.message || "").replace(/^[^\[]*/, "");
         if (strippedMsg) {
-          const eventDate = DateUtils.formatHHMMSS(new Date(event.timestamp || 0), true);
+          const eventDate = DateUtils_formatHHMMSS(new Date(event.timestamp || 0), true);
           writeStream.write(`${eventDate} ${strippedMsg.trim()}\x00`);
         }
       }

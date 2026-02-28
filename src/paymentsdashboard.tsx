@@ -4,10 +4,10 @@ import {
   IPaymentsDashboardContentProps,
   PaymentsDashboardContent,
 } from "./pages/paymentsDashboard/paymentsDashboardContent";
-import { HydrateUtils } from "./utils/hydrate";
+import { HydrateUtils_hydratePage } from "./utils/hydrate";
 
 function main(): void {
-  HydrateUtils.hydratePage<IPaymentsDashboardContentProps>((pageWrapperProps, data) => (
+  HydrateUtils_hydratePage<IPaymentsDashboardContentProps>((pageWrapperProps, data) => (
     <PageWrapper {...pageWrapperProps}>
       <PaymentsDashboardContent {...data} client={window.fetch.bind(window)} />
     </PageWrapper>

@@ -4,8 +4,7 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { LinkButton } from "./linkButton";
 import { IEvaluatedProgram } from "../models/program";
 import { ISettings } from "../types";
-import { Exercise } from "../models/exercise";
-import { ProgramDetailsExerciseExample } from "../pages/programs/programDetails/programDetailsExerciseExample";
+import { Exercise_findByNameAndEquipment } from "../models/exercise";
 import { ExerciseTooltip } from "./exerciseTooltip";
 
 const md = new MarkdownIt({ html: true, linkify: true });
@@ -23,7 +22,7 @@ function preprocessDirectives(text: string, directivesData?: IMarkdownDirectives
       for (const m of attrsStr.matchAll(/(\w+)="([^"]*)"/g)) {
         attrs[m[1]] = m[2];
       }
-      return `<div class="md-exercise-example mb-4" data-exercise="${attrs.exercise || ""}" data-equipment="${attrs.equipment || ""}" data-key="${attrs.key || ""}" data-weeks="${attrs.weeks || ""}" data-week-labels="${attrs.weekLabels || ""}"></div>`;
+      return `<div class="md-exercise-example mb-4" data-exercise="${attrs.exercise || ""}" data-equipment="${attrs.equipment || ""}" data-key="${attrs.key || ""}" data-weeks="${attrs.weeks || ""}" data-week-labels="${attrs.weekLabels || ""}" data-onerm="${attrs.onerm || ""}"></div>`;
     });
   }
   return result;
@@ -45,7 +44,8 @@ export function Markdown(props: IProps): JSX.Element {
   const [shouldTruncate, setShouldTruncate] = useState(props.truncate != null);
   const [isTruncated, setIsTruncated] = useState(props.truncate != null);
   const stringValue = typeof props.value === "string" ? props.value : String(props.value ?? "");
-  const value = preprocessDirectives(stringValue, props.directivesData);
+  const preprocessed = preprocessDirectives(stringValue, props.directivesData);
+  const value = typeof preprocessed === "string" ? preprocessed : String(preprocessed ?? "");
   const result = md.render(value);
   let className = props.className || "markdown";
   if (isTruncated && props.className?.indexOf("line-clamp") === -1) {
@@ -102,7 +102,7 @@ function hydrateExerciseDirectives(container: HTMLElement, settings: ISettings):
     }
     el.setAttribute("data-hydrated", "true");
     const name = el.getAttribute("data-name") || "";
-    const exercise = Exercise.findByNameAndEquipment(name, settings.exercises);
+    const exercise = Exercise_findByNameAndEquipment(name, settings.exercises);
     if (!exercise) {
       continue;
     }
@@ -127,6 +127,7 @@ function hydrateExerciseExampleDirectives(
     const key = el.getAttribute("data-key") || "";
     const weeksStr = el.getAttribute("data-weeks") || "";
     const weekLabelsStr = el.getAttribute("data-week-labels") || "";
+    const onermStr = el.getAttribute("data-onerm") || "";
 
     const exerciseType = { id: exercise, equipment };
     const weekLabels = weekLabelsStr ? weekLabelsStr.split(",") : [];
@@ -136,6 +137,7 @@ function hydrateExerciseExampleDirectives(
       const [start, end] = weeksStr.split("-").map(Number);
       weekSetup = evaluatedProgram.weeks.slice(start - 1, end).map((w, i) => ({
         name: weekLabels[i] ? `${w.name} (${weekLabels[i]})` : w.name,
+        weekIndex: start - 1 + i,
       }));
     } else if (weekLabels.length > 0) {
       weekSetup = evaluatedProgram.weeks.map((w, i) => ({
@@ -143,15 +145,18 @@ function hydrateExerciseExampleDirectives(
       }));
     }
 
-    render(
-      <ProgramDetailsExerciseExample
-        program={evaluatedProgram}
-        settings={settings}
-        programExerciseKey={key}
-        exerciseType={exerciseType}
-        weekSetup={weekSetup}
-      />,
-      el as HTMLElement
-    );
+    import("../pages/programs/programDetails/programDetailsExerciseExample").then((mod) => {
+      render(
+        <mod.ProgramDetailsExerciseExample
+          program={evaluatedProgram}
+          settings={settings}
+          programExerciseKey={key}
+          exerciseType={exerciseType}
+          weekSetup={weekSetup}
+          defaultOnerm={onermStr ? parseFloat(onermStr) : undefined}
+        />,
+        el as HTMLElement
+      );
+    });
   }
 }

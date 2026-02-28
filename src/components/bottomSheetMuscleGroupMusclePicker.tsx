@@ -3,7 +3,7 @@ import { ISettings, IMuscle, IScreenMuscle } from "../types";
 import { Button } from "./button";
 import { ExercisePickerOptionsMuscles } from "./exercisePicker/exercisePickerOptionsMuscles";
 import { BottomSheetOrModal } from "./bottomSheetOrModal";
-import { Muscle } from "../models/muscle";
+import { Muscle_getMusclesFromScreenMuscle } from "../models/muscle";
 
 interface IExercisePickerCustomExerciseContentProps {
   settings: ISettings;
@@ -13,7 +13,7 @@ interface IExercisePickerCustomExerciseContentProps {
 }
 
 export function BottomSheetMuscleGroupMusclePicker(props: IExercisePickerCustomExerciseContentProps): JSX.Element {
-  const muscles = Muscle.getMusclesFromScreenMuscle(props.muscleGroup, props.settings);
+  const muscles = Muscle_getMusclesFromScreenMuscle(props.muscleGroup, props.settings);
   return (
     <BottomSheetOrModal shouldShowClose={true} onClose={props.onClose} isHidden={false} zIndex={60}>
       <div className="flex flex-col h-full px-4 py-2" style={{ marginTop: "-0.5rem" }}>

@@ -1,7 +1,7 @@
 import { h, JSX, Fragment } from "preact";
 import { BottomSheet } from "./bottomSheet";
 import { memo } from "preact/compat";
-import { ComparerUtils } from "../utils/comparer";
+import { ComparerUtils_noFns } from "../utils/comparer";
 import { MonthCalendar } from "./monthCalendar";
 import { LinkButton } from "./linkButton";
 import { IHistoryRecord } from "../types";
@@ -61,4 +61,4 @@ export const BottomSheetMonthCalendar = memo((props: IProps): JSX.Element => {
       </BottomSheet>
     </>
   );
-}, ComparerUtils.noFns);
+}, ComparerUtils_noFns);

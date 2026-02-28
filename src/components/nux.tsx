@@ -4,7 +4,7 @@ import { IDispatch } from "../ducks/types";
 import { IState, updateState } from "../models/state";
 import { IconClose2 } from "./icons/iconClose2";
 import { IconHelp } from "./icons/iconHelp";
-import { Tailwind } from "../utils/tailwindConfig";
+import { Tailwind_colors } from "../utils/tailwindConfig";
 
 interface IProps {
   dispatch?: IDispatch;
@@ -25,7 +25,7 @@ export function Nux(props: IProps): JSX.Element | null {
     >
       <div>
         <div className="inline-block mr-1 align-middle">
-          <IconHelp color={Tailwind.colors().purple[500]} size={16} />
+          <IconHelp color={Tailwind_colors().purple[500]} size={16} />
         </div>
         {props.children}
       </div>

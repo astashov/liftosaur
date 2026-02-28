@@ -4,7 +4,7 @@ import { Button } from "../../button";
 import { IPlannerProgramExercise } from "../../../pages/planner/models/types";
 import { ScriptEditorView } from "./scriptEditorView";
 import { useState } from "preact/hooks";
-import { StringUtils } from "../../../utils/string";
+import { StringUtils_unindent, StringUtils_indent } from "../../../utils/string";
 import { ScriptRunner } from "../../../parser";
 import { ISettings } from "../../../types";
 
@@ -19,7 +19,7 @@ function cleanScript(script?: string): string {
   if (!script) {
     return "";
   }
-  return StringUtils.unindent(script.replace(/{~/, "").replace(/~}/, ""));
+  return StringUtils_unindent(script.replace(/{~/, "").replace(/~}/, ""));
 }
 
 export function ModalEditProgressScript(props: IModalEditProgressScriptProps): JSX.Element {
@@ -29,7 +29,7 @@ export function ModalEditProgressScript(props: IModalEditProgressScriptProps): J
   }
   const ownState = progress.state;
   let initialScript = cleanScript(progress.script);
-  initialScript = initialScript ? StringUtils.unindent(initialScript) : initialScript;
+  initialScript = initialScript ? StringUtils_unindent(initialScript) : initialScript;
   const [script, setScript] = useState(initialScript);
 
   const error = ScriptRunner.isValid(
@@ -65,7 +65,7 @@ export function ModalEditProgressScript(props: IModalEditProgressScriptProps): J
           disabled={error != null}
           onClick={() => {
             props.onClose();
-            const wrappedScript = script ? `{~\n${StringUtils.indent(cleanScript(script), 2)}\n~}` : `{~~}`;
+            const wrappedScript = script ? `{~\n${StringUtils_indent(cleanScript(script), 2)}\n~}` : `{~~}`;
             props.onChange(wrappedScript);
           }}
         >

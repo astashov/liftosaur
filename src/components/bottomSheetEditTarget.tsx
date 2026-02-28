@@ -10,7 +10,7 @@ import { MenuItemEditable } from "./menuItemEditable";
 import { IconTrash } from "./icons/iconTrash";
 import { lb } from "lens-shmens";
 import { updateProgress } from "../models/state";
-import { Weight } from "../models/weight";
+import { Weight_build, Weight_evaluateWeight, Weight_roundConvertTo } from "../models/weight";
 import { Button } from "./button";
 
 interface IBottomSheetEditTargetProps {
@@ -123,7 +123,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                   }
                   updateProgress(
                     props.dispatch,
-                    [lbSet.p("originalWeight").record(value ?? Weight.build(0, "lb"))],
+                    [lbSet.p("originalWeight").record(value ?? Weight_build(0, "lb"))],
                     "target-blur-weight"
                   );
                 }}
@@ -134,7 +134,7 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
                   if (value != null) {
                     updateProgress(
                       props.dispatch,
-                      [lbSet.p("originalWeight").record(value ?? Weight.build(0, "lb"))],
+                      [lbSet.p("originalWeight").record(value ?? Weight_build(0, "lb"))],
                       "target-input-weight"
                     );
                   }
@@ -311,14 +311,14 @@ function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps)
           onClick={() => {
             savedRef.current = true;
             const evaluatedWeight = set.originalWeight
-              ? Weight.evaluateWeight(
+              ? Weight_evaluateWeight(
                   set.originalWeight,
                   props.editSetModal.exerciseType ?? { id: "squat" },
                   props.settings
                 )
               : undefined;
             const weight = evaluatedWeight
-              ? Weight.roundConvertTo(
+              ? Weight_roundConvertTo(
                   evaluatedWeight,
                   props.settings,
                   evaluatedWeight.unit,

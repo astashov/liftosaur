@@ -1,17 +1,17 @@
-import { CollectionUtils } from "../utils/collection";
-import { UidFactory } from "../utils/generator";
-import { ObjectUtils } from "../utils/object";
+import { CollectionUtils_sort } from "../utils/collection";
+import { UidFactory_generateUid } from "../utils/generator";
+import { ObjectUtils_clone, ObjectUtils_keys, ObjectUtils_values } from "../utils/object";
 import { IGraph, IMuscle, ISettings, IStorage } from "../types";
-import { Weight } from "../models/weight";
+import { Weight_build } from "../models/weight";
 import { PlannerExerciseEvaluator } from "../pages/planner/plannerExerciseEvaluator";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
 import { IVersions } from "../models/versionTracker";
-import { Settings } from "../models/settings";
+import { Settings_build } from "../models/settings";
 
 let latestMigrationVersion: number | undefined;
 export function getLatestMigrationVersion(): string {
   if (latestMigrationVersion == null) {
-    latestMigrationVersion = CollectionUtils.sort(
+    latestMigrationVersion = CollectionUtils_sort(
       Object.keys(migrations).map((v) => parseInt(v, 10)),
       (a, b) => b - a
     )[0];
@@ -26,7 +26,7 @@ export const migrations = {
       for (const entry of historyRecord.entries) {
         for (const set of entry.sets) {
           if (set.weight?.value == null) {
-            set.weight = Weight.build(0, storage.settings.units || "lb");
+            set.weight = Weight_build(0, storage.settings.units || "lb");
           }
         }
       }
@@ -38,10 +38,10 @@ export const migrations = {
     for (const historyRecord of storage.history) {
       for (const entry of historyRecord.entries) {
         for (const set of entry.sets) {
-          set.originalWeight = ObjectUtils.clone(set.weight);
+          set.originalWeight = ObjectUtils_clone(set.weight);
         }
         for (const set of entry.warmupSets) {
-          set.originalWeight = ObjectUtils.clone(set.weight);
+          set.originalWeight = ObjectUtils_clone(set.weight);
         }
       }
     }
@@ -63,7 +63,7 @@ export const migrations = {
     if (currentProgram && currentProgram.planner == null) {
       const plannerProgram = storage.programs.find((p) => p.planner != null) || {
         ...basicBeginnerProgram,
-        id: UidFactory.generateUid(8),
+        id: UidFactory_generateUid(8),
       };
       storage.programs.push(plannerProgram);
       storage.currentProgramId = plannerProgram.id;
@@ -73,7 +73,7 @@ export const migrations = {
   },
   "20250305183455_cleanup_custom_exercises": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
-    for (const customExerciseKey of ObjectUtils.keys(storage.settings.exercises)) {
+    for (const customExerciseKey of ObjectUtils_keys(storage.settings.exercises)) {
       const customExercise = storage.settings.exercises[customExerciseKey]!;
       delete customExercise.defaultEquipment;
       for (const record of storage.history) {
@@ -84,7 +84,7 @@ export const migrations = {
           }
         }
       }
-      for (const key of ObjectUtils.keys(storage.settings.exerciseData)) {
+      for (const key of ObjectUtils_keys(storage.settings.exerciseData)) {
         if (key.includes(customExerciseKey)) {
           if (!storage.settings.exerciseData[customExerciseKey]) {
             const value = storage.settings.exerciseData[key];
@@ -98,7 +98,7 @@ export const migrations = {
   },
   "20250306192146_fix_empty_graphs": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
-    for (const customExerciseKey of ObjectUtils.keys(storage.settings.exercises)) {
+    for (const customExerciseKey of ObjectUtils_keys(storage.settings.exercises)) {
       if (Array.isArray(storage.settings.graphs)) {
         for (const graph of storage.settings.graphs) {
           if (graph.type === "exercise" && graph.id.includes(customExerciseKey) && graph.id !== customExerciseKey) {
@@ -116,7 +116,7 @@ export const migrations = {
         for (const set of entry.sets) {
           if (set.completedReps != null) {
             set.isCompleted = set.isCompleted ?? true;
-            set.completedWeight = set.completedWeight ?? ObjectUtils.clone(set.weight);
+            set.completedWeight = set.completedWeight ?? ObjectUtils_clone(set.weight);
           }
         }
       }
@@ -148,9 +148,9 @@ export const migrations = {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     for (const program of storage.programs) {
       for (const week of program.planner?.weeks || []) {
-        week.id = week.id || UidFactory.generateUid(8);
+        week.id = week.id || UidFactory_generateUid(8);
         for (const day of week.days) {
-          day.id = day.id || UidFactory.generateUid(8);
+          day.id = day.id || UidFactory_generateUid(8);
         }
       }
     }
@@ -160,21 +160,21 @@ export const migrations = {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     if (storage.subscription) {
       if (!Array.isArray(storage.subscription.apple)) {
-        storage.subscription.apple = ObjectUtils.keys(storage.subscription.apple as Record<string, null>).map(
+        storage.subscription.apple = ObjectUtils_keys(storage.subscription.apple as Record<string, null>).map(
           (key) => ({
             vtype: "subscription_receipt",
             value: key,
-            id: UidFactory.generateUid(6),
+            id: UidFactory_generateUid(6),
             createdAt: Date.now(),
           })
         );
       }
       if (!Array.isArray(storage.subscription.google)) {
-        storage.subscription.google = ObjectUtils.keys(storage.subscription.google as Record<string, null>).map(
+        storage.subscription.google = ObjectUtils_keys(storage.subscription.google as Record<string, null>).map(
           (key) => ({
             vtype: "subscription_receipt",
             value: key,
-            id: UidFactory.generateUid(6),
+            id: UidFactory_generateUid(6),
             createdAt: Date.now(),
           })
         );
@@ -190,30 +190,30 @@ export const migrations = {
     for (const record of storage.history) {
       record.vtype = record.vtype ?? "history_record";
     }
-    for (const key of ObjectUtils.keys(storage.stats?.weight || {})) {
+    for (const key of ObjectUtils_keys(storage.stats?.weight || {})) {
       for (const record of storage.stats?.weight[key] || []) {
         record.vtype = record.vtype ?? "stat";
       }
     }
-    for (const key of ObjectUtils.keys(storage.stats?.length || {})) {
+    for (const key of ObjectUtils_keys(storage.stats?.length || {})) {
       for (const record of storage.stats?.length[key] || []) {
         record.vtype = record.vtype ?? "stat";
       }
     }
-    for (const key of ObjectUtils.keys(storage.stats?.percentage || {})) {
+    for (const key of ObjectUtils_keys(storage.stats?.percentage || {})) {
       for (const record of storage.stats?.percentage[key] || []) {
         record.vtype = record.vtype ?? "stat";
       }
     }
     for (const gym of storage.settings.gyms || []) {
       gym.vtype = gym.vtype ?? "gym";
-      for (const equipment of ObjectUtils.values(gym.equipment)) {
+      for (const equipment of ObjectUtils_values(gym.equipment)) {
         if (equipment) {
           equipment.vtype = equipment.vtype ?? "equipment_data";
         }
       }
     }
-    for (const exercise of ObjectUtils.values(storage.settings.exercises)) {
+    for (const exercise of ObjectUtils_values(storage.settings.exercises)) {
       if (exercise) {
         exercise.vtype = exercise.vtype ?? "custom_exercise";
       }
@@ -251,7 +251,7 @@ export const migrations = {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
     if (storage.settings.gyms && storage.settings.gyms.length === 0) {
       storage.settings.gyms.push({
-        ...Settings.build().gyms[0],
+        ...Settings_build().gyms[0],
       });
     }
     return storage;
@@ -292,7 +292,7 @@ export const migrations = {
       const progressUi = record.ui;
       if (progressUi) {
         progressUi.vtype = progressUi.vtype || "progress_ui";
-        progressUi.id = UidFactory.generateUid(8);
+        progressUi.id = UidFactory_generateUid(8);
       }
       for (let entryIndex = 0; entryIndex < record.entries.length; entryIndex++) {
         const entry = record.entries[entryIndex];
@@ -319,7 +319,7 @@ export const migrations = {
   },
   "20260124114134_convert_muscle_multipliers_to_object": (aStorage: IStorage): IStorage => {
     const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
-    for (const key of ObjectUtils.keys(storage.settings.exerciseData)) {
+    for (const key of ObjectUtils_keys(storage.settings.exerciseData)) {
       const exerciseData = storage.settings.exerciseData[key];
       if (exerciseData?.muscleMultipliers && Array.isArray(exerciseData.muscleMultipliers)) {
         const oldMultipliers = exerciseData.muscleMultipliers as Array<{ muscle: IMuscle; multiplier: number }>;
@@ -338,12 +338,12 @@ export const migrations = {
       for (const entry of record.entries) {
         for (const set of entry.sets) {
           if (!set.id) {
-            set.id = UidFactory.generateUid(6);
+            set.id = UidFactory_generateUid(6);
           }
         }
         for (const set of entry.warmupSets) {
           if (!set.id) {
-            set.id = UidFactory.generateUid(6);
+            set.id = UidFactory_generateUid(6);
           }
         }
       }
@@ -352,12 +352,12 @@ export const migrations = {
       for (const entry of record.entries) {
         for (const set of entry.sets) {
           if (!set.id) {
-            set.id = UidFactory.generateUid(6);
+            set.id = UidFactory_generateUid(6);
           }
         }
         for (const set of entry.warmupSets) {
           if (!set.id) {
-            set.id = UidFactory.generateUid(6);
+            set.id = UidFactory_generateUid(6);
           }
         }
       }

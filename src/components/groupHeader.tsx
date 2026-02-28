@@ -1,6 +1,6 @@
 import { h, JSX, Fragment, ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
-import { StringUtils } from "../utils/string";
+import { StringUtils_dashcase } from "../utils/string";
 import { IconArrowDown2 } from "./icons/iconArrowDown2";
 import { IconArrowUp } from "./icons/iconArrowUp";
 import { IconHelp } from "./icons/iconHelp";
@@ -25,7 +25,7 @@ export function GroupHeader(props: IProps): JSX.Element {
   const [isExpanded, setIsExpanded] = useState<boolean>(!!props.isExpanded);
   const [isHelpShown, setIsHelpShown] = useState<boolean>(false);
   const size = props.size || "small";
-  const testId = `group-header-${StringUtils.dashcase(name)}`;
+  const testId = `group-header-${StringUtils_dashcase(name)}`;
 
   function onClick(): void {
     if (props.children) {

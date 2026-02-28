@@ -1,13 +1,17 @@
 import { JSX, h } from "preact";
-import { DateUtils } from "../utils/date";
+import {
+  DateUtils_formatYYYYMMDD,
+  DateUtils_lastDayOfWeekTimestamp,
+  DateUtils_firstDayOfWeekTimestamp,
+} from "../utils/date";
 import { IHistoryRecord } from "../types";
-import { StringUtils } from "../utils/string";
-import { IPersonalRecords, History } from "../models/history";
-import { CollectionUtils } from "../utils/collection";
+import { StringUtils_pluralize } from "../utils/string";
+import { IPersonalRecords, History_getNumberOfPersonalRecords } from "../models/history";
+import { CollectionUtils_compact } from "../utils/collection";
 import { memo, useLayoutEffect, useRef } from "preact/compat";
-import { ComparerUtils } from "../utils/comparer";
-import { Tailwind } from "../utils/tailwindConfig";
-import { Progress } from "../models/progress";
+import { ComparerUtils_noFns } from "../utils/comparer";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
+import { Progress_isCurrent } from "../models/progress";
 
 interface IMonthCalendarProps {
   firstDayOfWeeks: number[];
@@ -25,7 +29,7 @@ export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
     if (selectedFirstDayOfWeekTs != null) {
       const selectedFirstDayOfWeek = new Date(selectedFirstDayOfWeekTs);
       const date = new Date(selectedFirstDayOfWeek.getFullYear(), selectedFirstDayOfWeek.getMonth(), 1);
-      const yyyymmdd = DateUtils.formatYYYYMMDD(date);
+      const yyyymmdd = DateUtils_formatYYYYMMDD(date);
       const element = document.getElementById(`month-calendar-${yyyymmdd}`);
       if (element) {
         element.scrollIntoView({ block: "center" });
@@ -36,7 +40,7 @@ export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
   const start = new Date(Math.max(props.firstDayOfWeeks[0], new Date(2015, 1, 1).getTime()));
   start.setDate(1);
   const end = new Date(
-    DateUtils.lastDayOfWeekTimestamp(props.firstDayOfWeeks[props.firstDayOfWeeks.length - 1], props.startWeekFromMonday)
+    DateUtils_lastDayOfWeekTimestamp(props.firstDayOfWeeks[props.firstDayOfWeeks.length - 1], props.startWeekFromMonday)
   );
   end.setDate(1);
   const months: Date[] = [];
@@ -46,13 +50,13 @@ export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
     months.push(new Date(current));
     current.setMonth(current.getMonth() + 1);
   }
-  const today = DateUtils.formatYYYYMMDD(new Date());
+  const today = DateUtils_formatYYYYMMDD(new Date());
   const monthToHistoryRecords = props.history.reduce<
     Partial<Record<string, Partial<Record<string, IHistoryRecord[]>>>>
   >((acc, record) => {
     const d = new Date(Date.parse(record.date));
     d.setDate(1);
-    const month = DateUtils.formatYYYYMMDD(d);
+    const month = DateUtils_formatYYYYMMDD(d);
     acc[month] = acc[month] || {};
     const day = new Date(Date.parse(record.date)).getDate();
     acc[month][day] = acc[month][day] || [];
@@ -73,17 +77,17 @@ export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
           }
 
           const days: number[] = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-          const dayToHistoryRecords = monthToHistoryRecords[DateUtils.formatYYYYMMDD(month)] || {};
-          const historyRecords = CollectionUtils.compact(Object.values(dayToHistoryRecords).flat()).filter(
-            (hr) => !Progress.isCurrent(hr)
+          const dayToHistoryRecords = monthToHistoryRecords[DateUtils_formatYYYYMMDD(month)] || {};
+          const historyRecords = CollectionUtils_compact(Object.values(dayToHistoryRecords).flat()).filter(
+            (hr) => !Progress_isCurrent(hr)
           );
           const numberOfWorkouts = historyRecords.length;
-          const numberOfPersonalRecords = History.getNumberOfPersonalRecords(historyRecords, props.prs);
+          const numberOfPersonalRecords = History_getNumberOfPersonalRecords(historyRecords, props.prs);
 
           return (
             <div
-              id={`month-calendar-${DateUtils.formatYYYYMMDD(month)}`}
-              key={DateUtils.formatYYYYMMDD(month)}
+              id={`month-calendar-${DateUtils_formatYYYYMMDD(month)}`}
+              key={DateUtils_formatYYYYMMDD(month)}
               class="mb-8"
             >
               <h2 class="text-lg font-semibold">
@@ -91,11 +95,11 @@ export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
               </h2>
               <div className="text-sm">
                 <span>
-                  {numberOfWorkouts} {StringUtils.pluralize("workout", numberOfWorkouts)}
+                  {numberOfWorkouts} {StringUtils_pluralize("workout", numberOfWorkouts)}
                 </span>
                 {" · "}
                 <span>
-                  🏆 {numberOfPersonalRecords} {StringUtils.pluralize("PR", numberOfPersonalRecords)}
+                  🏆 {numberOfPersonalRecords} {StringUtils_pluralize("PR", numberOfPersonalRecords)}
                 </span>
               </div>
               <div class="grid grid-cols-7 mt-2 text-center">
@@ -108,11 +112,11 @@ export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
                   ))}
                 {days.map((day) => {
                   const date = new Date(year, monthIndex, day);
-                  const yyyymmdd = DateUtils.formatYYYYMMDD(date);
+                  const yyyymmdd = DateUtils_formatYYYYMMDD(date);
                   const historyRecord = dayToHistoryRecords[day]?.[0];
-                  const isWorkout = !!historyRecord && !Progress.isCurrent(historyRecord);
+                  const isWorkout = !!historyRecord && !Progress_isCurrent(historyRecord);
                   const selectedFirstDayOfWeek = props.firstDayOfWeeks[props.selectedFirstDayOfWeekIndex];
-                  const thisFirstDayOfWeek = DateUtils.firstDayOfWeekTimestamp(date, props.startWeekFromMonday);
+                  const thisFirstDayOfWeek = DateUtils_firstDayOfWeekTimestamp(date, props.startWeekFromMonday);
                   const isSelectedWeek = selectedFirstDayOfWeek === thisFirstDayOfWeek;
 
                   return (
@@ -120,7 +124,7 @@ export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
                       key={yyyymmdd}
                       data-first-day-of-week={thisFirstDayOfWeek}
                       class="flex items-center justify-center text-text-primary p-2"
-                      style={{ background: isSelectedWeek ? Tailwind.semantic().background.subtle : "transparent" }}
+                      style={{ background: isSelectedWeek ? Tailwind_semantic().background.subtle : "transparent" }}
                       onClick={() => {
                         if (historyRecord != null) {
                           props.onClick(historyRecord);
@@ -148,4 +152,4 @@ export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
       </div>
     </div>
   );
-}, ComparerUtils.noFns);
+}, ComparerUtils_noFns);

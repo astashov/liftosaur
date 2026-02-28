@@ -7,15 +7,15 @@ import {
 } from "../../pages/planner/models/types";
 import { IDaySetData, IExerciseType, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { IEvaluatedProgram, Program } from "../../models/program";
+import { IEvaluatedProgram, Program_getProgramExerciseFromDay } from "../../models/program";
 import { ScrollableTabs } from "../scrollableTabs";
-import { PP } from "../../models/pp";
+import { PP_iterate2 } from "../../models/pp";
 import { InputNumber2 } from "../inputNumber2";
 import { lb } from "lens-shmens";
-import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
-import { CollectionUtils } from "../../utils/collection";
-import { ObjectUtils } from "../../utils/object";
-import { SetUtils } from "../../utils/setUtils";
+import { EditProgramUiHelpers_changeSets } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import { CollectionUtils_compact } from "../../utils/collection";
+import { ObjectUtils_values, ObjectUtils_entries } from "../../utils/object";
+import { SetUtils_areAllEqual, SetUtils_areEqual } from "../../utils/setUtils";
 import { InputWeight2 } from "../inputWeight2";
 import { InputNumberAddOn } from "./editProgramExerciseSet";
 
@@ -33,7 +33,7 @@ export function EditProgramExerciseAcrossAllWeeks(props: IEditProgramExerciseAcr
   function change(setData: IDaySetData[], changeFn: (set: IPlannerProgramExerciseEvaluatedSet) => void): void {
     props.plannerDispatch(
       lbProgram.recordModify((program) => {
-        return EditProgramUiHelpers.changeSets(program, props.plannerExercise.key, setData, props.settings, (set) => {
+        return EditProgramUiHelpers_changeSets(program, props.plannerExercise.key, setData, props.settings, (set) => {
           changeFn(set);
         });
       }),
@@ -159,7 +159,7 @@ interface ITabProps {
 
 function Tab(props: ITabProps): JSX.Element {
   const groups: Record<string, IDaySetData[]> = {};
-  PP.iterate2(props.evaluatedProgram.weeks, (exercise, weekIndex, dayInWeekIndex, dayIndex) => {
+  PP_iterate2(props.evaluatedProgram.weeks, (exercise, weekIndex, dayInWeekIndex, dayIndex) => {
     if (exercise.key !== props.plannerExercise.key) {
       return;
     }
@@ -178,7 +178,7 @@ function Tab(props: ITabProps): JSX.Element {
     }
   });
 
-  const groupsValues = ObjectUtils.values(groups);
+  const groupsValues = ObjectUtils_values(groups);
 
   const allWeeks = groupsValues.map((group) => new Set(group.map((setData) => setData.week)));
   const allDays = groupsValues.map((group) => new Set(group.map((setData) => setData.dayInWeek)));
@@ -198,15 +198,15 @@ function Tab(props: ITabProps): JSX.Element {
       setsPerWeekDaySetVariation[key].add(setData.set);
     }
   }
-  const allWeeksEqual = SetUtils.areAllEqual(allWeeks);
-  const allDaysEqual = SetUtils.areAllEqual(allDays);
+  const allWeeksEqual = SetUtils_areAllEqual(allWeeks);
+  const allDaysEqual = SetUtils_areAllEqual(allDays);
 
   return (
     <div className="px-4">
       {Object.entries(groups).map(([key, group]) => {
         const first = group[0];
         const day = props.evaluatedProgram.weeks[first.week - 1].days[first.dayInWeek - 1];
-        const exercise = Program.getProgramExerciseFromDay(day, props.plannerExercise.key);
+        const exercise = Program_getProgramExerciseFromDay(day, props.plannerExercise.key);
         if (!exercise) {
           return <div key={key}>Exercise not found for key: {props.plannerExercise.key}</div>;
         }
@@ -253,11 +253,11 @@ function GroupLabel(props: IGroupLabelProps): JSX.Element {
     groupSetsPerWeekDaySetVariation[key].add(setData.set);
   }
 
-  const allSetVariationsEqual = ObjectUtils.entries(groupSetVariationsPerWeekDay).every(([key, setVariations]) => {
+  const allSetVariationsEqual = ObjectUtils_entries(groupSetVariationsPerWeekDay).every(([key, setVariations]) => {
     const allSetVariationsForWeekDay = props.setVariationsPerWeekDay[key];
     if (
       setVariations.size !== allSetVariationsForWeekDay.size ||
-      !SetUtils.areEqual(allSetVariationsForWeekDay, setVariations)
+      !SetUtils_areEqual(allSetVariationsForWeekDay, setVariations)
     ) {
       return false;
     }
@@ -266,16 +266,16 @@ function GroupLabel(props: IGroupLabelProps): JSX.Element {
       const setKey = `${key}-${setVariation}`;
       const groupSets = groupSetsPerWeekDaySetVariation[setKey];
       const allSets = props.setsPerWeekDaySetVariation[setKey];
-      if (!groupSets || groupSets.size !== allSets.size || !SetUtils.areEqual(allSets, groupSets)) {
+      if (!groupSets || groupSets.size !== allSets.size || !SetUtils_areEqual(allSets, groupSets)) {
         return false;
       }
     }
     return true;
   });
 
-  const allSetsEqual = ObjectUtils.entries(groupSetsPerWeekDaySetVariation).every(([key, sets]) => {
+  const allSetsEqual = ObjectUtils_entries(groupSetsPerWeekDaySetVariation).every(([key, sets]) => {
     const allSetsForWeekDaySetVariation = props.setsPerWeekDaySetVariation[key];
-    return sets.size === allSetsForWeekDaySetVariation.size && SetUtils.areEqual(allSetsForWeekDaySetVariation, sets);
+    return sets.size === allSetsForWeekDaySetVariation.size && SetUtils_areEqual(allSetsForWeekDaySetVariation, sets);
   });
 
   if (props.allWeeksEqual && props.allDaysEqual && allSetVariationsEqual && allSetsEqual) {
@@ -284,11 +284,11 @@ function GroupLabel(props: IGroupLabelProps): JSX.Element {
 
   const parts = props.group.map<[string, number][]>((setData) => {
     const setKey = `${setData.week}-${setData.dayInWeek}-${setData.setVariation}`;
-    const areSetsEqual = SetUtils.areEqual(
+    const areSetsEqual = SetUtils_areEqual(
       groupSetsPerWeekDaySetVariation[setKey],
       props.setsPerWeekDaySetVariation[setKey]
     );
-    return CollectionUtils.compact([
+    return CollectionUtils_compact([
       props.allWeeksEqual ? undefined : ["Week", setData.week],
       props.allDaysEqual ? undefined : ["Day", setData.dayInWeek],
       allSetVariationsEqual ? undefined : ["Set Variation", setData.setVariation],

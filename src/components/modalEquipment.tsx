@@ -2,12 +2,15 @@ import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
 import { Modal } from "./modal";
 import { MenuItemEditable } from "./menuItemEditable";
-import { Equipment } from "../models/equipment";
+import { Equipment_getCurrentGym, Equipment_getEquipmentIdForExerciseType } from "../models/equipment";
 import { IExerciseType, IHistoryEntry, ISettings, IStats } from "../types";
-import { ObjectUtils } from "../utils/object";
-import { equipmentName, Exercise } from "../models/exercise";
-import { EditEquipment } from "../models/editEquipment";
-import { CollectionUtils } from "../utils/collection";
+import { ObjectUtils_filter, ObjectUtils_keys } from "../utils/object";
+import { equipmentName, Exercise_eq, Exercise_defaultRounding } from "../models/exercise";
+import {
+  EditEquipment_setEquipmentForExercise,
+  EditEquipment_setDefaultRoundingForExercise,
+} from "../models/editEquipment";
+import { CollectionUtils_compact } from "../utils/collection";
 import { InputNumber } from "./inputNumber";
 import { EquipmentSettingsValues } from "./equipmentSettings";
 import { ILensRecordingPayload, lb } from "lens-shmens";
@@ -25,15 +28,15 @@ interface IModalEquipmentProps {
 }
 
 export function ModalEquipment(props: IModalEquipmentProps): JSX.Element {
-  const availableEquipment = ObjectUtils.filter(Equipment.getCurrentGym(props.settings).equipment, (k, v) => {
+  const availableEquipment = ObjectUtils_filter(Equipment_getCurrentGym(props.settings).equipment, (k, v) => {
     return !v?.isDeleted;
   });
-  let currentEquipment = Equipment.getEquipmentIdForExerciseType(props.settings, props.exercise);
+  let currentEquipment = Equipment_getEquipmentIdForExerciseType(props.settings, props.exercise);
   if (currentEquipment != null && availableEquipment[currentEquipment] == null) {
     currentEquipment = undefined;
   }
-  const programExerciseIds = CollectionUtils.compact(
-    props.entries.filter((e) => Exercise.eq(e.exercise, props.exercise)).map((e) => e.programExerciseId)
+  const programExerciseIds = CollectionUtils_compact(
+    props.entries.filter((e) => Exercise_eq(e.exercise, props.exercise)).map((e) => e.programExerciseId)
   );
 
   const currentGymId = props.settings.currentGymId ?? props.settings.gyms[0].id;
@@ -46,13 +49,13 @@ export function ModalEquipment(props: IModalEquipmentProps): JSX.Element {
           value={currentEquipment ?? ""}
           values={[
             ["", "None"],
-            ...ObjectUtils.keys(availableEquipment).map<[string, string]>((k) => [
+            ...ObjectUtils_keys(availableEquipment).map<[string, string]>((k) => [
               k,
               equipmentName(k, availableEquipment),
             ]),
           ]}
           onChange={(value) => {
-            EditEquipment.setEquipmentForExercise(
+            EditEquipment_setEquipmentForExercise(
               props.exercise,
               value === "" ? undefined : value,
               programExerciseIds,
@@ -69,9 +72,9 @@ export function ModalEquipment(props: IModalEquipmentProps): JSX.Element {
               min={0}
               step={0.5}
               max={100}
-              value={Exercise.defaultRounding(props.exercise, props.settings)}
+              value={Exercise_defaultRounding(props.exercise, props.settings)}
               onUpdate={(value) => {
-                EditEquipment.setDefaultRoundingForExercise(props.dispatch, props.exercise, value);
+                EditEquipment_setDefaultRoundingForExercise(props.dispatch, props.exercise, value);
               }}
             />
           ) : (

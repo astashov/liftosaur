@@ -14,7 +14,14 @@ import {
 import { IconBarbell } from "./icons/iconBarbell";
 import { IconGraphs } from "./icons/iconGraphs";
 import { Button } from "./button";
-import { SendMessage } from "../utils/sendMessage";
+import {
+  SendMessage_isIos,
+  SendMessage_isAndroid,
+  SendMessage_toIos,
+  SendMessage_toAndroid,
+  SendMessage_iosAppVersion,
+  SendMessage_androidAppVersion,
+} from "../utils/sendMessage";
 import { LinkButton } from "./linkButton";
 import { useState } from "preact/hooks";
 import { Modal } from "./modal";
@@ -23,13 +30,13 @@ import { lb } from "lens-shmens";
 import { IconSpinner } from "./icons/iconSpinner";
 import { InternalLink } from "../internalLink";
 import { IHistoryRecord, ISubscription } from "../types";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_pullScreen, Thunk_claimkey } from "../ducks/thunks";
 import { ModalCoupon } from "./modalCoupon";
 import { IconClose } from "./icons/iconClose";
-import { ObjectUtils } from "../utils/object";
+import { ObjectUtils_entries, ObjectUtils_keys } from "../utils/object";
 import { lg } from "../utils/posthog";
 import { IconW } from "./icons/iconW";
-import { Subscriptions } from "../utils/subscriptions";
+import { Subscriptions_isEligibleForThanksgivingPromo } from "../utils/subscriptions";
 
 interface IProps {
   prices?: Partial<Record<string, string>>;
@@ -50,14 +57,14 @@ export function ScreenSubscription(props: IProps): JSX.Element {
   const [isRedeemShown, setIsRedeemShown] = useState<boolean>(false);
   const [isWeekStatsShown, setIsWeekStatsShown] = useState<boolean>(false);
   const monthlyPrice =
-    ObjectUtils.entries(props.prices || {}).filter(([k]) => k.indexOf("mont") !== -1)?.[0]?.[1] ?? "$4.99";
+    ObjectUtils_entries(props.prices || {}).filter(([k]) => k.indexOf("mont") !== -1)?.[0]?.[1] ?? "$4.99";
   const yearlyPrice =
-    ObjectUtils.entries(props.prices || {}).filter(([k]) => k.indexOf("year") !== -1)?.[0]?.[1] ?? "$39.99";
+    ObjectUtils_entries(props.prices || {}).filter(([k]) => k.indexOf("year") !== -1)?.[0]?.[1] ?? "$39.99";
   const lifetimePrice =
-    ObjectUtils.entries(props.prices || {}).filter(([k]) => k.indexOf("lifetime") !== -1)?.[0]?.[1] ?? "$99.99";
+    ObjectUtils_entries(props.prices || {}).filter(([k]) => k.indexOf("lifetime") !== -1)?.[0]?.[1] ?? "$99.99";
   let monthlyOffer: IOfferData | undefined = undefined;
   let yearlyOffer: IOfferData | undefined = undefined;
-  for (const productId of ObjectUtils.keys(props.offers || {})) {
+  for (const productId of ObjectUtils_keys(props.offers || {})) {
     monthlyOffer =
       monthlyOffer ||
       props.offers?.[productId]?.find((o) => {
@@ -69,7 +76,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
         return o.offerId === props.appleOffer?.yearly?.offerId || o.offerId === props.googleOffer?.yearly?.offerId;
       });
   }
-  const isEligibleForThanks25 = Subscriptions.isEligibleForThanksgivingPromo(
+  const isEligibleForThanks25 = Subscriptions_isEligibleForThanksgivingPromo(
     props.history.length > 0,
     props.subscription
   );
@@ -86,7 +93,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
               className="p-2 nm-back"
               data-cy="navbar-back"
               onClick={() => {
-                props.dispatch(Thunk.pullScreen());
+                props.dispatch(Thunk_pullScreen());
               }}
             >
               <IconClose />
@@ -207,7 +214,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                 <div className="text-xs">first year of subscription</div>
               </div>
               <div className="mb-2">
-                {SendMessage.isIos() ? (
+                {SendMessage_isIos() ? (
                   <div>
                     <div className="text-sm">
                       <strong>Monthly Code: </strong>
@@ -291,7 +298,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                 <div>
                   <Button
                     name="subscription-free"
-                    onClick={() => props.dispatch(Thunk.claimkey())}
+                    onClick={() => props.dispatch(Thunk_claimkey())}
                     kind="purple"
                     className="whitespace-nowrap"
                     data-cy="button-subscription-free"
@@ -310,13 +317,13 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                       style={{ padding: "0.75rem 0.5rem" }}
                       name="subscription-monthly"
                       onClick={() => {
-                        if (SendMessage.isIos() || SendMessage.isAndroid()) {
+                        if (SendMessage_isIos() || SendMessage_isAndroid()) {
                           lg("start-subscription-monthly");
-                          SendMessage.toIos({
+                          SendMessage_toIos({
                             type: "subscribeMontly",
                             offer: JSON.stringify(props.appleOffer?.monthly),
                           });
-                          SendMessage.toAndroid({
+                          SendMessage_toAndroid({
                             type: "subscribeMontly",
                             offer: JSON.stringify(props.googleOffer?.monthly),
                           });
@@ -356,13 +363,13 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                       name="subscription-yearly"
                       style={{ padding: "0.75rem 0.5rem" }}
                       onClick={() => {
-                        if (SendMessage.isIos() || SendMessage.isAndroid()) {
+                        if (SendMessage_isIos() || SendMessage_isAndroid()) {
                           lg("start-subscription-yearly");
-                          SendMessage.toIos({
+                          SendMessage_toIos({
                             type: "subscribeYearly",
                             offer: JSON.stringify(props.appleOffer?.yearly),
                           });
-                          SendMessage.toAndroid({
+                          SendMessage_toAndroid({
                             type: "subscribeYearly",
                             offer: JSON.stringify(props.googleOffer?.yearly),
                           });
@@ -402,16 +409,16 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                     Discount applies for the first year
                   </div>
                 )}
-                {((SendMessage.isIos() && SendMessage.iosAppVersion() >= 8) ||
-                  (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 15)) && (
+                {((SendMessage_isIos() && SendMessage_iosAppVersion() >= 8) ||
+                  (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 15)) && (
                   <div className="px-2 pt-2 text-center">
                     <Button
                       name="subscription-lifetime"
                       onClick={() => {
-                        if (SendMessage.isIos() || SendMessage.isAndroid()) {
+                        if (SendMessage_isIos() || SendMessage_isAndroid()) {
                           lg("start-subscription-lifetime");
-                          SendMessage.toIos({ type: "subscribeLifetime" });
-                          SendMessage.toAndroid({ type: "subscribeLifetime" });
+                          SendMessage_toIos({ type: "subscribeLifetime" });
+                          SendMessage_toAndroid({ type: "subscribeLifetime" });
                           updateState(
                             props.dispatch,
                             [lb<IState>().p("subscriptionLoading").record({ lifetime: true })],
@@ -440,8 +447,8 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                 <LinkButton
                   name="redeem-coupon"
                   onClick={() => {
-                    if (SendMessage.isIos()) {
-                      SendMessage.toIos({ type: "redeemCoupon" });
+                    if (SendMessage_isIos()) {
+                      SendMessage_toIos({ type: "redeemCoupon" });
                     } else {
                       setIsRedeemShown(true);
                     }
@@ -466,8 +473,8 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                 <LinkButton
                   name="restore-subscriptions"
                   onClick={() => {
-                    SendMessage.toIos({ type: "restoreSubscriptions" });
-                    SendMessage.toAndroid({ type: "restoreSubscriptions" });
+                    SendMessage_toIos({ type: "restoreSubscriptions" });
+                    SendMessage_toAndroid({ type: "restoreSubscriptions" });
                   }}
                 >
                   Restore Subscription

@@ -9,22 +9,30 @@ import {
 import { IProgram, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { LinkButton } from "../linkButton";
-import { IEvaluatedProgram, Program } from "../../models/program";
-import { PP } from "../../models/pp";
+import {
+  IEvaluatedProgram,
+  Program_evaluate,
+  Program_getReusingCustomProgressExercises,
+  Program_getReusingSetProgressExercises,
+} from "../../models/program";
+import { PP_iterate2 } from "../../models/pp";
 import { MenuItemWrapper } from "../menuItem";
 import { InputSelect } from "../inputSelect";
 import { lb } from "lens-shmens";
-import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
-import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
+import { EditProgramUiHelpers_changeFirstInstance } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import {
+  PlannerProgramExercise_buildProgress,
+  PlannerProgramExercise_getProgressDefaultArgs,
+} from "../../pages/planner/models/plannerProgramExercise";
 import { LinearProgressSettings } from "./progressions/linearProgressSettings";
 import { DoubleProgressSettings } from "./progressions/doubleProgressSettings";
 import { SumRepsProgressSettings } from "./progressions/sumRepsProgressSettings";
 import { CustomProgressSettings } from "./progressions/customProgressSettings";
 import { ModalEditProgressScript } from "./progressions/modalEditProgressScript";
 import { useState } from "preact/hooks";
-import { CollectionUtils } from "../../utils/collection";
+import { CollectionUtils_uniqByExpr } from "../../utils/collection";
 import { EditProgramUiProgress } from "../editProgram/editProgramUiProgress";
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_entries } from "../../utils/object";
 
 interface IEditProgramExerciseProgressProps {
   program: IProgram;
@@ -40,7 +48,7 @@ function getProgressReuseCandidates(
   evaluatedProgram: IEvaluatedProgram
 ): [string, string][] {
   const result: Record<string, string> = {};
-  PP.iterate2(evaluatedProgram.weeks, (exercise) => {
+  PP_iterate2(evaluatedProgram.weeks, (exercise) => {
     if (exercise.key === key) {
       return;
     }
@@ -50,13 +58,13 @@ function getProgressReuseCandidates(
     }
     result[exercise.fullName] = exercise.fullName;
   });
-  return ObjectUtils.entries(result);
+  return ObjectUtils_entries(result);
 }
 
 export function EditProgramExerciseProgress(props: IEditProgramExerciseProgressProps): JSX.Element {
   const { plannerExercise } = props;
   const ownProgress = plannerExercise.progress;
-  const evaluatedProgram = Program.evaluate(props.program, props.settings);
+  const evaluatedProgram = Program_evaluate(props.program, props.settings);
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
   const lbUi = lb<IPlannerExerciseState>().p("ui");
   const [isOverriding, setIsOverriding] = useState(false);
@@ -124,7 +132,7 @@ export function EditProgramExerciseProgress(props: IEditProgramExerciseProgressP
           onChange={(script) => {
             props.plannerDispatch(
               lbProgram.recordModify((program) => {
-                return EditProgramUiHelpers.changeFirstInstance(program, plannerExercise, props.settings, true, (e) => {
+                return EditProgramUiHelpers_changeFirstInstance(program, plannerExercise, props.settings, true, (e) => {
                   e.progress = {
                     ...e.progress,
                     type: "custom",
@@ -173,11 +181,11 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
     ...getProgressReuseCandidates(plannerExercise.key, !!plannerExercise.notused, evaluatedProgram),
   ];
   const reuseFullName = ownProgress?.reuse?.exercise?.fullName;
-  const reusingCustomProgressExercises = Program.getReusingCustomProgressExercises(evaluatedProgram, plannerExercise);
-  const reusingSetProgressExercises = Program.getReusingSetProgressExercises(evaluatedProgram, plannerExercise);
+  const reusingCustomProgressExercises = Program_getReusingCustomProgressExercises(evaluatedProgram, plannerExercise);
+  const reusingSetProgressExercises = Program_getReusingSetProgressExercises(evaluatedProgram, plannerExercise);
   const reusingProgressExercises = Array.from(
     new Set(
-      CollectionUtils.uniqByExpr([...reusingCustomProgressExercises, ...reusingSetProgressExercises], (e) => e.fullName)
+      CollectionUtils_uniqByExpr([...reusingCustomProgressExercises, ...reusingSetProgressExercises], (e) => e.fullName)
     )
   );
   const cannotReuseOtherProgress = plannerExercise.notused
@@ -232,7 +240,7 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
                 onChange={(value) => {
                   props.plannerDispatch(
                     lbProgram.recordModify((program) => {
-                      const newPlanner = EditProgramUiHelpers.changeFirstInstance(
+                      const newPlanner = EditProgramUiHelpers_changeFirstInstance(
                         program,
                         plannerExercise,
                         props.settings,
@@ -244,9 +252,9 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
                             if (savedProgressTypes[value]) {
                               e.progress = savedProgressTypes[value];
                             } else {
-                              const result = PlannerProgramExercise.buildProgress(
+                              const result = PlannerProgramExercise_buildProgress(
                                 value,
-                                PlannerProgramExercise.getProgressDefaultArgs(value),
+                                PlannerProgramExercise_getProgressDefaultArgs(value),
                                 value === "custom" ? { script: "{~~}" } : undefined
                               );
                               if (result.success) {
@@ -296,7 +304,7 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
                     onChange={(fullName) => {
                       props.plannerDispatch(
                         lbProgram.recordModify((program) => {
-                          return EditProgramUiHelpers.changeFirstInstance(
+                          return EditProgramUiHelpers_changeFirstInstance(
                             program,
                             plannerExercise,
                             props.settings,

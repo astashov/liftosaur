@@ -6,8 +6,8 @@ import { GoogleAuthTokenDao } from "./dao/googleAuthTokenDao";
 import { UserDao, ILimitedUserDao } from "./dao/userDao";
 import * as Cookie from "cookie";
 import JWT from "jsonwebtoken";
-import { UidFactory } from "./utils/generator";
-import { Utils } from "./utils";
+import { UidFactory_generateUid } from "./utils/generator";
+import { Utils_getEnv } from "./utils";
 import { ApplePromotionalOfferSigner } from "./utils/applePromotionalOfferSigner";
 import rsaPemFromModExp from "rsa-pem-from-mod-exp";
 import { IPartialStorage, IStorage } from "../src/types";
@@ -16,31 +16,49 @@ import { renderRecordHtml, recordImage } from "./record";
 import { LogDao } from "./dao/logDao";
 import { renderUserHtml, userImage } from "./user";
 import { renderProgramDetailsHtml } from "./programDetails";
+import { renderProgramPreviewHtml } from "./programPreview";
 import { renderUsersHtml } from "../src/components/admin/usersHtml";
-import { CollectionUtils } from "../src/utils/collection";
+import {
+  CollectionUtils_setBy,
+  CollectionUtils_inGroupsOf,
+  CollectionUtils_uniqBy,
+  CollectionUtils_groupByKeyUniq,
+  CollectionUtils_sortBy,
+  CollectionUtils_groupByKey,
+  CollectionUtils_sort,
+} from "../src/utils/collection";
 import { renderLogsHtml, ILogPayloads } from "../src/components/admin/logsHtml";
 import Rollbar from "rollbar";
 import { IDI } from "./utils/di";
 import { runMigrations } from "../src/migrations/runner";
 import { c, IEither } from "../src/utils/types";
-import { ResponseUtils } from "./utils/response";
-import { ImageCacher } from "./utils/imageCacher";
+import {
+  ResponseUtils_json,
+  ResponseUtils_getHeaders,
+  ResponseUtils_getHost,
+  ResponseUtils_clearSessionCookie,
+} from "./utils/response";
+import { ImageCacher_cache } from "./utils/imageCacher";
 import { ProgramImageGenerator } from "./utils/programImageGenerator";
 import { AppleAuthTokenDao } from "./dao/appleAuthTokenDao";
 import { Subscriptions } from "./utils/subscriptions";
 import * as ClientSubscription from "../src/utils/subscriptions";
-import { NodeEncoder } from "./utils/nodeEncoder";
+import { NodeEncoder_decode } from "./utils/nodeEncoder";
 import { renderProgramHtml } from "./program";
-import { IExportedProgram, Program } from "../src/models/program";
-import { ImportExporter } from "../src/lib/importexporter";
+import {
+  IExportedProgram,
+  Program_exportedPlannerProgramToExportedProgram,
+  Program_storageToExportedProgram,
+} from "../src/models/program";
+import { ImportExporter_getExportedProgram } from "../src/lib/importexporter";
 import { UrlDao } from "./dao/urlDao";
 import { AffiliateDao } from "./dao/affiliateDao";
 import { renderAffiliateDashboardHtml } from "./affiliateDashboard";
 import { renderUserAffiliatesHtml } from "./userAffiliates";
 import { renderUsersDashboardHtml } from "./usersDashboard";
-import { DateUtils } from "../src/utils/date";
+import { DateUtils_formatYYYYMMDD, DateUtils_formatUTCYYYYMMDD, DateUtils_yearAndMonth } from "../src/utils/date";
 import { IUsersDashboardData } from "../src/pages/usersDashboard/usersDashboardContent";
-import { Mobile } from "./utils/mobile";
+import { Mobile_isMobile } from "./utils/mobile";
 import { renderAffiliatesHtml } from "./affiliates";
 import { renderAiPromptHtml } from "./aiPrompt";
 import { FreeUserDao } from "./dao/freeUserDao";
@@ -53,25 +71,25 @@ import { CouponDao } from "./dao/couponDao";
 import { DebugDao } from "./dao/debugDao";
 import { renderPlannerHtml } from "./planner";
 import { ExceptionDao } from "./dao/exceptionDao";
-import { UrlUtils } from "../src/utils/url";
-import { RollbarUtils } from "../src/utils/rollbar";
-import { Account, IAccount } from "../src/models/account";
-import { Storage } from "../src/models/storage";
+import { UrlUtils_build, UrlUtils_buildSafe } from "../src/utils/url";
+import { RollbarUtils_checkIgnore } from "../src/utils/rollbar";
+import { IAccount, Account_getFromStorage } from "../src/models/account";
+import { Storage_get, Storage_updateVersions } from "../src/models/storage";
 import { renderProgramsListHtml } from "./programsList";
 import { renderMainHtml } from "./main";
 import { getUserImagesPrefix, LftS3Buckets } from "./dao/buckets";
 import { IStorageUpdate, IStorageUpdate2 } from "../src/utils/sync";
 import { IEventPayload, IPostSyncResponse } from "../src/api/service";
-import { Settings } from "../src/models/settings";
-import { PlannerProgram } from "../src/pages/planner/models/plannerProgram";
+import { Settings_applyExportedProgram } from "../src/models/settings";
+import { PlannerProgram_generateFullText } from "../src/pages/planner/models/plannerProgram";
 import { renderLoginHtml } from "./login";
-import { ExerciseImageUtils } from "../src/models/exerciseImage";
-import { Exercise } from "../src/models/exercise";
+import { ExerciseImageUtils_exists } from "../src/models/exerciseImage";
+import { Exercise_fromUrlSlug } from "../src/models/exercise";
 import { renderExerciseHtml } from "./exercise";
 import { renderAllExercisesHtml } from "./allExercises";
 import { renderAllProgramsHtml } from "./allPrograms";
 import { renderRepMaxHtml } from "./repmax";
-import { MathUtils } from "../src/utils/math";
+import { MathUtils_toWord } from "../src/utils/math";
 import { EventDao } from "./dao/eventDao";
 import { PaymentDao } from "./dao/paymentDao";
 import { StorageDao } from "./dao/storageDao";
@@ -79,10 +97,10 @@ import { renderUserDashboardHtml } from "./userDashboard";
 import { renderPaymentsDashboardHtml, IPaymentsDashboardData } from "./paymentsDashboard";
 import { IExportedPlannerProgram } from "../src/pages/planner/models/types";
 import { UrlContentFetcher } from "./utils/urlContentFetcher";
-import { LlmPrompt } from "./utils/llms/llmPrompt";
+import { LlmPrompt_getSystemPrompt, LlmPrompt_getUserPrompt } from "./utils/llms/llmPrompt";
 import { AiLogsDao } from "./dao/aiLogsDao";
 import { ICollectionVersions } from "../src/models/versionTracker";
-import { ObjectUtils } from "../src/utils/object";
+import { ObjectUtils_values, ObjectUtils_keys } from "../src/utils/object";
 import { ClaudeProvider } from "./utils/llms/claude";
 import { MuscleGenerator } from "./utils/muscleGenerator";
 import { LlmMuscles } from "./utils/llms/llmMuscles";
@@ -167,7 +185,7 @@ const postVerifyAppleReceiptHandler: RouteHandler<
   const { appleReceipt, userId } = bodyJson;
   // return ResponseUtils.json(200, event, { result: true });
   if (appleReceipt == null) {
-    return ResponseUtils.json(200, event, { result: false });
+    return ResponseUtils_json(200, event, { result: false });
   }
   const subscriptions = new Subscriptions(di.log, di.secrets);
   const appleJson = await subscriptions.getAppleVerificationJson(appleReceipt);
@@ -187,9 +205,9 @@ const postVerifyAppleReceiptHandler: RouteHandler<
         di.log.log("Failed to add Apple payment record", e);
       }
     }
-    return ResponseUtils.json(200, event, { result: !!verifiedAppleReceipt });
+    return ResponseUtils_json(200, event, { result: !!verifiedAppleReceipt });
   } else {
-    return ResponseUtils.json(200, event, { result: true });
+    return ResponseUtils_json(200, event, { result: true });
   }
 };
 
@@ -203,7 +221,7 @@ const postVerifyGooglePurchaseTokenHandler: RouteHandler<
   const bodyJson = getBodyJson(event);
   const { googlePurchaseToken, userId } = bodyJson;
   if (googlePurchaseToken == null) {
-    return ResponseUtils.json(200, event, { result: false });
+    return ResponseUtils_json(200, event, { result: false });
   }
   const subscriptions = new Subscriptions(di.log, di.secrets);
   const { token, productId } = JSON.parse(googlePurchaseToken) as { token: string; productId: string };
@@ -229,7 +247,7 @@ const postVerifyGooglePurchaseTokenHandler: RouteHandler<
       }
     }
   }
-  return ResponseUtils.json(200, event, { result: !!verifiedGooglePurchaseToken });
+  return ResponseUtils_json(200, event, { result: !!verifiedGooglePurchaseToken });
 };
 
 const postAppleWebhookEndpoint = Endpoint.build("/api/apple-payment-webhook");
@@ -244,10 +262,10 @@ const postAppleWebhookHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
   const result = await appleWebhookHandler.handleWebhook(body);
 
   if (result.error) {
-    return ResponseUtils.json(400, event, result);
+    return ResponseUtils_json(400, event, result);
   }
 
-  return ResponseUtils.json(200, event, result);
+  return ResponseUtils_json(200, event, result);
 };
 
 const postGoogleWebhookEndpoint = Endpoint.build("/api/google-payment-webhook");
@@ -262,7 +280,7 @@ const postGoogleWebhookHandler: RouteHandler<
   di.log.log("Received headers", event.headers);
   const result = await handler.handleWebhook(event.body || "", authorizationHeader);
 
-  return ResponseUtils.json(200, event, { status: result.success ? "ok" : "error", message: result.message });
+  return ResponseUtils_json(200, event, { status: result.success ? "ok" : "error", message: result.message });
 };
 
 const postReceiveAdAttrEndpoint = Endpoint.build("/api/adattr");
@@ -272,14 +290,14 @@ const postReceiveAdAttrHandler: RouteHandler<
   typeof postReceiveAdAttrEndpoint
 > = async ({ payload }) => {
   const body = payload.event.body?.toString() ?? "";
-  const bucket = `${LftS3Buckets.debugs}${Utils.getEnv() === "dev" ? "dev" : ""}`;
-  const uid = UidFactory.generateUid(12);
+  const bucket = `${LftS3Buckets.debugs}${Utils_getEnv() === "dev" ? "dev" : ""}`;
+  const uid = UidFactory_generateUid(12);
   await payload.di.s3.putObject({
     bucket: bucket,
     key: "adattrs/" + uid,
     body: body,
   });
-  return ResponseUtils.json(200, payload.event, { data: "ok" });
+  return ResponseUtils_json(200, payload.event, { data: "ok" });
 };
 
 function filterStorageForWatch(storage: IStorage): IStorage {
@@ -337,7 +355,7 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
   // Support both compressed (with data field) and uncompressed payloads
   let bodyJson: Record<string, unknown>;
   if (rawBodyJson.data && typeof rawBodyJson.data === "string") {
-    const bodyJsonStr = await NodeEncoder.decode(rawBodyJson.data);
+    const bodyJsonStr = await NodeEncoder_decode(rawBodyJson.data);
     bodyJson = JSON.parse(bodyJsonStr);
   } else {
     bodyJson = rawBodyJson;
@@ -354,7 +372,7 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
   }
   const key = keyResult ? (keyResult.isClaimed ? keyResult.key : "unclaimed") : undefined;
   const response = (status: number, r: IPostSyncResponse): APIGatewayProxyResult =>
-    ResponseUtils.json(status, event, r, setCookie ? { "set-cookie": setCookie } : undefined);
+    ResponseUtils_json(status, event, r, setCookie ? { "set-cookie": setCookie } : undefined);
   const eventDao = new EventDao(di);
   const storageDao = new StorageDao(di);
   if (userId != null) {
@@ -380,7 +398,7 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
               commithash: process.env.COMMIT_HASH || "",
               storage_id: storageId,
               update: EventDao.prepareStorageUpdateForEvent(storageUpdate),
-              isMobile: Mobile.isMobile(
+              isMobile: Mobile_isMobile(
                 payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || ""
               ),
             });
@@ -424,7 +442,7 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
               timestamp,
               storage_id: storageId,
               commithash: process.env.COMMIT_HASH || "",
-              isMobile: Mobile.isMobile(
+              isMobile: Mobile_isMobile(
                 payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || ""
               ),
               update: EventDao.prepareStorageUpdateForEvent(storageUpdate),
@@ -450,7 +468,7 @@ const postSync2Handler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
       }
     }
   }
-  return ResponseUtils.json(401, event, { type: "error", error: "not_authorized", key });
+  return ResponseUtils_json(401, event, { type: "error", error: "not_authorized", key });
 };
 
 const postSyncEndpoint = Endpoint.build("/api/sync", { tempuserid: "string?", adminkey: "string?", userid: "string?" });
@@ -484,7 +502,7 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
   }
   const key = keyResult ? (keyResult.isClaimed ? keyResult.key : "unclaimed") : undefined;
   const response = (status: number, r: IPostSyncResponse): APIGatewayProxyResult =>
-    ResponseUtils.json(status, event, r, setCookie ? { "set-cookie": setCookie } : undefined);
+    ResponseUtils_json(status, event, r, setCookie ? { "set-cookie": setCookie } : undefined);
   const eventDao = new EventDao(di);
   const storageDao = new StorageDao(di);
   if (userId != null) {
@@ -511,7 +529,7 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
               commithash: process.env.COMMIT_HASH || "",
               storage_id: storageId,
               update: EventDao.prepareStorageUpdateForEvent(storageUpdate),
-              isMobile: Mobile.isMobile(
+              isMobile: Mobile_isMobile(
                 payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || ""
               ),
             });
@@ -549,7 +567,7 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
               commithash: process.env.COMMIT_HASH || "",
               timestamp,
               storage_id: storageId,
-              isMobile: Mobile.isMobile(
+              isMobile: Mobile_isMobile(
                 payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || ""
               ),
               update: EventDao.prepareStorageUpdateForEvent(storageUpdate),
@@ -563,7 +581,7 @@ const postSyncHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof post
       }
     }
   }
-  return ResponseUtils.json(401, event, { type: "error", error: "not_authorized", key });
+  return ResponseUtils_json(401, event, { type: "error", error: "not_authorized", key });
 };
 
 const getStorageEndpoint = Endpoint.build("/api/storage", {
@@ -613,7 +631,7 @@ const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
       }
       di.log.log(`Responding user data, id: ${user.storage.id}, original id: ${user.storage.originalId}`);
       user.storage.originalId = user.storage.originalId || Date.now();
-      return ResponseUtils.json(
+      return ResponseUtils_json(
         200,
         event,
         {
@@ -627,7 +645,7 @@ const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
       );
     }
   }
-  return ResponseUtils.json(200, event, { key });
+  return ResponseUtils_json(200, event, { key });
 };
 
 const saveDebugEndpoint = Endpoint.build("/api/debug");
@@ -639,31 +657,31 @@ const saveDebugHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof sav
   const debugDao = new DebugDao(di);
   let debugData: string;
   if (typeof data === "string") {
-    debugData = await NodeEncoder.decode(data);
+    debugData = await NodeEncoder_decode(data);
   } else {
     debugData = JSON.stringify(data);
   }
   await debugDao.store(id, debugData);
-  return ResponseUtils.json(200, event, { data: "ok" });
+  return ResponseUtils_json(200, event, { data: "ok" });
 };
 
 const debugLogsEndpoint = Endpoint.build("/api/debuglogs");
 const debugLogsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof debugLogsEndpoint> = async ({
   payload,
 }) => {
-  if (Utils.getEnv() !== "dev") {
-    return ResponseUtils.json(403, payload.event, { error: "forbidden" });
+  if (Utils_getEnv() !== "dev") {
+    return ResponseUtils_json(403, payload.event, { error: "forbidden" });
   }
   const { event } = payload;
   const { log, device, timestamp } = getBodyJson(event);
   if (!log) {
-    return ResponseUtils.json(400, event, { error: "log is required" });
+    return ResponseUtils_json(400, event, { error: "log is required" });
   }
   const logFile = "/tmp/watchlogs.txt";
   const date = new Date(timestamp || Date.now()).toISOString();
   const logLine = `[${date}] [${device || "UNKNOWN"}] ${log}\n`;
   fs.appendFileSync(logFile, logLine);
-  return ResponseUtils.json(200, event, { data: "ok" });
+  return ResponseUtils_json(200, event, { data: "ok" });
 };
 
 interface IAppleKeysResponse {
@@ -682,7 +700,7 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
   payload,
 }) => {
   const { event, di } = payload;
-  const env = Utils.getEnv();
+  const env = Utils_getEnv();
   const bodyJson = getBodyJson(event);
   const { idToken, id, historylimit } = bodyJson;
   const keysResponse = await di.fetch("https://appleid.apple.com/auth/keys");
@@ -710,7 +728,7 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
         let isNewUser = false;
 
         if (userId == null) {
-          userId = (id as string) || UidFactory.generateUid(12);
+          userId = (id as string) || UidFactory_generateUid(12);
           user = UserDao.build(userId, email, { appleId: result.sub });
           isNewUser = true;
           await userDao.store(user);
@@ -728,7 +746,7 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
           statusCode: 200,
           body: JSON.stringify(resp),
           headers: {
-            ...ResponseUtils.getHeaders(event),
+            ...ResponseUtils_getHeaders(event),
             "set-cookie": Cookie.serialize("session", session, {
               httpOnly: true,
               domain: ".liftosaur.com",
@@ -741,7 +759,7 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
     }
   }
 
-  return ResponseUtils.json(403, event, { error: "invalid_token" });
+  return ResponseUtils_json(403, event, { error: "invalid_token" });
 };
 
 const googleLoginEndpoint = Endpoint.build("/api/signin/google");
@@ -749,7 +767,7 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   payload,
 }) => {
   const { event, di } = payload;
-  const env = Utils.getEnv();
+  const env = Utils_getEnv();
   const bodyJson = getBodyJson(event);
   const { token, id, forceuseremail, historylimit } = bodyJson;
   let openIdJson: IOpenIdResponseSuccess | IOpenIdResponseError;
@@ -770,7 +788,7 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
     const googleApiResponse = await di.fetch(url);
     const response = await googleApiResponse.json();
     if ("error" in response) {
-      return ResponseUtils.json(403, event, openIdJson);
+      return ResponseUtils_json(403, event, openIdJson);
     } else {
       openIdJson = {
         sub: response.user_id,
@@ -786,7 +804,7 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   let isNewUser = false;
 
   if (userId == null) {
-    userId = (id as string) || UidFactory.generateUid(12);
+    userId = (id as string) || UidFactory_generateUid(12);
     user = UserDao.build(userId, openIdJson.email, { googleId: openIdJson.sub });
     isNewUser = true;
     await userDao.store(user);
@@ -804,7 +822,7 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
     statusCode: 200,
     body: JSON.stringify(resp),
     headers: {
-      ...ResponseUtils.getHeaders(event),
+      ...ResponseUtils_getHeaders(event),
       "set-cookie": Cookie.serialize("session", session, {
         httpOnly: true,
         domain: ".liftosaur.com",
@@ -825,27 +843,15 @@ const getHistoryHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   if (user != null) {
     const userDao = new UserDao(di);
     const history = await userDao.getHistoryByUserId(user.id, { after: params.after, limit: params.limit });
-    return ResponseUtils.json(200, event, { history });
+    return ResponseUtils_json(200, event, { history });
   }
-  return ResponseUtils.json(400, event, { error: "Not Authorized" });
+  return ResponseUtils_json(400, event, { error: "Not Authorized" });
 };
 
 const signoutEndpoint = Endpoint.build("/api/signout");
 const signoutHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof signoutEndpoint> = async ({ payload }) => {
   const { event } = payload;
-  return {
-    statusCode: 200,
-    headers: {
-      ...ResponseUtils.getHeaders(event),
-      "set-cookie": Cookie.serialize("session", "", {
-        httpOnly: true,
-        domain: ".liftosaur.com",
-        path: "/",
-        expires: new Date(1970, 0, 1),
-      }),
-    },
-    body: "{}",
-  };
+  return ResponseUtils_json(200, event, {}, { "set-cookie": ResponseUtils_clearSessionCookie() });
 };
 
 const postSaveProgramEndpoint = Endpoint.build("/api/program");
@@ -861,24 +867,24 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
     const userDao = new UserDao(di);
     const eventDao = new EventDao(di);
     const programs = await userDao.getProgramsByUserId(user.id);
-    const oldStorageResult = Storage.get({ ...user.storage, programs });
+    const oldStorageResult = Storage_get({ ...user.storage, programs });
     if (!oldStorageResult.success) {
       di.log.log("Program Save: Error loading old storage", oldStorageResult.error);
-      return ResponseUtils.json(500, event, { error: "Corrupted storage!" });
+      return ResponseUtils_json(500, event, { error: "Corrupted storage!" });
     }
     const oldStorage = oldStorageResult.data;
     if (oldStorage.version !== exportedProgram.version) {
       di.log.log(`Program Save: Version mismatch! Old: ${oldStorage.version}, New: ${exportedProgram.version}.`);
-      return ResponseUtils.json(400, event, { error: "Version mismatch! Please refresh the page." });
+      return ResponseUtils_json(400, event, { error: "Version mismatch! Please refresh the page." });
     }
     const newStorage: IPartialStorage = {
       ...oldStorage,
-      programs: CollectionUtils.setBy(oldStorage.programs, "id", exportedProgram.program.id, exportedProgram.program),
-      settings: Settings.applyExportedProgram(oldStorage.settings, exportedProgram),
+      programs: CollectionUtils_setBy(oldStorage.programs, "id", exportedProgram.program.id, exportedProgram.program),
+      settings: Settings_applyExportedProgram(oldStorage.settings, exportedProgram),
       originalId: Date.now(),
     };
     di.log.log("Device id", deviceId);
-    const newVersions = Storage.updateVersions(oldStorage, newStorage, deviceId);
+    const newVersions = Storage_updateVersions(oldStorage, newStorage, deviceId);
     const saveVersions = eventDao.post({
       type: "event",
       name: "save-program-www-versions",
@@ -936,9 +942,9 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
       eventPost,
       saveVersions,
     ]);
-    return ResponseUtils.json(200, event, { data: { id: exportedProgram.program.id } });
+    return ResponseUtils_json(200, event, { data: { id: exportedProgram.program.id } });
   }
-  return ResponseUtils.json(400, event, { error: "Not Authorized" });
+  return ResponseUtils_json(400, event, { error: "Not Authorized" });
 };
 
 const deleteProgramEndpoint = Endpoint.build("/api/program/:id");
@@ -953,7 +959,7 @@ const deleteProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
     const eventDao = new EventDao(di);
     const program = await userDao.getProgram(user.id, params.id);
     if (program == null) {
-      return ResponseUtils.json(404, event, { error: "Not Found" });
+      return ResponseUtils_json(404, event, { error: "Not Found" });
     }
     const eventPost = eventDao.post({
       type: "event",
@@ -982,9 +988,9 @@ const deleteProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
     };
     user.storage = newStorage;
     await Promise.all([userDao.deleteProgram(user.id, program.id), userDao.store(user), eventPost]);
-    return ResponseUtils.json(200, event, { data: { id: program.id } });
+    return ResponseUtils_json(200, event, { data: { id: program.id } });
   }
-  return ResponseUtils.json(400, event, { error: "Not Authorized" });
+  return ResponseUtils_json(400, event, { error: "Not Authorized" });
 };
 
 const getProgramsEndpoint = Endpoint.build("/api/programs");
@@ -993,7 +999,7 @@ const getProgramsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
 }) => {
   const { event, di } = payload;
   const programs = await new ProgramDao(di).getAll();
-  return ResponseUtils.json(200, event, { programs });
+  return ResponseUtils_json(200, event, { programs });
 };
 
 const getHistoryRecordEndpoint = Endpoint.build("/api/record", { user: "string?", id: "number?" });
@@ -1029,7 +1035,7 @@ const getHistoryRecordHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
   } else {
     error.message = "Missing required params - 'user' or 'id'";
   }
-  return ResponseUtils.json(400, event, { error });
+  return ResponseUtils_json(400, event, { error });
 };
 
 const getHistoryRecordImageEndpoint = Endpoint.build("/api/recordimage", {
@@ -1042,7 +1048,7 @@ const getHistoryRecordImageHandler: RouteHandler<
   typeof getHistoryRecordImageEndpoint
 > = async ({ payload, match: { params } }) => {
   const { event, di } = payload;
-  return ImageCacher.cache(di, event, `historyrecordimage${event.path}-${params.user}-${params.id}.png`, async () => {
+  return ImageCacher_cache(di, event, `historyrecordimage${event.path}-${params.user}-${params.id}.png`, async () => {
     const result = await new UserDao(di).getById(params.user);
     if (result != null) {
       const imageResult = await recordImage(result.storage, params.id);
@@ -1063,7 +1069,7 @@ const getProgramImageHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
   match: { params },
 }) => {
   const { event, di } = payload;
-  return ImageCacher.cache(di, event, `programimage${event.path}-${params.id}.png`, async () => {
+  return ImageCacher_cache(di, event, `programimage${event.path}-${params.id}.png`, async () => {
     const result = await new ProgramDao(di).getById(params.id);
     if (result != null) {
       const imageResult = await new ProgramImageGenerator().generate({
@@ -1089,9 +1095,9 @@ const postAddFreeUserHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
   const { event, di } = payload;
   if (params.key === (await di.secrets.getApiKey())) {
     await new FreeUserDao(di).create(params.id, Date.now() + 1000 * 60 * 60 * 24 * 365, false);
-    return ResponseUtils.json(200, event, { data: "ok" });
+    return ResponseUtils_json(200, event, { data: "ok" });
   } else {
-    return ResponseUtils.json(401, event, {});
+    return ResponseUtils_json(401, event, {});
   }
 };
 
@@ -1104,9 +1110,9 @@ const postCreateCouponHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
   const ttlMs = parseInt(params.ttl, 10);
   if (!isNaN(ttlMs) && params.key === (await di.secrets.getApiKey())) {
     const coupon = await new CouponDao(di).create({ ttlMs, info: params.info });
-    return ResponseUtils.json(200, event, { data: coupon });
+    return ResponseUtils_json(200, event, { data: coupon });
   } else {
-    return ResponseUtils.json(401, event, {});
+    return ResponseUtils_json(401, event, {});
   }
 };
 
@@ -1123,15 +1129,15 @@ const postClaimCouponHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
 
   const coupon = await couponDao.get(params.code);
   if (!coupon) {
-    return ResponseUtils.json(404, event, { error: "coupon_not_found" });
+    return ResponseUtils_json(404, event, { error: "coupon_not_found" });
   }
 
   if (coupon.isDisabled) {
-    return ResponseUtils.json(404, event, { error: "coupon_disabled" });
+    return ResponseUtils_json(404, event, { error: "coupon_disabled" });
   }
 
   if (coupon.isClaimed) {
-    return ResponseUtils.json(400, event, { error: "coupon_already_claimed" });
+    return ResponseUtils_json(400, event, { error: "coupon_already_claimed" });
   }
 
   const data = couponDao.getData(coupon);
@@ -1147,7 +1153,7 @@ const postClaimCouponHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
       "liftosaur",
       data.apple.yearly.productId
     );
-    return ResponseUtils.json(200, event, {
+    return ResponseUtils_json(200, event, {
       data: { affiliate: coupon.affiliate, appleOffer: { monthly: monthlyOffer, yearly: yearlyOffer } },
     });
   }
@@ -1163,19 +1169,19 @@ const postClaimCouponHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
         productId: data.google.yearly.productId,
       },
     };
-    return ResponseUtils.json(200, event, { affiliate: coupon.affiliate, data: { googleOffer } });
+    return ResponseUtils_json(200, event, { affiliate: coupon.affiliate, data: { googleOffer } });
   }
   if (data) {
-    return ResponseUtils.json(400, event, { error: "wrong_platform" });
+    return ResponseUtils_json(400, event, { error: "wrong_platform" });
   }
 
   if (currentUserId == null) {
-    return ResponseUtils.json(401, event, { error: "not_authorized" });
+    return ResponseUtils_json(401, event, { error: "not_authorized" });
   }
 
   await couponDao.claim(coupon);
   const freeuser = await new FreeUserDao(di).create(currentUserId, Date.now() + coupon.ttlMs, true, coupon.code);
-  return ResponseUtils.json(200, event, {
+  return ResponseUtils_json(200, event, {
     data: { key: freeuser.key, expires: freeuser.expires },
   });
 };
@@ -1183,7 +1189,7 @@ const postClaimCouponHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
 const logEndpoint = Endpoint.build("/api/log");
 const logHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof logEndpoint> = async ({ payload }) => {
   const { event, di } = payload;
-  const env = Utils.getEnv();
+  const env = Utils_getEnv();
   const { user, action, affiliates, platform, subscriptions, key, enforce, referrer } = getBodyJson(event);
   let data: { result: "ok" | "error"; clear?: boolean };
   if (user && action) {
@@ -1199,7 +1205,7 @@ const logHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof logEndpoi
   } else {
     data = { result: "error" };
   }
-  return ResponseUtils.json(200, event, { data });
+  return ResponseUtils_json(200, event, { data });
 };
 
 const postBatchEventsEndpoint = Endpoint.build("/api/batchevents");
@@ -1216,11 +1222,11 @@ const postBatchEventsHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
   let successfulIds: string[] = [];
   di.log.log(
     "Storing events: ",
-    ObjectUtils.values(events)
+    ObjectUtils_values(events)
       .map((e) => (e.type === "event" ? e.name : e.type))
       .join(", ")
   );
-  const idGroups = CollectionUtils.inGroupsOf(25, ObjectUtils.keys(events));
+  const idGroups = CollectionUtils_inGroupsOf(25, ObjectUtils_keys(events));
   for (const group of idGroups) {
     const eventsToPost: IEventPayload[] = [];
     for (const id of group) {
@@ -1233,13 +1239,13 @@ const postBatchEventsHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
       eventsToPost.push(event2);
     }
     try {
-      await eventDao.batchPost(CollectionUtils.uniqBy(eventsToPost, "timestamp"));
+      await eventDao.batchPost(CollectionUtils_uniqBy(eventsToPost, "timestamp"));
       successfulIds = successfulIds.concat(group);
     } catch (error) {
       di.log.log("Error posting batch events", error);
     }
   }
-  return ResponseUtils.json(200, event, { acknowledged: successfulIds });
+  return ResponseUtils_json(200, event, { acknowledged: successfulIds });
 };
 
 const getProfileEndpoint = Endpoint.build("/profile", { user: "string" });
@@ -1264,7 +1270,7 @@ const getProfileHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   } else {
     error.message = "Can't find user";
   }
-  return ResponseUtils.json(400, event, { error });
+  return ResponseUtils_json(400, event, { error });
 };
 
 const getDashboardsUserEndpoint = Endpoint.build("/dashboards/user/:userid", { key: "string" });
@@ -1283,7 +1289,7 @@ const getDashboardsUserHandler: RouteHandler<
     if (user != null || events.length > 0) {
       const firstWorkoutDate =
         user && user.storage.history.length > 0
-          ? DateUtils.formatYYYYMMDD(user.storage.history[user.storage.history.length - 1].startTime)
+          ? DateUtils_formatYYYYMMDD(user.storage.history[user.storage.history.length - 1].startTime)
           : undefined;
 
       return {
@@ -1305,10 +1311,10 @@ const getDashboardsUserHandler: RouteHandler<
         headers: { "content-type": "text/html" },
       };
     } else {
-      return ResponseUtils.json(404, event, { error: "User not found" });
+      return ResponseUtils_json(404, event, { error: "User not found" });
     }
   } else {
-    return ResponseUtils.json(401, event, { data: "Unauthorized" });
+    return ResponseUtils_json(401, event, { data: "Unauthorized" });
   }
 };
 
@@ -1326,7 +1332,7 @@ const getDashboardsPaymentsHandler: RouteHandler<
     const paymentsByDate: Record<string, typeof allPayments> = {};
 
     for (const payment of allPayments) {
-      const date = DateUtils.formatUTCYYYYMMDD(payment.timestamp);
+      const date = DateUtils_formatUTCYYYYMMDD(payment.timestamp);
       if (!paymentsByDate[date]) {
         paymentsByDate[date] = [];
       }
@@ -1346,7 +1352,7 @@ const getDashboardsPaymentsHandler: RouteHandler<
       headers: { "content-type": "text/html" },
     };
   } else {
-    return ResponseUtils.json(401, event, { data: "Unauthorized" });
+    return ResponseUtils_json(401, event, { data: "Unauthorized" });
   }
 };
 
@@ -1356,7 +1362,7 @@ const getProfileImageHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
   match: { params },
 }) => {
   const { event, di } = payload;
-  return ImageCacher.cache(di, event, `profileimage${event.path}-${params.user}.png`, async () => {
+  return ImageCacher_cache(di, event, `profileimage${event.path}-${params.user}.png`, async () => {
     const result = await new UserDao(di).getById(params.user);
     if (result != null) {
       if (result?.storage?.settings?.isPublicProfile) {
@@ -1405,7 +1411,7 @@ const getAdminUsersHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
       headers: { "content-type": "text/html" },
     };
   } else {
-    return ResponseUtils.json(401, event, { data: "Unauthorized" });
+    return ResponseUtils_json(401, event, { data: "Unauthorized" });
   }
 };
 
@@ -1419,9 +1425,9 @@ const getDashboardsUsersHandler: RouteHandler<
   const apiKey = await di.secrets.getApiKey();
   if (match.params.key === apiKey) {
     const lastThreeMonths = [
-      DateUtils.yearAndMonth(Date.now()),
-      DateUtils.yearAndMonth(Date.now() - 1000 * 60 * 60 * 24 * 30),
-      DateUtils.yearAndMonth(Date.now() - 1000 * 60 * 60 * 24 * 60),
+      DateUtils_yearAndMonth(Date.now()),
+      DateUtils_yearAndMonth(Date.now() - 1000 * 60 * 60 * 24 * 30),
+      DateUtils_yearAndMonth(Date.now() - 1000 * 60 * 60 * 24 * 60),
     ];
     const last3MonthslogRecords = (
       await Promise.all([
@@ -1440,20 +1446,20 @@ const getDashboardsUsersHandler: RouteHandler<
       new FreeUserDao(di).getAll(userIds),
       new SubscriptionDetailsDao(di).getAll(userIds),
     ]);
-    const usersById = CollectionUtils.groupByKeyUniq(users, "id");
+    const usersById = CollectionUtils_groupByKeyUniq(users, "id");
     const userIdToProgramNames = userPrograms.reduce<Record<string, { id: string; name: string }[]>>((memo, p) => {
       memo[p.userId] = memo[p.userId] || [];
       memo[p.userId].push({ id: p.id, name: `${p.name} ${p.planner ? "🎯" : "👴"}` });
       return memo;
     }, {});
-    const subscriptionDetailsById = CollectionUtils.groupByKeyUniq(subscriptionDetailsDaos, "userId");
-    const logRecords = CollectionUtils.sortBy(unsortedLogRecords, "ts", true);
-    const freeUsersById = CollectionUtils.groupByKeyUniq(freeUsers, "id");
+    const subscriptionDetailsById = CollectionUtils_groupByKeyUniq(subscriptionDetailsDaos, "userId");
+    const logRecords = CollectionUtils_sortBy(unsortedLogRecords, "ts", true);
+    const freeUsersById = CollectionUtils_groupByKeyUniq(freeUsers, "id");
 
-    const logRecordsByUserId = CollectionUtils.groupByKey(logRecords, "userId");
+    const logRecordsByUserId = CollectionUtils_groupByKey(logRecords, "userId");
     const data: IUsersDashboardData[] = Object.keys(logRecordsByUserId).map((userId) => {
-      const userLogRecords = CollectionUtils.sortBy(logRecordsByUserId[userId] || [], "ts", true);
-      const programNames = CollectionUtils.sort(userIdToProgramNames[userId] || [], (a, b) => {
+      const userLogRecords = CollectionUtils_sortBy(logRecordsByUserId[userId] || [], "ts", true);
+      const programNames = CollectionUtils_sort(userIdToProgramNames[userId] || [], (a, b) => {
         const user = usersById[userId];
         return user != null ? (a.id === user.storage.currentProgramId ? -1 : 1) : -1;
       }).map((p) => p.name);
@@ -1556,7 +1562,7 @@ const getDashboardsUsersHandler: RouteHandler<
       headers: { "content-type": "text/html" },
     };
   } else {
-    return ResponseUtils.json(401, event, { data: "Unauthorized" });
+    return ResponseUtils_json(401, event, { data: "Unauthorized" });
   }
 };
 
@@ -1578,7 +1584,7 @@ const getDashboardsAffiliatesHandler: RouteHandler<
       headers: { "content-type": "text/html" },
     };
   } else {
-    return ResponseUtils.json(401, event, { data: "Unauthorized" });
+    return ResponseUtils_json(401, event, { data: "Unauthorized" });
   }
 };
 
@@ -1591,7 +1597,7 @@ const getAdminLogsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
   if (params.key === (await di.secrets.getApiKey())) {
     const userLogs = await new LogDao(di).getAllSince(Date.now() - 1000 * 60 * 60 * 24 * 30);
     const users = await new UserDao(di).getAllLimited();
-    const usersByKey = CollectionUtils.groupByKey(users, "id");
+    const usersByKey = CollectionUtils_groupByKey(users, "id");
     const logPayloads = userLogs.reduce<ILogPayloads>((memo, log) => {
       memo[log.userId] = memo[log.userId] || { logs: [], email: usersByKey[log.userId]?.[0].email };
       memo[log.userId]!.logs.push({
@@ -1610,7 +1616,7 @@ const getAdminLogsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
       headers: { "content-type": "text/html" },
     };
   } else {
-    return ResponseUtils.json(401, event, { data: "Unauthorized" });
+    return ResponseUtils_json(401, event, { data: "Unauthorized" });
   }
 };
 
@@ -1629,7 +1635,7 @@ const getUserAffiliatesHandler: RouteHandler<
     }
   }
   if (!currentUserId) {
-    const baseHeaders = ResponseUtils.getHeaders(event);
+    const baseHeaders = ResponseUtils_getHeaders(event);
     return {
       statusCode: 302,
       headers: {
@@ -1663,9 +1669,9 @@ const deleteAccountHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof
   if (currentUserId != null) {
     const userDao = new UserDao(payload.di);
     await userDao.removeUser(currentUserId);
-    return ResponseUtils.json(200, event, { data: "ok" });
+    return ResponseUtils_json(200, event, { data: "ok" });
   } else {
-    return ResponseUtils.json(401, event, {});
+    return ResponseUtils_json(401, event, {});
   }
 };
 
@@ -1684,8 +1690,31 @@ const getAllProgramsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
   return {
     statusCode: 200,
     body: renderAllProgramsHtml(di.fetch, index, account),
-    headers: { "content-type": "text/html" },
+    headers: {
+      "content-type": "text/html",
+      "cache-control": "public, s-maxage=86400, max-age=0",
+    },
   };
+};
+
+const getUserContextEndpoint = Endpoint.build("/api/usercontext");
+const getUserContextHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getUserContextEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const user = await getCurrentLimitedUser(event, di);
+  if (user == null) {
+    return ResponseUtils_json(
+      200,
+      event,
+      { account: null, units: null },
+      {
+        "set-cookie": ResponseUtils_clearSessionCookie(),
+      }
+    );
+  }
+  const account = Account_getFromStorage(user.id, user.email, user.storage);
+  return ResponseUtils_json(200, event, { account, units: user.storage.settings.units });
 };
 
 const getProgramDetailsEndpoint = Endpoint.build("/programs/:id");
@@ -1709,18 +1738,38 @@ const getProgramDetailsHandler: RouteHandler<
     } catch (e) {
       // Fall back to description from program
     }
-    const userResult = await getUserAccount(payload);
-    const account = userResult.success ? userResult.data.account : undefined;
-    const settings = userResult.success ? userResult.data.user.storage.settings : undefined;
+    const authState = payload.event.headers["x-auth-state"] || payload.event.headers["X-Auth-State"];
+    const isLoggedIn = authState === "yes";
 
     return {
       statusCode: 200,
-      body: renderProgramDetailsHtml(program, di.fetch, fullDescription, faq, userAgent, account, settings, indexEntry),
-      headers: { "content-type": "text/html" },
+      body: renderProgramDetailsHtml(program, di.fetch, fullDescription, faq, userAgent, isLoggedIn, indexEntry),
+      headers: {
+        "content-type": "text/html",
+        "cache-control": "public, s-maxage=86400, max-age=0",
+      },
     };
   } else {
-    return { statusCode: 404, body: "Not Found", headers: { "content-type": "text/html" } };
+    return {
+      statusCode: 404,
+      body: "Not Found",
+      headers: { "content-type": "text/html", "cache-control": "no-cache" },
+    };
   }
+};
+
+const getProgramPreviewEndpoint = Endpoint.build("/program-preview");
+const getProgramPreviewHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getProgramPreviewEndpoint
+> = async ({ payload }) => {
+  const { di } = payload;
+  return {
+    statusCode: 200,
+    body: renderProgramPreviewHtml(di.fetch),
+    headers: { "content-type": "text/html", "cache-control": "no-cache" },
+  };
 };
 
 const getPlannerEndpoint = Endpoint.build("/planner", { data: "string?" });
@@ -1733,10 +1782,10 @@ const getPlannerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   const data = params.data;
   if (data) {
     try {
-      const initialProgramJson = await NodeEncoder.decode(data);
+      const initialProgramJson = await NodeEncoder_decode(data);
       const programData: IExportedProgram | IExportedPlannerProgram = JSON.parse(initialProgramJson);
       if ("type" in programData && programData.type === "v2") {
-        initialProgram = Program.exportedPlannerProgramToExportedProgram(programData);
+        initialProgram = Program_exportedPlannerProgramToExportedProgram(programData);
       } else {
         initialProgram = programData as IExportedProgram;
       }
@@ -1759,18 +1808,18 @@ const getPlannerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
 const getMainEndpoint = Endpoint.build("/main");
 const getMainHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getMainEndpoint> = async ({ payload }) => {
   const di = payload.di;
-  let account: IAccount | undefined;
-  const userResult = await getUserAccount(payload, { withPrograms: true });
-  if (userResult.success) {
-    ({ account } = userResult.data);
-  }
-  const userAgent = payload.event.headers["user-agent"] || payload.event.headers["User-Agent"];
+  const authState = payload.event.headers["x-auth-state"] || payload.event.headers["X-Auth-State"];
+  const isLoggedIn = authState === "yes";
+  const deviceType = (payload.event.headers["x-device-type"] || payload.event.headers["X-Device-Type"] || "desktop") as
+    | "ios"
+    | "android"
+    | "desktop";
   const testimonials = await new TestimonialDao(di).getAll();
 
   return {
     statusCode: 200,
-    body: renderMainHtml(di.fetch, testimonials, account, userAgent),
-    headers: { "content-type": "text/html" },
+    body: renderMainHtml(di.fetch, testimonials, isLoggedIn, deviceType),
+    headers: { "content-type": "text/html", "cache-control": "public, s-maxage=86400, max-age=0" },
   };
 };
 
@@ -1782,7 +1831,7 @@ const getProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   const di = payload.di;
   const data = params.data;
   let program: IExportedProgram | undefined;
-  const isMobile = Mobile.isMobile(payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || "");
+  const isMobile = Mobile_isMobile(payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || "");
   let user: ILimitedUserDao | undefined;
   let account: IAccount | undefined;
   const userResult = await getUserAccount(payload, { withPrograms: true, withBodyweight: true });
@@ -1793,8 +1842,8 @@ const getProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
 
   if (data) {
     try {
-      const exportedProgramJson = await NodeEncoder.decode(data);
-      const result = await ImportExporter.getExportedProgram(di.fetch, exportedProgramJson);
+      const exportedProgramJson = await NodeEncoder_decode(data);
+      const result = await ImportExporter_getExportedProgram(di.fetch, exportedProgramJson);
       if (result.success) {
         program = result.data;
       } else {
@@ -1817,7 +1866,7 @@ const getUserProgramsHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
   payload,
 }) => {
   const di = payload.di;
-  const isMobile = Mobile.isMobile(payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || "");
+  const isMobile = Mobile_isMobile(payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || "");
   const userResult = await getUserAccount(payload, { withPrograms: true });
   if (!userResult.success) {
     return userResult.error;
@@ -1861,7 +1910,7 @@ async function getUserAccount(
   user.storage.programs = programs;
   const stats = args.withBodyweight ? await userDao.getLastBodyweightStats(user.id) : undefined;
   user.storage.stats = stats;
-  const account = Account.getFromStorage(user.id, user.email, user.storage);
+  const account = Account_getFromStorage(user.id, user.email, user.storage);
   return { success: true, data: { user, account } };
 }
 
@@ -1870,15 +1919,12 @@ const getAllExercisesHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
   payload,
 }) => {
   const { di } = payload;
-  let account: IAccount | undefined;
-  const userResult = await getUserAccount(payload, { withPrograms: true });
-  if (userResult.success) {
-    account = userResult.data.account;
-  }
+  const authState = payload.event.headers["x-auth-state"] || payload.event.headers["X-Auth-State"];
+  const isLoggedIn = authState === "yes";
   return {
     statusCode: 200,
-    body: renderAllExercisesHtml(di.fetch, account),
-    headers: { "content-type": "text/html" },
+    body: renderAllExercisesHtml(di.fetch, isLoggedIn),
+    headers: { "content-type": "text/html", "cache-control": "public, s-maxage=86400, max-age=0" },
   };
 };
 
@@ -1888,27 +1934,24 @@ const getExerciseHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   match: { params },
 }) => {
   const { di } = payload;
-  const exerciseType = Exercise.fromUrlSlug(params.id);
+  const exerciseType = Exercise_fromUrlSlug(params.id);
   const filterTypes = (params.filtertypes || "")
     .split(",")
     .map((t) => t.trim())
     .filter((t) => t);
-  if (exerciseType && ExerciseImageUtils.exists(exerciseType, "small")) {
-    let account: IAccount | undefined;
-    const userResult = await getUserAccount(payload, { withPrograms: true });
-    if (userResult.success) {
-      account = userResult.data.account;
-    }
+  if (exerciseType && ExerciseImageUtils_exists(exerciseType, "small")) {
+    const authState = payload.event.headers["x-auth-state"] || payload.event.headers["X-Auth-State"];
+    const isLoggedIn = authState === "yes";
     return {
       statusCode: 200,
-      body: renderExerciseHtml(di.fetch, params.id, exerciseType, filterTypes, account),
-      headers: { "content-type": "text/html" },
+      body: renderExerciseHtml(di.fetch, params.id, exerciseType, filterTypes, isLoggedIn),
+      headers: { "content-type": "text/html", "cache-control": "public, s-maxage=86400, max-age=0" },
     };
   } else {
     return {
       statusCode: 404,
       body: "Not Found",
-      headers: { "content-type": "text/html" },
+      headers: { "content-type": "text/html", "cache-control": "no-cache" },
     };
   }
 };
@@ -1922,11 +1965,11 @@ const getProgramRevisionsHandler: RouteHandler<
   const { event, di } = payload;
   const currentUserId = await getCurrentUserId(event, di);
   if (currentUserId == null) {
-    return ResponseUtils.json(401, event, { error: "not_authorized" });
+    return ResponseUtils_json(401, event, { error: "not_authorized" });
   }
   const userDao = new UserDao(di);
   const programRevisions = await userDao.listProgramRevisions(currentUserId, params.programid);
-  return ResponseUtils.json(200, event, { data: programRevisions });
+  return ResponseUtils_json(200, event, { data: programRevisions });
 };
 
 const getProgramRevisionEndpoint = Endpoint.build("/api/programrevision/:programid/:revision");
@@ -1938,16 +1981,16 @@ const getProgramRevisionHandler: RouteHandler<
   const { event, di } = payload;
   const currentUserId = await getCurrentUserId(event, di);
   if (currentUserId == null) {
-    return ResponseUtils.json(401, event, { error: "not_authorized" });
+    return ResponseUtils_json(401, event, { error: "not_authorized" });
   }
   const userDao = new UserDao(di);
   const programRevision = await userDao.getProgramRevision(currentUserId, params.programid, params.revision);
   const program = programRevision?.program;
   if (!program || !program.planner) {
-    return ResponseUtils.json(404, event, { error: "not_found" });
+    return ResponseUtils_json(404, event, { error: "not_found" });
   }
-  const fulltext = PlannerProgram.generateFullText(program.planner.weeks);
-  return ResponseUtils.json(200, event, { text: fulltext });
+  const fulltext = PlannerProgram_generateFullText(program.planner.weeks);
+  return ResponseUtils_json(200, event, { text: fulltext });
 };
 
 const getLoginEndpoint = Endpoint.build("/login", { url: "string?" });
@@ -1958,7 +2001,7 @@ const getLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getL
   const { event, di } = payload;
   const currentUser = await getCurrentLimitedUser(event, di);
   const account = currentUser
-    ? Account.getFromStorage(currentUser.id, currentUser.email, currentUser.storage)
+    ? Account_getFromStorage(currentUser.id, currentUser.email, currentUser.storage)
     : undefined;
   return {
     statusCode: 200,
@@ -1973,14 +2016,14 @@ const getUserProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
   match: { params },
 }) => {
   const di = payload.di;
-  const isMobile = Mobile.isMobile(payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || "");
+  const isMobile = Mobile_isMobile(payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || "");
   const userResult = await getUserAccount(payload, { withPrograms: true, withBodyweight: true });
   if (!userResult.success) {
     return userResult.error;
   }
   const { account, user } = userResult.data;
   const storage = runMigrations(user.storage);
-  const exportedProgram = Program.storageToExportedProgram(storage, params.programid);
+  const exportedProgram = Program_storageToExportedProgram(storage, params.programid);
   if (!exportedProgram) {
     return {
       statusCode: 404,
@@ -2030,7 +2073,7 @@ const getMusclesForExerciseHandler: RouteHandler<
     userId: userId,
     commithash: process.env.COMMIT_HASH ?? "",
     timestamp: Date.now(),
-    isMobile: Mobile.isMobile(getUserAgent(payload.event)),
+    isMobile: Mobile_isMobile(getUserAgent(payload.event)),
     extra: { exercise: exerciseName },
   });
   di.log.log("Looking for muscles for exercise:", exerciseName);
@@ -2039,9 +2082,9 @@ const getMusclesForExerciseHandler: RouteHandler<
     di.log.log("Found cached response for muscles for exercise:", exerciseName);
     if (cachedResponse.isSuccess) {
       const musclesResponse = JSON.parse(cachedResponse.response);
-      return ResponseUtils.json(200, payload.event, { data: musclesResponse }, { "X-Cache": "HIT" });
+      return ResponseUtils_json(200, payload.event, { data: musclesResponse }, { "X-Cache": "HIT" });
     } else {
-      return ResponseUtils.json(500, payload.event, { error: "Failed to generate muscles" }, { "X-Cache": "HIT" });
+      return ResponseUtils_json(500, payload.event, { error: "Failed to generate muscles" }, { "X-Cache": "HIT" });
     }
   } else {
     di.log.log("Missed cached response for muscles for exercise:", exerciseName);
@@ -2053,14 +2096,14 @@ const getMusclesForExerciseHandler: RouteHandler<
     di.log.log("Generated muscles response for ", exerciseName, musclesResponse);
     if (musclesResponse) {
       await aiMuscleCacheDao.create({ name: exerciseName, response: JSON.stringify(musclesResponse), isSuccess: true });
-      return ResponseUtils.json(200, payload.event, { data: musclesResponse });
+      return ResponseUtils_json(200, payload.event, { data: musclesResponse });
     } else {
       await aiMuscleCacheDao.create({
         name: exerciseName,
         response: JSON.stringify({}),
         isSuccess: false,
       });
-      return ResponseUtils.json(500, payload.event, { error: "Failed to generate muscles" });
+      return ResponseUtils_json(500, payload.event, { error: "Failed to generate muscles" });
     }
   }
 };
@@ -2092,7 +2135,7 @@ const postAiPromptHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
   const { input } = getBodyJson(event);
 
   if (!input) {
-    return ResponseUtils.json(400, event, { error: "Input is required" });
+    return ResponseUtils_json(400, event, { error: "Input is required" });
   }
 
   try {
@@ -2129,14 +2172,14 @@ const postAiPromptHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
     }
 
     // Generate the full prompt
-    const systemPrompt = LlmPrompt.getSystemPrompt();
-    const userPrompt = LlmPrompt.getUserPrompt(content);
+    const systemPrompt = LlmPrompt_getSystemPrompt();
+    const userPrompt = LlmPrompt_getUserPrompt(content);
     const fullPrompt = `${systemPrompt}\n\n---\n\n${userPrompt}`;
 
-    return ResponseUtils.json(200, event, { prompt: fullPrompt });
+    return ResponseUtils_json(200, event, { prompt: fullPrompt });
   } catch (error) {
     di.log.log("Error generating prompt:", error);
-    return ResponseUtils.json(400, event, { error: `Failed to generate prompt: ${error}` });
+    return ResponseUtils_json(400, event, { error: `Failed to generate prompt: ${error}` });
   }
 };
 
@@ -2149,11 +2192,11 @@ const getUploadedImagesHandler: RouteHandler<
   const { event, di } = payload;
   const userId = await getCurrentUserId(event, di);
   if (!userId) {
-    return ResponseUtils.json(401, event, { error: "Unauthorized" });
+    return ResponseUtils_json(401, event, { error: "Unauthorized" });
   }
   const userDao = new UserDao(di);
   const files = await userDao.getImages(userId);
-  return ResponseUtils.json(
+  return ResponseUtils_json(
     200,
     event,
     { data: { images: files.map((f) => `${getUserImagesPrefix()}${f}`) } },
@@ -2172,16 +2215,16 @@ const postImageUploadUrlHandler: RouteHandler<
 
   const userId = await getCurrentUserId(event, di);
   if (!userId) {
-    return ResponseUtils.json(401, event, { error: "Unauthorized" });
+    return ResponseUtils_json(401, event, { error: "Unauthorized" });
   }
 
   if (!fileName || !contentType) {
-    return ResponseUtils.json(400, event, { error: "fileName and contentType are required" });
+    return ResponseUtils_json(400, event, { error: "fileName and contentType are required" });
   }
 
   try {
-    const key = `user-uploads/${userId}/${UidFactory.generateUid(8)}-${fileName}`;
-    const env = Utils.getEnv();
+    const key = `user-uploads/${userId}/${UidFactory_generateUid(8)}-${fileName}`;
+    const env = Utils_getEnv();
     const bucketname = `${LftS3Buckets.userimages}${env === "dev" ? "dev" : ""}`;
     const uploadUrl = await di.s3.getPresignedUploadUrl({
       bucket: bucketname,
@@ -2191,14 +2234,14 @@ const postImageUploadUrlHandler: RouteHandler<
     });
     const imageUrl = `${getUserImagesPrefix()}${key}`;
 
-    return ResponseUtils.json(200, event, {
+    return ResponseUtils_json(200, event, {
       uploadUrl,
       imageUrl,
       key,
     });
   } catch (error) {
     di.log.log("Error generating presigned URL:", error);
-    return ResponseUtils.json(500, event, { error: "Failed to generate upload URL" });
+    return ResponseUtils_json(500, event, { error: "Failed to generate upload URL" });
   }
 };
 
@@ -2255,15 +2298,15 @@ const postEventHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof pos
   const bodyJson: IEventPayload = getBodyJson(event);
   const userId = (await getCurrentUserId(event, di)) || bodyJson.userId;
   if (userId == null) {
-    return ResponseUtils.json(400, event, { error: "missing user id" });
+    return ResponseUtils_json(400, event, { error: "missing user id" });
   }
   const eventDao = new EventDao(di);
   await eventDao.post({
     ...bodyJson,
     userId,
-    isMobile: Mobile.isMobile(payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || ""),
+    isMobile: Mobile_isMobile(payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || ""),
   });
-  return ResponseUtils.json(200, event, { data: "ok" });
+  return ResponseUtils_json(200, event, { data: "ok" });
 };
 
 async function _getProgramShorturlResponseHandler(
@@ -2273,17 +2316,17 @@ async function _getProgramShorturlResponseHandler(
 ): Promise<APIGatewayProxyResult> {
   const urlString = await new UrlDao(di).get(id);
   if (urlString) {
-    const url = UrlUtils.build(urlString, "https://www.liftosaur.com");
+    const url = UrlUtils_build(urlString, "https://www.liftosaur.com");
     const data = url.searchParams.get("data");
     const s = url.searchParams.get("s");
     const u = url.searchParams.get("u");
     if (data) {
-      return ResponseUtils.json(200, event, { data, s, u });
+      return ResponseUtils_json(200, event, { data, s, u });
     } else {
-      return ResponseUtils.json(401, event, {});
+      return ResponseUtils_json(401, event, {});
     }
   }
-  return ResponseUtils.json(404, event, {});
+  return ResponseUtils_json(404, event, {});
 }
 
 const postClaimFreeUserEndpoint = Endpoint.build("/api/claimkey/:userid");
@@ -2295,7 +2338,7 @@ const postClaimFreeUserHandler: RouteHandler<
   const { di, event } = payload;
   const userid = params.userid;
   const claim = await new FreeUserDao(di).claim(userid);
-  return ResponseUtils.json(200, event, { data: { claim } });
+  return ResponseUtils_json(200, event, { data: { claim } });
 };
 
 const postStoreExceptionDataEndpoint = Endpoint.build("/api/exception");
@@ -2310,12 +2353,12 @@ const postStoreExceptionDataHandler: RouteHandler<
   const exceptionDao = new ExceptionDao(di);
   let exceptionData: string;
   if (typeof data === "string") {
-    exceptionData = await NodeEncoder.decode(data);
+    exceptionData = await NodeEncoder_decode(data);
   } else {
     exceptionData = JSON.stringify(data);
   }
   await exceptionDao.store(id, exceptionData);
-  return ResponseUtils.json(200, event, { data: { id } });
+  return ResponseUtils_json(200, event, { data: { id } });
 };
 
 const getStoreExceptionDataEndpoint = Endpoint.build("/api/exception/:id");
@@ -2326,11 +2369,11 @@ const getStoreExceptionDataHandler: RouteHandler<
 > = async ({ payload, match: { params } }) => {
   const { di, event } = payload;
   const id = params.id;
-  const env = Utils.getEnv();
+  const env = Utils_getEnv();
   const bucket = env === "dev" ? `${LftS3Buckets.exceptions}dev` : LftS3Buckets.exceptions;
   const key = `exceptions/${id}`;
   const url = await di.s3.getPresignedDownloadUrl({ bucket, key, expiresIn: 300 });
-  return ResponseUtils.json(200, event, { url });
+  return ResponseUtils_json(200, event, { url });
 };
 
 const getPlannerShorturlEndpoint = Endpoint.build("/n/:id");
@@ -2353,16 +2396,16 @@ const getProgramShorturlHandler: RouteHandler<
   const di = payload.di;
   const id = params.id;
   let program: IExportedProgram | undefined;
-  const isMobile = Mobile.isMobile(payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || "");
+  const isMobile = Mobile_isMobile(payload.event.headers["user-agent"] || payload.event.headers["User-Agent"] || "");
   const urlString = await new UrlDao(di).get(id);
   if (urlString) {
-    const url = UrlUtils.build(urlString, "https://www.liftosaur.com");
+    const url = UrlUtils_build(urlString, "https://www.liftosaur.com");
     const data = url.searchParams.get("data");
     const source = url.searchParams.get("s") || undefined;
     if (data) {
       try {
-        const exportedProgramJson = await NodeEncoder.decode(data);
-        const result = await ImportExporter.getExportedProgram(di.fetch, exportedProgramJson);
+        const exportedProgramJson = await NodeEncoder_decode(data);
+        const result = await ImportExporter_getExportedProgram(di.fetch, exportedProgramJson);
         if (result.success) {
           program = result.data;
           let user: ILimitedUserDao | undefined;
@@ -2386,7 +2429,7 @@ const getProgramShorturlHandler: RouteHandler<
       }
     }
   }
-  return ResponseUtils.json(404, payload.event, { error: "Not Found" });
+  return ResponseUtils_json(404, payload.event, { error: "Not Found" });
 };
 
 async function shorturlRedirect(di: IDI, id: string): Promise<APIGatewayProxyResult> {
@@ -2420,10 +2463,10 @@ const postShortUrlHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
   const src = json.src;
   const userid = await getCurrentUserId(event, di);
   if (url == null || typeof url !== "string") {
-    return ResponseUtils.json(400, event, {});
+    return ResponseUtils_json(400, event, {});
   }
   if (userid || src) {
-    const uriResult = UrlUtils.buildSafe(url, "https://www.liftosaur.com");
+    const uriResult = UrlUtils_buildSafe(url, "https://www.liftosaur.com");
     if (uriResult.success) {
       const uri = uriResult.data;
       if (userid) {
@@ -2438,7 +2481,7 @@ const postShortUrlHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
   const id = await new UrlDao(di).put(url, userid);
   const newUrl = `/${type}/${id}`;
 
-  return ResponseUtils.json(200, event, { url: newUrl });
+  return ResponseUtils_json(200, event, { url: newUrl });
 };
 
 const getRepMaxEndpoint = Endpoint.build("/rep-max-calculator");
@@ -2447,7 +2490,7 @@ const getRepMaxHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof get
 
 const repmaxpairs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 const repmaxpairswords = repmaxpairs.map((reps) => {
-  const word = MathUtils.toWord(reps);
+  const word = MathUtils_toWord(reps);
   return [
     Endpoint.build(`/${word}-rep-max-calculator`),
     async ({ payload }: { payload: IPayload }) => showRepMax(payload, reps),
@@ -2457,7 +2500,7 @@ const repmaxpairnums = repmaxpairs.map((reps) => {
   return [
     Endpoint.build(`/${reps}rm`),
     async ({}: {}) => {
-      const word = MathUtils.toWord(reps);
+      const word = MathUtils_toWord(reps);
       return {
         statusCode: 301,
         body: "",
@@ -2469,12 +2512,12 @@ const repmaxpairnums = repmaxpairs.map((reps) => {
 
 async function showRepMax(payload: IPayload, reps?: number): Promise<APIGatewayProxyResult> {
   const { di } = payload;
-  const userResult = await getUserAccount(payload);
-  const account = userResult.success ? userResult.data.account : undefined;
+  const authState = payload.event.headers["x-auth-state"] || payload.event.headers["X-Auth-State"];
+  const isLoggedIn = authState === "yes";
   return {
     statusCode: 200,
-    body: renderRepMaxHtml(di.fetch, reps, account),
-    headers: { "content-type": "text/html" },
+    body: renderRepMaxHtml(di.fetch, reps, isLoggedIn),
+    headers: { "content-type": "text/html", "cache-control": "public, s-maxage=86400, max-age=0" },
   };
 }
 
@@ -2483,7 +2526,7 @@ const rollbar = new Rollbar({
   captureUncaught: true,
   captureUnhandledRejections: true,
   payload: {
-    environment: `${Utils.getEnv()}-lambda`,
+    environment: `${Utils_getEnv()}-lambda`,
     client: {
       javascript: {
         source_map_enabled: true,
@@ -2492,7 +2535,7 @@ const rollbar = new Rollbar({
       },
     },
   },
-  checkIgnore: RollbarUtils.checkIgnore,
+  checkIgnore: RollbarUtils_checkIgnore,
 });
 
 export const getLftStatsLambdaDev = (
@@ -2512,25 +2555,25 @@ export const getLftStatsLambda = (
 export const statsLambdaHandler = (diBuilder: () => IDI): ((event: {}) => Promise<APIGatewayProxyResult>) => {
   return async () => {
     const di = diBuilder();
-    const lastThreeMonths = [DateUtils.yearAndMonth(Date.now())];
+    const lastThreeMonths = [DateUtils_yearAndMonth(Date.now())];
     const lastMonthlogRecords = await new LogDao(di).getAllForYearAndMonth(
       lastThreeMonths[0][0],
       lastThreeMonths[0][1]
     );
     const userIds = lastMonthlogRecords.filter((r) => r.action === "ls-finish-workout").map((r) => r.userId);
     const users = await new UserDao(di).getLimitedByIds(userIds);
-    const usersById = CollectionUtils.groupByKeyUniq(users, "id");
-    const logRecords = CollectionUtils.sortBy(await new LogDao(di).getForUsers(userIds), "ts", true);
-    const logRecordsByUserId = CollectionUtils.groupByKey(logRecords, "userId");
+    const usersById = CollectionUtils_groupByKeyUniq(users, "id");
+    const logRecords = CollectionUtils_sortBy(await new LogDao(di).getForUsers(userIds), "ts", true);
+    const logRecordsByUserId = CollectionUtils_groupByKey(logRecords, "userId");
 
     const usersData: IStatsUserData[] = Object.keys(logRecordsByUserId).map((userId) => {
-      const userLogRecords = CollectionUtils.sortBy(logRecordsByUserId[userId] || [], "ts", true);
+      const userLogRecords = CollectionUtils_sortBy(logRecordsByUserId[userId] || [], "ts", true);
       const lastAction = userLogRecords[0];
       const firstAction = userLogRecords[userLogRecords.length - 1];
       const userSubscriptions = usersById[userId]?.storage.subscription;
       const isSubscribed =
         userSubscriptions != null
-          ? ClientSubscription.Subscriptions.hasSubscription(userSubscriptions)
+          ? ClientSubscription.Subscriptions_hasSubscription(userSubscriptions)
           : userLogRecords.some((lr) => (lr.subscriptions || []).length > 0);
       return {
         userId,
@@ -2599,14 +2642,14 @@ export const statsLambdaHandler = (diBuilder: () => IDI): ((event: {}) => Promis
       (i) => i.userTs != null && Date.now() - i.userTs < 1000 * 60 * 60 * 24
     ).length;
 
-    const bucket = `${LftS3Buckets.stats}${Utils.getEnv() === "dev" ? "dev" : ""}`;
+    const bucket = `${LftS3Buckets.stats}${Utils_getEnv() === "dev" ? "dev" : ""}`;
     const statsFile = await di.s3.getObject({ bucket, key: "stats.csv" });
     let stats = statsFile?.toString();
     if (!stats) {
       stats =
         "date,monthly,monthly_subscribed,monthly_registered,monthly_new,monthly_new_registered,daily,daily_subscribed,daily_registered,daily_new,daily_new_registered\n";
     }
-    stats += `${DateUtils.formatYYYYMMDD(
+    stats += `${DateUtils_formatYYYYMMDD(
       new Date()
     )},${activeMontlyCount},${activeMonthlySubscribedCount},${activeMonthlyRegisteredCount},${newThisMonth},${newRegisteredThisMonth},${activeCount},${activeSubscribedCount},${activeRegisteredCount},${newThisDay},${newRegisteredThisDay}\n`;
     await di.s3.putObject({
@@ -2657,9 +2700,9 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
   return async (event: APIGatewayProxyEvent, context) => {
     const di = diBuilder();
     if (event.httpMethod === "OPTIONS") {
-      return { statusCode: 200, body: "", headers: ResponseUtils.getHeaders(event) };
+      return { statusCode: 200, body: "", headers: ResponseUtils_getHeaders(event) };
     }
-    di.log.id = UidFactory.generateUid(4);
+    di.log.id = UidFactory_generateUid(4);
     const time = Date.now();
     const userid = await getCurrentUserId(event, di);
     // @ts-ignore
@@ -2676,7 +2719,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
     di.log.log("--------> Starting request", event.httpMethod, event.path);
     di.log.log("User Agent:", event.headers["user-agent"] || event.headers["User-Agent"] || "");
 
-    const host = ResponseUtils.getHost(event);
+    const host = ResponseUtils_getHost(event);
     const isApiDomain = host.startsWith("api3");
     if (isApiDomain && event.path === "/robots.txt") {
       return {
@@ -2738,6 +2781,8 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .get(getAdminLogsEndpoint, getAdminLogsHandler)
       .get(getAllProgramsEndpoint, getAllProgramsHandler)
       .get(getProgramDetailsEndpoint, getProgramDetailsHandler)
+      .get(getProgramPreviewEndpoint, getProgramPreviewHandler)
+      .get(getUserContextEndpoint, getUserContextHandler)
       .get(getProgramImageEndpoint, getProgramImageHandler)
       .post(postCreateCouponEndpoint, postCreateCouponHandler)
       .post(postClaimCouponEndpoint, postClaimCouponHandler)
@@ -2756,7 +2801,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
     r = repmaxpairswords.reduce((memo, [endpoint, handler]) => memo.get(endpoint, handler), r);
     r = repmaxpairnums.reduce((memo, [endpoint, handler]) => memo.get(endpoint, handler), r);
 
-    const url = UrlUtils.build(event.path, "http://example.com");
+    const url = UrlUtils_build(event.path, "http://example.com");
     for (const key of Object.keys(event.queryStringParameters || {})) {
       const value = (event.queryStringParameters || {})[key];
       url.searchParams.set(key, value || "");
@@ -2785,6 +2830,6 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
     );
     return resp.success
       ? resp.data
-      : { statusCode: errorStatus, headers: ResponseUtils.getHeaders(event), body: resp.error };
+      : { statusCode: errorStatus, headers: ResponseUtils_getHeaders(event), body: resp.error };
   };
 };

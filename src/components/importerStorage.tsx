@@ -1,7 +1,7 @@
 import { IDispatch } from "../ducks/types";
 import { h, JSX } from "preact";
 import { MenuItemWrapper } from "./menuItem";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_importStorage } from "../ducks/thunks";
 import { Importer } from "./importer";
 import { useCallback } from "preact/hooks";
 
@@ -15,7 +15,7 @@ export function ImporterStorage(props: IImporterStorageProps): JSX.Element {
       const warningLabel =
         "Importing new data will wipe out your current data. If you don't want to lose it, make sure to 'Export data to file' first. Press 'Okay' to proceed with import.";
       if (confirm(warningLabel)) {
-        props.dispatch(Thunk.importStorage(contents));
+        props.dispatch(Thunk_importStorage(contents));
       }
     },
     [props.dispatch]

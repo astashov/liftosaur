@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IIconMusclesWProps {
   size?: number;
@@ -9,7 +9,7 @@ interface IIconMusclesWProps {
 
 export function IconMusclesW(props: IIconMusclesWProps): JSX.Element {
   const size = props.size || 27;
-  const color = props.color || Tailwind.semantic().icon.neutral;
+  const color = props.color || Tailwind_semantic().icon.neutral;
   return (
     <svg
       className={props.className}

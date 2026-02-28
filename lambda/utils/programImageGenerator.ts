@@ -3,12 +3,12 @@ import { Resvg, initWasm } from "@resvg/resvg-wasm";
 import * as fs from "fs";
 import * as path from "path";
 import { IProgramIndexEntry } from "../../src/models/program";
-import { ExerciseImageUtils } from "../../src/models/exerciseImage";
+import { ExerciseImageUtils_exists, ExerciseImageUtils_id } from "../../src/models/exerciseImage";
 import { equipmentName } from "../../src/models/exercise";
-import { Program } from "../../src/models/program";
-import { StringUtils } from "../../src/utils/string";
+import { Program_exerciseRangeFormat } from "../../src/models/program";
+import { StringUtils_pluralize } from "../../src/utils/string";
 import { IEither } from "../../src/utils/types";
-import { Tailwind } from "../../src/utils/tailwindConfig";
+import { Tailwind_semantic } from "../../src/utils/tailwindConfig";
 
 let resvgInitialized = false;
 async function initResvgWasm(): Promise<void> {
@@ -56,7 +56,7 @@ function truncate(text: string, maxLen: number): string {
   return text.slice(0, maxLen - 1) + "\u2026";
 }
 
-const sem = Tailwind.semantic();
+const sem = Tailwind_semantic();
 const ICON_COLOR = sem.icon.neutralsubtle;
 
 function iconWatch(width: number, height: number): ISatoriNode {
@@ -128,14 +128,14 @@ export class ProgramImageGenerator {
     const equipment = (indexEntry.equipment ?? []).map((e) => equipmentName(e as any));
     const exercisesRange = indexEntry.exercisesRange;
 
-    const imageExercises = exercises.filter((e) => ExerciseImageUtils.exists(e, "small"));
+    const imageExercises = exercises.filter((e) => ExerciseImageUtils_exists(e, "small"));
     const cdnHost = process.env.HOST || "https://www.liftosaur.com";
     const maxImages = 12;
     const displayExercises = imageExercises.slice(0, maxImages);
 
     const imageDataUris: (string | undefined)[] = await Promise.all(
       displayExercises.map((e) => {
-        const imgId = ExerciseImageUtils.id(e);
+        const imgId = ExerciseImageUtils_id(e);
         const url = `${cdnHost}/externalimages/exercises/single/small/${imgId}_single_small.png`;
         return fetchImageAsDataUri(fetchFn, url);
       })
@@ -143,13 +143,13 @@ export class ProgramImageGenerator {
 
     const calendarParts: string[] = [];
     if ((indexEntry.weeksCount ?? 0) > 1) {
-      calendarParts.push(`${indexEntry.weeksCount} ${StringUtils.pluralize("week", indexEntry.weeksCount ?? 0)}`);
+      calendarParts.push(`${indexEntry.weeksCount} ${StringUtils_pluralize("week", indexEntry.weeksCount ?? 0)}`);
     }
     if (indexEntry.frequency) {
       calendarParts.push(`${indexEntry.frequency}x/week`);
     }
     if (exercisesRange) {
-      calendarParts.push(Program.exerciseRangeFormat(exercisesRange[0], exercisesRange[1]));
+      calendarParts.push(Program_exerciseRangeFormat(exercisesRange[0], exercisesRange[1]));
     }
 
     const description = indexEntry.shortDescription ? truncate(stripMarkdown(indexEntry.shortDescription), 180) : "";

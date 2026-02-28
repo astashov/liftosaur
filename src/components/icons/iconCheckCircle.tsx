@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
   isChecked: boolean;
@@ -11,8 +11,8 @@ interface IProps {
 }
 
 export function IconCheckCircle(props: IProps): JSX.Element {
-  const color = props.color || Tailwind.semantic().icon.purple;
-  const checkColor = props.checkColor || Tailwind.semantic().background.default;
+  const color = props.color || Tailwind_semantic().icon.purple;
+  const checkColor = props.checkColor || Tailwind_semantic().background.default;
   const size = props.size || 20;
   if (props.isChecked) {
     return (

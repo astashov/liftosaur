@@ -1,6 +1,6 @@
 import { h, JSX } from "preact";
-import { CollectionUtils } from "../../utils/collection";
-import { DateUtils } from "../../utils/date";
+import { CollectionUtils_compact } from "../../utils/collection";
+import { DateUtils_format } from "../../utils/date";
 
 export interface IUsersDashboardContentProps {
   client: Window["fetch"];
@@ -131,7 +131,7 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
               return (
                 <div className="mb-8">
                   <h4 className="mb-4 text-lg">
-                    {DateUtils.format(dayGroup[0].lastAction.ts)}
+                    {DateUtils_format(dayGroup[0].lastAction.ts)}
                     <span>
                       {" "}
                       - {activeCount} active users, {activeRegisteredCount} registered, {newThisDay} new,{" "}
@@ -204,13 +204,13 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                                     isNewUser ? "text-text-success font-bold" : "text-text-secondary"
                                   }`}
                                 >
-                                  {DateUtils.format(item.userTs)}
+                                  {DateUtils_format(item.userTs)}
                                 </div>
                               )}
                               {item.subscriptionDetails && (
                                 <div className="text-xs text-text-secondary">
                                   <div>
-                                    {CollectionUtils.compact([
+                                    {CollectionUtils_compact([
                                       item.subscriptionDetails.isActive ? "active" : undefined,
                                       item.subscriptionDetails.isTrial ? "trial" : undefined,
                                       item.subscriptionDetails.isPromo ? "promo" : undefined,
@@ -219,7 +219,7 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                                   {item.subscriptionDetails.promoCode && (
                                     <div>{item.subscriptionDetails.promoCode}</div>
                                   )}
-                                  <div>Exp: {DateUtils.format(item.subscriptionDetails.expires)}</div>
+                                  <div>Exp: {DateUtils_format(item.subscriptionDetails.expires)}</div>
                                 </div>
                               )}
                             </td>
@@ -246,11 +246,11 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                             <td>{item.affiliates.join(", ")}</td>
                             <td>
                               {item.reviewRequests.map((i) => (
-                                <div>{DateUtils.format(i)}</div>
+                                <div>{DateUtils_format(i)}</div>
                               ))}
                             </td>
                             <td>{item.signupRequests.join(", ")}</td>
-                            <td>{item.freeUserExpires && DateUtils.format(item.freeUserExpires)}</td>
+                            <td>{item.freeUserExpires && DateUtils_format(item.freeUserExpires)}</td>
                           </tr>
                         );
                       })}

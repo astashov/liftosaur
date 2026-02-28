@@ -3,21 +3,25 @@ import { ISettings, ICustomExercise, IMuscle, exerciseKinds, IExerciseKind } fro
 import { Button } from "../button";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { Input2 } from "../input2";
 import { IconAi } from "../icons/iconAi";
 import { ExercisePickerOptionsMuscles } from "./exercisePickerOptionsMuscles";
 import { useContext, useState } from "preact/hooks";
 import { IconArrowDown2 } from "../icons/iconArrowDown2";
 import { ExercisePickerOptions, IFilterValue } from "./exercisePickerOptions";
-import { StringUtils } from "../../utils/string";
-import { ObjectUtils } from "../../utils/object";
-import { Exercise } from "../../models/exercise";
+import { StringUtils_capitalize } from "../../utils/string";
+import { ObjectUtils_keys, ObjectUtils_clone, ObjectUtils_mapValues } from "../../utils/object";
+import { Exercise_targetMuscles, Exercise_synergistMuscles } from "../../models/exercise";
 import { AppContext } from "../appContext";
 import { Service } from "../../api/service";
 import { IconSpinner } from "../icons/iconSpinner";
 import { BottomSheetItem } from "../bottomSheetItem";
-import { SendMessage } from "../../utils/sendMessage";
+import {
+  SendMessage_toIosAndAndroidWithResult,
+  SendMessage_isIos,
+  SendMessage_isAndroid,
+} from "../../utils/sendMessage";
 import { IconCamera } from "../icons/iconCamera";
 import { ImageUploader } from "../../utils/imageUploader";
 import { IconPicture } from "../icons/iconPicture";
@@ -26,7 +30,7 @@ import { LinkButton } from "../linkButton";
 import { Importer } from "../importer";
 import { MarkdownEditor } from "../markdownEditor";
 import { BottomSheetExerciseCloneLibrary } from "./bottomSheetExerciseCloneLibrary";
-import { ExerciseImageUtils } from "../../models/exerciseImage";
+import { ExerciseImageUtils_url } from "../../models/exerciseImage";
 import { BottomSheetOrModal } from "../bottomSheetOrModal";
 
 interface IExercisePickerCustomExerciseContentProps {
@@ -51,7 +55,7 @@ async function uploadAndUpdateImage(
   service: Service,
   dispatch: ILensDispatch<ICustomExercise>
 ): Promise<void> {
-  const result = await SendMessage.toIosAndAndroidWithResult<{ data: string }>({
+  const result = await SendMessage_toIosAndAndroidWithResult<{ data: string }>({
     type: "pickphoto",
     source,
   });
@@ -84,7 +88,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
   const typeValues = exerciseKinds.reduce<Record<IExerciseKind, IFilterValue>>(
     (memo, type) => {
       memo[type] = {
-        label: StringUtils.capitalize(type),
+        label: StringUtils_capitalize(type),
         isSelected: !!editCustomExercise.types?.includes(type),
       };
       return memo;
@@ -190,7 +194,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
               ) : (
                 <>
                   <div>
-                    <IconAi color={Tailwind.semantic().icon.blue} />
+                    <IconAi color={Tailwind_semantic().icon.blue} />
                   </div>
                   <div className="ml-1">Autofill Muscles and Types</div>
                 </>
@@ -252,7 +256,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
           <ExercisePickerCustomExerciseTypes
             types={typeValues}
             onNewTypes={(types) => {
-              const newTypes = ObjectUtils.keys(types).filter((k) => types[k].isSelected);
+              const newTypes = ObjectUtils_keys(types).filter((k) => types[k].isSelected);
               props.dispatch(lb<ICustomExercise>().p("types").record(newTypes), "Update custom exercise types");
             }}
           />
@@ -309,7 +313,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
                 setShowImageLibrary(true);
               }}
             />
-            {SendMessage.isIos() || SendMessage.isAndroid() ? (
+            {SendMessage_isIos() || SendMessage_isAndroid() ? (
               <BottomSheetItem
                 name="upload-image"
                 className="ls-custom-exercise-upload-image"
@@ -426,13 +430,13 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
             const customExercise = props.settings.exercises[exercise.id];
             const smallImageUrl = customExercise
               ? customExercise.smallImageUrl
-              : ExerciseImageUtils.url(exercise, "small");
+              : ExerciseImageUtils_url(exercise, "small");
             const largeImageUrl = customExercise
               ? customExercise.largeImageUrl
-              : ExerciseImageUtils.url(exercise, "large");
-            const targetMuscles = ObjectUtils.clone(Exercise.targetMuscles(exercise, props.settings));
-            const synergistMuscles = ObjectUtils.clone(Exercise.synergistMuscles(exercise, props.settings));
-            const types = ObjectUtils.clone(exercise.types);
+              : ExerciseImageUtils_url(exercise, "large");
+            const targetMuscles = ObjectUtils_clone(Exercise_targetMuscles(exercise, props.settings));
+            const synergistMuscles = ObjectUtils_clone(Exercise_synergistMuscles(exercise, props.settings));
+            const types = ObjectUtils_clone(exercise.types);
             props.dispatch(
               [
                 lb<ICustomExercise>().p("smallImageUrl").record(smallImageUrl),
@@ -458,7 +462,7 @@ interface IExercisePickerCustomExerciseTypesProps {
 
 function ExercisePickerCustomExerciseTypes(props: IExercisePickerCustomExerciseTypesProps): JSX.Element {
   const [isOpened, setIsOpened] = useState<boolean>(false);
-  const selectedValues = ObjectUtils.keys(props.types).filter((k) => props.types[k].isSelected);
+  const selectedValues = ObjectUtils_keys(props.types).filter((k) => props.types[k].isSelected);
   return (
     <div className="w-full">
       <label className="pb-1 text-sm leading-none text-text-primary">
@@ -482,7 +486,7 @@ function ExercisePickerCustomExerciseTypes(props: IExercisePickerCustomExerciseT
                 <ExercisePickerOptions
                   values={props.types}
                   onSelect={(key) => {
-                    const newTypes = ObjectUtils.mapValues(props.types, (type: IFilterValue, k: IExerciseKind) => {
+                    const newTypes = ObjectUtils_mapValues(props.types, (type: IFilterValue, k: IExerciseKind) => {
                       if (k === key) {
                         return { ...type, isSelected: !type.isSelected };
                       }

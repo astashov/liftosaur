@@ -3,7 +3,7 @@ import { PageWrapper } from "./components/pageWrapper";
 import { IProgramIndexEntry } from "./models/program";
 import { ProgramDetailsContent } from "./pages/programs/programDetailsContent";
 import { IProgram } from "./types";
-import { HydrateUtils } from "./utils/hydrate";
+import { HydrateUtils_hydratePage } from "./utils/hydrate";
 
 interface IData {
   program: IProgram;
@@ -12,9 +12,16 @@ interface IData {
 }
 
 function main(): void {
-  HydrateUtils.hydratePage<IData>((pageWrapperProps, data) => (
+  HydrateUtils_hydratePage<IData>((pageWrapperProps, data) => (
     <PageWrapper {...pageWrapperProps}>
-      <ProgramDetailsContent {...data} client={window.fetch.bind(window)} account={pageWrapperProps.account} />
+      {(userCtx) => (
+        <ProgramDetailsContent
+          {...data}
+          units={userCtx.units}
+          isLoggedIn={pageWrapperProps.isLoggedIn}
+          client={window.fetch.bind(window)}
+        />
+      )}
     </PageWrapper>
   ));
 }

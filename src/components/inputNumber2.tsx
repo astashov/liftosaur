@@ -1,14 +1,14 @@
 import { JSX, RefObject, h } from "preact";
-import { StringUtils } from "../utils/string";
+import { StringUtils_dashcase } from "../utils/string";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { IconKeyboardClose } from "./icons/iconKeyboardClose";
-import { MathUtils, n } from "../utils/math";
+import { n, MathUtils_clamp } from "../utils/math";
 import { IPercentageUnit, IUnit } from "../types";
 import { IconCalculator } from "./icons/iconCalculator";
 import { Modal } from "./modal";
 import { RepMaxCalculator } from "./repMaxCalculator";
 import { createPortal, forwardRef } from "preact/compat";
-import { Mobile } from "../../lambda/utils/mobile";
+import { Mobile_isMobile } from "../../lambda/utils/mobile";
 import { IconBackspace } from "./icons/iconBackspace";
 
 interface IInputNumber2Props {
@@ -41,9 +41,9 @@ function clamp(value: string | number, min?: number, max?: number): number | und
   if (value === "") {
     return undefined;
   }
-  const num = MathUtils.clamp(Number(value), min, max);
+  const num = MathUtils_clamp(Number(value), min, max);
   if (isNaN(num)) {
-    return MathUtils.clamp(0, min, max);
+    return MathUtils_clamp(0, min, max);
   }
   return num;
 }
@@ -64,7 +64,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
   const isTypingRef = useRef(isTyping);
   const allowDotRef = useRef(!!props.allowDot);
   const allowNegativeRef = useRef(!!props.allowNegative);
-  const isMobile = typeof window !== "undefined" && Mobile.isMobile(window.navigator?.userAgent || "");
+  const isMobile = typeof window !== "undefined" && Mobile_isMobile(window.navigator?.userAgent || "");
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const isCalculatorOpenRef = useRef(isCalculatorOpen);
   const onBlurRef = useRef<((v: number | undefined) => void) | undefined>(props.onBlur);
@@ -306,7 +306,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
         onClick={(e) => {
           e.currentTarget.focus();
         }}
-        data-cy={`input-${StringUtils.dashcase(props.name)}-field`}
+        data-cy={`input-${StringUtils_dashcase(props.name)}-field`}
       >
         <div ref={inputRef} className="leading-none">
           {!value && !isFocused && props.placeholder ? (

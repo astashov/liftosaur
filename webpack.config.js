@@ -30,20 +30,27 @@ const watchConfig = {
     filename: "watch-bundle.js",
     path: path.resolve(__dirname, "dist"),
   },
+  optimization: {
+    splitChunks: false,
+  },
+  externals: {
+    module: "var { createRequire: function() { return function() { return {} } } }",
+    stream: "var {}",
+  },
   devtool: false,
   module: {
     rules: [
       {
         test: /\.tsx?$/,
-        use: [
-          {
-            loader: "ts-loader",
-            options: {
-              transpileOnly: true,
-              configFile: "tsconfig.json",
-            },
+        use: {
+          loader: "esbuild-loader",
+          options: {
+            target: "es2020",
+            jsx: "transform",
+            jsxFactory: "h",
+            jsxFragment: "Fragment",
           },
-        ],
+        },
       },
     ],
   },
@@ -83,6 +90,7 @@ const mainConfig = {
     record: ["./src/record.tsx", "./src/record.css", "./src/index.css"],
     user: ["./src/user.tsx", "./src/user.css", "./src/index.css"],
     programdetails: ["./src/programDetails.tsx", "./src/programDetails.css", "./src/index.css"],
+    programpreview: ["./src/programPreview.tsx", "./src/programDetails.css", "./src/index.css"],
     planner: ["./src/planner.tsx", "./src/planner.css", "./src/index.css"],
     program: ["./src/program.tsx", "./src/program.css", "./src/index.css"],
     programsList: ["./src/programsList.tsx", "./src/program.css", "./src/index.css"],
@@ -111,22 +119,13 @@ const mainConfig = {
       },
       {
         test: /\.tsx?$/,
-        use: [
-          {
-            loader: "ts-loader",
-            options: {
-              transpileOnly: true,
-              configFile: "tsconfig.json",
-            },
-          },
-        ],
-      },
-      {
-        test: /\.esm.js$/,
         use: {
-          loader: "babel-loader",
+          loader: "esbuild-loader",
           options: {
-            presets: ["@babel/preset-env"],
+            target: "es2015",
+            jsx: "transform",
+            jsxFactory: "h",
+            jsxFragment: "Fragment",
           },
         },
       },
@@ -274,7 +273,6 @@ const mainConfig = {
         to: ".well-known",
       },
     ]),
-    // new BundleAnalyzerPlugin({ analyzerMode: "static", openAnalyzer: false }),
   ],
   mode: process.env.NODE_ENV === "production" ? "production" : "development",
   devServer: {
@@ -344,6 +342,10 @@ const mainConfig = {
           const user = p.replace(/^\//, "").replace(/\/$/, "").split("/")[1];
           return `/profile?user=${user}`;
         },
+      },
+      "/program-preview": {
+        target: localapi,
+        secure: false,
       },
       "/programs/*": {
         target: localapi,

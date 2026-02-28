@@ -1,6 +1,6 @@
 import { h, JSX } from "preact";
 import { IProgram } from "../../../types";
-import { PlannerProgram } from "../../planner/models/plannerProgram";
+import { PlannerProgram_generateFullText } from "../../planner/models/plannerProgram";
 import { PlannerCodeBlock } from "../../planner/components/plannerCodeBlock";
 
 interface IProps {
@@ -10,7 +10,7 @@ interface IProps {
 export function ProgramDetailsLiftoscript(props: IProps): JSX.Element {
   const { program } = props;
   const weeks = program.planner?.weeks ?? [];
-  const fullText = PlannerProgram.generateFullText(weeks);
+  const fullText = PlannerProgram_generateFullText(weeks);
 
   return (
     <div className="p-4 overflow-auto border rounded-lg border-border-neutral bg-background-card">

@@ -7,17 +7,20 @@ import {
 } from "../../../pages/planner/models/types";
 import { IProgram, ISettings } from "../../../types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
-import { ObjectUtils } from "../../../utils/object";
+import { ObjectUtils_entries } from "../../../utils/object";
 import { InputNumber2 } from "../../inputNumber2";
-import { EditProgramUiHelpers } from "../../editProgram/editProgramUi/editProgramUiHelpers";
+import { EditProgramUiHelpers_changeFirstInstance } from "../../editProgram/editProgramUi/editProgramUiHelpers";
 import { InputWeight2 } from "../../inputWeight2";
 import { Button } from "../../button";
 import { ModalCreateStateVariable } from "./modalCreateStateVariable";
-import { Weight } from "../../../models/weight";
+import { Weight_buildAny } from "../../../models/weight";
 import { IconTrash } from "../../icons/iconTrash";
 import { ScriptRunner } from "../../../parser";
-import { Tailwind } from "../../../utils/tailwindConfig";
-import { PlannerProgramExercise } from "../../../pages/planner/models/plannerProgramExercise";
+import { Tailwind_colors } from "../../../utils/tailwindConfig";
+import {
+  PlannerProgramExercise_getState,
+  PlannerProgramExercise_getOnlyChangedState,
+} from "../../../pages/planner/models/plannerProgramExercise";
 
 interface ICustomProgressSettingsProps {
   program: IProgram;
@@ -35,15 +38,15 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
   if (!progress || progress.type !== "custom") {
     return <div />;
   }
-  const ownState = PlannerProgramExercise.getState(plannerExercise);
-  const onlyChangedState = PlannerProgramExercise.getOnlyChangedState(plannerExercise);
+  const ownState = PlannerProgramExercise_getState(plannerExercise);
+  const onlyChangedState = PlannerProgramExercise_getOnlyChangedState(plannerExercise);
 
   return (
     <div>
       <div className="border rounded-lg bg-background-cardpurple border-border-cardpurple">
         <div className="p-2 text-sm font-semibold border-b border-border-cardpurple">Progress State Variables</div>
         <ul>
-          {ObjectUtils.entries(ownState).map(([key, value]) => {
+          {ObjectUtils_entries(ownState).map(([key, value]) => {
             const isUsedVariable = ScriptRunner.hasStateVariable(progress.script ?? "", key);
             const metadata = progress.stateMetadata?.[key];
             const isReused = onlyChangedState[key] == null;
@@ -65,7 +68,7 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
                         onInput={(newValue) => {
                           props.plannerDispatch(
                             lbProgram.recordModify((program) => {
-                              return EditProgramUiHelpers.changeFirstInstance(
+                              return EditProgramUiHelpers_changeFirstInstance(
                                 program,
                                 plannerExercise,
                                 props.settings,
@@ -93,7 +96,7 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
                         onInput={(newValue) => {
                           props.plannerDispatch(
                             lbProgram.recordModify((program) => {
-                              return EditProgramUiHelpers.changeFirstInstance(
+                              return EditProgramUiHelpers_changeFirstInstance(
                                 program,
                                 plannerExercise,
                                 props.settings,
@@ -123,7 +126,7 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
                         } else {
                           props.plannerDispatch(
                             lbProgram.recordModify((program) => {
-                              return EditProgramUiHelpers.changeFirstInstance(
+                              return EditProgramUiHelpers_changeFirstInstance(
                                 program,
                                 plannerExercise,
                                 props.settings,
@@ -142,7 +145,7 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
                       }}
                     >
                       <IconTrash
-                        color={isUsedVariable ? Tailwind.colors().lightgray[300] : Tailwind.colors().black}
+                        color={isUsedVariable ? Tailwind_colors().lightgray[300] : Tailwind_colors().black}
                         width={14}
                         height={18}
                       />
@@ -174,11 +177,11 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
           onCreate={(name, type, isUserPrompted) => {
             props.plannerDispatch(
               lbProgram.recordModify((program) => {
-                return EditProgramUiHelpers.changeFirstInstance(program, plannerExercise, props.settings, true, (e) => {
+                return EditProgramUiHelpers_changeFirstInstance(program, plannerExercise, props.settings, true, (e) => {
                   const state = e.progress?.state;
                   const stateMetadata = e.progress?.stateMetadata;
                   if (state) {
-                    state[name] = type === "number" ? 0 : Weight.buildAny(0, type);
+                    state[name] = type === "number" ? 0 : Weight_buildAny(0, type);
                   }
                   if (stateMetadata && isUserPrompted) {
                     stateMetadata[name] = { userPrompted: true };

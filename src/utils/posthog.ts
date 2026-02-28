@@ -1,5 +1,11 @@
 import { IEventPayload, Service } from "../api/service";
-import { SendMessage } from "./sendMessage";
+import {
+  SendMessage_isIos,
+  SendMessage_isAndroid,
+  SendMessage_iosAppVersion,
+  SendMessage_androidAppVersion,
+  SendMessage_toIosAndAndroid,
+} from "./sendMessage";
 
 declare let __COMMIT_HASH__: string;
 
@@ -35,25 +41,25 @@ export function lg(
     return;
   }
 
-  const isMobile = SendMessage.isIos() || SendMessage.isAndroid();
+  const isMobile = SendMessage_isIos() || SendMessage_isAndroid();
 
   const event: IEventPayload = {
     type: "event",
     timestamp: Date.now(),
     commithash: typeof __COMMIT_HASH__ !== "undefined" ? __COMMIT_HASH__ : "unknown",
     isMobile,
-    iOSVersion: SendMessage.isIos() ? SendMessage.iosAppVersion() : undefined,
-    androidVersion: SendMessage.isAndroid() ? SendMessage.androidAppVersion() : undefined,
+    iOSVersion: SendMessage_isIos() ? SendMessage_iosAppVersion() : undefined,
+    androidVersion: SendMessage_isAndroid() ? SendMessage_androidAppVersion() : undefined,
     name,
     extra,
     userId: tempUserId,
   };
 
   if (
-    (SendMessage.isIos() && SendMessage.iosAppVersion() >= 13) ||
-    (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 22)
+    (SendMessage_isIos() && SendMessage_iosAppVersion() >= 13) ||
+    (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 22)
   ) {
-    SendMessage.toIosAndAndroid({
+    SendMessage_toIosAndAndroid({
       type: "event",
       data: JSON.stringify(event),
       commithash: event.commithash,

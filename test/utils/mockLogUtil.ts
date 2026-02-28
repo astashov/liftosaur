@@ -1,6 +1,6 @@
 import { ILogUtil } from "../../lambda/utils/log";
 import Rollbar from "rollbar";
-import { UidFactory } from "../../src/utils/generator";
+import { UidFactory_generateUid } from "../../src/utils/generator";
 
 export class MockLogUtil implements ILogUtil {
   public logs: string[] = [];
@@ -8,7 +8,7 @@ export class MockLogUtil implements ILogUtil {
   public id: string;
 
   constructor() {
-    this.id = UidFactory.generateUid(4);
+    this.id = UidFactory_generateUid(4);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

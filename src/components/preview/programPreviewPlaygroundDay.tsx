@@ -8,19 +8,26 @@ import { ProgramPreviewPlaygroundExercise } from "./programPreviewPlaygroundExer
 import { ModalAmrap } from "../modalAmrap";
 import { ProgramPreviewPlaygroundExerciseEditModal } from "./programPreviewPlaygroundExerciseEditModal";
 import { lb } from "lens-shmens";
-import { EditProgramLenses } from "../../models/editProgramLenses";
+import { EditProgramLenses_properlyUpdateStateVariable } from "../../models/editProgramLenses";
 import { Button } from "../button";
-import { IEvaluatedProgram, Program } from "../../models/program";
-import { StringUtils } from "../../utils/string";
-import { Exercise } from "../../models/exercise";
-import { Weight } from "../../models/weight";
+import {
+  IEvaluatedProgram,
+  Program_getProgramExercise,
+  Program_getProgramDay,
+  Program_getProgramDayUsedExercises,
+  Program_getDayData,
+  Program_stateValue,
+} from "../../models/program";
+import { StringUtils_dashcase } from "../../utils/string";
+import { Exercise_toKey } from "../../models/exercise";
+import { Weight_build } from "../../models/weight";
 import { Markdown } from "../markdown";
-import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
+import { PlannerProgramExercise_getState } from "../../pages/planner/models/plannerProgramExercise";
 import { Scroller } from "../scroller";
 import { WorkoutExerciseThumbnail } from "../workoutExerciseThumbnail";
 import { BottomSheetEditTarget } from "../bottomSheetEditTarget";
 import { updateProgress } from "../../models/state";
-import { Progress } from "../../models/progress";
+import { Progress_getColorToSupersetGroup } from "../../models/progress";
 
 interface IProgramPreviewPlaygroundDayProps {
   program: IEvaluatedProgram;
@@ -51,18 +58,18 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
 
   const editModalProgramExerciseId = props.progress.ui?.editModal?.programExerciseId;
   const editModalProgramExercise = editModalProgramExerciseId
-    ? Program.getProgramExercise(props.day, props.program, editModalProgramExerciseId)
+    ? Program_getProgramExercise(props.day, props.program, editModalProgramExerciseId)
     : undefined;
-  const programDay = Program.getProgramDay(props.program, props.day)!;
+  const programDay = Program_getProgramDay(props.program, props.day)!;
   const index = props.progress.ui?.currentEntryIndex ?? 0;
   const entry = props.progress.entries[index];
-  const dayExercises = programDay ? Program.getProgramDayUsedExercises(programDay) : [];
+  const dayExercises = programDay ? Program_getProgramDayUsedExercises(programDay) : [];
   const programExercises = props.isPlayground
     ? dayExercises.filter((e) => e.key === entry.programExerciseId)
     : dayExercises;
 
   return (
-    <div data-cy={`preview-day-${StringUtils.dashcase(programDay.name)}`}>
+    <div data-cy={`preview-day-${StringUtils_dashcase(programDay.name)}`}>
       <h3 className="mx-4 mb-1 text-lg font-bold" data-cy="preview-day-name">
         {props.weekName ? `${props.weekName} - ` : ""}
         {programDay.name}
@@ -120,7 +127,7 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
           progress={props.progress}
           dispatch={dispatch}
           settings={props.settings}
-          programExercise={Program.getProgramExercise(
+          programExercise={Program_getProgramExercise(
             props.day,
             props.program,
             props.progress.entries[props.progress.ui?.amrapModal?.entryIndex || 0]?.programExerciseId
@@ -152,8 +159,8 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
             })
           }
           onEditStateVariable={(stateKey, newValue) => {
-            const dayData = Program.getDayData(props.program, props.day);
-            const lensRecording = EditProgramLenses.properlyUpdateStateVariable(
+            const dayData = Program_getDayData(props.program, props.day);
+            const lensRecording = EditProgramLenses_properlyUpdateStateVariable(
               lb<IEvaluatedProgram>()
                 .p("weeks")
                 .i(dayData.week - 1)
@@ -162,8 +169,8 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
                 .p("exercises")
                 .find((e) => e.key === editModalProgramExerciseId),
               {
-                [stateKey]: Program.stateValue(
-                  PlannerProgramExercise.getState(editModalProgramExercise),
+                [stateKey]: Program_stateValue(
+                  PlannerProgramExercise_getState(editModalProgramExercise),
                   stateKey,
                   newValue
                 ),
@@ -176,14 +183,14 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
             if (!editModalProgramExercise.exerciseType) {
               return;
             }
-            const exerciseType = Exercise.toKey(editModalProgramExercise.exerciseType);
+            const exerciseType = Exercise_toKey(editModalProgramExercise.exerciseType);
             const newSettings = {
               ...props.settings,
               exerciseData: {
                 ...props.settings.exerciseData,
                 [exerciseType]: {
                   ...props.settings.exerciseData[exerciseType],
-                  [variableKey]: Weight.build(newValue, props.settings.units),
+                  [variableKey]: Weight_build(newValue, props.settings.units),
                 },
               },
             };
@@ -205,7 +212,7 @@ interface IPreviewListOfExercisesProps {
 }
 
 function PreviewListOfExercises(props: IPreviewListOfExercisesProps): JSX.Element {
-  const colorToSupersetGroup = Progress.getColorToSupersetGroup(props.progress);
+  const colorToSupersetGroup = Progress_getColorToSupersetGroup(props.progress);
   return (
     <Scroller>
       <div className="flex items-center gap-1 px-4">

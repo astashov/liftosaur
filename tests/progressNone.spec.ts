@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { PlaywrightUtils, startpage } from "./playwrightUtils";
+import {
+  startpage,
+  PlaywrightUtils_clearCodeMirror,
+  PlaywrightUtils_typeCodeMirror,
+  PlaywrightUtils_finishExercise,
+} from "./playwrightUtils";
 
 test("disable progress on marked days", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
@@ -11,8 +16,8 @@ test("disable progress on marked days", async ({ page }) => {
 
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
-  await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
-  await PlaywrightUtils.typeCodeMirror(
+  await PlaywrightUtils_clearCodeMirror(page, "planner-editor");
+  await PlaywrightUtils_typeCodeMirror(
     page,
     "planner-editor",
     `# Week 1
@@ -46,7 +51,7 @@ Squat / 1x5 115lb / warmup: none`
   for (const weight of [120, 125, 130, 130, 130, 135]) {
     await page.getByTestId("footer-workout").click();
     await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
-    await PlaywrightUtils.finishExercise(page, "squat", [1]);
+    await PlaywrightUtils_finishExercise(page, "squat", [1]);
     await page.getByTestId("finish-workout").click();
     await page.getByTestId("finish-day-continue").click();
     await page.getByTestId("footer-workout").click();

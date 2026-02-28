@@ -2,9 +2,9 @@ import { h, JSX } from "preact";
 import { useEffect, useState } from "preact/hooks";
 import { InputNumber } from "../../components/inputNumber";
 import { LinkButton } from "../../components/linkButton";
-import { MathUtils } from "../../utils/math";
-import { StringUtils } from "../../utils/string";
-import { Weight } from "../../models/weight";
+import { MathUtils_toWord, MathUtils_clamp, MathUtils_roundTo05 } from "../../utils/math";
+import { StringUtils_capitalize } from "../../utils/string";
+import { Weight_calculateRepMax, Weight_rpeMultiplier } from "../../models/weight";
 
 export interface IRepMaxContentProps {
   reps: number | undefined;
@@ -16,11 +16,11 @@ export function RepMaxContent(props: IRepMaxContentProps): JSX.Element {
   const [knownRpe, setKnownRpe] = useState<number>(10);
   const [knownWeight, setKnownWeight] = useState<number>(100);
   const [reps, setReps] = useState<number | undefined>(props.reps);
-  const repsWord = reps ? MathUtils.toWord(reps) : undefined;
+  const repsWord = reps ? MathUtils_toWord(reps) : undefined;
   const [rpe, setRpe] = useState<number | undefined>(10);
   const weight =
     knownReps != null && knownWeight != null && reps
-      ? Weight.calculateRepMax(knownReps, knownRpe ?? 10, knownWeight, reps, rpe ?? 10)
+      ? Weight_calculateRepMax(knownReps, knownRpe ?? 10, knownWeight, reps, rpe ?? 10)
       : undefined;
 
   useEffect(() => {
@@ -31,10 +31,10 @@ export function RepMaxContent(props: IRepMaxContentProps): JSX.Element {
     };
     window.addEventListener("popstate", onPopState);
     setTimeout(() => {
-      const word = reps ? MathUtils.toWord(reps) : undefined;
+      const word = reps ? MathUtils_toWord(reps) : undefined;
       window.history.replaceState(
         { reps },
-        `${word != null ? `${StringUtils.capitalize(word)} ` : ""}Rep Max Calculator | Liftosaur`,
+        `${word != null ? `${StringUtils_capitalize(word)} ` : ""}Rep Max Calculator (${reps != null ? reps : ""}RM) - Free & Accurate | Liftosaur`,
         `/${word != null ? `${word}-` : ""}rep-max-calculator`
       );
     }, 0);
@@ -44,7 +44,7 @@ export function RepMaxContent(props: IRepMaxContentProps): JSX.Element {
   }, []);
 
   useEffect(() => {
-    const word = reps ? MathUtils.toWord(reps) : undefined;
+    const word = reps ? MathUtils_toWord(reps) : undefined;
     window.history.replaceState({ reps }, "", `/${word != null ? `${word}-` : ""}rep-max-calculator`);
   }, [reps]);
 
@@ -52,7 +52,7 @@ export function RepMaxContent(props: IRepMaxContentProps): JSX.Element {
     <div className="px-2 text-center">
       <div className="mb-4">
         <h1 className="px-6 text-2xl font-bold">
-          {repsWord ? `${StringUtils.capitalize(repsWord)} ` : ""}Rep Max ({reps != null ? reps : ""}RM) calculator
+          {repsWord ? `${StringUtils_capitalize(repsWord)} ` : ""}Rep Max ({reps != null ? reps : ""}RM) calculator
         </h1>
         <div>
           <LinkButton name="enable-rpe" onClick={() => setRpeEnabled(!rpeEnabled)}>
@@ -84,7 +84,7 @@ export function RepMaxContent(props: IRepMaxContentProps): JSX.Element {
                 step={1}
                 className="w-10 outline-none no-arrows"
                 onUpdate={(newValue) => {
-                  setKnownReps(MathUtils.clamp(newValue, 1, 24));
+                  setKnownReps(MathUtils_clamp(newValue, 1, 24));
                 }}
               />
             </div>
@@ -101,7 +101,7 @@ export function RepMaxContent(props: IRepMaxContentProps): JSX.Element {
                   step={0.5}
                   className="w-10 outline-none no-arrows"
                   onUpdate={(newValue) => {
-                    setKnownRpe(MathUtils.clamp(newValue, 0, 10));
+                    setKnownRpe(MathUtils_clamp(newValue, 0, 10));
                   }}
                 />
               </div>
@@ -143,7 +143,7 @@ export function RepMaxContent(props: IRepMaxContentProps): JSX.Element {
                 step={1}
                 className="w-10 outline-none no-arrows"
                 onUpdate={(newValue) => {
-                  setReps(MathUtils.clamp(newValue, 1, 24));
+                  setReps(MathUtils_clamp(newValue, 1, 24));
                 }}
               />
             </div>
@@ -160,7 +160,7 @@ export function RepMaxContent(props: IRepMaxContentProps): JSX.Element {
                   step={0.5}
                   className="w-10 outline-none no-arrows"
                   onUpdate={(newValue) => {
-                    setRpe(MathUtils.clamp(newValue, 0, 10));
+                    setRpe(MathUtils_clamp(newValue, 0, 10));
                   }}
                 />
               </div>
@@ -184,6 +184,9 @@ export function RepMaxContent(props: IRepMaxContentProps): JSX.Element {
       </div>
       <div className="mb-4">
         <TMConverter />
+      </div>
+      <div className="mb-4">
+        <RepMaxInfo reps={reps} />
       </div>
     </div>
   );
@@ -212,7 +215,7 @@ function OtherRepMaxes(props: IOtherRepMaxesProps): JSX.Element {
             <ul>
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((r) => {
                 if (r !== reps) {
-                  const w = Weight.calculateRepMax(knownReps, knownRpe ?? 10, knownWeight, r, rpe ?? 10);
+                  const w = Weight_calculateRepMax(knownReps, knownRpe ?? 10, knownWeight, r, rpe ?? 10);
                   return (
                     <li key={r}>
                       {r}RM{rpeEnabled ? <span className="text-text-secondary">@{rpe ?? 10}</span> : ""}:{" "}
@@ -232,7 +235,7 @@ function OtherRepMaxes(props: IOtherRepMaxesProps): JSX.Element {
           </div>
           <ul>
             {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((r) => {
-              const w = (Weight.rpeMultiplier(r, rpe ?? 10) * 100).toFixed(0);
+              const w = (Weight_rpeMultiplier(r, rpe ?? 10) * 100).toFixed(0);
               return (
                 <li key={r}>
                   {r}RM{rpeEnabled ? <span className="text-text-secondary">@{rpe ?? 10}</span> : ""}:{" "}
@@ -241,6 +244,73 @@ function OtherRepMaxes(props: IOtherRepMaxesProps): JSX.Element {
               );
             })}
           </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RepMaxInfo(props: { reps: number | undefined }): JSX.Element {
+  const reps = props.reps != null ? props.reps : 1;
+  const repsWord = MathUtils_toWord(reps);
+  const repsLabel = repsWord ? `${StringUtils_capitalize(repsWord)} ` : "";
+
+  return (
+    <div className="max-w-2xl mx-auto text-left px-4">
+      <div className="mb-6">
+        <h2 className="text-lg font-bold mb-2">What is a {reps}RM ({repsLabel}Rep Max)?</h2>
+        <p className="text-sm text-text-secondary">
+          Your {reps}RM is the maximum weight you can lift for exactly {reps} rep{reps > 1 ? "s" : ""} with proper form.
+          {" "}It's a key number in strength training. Many percentage-based programs like{" "}
+          <a href="/programs/the-rippler" className="text-link-color underline">The Rippler</a>,{" "}
+          <a href="/programs/the-5-3-1-program" className="text-link-color underline">5/3/1</a>,{" "}
+          and others use your {reps === 1 ? "1RM" : "1RM (derived from your " + reps + "RM)"} to calculate working weights.
+        </p>
+      </div>
+
+      <div className="mb-6">
+        <h2 className="text-lg font-bold mb-2">How This Calculator Works</h2>
+        <p className="text-sm text-text-secondary">
+          Enter a weight you've lifted and how many reps you did with it. The calculator uses RPE (Rate of Perceived Exertion)
+          tables to estimate your {reps}RM. Unlike simple formula-based calculators (Epley, Brzycki), RPE tables account
+          for effort level and are calibrated from trained strength athletes' data, making them more accurate,
+          especially for higher rep ranges where simple formulas tend to diverge.
+        </p>
+      </div>
+
+      <div className="mb-6">
+        <h2 className="text-lg font-bold mb-2">FAQ</h2>
+        <div className="mb-4">
+          <h3 className="text-sm font-bold mb-1">How accurate are rep max calculators?</h3>
+          <p className="text-sm text-text-secondary">
+            Calculators give a good estimate, but accuracy decreases as the rep difference grows. Estimating
+            your 1RM from a 3-rep set is more reliable than from a 12-rep set. RPE-based calculations (used here)
+            tend to be more accurate than simple formulas because they account for effort level.
+          </p>
+        </div>
+        <div className="mb-4">
+          <h3 className="text-sm font-bold mb-1">What is RPE?</h3>
+          <p className="text-sm text-text-secondary">
+            RPE stands for Rate of Perceived Exertion. It's a scale from 1-10 that measures how hard a set felt.
+            RPE 10 means you couldn't do another rep. RPE 8 means you had about 2 reps left in the tank.
+            If you're unsure of your RPE, leave it at 10.
+          </p>
+        </div>
+        <div className="mb-4">
+          <h3 className="text-sm font-bold mb-1">Should I test my 1RM directly?</h3>
+          <p className="text-sm text-text-secondary">
+            Testing a true 1RM is taxing on your body and carries injury risk, especially for beginners.
+            Using a calculator to estimate from a lighter set (e.g. 3-5 reps) is safer and usually accurate enough
+            for programming purposes.
+          </p>
+        </div>
+        <div className="mb-4">
+          <h3 className="text-sm font-bold mb-1">What is a Training Max (TM)?</h3>
+          <p className="text-sm text-text-secondary">
+            A Training Max is a percentage of your 1RM (typically 85-90%) used as the basis for calculating
+            working weights in programs like 5/3/1. It builds in a buffer so you're not always training at your absolute max.
+            Use the TM converter above to translate TM percentages into 1RM percentages.
+          </p>
         </div>
       </div>
     </div>
@@ -273,7 +343,7 @@ function TMConverter(): JSX.Element {
               step={2.5}
               className="w-10 outline-none no-arrows"
               onUpdate={(newValue) => {
-                setTm(MathUtils.clamp(newValue, 0, 200));
+                setTm(MathUtils_clamp(newValue, 0, 200));
               }}
             />
           </div>
@@ -281,7 +351,7 @@ function TMConverter(): JSX.Element {
             {percentages.map((pct) => {
               return (
                 <li key={pct}>
-                  <strong>{pct}%</strong> TM = <strong>{MathUtils.roundTo05(tm * (pct / 100)).toFixed(1)}%</strong> 1RM
+                  <strong>{pct}%</strong> TM = <strong>{MathUtils_roundTo05(tm * (pct / 100)).toFixed(1)}%</strong> 1RM
                 </li>
               );
             })}

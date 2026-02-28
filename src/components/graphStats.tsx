@@ -1,8 +1,8 @@
 import { h, JSX } from "preact";
 import UPlot from "uplot";
 import { useRef, useEffect } from "preact/hooks";
-import { CollectionUtils } from "../utils/collection";
-import { Weight } from "../models/weight";
+import { CollectionUtils_sort } from "../utils/collection";
+import { Weight_convertTo } from "../models/weight";
 import {
   ILengthUnit,
   ISettings,
@@ -12,12 +12,12 @@ import {
   IStatsWeightValue,
   IUnit,
 } from "../types";
-import { Length } from "../models/length";
-import { Stats } from "../models/stats";
-import { DateUtils } from "../utils/date";
-import { GraphsPlugins } from "../utils/graphsPlugins";
+import { Length_convertTo } from "../models/length";
+import { Stats_name } from "../models/stats";
+import { DateUtils_format } from "../utils/date";
+import { GraphsPlugins_zoom } from "../utils/graphsPlugins";
 import { IPercentageUnit } from "../types";
-import { Tailwind } from "../utils/tailwindConfig";
+import { Tailwind_semantic, Tailwind_colors } from "../utils/tailwindConfig";
 
 interface IGraphStatsProps {
   collection: [number, number][];
@@ -32,21 +32,21 @@ interface IGraphStatsProps {
 }
 
 export function getWeightDataForGraph(coll: IStatsWeightValue[], settings: ISettings): [number, number][] {
-  const sortedCollection = CollectionUtils.sort(coll, (a, b) => a.timestamp - b.timestamp);
+  const sortedCollection = CollectionUtils_sort(coll, (a, b) => a.timestamp - b.timestamp);
   return sortedCollection.map((i) => {
-    return [i.timestamp / 1000, Weight.convertTo(i.value, settings.units).value];
+    return [i.timestamp / 1000, Weight_convertTo(i.value, settings.units).value];
   });
 }
 
 export function getLengthDataForGraph(coll: IStatsLengthValue[], settings: ISettings): [number, number][] {
-  const sortedCollection = CollectionUtils.sort(coll, (a, b) => a.timestamp - b.timestamp);
+  const sortedCollection = CollectionUtils_sort(coll, (a, b) => a.timestamp - b.timestamp);
   return sortedCollection.map((i) => {
-    return [i.timestamp / 1000, Length.convertTo(i.value, settings.lengthUnits).value];
+    return [i.timestamp / 1000, Length_convertTo(i.value, settings.lengthUnits).value];
   });
 }
 
 export function getPercentageDataForGraph(coll: IStatsPercentageValue[], settings: ISettings): [number, number][] {
-  const sortedCollection = CollectionUtils.sort(coll, (a, b) => a.timestamp - b.timestamp);
+  const sortedCollection = CollectionUtils_sort(coll, (a, b) => a.timestamp - b.timestamp);
   return sortedCollection.map((i) => {
     return [i.timestamp / 1000, i.value.value];
   });
@@ -82,20 +82,20 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
     const allMinX = Math.max(props.minX, allMaxX - 365 * 24 * 60 * 60);
     const rect = graphRef.current.getBoundingClientRect();
     const opts: UPlot.Options = {
-      title: props.title === undefined ? `${Stats.name(props.statsKey)}` : props.title || undefined,
+      title: props.title === undefined ? `${Stats_name(props.statsKey)}` : props.title || undefined,
       class: "graph-max-weight",
       width: rect.width,
       height: rect.height,
       axes: [
         {
-          stroke: Tailwind.semantic().text.primary,
-          ticks: { stroke: Tailwind.semantic().border.neutral },
-          grid: { stroke: Tailwind.semantic().border.neutral },
+          stroke: Tailwind_semantic().text.primary,
+          ticks: { stroke: Tailwind_semantic().border.neutral },
+          grid: { stroke: Tailwind_semantic().border.neutral },
         },
         {
-          stroke: Tailwind.semantic().text.primary,
-          ticks: { stroke: Tailwind.semantic().border.neutral },
-          grid: { stroke: Tailwind.semantic().border.neutral },
+          stroke: Tailwind_semantic().text.primary,
+          ticks: { stroke: Tailwind_semantic().border.neutral },
+          grid: { stroke: Tailwind_semantic().border.neutral },
         },
       ],
       cursor: {
@@ -103,7 +103,7 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
         lock: true,
       },
       plugins: [
-        GraphsPlugins.zoom(),
+        GraphsPlugins_zoom(),
         {
           hooks: {
             setCursor: [
@@ -113,7 +113,7 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
                 const value = data[1][idx];
                 let text: string;
                 if (value != null && props.units != null) {
-                  text = `${DateUtils.format(date)}, <strong>${value}</strong> ${props.units}`;
+                  text = `${DateUtils_format(date)}, <strong>${value}</strong> ${props.units}`;
                   if (movingAverageWindowSize != null) {
                     text += ` (Avg. ${data[2][idx]} ${props.units})`;
                   }
@@ -137,14 +137,14 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
         {
           label: props.statsKey === "weight" ? "Weight" : props.statsKey === "bodyfat" ? "Percentage" : "Size",
           value: (self, rawValue) => `${rawValue} ${props.units}`,
-          stroke: Tailwind.colors().red[500],
+          stroke: Tailwind_colors().red[500],
           width: 1,
         },
         movingAverageWindowSize != null
           ? {
               label: "Moving Average",
               value: (self, rawValue) => `${rawValue} ${props.units}`,
-              stroke: Tailwind.colors().blue[500],
+              stroke: Tailwind_colors().blue[500],
               width: 1,
             }
           : {},

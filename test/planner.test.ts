@@ -1,21 +1,30 @@
 import "mocha";
 import { expect } from "chai";
-import { PlannerProgram } from "../src/pages/planner/models/plannerProgram";
-import { PlannerTestUtils } from "./utils/plannerTestUtils";
+import {
+  PlannerProgram_generateFullText,
+  PlannerProgram_switchToUnit,
+  PlannerProgram_evaluateText,
+  PlannerProgram_evaluate,
+} from "../src/pages/planner/models/plannerProgram";
+import {
+  PlannerTestUtils_finish,
+  PlannerTestUtils_changeExercise,
+  PlannerTestUtils_changeWeight,
+} from "./utils/plannerTestUtils";
 import { IPlannerProgram, ISettings, IStats, IUnit } from "../src/types";
-import { Settings } from "../src/models/settings";
+import { Settings_build, Settings_defaultEquipment } from "../src/models/settings";
 import { PlannerExerciseEvaluator, PlannerSyntaxError } from "../src/pages/planner/plannerExerciseEvaluator";
-import { Weight } from "../src/models/weight";
-import { ObjectUtils } from "../src/utils/object";
-import { Stats } from "../src/models/stats";
+import { Weight_build } from "../src/models/weight";
+import { ObjectUtils_clone } from "../src/utils/object";
+import { Stats_getEmpty } from "../src/models/stats";
 
 describe("Planner", () => {
   it("updates weight after completing", () => {
     const programText = `# Week 1
 ## Day 1
 Squat / 2x5 / 100lb / progress: lp(5lb)`;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5, 5]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[5, 5]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 2x5 / 105lb / progress: lp(5lb)
@@ -37,10 +46,10 @@ Squat / 1x5 100lb / 2x8 150kg / progress: custom(increase: 5lb) {~
 ## Day 2
 Squat / 3x5 / 4x8 / 100lb
 `;
-    const settings = { ...Settings.build(), units: "kg" as IUnit };
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5]] }, settings);
-    const kgProgram = PlannerProgram.switchToUnit(program.planner!, settings);
-    const newText = PlannerProgram.generateFullText(kgProgram.weeks);
+    const settings = { ...Settings_build(), units: "kg" as IUnit };
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[5]] }, settings);
+    const kgProgram = PlannerProgram_switchToUnit(program.planner!, settings);
+    const newText = PlannerProgram_generateFullText(kgProgram.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 1x5 47.5kg / 2x8 152.5kg / progress: custom(increase: 7.5kg) {~
@@ -67,8 +76,8 @@ Squat / 1x5 / 2x8 / 100lb / progress: custom() {~
 ## Day 2
 Squat / 3x5 / 4x8 / 100lb
 `;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[5]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 2x5 / 3x8 / 100lb / progress: custom() {~
@@ -93,8 +102,8 @@ Squat / 1x5 / 2x8 / 100lb / progress: custom() {~
 ## Day 1
 Squat / 3x5 / 4x8 / 100lb
 `;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[5]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 1x5 / 2x8 / 100lb / progress: custom() {~
@@ -116,8 +125,8 @@ Squat / 3x5 / 2x8 / 100lb
 Squat / 3x5 / 100lb / progress: custom() {~
   numberOfSets -= 6
 ~}`;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[5]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 0x5 / 100lb / progress: custom() {~
@@ -140,8 +149,8 @@ Squat / 3x8 / progress: custom(pns: 0, ns: 0, cns: 0) {~
     numberOfSets = 5
   }
 ~}`;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[8, 8]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[8, 8]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 3x8 / update: custom() {~
@@ -168,8 +177,8 @@ Squat / 3x5 / 100lb / progress: custom() {~
   reps[4] = 8
   reps[5] = 8
 ~}`;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[5]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 3x5 100lb, 2x8 110lb / progress: custom() {~
@@ -188,8 +197,8 @@ Squat / 3x5 100lb, 2x8 110lb / progress: custom() {~
     const programText = `# Week 1
 ## Day 1
 Squat / 2x5 / 100lb / progress: lp(5lb, 2, 0)`;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5, 5]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[5, 5]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 2x5 / 100lb / progress: lp(5lb, 2, 1)
@@ -202,8 +211,8 @@ Squat / 2x5 / 100lb / progress: lp(5lb, 2, 1)
     const programText = `# Week 1
 ## Day 1
 Squat / 2x5 / 100lb / progress: lp(5lb, 1, 0, 10lb, 2, 1)`;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5, 3]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[5, 3]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 2x5 / 90lb / progress: lp(5lb, 1, 0, 10lb, 2, 0)
@@ -222,8 +231,8 @@ Squat / 2x5 / 90lb / progress: lp(5lb, 1, 0, 10lb, 2, 0)
 
 // Hey hey
 Squat / 2x5 100lb`;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5, 5]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[5, 5]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 /// Sup
@@ -248,8 +257,8 @@ Squat[1-2] / 2x5
 ## Day 1
 Squat / 2x5
 `;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5, 5]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[5, 5]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat[1-2] / 2x5
@@ -281,8 +290,8 @@ Squat / 2x5
 ## Day 1
 Squat / 2x5
 `;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5, 5]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[5, 5]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 2x5
@@ -321,13 +330,13 @@ Bench Press[1-5] / 2x5
 # Week 5
 ## Day 1
 `;
-    const { program } = PlannerTestUtils.finish(programText, {
+    const { program } = PlannerTestUtils_finish(programText, {
       completedReps: [
         [5, 5],
         [5, 5],
       ],
     });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat[1-2] / 2x5 / progress: custom() {~
@@ -365,13 +374,13 @@ Squat[4-5] / 2x5
 Squat / 1x5 100lb, 1x3 200lb / 60s / progress: dp(5lb, 3, 8)
 Bench Press[1-5] / ...Squat / 120lb / progress: lp(5lb)
 `;
-    const { program } = PlannerTestUtils.finish(programText, {
+    const { program } = PlannerTestUtils_finish(programText, {
       completedReps: [
         [5, 3],
         [5, 3],
       ],
     });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 1x6 100lb, 1x4 200lb / 60s / progress: dp(5lb, 3, 8)
@@ -383,7 +392,7 @@ Bench Press / ...Squat / 1x5, 1x3 / 125lb / progress: lp(5lb)
 
   it("should work with negative weights", () => {
     const settings: ISettings = {
-      ...Settings.build(),
+      ...Settings_build(),
       exerciseData: {
         benchPress_barbell: { equipment: { default: undefined } },
         squat_barbell: { equipment: { default: undefined } },
@@ -394,7 +403,7 @@ Bench Press / ...Squat / 1x5, 1x3 / 125lb / progress: lp(5lb)
 Squat / 2x5 / -40lb / progress: lp(5lb)
 Bench Press / 2x3-5 -20lb / progress: lp(-5lb)
 `;
-    const { program } = PlannerTestUtils.finish(
+    const { program } = PlannerTestUtils_finish(
       programText,
       {
         completedReps: [
@@ -404,7 +413,7 @@ Bench Press / 2x3-5 -20lb / progress: lp(-5lb)
       },
       settings
     );
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 2x5 / -35lb / progress: lp(5lb)
@@ -424,13 +433,13 @@ Bench Press / id: tags(4) / 2x5 100lb / progress: custom(foo: 2) {~
   reps += state.foo
 ~}
 `;
-    const { program } = PlannerTestUtils.finish(programText, {
+    const { program } = PlannerTestUtils_finish(programText, {
       completedReps: [
         [5, 5],
         [5, 5],
       ],
     });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 2x5 / 100lb / progress: custom() {~
@@ -450,13 +459,13 @@ Bench Press / 2x10 / 100lb / id: tags(4) / progress: custom(foo: 5) {~
 Squat / 1x5 100lb+, 1x3 100lb / 60s / progress: lp(5lb)
 Bench Press / ...Squat / progress: lp(5lb)
 `;
-    const { program } = PlannerTestUtils.finish(programText, {
+    const { program } = PlannerTestUtils_finish(programText, {
       completedReps: [
         [5, 3],
         [5, 3],
       ],
     });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 1x5 105lb+, 1x3 105lb / 60s / progress: lp(5lb)
@@ -474,7 +483,7 @@ Squat / 1x5 100lb, 1x3 200lb / 60s / progress: lp(5lb)
 ## Day 2
 Bench Press / 3x8 150lb / progress: dp(5lb, 8, 12)
 `;
-    const newText = PlannerTestUtils.changeExercise(programText, "Squat", {
+    const newText = PlannerTestUtils_changeExercise(programText, "Squat", {
       id: "overheadPress",
       equipment: "barbell",
     }).trim();
@@ -494,7 +503,7 @@ Squat / 1x5 100lb, 1x3 200lb / 60s / progress: lp(5lb)
 ## Day 2
 Bench Press / 3x8 / progress: dp(5lb, 8, 12)
 `;
-    const newText = PlannerTestUtils.changeExercise(programText, "Squat", {
+    const newText = PlannerTestUtils_changeExercise(programText, "Squat", {
       id: "benchPress",
       equipment: "barbell",
     }).trim();
@@ -510,8 +519,8 @@ Bench Press / 3x8 / progress: dp(5lb, 8, 12)`);
 ## Day 1
 Squat / 1x5 100lb, 1x3 200lb / 60s / progress: lp(5lb)
 `;
-    const newText = PlannerTestUtils.changeWeight(programText, (weightChanges) => {
-      weightChanges[1].weight = Weight.build(250, "lb");
+    const newText = PlannerTestUtils_changeWeight(programText, (weightChanges) => {
+      weightChanges[1].weight = Weight_build(250, "lb");
       return weightChanges;
     });
     expect(newText.trim()).to.equal(`# Week 1
@@ -524,8 +533,8 @@ Squat / 1x5 100lb, 1x3 250lb / 60s / progress: lp(5lb)`);
 ## Day 1
 Squat / 1x5 100lb, 1x3 200lb / 80lb / 60s / progress: lp(80lb)
 `;
-    const newText = PlannerTestUtils.changeWeight(programText, (weightChanges) => {
-      weightChanges[0].weight = Weight.build(100, "lb");
+    const newText = PlannerTestUtils_changeWeight(programText, (weightChanges) => {
+      weightChanges[0].weight = Weight_build(100, "lb");
       return weightChanges;
     });
     expect(newText.trim()).to.equal(`# Week 1
@@ -538,9 +547,9 @@ Squat / 1x5, 1x3 / 100lb 60s / progress: lp(80lb)`);
 ## Day 1
 Squat / 1x5 50lb, 1x3 80lb / 60s / progress: lp(5lb)
 `;
-    const newText = PlannerTestUtils.changeWeight(programText, (weightChanges) => {
-      weightChanges[0].weight = Weight.build(100, "lb");
-      weightChanges[1].weight = Weight.build(150, "lb");
+    const newText = PlannerTestUtils_changeWeight(programText, (weightChanges) => {
+      weightChanges[0].weight = Weight_build(100, "lb");
+      weightChanges[1].weight = Weight_build(150, "lb");
       return weightChanges;
     });
     expect(newText.trim()).to.equal(`# Week 1
@@ -559,10 +568,10 @@ Squat / 3x8 100lb / progress: custom() {~
   }
 ~}
 `;
-    const { program } = PlannerTestUtils.finish(programText, {
+    const { program } = PlannerTestUtils_finish(programText, {
       completedReps: [[8, 6, 8]],
     });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 1x8 105lb, 1x8 100lb, 1x8 105lb / progress: custom() {~
@@ -582,8 +591,8 @@ Squat / 1x8 105lb, 1x8 100lb, 1x8 105lb / progress: custom() {~
 ## Day 1
 Squat / used: none / 1x1 / 100% 100s / warmup: none
 Bench Press / ...Squat / 3x10 / 30lb / progress: dp(3lb, 8, 12)`;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[10, 10, 10]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[10, 10, 10]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / used: none / 1x1 / 100% 100s / warmup: none
@@ -597,8 +606,8 @@ Bench Press / ...Squat / 3x11 / 30lb / progress: dp(3lb, 8, 12)
     const programText = `# Week 1
 ## Day 1
 Squat / 3x4-6 / 80% @8+ 180s / warmup: 2x10 50%, 1x4 70%`;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[6, 6, 6]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[6, 6, 6]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 3x4-6 / 80% @8+ 180s / warmup: 2x10 50%, 1x4 70%
@@ -612,8 +621,8 @@ Squat / 3x4-6 / 80% @8+ 180s / warmup: 2x10 50%, 1x4 70%
 ## Day 1
 Squat / used: none / 1x1 / 100% 100s / warmup: none
 Bench Press / ...Squat / 3x10 / 30lb / update: custom() {~ weights += 5lb ~}`;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[10, 10, 10]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[10, 10, 10]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / used: none / 1x1 / 100% 100s / warmup: none
@@ -627,8 +636,8 @@ Bench Press / ...Squat / 3x10 / 30lb / update: custom() {~ weights += 5lb ~}
     const programText = `# Week 1
 ## Day 1
 Squat / 1x5, 1x5+ @0+ / 100lb`;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[2]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[2]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 1x5, 1x5+ @0+ / 100lb
@@ -645,8 +654,8 @@ Squat / 1x1 100lb / used: none / progress: custom() {~
 ~}
 Bench Press / used: none / 1x2 100lb
 Chest Fly / ...Bench Press / 120lb / progress: custom(foo: 1) { ...Squat }`;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[2]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[2]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / used: none / 1x1 / 100lb / progress: custom() {~
@@ -667,8 +676,8 @@ Squat / 1x1 100lb / used: none / update: custom() {~
 ~}
 Bench Press / used: none / 1x2 100lb
 Chest Fly / ...Bench Press / 120lb / update: custom() { ...Squat }`;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[2]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[2]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / used: none / 1x1 / 100lb / update: custom() {~
@@ -702,13 +711,13 @@ Bench Press[1-5] / ...tmp: Squat / progress: custom() { ...tmp: Squat }
 # Week 5
 ## Day 1
 `;
-    const { program } = PlannerTestUtils.finish(programText, {
+    const { program } = PlannerTestUtils_finish(programText, {
       completedReps: [
         [5, 5],
         [5, 5],
       ],
     });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 tmp: Squat[1-5] / used: none / 2x5 / progress: custom() {~
@@ -752,9 +761,9 @@ Bench Press / ...Squat / progress: custom() {~ ~}
     const planner: IPlannerProgram = {
       vtype: "planner",
       name: "MyProgram",
-      weeks: PlannerProgram.evaluateText(programText),
+      weeks: PlannerProgram_evaluateText(programText),
     };
-    const evaluatedWeeks = PlannerProgram.evaluate(planner, Settings.build()).evaluatedWeeks;
+    const evaluatedWeeks = PlannerProgram_evaluate(planner, Settings_build()).evaluatedWeeks;
     expect(evaluatedWeeks[0][0].success).to.be.true;
   });
 
@@ -767,9 +776,9 @@ Bench Press / ...Squat / update: custom() {~ ~}
     const planner: IPlannerProgram = {
       vtype: "planner",
       name: "MyProgram",
-      weeks: PlannerProgram.evaluateText(programText),
+      weeks: PlannerProgram_evaluateText(programText),
     };
-    const evaluatedWeeks = PlannerProgram.evaluate(planner, Settings.build()).evaluatedWeeks;
+    const evaluatedWeeks = PlannerProgram_evaluate(planner, Settings_build()).evaluatedWeeks;
     expect(evaluatedWeeks[0][0].success).to.be.true;
   });
 
@@ -797,9 +806,9 @@ Bench Press[1-5] / ...tmp: Squat / progress: custom() { ...tmp: Squat }
     const planner: IPlannerProgram = {
       vtype: "planner",
       name: "MyProgram",
-      weeks: PlannerProgram.evaluateText(programText),
+      weeks: PlannerProgram_evaluateText(programText),
     };
-    const evaluatedWeeks = PlannerProgram.evaluate(planner, Settings.build()).evaluatedWeeks;
+    const evaluatedWeeks = PlannerProgram_evaluate(planner, Settings_build()).evaluatedWeeks;
     expect(evaluatedWeeks[2][0]).to.deep.equal({
       success: false,
       error: new PlannerSyntaxError("Squat: No such exercise tmp: Squat at week: 3 (4:13)", 0, 0, 0, 0),
@@ -826,13 +835,13 @@ Bicep Curl[2-5] / 5x5
 # Week 5
 ## Day 1
 `;
-    const { program } = PlannerTestUtils.finish(programText, {
+    const { program } = PlannerTestUtils_finish(programText, {
       completedReps: [
         [5, 5],
         [5, 5],
       ],
     });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 tmp: Squat[1-5] / used: none / 2x5
@@ -876,10 +885,10 @@ Squat / 1x2 100lb / progress: custom(increase: 5lb) {~
 ~}
 Bench Press / ...Squat
 `;
-    const { program } = PlannerTestUtils.finish(programText, {
+    const { program } = PlannerTestUtils_finish(programText, {
       completedReps: [[2], [1]],
     });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 1x2 / 105lb / progress: custom(increase: 5lb) {~
@@ -905,13 +914,13 @@ Squat / 2x2 200lb / update: custom() {~
   state.foo += 1
 ~} / progress: custom() { ...Leg Press }
 `;
-    const { program } = PlannerTestUtils.finish(programText, {
+    const { program } = PlannerTestUtils_finish(programText, {
       completedReps: [
         [2, 2],
         [2, 2],
       ],
     });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Leg Press / 2x2 / 100lb / progress: custom(foo: 2) {~
@@ -933,10 +942,10 @@ Squat / 1x1 / 100% / progress: custom(foo: 0) {~
 ~}
 Bench Press / ...Squat / progress: custom(foo+: 0) { ...Squat }
 `;
-    const { program } = PlannerTestUtils.finish(programText, {
+    const { program } = PlannerTestUtils_finish(programText, {
       completedReps: [[1], [1]],
     });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 1x1 / 100% / progress: custom(foo: 0) {~
@@ -960,10 +969,10 @@ Squat / 1x2 100lb / progress: custom(increase: 5lb) {~
 ~}
 Bench Press / ...Squat
 `;
-    const { program } = PlannerTestUtils.finish(programText, {
+    const { program } = PlannerTestUtils_finish(programText, {
       completedReps: [[2], [2]],
     });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 1x2 / 105lb / progress: custom(increase: 5lb) {~
@@ -991,10 +1000,10 @@ Squat / 1x2 100lb / progress: custom(increase: 5lb) {~
 ~}
 Bench Press / ...Squat / progress: custom(increase: 2.5lb) { ...Squat }
 `;
-    const { program } = PlannerTestUtils.finish(programText, {
+    const { program } = PlannerTestUtils_finish(programText, {
       completedReps: [[1], [2]],
     });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 1x2 / 100lb / progress: custom(increase: 2.5lb) {~
@@ -1016,10 +1025,10 @@ Bench Press / ...Squat / 105lb
 Squat / 1x2 100lb / progress: lp(5lb, 2, 0, 10lb, 2, 0)
 Bench Press / ...Squat
 `;
-    const { program } = PlannerTestUtils.finish(programText, {
+    const { program } = PlannerTestUtils_finish(programText, {
       completedReps: [[1], [2]],
     });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 1x2 / 100lb / progress: lp(5lb, 2, 0, 10lb, 2, 1)
@@ -1045,16 +1054,16 @@ Squat / 1x4 100lb
 
 
 `;
-    const { program } = PlannerTestUtils.finish(
+    const { program } = PlannerTestUtils_finish(
       programText,
       {
         completedReps: [[3], [2]],
       },
-      Settings.build(),
-      Stats.getEmpty(),
+      Settings_build(),
+      Stats_getEmpty(),
       2
     );
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 1x2 / 105lb / progress: lp(5lb)
@@ -1085,10 +1094,10 @@ Squat / 1x1 100lb / update: custom() {~
   state.zzz = 6
 ~}
 `;
-    const { program } = PlannerTestUtils.finish(programText, {
+    const { program } = PlannerTestUtils_finish(programText, {
       completedReps: [[1], [1]],
     });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 1x1 / 100lb / update: custom() {~
@@ -1112,10 +1121,10 @@ Bench Press / ...Squat / warmup: none / progress: custom(foo: 5lb, blah: 10lb) {
   weights += state.foo + state.blah
 ~}
 `;
-    const { program } = PlannerTestUtils.finish(programText, {
+    const { program } = PlannerTestUtils_finish(programText, {
       completedReps: [[8]],
     });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 1x8 / 120lb / progress: custom(foo: 10lb) { ...Bench Press }
@@ -1136,10 +1145,10 @@ Squat, Smith Machine / 1x1 100lb / progress: custom() { ...Squat }
 ## Day 2
 Squat / 1x1 100lb / progress: custom() {~ weights += 5lb ~}
 `;
-    const { program } = PlannerTestUtils.finish(programText, {
+    const { program } = PlannerTestUtils_finish(programText, {
       completedReps: [[1], [1]],
     });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Pec Deck / 1x1 / 105lb / progress: custom() { ...Squat }
@@ -1188,8 +1197,8 @@ Squat / 2x5 / 100lb
 Bench Press / 2x5 / 100lb
 
 `;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5, 5]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[5, 5]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 // A: Day 1
 ## Day 1
@@ -1241,8 +1250,8 @@ Squat / 2x5 / 100lb
 Bench Press / 2x5 / 100lb
 
 `;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5, 5]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[5, 5]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 2x5 / 100lb
@@ -1273,14 +1282,14 @@ Squat[1-3] / 1x5 / 200lb / warmup: none / progress: custom(week: 1, dayInWeek: 1
 ## Day 2
 
 `;
-    const { program } = PlannerTestUtils.finish(
+    const { program } = PlannerTestUtils_finish(
       programText,
       { completedReps: [[5]] },
-      Settings.build(),
-      Stats.getEmpty(),
+      Settings_build(),
+      Stats_getEmpty(),
       4
     );
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 
@@ -1338,8 +1347,8 @@ Squat / 2x5 / 100lb
 Bench Press / 2x5 / 100lb
 
 `;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5, 5]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[5, 5]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`// Week description
 # Week 1
 ## Day 1
@@ -1402,21 +1411,21 @@ Squat / 2x5 / 100lb / progress: custom() {~
 Squat / 1x10 / 100lb / progress: custom() {~
   weights[1] = increment(weights[1])
 ~}`;
-    const equipment = ObjectUtils.clone(Settings.defaultEquipment());
+    const equipment = ObjectUtils_clone(Settings_defaultEquipment());
     equipment.barbell!.plates = [
-      { weight: Weight.build(10, "lb"), num: 2 },
-      { weight: Weight.build(25, "lb"), num: 2 },
-      { weight: Weight.build(45, "lb"), num: 2 },
+      { weight: Weight_build(10, "lb"), num: 2 },
+      { weight: Weight_build(25, "lb"), num: 2 },
+      { weight: Weight_build(45, "lb"), num: 2 },
     ];
     const settings: ISettings = {
-      ...Settings.build(),
+      ...Settings_build(),
       gyms: [{ vtype: "gym", id: "default", name: "Main", equipment }],
       exerciseData: {
         squat_barbell: { equipment: { default: "barbell" } },
       },
     };
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[10]] }, settings);
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[10]] }, settings);
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 1x10 / 115lb / progress: custom() {~
@@ -1433,18 +1442,18 @@ Squat / 1x10 / 115lb / progress: custom() {~
 Squat / 1x10 / 100lb / progress: custom() {~
   weights[1] = increment(105)
 ~}`;
-    const equipment = ObjectUtils.clone(Settings.defaultEquipment());
+    const equipment = ObjectUtils_clone(Settings_defaultEquipment());
     equipment.barbell!.isFixed = true;
-    equipment.barbell!.fixed = [Weight.build(45, "lb"), Weight.build(100, "lb"), Weight.build(120, "lb")];
+    equipment.barbell!.fixed = [Weight_build(45, "lb"), Weight_build(100, "lb"), Weight_build(120, "lb")];
     const settings: ISettings = {
-      ...Settings.build(),
+      ...Settings_build(),
       gyms: [{ vtype: "gym", id: "default", name: "Main", equipment }],
       exerciseData: {
         squat_barbell: { equipment: { default: "barbell" } },
       },
     };
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[10]] }, settings);
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[10]] }, settings);
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 1x10 / 120lb / progress: custom() {~
@@ -1461,8 +1470,8 @@ Squat / 1x10 / 120lb / progress: custom() {~
 Squat / 1x10 / 100lb / progress: custom() {~
   weights[1] = decrement(50%)
 ~}`;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[10]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[10]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 1x10 / 49% / progress: custom() {~
@@ -1482,26 +1491,26 @@ Squat / 1x10 / 100lb / progress: custom() {~
     const stats: IStats = {
       weight: {
         weight: [
-          { vtype: "stat", value: Weight.build(200, "lb"), timestamp: 10 },
-          { vtype: "stat", value: Weight.build(220, "lb"), timestamp: 30 },
-          { vtype: "stat", value: Weight.build(210, "lb"), timestamp: 20 },
-          { vtype: "stat", value: Weight.build(240, "lb"), timestamp: 50 },
-          { vtype: "stat", value: Weight.build(230, "lb"), timestamp: 40 },
+          { vtype: "stat", value: Weight_build(200, "lb"), timestamp: 10 },
+          { vtype: "stat", value: Weight_build(220, "lb"), timestamp: 30 },
+          { vtype: "stat", value: Weight_build(210, "lb"), timestamp: 20 },
+          { vtype: "stat", value: Weight_build(240, "lb"), timestamp: 50 },
+          { vtype: "stat", value: Weight_build(230, "lb"), timestamp: 40 },
         ],
       },
       length: {},
       percentage: {},
     };
     const settings: ISettings = {
-      ...Settings.build(),
+      ...Settings_build(),
       graphOptions: {
         weight: {
           movingAverageWindowSize: 3,
         },
       },
     };
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[10]] }, settings, stats);
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[10]] }, settings, stats);
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 1x10 / 230lb / progress: custom() {~
@@ -1522,8 +1531,8 @@ t2 / used: none / 2x5 120lb / progress: custom() { ...t1 }
 Squat / ...t2
 
 `;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5, 5]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[5, 5]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 t1 / used: none / 3x5 / 100lb / progress: custom() {~
@@ -1545,8 +1554,8 @@ Squat / 3x5 / @8 100lb / progress: custom() {~
   logrpes[2] = 1
   askweights[3] = 1
 ~}`;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[5, 5, 5]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[5, 5, 5]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 Squat / 1x5+ 100lb @8, 1x5 100lb @8+, 1x5 100lb+ @8 / progress: custom() {~
@@ -1571,8 +1580,8 @@ Squat / 1x1
 ## Day 1
 // ...Squat[1:1]
 Bench Press / 1x1`;
-      const { program } = PlannerTestUtils.finish(programText, { completedReps: [[1]] });
-      const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+      const { program } = PlannerTestUtils_finish(programText, { completedReps: [[1]] });
+      const newText = PlannerProgram_generateFullText(program.planner!.weeks);
       expect(newText).to.equal(`# Week 1
 ## Day 1
 // Description
@@ -1598,8 +1607,8 @@ Squat / 1x1
 ## Day 2
 // ...Squat
 Bench Press / 1x1`;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[1]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[1]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 // Description
@@ -1626,8 +1635,8 @@ Squat / 1x1
 ## Day 3
 // ...Squat[1:2]
 Bench Press / 1x1`;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[1]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[1]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 // Description
@@ -1658,8 +1667,8 @@ Squat / 1x1
 Squat / 1x1
 // ...Squat
 Bench Press / 1x1`;
-    const { program } = PlannerTestUtils.finish(programText, { completedReps: [[1]] });
-    const newText = PlannerProgram.generateFullText(program.planner!.weeks);
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[1]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
     expect(newText).to.equal(`# Week 1
 ## Day 1
 // Description

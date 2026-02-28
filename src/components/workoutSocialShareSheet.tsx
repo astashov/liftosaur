@@ -3,10 +3,10 @@ import { IHistoryRecord, ISettings } from "../types";
 import { Button } from "./button";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { IRect } from "../utils/types";
-import { Geometry } from "../utils/geometry";
+import { Geometry_fitRectIntoRect } from "../utils/geometry";
 import { WorkoutShareOutput } from "./workoutShareOutput";
 import { IconCamera } from "./icons/iconCamera";
-import { SendMessage } from "../utils/sendMessage";
+import { SendMessage_toIosAndAndroid, SendMessage_toIosAndAndroidWithResult } from "../utils/sendMessage";
 import { BottomSheet } from "./bottomSheet";
 import { BottomSheetItem } from "./bottomSheetItem";
 import { IconPicture } from "./icons/iconPicture";
@@ -122,7 +122,7 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
                 try {
                   const dataUrl = await ImageShareUtils.generateImageDataUrl(workoutShareRef.current);
                   setIsLoading(false);
-                  SendMessage.toIosAndAndroid({
+                  SendMessage_toIosAndAndroid({
                     type: "share",
                     target: props.type,
                     useCustomBackground: selectedFrameIndex === 1 ? "true" : "false",
@@ -171,7 +171,7 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
             isFirst={true}
             description="Take a photo"
             onClick={async () => {
-              const result = await SendMessage.toIosAndAndroidWithResult<{ data: string }>({
+              const result = await SendMessage_toIosAndAndroidWithResult<{ data: string }>({
                 type: "pickphoto",
                 source: "camera",
               });
@@ -185,7 +185,7 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
             icon={<IconPicture size={24} color="black" />}
             description="Pick photo from your photo library"
             onClick={async () => {
-              const result = await SendMessage.toIosAndAndroidWithResult<{ data: string }>({
+              const result = await SendMessage_toIosAndAndroidWithResult<{ data: string }>({
                 type: "pickphoto",
                 source: "photo-library",
               });
@@ -221,7 +221,7 @@ function WorkoutShareImage(props: IWorkoutShareImageProps): JSX.Element {
       const parent = mainRef.current?.parentElement;
       if (parent) {
         const parentRect = { x: 0, y: 0, width: parent.clientWidth, height: parent.clientHeight };
-        const newRect = Geometry.fitRectIntoRect(
+        const newRect = Geometry_fitRectIntoRect(
           { x: 0, y: 0, width: 90, height: props.type === "igfeed" ? 90 : 160 },
           parentRect
         );

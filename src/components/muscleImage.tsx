@@ -1,6 +1,6 @@
 import { JSX, h } from "preact";
 import { IMuscle } from "../types";
-import { Tailwind } from "../utils/tailwindConfig";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
 
 interface IMuscleImageProps {
   muscle: IMuscle;
@@ -9,9 +9,9 @@ interface IMuscleImageProps {
 
 export function MuscleImage(props: IMuscleImageProps): JSX.Element {
   const muscleColors = [
-    `--muscle-fill: ${Tailwind.semantic().background.default}`,
-    `--muscle-primary: ${Tailwind.semantic().icon.blue}`,
-    `--muscle-light: ${Tailwind.semantic().icon.light}`,
+    `--muscle-fill: ${Tailwind_semantic().background.default}`,
+    `--muscle-primary: ${Tailwind_semantic().icon.blue}`,
+    `--muscle-light: ${Tailwind_semantic().icon.light}`,
   ];
   const width = props.size;
   const height = Math.round((props.size / 61) * 48);

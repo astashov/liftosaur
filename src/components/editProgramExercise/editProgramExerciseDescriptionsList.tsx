@@ -3,9 +3,9 @@ import { IPlannerExerciseState, IPlannerProgramExercise } from "../../pages/plan
 import { ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IconArrowDown3 } from "../icons/iconArrowDown3";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_colors } from "../../utils/tailwindConfig";
 import { IconPlus2 } from "../icons/iconPlus2";
-import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import { EditProgramUiHelpers_changeCurrentInstanceExercise } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { useRef } from "preact/hooks";
 import { EditProgramExerciseDescription } from "./editProgramExerciseDescription";
 
@@ -30,7 +30,7 @@ export function EditProgramExerciseDescriptionsList(props: IEditProgramExerciseD
           <button
             className="p-1 border rounded-full border-border-neutral"
             onClick={() => {
-              return EditProgramUiHelpers.changeCurrentInstanceExercise(
+              return EditProgramUiHelpers_changeCurrentInstanceExercise(
                 props.plannerDispatch,
                 props.plannerExercise,
                 props.settings,
@@ -40,7 +40,7 @@ export function EditProgramExerciseDescriptionsList(props: IEditProgramExerciseD
               );
             }}
           >
-            <IconPlus2 color={Tailwind.colors().lightgray[600]} size={14} />
+            <IconPlus2 color={Tailwind_colors().lightgray[600]} size={14} />
           </button>
           {isMultiple && (
             <>
@@ -53,7 +53,7 @@ export function EditProgramExerciseDescriptionsList(props: IEditProgramExerciseD
                   });
                 }}
               >
-                <IconArrowDown3 className="rotate-90" color={Tailwind.colors().lightgray[600]} size={14} />
+                <IconArrowDown3 className="rotate-90" color={Tailwind_colors().lightgray[600]} size={14} />
               </button>
               <button
                 className="p-1 border rounded-full border-border-neutral"
@@ -64,7 +64,7 @@ export function EditProgramExerciseDescriptionsList(props: IEditProgramExerciseD
                   });
                 }}
               >
-                <IconArrowDown3 className="-rotate-90" color={Tailwind.colors().lightgray[600]} size={14} />
+                <IconArrowDown3 className="-rotate-90" color={Tailwind_colors().lightgray[600]} size={14} />
               </button>
             </>
           )}

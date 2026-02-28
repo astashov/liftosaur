@@ -7,7 +7,7 @@ import { IconCalculator } from "../../../components/icons/iconCalculator";
 import { IconCalendarSmall } from "../../../components/icons/iconCalendarSmall";
 import { IconMuscles2 } from "../../../components/icons/iconMuscles2";
 import { IconTracker } from "../../../components/icons/iconTracker";
-import { Tailwind } from "../../../utils/tailwindConfig";
+import { Tailwind_semantic, Tailwind_colors } from "../../../utils/tailwindConfig";
 
 interface IAccordionItem {
   icon: (color: string) => JSX.Element;
@@ -69,7 +69,7 @@ export function TrackProgress(): JSX.Element {
       <div className="flex justify-center w-full px-4 mb-2">
         <div className="flex items-center gap-2 text-icon-red">
           <div>
-            <IconTracker color={Tailwind.semantic().icon.red} />
+            <IconTracker color={Tailwind_semantic().icon.red} />
           </div>
           <div className="font-semibold">Powerful Tracker</div>
         </div>
@@ -87,14 +87,14 @@ export function TrackProgress(): JSX.Element {
           <div className="overflow-hidden bg-white border border-gray-200 divide-y divide-gray-200 rounded-2xl">
             {items.map((item, i) => {
               const isOpen = openIndex === i;
-              const iconColor = isOpen ? Tailwind.colors().red[500] : Tailwind.semantic().text.primary;
+              const iconColor = isOpen ? Tailwind_colors().red[500] : Tailwind_semantic().text.primary;
               return (
                 <button
                   className="block w-full px-4 text-left cursor-pointer md:px-6"
                   style={{
                     backgroundColor: isOpen
-                      ? Tailwind.semantic().background.default
-                      : Tailwind.semantic().background.subtle,
+                      ? Tailwind_semantic().background.default
+                      : Tailwind_semantic().background.subtle,
                     transition: "background-color 300ms ease",
                   }}
                   onClick={() => setOpenIndex(i)}

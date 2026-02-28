@@ -1,5 +1,4 @@
 import { JSX, h } from "preact";
-import { IAccount } from "../models/account";
 import { IPageWrapperProps, PageWrapper } from "./pageWrapper";
 
 export interface IJsonLdArticle {
@@ -55,7 +54,35 @@ export interface IJsonLdFAQ {
   questions: IJsonLdFAQEntry[];
 }
 
-export type IJsonLd = IJsonLdArticle | IJsonLdBreadcrumbs | IJsonLdSoftwareApp | IJsonLdItemList | IJsonLdFAQ;
+export interface IJsonLdHowToStep {
+  name: string;
+  text: string;
+}
+
+export interface IJsonLdHowTo {
+  type: "HowTo";
+  name: string;
+  step: IJsonLdHowToStep[];
+}
+
+export interface IJsonLdVideoObject {
+  type: "VideoObject";
+  name: string;
+  description: string;
+  thumbnailUrl: string;
+  uploadDate?: string;
+  contentUrl?: string;
+  embedUrl: string;
+}
+
+export type IJsonLd =
+  | IJsonLdArticle
+  | IJsonLdBreadcrumbs
+  | IJsonLdSoftwareApp
+  | IJsonLdItemList
+  | IJsonLdFAQ
+  | IJsonLdHowTo
+  | IJsonLdVideoObject;
 
 function jsonLdToSchema(ld: IJsonLd): object {
   const base = { "@context": "https://schema.org" as const };
@@ -120,6 +147,29 @@ function jsonLdToSchema(ld: IJsonLd): object {
           acceptedAnswer: { "@type": "Answer", text: q.answer },
         })),
       };
+    case "HowTo":
+      return {
+        ...base,
+        "@type": "HowTo",
+        name: ld.name,
+        step: ld.step.map((s, i) => ({
+          "@type": "HowToStep",
+          position: i + 1,
+          name: s.name,
+          text: s.text,
+        })),
+      };
+    case "VideoObject":
+      return {
+        ...base,
+        "@type": "VideoObject",
+        name: ld.name,
+        description: ld.description,
+        thumbnailUrl: ld.thumbnailUrl,
+        ...(ld.uploadDate ? { uploadDate: ld.uploadDate } : {}),
+        ...(ld.contentUrl ? { contentUrl: ld.contentUrl } : {}),
+        embedUrl: ld.embedUrl,
+      };
   }
 }
 
@@ -136,7 +186,7 @@ interface IProps<T> extends IPageWrapperProps {
   jsonLd?: IJsonLd[];
   data: T;
   postHead?: JSX.Element;
-  account?: IAccount;
+  isLoggedIn?: boolean;
   nowrapper?: boolean;
   redditPixel?: boolean;
 }
@@ -152,7 +202,7 @@ export function Page<T>(props: IProps<T>): JSX.Element {
     maxBodyWidth: props.maxBodyWidth,
     url: props.url,
     skipFooter: props.skipFooter,
-    account: props.account,
+    isLoggedIn: props.isLoggedIn,
     client: props.client,
   };
   return (
@@ -162,11 +212,6 @@ export function Page<T>(props: IProps<T>): JSX.Element {
         {props.css.map((c) => (
           <link rel="stylesheet" type="text/css" href={`/${c}.css?version=${commitHash}`} />
         ))}
-        <link
-          href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Poppins:ital,wght@0,300;0,400;0,600;0,700;1,300;1,600;1,700&display=swap"
-          rel="stylesheet"
-          crossOrigin="anonymous"
-        />
         <meta charSet="UTF-8" />
         <link rel="preconnect" href="https://api3.liftosaur.com" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -209,6 +254,27 @@ export function Page<T>(props: IProps<T>): JSX.Element {
         {props.jsonLd?.map((ld) => (
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdToSchema(ld)) }} />
         ))}
+        <link
+          rel="preload"
+          href="/fonts/Poppins-Regular.latin.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          href="/fonts/Poppins-SemiBold.latin.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          href="/fonts/Poppins-Bold.latin.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
         {props.postHead}
       </head>
       <body>

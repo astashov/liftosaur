@@ -1,8 +1,8 @@
 import { h, JSX } from "preact";
 import { memo } from "preact/compat";
 import { IHistoryRecord, ISettings, IStats } from "../../types";
-import { IEvaluatedProgram, Program } from "../../models/program";
-import { StringUtils } from "../../utils/string";
+import { IEvaluatedProgram, Program_getProgramDay, Program_getProgramDayUsedExercises } from "../../models/program";
+import { StringUtils_dashcase } from "../../utils/string";
 import { Markdown } from "../markdown";
 import { ProgramPreviewTabExercise } from "./programPreviewTabExercise";
 import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
@@ -22,12 +22,12 @@ interface IProgramPreviewTabDayProps {
 }
 
 export const ProgramPreviewTabDay = memo((props: IProgramPreviewTabDayProps): JSX.Element => {
-  const programDay = Program.getProgramDay(props.program, props.day)!;
+  const programDay = Program_getProgramDay(props.program, props.day)!;
   const index = props.progress.ui?.currentEntryIndex ?? 0;
-  const programExercises = programDay ? Program.getProgramDayUsedExercises(programDay) : [];
+  const programExercises = programDay ? Program_getProgramDayUsedExercises(programDay) : [];
 
   return (
-    <div data-cy={`preview-day-${StringUtils.dashcase(programDay.name)}`}>
+    <div data-cy={`preview-day-${StringUtils_dashcase(programDay.name)}`}>
       <h3 className="mx-4 mb-1 text-lg font-bold" data-cy="preview-day-name">
         {props.weekName ? `${props.weekName} - ` : ""}
         {programDay.name}

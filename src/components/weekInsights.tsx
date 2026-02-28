@@ -1,24 +1,24 @@
 import { JSX, h } from "preact";
 import { IHistoryRecord, ISettings, ISubscription } from "../types";
-import { WeekInsightsUtils } from "../utils/weekInsightsUtils";
+import { WeekInsightsUtils_calculateSetResults } from "../utils/weekInsightsUtils";
 import { IconFire } from "./icons/iconFire";
-import { Tailwind } from "../utils/tailwindConfig";
+import { Tailwind_colors } from "../utils/tailwindConfig";
 import { LinkButton } from "./linkButton";
 import { useState } from "preact/hooks";
-import { History, IPersonalRecords } from "../models/history";
-import { StringUtils } from "../utils/string";
+import { IPersonalRecords, History_getNumberOfPersonalRecords } from "../models/history";
+import { StringUtils_pluralize } from "../utils/string";
 import { ISetResults } from "../pages/planner/models/types";
 import { PlannerWeekMuscles } from "../pages/planner/components/plannerWeekMuscles";
 import { colorPctValue, PlannerSetSplit } from "../pages/planner/components/plannerStats";
-import { ObjectUtils } from "../utils/object";
+import { ObjectUtils_keys } from "../utils/object";
 import { PersonalRecords } from "./personalRecords";
-import { Subscriptions } from "../utils/subscriptions";
+import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { IconCrown } from "./icons/iconCrown";
 import { IDispatch } from "../ducks/types";
-import { Thunk } from "../ducks/thunks";
-import { DateUtils } from "../utils/date";
+import { Thunk_pushScreen } from "../ducks/thunks";
+import { DateUtils_firstDayOfWeekTimestamp, DateUtils_formatRange } from "../utils/date";
 import { Modal } from "./modal";
-import { Muscle } from "../models/muscle";
+import { Muscle_getMuscleGroupName } from "../models/muscle";
 
 interface IWeekInsightsProps {
   prs: IPersonalRecords;
@@ -34,25 +34,25 @@ interface IWeekInsightsProps {
 export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
   const [isExpanded, setIsExpanded] = useState(false);
   const isCurrentWeek =
-    DateUtils.firstDayOfWeekTimestamp(new Date(), props.settings.startWeekFromMonday) === props.selectedFirstDayOfWeek;
+    DateUtils_firstDayOfWeekTimestamp(new Date(), props.settings.startWeekFromMonday) === props.selectedFirstDayOfWeek;
 
-  const setResults = WeekInsightsUtils.calculateSetResults(props.thisWeekHistory, props.settings);
-  const lastSetResults = WeekInsightsUtils.calculateSetResults(props.lastWeekHistory, props.settings);
-  const numberOfPrs = History.getNumberOfPersonalRecords(props.thisWeekHistory, props.prs);
+  const setResults = WeekInsightsUtils_calculateSetResults(props.thisWeekHistory, props.settings);
+  const lastSetResults = WeekInsightsUtils_calculateSetResults(props.lastWeekHistory, props.settings);
+  const numberOfPrs = History_getNumberOfPersonalRecords(props.thisWeekHistory, props.prs);
   const historyRecord = props.thisWeekHistory[0];
   if (!historyRecord) {
     return <div />;
   }
 
-  if (!Subscriptions.hasSubscription(props.subscription)) {
+  if (!Subscriptions_hasSubscription(props.subscription)) {
     return (
       <section
         className="fixed left-0 z-10 w-full px-3 py-2 border top-16 border-border-cardyellow bg-background-cardyellow rounded-b-xl"
-        onClick={() => props.dispatch(Thunk.pushScreen("subscription"))}
+        onClick={() => props.dispatch(Thunk_pushScreen("subscription"))}
       >
         <div className="flex items-center h-8 gap-1" style={{ marginBottom: "3px" }}>
           <span>
-            <IconCrown className="inline-block" size={16} color={Tailwind.colors().yellow[600]} />
+            <IconCrown className="inline-block" size={16} color={Tailwind_colors().yellow[600]} />
           </span>
           <span className="text-sm font-semibold text-icon-yellow" style={{ marginTop: "3px" }}>
             See Week Insights
@@ -65,7 +65,7 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
   const startTs = props.selectedFirstDayOfWeek;
   const endRange = new Date(startTs);
   endRange.setDate(endRange.getDate() + 6);
-  const formattedRange = DateUtils.formatRange(startTs, endRange);
+  const formattedRange = DateUtils_formatRange(startTs, endRange);
 
   return (
     <section className="fixed left-0 z-10 w-full py-2 border top-16 border-border-cardyellow bg-background-cardyellow rounded-b-xl">
@@ -73,7 +73,7 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
         <div className="flex gap-4">
           <div className="flex items-center gap-1">
             <span>
-              <IconFire className="inline-block" size={16} color={Tailwind.colors().yellow[600]} />
+              <IconFire className="inline-block" size={16} color={Tailwind_colors().yellow[600]} />
             </span>
             <span className="text-sm font-semibold" style={{ marginTop: "3px" }}>
               {formattedRange}
@@ -94,14 +94,14 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
           <WeekInsightsProperty
             value={setResults.total}
             hasPadding={true}
-            unit={StringUtils.pluralize("set", setResults.total)}
+            unit={StringUtils_pluralize("set", setResults.total)}
             increment={!isCurrentWeek ? setResults.total - lastSetResults.total : undefined}
           />
           <WeekInsightsProperty
             icon={<span>🏆 </span>}
             hasPadding={true}
             value={numberOfPrs}
-            unit={StringUtils.pluralize("PR", numberOfPrs)}
+            unit={StringUtils_pluralize("PR", numberOfPrs)}
           />
         </div>
       </div>
@@ -156,7 +156,7 @@ interface IWeekInsightsDetailsProps {
 
 function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Element {
   const setResults = props.setResults;
-  const hasPersonalRecords = History.getNumberOfPersonalRecords(props.thisWeekHistory, props.prs) > 0;
+  const hasPersonalRecords = History_getNumberOfPersonalRecords(props.thisWeekHistory, props.prs) > 0;
 
   return (
     <div className="pt-2 text-sm" data-cy="week-insights-details">
@@ -167,7 +167,7 @@ function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Element {
       )}
       <div className="mb-2">
         <span className="font-semibold">
-          💪 {setResults.total} {StringUtils.pluralize("Set", setResults.total)}
+          💪 {setResults.total} {StringUtils_pluralize("Set", setResults.total)}
         </span>
       </div>
       <div>
@@ -218,10 +218,10 @@ function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Element {
       </div>
       <div className="flex items-center mt-2">
         <div className="flex-1">
-          {ObjectUtils.keys(setResults.muscleGroup).map((muscleGroup) => {
+          {ObjectUtils_keys(setResults.muscleGroup).map((muscleGroup) => {
             return (
               <div>
-                <span className="text-text-secondary">{Muscle.getMuscleGroupName(muscleGroup, props.settings)}:</span>{" "}
+                <span className="text-text-secondary">{Muscle_getMuscleGroupName(muscleGroup, props.settings)}:</span>{" "}
                 <PlannerSetSplit
                   split={setResults.muscleGroup[muscleGroup]}
                   settings={props.settings}

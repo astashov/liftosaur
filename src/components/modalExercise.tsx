@@ -1,7 +1,7 @@
 import { h, JSX, Fragment } from "preact";
 import { Ref, useRef, useState } from "preact/hooks";
 import { Modal } from "./modal";
-import { StringUtils } from "../utils/string";
+import { StringUtils_capitalize, StringUtils_dashcase } from "../utils/string";
 import {
   ICustomExercise,
   IEquipment,
@@ -15,17 +15,39 @@ import {
 import { GroupHeader } from "./groupHeader";
 import { forwardRef } from "preact/compat";
 import { Button } from "./button";
-import { ObjectUtils } from "../utils/object";
-import { HtmlUtils } from "../utils/html";
+import { ObjectUtils_keys } from "../utils/object";
+import { HtmlUtils_classInParents } from "../utils/html";
 import { LabelAndInput } from "./labelAndInput";
 import { Multiselect } from "./multiselect";
-import { equipmentName, Exercise, IExercise } from "../models/exercise";
+import {
+  equipmentName,
+  IExercise,
+  Exercise_allExpanded,
+  Exercise_filterExercises,
+  Exercise_filterCustomExercises,
+  Exercise_filterExercisesByType,
+  Exercise_filterCustomExercisesByType,
+  Exercise_sortExercises,
+  Exercise_get,
+  Exercise_toKey,
+  Exercise_toExternalUrl,
+  Exercise_getNotes,
+  Exercise_createCustomExercise,
+  Exercise_targetMusclesGroups,
+  Exercise_synergistMusclesGroups,
+  Exercise_targetMuscles,
+  Exercise_synergistMuscles,
+} from "../models/exercise";
 import { LinkButton } from "./linkButton";
 import { IconTrash } from "./icons/iconTrash";
 import { ExerciseImage } from "./exerciseImage";
 import { IconEditSquare } from "./icons/iconEditSquare";
-import { Muscle } from "../models/muscle";
-import { CollectionUtils } from "../utils/collection";
+import {
+  Muscle_getAvailableMuscleGroups,
+  Muscle_getMuscleGroupName,
+  Muscle_getScreenMusclesFromMuscle,
+} from "../models/muscle";
+import { CollectionUtils_flat } from "../utils/collection";
 import { ScrollableTabs } from "./scrollableTabs";
 import { IconExternalLink } from "./icons/iconExternalLink";
 import { Input, IValidationError } from "./input";
@@ -193,26 +215,26 @@ interface IExercisesListProps {
 const ExercisesList = forwardRef((props: IExercisesListProps): JSX.Element => {
   const { textInput, setFilter, filter } = props;
 
-  let exercises = Exercise.allExpanded({});
+  let exercises = Exercise_allExpanded({});
   let customExercises = props.settings.exercises;
   const filterOptions = [
     ...equipments.map((e) => equipmentName(e)),
-    ...exerciseKinds.map(StringUtils.capitalize),
-    ...Muscle.getAvailableMuscleGroups(props.settings).map((mg) => Muscle.getMuscleGroupName(mg, props.settings)),
+    ...exerciseKinds.map(StringUtils_capitalize),
+    ...Muscle_getAvailableMuscleGroups(props.settings).map((mg) => Muscle_getMuscleGroupName(mg, props.settings)),
   ];
   const initialFilterOptions = (props.initialFilterTypes || []).filter((ft) => filterOptions.indexOf(ft) !== -1);
   const [filterTypes, setFilterTypes] = useState<string[]>(initialFilterOptions);
   if (filter) {
-    exercises = Exercise.filterExercises(exercises, filter);
-    customExercises = Exercise.filterCustomExercises(customExercises, filter);
+    exercises = Exercise_filterExercises(exercises, filter);
+    customExercises = Exercise_filterCustomExercises(customExercises, filter);
   }
   if (filterTypes && filterTypes.length > 0) {
-    exercises = Exercise.filterExercisesByType(exercises, filterTypes, props.settings);
-    customExercises = Exercise.filterCustomExercisesByType(filterTypes, props.settings);
+    exercises = Exercise_filterExercisesByType(exercises, filterTypes, props.settings);
+    customExercises = Exercise_filterCustomExercisesByType(filterTypes, props.settings);
   }
 
-  exercises = Exercise.sortExercises(exercises, props.isSubstitute, props.settings, filterTypes, props.exerciseType);
-  const exercise = props.exerciseType ? Exercise.get(props.exerciseType, props.settings.exercises) : undefined;
+  exercises = Exercise_sortExercises(exercises, props.isSubstitute, props.settings, filterTypes, props.exerciseType);
+  const exercise = props.exerciseType ? Exercise_get(props.exerciseType, props.settings.exercises) : undefined;
 
   return (
     <form data-cy="modal-exercise" onSubmit={(e) => e.preventDefault()}>
@@ -254,17 +276,17 @@ const ExercisesList = forwardRef((props: IExercisesListProps): JSX.Element => {
       {!props.isSubstitute && (
         <>
           <GroupHeader name="Custom exercises" />
-          {ObjectUtils.keys(customExercises)
+          {ObjectUtils_keys(customExercises)
             .filter((id) => !customExercises[id]?.isDeleted)
             .map((id) => {
               const e = customExercises[id]!;
               return (
                 <section
                   key={customExercises.id}
-                  data-cy={`menu-item-${StringUtils.dashcase(e.name)}`}
+                  data-cy={`menu-item-${StringUtils_dashcase(e.name)}`}
                   className="w-full px-2 py-1 text-left border-b border-gray-200"
                   onClick={(event) => {
-                    if (!HtmlUtils.classInParents(event.target as Element, "button")) {
+                    if (!HtmlUtils_classInParents(event.target as Element, "button")) {
                       const labelValue = props.labelRef?.current?.validationMessage
                         ? undefined
                         : props.labelRef?.current?.value;
@@ -282,8 +304,8 @@ const ExercisesList = forwardRef((props: IExercisesListProps): JSX.Element => {
                     </div>
                     <div>
                       <button
-                        className={`px-3 py-4 button nm-edit-custom-exercise-${StringUtils.dashcase(e.name)}`}
-                        data-cy={`custom-exercise-edit-${StringUtils.dashcase(e.name)}`}
+                        className={`px-3 py-4 button nm-edit-custom-exercise-${StringUtils_dashcase(e.name)}`}
+                        data-cy={`custom-exercise-edit-${StringUtils_dashcase(e.name)}`}
                         onClick={(event) => {
                           event.preventDefault();
                           props.setEditingExercise(e);
@@ -293,8 +315,8 @@ const ExercisesList = forwardRef((props: IExercisesListProps): JSX.Element => {
                         <IconEditSquare />
                       </button>
                       <button
-                        className={`px-1 py-4 button nm-delete-custom-exercise-${StringUtils.dashcase(e.name)}`}
-                        data-cy={`custom-exercise-delete-${StringUtils.dashcase(e.name)}`}
+                        className={`px-1 py-4 button nm-delete-custom-exercise-${StringUtils_dashcase(e.name)}`}
+                        data-cy={`custom-exercise-delete-${StringUtils_dashcase(e.name)}`}
                         onClick={(event) => {
                           event.preventDefault();
                           if (confirm(`Are you sure you want to delete ${e.name}?`)) {
@@ -328,9 +350,9 @@ const ExercisesList = forwardRef((props: IExercisesListProps): JSX.Element => {
       {exercises.map((e) => {
         return (
           <section
-            key={Exercise.toKey(e)}
-            data-cy={`menu-item-${StringUtils.dashcase(e.name)}${
-              e.equipment ? `-${StringUtils.dashcase(e.equipment)}` : ""
+            key={Exercise_toKey(e)}
+            data-cy={`menu-item-${StringUtils_dashcase(e.name)}${
+              e.equipment ? `-${StringUtils_dashcase(e.equipment)}` : ""
             }`}
             className="w-full px-2 py-1 text-left border-b border-gray-200"
             onClick={() => {
@@ -387,7 +409,7 @@ export function ExerciseItem(props: IExerciseItemProps): JSX.Element {
       {props.shouldAddExternalLinks && (
         <div className="pl-1">
           <div className="flex items-center">
-            <a className="p-2" href={Exercise.toExternalUrl(e)} target="_blank">
+            <a className="p-2" href={Exercise_toExternalUrl(e)} target="_blank">
               <IconExternalLink />
             </a>
           </div>
@@ -418,10 +440,10 @@ interface IEditCustomExerciseProps {
 
 function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
   const [notes, setNotes] = useState<string | undefined>(
-    props.exercise ? Exercise.getNotes(props.exercise, props.settings) : undefined
+    props.exercise ? Exercise_getNotes(props.exercise, props.settings) : undefined
   );
   const [state, dispatch] = useLensReducer(
-    props.exercise ?? Exercise.createCustomExercise(props.customExerciseName ?? "", [], [], []),
+    props.exercise ?? Exercise_createCustomExercise(props.customExerciseName ?? "", [], [], []),
     {},
     []
   );
@@ -489,14 +511,14 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
 
 export function MuscleGroupsView(props: { exercise: IExercise; settings: ISettings }): JSX.Element {
   const { exercise, settings } = props;
-  const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings).map((m) =>
-    Muscle.getMuscleGroupName(m, settings)
+  const targetMuscleGroups = Exercise_targetMusclesGroups(exercise, settings).map((m) =>
+    Muscle_getMuscleGroupName(m, settings)
   );
-  const synergistMuscleGroups = Exercise.synergistMusclesGroups(exercise, settings)
-    .map((m) => Muscle.getMuscleGroupName(m, settings))
+  const synergistMuscleGroups = Exercise_synergistMusclesGroups(exercise, settings)
+    .map((m) => Muscle_getMuscleGroupName(m, settings))
     .filter((m) => targetMuscleGroups.indexOf(m) === -1);
 
-  const types = exercise.types.map((t) => StringUtils.capitalize(t));
+  const types = exercise.types.map((t) => StringUtils_capitalize(t));
 
   return (
     <div className="text-xs">
@@ -528,12 +550,12 @@ function MuscleView(props: {
   settings: ISettings;
 }): JSX.Element {
   const { exercise, settings } = props;
-  const tms = props.currentExerciseType ? Exercise.targetMuscles(props.currentExerciseType, settings) : [];
-  const sms = props.currentExerciseType ? Exercise.synergistMuscles(props.currentExerciseType, settings) : [];
-  const targetMuscles = Exercise.targetMuscles(exercise, settings);
-  const synergistMuscles = Exercise.synergistMuscles(exercise, settings).filter((m) => targetMuscles.indexOf(m) === -1);
+  const tms = props.currentExerciseType ? Exercise_targetMuscles(props.currentExerciseType, settings) : [];
+  const sms = props.currentExerciseType ? Exercise_synergistMuscles(props.currentExerciseType, settings) : [];
+  const targetMuscles = Exercise_targetMuscles(exercise, settings);
+  const synergistMuscles = Exercise_synergistMuscles(exercise, settings).filter((m) => targetMuscles.indexOf(m) === -1);
 
-  const types = exercise.types.map((t) => StringUtils.capitalize(t));
+  const types = exercise.types.map((t) => StringUtils_capitalize(t));
 
   return (
     <div className="text-xs">
@@ -589,19 +611,19 @@ export function CustomMuscleGroupsView(props: { exercise: ICustomExercise; setti
   const { exercise } = props;
   const targetMuscleGroups = Array.from(
     new Set(
-      CollectionUtils.flat(exercise.meta.targetMuscles.map((m) => Muscle.getScreenMusclesFromMuscle(m, props.settings)))
+      CollectionUtils_flat(exercise.meta.targetMuscles.map((m) => Muscle_getScreenMusclesFromMuscle(m, props.settings)))
     )
-  ).map((m) => StringUtils.capitalize(m));
+  ).map((m) => StringUtils_capitalize(m));
   const synergistMuscleGroups = Array.from(
     new Set(
-      CollectionUtils.flat(
-        exercise.meta.synergistMuscles.map((m) => Muscle.getScreenMusclesFromMuscle(m, props.settings))
+      CollectionUtils_flat(
+        exercise.meta.synergistMuscles.map((m) => Muscle_getScreenMusclesFromMuscle(m, props.settings))
       )
     )
   )
-    .map((m) => StringUtils.capitalize(m))
+    .map((m) => StringUtils_capitalize(m))
     .filter((m) => targetMuscleGroups.indexOf(m) === -1);
-  const types = (exercise.types || []).map((t) => StringUtils.capitalize(t));
+  const types = (exercise.types || []).map((t) => StringUtils_capitalize(t));
 
   return (
     <div className="text-xs">

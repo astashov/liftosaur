@@ -1,6 +1,6 @@
-import { UidFactory } from "../../src/utils/generator";
-import { StringUtils } from "../../src/utils/string";
-import { Utils } from "../utils";
+import { UidFactory_generateUid } from "../../src/utils/generator";
+import { StringUtils_hashString } from "../../src/utils/string";
+import { Utils_getEnv } from "../utils";
 import { IDI } from "../utils/di";
 
 const tableNames = {
@@ -22,20 +22,20 @@ export class UrlDao {
   constructor(private readonly di: IDI) {}
 
   public async get(id: string): Promise<string | undefined> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     const result = await this.di.dynamo.get<IUrlDao>({ tableName: tableNames[env].urls, key: { id } });
     return result?.url;
   }
 
   public async put(url: string, userId?: string): Promise<string> {
-    const env = Utils.getEnv();
-    let id = StringUtils.hashString(url);
+    const env = Utils_getEnv();
+    let id = StringUtils_hashString(url);
     let item = await this.di.dynamo.get<IUrlDao>({ tableName: tableNames[env].urls, key: { id } });
     if (item?.url === url) {
       return id;
     } else if (item != null) {
       do {
-        id = UidFactory.generateUid(8);
+        id = UidFactory_generateUid(8);
         item = await this.di.dynamo.get<IUrlDao>({ tableName: tableNames[env].urls, key: { id } });
       } while (item != null);
     }

@@ -1,5 +1,5 @@
 import { h } from "preact";
-import { HydrateUtils } from "./utils/hydrate";
+import { HydrateUtils_hydratePage } from "./utils/hydrate";
 import { AiPromptContent } from "./pages/ai/aiPromptContent";
 import { PageWrapper } from "./components/pageWrapper";
 
@@ -8,7 +8,7 @@ interface IAiPromptContentProps {
 }
 
 function main(): void {
-  HydrateUtils.hydratePage<IAiPromptContentProps>((pageWrapperProps, data) => (
+  HydrateUtils_hydratePage<IAiPromptContentProps>((pageWrapperProps, data) => (
     <PageWrapper {...pageWrapperProps}>
       <AiPromptContent {...data} client={window.fetch.bind(window)} />
     </PageWrapper>

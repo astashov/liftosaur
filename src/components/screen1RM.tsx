@@ -4,13 +4,13 @@ import { IExerciseType, IProgram, ISettings } from "../types";
 import { INavCommon } from "../models/state";
 import { NavbarView } from "./navbar";
 import { Surface } from "./surface";
-import { Thunk } from "../ducks/thunks";
-import { Settings } from "../models/settings";
-import { Exercise } from "../models/exercise";
+import { Thunk_pushScreen } from "../ducks/thunks";
+import { Settings_getExercisesWithUnset1RMs, Settings_setOneRM } from "../models/settings";
+import { Exercise_get, Exercise_onerm, Exercise_nameWithEquipment } from "../models/exercise";
 import { ExerciseImage } from "./exerciseImage";
 import { InputWeight2 } from "./inputWeight2";
 import { Button } from "./button";
-import { Weight } from "../models/weight";
+import { Weight_isPct } from "../models/weight";
 import { useState } from "preact/hooks";
 
 interface IScreen1RMProps {
@@ -21,7 +21,7 @@ interface IScreen1RMProps {
 }
 
 export function Screen1RM(props: IScreen1RMProps): JSX.Element {
-  const [exerciseTypes] = useState<IExerciseType[]>(Settings.getExercisesWithUnset1RMs(props.program, props.settings));
+  const [exerciseTypes] = useState<IExerciseType[]>(Settings_getExercisesWithUnset1RMs(props.program, props.settings));
 
   return (
     <Surface
@@ -29,7 +29,7 @@ export function Screen1RM(props: IScreen1RMProps): JSX.Element {
       footer={
         <Footer
           onContinue={() => {
-            props.dispatch(Thunk.pushScreen("main", undefined, true));
+            props.dispatch(Thunk_pushScreen("main", undefined, true));
           }}
         />
       }
@@ -60,8 +60,8 @@ export function Screen1RM(props: IScreen1RMProps): JSX.Element {
           </div>
           <div className="table-row-group">
             {exerciseTypes.map((exerciseType) => {
-              const exercise = Exercise.get(exerciseType, props.settings.exercises);
-              const onerm = Exercise.onerm(exerciseType, props.settings);
+              const exercise = Exercise_get(exerciseType, props.settings.exercises);
+              const onerm = Exercise_onerm(exerciseType, props.settings);
               return (
                 <div className="table-row">
                   <div className="table-cell py-1 pl-4 align-middle border-b border-background-subtle">
@@ -76,7 +76,7 @@ export function Screen1RM(props: IScreen1RMProps): JSX.Element {
                       </div>
                       <div className="flex-1">
                         <span className="text-base font-semibold">
-                          {Exercise.nameWithEquipment(exercise, props.settings)}
+                          {Exercise_nameWithEquipment(exercise, props.settings)}
                         </span>
                       </div>
                     </div>
@@ -90,13 +90,13 @@ export function Screen1RM(props: IScreen1RMProps): JSX.Element {
                         data-cy="onerm-weight"
                         units={["lb", "kg"] as const}
                         onInput={(v) => {
-                          if (v != null && !Weight.isPct(v)) {
-                            Settings.setOneRM(props.dispatch, exerciseType, v, props.settings);
+                          if (v != null && !Weight_isPct(v)) {
+                            Settings_setOneRM(props.dispatch, exerciseType, v, props.settings);
                           }
                         }}
                         onBlur={(v) => {
-                          if (v != null && !Weight.isPct(v)) {
-                            Settings.setOneRM(props.dispatch, exerciseType, v, props.settings);
+                          if (v != null && !Weight_isPct(v)) {
+                            Settings_setOneRM(props.dispatch, exerciseType, v, props.settings);
                           }
                         }}
                         showUnitInside={true}

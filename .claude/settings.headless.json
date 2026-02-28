@@ -4,6 +4,7 @@
       "Bash(*)",
       "Task",
       "WebSearch",
+      "WebFetch(*)",
       "Edit(**)",
       "Write(**)"
     ],

@@ -5,9 +5,9 @@ import { Service } from "../../api/service";
 import { Button } from "../../components/button";
 import { IconPreview } from "../../components/icons/iconPreview";
 import { Modal } from "../../components/modal";
-import { Exercise } from "../../models/exercise";
+import { Exercise_findByName } from "../../models/exercise";
 import { IPlannerProgram, ISettings } from "../../types";
-import { CollectionUtils } from "../../utils/collection";
+import { CollectionUtils_findIndexReverse } from "../../utils/collection";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { PlannerDayStats } from "./components/plannerDayStats";
 import { PlannerEditorCustomCta } from "./components/plannerEditorCustomCta";
@@ -15,7 +15,11 @@ import { PlannerEditorView } from "./components/plannerEditorView";
 import { PlannerExerciseStats } from "./components/plannerExerciseStats";
 import { PlannerExerciseStatsFull } from "./components/plannerExerciseStatsFull";
 import { PlannerWeekStats } from "./components/plannerWeekStats";
-import { PlannerProgram } from "./models/plannerProgram";
+import {
+  PlannerProgram_evaluateText,
+  PlannerProgram_evaluateFull,
+  PlannerProgram_fullToWeekEvalResult,
+} from "./models/plannerProgram";
 import { IPlannerFullText, IPlannerState, IPlannerUiFocusedExercise } from "./models/types";
 import { IconGraphsE } from "../../components/icons/iconGraphsE";
 import { IconMusclesD } from "../../components/icons/iconMusclesD";
@@ -44,7 +48,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
             if (text == null) {
               return oldWeeks;
             }
-            return PlannerProgram.evaluateText(text);
+            return PlannerProgram_evaluateText(text);
           }),
         lb<IPlannerState>().p("fulltext").record(undefined),
       ],
@@ -62,21 +66,21 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
   const [showExerciseStats, setShowExerciseStats] = useState(false);
 
   const { evaluatedWeeks, exerciseFullNames } = useMemo(() => {
-    return PlannerProgram.evaluateFull(props.fullText.text, props.settings);
+    return PlannerProgram_evaluateFull(props.fullText.text, props.settings);
   }, [props.fullText.text, props.settings.exercises]);
 
   const weekIndex =
     evaluatedWeeks.success && currentLine != null
-      ? CollectionUtils.findIndexReverse(evaluatedWeeks.data, (w) => w.line <= currentLine)
+      ? CollectionUtils_findIndexReverse(evaluatedWeeks.data, (w) => w.line <= currentLine)
       : -1;
   const dayIndex =
     weekIndex !== -1 && evaluatedWeeks.success && currentLine != null
-      ? CollectionUtils.findIndexReverse(evaluatedWeeks.data[weekIndex].days, (d) => d.line <= currentLine)
+      ? CollectionUtils_findIndexReverse(evaluatedWeeks.data[weekIndex].days, (d) => d.line <= currentLine)
       : -1;
 
   const exerciseIndex =
     dayIndex !== -1 && evaluatedWeeks.success && currentLine != null
-      ? CollectionUtils.findIndexReverse(
+      ? CollectionUtils_findIndexReverse(
           evaluatedWeeks.data[weekIndex].days[dayIndex].exercises,
           (d) => d.line <= currentLine
         )
@@ -91,13 +95,13 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
         }
       : undefined;
 
-  const evalResults = PlannerProgram.fullToWeekEvalResult(evaluatedWeeks);
+  const evalResults = PlannerProgram_fullToWeekEvalResult(evaluatedWeeks);
 
   if (evaluatedWeeks.success) {
     for (const week of evaluatedWeeks.data) {
       for (const day of week.days) {
         for (const plannerExercise of day.exercises) {
-          const exercise = Exercise.findByName(plannerExercise.name, {});
+          const exercise = Exercise_findByName(plannerExercise.name, {});
           if (exercise) {
             exercise.equipment = plannerExercise.equipment || exercise.defaultEquipment;
           }

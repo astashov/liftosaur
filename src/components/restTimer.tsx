@@ -1,13 +1,13 @@
 import { h, JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { TimeUtils } from "../utils/time";
+import { TimeUtils_formatMMSS } from "../utils/time";
 import { IDispatch } from "../ducks/types";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_playAudioNotification, Thunk_updateTimer } from "../ducks/thunks";
 import { IconTrash } from "./icons/iconTrash";
 import { IconBack } from "./icons/iconBack";
 import { IHistoryRecord, ISettings, ISubscription } from "../types";
-import { Reps } from "../models/set";
-import { SendMessage } from "../utils/sendMessage";
+import { Reps_findNextEntryAndSetIndex } from "../models/set";
+import { SendMessage_print } from "../utils/sendMessage";
 
 interface IProps {
   progress: IHistoryRecord;
@@ -46,10 +46,10 @@ export function RestTimer(props: IProps): JSX.Element | null {
         !sentNotification.current
       ) {
         if (!progress.ui?.nativeNotificationScheduled) {
-          SendMessage.print(`Main app: Playing web app notification`);
-          props.dispatch(Thunk.playAudioNotification());
+          SendMessage_print(`Main app: Playing web app notification`);
+          props.dispatch(Thunk_playAudioNotification());
         } else {
-          SendMessage.print(`Main app: Not playing web app notification`);
+          SendMessage_print(`Main app: Not playing web app notification`);
         }
         sentNotification.current = true;
       } else if (timer != null && timeDifference > timerMs + maxNotificationWindowMs) {
@@ -75,7 +75,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
     const totalColor = isTimeOut ? "text-white" : "text-gray-300";
     const nextEntryAndSetIndex =
       progress.timerEntryIndex != null && progress.timerMode != null
-        ? Reps.findNextEntryAndSetIndex(progress, progress.timerEntryIndex, progress.timerMode)
+        ? Reps_findNextEntryAndSetIndex(progress, progress.timerEntryIndex, progress.timerMode)
         : undefined;
     return isExpanded ? (
       <div className="fixed z-30 safe-area-inset-bottom " style={{ left: "1rem", right: "1rem", bottom: "5rem" }}>
@@ -89,7 +89,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
             style={{ minHeight: "2.5rem", userSelect: "none", touchAction: "manipulation" }}
             onClick={() =>
               props.dispatch(
-                Thunk.updateTimer(timer - 15, nextEntryAndSetIndex?.entryIndex, nextEntryAndSetIndex?.setIndex, false)
+                Thunk_updateTimer(timer - 15, nextEntryAndSetIndex?.entryIndex, nextEntryAndSetIndex?.setIndex, false)
               )
             }
           >
@@ -111,10 +111,10 @@ export function RestTimer(props: IProps): JSX.Element | null {
             onClick={() => setIsExpanded(false)}
           >
             <span data-cy="rest-timer-current" className="font-bold text-text-alwayswhite">
-              {TimeUtils.formatMMSS(timeDifference)}
+              {TimeUtils_formatMMSS(timeDifference)}
             </span>
             <span data-cy="rest-timer-total" className={`block text-xs ${totalColor}`}>
-              {TimeUtils.formatMMSS(timer * 1000)}
+              {TimeUtils_formatMMSS(timer * 1000)}
             </span>
           </button>
           <button
@@ -132,7 +132,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
             style={{ minHeight: "2.5rem", userSelect: "none", touchAction: "manipulation" }}
             onClick={() =>
               props.dispatch(
-                Thunk.updateTimer(timer + 15, nextEntryAndSetIndex?.entryIndex, nextEntryAndSetIndex?.setIndex, false)
+                Thunk_updateTimer(timer + 15, nextEntryAndSetIndex?.entryIndex, nextEntryAndSetIndex?.setIndex, false)
               )
             }
           >
@@ -150,10 +150,10 @@ export function RestTimer(props: IProps): JSX.Element | null {
           style={{ boxShadow: "0px 0px 8px rgb(0 0 0 / 25%);" }}
         >
           <span data-cy="rest-timer-current" className="font-bold text-text-alwayswhite ">
-            {TimeUtils.formatMMSS(timeDifference)}
+            {TimeUtils_formatMMSS(timeDifference)}
           </span>
           <span data-cy="rest-timer-total" className={`block text-xs ${totalColor}`}>
-            {TimeUtils.formatMMSS(timer * 1000)}
+            {TimeUtils_formatMMSS(timer * 1000)}
           </span>
         </button>
       </div>

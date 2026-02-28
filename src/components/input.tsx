@@ -1,7 +1,7 @@
 import { h, JSX, Ref } from "preact";
 import { forwardRef, useState, useCallback } from "preact/compat";
-import { UidFactory } from "../utils/generator";
-import { StringUtils } from "../utils/string";
+import { UidFactory_generateUid } from "../utils/generator";
+import { StringUtils_dashcase } from "../utils/string";
 import { IEither } from "../utils/types";
 
 export const inputClassName =
@@ -44,7 +44,7 @@ export function selectInputOnFocus(e: Event): boolean | undefined {
 export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement> | Ref<HTMLTextAreaElement>): JSX.Element => {
   const { inputSize, label, changeHandler, errorMessage, patternMessage, ...otherProps } = props;
   const changeType = props.changeType || "onblur";
-  const identifier = props.identifier || StringUtils.dashcase((label || UidFactory.generateUid(8))?.toLowerCase());
+  const identifier = props.identifier || StringUtils_dashcase((label || UidFactory_generateUid(8))?.toLowerCase());
   const [validationErrors, setValidationErrors] = useState<Set<IValidationError>>(new Set());
   const size = inputSize || "md";
 

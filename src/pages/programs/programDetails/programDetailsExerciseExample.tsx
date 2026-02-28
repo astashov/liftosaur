@@ -4,32 +4,39 @@ import { ExerciseImage } from "../../../components/exerciseImage";
 import { HistoryRecordSetsView } from "../../../components/historyRecordSets";
 import { Input } from "../../../components/input";
 import { Scroller } from "../../../components/scroller";
-import { equipmentName, Exercise } from "../../../models/exercise";
-import { IEvaluatedProgram, Program } from "../../../models/program";
+import {
+  equipmentName,
+  Exercise_get,
+  Exercise_onerm,
+  Exercise_toKey,
+  Exercise_getIsUnilateral,
+} from "../../../models/exercise";
+import { IEvaluatedProgram, Program_getProgramDayExercises, Program_nextHistoryEntry } from "../../../models/program";
 import { IExerciseType, IHistoryEntry, ISettings, IWeight } from "../../../types";
 import { ProgramDetailsExerciseExampleGraph } from "./programDetailsExerciseExampleGraph";
-import { Weight } from "../../../models/weight";
-import { PP } from "../../../models/pp";
-import { CollectionUtils } from "../../../utils/collection";
-import { PlannerProgramExercise } from "../../planner/models/plannerProgramExercise";
-import { Stats } from "../../../models/stats";
-import { Progress } from "../../../models/progress";
-import { UidFactory } from "../../../utils/generator";
+import { Weight_build } from "../../../models/weight";
+import { PP_iterate2 } from "../../../models/pp";
+import { CollectionUtils_compact, CollectionUtils_findBy } from "../../../utils/collection";
+import { PlannerProgramExercise_toUsed } from "../../planner/models/plannerProgramExercise";
+import { Stats_getEmpty } from "../../../models/stats";
+import { Progress_getEntryId } from "../../../models/progress";
+import { UidFactory_generateUid } from "../../../utils/generator";
 
 export interface IProgramDetailsExerciseExampleProps {
   settings: ISettings;
   program: IEvaluatedProgram;
   exerciseType: IExerciseType;
   programExerciseKey: string;
-  weekSetup?: { name?: string }[];
+  weekSetup?: { name?: string; weekIndex?: number }[];
+  defaultOnerm?: number;
 }
 
 export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExampleProps): JSX.Element {
   const exerciseType = props.exerciseType;
-  const exercise = Exercise.get(exerciseType, props.settings.exercises);
+  const exercise = Exercise_get(exerciseType, props.settings.exercises);
   let dayInWeek: number | undefined;
-  const weekSetup = props.weekSetup || props.program.weeks.map((w) => ({ name: w.name }));
-  PP.iterate2(props.program.weeks, (ex, weekIndex, dayInWeekIndex, dayIndex) => {
+  const weekSetup = props.weekSetup || props.program.weeks.map((w, i) => ({ name: w.name, weekIndex: i }));
+  PP_iterate2(props.program.weeks, (ex, weekIndex, dayInWeekIndex, dayIndex) => {
     if (ex.key === props.programExerciseKey) {
       dayInWeek = dayInWeekIndex + 1;
       return true;
@@ -38,42 +45,46 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
   });
   dayInWeek = dayInWeek ?? 1;
 
-  const [onerm, setOnerm] = useState<IWeight>(Exercise.onerm(props.exerciseType, props.settings));
+  const defaultOnerm = props.defaultOnerm
+    ? Weight_build(props.defaultOnerm, props.settings.units)
+    : Exercise_onerm(props.exerciseType, props.settings);
+  const [onerm, setOnerm] = useState<IWeight>(defaultOnerm);
   const settings = {
     ...props.settings,
-    exerciseData: { ...props.settings.exerciseData, [Exercise.toKey(props.exerciseType)]: { rm1: onerm } },
+    exerciseData: { ...props.settings.exerciseData, [Exercise_toKey(props.exerciseType)]: { rm1: onerm } },
   };
-  const weekEntries = CollectionUtils.compact(
-    weekSetup.map((w, weekIndex) => {
+  const weekEntries = CollectionUtils_compact(
+    weekSetup.map((w, i) => {
+      const weekIndex = w.weekIndex ?? i;
       const week = props.program.weeks[weekIndex];
       const programDay = week.days[(dayInWeek ?? 1) - 1];
-      const dayExercises = Program.getProgramDayExercises(programDay);
-      const programExercise = PlannerProgramExercise.toUsed(
-        CollectionUtils.findBy(dayExercises, "key", props.programExerciseKey)
+      const dayExercises = Program_getProgramDayExercises(programDay);
+      const programExercise = PlannerProgramExercise_toUsed(
+        CollectionUtils_findBy(dayExercises, "key", props.programExerciseKey)
       );
       const entry: IHistoryEntry = programExercise
-        ? Program.nextHistoryEntry(
+        ? Program_nextHistoryEntry(
             props.program,
             programDay.dayData,
             weekIndex,
             programExercise,
-            Stats.getEmpty(),
+            Stats_getEmpty(),
             settings
           )
         : {
             vtype: "history_entry",
-            id: Progress.getEntryId(exerciseType, programExercise),
+            id: Progress_getEntryId(exerciseType, programExercise),
             exercise: exerciseType,
             index: weekIndex,
             warmupSets: [],
             sets: [
               {
-                id: UidFactory.generateUid(6),
+                id: UidFactory_generateUid(6),
                 vtype: "set",
                 index: 0,
-                isUnilateral: Exercise.getIsUnilateral(exerciseType, settings),
-                originalWeight: Weight.build(0, settings.units),
-                weight: Weight.build(0, settings.units),
+                isUnilateral: Exercise_getIsUnilateral(exerciseType, settings),
+                originalWeight: Weight_build(0, settings.units),
+                weight: Weight_build(0, settings.units),
                 reps: 0,
               },
             ],
@@ -94,7 +105,7 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
               if (r.success) {
                 const value = parseFloat(r.data);
                 if (!isNaN(value)) {
-                  setOnerm(Weight.build(value, props.settings.units));
+                  setOnerm(Weight_build(value, props.settings.units));
                 }
               }
             }}

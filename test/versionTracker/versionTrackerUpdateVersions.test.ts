@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "mocha";
 import { expect } from "chai";
-import { Storage } from "../../src/models/storage";
-import { Settings } from "../../src/models/settings";
+import { Storage_getDefault } from "../../src/models/storage";
+import { Settings_build } from "../../src/models/settings";
 import { VersionTracker, IVersions, ICollectionVersions } from "../../src/models/versionTracker";
-import { Weight } from "../../src/models/weight";
+import { Weight_build } from "../../src/models/weight";
 import {
   STORAGE_VERSION_TYPES,
   IStorage,
@@ -15,13 +15,13 @@ import {
   IGym,
   IEquipmentData,
 } from "../../src/types";
-import { ObjectUtils } from "../../src/utils/object";
+import { ObjectUtils_clone } from "../../src/utils/object";
 
 describe("updateVersions", () => {
   const versionTracker = new VersionTracker(STORAGE_VERSION_TYPES);
 
   it("should track version for primitive field changes", () => {
-    const oldStorage = Storage.getDefault();
+    const oldStorage = Storage_getDefault();
     const newStorage = { ...oldStorage, currentProgramId: "program-123" };
     const timestamp = 1000;
 
@@ -31,7 +31,7 @@ describe("updateVersions", () => {
   });
 
   it("should not track version when field hasn't changed", () => {
-    const storage = Storage.getDefault();
+    const storage = Storage_getDefault();
     const timestamp = 1000;
 
     const versions = versionTracker.updateVersions(storage, storage, {}, {}, timestamp);
@@ -40,7 +40,7 @@ describe("updateVersions", () => {
   });
 
   it("should track version for newly added fields", () => {
-    const oldStorage = Storage.getDefault();
+    const oldStorage = Storage_getDefault();
     const newStorage = { ...oldStorage, email: "test@example.com" };
     oldStorage.email = undefined;
     const timestamp = 1000;
@@ -51,7 +51,7 @@ describe("updateVersions", () => {
   });
 
   it("should track versions for nested object changes", () => {
-    const oldStorage = Storage.getDefault();
+    const oldStorage = Storage_getDefault();
     const newStorage = {
       ...oldStorage,
       settings: {
@@ -67,7 +67,7 @@ describe("updateVersions", () => {
   });
 
   it("should preserve existing versions", () => {
-    const oldStorage = Storage.getDefault();
+    const oldStorage = Storage_getDefault();
     const newStorage = {
       ...oldStorage,
       currentProgramId: "program-123",
@@ -114,7 +114,7 @@ describe("updateVersions", () => {
       };
 
       const oldStorage = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         programs: [program1],
       };
 
@@ -158,7 +158,7 @@ describe("updateVersions", () => {
       };
 
       const oldStorage = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         programs: [program1],
       };
 
@@ -203,7 +203,7 @@ describe("updateVersions", () => {
       };
 
       const oldStorage = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         programs: [program1, program2],
       };
 
@@ -241,7 +241,7 @@ describe("updateVersions", () => {
       };
 
       const oldStorage = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         programs: [program],
       };
       const newStorage = {
@@ -262,7 +262,7 @@ describe("updateVersions", () => {
   });
 
   it("should handle not enough versions", () => {
-    const storage = ObjectUtils.clone(Storage.getDefault());
+    const storage = ObjectUtils_clone(Storage_getDefault());
     storage.settings.exercises = {
       nflszmyn: {
         types: ["pull", "lower"],
@@ -348,7 +348,7 @@ describe("updateVersions", () => {
       };
 
       const oldStorage = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         history: [],
       };
 
@@ -384,9 +384,9 @@ describe("updateVersions", () => {
       };
 
       const oldStorage = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         settings: {
-          ...Settings.build(),
+          ...Settings_build(),
           exercises: { custom1: customExercise },
         },
       };
@@ -434,7 +434,7 @@ describe("updateVersions", () => {
       };
 
       const oldStorage = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         programs: [program],
       };
 
@@ -487,7 +487,7 @@ describe("updateVersions", () => {
       };
 
       const oldStorage = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         programs: [program],
       };
 
@@ -527,9 +527,9 @@ describe("updateVersions", () => {
       };
 
       const oldStorage = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         settings: {
-          ...Settings.build(),
+          ...Settings_build(),
           gyms: [gym1],
         },
       };
@@ -583,9 +583,9 @@ describe("updateVersions", () => {
       };
 
       const oldStorage = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         settings: {
-          ...Settings.build(),
+          ...Settings_build(),
           exercises: { custom1: exercise1 },
         },
       };
@@ -632,9 +632,9 @@ describe("updateVersions", () => {
       };
 
       const oldStorage = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         settings: {
-          ...Settings.build(),
+          ...Settings_build(),
           exercises: { ex1: exercise1, ex2: exercise2 },
         },
       };
@@ -673,9 +673,9 @@ describe("updateVersions", () => {
       };
 
       const oldStorage = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         settings: {
-          ...Settings.build(),
+          ...Settings_build(),
           exercises: { custom1: exercise },
         },
       };
@@ -728,9 +728,9 @@ describe("updateVersions", () => {
       };
 
       const oldStorage = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         settings: {
-          ...Settings.build(),
+          ...Settings_build(),
           gyms: [gym],
         },
       };
@@ -758,7 +758,7 @@ describe("updateVersions", () => {
 
   describe("nested object handling", () => {
     it("should handle deeply nested objects", () => {
-      const oldStorage = Storage.getDefault();
+      const oldStorage = Storage_getDefault();
       const newStorage = {
         ...oldStorage,
         settings: {
@@ -798,9 +798,9 @@ describe("updateVersions", () => {
       };
 
       const oldStorage = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         settings: {
-          ...Settings.build(),
+          ...Settings_build(),
           gyms: [],
         },
       };
@@ -830,7 +830,7 @@ describe("updateVersions", () => {
 
   describe("empty object handling", () => {
     it("should not include fields when no nested items changed", () => {
-      const oldStorage = Storage.getDefault();
+      const oldStorage = Storage_getDefault();
       const newStorage = {
         ...oldStorage,
         settings: {
@@ -861,7 +861,7 @@ describe("updateVersions", () => {
       };
 
       const oldStorage = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         programs: [program],
       };
 
@@ -895,7 +895,7 @@ describe("updateVersions", () => {
       };
 
       const oldStorage = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         programs: [program],
       };
 
@@ -921,7 +921,7 @@ describe("updateVersions", () => {
     });
 
     it("should include field when at least one nested item changed", () => {
-      const oldStorage = Storage.getDefault();
+      const oldStorage = Storage_getDefault();
       const newStorage = {
         ...oldStorage,
         settings: {
@@ -941,7 +941,7 @@ describe("updateVersions", () => {
     });
 
     it("should preserve existing versions even if no new changes", () => {
-      const oldStorage = Storage.getDefault();
+      const oldStorage = Storage_getDefault();
       const newStorage = {
         ...oldStorage,
         settings: {
@@ -984,7 +984,7 @@ describe("updateVersions", () => {
       };
 
       const oldStorage = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         programs: [],
         _versions: {
           programs: {
@@ -1041,7 +1041,7 @@ describe("updateVersions", () => {
       };
 
       const oldStorage = {
-        ...Storage.getDefault(),
+        ...Storage_getDefault(),
         programs: [program1, program2],
       };
 
@@ -1064,14 +1064,14 @@ describe("updateVersions", () => {
     });
 
     it("should preserve collection structure when deleting all items from dictionary", () => {
-      const oldStorage = Storage.getDefault();
+      const oldStorage = Storage_getDefault();
       const newStorage: IStorage = {
         ...oldStorage,
         settings: {
           ...oldStorage.settings,
           exerciseData: {
-            "bench-press": { rm1: Weight.build(100, "lb") },
-            squat: { rm1: Weight.build(150, "lb") },
+            "bench-press": { rm1: Weight_build(100, "lb") },
+            squat: { rm1: Weight_build(150, "lb") },
           },
         },
       };
@@ -1103,7 +1103,7 @@ describe("updateVersions", () => {
     describe("edge cases", () => {
       it("should handle null to object transitions", () => {
         const oldStorage: IStorage = {
-          ...Storage.getDefault(),
+          ...Storage_getDefault(),
           currentProgramId: undefined,
         };
 
@@ -1121,7 +1121,7 @@ describe("updateVersions", () => {
 
       it("should handle object to null transitions", () => {
         const oldStorage: IStorage = {
-          ...Storage.getDefault(),
+          ...Storage_getDefault(),
           currentProgramId: "program-123",
         };
 
@@ -1139,7 +1139,7 @@ describe("updateVersions", () => {
 
       it("should handle items without IDs in arrays", () => {
         const oldStorage = {
-          ...Storage.getDefault(),
+          ...Storage_getDefault(),
           reviewRequests: [1, 2, 3],
         };
 
@@ -1156,7 +1156,7 @@ describe("updateVersions", () => {
       });
 
       it("should handle circular references gracefully", () => {
-        const oldStorage = Storage.getDefault();
+        const oldStorage = Storage_getDefault();
         const newStorage = {
           ...oldStorage,
           settings: {

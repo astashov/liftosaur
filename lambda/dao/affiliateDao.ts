@@ -1,11 +1,18 @@
-import { Utils } from "../utils";
+import { Utils_getEnv } from "../utils";
 import { IDI } from "../utils/di";
 import { ILimitedUserDao, UserDao } from "./userDao";
 import { IPaymentDao, PaymentDao } from "./paymentDao";
 import { LogDao } from "./logDao";
-import { CollectionUtils } from "../../src/utils/collection";
+import {
+  CollectionUtils_inGroupsOf,
+  CollectionUtils_groupByKey,
+  CollectionUtils_groupByKeyUniq,
+  CollectionUtils_sortByExpr,
+  CollectionUtils_sortBy,
+  CollectionUtils_sortByMultiple,
+} from "../../src/utils/collection";
 import { IAffiliateData } from "../../src/pages/affiliateDashboard/affiliateDashboardContent";
-import { PriceUtils } from "../../src/utils/price";
+import { PriceUtils_exchangeRate } from "../../src/utils/price";
 
 const tableNames = {
   dev: {
@@ -41,7 +48,7 @@ export class AffiliateDao {
   constructor(private readonly di: IDI) {}
 
   public async getUserIds(affiliateId: string): Promise<string[]> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     const result = await this.di.dynamo.query<IAffiliateDao>({
       tableName: tableNames[env].affiliates,
       expression: "affiliateId = :affiliateId",
@@ -51,7 +58,7 @@ export class AffiliateDao {
   }
 
   public async getAffiliatesForUser(userId: string): Promise<IAffiliateDao[]> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     const result = await this.di.dynamo.query<IAffiliateDao>({
       tableName: tableNames[env].affiliates,
       indexName: tableNames[env].affiliatesUserIdIndex,
@@ -62,8 +69,8 @@ export class AffiliateDao {
   }
 
   public async getAffiliatesForUsers(allUserIds: string[]): Promise<Partial<Record<string, IAffiliateDao[]>>> {
-    const groups = CollectionUtils.inGroupsOf(50, allUserIds);
-    const env = Utils.getEnv();
+    const groups = CollectionUtils_inGroupsOf(50, allUserIds);
+    const env = Utils_getEnv();
     const allResults: IAffiliateDao[] = [];
 
     for (const group of groups) {
@@ -80,14 +87,14 @@ export class AffiliateDao {
       allResults.push(...groupResults.flat());
     }
 
-    return CollectionUtils.groupByKey(allResults, "userId");
+    return CollectionUtils_groupByKey(allResults, "userId");
   }
 
   public async put(items: { affiliateId: string; userId: string }[]): Promise<void> {
     if (items.length === 0) {
       return;
     }
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     await this.di.dynamo.batchPut({ tableName: tableNames[env].affiliates, items });
   }
 
@@ -97,7 +104,7 @@ export class AffiliateDao {
     if (items.length === 0) {
       return;
     }
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
 
     await Promise.all(
       items.map((item) =>
@@ -130,7 +137,7 @@ export class AffiliateDao {
     const affiliatedUsers = await userDao.getLimitedByIds(affiliatedUserIds);
     const restUserIds = affiliatedUserIds.filter((userId) => !affiliatedUsers.some((user) => user.id === userId));
     const userIdToAffiliates = await this.getAffiliatesForUsers(restUserIds);
-    const idToAffiliatedUser = CollectionUtils.groupByKeyUniq(affiliatedUsers, "id");
+    const idToAffiliatedUser = CollectionUtils_groupByKeyUniq(affiliatedUsers, "id");
 
     const users = affiliatedUserIds.map((userId) => {
       const user = idToAffiliatedUser[userId];
@@ -150,7 +157,7 @@ export class AffiliateDao {
         return { userId, user, affiliateTimestamp, isFirstAffiliate, affiliateType };
       } else {
         const affiliates = userIdToAffiliates[userId] || [];
-        const sortedAffiliates = CollectionUtils.sortByExpr(affiliates, (e) => e.timestamp || 0);
+        const sortedAffiliates = CollectionUtils_sortByExpr(affiliates, (e) => e.timestamp || 0);
         const currentAffiliate = sortedAffiliates.find((a) => a.affiliateId === affiliateId);
         const affiliateTimestamp = currentAffiliate?.timestamp || 0;
         const affiliateType = currentAffiliate?.type ?? "program";
@@ -163,7 +170,7 @@ export class AffiliateDao {
   }
 
   private getDollarAmount(payment: IPaymentDao): number {
-    const conversion = PriceUtils.exchangeRate(payment.amount, payment.currency || "USD");
+    const conversion = PriceUtils_exchangeRate(payment.amount, payment.currency || "USD");
     return conversion.success ? conversion.value : 0;
   }
 
@@ -250,7 +257,7 @@ export class AffiliateDao {
     const allEligiblePayments: IPaymentDao[] = [];
 
     const batchSize = 50;
-    const userGroups = CollectionUtils.inGroupsOf(batchSize, users);
+    const userGroups = CollectionUtils_inGroupsOf(batchSize, users);
 
     for (const group of userGroups) {
       const groupResults = await Promise.all(
@@ -264,7 +271,7 @@ export class AffiliateDao {
           allEligiblePayments.push(...eligiblePayments);
 
           const userLogs = await logDao.getForUsers([userId]);
-          const sortedUserLogs = CollectionUtils.sortBy(userLogs, "ts");
+          const sortedUserLogs = CollectionUtils_sortBy(userLogs, "ts");
           const minTs = sortedUserLogs.length > 0 ? sortedUserLogs[0].ts : affiliateTimestamp;
           const workoutLog = userLogs.find((log) => log.action === "ls-finish-workout");
           const numberOfWorkouts = workoutLog ? workoutLog.cnt : 0;
@@ -314,7 +321,7 @@ export class AffiliateDao {
       }
     }
 
-    const affiliateData = CollectionUtils.sortByMultiple(unsortedAffiliateData, ["isPaid", "affiliateTimestamp"], true);
+    const affiliateData = CollectionUtils_sortByMultiple(unsortedAffiliateData, ["isPaid", "affiliateTimestamp"], true);
     const isFirstAffiliateUsers = users.filter(({ isFirstAffiliate }) => isFirstAffiliate);
     const signedUpUsersCount = isFirstAffiliateUsers.filter(({ user }) => user != null).length;
     const paidUsers = affiliateData.filter((d) => d.isFirstAffiliate && d.isPaid).length;
@@ -374,7 +381,7 @@ export class AffiliateDao {
     const allEligiblePayments: IPaymentDao[] = [];
 
     const batchSize = 20;
-    const userGroups = CollectionUtils.inGroupsOf(batchSize, firstAffiliateUsers);
+    const userGroups = CollectionUtils_inGroupsOf(batchSize, firstAffiliateUsers);
 
     for (const group of userGroups) {
       const groupResults = await Promise.all(

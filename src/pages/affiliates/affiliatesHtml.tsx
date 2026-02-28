@@ -13,7 +13,7 @@ export function AffiliatesHtml(props: IAffiliatesHtmlProps): JSX.Element {
 
   return (
     <Page
-      account={props.account}
+      isLoggedIn={!!props.account}
       css={["affiliates"]}
       js={["affiliates"]}
       maxWidth={1200}

@@ -1,7 +1,7 @@
 import { h, JSX } from "preact";
 import { IExportedProgram } from "../../models/program";
-import { Settings } from "../../models/settings";
-import { UidFactory } from "../../utils/generator";
+import { Settings_build, Settings_programContentBuild } from "../../models/settings";
+import { UidFactory_generateUid } from "../../utils/generator";
 import { IAccount } from "../../models/account";
 import { MigrationBanner } from "../../components/migrationBanner";
 
@@ -14,8 +14,8 @@ export interface IProgramContentProps {
 }
 
 export function ProgramContent(props: IProgramContentProps): JSX.Element {
-  const defaultSettings = Settings.build();
-  const programContentSettings = props.exportedProgram?.settings || Settings.programContentBuild();
+  const defaultSettings = Settings_build();
+  const programContentSettings = props.exportedProgram?.settings || Settings_programContentBuild();
   const settings = {
     ...defaultSettings,
     ...programContentSettings,
@@ -24,7 +24,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
   };
   const program = props.exportedProgram?.program || {
     vtype: "program",
-    id: UidFactory.generateUid(8),
+    id: UidFactory_generateUid(8),
     name: "My Program",
     url: "",
     author: "",
@@ -33,7 +33,7 @@ export function ProgramContent(props: IProgramContentProps): JSX.Element {
     nextDay: 1,
     isMultiweek: false,
     weeks: [],
-    days: [{ id: UidFactory.generateUid(8), name: "Day 1", exercises: [] }],
+    days: [{ id: UidFactory_generateUid(8), name: "Day 1", exercises: [] }],
     exercises: [],
     tags: [],
   };

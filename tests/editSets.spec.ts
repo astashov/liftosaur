@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { PlaywrightUtils, startpage } from "./playwrightUtils";
+import { startpage, PlaywrightUtils_typeKeyboard, PlaywrightUtils_swipeLeft } from "./playwrightUtils";
 
 test("edits sets properly", async ({ page }) => {
   page.on("dialog", (dialog) => dialog.accept());
@@ -12,38 +12,38 @@ test("edits sets properly", async ({ page }) => {
 
   await page.getByTestId("workout-tab-bench-press").click();
   await page.getByTestId("entry-bench-press").getByTestId("add-warmup-set").click();
-  await PlaywrightUtils.typeKeyboard(
+  await PlaywrightUtils_typeKeyboard(
     page,
     page.getByTestId("entry-bench-press").getByTestId("input-set-reps-field").nth(0),
     "10"
   );
-  await PlaywrightUtils.typeKeyboard(
+  await PlaywrightUtils_typeKeyboard(
     page,
     page.getByTestId("entry-bench-press").getByTestId("input-set-weight-field").nth(0),
     "100"
   );
 
   await page.getByTestId("entry-bench-press").getByTestId("add-workout-set").click();
-  await PlaywrightUtils.typeKeyboard(
+  await PlaywrightUtils_typeKeyboard(
     page,
     page.getByTestId("entry-bench-press").getByTestId("input-set-reps-field").nth(4),
     "20"
   );
-  await PlaywrightUtils.typeKeyboard(
+  await PlaywrightUtils_typeKeyboard(
     page,
     page.getByTestId("entry-bench-press").getByTestId("input-set-weight-field").nth(4),
     "200"
   );
 
-  await PlaywrightUtils.swipeLeft(page, page.getByTestId("entry-bench-press").getByTestId("workout-set-target").nth(2));
+  await PlaywrightUtils_swipeLeft(page, page.getByTestId("entry-bench-press").getByTestId("workout-set-target").nth(2));
   await page.getByTestId("entry-bench-press").getByTestId("delete-set").nth(2).click();
 
-  await PlaywrightUtils.typeKeyboard(
+  await PlaywrightUtils_typeKeyboard(
     page,
     page.getByTestId("entry-bench-press").getByTestId("input-set-reps-field").nth(1),
     "8"
   );
-  await PlaywrightUtils.typeKeyboard(
+  await PlaywrightUtils_typeKeyboard(
     page,
     page.getByTestId("entry-bench-press").getByTestId("input-set-weight-field").nth(1),
     "80"
@@ -84,12 +84,12 @@ test("edits sets properly", async ({ page }) => {
   await page.getByTestId("exercise-picker-confirm").click();
 
   await page.getByTestId("entry-arnold-press").getByTestId("add-workout-set").click();
-  await PlaywrightUtils.typeKeyboard(
+  await PlaywrightUtils_typeKeyboard(
     page,
     page.getByTestId("entry-arnold-press").getByTestId("input-set-reps-field").nth(0),
     "8"
   );
-  await PlaywrightUtils.typeKeyboard(
+  await PlaywrightUtils_typeKeyboard(
     page,
     page.getByTestId("entry-arnold-press").getByTestId("input-set-weight-field").nth(0),
     "250"

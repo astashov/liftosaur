@@ -2,12 +2,35 @@ import { h, JSX, Fragment } from "preact";
 import { IExercisePickerState, IHistoryRecord, IProgram, ISettings, IStats, ISubscription } from "../types";
 import { useEffect, useState } from "preact/hooks";
 import { buildCustomDispatch, IDispatch } from "../ducks/types";
-import { Program } from "../models/program";
-import { History } from "../models/history";
-import { Progress } from "../models/progress";
+import {
+  Program_evaluate,
+  Program_isEmpty,
+  Program_getProgramDay,
+  Program_getProgramExercise,
+  Program_getFirstProgramExercise,
+  Program_getProgramExerciseByTypeWeekAndDay,
+  Program_nextHistoryEntry,
+  Program_getDayData,
+} from "../models/program";
+import {
+  History_workoutTime,
+  History_isPaused,
+  History_resumeWorkoutAction,
+  History_pauseWorkoutAction,
+  History_calories,
+  History_pauseWorkout,
+} from "../models/history";
+import {
+  Progress_lbProgress,
+  Progress_isCurrent,
+  Progress_isFullyFinishedSet,
+  Progress_forceUpdateEntryIndex,
+  Progress_addExercise,
+  Progress_changeExercise,
+} from "../models/progress";
 import { INavCommon, updateProgress, updateState } from "../models/state";
-import { DateUtils } from "../utils/date";
-import { TimeUtils } from "../utils/time";
+import { DateUtils_format } from "../utils/date";
+import { TimeUtils_formatHHMM } from "../utils/time";
 import { Footer2View } from "./footer2";
 import { IconTrash } from "./icons/iconTrash";
 import { NavbarView } from "./navbar";
@@ -17,22 +40,28 @@ import { Button } from "./button";
 import { Workout } from "./workout";
 import { ModalAmrap } from "./modalAmrap";
 import { ModalDate } from "./modalDate";
-import { Exercise } from "../models/exercise";
+import { Exercise_handleCustomExerciseChange } from "../models/exercise";
 import { lb } from "lens-shmens";
 import { Modal1RM } from "./modal1RM";
 import { ModalEquipment } from "./modalEquipment";
 import { BottomSheetEditTarget } from "./bottomSheetEditTarget";
-import { SendMessage } from "../utils/sendMessage";
+import {
+  SendMessage_toIosAndAndroid,
+  SendMessage_isIos,
+  SendMessage_iosAppVersion,
+  SendMessage_isAndroid,
+  SendMessage_androidAppVersion,
+} from "../utils/sendMessage";
 import { BottomSheetMobileShareOptions } from "./bottomSheetMobileShareOptions";
 import { BottomSheetWebappShareOptions } from "./bottomSheetWebappShareOptions";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_updateLiveActivity, Thunk_postevent } from "../ducks/thunks";
 import { BottomSheetExercisePicker } from "./exercisePicker/bottomSheetExercisePicker";
 import { ILensDispatch } from "../utils/useLensReducer";
-import { Settings } from "../models/settings";
+import { Settings_toggleStarredExercise, Settings_changePickerSettings } from "../models/settings";
 import { BottomSheetWorkoutSuperset } from "./bottomSheetWorkoutSuperset";
-import { Reps } from "../models/set";
-import { HealthSync } from "../lib/healthSync";
-import { Subscriptions } from "../utils/subscriptions";
+import { Reps_findNextSetIndex } from "../models/set";
+import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
+import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 
 interface IScreenWorkoutProps {
   progress: IHistoryRecord;
@@ -53,28 +82,28 @@ function buildExercisePickerDispatch(
   originalDispatch: IDispatch,
   progressId: number
 ): ILensDispatch<IExercisePickerState> {
-  const prefix = Progress.lbProgress(progressId).pi("ui").pi("exercisePicker").pi("state");
+  const prefix = Progress_lbProgress(progressId).pi("ui").pi("exercisePicker").pi("state");
   return buildCustomDispatch(originalDispatch, prefix);
 }
 
 export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
   const progress = props.progress;
-  const evaluatedProgram = props.program ? Program.evaluate(props.program, props.settings) : undefined;
+  const evaluatedProgram = props.program ? Program_evaluate(props.program, props.settings) : undefined;
   const evaluatedCurrentProgram =
-    Program.isEmpty(evaluatedProgram) && props.currentProgram
-      ? Program.evaluate(props.currentProgram, props.settings)
+    Program_isEmpty(evaluatedProgram) && props.currentProgram
+      ? Program_evaluate(props.currentProgram, props.settings)
       : evaluatedProgram;
   const dispatch = props.dispatch;
   const [isShareShown, setIsShareShown] = useState<boolean>(false);
   const dateModal = progress.ui?.dateModal;
-  const programDay = evaluatedProgram ? Program.getProgramDay(evaluatedProgram, progress.day) : undefined;
+  const programDay = evaluatedProgram ? Program_getProgramDay(evaluatedProgram, progress.day) : undefined;
 
   useEffect(() => {
     if (progress.entries.length === 0) {
       updateState(
         props.dispatch,
         [
-          Progress.lbProgress(progress.id)
+          Progress_lbProgress(progress.id)
             .pi("ui")
             .p("exercisePicker")
             .record({
@@ -102,34 +131,34 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
             navCommon={props.navCommon}
             dispatch={dispatch}
             onTitleClick={() => {
-              if (!Progress.isCurrent(progress)) {
+              if (!Progress_isCurrent(progress)) {
                 props.dispatch({
                   type: "ChangeDate",
                   date: progress.date,
-                  time: History.workoutTime(progress),
+                  time: History_workoutTime(progress),
                 });
               }
             }}
-            title={Progress.isCurrent(progress) ? "Ongoing workout" : `${DateUtils.format(progress.date)}`}
+            title={Progress_isCurrent(progress) ? "Ongoing workout" : `${DateUtils_format(progress.date)}`}
             subtitle={
-              !Progress.isCurrent(progress) && progress.endTime ? (
-                TimeUtils.formatHHMM(History.workoutTime(props.progress))
+              !Progress_isCurrent(progress) && progress.endTime ? (
+                TimeUtils_formatHHMM(History_workoutTime(props.progress))
               ) : (
                 <Timer
                   progress={props.progress}
                   onPauseResume={() => {
-                    if (History.isPaused(props.progress.intervals)) {
-                      History.resumeWorkoutAction(
+                    if (History_isPaused(props.progress.intervals)) {
+                      History_resumeWorkoutAction(
                         props.dispatch,
                         false,
                         props.settings,
-                        Subscriptions.hasSubscription(props.subscription)
+                        Subscriptions_hasSubscription(props.subscription)
                       );
                       const currentEntryIndex = props.progress.ui?.currentEntryIndex || 0;
                       const currentEntry = props.progress.entries[currentEntryIndex];
-                      const setIndex = currentEntry ? Reps.findNextSetIndex(currentEntry) : 0;
+                      const setIndex = currentEntry ? Reps_findNextSetIndex(currentEntry) : 0;
                       props.dispatch(
-                        Thunk.updateLiveActivity(
+                        Thunk_updateLiveActivity(
                           currentEntryIndex,
                           setIndex,
                           props.progress.timer,
@@ -137,7 +166,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                         )
                       );
                     } else {
-                      History.pauseWorkoutAction(props.dispatch);
+                      History_pauseWorkoutAction(props.dispatch);
                     }
                   }}
                 />
@@ -149,7 +178,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                 onClick={() => {
                   if (
                     confirm(
-                      `Are you sure you want to delete this ${Progress.isCurrent(props.progress) ? "ONGOING" : "PAST"} workout?`
+                      `Are you sure you want to delete this ${Progress_isCurrent(props.progress) ? "ONGOING" : "PAST"} workout?`
                     )
                   ) {
                     props.dispatch({ type: "DeleteProgress" });
@@ -159,41 +188,41 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                 <IconTrash />
               </button>,
               <Button
-                name={Progress.isCurrent(props.progress) ? "finish-workout" : "save-history-record"}
+                name={Progress_isCurrent(props.progress) ? "finish-workout" : "save-history-record"}
                 kind="purple"
                 buttonSize="md"
                 data-cy="finish-workout"
-                className={Progress.isCurrent(props.progress) ? "ls-finish-workout" : "ls-save-history-record"}
+                className={Progress_isCurrent(props.progress) ? "ls-finish-workout" : "ls-save-history-record"}
                 onClick={() => {
                   if (
-                    (Progress.isCurrent(props.progress) && Progress.isFullyFinishedSet(props.progress)) ||
+                    (Progress_isCurrent(props.progress) && Progress_isFullyFinishedSet(props.progress)) ||
                     confirm(
-                      Progress.isCurrent(props.progress)
+                      Progress_isCurrent(props.progress)
                         ? "Are you sure you want to FINISH this workout? Some sets are not marked as completed."
                         : "Are you sure you want to SAVE this PAST workout?"
                     )
                   ) {
-                    SendMessage.toIosAndAndroid({ type: "pauseWorkout" });
+                    SendMessage_toIosAndAndroid({ type: "pauseWorkout" });
                     props.dispatch({ type: "FinishProgramDayAction" });
-                    if (Progress.isCurrent(props.progress)) {
-                      props.dispatch(Thunk.postevent("finish-workout", { workout: JSON.stringify(props.progress) }));
-                      const healthName = SendMessage.isIos() ? "Apple Health" : "Google Health";
+                    if (Progress_isCurrent(props.progress)) {
+                      props.dispatch(Thunk_postevent("finish-workout", { workout: JSON.stringify(props.progress) }));
+                      const healthName = SendMessage_isIos() ? "Apple Health" : "Google Health";
                       const shouldSyncToHealth =
-                        ((HealthSync.eligibleForAppleHealth() && props.settings.appleHealthSyncWorkout) ||
-                          (HealthSync.eligibleForGoogleHealth() && props.settings.googleHealthSyncWorkout)) &&
+                        ((HealthSync_eligibleForAppleHealth() && props.settings.appleHealthSyncWorkout) ||
+                          (HealthSync_eligibleForGoogleHealth() && props.settings.googleHealthSyncWorkout)) &&
                         (!props.settings.healthConfirmation ||
                           confirm(`Do you want to sync this workout to ${healthName}?`));
-                      SendMessage.toIosAndAndroid({
+                      SendMessage_toIosAndAndroid({
                         type: "finishWorkout",
                         healthSync: shouldSyncToHealth ? "true" : "false",
-                        calories: `${History.calories(props.progress)}`,
-                        intervals: JSON.stringify(History.pauseWorkout(progress.intervals)),
+                        calories: `${History_calories(props.progress)}`,
+                        intervals: JSON.stringify(History_pauseWorkout(progress.intervals)),
                       });
                     }
                   }
                 }}
               >
-                {Progress.isCurrent(props.progress) ? "Finish" : "Save"}
+                {Progress_isCurrent(props.progress) ? "Finish" : "Save"}
               </Button>,
             ]}
           />
@@ -207,19 +236,19 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                 settings={props.settings}
                 dispatch={props.dispatch}
                 programExercise={
-                  Program.getProgramExercise(
+                  Program_getProgramExercise(
                     progress.day,
                     evaluatedProgram,
                     progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.programExerciseId
                   ) ||
-                  Program.getFirstProgramExercise(
+                  Program_getFirstProgramExercise(
                     evaluatedProgram,
                     progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.programExerciseId
                   )
                 }
                 progress={progress}
                 onDone={() => {
-                  Progress.forceUpdateEntryIndex(props.dispatch);
+                  Progress_forceUpdateEntryIndex(props.dispatch);
                 }}
               />
             )}
@@ -274,9 +303,9 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                   for (const exercise of selectedExercises) {
                     if (exercise.type === "adhoc") {
                       if (exercisePickerState.entryIndex == null) {
-                        Progress.addExercise(props.dispatch, exercise.exerciseType, progress.entries.length);
+                        Progress_addExercise(props.dispatch, exercise.exerciseType, progress.entries.length);
                       } else {
-                        Progress.changeExercise(
+                        Progress_changeExercise(
                           props.dispatch,
                           props.settings,
                           props.progress.id,
@@ -286,7 +315,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                         );
                       }
                     } else if (exercise.type === "program" && evaluatedCurrentProgram) {
-                      const programExercise = Program.getProgramExerciseByTypeWeekAndDay(
+                      const programExercise = Program_getProgramExerciseByTypeWeekAndDay(
                         evaluatedCurrentProgram,
                         exercise.exerciseType,
                         exercise.week,
@@ -300,9 +329,9 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                               lb<IHistoryRecord>()
                                 .p("entries")
                                 .recordModify((entries) => {
-                                  const nextHistoryEntry = Program.nextHistoryEntry(
+                                  const nextHistoryEntry = Program_nextHistoryEntry(
                                     evaluatedCurrentProgram,
-                                    Program.getDayData(evaluatedCurrentProgram, evaluatedCurrentProgram.nextDay),
+                                    Program_getDayData(evaluatedCurrentProgram, evaluatedCurrentProgram.nextDay),
                                     entries.length,
                                     { ...programExercise, exerciseType: exercise.exerciseType },
                                     props.stats,
@@ -314,9 +343,9 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                             "add-exercise"
                           );
                         } else {
-                          const nextHistoryEntry = Program.nextHistoryEntry(
+                          const nextHistoryEntry = Program_nextHistoryEntry(
                             evaluatedCurrentProgram,
-                            Program.getDayData(evaluatedCurrentProgram, evaluatedCurrentProgram.nextDay),
+                            Program_getDayData(evaluatedCurrentProgram, evaluatedCurrentProgram.nextDay),
                             exercisePickerState.entryIndex,
                             { ...programExercise, exerciseType: exercise.exerciseType },
                             props.stats,
@@ -338,11 +367,11 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                   }
                   updateState(
                     props.dispatch,
-                    [Progress.lbProgress(progress.id).pi("ui").p("exercisePicker").record(undefined)],
+                    [Progress_lbProgress(progress.id).pi("ui").p("exercisePicker").record(undefined)],
                     "Close exercise picker"
                   );
                   setTimeout(() => {
-                    Progress.forceUpdateEntryIndex(props.dispatch);
+                    Progress_forceUpdateEntryIndex(props.dispatch);
                     document
                       .querySelector(`[data-name=workout-exercise-tab-${progress.entries.length}]`)
                       ?.scrollIntoView({
@@ -353,7 +382,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                 }}
                 exercisePicker={exercisePickerState}
                 onChangeCustomExercise={(action, exercise, notes) => {
-                  Exercise.handleCustomExerciseChange(
+                  Exercise_handleCustomExerciseChange(
                     props.dispatch,
                     action,
                     exercise,
@@ -363,13 +392,13 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                   );
                 }}
                 evaluatedProgram={evaluatedCurrentProgram}
-                onStar={(key) => Settings.toggleStarredExercise(props.dispatch, key)}
-                onChangeSettings={(pickerSettings) => Settings.changePickerSettings(props.dispatch, pickerSettings)}
+                onStar={(key) => Settings_toggleStarredExercise(props.dispatch, key)}
+                onChangeSettings={(pickerSettings) => Settings_changePickerSettings(props.dispatch, pickerSettings)}
                 dispatch={buildExercisePickerDispatch(props.dispatch, progress.id)}
                 onClose={() => {
                   updateState(
                     props.dispatch,
-                    [Progress.lbProgress(progress.id).pi("ui").p("exercisePicker").record(undefined)],
+                    [Progress_lbProgress(progress.id).pi("ui").p("exercisePicker").record(undefined)],
                     "Close exercise picker"
                   );
                 }}
@@ -396,7 +425,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                 onClose={() => {
                   updateState(
                     props.dispatch,
-                    [Progress.lbProgress(progress.id).pi("ui").p("equipmentModal").record(undefined)],
+                    [Progress_lbProgress(progress.id).pi("ui").p("equipmentModal").record(undefined)],
                     "Close equipment modal"
                   );
                 }}
@@ -411,7 +440,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                 onClose={() => {
                   updateState(
                     props.dispatch,
-                    [Progress.lbProgress(progress.id).pi("ui").p("rm1Modal").record(undefined)],
+                    [Progress_lbProgress(progress.id).pi("ui").p("rm1Modal").record(undefined)],
                     "Close 1RM modal"
                   );
                 }}
@@ -420,9 +449,9 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                 dispatch={props.dispatch}
               />
             )}
-            {!Progress.isCurrent(progress) &&
-              ((SendMessage.isIos() && SendMessage.iosAppVersion() >= 11) ||
-              (SendMessage.isAndroid() && SendMessage.androidAppVersion() >= 20) ? (
+            {!Progress_isCurrent(progress) &&
+              ((SendMessage_isIos() && SendMessage_iosAppVersion() >= 11) ||
+              (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 20) ? (
                 <BottomSheetMobileShareOptions
                   userId={props.userId}
                   history={props.history}

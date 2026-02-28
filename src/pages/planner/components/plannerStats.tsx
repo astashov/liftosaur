@@ -1,16 +1,16 @@
 import { h, JSX, Fragment } from "preact";
 import { IPlannerState, IPlannerUiFocusedExercise, ISetResults, ISetSplit } from "../models/types";
-import { ObjectUtils } from "../../../utils/object";
+import { ObjectUtils_keys } from "../../../utils/object";
 import { PlannerWeekMuscles } from "./plannerWeekMuscles";
 import { IExerciseKind } from "../../../models/exercise";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { LinkButton } from "../../../components/linkButton";
 import { lb } from "lens-shmens";
 import { useState } from "preact/hooks";
-import { CollectionUtils } from "../../../utils/collection";
+import { CollectionUtils_sort } from "../../../utils/collection";
 import { IScreenMuscle, ISettings } from "../../../types";
 import { n } from "../../../utils/math";
-import { Muscle } from "../../../models/muscle";
+import { Muscle_getMuscleGroupName } from "../../../models/muscle";
 
 interface IPlannerWeekStatsProps {
   setResults: ISetResults;
@@ -91,11 +91,11 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
         </div>
       )}
 
-      {ObjectUtils.keys(setResults.muscleGroup).map((muscleGroup) => {
+      {ObjectUtils_keys(setResults.muscleGroup).map((muscleGroup) => {
         return (
           <div>
             {labelSet(
-              Muscle.getMuscleGroupName(muscleGroup, props.settings),
+              Muscle_getMuscleGroupName(muscleGroup, props.settings),
               showLink,
               [],
               [muscleGroup],
@@ -246,7 +246,7 @@ function colorThresholdValue(value: number, threshold: number): string {
 
 function PlannerStatsTooltip(props: { split: ISetSplit }): JSX.Element | null {
   const split = props.split;
-  const exercises = CollectionUtils.sort(split.exercises, (a, b) => {
+  const exercises = CollectionUtils_sort(split.exercises, (a, b) => {
     if ((a.isSynergist && b.isSynergist) || (!a.isSynergist && !b.isSynergist)) {
       return a.exerciseName.localeCompare(b.exerciseName);
     } else if (a.isSynergist) {

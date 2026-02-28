@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_colors } from "../../utils/tailwindConfig";
 
 interface IInnerProps {
   size?: number;
@@ -19,7 +19,7 @@ export function IconBarbell2(props: IProps): JSX.Element {
 export function IconBarbell2Unselected(props: IInnerProps): JSX.Element {
   const width = props.size ?? 40;
   const height = width / 2.5;
-  const color = props.color ?? Tailwind.colors().white;
+  const color = props.color ?? Tailwind_colors().white;
   return (
     <svg
       width={width}
@@ -57,7 +57,7 @@ export function IconBarbell2Unselected(props: IInnerProps): JSX.Element {
 export function IconBarbell2Selected(props: IInnerProps): JSX.Element {
   const width = props.size ?? 40;
   const height = width / 2.5;
-  const color = props.color ?? Tailwind.colors().white;
+  const color = props.color ?? Tailwind_colors().white;
   return (
     <svg
       width={width}

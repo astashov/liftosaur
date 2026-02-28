@@ -1,11 +1,11 @@
 import { JSX, h } from "preact";
 import { useRef, useLayoutEffect, useCallback } from "preact/hooks";
 import { IHistoryRecord } from "../types";
-import { DateUtils } from "../utils/date";
-import { History } from "../models/history";
+import { DateUtils_formatYYYYMMDD } from "../utils/date";
+import { History_getDateToHistory } from "../models/history";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import { IconSpinner } from "./icons/iconSpinner";
-import { Progress } from "../models/progress";
+import { Progress_isCurrent } from "../models/progress";
 
 interface IWeekCalendarProps {
   firstDayOfWeeks: number[];
@@ -21,7 +21,7 @@ interface IWeekCalendarProps {
 
 export function WeekCalendar(props: IWeekCalendarProps): JSX.Element {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const dateToHistory = History.getDateToHistory(props.history);
+  const dateToHistory = History_getDateToHistory(props.history);
   const selectedIndex = props.firstDayOfWeeks.findIndex((date) => date === props.selectedFirstDayOfWeek);
   const selectedWeekCalendarIndex = props.firstDayOfWeeks.findIndex(
     (date) => date === props.selectedWeekCalendarFirstDayOfWeek
@@ -111,7 +111,7 @@ export function WeekCalendar(props: IWeekCalendarProps): JSX.Element {
                     <div className="text-xs text-text-secondary">{day.dayName}</div>
                     <div
                       className={`flex items-center justify-center text-sm w-8 h-8 rounded-full ${
-                        day.record && !Progress.isCurrent(day.record)
+                        day.record && !Progress_isCurrent(day.record)
                           ? "text-text-alwayswhite bg-background-error"
                           : "text-text-primary"
                       } ${day.isToday ? "border border-button-primarybackground font-bold" : ""}`}
@@ -147,11 +147,11 @@ const getWeekDays = (
   for (let i = 0; i < 7; i++) {
     const date = new Date(startDate);
     date.setDate(date.getDate() + i);
-    const formatted = DateUtils.formatYYYYMMDD(date);
+    const formatted = DateUtils_formatYYYYMMDD(date);
     days.push({
       record: dateToHistory[formatted],
       date,
-      isToday: DateUtils.formatYYYYMMDD(date) === DateUtils.formatYYYYMMDD(new Date()),
+      isToday: DateUtils_formatYYYYMMDD(date) === DateUtils_formatYYYYMMDD(new Date()),
       dayNumber: date.getDate(),
       dayName: dayNames[i],
     });

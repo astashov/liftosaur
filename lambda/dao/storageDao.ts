@@ -1,7 +1,7 @@
 import { IPartialStorage, IStorage } from "../../src/types";
-import { Utils } from "../utils";
+import { Utils_getEnv } from "../utils";
 import { IDI } from "../utils/di";
-import { UidFactory } from "../utils/generator";
+import { UidFactory_generateUid } from "../utils/generator";
 import { LftS3Buckets } from "./buckets";
 
 const bucketNames = {
@@ -23,7 +23,7 @@ export class StorageDao {
   constructor(private readonly di: IDI) {}
 
   public async get(userid: string, id: string): Promise<IStorageDao | undefined> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     const result = await this.di.s3.getObject({
       bucket: bucketNames[env].storages,
       key: `storages/${userid}/${id}.json`,
@@ -51,8 +51,8 @@ export class StorageDao {
     ) {
       return undefined;
     }
-    const env = Utils.getEnv();
-    const id = UidFactory.generateUid(10);
+    const env = Utils_getEnv();
+    const id = UidFactory_generateUid(10);
     await this.di.s3.putObject({
       bucket: bucketNames[env].storages,
       key: `storages/${userid}/${id}.json`,

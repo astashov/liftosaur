@@ -1,13 +1,13 @@
 import { h, JSX, Fragment } from "preact";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_postDebug } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { ILoading } from "../models/state";
-import { CollectionUtils } from "../utils/collection";
-import { DateUtils } from "../utils/date";
-import { ObjectUtils } from "../utils/object";
+import { CollectionUtils_sortBy, CollectionUtils_nonnull } from "../utils/collection";
+import { DateUtils_formatHHMMSS } from "../utils/date";
+import { ObjectUtils_values } from "../utils/object";
 import { Button } from "./button";
 import { Modal } from "./modal";
-import { SendMessage } from "../utils/sendMessage";
+import { SendMessage_toIos } from "../utils/sendMessage";
 
 interface IModalDebugProps {
   onClose: () => void;
@@ -17,13 +17,13 @@ interface IModalDebugProps {
 
 export function ModalDebug(props: IModalDebugProps): JSX.Element {
   const loadingItems = props.loading.items;
-  const items = CollectionUtils.sortBy(CollectionUtils.nonnull(ObjectUtils.values(loadingItems)), "startTime");
+  const items = CollectionUtils_sortBy(CollectionUtils_nonnull(ObjectUtils_values(loadingItems)), "startTime");
   return (
     <Modal isHidden={false} onClose={props.onClose} shouldShowClose={true} isFullWidth>
       <h3 className="pb-2 font-bold">Network calls</h3>
       <ul>
         {items.map((item) => {
-          const startTime = DateUtils.formatHHMMSS(item.startTime);
+          const startTime = DateUtils_formatHHMMSS(item.startTime);
           const endTime = item.endTime || Date.now();
           const duration = endTime - item.startTime;
           const attempt = item.attempt || 0;
@@ -47,12 +47,12 @@ export function ModalDebug(props: IModalDebugProps): JSX.Element {
         })}
       </ul>
       <div className="mt-4 text-center">
-        <Button name="send-debug-info" kind="purple" onClick={() => props.dispatch(Thunk.postDebug())}>
+        <Button name="send-debug-info" kind="purple" onClick={() => props.dispatch(Thunk_postDebug())}>
           Send Debug Info
         </Button>
       </div>
       <div className="mt-4 text-center">
-        <Button name="share-device-logs" kind="purple" onClick={() => SendMessage.toIos({ type: "shareLog" })}>
+        <Button name="share-device-logs" kind="purple" onClick={() => SendMessage_toIos({ type: "shareLog" })}>
           Share device logs
         </Button>
       </div>

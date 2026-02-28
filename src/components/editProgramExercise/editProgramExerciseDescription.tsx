@@ -6,10 +6,10 @@ import {
 } from "../../pages/planner/models/types";
 import { ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import { EditProgramUiHelpers_changeCurrentInstanceExercise } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { IconTrash } from "../icons/iconTrash";
-import { CollectionUtils } from "../../utils/collection";
-import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
+import { CollectionUtils_removeAt } from "../../utils/collection";
+import { PlannerProgramExercise_currentDescriptionIndex } from "../../pages/planner/models/plannerProgramExercise";
 import { MarkdownEditorBorderless } from "../markdownEditorBorderless";
 
 interface IEditProgramExerciseDescriptionProps {
@@ -23,7 +23,7 @@ interface IEditProgramExerciseDescriptionProps {
 
 export function EditProgramExerciseDescription(props: IEditProgramExerciseDescriptionProps): JSX.Element {
   const { description } = props;
-  const currentIndex = PlannerProgramExercise.currentDescriptionIndex(props.plannerExercise);
+  const currentIndex = PlannerProgramExercise_currentDescriptionIndex(props.plannerExercise);
 
   return (
     <div className="border rounded-lg bg-background-cardpurple border-border-purple">
@@ -39,7 +39,7 @@ export function EditProgramExerciseDescription(props: IEditProgramExerciseDescri
                   className="block align-middle checkbox text-text-link"
                   type="checkbox"
                   onChange={(e) => {
-                    EditProgramUiHelpers.changeCurrentInstanceExercise(
+                    EditProgramUiHelpers_changeCurrentInstanceExercise(
                       props.plannerDispatch,
                       props.plannerExercise,
                       props.settings,
@@ -56,12 +56,12 @@ export function EditProgramExerciseDescription(props: IEditProgramExerciseDescri
             <button
               className="p-2"
               onClick={() => {
-                EditProgramUiHelpers.changeCurrentInstanceExercise(
+                EditProgramUiHelpers_changeCurrentInstanceExercise(
                   props.plannerDispatch,
                   props.plannerExercise,
                   props.settings,
                   (ex) => {
-                    ex.descriptions.values = CollectionUtils.removeAt(ex.descriptions.values, props.descriptionIndex);
+                    ex.descriptions.values = CollectionUtils_removeAt(ex.descriptions.values, props.descriptionIndex);
                   }
                 );
               }}
@@ -78,7 +78,7 @@ export function EditProgramExerciseDescription(props: IEditProgramExerciseDescri
           debounceMs={500}
           placeholder={`Exercise description in Markdown...`}
           onChange={(v) => {
-            EditProgramUiHelpers.changeCurrentInstanceExercise(
+            EditProgramUiHelpers_changeCurrentInstanceExercise(
               props.plannerDispatch,
               props.plannerExercise,
               props.settings,

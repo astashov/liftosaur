@@ -2,7 +2,7 @@ import { JSX, h } from "preact";
 import { IPlannerProgramExercise, IPlannerExerciseState } from "../../pages/planner/models/types";
 import { ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import { EditProgramUiHelpers_changeCurrentInstanceExercise } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { InputNumber2 } from "../inputNumber2";
 
 interface IEditProgramExerciseOrderProps {
@@ -23,7 +23,7 @@ export function EditProgramExerciseOrder(props: IEditProgramExerciseOrderProps):
         step={1}
         onInput={(val) => {
           if (val != null && !isNaN(val)) {
-            EditProgramUiHelpers.changeCurrentInstanceExercise(
+            EditProgramUiHelpers_changeCurrentInstanceExercise(
               props.plannerDispatch,
               props.plannerExercise,
               props.settings,
@@ -35,7 +35,7 @@ export function EditProgramExerciseOrder(props: IEditProgramExerciseOrderProps):
         }}
         onBlur={(val) => {
           if (val != null) {
-            EditProgramUiHelpers.changeCurrentInstanceExercise(
+            EditProgramUiHelpers_changeCurrentInstanceExercise(
               props.plannerDispatch,
               props.plannerExercise,
               props.settings,

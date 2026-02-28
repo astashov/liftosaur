@@ -1,9 +1,9 @@
 import { useRef } from "preact/hooks";
-import { DateUtils } from "./date";
+import { DateUtils_formatHHMMSS } from "./date";
 
 export function useLoopCatcher(): void {
   const counter = useRef<Partial<Record<string, number>>>({});
-  const hhmmss = DateUtils.formatHHMMSS(Date.now());
+  const hhmmss = DateUtils_formatHHMMSS(Date.now());
   counter.current[hhmmss] = (counter.current[hhmmss] || 0) + 1;
   if ((counter.current[hhmmss] || 0) > 300) {
     throw new Error("Loop detected");

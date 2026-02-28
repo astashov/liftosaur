@@ -1,5 +1,5 @@
 import { JSX, h, Fragment } from "preact";
-import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
+import { PlannerProgramExercise_currentDescriptionIndex } from "../../pages/planner/models/plannerProgramExercise";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { GroupHeader } from "../groupHeader";
 import { IconArrowDown3 } from "../icons/iconArrowDown3";
@@ -14,7 +14,7 @@ interface IEditProgramUiExerciseDescriptionsProps {
 export function EditProgramUiExerciseDescriptions(props: IEditProgramUiExerciseDescriptionsProps): JSX.Element {
   const { plannerExercise } = props;
   const descriptions = plannerExercise.descriptions.values;
-  const currentIndex = PlannerProgramExercise.currentDescriptionIndex(plannerExercise);
+  const currentIndex = PlannerProgramExercise_currentDescriptionIndex(plannerExercise);
 
   if (descriptions.length === 0) {
     return <></>;

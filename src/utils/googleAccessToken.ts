@@ -1,5 +1,5 @@
-import { SendMessage } from "./sendMessage";
-import { UrlUtils } from "./url";
+import { SendMessage_isIos, SendMessage_toIos, SendMessage_isAndroid, SendMessage_toAndroid } from "./sendMessage";
+import { UrlUtils_build } from "./url";
 
 declare let __HOST__: string;
 
@@ -9,7 +9,7 @@ let receiveMessage: ((event: MessageEvent) => void) | undefined;
 
 export function getGoogleAccessToken(): Promise<string | undefined> {
   return new Promise((resolve) => {
-    const urlBuilder = UrlUtils.build("https://accounts.google.com/o/oauth2/v2/auth");
+    const urlBuilder = UrlUtils_build("https://accounts.google.com/o/oauth2/v2/auth");
     urlBuilder.searchParams.append("scope", "openid email");
     urlBuilder.searchParams.append("include_granted_scopes", "true");
     urlBuilder.searchParams.append("response_type", "token");
@@ -26,10 +26,10 @@ export function getGoogleAccessToken(): Promise<string | undefined> {
 
     const windowOpts = "toolbar=no, menubar=no, width=600, height=700, top=100, left=100";
 
-    if (SendMessage.isIos()) {
-      SendMessage.toIos({ type: "signInWithGoogle" });
-    } else if (SendMessage.isAndroid()) {
-      SendMessage.toAndroid({ type: "signInWithGoogle" });
+    if (SendMessage_isIos()) {
+      SendMessage_toIos({ type: "signInWithGoogle" });
+    } else if (SendMessage_isAndroid()) {
+      SendMessage_toAndroid({ type: "signInWithGoogle" });
     } else {
       if (windowRef == null || windowRef.closed) {
         windowRef = window.open(url, "google-auth", windowOpts);
@@ -48,9 +48,12 @@ export function getGoogleAccessToken(): Promise<string | undefined> {
       if (typeof data !== "string") {
         return;
       }
-      const callbackUrl = UrlUtils.build(data);
+      if (!data.startsWith("http://") && !data.startsWith("https://")) {
+        return;
+      }
+      const callbackUrl = UrlUtils_build(data);
       const params = callbackUrl.hash.slice(1);
-      const exUrl = UrlUtils.build("https://www.example.com");
+      const exUrl = UrlUtils_build("https://www.example.com");
       exUrl.search = params;
       const accessToken = exUrl.searchParams.get("access_token")!;
       resolve(accessToken);

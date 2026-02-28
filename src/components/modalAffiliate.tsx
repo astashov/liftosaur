@@ -6,7 +6,7 @@ import { ISettings } from "../types";
 import { lb } from "lens-shmens";
 import { IconCheckCircle } from "./icons/iconCheckCircle";
 import { IconLink } from "./icons/iconLink";
-import { Tailwind } from "../utils/tailwindConfig";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { MenuItemEditable } from "./menuItemEditable";
 import { updateSettings } from "../models/state";
 
@@ -28,7 +28,7 @@ export function ModalAffiliate(props: IProps): JSX.Element {
           <div className="space-y-4">
             <div className="flex items-start">
               <div className="flex items-center justify-center flex-shrink-0 w-10 h-10 mr-3 rounded-full bg-color-yellow200">
-                <IconLink size={18} color={Tailwind.semantic().icon.neutral} />
+                <IconLink size={18} color={Tailwind_semantic().icon.neutral} />
               </div>
               <div>
                 <h4 className="mb-1 font-medium">Share Your Programs</h4>
@@ -55,8 +55,8 @@ export function ModalAffiliate(props: IProps): JSX.Element {
                 <IconCheckCircle
                   isChecked={true}
                   size={16}
-                  color={Tailwind.semantic().icon.purple}
-                  checkColor={Tailwind.semantic().background.default}
+                  color={Tailwind_semantic().icon.purple}
+                  checkColor={Tailwind_semantic().background.default}
                 />
               </div>
               <div>

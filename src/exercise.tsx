@@ -1,10 +1,10 @@
 import { h } from "preact";
 import { IExerciseContentProps, ExerciseContent } from "./pages/exercise/exerciseContent";
-import { HydrateUtils } from "./utils/hydrate";
+import { HydrateUtils_hydratePage } from "./utils/hydrate";
 
 function main(): void {
-  HydrateUtils.hydratePage<IExerciseContentProps>((pageWrapperProps, data) => (
-    <ExerciseContent {...data} client={window.fetch.bind(window)} />
+  HydrateUtils_hydratePage<IExerciseContentProps>((pageWrapperProps, data) => (
+    <ExerciseContent {...data} isLoggedIn={pageWrapperProps.isLoggedIn} client={window.fetch.bind(window)} />
   ));
 }
 

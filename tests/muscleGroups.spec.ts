@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { PlaywrightUtils, startpage } from "./playwrightUtils";
+import {
+  startpage,
+  PlaywrightUtils_clearCodeMirror,
+  PlaywrightUtils_typeCodeMirror,
+  PlaywrightUtils_finishExercise,
+} from "./playwrightUtils";
 
 test("Muscle Groups", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
@@ -10,8 +15,8 @@ test("Muscle Groups", async ({ page }) => {
 
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
-  await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
-  await PlaywrightUtils.typeCodeMirror(
+  await PlaywrightUtils_clearCodeMirror(page, "planner-editor");
+  await PlaywrightUtils_typeCodeMirror(
     page,
     "planner-editor",
     `# Week 1
@@ -46,9 +51,9 @@ Bent Over Row / 3x5 / 100lb / warmup: none`
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
-  await PlaywrightUtils.finishExercise(page, "bench-press", [1, 1, 1]);
-  await PlaywrightUtils.finishExercise(page, "squat", [1, 1, 1]);
-  await PlaywrightUtils.finishExercise(page, "bent-over-row", [1, 1, 1]);
+  await PlaywrightUtils_finishExercise(page, "bench-press", [1, 1, 1]);
+  await PlaywrightUtils_finishExercise(page, "squat", [1, 1, 1]);
+  await PlaywrightUtils_finishExercise(page, "bent-over-row", [1, 1, 1]);
 
   await page.getByTestId("finish-workout").click();
 

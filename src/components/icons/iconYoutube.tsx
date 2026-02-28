@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
   style?: { [key: string]: string | number };
@@ -11,8 +11,8 @@ interface IProps {
 
 export function IconYoutube(props: IProps): JSX.Element {
   const size = props.size || 24;
-  const color = props.color || Tailwind.semantic().icon.neutral;
-  const secondaryColor = props.secondaryColor || Tailwind.semantic().icon.white;
+  const color = props.color || Tailwind_semantic().icon.neutral;
+  const secondaryColor = props.secondaryColor || Tailwind_semantic().icon.white;
   return (
     <svg
       width={size}

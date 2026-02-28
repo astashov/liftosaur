@@ -10,8 +10,8 @@ import { lb } from "lens-shmens";
 import { BottomSheet } from "../bottomSheet";
 import { MenuItemEditable } from "../menuItemEditable";
 import { IEvaluatedProgram } from "../../models/program";
-import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
-import { Weight } from "../../models/weight";
+import { EditProgramUiHelpers_changeCurrentInstance2 } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import { Weight_build } from "../../models/weight";
 
 interface IBottomSheetEditProgramExerciseSetProps {
   ui: IPlannerExerciseUi;
@@ -47,7 +47,7 @@ export function BottomSheetEditProgramExerciseSet(props: IBottomSheetEditProgram
     }
     props.plannerDispatch(
       lbProgram.recordModify((program) => {
-        return EditProgramUiHelpers.changeCurrentInstance2(program, plannerExercise, props.settings, true, (ex) => {
+        return EditProgramUiHelpers_changeCurrentInstance2(program, plannerExercise, props.settings, true, (ex) => {
           const setVariation = ex.evaluatedSetVariations[setVariationIndex];
           const s = setVariation.sets[setIndex];
           cb(s);
@@ -95,7 +95,7 @@ export function BottomSheetEditProgramExerciseSet(props: IBottomSheetEditProgram
               onChange={(value) => {
                 changeSet((s) => {
                   if (value === "true") {
-                    s.weight = s.weight ?? Weight.build(0, props.settings.units);
+                    s.weight = s.weight ?? Weight_build(0, props.settings.units);
                   } else {
                     s.weight = undefined;
                   }

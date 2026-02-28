@@ -2,8 +2,8 @@ import { h, JSX } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { IExerciseType, ISettings } from "../types";
 import { ExerciseImage } from "./exerciseImage";
-import { Exercise } from "../models/exercise";
-import { Muscle } from "../models/muscle";
+import { Exercise_targetMusclesGroups, Exercise_synergistMusclesGroups } from "../models/exercise";
+import { Muscle_getMuscleGroupName } from "../models/muscle";
 
 export function ExerciseTooltip(props: {
   exerciseType: IExerciseType;
@@ -48,8 +48,8 @@ export function ExerciseTooltip(props: {
     }
   }, [show]);
 
-  const targetMuscles = Exercise.targetMusclesGroups(props.exerciseType, props.settings);
-  const synergistMuscles = Exercise.synergistMusclesGroups(props.exerciseType, props.settings);
+  const targetMuscles = Exercise_targetMusclesGroups(props.exerciseType, props.settings);
+  const synergistMuscles = Exercise_synergistMusclesGroups(props.exerciseType, props.settings);
 
   return (
     <span
@@ -106,7 +106,7 @@ export function ExerciseTooltip(props: {
                 <div>
                   <span className="font-semibold text-text-secondary">Target: </span>
                   <span className="font-normal">
-                    {targetMuscles.map((m) => Muscle.getMuscleGroupName(m, props.settings)).join(", ")}
+                    {targetMuscles.map((m) => Muscle_getMuscleGroupName(m, props.settings)).join(", ")}
                   </span>
                 </div>
               )}
@@ -114,7 +114,7 @@ export function ExerciseTooltip(props: {
                 <div>
                   <span className="font-semibold text-text-secondary">Synergist: </span>
                   <span className="font-normal">
-                    {synergistMuscles.map((m) => Muscle.getMuscleGroupName(m, props.settings)).join(", ")}
+                    {synergistMuscles.map((m) => Muscle_getMuscleGroupName(m, props.settings)).join(", ")}
                   </span>
                 </div>
               )}

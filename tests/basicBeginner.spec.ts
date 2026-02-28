@@ -1,11 +1,17 @@
-import { PlaywrightUtils, startpage } from "./playwrightUtils";
+import {
+  startpage,
+  PlaywrightUtils_disableSubscriptions,
+  PlaywrightUtils_clickAll,
+  PlaywrightUtils_forEach,
+  PlaywrightUtils_typeKeyboard,
+} from "./playwrightUtils";
 import { test, expect } from "@playwright/test";
 
 test("Basic Beginner Program", async ({ page }) => {
   page.on("dialog", (dialog) => dialog.accept());
   await page.goto(startpage + "?skipintro=1&nosync=true");
   await page.getByRole("button", { name: "Basic Beginner Routine" }).click();
-  PlaywrightUtils.disableSubscriptions(page);
+  PlaywrightUtils_disableSubscriptions(page);
   await page.getByTestId("clone-program").click();
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
@@ -20,12 +26,12 @@ test("Basic Beginner Program", async ({ page }) => {
   await page.waitForTimeout(1000);
   await page.getByTestId("modal-close").and(page.locator(":visible")).click();
 
-  await PlaywrightUtils.clickAll(page.getByTestId("entry-bent-over-row").getByTestId("complete-set"));
+  await PlaywrightUtils_clickAll(page.getByTestId("entry-bent-over-row").getByTestId("complete-set"));
   await page.getByTestId("modal-amrap-input").fill("5");
   await page.getByTestId("modal-amrap-submit").click();
 
-  await PlaywrightUtils.forEach(page.getByTestId("input-set-weight-field"), async (item) => {
-    await PlaywrightUtils.typeKeyboard(page, item, "140");
+  await PlaywrightUtils_forEach(page.getByTestId("input-set-weight-field"), async (item) => {
+    await PlaywrightUtils_typeKeyboard(page, item, "140");
   });
 
   // Second exercise is successful
@@ -37,12 +43,12 @@ test("Basic Beginner Program", async ({ page }) => {
   await page.waitForTimeout(1000);
   await page.getByTestId("modal-close").and(page.locator(":visible")).click();
 
-  await PlaywrightUtils.clickAll(page.getByTestId("entry-squat").getByTestId("complete-set"));
+  await PlaywrightUtils_clickAll(page.getByTestId("entry-squat").getByTestId("complete-set"));
   await page.getByTestId("modal-amrap-input").fill("5");
   await page.getByTestId("modal-amrap-submit").click();
 
-  await PlaywrightUtils.forEach(page.getByTestId("input-set-weight-field"), async (item) => {
-    await PlaywrightUtils.typeKeyboard(page, item, "200");
+  await PlaywrightUtils_forEach(page.getByTestId("input-set-weight-field"), async (item) => {
+    await PlaywrightUtils_typeKeyboard(page, item, "200");
   });
 
   await page.getByTestId("finish-workout").click();
@@ -54,7 +60,7 @@ test("Basic Beginner Program", async ({ page }) => {
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
   // First exercise is successful
-  await PlaywrightUtils.clickAll(page.getByTestId("entry-chin-up").getByTestId("complete-set"));
+  await PlaywrightUtils_clickAll(page.getByTestId("entry-chin-up").getByTestId("complete-set"));
   await page.getByTestId("modal-amrap-input").fill("5");
   await page.getByTestId("modal-amrap-submit").click();
 
@@ -67,14 +73,14 @@ test("Basic Beginner Program", async ({ page }) => {
   await page.waitForTimeout(1000);
   await page.getByTestId("modal-close").and(page.locator(":visible")).click();
 
-  await PlaywrightUtils.clickAll(page.getByTestId("entry-deadlift").getByTestId("complete-set"));
+  await PlaywrightUtils_clickAll(page.getByTestId("entry-deadlift").getByTestId("complete-set"));
   await page.getByTestId("modal-amrap-input").fill("5");
   await page.getByTestId("modal-amrap-submit").click();
 
-  await PlaywrightUtils.forEach(
+  await PlaywrightUtils_forEach(
     page.getByTestId("entry-deadift").getByTestId("input-set-weight-field"),
     async (item) => {
-      await PlaywrightUtils.typeKeyboard(page, item, "250");
+      await PlaywrightUtils_typeKeyboard(page, item, "250");
     }
   );
 
@@ -90,19 +96,19 @@ test("Basic Beginner Program", async ({ page }) => {
   await page.waitForTimeout(1000);
   await page.getByTestId("modal-close").and(page.locator(":visible")).click();
 
-  await PlaywrightUtils.clickAll(page.getByTestId("entry-overhead-press").getByTestId("complete-set"));
+  await PlaywrightUtils_clickAll(page.getByTestId("entry-overhead-press").getByTestId("complete-set"));
   await page.getByTestId("modal-amrap-input").fill("5");
   await page.getByTestId("modal-amrap-submit").click();
-  await PlaywrightUtils.typeKeyboard(
+  await PlaywrightUtils_typeKeyboard(
     page,
     page.getByTestId("entry-overhead-press").getByTestId("input-set-reps-field").nth(0),
     "3"
   );
 
-  await PlaywrightUtils.forEach(
+  await PlaywrightUtils_forEach(
     page.getByTestId("entry-overhead-press").getByTestId("input-set-weight-field"),
     async (item) => {
-      await PlaywrightUtils.typeKeyboard(page, item, "100");
+      await PlaywrightUtils_typeKeyboard(page, item, "100");
     }
   );
 
@@ -141,19 +147,19 @@ test("Basic Beginner Program", async ({ page }) => {
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
   // First exercise is successful
-  await PlaywrightUtils.clickAll(page.getByTestId("entry-bent-over-row").getByTestId("complete-set"));
+  await PlaywrightUtils_clickAll(page.getByTestId("entry-bent-over-row").getByTestId("complete-set"));
   await page.getByTestId("modal-amrap-input").fill("5");
   await page.getByTestId("modal-amrap-submit").click();
 
   // Second exercise is unsuccessful
   await page.getByTestId("workout-tab-squat").click();
-  await PlaywrightUtils.clickAll(page.getByTestId("entry-squat").getByTestId("complete-set"));
+  await PlaywrightUtils_clickAll(page.getByTestId("entry-squat").getByTestId("complete-set"));
   await page.getByTestId("modal-amrap-input").fill("3");
   await page.getByTestId("modal-amrap-submit").click();
 
   // Third exercise is successful
   await page.getByTestId("workout-tab-bench-press").click();
-  await PlaywrightUtils.clickAll(page.getByTestId("entry-bench-press").getByTestId("complete-set"));
+  await PlaywrightUtils_clickAll(page.getByTestId("entry-bench-press").getByTestId("complete-set"));
   await page.getByTestId("modal-amrap-input").fill("5");
   await page.getByTestId("modal-amrap-submit").click();
 

@@ -1,13 +1,13 @@
 import { h, JSX, Fragment } from "preact";
-import { IEvaluatedProgram, Program } from "../../models/program";
+import { IEvaluatedProgram, Program_getSupersetGroups } from "../../models/program";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { BottomSheet } from "../bottomSheet";
 import { ISettings } from "../../types";
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_entriesNonnull } from "../../utils/object";
 import { Button } from "../button";
 import { useState } from "preact/hooks";
 import { ModalNewSupersetGroup } from "../modalNewSupersetGroup";
-import { StringUtils } from "../../utils/string";
+import { StringUtils_dashcase } from "../../utils/string";
 
 interface IBottomSheetEditProgramExerciseSupersetProps {
   onSelect: (name: string | undefined) => void;
@@ -21,7 +21,7 @@ interface IBottomSheetEditProgramExerciseSupersetProps {
 export function BottomSheetEditProgramExerciseSuperset(
   props: IBottomSheetEditProgramExerciseSupersetProps
 ): JSX.Element {
-  const supersetGroups = Program.getSupersetGroups(props.evaluatedProgram, props.plannerExercise.dayData);
+  const supersetGroups = Program_getSupersetGroups(props.evaluatedProgram, props.plannerExercise.dayData);
   const [newGroupModal, setNewGroupModal] = useState(false);
 
   return (
@@ -42,12 +42,12 @@ export function BottomSheetEditProgramExerciseSuperset(
             >
               None
             </button>
-            {ObjectUtils.entriesNonnull(supersetGroups).map(([name, plannerExercises]) => {
+            {ObjectUtils_entriesNonnull(supersetGroups).map(([name, plannerExercises]) => {
               const isSelected = props.plannerExercise.superset?.name === name;
               return (
                 <button
                   key={name}
-                  data-cy={`superset-group-${StringUtils.dashcase(name)}`}
+                  data-cy={`superset-group-${StringUtils_dashcase(name)}`}
                   className={`text-left block w-full items-center ${isSelected ? "bg-background-cardpurple" : ""} gap-2 px-4 py-1 border-b border-border-neutral min-h-12`}
                   onClick={() => {
                     props.onSelect(name);

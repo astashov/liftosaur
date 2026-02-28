@@ -1,17 +1,26 @@
 import { lb } from "lens-shmens";
 import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
-import { Exercise, equipmentName, IExercise } from "../models/exercise";
+import {
+  equipmentName,
+  IExercise,
+  Exercise_defaultRounding,
+  Exercise_getIsUnilateral,
+  Exercise_toKey,
+} from "../models/exercise";
 import { updateState, IState, updateSettings } from "../models/state";
-import { Weight } from "../models/weight";
+import { Weight_build } from "../models/weight";
 import { ISettings } from "../types";
-import { ObjectUtils } from "../utils/object";
+import { ObjectUtils_keys } from "../utils/object";
 import { ExerciseRM } from "./exerciseRm";
 import { GroupHeader } from "./groupHeader";
 import { InputNumber } from "./inputNumber";
 import { MenuItemEditable } from "./menuItemEditable";
-import { EditEquipment } from "../models/editEquipment";
-import { Equipment } from "../models/equipment";
+import {
+  EditEquipment_setDefaultRoundingForExercise,
+  EditEquipment_setEquipmentForExercise,
+} from "../models/editEquipment";
+import { Equipment_getEquipmentIdForExerciseType } from "../models/equipment";
 
 interface IExerciseDataSettingsProps {
   settings: ISettings;
@@ -32,9 +41,9 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
         min={0}
         step={0.5}
         max={100}
-        value={Exercise.defaultRounding(fullExercise, props.settings)}
+        value={Exercise_defaultRounding(fullExercise, props.settings)}
         onUpdate={(value) => {
-          EditEquipment.setDefaultRoundingForExercise(props.dispatch, fullExercise, value);
+          EditEquipment_setDefaultRoundingForExercise(props.dispatch, fullExercise, value);
         }}
       />
       <div className="text-xs text-right text-text-secondary">Used when Equipment is not set</div>
@@ -44,10 +53,10 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
         </div>
       )}
       {props.settings.gyms.map((gym, i) => {
-        const equipment = Equipment.getEquipmentIdForExerciseType(props.settings, props.fullExercise, gym.id);
+        const equipment = Equipment_getEquipmentIdForExerciseType(props.settings, props.fullExercise, gym.id);
         const values: [string, string][] = [
           ["", "None"],
-          ...ObjectUtils.keys(gym.equipment)
+          ...ObjectUtils_keys(gym.equipment)
             .filter((e) => !gym.equipment[e]?.isDeleted)
             .map<[string, string]>((id) => [id, equipmentName(id, gym.equipment)]),
         ];
@@ -63,7 +72,7 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
             value={equipment ?? ""}
             values={values}
             onChange={(value) => {
-              EditEquipment.setEquipmentForExercise(
+              EditEquipment_setEquipmentForExercise(
                 fullExercise,
                 value,
                 props.programExerciseIds,
@@ -78,7 +87,7 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
       <MenuItemEditable
         type="boolean"
         name="Is Unilateral"
-        value={Exercise.getIsUnilateral(fullExercise, props.settings) ? "true" : "false"}
+        value={Exercise_getIsUnilateral(fullExercise, props.settings) ? "true" : "false"}
         onChange={(value) => {
           const isUnilateral = value === "true";
           updateSettings(
@@ -86,7 +95,7 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
             lb<ISettings>()
               .p("exerciseData")
               .recordModify((exerciseData) => {
-                const k = Exercise.toKey(fullExercise);
+                const k = Exercise_toKey(fullExercise);
                 return { ...exerciseData, [k]: { ...exerciseData[k], isUnilateral } };
               }),
             "Set exercise unilateral setting"
@@ -108,8 +117,8 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
                   .p("settings")
                   .p("exerciseData")
                   .recordModify((data) => {
-                    const k = Exercise.toKey(fullExercise);
-                    return { ...data, [k]: { ...data[k], rm1: Weight.build(value, props.settings.units) } };
+                    const k = Exercise_toKey(fullExercise);
+                    return { ...data, [k]: { ...data[k], rm1: Weight_build(value, props.settings.units) } };
                   }),
               ],
               "Update 1RM for exercise"

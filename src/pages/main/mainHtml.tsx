@@ -1,18 +1,17 @@
 import { h, JSX } from "preact";
 import { Page } from "../../components/page";
-import { IAccount } from "../../models/account";
 import { MainContent } from "./mainContent";
 import { ITestimonial } from "./testimonitals";
 
 interface IProps {
   client: Window["fetch"];
-  account?: IAccount;
+  isLoggedIn?: boolean;
+  deviceType?: "ios" | "android" | "desktop";
   testimonials: ITestimonial[];
-  userAgent?: string;
 }
 
 export function MainHtml(props: IProps): JSX.Element {
-  const { client, ...data } = props;
+  const { client, isLoggedIn, ...data } = props;
 
   return (
     <Page
@@ -26,12 +25,12 @@ export function MainHtml(props: IProps): JSX.Element {
       canonical="https://www.liftosaur.com"
       ogUrl="https://www.liftosaur.com"
       data={data}
-      account={props.account}
+      isLoggedIn={!!isLoggedIn}
       client={client}
-      url={"/new"}
+      url={"/"}
       redditPixel={true}
     >
-      <MainContent client={client} {...data} />
+      <MainContent client={client} isLoggedIn={isLoggedIn} {...data} />
     </Page>
   );
 }

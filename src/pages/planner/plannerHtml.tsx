@@ -3,7 +3,7 @@ import { Page } from "../../components/page";
 import { PlannerContent } from "./plannerContent";
 import { IAccount } from "../../models/account";
 import { IPartialStorage } from "../../types";
-import { HtmlUtils } from "../../utils/html";
+import { HtmlUtils_escapeHtml } from "../../utils/html";
 import { IExportedProgram } from "../../models/program";
 
 interface IProps {
@@ -21,12 +21,12 @@ export function PlannerHtml(props: IProps): JSX.Element {
   const programName = data.initialProgram?.program?.name;
   const title =
     programName != null
-      ? `${HtmlUtils.escapeHtml(programName)} | Workout Editor | Liftosaur`
+      ? `${HtmlUtils_escapeHtml(programName)} | Workout Editor | Liftosaur`
       : "Weightlifting Workout Planner | Liftosaur";
 
   return (
     <Page
-      account={props.account}
+      isLoggedIn={!!props.account}
       css={["planner"]}
       js={["planner"]}
       maxWidth={1200}

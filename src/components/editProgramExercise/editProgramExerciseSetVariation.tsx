@@ -8,14 +8,17 @@ import {
 import { ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IconPlus2 } from "../icons/iconPlus2";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { EditProgramExerciseSet } from "./editProgramExerciseSet";
-import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import { EditProgramUiHelpers_changeCurrentInstanceExercise } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { useState } from "preact/hooks";
-import { UidFactory } from "../../utils/generator";
+import { UidFactory_generateUid } from "../../utils/generator";
 import { IconTrash } from "../icons/iconTrash";
-import { CollectionUtils } from "../../utils/collection";
-import { PlannerProgramExercise } from "../../pages/planner/models/plannerProgramExercise";
+import { CollectionUtils_removeAt } from "../../utils/collection";
+import {
+  PlannerProgramExercise_currentEvaluatedSetVariationIndex,
+  PlannerProgramExercise_addSet,
+} from "../../pages/planner/models/plannerProgramExercise";
 
 interface IEditProgramExerciseSetVariationProps {
   name: string;
@@ -34,8 +37,8 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
   const hasWeight = props.setVariation.sets.some((set) => set.weight != null);
   const hasMinReps = props.setVariation.sets.some((set) => set.minrep != null);
   const hasTimer = props.setVariation.sets.some((set) => set.timer != null);
-  const [setIds, setSetIds] = useState<string[]>(setVariation.sets.map((set) => UidFactory.generateUid(4)));
-  const currentIndex = PlannerProgramExercise.currentEvaluatedSetVariationIndex(props.plannerExercise);
+  const [setIds, setSetIds] = useState<string[]>(setVariation.sets.map((set) => UidFactory_generateUid(4)));
+  const currentIndex = PlannerProgramExercise_currentEvaluatedSetVariationIndex(props.plannerExercise);
   const additionalFields = [hasMinReps ? 1 : 0, hasWeight ? 1 : 0, hasRpe ? 1 : 0, hasTimer ? 1 : 0].reduce(
     (a, b) => a + b,
     0
@@ -56,7 +59,7 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
                   className="block align-middle checkbox text-text-link"
                   type="checkbox"
                   onChange={(e) => {
-                    EditProgramUiHelpers.changeCurrentInstanceExercise(
+                    EditProgramUiHelpers_changeCurrentInstanceExercise(
                       props.plannerDispatch,
                       props.plannerExercise,
                       props.settings,
@@ -73,12 +76,12 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
             <button
               className="p-2"
               onClick={() => {
-                EditProgramUiHelpers.changeCurrentInstanceExercise(
+                EditProgramUiHelpers_changeCurrentInstanceExercise(
                   props.plannerDispatch,
                   props.plannerExercise,
                   props.settings,
                   (ex) => {
-                    ex.evaluatedSetVariations = CollectionUtils.removeAt(
+                    ex.evaluatedSetVariations = CollectionUtils_removeAt(
                       ex.evaluatedSetVariations,
                       props.setVariationIndex
                     );
@@ -169,19 +172,19 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
           className="flex-1 py-2 m-2 text-xs font-semibold text-center rounded-md bg-background-purpledark text-text-link"
           data-cy="add-set"
           onClick={() => {
-            EditProgramUiHelpers.changeCurrentInstanceExercise(
+            EditProgramUiHelpers_changeCurrentInstanceExercise(
               props.plannerDispatch,
               props.plannerExercise,
               props.settings,
               (ex) => {
-                PlannerProgramExercise.addSet(ex, props.setVariationIndex, props.settings);
+                PlannerProgramExercise_addSet(ex, props.setVariationIndex, props.settings);
               }
             );
-            setSetIds((prev) => [...prev, UidFactory.generateUid(4)]);
+            setSetIds((prev) => [...prev, UidFactory_generateUid(4)]);
           }}
         >
           <span>
-            <IconPlus2 size={10} className="inline-block" color={Tailwind.semantic().text.link} />
+            <IconPlus2 size={10} className="inline-block" color={Tailwind_semantic().text.link} />
           </span>
           <span className="ml-2">Add Set</span>
         </button>

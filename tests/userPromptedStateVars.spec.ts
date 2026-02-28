@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { PlaywrightUtils, startpage } from "./playwrightUtils";
+import {
+  startpage,
+  PlaywrightUtils_clearCodeMirror,
+  PlaywrightUtils_typeCodeMirror,
+  PlaywrightUtils_finishExercise,
+} from "./playwrightUtils";
 
 test("User Prompted State Vars", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
@@ -12,8 +17,8 @@ test("User Prompted State Vars", async ({ page }) => {
 
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
-  await PlaywrightUtils.clearCodeMirror(page, "planner-editor");
-  await PlaywrightUtils.typeCodeMirror(
+  await PlaywrightUtils_clearCodeMirror(page, "planner-editor");
+  await PlaywrightUtils_typeCodeMirror(
     page,
     "planner-editor",
     `# Week 1
@@ -32,7 +37,7 @@ Squat / 5x5 65lb / warmup: none / progress: custom(rpe+: 0) {~
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
-  await PlaywrightUtils.finishExercise(page, "squat", [1, 1, 1, 1]);
+  await PlaywrightUtils_finishExercise(page, "squat", [1, 1, 1, 1]);
   await page.getByTestId("complete-set").nth(4).click();
   await page.getByTestId("modal-state-vars-user-prompt-input-rpe").clear();
   await page.getByTestId("modal-state-vars-user-prompt-input-rpe").type("8");
@@ -60,7 +65,7 @@ Squat / 5x5 65lb / warmup: none / progress: custom(rpe+: 0) {~
 
   await expect(page.getByTestId("input-set-weight-field").nth(1)).toContainText("70");
 
-  await PlaywrightUtils.finishExercise(page, "squat", [1, 1, 1, 1]);
+  await PlaywrightUtils_finishExercise(page, "squat", [1, 1, 1, 1]);
   await page.getByTestId("complete-set").nth(4).click();
   await page.getByTestId("modal-state-vars-user-prompt-input-rpe").clear();
   await page.getByTestId("modal-state-vars-user-prompt-input-rpe").type("5");

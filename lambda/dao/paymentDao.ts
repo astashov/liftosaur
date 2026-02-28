@@ -1,4 +1,4 @@
-import { Utils } from "../utils";
+import { Utils_getEnv } from "../utils";
 import { IDI } from "../utils/di";
 
 const tableNames = {
@@ -35,7 +35,7 @@ export class PaymentDao {
     if (payment.timestamp < date.getTime()) {
       return;
     }
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     await this.di.dynamo.put({
       tableName: tableNames[env].payments,
       item: payment,
@@ -43,7 +43,7 @@ export class PaymentDao {
   }
 
   public async doesExist(transactionId: string): Promise<boolean> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     const existingPayments = await this.di.dynamo.query<IPaymentDao>({
       tableName: tableNames[env].payments,
       indexName: `lftPaymentsTransactionId${env === "dev" ? "Dev" : ""}`,
@@ -64,7 +64,7 @@ export class PaymentDao {
   }
 
   public async getByUserId(userId: string, limit?: number): Promise<IPaymentDao[]> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     return this.di.dynamo.query<IPaymentDao>({
       tableName: tableNames[env].payments,
       expression: "userId = :userId",
@@ -75,7 +75,7 @@ export class PaymentDao {
   }
 
   public async getAllPayments(): Promise<IPaymentDao[]> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     return this.di.dynamo.scan<IPaymentDao>({
       tableName: tableNames[env].payments,
     });

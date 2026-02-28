@@ -1,6 +1,6 @@
 import { JSX } from "preact";
 import { useState, useRef } from "preact/hooks";
-import { MathUtils } from "../utils/math";
+import { MathUtils_clamp } from "../utils/math";
 
 interface ISwipeableRowProps {
   children: (props: {
@@ -64,7 +64,7 @@ export function SwipeableRow(props: ISwipeableRowProps): JSX.Element {
 
     if (deltaX < -props.initiateTreshold && !isScrolling.current) {
       isSwiping.current = true;
-      setTranslateX(MathUtils.clamp(deltaX, -width, 0));
+      setTranslateX(MathUtils_clamp(deltaX, -width, 0));
       return;
     }
   };

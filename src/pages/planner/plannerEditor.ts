@@ -17,28 +17,35 @@ import {
 import { highlightSelectionMatches } from "@codemirror/search";
 import { tags } from "@lezer/highlight";
 import { buildPlannerExerciseLanguageSupport } from "./plannerExerciseCodemirror";
-import { equipmentName, Exercise } from "../../models/exercise";
-import { ExerciseImageUtils } from "../../models/exerciseImage";
-import { StringUtils } from "../../utils/string";
+import {
+  equipmentName,
+  Exercise_findByNameAndEquipment,
+  Exercise_targetMuscles,
+  Exercise_synergistMuscles,
+  Exercise_targetMusclesGroups,
+  Exercise_synergistMusclesGroups,
+} from "../../models/exercise";
+import { ExerciseImageUtils_exists, ExerciseImageUtils_url } from "../../models/exerciseImage";
+import { StringUtils_capitalize } from "../../utils/string";
 import { IAllCustomExercises } from "../../types";
 import { PlannerSyntaxError } from "./plannerExerciseEvaluator";
-import { ObjectUtils } from "../../utils/object";
-import { Tailwind } from "../../utils/tailwindConfig";
-import { Settings } from "../../models/settings";
-import { Muscle } from "../../models/muscle";
+import { ObjectUtils_isEqual } from "../../utils/object";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
+import { Settings_build } from "../../models/settings";
+import { Muscle_getMuscleGroupName } from "../../models/muscle";
 
 const buildHighlightStyle = (): HighlightStyle => {
   return HighlightStyle.define([
-    { tag: tags.keyword, color: Tailwind.semantic().syntax.keyword },
-    { tag: [tags.literal, tags.inserted], color: Tailwind.semantic().syntax.literal },
-    { tag: tags.variableName, color: Tailwind.semantic().syntax.variable },
-    { tag: tags.comment, color: Tailwind.semantic().syntax.comment },
-    { tag: tags.blockComment, color: Tailwind.semantic().syntax.blockComment },
-    { tag: tags.atom, color: Tailwind.semantic().syntax.atom },
-    { tag: tags.attributeName, color: Tailwind.semantic().syntax.attributeName },
-    { tag: tags.attributeValue, color: Tailwind.semantic().syntax.attributeValue },
-    { tag: tags.annotation, color: Tailwind.semantic().syntax.annotation },
-    { tag: tags.docComment, color: Tailwind.semantic().syntax.docComment },
+    { tag: tags.keyword, color: Tailwind_semantic().syntax.keyword },
+    { tag: [tags.literal, tags.inserted], color: Tailwind_semantic().syntax.literal },
+    { tag: tags.variableName, color: Tailwind_semantic().syntax.variable },
+    { tag: tags.comment, color: Tailwind_semantic().syntax.comment },
+    { tag: tags.blockComment, color: Tailwind_semantic().syntax.blockComment },
+    { tag: tags.atom, color: Tailwind_semantic().syntax.atom },
+    { tag: tags.attributeName, color: Tailwind_semantic().syntax.attributeName },
+    { tag: tags.attributeValue, color: Tailwind_semantic().syntax.attributeValue },
+    { tag: tags.annotation, color: Tailwind_semantic().syntax.annotation },
+    { tag: tags.docComment, color: Tailwind_semantic().syntax.docComment },
   ]);
 };
 
@@ -84,13 +91,13 @@ function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorComp
           {
             render: (completion) => {
               if (completion.type === "keyword") {
-                const exercise = Exercise.findByNameAndEquipment(
+                const exercise = Exercise_findByNameAndEquipment(
                   completion.label,
                   plannerEditor.args.customExercises || {}
                 );
                 const url =
-                  exercise && ExerciseImageUtils.exists(exercise, "small")
-                    ? ExerciseImageUtils.url(exercise, "small")
+                  exercise && ExerciseImageUtils_exists(exercise, "small")
+                    ? ExerciseImageUtils_url(exercise, "small")
                     : undefined;
                 if (url != null) {
                   const element = document.createElement("img");
@@ -139,8 +146,8 @@ function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorComp
             render: (completion) => {
               if (completion.type === "keyword") {
                 const customExercises = plannerEditor.args.customExercises || {};
-                const settings = { ...Settings.build(), exercises: customExercises };
-                const exercise = Exercise.findByNameAndEquipment(completion.label, customExercises);
+                const settings = { ...Settings_build(), exercises: customExercises };
+                const exercise = Exercise_findByNameAndEquipment(completion.label, customExercises);
                 if (exercise == null) {
                   return document.createElement("span");
                 }
@@ -156,27 +163,27 @@ function getEditorSetup(plannerEditor: PlannerEditor): [Extension[], IEditorComp
                 const description = document.createElement("div");
                 description.classList.add("exercise-completion-description");
 
-                const targetMuscles = Exercise.targetMuscles(exercise, settings);
+                const targetMuscles = Exercise_targetMuscles(exercise, settings);
                 const targetMusclesNode = buildInfoLine("Target Muscles: ", targetMuscles.join(", "));
 
-                const synergistMuscles = Exercise.synergistMuscles(exercise, settings);
+                const synergistMuscles = Exercise_synergistMuscles(exercise, settings);
                 const synergistMusclesNode = buildInfoLine("Synergist Muscles: ", synergistMuscles.join(", "));
 
-                const targetMuscleGroups = Exercise.targetMusclesGroups(exercise, settings).map((w) =>
-                  Muscle.getMuscleGroupName(w, settings)
+                const targetMuscleGroups = Exercise_targetMusclesGroups(exercise, settings).map((w) =>
+                  Muscle_getMuscleGroupName(w, settings)
                 );
                 const targetMuscleGroupsNode = buildInfoLine("Target Muscle Groups: ", targetMuscleGroups.join(", "));
                 targetMuscleGroupsNode.style.marginTop = "0.25rem";
 
                 const synergistMuscleGroupsNode = buildInfoLine(
                   "Synergist Muscle Groups: ",
-                  Exercise.synergistMusclesGroups(exercise, settings)
-                    .map((w) => Muscle.getMuscleGroupName(w, settings))
+                  Exercise_synergistMusclesGroups(exercise, settings)
+                    .map((w) => Muscle_getMuscleGroupName(w, settings))
                     .filter((w) => targetMuscleGroups.indexOf(w) === -1)
                     .join(", ")
                 );
 
-                const types = buildInfoLine("Types: ", exercise.types.map((w) => StringUtils.capitalize(w)).join(", "));
+                const types = buildInfoLine("Types: ", exercise.types.map((w) => StringUtils_capitalize(w)).join(", "));
                 types.style.marginTop = "0.25rem";
 
                 container.appendChild(title);
@@ -354,7 +361,7 @@ export class PlannerEditor {
   }
 
   public setExerciseFullNames(names: string[]): void {
-    const changed = !ObjectUtils.isEqual({ arr: names }, { arr: this.args.exerciseFullNames });
+    const changed = !ObjectUtils_isEqual({ arr: names }, { arr: this.args.exerciseFullNames });
     if (changed) {
       this.args.exerciseFullNames = names;
       this.relint();

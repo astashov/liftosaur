@@ -7,17 +7,17 @@ import { Button } from "../button";
 import { IDispatch } from "../../ducks/types";
 import { buildPlannerDispatch } from "../../utils/plannerDispatch";
 import { lb, LensBuilder } from "lens-shmens";
-import { Thunk } from "../../ducks/thunks";
+import { Thunk_pullScreen } from "../../ducks/thunks";
 import { IState, updateState } from "../../models/state";
-import { CollectionUtils } from "../../utils/collection";
+import { CollectionUtils_setBy } from "../../utils/collection";
 import { ExerciseImage } from "../exerciseImage";
-import { equipmentName, Exercise } from "../../models/exercise";
+import { equipmentName, Exercise_get } from "../../models/exercise";
 import { ISettings } from "../../types";
 import { IconSwap } from "../icons/iconSwap";
 import { delayfn } from "../../utils/throttler";
-import { ReactUtils } from "../../utils/react";
+import { ReactUtils_usePropToRef } from "../../utils/react";
 import { pickerStateFromPlannerExercise } from "../editProgram/editProgramUtils";
-import { Tailwind } from "../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IEditProgramExerciseNavbarProps {
   state: IPlannerExerciseState;
@@ -30,9 +30,9 @@ interface IEditProgramExerciseNavbarProps {
 
 export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps): JSX.Element {
   const exerciseType = props.plannerExercise.exerciseType;
-  const exercise = exerciseType ? Exercise.get(exerciseType, props.settings.exercises) : undefined;
-  const stateRef = ReactUtils.usePropToRef(props.state);
-  const editProgramStateRef = ReactUtils.usePropToRef(props.editProgramState);
+  const exercise = exerciseType ? Exercise_get(exerciseType, props.settings.exercises) : undefined;
+  const stateRef = ReactUtils_usePropToRef(props.state);
+  const editProgramStateRef = ReactUtils_usePropToRef(props.editProgramState);
 
   return (
     <div
@@ -53,7 +53,7 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
           <IconUndo
             width={20}
             height={20}
-            color={!canUndo(props.state) ? Tailwind.semantic().icon.light : Tailwind.semantic().icon.neutral}
+            color={!canUndo(props.state) ? Tailwind_semantic().icon.light : Tailwind_semantic().icon.neutral}
           />
         </button>
         <button
@@ -67,7 +67,7 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
             width={20}
             height={20}
             style={{ transform: "scale(-1,  1)" }}
-            color={!canRedo(props.state) ? Tailwind.semantic().icon.light : Tailwind.semantic().icon.neutral}
+            color={!canRedo(props.state) ? Tailwind_semantic().icon.light : Tailwind_semantic().icon.neutral}
           />
         </button>
       </div>
@@ -137,7 +137,7 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
                     .p("storage")
                     .p("programs")
                     .recordModify((programs) => {
-                      return CollectionUtils.setBy(
+                      return CollectionUtils_setBy(
                         programs,
                         "id",
                         stateRef.current.current.program.id,
@@ -148,7 +148,7 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
                 "Save program changes"
               );
             }
-            props.dispatch(Thunk.pullScreen());
+            props.dispatch(Thunk_pullScreen());
           }, 50)}
         >
           Save

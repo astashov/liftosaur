@@ -4,7 +4,7 @@ import { Modal } from "./modal";
 import { useRef, useState } from "preact/hooks";
 import { Input } from "./input";
 import { IDispatch } from "../ducks/types";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_redeemCoupon } from "../ducks/thunks";
 import { IconSpinner } from "./icons/iconSpinner";
 
 interface IProps {
@@ -31,7 +31,7 @@ export function ModalCoupon(props: IProps): JSX.Element {
             if (value) {
               setIsLoading(true);
               props.dispatch(
-                Thunk.redeemCoupon(value, (success) => {
+                Thunk_redeemCoupon(value, (success) => {
                   if (success) {
                     props.onClose();
                   }

@@ -4,7 +4,7 @@ import { ITestimonial } from "../testimonitals";
 import { IconStar } from "../../../components/icons/iconStar";
 import { IconHeart } from "../../../components/icons/iconHeart";
 import { IconArrowRight } from "../../../components/icons/iconArrowRight";
-import { Tailwind } from "../../../utils/tailwindConfig";
+import { Tailwind_colors, Tailwind_semantic } from "../../../utils/tailwindConfig";
 import { Markdown } from "../../../components/markdown";
 
 function applyHighlight(text: string, highlight?: [number, number]): string {
@@ -143,15 +143,15 @@ export function TestimonialsView(props: { testimonials: ITestimonial[] }): JSX.E
     <div className="relative py-12 mx-0 md:mx-auto md:py-20" style={{ maxWidth: 1000 }}>
       <div className="flex items-center justify-center gap-3 px-4 mb-4">
         <h2 className="text-3xl font-bold md:text-4xl">Athletes</h2>
-        <IconHeart size={32} color={Tailwind.colors().red[500]} />
+        <IconHeart size={32} color={Tailwind_colors().red[500]} />
         <h2 className="text-3xl font-bold md:text-4xl">Liftosaur</h2>
       </div>
       <div className="flex justify-center gap-2 px-4 mb-8">
         <button
           className="px-4 py-2 text-sm font-semibold transition-colors rounded-full cursor-pointer hover:bg-purple-50 active:bg-purple-200"
           style={{
-            backgroundColor: tab === "stores" ? Tailwind.colors().purple[100] : undefined,
-            color: tab === "stores" ? Tailwind.colors().purple[700] : Tailwind.semantic().text.secondary,
+            backgroundColor: tab === "stores" ? Tailwind_colors().purple[100] : undefined,
+            color: tab === "stores" ? Tailwind_colors().purple[700] : Tailwind_semantic().text.secondary,
           }}
           onClick={() => handleTabChange("stores")}
         >
@@ -160,8 +160,8 @@ export function TestimonialsView(props: { testimonials: ITestimonial[] }): JSX.E
         <button
           className="px-4 py-2 text-sm font-semibold transition-colors rounded-full cursor-pointer hover:bg-purple-50 active:bg-purple-200"
           style={{
-            backgroundColor: tab === "reddit" ? Tailwind.colors().purple[100] : undefined,
-            color: tab === "reddit" ? Tailwind.colors().purple[700] : Tailwind.semantic().text.secondary,
+            backgroundColor: tab === "reddit" ? Tailwind_colors().purple[100] : undefined,
+            color: tab === "reddit" ? Tailwind_colors().purple[700] : Tailwind_semantic().text.secondary,
           }}
           onClick={() => handleTabChange("reddit")}
         >
@@ -222,7 +222,7 @@ export function TestimonialsView(props: { testimonials: ITestimonial[] }): JSX.E
             >
               {pageItems.map((t) => {
                 const stars = Array.from({ length: t.rating || 0 }, (__, si) => (
-                  <IconStar key={si} isSelected={true} color={Tailwind.colors().yellow[500]} />
+                  <IconStar key={si} isSelected={true} color={Tailwind_colors().yellow[500]} />
                 ));
                 return (
                   <div className="flex-1 p-6 border border-yellow-200 md:p-8 rounded-2xl bg-yellow-50">
@@ -243,7 +243,7 @@ export function TestimonialsView(props: { testimonials: ITestimonial[] }): JSX.E
                             {t.text.slice(0, t.highlight[0])}
                             <strong
                               style={{
-                                backgroundColor: Tailwind.colors().yellow[200],
+                                backgroundColor: Tailwind_colors().yellow[200],
                                 boxDecorationBreak: "clone",
                                 WebkitBoxDecorationBreak: "clone",
                               }}
@@ -257,13 +257,13 @@ export function TestimonialsView(props: { testimonials: ITestimonial[] }): JSX.E
                         )}
                       </p>
                     )}
-                    <div className="text-sm font-bold" style={{ color: Tailwind.semantic().text.primary }}>
+                    <div className="text-sm font-bold" style={{ color: Tailwind_semantic().text.primary }}>
                       {t.source === "reddit" ? (
                         <a
                           href={t.url}
                           target="_blank"
                           className="underline"
-                          style={{ color: Tailwind.semantic().text.link }}
+                          style={{ color: Tailwind_semantic().text.link }}
                         >
                           {t.author} on Reddit
                         </a>
@@ -272,7 +272,7 @@ export function TestimonialsView(props: { testimonials: ITestimonial[] }): JSX.E
                           href={t.url}
                           target="_blank"
                           className="underline"
-                          style={{ color: Tailwind.semantic().text.link }}
+                          style={{ color: Tailwind_semantic().text.link }}
                         >
                           {t.author} on {sourceLabel(t.source)}
                         </a>

@@ -1,7 +1,7 @@
 import { h, JSX } from "preact";
-import { IWhatsNew, WhatsNew } from "../models/whatsnew";
-import { DateUtils } from "../utils/date";
-import { ObjectUtils } from "../utils/object";
+import { IWhatsNew, WhatsNew_all } from "../models/whatsnew";
+import { DateUtils_format, DateUtils_fromYYYYMMDDStr } from "../utils/date";
+import { ObjectUtils_keys } from "../utils/object";
 import { Modal } from "./modal";
 
 export interface IModalWhatsnewProps {
@@ -10,8 +10,8 @@ export interface IModalWhatsnewProps {
 }
 
 export function ModalWhatsnew(props: IModalWhatsnewProps): JSX.Element {
-  const all = WhatsNew.all();
-  const sortedWhatsnewRecords = ObjectUtils.keys(all).reduce<[string, IWhatsNew][]>((memo, dateStr) => {
+  const all = WhatsNew_all();
+  const sortedWhatsnewRecords = ObjectUtils_keys(all).reduce<[string, IWhatsNew][]>((memo, dateStr) => {
     memo.push([dateStr, all[dateStr]]);
     return memo;
   }, []);
@@ -22,7 +22,7 @@ export function ModalWhatsnew(props: IModalWhatsnewProps): JSX.Element {
       <h3 className="pb-2 text-xl font-bold text-center">What's new?</h3>
       <ul className="text-sm">
         {sortedWhatsnewRecords.map(([dateStr, whatsNewRecord]) => {
-          const date = DateUtils.format(DateUtils.fromYYYYMMDDStr(dateStr, ""), true);
+          const date = DateUtils_format(DateUtils_fromYYYYMMDDStr(dateStr, ""), true);
           return (
             <li className="pb-6">
               <div className="text-xs font-bold text-gray-500">{date}</div>

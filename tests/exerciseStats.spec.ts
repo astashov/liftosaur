@@ -1,5 +1,5 @@
 import { test, expect, Page } from "@playwright/test";
-import { PlaywrightUtils, startpage } from "./playwrightUtils";
+import { startpage, PlaywrightUtils_finishExercise } from "./playwrightUtils";
 
 async function switchBackToFirstDay(page: Page): Promise<void> {
   await page.getByTestId("footer-program").click({ force: true });
@@ -24,9 +24,9 @@ test("works", async ({ page }) => {
   await expect(page.getByTestId("graph-data")).not.toBeVisible();
 
   await page.getByTestId("navbar-back").click({ force: true });
-  await PlaywrightUtils.finishExercise(page, "bent-over-row", [1, 1, { amrap: { reps: 5 } }]);
-  await PlaywrightUtils.finishExercise(page, "bench-press", [1, 1, { amrap: { reps: 5 } }]);
-  await PlaywrightUtils.finishExercise(page, "squat", [1, 1, { amrap: { reps: 5 } }]);
+  await PlaywrightUtils_finishExercise(page, "bent-over-row", [1, 1, { amrap: { reps: 5 } }]);
+  await PlaywrightUtils_finishExercise(page, "bench-press", [1, 1, { amrap: { reps: 5 } }]);
+  await PlaywrightUtils_finishExercise(page, "squat", [1, 1, { amrap: { reps: 5 } }]);
   await page.getByTestId("finish-workout").click();
   await page.getByTestId("finish-day-continue").click();
 
@@ -42,9 +42,9 @@ test("works", async ({ page }) => {
   await expect(page.getByTestId("graph-data")).not.toBeVisible();
 
   await page.getByTestId("navbar-back").click({ force: true });
-  await PlaywrightUtils.finishExercise(page, "bent-over-row", [1, 1, 1, { amrap: { reps: 5 } }]);
-  await PlaywrightUtils.finishExercise(page, "bench-press", [1, 1, 1, { amrap: { reps: 5 } }]);
-  await PlaywrightUtils.finishExercise(page, "squat", [1, 1, 1, { amrap: { reps: 5 } }]);
+  await PlaywrightUtils_finishExercise(page, "bent-over-row", [1, 1, 1, { amrap: { reps: 5 } }]);
+  await PlaywrightUtils_finishExercise(page, "bench-press", [1, 1, 1, { amrap: { reps: 5 } }]);
+  await PlaywrightUtils_finishExercise(page, "squat", [1, 1, 1, { amrap: { reps: 5 } }]);
   await page.getByTestId("finish-workout").click();
   await page.getByTestId("finish-day-continue").click();
 

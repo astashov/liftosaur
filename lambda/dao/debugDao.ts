@@ -1,5 +1,5 @@
-import { DateUtils } from "../../src/utils/date";
-import { Utils } from "../utils";
+import { DateUtils_formatYYYYMMDDHHMM } from "../../src/utils/date";
+import { Utils_getEnv } from "../utils";
 import { IDI } from "../utils/di";
 import { LftS3Buckets } from "./buckets";
 
@@ -21,7 +21,7 @@ export class DebugDao {
   constructor(private readonly di: IDI) {}
 
   public async list(id: string): Promise<string[] | undefined> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     const result = await this.di.s3.listObjects({
       bucket: bucketNames[env].debug,
       prefix: `debuginfo/${id}`,
@@ -34,7 +34,7 @@ export class DebugDao {
   }
 
   public async get(id: string, date: string): Promise<IDebugDao | undefined> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     const result = await this.di.s3.getObject({
       bucket: bucketNames[env].debug,
       key: `debuginfo/${id}/${date}`,
@@ -48,20 +48,20 @@ export class DebugDao {
   }
 
   public async store(id: string, state: string): Promise<void> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     await this.di.s3.putObject({
       bucket: bucketNames[env].debug,
-      key: `debuginfo/${id}/${DateUtils.formatYYYYMMDDHHMM(Date.now())}`,
+      key: `debuginfo/${id}/${DateUtils_formatYYYYMMDDHHMM(Date.now())}`,
       body: state,
       opts: { contentType: "text/plain" },
     });
   }
 
   public async storeError(id: string, state: string): Promise<void> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     await this.di.s3.putObject({
       bucket: bucketNames[env].debug,
-      key: `errorinfo/${id}/${DateUtils.formatYYYYMMDDHHMM(Date.now())}`,
+      key: `errorinfo/${id}/${DateUtils_formatYYYYMMDDHHMM(Date.now())}`,
       body: state,
       opts: { contentType: "text/plain" },
     });

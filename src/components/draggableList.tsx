@@ -1,7 +1,7 @@
 import { JSX, h, Fragment } from "preact";
 import { useRef, useState, useEffect } from "preact/hooks";
-import { HtmlUtils } from "../utils/html";
-import { Tailwind } from "../utils/tailwindConfig";
+import { HtmlUtils_getPointX, HtmlUtils_getPointY } from "../utils/html";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
 
 interface IData {
   point: number;
@@ -212,22 +212,22 @@ function DraggableListItem<T>(props: IDraggableListItemProps<T>): JSX.Element {
       em.preventDefault();
 
       if (!statusRef.current && Date.now() - startTime.current! > (props.delayMs ?? 0)) {
-        shiftXRef.current = HtmlUtils.getPointX(em) + window.pageXOffset - el.current!.offsetLeft;
-        shiftYRef.current = HtmlUtils.getPointY(em) + window.pageYOffset - el.current!.offsetTop;
+        shiftXRef.current = HtmlUtils_getPointX(em) + window.pageXOffset - el.current!.offsetLeft;
+        shiftYRef.current = HtmlUtils_getPointY(em) + window.pageYOffset - el.current!.offsetTop;
         setIsDragging(true);
         statusRef.current = "start";
         const point =
           props.mode === "horizontal"
-            ? HtmlUtils.getPointX(em) + window.pageXOffset - shiftXRef.current
-            : HtmlUtils.getPointY(em) + window.pageYOffset - shiftYRef.current;
+            ? HtmlUtils_getPointX(em) + window.pageXOffset - shiftXRef.current
+            : HtmlUtils_getPointY(em) + window.pageYOffset - shiftYRef.current;
         props.onStart(point + Math.round((props.mode === "horizontal" ? widthRef.current! : heightRef.current!) / 2));
         setPoint(point);
       } else if (statusRef.current) {
         statusRef.current = "move";
         const p =
           props.mode === "horizontal"
-            ? HtmlUtils.getPointX(em) + window.pageXOffset - (shiftXRef.current ?? 0)
-            : HtmlUtils.getPointY(em) + window.pageYOffset - (shiftYRef.current ?? 0);
+            ? HtmlUtils_getPointX(em) + window.pageXOffset - (shiftXRef.current ?? 0)
+            : HtmlUtils_getPointY(em) + window.pageYOffset - (shiftYRef.current ?? 0);
         setPoint(p);
         props.onMove(p + Math.round((props.mode === "horizontal" ? widthRef.current! : heightRef.current!) / 2));
       }
@@ -307,8 +307,8 @@ function DraggableListItem<T>(props: IDraggableListItemProps<T>): JSX.Element {
       borderWidth: props.hideBorders ? "0" : "1px 0",
       touchAction: "none",
       position: "absolute",
-      backgroundColor: Tailwind.semantic().background.default,
-      borderColor: Tailwind.semantic().background.default,
+      backgroundColor: Tailwind_semantic().background.default,
+      borderColor: Tailwind_semantic().background.default,
       ...(props.mode === "horizontal" ? { height: "100%" } : { width: "100%" }),
     };
   }

@@ -7,7 +7,7 @@ import { Footer2View } from "./footer2";
 import { StatsList } from "./statsList";
 import { HelpMeasurements } from "./help/helpMeasurements";
 import { INavCommon } from "../models/state";
-import { Screen } from "../models/screen";
+import { Screen_current } from "../models/screen";
 
 interface IProps {
   dispatch: IDispatch;
@@ -20,7 +20,7 @@ interface IProps {
 export function ScreenMeasurements(props: IProps): JSX.Element {
   const { settings, stats, dispatch } = props;
   const stack = props.navCommon.screenStack;
-  const screenData = Screen.current(stack);
+  const screenData = Screen_current(stack);
   const initialKey = screenData.name === "measurements" ? screenData.params?.key : undefined;
 
   return (

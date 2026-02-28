@@ -1,5 +1,5 @@
 import { h, JSX } from "preact";
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_entries } from "../../utils/object";
 
 interface IProps<T extends string> {
   values: Record<T, IFilterValue>;
@@ -11,7 +11,7 @@ export type IFilterValue = { label: string; isSelected: boolean; disabledReason?
 export function ExercisePickerOptions<T extends string>(props: IProps<T>): JSX.Element {
   return (
     <div className="grid grid-cols-2 gap-4 mt-2">
-      {ObjectUtils.entries(props.values).map(([key, value]) => {
+      {ObjectUtils_entries(props.values).map(([key, value]) => {
         return (
           <div>
             <div>

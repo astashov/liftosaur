@@ -1,5 +1,5 @@
 import { ILLMProvider } from "./llmTypes";
-import { HttpStreaming } from "./httpStreaming";
+import { HttpStreaming_streamRequest } from "./httpStreaming";
 
 export class OpenAIProvider implements ILLMProvider {
   constructor(
@@ -32,7 +32,7 @@ export class OpenAIProvider implements ILLMProvider {
     try {
       let fullContent = "";
 
-      const stream = HttpStreaming.streamRequest({
+      const stream = HttpStreaming_streamRequest({
         hostname: "api.openai.com",
         path: "/v1/chat/completions",
         method: "POST",

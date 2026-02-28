@@ -1,6 +1,6 @@
 import { h, JSX } from "preact";
 import { IconKettlebell } from "../../../components/icons/iconKettlebell";
-import { Tailwind } from "../../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 
 export function BuiltinPrograms(): JSX.Element {
   const programs: readonly (readonly [string, string])[] = [
@@ -32,7 +32,7 @@ export function BuiltinPrograms(): JSX.Element {
       <div className="flex justify-center w-full mb-6">
         <div className="flex items-center gap-2 text-icon-purple">
           <div>
-            <IconKettlebell color={Tailwind.semantic().icon.purple} />
+            <IconKettlebell color={Tailwind_semantic().icon.purple} />
           </div>
           <div className="font-semibold">Weightlifting Programs</div>
         </div>

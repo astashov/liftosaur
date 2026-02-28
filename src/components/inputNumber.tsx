@@ -1,7 +1,7 @@
 import { JSX, h } from "preact";
 import { useRef } from "preact/hooks";
-import { MathUtils } from "../utils/math";
-import { StringUtils } from "../utils/string";
+import { MathUtils_clamp } from "../utils/math";
+import { StringUtils_dashcase } from "../utils/string";
 import { Input } from "./input";
 
 interface IInputNumberProps extends Omit<JSX.HTMLAttributes<HTMLInputElement | HTMLTextAreaElement>, "ref"> {
@@ -25,7 +25,7 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
     const inputValue = inputRef.current.value || min;
     const v = inputValue != null ? Number(inputValue) : undefined;
     if (v != null && !isNaN(v)) {
-      return MathUtils.clamp(v, min, max);
+      return MathUtils_clamp(v, min, max);
     }
     return undefined;
   }
@@ -36,12 +36,12 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
         <div>
           <button
             className="w-10 h-10 p-2 text-xl font-bold leading-none border rounded-lg bg-background-purpledark border-border-neutral nm-weight-minus"
-            data-cy={`input-${StringUtils.dashcase(props.label || "")}-minus`}
+            data-cy={`input-${StringUtils_dashcase(props.label || "")}-minus`}
             style={{ userSelect: "none", touchAction: "manipulation" }}
             onClick={() => {
               const v = getValue();
               if (v != null) {
-                onUpdate(MathUtils.clamp(v - actualStep, min, max));
+                onUpdate(MathUtils_clamp(v - actualStep, min, max));
               }
             }}
           >
@@ -58,7 +58,7 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
               step="0.01"
               type="number"
               value={value}
-              data-cy={`input-${StringUtils.dashcase(props.label || "")}-field`}
+              data-cy={`input-${StringUtils_dashcase(props.label || "")}-field`}
               onBlur={() => {
                 const v = getValue();
                 if (v != null) {
@@ -72,12 +72,12 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
         <div>
           <button
             className="w-10 h-10 p-2 text-xl font-bold leading-none border rounded-lg bg-background-purpledark border-border-neutral nm-weight-plus"
-            data-cy={`input-${StringUtils.dashcase(props.label || "")}-plus`}
+            data-cy={`input-${StringUtils_dashcase(props.label || "")}-plus`}
             style={{ userSelect: "none", touchAction: "manipulation" }}
             onClick={() => {
               const v = getValue();
               if (v != null) {
-                onUpdate(MathUtils.clamp(v + actualStep, min, max));
+                onUpdate(MathUtils_clamp(v + actualStep, min, max));
               }
             }}
           >

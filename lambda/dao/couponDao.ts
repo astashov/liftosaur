@@ -1,6 +1,6 @@
-import { Utils } from "../utils";
+import { Utils_getEnv } from "../utils";
 import { IDI } from "../utils/di";
-import { UidFactory } from "../utils/generator";
+import { UidFactory_generateUid } from "../utils/generator";
 
 export const couponsTableNames = {
   dev: {
@@ -55,7 +55,7 @@ export class CouponDao {
   constructor(private readonly di: IDI) {}
 
   public async get(code: string): Promise<ICouponDao | undefined> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     const coupon = await this.di.dynamo.get<ICouponDao>({
       tableName: couponsTableNames[env].coupons,
       key: { code: code.toLowerCase() },
@@ -64,7 +64,7 @@ export class CouponDao {
   }
 
   public async claim(coupon: ICouponDao): Promise<ICouponDao | undefined> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     coupon.isClaimed = true;
     await this.di.dynamo.put({
       tableName: couponsTableNames[env].coupons,
@@ -125,8 +125,8 @@ export class CouponDao {
     info?: string;
     data?: ICouponData;
   }): Promise<ICouponDao> {
-    const env = Utils.getEnv();
-    const code = args.code || UidFactory.generateUid(8);
+    const env = Utils_getEnv();
+    const code = args.code || UidFactory_generateUid(8);
     const { ttlMs, data, info, affiliate } = args;
     const coupon: ICouponDao = {
       code: code.toLowerCase(),

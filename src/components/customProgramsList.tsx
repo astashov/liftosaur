@@ -1,21 +1,29 @@
 import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { IEquipment, IHistoryRecord, IProgram, ISettings } from "../types";
-import { IExercise, Exercise } from "../models/exercise";
-import { ExerciseImageUtils } from "../models/exerciseImage";
-import { Program } from "../models/program";
-import { CollectionUtils } from "../utils/collection";
-import { ObjectUtils } from "../utils/object";
-import { StringUtils } from "../utils/string";
-import { Tailwind } from "../utils/tailwindConfig";
+import { IExercise, Exercise_find, Exercise_toKey } from "../models/exercise";
+import { ExerciseImageUtils_exists } from "../models/exerciseImage";
+import {
+  Program_evaluate,
+  Program_getAllUsedProgramExercises,
+  Program_dayAverageTimeMs,
+  Program_editAction,
+  Program_selectProgram,
+  Program_daysRange,
+  Program_exerciseRange,
+} from "../models/program";
+import { CollectionUtils_sort, CollectionUtils_nonnull } from "../utils/collection";
+import { ObjectUtils_values } from "../utils/object";
+import { StringUtils_pluralize } from "../utils/string";
+import { Tailwind_colors } from "../utils/tailwindConfig";
 import { ExerciseImage } from "./exerciseImage";
 import { IconCalendarSmall } from "./icons/iconCalendarSmall";
 import { IconKettlebellSmall } from "./icons/iconKettlebellSmall";
 import { IconWatch } from "./icons/iconWatch";
-import { TimeUtils } from "../utils/time";
+import { TimeUtils_formatHHMM } from "../utils/time";
 import { IconEditSquare } from "./icons/iconEditSquare";
 import { IconTrash } from "./icons/iconTrash";
-import { EditProgram } from "../models/editProgram";
+import { EditProgram_deleteProgram } from "../models/editProgram";
 
 interface IProps {
   programs: IProgram[];
@@ -25,7 +33,7 @@ interface IProps {
 }
 
 export function CustomProgramsList(props: IProps): JSX.Element {
-  const programs = CollectionUtils.sort(props.programs, (a, b) => a.name.localeCompare(b.name));
+  const programs = CollectionUtils_sort(props.programs, (a, b) => a.name.localeCompare(b.name));
   return (
     <>
       <div className="px-4">
@@ -57,21 +65,21 @@ interface ICustomProgramProps {
 function CustomProgram(props: ICustomProgramProps): JSX.Element {
   const exerciseObj: Partial<Record<string, IExercise>> = {};
   const equipmentSet: Set<IEquipment | undefined> = new Set();
-  const evaluatedProgram = Program.evaluate(props.program, props.settings);
-  const allExercises = Program.getAllUsedProgramExercises(evaluatedProgram);
+  const evaluatedProgram = Program_evaluate(props.program, props.settings);
+  const allExercises = Program_getAllUsedProgramExercises(evaluatedProgram);
   for (const ex of allExercises) {
-    const exercise = Exercise.find(ex.exerciseType, props.settings.exercises);
+    const exercise = Exercise_find(ex.exerciseType, props.settings.exercises);
     if (exercise) {
-      exerciseObj[Exercise.toKey(ex.exerciseType)] = exercise;
+      exerciseObj[Exercise_toKey(ex.exerciseType)] = exercise;
       if (exercise.equipment !== "bodyweight") {
         equipmentSet.add(exercise.equipment);
       }
     }
   }
-  const exercises = CollectionUtils.nonnull(ObjectUtils.values(exerciseObj));
-  const equipment = CollectionUtils.nonnull(Array.from(equipmentSet));
-  const time = Program.dayAverageTimeMs(evaluatedProgram, props.settings);
-  const formattedTime = time > 0 ? TimeUtils.formatHHMM(time) : undefined;
+  const exercises = CollectionUtils_nonnull(ObjectUtils_values(exerciseObj));
+  const equipment = CollectionUtils_nonnull(Array.from(equipmentSet));
+  const time = Program_dayAverageTimeMs(evaluatedProgram, props.settings);
+  const formattedTime = time > 0 ? TimeUtils_formatHHMM(time) : undefined;
 
   return (
     <div className="relative">
@@ -84,7 +92,7 @@ function CustomProgram(props: ICustomProgramProps): JSX.Element {
           data-cy="custom-program-edit"
           onClick={() => {
             if (props.editProgramId == null || props.editProgramId !== props.program.id) {
-              Program.editAction(props.dispatch, props.program);
+              Program_editAction(props.dispatch, props.program);
             } else {
               alert("You cannot edit the program while that program's workout is in progress");
             }
@@ -98,7 +106,7 @@ function CustomProgram(props: ICustomProgramProps): JSX.Element {
           onClick={() => {
             if (props.progress == null || props.progress.programId !== props.program.id) {
               if (confirm("Are you sure?")) {
-                EditProgram.deleteProgram(props.dispatch, props.program, props.programs);
+                EditProgram_deleteProgram(props.dispatch, props.program, props.programs);
               }
             } else {
               alert("You cannot delete the program while that program's workout is in progress");
@@ -114,7 +122,7 @@ function CustomProgram(props: ICustomProgramProps): JSX.Element {
           if (props.program.planner == null) {
             alert("Old-style programs are not supported anymore");
           } else {
-            Program.selectProgram(props.dispatch, props.program.id);
+            Program_selectProgram(props.dispatch, props.program.id);
           }
         }}
       >
@@ -130,21 +138,21 @@ function CustomProgram(props: ICustomProgramProps): JSX.Element {
           </div>
           <div className="py-3">
             {exercises
-              .filter((e) => ExerciseImageUtils.exists(e, "small"))
+              .filter((e) => ExerciseImageUtils_exists(e, "small"))
               .map((e) => (
                 <ExerciseImage settings={props.settings} exerciseType={e} size="small" className="w-6 mr-1" />
               ))}
           </div>
           <div className="flex mb-1 text-text-secondary">
-            <IconCalendarSmall color={Tailwind.colors().lightgray[600]} className="block mr-1" />{" "}
+            <IconCalendarSmall color={Tailwind_colors().lightgray[600]} className="block mr-1" />{" "}
             <div className="text-xs">
               {evaluatedProgram.weeks.length > 1 &&
-                `${evaluatedProgram.weeks.length} ${StringUtils.pluralize("week", evaluatedProgram.weeks.length)}, `}
-              {Program.daysRange(evaluatedProgram)}, {Program.exerciseRange(evaluatedProgram)}
+                `${evaluatedProgram.weeks.length} ${StringUtils_pluralize("week", evaluatedProgram.weeks.length)}, `}
+              {Program_daysRange(evaluatedProgram)}, {Program_exerciseRange(evaluatedProgram)}
             </div>
           </div>
           <div className="flex text-text-secondary">
-            <IconKettlebellSmall color={Tailwind.colors().lightgray[600]} className="block mr-1" />{" "}
+            <IconKettlebellSmall color={Tailwind_colors().lightgray[600]} className="block mr-1" />{" "}
             <div className="text-xs">{equipment.join(", ")}</div>
           </div>
         </div>

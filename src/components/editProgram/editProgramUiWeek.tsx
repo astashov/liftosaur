@@ -3,10 +3,10 @@ import { IPlannerState } from "../../pages/planner/models/types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
 import { MarkdownEditorBorderless } from "../markdownEditorBorderless";
-import { StringUtils } from "../../utils/string";
+import { StringUtils_pluralize } from "../../utils/string";
 import { IconMusclesW } from "../icons/iconMusclesW";
 import { IconTrash } from "../icons/iconTrash";
-import { CollectionUtils } from "../../utils/collection";
+import { CollectionUtils_removeAt } from "../../utils/collection";
 import { EditProgramUiDayView } from "./editProgramUiDay";
 import { DraggableList } from "../draggableList";
 import { ISettings } from "../../types";
@@ -15,10 +15,10 @@ import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator
 import { Button } from "../button";
 import { IconPlus2 } from "../icons/iconPlus2";
 import { ContentGrowingTextarea } from "../contentGrowingTextarea";
-import { IEvaluatedProgram, Program } from "../../models/program";
+import { IEvaluatedProgram, Program_getDayNumber } from "../../models/program";
 import { applyChangesInEditor } from "./editProgramUtils";
 import { IDispatch } from "../../ducks/types";
-import { EditProgramUiHelpers } from "./editProgramUi/editProgramUiHelpers";
+import { EditProgramUiHelpers_onDaysChange } from "./editProgramUi/editProgramUiHelpers";
 
 interface IEditProgramViewProps {
   state: IPlannerState;
@@ -48,7 +48,7 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
 
   const isValidProgram = props.evaluatedWeeks.every((week) => week.every((day) => day.success));
   const evaluatedCurrentWeek = props.evaluatedWeeks[currentWeekIndex];
-  const dayIndexOffset = Program.getDayNumber(planner, currentWeekIndex + 1, 1);
+  const dayIndexOffset = Program_getDayNumber(planner, currentWeekIndex + 1, 1);
   const allDaysCollapsed = Array.from(currentWeek.days).every((d, i) => {
     return ui.dayUi.collapsed.has(`${currentWeekIndex}-${i}`);
   });
@@ -89,7 +89,7 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
                   props.plannerDispatch(
                     [
                       lbPlanner.p("weeks").recordModify((weeks) => {
-                        return CollectionUtils.removeAt(weeks, currentWeekIndex);
+                        return CollectionUtils_removeAt(weeks, currentWeekIndex);
                       }),
                       lbUi.p("weekIndex").recordModify((wi) => {
                         return wi > 0 ? wi - 1 : 0;
@@ -120,7 +120,7 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
       </div>
       <div className="flex items-center px-4">
         <div className="mr-auto text-xs">
-          {currentWeek.days.length} {StringUtils.pluralize("day", currentWeek.days.length)}
+          {currentWeek.days.length} {StringUtils_pluralize("day", currentWeek.days.length)}
         </div>
         <div>
           <LinkButton
@@ -161,7 +161,7 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
         mode="vertical"
         onDragEnd={(startIndex, endIndex) => {
           applyChangesInEditor(props.plannerDispatch, () => {
-            EditProgramUiHelpers.onDaysChange(
+            EditProgramUiHelpers_onDaysChange(
               props.plannerDispatch,
               props.state.ui,
               currentWeekIndex,

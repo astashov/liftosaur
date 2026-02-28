@@ -1,7 +1,7 @@
 import { h, JSX, Fragment } from "preact";
 import { IPlannerState, IPlannerUiFocusedExercise } from "../models/types";
 import { PlannerStats } from "./plannerStats";
-import { PlannerStatsUtils } from "../models/plannerStatsUtils";
+import { PlannerStatsUtils_calculateSetResults } from "../models/plannerStatsUtils";
 import { IPlannerEvalResult } from "../plannerExerciseEvaluator";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { ISettings } from "../../../types";
@@ -20,7 +20,7 @@ export function PlannerDayStats(props: IPlannerDayStatsProps): JSX.Element {
   if (!evaluatedDay.success) {
     return <></>;
   }
-  const setResults = PlannerStatsUtils.calculateSetResults([evaluatedDay], settings);
+  const setResults = PlannerStatsUtils_calculateSetResults([evaluatedDay], settings);
 
   return (
     <div>

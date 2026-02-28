@@ -1,5 +1,5 @@
 import { ComponentChildren, JSX, h } from "preact";
-import { Tailwind } from "../utils/tailwindConfig";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
 
 export function DropdownMenu(props: {
   rightOffset?: string;
@@ -13,7 +13,7 @@ export function DropdownMenu(props: {
   textAlign?: "left" | "right";
   onClose: () => void;
 }): JSX.Element {
-  const color = props.bgColor || Tailwind.semantic().background.subtle;
+  const color = props.bgColor || Tailwind_semantic().background.subtle;
   const align = props.textAlign ?? "right";
   const positionStyle: Record<string, string> = {
     maxWidth: props.maxWidth || "12rem",

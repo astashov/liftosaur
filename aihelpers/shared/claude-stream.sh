@@ -36,7 +36,8 @@ output() {
   fi
 }
 
-echo "🚀 Running: claude -p \"$PROMPT\"" | output
+MODEL="claude-opus-4-6"
+echo "🚀 Running: claude -p \"$PROMPT\" --model $MODEL" | output
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" | output
 echo "" | output
 
@@ -45,7 +46,7 @@ STDERR_LOG="${STDERR_LOG:-/dev/null}"
 RAW_LOG="${LOG_FILE:+${LOG_FILE%.log}-raw.jsonl}"
 RAW_LOG="${RAW_LOG:-/dev/null}"
 
-claude -p "$PROMPT" --settings .claude/settings.headless.json --output-format stream-json --verbose --no-session-persistence 2>"$STDERR_LOG" | \
+claude -p "$PROMPT" --settings .claude/settings.headless.json --model "$MODEL" --output-format stream-json --verbose --no-session-persistence 2>"$STDERR_LOG" | \
   stdbuf -oL tee "$RAW_LOG" | \
   awk '{if(length>200000)print "{\"_truncated\":true}";else print; fflush()}' | \
   jq --unbuffered -r '
@@ -63,7 +64,7 @@ claude -p "$PROMPT" --settings .claude/settings.headless.json --output-format st
     elif ._truncated then
       "   ⏭️  (large output truncated)"
     elif .type == "system" and .subtype == "init" then
-      "📋 Session: \(.session_id)\n"
+      "📋 Session: \(.session_id)\n🤖 Model: \(.model // "unknown")\n"
     else empty end) // empty
   ' | output
 

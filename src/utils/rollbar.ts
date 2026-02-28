@@ -1,8 +1,8 @@
 import RB, { Dictionary, LogArgument } from "rollbar";
 import { Service } from "../api/service";
 import { IState } from "../models/state";
-import { UidFactory } from "./generator";
-import { Encoder } from "./encoder";
+import { UidFactory_generateUid } from "./generator";
+import { Encoder_encode } from "./encoder";
 
 declare let __ENV__: string;
 declare let __FULL_COMMIT_HASH__: string;
@@ -41,96 +41,95 @@ export const exceptionIgnores = [
   "Invalid change range",
   "Empty response from API",
   "_AutofillCallbackHandler",
+  "Incorrect locale information provided",
 ];
 
-export namespace RollbarUtils {
-  export async function load(item: string | number, token: string): Promise<void> {
-    const result = await fetch(`https://api.rollbar.com/api/1/instance/${item}`, {
-      headers: {
-        accept: "application/json",
-        "X-Rollbar-Access-Token": token,
-      },
-    });
-    const json = (await result.json()) as IOccurenceResponse;
-    if (json.err === 0) {
-      const id = json.result.data.liftosaur_exception_id;
-      const service = new Service(window.fetch.bind(window));
-      const data = await service.getExceptionData(id);
-      if (data == null) {
-        console.error("No exception info");
-        return;
-      }
-      const { lastState, lastActions } = JSON.parse(data);
-      if (lastState && lastActions) {
-        const state = JSON.parse(lastState) as IState;
-        state.nosync = true;
-        window.replaceState(state);
-        console.log("Last Actions");
-        console.log(JSON.parse(lastActions));
-      } else {
-        console.error("No last state or actions");
-      }
+export async function RollbarUtils_load(item: string | number, token: string): Promise<void> {
+  const result = await fetch(`https://api.rollbar.com/api/1/instance/${item}`, {
+    headers: {
+      accept: "application/json",
+      "X-Rollbar-Access-Token": token,
+    },
+  });
+  const json = (await result.json()) as IOccurenceResponse;
+  if (json.err === 0) {
+    const id = json.result.data.liftosaur_exception_id;
+    const service = new Service(window.fetch.bind(window));
+    const data = await service.getExceptionData(id);
+    if (data == null) {
+      console.error("No exception info");
+      return;
+    }
+    const { lastState, lastActions } = JSON.parse(data);
+    if (lastState && lastActions) {
+      const state = JSON.parse(lastState) as IState;
+      state.nosync = true;
+      window.replaceState(state);
+      console.log("Last Actions");
+      console.log(JSON.parse(lastActions));
     } else {
-      console.error(json);
+      console.error("No last state or actions");
     }
-  }
-
-  export function checkIgnore(isUncaught: boolean, args: LogArgument[], item: Dictionary): boolean {
-    const firstArg = args[0];
-    const message = typeof firstArg === "object" && "message" in firstArg ? firstArg.message : firstArg;
-    if (message && typeof message === "string" && exceptionIgnores.some((i) => message.indexOf(i) !== -1)) {
-      return true;
-    }
-    return false;
-  }
-
-  export function config(payload?: object): RB.Configuration {
-    return {
-      enabled: __ENV__ === "production" || __ENV__ === "prod-lambda" || __ENV__ === "android",
-      payload: {
-        environment: __ENV__,
-        client: {
-          javascript: {
-            source_map_enabled: true,
-            code_version: __FULL_COMMIT_HASH__,
-            guess_uncaught_frames: true,
-          },
-        },
-        ...(payload || {}),
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      transform: async (pld: any, item: any) => {
-        const shouldIgnore = checkIgnore(false, [item?.err?.message], item);
-        if (shouldIgnore) {
-          return;
-        }
-        const id = UidFactory.generateUid(12);
-        pld.liftosaur_exception_id = id;
-        pld.lftAndroidVersion = window.lftAndroidVersion;
-        pld.lftAndroidAppVersion = window.lftAndroidAppVersion;
-        pld.lftIosVersion = window.lftIosVersion;
-        pld.lftIosAppVersion = window.lftIosAppVersion;
-        pld.lftSystemDarkMode = window.lftSystemDarkMode;
-        const state = window.reducerLastState ?? window.state;
-        const data = {
-          userid: pld.person?.id ?? window.tempUserId,
-          lastState: state ? JSON.stringify(state) : undefined,
-          lastActions: window.reducerLastActions ? JSON.stringify(window.reducerLastActions) : undefined,
-          validationErrors: window.lastValidationErrors ? JSON.stringify(window.lastValidationErrors) : undefined,
-        };
-        console.log("Sending exception", data);
-        const compressed = await Encoder.encode(JSON.stringify(data));
-        fetch(`${__API_HOST__}/api/exception`, {
-          method: "POST",
-          body: JSON.stringify({ id, data: compressed }),
-          credentials: "include",
-        });
-      },
-      checkIgnore: checkIgnore,
-    };
+  } else {
+    console.error(json);
   }
 }
 
+export function RollbarUtils_checkIgnore(isUncaught: boolean, args: LogArgument[], item: Dictionary): boolean {
+  const firstArg = args[0];
+  const message = typeof firstArg === "object" && "message" in firstArg ? firstArg.message : firstArg;
+  if (message && typeof message === "string" && exceptionIgnores.some((i) => message.indexOf(i) !== -1)) {
+    return true;
+  }
+  return false;
+}
+
+export function RollbarUtils_config(payload?: object): RB.Configuration {
+  return {
+    enabled: __ENV__ === "production" || __ENV__ === "prod-lambda" || __ENV__ === "android",
+    payload: {
+      environment: __ENV__,
+      client: {
+        javascript: {
+          source_map_enabled: true,
+          code_version: __FULL_COMMIT_HASH__,
+          guess_uncaught_frames: true,
+        },
+      },
+      ...(payload || {}),
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    transform: async (pld: any, item: any) => {
+      const shouldIgnore = RollbarUtils_checkIgnore(false, [item?.err?.message], item);
+      if (shouldIgnore) {
+        return;
+      }
+      const id = UidFactory_generateUid(12);
+      pld.liftosaur_exception_id = id;
+      pld.lftAndroidVersion = window.lftAndroidVersion;
+      pld.lftAndroidAppVersion = window.lftAndroidAppVersion;
+      pld.lftIosVersion = window.lftIosVersion;
+      pld.lftIosAppVersion = window.lftIosAppVersion;
+      pld.lftSystemDarkMode = window.lftSystemDarkMode;
+      const state = window.reducerLastState ?? window.state;
+      const data = {
+        userid: pld.person?.id ?? window.tempUserId,
+        lastState: state ? JSON.stringify(state) : undefined,
+        lastActions: window.reducerLastActions ? JSON.stringify(window.reducerLastActions) : undefined,
+        validationErrors: window.lastValidationErrors ? JSON.stringify(window.lastValidationErrors) : undefined,
+      };
+      console.log("Sending exception", data);
+      const compressed = await Encoder_encode(JSON.stringify(data));
+      fetch(`${__API_HOST__}/api/exception`, {
+        method: "POST",
+        body: JSON.stringify({ id, data: compressed }),
+        credentials: "include",
+      });
+    },
+    checkIgnore: RollbarUtils_checkIgnore,
+  };
+}
+
 if (typeof window !== "undefined") {
-  window.loadRollbar = RollbarUtils.load;
+  window.loadRollbar = RollbarUtils_load;
 }

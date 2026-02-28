@@ -1,5 +1,5 @@
 import { ITestimonial } from "../../src/pages/main/testimonitals";
-import { Utils } from "../utils";
+import { Utils_getEnv } from "../utils";
 import { IDI } from "../utils/di";
 import { LftS3Buckets } from "./buckets";
 
@@ -21,7 +21,7 @@ export class TestimonialDao {
   constructor(private readonly di: IDI) {}
 
   public async getAll(): Promise<ITestimonial[]> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     const result = await this.di.s3.getObject({
       bucket: bucketNames[env].assets,
       key: `testimonials.json`,
@@ -36,7 +36,7 @@ export class TestimonialDao {
   }
 
   public async save(testimonials: ITestimonial[]): Promise<void> {
-    const env = Utils.getEnv();
+    const env = Utils_getEnv();
     const data: ITestimonialsDao = {
       updatedAt: new Date().toISOString(),
       testimonials,

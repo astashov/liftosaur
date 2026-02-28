@@ -3,44 +3,69 @@ import { useEffect, useRef } from "preact/hooks";
 import { reducerWrapper, defaultOnActions, IAction } from "../ducks/reducer";
 import { ChooseProgramView } from "./chooseProgram";
 import { ProgramHistoryView } from "./programHistory";
-import { Program } from "../models/program";
-import { IScreen, Screen } from "../models/screen";
+import { Program_getProgram, Program_getFullProgram, Program_fullProgram } from "../models/program";
+import { IScreen, Screen_currentName, Screen_current } from "../models/screen";
 import { ScreenSettings } from "./screenSettings";
 import { ScreenAccount } from "./screenAccount";
 import { useThunkReducer } from "../utils/useThunkReducer";
-import { Thunk } from "../ducks/thunks";
+import {
+  Thunk_fetchStorage,
+  Thunk_sync2,
+  Thunk_postevent,
+  Thunk_log,
+  Thunk_setAppleReceipt,
+  Thunk_setGooglePurchaseToken,
+  Thunk_syncHealthKit,
+  Thunk_pullScreen,
+  Thunk_completeSetExternal,
+  Thunk_updateLiveActivity,
+  Thunk_updateTimer,
+  Thunk_handleWatchStorageMerge,
+  Thunk_reloadStorageFromDisk,
+  Thunk_fetchInitial,
+} from "../ducks/thunks";
 import { Service } from "../api/service";
 import { IAudioInterface } from "../lib/audioInterface";
 import { ScreenTimers } from "./screenTimers";
 import { ScreenEquipment } from "./screenEquipment";
 import { ScreenGraphs } from "./screenGraphs";
 import { ScreenEditProgram } from "./screenEditProgram";
-import { Progress } from "../models/progress";
+import {
+  Progress_getCurrentProgress,
+  Progress_lbProgress,
+  Progress_getProgress,
+  Progress_isCurrent,
+} from "../models/progress";
 import { IAttributionData, IEnv, INavCommon, IState, updateState } from "../models/state";
 import { ScreenFinishDay } from "./screenFinishDay";
 import { ScreenMusclesProgram } from "./muscles/screenMusclesProgram";
 import { ScreenMusclesDay } from "./muscles/screenMusclesDay";
 import { ScreenStats } from "./screenStats";
 import { Notification } from "./notification";
-import { WhatsNew } from "../models/whatsnew";
+import { WhatsNew_doesHaveNewUpdates } from "../models/whatsnew";
+import { WhatsNew_updateStorage } from "../models/whatsnewUtils";
 import { ModalWhatsnew } from "./modalWhatsnew";
 import { ScreenMeasurements } from "./screenMeasurements";
 import { ScreenSubscription } from "./screenSubscription";
-import { Subscriptions } from "../utils/subscriptions";
+import {
+  Subscriptions_cleanupOutdatedAppleReceipts,
+  Subscriptions_cleanupOutdatedGooglePurchaseTokens,
+  Subscriptions_isEligibleForThanksgivingPromo,
+} from "../utils/subscriptions";
 import { lb } from "lens-shmens";
 import { ScreenProgramPreview } from "./screenProgramPreview";
 import { ScreenExerciseStats } from "./screenExerciseStats";
-import { Exercise } from "../models/exercise";
+import { Exercise_find, Exercise_toKey } from "../models/exercise";
 import { RestTimer } from "./restTimer";
 import { ScreenFirst } from "./screenFirst";
-import { ImportExporter } from "../lib/importexporter";
+import { ImportExporter_handleUniversalLink } from "../lib/importexporter";
 import { ModalSignupRequest } from "./modalSignupRequest";
-import { SendMessage } from "../utils/sendMessage";
+import { SendMessage_toAndroid, SendMessage_toIos, SendMessage_print } from "../utils/sendMessage";
 import { ModalCorruptedState } from "./modalCorruptedState";
-import { UrlUtils } from "../utils/url";
+import { UrlUtils_build } from "../utils/url";
 import { AsyncQueue } from "../utils/asyncQueue";
 import { useLoopCatcher } from "../utils/useLoopCatcher";
-import { Equipment } from "../models/equipment";
+import { Equipment_getEquipmentOfGym } from "../models/equipment";
 import { ScreenGyms } from "./screenGyms";
 import { ScreenExercises } from "./screenExercises";
 import { ScreenAppleHealthSettings } from "./screenAppleHealthSettings";
@@ -49,13 +74,13 @@ import { ScreenUnitSelector } from "./screenUnitSelector";
 import RB from "rollbar";
 import { exceptionIgnores } from "../utils/rollbar";
 import { ScreenWorkout } from "./screenWorkout";
-import { Account } from "../models/account";
-import { ImagePreloader } from "../utils/imagePreloader";
+import { Account_getFromStorage } from "../models/account";
+import { ImagePreloader_preload, ImagePreloader_dynocoach } from "../utils/imagePreloader";
 import { ScreenEditProgramExercise } from "./editProgramExercise/screenEditProgramExercise";
 import { FallbackScreen } from "./fallbackScreen";
 import { Screen1RM } from "./screen1RM";
 import { ScreenSetupEquipment } from "./screenSetupEquipment";
-import { Settings } from "../models/settings";
+import { Settings_applyTheme } from "../models/settings";
 import { AppContext } from "./appContext";
 import { ScreenMuscleGroups } from "./screenMuscleGroups";
 import { ModalThanks25 } from "./modalThanks25";
@@ -84,11 +109,11 @@ export function AppView(props: IProps): JSX.Element | null {
   useEffect(() => {
     stateRef.current = state;
   });
-  const shouldShowWhatsNew = WhatsNew.doesHaveNewUpdates(state.storage.whatsNew) || state.showWhatsNew;
+  const shouldShowWhatsNew = WhatsNew_doesHaveNewUpdates(state.storage.whatsNew) || state.showWhatsNew;
 
   useEffect(() => {
-    SendMessage.toAndroid({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
-    SendMessage.toIos({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
+    SendMessage_toAndroid({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
+    SendMessage_toIos({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
   }, [state.storage.settings.alwaysOnDisplay]);
 
   useEffect(() => {
@@ -99,13 +124,13 @@ export function AppView(props: IProps): JSX.Element | null {
 
   useEffect(() => {
     const url =
-      typeof window !== "undefined" ? UrlUtils.build(window.location.href, "https://liftosaur.com") : undefined;
+      typeof window !== "undefined" ? UrlUtils_build(window.location.href, "https://liftosaur.com") : undefined;
     const urlUserId = url != null ? url.searchParams.get("userid") || undefined : undefined;
     if (state.adminKey != null && urlUserId != null) {
       const storageId = url != null ? url.searchParams.get("storageid") || undefined : undefined;
-      dispatch(Thunk.fetchStorage(storageId));
+      dispatch(Thunk_fetchStorage(storageId));
     } else {
-      dispatch(Thunk.sync2({ force: true }));
+      dispatch(Thunk_sync2({ force: true }));
     }
     window.addEventListener("click", (e) => {
       let button: HTMLElement | undefined;
@@ -129,9 +154,9 @@ export function AppView(props: IProps): JSX.Element | null {
           .map((s) => s.trim())
           .filter((c) => c.startsWith("nm-"))[0];
         const name = lsName || nsName;
-        dispatch(Thunk.postevent("click-" + name));
+        dispatch(Thunk_postevent("click-" + name));
         if (lsName) {
-          dispatch(Thunk.log(lsName));
+          dispatch(Thunk_log(lsName));
         }
       }
     });
@@ -146,24 +171,24 @@ export function AppView(props: IProps): JSX.Element | null {
     // });
     window.addEventListener("message", (event) => {
       if (event.data?.type === "setAppleReceipt") {
-        dispatch(Thunk.setAppleReceipt(event.data.receipt));
+        dispatch(Thunk_setAppleReceipt(event.data.receipt));
       } else if (event.data?.type === "setGooglePurchaseToken") {
-        dispatch(Thunk.setGooglePurchaseToken(event.data.productId, event.data.token));
+        dispatch(Thunk_setGooglePurchaseToken(event.data.productId, event.data.token));
       } else if (event.data?.type === "loaded") {
-        dispatch(Thunk.postevent("loaded"));
-        dispatch(Thunk.syncHealthKit());
+        dispatch(Thunk_postevent("loaded"));
+        dispatch(Thunk_syncHealthKit());
       } else if (event.data?.type === "wake") {
-        dispatch(Thunk.postevent("wake"));
+        dispatch(Thunk_postevent("wake"));
         queue.clearStaleOperations();
-        dispatch(Thunk.sync2({ force: true }));
-        dispatch(Thunk.syncHealthKit());
+        dispatch(Thunk_sync2({ force: true }));
+        dispatch(Thunk_syncHealthKit());
       } else if (event.data?.type === "syncToAppleHealthError") {
-        dispatch(Thunk.postevent("apple-health-error"));
+        dispatch(Thunk_postevent("apple-health-error"));
         alert(event.data.error);
       } else if (event.data?.type === "stopSubscriptionLoading") {
         updateState(dispatch, [lb<IState>().p("subscriptionLoading").record(undefined)], "Stop subscription loading");
       } else if (event.data?.type === "products") {
-        dispatch(Thunk.postevent("sync-prices"));
+        dispatch(Thunk_postevent("sync-prices"));
         const newPrices = { ...state.prices, ...event.data.data };
         const newOffers = { ...state.offers, ...event.data.offers };
         updateState(
@@ -172,21 +197,21 @@ export function AppView(props: IProps): JSX.Element | null {
           "Update prices for products"
         );
       } else if (event.data?.type === "universalLink") {
-        ImportExporter.handleUniversalLink(dispatch, event.data.link, client);
+        ImportExporter_handleUniversalLink(dispatch, event.data.link, client);
       } else if (event.data?.type === "goBack") {
-        dispatch(Thunk.postevent("go-back"));
-        dispatch(Thunk.pullScreen());
+        dispatch(Thunk_postevent("go-back"));
+        dispatch(Thunk_pullScreen());
       } else if (event.data?.type === "attribution") {
         if (event.data?.data != null && !event.data?.data.isOrganic) {
           const data = event.data?.data as IAttributionData;
           const referrer = `${data.mediaSource}_${data.campaign}`;
           if (state.storage.referrer !== referrer) {
-            dispatch(Thunk.postevent("set-referrer", { referrer }));
+            dispatch(Thunk_postevent("set-referrer", { referrer }));
             updateState(dispatch, [lb<IState>().p("storage").p("referrer").record(referrer)], "Set Referrer");
           }
         }
       } else if (event.data?.type === "requestedReview") {
-        dispatch(Thunk.postevent("requested-review"));
+        dispatch(Thunk_postevent("requested-review"));
         updateState(
           dispatch,
           [
@@ -198,12 +223,12 @@ export function AppView(props: IProps): JSX.Element | null {
           "Add review request"
         );
       } else if (event.data?.type === "completeSet") {
-        SendMessage.print("Main app: Received completeSet message");
+        SendMessage_print("Main app: Received completeSet message");
         const entryIndex = event.data.entryIndex as number;
         const setIndex = event.data.setIndex as number;
         const restTimer = event.data.restTimer as number;
         const restTimerSince = event.data.restTimerSince as number;
-        dispatch(Thunk.completeSetExternal(entryIndex, setIndex, restTimer, restTimerSince));
+        dispatch(Thunk_completeSetExternal(entryIndex, setIndex, restTimer, restTimerSince));
       } else if (event.data?.type === "adjustRestTimer") {
         const action = event.data.action as "increase" | "decrease";
         const incomingRestTimer = event.data.restTimer as number;
@@ -213,25 +238,25 @@ export function AppView(props: IProps): JSX.Element | null {
         const progress = stateRef.current.storage.progress[0];
         const skipLiveActivityUpdate = !!event.data.skipLiveActivityUpdate;
         if (progress == null) {
-          SendMessage.print("Main app: No active workout to adjust rest timer");
+          SendMessage_print("Main app: No active workout to adjust rest timer");
           return;
         }
         const { timer, timerSince } = progress;
-        SendMessage.print(`Main app: ${action === "increase" ? "Increasing" : "Decreasing"} rest timer by 15 seconds`);
-        SendMessage.print(`Main app: Current timer: ${timer}, since: ${timerSince}`);
+        SendMessage_print(`Main app: ${action === "increase" ? "Increasing" : "Decreasing"} rest timer by 15 seconds`);
+        SendMessage_print(`Main app: Current timer: ${timer}, since: ${timerSince}`);
         if (timer == null || timerSince == null) {
           return;
         }
         if (incomingRestTimer !== timer || incomingRestTimerSince !== timerSince) {
-          SendMessage.print(
+          SendMessage_print(
             `Main app: Incoming rest timer data does not match current state, refreshing live activity. ${incomingRestTimer} != ${timer} || ${incomingRestTimerSince} != ${timerSince}`
           );
           if (!skipLiveActivityUpdate) {
-            dispatch(Thunk.updateLiveActivity(entryIndex, setIndex, timer, timerSince));
+            dispatch(Thunk_updateLiveActivity(entryIndex, setIndex, timer, timerSince));
           }
         } else {
           dispatch(
-            Thunk.updateTimer(
+            Thunk_updateTimer(
               action === "increase" ? timer + 15 : Math.max(0, timer - 15),
               entryIndex,
               setIndex,
@@ -240,26 +265,26 @@ export function AppView(props: IProps): JSX.Element | null {
           );
         }
       } else if (event.data?.type === "timerScheduled") {
-        if (Progress.getCurrentProgress(stateRef.current)?.ui) {
-          SendMessage.print(`Main app: Marking native notification as scheduled`);
+        if (Progress_getCurrentProgress(stateRef.current)?.ui) {
+          SendMessage_print(`Main app: Marking native notification as scheduled`);
           updateState(
             dispatch,
-            [Progress.lbProgress().pi("ui").p("nativeNotificationScheduled").record(true)],
+            [Progress_lbProgress().pi("ui").p("nativeNotificationScheduled").record(true)],
             "Set native notification scheduled"
           );
         }
       } else if (event.data?.type === "watchStorageMerge") {
         const storageJson = event.data.storage as string;
         const isLiveActivity = !!event.data.isLiveActivity;
-        dispatch(Thunk.handleWatchStorageMerge(storageJson, isLiveActivity));
+        dispatch(Thunk_handleWatchStorageMerge(storageJson, isLiveActivity));
       } else if (event.data?.type === "reloadStorageFromDisk") {
-        dispatch(Thunk.reloadStorageFromDisk());
+        dispatch(Thunk_reloadStorageFromDisk());
       }
     });
     const userId = state.user?.id || state.storage.tempUserId;
-    Subscriptions.cleanupOutdatedAppleReceipts(dispatch, userId, service, state.storage.subscription);
-    Subscriptions.cleanupOutdatedGooglePurchaseTokens(dispatch, userId, service, state.storage.subscription);
-    dispatch(Thunk.fetchInitial());
+    Subscriptions_cleanupOutdatedAppleReceipts(dispatch, userId, service, state.storage.subscription);
+    Subscriptions_cleanupOutdatedGooglePurchaseTokens(dispatch, userId, service, state.storage.subscription);
+    dispatch(Thunk_fetchInitial());
     const onerror = (event: string | ErrorEvent): void => {
       console.log("Error Event", event);
       const error = typeof event === "string" ? event : "error" in event ? event.error : event;
@@ -312,8 +337,8 @@ export function AppView(props: IProps): JSX.Element | null {
       window.addEventListener("error", onerror);
       window.addEventListener("unhandledrejection", onunhandledexception);
     }
-    SendMessage.toIos({ type: "loaded", userid: userId });
-    SendMessage.toAndroid({ type: "loaded", userid: userId });
+    SendMessage_toIos({ type: "loaded", userid: userId });
+    SendMessage_toAndroid({ type: "loaded", userid: userId });
 
     if (currentProgram != null && currentProgram.planner == null) {
       alert(
@@ -322,10 +347,10 @@ export function AppView(props: IProps): JSX.Element | null {
     }
 
     if (state.storage.history.length === 0) {
-      ImagePreloader.preload(ImagePreloader.dynocoach);
+      ImagePreloader_preload(ImagePreloader_dynocoach);
     }
 
-    Settings.applyTheme(state.storage.settings.theme || (window.lftSystemDarkMode ? "dark" : "light"));
+    Settings_applyTheme(state.storage.settings.theme || (window.lftSystemDarkMode ? "dark" : "light"));
 
     return () => {
       window.removeEventListener("error", onerror);
@@ -334,11 +359,11 @@ export function AppView(props: IProps): JSX.Element | null {
   }, []);
 
   useEffect(() => {
-    document.body.setAttribute("data-screen", Screen.currentName(state.screenStack));
+    document.body.setAttribute("data-screen", Screen_currentName(state.screenStack));
   }, [state.screenStack]);
 
   const currentProgram =
-    state.storage.currentProgramId != null ? Program.getProgram(state, state.storage.currentProgramId) : undefined;
+    state.storage.currentProgramId != null ? Program_getProgram(state, state.storage.currentProgramId) : undefined;
 
   const navCommon: INavCommon = {
     subscription: state.storage.subscription,
@@ -349,20 +374,20 @@ export function AppView(props: IProps): JSX.Element | null {
     currentProgram,
     allPrograms: state.storage.programs,
     settings: state.storage.settings,
-    progress: Progress.getCurrentProgress(state),
+    progress: Progress_getCurrentProgress(state),
     stats: state.storage.stats,
     userId: state.user?.id,
   };
 
   let content: JSX.Element;
-  if (Screen.currentName(state.screenStack) === "first") {
+  if (Screen_currentName(state.screenStack) === "first") {
     const userId = state.user?.id;
     const userEmail = state.user?.email;
-    const account = userId && userEmail ? Account.getFromStorage(userId, userEmail, state.storage) : undefined;
+    const account = userId && userEmail ? Account_getFromStorage(userId, userEmail, state.storage) : undefined;
     content = <ScreenFirst account={account} client={client} dispatch={dispatch} />;
-  } else if (Screen.currentName(state.screenStack) === "units") {
+  } else if (Screen_currentName(state.screenStack) === "units") {
     content = <ScreenUnitSelector settings={state.storage.settings} dispatch={dispatch} />;
-  } else if (Screen.currentName(state.screenStack) === "subscription") {
+  } else if (Screen_currentName(state.screenStack) === "subscription") {
     content = (
       <ScreenSubscription
         history={state.storage.history}
@@ -377,26 +402,26 @@ export function AppView(props: IProps): JSX.Element | null {
       />
     );
   } else if (
-    Screen.currentName(state.screenStack) === "programs" ||
-    (Screen.currentName(state.screenStack) === "main" && currentProgram == null)
+    Screen_currentName(state.screenStack) === "programs" ||
+    (Screen_currentName(state.screenStack) === "main" && currentProgram == null)
   ) {
     content = (
       <ChooseProgramView
         navCommon={navCommon}
         settings={state.storage.settings}
         dispatch={dispatch}
-        progress={Progress.getProgress(state)}
+        progress={Progress_getProgress(state)}
         programs={state.programs || []}
         programsIndex={state.programsIndex || []}
         customPrograms={state.storage.programs || []}
-        editProgramId={Progress.getProgress(state)?.programId}
+        editProgramId={Progress_getProgress(state)?.programId}
       />
     );
-  } else if (Screen.currentName(state.screenStack) === "main") {
+  } else if (Screen_currentName(state.screenStack) === "main") {
     if (currentProgram != null) {
       content = (
         <ProgramHistoryView
-          progress={Progress.getProgress(state)}
+          progress={Progress_getProgress(state)}
           navCommon={navCommon}
           program={currentProgram}
           settings={state.storage.settings}
@@ -408,12 +433,12 @@ export function AppView(props: IProps): JSX.Element | null {
     } else {
       throw new Error("Program is not selected on the 'main' screen");
     }
-  } else if (Screen.currentName(state.screenStack) === "progress") {
-    const progress = Progress.getProgress(state);
+  } else if (Screen_currentName(state.screenStack) === "progress") {
+    const progress = Progress_getProgress(state);
     const program = progress
-      ? Progress.isCurrent(progress)
-        ? Program.getFullProgram(state, progress.programId) ||
-          (currentProgram ? Program.fullProgram(currentProgram, state.storage.settings) : undefined)
+      ? Progress_isCurrent(progress)
+        ? Program_getFullProgram(state, progress.programId) ||
+          (currentProgram ? Program_fullProgram(currentProgram, state.storage.settings) : undefined)
         : undefined
       : undefined;
     content = (
@@ -436,7 +461,7 @@ export function AppView(props: IProps): JSX.Element | null {
         )}
       </FallbackScreen>
     );
-  } else if (Screen.currentName(state.screenStack) === "settings") {
+  } else if (Screen_currentName(state.screenStack) === "settings") {
     content = (
       <ScreenSettings
         stats={state.storage.stats}
@@ -445,14 +470,14 @@ export function AppView(props: IProps): JSX.Element | null {
         subscription={state.storage.subscription}
         dispatch={dispatch}
         user={state.user}
-        currentProgramName={Program.getProgram(state, state.storage.currentProgramId)?.name || ""}
+        currentProgramName={Program_getProgram(state, state.storage.currentProgramId)?.name || ""}
         settings={state.storage.settings}
       />
     );
-  } else if (Screen.currentName(state.screenStack) === "programPreview") {
+  } else if (Screen_currentName(state.screenStack) === "programPreview") {
     if (state.previewProgram?.id == null) {
       setTimeout(() => {
-        dispatch(Thunk.pullScreen());
+        dispatch(Thunk_pullScreen());
       }, 0);
       content = <></>;
     } else {
@@ -467,14 +492,14 @@ export function AppView(props: IProps): JSX.Element | null {
         />
       );
     }
-  } else if (Screen.currentName(state.screenStack) === "onerms") {
+  } else if (Screen_currentName(state.screenStack) === "onerms") {
     if (currentProgram == null) {
       throw new Error("Opened 'exercises' screen, but 'currentProgram' is null");
     }
     content = (
       <Screen1RM navCommon={navCommon} dispatch={dispatch} program={currentProgram} settings={state.storage.settings} />
     );
-  } else if (Screen.currentName(state.screenStack) === "stats") {
+  } else if (Screen_currentName(state.screenStack) === "stats") {
     content = (
       <ScreenStats
         navCommon={navCommon}
@@ -483,9 +508,9 @@ export function AppView(props: IProps): JSX.Element | null {
         stats={state.storage.stats}
       />
     );
-  } else if (Screen.currentName(state.screenStack) === "muscleGroups") {
+  } else if (Screen_currentName(state.screenStack) === "muscleGroups") {
     content = <ScreenMuscleGroups navCommon={navCommon} dispatch={dispatch} settings={state.storage.settings} />;
-  } else if (Screen.currentName(state.screenStack) === "measurements") {
+  } else if (Screen_currentName(state.screenStack) === "measurements") {
     content = (
       <ScreenMeasurements
         navCommon={navCommon}
@@ -495,15 +520,15 @@ export function AppView(props: IProps): JSX.Element | null {
         stats={state.storage.stats}
       />
     );
-  } else if (Screen.currentName(state.screenStack) === "account") {
+  } else if (Screen_currentName(state.screenStack) === "account") {
     content = <ScreenAccount navCommon={navCommon} dispatch={dispatch} email={state.user?.email} />;
-  } else if (Screen.currentName(state.screenStack) === "exerciseStats") {
+  } else if (Screen_currentName(state.screenStack) === "exerciseStats") {
     const exercise = state.viewExerciseType
-      ? Exercise.find(state.viewExerciseType, state.storage.settings.exercises)
+      ? Exercise_find(state.viewExerciseType, state.storage.settings.exercises)
       : undefined;
     if (exercise == null) {
       setTimeout(() => {
-        dispatch(Thunk.pullScreen());
+        dispatch(Thunk_pullScreen());
       }, 0);
       content = <></>;
     } else {
@@ -511,7 +536,7 @@ export function AppView(props: IProps): JSX.Element | null {
         <ScreenExerciseStats
           navCommon={navCommon}
           currentProgram={currentProgram}
-          key={Exercise.toKey(exercise)}
+          key={Exercise_toKey(exercise)}
           history={state.storage.history}
           dispatch={dispatch}
           exerciseType={exercise}
@@ -520,15 +545,15 @@ export function AppView(props: IProps): JSX.Element | null {
         />
       );
     }
-  } else if (Screen.currentName(state.screenStack) === "timers") {
+  } else if (Screen_currentName(state.screenStack) === "timers") {
     content = <ScreenTimers navCommon={navCommon} dispatch={dispatch} timers={state.storage.settings.timers} />;
-  } else if (Screen.currentName(state.screenStack) === "appleHealth") {
+  } else if (Screen_currentName(state.screenStack) === "appleHealth") {
     content = <ScreenAppleHealthSettings navCommon={navCommon} dispatch={dispatch} settings={state.storage.settings} />;
-  } else if (Screen.currentName(state.screenStack) === "googleHealth") {
+  } else if (Screen_currentName(state.screenStack) === "googleHealth") {
     content = (
       <ScreenGoogleHealthSettings navCommon={navCommon} dispatch={dispatch} settings={state.storage.settings} />
     );
-  } else if (Screen.currentName(state.screenStack) === "gyms") {
+  } else if (Screen_currentName(state.screenStack) === "gyms") {
     content = (
       <ScreenGyms
         navCommon={navCommon}
@@ -537,7 +562,7 @@ export function AppView(props: IProps): JSX.Element | null {
         settings={state.storage.settings}
       />
     );
-  } else if (Screen.currentName(state.screenStack) === "setupequipment") {
+  } else if (Screen_currentName(state.screenStack) === "setupequipment") {
     content = (
       <ScreenSetupEquipment
         stats={state.storage.stats}
@@ -546,8 +571,8 @@ export function AppView(props: IProps): JSX.Element | null {
         settings={state.storage.settings}
       />
     );
-  } else if (Screen.currentName(state.screenStack) === "plates") {
-    const allEquipment = Equipment.getEquipmentOfGym(state.storage.settings, state.selectedGymId);
+  } else if (Screen_currentName(state.screenStack) === "plates") {
+    const allEquipment = Equipment_getEquipmentOfGym(state.storage.settings, state.selectedGymId);
     content = (
       <ScreenEquipment
         stats={state.storage.stats}
@@ -559,7 +584,7 @@ export function AppView(props: IProps): JSX.Element | null {
         settings={state.storage.settings}
       />
     );
-  } else if (Screen.currentName(state.screenStack) === "exercises") {
+  } else if (Screen_currentName(state.screenStack) === "exercises") {
     if (currentProgram == null) {
       throw new Error("Opened 'exercises' screen, but 'currentProgram' is null");
     }
@@ -572,7 +597,7 @@ export function AppView(props: IProps): JSX.Element | null {
         history={state.storage.history}
       />
     );
-  } else if (Screen.currentName(state.screenStack) === "graphs") {
+  } else if (Screen_currentName(state.screenStack) === "graphs") {
     content = (
       <ScreenGraphs
         navCommon={navCommon}
@@ -582,8 +607,8 @@ export function AppView(props: IProps): JSX.Element | null {
         stats={state.storage.stats}
       />
     );
-  } else if (Screen.currentName(state.screenStack) === "editProgramExercise") {
-    const screenData = Screen.current(navCommon.screenStack);
+  } else if (Screen_currentName(state.screenStack) === "editProgramExercise") {
+    const screenData = Screen_current(navCommon.screenStack);
     const exerciseKey = screenData.name === "editProgramExercise" ? screenData.params?.key : undefined;
     const dayData = screenData.name === "editProgramExercise" ? screenData.params?.dayData : undefined;
     const plannerState = screenData.name === "editProgramExercise" ? screenData.params?.plannerState : undefined;
@@ -601,12 +626,12 @@ export function AppView(props: IProps): JSX.Element | null {
         )}
       </FallbackScreen>
     );
-  } else if (Screen.currentName(state.screenStack) === "editProgram") {
-    const screenData = Screen.current(navCommon.screenStack);
+  } else if (Screen_currentName(state.screenStack) === "editProgram") {
+    const screenData = Screen_current(navCommon.screenStack);
     const plannerState = screenData.name === "editProgram" ? screenData.params?.plannerState : undefined;
-    const editProgram = Program.getProgram(
+    const editProgram = Program_getProgram(
       state,
-      plannerState ? plannerState.current.program.id : Progress.getProgress(state)?.programId
+      plannerState ? plannerState.current.program.id : Progress_getProgress(state)?.programId
     );
     content = (
       <FallbackScreen state={{ plannerState, editProgram }} dispatch={dispatch}>
@@ -626,7 +651,7 @@ export function AppView(props: IProps): JSX.Element | null {
         )}
       </FallbackScreen>
     );
-  } else if (Screen.currentName(state.screenStack) === "finishDay") {
+  } else if (Screen_currentName(state.screenStack) === "finishDay") {
     content = (
       <ScreenFinishDay
         navCommon={navCommon}
@@ -636,7 +661,7 @@ export function AppView(props: IProps): JSX.Element | null {
         userId={state.user?.id}
       />
     );
-  } else if (Screen.currentName(state.screenStack) === "muscles") {
+  } else if (Screen_currentName(state.screenStack) === "muscles") {
     const type = state.muscleView || {
       type: "program",
       programId: state.storage.currentProgramId || state.storage.programs[0]?.id,
@@ -644,11 +669,11 @@ export function AppView(props: IProps): JSX.Element | null {
     if (type.programId == null) {
       throw new Error("Opened 'muscles' screen, but 'state.storage.currentProgramId' is null");
     }
-    let program = Program.getProgram(state, type.programId);
+    let program = Program_getProgram(state, type.programId);
     if (program == null) {
       throw new Error("Opened 'muscles' screen, but 'program' is null");
     }
-    program = Program.fullProgram(program, state.storage.settings);
+    program = Program_fullProgram(program, state.storage.settings);
     if (type.type === "program") {
       content = (
         <ScreenMusclesProgram
@@ -670,14 +695,14 @@ export function AppView(props: IProps): JSX.Element | null {
       );
     }
   } else {
-    Rollbar.error(`Unknown screen: ${state.screenStack.length > 0 ? Screen.currentName(state.screenStack) : "empty"}`);
+    Rollbar.error(`Unknown screen: ${state.screenStack.length > 0 ? Screen_currentName(state.screenStack) : "empty"}`);
     return null;
   }
 
-  const progress = Progress.getProgress(state);
+  const progress = Progress_getProgress(state);
   const { lftAndroidSafeInsetTop, lftAndroidSafeInsetBottom } = window;
   const screensWithoutTimer: IScreen[] = ["subscription"];
-  const isEligibleForThanks25 = Subscriptions.isEligibleForThanksgivingPromo(
+  const isEligibleForThanks25 = Subscriptions_isEligibleForThanksgivingPromo(
     state.storage.history.length > 0,
     state.storage.subscription
   );
@@ -695,7 +720,7 @@ export function AppView(props: IProps): JSX.Element | null {
         }}
       />
       <AppContext.Provider value={{ service, isApp: true }}>{content}</AppContext.Provider>
-      {progress && screensWithoutTimer.indexOf(Screen.currentName(state.screenStack)) === -1 && (
+      {progress && screensWithoutTimer.indexOf(Screen_currentName(state.screenStack)) === -1 && (
         <RestTimer
           progress={progress}
           dispatch={dispatch}
@@ -705,7 +730,7 @@ export function AppView(props: IProps): JSX.Element | null {
       )}
       <Notification dispatch={dispatch} notification={state.notification} />
       {shouldShowWhatsNew && state.storage.whatsNew != null && (
-        <ModalWhatsnew lastDateStr={state.storage.whatsNew} onClose={() => WhatsNew.updateStorage(dispatch)} />
+        <ModalWhatsnew lastDateStr={state.storage.whatsNew} onClose={() => WhatsNew_updateStorage(dispatch)} />
       )}
       {isEligibleForThanks25 && !helps.includes("thanks25") && (
         <ModalThanks25

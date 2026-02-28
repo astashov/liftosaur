@@ -6,19 +6,19 @@ import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
 import { MenuItem } from "./menuItem";
-import { StringUtils } from "../utils/string";
+import { StringUtils_nextName, StringUtils_dashcase } from "../utils/string";
 import { IconDuplicate2 } from "./icons/iconDuplicate2";
 import { IconEditSquare } from "./icons/iconEditSquare";
 import { IconTrash } from "./icons/iconTrash";
 import { lb } from "lens-shmens";
-import { CollectionUtils } from "../utils/collection";
-import { UidFactory } from "../utils/generator";
-import { ObjectUtils } from "../utils/object";
+import { CollectionUtils_removeBy } from "../utils/collection";
+import { UidFactory_generateUid } from "../utils/generator";
+import { ObjectUtils_clone } from "../utils/object";
 import { ModalNewGym } from "./modalNewGym";
 import { useState } from "preact/hooks";
-import { Thunk } from "../ducks/thunks";
+import { Thunk_pushScreen } from "../ducks/thunks";
 import { LinkButton } from "./linkButton";
-import { Settings } from "../models/settings";
+import { Settings_defaultEquipment } from "../models/settings";
 
 interface IProps {
   dispatch: IDispatch;
@@ -47,8 +47,8 @@ export function ScreenGyms(props: IProps): JSX.Element {
                     .p("settings")
                     .p("gyms")
                     .recordModify((oldGyms) => {
-                      const id = `gym-${UidFactory.generateUid(8)}`;
-                      return [...oldGyms, { vtype: "gym", id, name, equipment: Settings.defaultEquipment() }];
+                      const id = `gym-${UidFactory_generateUid(8)}`;
+                      return [...oldGyms, { vtype: "gym", id, name, equipment: Settings_defaultEquipment() }];
                     }),
                 ],
                 "Add new gym"
@@ -82,7 +82,7 @@ export function ScreenGyms(props: IProps): JSX.Element {
                         [lb<IState>().p("selectedGymId").record(gym.id)],
                         "Select gym to edit"
                       );
-                      props.dispatch(Thunk.pushScreen("plates"));
+                      props.dispatch(Thunk_pushScreen("plates"));
                     }}
                   >
                     <IconEditSquare />
@@ -100,9 +100,9 @@ export function ScreenGyms(props: IProps): JSX.Element {
                             .recordModify((g) => {
                               const newGym: IGym = {
                                 ...gym,
-                                name: StringUtils.nextName(gym.name),
-                                id: UidFactory.generateUid(8),
-                                equipment: ObjectUtils.clone(gym.equipment),
+                                name: StringUtils_nextName(gym.name),
+                                id: UidFactory_generateUid(8),
+                                equipment: ObjectUtils_clone(gym.equipment),
                               };
                               return [...g, newGym];
                             }),
@@ -115,7 +115,7 @@ export function ScreenGyms(props: IProps): JSX.Element {
                   </button>
                   {props.settings.gyms.length > 1 && (
                     <button
-                      data-cy={`menu-item-delete-${StringUtils.dashcase(gym.name)}`}
+                      data-cy={`menu-item-delete-${StringUtils_dashcase(gym.name)}`}
                       className="px-2 align-middle ls-gyms-list-delete-gym button"
                       onClick={() => {
                         if (confirm("Are you sure you want to delete this gym?")) {
@@ -126,7 +126,7 @@ export function ScreenGyms(props: IProps): JSX.Element {
                                 .p("storage")
                                 .p("settings")
                                 .recordModify((settings) => {
-                                  const newGyms = CollectionUtils.removeBy(settings.gyms, "id", gym.id);
+                                  const newGyms = CollectionUtils_removeBy(settings.gyms, "id", gym.id);
                                   const currentGym = newGyms.find((aGym) => aGym.id === props.settings.currentGymId);
                                   if (currentGym == null) {
                                     settings = { ...settings, currentGymId: newGyms[0].id };

@@ -1,11 +1,11 @@
 import { h, JSX } from "preact";
 import { IDispatch } from "../../ducks/types";
-import { Muscle } from "../../models/muscle";
+import { Muscle_normalizePoints, Muscle_getPointsForProgram } from "../../models/muscle";
 import { ScreenMuscles } from "./screenMuscles";
 import { ISettings, IProgram } from "../../types";
 import { INavCommon } from "../../models/state";
 import { HelpMuscles } from "../help/helpMuscles";
-import { Program } from "../../models/program";
+import { Program_evaluate } from "../../models/program";
 
 interface IProps {
   dispatch: IDispatch;
@@ -15,9 +15,9 @@ interface IProps {
 }
 
 export function ScreenMusclesProgram(props: IProps): JSX.Element {
-  const evaluatedProgram = Program.evaluate(props.program, props.settings);
-  const points = Muscle.normalizePoints(
-    Muscle.getPointsForProgram(evaluatedProgram, props.navCommon.stats, props.settings)
+  const evaluatedProgram = Program_evaluate(props.program, props.settings);
+  const points = Muscle_normalizePoints(
+    Muscle_getPointsForProgram(evaluatedProgram, props.navCommon.stats, props.settings)
   );
   return (
     <ScreenMuscles

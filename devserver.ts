@@ -56,9 +56,15 @@ async function requestToProxyEvent(request: http.IncomingMessage): Promise<APIGa
   url.searchParams.forEach((v, k) => {
     qs[k] = v;
   });
+  const headers = { ...request.headers } as APIGatewayProxyEventHeaders;
+  const cookieHeader = headers.cookie || "";
+  headers["x-auth-state"] = cookieHeader.includes("session") ? "yes" : "no";
+  const ua = headers["user-agent"] || "";
+  headers["x-device-type"] = /iPhone|iPad|iPod/i.test(ua) ? "ios" : /Android/i.test(ua) ? "android" : "desktop";
+
   return {
     body: body,
-    headers: request.headers as APIGatewayProxyEventHeaders,
+    headers,
     multiValueHeaders: {},
     httpMethod: request.method || "GET",
     isBase64Encoded: false,

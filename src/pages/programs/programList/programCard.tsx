@@ -4,13 +4,13 @@ import { IconCalendarSmall } from "../../../components/icons/iconCalendarSmall";
 import { IconKettlebellSmall } from "../../../components/icons/iconKettlebellSmall";
 import { IconWatch } from "../../../components/icons/iconWatch";
 import { Markdown } from "../../../components/markdown";
-import { Equipment } from "../../../models/equipment";
-import { equipmentName, Exercise } from "../../../models/exercise";
-import { ExerciseImageUtils } from "../../../models/exerciseImage";
-import { IProgramIndexEntry, Program } from "../../../models/program";
+import { Equipment_currentEquipment } from "../../../models/equipment";
+import { equipmentName, Exercise_toKey } from "../../../models/exercise";
+import { ExerciseImageUtils_exists } from "../../../models/exerciseImage";
+import { IProgramIndexEntry, Program_exerciseRangeFormat } from "../../../models/program";
 import { ISettings } from "../../../types";
-import { StringUtils } from "../../../utils/string";
-import { Tailwind } from "../../../utils/tailwindConfig";
+import { StringUtils_pluralize } from "../../../utils/string";
+import { Tailwind_colors } from "../../../utils/tailwindConfig";
 
 interface IProgramCardProps {
   program: IProgramIndexEntry;
@@ -20,7 +20,7 @@ interface IProgramCardProps {
 export function ProgramCard(props: IProgramCardProps): JSX.Element {
   const { program, settings } = props;
   const exercises = program.exercises ?? [];
-  const allEquipment = Equipment.currentEquipment(settings);
+  const allEquipment = Equipment_currentEquipment(settings);
   const equipment = (program.equipment ?? []).map((e) => equipmentName(e, allEquipment));
   const exercisesRange = program.exercisesRange;
 
@@ -46,30 +46,31 @@ export function ProgramCard(props: IProgramCardProps): JSX.Element {
 
         <div className="py-3">
           {exercises
-            .filter((e) => ExerciseImageUtils.exists(e, "small"))
+            .filter((e) => ExerciseImageUtils_exists(e, "small"))
             .map((e) => (
               <ExerciseImage
-                key={Exercise.toKey(e)}
+                key={Exercise_toKey(e)}
                 settings={settings}
                 exerciseType={e}
                 size="small"
                 className="w-8 mr-1"
+                width={32}
               />
             ))}
         </div>
 
         <div className="flex mb-1 text-text-secondary">
-          <IconCalendarSmall color={Tailwind.colors().lightgray[600]} className="block mt-0.5 mr-1" />
+          <IconCalendarSmall color={Tailwind_colors().lightgray[600]} className="block mt-0.5 mr-1" />
           <div className="text-xs">
             {(program.weeksCount ?? 0) > 1 &&
-              `${program.weeksCount} ${StringUtils.pluralize("week", program.weeksCount ?? 0)}, `}
+              `${program.weeksCount} ${StringUtils_pluralize("week", program.weeksCount ?? 0)}, `}
             {program.frequency ? `${program.frequency}x/week, ` : ""}
-            {exercisesRange ? Program.exerciseRangeFormat(exercisesRange[0], exercisesRange[1]) : ""}
+            {exercisesRange ? Program_exerciseRangeFormat(exercisesRange[0], exercisesRange[1]) : ""}
           </div>
         </div>
         {equipment.length > 0 && (
           <div className="flex text-text-secondary">
-            <IconKettlebellSmall color={Tailwind.colors().lightgray[600]} className="block mt-0.5 mr-1" />
+            <IconKettlebellSmall color={Tailwind_colors().lightgray[600]} className="block mt-0.5 mr-1" />
             <div className="text-xs">{equipment.join(", ")}</div>
           </div>
         )}

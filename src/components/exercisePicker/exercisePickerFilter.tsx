@@ -11,23 +11,23 @@ import {
 } from "../../types";
 import { IconBack } from "../icons/iconBack";
 import { useState } from "preact/hooks";
-import { ObjectUtils } from "../../utils/object";
+import { ObjectUtils_values, ObjectUtils_entries } from "../../utils/object";
 import { IconArrowUp } from "../icons/iconArrowUp";
 import { IconArrowDown2 } from "../icons/iconArrowDown2";
 import { lb } from "lens-shmens";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { equipmentName } from "../../models/exercise";
-import { CollectionUtils } from "../../utils/collection";
-import { StringUtils } from "../../utils/string";
+import { CollectionUtils_remove } from "../../utils/collection";
+import { StringUtils_capitalize } from "../../utils/string";
 import { ScrollableTabs } from "../scrollableTabs";
-import { Muscle } from "../../models/muscle";
-import { ExercisePickerUtils } from "./exercisePickerUtils";
+import { Muscle_getAvailableMuscleGroups, Muscle_getMusclesFromScreenMuscle } from "../../models/muscle";
+import { ExercisePickerUtils_getSelectedMuscleGroupNames } from "./exercisePickerUtils";
 import { ExercisePickerOptionsMuscles } from "./exercisePickerOptionsMuscles";
 import { ExercisePickerOptions } from "./exercisePickerOptions";
 import { MuscleGroupImage } from "../muscleGroupImage";
 import { IExercisePickerSettings } from "./exercisePickerSettings";
 import { MenuItemEditable } from "../menuItemEditable";
-import { Equipment } from "../../models/equipment";
+import { Equipment_getCurrentGym } from "../../models/equipment";
 
 interface IProps {
   settings: ISettings;
@@ -52,7 +52,7 @@ export function ExercisePickerFilter(props: IProps): JSX.Element {
       disabledReason: props.state.exerciseType != null ? undefined : "Enabled only for swap/edit",
     },
   };
-  const gymEquipment = Equipment.getCurrentGym(props.settings).equipment;
+  const gymEquipment = Equipment_getCurrentGym(props.settings).equipment;
 
   const equipmentValues = equipments.reduce<Record<IBuiltinEquipment, IFilterValue>>(
     (memo, equipment) => {
@@ -72,7 +72,7 @@ export function ExercisePickerFilter(props: IProps): JSX.Element {
   const typeValues = exerciseKinds.reduce<Record<IExerciseKind, IFilterValue>>(
     (memo, type) => {
       memo[type] = {
-        label: StringUtils.capitalize(type),
+        label: StringUtils_capitalize(type),
         isSelected: props.state.filters.type?.includes(type) ?? false,
       };
       return memo;
@@ -153,7 +153,7 @@ export function ExercisePickerFilter(props: IProps): JSX.Element {
                 .p("equipment")
                 .recordModify((equipment) => {
                   if (equipment?.includes(value)) {
-                    return CollectionUtils.remove(equipment, value);
+                    return CollectionUtils_remove(equipment, value);
                   } else {
                     return [...(equipment ?? []), value];
                   }
@@ -173,7 +173,7 @@ export function ExercisePickerFilter(props: IProps): JSX.Element {
                 .p("type")
                 .recordModify((types) => {
                   if (types?.includes(value)) {
-                    return CollectionUtils.remove(types, value);
+                    return CollectionUtils_remove(types, value);
                   } else {
                     return [...(types ?? []), value];
                   }
@@ -196,7 +196,7 @@ interface IFilterProps<T extends string> {
 }
 
 function Filter<T extends string>(props: IFilterProps<T>): JSX.Element {
-  const selectedValues = ObjectUtils.values(props.values).filter((v) => v.isSelected);
+  const selectedValues = ObjectUtils_values(props.values).filter((v) => v.isSelected);
   const [isExpanded, setIsExpanded] = useState(selectedValues.length > 0);
   return (
     <div className="px-4 py-2 border-b border-background-subtle">
@@ -222,7 +222,7 @@ interface IFilterMusclesProps<T extends string> {
 function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Element {
   const selectedValues = props.state.filters?.muscles || [];
   const [isExpanded, setIsExpanded] = useState(selectedValues.length > 0);
-  const selectedMuscleGroups = ExercisePickerUtils.getSelectedMuscleGroupNames(selectedValues, props.settings);
+  const selectedMuscleGroups = ExercisePickerUtils_getSelectedMuscleGroupNames(selectedValues, props.settings);
 
   return (
     <div className="px-4 py-2 border-b border-background-subtle">
@@ -243,20 +243,20 @@ function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Ele
             {
               label: "Muscle Groups",
               children: () => {
-                const muscleGroups = Muscle.getAvailableMuscleGroups(props.settings).reduce<
+                const muscleGroups = Muscle_getAvailableMuscleGroups(props.settings).reduce<
                   Record<IScreenMuscle, IFilterValue>
                 >(
                   (memo, muscleGroup) => {
-                    const muscles = Muscle.getMusclesFromScreenMuscle(muscleGroup, props.settings);
+                    const muscles = Muscle_getMusclesFromScreenMuscle(muscleGroup, props.settings);
                     const isSelected = muscles.every((muscle) => selectedValues.includes(muscle));
-                    memo[muscleGroup] = { label: StringUtils.capitalize(muscleGroup), isSelected };
+                    memo[muscleGroup] = { label: StringUtils_capitalize(muscleGroup), isSelected };
                     return memo;
                   },
                   {} as Record<IScreenMuscle, IFilterValue>
                 );
                 return (
                   <div className="grid grid-cols-2 gap-4 mt-2">
-                    {ObjectUtils.entries(muscleGroups).map(([key, value]) => {
+                    {ObjectUtils_entries(muscleGroups).map(([key, value]) => {
                       return (
                         <button
                           className={`bg-background-subtle h-12 leading-none overflow-hidden bg-no-repeat flex gap-2 items-center rounded-lg border text-left ${value.isSelected ? "border-button-secondarystroke text-text-purple" : "border-border-neutral"}`}
@@ -267,7 +267,7 @@ function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Ele
                                 .p("filters")
                                 .p("muscles")
                                 .recordModify((muscles) => {
-                                  const musclesOfMuscleGroup = Muscle.getMusclesFromScreenMuscle(key, props.settings);
+                                  const musclesOfMuscleGroup = Muscle_getMusclesFromScreenMuscle(key, props.settings);
                                   const isIncluded = musclesOfMuscleGroup.some((m) => selectedValues.includes(m));
                                   if (isIncluded) {
                                     return muscles?.filter((muscle) => !musclesOfMuscleGroup.includes(muscle)) || [];
@@ -304,7 +304,7 @@ function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Ele
                           .p("muscles")
                           .recordModify((mscls) => {
                             if (mscls?.includes(key)) {
-                              return CollectionUtils.remove(mscls, key);
+                              return CollectionUtils_remove(mscls, key);
                             } else {
                               return [...(mscls || []), key];
                             }

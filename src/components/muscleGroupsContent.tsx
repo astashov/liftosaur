@@ -1,8 +1,14 @@
 import { JSX, h, Fragment } from "preact";
 import { useState } from "preact/hooks";
-import { Muscle } from "../models/muscle";
+import {
+  Muscle_getAvailableMuscleGroups,
+  Muscle_getHiddenMuscleGroups,
+  Muscle_getMuscleGroupName,
+  Muscle_isBuiltInMuscleGroup,
+  Muscle_getMusclesFromScreenMuscle,
+} from "../models/muscle";
 import { IMuscle, IScreenMuscle, ISettings } from "../types";
-import { CollectionUtils } from "../utils/collection";
+import { CollectionUtils_sort, CollectionUtils_remove } from "../utils/collection";
 import { IconEdit2 } from "./icons/iconEdit2";
 import { IconEyeClosed } from "./icons/iconEyeClosed";
 import { IconTrash } from "./icons/iconTrash";
@@ -14,7 +20,7 @@ import { GroupHeader } from "./groupHeader";
 import { Input2 } from "./input2";
 import { Modal } from "./modal";
 import { BottomSheetMuscleGroupMusclePicker } from "./bottomSheetMuscleGroupMusclePicker";
-import { StringUtils } from "../utils/string";
+import { StringUtils_dashcase } from "../utils/string";
 
 interface IProps {
   settings: ISettings;
@@ -25,17 +31,17 @@ interface IProps {
 }
 
 export function MuscleGroupsContent(props: IProps): JSX.Element {
-  const visibleMuscleGroups = Muscle.getAvailableMuscleGroups(props.settings);
-  const hiddenMuscleGroups = Muscle.getHiddenMuscleGroups(props.settings);
+  const visibleMuscleGroups = Muscle_getAvailableMuscleGroups(props.settings);
+  const hiddenMuscleGroups = Muscle_getHiddenMuscleGroups(props.settings);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showMusclePicker, setShowMusclePicker] = useState<IScreenMuscle | undefined>(undefined);
   const [name, setName] = useState("");
   return (
     <div>
       {visibleMuscleGroups.map((muscleGroup) => {
-        const muscleGroupName = Muscle.getMuscleGroupName(muscleGroup, props.settings);
-        const muscleGroupSlug = StringUtils.dashcase(muscleGroupName);
-        const isBuiltin = Muscle.isBuiltInMuscleGroup(muscleGroup);
+        const muscleGroupName = Muscle_getMuscleGroupName(muscleGroup, props.settings);
+        const muscleGroupSlug = StringUtils_dashcase(muscleGroupName);
+        const isBuiltin = Muscle_isBuiltInMuscleGroup(muscleGroup);
         return (
           <MenuItemWrapper name={`muscle-group-${muscleGroup}`}>
             <div className="flex items-center gap-4">
@@ -45,7 +51,7 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
               <div className="flex-1 py-2">
                 <div className="text-base font-bold">{muscleGroupName}</div>
                 <div className="text-xs text-text-secondary">
-                  {CollectionUtils.sort(Muscle.getMusclesFromScreenMuscle(muscleGroup, props.settings), (a, b) =>
+                  {CollectionUtils_sort(Muscle_getMusclesFromScreenMuscle(muscleGroup, props.settings), (a, b) =>
                     a.localeCompare(b)
                   ).join(", ")}
                 </div>
@@ -94,8 +100,8 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
         <div className="pb-6 text-xs text-text-secondary">
           <span>Unhide muscle groups: </span>
           {hiddenMuscleGroups.map((muscleGroup, i) => {
-            const muscleGroupName = Muscle.getMuscleGroupName(muscleGroup, props.settings);
-            const muscleGroupSlug = StringUtils.dashcase(muscleGroupName);
+            const muscleGroupName = Muscle_getMuscleGroupName(muscleGroup, props.settings);
+            const muscleGroupSlug = StringUtils_dashcase(muscleGroupName);
             return (
               <>
                 {i !== 0 ? ", " : ""}
@@ -117,9 +123,9 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
           muscleGroup={showMusclePicker}
           onClose={() => setShowMusclePicker(undefined)}
           onSelect={(muscle) => {
-            const existingMuscles = Muscle.getMusclesFromScreenMuscle(showMusclePicker, props.settings);
+            const existingMuscles = Muscle_getMusclesFromScreenMuscle(showMusclePicker, props.settings);
             const newMuscles = existingMuscles.includes(muscle)
-              ? CollectionUtils.remove(existingMuscles, muscle)
+              ? CollectionUtils_remove(existingMuscles, muscle)
               : [...existingMuscles, muscle];
             props.onUpdate(showMusclePicker, newMuscles);
           }}

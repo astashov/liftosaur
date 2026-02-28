@@ -1,11 +1,11 @@
 import { h, JSX, Fragment } from "preact";
 import "../../models/state";
-import { Exercise, equipmentName } from "../../models/exercise";
-import { History } from "../../models/history";
-import { ObjectUtils } from "../../utils/object";
-import { Weight } from "../../models/weight";
+import { equipmentName, Exercise_fromKey, Exercise_get } from "../../models/exercise";
+import { History_findAllMaxSetsPerId } from "../../models/history";
+import { ObjectUtils_keys } from "../../utils/object";
+import { Weight_display, Weight_build } from "../../models/weight";
 import { GraphExercise } from "../../components/graphExercise";
-import { Program } from "../../models/program";
+import { Program_getCurrentProgram } from "../../models/program";
 import { IStorage, IExerciseId, IHistoryRecord, ISet, ISettings } from "../../types";
 
 interface IProps {
@@ -14,12 +14,12 @@ interface IProps {
 
 export function UserContent(props: IProps): JSX.Element {
   const { history, settings } = props.data;
-  const maxSets = History.findAllMaxSetsPerId(props.data.history);
+  const maxSets = History_findAllMaxSetsPerId(props.data.history);
   const order: IExerciseId[] = ["benchPress", "overheadPress", "squat", "deadlift"];
-  const mainLifts = ObjectUtils.keys(maxSets).filter((k) => order.some((i) => k.indexOf(i) !== -1));
+  const mainLifts = ObjectUtils_keys(maxSets).filter((k) => order.some((i) => k.indexOf(i) !== -1));
   const hasMainLifts = mainLifts.length > 0;
 
-  const currentProgram = Program.getCurrentProgram(props.data);
+  const currentProgram = Program_getCurrentProgram(props.data);
 
   return (
     <section className="px-6">
@@ -51,7 +51,7 @@ export function UserContent(props: IProps): JSX.Element {
       )}
       <Fragment>
         <h2 className="my-4 text-xl font-bold">{hasMainLifts ? "Rest Lifts Progress" : "Lifts Progress"}</h2>
-        {ObjectUtils.keys(maxSets).map((id) =>
+        {ObjectUtils_keys(maxSets).map((id) =>
           mainLifts.indexOf(id) === -1 ? (
             <Entry exerciseTypeStr={id} maxSet={maxSets[id]!} history={history} settings={settings} />
           ) : undefined
@@ -70,8 +70,8 @@ interface IEntryProps {
 
 function Entry(props: IEntryProps): JSX.Element {
   const { history, maxSet, settings } = props;
-  const exerciseType = Exercise.fromKey(props.exerciseTypeStr);
-  const exercise = Exercise.get(exerciseType, props.settings.exercises);
+  const exerciseType = Exercise_fromKey(props.exerciseTypeStr);
+  const exercise = Exercise_get(exerciseType, props.settings.exercises);
 
   return (
     <section className="p-4 my-2 bg-gray-100 border border-gray-600 rounded-lg">
@@ -81,7 +81,7 @@ function Entry(props: IEntryProps): JSX.Element {
         <p>
           <span dangerouslySetInnerHTML={{ __html: "&#x1F3CB Max lifted reps x weight: " }} />
           <strong>
-            {maxSet.completedReps ?? 0} x {Weight.display(maxSet.completedWeight ?? Weight.build(0, settings.units))}
+            {maxSet.completedReps ?? 0} x {Weight_display(maxSet.completedWeight ?? Weight_build(0, settings.units))}
           </strong>
         </p>
       </div>

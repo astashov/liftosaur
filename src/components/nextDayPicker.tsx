@@ -1,10 +1,15 @@
 import { JSX, h } from "preact";
-import { Exercise } from "../models/exercise";
-import { Muscle } from "../models/muscle";
-import { Program } from "../models/program";
+import { Exercise_find } from "../models/exercise";
+import { Muscle_normalizeUnifiedPoints, Muscle_getUnifiedPointsForDay } from "../models/muscle";
+import {
+  Program_evaluate,
+  Program_getListOfDays,
+  Program_getProgramDay,
+  Program_getProgramDayUsedExercises,
+} from "../models/program";
 import { IProgram, ISettings, IScreenMuscle, IStats } from "../types";
-import { CollectionUtils } from "../utils/collection";
-import { ObjectUtils } from "../utils/object";
+import { CollectionUtils_findBy, CollectionUtils_compact } from "../utils/collection";
+import { ObjectUtils_keys } from "../utils/object";
 import { ExerciseImage } from "./exerciseImage";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import { MenuItemWrapper } from "./menuItem";
@@ -25,13 +30,13 @@ export function NextDayPicker(props: INextDayPickerProps): JSX.Element {
   const programsValues = props.allPrograms.map<[string, string]>((p) => [p.id, p.name]);
   const [currentProgramId, setCurrentProgramId] = useState(props.initialCurrentProgramId);
   const currentProgram =
-    (currentProgramId ? CollectionUtils.findBy(props.allPrograms, "id", currentProgramId) : undefined) ??
+    (currentProgramId ? CollectionUtils_findBy(props.allPrograms, "id", currentProgramId) : undefined) ??
     props.allPrograms[0];
   if (!currentProgram) {
     return <div className="mx-4">No Programs</div>;
   }
-  const evaluatedProgram = Program.evaluate(currentProgram, props.settings);
-  const days = Program.getListOfDays(evaluatedProgram);
+  const evaluatedProgram = Program_evaluate(currentProgram, props.settings);
+  const days = Program_getListOfDays(evaluatedProgram);
 
   return (
     <div>
@@ -50,19 +55,19 @@ export function NextDayPicker(props: INextDayPickerProps): JSX.Element {
           />
         )}
         {days.map(([dayId, dayName], dayIndex) => {
-          const day = Program.getProgramDay(evaluatedProgram, dayIndex + 1);
+          const day = Program_getProgramDay(evaluatedProgram, dayIndex + 1);
           if (!day) {
             return null;
           }
-          const exerciseTypes = CollectionUtils.compact(
-            Program.getProgramDayUsedExercises(day).map((exercise) => {
-              return Exercise.find(exercise.exerciseType, props.settings.exercises);
+          const exerciseTypes = CollectionUtils_compact(
+            Program_getProgramDayUsedExercises(day).map((exercise) => {
+              return Exercise_find(exercise.exerciseType, props.settings.exercises);
             })
           );
-          const points = Muscle.normalizeUnifiedPoints(
-            Muscle.getUnifiedPointsForDay(evaluatedProgram, day, props.stats, props.settings)
+          const points = Muscle_normalizeUnifiedPoints(
+            Muscle_getUnifiedPointsForDay(evaluatedProgram, day, props.stats, props.settings)
           );
-          const muscleData = ObjectUtils.keys(points.screenMusclePoints).reduce<
+          const muscleData = ObjectUtils_keys(points.screenMusclePoints).reduce<
             Partial<Record<IScreenMuscle, IMuscleStyle>>
           >((memo, key) => {
             const value = points.screenMusclePoints[key];

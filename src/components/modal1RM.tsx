@@ -1,9 +1,9 @@
 import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
 import { Modal } from "./modal";
-import { Weight } from "../models/weight";
+import { Weight_build } from "../models/weight";
 import { lb } from "lens-shmens";
-import { Exercise } from "../models/exercise";
+import { Exercise_get, Exercise_toKey } from "../models/exercise";
 import { updateState, IState } from "../models/state";
 import { ISettings, IExerciseType } from "../types";
 import { ExerciseRM } from "./exerciseRm";
@@ -16,7 +16,7 @@ interface IModal1RMProps {
 }
 
 export function Modal1RM(props: IModal1RMProps): JSX.Element {
-  const exercise = Exercise.get(props.exercise, props.settings.exercises);
+  const exercise = Exercise_get(props.exercise, props.settings.exercises);
   return (
     <Modal isHidden={false} onClose={props.onClose} shouldShowClose={true} isFullWidth>
       <ExerciseRM
@@ -33,8 +33,8 @@ export function Modal1RM(props: IModal1RMProps): JSX.Element {
                 .p("settings")
                 .p("exerciseData")
                 .recordModify((data) => {
-                  const k = Exercise.toKey(exercise);
-                  return { ...data, [k]: { ...data[k], rm1: Weight.build(value, props.settings.units) } };
+                  const k = Exercise_toKey(exercise);
+                  return { ...data, [k]: { ...data[k], rm1: Weight_build(value, props.settings.units) } };
                 }),
             ],
             "Update 1RM from modal"

@@ -3,7 +3,7 @@ import { useMemo } from "preact/hooks";
 import { Service } from "../../api/service";
 import { ScrollableTabs } from "../../components/scrollableTabs";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { PlannerProgram } from "./models/plannerProgram";
+import { PlannerProgram_evaluate } from "./models/plannerProgram";
 import { IPlannerState, IPlannerUi } from "./models/types";
 import { IPlannerProgram, IPlannerProgramDay, IPlannerProgramWeek, ISettings } from "../../types";
 import { PlannerWeek } from "./components/plannerWeek";
@@ -21,7 +21,7 @@ export interface IPlannerContentPerDayProps {
 export function PlannerContentPerDay(props: IPlannerContentPerDayProps): JSX.Element {
   const { program, settings, ui, initialWeek, initialDay, service, dispatch } = props;
   const { evaluatedWeeks, exerciseFullNames } = useMemo(() => {
-    return PlannerProgram.evaluate(program, settings);
+    return PlannerProgram_evaluate(program, settings);
   }, [program, settings]);
 
   return (

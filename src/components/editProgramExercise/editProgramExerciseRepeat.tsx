@@ -2,7 +2,7 @@ import { JSX, h } from "preact";
 import { IPlannerProgramExercise, IPlannerExerciseState } from "../../pages/planner/models/types";
 import { ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { EditProgramUiHelpers } from "../editProgram/editProgramUi/editProgramUiHelpers";
+import { EditProgramUiHelpers_changeRepeating } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { lb } from "lens-shmens";
 import { LinkButton } from "../linkButton";
 
@@ -49,7 +49,7 @@ export function EditProgramExerciseRepeat(props: IEditProgramExerciseRepeatProps
           if (!isNaN(numValue)) {
             props.plannerDispatch(
               lbProgram.recordModify((program) => {
-                return EditProgramUiHelpers.changeRepeating(
+                return EditProgramUiHelpers_changeRepeating(
                   program,
                   plannerExercise.dayData,
                   numValue,

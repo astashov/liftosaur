@@ -1,8 +1,8 @@
 import { h, JSX } from "preact";
 import { LinkInlineInput } from "../../../components/inlineInput";
 import { LinkButton } from "../../../components/linkButton";
-import { CollectionUtils } from "../../../utils/collection";
-import { ObjectUtils } from "../../../utils/object";
+import { CollectionUtils_removeAt } from "../../../utils/collection";
+import { ObjectUtils_clone } from "../../../utils/object";
 import { PlannerDay } from "./plannerDay";
 import { PlannerWeekStats } from "./plannerWeekStats";
 import { IPlannerProgramWeek, IPlannerProgram, ISettings, IPlannerProgramDay } from "../../../types";
@@ -50,7 +50,7 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
                 onClick={() => {
                   if (confirm("Are you sure you want to delete this week?")) {
                     props.dispatch(
-                      lbProgram.p("weeks").recordModify((weeks) => CollectionUtils.removeAt(weeks, props.weekIndex)),
+                      lbProgram.p("weeks").recordModify((weeks) => CollectionUtils_removeAt(weeks, props.weekIndex)),
                       "Delete week"
                     );
                   }
@@ -68,7 +68,7 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
                   lbProgram.p("weeks").recordModify((weeks) => [
                     ...weeks,
                     {
-                      ...ObjectUtils.clone(props.initialWeek),
+                      ...ObjectUtils_clone(props.initialWeek),
                       name: `Week ${weeks.length + 1}`,
                     },
                   ]),
@@ -87,7 +87,7 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
                   lbProgram.p("weeks").recordModify((weeks) => [
                     ...weeks,
                     {
-                      ...ObjectUtils.clone(props.week),
+                      ...ObjectUtils_clone(props.week),
                       name: `Week ${weeks.length + 1}`,
                     },
                   ]),
@@ -177,7 +177,7 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
                   .recordModify((days) => [
                     ...days,
                     {
-                      ...ObjectUtils.clone(props.initialDay),
+                      ...ObjectUtils_clone(props.initialDay),
                       name: `Day ${days.length + 1}`,
                     },
                   ]),

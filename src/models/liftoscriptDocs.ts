@@ -5,38 +5,36 @@ import exercises from "../generated/exercises";
 import plannerGrammar from "../generated/plannerGrammar";
 import liftoscriptGrammar from "../generated/liftoscriptGrammar";
 
-export class LiftoscriptDocs {
-  public static getMainDoc(): string {
-    return liftoscriptDoc;
-  }
+export function LiftoscriptDocs_getMainDoc(): string {
+  return liftoscriptDoc;
+}
 
-  public static getExamplesDoc(): string {
-    return liftoscriptExamples;
-  }
+export function LiftoscriptDocs_getExamplesDoc(): string {
+  return liftoscriptExamples;
+}
 
-  public static getExercises(): string {
-    return exercises;
-  }
+export function LiftoscriptDocs_getExercises(): string {
+  return exercises;
+}
 
-  public static getCombinedDocs(): string {
-    return `${liftoscriptDoc}\n\n${exercises}\n\n${liftoscriptExamples}`;
-  }
+export function LiftoscriptDocs_getCombinedDocs(): string {
+  return `${liftoscriptDoc}\n\n${exercises}\n\n${liftoscriptExamples}`;
+}
 
-  public static getPlannerGrammar(): string {
-    return `# Liftoscript Grammar:
+export function LiftoscriptDocs_getPlannerGrammar(): string {
+  return `# Liftoscript Grammar:
 
 This is Lezer Grammar describing the Liftoscript syntax:
 
 ${plannerGrammar}
 `;
-  }
+}
 
-  public static getLiftoscriptGrammar(): string {
-    return `# Progress/Update scripts Grammar:
+export function LiftoscriptDocs_getLiftoscriptGrammar(): string {
+  return `# Progress/Update scripts Grammar:
 
 This is Lezer Grammar describing the Progress and Update blocks syntax:
 
 ${liftoscriptGrammar}
 `;
-  }
 }

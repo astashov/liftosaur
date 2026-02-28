@@ -1,11 +1,16 @@
-import { PlaywrightUtils, startpage } from "./playwrightUtils";
+import {
+  startpage,
+  PlaywrightUtils_disableSubscriptions,
+  PlaywrightUtils_swipeLeft,
+  PlaywrightUtils_typeKeyboard,
+} from "./playwrightUtils";
 import { test, expect } from "@playwright/test";
 
 test("Empty Workout", async ({ page }) => {
   page.on("dialog", (dialog) => dialog.accept());
   await page.goto(startpage + "?skipintro=1&nosync=true");
   await page.getByRole("button", { name: "Basic Beginner Routine" }).click();
-  PlaywrightUtils.disableSubscriptions(page);
+  PlaywrightUtils_disableSubscriptions(page);
   await page.getByTestId("clone-program").click();
 
   await page.getByTestId("footer-workout").click();
@@ -16,16 +21,16 @@ test("Empty Workout", async ({ page }) => {
 
   await page.getByTestId("add-workout-set").click();
 
-  await PlaywrightUtils.swipeLeft(page, page.getByTestId("entry-bench-press").getByTestId("workout-set-target"));
+  await PlaywrightUtils_swipeLeft(page, page.getByTestId("entry-bench-press").getByTestId("workout-set-target"));
   await page.getByTestId("entry-bench-press").getByTestId("edit-set-target").click();
 
-  await PlaywrightUtils.typeKeyboard(page, page.getByTestId("input-target-maxreps-field"), "5");
-  await PlaywrightUtils.typeKeyboard(page, page.getByTestId("input-target-weight-field"), "80");
+  await PlaywrightUtils_typeKeyboard(page, page.getByTestId("input-target-maxreps-field"), "5");
+  await PlaywrightUtils_typeKeyboard(page, page.getByTestId("input-target-weight-field"), "80");
 
   await page.getByTestId("edit-set-target-save").click();
 
-  await PlaywrightUtils.typeKeyboard(page, page.getByTestId("input-set-reps-field").nth(0), "7");
-  await PlaywrightUtils.typeKeyboard(page, page.getByTestId("input-set-weight-field").nth(0), "100");
+  await PlaywrightUtils_typeKeyboard(page, page.getByTestId("input-set-reps-field").nth(0), "7");
+  await PlaywrightUtils_typeKeyboard(page, page.getByTestId("input-set-weight-field").nth(0), "100");
 
   await page.getByTestId("add-workout-set").click();
   await page.getByTestId("complete-set").nth(0).click();
@@ -38,12 +43,12 @@ test("Empty Workout", async ({ page }) => {
 
   await page.getByTestId("add-exercise-button").scrollIntoViewIfNeeded();
   await page.getByTestId("entry-squat").getByTestId("add-workout-set").click();
-  await PlaywrightUtils.typeKeyboard(
+  await PlaywrightUtils_typeKeyboard(
     page,
     page.getByTestId("entry-squat").getByTestId("input-set-reps-field").nth(0),
     "5"
   );
-  await PlaywrightUtils.typeKeyboard(
+  await PlaywrightUtils_typeKeyboard(
     page,
     page.getByTestId("entry-squat").getByTestId("input-set-weight-field").nth(0),
     "150"
