@@ -39,7 +39,8 @@ Before writing Liftoscript code, you MUST read these files to understand the lan
 
 Pay special attention to:
 - Template/reuse patterns (`...main`, `...t1`) for DRY code
-- `[1-N]` syntax for repeating exercises across weeks
+- `[1-N]` syntax for repeating exercises across weeks. `[5-6]` means "start from week 5 through week 6." **CRITICAL: `[1,3,5]` is NOT week selection** — commas in brackets are forced display ordering, not "only on these weeks." For exercises on non-contiguous weeks, define them explicitly in each week header.
+- Superset syntax: `/ superset: groupName` groups exercises within a day. Same group name = same superset. Scope is per-day, so you can reuse group names across days.
 - `dp()` for double progression — manages its own rep range, so NEVER use rep ranges in the set notation with `dp()` (e.g., `3x8 / progress: dp(5lb, 8, 12)` is correct, `3x8-12 / progress: dp(...)` is WRONG)
 - `lp()` for linear progression
 - `custom() {~ ~}` for complex progression logic
