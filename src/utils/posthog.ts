@@ -26,6 +26,15 @@ export function track(args: {
   }
 }
 
+export function lgDebug(name: string, userId: string, extra?: Record<string, string | number>): void {
+  const currentUserId =
+    (typeof globalThis !== "undefined" ? (globalThis as { tempUserId?: string }).tempUserId : undefined) ??
+    (typeof window !== "undefined" ? window.tempUserId : undefined);
+  if (currentUserId === userId) {
+    lg(name, extra);
+  }
+}
+
 export function lg(
   name: string,
   extra?: Record<string, string | number>,

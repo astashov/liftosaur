@@ -74,7 +74,7 @@ import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { EditProgramUiHelpers_getChangedKeys } from "../components/editProgram/editProgramUi/editProgramUiHelpers";
 import { c } from "../utils/types";
 import { ICollectionVersions } from "../models/versionTracker";
-import { lg } from "../utils/posthog";
+import { lg, lgDebug } from "../utils/posthog";
 import { Equipment_getCurrentGym, Equipment_getEquipmentIdForExerciseType } from "../models/equipment";
 import { Stats_getCurrentMovingAverageBodyweight } from "../models/stats";
 import { Weight_build, Weight_eq } from "../models/weight";
@@ -558,7 +558,17 @@ export const reducerWrapper =
     }
     let newState = reducer(state, action);
     const isMergingStorage = isExternalStorageMerge(action);
+    const t0Reducer = Date.now();
     const isStorageChanged = !isMergingStorage && Storage_isChanged(state.storage, newState.storage);
+    const reducerIsChangedMs = Date.now() - t0Reducer;
+    if (reducerIsChangedMs > 5) {
+      const actionDesc =
+        "type" in action && action.type === "UpdateState" ? action.desc : "type" in action ? action.type : "thunk";
+      lgDebug("dbg-reducer-is-changed", "lkqtuayqpa", {
+        ms: reducerIsChangedMs,
+        action: actionDesc || "unknown",
+      });
+    }
     if (isStorageChanged) {
       const oldHistoryLen = state.storage.history?.length ?? 0;
       const newHistoryLen = newState.storage.history?.length ?? 0;
@@ -621,17 +631,29 @@ function newStorageApproach(oldState: IState, newState: IState, isStorageChanged
   if (typeof window !== "undefined") {
     window.tempUserId = newState.storage.tempUserId;
     (window as any).state = newState;
-    const isLocalStorageChanged =
-      isStorageChanged || Storage_isChanged(oldState.lastSyncedStorage, newState.lastSyncedStorage);
+    const t0 = Date.now();
+    const isLastSyncChanged = Storage_isChanged(oldState.lastSyncedStorage, newState.lastSyncedStorage);
+    const isChangedDuration = Date.now() - t0;
+    const isLocalStorageChanged = isStorageChanged || isLastSyncChanged;
     if (isLocalStorageChanged && newState.errors.corruptedstorage == null) {
       const userId = newState.user?.id || newState.storage.tempUserId;
       const localStorage: ILocalStorage = {
         storage: newState.storage,
         lastSyncedStorage: newState.lastSyncedStorage,
       };
+      const t1 = Date.now();
+      const json = JSON.stringify(localStorage);
+      const stringifyDuration = Date.now() - t1;
+      lgDebug("dbg-ios-persist", userId, {
+        stringifyMs: stringifyDuration,
+        isChangedMs: isChangedDuration,
+        jsonLen: json.length,
+        storageChanged: isStorageChanged ? 1 : 0,
+        lastSyncChanged: isLastSyncChanged ? 1 : 0,
+      });
       Promise.all([
         IndexedDBUtils_set("current_account", userId),
-        IndexedDBUtils_set(`liftosaur_${userId}`, JSON.stringify(localStorage)),
+        IndexedDBUtils_set(`liftosaur_${userId}`, json),
       ]).then(() => {
         lg("saved-to-storage", undefined, undefined, userId);
       });
