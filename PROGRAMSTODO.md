@@ -10,7 +10,6 @@ Tactical Barbell Operator
 German Volume Training
 SBS Hypertrophy Program
 Creeping Death 2
-Candito 6-Week Strength
 Coolcicada PPL
 PHAT
 Candito Linear Program
