@@ -84,6 +84,13 @@ Squat[1-6] / ...cluster / superset: A
 Pull Up[1-6] / ...cluster / superset: A
 ```
 
+**Pre-exhaust supersets** (isolation → compound with truly zero rest, e.g., Mike Mentzer's Heavy Duty): set `0s` timer on the first exercise and `warmup: none` on the second. The default superset rest is 15s (enough to move between equipment), but pre-exhaust requires absolutely no recovery time. The second exercise skips warmup since the muscles are already warm from the isolation.
+
+```
+Chest Fly / 1x6 / 20lb 0s / superset: chest / progress: dp(5lb, 6, 10)
+Incline Bench Press / 1x6 / 95lb / warmup: none / superset: chest / progress: dp(5lb, 6, 10)
+```
+
 ### Progression patterns
 
 **Linear progression** — simplest, for beginners:
@@ -120,7 +127,7 @@ Use `rm1 += state.increment` (not `weights +=`) so that all percentage-based set
 
 ### Week/day guards in custom progress
 
-Progress fires once per exercise after each workout. Use `week` and `dayInWeek` to control WHEN it fires:
+Progress is defined **once per exercise/label combination** and fires after **every workout day** that has that exercise. In a 4-day program, the progress fires 4 times per week. Use `week` and `dayInWeek` to control WHEN it fires:
 
 ```
 // Fire only on the last day of the last week in a 6-week block
@@ -128,6 +135,18 @@ if (completedReps >= reps && dayInWeek == 3 && week == 6) {
   rm1 += state.increment
 }
 ```
+
+**CRITICAL: `weights +=` applies to ALL weeks and ALL days by default** (wildcard target `[*:*:*:*]`). In multi-day programs, you MUST guard with `dayInWeek` to prevent the increment from firing multiple times per week:
+
+```
+// WRONG — fires 4 times per week, adding 4x the increment
+if (week == 1) { weights += 10lb }
+
+// CORRECT — fires only on the last day of each week
+if (week == 1 && dayInWeek == 4) { weights += 10lb }
+```
+
+This applies to any `weights +=` in a progress block where the exercise appears on multiple days per week.
 
 ### Warmups
 
@@ -153,6 +172,7 @@ t1 / used: none / 4x3, 1x3+ / 5x2, 1x2+ / 9x1, 1x1+ / 75% / progress: custom() {
 - If the program uses 1RM percentages, use `%` notation: `3x5 / 75%`
 - If the program uses RPE, use `@` notation: `3x5 @8`
 - Otherwise, ALWAYS set a default starting weight: `3x8 / 135lb`. Look up sensible defaults from `startingWeightLb` in `src/models/exercise.ts`.
+- **Non-default equipment**: `startingWeightLb` is calibrated for the default equipment (e.g., Shrug defaults to dumbbell at 45lb, Bicep Curl defaults to dumbbell at 20lb). When using a non-default variant like `Shrug, Barbell` or `Bicep Curl, Barbell`, always specify an explicit starting weight since the default will be wrong (e.g., `Shrug, Barbell / 1x6 / 135lb`).
 
 ### Labels for same exercise with different roles
 
@@ -195,3 +215,4 @@ Fix errors and re-validate until it passes.
 6. Adding forced order numbers when not needed: `[1,1-6]` vs `[1-6]`
 7. Forgetting `warmup: none` on bodyweight exercises
 8. Defining exercises in every week instead of using `[1-N]` and template redefinitions
+9. Using `weights +=` without `dayInWeek` guard in multi-day programs — it fires once per day, so `weights += 10lb` on a 4-day program adds 40lb per week instead of 10lb

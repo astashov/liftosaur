@@ -43,7 +43,7 @@ Pay special attention to:
 - Superset syntax: `/ superset: groupName` groups exercises within a day. Same group name = same superset. Scope is per-day, so you can reuse group names across days.
 - `dp()` for double progression — manages its own rep range, so NEVER use rep ranges in the set notation with `dp()` (e.g., `3x8 / progress: dp(5lb, 8, 12)` is correct, `3x8-12 / progress: dp(...)` is WRONG)
 - `lp()` for linear progression
-- `custom() {~ ~}` for complex progression logic
+- `custom() {~ ~}` for complex progression logic. **CRITICAL**: Progress fires once per exercise after **every workout day** that has it. In multi-day programs, `weights +=` applies to ALL days by default — you MUST guard with `dayInWeek` to prevent firing multiple times per week (e.g., `if (week == 1 && dayInWeek == 4) { weights += 10lb }`)
 - Set variation syntax for stage-based progression
 - How percentages, rest times, and weights are specified
 - Starting weights: If the program uses 1RM percentages or RPE targets, use those notations. Otherwise, ALWAYS set a default starting weight for every exercise. Look up sensible defaults from `startingWeightLb` in `src/models/exercise.ts`.
