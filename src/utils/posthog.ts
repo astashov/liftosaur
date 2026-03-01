@@ -9,6 +9,8 @@ import {
 
 declare let __COMMIT_HASH__: string;
 
+const trackedEvents = new Set<string>();
+
 export function track(args: {
   name?: string;
   redditname?: string;
@@ -18,6 +20,11 @@ export function track(args: {
   if (typeof window === "undefined") {
     return;
   }
+  const eventName = args.name || args.googlename || args.redditname || "";
+  if (trackedEvents.has(eventName)) {
+    return;
+  }
+  trackedEvents.add(eventName);
   if (window.gtag) {
     window.gtag("event", args.name || args.googlename, args.extra || {});
   }
