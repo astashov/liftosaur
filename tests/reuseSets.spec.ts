@@ -94,7 +94,7 @@ Triceps Extension / ...Bench Press[1]`
   await page.getByTestId("editor-v2-perday-program").click();
 
   await expect(page.getByTestId("planner-editor").first()).toContainText("Squat / 1x1 / 140lb");
-  await expect(page.getByTestId("planner-editor").nth(1)).toContainText("Squat / 1x2 / 140lb");
+  await expect(page.getByTestId("planner-editor").nth(1)).toContainText("Squat / 1x2 / 133.25lb");
   await expect(page.getByTestId("planner-editor").nth(1)).toContainText("Hack Squat / ...Squat[1] / 100%");
   await expect(page.getByTestId("planner-editor").nth(2)).toContainText("Deadlift / ...Leg Press");
   await expect(page.getByTestId("planner-editor").nth(2)).toContainText("Front Raise / ...Bench Press[2]");

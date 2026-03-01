@@ -26,6 +26,7 @@ import {
   PlannerProgramExercise_evaluateSetVariations,
   PlannerProgramExercise_getExercise,
   PlannerProgramExercise_getState,
+  PlannerProgramExercise_buildDpRangeScript,
 } from "./models/plannerProgramExercise";
 
 export type IByTag<T> = Record<number, T>;
@@ -63,6 +64,12 @@ export function PlannerEvaluator_fillInMetadata(
   metadata: IPlannerEvalMetadata,
   dayData: Required<IDayData>
 ): void {
+  if (exercise.progress?.type === "dp") {
+    const hasRange = exercise.setVariations.some((sv) => sv.sets.some((s) => s.repRange?.minrep != null));
+    if (hasRange) {
+      exercise.progress = { ...exercise.progress, script: PlannerProgramExercise_buildDpRangeScript() };
+    }
+  }
   if (metadata.byWeekDayExercise[dayData.week - 1]?.[dayData.dayInWeek - 1]?.[exercise.key] != null) {
     throw PlannerSyntaxError.fromPoint(
       exercise.fullName,

@@ -2424,6 +2424,26 @@ Bent Over Row / 3x8 / superset: A`}
         </ul>
       ),
     },
+    "20260228": {
+      title: <span>Improved Double Progression (dp) to support rep ranges</span>,
+      body: (
+        <ul>
+          <li>
+            Double Progression now properly handles rep range exercises (like 3x8-12). It auto-detects whether your
+            exercise uses ranges, and progressively narrows the range from below until you hit the top, then increases
+            weight and resets.
+          </li>
+          <li>
+            For non-range exercises (like 3x8), it works as before — increasing reps from min to max, then bumping
+            weight and resetting reps.
+          </li>
+          <li>
+            If you adjust weight during a workout (e.g. the programmed weight wasn't available), the next weight
+            increase will now be based on the weight you actually used, not the originally programmed weight.
+          </li>
+        </ul>
+      ),
+    },
   };
 
   return whatsNew;

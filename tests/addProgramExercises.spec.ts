@@ -50,7 +50,7 @@ Bicep Curl / ...t1 / used: none`
   await page.getByTestId("exercise-picker-confirm").click();
 
   await page.getByTestId("entry-bicep-curl").getByTestId("complete-set").nth(2).click();
-  await expect(page.getByTestId("variable-changes-value-weights[1]")).toHaveText("55lb");
+  await expect(page.getByTestId("variable-changes-value-weights[1]")).toHaveText("+= 5lb");
 
   await page.getByTestId("add-exercise-button").click();
   await page.getByTestId("tab-from-program").click();
@@ -61,9 +61,15 @@ Bicep Curl / ...t1 / used: none`
   await page.getByTestId("entry-deadlift").getByTestId("complete-set").nth(3).click();
   await page.getByTestId("entry-deadlift").getByTestId("complete-set").nth(4).click();
   await page.getByTestId("entry-deadlift").getByTestId("complete-set").nth(5).click();
-  await expect(page.getByTestId("entry-deadlift").getByTestId("variable-changes-value-weights[1]")).toHaveText("210lb");
-  await expect(page.getByTestId("entry-deadlift").getByTestId("variable-changes-value-weights[2]")).toHaveText("210lb");
-  await expect(page.getByTestId("entry-deadlift").getByTestId("variable-changes-value-weights[3]")).toHaveText("210lb");
+  await expect(page.getByTestId("entry-deadlift").getByTestId("variable-changes-value-weights[1]")).toHaveText(
+    "+= 10lb"
+  );
+  await expect(page.getByTestId("entry-deadlift").getByTestId("variable-changes-value-weights[2]")).toHaveText(
+    "+= 10lb"
+  );
+  await expect(page.getByTestId("entry-deadlift").getByTestId("variable-changes-value-weights[3]")).toHaveText(
+    "+= 10lb"
+  );
 
   await page.getByTestId("finish-workout").click();
   await page.getByTestId("finish-day-continue").click();

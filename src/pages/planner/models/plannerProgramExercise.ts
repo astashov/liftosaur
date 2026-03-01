@@ -553,6 +553,48 @@ export function PlannerProgramExercise_getProgressDefaultArgs(type: IProgramExer
   }
 }
 
+function buildDpScript(): string {
+  return `for (var.i in completedReps) {
+  if (weights[var.i] == 0 && completedWeights[var.i] != 0) {
+    weights[var.i] = completedWeights[var.i]
+  }
+}
+if (completedReps >= reps && completedRPE <= RPE) {
+  if (completedReps >= state.maxReps) {
+    reps = state.minReps
+    for (var.i in completedReps) {
+      weights[var.i] += (completedWeights[var.i] - weights[var.i]) + state.increment
+    }
+  } else {
+    for (var.i in completedReps) {
+      reps[var.i] = completedReps[var.i] + 1 > state.maxReps ?
+        state.maxReps :
+        completedReps[var.i] + 1
+    }
+  }
+}`;
+}
+
+export function PlannerProgramExercise_buildDpRangeScript(): string {
+  return `for (var.i in completedReps) {
+  if (weights[var.i] == 0 && completedWeights[var.i] != 0) {
+    weights[var.i] = completedWeights[var.i]
+  }
+}
+if (completedReps >= reps && completedRPE <= RPE) {
+  minReps = state.minReps
+  for (var.i in completedReps) {
+    weights[var.i] += (completedWeights[var.i] - weights[var.i]) + state.increment
+  }
+} else {
+  for (var.i in completedReps) {
+    minReps[var.i] = completedReps[var.i] + 1 > reps[var.i] ?
+      reps[var.i] :
+      completedReps[var.i] + 1
+  }
+}`;
+}
+
 export function PlannerProgramExercise_buildProgress(
   type: IProgramExerciseProgressType,
   args: string[],
@@ -584,29 +626,29 @@ export function PlannerProgramExercise_buildProgress(
         failureCounter: args[5] ? parseInt(args[5], 10) : 0,
       };
       const script = `for (var.i in completedReps) {
-if (weights[var.i] == 0 && completedWeights[var.i] != 0) {
-  weights[var.i] = completedWeights[var.i]
-}
+  if (weights[var.i] == 0 && completedWeights[var.i] != 0) {
+    weights[var.i] = completedWeights[var.i]
+  }
 }
 if (completedReps >= reps && completedRPE <= RPE) {
-state.successCounter += 1
-if (state.successCounter >= state.successes) {
-  for (var.i in completedReps) {
-    weights[var.i] = completedWeights[var.i] + state.increment
+  state.successCounter += 1
+  if (state.successCounter >= state.successes) {
+    for (var.i in completedReps) {
+      weights[var.i] += (completedWeights[var.i] - weights[var.i]) + state.increment
+    }
+    state.successCounter = 0
+    state.failureCounter = 0
   }
-  state.successCounter = 0
-  state.failureCounter = 0
-}
 }
 if (state.decrement > 0 && state.failures > 0) {
-if (!(completedReps >= minReps && completedRPE <= RPE)) {
-  state.failureCounter += 1
-  if (state.failureCounter >= state.failures) {
-    weights -= state.decrement
-    state.failureCounter = 0
-    state.successCounter = 0
+  if (!(completedReps >= minReps && completedRPE <= RPE)) {
+    state.failureCounter += 1
+    if (state.failureCounter >= state.failures) {
+      weights -= state.decrement
+      state.failureCounter = 0
+      state.successCounter = 0
+    }
   }
-}
 }`;
       return {
         success: true,
@@ -625,22 +667,7 @@ if (!(completedReps >= minReps && completedRPE <= RPE)) {
         minReps: args[1] ? parseInt(args[1], 10) : 0,
         maxReps: args[2] ? parseInt(args[2], 10) : 0,
       };
-      const script = `
-for (var.i in completedReps) {
-if (weights[var.i] == 0 && completedWeights[var.i] != 0) {
-  weights[var.i] = completedWeights[var.i]
-}
-}
-if (completedReps >= reps && completedRPE <= RPE) {
-if (reps[ns] < state.maxReps) {
-  reps += 1
-} else {
-  reps = state.minReps
-  for (var.i in completedReps) {
-    weights[var.i] = completedWeights[var.i] + state.increment
-  }
-}
-}`;
+      const script = buildDpScript();
       return {
         success: true,
         data: {

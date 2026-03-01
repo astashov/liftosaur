@@ -602,6 +602,90 @@ Bench Press / ...Squat / 3x11 / 30lb / progress: dp(3lb, 8, 12)
 `);
   });
 
+  it("dp with range - narrows minReps on failure", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 3x8-12 / 100lb / progress: dp(5lb, 8, 12)`;
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[9, 10, 8]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 1x10-12, 1x11-12, 1x9-12 / 100lb / progress: dp(5lb, 8, 12)
+
+
+`);
+  });
+
+  it("dp with range - increases weight on success", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 3x8-12 / 100lb / progress: dp(5lb, 8, 12)`;
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[12, 12, 12]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 3x8-12 / 105lb / progress: dp(5lb, 8, 12)
+
+
+`);
+  });
+
+  it("dp without range - increases reps then weight", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 3x8 / 100lb / progress: dp(5lb, 8, 12)`;
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[8, 8, 8]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 3x9 / 100lb / progress: dp(5lb, 8, 12)
+
+
+`);
+  });
+
+  it("dp without range - resets reps and increases weight at maxReps", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 3x12 / 100lb / progress: dp(5lb, 8, 12)`;
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[12, 12, 12]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 3x8 / 105lb / progress: dp(5lb, 8, 12)
+
+
+`);
+  });
+
+  it("dp without range - skips reps when over-performing", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 3x8 / 100lb / progress: dp(5lb, 8, 12)`;
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[11, 10, 9]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 1x12, 1x11, 1x10 / 100lb / progress: dp(5lb, 8, 12)
+
+
+`);
+  });
+
+  it("dp without range - increases weight when over-performing past maxReps", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 3x8 / 100lb / progress: dp(5lb, 8, 12)`;
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[15, 13, 12]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 3x8 / 105lb / progress: dp(5lb, 8, 12)
+
+
+`);
+  });
+
   it("keeps customized warmups", () => {
     const programText = `# Week 1
 ## Day 1
