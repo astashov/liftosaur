@@ -6,7 +6,6 @@ PHAT |-| 1210 - 1/5
 Juggernaut Method 2.0 |-| 1770 - 3/5
 Calgary Barbell 16-Week |-| 1050 - 1/5
 DoggCrapp / DC Training |-| 990 - 1/5
-Ice Cream Fitness 5x5 |-| 1070 - 2/5
 Sheiko |-| 980 - 2/5
 Cube Method |-| 730 - 1/5
 Reddit BWF Recommended Routine |-| 1590 - 4/5
