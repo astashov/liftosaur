@@ -1,6 +1,5 @@
 Arnold Split |-| 17920 - 4/5
 German Volume Training |-| 3540 - 3/5
-Westside Conjugate Method |-| 1900 - 1/5
 Shortcut to Size (Jim Stoppani) |-| 1600 - 2/5
 PHAT |-| 1210 - 1/5
 Juggernaut Method 2.0 |-| 1770 - 3/5
