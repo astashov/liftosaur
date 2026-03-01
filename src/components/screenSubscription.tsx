@@ -319,14 +319,18 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                       onClick={() => {
                         if (SendMessage_isIos() || SendMessage_isAndroid()) {
                           lg("start-subscription-monthly");
-                          SendMessage_toIos({
+                          const iosResult = SendMessage_toIos({
                             type: "subscribeMontly",
                             offer: JSON.stringify(props.appleOffer?.monthly),
                           });
-                          SendMessage_toAndroid({
+                          const androidResult = SendMessage_toAndroid({
                             type: "subscribeMontly",
                             offer: JSON.stringify(props.googleOffer?.monthly),
                           });
+                          if (!iosResult && !androidResult) {
+                            alert("Failed to start subscription. Please try again or restart the app.");
+                            return;
+                          }
                           updateState(
                             props.dispatch,
                             [lb<IState>().p("subscriptionLoading").record({ monthly: true })],
@@ -365,14 +369,18 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                       onClick={() => {
                         if (SendMessage_isIos() || SendMessage_isAndroid()) {
                           lg("start-subscription-yearly");
-                          SendMessage_toIos({
+                          const iosResult = SendMessage_toIos({
                             type: "subscribeYearly",
                             offer: JSON.stringify(props.appleOffer?.yearly),
                           });
-                          SendMessage_toAndroid({
+                          const androidResult = SendMessage_toAndroid({
                             type: "subscribeYearly",
                             offer: JSON.stringify(props.googleOffer?.yearly),
                           });
+                          if (!iosResult && !androidResult) {
+                            alert("Failed to start subscription. Please try again or restart the app.");
+                            return;
+                          }
                           updateState(
                             props.dispatch,
                             [lb<IState>().p("subscriptionLoading").record({ yearly: true })],
@@ -417,8 +425,12 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                       onClick={() => {
                         if (SendMessage_isIos() || SendMessage_isAndroid()) {
                           lg("start-subscription-lifetime");
-                          SendMessage_toIos({ type: "subscribeLifetime" });
-                          SendMessage_toAndroid({ type: "subscribeLifetime" });
+                          const iosResult = SendMessage_toIos({ type: "subscribeLifetime" });
+                          const androidResult = SendMessage_toAndroid({ type: "subscribeLifetime" });
+                          if (!iosResult && !androidResult) {
+                            alert("Failed to start subscription. Please try again or restart the app.");
+                            return;
+                          }
                           updateState(
                             props.dispatch,
                             [lb<IState>().p("subscriptionLoading").record({ lifetime: true })],
@@ -473,8 +485,11 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                 <LinkButton
                   name="restore-subscriptions"
                   onClick={() => {
-                    SendMessage_toIos({ type: "restoreSubscriptions" });
-                    SendMessage_toAndroid({ type: "restoreSubscriptions" });
+                    const iosResult = SendMessage_toIos({ type: "restoreSubscriptions" });
+                    const androidResult = SendMessage_toAndroid({ type: "restoreSubscriptions" });
+                    if ((SendMessage_isIos() || SendMessage_isAndroid()) && !iosResult && !androidResult) {
+                      alert("Failed to restore subscriptions. Please try again or restart the app.");
+                    }
                   }}
                 >
                   Restore Subscription
