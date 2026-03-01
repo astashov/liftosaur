@@ -494,25 +494,24 @@ interface IMuscleViewProps {
 
 function MuscleView(props: IMuscleViewProps): JSX.Element {
   const { selectedMuscle, muscle, setSelectedMuscle } = props;
+  const isSmScreen = typeof window !== "undefined" && window.innerWidth >= 640;
   return (
     <div>
-      <span className="relative hidden sm:inline">
-        {selectedMuscle?.[0] === muscle && (
-          <DropdownMenu
-            onTop={props.insideModal}
-            noPointerEvents={!!selectedMuscle?.[1]}
-            onClose={() => setSelectedMuscle(undefined)}
-          >
-            <MuscleDescription muscle={muscle} insideModal={props.insideModal} />
-          </DropdownMenu>
-        )}
-      </span>
-      <span className="relative inline sm:hidden">
-        {selectedMuscle?.[0] === muscle && (
-          <Modal onClose={() => setSelectedMuscle(undefined)} shouldShowClose={true} isFullWidth={true}>
-            <MuscleDescription muscle={muscle} insideModal={props.insideModal} />
-          </Modal>
-        )}
+      <span className="relative">
+        {selectedMuscle?.[0] === muscle &&
+          (isSmScreen ? (
+            <DropdownMenu
+              onTop={props.insideModal}
+              noPointerEvents={!!selectedMuscle?.[1]}
+              onClose={() => setSelectedMuscle(undefined)}
+            >
+              <MuscleDescription muscle={muscle} insideModal={props.insideModal} />
+            </DropdownMenu>
+          ) : (
+            <Modal onClose={() => setSelectedMuscle(undefined)} shouldShowClose={true} isFullWidth={true}>
+              <MuscleDescription muscle={muscle} insideModal={props.insideModal} />
+            </Modal>
+          ))}
       </span>
       <button
         className="underline"
