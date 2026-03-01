@@ -7,7 +7,7 @@ const PROJECT_DIR = path.resolve(__dirname, "..", "..");
 const LOG_DIR = path.join(PROJECT_DIR, "logs", "program-orchestrator");
 const TIMEOUT_MS = 90 * 60 * 1000;
 const REVIEW_TIMEOUT_MS = 10 * 60 * 1000;
-const MAX_PROGRAMS = 5;
+const MAX_PROGRAMS = 1;
 
 const runId = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
 let logFile: fs.WriteStream;
