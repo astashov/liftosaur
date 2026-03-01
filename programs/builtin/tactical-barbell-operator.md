@@ -2,7 +2,7 @@
 id: tactical-barbell-operator
 name: "Tactical Barbell: Operator"
 author: K. Black
-url: "https://www.amazon.com/Tactical-Barbell-Definitive-Strength-Operational/dp/B00J5OEWIU"
+url: "https://www.amazon.com/Tactical-Barbell-Definitive-Strength-Operational/dp/1537666932"
 shortDescription: "Minimalist 3-day strength template — 3 lifts, 3 sets, submaximal percentages, designed to maintain strength alongside heavy conditioning"
 isMultiweek: true
 tags: []
@@ -18,7 +18,7 @@ The flagship strength template from K. Black's Tactical Barbell system. Three fu
 
 ## Origin & Philosophy
 
-Operator is the primary strength template in K. Black's [Tactical Barbell: Definitive Strength Training for the Operational Athlete](https://www.amazon.com/Tactical-Barbell-Definitive-Strength-Operational/dp/B00J5OEWIU), first published in 2014. It was designed for tactical athletes — military, law enforcement, firefighters — who need to maintain high levels of strength while simultaneously running demanding conditioning programs and performing physically in unpredictable real-world situations.
+Operator is the primary strength template in K. Black's [Tactical Barbell: Definitive Strength Training for the Operational Athlete](https://www.amazon.com/Tactical-Barbell-Definitive-Strength-Operational/dp/1537666932), first published in 2014. It was designed for tactical athletes — military, law enforcement, firefighters — who need to maintain high levels of strength while simultaneously running demanding conditioning programs and performing physically in unpredictable real-world situations.
 
 The core philosophy is **frequent submaximal loading**: hit a small "cluster" of compound lifts 3 times per week, but never go near failure. By staying well below your max (70-95% of a Training Max that's already 90% of your true 1RM), you build strength through high-frequency practice rather than grinding sets. K. Black calls this "owning the weight" — every rep should feel solid and controlled, leaving the gym wanting more rather than crawling out.
 
