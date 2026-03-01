@@ -6,7 +6,7 @@ isMultiweek: false
 tags: []
 frequency: 4
 age: "3_to_12_months"
-duration: "60-90"
+duration: "45-60"
 goal: "hypertrophy"
 ---
 
@@ -56,20 +56,20 @@ Upper A and Upper B use different exercises for the same muscle groups, providin
 
 ## Exercise Selection & Rationale
 
-**Upper A** opens with [{Bench Press, Dumbbell}] as the primary chest compound — dumbbells require more stabilization than machines and allow a deeper stretch at the bottom. [{Lat Pulldown}] provides the primary vertical pull for back width. [{Shoulder Press, Leverage Machine}] covers overhead pressing for anterior and lateral delt development. [{Seated Row}] adds a horizontal pull for mid-back thickness. [{Pec Deck}] isolates the chest through a full range of motion with constant tension. [{Lateral Raise}] directly targets the lateral deltoid head, which pressing alone doesn't adequately develop. [{Triceps Pushdown}] and [{Bicep Curl, Cable}] provide direct arm work to finish the session.
+**Upper A** opens with [{Bench Press, Dumbbell}] as the primary chest compound — dumbbells require more stabilization than machines and allow a deeper stretch at the bottom. [{Lat Pulldown}] provides the primary vertical pull for back width. [{Shoulder Press, Leverage Machine}] covers overhead pressing for anterior and lateral delt development. [{Seated Row}] adds a horizontal pull for mid-back thickness. [{Triceps Pushdown}] and [{Bicep Curl, Cable}] provide direct arm work to finish the session.
 
 **Lower A** leads with [{Leg Press}] as the primary quad-dominant compound — the best heavy pressing movement available at PF for the lower body. [{Romanian Deadlift}] (dumbbell) targets the posterior chain through a hip hinge pattern, building hamstring and glute mass. [{Hack Squat}] adds a second quad-dominant movement from a different angle. [{Lying Leg Curl}] isolates the hamstrings. [{Standing Calf Raise, Leverage Machine}] hits the gastrocnemius, and [{Cable Crunch}] provides direct ab work.
 
-**Upper B** flips the emphasis by leading with [{Chest Press, Leverage Machine}] and [{Seated Row, Leverage Machine}] — machine compounds provide consistent resistance and let you push hard without worrying about dumbbell stability fatigue from Upper A. [{Incline Bench Press, Dumbbell}] shifts the chest emphasis to the upper (clavicular) fibers. [{High Row, Cable}] provides a different pulling angle than the lat pulldown, targeting the upper back and rear delts. [{Face Pull}] targets the rear delts and external rotators for shoulder health. [{Lateral Raise, Leverage Machine}] gives the side delts a second weekly stimulus with a different resistance profile than the dumbbell version. [{Hammer Curl}] hits the brachialis for arm thickness, and [{Triceps Extension, Cable}] works the long head of the triceps under stretch.
+**Upper B** flips the emphasis by leading with [{Chest Press, Leverage Machine}] and [{Seated Row, Leverage Machine}] — machine compounds provide consistent resistance and let you push hard without worrying about dumbbell stability fatigue from Upper A. [{Incline Bench Press, Dumbbell}] shifts the chest emphasis to the upper (clavicular) fibers. [{Lateral Raise, Leverage Machine}] directly targets the lateral deltoid head with a different resistance profile than dumbbells. [{Hammer Curl}] hits the brachialis for arm thickness, and [{Triceps Extension, Cable}] works the long head of the triceps under stretch.
 
 **Lower B** starts with [{Squat, Smith Machine}] — the Smith machine provides a guided squat pattern that's safe without a spotter and still drives quad and glute growth. [{Cable Pull Through}] is a hip hinge that targets the glutes and hamstrings using the cable station available at every PF location. [{Leg Extension}] isolates the quads, particularly the rectus femoris which squats undertrain. [{Seated Leg Curl}] provides hamstring isolation from a different position than the lying curl on Lower A. [{Hip Abductor}] targets the gluteus medius and outer hip — often neglected but important for hip stability and glute development. [{Seated Calf Raise, Leverage Machine}] hits the soleus muscle, complementing the gastrocnemius emphasis of standing calf raises on Lower A.
 
 ## Set & Rep Scheme
 
-- **Primary compounds** ([{Bench Press, Dumbbell}], [{Lat Pulldown}], [{Leg Press}], [{Chest Press, Leverage Machine}], [{Seated Row, Leverage Machine}], [{Squat, Smith Machine}]): 4 sets in the 8-12 rep range. Heavier loads with controlled tempo provide the mechanical tension stimulus for hypertrophy.
-- **Secondary compounds** ([{Shoulder Press, Leverage Machine}], [{Seated Row}], [{Incline Bench Press, Dumbbell}], [{Romanian Deadlift}], [{Hack Squat}], [{High Row, Cable}], [{Cable Pull Through}]): 3 sets in the 10-12 rep range. Moderate loads with emphasis on muscle connection.
-- **Isolation exercises** ([{Pec Deck}], [{Lateral Raise}], [{Lying Leg Curl}], [{Face Pull}], [{Leg Extension}], [{Hip Abductor}], etc.): 2-3 sets in the 12-15 rep range. Lighter loads, strict form, and full range of motion to maximize metabolic stress and time under tension.
-- **Calves**: 4 sets in the 12-20 rep range — calves are endurance-oriented muscles that respond better to higher reps and volume.
+- **Primary compounds** ([{Leg Press}], [{Squat, Smith Machine}]): 4 sets in the 8-12 rep range. Heavier loads with controlled tempo provide the mechanical tension stimulus for hypertrophy.
+- **Secondary compounds** ([{Bench Press, Dumbbell}], [{Lat Pulldown}], [{Shoulder Press, Leverage Machine}], [{Seated Row}], [{Chest Press, Leverage Machine}], [{Seated Row, Leverage Machine}], [{Incline Bench Press, Dumbbell}], [{Romanian Deadlift}], [{Hack Squat}], [{Cable Pull Through}]): 3 sets in the 8-12 rep range. Moderate loads with emphasis on muscle connection.
+- **Isolation exercises** ([{Lateral Raise, Leverage Machine}], [{Lying Leg Curl}], [{Leg Extension}], [{Hip Abductor}], etc.): 2-3 sets in the 12-15 rep range. Lighter loads, strict form, and full range of motion to maximize metabolic stress and time under tension.
+- **Calves**: 3 sets in the 12-20 rep range — calves are endurance-oriented muscles that respond better to higher reps and volume.
 
 ## Progressive Overload
 
@@ -101,7 +101,7 @@ This program uses only equipment available at standard Planet Fitness locations:
 - **Dumbbells** — for bench press, incline bench press, Romanian deadlift, lateral raises, hammer curls
 - **Selectorized machines** — lat pulldown, seated row, pec deck, leg press, leg extension, leg curl, calf raise, hip abductor, lateral raise machine
 - **Plate-loaded machines** — hack squat (availability varies by location — see Common Modifications), chest press, shoulder press, seated row
-- **Cable stations** — bicep curls, triceps pushdown, triceps extension, high row, face pull, cable crunch
+- **Cable stations** — bicep curls, triceps pushdown, triceps extension, cable pull through, cable crunch
 - **Smith machine** — squats
 
 No barbells, power racks, or specialty equipment required.
@@ -117,8 +117,7 @@ No barbells, power racks, or specialty equipment required.
 
 ## Rest Times
 
-- **Primary compounds** ([{Bench Press, Dumbbell}], [{Lat Pulldown}], [{Leg Press}], [{Squat, Smith Machine}], [{Chest Press, Leverage Machine}], [{Seated Row, Leverage Machine}]): **90 seconds** between sets
-- **Secondary compounds** ([{Shoulder Press, Leverage Machine}], [{Seated Row}], [{Romanian Deadlift}], [{Hack Squat}], [{Incline Bench Press, Dumbbell}], [{High Row, Cable}], [{Cable Pull Through}]): **60-90 seconds**
+- **Compounds** ([{Bench Press, Dumbbell}], [{Lat Pulldown}], [{Leg Press}], [{Squat, Smith Machine}], [{Chest Press, Leverage Machine}], [{Seated Row, Leverage Machine}], [{Shoulder Press, Leverage Machine}], [{Seated Row}], [{Romanian Deadlift}], [{Hack Squat}], [{Incline Bench Press, Dumbbell}], [{Cable Pull Through}]): **60-90 seconds** between sets
 - **Isolation exercises**: **60 seconds**
 
 ## How to Pick Starting Weights
@@ -137,7 +136,7 @@ No barbells, power racks, or specialty equipment required.
 - **Time-saving supersets**: Pair pushing and pulling exercises on upper days (e.g., [{Bench Press, Dumbbell}] with [{Lat Pulldown}]) to cut session time by 10-15 minutes without reducing volume.
 - **3-day variant**: Combine Upper A and Lower A into a full-body day, then run Upper B and Lower B as written. Schedule: Full Body → Rest → Upper B → Lower B → Rest.
 - **Dumbbell weight maxed out**: When you can complete all sets at the top of the rep range with the heaviest available dumbbell, switch to a slower tempo (3 seconds down, 1 second up) or add a 1-2 second pause at the stretch position to increase difficulty without adding weight.
-- **More rear delt volume**: Add [{Reverse Fly, Leverage Machine}] (2x15) at the end of Upper A.
+- **More rear delt volume**: Add [{Face Pull}] (3x12) or [{Reverse Fly, Leverage Machine}] (2x15) at the end of either upper day.
 
 <!-- faq -->
 
@@ -159,7 +158,7 @@ Most Planet Fitness locations stock dumbbells up to 70-75 lbs. When you reach th
 
 ### How long should each workout take?
 
-Upper body sessions run approximately 60-65 minutes, and lower body sessions run approximately 55 minutes, including warmup sets. If you're short on time, supersetting push and pull exercises on upper days can shave 10-15 minutes off the session.
+Upper body sessions run approximately 40-45 minutes, and lower body sessions run approximately 50-55 minutes, including warmup sets. If you're short on time, supersetting push and pull exercises on upper days can shave 10-15 minutes off the session.
 
 ### Does this program include abs and cardio?
 
@@ -171,17 +170,15 @@ Yes, but consider reducing each exercise by one set to manage recovery. Prioriti
 
 ### What's the difference between Upper A and Upper B?
 
-Upper A emphasizes dumbbell pressing (Dumbbell Bench Press, machine incline press) and cable back work (Lat Pulldown, Seated Row). Upper B uses machine pressing (Chest Press machine, Dumbbell Incline Press) and different back exercises (Leverage Seated Row, Cable High Row). Both days train all upper body muscles but with different exercises for varied stimulus and to ensure every muscle gets worked from multiple angles.
+Upper A emphasizes dumbbell pressing (Dumbbell Bench Press) and cable back work (Lat Pulldown, Seated Row), plus Shoulder Press for overhead pushing. Upper B uses machine pressing (Chest Press, Dumbbell Incline Press) and a leverage Seated Row for back. Both days include direct arm work and train all upper body muscles with different exercises for varied stimulus.
 
 ```liftoscript
 # Week 1
 ## Upper A
-Bench Press, Dumbbell / 4x8 / 35lb / 90s / progress: dp(5lb, 8, 12)
-Lat Pulldown / 4x8 / 70lb / 90s / progress: dp(5lb, 8, 12)
+Bench Press, Dumbbell / 3x8 / 35lb / 90s / progress: dp(5lb, 8, 12)
+Lat Pulldown / 3x8 / 70lb / 90s / progress: dp(5lb, 8, 12)
 Shoulder Press, Leverage Machine / 3x10 / 25lb / 60s / progress: dp(5lb, 10, 12)
 Seated Row / 3x10 / 70lb / 60s / progress: dp(5lb, 10, 12)
-Pec Deck / 3x12 / 50lb / 60s / warmup: none / progress: dp(5lb, 12, 15)
-Lateral Raise / 3x12 / 15lb / 60s / warmup: none / progress: dp(5lb, 12, 15)
 Triceps Pushdown / 2x10 / 40lb / 60s / warmup: none / progress: dp(5lb, 10, 15)
 Bicep Curl, Cable / 2x10 / 20lb / 60s / warmup: none / progress: dp(5lb, 10, 15)
 
@@ -190,15 +187,13 @@ Leg Press / 4x8 / 200lb / 90s / progress: dp(10lb, 8, 12)
 Romanian Deadlift / 3x10 / 35lb / 90s / progress: dp(5lb, 10, 12)
 Hack Squat / 3x10 / 90lb / 60s / progress: dp(10lb, 10, 12)
 Lying Leg Curl / 3x12 / 60lb / 60s / warmup: none / progress: dp(5lb, 12, 15)
-Standing Calf Raise, Leverage Machine / 4x12 / 90lb / 60s / warmup: none / progress: dp(5lb, 12, 20)
+Standing Calf Raise, Leverage Machine / 3x12 / 90lb / 60s / warmup: none / progress: dp(5lb, 12, 20)
 Cable Crunch / 3x12 / 50lb / 60s / warmup: none / progress: dp(5lb, 12, 15)
 
 ## Upper B
-Chest Press, Leverage Machine / 4x10 / 30lb / 90s / progress: dp(5lb, 10, 12)
-Seated Row, Leverage Machine / 4x10 / 70lb / 90s / progress: dp(5lb, 10, 12)
+Chest Press, Leverage Machine / 3x10 / 30lb / 90s / progress: dp(5lb, 10, 12)
+Seated Row, Leverage Machine / 3x10 / 70lb / 90s / progress: dp(5lb, 10, 12)
 Incline Bench Press, Dumbbell / 3x10 / 30lb / 60s / progress: dp(5lb, 10, 12)
-High Row, Cable / 3x10 / 30lb / 60s / progress: dp(5lb, 10, 12)
-Face Pull / 3x12 / 20lb / 60s / warmup: none / progress: dp(5lb, 12, 15)
 Lateral Raise, Leverage Machine / 3x12 / 15lb / 60s / warmup: none / progress: dp(5lb, 12, 15)
 Hammer Curl / 2x10 / 25lb / 60s / warmup: none / progress: dp(5lb, 10, 15)
 Triceps Extension, Cable / 2x10 / 20lb / 60s / warmup: none / progress: dp(5lb, 10, 15)
@@ -209,5 +204,5 @@ Cable Pull Through / 3x10 / 70lb / 60s / progress: dp(5lb, 10, 12)
 Leg Extension / 3x12 / 60lb / 60s / warmup: none / progress: dp(5lb, 12, 15)
 Seated Leg Curl / 3x12 / 60lb / 60s / warmup: none / progress: dp(5lb, 12, 15)
 Hip Abductor / 3x12 / 60lb / 60s / warmup: none / progress: dp(5lb, 12, 15)
-Seated Calf Raise, Leverage Machine / 4x12 / 90lb / 60s / warmup: none / progress: dp(5lb, 12, 20)
+Seated Calf Raise, Leverage Machine / 3x12 / 90lb / 60s / warmup: none / progress: dp(5lb, 12, 20)
 ```
