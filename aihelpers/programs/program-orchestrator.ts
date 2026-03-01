@@ -103,7 +103,7 @@ async function main(): Promise<void> {
   const programs = fs
     .readFileSync(todoPath, "utf-8")
     .split("\n")
-    .map((l) => l.trim())
+    .map((l) => l.split("|-|")[0].trim())
     .filter((l) => l.length > 0);
   log(`Found ${programs.length} programs in PROGRAMSTODO.md`);
 
