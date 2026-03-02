@@ -2444,6 +2444,18 @@ Bent Over Row / 3x8 / superset: A`}
         </ul>
       ),
     },
+    "20260303": {
+      title: <span>Export workouts as text</span>,
+      body: (
+        <ul>
+          <li>
+            You can now copy your workout as a compact text format. After finishing a workout, tap the "Text" button on
+            the finish screen, or open any past workout from history and use the share menu to copy as text.
+          </li>
+          <li>The text format is human-readable and can be pasted into notes, messages, or social media.</li>
+        </ul>
+      ),
+    },
   };
 
   return whatsNew;

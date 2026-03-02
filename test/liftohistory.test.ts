@@ -55,9 +55,7 @@ describe("Liftohistory", () => {
       const settings = buildSettings();
       const record = buildRecord();
       const result = LiftohistorySerializer_serialize(record, settings);
-      expect(result).to.equal(
-        "2026-02-28T10:30:00.000Z / exercises: {\n}"
-      );
+      expect(result).to.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} [+-]\d{2}:\d{2} \/ exercises: \{\n\}$/);
     });
 
     it("serializes completed sets grouped by reps/weight", () => {
@@ -101,9 +99,7 @@ describe("Liftohistory", () => {
         entries: [
           buildEntry({
             exercise: { id: "squat", equipment: "barbell" },
-            sets: [
-              buildSet({ completedReps: 5, completedWeight: Weight_build(200, "lb"), isCompleted: true }),
-            ],
+            sets: [buildSet({ completedReps: 5, completedWeight: Weight_build(200, "lb"), isCompleted: true })],
             warmupSets: [
               buildSet({ completedReps: 10, completedWeight: Weight_build(95, "lb"), isCompleted: true }),
               buildSet({ completedReps: 5, completedWeight: Weight_build(135, "lb"), isCompleted: true }),
@@ -144,7 +140,7 @@ describe("Liftohistory", () => {
       expect(result).to.include("/ target: 2x10 185lb");
     });
 
-    it("serializes AMRAP sets", () => {
+    it("serializes AMRAP in target only, not completed", () => {
       const settings = buildSettings();
       const record = buildRecord({
         entries: [
@@ -155,6 +151,8 @@ describe("Liftohistory", () => {
                 completedReps: 12,
                 completedWeight: Weight_build(100, "lb"),
                 isAmrap: true,
+                reps: 5,
+                weight: Weight_build(100, "lb"),
                 isCompleted: true,
               }),
             ],
@@ -162,7 +160,31 @@ describe("Liftohistory", () => {
         ],
       });
       const result = LiftohistorySerializer_serialize(record, settings);
-      expect(result).to.include("1x12+ 100lb");
+      expect(result).to.include("1x12 100lb");
+      expect(result).to.include("/ target: 1x5+ 100lb");
+    });
+
+    it("serializes askWeight in target sets", () => {
+      const settings = buildSettings();
+      const record = buildRecord({
+        entries: [
+          buildEntry({
+            exercise: { id: "squat", equipment: "barbell" },
+            sets: [
+              buildSet({
+                completedReps: 5,
+                completedWeight: Weight_build(100, "lb"),
+                reps: 5,
+                weight: Weight_build(100, "lb"),
+                askWeight: true,
+                isCompleted: true,
+              }),
+            ],
+          }),
+        ],
+      });
+      const result = LiftohistorySerializer_serialize(record, settings);
+      expect(result).to.include("/ target: 1x5 100lb+");
     });
 
     it("serializes RPE", () => {
@@ -361,7 +383,9 @@ describe("Liftohistory", () => {
       const text = `2026-02-28T10:30:00.000Z / exercises: {\n}`;
       const result = LiftohistoryDeserializer_deserialize(text, settings);
       expect(result.success).to.be.true;
-      if (!result.success) return;
+      if (!result.success) {
+        return;
+      }
       expect(result.data.historyRecords).to.have.length(1);
       const record = result.data.historyRecords[0];
       expect(record.programId).to.equal("emptyprogram");
@@ -373,7 +397,9 @@ describe("Liftohistory", () => {
       const text = `2026-02-28T10:30:00.000Z / program: "Starting Strength" / day: 3 / exercises: {\n}`;
       const result = LiftohistoryDeserializer_deserialize(text, settings);
       expect(result.success).to.be.true;
-      if (!result.success) return;
+      if (!result.success) {
+        return;
+      }
       const record = result.data.historyRecords[0];
       expect(record.programName).to.equal("Starting Strength");
       expect(record.day).to.equal(3);
@@ -385,7 +411,9 @@ describe("Liftohistory", () => {
       const text = `2026-02-28T10:30:00.000Z / program: "5/3/1" / dayName: "Push Day" / week: 2 / dayInWeek: 1 / exercises: {\n}`;
       const result = LiftohistoryDeserializer_deserialize(text, settings);
       expect(result.success).to.be.true;
-      if (!result.success) return;
+      if (!result.success) {
+        return;
+      }
       const record = result.data.historyRecords[0];
       expect(record.dayName).to.equal("Push Day");
       expect(record.week).to.equal(2);
@@ -397,7 +425,9 @@ describe("Liftohistory", () => {
       const text = `2026-02-28T10:30:00.000Z / duration: 3600s / exercises: {\n}`;
       const result = LiftohistoryDeserializer_deserialize(text, settings);
       expect(result.success).to.be.true;
-      if (!result.success) return;
+      if (!result.success) {
+        return;
+      }
       const record = result.data.historyRecords[0];
       expect(record.endTime! - record.startTime).to.equal(3600000);
     });
@@ -409,7 +439,9 @@ describe("Liftohistory", () => {
 }`;
       const result = LiftohistoryDeserializer_deserialize(text, settings);
       expect(result.success).to.be.true;
-      if (!result.success) return;
+      if (!result.success) {
+        return;
+      }
       const entry = result.data.historyRecords[0].entries[0];
       expect(entry.exercise.id).to.equal("squat");
       expect(entry.sets).to.have.length(3);
@@ -424,7 +456,9 @@ describe("Liftohistory", () => {
 }`;
       const result = LiftohistoryDeserializer_deserialize(text, settings);
       expect(result.success).to.be.true;
-      if (!result.success) return;
+      if (!result.success) {
+        return;
+      }
       const entry = result.data.historyRecords[0].entries[0];
       expect(entry.warmupSets).to.have.length(2);
       expect(entry.warmupSets[0].completedReps).to.equal(10);
@@ -440,7 +474,9 @@ describe("Liftohistory", () => {
 }`;
       const result = LiftohistoryDeserializer_deserialize(text, settings);
       expect(result.success).to.be.true;
-      if (!result.success) return;
+      if (!result.success) {
+        return;
+      }
       const entry = result.data.historyRecords[0].entries[0];
       expect(entry.sets).to.have.length(3);
       expect(entry.sets[0].completedReps).to.equal(8);
@@ -455,7 +491,9 @@ describe("Liftohistory", () => {
 }`;
       const result = LiftohistoryDeserializer_deserialize(text, settings);
       expect(result.success).to.be.true;
-      if (!result.success) return;
+      if (!result.success) {
+        return;
+      }
       const set = result.data.historyRecords[0].entries[0].sets[0];
       expect(set.completedReps).to.equal(12);
       expect(set.isAmrap).to.equal(true);
@@ -468,7 +506,9 @@ describe("Liftohistory", () => {
 }`;
       const result = LiftohistoryDeserializer_deserialize(text, settings);
       expect(result.success).to.be.true;
-      if (!result.success) return;
+      if (!result.success) {
+        return;
+      }
       const set = result.data.historyRecords[0].entries[0].sets[0];
       expect(set.completedRpe).to.equal(8.5);
     });
@@ -480,10 +520,27 @@ describe("Liftohistory", () => {
 }`;
       const result = LiftohistoryDeserializer_deserialize(text, settings);
       expect(result.success).to.be.true;
-      if (!result.success) return;
+      if (!result.success) {
+        return;
+      }
       const set = result.data.historyRecords[0].entries[0].sets[0];
       expect(set.rpe).to.equal(8);
       expect(set.logRpe).to.equal(true);
+    });
+
+    it("parses askWeight in target", () => {
+      const settings = buildSettings();
+      const text = `2026-02-28T10:30:00.000Z / exercises: {
+  Squat, Barbell / 1x5 100lb / target: 1x5 100lb+
+}`;
+      const result = LiftohistoryDeserializer_deserialize(text, settings);
+      expect(result.success).to.be.true;
+      if (!result.success) {
+        return;
+      }
+      const set = result.data.historyRecords[0].entries[0].sets[0];
+      expect(set.weight).to.deep.equal(Weight_build(100, "lb"));
+      expect(set.askWeight).to.equal(true);
     });
 
     it("parses unilateral reps", () => {
@@ -493,7 +550,9 @@ describe("Liftohistory", () => {
 }`;
       const result = LiftohistoryDeserializer_deserialize(text, settings);
       expect(result.success).to.be.true;
-      if (!result.success) return;
+      if (!result.success) {
+        return;
+      }
       const set = result.data.historyRecords[0].entries[0].sets[0];
       expect(set.completedReps).to.equal(10);
       expect(set.completedRepsLeft).to.equal(8);
@@ -507,7 +566,9 @@ describe("Liftohistory", () => {
 }`;
       const result = LiftohistoryDeserializer_deserialize(text, settings);
       expect(result.success).to.be.true;
-      if (!result.success) return;
+      if (!result.success) {
+        return;
+      }
       const set = result.data.historyRecords[0].entries[0].sets[0];
       expect(set.minReps).to.equal(8);
       expect(set.reps).to.equal(12);
@@ -520,7 +581,9 @@ describe("Liftohistory", () => {
 }`;
       const result = LiftohistoryDeserializer_deserialize(text, settings);
       expect(result.success).to.be.true;
-      if (!result.success) return;
+      if (!result.success) {
+        return;
+      }
       const set = result.data.historyRecords[0].entries[0].sets[0];
       expect(set.timer).to.equal(90);
     });
@@ -532,7 +595,9 @@ describe("Liftohistory", () => {
 }`;
       const result = LiftohistoryDeserializer_deserialize(text, settings);
       expect(result.success).to.be.true;
-      if (!result.success) return;
+      if (!result.success) {
+        return;
+      }
       const set = result.data.historyRecords[0].entries[0].sets[0];
       expect(set.label).to.equal("paused");
     });
@@ -544,7 +609,9 @@ describe("Liftohistory", () => {
 }`;
       const result = LiftohistoryDeserializer_deserialize(text, settings);
       expect(result.success).to.be.true;
-      if (!result.success) return;
+      if (!result.success) {
+        return;
+      }
       expect(result.data.historyRecords[0].notes).to.equal("Great session");
     });
 
@@ -556,7 +623,9 @@ describe("Liftohistory", () => {
 }`;
       const result = LiftohistoryDeserializer_deserialize(text, settings);
       expect(result.success).to.be.true;
-      if (!result.success) return;
+      if (!result.success) {
+        return;
+      }
       expect(result.data.historyRecords[0].notes).to.equal("Line one\nLine two");
     });
 
@@ -568,7 +637,9 @@ describe("Liftohistory", () => {
 }`;
       const result = LiftohistoryDeserializer_deserialize(text, settings);
       expect(result.success).to.be.true;
-      if (!result.success) return;
+      if (!result.success) {
+        return;
+      }
       expect(result.data.historyRecords[0].entries[0].notes).to.equal("Felt heavy");
     });
 
@@ -581,7 +652,9 @@ describe("Liftohistory", () => {
 }`;
       const result = LiftohistoryDeserializer_deserialize(text, settings);
       expect(result.success).to.be.true;
-      if (!result.success) return;
+      if (!result.success) {
+        return;
+      }
       expect(result.data.historyRecords[0].notes).to.equal("Intro\n\n    Indented line");
     });
 
@@ -590,7 +663,9 @@ describe("Liftohistory", () => {
       const text = `2026-02-28 10:30:00 +00:00 / exercises: {\n}`;
       const result = LiftohistoryDeserializer_deserialize(text, settings);
       expect(result.success).to.be.true;
-      if (!result.success) return;
+      if (!result.success) {
+        return;
+      }
       expect(result.data.historyRecords[0].startTime).to.equal(new Date("2026-02-28T10:30:00+00:00").getTime());
     });
 
@@ -599,7 +674,9 @@ describe("Liftohistory", () => {
       const text = `2026-02-28T10:30:00 +00:00 / exercises: {\n}`;
       const result = LiftohistoryDeserializer_deserialize(text, settings);
       expect(result.success).to.be.true;
-      if (!result.success) return;
+      if (!result.success) {
+        return;
+      }
       expect(result.data.historyRecords[0].startTime).to.equal(new Date("2026-02-28T10:30:00+00:00").getTime());
     });
 
@@ -614,7 +691,9 @@ describe("Liftohistory", () => {
 }`;
       const result = LiftohistoryDeserializer_deserialize(text, settings);
       expect(result.success).to.be.true;
-      if (!result.success) return;
+      if (!result.success) {
+        return;
+      }
       expect(result.data.historyRecords).to.have.length(2);
       expect(result.data.historyRecords[0].entries[0].exercise.id).to.equal("squat");
       expect(result.data.historyRecords[1].entries[0].exercise.id).to.equal("benchPress");
@@ -627,7 +706,9 @@ describe("Liftohistory", () => {
 }`;
       const result = LiftohistoryDeserializer_deserialize(text, settings);
       expect(result.success).to.be.true;
-      if (!result.success) return;
+      if (!result.success) {
+        return;
+      }
       const customExercises = result.data.customExercises;
       const keys = Object.keys(customExercises);
       expect(keys).to.have.length(1);
@@ -641,10 +722,10 @@ describe("Liftohistory", () => {
 }`;
       const result = LiftohistoryDeserializer_deserialize(text, settings);
       expect(result.success).to.be.true;
-      if (!result.success) return;
-      expect(result.data.historyRecords[0].entries[0].sets[0].completedWeight).to.deep.equal(
-        Weight_build(100, "kg")
-      );
+      if (!result.success) {
+        return;
+      }
+      expect(result.data.historyRecords[0].entries[0].sets[0].completedWeight).to.deep.equal(Weight_build(100, "kg"));
     });
 
     it("errors on duplicate exercise in same workout", () => {
@@ -655,7 +736,9 @@ describe("Liftohistory", () => {
 }`;
       const result = LiftohistoryDeserializer_deserialize(text, settings);
       expect(result.success).to.be.false;
-      if (result.success) return;
+      if (result.success) {
+        return;
+      }
       expect(result.error[0]).to.be.instanceOf(LiftohistorySyntaxError);
       expect(result.error[0].message).to.include("Duplicate exercise");
     });
@@ -705,7 +788,9 @@ describe("Liftohistory", () => {
       const serialized = LiftohistorySerializer_serialize(record, settings);
       const deserialized = LiftohistoryDeserializer_deserialize(serialized, settings);
       expect(deserialized.success).to.be.true;
-      if (!deserialized.success) return;
+      if (!deserialized.success) {
+        return;
+      }
 
       const newRecord = deserialized.data.historyRecords[0];
       expect(newRecord.entries).to.have.length(1);
@@ -723,9 +808,7 @@ describe("Liftohistory", () => {
         entries: [
           buildEntry({
             exercise: { id: "benchPress", equipment: "barbell" },
-            sets: [
-              buildSet({ completedReps: 5, completedWeight: Weight_build(185, "lb"), isCompleted: true }),
-            ],
+            sets: [buildSet({ completedReps: 5, completedWeight: Weight_build(185, "lb"), isCompleted: true })],
             warmupSets: [
               buildSet({ completedReps: 10, completedWeight: Weight_build(95, "lb"), isCompleted: true }),
               buildSet({ completedReps: 5, completedWeight: Weight_build(135, "lb"), isCompleted: true }),
@@ -737,7 +820,9 @@ describe("Liftohistory", () => {
       const serialized = LiftohistorySerializer_serialize(record, settings);
       const deserialized = LiftohistoryDeserializer_deserialize(serialized, settings);
       expect(deserialized.success).to.be.true;
-      if (!deserialized.success) return;
+      if (!deserialized.success) {
+        return;
+      }
 
       const warmupSets = deserialized.data.historyRecords[0].entries[0].warmupSets;
       expect(warmupSets).to.have.length(2);
@@ -767,7 +852,9 @@ describe("Liftohistory", () => {
       const serialized = LiftohistorySerializer_serialize(record, settings);
       const deserialized = LiftohistoryDeserializer_deserialize(serialized, settings);
       expect(deserialized.success).to.be.true;
-      if (!deserialized.success) return;
+      if (!deserialized.success) {
+        return;
+      }
 
       const set = deserialized.data.historyRecords[0].entries[0].sets[0];
       expect(set.completedReps).to.equal(10);
@@ -801,7 +888,9 @@ describe("Liftohistory", () => {
       const serialized = LiftohistorySerializer_serialize(record, settings);
       const deserialized = LiftohistoryDeserializer_deserialize(serialized, settings);
       expect(deserialized.success).to.be.true;
-      if (!deserialized.success) return;
+      if (!deserialized.success) {
+        return;
+      }
 
       const set = deserialized.data.historyRecords[0].entries[0].sets[0];
       expect(set.completedReps).to.equal(12);
@@ -828,7 +917,9 @@ describe("Liftohistory", () => {
       const serialized = LiftohistorySerializer_serialize(record, settings);
       const deserialized = LiftohistoryDeserializer_deserialize(serialized, settings);
       expect(deserialized.success).to.be.true;
-      if (!deserialized.success) return;
+      if (!deserialized.success) {
+        return;
+      }
 
       expect(deserialized.data.historyRecords[0].notes).to.equal("Great workout");
       expect(deserialized.data.historyRecords[0].entries[0].notes).to.equal("Felt good");
@@ -858,12 +949,46 @@ describe("Liftohistory", () => {
       const serialized = LiftohistorySerializer_serialize(record, settings);
       const deserialized = LiftohistoryDeserializer_deserialize(serialized, settings);
       expect(deserialized.success).to.be.true;
-      if (!deserialized.success) return;
+      if (!deserialized.success) {
+        return;
+      }
 
       const set = deserialized.data.historyRecords[0].entries[0].sets[0];
       expect(set.minReps).to.equal(8);
       expect(set.reps).to.equal(12);
       expect(set.timer).to.equal(90);
+    });
+
+    it("round-trips askWeight", () => {
+      const settings = buildSettings();
+      const record = buildRecord({
+        entries: [
+          buildEntry({
+            exercise: { id: "squat", equipment: "barbell" },
+            sets: [
+              buildSet({
+                completedReps: 5,
+                completedWeight: Weight_build(100, "lb"),
+                reps: 5,
+                weight: Weight_build(100, "lb"),
+                askWeight: true,
+                isCompleted: true,
+              }),
+            ],
+          }),
+        ],
+      });
+
+      const serialized = LiftohistorySerializer_serialize(record, settings);
+      const deserialized = LiftohistoryDeserializer_deserialize(serialized, settings);
+      expect(deserialized.success).to.be.true;
+      if (!deserialized.success) {
+        return;
+      }
+
+      const set = deserialized.data.historyRecords[0].entries[0].sets[0];
+      expect(set.askWeight).to.equal(true);
+      expect(set.weight).to.deep.equal(Weight_build(100, "lb"));
     });
   });
 });

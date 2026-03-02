@@ -48,6 +48,8 @@ import { ModalDayFromAdhoc } from "./modalDayFromAdhoc";
 import { ImagePreloader_dynohappy } from "../utils/imagePreloader";
 import { n } from "../utils/math";
 import { Muscle_getMuscleGroupName } from "../models/muscle";
+import { IconDoc } from "./icons/iconDoc";
+import { LiftohistorySerializer_serialize } from "../liftohistory/liftohistorySerializer";
 
 interface IProps {
   history: IHistoryRecord[];
@@ -280,6 +282,19 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
             <div>Tiktok</div>
           </div>
           <div className="text-center">
+            <button
+              className="nm-finishday-share-text w-10 h-10 rounded-full bg-background-subtle"
+              onClick={() => {
+                const text = LiftohistorySerializer_serialize(props.history[0], props.settings);
+                ClipboardUtils_copy(text);
+                alert("Copied!");
+              }}
+            >
+              <IconDoc className="inline-block" />
+            </button>
+            <div>Text</div>
+          </div>
+          <div className="text-center">
             <WorkoutShareButton
               history={props.history}
               record={props.history[0]}
@@ -342,6 +357,20 @@ function WebappShare(props: IWebappShareProps): JSX.Element {
               icon={<IconPicture />}
             />
             <div>Image</div>
+          </div>
+          <div className="text-center">
+            <button
+              data-cy="finishday-share-text"
+              className="w-10 h-10 rounded-full bg-background-subtle"
+              onClick={() => {
+                const text = LiftohistorySerializer_serialize(props.history[0], props.settings);
+                ClipboardUtils_copy(text);
+                alert("Copied!");
+              }}
+            >
+              <IconDoc className="inline-block" />
+            </button>
+            <div>Text</div>
           </div>
           <div className="text-center">
             <button
