@@ -244,6 +244,7 @@ Do NOT add separate volume or duration sections — the app shows this data in w
 - If the program has known issues or common criticisms, mention them honestly in the cons section
 - Write for someone who knows basic gym terminology (sets, reps, 1RM, AMRAP) but doesn't know this specific program
 - Do not pad sections with filler. If a section has 2 bullet points of real content, that's fine. Don't stretch it to 5.
+- **Vary sentence length deliberately.** Uniform sentence length is monotonous and hard to scan. Mix short punchy sentences (3-8 words) with longer ones that add detail. Use fragments where they feel natural. This creates rhythm and makes the text easier to skim — readers can grab key points from short sentences and dive into longer ones when they want depth.
 
 ## Quality Checks
 
