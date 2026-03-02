@@ -1,10 +1,12 @@
 import fs from "fs";
 import { execSync } from "child_process";
-import { programOrder } from "../lambda/dao/programDao";
 import { Exercise_allExpanded, Exercise_toKey } from "./models/exercise";
 import { buildExerciseUrl } from "./pages/exercise/exerciseContent";
 import { MathUtils_toWord } from "./utils/math";
 const blogposts = JSON.parse(fs.readFileSync("blog/blog-posts.json", { encoding: "utf-8" }));
+const programIndex: { id: string; dateModified?: string }[] = JSON.parse(
+  fs.readFileSync("programdata/index.json", { encoding: "utf-8" })
+);
 
 function getGitLastModified(filePath: string): string | undefined {
   try {
@@ -37,18 +39,10 @@ const urls: ISitemapUrl[] = [
     const lastmod = getGitLastModified(`blog/posts/${slug}.md`);
     return { loc: `https://www.liftosaur.com/blog${post}`, ...(lastmod ? { lastmod } : {}) };
   }),
-  ...programOrder.map((program: string) => {
-    const mdFiles = ["programs/builtin", "programs/community"];
-    let lastmod: string | undefined;
-    for (const dir of mdFiles) {
-      const filePath = `${dir}/${program}.md`;
-      if (fs.existsSync(filePath)) {
-        lastmod = getGitLastModified(filePath);
-        break;
-      }
-    }
-    return { loc: `https://www.liftosaur.com/programs/${program}`, ...(lastmod ? { lastmod } : {}) };
-  }),
+  ...programIndex.map((entry) => ({
+    loc: `https://www.liftosaur.com/programs/${entry.id}`,
+    ...(entry.dateModified ? { lastmod: entry.dateModified } : {}),
+  })),
   ...Exercise_allExpanded({}).map((e) => {
     const key = Exercise_toKey(e).toLowerCase();
     const lastmod = getGitLastModified(`exercises/${key}.md`);
