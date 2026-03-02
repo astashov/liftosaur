@@ -21,6 +21,22 @@ function formatNotes(notes: string, indent: string): string {
     .join("\n");
 }
 
+function formatDate(isoDate: string): string {
+  const d = new Date(isoDate);
+  const offset = -d.getTimezoneOffset();
+  const sign = offset >= 0 ? "+" : "-";
+  const absOff = Math.abs(offset);
+  const hh = String(Math.floor(absOff / 60)).padStart(2, "0");
+  const mm = String(absOff % 60).padStart(2, "0");
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const hours = String(d.getHours()).padStart(2, "0");
+  const mins = String(d.getMinutes()).padStart(2, "0");
+  const secs = String(d.getSeconds()).padStart(2, "0");
+  return `${year}-${month}-${day} ${hours}:${mins}:${secs} ${sign}${hh}:${mm}`;
+}
+
 function serializeWorkoutRecord(record: IHistoryRecord, settings: ISettings, program?: IProgram): string {
   const lines: string[] = [];
   if (record.notes) {
@@ -36,7 +52,7 @@ function serializeWorkoutRecord(record: IHistoryRecord, settings: ISettings, pro
     }
   }
 
-  let header = record.date;
+  let header = formatDate(record.date);
   if (!isAdhoc) {
     header += ` / program: "${record.programName}"`;
     if (isMultiWeek) {
@@ -55,6 +71,10 @@ function serializeWorkoutRecord(record: IHistoryRecord, settings: ISettings, pro
   lines.push(header);
 
   for (const entry of record.entries) {
+    const hasCompletedSets = entry.sets.some((s) => s.completedReps != null);
+    if (!hasCompletedSets) {
+      continue;
+    }
     if (entry.notes) {
       lines.push(formatNotes(entry.notes, "  "));
     }
@@ -104,9 +124,6 @@ function formatCompletedSet(set: ISet, count: number): string {
   } else {
     str += `${reps}`;
   }
-  if (set.isAmrap) {
-    str += "+";
-  }
   if (set.completedWeight) {
     str += ` ${Weight_print(set.completedWeight)}`;
   }
@@ -140,6 +157,9 @@ function formatTargetSet(set: ISet, count: number): string {
   }
   if (set.weight) {
     str += ` ${Weight_print(set.weight)}`;
+    if (set.askWeight) {
+      str += "+";
+    }
   }
   if (set.rpe != null) {
     str += ` @${n(set.rpe)}`;

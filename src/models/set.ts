@@ -353,9 +353,8 @@ export function Reps_completedSetKey(set: ISet): string {
   const repsLeft = set.isUnilateral ? (set.completedRepsLeft ?? 0) : -1;
   const w = set.completedWeight ? Weight_print(set.completedWeight) : "none";
   const rpe = set.completedRpe ?? -1;
-  const amrap = set.isAmrap ? 1 : 0;
   const label = set.label ?? "";
-  return `${reps}-${repsLeft}-${w}-${rpe}-${amrap}-${label}`;
+  return `${reps}-${repsLeft}-${w}-${rpe}-${label}`;
 }
 
 export function Reps_targetSetKey(set: ISet): string {
@@ -367,7 +366,8 @@ export function Reps_targetSetKey(set: ISet): string {
   const timer = set.timer ?? -1;
   const amrap = set.isAmrap ? 1 : 0;
   const label = set.label ?? "";
-  return `${reps}-${minReps}-${w}-${rpe}-${logRpe}-${timer}-${amrap}-${label}`;
+  const askWeight = set.askWeight ? 1 : 0;
+  return `${reps}-${minReps}-${w}-${askWeight}-${rpe}-${logRpe}-${timer}-${amrap}-${label}`;
 }
 
 export function Reps_volume(sets: ISet[], unit: IUnit): IWeight {

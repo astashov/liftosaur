@@ -328,6 +328,7 @@ interface IParsedSet {
   minReps?: number;
   repsLeft?: number;
   weight?: string;
+  askWeight?: boolean;
   rpe?: number;
   logRpe?: boolean;
   isAmrap?: boolean;
@@ -372,7 +373,13 @@ function parseExerciseSet(node: SyntaxNode, text: string): IParsedSet {
         break;
       }
       case Weight: {
-        result.weight = getValue(child, text);
+        const weightStr = getValue(child, text);
+        if (weightStr.endsWith("+")) {
+          result.weight = weightStr.slice(0, -1);
+          result.askWeight = true;
+        } else {
+          result.weight = weightStr;
+        }
         break;
       }
       case Rpe: {
@@ -446,6 +453,7 @@ function deserializeSetsAsTarget(node: SyntaxNode, text: string): ISet[] {
         reps: parsed.reps,
         minReps: parsed.minReps,
         weight: parsed.weight ? Weight_parse(parsed.weight) : undefined,
+        askWeight: parsed.askWeight || undefined,
         rpe: parsed.rpe,
         logRpe: parsed.logRpe || undefined,
         isAmrap: parsed.isAmrap || undefined,
@@ -475,6 +483,7 @@ function mergeSets(completedSets: ISet[], targetSets: ISet[]): ISet[] {
         reps: target.reps,
         minReps: target.minReps,
         weight: target.weight,
+        askWeight: target.askWeight,
         rpe: target.rpe,
         logRpe: target.logRpe,
         isAmrap: target.isAmrap || completed.isAmrap,

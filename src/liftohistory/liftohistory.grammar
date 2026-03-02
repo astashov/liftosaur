@@ -40,7 +40,7 @@ ExerciseName { NonSeparator+ ("," NonSeparator+)? }
   LineComment { "//" ![\n]* linebreakOrEof }
   ExercisesOpen { "exercises:" $[ \t]* "{" }
   Duration { @digit+ "s" }
-  Weight { ("+" | "-")? (Float | Int) ("lb" | "kg") }
+  Weight { ("+" | "-")? (Float | Int) ("lb" | "kg") "+"? }
 
   space { $[ \t]+ }
   SectionSeparator { "/" }

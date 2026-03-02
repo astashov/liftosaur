@@ -14,6 +14,8 @@ import { IconTiktok } from "./icons/iconTiktok";
 import { SendMessage_isIos, SendMessage_toIosAndAndroid } from "../utils/sendMessage";
 import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
 import { IconHeart } from "./icons/iconHeart";
+import { IconDoc } from "./icons/iconDoc";
+import { LiftohistorySerializer_serialize } from "../liftohistory/liftohistorySerializer";
 
 interface IProps {
   record: IHistoryRecord;
@@ -101,6 +103,18 @@ export function BottomSheetMobileShareOptions(props: IProps): JSX.Element {
             }}
           />
           <WorkoutShareBottomSheetItem history={props.history} record={props.record} settings={props.settings} />
+          <BottomSheetItem
+            name="share-to-text"
+            title="Copy as Text"
+            description={""}
+            icon={<IconDoc width={24} height={24} />}
+            onClick={() => {
+              const text = LiftohistorySerializer_serialize(props.record, props.settings);
+              ClipboardUtils_copy(text);
+              alert("Copied!");
+              props.onClose();
+            }}
+          />
         </div>
       </BottomSheet>
       <BottomSheet
