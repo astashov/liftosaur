@@ -1,0 +1,53 @@
+@top Program { (WorkoutRecord | LineComment | emptyLine)* }
+
+emptyLine { linebreak }
+
+WorkoutRecord { Date (SectionSeparator MetadataField)* SectionSeparator ExercisesOpen linebreak workoutBody "}" linebreakOrEof }
+workoutBody { (ExerciseLine | LineComment | emptyLine)* }
+
+MetadataField { Keyword ":" MetadataValue }
+MetadataValue { QuotedString | Duration | Int }
+
+ExerciseLine { ExerciseName (SectionSeparator ExerciseSection)* linebreak }
+ExerciseSection { ExerciseProperty | CompletedSets }
+ExerciseProperty { Keyword ":" CompletedSets }
+
+CompletedSets { ExerciseSet ("," ExerciseSet)* }
+ExerciseSet { (Rpe | Duration | SetPart | Weight | SetLabel)+ }
+SetPart { Rep "x" (UnilateralReps | RepRange | Rep) AmrapMarker? }
+UnilateralReps { Rep "|" Rep }
+RepRange { Rep "-" Rep }
+AmrapMarker { "+" }
+
+Rpe { "@" PosNumber AmrapMarker? }
+SetLabel { "(" NonSeparator+ ")" }
+
+PosNumber { Float | Int }
+Rep { Int }
+
+ExerciseName { NonSeparator+ ("," NonSeparator+)? }
+
+@skip { space }
+
+@tokens {
+  @precedence { Date, Duration, Weight, Float, Int }
+  @precedence { LineComment, SectionSeparator }
+  @precedence { ExercisesOpen, Keyword }
+  @precedence { "+", "-", "x", NonSeparator }
+
+  Date { @digit @digit @digit @digit "-" @digit @digit "-" @digit @digit ("T" | " ") @digit @digit ":" @digit @digit ":" @digit @digit ("." @digit+)? " "? ("Z" | ("+" | "-") @digit @digit ":" @digit @digit) }
+  QuotedString { '"' !["\n]* '"' }
+  LineComment { "//" ![\n]* linebreakOrEof }
+  ExercisesOpen { "exercises:" $[ \t]* "{" }
+  Duration { @digit+ "s" }
+  Weight { ("+" | "-")? (Float | Int) ("lb" | "kg") }
+
+  space { $[ \t]+ }
+  SectionSeparator { "/" }
+  linebreakOrEof { linebreak | @eof }
+  linebreak { "\n" | "\r" | "\r\n" }
+  NonSeparator { ![/{}() \t\n\r@|",:]+ }
+  Keyword { $[a-zA-Z_] $[0-9a-zA-Z_]* }
+  Int { @digit+ }
+  Float { @digit+ "." @digit+ }
+}
