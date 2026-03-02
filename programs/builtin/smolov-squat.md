@@ -80,6 +80,10 @@ Each day produces 30-36 working reps. Total weekly volume: ~136 reps. Weight inc
 
 **Intense Mesocycle (Weeks 9-12)**: Built-in ramping from 60-65% up to working sets at 85-95%. Volume gradually decreases across the 4 weeks while intensity increases — a classic peaking taper. Week 9 tops out at 90%, while Weeks 11-12 include multiple sets at 95%.
 
+### Example of squat sets/reps/weight week over week
+
+:::exercise-example{exercise="squat" equipment="barbell" key="squat_barbell" weeks="1-13" weekLabels="Intro,Intro,Base,Base +20lb,Base +30lb,Test,Switch,Switch,Intense,Intense,Intense,Intense,Taper"}
+
 ## Progressive Overload
 
 The program uses three distinct progression mechanisms across its phases:

@@ -87,6 +87,10 @@ All sets are straight sets — no AMRAP, no drop sets, no back-offs. Every rep s
 
 [{Deadlift}] follows the same percentage and rep scheme as the other lifts. The book recommends keeping deadlift volume between 1-3 sets; this implementation uses 3 sets to match the other lifts.
 
+### Example of main lift sets/reps/weight week over week
+
+:::exercise-example{exercise="squat" equipment="barbell" key="squat_barbell" weeks="1-6" weekLabels="70% TM,80% TM,90% TM,75% TM,85% TM,95% TM"}
+
 ## Progressive Overload
 
 Operator uses **block progression** — run the full 6-week block, then increase your 1RM and repeat.

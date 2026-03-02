@@ -78,6 +78,10 @@ All percentages in the book reference a **Training Max** (90% of true 1RM). The 
 
 [{Deadlift}] follows the same percentage scheme but uses 4x5 on non-peak weeks and 4x3 (no AMRAP) on peak weeks. AMRAP deadlifts are not recommended due to form breakdown risk under fatigue.
 
+### Example of main lift sets/reps/weight week over week
+
+:::exercise-example{exercise="squat" equipment="barbell" key="squat_barbell" weeks="1-6" weekLabels="75% TM,80% TM,90% TM,75% TM,85% TM,90% TM"}
+
 ## Progressive Overload
 
 The Mass Protocol uses **block progression** — you run the full 6-week block, then increase your Training Max and repeat.
