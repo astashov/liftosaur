@@ -25,7 +25,7 @@ export function RepMaxContent(props: IRepMaxContentProps): JSX.Element {
 
   useEffect(() => {
     const onPopState = (e: PopStateEvent): void => {
-      if (e.state.reps) {
+      if (e.state?.reps) {
         setReps(e.state.reps);
       }
     };
