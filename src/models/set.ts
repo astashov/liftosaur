@@ -3,6 +3,7 @@ import {
   Weight_display,
   Weight_eqNull,
   Weight_gte,
+  Weight_print,
   Weight_printNull,
   Weight_multiply,
   Weight_build,
@@ -331,6 +332,42 @@ export function Reps_findNextEntryAndSetIndex(
   const nextSet = Reps_findNextSetIndex(nextEntry);
 
   return { entryIndex: historyRecord.entries.indexOf(nextEntry), setIndex: nextSet };
+}
+
+export function Reps_groupConsecutive<T>(items: T[], keyFn: (item: T) => string): [T, number][] {
+  const groups: [T, number][] = [];
+  let lastKey: string | undefined;
+  for (const item of items) {
+    const key = keyFn(item);
+    if (lastKey == null || lastKey !== key) {
+      groups.push([item, 0]);
+    }
+    groups[groups.length - 1][1] += 1;
+    lastKey = key;
+  }
+  return groups;
+}
+
+export function Reps_completedSetKey(set: ISet): string {
+  const reps = set.completedReps ?? 0;
+  const repsLeft = set.isUnilateral ? (set.completedRepsLeft ?? 0) : -1;
+  const w = set.completedWeight ? Weight_print(set.completedWeight) : "none";
+  const rpe = set.completedRpe ?? -1;
+  const amrap = set.isAmrap ? 1 : 0;
+  const label = set.label ?? "";
+  return `${reps}-${repsLeft}-${w}-${rpe}-${amrap}-${label}`;
+}
+
+export function Reps_targetSetKey(set: ISet): string {
+  const reps = set.reps ?? 0;
+  const minReps = set.minReps ?? -1;
+  const w = set.weight ? Weight_print(set.weight) : "none";
+  const rpe = set.rpe ?? -1;
+  const logRpe = set.logRpe ? 1 : 0;
+  const timer = set.timer ?? -1;
+  const amrap = set.isAmrap ? 1 : 0;
+  const label = set.label ?? "";
+  return `${reps}-${minReps}-${w}-${rpe}-${logRpe}-${timer}-${amrap}-${label}`;
 }
 
 export function Reps_volume(sets: ISet[], unit: IUnit): IWeight {

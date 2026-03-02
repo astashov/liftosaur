@@ -30,6 +30,8 @@ describe("sync progress", () => {
     // @ts-ignore
     global.__FULL_COMMIT_HASH__ = "abc123";
     // @ts-ignore
+    global.__COMMIT_HASH__ = "abc123";
+    // @ts-ignore
     global.Rollbar = {
       configure: () => undefined,
     };

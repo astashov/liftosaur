@@ -23,6 +23,7 @@
     "build:dev": "webpack",
     "check": "tsc --noEmit",
     "grammar:planner": "lezer-generator --output ./src/pages/planner/plannerExerciseParser.ts ./src/pages/planner/plannerExercise.grammar",
+    "grammar:liftohistory": "lezer-generator --output ./src/liftohistory/liftohistoryParser.ts ./src/liftohistory/liftohistory.grammar",
     "lint": "eslint . --fix",
     "start": "npm run build:markdown && npm run build:programs && npm run build:exercises && webpack-dev-server",
     "start:server": "npm run build:markdown && IS_DEV=true IS_LOCAL=true IMGPREFIX=lambda/ ts-node-dev --inspect --files --poll -T devserver.ts",

@@ -64,7 +64,14 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
     return (
       <>
         {!isError && doesExist && (
-          <img data-cy="exercise-image-small" ref={imgRef} className={className} src={src} alt={Exercise_nameWithEquipment(exercise, props.settings)} {...imgAttrs} />
+          <img
+            data-cy="exercise-image-small"
+            ref={imgRef}
+            className={className}
+            src={src}
+            alt={Exercise_nameWithEquipment(exercise, props.settings)}
+            {...imgAttrs}
+          />
         )}
         {isError ||
           (!doesExist &&
@@ -98,7 +105,13 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
     }
     return doesExist ? (
       <>
-        <img ref={imgRef} data-cy="exercise-image-large" className={className} src={src} alt={Exercise_nameWithEquipment(exercise, props.settings)} />
+        <img
+          ref={imgRef}
+          data-cy="exercise-image-large"
+          className={className}
+          src={src}
+          alt={Exercise_nameWithEquipment(exercise, props.settings)}
+        />
         <ExerciseImageAuxiliary size={props.size} isError={isError} isLoading={isLoading} />
       </>
     ) : (
