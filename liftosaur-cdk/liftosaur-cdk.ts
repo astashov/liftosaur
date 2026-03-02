@@ -848,7 +848,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
         "/images/*": s3CachedBehavior,
         "/programdata/*": {
           origin: s3Origin,
-          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           responseHeadersPolicy: s3CorsNoCachePolicy,
           functionAssociations: [
