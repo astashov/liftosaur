@@ -161,12 +161,16 @@ export class PlannerExerciseEvaluator {
   }
 
   public static isEqualProgress(a: IProgramExerciseProgress, b: IProgramExerciseProgress): boolean {
+    const fields: (keyof IProgramExerciseProgress)[] =
+      a.type === "dp" && b.type === "dp"
+        ? ["type", "state", "stateMetadata"]
+        : ["type", "state", "stateMetadata", "script"];
     const pickA = {
-      ...ObjectUtils_pick(a, ["type", "state", "stateMetadata", "script"]),
+      ...ObjectUtils_pick(a, fields),
       reuse: a.reuse?.fullName,
     };
     const pickB = {
-      ...ObjectUtils_pick(b, ["type", "state", "stateMetadata", "script"]),
+      ...ObjectUtils_pick(b, fields),
       reuse: b.reuse?.fullName,
     };
     return ObjectUtils_isEqual(pickA, pickB);
