@@ -118,6 +118,7 @@ const cachePromises: Partial<Record<string, unknown>> = {};
 
 declare let __API_HOST__: string;
 declare let __HOST__: string;
+declare let __COMMIT_HASH__: string;
 declare let __STREAMING_API_HOST__: string;
 
 export interface IRecordResponse {
@@ -574,12 +575,12 @@ export class Service {
   }
 
   public async programsIndex(): Promise<IProgramIndexEntry[]> {
-    const response = await this.client(`${__HOST__}/programdata/index.json`);
+    const response = await this.client(`${__HOST__}/programdata/index.json?v=${__COMMIT_HASH__}`);
     return response.json();
   }
 
   public async programDetail(id: string, category: string = "builtin"): Promise<IProgramDetail> {
-    const response = await this.client(`${__HOST__}/programdata/programs/${category}/${id}.json`);
+    const response = await this.client(`${__HOST__}/programdata/programs/${category}/${id}.json?v=${__COMMIT_HASH__}`);
     return response.json();
   }
 
