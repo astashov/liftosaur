@@ -37,7 +37,9 @@ export function ModalProgramInfo(props: IProps): JSX.Element {
           </div>
         </div>
       )}
-      <Markdown value={props.program.description} className="mt-4 text-sm program-description" />
+      {props.program.description && (
+        <Markdown value={props.program.description} className="mt-4 text-sm program-description" />
+      )}
       <p className="mt-6 text-center">
         <Button
           name="preview-program"
