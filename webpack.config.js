@@ -2,7 +2,7 @@ const { main: localdomain, api: localapidomain, streamingapi: localstreamingapid
 
 const path = require("path");
 const fs = require("fs");
-const { BannerPlugin, DefinePlugin, SourceMapDevToolPlugin } = require("webpack");
+const { DefinePlugin, SourceMapDevToolPlugin, sources, Compilation } = require("webpack");
 const CopyPlugin = require("copy-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 let commitHash, fullCommitHash;
@@ -146,8 +146,25 @@ const mainConfig = {
     extensions: [".ts", ".tsx", ".js", ".css"],
   },
   plugins: [
-    new BannerPlugin({ banner: "/* LFTSTART */", raw: true, test: /\.(js|css)$/ }),
-    new BannerPlugin({ banner: "/* LFTEND */", raw: true, footer: true, test: /\.(js|css)$/ }),
+    {
+      apply(compiler) {
+        compiler.hooks.compilation.tap("LftMarkerPlugin", (compilation) => {
+          compilation.hooks.processAssets.tap(
+            { name: "LftMarkerPlugin", stage: Compilation.PROCESS_ASSETS_STAGE_REPORT },
+            (assets) => {
+              for (const [name, source] of Object.entries(assets)) {
+                if (/\.(js|css)$/.test(name) && !name.includes(".map")) {
+                  compilation.updateAsset(
+                    name,
+                    new sources.ConcatSource("/* LFTSTART */\n", source, "\n/* LFTEND */")
+                  );
+                }
+              }
+            }
+          );
+        });
+      },
+    },
     new SourceMapDevToolPlugin({
       append: `\n//# sourceMappingURL=[name].js.map?version=${commitHash}`,
       filename: "[file].map",

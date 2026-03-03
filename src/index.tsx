@@ -1,4 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+try {
+  if ((window as any).webkit?.messageHandlers?.liftosaurMessage) {
+    (window as any).webkit.messageHandlers.liftosaurMessage.postMessage({ type: "jsHeartbeat" });
+  }
+  if ((window as any).JSAndroidBridge) {
+    (window as any).JSAndroidBridge.sendMessage(JSON.stringify({ type: "jsHeartbeat" }));
+  }
+} catch (e) {
+  // noop
+}
 import { h, render } from "preact";
 import RB from "rollbar";
 import { RollbarUtils_config } from "./utils/rollbar";
