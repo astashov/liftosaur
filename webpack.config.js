@@ -2,7 +2,7 @@ const { main: localdomain, api: localapidomain, streamingapi: localstreamingapid
 
 const path = require("path");
 const fs = require("fs");
-const { DefinePlugin, SourceMapDevToolPlugin } = require("webpack");
+const { BannerPlugin, DefinePlugin, SourceMapDevToolPlugin } = require("webpack");
 const CopyPlugin = require("copy-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 let commitHash, fullCommitHash;
@@ -146,6 +146,8 @@ const mainConfig = {
     extensions: [".ts", ".tsx", ".js", ".css"],
   },
   plugins: [
+    new BannerPlugin({ banner: "/* LFTSTART */", raw: true, test: /\.(js|css)$/ }),
+    new BannerPlugin({ banner: "/* LFTEND */", raw: true, footer: true, test: /\.(js|css)$/ }),
     new SourceMapDevToolPlugin({
       append: `\n//# sourceMappingURL=[name].js.map?version=${commitHash}`,
       filename: "[file].map",
