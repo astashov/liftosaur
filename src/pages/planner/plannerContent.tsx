@@ -226,7 +226,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   const planner = state.current.program.planner!;
   useUndoRedo(state, dispatch, [!!state.fulltext], () => state.fulltext == null);
   useEffect(() => {
-    setShowHelp(typeof window !== "undefined" && window.localStorage.getItem("hide-planner-help") !== "true");
+    setShowHelp(typeof window !== "undefined" && window.localStorage?.getItem("hide-planner-help") !== "true");
     if (props.initialProgram) {
       const exportProgram = Program_exportProgram(state.current.program, settings);
       Encoder_encodeIntoUrl(JSON.stringify(exportProgram), window.location.href).then(() => {
@@ -289,7 +289,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               className="block ml-3 nm-planner-help"
               onClick={() => {
                 setShowHelp(true);
-                window.localStorage.removeItem("hide-planner-help");
+                window.localStorage?.removeItem("hide-planner-help");
               }}
             >
               <IconHelp />
@@ -361,7 +361,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             style={{ top: "0.5rem", right: "0.5rem" }}
             onClick={() => {
               setShowHelp(false);
-              window.localStorage.setItem("hide-planner-help", "true");
+              window.localStorage?.setItem("hide-planner-help", "true");
             }}
           >
             <IconCloseCircleOutline />
