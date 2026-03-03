@@ -2,12 +2,12 @@ function updateSource(): void {
   const params = new URLSearchParams(window.location.search);
   const source = params.get("cpgsrc");
   if (source) {
-    window.localStorage.setItem("source", source);
+    window.localStorage?.setItem("source", source);
   }
 }
 
 function setStoreParams(): void {
-  const source = window.localStorage.getItem("source");
+  const source = window.localStorage?.getItem("source");
   if (source) {
     for (const link of Array.from(document.querySelectorAll(".google-play-link"))) {
       const href = link.getAttribute("href");
