@@ -84,14 +84,16 @@ export function ProgramDetailsContent(props: IProgramDetailsContentProps): JSX.E
               )}
             </div>
           )}
-          <Markdown
-            className="program-details-description"
-            value={descriptionText}
-            directivesData={{
-              exercise: { settings },
-              exerciseExample: { settings, evaluatedProgram },
-            }}
-          />
+          {descriptionText && (
+            <Markdown
+              className="program-details-description"
+              value={descriptionText}
+              directivesData={{
+                exercise: { settings },
+                exerciseExample: { settings, evaluatedProgram },
+              }}
+            />
+          )}
           {props.faq && (
             <Markdown
               className="program-details-description mt-8"
