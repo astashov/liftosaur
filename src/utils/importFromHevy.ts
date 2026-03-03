@@ -320,7 +320,9 @@ export function ImportFromHevy_convertHevyCsvToHistoryRecords(
   historyRecords: IHistoryRecord[];
   customExercises: Record<string, ICustomExercise>;
 } {
-  const hevyRecords = Papa.parse<IHevyRecord>(hevyCsvRaw, { header: true }).data;
+  const hevyRecords = Papa.parse<IHevyRecord>(hevyCsvRaw, { header: true }).data.filter(
+    (r) => r.start_time && r.exercise_title
+  );
 
   const hevyWorkouts: IHevyStruct[] = [];
   for (const workout of ObjectUtils_values(CollectionUtils_groupByKey(hevyRecords, "start_time"))) {
@@ -353,7 +355,7 @@ export function ImportFromHevy_convertHevyCsvToHistoryRecords(
       });
     }
     hevyWorkouts.push({
-      title: workout[0].title,
+      title: workout[0].title || "Workout",
       start_time: workout[0].start_time,
       end_time: workout[0].end_time,
       description: (workout[0].description || "").replace(/\\n/g, "\n"),
