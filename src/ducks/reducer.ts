@@ -759,11 +759,22 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       progress: Progress_isCurrent(progress) ? state.progress : Progress_stop(state.progress, progress.id),
     };
   } else if (action.type === "ChangeDate") {
-    return Progress_setProgress(state, Progress_showUpdateDate(Progress_getProgress(state)!, action.date, action.time));
+    const progress = Progress_getProgress(state);
+    if (progress == null) {
+      return state;
+    }
+    return Progress_setProgress(state, Progress_showUpdateDate(progress, action.date, action.time));
   } else if (action.type === "ConfirmDate") {
-    return Progress_setProgress(state, Progress_changeDate(Progress_getProgress(state)!, action.date, action.time));
+    const progress = Progress_getProgress(state);
+    if (progress == null) {
+      return state;
+    }
+    return Progress_setProgress(state, Progress_changeDate(progress, action.date, action.time));
   } else if (action.type === "CancelProgress") {
-    const progress = Progress_getProgress(state)!;
+    const progress = Progress_getProgress(state);
+    if (progress == null) {
+      return { ...state, screenStack: pushScreen(state.screenStack, "main", undefined, true) };
+    }
     return {
       ...state,
       screenStack: pushScreen(state.screenStack, "main", undefined, true),
