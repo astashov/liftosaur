@@ -2720,8 +2720,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
     di.log.log("User Agent:", event.headers["user-agent"] || event.headers["User-Agent"] || "");
 
     const host = ResponseUtils_getHost(event);
-    di.log.log("Host header:", host);
-    const isNonProdDomain = host.startsWith("api3") || host.startsWith("stage") || host.startsWith("local");
+    const isNonProdDomain = host.startsWith("api3") || host.startsWith("local") || process.env.IS_DEV === "true";
     if (isNonProdDomain && event.path === "/robots.txt") {
       return {
         statusCode: 200,
