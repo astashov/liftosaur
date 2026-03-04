@@ -383,4 +383,13 @@ export const migrations = {
     }
     return storage;
   },
+  "20260304171932_fix_custom_exercise_names": (aStorage: IStorage): IStorage => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const exercise of ObjectUtils_values(storage.settings.exercises)) {
+      if (exercise && !exercise.name) {
+        exercise.name = exercise.id;
+      }
+    }
+    return storage;
+  },
 };
