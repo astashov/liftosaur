@@ -191,3 +191,9 @@ GOOD (explains why):
 // Stripe webhook can be delayed, so we also check local cache
 if (user.subscription?.active || cachedSubscription) {
 ```
+
+## Knowledge Base
+
+Project knowledge base lives in `lambda/scripts/memory/`. See `lambda/scripts/memory/INDEX.md` for a compact overview of all captured knowledge.
+
+When you discover important architectural decisions, non-obvious bug root causes, new subsystems, or significant product features — use the `/kb` skill to capture them.
