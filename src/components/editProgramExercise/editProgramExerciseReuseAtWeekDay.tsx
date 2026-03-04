@@ -26,10 +26,11 @@ export function EditProgramExerciseReuseAtWeekDay(props: IEditProgramExerciseReu
   const currentWeek = reuseCandidate.weekAndDays[plannerExercise.dayData.week];
   const week = reuse.week;
 
+  const weekDays = reuseCandidate.weekAndDays[week ?? plannerExercise.dayData.week];
   const day =
     reuse.exercise?.dayData.dayInWeek ??
-    (week != null || (currentWeek != null && currentWeek.size > 1)
-      ? Array.from(reuseCandidate.weekAndDays[week ?? plannerExercise.dayData.week])[0]
+    ((week != null || (currentWeek != null && currentWeek.size > 1)) && weekDays != null
+      ? Array.from(weekDays)[0]
       : undefined);
 
   return (
@@ -78,7 +79,7 @@ export function EditProgramExerciseReuseAtWeekDay(props: IEditProgramExerciseReu
           );
         }}
       >
-        {Array.from(reuseCandidateWeeksAndDays[week ?? reuse.exercise?.dayData.week ?? 1]).map((d) => {
+        {Array.from(reuseCandidateWeeksAndDays[week ?? reuse.exercise?.dayData.week ?? 1] ?? []).map((d) => {
           return (
             <option value={d} selected={day === d}>
               {d}
