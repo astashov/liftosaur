@@ -12,7 +12,7 @@ import {
   Exercise_synergistMuscles,
 } from "./exercise";
 import { Progress_getEntryId, Progress_isCurrent, Progress_lbProgress } from "./progress";
-import { CollectionUtils_sort, CollectionUtils_sortBy } from "../utils/collection";
+import { CollectionUtils_sort, CollectionUtils_sortByExpr } from "../utils/collection";
 
 import {
   Weight_compare,
@@ -73,6 +73,10 @@ export interface IHistoryEntryPersonalRecords {
   prevMaxWeightSet?: ISet;
   max1RMSet?: ISet;
   prevMax1RMSet?: ISet;
+}
+
+export function History_generateId(timestamp: number): number {
+  return timestamp + Math.floor(Math.random() * 1000);
 }
 
 export function History_createCustomEntry(exerciseType: IExerciseType, index: number): IHistoryEntry {
@@ -817,7 +821,7 @@ export const History_getDateToHistory = memoize(
 export const History_getPersonalRecords = memoize(
   (history: IHistoryRecord[]): IPersonalRecords => {
     const result: IPersonalRecords = {};
-    const sortedHistory = CollectionUtils_sortBy(history, "id");
+    const sortedHistory = CollectionUtils_sortByExpr(history, (hr) => hr.endTime ?? hr.startTime);
     const max1RMSets: Partial<Record<string, ISet | undefined>> = {};
     const maxWeightSets: Partial<Record<string, ISet | undefined>> = {};
     for (const record of sortedHistory) {

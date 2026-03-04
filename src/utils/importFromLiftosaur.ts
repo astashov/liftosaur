@@ -15,6 +15,7 @@ import { Weight_build } from "../models/weight";
 import { StringUtils_dashcase } from "./string";
 import { Progress_getEntryId } from "../models/progress";
 import { UidFactory_generateUid } from "./generator";
+import { History_generateId } from "../models/history";
 
 interface ILiftosaurRecord {
   workoutDateTime: string;
@@ -230,7 +231,7 @@ export function ImportFromLiftosaur_convertLiftosaurCsvToHistoryRecords(
       programName: `${firstRecord.program}` || "CSV Import",
       intervals: [[startTime, endTime]],
       entries,
-      id: startTime,
+      id: History_generateId(endTime ?? startTime),
       programId: StringUtils_dashcase(firstRecord.program || "csv"),
       startTime: startTime,
       dayInWeek: 1,

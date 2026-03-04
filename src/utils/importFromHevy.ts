@@ -6,6 +6,7 @@ import { Exercise_findByName, Exercise_getIsUnilateral } from "../models/exercis
 import { Weight_build } from "../models/weight";
 import { UidFactory_generateUid } from "./generator";
 import { Progress_getEntryId } from "../models/progress";
+import { History_generateId } from "../models/history";
 
 const exerciseMapping: Partial<Record<string, [string, string | undefined]>> = {
   "21s Bicep Curl": ["Bicep Curl", "barbell"],
@@ -452,7 +453,7 @@ export function ImportFromHevy_convertHevyCsvToHistoryRecords(
     });
     return {
       vtype: "history_record",
-      id: endTs ?? Date.now(),
+      id: History_generateId(endTs ?? Date.now()),
       date: new Date(endTs ?? Date.now()).toISOString(),
       startTime: startTs ?? Date.now(),
       endTime: endTs ?? Date.now(),

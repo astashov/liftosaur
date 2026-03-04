@@ -10,6 +10,7 @@ describe("History", () => {
       const entry: IHistoryEntry = {
         vtype: "history_entry",
         index: 0,
+        id: UidFactory_generateUid(6),
         exercise: { id: "squat" },
         sets: [
           {

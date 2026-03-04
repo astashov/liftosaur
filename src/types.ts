@@ -502,9 +502,9 @@ export const THistoryEntry = t.intersection(
       sets: t.array(TSet),
       warmupSets: t.array(TSet),
       index: t.number,
+      id: t.string,
     }),
     t.partial({
-      id: t.string,
       programExerciseId: t.string,
       state: TProgramState,
       vars: TProgramState,

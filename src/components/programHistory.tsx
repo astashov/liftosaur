@@ -44,7 +44,7 @@ function getWeeksData(history: IHistoryRecord[], startWeekFromMonday?: boolean):
   const firstDayOfWeekToHistoryRecord: Partial<Record<number, IHistoryRecord>> = {};
   for (const record of history) {
     if (!Progress_isCurrent(record)) {
-      const firstDayOfWeek = DateUtils_firstDayOfWeekTimestamp(record.id, startWeekFromMonday);
+      const firstDayOfWeek = DateUtils_firstDayOfWeekTimestamp(record.endTime ?? record.startTime, startWeekFromMonday);
       if (firstDayOfWeekToHistoryRecord[firstDayOfWeek] == null) {
         firstDayOfWeekToHistoryRecord[firstDayOfWeek] = record;
       }
