@@ -2720,7 +2720,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
     di.log.log("User Agent:", event.headers["user-agent"] || event.headers["User-Agent"] || "");
 
     const host = ResponseUtils_getHost(event);
-    const isNonProdDomain = host.startsWith("api3") || host.startsWith("stage");
+    const isNonProdDomain = host !== "www.liftosaur.com";
     if (isNonProdDomain && event.path === "/robots.txt") {
       return {
         statusCode: 200,
