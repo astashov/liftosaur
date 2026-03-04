@@ -3,7 +3,7 @@ import { IPlannerExerciseState } from "../../pages/planner/models/types";
 import { IDispatch, buildCustomLensDispatch } from "../../ducks/types";
 import { IDayData, ISettings } from "../../types";
 import { INavCommon, IState, updateState } from "../../models/state";
-import { lb, LensBuilder } from "lens-shmens";
+import { lb, Lens, LensBuilder } from "lens-shmens";
 import { useCallback, useState } from "preact/hooks";
 import { useUndoRedo } from "../../pages/builder/utils/undoredo";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -45,14 +45,18 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
   const plannerDispatch: ILensDispatch<IPlannerExerciseState> = useCallback(
     buildPlannerDispatch(
       props.dispatch,
-      (
-        lb<IState>().p("screenStack").findBy("name", "editProgramExercise", true).pi("params") as LensBuilder<
-          IState,
-          { plannerState: IPlannerExerciseState },
-          {},
-          undefined
-        >
-      ).pi("plannerState"),
+      (() => {
+        // findBy can return undefined when the screen has been removed (e.g. onBlur fires after navigation)
+        const findByLens = lb<IState>().p("screenStack").findBy("name", "editProgramExercise", true).get();
+        findByLens._optional = true;
+        type IScreenEntry = { params?: { plannerState: IPlannerExerciseState } };
+        return (
+          new LensBuilder<IState, IScreenEntry, {}, undefined>(
+            findByLens as unknown as Lens<IState, IScreenEntry>,
+            {}
+          ).pi("params") as LensBuilder<IState, { plannerState: IPlannerExerciseState }, {}, undefined>
+        ).pi("plannerState");
+      })(),
       plannerState
     ),
     [plannerState]
