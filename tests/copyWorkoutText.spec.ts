@@ -6,10 +6,12 @@ test("Copy Workout as Text", async ({ page }) => {
 
   await page.addInitScript(() => {
     const origExecCommand = document.execCommand.bind(document);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     document.execCommand = (command: string, ...args: any[]) => {
       if (command === "copy") {
         const active = document.activeElement as HTMLTextAreaElement | null;
         if (active && active.value) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (window as any).__clipboardText = active.value;
         }
       }
@@ -36,6 +38,7 @@ test("Copy Workout as Text", async ({ page }) => {
   await page.getByTestId("finish-workout").click();
 
   await page.getByTestId("finishday-share-text").click();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const clipboardText = await page.evaluate(() => (window as any).__clipboardText);
   expect(clipboardText).toBeTruthy();
   expect(clipboardText).toMatch(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
@@ -49,6 +52,7 @@ test("Copy Workout as Text", async ({ page }) => {
   await page.locator(".nm-past-workout-share").click();
   await page.getByTestId("bottom-sheet-share-to-text").click();
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const clipboardText2 = await page.evaluate(() => (window as any).__clipboardText);
   expect(clipboardText2).toBeTruthy();
   expect(clipboardText2).toMatch(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/);
