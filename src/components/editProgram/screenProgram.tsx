@@ -82,7 +82,8 @@ export function ScreenProgram(props: IProps): JSX.Element {
           undefined
         >
       ).pi("plannerState"),
-      plannerState
+      plannerState,
+      "editProgram"
     ),
     [plannerState]
   );
