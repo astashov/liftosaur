@@ -128,6 +128,9 @@ export class PlannerExerciseEvaluatorText {
     } else if (expr.type.name === PlannerNodeName.Day) {
       const dayName = this.getValue(expr).replace(/^#+/, "").trim();
       const description = this.getWeekDayDescriptionAndFillLastDay();
+      if (this.weeks.length === 0) {
+        this.weeks.push({ name: "Week 1", days: [] });
+      }
       this.weeks[this.weeks.length - 1].days.push({ name: dayName, exercises: [], description });
       this.ongoingLines = [];
     } else if (expr.type.name === PlannerNodeName.EmptyExpression) {
