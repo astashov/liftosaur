@@ -7,6 +7,7 @@ import { PlannerExerciseEvaluator } from "../pages/planner/plannerExerciseEvalua
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
 import { IVersions } from "../models/versionTracker";
 import { Settings_build } from "../models/settings";
+import { Progress_getEntryId } from "../models/progress";
 
 let latestMigrationVersion: number | undefined;
 export function getLatestMigrationVersion(): string {
@@ -359,6 +360,24 @@ export const migrations = {
           if (!set.id) {
             set.id = UidFactory_generateUid(6);
           }
+        }
+      }
+    }
+    return storage;
+  },
+  "20260304084247_fill_entries_with_ids": (aStorage: IStorage): IStorage => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    for (const record of storage.history) {
+      for (const entry of record.entries) {
+        if (!entry.id) {
+          entry.id = Progress_getEntryId(entry.exercise);
+        }
+      }
+    }
+    for (const record of storage.progress || []) {
+      for (const entry of record.entries) {
+        if (!entry.id) {
+          entry.id = Progress_getEntryId(entry.exercise);
         }
       }
     }
