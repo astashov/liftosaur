@@ -2720,8 +2720,8 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
     di.log.log("User Agent:", event.headers["user-agent"] || event.headers["User-Agent"] || "");
 
     const host = ResponseUtils_getHost(event);
-    const isApiDomain = host.startsWith("api3");
-    if (isApiDomain && event.path === "/robots.txt") {
+    const isNonProdDomain = host.startsWith("api3") || host.startsWith("stage");
+    if (isNonProdDomain && event.path === "/robots.txt") {
       return {
         statusCode: 200,
         body: "User-agent: *\nDisallow: /\n",
@@ -2828,8 +2828,12 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       resp.success ? `${resp.data.body.length}b` : undefined,
       `${Date.now() - time}ms`
     );
-    return resp.success
+    const result = resp.success
       ? resp.data
       : { statusCode: errorStatus, headers: ResponseUtils_getHeaders(event), body: resp.error };
+    if (isNonProdDomain) {
+      result.headers = { ...result.headers, "X-Robots-Tag": "noindex" };
+    }
+    return result;
   };
 };
