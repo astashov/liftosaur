@@ -264,9 +264,9 @@ Reverse Fly[1-15] / ...acc
 
 # Week 2
 ## Squat Day
-main[2-3] / 3x6, 1x6+ / 65%
-dev / 4x12 @7
-acc / 3x12-15 @7
+main[2-3] / 3x6, 1x6+ / 65% / 180s
+dev / 4x12 @7 / 120s
+acc / 3x12-15 @7 / 60s
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -274,8 +274,8 @@ acc / 3x12-15 @7
 
 # Week 3
 ## Squat Day
-dev / 5x12 @8
-acc / 4x12-15 @8
+dev / 5x12 @8 / 120s
+acc / 4x12-15 @8 / 60s
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -283,9 +283,9 @@ acc / 4x12-15 @8
 
 # Week 4
 ## Squat Day
-main[4-6] / 4x5, 1x5+ / 70%
-dev / 3x10 @6
-acc / 3x8-12 @6
+main[4-6] / 4x5, 1x5+ / 70% / 180s
+dev / 3x10 @6 / 120s
+acc / 3x8-12 @6 / 60s
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -293,8 +293,8 @@ acc / 3x8-12 @6
 
 # Week 5
 ## Squat Day
-dev / 4x10 @7
-acc / 4x8-12 @7
+dev / 4x10 @7 / 120s
+acc / 4x8-12 @7 / 60s
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -302,8 +302,8 @@ acc / 4x8-12 @7
 
 # Week 6
 ## Squat Day
-dev / 5x10 @8
-acc / 5x8-12 @8
+dev / 5x10 @8 / 120s
+acc / 5x8-12 @8 / 60s
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -311,9 +311,9 @@ acc / 5x8-12 @8
 
 # Week 7
 ## Squat Day
-main[7-9] / 5x4, 1x4+ / 75%
-dev / 3x8 @6
-acc / 3x8-12 @6
+main[7-9] / 5x4, 1x4+ / 75% / 180s
+dev / 3x8 @6 / 120s
+acc / 3x8-12 @6 / 60s
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -321,8 +321,8 @@ acc / 3x8-12 @6
 
 # Week 8
 ## Squat Day
-dev / 4x8 @7
-acc / 4x8-12 @7
+dev / 4x8 @7 / 120s
+acc / 4x8-12 @7 / 60s
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -330,8 +330,8 @@ acc / 4x8-12 @7
 
 # Week 9
 ## Squat Day
-dev / 5x8 @8
-acc / 5x8-12 @8
+dev / 5x8 @8 / 120s
+acc / 5x8-12 @8 / 60s
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -339,11 +339,11 @@ acc / 5x8-12 @8
 
 # Week 10
 ## Squat Day
-main / 4x3, 1x3+ / 80%
-dev / 4x6 @6
+main / 4x3, 1x3+ / 80% / 180s
+dev / 4x6 @6 / 120s
 // Targeted: peak-phase only (weeks 10-18). Addresses weak points in the main lift for that day.
 tgt / used: none / 4x6 @6 / 120s
-acc / 3x8-12 @6
+acc / 3x8-12 @6 / 60s
 // ...tgt
 Leg Press[10-18] / ...tgt
 ## Bench Day
@@ -359,10 +359,10 @@ Push Press, Barbell[10-18] / ...tgt
 
 # Week 11
 ## Squat Day
-main / 2x3, 1x3+ / 80%
-dev / 3x6 @7
-tgt / 3x6 @7
-acc / 4x8-12 @7
+main / 2x3, 1x3+ / 80% / 180s
+dev / 3x6 @7 / 120s
+tgt / 3x6 @7 / 120s
+acc / 4x8-12 @7 / 60s
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -370,10 +370,10 @@ acc / 4x8-12 @7
 
 # Week 12
 ## Squat Day
-main / 1x3+ / 80%
-dev / 2x6 @8
-tgt / 2x6 @8
-acc / 5x8-12 @8
+main / 1x3+ / 80% / 180s
+dev / 2x6 @8 / 120s
+tgt / 2x6 @8 / 120s
+acc / 5x8-12 @8 / 60s
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -381,10 +381,10 @@ acc / 5x8-12 @8
 
 # Week 13
 ## Squat Day
-main / 4x2, 1x2+ / 85%
-dev / 4x5 @6
-tgt / 4x5 @6
-acc / 3x8-12 @6
+main / 4x2, 1x2+ / 85% / 180s
+dev / 4x5 @6 / 120s
+tgt / 4x5 @6 / 120s
+acc / 3x8-12 @6 / 60s
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -392,10 +392,10 @@ acc / 3x8-12 @6
 
 # Week 14
 ## Squat Day
-main / 2x2, 1x2+ / 85%
-dev / 3x5 @7
-tgt / 3x5 @7
-acc / 4x8-12 @7
+main / 2x2, 1x2+ / 85% / 180s
+dev / 3x5 @7 / 120s
+tgt / 3x5 @7 / 120s
+acc / 4x8-12 @7 / 60s
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -403,10 +403,10 @@ acc / 4x8-12 @7
 
 # Week 15
 ## Squat Day
-main / 1x2+ / 85%
-dev / 2x5 @8
-tgt / 2x5 @8
-acc / 5x8-12 @8
+main / 1x2+ / 85% / 180s
+dev / 2x5 @8 / 120s
+tgt / 2x5 @8 / 120s
+acc / 5x8-12 @8 / 60s
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -414,9 +414,9 @@ acc / 5x8-12 @8
 
 # Week 16
 ## Squat Day
-main / 4x1, 1x1+ / 90%
-dev / 4x4 @6
-tgt / 4x4 @6
+main / 4x1, 1x1+ / 90% / 180s
+dev / 4x4 @6 / 120s
+tgt / 4x4 @6 / 120s
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -424,9 +424,9 @@ tgt / 4x4 @6
 
 # Week 17
 ## Squat Day
-main / 2x1, 1x1+ / 90%
-dev / 3x4 @7
-tgt / 3x4 @7
+main / 2x1, 1x1+ / 90% / 180s
+dev / 3x4 @7 / 120s
+tgt / 3x4 @7 / 120s
 ## Bench Day
 ## Deadlift Day
 ## OHP Day
@@ -434,9 +434,9 @@ tgt / 3x4 @7
 
 # Week 18
 ## Squat Day
-main / 1x1+ / 90%
-dev / 2x4 @8
-tgt / 2x4 @8
+main / 1x1+ / 90% / 180s
+dev / 2x4 @8 / 120s
+tgt / 2x4 @8 / 120s
 ## Bench Day
 ## Deadlift Day
 ## OHP Day

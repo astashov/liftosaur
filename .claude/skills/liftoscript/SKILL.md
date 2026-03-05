@@ -216,3 +216,4 @@ Fix errors and re-validate until it passes.
 7. Forgetting `warmup: none` on bodyweight exercises
 8. Defining exercises in every week instead of using `[1-N]` and template redefinitions
 9. Using `weights +=` without `dayInWeek` guard in multi-day programs — it fires once per day, so `weights += 10lb` on a 4-day program adds 40lb per week instead of 10lb
+10. Omitting rest timers from template overrides in later weeks — rest timers are NOT inherited across weeks. If the initial template defines `/ 120s`, every week override must also include `/ 120s` or the timer will be lost for that week.

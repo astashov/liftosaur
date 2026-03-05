@@ -46,6 +46,7 @@ Pay special attention to:
 - `custom() {~ ~}` for complex progression logic. **CRITICAL**: Progress fires once per exercise after **every workout day** that has it. In multi-day programs, `weights +=` applies to ALL days by default — you MUST guard with `dayInWeek` to prevent firing multiple times per week (e.g., `if (week == 1 && dayInWeek == 4) { weights += 10lb }`)
 - Set variation syntax for stage-based progression
 - How percentages, rest times, and weights are specified
+- **Rest timers are NOT inherited across weeks.** If a template defines `/ 120s`, every week override must also include `/ 120s` or the timer will be lost for that week.
 - Starting weights: If the program uses 1RM percentages or RPE targets, use those notations. Otherwise, ALWAYS set a default starting weight for every exercise. Look up sensible defaults from `startingWeightLb` in `src/models/exercise.ts`.
 
 ## Output Format

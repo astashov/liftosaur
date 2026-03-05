@@ -116,6 +116,7 @@ Pay special attention to:
 - `custom() {~ ~}` for complex progression logic
 - Set variation syntax for stage-based progression
 - How percentages, rest times, and weights are specified
+- **Rest timers are NOT inherited across weeks.** If a template defines `/ 120s`, every week override must also include `/ 120s` or the timer will be lost for that week.
 - Starting weights: If the program uses 1RM percentages or RPE targets, use those notations. Otherwise, ALWAYS set a default starting weight for every exercise. Look up sensible defaults from `startingWeightLb` in `src/models/exercise.ts`.
 
 #### 3c. Output Format
