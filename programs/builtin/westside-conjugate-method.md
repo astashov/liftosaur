@@ -221,7 +221,7 @@ me_acc: Ab Wheel[1-3] / 3x10 0lb / warmup: none
 ## DE Upper
 // Speed work. Move the bar as fast as possible. Rotate grip every 3 sets: close, medium, wide.
 de: Bench Press / 3x3 (Close), 3x3 (Med), 3x3 (Wide) / 55% / 60s / warmup: none / progress: custom() {~
-  if (dayInWeek == 3 && week == 3) {
+  if (week == 3) {
     rm1 += 5lb
   }
 ~}
@@ -237,14 +237,14 @@ de_acc: Hanging Leg Raise[1-3] / 3x15 0lb / warmup: none
 
 // Speed box squats. Sit back, pause briefly on the box, then explode up.
 de: Box Squat / 10x2 / 60% / 60s / progress: custom() {~
-  if (dayInWeek == 4 && week == 3) {
+  if (week == 3) {
     rm1 += 10lb
   }
 ~}
 
 // Speed deadlifts. Each rep from a dead stop. Maximum acceleration off the floor.
 de: Deadlift / 6x1 / 65% / 60s / warmup: none / progress: custom() {~
-  if (dayInWeek == 4 && week == 3) {
+  if (week == 3) {
     rm1 += 10lb
   }
 ~}
