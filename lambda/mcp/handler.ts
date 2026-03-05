@@ -117,7 +117,10 @@ async function handleToolCall(
   const toolName = (req.params?.name as string) || "";
   const args = (req.params?.arguments as Record<string, unknown>) || {};
 
+  di.log.log(`[MCP] tools/call: ${toolName}`, JSON.stringify(args));
+
   if (toolName === "get_liftoscript_reference") {
+    di.log.log(`[MCP] ${toolName} -> ok (reference)`);
     return mcpJson(
       200,
       jsonRpcResponse(req.id, {
@@ -127,6 +130,7 @@ async function handleToolCall(
   }
 
   if (toolName === "get_liftohistory_reference") {
+    di.log.log(`[MCP] ${toolName} -> ok (reference)`);
     return mcpJson(
       200,
       jsonRpcResponse(req.id, {
@@ -137,11 +141,13 @@ async function handleToolCall(
 
   const tool = mcpTools.find((t) => t.name === toolName);
   if (!tool) {
+    di.log.log(`[MCP] ${toolName} -> error: unknown tool`);
     return mcpJson(200, jsonRpcError(req.id, -32602, `Unknown tool: ${toolName}`));
   }
 
   const authHeader = event.headers.Authorization || event.headers.authorization;
   if (!authHeader?.startsWith("Bearer ")) {
+    di.log.log(`[MCP] ${toolName} -> 401: no bearer token`);
     const baseUrl = Utils_getEnv() === "dev" ? "https://stage.liftosaur.com" : "https://www.liftosaur.com";
     return {
       statusCode: 401,
@@ -157,6 +163,7 @@ async function handleToolCall(
   const oauthDao = new OauthDao(di);
   const tokenRecord = await oauthDao.getByToken(accessToken);
   if (!tokenRecord || tokenRecord.expiresAt < Date.now()) {
+    di.log.log(`[MCP] ${toolName} -> error: invalid/expired token`);
     return mcpJson(
       200,
       jsonRpcResponse(req.id, {
@@ -167,9 +174,11 @@ async function handleToolCall(
   }
 
   const userId = tokenRecord.userId;
+  di.log.log(`[MCP] ${toolName} user=${userId}`);
   const userDao = new UserDao(di);
   const user = await userDao.getLimitedById(userId);
   if (!user) {
+    di.log.log(`[MCP] ${toolName} -> error: user not found`);
     return mcpJson(
       200,
       jsonRpcResponse(req.id, {
@@ -181,6 +190,7 @@ async function handleToolCall(
 
   const result = await McpToolExecutor_execute(toolName, args, userId, user, di);
   if (!result.success) {
+    di.log.log(`[MCP] ${toolName} -> error: ${result.error.message}`);
     const hint =
       toolName === "create_program" || toolName === "update_program" || toolName === "run_playground"
         ? "\n\nHint: If you haven't read the Liftoscript reference yet, call get_liftoscript_reference first."
@@ -195,5 +205,6 @@ async function handleToolCall(
   }
 
   const text = typeof result.data === "string" ? result.data : JSON.stringify(result.data);
+  di.log.log(`[MCP] ${toolName} -> ok (${text.length} chars)`);
   return mcpJson(200, jsonRpcResponse(req.id, { content: [{ type: "text", text }] }));
 }
