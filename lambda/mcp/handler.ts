@@ -1,6 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Endpoint, RouteHandler } from "yatro";
 import { IDI } from "../utils/di";
+import { Utils_getEnv } from "../utils";
 import { UserDao } from "../dao/userDao";
 import { OauthDao } from "../dao/oauthDao";
 import { mcpTools } from "./tools";
@@ -141,14 +142,13 @@ async function handleToolCall(
 
   const authHeader = event.headers.Authorization || event.headers.authorization;
   if (!authHeader?.startsWith("Bearer ")) {
-    const host = event.headers.Host || event.headers.host || "www.liftosaur.com";
-    const proto = event.headers["X-Forwarded-Proto"] || event.headers["x-forwarded-proto"] || "https";
+    const baseUrl = Utils_getEnv() === "dev" ? "https://stage.liftosaur.com" : "https://www.liftosaur.com";
     return {
       statusCode: 401,
       body: JSON.stringify({ error: "unauthorized" }),
       headers: {
         "content-type": "application/json",
-        "www-authenticate": `Bearer resource_metadata="${proto}://${host}/.well-known/oauth-protected-resource"`,
+        "www-authenticate": `Bearer resource_metadata="${baseUrl}/.well-known/oauth-protected-resource"`,
       },
     };
   }

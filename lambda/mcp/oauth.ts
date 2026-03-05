@@ -3,7 +3,7 @@ import { Endpoint, RouteHandler } from "yatro";
 import { IDI } from "../utils/di";
 import { OauthDao } from "../dao/oauthDao";
 import { UserDao } from "../dao/userDao";
-import { ResponseUtils_getHost } from "../utils/response";
+import { Utils_getEnv } from "../utils";
 import * as Cookie from "cookie";
 
 interface IPayload {
@@ -27,10 +27,9 @@ function oauthError(status: number, error: string, description: string): APIGate
   return oauthJson(status, { error, error_description: description });
 }
 
-function getBaseUrl(event: APIGatewayProxyEvent): string {
-  const host = ResponseUtils_getHost(event);
-  const proto = event.headers["X-Forwarded-Proto"] || event.headers["x-forwarded-proto"] || "https";
-  return `${proto}://${host}`;
+function getBaseUrl(): string {
+  const env = Utils_getEnv();
+  return env === "dev" ? "https://stage.liftosaur.com" : "https://www.liftosaur.com";
 }
 
 async function getCurrentUserId(event: APIGatewayProxyEvent, di: IDI): Promise<string | undefined> {
@@ -47,7 +46,7 @@ export const getProtectedResourceHandler: RouteHandler<
   APIGatewayProxyResult,
   typeof getProtectedResourceEndpoint
 > = async ({ payload }) => {
-  const baseUrl = getBaseUrl(payload.event);
+  const baseUrl = getBaseUrl();
   return oauthJson(200, {
     resource: baseUrl,
     authorization_servers: [baseUrl],
@@ -62,7 +61,7 @@ export const getAuthServerMetadataHandler: RouteHandler<
   APIGatewayProxyResult,
   typeof getAuthServerMetadataEndpoint
 > = async ({ payload }) => {
-  const baseUrl = getBaseUrl(payload.event);
+  const baseUrl = getBaseUrl();
   return oauthJson(200, {
     issuer: baseUrl,
     authorization_endpoint: `${baseUrl}/oauth/authorize`,
@@ -150,7 +149,7 @@ export const getOauthAuthorizeHandler: RouteHandler<
 
   const userId = await getCurrentUserId(event, di);
   if (!userId) {
-    const baseUrl = getBaseUrl(event);
+    const baseUrl = getBaseUrl();
     const currentUrl = `${baseUrl}${event.path}?${new URLSearchParams(
       params as Record<string, string>
     ).toString()}`;
