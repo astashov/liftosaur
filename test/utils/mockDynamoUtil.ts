@@ -3,6 +3,8 @@ import { IDynamoUtil } from "../../lambda/utils/dynamo";
 import { ILogUtil } from "../../lambda/utils/log";
 import deepmerge from "deepmerge";
 import { userTableNames } from "../../lambda/dao/userDao";
+import { apiKeyTableNames } from "../../lambda/dao/apiKeyDao";
+import { freeUsersTableNames } from "../../lambda/dao/freeUserDao";
 import { CollectionUtils_compact } from "../../src/utils/collection";
 import { ObjectUtils_entries, ObjectUtils_values, ObjectUtils_clone } from "../../src/utils/object";
 
@@ -12,6 +14,8 @@ const idKeys: Partial<Record<string, string[]>> = {
   [userTableNames.prod.historyRecords]: ["userId", "id"],
   [userTableNames.prod.programs]: ["userId", "id"],
   [userTableNames.prod.stats]: ["userId", "name"],
+  [apiKeyTableNames.prod.apiKeys]: ["key"],
+  [freeUsersTableNames.prod.freeUsers]: ["id"],
 };
 
 export class MockDynamoUtil implements IDynamoUtil {

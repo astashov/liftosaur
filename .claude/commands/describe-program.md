@@ -239,13 +239,18 @@ Do NOT add separate volume or duration sections — the app shows this data in w
 
 ## Writing Style
 
+Follow the full writing style guide in `.claude/skills/writing-style/SKILL.md`. Key points for program descriptions:
+
 - Be direct and specific. "Add 5lb to bench press every successful session" not "progressively increase the weight over time"
 - Use concrete numbers wherever possible
 - When explaining WHY something is done, keep it to 1-2 sentences. Don't lecture.
 - If the program has known issues or common criticisms, mention them honestly in the cons section
 - Write for someone who knows basic gym terminology (sets, reps, 1RM, AMRAP) but doesn't know this specific program
 - Do not pad sections with filler. If a section has 2 bullet points of real content, that's fine. Don't stretch it to 5.
-- **Vary sentence length deliberately.** Uniform sentence length is monotonous and hard to scan. Mix short punchy sentences (3-8 words) with longer ones that add detail. Use fragments where they feel natural. This creates rhythm and makes the text easier to skim — readers can grab key points from short sentences and dive into longer ones when they want depth.
+- Vary sentence length deliberately - mix short punchy fragments with longer explanatory sentences
+- Use conversational tone: "Don't be afraid to choose lighter weights - it'll autobalance in later workouts" not "It is advisable to select conservative initial loads"
+- Acknowledge complexity honestly, then show it's manageable: "It sounds complicated, but should be way more clear when you look at the example below"
+- Use a single hyphen (-) for dashes, not double hyphens (--). "Linear progression - simple and effective" not "Linear progression -- simple and effective"
 
 ## Quality Checks
 

@@ -686,4 +686,38 @@ export class Service {
     }
     return {};
   }
+
+  public async getApiKeys(): Promise<{ key: string; name: string; createdAt: number }[]> {
+    const result = await this.client(`${__API_HOST__}/api/apikeys`, {
+      method: "GET",
+      credentials: "include",
+    });
+    if (result.ok) {
+      const json = await result.json();
+      return json.data?.keys || [];
+    }
+    return [];
+  }
+
+  public async createApiKey(name: string): Promise<{ key: string; name: string; createdAt: number } | undefined> {
+    const result = await this.client(`${__API_HOST__}/api/apikeys`, {
+      method: "POST",
+      body: JSON.stringify({ name }),
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+    });
+    if (result.ok) {
+      const json = await result.json();
+      return json.data;
+    }
+    return undefined;
+  }
+
+  public async deleteApiKey(key: string): Promise<boolean> {
+    const result = await this.client(`${__API_HOST__}/api/apikeys/${encodeURIComponent(key)}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    return result.ok;
+  }
 }

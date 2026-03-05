@@ -203,6 +203,18 @@ export class LiftosaurCdkStack extends cdk.Stack {
       pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
     });
 
+    const apiKeysTable = new dynamodb.Table(this, `LftApiKeys${suffix}`, {
+      tableName: `lftApiKeys${suffix}`,
+      partitionKey: { name: "key", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+    });
+    apiKeysTable.addGlobalSecondaryIndex({
+      indexName: `lftApiKeysUserId${suffix}`,
+      partitionKey: { name: "userId", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
     const debugTable = new dynamodb.Table(this, `LftDebug${suffix}`, {
       tableName: `lftDebug${suffix}`,
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
@@ -458,6 +470,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     affiliatesTable.grantReadWriteData(lambdaFunction);
     freeUsersTable.grantReadWriteData(lambdaFunction);
     couponsTable.grantReadWriteData(lambdaFunction);
+    apiKeysTable.grantReadWriteData(lambdaFunction);
     debugTable.grantReadWriteData(lambdaFunction);
     lambdaFunction.addToRolePolicy(
       new iam.PolicyStatement({

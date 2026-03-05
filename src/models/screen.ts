@@ -38,7 +38,8 @@ export type IScreenData =
   | { name: "exercises"; params?: Record<string, never> }
   | { name: "onerms"; params?: Record<string, never> }
   | { name: "setupequipment"; params?: Record<string, never> }
-  | { name: "programPreview"; params?: Record<string, never> };
+  | { name: "programPreview"; params?: Record<string, never> }
+  | { name: "apiKeys"; params?: Record<string, never> };
 
 export type IScreen = IScreenData["name"];
 export type IScreenStack = IScreenData[];
@@ -224,6 +225,9 @@ export function Screen_tab(screen: IScreen): ITab {
     }
     case "units": {
       return "program";
+    }
+    case "apiKeys": {
+      return "me";
     }
   }
 }

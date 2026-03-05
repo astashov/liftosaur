@@ -13,7 +13,12 @@ import {
   IStatsPercentageValue,
 } from "../../src/types";
 import { Settings_build } from "../../src/models/settings";
-import { Storage_get, Storage_fillVersions, Storage_applyUpdate } from "../../src/models/storage";
+import {
+  Storage_get,
+  Storage_fillVersions,
+  Storage_applyUpdate,
+  Storage_updateVersions,
+} from "../../src/models/storage";
 import { Utils_getEnv } from "../utils";
 import {
   CollectionUtils_uniqBy,
@@ -542,6 +547,22 @@ export class UserDao {
     });
   }
 
+  public async saveHistoryRecord(userId: string, record: IHistoryRecord): Promise<void> {
+    const env = Utils_getEnv();
+    await this.di.dynamo.put({
+      tableName: userTableNames[env].historyRecords,
+      item: { ...record, userId },
+    });
+  }
+
+  public async deleteHistoryRecord(userId: string, id: number): Promise<void> {
+    const env = Utils_getEnv();
+    await this.di.dynamo.remove({
+      tableName: userTableNames[env].historyRecords,
+      key: { id, userId },
+    });
+  }
+
   public async store(user: ILimitedUserDao): Promise<void> {
     const env = Utils_getEnv();
     const storage = ObjectUtils_clone(user.storage);
@@ -550,6 +571,19 @@ export class UserDao {
     delete storage.stats;
     const item = { ...user, storage, nickname: storage.settings.nickname?.toLowerCase() };
     await this.di.dynamo.put({ tableName: userTableNames[env].users, item });
+  }
+
+  public async applyStorageUpdate(
+    user: ILimitedUserDao,
+    buildNewStorage: (oldStorage: IPartialStorage) => IPartialStorage,
+    sideEffects?: Promise<unknown>[]
+  ): Promise<void> {
+    const oldStorage = user.storage;
+    const newStorage = buildNewStorage(oldStorage);
+    newStorage.originalId = Date.now();
+    newStorage._versions = Storage_updateVersions(oldStorage, newStorage);
+    user.storage = newStorage;
+    await Promise.all([this.store(user), ...(sideEffects || [])]);
   }
 
   public async getLimitedById(userId: string): Promise<ILimitedUserDao | undefined> {

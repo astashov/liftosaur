@@ -4,6 +4,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Endpoint, Method, Router, RouteHandler } from "yatro";
 import { GoogleAuthTokenDao } from "./dao/googleAuthTokenDao";
 import { UserDao, ILimitedUserDao } from "./dao/userDao";
+import { ApiKeyDao } from "./dao/apiKeyDao";
 import * as Cookie from "cookie";
 import JWT from "jsonwebtoken";
 import { UidFactory_generateUid } from "./utils/generator";
@@ -98,6 +99,28 @@ import { renderPaymentsDashboardHtml, IPaymentsDashboardData } from "./paymentsD
 import { IExportedPlannerProgram } from "../src/pages/planner/models/types";
 import { UrlContentFetcher } from "./utils/urlContentFetcher";
 import { LlmPrompt_getSystemPrompt, LlmPrompt_getUserPrompt } from "./utils/llms/llmPrompt";
+import {
+  getV1HistoryEndpoint,
+  getV1HistoryHandler,
+  postV1HistoryEndpoint,
+  postV1HistoryHandler,
+  putV1HistoryEndpoint,
+  putV1HistoryHandler,
+  deleteV1HistoryEndpoint,
+  deleteV1HistoryHandler,
+  getV1ProgramsEndpoint,
+  getV1ProgramsHandler,
+  getV1ProgramEndpoint,
+  getV1ProgramHandler,
+  postV1ProgramEndpoint,
+  postV1ProgramHandler,
+  putV1ProgramEndpoint,
+  putV1ProgramHandler,
+  deleteV1ProgramEndpoint,
+  deleteV1ProgramHandler,
+  postV1PlaygroundEndpoint,
+  postV1PlaygroundHandler,
+} from "./api/v1";
 import { AiLogsDao } from "./dao/aiLogsDao";
 import { ICollectionVersions } from "../src/models/versionTracker";
 import { ObjectUtils_values, ObjectUtils_keys } from "../src/utils/object";
@@ -1246,6 +1269,55 @@ const postBatchEventsHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
     }
   }
   return ResponseUtils_json(200, event, { acknowledged: successfulIds });
+};
+
+const postApiKeysEndpoint = Endpoint.build("/api/apikeys");
+const postApiKeysHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postApiKeysEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils_json(401, event, { error: "Not authenticated" });
+  }
+  const body = getBodyJson(event);
+  const name = (body.name as string) || "API Key";
+  const apiKeyDao = new ApiKeyDao(di);
+  const dao = await apiKeyDao.create(userId, name);
+  return ResponseUtils_json(200, event, { data: { key: dao.key, name: dao.name, createdAt: dao.createdAt } });
+};
+
+const getApiKeysEndpoint = Endpoint.build("/api/apikeys");
+const getApiKeysHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getApiKeysEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils_json(401, event, { error: "Not authenticated" });
+  }
+  const apiKeyDao = new ApiKeyDao(di);
+  const keys = await apiKeyDao.listByUserId(userId);
+  return ResponseUtils_json(200, event, { data: { keys } });
+};
+
+const deleteApiKeyEndpoint = Endpoint.build("/api/apikeys/:key");
+const deleteApiKeyHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof deleteApiKeyEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (!userId) {
+    return ResponseUtils_json(401, event, { error: "Not authenticated" });
+  }
+  const apiKeyDao = new ApiKeyDao(di);
+  const existing = await apiKeyDao.getByKey(params.key);
+  if (!existing || existing.userId !== userId) {
+    return ResponseUtils_json(404, event, { error: { code: "not_found", message: "API key not found" } });
+  }
+  await apiKeyDao.deleteKey(params.key);
+  return ResponseUtils_json(200, event, { data: { deleted: true } });
 };
 
 const getProfileEndpoint = Endpoint.build("/profile", { user: "string" });
@@ -2700,6 +2772,17 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
   return async (event: APIGatewayProxyEvent, context) => {
     const di = diBuilder();
     if (event.httpMethod === "OPTIONS") {
+      if (event.path.startsWith("/api/v1/")) {
+        return {
+          statusCode: 200,
+          body: "",
+          headers: {
+            "access-control-allow-origin": "*",
+            "access-control-allow-headers": "content-type, authorization",
+            "access-control-allow-methods": "OPTIONS,GET,POST,PUT,DELETE",
+          },
+        };
+      }
       return { statusCode: 200, body: "", headers: ResponseUtils_getHeaders(event) };
     }
     di.log.id = UidFactory_generateUid(4);
@@ -2797,7 +2880,20 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .post(postEventEndpoint, postEventHandler)
       .get(getDashboardsUserEndpoint, getDashboardsUserHandler)
       .get(getDashboardsPaymentsEndpoint, getDashboardsPaymentsHandler)
-      .post(postBatchEventsEndpoint, postBatchEventsHandler);
+      .post(postBatchEventsEndpoint, postBatchEventsHandler)
+      .post(postApiKeysEndpoint, postApiKeysHandler)
+      .get(getApiKeysEndpoint, getApiKeysHandler)
+      .delete(deleteApiKeyEndpoint, deleteApiKeyHandler)
+      .get(getV1HistoryEndpoint, getV1HistoryHandler)
+      .post(postV1HistoryEndpoint, postV1HistoryHandler)
+      .put(putV1HistoryEndpoint, putV1HistoryHandler)
+      .delete(deleteV1HistoryEndpoint, deleteV1HistoryHandler)
+      .get(getV1ProgramsEndpoint, getV1ProgramsHandler)
+      .get(getV1ProgramEndpoint, getV1ProgramHandler)
+      .post(postV1ProgramEndpoint, postV1ProgramHandler)
+      .put(putV1ProgramEndpoint, putV1ProgramHandler)
+      .delete(deleteV1ProgramEndpoint, deleteV1ProgramHandler)
+      .post(postV1PlaygroundEndpoint, postV1PlaygroundHandler);
     r = repmaxpairswords.reduce((memo, [endpoint, handler]) => memo.get(endpoint, handler), r);
     r = repmaxpairnums.reduce((memo, [endpoint, handler]) => memo.get(endpoint, handler), r);
 

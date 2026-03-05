@@ -188,13 +188,17 @@ Check that every program listed in `relatedPrograms` actually exists in `program
 
 ## Writing Style
 
+Follow the full writing style guide in `.claude/skills/writing-style/SKILL.md`. Key points for technique pages:
+
 - Be direct and specific. "Add 5lb each session you complete all reps" not "progressively increase the weight over time"
 - Use concrete numbers wherever possible
 - When explaining WHY something works, keep it to 1-2 sentences. Don't lecture.
 - Write for someone who knows basic gym terminology (sets, reps, 1RM, AMRAP) but may not know this specific technique
 - Do not pad sections with filler. If a section has 2 bullet points of real content, that's fine. Don't stretch it to 5.
-- **Vary sentence length deliberately.** Mix short punchy sentences (3-8 words) with longer ones that add detail. Use fragments where they feel natural. This creates rhythm and makes the text easier to skim.
+- Vary sentence length deliberately - mix short punchy fragments with longer explanatory sentences
+- Use conversational tone with direct reassurance where appropriate
 - The Liftoscript snippet is the centerpiece of each page. Make it practical and correct.
+- Use a single hyphen (-) for dashes, not double hyphens (--). "Linear progression - simple and effective" not "Linear progression -- simple and effective"
 
 ## Quality Checks
 

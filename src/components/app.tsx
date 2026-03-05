@@ -7,6 +7,7 @@ import { Program_getProgram, Program_getFullProgram, Program_fullProgram } from 
 import { IScreen, Screen_currentName, Screen_current } from "../models/screen";
 import { ScreenSettings } from "./screenSettings";
 import { ScreenAccount } from "./screenAccount";
+import { ScreenApiKeys } from "./screenApiKeys";
 import { useThunkReducer } from "../utils/useThunkReducer";
 import {
   Thunk_fetchStorage,
@@ -522,6 +523,16 @@ export function AppView(props: IProps): JSX.Element | null {
     );
   } else if (Screen_currentName(state.screenStack) === "account") {
     content = <ScreenAccount navCommon={navCommon} dispatch={dispatch} email={state.user?.email} />;
+  } else if (Screen_currentName(state.screenStack) === "apiKeys") {
+    content = (
+      <ScreenApiKeys
+        navCommon={navCommon}
+        dispatch={dispatch}
+        service={service}
+        subscription={state.storage.subscription}
+        userId={state.user?.id}
+      />
+    );
   } else if (Screen_currentName(state.screenStack) === "exerciseStats") {
     const exercise = state.viewExerciseType
       ? Exercise_find(state.viewExerciseType, state.storage.settings.exercises)

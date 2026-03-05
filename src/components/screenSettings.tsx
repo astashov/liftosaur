@@ -188,6 +188,12 @@ export function ScreenSettings(props: IProps): JSX.Element {
           />
         )}
 
+        <MenuItem
+          name="API Keys"
+          shouldShowRightArrow={true}
+          onClick={() => props.dispatch(Thunk_pushScreen("apiKeys"))}
+        />
+
         <GroupHeader name="My Measurements" topPadding={true} />
         {currentBodyweight && (
           <MenuItem

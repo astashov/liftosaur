@@ -278,12 +278,16 @@ Do NOT add separate volume or duration sections — the app shows this data in w
 
 #### 3f. Writing Style
 
+Follow the full writing style guide in `.claude/skills/writing-style/SKILL.md`. Key points for program descriptions:
+
 - Be direct and specific. "Add 5lb to bench press every successful session" not "progressively increase the weight over time"
 - Use concrete numbers wherever possible
 - When explaining WHY something is done, keep it to 1-2 sentences. Don't lecture.
 - If the program has known issues or common criticisms, mention them honestly in the cons section
 - Write for someone who knows basic gym terminology but doesn't know this specific program
 - Do not pad sections with filler
+- Use conversational, encouraging tone - normalize failure and reassure: "That's okay! Record the weight and reps, and move on"
+- Acknowledge complexity, then show it's manageable with concrete examples
 
 #### 3g. Quality Checks
 
