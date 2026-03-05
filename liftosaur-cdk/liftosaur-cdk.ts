@@ -215,6 +215,34 @@ export class LiftosaurCdkStack extends cdk.Stack {
       projectionType: dynamodb.ProjectionType.ALL,
     });
 
+    const oauthClientsTable = new dynamodb.Table(this, `LftOauthClients${suffix}`, {
+      tableName: `lftOauthClients${suffix}`,
+      partitionKey: { name: "clientId", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+    });
+
+    const oauthAuthCodesTable = new dynamodb.Table(this, `LftOauthAuthCodes${suffix}`, {
+      tableName: `lftOauthAuthCodes${suffix}`,
+      partitionKey: { name: "code", type: dynamodb.AttributeType.STRING },
+      timeToLiveAttribute: "ttl",
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+    });
+
+    const oauthTokensTable = new dynamodb.Table(this, `LftOauthTokens${suffix}`, {
+      tableName: `lftOauthTokens${suffix}`,
+      partitionKey: { name: "token", type: dynamodb.AttributeType.STRING },
+      timeToLiveAttribute: "ttl",
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+    });
+    oauthTokensTable.addGlobalSecondaryIndex({
+      indexName: `lftOauthTokensRefreshToken${suffix}`,
+      partitionKey: { name: "refreshToken", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
     const debugTable = new dynamodb.Table(this, `LftDebug${suffix}`, {
       tableName: `lftDebug${suffix}`,
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
@@ -471,6 +499,9 @@ export class LiftosaurCdkStack extends cdk.Stack {
     freeUsersTable.grantReadWriteData(lambdaFunction);
     couponsTable.grantReadWriteData(lambdaFunction);
     apiKeysTable.grantReadWriteData(lambdaFunction);
+    oauthClientsTable.grantReadWriteData(lambdaFunction);
+    oauthAuthCodesTable.grantReadWriteData(lambdaFunction);
+    oauthTokensTable.grantReadWriteData(lambdaFunction);
     debugTable.grantReadWriteData(lambdaFunction);
     lambdaFunction.addToRolePolicy(
       new iam.PolicyStatement({

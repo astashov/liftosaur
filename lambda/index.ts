@@ -122,6 +122,18 @@ import {
   postV1PlaygroundHandler,
 } from "./api/v1";
 import { postMcpEndpoint, postMcpHandler } from "./mcp/handler";
+import {
+  getProtectedResourceEndpoint,
+  getProtectedResourceHandler,
+  getAuthServerMetadataEndpoint,
+  getAuthServerMetadataHandler,
+  postOauthRegisterEndpoint,
+  postOauthRegisterHandler,
+  getOauthAuthorizeEndpoint,
+  getOauthAuthorizeHandler,
+  postOauthTokenEndpoint,
+  postOauthTokenHandler,
+} from "./mcp/oauth";
 import { AiLogsDao } from "./dao/aiLogsDao";
 import { ICollectionVersions } from "../src/models/versionTracker";
 import { ObjectUtils_values, ObjectUtils_keys } from "../src/utils/object";
@@ -2773,13 +2785,13 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
   return async (event: APIGatewayProxyEvent, context) => {
     const di = diBuilder();
     if (event.httpMethod === "OPTIONS") {
-      if (event.path.startsWith("/api/v1/")) {
+      if (event.path.startsWith("/api/v1/") || event.path === "/mcp" || event.path.startsWith("/oauth/")) {
         return {
           statusCode: 200,
           body: "",
           headers: {
             "access-control-allow-origin": "*",
-            "access-control-allow-headers": "content-type, authorization",
+            "access-control-allow-headers": "content-type, authorization, mcp-protocol-version",
             "access-control-allow-methods": "OPTIONS,GET,POST,PUT,DELETE",
           },
         };
@@ -2895,7 +2907,12 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .put(putV1ProgramEndpoint, putV1ProgramHandler)
       .delete(deleteV1ProgramEndpoint, deleteV1ProgramHandler)
       .post(postV1PlaygroundEndpoint, postV1PlaygroundHandler)
-      .post(postMcpEndpoint, postMcpHandler);
+      .post(postMcpEndpoint, postMcpHandler)
+      .get(getProtectedResourceEndpoint, getProtectedResourceHandler)
+      .get(getAuthServerMetadataEndpoint, getAuthServerMetadataHandler)
+      .post(postOauthRegisterEndpoint, postOauthRegisterHandler)
+      .get(getOauthAuthorizeEndpoint, getOauthAuthorizeHandler)
+      .post(postOauthTokenEndpoint, postOauthTokenHandler);
     r = repmaxpairswords.reduce((memo, [endpoint, handler]) => memo.get(endpoint, handler), r);
     r = repmaxpairnums.reduce((memo, [endpoint, handler]) => memo.get(endpoint, handler), r);
 

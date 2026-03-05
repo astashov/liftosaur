@@ -4,6 +4,7 @@ import { ILogUtil } from "../../lambda/utils/log";
 import deepmerge from "deepmerge";
 import { userTableNames } from "../../lambda/dao/userDao";
 import { apiKeyTableNames } from "../../lambda/dao/apiKeyDao";
+import { oauthTableNames } from "../../lambda/dao/oauthDao";
 import { freeUsersTableNames } from "../../lambda/dao/freeUserDao";
 import { CollectionUtils_compact } from "../../src/utils/collection";
 import { ObjectUtils_entries, ObjectUtils_values, ObjectUtils_clone } from "../../src/utils/object";
@@ -15,6 +16,9 @@ const idKeys: Partial<Record<string, string[]>> = {
   [userTableNames.prod.programs]: ["userId", "id"],
   [userTableNames.prod.stats]: ["userId", "name"],
   [apiKeyTableNames.prod.apiKeys]: ["key"],
+  [oauthTableNames.prod.clients]: ["clientId"],
+  [oauthTableNames.prod.authCodes]: ["code"],
+  [oauthTableNames.prod.tokens]: ["token"],
   [freeUsersTableNames.prod.freeUsers]: ["id"],
 };
 

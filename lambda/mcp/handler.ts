@@ -2,6 +2,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Endpoint, RouteHandler } from "yatro";
 import { IDI } from "../utils/di";
 import { UserDao } from "../dao/userDao";
+import { OauthDao } from "../dao/oauthDao";
 import { mcpTools } from "./tools";
 import { McpReference_getLiftoscriptReference, McpReference_getLiftohistoryReference } from "./reference";
 import { McpToolExecutor_execute } from "./executor";
@@ -83,8 +84,6 @@ export const postMcpHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
     return { statusCode: 202, body: "", headers: mcpJson(202, {}).headers };
   }
 
-  // TODO: validate OAuth token for all methods below once OAuth is implemented
-
   if (req.method === "tools/list") {
     return mcpJson(
       200,
@@ -140,19 +139,34 @@ async function handleToolCall(
     return mcpJson(200, jsonRpcError(req.id, -32602, `Unknown tool: ${toolName}`));
   }
 
-  // TODO: replace with OAuth token validation once implemented
   const authHeader = event.headers.Authorization || event.headers.authorization;
   if (!authHeader?.startsWith("Bearer ")) {
+    const host = event.headers.Host || event.headers.host || "www.liftosaur.com";
+    const proto = event.headers["X-Forwarded-Proto"] || event.headers["x-forwarded-proto"] || "https";
+    return {
+      statusCode: 401,
+      body: JSON.stringify({ error: "unauthorized" }),
+      headers: {
+        "content-type": "application/json",
+        "www-authenticate": `Bearer resource_metadata="${proto}://${host}/.well-known/oauth-protected-resource"`,
+      },
+    };
+  }
+
+  const accessToken = authHeader.substring(7);
+  const oauthDao = new OauthDao(di);
+  const tokenRecord = await oauthDao.getByToken(accessToken);
+  if (!tokenRecord || tokenRecord.expiresAt < Date.now()) {
     return mcpJson(
       200,
       jsonRpcResponse(req.id, {
-        content: [{ type: "text", text: "Authentication required" }],
+        content: [{ type: "text", text: "Invalid or expired access token" }],
         isError: true,
       })
     );
   }
 
-  const userId = "TODO_FROM_OAUTH";
+  const userId = tokenRecord.userId;
   const userDao = new UserDao(di);
   const user = await userDao.getLimitedById(userId);
   if (!user) {
