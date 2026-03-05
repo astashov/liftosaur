@@ -128,6 +128,17 @@ export function Thunk_postevent(action: string, extra?: Record<string, string | 
   };
 }
 
+declare let __HOST__: string;
+
+function appleIdInit(): void {
+  window.AppleID?.auth.init({
+    clientId: "com.liftosaur.www.signinapple",
+    scope: "email",
+    redirectURI: `${__HOST__}/appleauthcallback.html`,
+    usePopup: true,
+  });
+}
+
 export function Thunk_appleSignIn(cb?: () => void): IThunk {
   return async (dispatch, getState, env) => {
     dispatch(Thunk_postevent("apple-sign-in"));
@@ -154,6 +165,7 @@ export function Thunk_appleSignIn(cb?: () => void): IThunk {
         }
         return;
       }
+      appleIdInit();
       const response = await window.AppleID.auth.signIn();
       ({ id_token, code } = response.authorization);
     }
