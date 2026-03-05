@@ -1,0 +1,383 @@
+import { UserDao, ILimitedUserDao } from "../dao/userDao";
+import { IDI } from "./di";
+import { LiftohistorySerializer_serialize } from "../../src/liftohistory/liftohistorySerializer";
+import {
+  LiftohistoryDeserializer_deserialize,
+  LiftohistorySyntaxError,
+} from "../../src/liftohistory/liftohistoryDeserializer";
+import {
+  PlannerProgram_generateFullText,
+  PlannerProgram_evaluateText,
+  PlannerProgram_evaluateFull,
+} from "../../src/pages/planner/models/plannerProgram";
+import { PlannerSyntaxError } from "../../src/pages/planner/plannerExerciseEvaluator";
+import { IProgram, ISettings } from "../../src/types";
+import { UidFactory_generateUid } from "./generator";
+import { Playground_run, Playground_validateProgramText } from "../../src/playground/playground";
+import { IEither } from "../../src/utils/types";
+
+export interface IApiError {
+  status: number;
+  code: string;
+  message: string;
+  details?: { line: number; offset: number; from: number; to: number; message: string }[];
+}
+
+type IApiResult<T> = IEither<T, IApiError>;
+
+function err<T>(status: number, code: string, message: string, details?: IApiError["details"]): IApiResult<T> {
+  return { success: false, error: { status, code, message, details } };
+}
+
+function ok<T>(data: T): IApiResult<T> {
+  return { success: true, data };
+}
+
+function syntaxErrorDetails(
+  errors: (LiftohistorySyntaxError | PlannerSyntaxError)[]
+): { line: number; offset: number; from: number; to: number; message: string }[] {
+  return errors.map((e) => ({ line: e.line, offset: e.offset, from: e.from, to: e.to, message: e.message }));
+}
+
+function parseDate(dateStr: string): string {
+  const asNum = Number(dateStr);
+  if (!isNaN(asNum) && asNum > 1000000000) {
+    return new Date(asNum > 9999999999 ? asNum : asNum * 1000).toISOString();
+  }
+  return new Date(dateStr).toISOString();
+}
+
+function validateProgramText(text: string, settings: ISettings): IApiError | undefined {
+  const { evaluatedWeeks } = PlannerProgram_evaluateFull(text, settings);
+  if (!evaluatedWeeks.success) {
+    return {
+      status: 422,
+      code: "parse_error",
+      message: "Failed to parse program",
+      details: syntaxErrorDetails([evaluatedWeeks.error]),
+    };
+  }
+  return undefined;
+}
+
+// --- History ---
+
+export interface IGetHistoryParams {
+  startDate?: string;
+  endDate?: string;
+  limit?: string;
+  cursor?: string;
+}
+
+export async function ApiV1_getHistory(
+  userId: string,
+  user: ILimitedUserDao,
+  params: IGetHistoryParams,
+  di: IDI
+): Promise<IApiResult<{ records: { id: number; text: string }[]; hasMore: boolean; nextCursor?: number }>> {
+  const userDao = new UserDao(di);
+  const settings = user.storage.settings;
+  const limit = Math.min(parseInt(params.limit || "50", 10) || 50, 200);
+  const cursor = params.cursor ? parseInt(params.cursor, 10) : undefined;
+
+  let history;
+  if (params.startDate) {
+    const startDate = parseDate(params.startDate);
+    const endDate = params.endDate ? parseDate(params.endDate) : undefined;
+    const result = await userDao.getUserAndHistory(userId, startDate, endDate);
+    history = result?.storage.history || [];
+  } else {
+    history = await userDao.getHistoryByUserId(userId, { limit: limit + 1, after: cursor });
+  }
+
+  const hasMore = history.length > limit;
+  const records = history.slice(0, limit);
+  const nextCursor = hasMore && records.length > 0 ? records[records.length - 1].id : undefined;
+
+  return ok({
+    records: records.map((r) => ({ id: r.id, text: LiftohistorySerializer_serialize(r, settings) })),
+    hasMore,
+    nextCursor,
+  });
+}
+
+export async function ApiV1_createHistory(
+  userId: string,
+  user: ILimitedUserDao,
+  text: string,
+  di: IDI
+): Promise<IApiResult<{ id: number; text: string }>> {
+  const settings = user.storage.settings;
+  const result = LiftohistoryDeserializer_deserialize(text, settings);
+  if (!result.success) {
+    return err(422, "parse_error", "Failed to parse history record", syntaxErrorDetails(result.error));
+  }
+  if (result.data.historyRecords.length !== 1) {
+    return err(400, "invalid_input", "Expected exactly one history record");
+  }
+
+  const record = result.data.historyRecords[0];
+  const userDao = new UserDao(di);
+  const history = await userDao.getHistoryByUserId(userId);
+  user.storage = { ...user.storage, history };
+  await userDao.applyStorageUpdate(user, (old) => ({ ...old, history: [...(old.history || []), record] }), [
+    userDao.saveHistoryRecord(userId, record),
+  ]);
+
+  return ok({ id: record.id, text: LiftohistorySerializer_serialize(record, settings) });
+}
+
+export async function ApiV1_updateHistory(
+  userId: string,
+  user: ILimitedUserDao,
+  recordId: number,
+  text: string,
+  di: IDI
+): Promise<IApiResult<{ id: number; text: string }>> {
+  const settings = user.storage.settings;
+  const result = LiftohistoryDeserializer_deserialize(text, settings);
+  if (!result.success) {
+    return err(422, "parse_error", "Failed to parse history record", syntaxErrorDetails(result.error));
+  }
+  if (result.data.historyRecords.length !== 1) {
+    return err(400, "invalid_input", "Expected exactly one history record");
+  }
+
+  const userDao = new UserDao(di);
+  const existing = await userDao.getHistoryByUserId(userId, { ids: [recordId] });
+  if (existing.length === 0) {
+    return err(404, "not_found", "History record not found");
+  }
+
+  const record = { ...result.data.historyRecords[0], id: recordId };
+  const history = await userDao.getHistoryByUserId(userId);
+  user.storage = { ...user.storage, history };
+  await userDao.applyStorageUpdate(
+    user,
+    (old) => ({ ...old, history: (old.history || []).map((h) => (h.id === recordId ? record : h)) }),
+    [userDao.saveHistoryRecord(userId, record)]
+  );
+
+  return ok({ id: record.id, text: LiftohistorySerializer_serialize(record, settings) });
+}
+
+export async function ApiV1_deleteHistory(
+  userId: string,
+  user: ILimitedUserDao,
+  recordId: number,
+  di: IDI
+): Promise<IApiResult<{ deleted: true }>> {
+  const userDao = new UserDao(di);
+  const existing = await userDao.getHistoryByUserId(userId, { ids: [recordId] });
+  if (existing.length === 0) {
+    return err(404, "not_found", "History record not found");
+  }
+
+  const history = await userDao.getHistoryByUserId(userId);
+  user.storage = { ...user.storage, history };
+  await userDao.applyStorageUpdate(
+    user,
+    (old) => ({ ...old, history: (old.history || []).filter((h) => h.id !== recordId) }),
+    [userDao.deleteHistoryRecord(userId, recordId)]
+  );
+
+  return ok({ deleted: true as const });
+}
+
+// --- Programs ---
+
+export async function ApiV1_listPrograms(
+  userId: string,
+  user: ILimitedUserDao,
+  di: IDI
+): Promise<IApiResult<{ programs: { id: string; name: string; isCurrent: boolean }[] }>> {
+  const userDao = new UserDao(di);
+  const programs = await userDao.getProgramsByUserId(userId);
+  const currentProgramId = user.storage.currentProgramId;
+  return ok({
+    programs: programs.map((p) => ({ id: p.id, name: p.name, isCurrent: p.id === currentProgramId })),
+  });
+}
+
+export async function ApiV1_getProgram(
+  userId: string,
+  user: ILimitedUserDao,
+  programId: string,
+  di: IDI
+): Promise<IApiResult<{ id: string; name: string; text: string; isCurrent: boolean }>> {
+  const resolvedId = programId === "current" ? user.storage.currentProgramId : programId;
+  if (!resolvedId) {
+    return err(404, "not_found", "No current program set");
+  }
+  const userDao = new UserDao(di);
+  const program = await userDao.getProgram(userId, resolvedId);
+  if (!program) {
+    return err(404, "not_found", "Program not found");
+  }
+  if (!program.planner) {
+    return err(400, "invalid_input", "Program uses legacy format and cannot be represented as text");
+  }
+  const text = PlannerProgram_generateFullText(program.planner.weeks);
+  const currentProgramId = user.storage.currentProgramId || "";
+  return ok({ id: program.id, name: program.name, text, isCurrent: program.id === currentProgramId });
+}
+
+export async function ApiV1_createProgram(
+  userId: string,
+  user: ILimitedUserDao,
+  name: string,
+  text: string,
+  di: IDI
+): Promise<IApiResult<{ id: string; name: string; text: string }>> {
+  const settings = user.storage.settings;
+  const validation = validateProgramText(text, settings);
+  if (validation) {
+    return { success: false, error: validation };
+  }
+
+  const weeks = PlannerProgram_evaluateText(text);
+  const program: IProgram = {
+    vtype: "program" as const,
+    id: UidFactory_generateUid(8),
+    name,
+    url: "",
+    author: "",
+    shortDescription: "",
+    description: "",
+    nextDay: 1,
+    exercises: [],
+    days: [],
+    weeks: [],
+    isMultiweek: weeks.length > 1,
+    tags: [],
+    clonedAt: Date.now(),
+    planner: { vtype: "planner" as const, name, weeks },
+  };
+
+  const userDao = new UserDao(di);
+  const programs = await userDao.getProgramsByUserId(userId);
+  user.storage = { ...user.storage, programs };
+  await userDao.applyStorageUpdate(user, (old) => ({ ...old, programs: [...(old.programs || []), program] }), [
+    userDao.saveProgram(userId, program),
+  ]);
+
+  return ok({ id: program.id, name: program.name, text });
+}
+
+export async function ApiV1_updateProgram(
+  userId: string,
+  user: ILimitedUserDao,
+  programId: string,
+  text: string,
+  name: string | undefined,
+  di: IDI
+): Promise<IApiResult<{ id: string; name: string; text: string; isCurrent: boolean }>> {
+  const settings = user.storage.settings;
+  const validation = validateProgramText(text, settings);
+  if (validation) {
+    return { success: false, error: validation };
+  }
+
+  const resolvedId = programId === "current" ? user.storage.currentProgramId : programId;
+  if (!resolvedId) {
+    return err(404, "not_found", "No current program set");
+  }
+  const userDao = new UserDao(di);
+  const existing = await userDao.getProgram(userId, resolvedId);
+  if (!existing) {
+    return err(404, "not_found", "Program not found");
+  }
+
+  const weeks = PlannerProgram_evaluateText(text);
+  const updatedProgram: IProgram = {
+    ...existing,
+    name: name || existing.name,
+    planner: {
+      vtype: "planner" as const,
+      name: name || existing.planner?.name || existing.name,
+      weeks,
+    },
+  };
+
+  const programs = await userDao.getProgramsByUserId(userId);
+  user.storage = { ...user.storage, programs };
+  await userDao.applyStorageUpdate(
+    user,
+    (old) => ({ ...old, programs: (old.programs || []).map((p) => (p.id === resolvedId ? updatedProgram : p)) }),
+    [userDao.saveProgram(userId, updatedProgram)]
+  );
+
+  const currentProgramId = user.storage.currentProgramId || "";
+  const resultText = PlannerProgram_generateFullText(updatedProgram.planner!.weeks);
+  return ok({
+    id: updatedProgram.id,
+    name: updatedProgram.name,
+    text: resultText,
+    isCurrent: updatedProgram.id === currentProgramId,
+  });
+}
+
+export async function ApiV1_deleteProgram(
+  userId: string,
+  user: ILimitedUserDao,
+  programId: string,
+  di: IDI
+): Promise<IApiResult<{ deleted: true }>> {
+  if (programId === user.storage.currentProgramId) {
+    return err(400, "invalid_input", "Cannot delete the current program");
+  }
+  const userDao = new UserDao(di);
+  const existing = await userDao.getProgram(userId, programId);
+  if (!existing) {
+    return err(404, "not_found", "Program not found");
+  }
+
+  const programs = await userDao.getProgramsByUserId(userId);
+  user.storage = { ...user.storage, programs };
+  await userDao.applyStorageUpdate(
+    user,
+    (old) => ({ ...old, programs: (old.programs || []).filter((p) => p.id !== programId) }),
+    [userDao.deleteProgram(userId, programId)]
+  );
+
+  return ok({ deleted: true as const });
+}
+
+// --- Playground ---
+
+export interface IPlaygroundParams {
+  programText: string;
+  day?: number;
+  week?: number;
+  commands?: string[];
+}
+
+export function ApiV1_playground(
+  user: ILimitedUserDao,
+  params: IPlaygroundParams
+): IApiResult<{ workout: string; updatedProgramText?: string }> {
+  const settings = user.storage.settings;
+  const stats = user.storage.stats || { weight: {}, length: {}, percentage: {} };
+
+  const validationErrors = Playground_validateProgramText(params.programText, settings);
+  if (validationErrors) {
+    return err(422, "parse_error", "Failed to parse program", validationErrors);
+  }
+
+  const result = Playground_run(
+    {
+      programText: params.programText,
+      day: params.day,
+      week: params.week,
+      commands: params.commands,
+    },
+    settings,
+    stats
+  );
+
+  if (!result.success) {
+    return err(400, "invalid_input", result.error);
+  }
+
+  return ok(result.data);
+}

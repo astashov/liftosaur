@@ -121,6 +121,7 @@ import {
   postV1PlaygroundEndpoint,
   postV1PlaygroundHandler,
 } from "./api/v1";
+import { postMcpEndpoint, postMcpHandler } from "./mcp/handler";
 import { AiLogsDao } from "./dao/aiLogsDao";
 import { ICollectionVersions } from "../src/models/versionTracker";
 import { ObjectUtils_values, ObjectUtils_keys } from "../src/utils/object";
@@ -2893,7 +2894,8 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .post(postV1ProgramEndpoint, postV1ProgramHandler)
       .put(putV1ProgramEndpoint, putV1ProgramHandler)
       .delete(deleteV1ProgramEndpoint, deleteV1ProgramHandler)
-      .post(postV1PlaygroundEndpoint, postV1PlaygroundHandler);
+      .post(postV1PlaygroundEndpoint, postV1PlaygroundHandler)
+      .post(postMcpEndpoint, postMcpHandler);
     r = repmaxpairswords.reduce((memo, [endpoint, handler]) => memo.get(endpoint, handler), r);
     r = repmaxpairnums.reduce((memo, [endpoint, handler]) => memo.get(endpoint, handler), r);
 
