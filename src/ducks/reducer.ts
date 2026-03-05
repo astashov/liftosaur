@@ -36,7 +36,7 @@ import {
   Screen_updateParams,
   Screen_pull,
 } from "../models/screen";
-import { ILensRecordingPayload, lb, LensBuilder } from "lens-shmens";
+import { ILensRecordingPayload, lb, LensBuilder, LensError } from "lens-shmens";
 import { buildState, IEnv, ILocalStorage, INotification, IState, IStateErrors, updateState } from "../models/state";
 import { UidFactory_generateUid } from "../utils/generator";
 import {
@@ -678,7 +678,14 @@ export function buildCardsReducer(
         return newProgress;
       }
       case "UpdateProgress": {
-        return action.lensRecordings.reduce((memo, recording) => recording.fn(memo), progress);
+        try {
+          return action.lensRecordings.reduce((memo, recording) => recording.fn(memo), progress);
+        } catch (e) {
+          if (e instanceof LensError) {
+            return progress;
+          }
+          throw e;
+        }
       }
     }
   };
