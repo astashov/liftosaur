@@ -13,6 +13,7 @@ import {
   ApiV1_updateProgram,
   ApiV1_deleteProgram,
   ApiV1_playground,
+  ApiV1_programStats,
   IApiError,
 } from "../utils/apiv1";
 
@@ -201,5 +202,23 @@ export const postV1PlaygroundHandler: RouteHandler<
         commands: body.commands as string[] | undefined,
       })
     );
+  });
+};
+
+// --- Program Stats Endpoint ---
+
+export const postV1ProgramStatsEndpoint = Endpoint.build("/api/v1/program-stats");
+export const postV1ProgramStatsHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postV1ProgramStatsEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  return withApiAuth(event, di, async (auth) => {
+    const body = getBodyJson(event);
+    if (!body.programText) {
+      return apiError(400, "invalid_input", "Missing 'programText' field");
+    }
+    return resultToResponse(ApiV1_programStats(auth.user, body.programText as string));
   });
 };

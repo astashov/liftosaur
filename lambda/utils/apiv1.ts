@@ -9,11 +9,18 @@ import {
   PlannerProgram_generateFullText,
   PlannerProgram_evaluateText,
   PlannerProgram_evaluateFull,
+  PlannerProgram_fullToWeekEvalResult,
 } from "../../src/pages/planner/models/plannerProgram";
 import { PlannerSyntaxError } from "../../src/pages/planner/plannerExerciseEvaluator";
+import { IPlannerProgramExercise } from "../../src/pages/planner/models/types";
 import { IProgram, ISettings } from "../../src/types";
 import { UidFactory_generateUid } from "./generator";
 import { Playground_run, Playground_validateProgramText } from "../../src/playground/playground";
+import {
+  PlannerStatsUtils_dayApproxTimeMs,
+  PlannerStatsUtils_calculateSetResults,
+} from "../../src/pages/planner/models/plannerStatsUtils";
+import { PlannerProgramExercise_sets } from "../../src/pages/planner/models/plannerProgramExercise";
 import { IEither } from "../../src/utils/types";
 
 export interface IApiError {
@@ -380,4 +387,85 @@ export function ApiV1_playground(
   }
 
   return ok(result.data);
+}
+
+// --- Program Stats ---
+
+export interface IProgramStatsDayInfo {
+  name: string;
+  approxMinutes: number;
+  workingSets: number;
+}
+
+export interface IProgramStatsMuscleGroup {
+  muscle: string;
+  totalSets: number;
+  strengthSets: number;
+  hypertrophySets: number;
+  frequencyPerWeek: number;
+  exercises: { name: string; sets: number; isSynergist: boolean }[];
+}
+
+export interface IProgramStatsResult {
+  days: IProgramStatsDayInfo[];
+  totalWeeklySets: number;
+  strengthSets: number;
+  hypertrophySets: number;
+  muscleGroups: IProgramStatsMuscleGroup[];
+}
+
+export function ApiV1_programStats(
+  user: ILimitedUserDao,
+  programText: string
+): IApiResult<IProgramStatsResult> {
+  const settings = user.storage.settings;
+  const { evaluatedWeeks } = PlannerProgram_evaluateFull(programText, settings);
+
+  if (!evaluatedWeeks.success) {
+    return err(422, "parse_error", "Failed to parse program", syntaxErrorDetails([evaluatedWeeks.error]));
+  }
+
+  const defaultRestTimer = settings.timers.workout ?? 180;
+
+  const days: IProgramStatsDayInfo[] = [];
+  const week1 = evaluatedWeeks.data[0];
+  for (let dayIndex = 0; dayIndex < week1.days.length; dayIndex++) {
+    const day = week1.days[dayIndex];
+    const exercises = day.exercises.filter((e: IPlannerProgramExercise) => !e.notused);
+    const timeMs = PlannerStatsUtils_dayApproxTimeMs(exercises, defaultRestTimer);
+    const totalSets = exercises.reduce((acc: number, e: IPlannerProgramExercise) => {
+      return acc + PlannerProgramExercise_sets(e).reduce((a: number, s) => a + (s.repRange?.numberOfSets ?? 0), 0);
+    }, 0);
+    days.push({ name: day.name, approxMinutes: Math.round(timeMs / 60000), workingSets: totalSets });
+  }
+
+  const weekResults = PlannerProgram_fullToWeekEvalResult(evaluatedWeeks);
+  const setResults = PlannerStatsUtils_calculateSetResults(weekResults[0], settings);
+
+  const muscleGroups: IProgramStatsMuscleGroup[] = Object.entries(setResults.muscleGroup)
+    .filter(([_, stats]) => stats.strength > 0 || stats.hypertrophy > 0)
+    .sort((a, b) => (b[1].strength + b[1].hypertrophy) - (a[1].strength + a[1].hypertrophy))
+    .map(([muscle, stats]) => ({
+      muscle,
+      totalSets: parseFloat((stats.strength + stats.hypertrophy).toFixed(1)),
+      strengthSets: parseFloat(stats.strength.toFixed(1)),
+      hypertrophySets: parseFloat(stats.hypertrophy.toFixed(1)),
+      frequencyPerWeek: Object.keys(stats.frequency).length,
+      exercises: stats.exercises
+        .filter((ex) => ex.strengthSets > 0 || ex.hypertrophySets > 0)
+        .sort((a, b) => (b.strengthSets + b.hypertrophySets) - (a.strengthSets + a.hypertrophySets))
+        .map((ex) => ({
+          name: ex.exerciseName,
+          sets: parseFloat((ex.strengthSets + ex.hypertrophySets).toFixed(1)),
+          isSynergist: ex.isSynergist,
+        })),
+    }));
+
+  return ok({
+    days,
+    totalWeeklySets: setResults.total,
+    strengthSets: setResults.strength,
+    hypertrophySets: setResults.hypertrophy,
+    muscleGroups,
+  });
 }

@@ -120,6 +120,8 @@ import {
   deleteV1ProgramHandler,
   postV1PlaygroundEndpoint,
   postV1PlaygroundHandler,
+  postV1ProgramStatsEndpoint,
+  postV1ProgramStatsHandler,
 } from "./api/v1";
 import { postMcpEndpoint, postMcpHandler } from "./mcp/handler";
 import {
@@ -2907,6 +2909,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .put(putV1ProgramEndpoint, putV1ProgramHandler)
       .delete(deleteV1ProgramEndpoint, deleteV1ProgramHandler)
       .post(postV1PlaygroundEndpoint, postV1PlaygroundHandler)
+      .post(postV1ProgramStatsEndpoint, postV1ProgramStatsHandler)
       .post(postMcpEndpoint, postMcpHandler)
       .get(getProtectedResourceEndpoint, getProtectedResourceHandler)
       .get(getAuthServerMetadataEndpoint, getAuthServerMetadataHandler)

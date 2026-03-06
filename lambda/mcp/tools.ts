@@ -176,4 +176,16 @@ export const mcpTools: IMcpToolDef[] = [
       properties: {},
     },
   },
+  {
+    name: "get_program_stats",
+    description:
+      "Analyze a Liftoscript program and return stats: approximate workout duration per day, total weekly sets, strength vs hypertrophy breakdown, and weekly volume per muscle group with exercise contributions. Useful for reviewing program balance before creating or updating.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        programText: { type: "string", description: "Program text in Liftoscript format" },
+      },
+      required: ["programText"],
+    },
+  },
 ];

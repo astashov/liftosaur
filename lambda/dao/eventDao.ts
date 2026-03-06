@@ -97,4 +97,14 @@ export class EventDao {
     );
     return allEvents.flat();
   }
+
+  public scanByTimestampRange(startTimestamp: number, endTimestamp: number): Promise<IEventPayload[]> {
+    const env = Utils_getEnv();
+    return this.di.dynamo.scan<IEventPayload>({
+      tableName: eventsTableNames[env].events,
+      filterExpression: "#timestamp BETWEEN :start AND :end",
+      names: { "#timestamp": "timestamp" },
+      values: { ":start": startTimestamp, ":end": endTimestamp },
+    });
+  }
 }

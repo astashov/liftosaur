@@ -11,6 +11,7 @@ import {
   ApiV1_updateProgram,
   ApiV1_deleteProgram,
   ApiV1_playground,
+  ApiV1_programStats,
   IApiError,
 } from "../utils/apiv1";
 import { IEither } from "../../src/utils/types";
@@ -95,6 +96,9 @@ export async function McpToolExecutor_execute(
         commands,
       });
     }
+
+    case "get_program_stats":
+      return ApiV1_programStats(user, args.programText as string);
 
     default:
       return err(400, "unknown_tool", `Unknown tool: ${toolName}`);
