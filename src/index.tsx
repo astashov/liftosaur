@@ -45,7 +45,7 @@ import { DeviceId_get } from "./utils/deviceId";
 IndexedDBUtils_initializeForSafari();
 
 if ("serviceWorker" in navigator && (typeof window === "undefined" || window.location.protocol.startsWith("http"))) {
-  navigator.serviceWorker.register("/webpushr-sw.js");
+  navigator.serviceWorker.register("/webpushr-sw.js").catch(() => {});
 }
 
 console.log(DateUtils_formatYYYYMMDDHHMM(Date.now()));
