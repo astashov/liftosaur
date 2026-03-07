@@ -5,7 +5,8 @@
 /build
 /worker
 /out
-/docs
+/docs/*
+!/docs/content/
 /cypress/videos
 /cypress/screenshots
 /backup
