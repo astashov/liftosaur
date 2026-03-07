@@ -3,7 +3,7 @@ import { Endpoint, RouteHandler } from "yatro";
 import { IDI } from "../utils/di";
 import { OauthDao } from "../dao/oauthDao";
 import { UserDao } from "../dao/userDao";
-import { Utils_getEnv } from "../utils";
+import { Utils_getEnv, Utils_isLocal } from "../utils";
 import * as Cookie from "cookie";
 
 interface IPayload {
@@ -28,6 +28,9 @@ function oauthError(status: number, error: string, description: string): APIGate
 }
 
 function getBaseUrl(): string {
+  if (Utils_isLocal()) {
+    return "https://local.liftosaur.com:8080";
+  }
   const env = Utils_getEnv();
   return env === "dev" ? "https://stage.liftosaur.com" : "https://www.liftosaur.com";
 }
@@ -150,9 +153,7 @@ export const getOauthAuthorizeHandler: RouteHandler<
   const userId = await getCurrentUserId(event, di);
   if (!userId) {
     const baseUrl = getBaseUrl();
-    const currentUrl = `${baseUrl}${event.path}?${new URLSearchParams(
-      params as Record<string, string>
-    ).toString()}`;
+    const currentUrl = `${baseUrl}${event.path}?${new URLSearchParams(params as Record<string, string>).toString()}`;
     return {
       statusCode: 302,
       body: "",
@@ -220,10 +221,7 @@ export const postOauthTokenHandler: RouteHandler<
   return oauthError(400, "unsupported_grant_type", "Only authorization_code and refresh_token are supported");
 };
 
-async function handleAuthCodeGrant(
-  body: Record<string, string>,
-  oauthDao: OauthDao
-): Promise<APIGatewayProxyResult> {
+async function handleAuthCodeGrant(body: Record<string, string>, oauthDao: OauthDao): Promise<APIGatewayProxyResult> {
   const { code, client_id, redirect_uri, code_verifier } = body;
 
   if (!code || !client_id || !code_verifier) {

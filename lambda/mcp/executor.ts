@@ -71,11 +71,20 @@ export async function McpToolExecutor_execute(
     case "get_program":
       return ApiV1_getProgram(userId, user, args.id as string, di);
 
-    case "create_program":
-      return ApiV1_createProgram(userId, user, args.name as string, args.text as string, di);
+    case "create_program": {
+      const createResult = await ApiV1_createProgram(userId, user, args.name as string, args.text as string, di);
+      if (!createResult.success) {
+        return createResult;
+      }
+      const createStats = ApiV1_programStats(user, args.text as string);
+      return {
+        success: true,
+        data: { ...createResult.data, stats: createStats.success ? createStats.data : undefined },
+      };
+    }
 
-    case "update_program":
-      return ApiV1_updateProgram(
+    case "update_program": {
+      const updateResult = await ApiV1_updateProgram(
         userId,
         user,
         args.id as string,
@@ -83,18 +92,35 @@ export async function McpToolExecutor_execute(
         args.name as string | undefined,
         di
       );
+      if (!updateResult.success) {
+        return updateResult;
+      }
+      const updateStats = ApiV1_programStats(user, args.text as string);
+      return {
+        success: true,
+        data: { ...updateResult.data, stats: updateStats.success ? updateStats.data : undefined },
+      };
+    }
 
     case "delete_program":
       return ApiV1_deleteProgram(userId, user, args.id as string, di);
 
     case "run_playground": {
       const commands = args.commands ? (JSON.parse(args.commands as string) as string[]) : undefined;
-      return ApiV1_playground(user, {
+      const playgroundResult = await ApiV1_playground(user, {
         programText: args.programText as string,
         day: args.day ? parseInt(args.day as string, 10) : undefined,
         week: args.week ? parseInt(args.week as string, 10) : undefined,
         commands,
       });
+      if (!playgroundResult.success) {
+        return playgroundResult;
+      }
+      const playgroundStats = ApiV1_programStats(user, args.programText as string);
+      return {
+        success: true,
+        data: { ...playgroundResult.data, stats: playgroundStats.success ? playgroundStats.data : undefined },
+      };
     }
 
     case "get_program_stats":

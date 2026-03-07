@@ -216,6 +216,68 @@ describe("API v1", () => {
       expect(parseBody(listAfter).data.records.length).to.equal(0);
     });
 
+    it("links history record to program when program name is provided", async () => {
+      const programText = `# Week 1
+## Push Day
+Squat / 3x5 / 100lb / progress: lp(5lb)
+Bench Press / 3x8 / 80lb`;
+
+      const createProgram = await handler(
+        buildEvent("POST", "/api/v1/programs", {
+          headers: apiHeaders(apiKey),
+          body: { name: "My Program", text: programText },
+        }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(createProgram.statusCode).to.equal(201);
+
+      const historyText = `2025-03-01 10:00:00 +00:00 / program: "My Program" / dayName: "Push Day" / week: 1 / dayInWeek: 1 / exercises: {
+  Squat / 3x5 100lb
+  Bench Press / 3x8 80lb
+}`;
+      const createResult = await handler(
+        buildEvent("POST", "/api/v1/history", {
+          headers: apiHeaders(apiKey),
+          body: { text: historyText },
+        }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(createResult.statusCode).to.equal(201);
+      const record = parseBody(createResult);
+      expect(record.data.text).to.include(`program: "My Program"`);
+      expect(record.data.text).to.include("Squat");
+      expect(record.data.text).to.include("Bench Press");
+    });
+
+    it("returns error when program name not found", async () => {
+      const historyText = `2025-03-01 10:00:00 +00:00 / program: "Nonexistent Program" / dayName: "Day 1" / week: 1 / dayInWeek: 1 / exercises: {
+  Squat / 3x5 100lb
+}`;
+      const result = await handler(
+        buildEvent("POST", "/api/v1/history", {
+          headers: apiHeaders(apiKey),
+          body: { text: historyText },
+        }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(result.statusCode).to.equal(400);
+      expect(parseBody(result).error.message).to.include("Nonexistent Program");
+    });
+
+    it("creates adhoc history record without program", async () => {
+      const historyText = `2025-03-01 10:00:00 +00:00 / exercises: {
+  Squat / 3x5 100lb
+}`;
+      const result = await handler(
+        buildEvent("POST", "/api/v1/history", {
+          headers: apiHeaders(apiKey),
+          body: { text: historyText },
+        }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(result.statusCode).to.equal(201);
+    });
+
     it("returns 422 for invalid history text", async () => {
       const result = await handler(
         buildEvent("POST", "/api/v1/history", {

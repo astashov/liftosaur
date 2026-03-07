@@ -13,8 +13,15 @@ import {
 } from "../../src/pages/planner/models/plannerProgram";
 import { PlannerSyntaxError } from "../../src/pages/planner/plannerExerciseEvaluator";
 import { IPlannerProgramExercise } from "../../src/pages/planner/models/types";
-import { IProgram, ISettings } from "../../src/types";
+import { IProgram, ISettings, IHistoryRecord } from "../../src/types";
 import { UidFactory_generateUid } from "./generator";
+import {
+  Program_evaluate,
+  Program_getDayNumber,
+  Program_getProgramDay,
+  Program_getProgramDayUsedExercises,
+} from "../../src/models/program";
+import { Exercise_toKey } from "../../src/models/exercise";
 import { Playground_run, Playground_validateProgramText } from "../../src/playground/playground";
 import {
   PlannerStatsUtils_dayApproxTimeMs,
@@ -125,6 +132,14 @@ export async function ApiV1_createHistory(
 
   const record = result.data.historyRecords[0];
   const userDao = new UserDao(di);
+
+  if (record.programName && record.programName !== "Adhoc") {
+    const linkError = await linkRecordToProgram(record, userId, userDao, settings);
+    if (linkError) {
+      return { success: false, error: linkError };
+    }
+  }
+
   const history = await userDao.getHistoryByUserId(userId);
   user.storage = { ...user.storage, history };
   await userDao.applyStorageUpdate(user, (old) => ({ ...old, history: [...(old.history || []), record] }), [
@@ -132,6 +147,52 @@ export async function ApiV1_createHistory(
   ]);
 
   return ok({ id: record.id, text: LiftohistorySerializer_serialize(record, settings) });
+}
+
+async function linkRecordToProgram(
+  record: IHistoryRecord,
+  userId: string,
+  userDao: UserDao,
+  settings: ISettings
+): Promise<IApiError | undefined> {
+  const programs = await userDao.getProgramsByUserId(userId);
+  const program = programs.find(
+    (p) =>
+      p.name.toLowerCase() === record.programName.toLowerCase() ||
+      (p.planner?.name && p.planner.name.toLowerCase() === record.programName.toLowerCase())
+  );
+  if (!program) {
+    return {
+      status: 400,
+      code: "invalid_input",
+      message: `Program "${record.programName}" not found. Use list_programs to see available programs.`,
+    };
+  }
+
+  record.programId = program.id;
+
+  const evaluatedProgram = Program_evaluate(program, settings);
+  const week = record.week || 1;
+  const dayInWeek = record.dayInWeek || 1;
+  const dayNumber = Program_getDayNumber(evaluatedProgram, week, dayInWeek);
+  const programDay = Program_getProgramDay(evaluatedProgram, dayNumber);
+
+  if (programDay) {
+    record.day = dayNumber;
+    if (!record.dayName || record.dayName === "Workout") {
+      record.dayName = programDay.name;
+    }
+    const dayExercises = Program_getProgramDayUsedExercises(programDay);
+    for (const entry of record.entries) {
+      const entryKey = Exercise_toKey(entry.exercise);
+      const match = dayExercises.find((pe) => pe.key === entryKey || pe.key.endsWith(entryKey));
+      if (match) {
+        entry.programExerciseId = match.key;
+      }
+    }
+  }
+
+  return undefined;
 }
 
 export async function ApiV1_updateHistory(
@@ -157,6 +218,14 @@ export async function ApiV1_updateHistory(
   }
 
   const record = { ...result.data.historyRecords[0], id: recordId };
+
+  if (record.programName && record.programName !== "Adhoc") {
+    const linkError = await linkRecordToProgram(record, userId, userDao, settings);
+    if (linkError) {
+      return { success: false, error: linkError };
+    }
+  }
+
   const history = await userDao.getHistoryByUserId(userId);
   user.storage = { ...user.storage, history };
   await userDao.applyStorageUpdate(
@@ -414,10 +483,7 @@ export interface IProgramStatsResult {
   muscleGroups: IProgramStatsMuscleGroup[];
 }
 
-export function ApiV1_programStats(
-  user: ILimitedUserDao,
-  programText: string
-): IApiResult<IProgramStatsResult> {
+export function ApiV1_programStats(user: ILimitedUserDao, programText: string): IApiResult<IProgramStatsResult> {
   const settings = user.storage.settings;
   const { evaluatedWeeks } = PlannerProgram_evaluateFull(programText, settings);
 
@@ -444,7 +510,7 @@ export function ApiV1_programStats(
 
   const muscleGroups: IProgramStatsMuscleGroup[] = Object.entries(setResults.muscleGroup)
     .filter(([_, stats]) => stats.strength > 0 || stats.hypertrophy > 0)
-    .sort((a, b) => (b[1].strength + b[1].hypertrophy) - (a[1].strength + a[1].hypertrophy))
+    .sort((a, b) => b[1].strength + b[1].hypertrophy - (a[1].strength + a[1].hypertrophy))
     .map(([muscle, stats]) => ({
       muscle,
       totalSets: parseFloat((stats.strength + stats.hypertrophy).toFixed(1)),
@@ -453,7 +519,7 @@ export function ApiV1_programStats(
       frequencyPerWeek: Object.keys(stats.frequency).length,
       exercises: stats.exercises
         .filter((ex) => ex.strengthSets > 0 || ex.hypertrophySets > 0)
-        .sort((a, b) => (b.strengthSets + b.hypertrophySets) - (a.strengthSets + a.hypertrophySets))
+        .sort((a, b) => b.strengthSets + b.hypertrophySets - (a.strengthSets + a.hypertrophySets))
         .map((ex) => ({
           name: ex.exerciseName,
           sets: parseFloat((ex.strengthSets + ex.hypertrophySets).toFixed(1)),

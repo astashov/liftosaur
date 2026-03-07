@@ -319,6 +319,18 @@ const mainConfig = {
     liveReload: false,
     host: "0.0.0.0",
     proxy: {
+      "/.well-known/oauth-*": {
+        target: localapi,
+        secure: false,
+      },
+      "/oauth/*": {
+        target: localapi,
+        secure: false,
+      },
+      "/mcp": {
+        target: localapi,
+        secure: false,
+      },
       "/p/*": {
         target: localapi,
         secure: false,

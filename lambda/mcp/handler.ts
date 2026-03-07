@@ -1,11 +1,18 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Endpoint, RouteHandler } from "yatro";
 import { IDI } from "../utils/di";
-import { Utils_getEnv } from "../utils";
+import { Utils_getEnv, Utils_isLocal } from "../utils";
 import { UserDao } from "../dao/userDao";
 import { OauthDao } from "../dao/oauthDao";
 import { mcpTools } from "./tools";
-import { McpReference_getLiftoscriptReference, McpReference_getLiftohistoryReference } from "./reference";
+import {
+  McpReference_getLiftoscriptReference,
+  McpReference_getLiftoscriptExamples,
+  McpReference_getLiftohistoryReference,
+  McpReference_listBuiltinPrograms,
+  McpReference_getBuiltinProgram,
+  McpReference_listExercises,
+} from "./reference";
 import { McpToolExecutor_execute } from "./executor";
 
 const SERVER_NAME = "liftosaur-mcp";
@@ -129,12 +136,68 @@ async function handleToolCall(
     );
   }
 
+  if (toolName === "get_liftoscript_examples") {
+    di.log.log(`[MCP] ${toolName} -> ok (examples)`);
+    return mcpJson(
+      200,
+      jsonRpcResponse(req.id, {
+        content: [{ type: "text", text: McpReference_getLiftoscriptExamples() }],
+      })
+    );
+  }
+
   if (toolName === "get_liftohistory_reference") {
     di.log.log(`[MCP] ${toolName} -> ok (reference)`);
     return mcpJson(
       200,
       jsonRpcResponse(req.id, {
         content: [{ type: "text", text: McpReference_getLiftohistoryReference() }],
+      })
+    );
+  }
+
+  if (toolName === "list_builtin_programs") {
+    const programs = McpReference_listBuiltinPrograms();
+    const text = programs.map((p) => `${p.id}: ${p.name}`).join("\n");
+    di.log.log(`[MCP] ${toolName} -> ok (${programs.length} programs)`);
+    return mcpJson(
+      200,
+      jsonRpcResponse(req.id, {
+        content: [{ type: "text", text }],
+      })
+    );
+  }
+
+  if (toolName === "get_builtin_program") {
+    const id = (args.id as string) || "";
+    const content = McpReference_getBuiltinProgram(id);
+    if (!content) {
+      di.log.log(`[MCP] ${toolName} -> error: not found`);
+      return mcpJson(
+        200,
+        jsonRpcResponse(req.id, {
+          content: [{ type: "text", text: `Built-in program not found: ${id}` }],
+          isError: true,
+        })
+      );
+    }
+    di.log.log(`[MCP] ${toolName} -> ok`);
+    return mcpJson(
+      200,
+      jsonRpcResponse(req.id, {
+        content: [{ type: "text", text: content }],
+      })
+    );
+  }
+
+  if (toolName === "list_exercises") {
+    const exercises = McpReference_listExercises();
+    const text = exercises.join("\n");
+    di.log.log(`[MCP] ${toolName} -> ok (${exercises.length} exercises)`);
+    return mcpJson(
+      200,
+      jsonRpcResponse(req.id, {
+        content: [{ type: "text", text }],
       })
     );
   }
@@ -148,7 +211,11 @@ async function handleToolCall(
   const authHeader = event.headers.Authorization || event.headers.authorization;
   if (!authHeader?.startsWith("Bearer ")) {
     di.log.log(`[MCP] ${toolName} -> 401: no bearer token`);
-    const baseUrl = Utils_getEnv() === "dev" ? "https://stage.liftosaur.com" : "https://www.liftosaur.com";
+    const baseUrl = Utils_isLocal()
+      ? "https://local.liftosaur.com:8080"
+      : Utils_getEnv() === "dev"
+        ? "https://stage.liftosaur.com"
+        : "https://www.liftosaur.com";
     return {
       statusCode: 401,
       body: JSON.stringify({ error: "unauthorized" }),
@@ -163,14 +230,20 @@ async function handleToolCall(
   const oauthDao = new OauthDao(di);
   const tokenRecord = await oauthDao.getByToken(accessToken);
   if (!tokenRecord || tokenRecord.expiresAt < Date.now()) {
-    di.log.log(`[MCP] ${toolName} -> error: invalid/expired token`);
-    return mcpJson(
-      200,
-      jsonRpcResponse(req.id, {
-        content: [{ type: "text", text: "Invalid or expired access token" }],
-        isError: true,
-      })
-    );
+    di.log.log(`[MCP] ${toolName} -> 401: invalid/expired token`);
+    const baseUrl = Utils_isLocal()
+      ? "https://local.liftosaur.com:8080"
+      : Utils_getEnv() === "dev"
+        ? "https://stage.liftosaur.com"
+        : "https://www.liftosaur.com";
+    return {
+      statusCode: 401,
+      body: JSON.stringify({ error: "unauthorized" }),
+      headers: {
+        "content-type": "application/json",
+        "www-authenticate": `Bearer resource_metadata="${baseUrl}/.well-known/oauth-protected-resource"`,
+      },
+    };
   }
 
   const userId = tokenRecord.userId;
@@ -191,6 +264,11 @@ async function handleToolCall(
   const result = await McpToolExecutor_execute(toolName, args, userId, user, di);
   if (!result.success) {
     di.log.log(`[MCP] ${toolName} -> error: ${result.error.message}`);
+    let errorText = result.error.message;
+    if (result.error.details && result.error.details.length > 0) {
+      const detailLines = result.error.details.map((d) => `Line ${d.line}, col ${d.offset}: ${d.message}`);
+      errorText += "\n\nErrors:\n" + detailLines.join("\n");
+    }
     const hint =
       toolName === "create_program" || toolName === "update_program" || toolName === "run_playground"
         ? "\n\nHint: If you haven't read the Liftoscript reference yet, call get_liftoscript_reference first."
@@ -198,13 +276,13 @@ async function handleToolCall(
     return mcpJson(
       200,
       jsonRpcResponse(req.id, {
-        content: [{ type: "text", text: `${result.error.message}${hint}` }],
+        content: [{ type: "text", text: `${errorText}${hint}` }],
         isError: true,
       })
     );
   }
 
   const text = typeof result.data === "string" ? result.data : JSON.stringify(result.data);
-  di.log.log(`[MCP] ${toolName} -> ok (${text.length} chars)`);
+  di.log.log(`[MCP] ${toolName} -> ok:\n${text}`);
   return mcpJson(200, jsonRpcResponse(req.id, { content: [{ type: "text", text }] }));
 }

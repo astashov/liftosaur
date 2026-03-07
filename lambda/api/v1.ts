@@ -145,7 +145,13 @@ export const postV1ProgramHandler: RouteHandler<
       return apiError(400, "invalid_input", "Missing 'text' field");
     }
     return resultToResponse(
-      await ApiV1_createProgram(auth.userId, auth.user, (body.name as string) || "New Program", body.text as string, di),
+      await ApiV1_createProgram(
+        auth.userId,
+        auth.user,
+        (body.name as string) || "New Program",
+        body.text as string,
+        di
+      ),
       201
     );
   });
@@ -163,7 +169,14 @@ export const putV1ProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, 
       return apiError(400, "invalid_input", "Missing 'text' field");
     }
     return resultToResponse(
-      await ApiV1_updateProgram(auth.userId, auth.user, params.id, body.text as string, body.name as string | undefined, di)
+      await ApiV1_updateProgram(
+        auth.userId,
+        auth.user,
+        params.id,
+        body.text as string,
+        body.name as string | undefined,
+        di
+      )
     );
   });
 };

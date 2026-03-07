@@ -2,25 +2,12 @@ import * as fs from "fs";
 import * as path from "path";
 
 let cachedLiftoscriptReference: string | undefined;
+let cachedLiftoscriptExamples: string | undefined;
 let cachedLiftohistoryReference: string | undefined;
+let cachedExercisesList: string[] | undefined;
 
 function readFile(relativePath: string): string {
   return fs.readFileSync(path.join(__dirname, "..", "..", relativePath), "utf8");
-}
-
-function extractSkillPatterns(skillContent: string): string {
-  const patternsStart = skillContent.indexOf("## Idiomatic Liftoscript Patterns");
-  if (patternsStart === -1) {
-    return "";
-  }
-  let text = skillContent.substring(patternsStart);
-
-  text = text.replace(
-    /## Validation[\s\S]*?```bash[\s\S]*?```/,
-    "## Validation\n\nAfter writing a program, ALWAYS use the `run_playground` tool to validate it. Pass the program text and check for errors. Use the `finish_workout()` command to test progression logic."
-  );
-
-  return text;
 }
 
 export function McpReference_getLiftoscriptReference(): string {
@@ -28,21 +15,21 @@ export function McpReference_getLiftoscriptReference(): string {
     return cachedLiftoscriptReference;
   }
 
-  const liftoscriptMd = readFile("llms/liftoscript.md");
-  const examplesMd = readFile("llms/liftoscript_examples.md");
-  const skillContent = readFile(".claude/skills/liftoscript/SKILL.md");
-  const skillPatterns = extractSkillPatterns(skillContent);
+  cachedLiftoscriptReference = readFile("llms/liftoscript_llm.md");
+  return cachedLiftoscriptReference;
+}
 
-  cachedLiftoscriptReference = [
-    "# Liftoscript Language Reference\n",
-    liftoscriptMd,
-    "\n\n# Complete Program Examples\n",
-    examplesMd,
-    "\n\n# Writing Guidelines\n",
-    skillPatterns,
+export function McpReference_getLiftoscriptExamples(): string {
+  if (cachedLiftoscriptExamples) {
+    return cachedLiftoscriptExamples;
+  }
+
+  cachedLiftoscriptExamples = [
+    "# Complete Liftoscript Program Examples\n",
+    readFile("llms/liftoscript_examples.md"),
   ].join("\n");
 
-  return cachedLiftoscriptReference;
+  return cachedLiftoscriptExamples;
 }
 
 export function McpReference_getLiftohistoryReference(): string {
@@ -96,4 +83,35 @@ Liftohistory is a human-readable text format for workout history records in Lift
 `;
 
   return cachedLiftohistoryReference;
+}
+
+export function McpReference_listBuiltinPrograms(): { id: string; name: string }[] {
+  const dir = path.join(__dirname, "..", "..", "programs", "builtin");
+  const files = fs.readdirSync(dir).filter((f) => f.endsWith(".md"));
+  return files.map((f) => {
+    const content = fs.readFileSync(path.join(dir, f), "utf8");
+    const nameMatch = content.match(/^name:\s*(.+)$/m);
+    const name = nameMatch ? nameMatch[1].replace(/^["']|["']$/g, "") : f.replace(".md", "");
+    return { id: f.replace(".md", ""), name };
+  });
+}
+
+export function McpReference_getBuiltinProgram(id: string): string | undefined {
+  const filePath = path.join(__dirname, "..", "..", "programs", "builtin", `${id}.md`);
+  try {
+    return fs.readFileSync(filePath, "utf8");
+  } catch {
+    return undefined;
+  }
+}
+
+export function McpReference_listExercises(): string[] {
+  if (!cachedExercisesList) {
+    const content = readFile("llms/exercises.md");
+    cachedExercisesList = content
+      .split("\n")
+      .filter((line) => line.trim() && !line.startsWith("#"))
+      .map((line) => line.trim());
+  }
+  return cachedExercisesList;
 }

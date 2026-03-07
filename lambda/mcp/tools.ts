@@ -161,7 +161,16 @@ export const mcpTools: IMcpToolDef[] = [
   {
     name: "get_liftoscript_reference",
     description:
-      "Get the complete Liftoscript language reference and examples. Liftoscript is a custom DSL for defining weightlifting programs in Liftosaur — it is NOT a standard format and you cannot guess the syntax.\n\nYou MUST call this BEFORE creating or editing any program. The reference covers: exercise syntax, sets/reps/weight notation, progressions (lp, dp, custom), templates, multi-week programs, state variables, supersets, warmups, and common mistakes to avoid.",
+      "Get the Liftoscript language reference. Liftoscript is a custom DSL for defining weightlifting programs in Liftosaur — it is NOT a standard format and you cannot guess the syntax.\n\nYou MUST call this BEFORE creating or editing any program. The reference covers: exercise syntax, sets/reps/weight notation, progressions (lp, dp, custom), templates, multi-week programs, state variables, supersets, warmups, and common mistakes to avoid.\n\nAfter reading this, also call get_liftoscript_examples for complete program examples.",
+    inputSchema: {
+      type: "object",
+      properties: {},
+    },
+  },
+  {
+    name: "get_liftoscript_examples",
+    description:
+      "Get complete Liftoscript program examples. Call this after get_liftoscript_reference to see full working programs demonstrating various features (linear progression, 5/3/1, GZCL, PPL, etc.).",
     inputSchema: {
       type: "object",
       properties: {},
@@ -171,6 +180,35 @@ export const mcpTools: IMcpToolDef[] = [
     name: "get_liftohistory_reference",
     description:
       "Get the Liftohistory format reference. Liftohistory is a human-readable text format for workout history records used by Liftosaur. Call this if you need to create or edit history records and are unsure about the format.",
+    inputSchema: {
+      type: "object",
+      properties: {},
+    },
+  },
+  {
+    name: "list_builtin_programs",
+    description: "List all built-in Liftosaur programs with their id and name.",
+    inputSchema: {
+      type: "object",
+      properties: {},
+    },
+  },
+  {
+    name: "get_builtin_program",
+    description:
+      "Get a built-in program's full markdown file — includes description and Liftoscript source code. Use this to see how real programs are written.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: { type: "string", description: "Program ID from list_builtin_programs" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "list_exercises",
+    description:
+      "List all built-in exercise names available in Liftosaur. Use this to find the correct exercise name and equipment variant (e.g. 'Standing Calf Raise' instead of 'Calf Raise', or 'Bicep Curl, Barbell' instead of 'Barbell Curl').",
     inputSchema: {
       type: "object",
       properties: {},
