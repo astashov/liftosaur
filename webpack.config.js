@@ -84,6 +84,8 @@ const mainConfig = {
     exercise: ["./src/exercise.tsx", "./src/index.css"],
     repmax: ["./src/repmax.tsx", "./src/index.css"],
     allexercises: ["./src/allExercises.tsx", "./src/index.css"],
+    alldocs: ["./src/allDocs.tsx", "./src/index.css"],
+    docdetails: ["./src/docDetails.tsx", "./src/programDetails.css", "./src/index.css"],
     allprograms: ["./src/allPrograms.tsx", "./src/index.css"],
     app: ["./src/index.tsx", "./src/index.css"],
     admin: ["./src/admin.tsx", "./src/admin.css"],
@@ -336,7 +338,11 @@ const mainConfig = {
         secure: false,
       },
       "/docs": {
-        target: local + "/blog",
+        target: localapi,
+        secure: false,
+      },
+      "/docs/*": {
+        target: localapi,
         secure: false,
       },
       "/about": {

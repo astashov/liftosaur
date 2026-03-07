@@ -1,6 +1,3 @@
-Juggernaut Method 2.0 |-| 1770 - 3/5
-Cube Method |-| 730 - 1/5
-Westside Conjugate Method |-| 1900 - 1/5
 Shortcut to Size (Jim Stoppani) |-| 1600 - 2/5
 PHAT |-| 1210 - 1/5
 Calgary Barbell 16-Week |-| 1050 - 1/5
@@ -27,7 +24,6 @@ Creeping Death 2 |-| 140 - 1/5
 Frankoman Dumbbell Split |-| 140 - 2/5
 Layne Norton PH3 |-| 110 - 1/5
 Simple Jack'd |-| 100 - 1/5
-Average to Savage 2.0 |-| 110 - 2/5
 TSA 9-Week Intermediate |-| 80 - 1/5
 5/3/1 BBB Beefcake |-| 70 - 1/5
 5/3/1 Boring But Strong |-| 70 - 1/5

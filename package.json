@@ -34,7 +34,7 @@
     "migrate:prod": "curl -v -X POST https://api3.liftosaur.com/api/migrate?key=$KEY",
     "synctoprod": "curl -v -X POST http://local-api.liftosaur.com:3000/api/synctoprod?ids=$IDS\\&key=$KEY",
     "synctodev": "curl -v -X POST http://local-api.liftosaur.com:3000/api/synctodev?ids=$IDS\\&key=$KEY",
-    "copy:lambda": "mkdir -p ./dist-lambda && cp ./lambda/package*.json ./dist-lambda && cp -r ./lambda/images ./dist-lambda && cp -r ./llms ./dist-lambda/llms && cp -r ./.claude ./dist-lambda/.claude",
+    "copy:lambda": "mkdir -p ./dist-lambda && cp ./lambda/package*.json ./dist-lambda && cp -r ./lambda/images ./dist-lambda && cp -r ./llms ./dist-lambda/llms && cp -r ./.claude ./dist-lambda/.claude && mkdir -p ./dist-lambda/docs && cp -r ./docs/content ./dist-lambda/docs/content",
     "build:lambda": "npm run build:markdown && npm run build:programs && npm run build:exercises && npm run copy:lambda && tsc -p tsconfig.lambda.json",
     "watch:lambda": "npm run copy:lambda && tsc -p tsconfig.lambda.json --watch",
     "build-and-start:lambda": "npm run build:lambda && npm run start:lambda",

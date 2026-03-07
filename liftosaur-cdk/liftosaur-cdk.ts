@@ -696,8 +696,6 @@ export class LiftosaurCdkStack extends cdk.Stack {
             event.request.uri = '/api' + uri;
           } else if (uri === '/app') {
             return { statusCode: 301, statusDescription: 'Moved Permanently', headers: { location: { value: '/app/' } } };
-          } else if (uri === '/docs') {
-            return { statusCode: 301, statusDescription: 'Moved Permanently', headers: { location: { value: '/blog/docs' } } };
           } else if (uri === '/blog') {
             return { statusCode: 301, statusDescription: 'Moved Permanently', headers: { location: { value: '/blog/' } } };
           }
@@ -903,7 +901,32 @@ export class LiftosaurCdkStack extends cdk.Stack {
           ],
         },
         "/blog/*": s3CachedBehavior,
-        "/docs/*": s3CachedBehavior,
+        "/docs": {
+          origin: apiOrigin,
+          cachePolicy: programsCachePolicy,
+          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          functionAssociations: [
+            {
+              function: programsCacheKey,
+              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+            },
+          ],
+        },
+        "/docs/*": {
+          origin: apiOrigin,
+          cachePolicy: programsCachePolicy,
+          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          functionAssociations: [
+            {
+              function: programsCacheKey,
+              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+            },
+          ],
+        },
         "/.well-known/oauth-protected-resource": {
           origin: apiOrigin,
           cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,

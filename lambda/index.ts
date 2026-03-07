@@ -89,6 +89,9 @@ import { Exercise_fromUrlSlug } from "../src/models/exercise";
 import { renderExerciseHtml } from "./exercise";
 import { renderAllExercisesHtml } from "./allExercises";
 import { renderAllProgramsHtml } from "./allPrograms";
+import { renderAllDocsHtml } from "./allDocs";
+import { renderDocDetailsHtml } from "./docDetails";
+import { DocDao } from "./dao/docDao";
 import { renderRepMaxHtml } from "./repmax";
 import { MathUtils_toWord } from "../src/utils/math";
 import { EventDao } from "./dao/eventDao";
@@ -210,6 +213,11 @@ async function getCurrentLimitedUser(event: APIGatewayProxyEvent, di: IDI): Prom
 
 function getUserAgent(event: APIGatewayProxyEvent): string {
   return event.headers["user-agent"] || event.headers["User-Agent"] || "";
+}
+
+function getIsLoggedIn(event: APIGatewayProxyEvent): boolean {
+  const authState = event.headers["x-auth-state"] || event.headers["X-Auth-State"];
+  return authState === "yes";
 }
 
 const postVerifyAppleReceiptEndpoint = Endpoint.build("/api/verifyapplereceipt");
@@ -1784,6 +1792,51 @@ const getAllProgramsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
   };
 };
 
+const getAllDocsEndpoint = Endpoint.build("/docs");
+const getAllDocsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getAllDocsEndpoint> = async ({
+  payload,
+}) => {
+  const { di } = payload;
+  const isLoggedIn = getIsLoggedIn(payload.event);
+  const dao = new DocDao();
+  const docs = dao.getIndex();
+  return {
+    statusCode: 200,
+    body: renderAllDocsHtml(di.fetch, docs, isLoggedIn),
+    headers: {
+      "content-type": "text/html",
+      "cache-control": "public, s-maxage=86400, max-age=0",
+    },
+  };
+};
+
+const getDocDetailsEndpoint = Endpoint.build("/docs/:id");
+const getDocDetailsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getDocDetailsEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { di } = payload;
+  const dao = new DocDao();
+  const result = dao.getById(params.id);
+  if (result != null) {
+    const isLoggedIn = getIsLoggedIn(payload.event);
+    return {
+      statusCode: 200,
+      body: renderDocDetailsHtml(di.fetch, result.indexEntry, result.detail.content, isLoggedIn),
+      headers: {
+        "content-type": "text/html",
+        "cache-control": "public, s-maxage=86400, max-age=0",
+      },
+    };
+  } else {
+    return {
+      statusCode: 404,
+      body: "Not Found",
+      headers: { "content-type": "text/html", "cache-control": "no-cache" },
+    };
+  }
+};
+
 const getUserContextEndpoint = Endpoint.build("/api/usercontext");
 const getUserContextHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getUserContextEndpoint> = async ({
   payload,
@@ -1825,8 +1878,7 @@ const getProgramDetailsHandler: RouteHandler<
     } catch (e) {
       // Fall back to description from program
     }
-    const authState = payload.event.headers["x-auth-state"] || payload.event.headers["X-Auth-State"];
-    const isLoggedIn = authState === "yes";
+    const isLoggedIn = getIsLoggedIn(payload.event);
 
     return {
       statusCode: 200,
@@ -1895,8 +1947,7 @@ const getPlannerHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
 const getMainEndpoint = Endpoint.build("/main");
 const getMainHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getMainEndpoint> = async ({ payload }) => {
   const di = payload.di;
-  const authState = payload.event.headers["x-auth-state"] || payload.event.headers["X-Auth-State"];
-  const isLoggedIn = authState === "yes";
+  const isLoggedIn = getIsLoggedIn(payload.event);
   const deviceType = (payload.event.headers["x-device-type"] || payload.event.headers["X-Device-Type"] || "desktop") as
     | "ios"
     | "android"
@@ -2006,8 +2057,7 @@ const getAllExercisesHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
   payload,
 }) => {
   const { di } = payload;
-  const authState = payload.event.headers["x-auth-state"] || payload.event.headers["X-Auth-State"];
-  const isLoggedIn = authState === "yes";
+  const isLoggedIn = getIsLoggedIn(payload.event);
   return {
     statusCode: 200,
     body: renderAllExercisesHtml(di.fetch, isLoggedIn),
@@ -2027,8 +2077,7 @@ const getExerciseHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
     .map((t) => t.trim())
     .filter((t) => t);
   if (exerciseType && ExerciseImageUtils_exists(exerciseType, "small")) {
-    const authState = payload.event.headers["x-auth-state"] || payload.event.headers["X-Auth-State"];
-    const isLoggedIn = authState === "yes";
+    const isLoggedIn = getIsLoggedIn(payload.event);
     return {
       statusCode: 200,
       body: renderExerciseHtml(di.fetch, params.id, exerciseType, filterTypes, isLoggedIn),
@@ -2599,8 +2648,7 @@ const repmaxpairnums = repmaxpairs.map((reps) => {
 
 async function showRepMax(payload: IPayload, reps?: number): Promise<APIGatewayProxyResult> {
   const { di } = payload;
-  const authState = payload.event.headers["x-auth-state"] || payload.event.headers["X-Auth-State"];
-  const isLoggedIn = authState === "yes";
+  const isLoggedIn = getIsLoggedIn(payload.event);
   return {
     statusCode: 200,
     body: renderRepMaxHtml(di.fetch, reps, isLoggedIn),
@@ -2877,6 +2925,8 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .get(getProfileImageEndpoint, getProfileImageHandler)
       .get(getAdminUsersEndpoint, getAdminUsersHandler)
       .get(getAdminLogsEndpoint, getAdminLogsHandler)
+      .get(getAllDocsEndpoint, getAllDocsHandler)
+      .get(getDocDetailsEndpoint, getDocDetailsHandler)
       .get(getAllProgramsEndpoint, getAllProgramsHandler)
       .get(getProgramDetailsEndpoint, getProgramDetailsHandler)
       .get(getProgramPreviewEndpoint, getProgramPreviewHandler)
