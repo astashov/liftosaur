@@ -18,7 +18,7 @@ A 10-week powerlifting peaking program by Brandon Lilly that rotates heavy, expl
 
 ## Origin & Philosophy
 
-The Cube Method was created by [Brandon Lilly](https://www.jtsstrength.com/the-cube-method/), a competitive powerlifter who totaled over 2,000 lbs in both equipped and raw competition (best raw total of 2,237 lbs in wraps). Published as an e-book in 2013, it was Lilly's answer to [5/3/1](/programs/the531bbb) and the Juggernaut Method — two programs that dominated the powerlifting e-book space around 2010.
+The Cube Method was created by [Brandon Lilly](https://www.jtsstrength.com/the-cube-method/), a competitive powerlifter who totaled over 2,000 lbs in both equipped and raw competition (best raw total of 2,237 lbs in wraps). Published as an e-book in 2013, it was Lilly's answer to [5/3/1](/programs/the531bbb) and the [Juggernaut Method](/programs/juggernaut-method) — two programs that dominated the powerlifting e-book space around 2010.
 
 Lilly's core philosophy: keep it simple. He rejected the heavy reliance on bands, chains, and box squats that defined [Westside Conjugate](/programs/westside-conjugate-method) in favor of straight weight on competition lifts. The program borrows from conjugate training's idea of rotating training stimuli, but applies it to intensity types rather than exercise variations. Each lift cycles through heavy, explosive, and repetition work across a 3-week wave. This concurrent approach develops maximal strength, power, and muscular endurance simultaneously while preventing any single quality from being overtrained.
 
