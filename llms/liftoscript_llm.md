@@ -374,16 +374,14 @@ Template names can be arbitrary (don't need to match real exercises). Only decla
 
 ### Repeat across weeks with `[from-to]`
 
-```
-Squat[1-4] / ...t1
-```
+Ranges let an exercise auto-repeat across weeks WITHOUT re-listing it each week. Only use them with template reuse (`...template`) where later weeks just redefine the template:
 
-Later weeks only need template redefinitions. Empty `## Day` headers REQUIRED for repeated exercises:
 ```
 # Week 1
 ## Day 1
 t1 / used: none / 3x5 / 75%
 Squat[1-4] / ...t1
+Leg Press / 3x10 / 200lb / progress: dp(10lb, 10, 12)
 
 # Week 2
 ## Day 1
@@ -393,6 +391,30 @@ t1 / 3x4 / 80%
 ## Day 1
 t1 / 3x3 / 85%
 ```
+
+Here `Squat[1-4]` appears in weeks 1-4 automatically (pulling sets from the redefined `t1`). `Leg Press` has no range — it also appears in weeks 2-3 because it's unchanged (exercises carry forward by default when the day exists).
+
+Ranges are also useful to repeat an exercise for a subset of weeks without re-listing it:
+```
+# Week 1
+## Day 1
+Squat / 4x5 72% / progress: none
+Leg Press[1-6] / 3x10 / 200lb / progress: dp(10lb, 10, 12)
+
+# Week 2
+## Day 1
+Squat / 4x4 76%
+
+...
+# Week 7 - Taper
+## Day 1
+/// Leg Press automatically stops here (range was 1-6)
+Squat / 3x2 60%
+```
+
+**IMPORTANT**: Do NOT use ranges when you explicitly list the exercise in every subsequent week. If week 2+ already has `Squat / 4x4 76%`, then `Squat[1-7]` in week 1 is redundant — just write `Squat / 4x5 72%`.
+
+Empty `## Day` headers REQUIRED in later weeks for ranged exercises (so the day exists for them to appear in).
 
 Ordering: `Exercise[order,from-to]` if ambiguous: `Squat[1,1-4]`, `Bench Press[2,1-4]`.
 
@@ -500,3 +522,5 @@ main / used: none / 1x5 58%, 1x5 67%, 1x5+ 76% / progress: custom(increment: 5lb
 6. Using `[1,3,5]` thinking it means "weeks 1,3,5" (it means "order=1, weeks 3-5")
 7. Using `//` instead of `///` for non-description comments outside script blocks — `//` shows text to the user during workout
 8. Omitting weight on exercises — without explicit weight, RPE, or percentage, the weight will be empty during workout
+9. Adding ranges like `Squat[1-7]` when the exercise is explicitly listed in every subsequent week — ranges are only useful with template reuse or to limit which weeks an exercise appears in
+10. Using `progress: none` on exercises that have no progression — exercises have no progression by default. `progress: none` is only needed to override/skip an existing progression on specific weeks (e.g. deload)

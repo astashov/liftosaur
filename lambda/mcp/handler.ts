@@ -14,6 +14,7 @@ import {
   McpReference_listExercises,
 } from "./reference";
 import { McpToolExecutor_execute } from "./executor";
+import { Subscriptions } from "../utils/subscriptions";
 
 const SERVER_NAME = "liftosaur-mcp";
 const SERVER_VERSION = "1.0.0";
@@ -256,6 +257,19 @@ async function handleToolCall(
       200,
       jsonRpcResponse(req.id, {
         content: [{ type: "text", text: "User not found" }],
+        isError: true,
+      })
+    );
+  }
+
+  const subscriptions = new Subscriptions(di.log, di.secrets);
+  const hasSub = await subscriptions.hasSubscription(di, userId, user.storage.subscription);
+  if (!hasSub) {
+    di.log.log(`[MCP] ${toolName} -> 403: no subscription`);
+    return mcpJson(
+      200,
+      jsonRpcResponse(req.id, {
+        content: [{ type: "text", text: "Active subscription required to use MCP tools" }],
         isError: true,
       })
     );

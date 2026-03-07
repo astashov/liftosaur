@@ -36,6 +36,8 @@ import { IconClose } from "./icons/iconClose";
 import { ObjectUtils_entries, ObjectUtils_keys } from "../utils/object";
 import { lg } from "../utils/posthog";
 import { IconW } from "./icons/iconW";
+import { IconWatch } from "./icons/iconWatch";
+import { IconLink } from "./icons/iconLink";
 import { Subscriptions_isEligibleForThanksgivingPromo } from "../utils/subscriptions";
 
 interface IProps {
@@ -279,6 +281,16 @@ export function ScreenSubscription(props: IProps): JSX.Element {
             description="Weekly stats about your performance"
             onClick={() => setIsWeekStatsShown(true)}
           />
+          <Feature
+            icon={<IconWatch />}
+            title="Apple Watch App"
+            description="Track workouts directly from your wrist"
+          />
+          <Feature
+            icon={<IconLink />}
+            title="API & MCP"
+            description="Programmatic access and AI assistant integration"
+          />
         </ul>
         <p className="mb-4 text-xs text-text-secondary">
           You can get monthly or yearly subscription (and you'll be charged for a month or year every month or year
@@ -498,7 +510,7 @@ interface IFeatureProps {
   icon: JSX.Element;
   title: string;
   description: string;
-  onClick: () => void;
+  onClick?: () => void;
 }
 
 function Feature(props: IFeatureProps): JSX.Element {
@@ -507,7 +519,11 @@ function Feature(props: IFeatureProps): JSX.Element {
       <div className="w-6 pt-1 mr-3 text-center">{props.icon}</div>
       <div className="flex-1">
         <h3 className="text-base font-bold">
-          <LinkButton name="subscription-feature">{props.title}</LinkButton>
+          {props.onClick ? (
+            <LinkButton name="subscription-feature">{props.title}</LinkButton>
+          ) : (
+            props.title
+          )}
         </h3>
         <p className="text-sm text-text-primary">{props.description}</p>
       </div>
