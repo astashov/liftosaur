@@ -16,7 +16,7 @@ export function AiPromptHtml(props: IAiPromptHtmlProps): JSX.Element {
       client={client}
       css={["aiPrompt"]}
       js={["aiPrompt"]}
-      maxWidth={1280}
+      maxWidth={1200}
       isLoggedIn={!!props.account}
       title="Liftoscript Prompt Generator | Liftosaur"
       description="Generate prompts to convert workout programs to Liftoscript format using any LLM like ChatGPT, Claude, or Gemini."

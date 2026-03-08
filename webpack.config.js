@@ -348,19 +348,22 @@ const mainConfig = {
       "/docs": {
         target: localapi,
         secure: false,
-        bypass: (req, res) => {
-          const docPath = req.url.replace(/^\/docs/, "/doc").replace(/^\/doc\/$/, "/doc");
-          res.writeHead(302, { location: docPath });
-          res.end();
-        },
+        pathRewrite: { "^/docs": "/doc" },
+      },
+      "/docs/*": {
+        target: localapi,
+        secure: false,
+        pathRewrite: { "^/docs": "/doc" },
       },
       "/blog/docs": {
         target: localapi,
         secure: false,
         bypass: (req, res) => {
-          const docPath = req.url.replace(/^\/blog\/docs/, "/doc").replace(/^\/doc\/$/, "/doc");
-          res.writeHead(302, { location: docPath });
-          res.end();
+          if (req.path === "/blog/docs" || req.path.startsWith("/blog/docs/")) {
+            const docPath = req.url.replace(/^\/blog\/docs/, "/doc").replace(/^\/doc\/$/, "/doc");
+            res.redirect(302, docPath);
+            return false;
+          }
         },
       },
       "/about": {

@@ -69,7 +69,15 @@ export function AiPromptContent(props: IAiPromptContentProps): JSX.Element {
         <p className="mt-1 text-sm text-text-secondary">
           Copy the generated prompt and paste it into ChatGPT, Claude, or any other LLM
         </p>
-        <p className="mt-1 text-sm text-text-secondary">Currently, Claude Sonnet 4 works the best.</p>
+        <p className="mt-1 text-sm text-text-secondary">Currently, Claude Opus 4.6 works the best.</p>
+        <p className="mt-3 text-sm text-text-secondary">
+          Or use the{" "}
+          <a className="font-bold underline text-text-link" href="/docs/mcp">
+            Liftosaur MCP server
+          </a>{" "}
+          - connect Claude, ChatGPT, or Gemini directly to your account. They'll be able to create and edit programs,
+          log workouts, and analyze your training without any copy-pasting.
+        </p>
       </div>
 
       <div className="flex flex-col flex-1 overflow-hidden md:flex-row">

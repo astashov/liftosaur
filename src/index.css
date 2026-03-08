@@ -220,6 +220,12 @@ body {
   margin-bottom: 1rem;
 }
 
+.program-details-description ol {
+  list-style: decimal;
+  margin-left: 1rem;
+  margin-bottom: 1rem;
+}
+
 .program-details-description li {
   margin-bottom: 0.25rem;
 }
