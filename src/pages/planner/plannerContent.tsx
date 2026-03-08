@@ -346,7 +346,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               , percentage of{" "}
               <abbr title="1RM - One Rep Max. The maximum weight you can lift for one repetition.">1RM</abbr>, rest
               timers, various progressive overload types, etc. Read more about the features{" "}
-              <a target="_blank" className="font-bold underline text-text-link" href="https://www.liftosaur.com/docs/">
+              <a target="_blank" className="font-bold underline text-text-link" href="https://www.liftosaur.com/doc/">
                 in the docs
               </a>
               !

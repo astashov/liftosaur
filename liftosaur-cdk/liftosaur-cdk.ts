@@ -704,6 +704,18 @@ export class LiftosaurCdkStack extends cdk.Stack {
       `),
     });
 
+    const docsRedirect = new cloudfront.Function(this, `LftDocsRedirect${suffix}`, {
+      functionName: `LftDocsRedirect${suffix}`,
+      code: cloudfront.FunctionCode.fromInline(`
+        function handler(event) {
+          var uri = event.request.uri;
+          var docPath = uri.replace(/^\\/docs/, '/doc').replace(/^\\/blog\\/docs/, '/doc');
+          if (docPath === '/doc/') { docPath = '/doc'; }
+          return { statusCode: 302, statusDescription: 'Found', headers: { location: { value: docPath } } };
+        }
+      `),
+    });
+
     const externalImagesOrigin = new origins.HttpOrigin("liftosaurimages2.s3-us-west-2.amazonaws.com");
     const userImagesBucket = isDev ? "liftosauruserimagesdev" : "liftosauruserimages";
     const userImagesOrigin = new origins.HttpOrigin(`${userImagesBucket}.s3-us-west-2.amazonaws.com`);
@@ -900,8 +912,52 @@ export class LiftosaurCdkStack extends cdk.Stack {
             },
           ],
         },
+        "/blog/docs": {
+          origin: s3Origin,
+          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          functionAssociations: [
+            {
+              function: docsRedirect,
+              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+            },
+          ],
+        },
+        "/blog/docs/*": {
+          origin: s3Origin,
+          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          functionAssociations: [
+            {
+              function: docsRedirect,
+              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+            },
+          ],
+        },
         "/blog/*": s3CachedBehavior,
         "/docs": {
+          origin: s3Origin,
+          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          functionAssociations: [
+            {
+              function: docsRedirect,
+              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+            },
+          ],
+        },
+        "/docs/*": {
+          origin: s3Origin,
+          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          functionAssociations: [
+            {
+              function: docsRedirect,
+              eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+            },
+          ],
+        },
+        "/doc": {
           origin: apiOrigin,
           cachePolicy: programsCachePolicy,
           originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
@@ -914,7 +970,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
             },
           ],
         },
-        "/docs/*": {
+        "/doc/*": {
           origin: apiOrigin,
           cachePolicy: programsCachePolicy,
           originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,

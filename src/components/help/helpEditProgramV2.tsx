@@ -70,7 +70,7 @@ export function HelpEditProgramV2(): JSX.Element {
         <InternalLink
           name="help-edit-program-v2-docs"
           className="font-bold underline text-text-link"
-          href="https://www.liftosaur.com/docs"
+          href="https://www.liftosaur.com/doc"
         >
           in the docs
         </InternalLink>

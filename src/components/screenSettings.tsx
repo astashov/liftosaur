@@ -553,7 +553,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
         </InternalLink>
         <InternalLink
           name="documentation"
-          href="/docs"
+          href="/doc"
           className="block py-3 text-base text-left border-b border-border-neutral"
         >
           Documentation

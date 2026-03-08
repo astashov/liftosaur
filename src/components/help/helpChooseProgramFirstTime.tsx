@@ -17,7 +17,7 @@ export function HelpChooseProgramFirstTime(): JSX.Element {
       </p>
       <p className="pb-2">
         After you pick a program, you can modify it in any way you want. The app is very flexible, you can change the
-        reps/weights logic, using a special scripting language called <Link href="/docs">Liftoscript</Link>
+        reps/weights logic, using a special scripting language called <Link href="/doc">Liftoscript</Link>
       </p>
     </>
   );

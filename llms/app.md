@@ -9,7 +9,7 @@ The app is available as:
 - [Android app](https://play.google.com/store/apps/details?id=com.liftosaur.www.twa?referrer=utm_source%3Dgithub) - it mostly runs as a thin wrapper around the PWA, rendering app in a web view.
 - [iOS app](https://apps.apple.com/app/apple-store/id1661880849?pt=126680920&mt=8&ct=github) - same thing as Android.
 
-The unique feature of the app is that all the weightlifting programs are text based, and written in a special language called [Liftoscript](https://www.liftosaur.com/docs).
+The unique feature of the app is that all the weightlifting programs are text based, and written in a special language called [Liftoscript](https://www.liftosaur.com/doc).
 
 Liftoscript is a scripting/markup language, similar to Markdown, with some JavaScript-like scripting capabilities. Like you can use ifs for branching and fors for loops, it has variables and can preserve state across workouts. But it doesn't have any complex data structures, mostly operating with numbers, percentages and lb/kg values.
 

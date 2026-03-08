@@ -2,7 +2,7 @@
 title: Documentation | Liftosaur
 description: Explains how to use Liftosaur, how to write weightlifting programs, goes over Liftoscript syntax.
 og_title: Documentation | Liftosaur
-canonical: https://www.liftosaur.com/docs/
+canonical: https://www.liftosaur.com/doc/
 og_description: Explains how to use Liftosaur, how to write weightlifting programs, goes over Liftoscript syntax.
 layout: blogpost
 ---

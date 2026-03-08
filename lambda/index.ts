@@ -1792,7 +1792,7 @@ const getAllProgramsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
   };
 };
 
-const getAllDocsEndpoint = Endpoint.build("/docs");
+const getAllDocsEndpoint = Endpoint.build("/doc");
 const getAllDocsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getAllDocsEndpoint> = async ({
   payload,
 }) => {
@@ -1810,7 +1810,7 @@ const getAllDocsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   };
 };
 
-const getDocDetailsEndpoint = Endpoint.build("/docs/:id");
+const getDocDetailsEndpoint = Endpoint.build("/doc/:id");
 const getDocDetailsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getDocDetailsEndpoint> = async ({
   payload,
   match: { params },

@@ -39,7 +39,7 @@ interface ISitemapUrl {
 const urls: ISitemapUrl[] = [
   { loc: "https://www.liftosaur.com" },
   { loc: "https://www.liftosaur.com/app" },
-  { loc: "https://www.liftosaur.com/docs" },
+  { loc: "https://www.liftosaur.com/doc" },
   { loc: "https://www.liftosaur.com/blog" },
   { loc: "https://www.liftosaur.com/exercises" },
   { loc: "https://www.liftosaur.com/planner" },
@@ -58,7 +58,7 @@ const urls: ISitemapUrl[] = [
     ...(entry.dateModified ? { lastmod: entry.dateModified } : {}),
   })),
   ...docEntries.map((entry) => ({
-    loc: `https://www.liftosaur.com/docs/${entry.id}`,
+    loc: `https://www.liftosaur.com/doc/${entry.id}`,
     ...(entry.lastmod ? { lastmod: entry.lastmod } : {}),
   })),
   ...Exercise_allExpanded({}).map((e) => {

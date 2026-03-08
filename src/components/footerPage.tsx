@@ -10,7 +10,7 @@ interface IProps {
 
 const footerLinks: [string, string][] = [
   ["Roadmap", "https://github.com/astashov/liftosaur/discussions"],
-  ["Docs", "/docs"],
+  ["Docs", "/doc"],
   ["Web Editor", "/planner"],
   ["1RM Calculator", "/one-rep-max-calculator"],
   ["Your Programs", "/user/programs"],

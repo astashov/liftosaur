@@ -34,7 +34,7 @@ export function CreateYourOwn(): JSX.Element {
       <h2 className="px-4 mb-4 text-3xl font-bold text-center md:text-4xl">Create your own programs</h2>
       <p className="px-4 mx-auto mb-8 text-base leading-relaxed text-left md:text-center" style={{ maxWidth: "40rem" }}>
         Write your weightlifting program in plain text with{" "}
-        <a href="/docs" target="_blank" className="font-semibold text-purple-600 underline">
+        <a href="/doc" target="_blank" className="font-semibold text-purple-600 underline">
           Liftoscript
         </a>
         ! Specify exercises by week/day, sets, and progressive overload rules — and use optional scripting to build
@@ -173,7 +173,7 @@ function EditorInfoText(): JSX.Element {
     <div className="mt-4 leading-relaxed">
       Custom progressions, myo-reps, drop sets, manipulating weight, reps, RPE or even rest timer via scripts — anything
       is possible.{" "}
-      <a href="/docs" target="_blank" className="font-semibold text-purple-600 underline">
+      <a href="/doc" target="_blank" className="font-semibold text-purple-600 underline">
         Check the docs
       </a>{" "}
       to learn more about Liftoscript.

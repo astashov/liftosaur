@@ -14,7 +14,7 @@ export function DocDetailsHtml(props: IProps): JSX.Element {
   const { client, isLoggedIn, ...data } = props;
   const { doc } = props;
   const title = `${doc.title} - Liftosaur Documentation`;
-  const url = `https://www.liftosaur.com/docs/${doc.id}`;
+  const url = `https://www.liftosaur.com/doc/${doc.id}`;
   const description = doc.shortDescription || `${doc.title} - Liftosaur documentation.`;
 
   const jsonLd: IJsonLd[] = [
@@ -30,7 +30,7 @@ export function DocDetailsHtml(props: IProps): JSX.Element {
       type: "BreadcrumbList",
       items: [
         { name: "Home", url: "https://www.liftosaur.com" },
-        { name: "Documentation", url: "https://www.liftosaur.com/docs" },
+        { name: "Documentation", url: "https://www.liftosaur.com/doc" },
         { name: doc.title },
       ],
     },
@@ -50,7 +50,7 @@ export function DocDetailsHtml(props: IProps): JSX.Element {
       jsonLd={jsonLd}
       data={data}
       client={client}
-      url="/docs"
+      url="/doc"
     >
       <DocDetailsContent {...data} />
     </Page>

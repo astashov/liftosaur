@@ -7,7 +7,7 @@
     <loc>https://www.liftosaur.com/app</loc>
   </url>
   <url>
-    <loc>https://www.liftosaur.com/docs</loc>
+    <loc>https://www.liftosaur.com/doc</loc>
   </url>
   <url>
     <loc>https://www.liftosaur.com/blog</loc>
@@ -266,15 +266,15 @@
     <lastmod>2026-03-05T08:12:20-06:00</lastmod>
   </url>
   <url>
-    <loc>https://www.liftosaur.com/docs/api</loc>
+    <loc>https://www.liftosaur.com/doc/api</loc>
     <lastmod>2026-03-07</lastmod>
   </url>
   <url>
-    <loc>https://www.liftosaur.com/docs/liftoscript</loc>
+    <loc>https://www.liftosaur.com/doc/liftoscript</loc>
     <lastmod>2026-03-07</lastmod>
   </url>
   <url>
-    <loc>https://www.liftosaur.com/docs/mcp</loc>
+    <loc>https://www.liftosaur.com/doc/mcp</loc>
     <lastmod>2026-03-07</lastmod>
   </url>
   <url>

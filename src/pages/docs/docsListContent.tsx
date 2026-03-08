@@ -50,7 +50,7 @@ function DocsList(props: { docs: IDocIndexEntry[] }): JSX.Element {
     <div className="flex flex-col gap-3">
       {props.docs.map((doc) => (
         <a
-          href={`/docs/${doc.id}`}
+          href={`/doc/${doc.id}`}
           className="block p-4 no-underline border rounded-lg border-border-neutral hover:bg-background-neutral"
         >
           <div className="text-base font-semibold text-text-primary">{doc.title}</div>

@@ -17,7 +17,7 @@ export function DocDetailsContent(props: IDocDetailsContentProps): JSX.Element {
           Home
         </a>
         <span className="mx-1">/</span>
-        <a href="/docs" className="underline hover:text-text-primary">
+        <a href="/doc" className="underline hover:text-text-primary">
           Documentation
         </a>
         <span className="mx-1">/</span>
