@@ -2456,6 +2456,31 @@ Bent Over Row / 3x8 / superset: A`}
         </ul>
       ),
     },
+    "20260308": {
+      title: <span>MCP Server and REST API</span>,
+      body: (
+        <ul>
+          <li>
+            Liftosaur now has an{" "}
+            <InternalLink href="/docs/mcp" className="font-bold underline text-bluev2">
+              MCP server
+            </InternalLink>
+            {" "}- connect AI assistants like Claude, ChatGPT, or Gemini to manage your programs and workout history
+            through natural conversation. Ask the AI to create programs, tweak progressions, log workouts, or analyze
+            your training - it knows Liftoscript and can do it all for you.
+          </li>
+          <li>
+            There's also a{" "}
+            <InternalLink href="/docs/api" className="font-bold underline text-bluev2">
+              REST API
+            </InternalLink>
+            {" "}- if you want direct programmatic access. Generate an API key in Settings and make HTTP requests to
+            create programs, log workouts, simulate progressions, pull stats, etc.
+          </li>
+          <li>Both require a premium subscription.</li>
+        </ul>
+      ),
+    },
   };
 
   return whatsNew;
