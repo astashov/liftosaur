@@ -247,12 +247,19 @@ Script goes between `{~` and `~}`. Runs after workout finishes.
 
 #### Read-only variables (progress)
 - `weights[n]` / `w[n]` - prescribed weight of set N (1-indexed)
+- `originalWeights[n]` - weight before rounding of set N
 - `completedWeights[n]` / `cw[n]` - actual weight used
 - `reps[n]` / `r[n]` - prescribed reps
+- `minReps[n]` / `mr[n]` - minimum reps for rep-range sets (equals `reps[n]` if not a range)
 - `completedReps[n]` / `cr[n]` - actual reps done
+- `completedRepsLeft[n]` - completed reps for left side (unilateral exercises)
 - `RPE[n]`, `completedRPE[n]` - prescribed/actual RPE
 - `timers[n]` - set timer
+- `amraps[n]` - whether set is AMRAP (`1` or `0`)
+- `logrpes[n]` - whether to log RPE (`1` or `0`)
+- `askweights[n]` - whether to ask user for weight (`1` or `0`)
 - `rm1` - exercise 1RM
+- `bodyweight` - user's current bodyweight
 - `day`, `week`, `dayInWeek` - current position (1-indexed)
 - `numberOfSets` / `ns`, `programNumberOfSets`, `completedNumberOfSets`
 - `setVariationIndex`, `descriptionIndex`
@@ -262,8 +269,12 @@ Omitting index compares/assigns ALL sets: `completedReps >= reps` checks all set
 #### Writable variables (progress)
 - `weights[week:day:setvariation:set]` - default `[*:*:*:*]`
 - `reps[week:day:setvariation:set]`
+- `minReps[week:day:setvariation:set]`
 - `RPE[week:day:setvariation:set]`
 - `timers[week:day:setvariation:set]`
+- `amraps[week:day:setvariation:set]`
+- `logrpes[week:day:setvariation:set]`
+- `askweights[week:day:setvariation:set]`
 - `rm1`
 - `numberOfSets[week:day:setvariation]`
 - `setVariationIndex`, `descriptionIndex`
@@ -321,13 +332,17 @@ for (var.i in completedReps) {
 - `min(array)`, `max(array)` - min/max of array
 - `rpeMultiplier(reps, rpe)` - returns 1RM multiplier
 - `increment(weight)`, `decrement(weight)` - next/prev possible weight based on equipment
+- `calculate1RM(weight, reps)` - estimates 1RM using Epley formula
+- `calculateTrainingMax(weight, reps)` - calculates training max
+- `roundWeight(weight)` - rounds weight to nearest valid plate increment based on equipment
+- `zeroOrGte(array1, array2)` - true if each element in array1 is 0 or >= corresponding element in array2
 - `sets(from, to, minReps, maxReps, isAmrap, weight, timer, rpe, logRpe)` - update only
 - `print(val1, val2, ...)` - debug output, accepts numbers/weights/percentages; visible in playground or after finishing exercise
 
 #### Operators
 - Math: `+`, `-`, `*`, `/`, `%`
-- Comparison: `>`, `<`, `>=`, `<=`, `==`
-- Logic: `&&`, `||`
+- Comparison: `>`, `<`, `>=`, `<=`, `==`, `!=`
+- Logic: `&&`, `||`, `!`
 - Ternary: `a > b ? x : y`
 - If/else: `if (...) { } else if (...) { } else { }`
 
@@ -343,9 +358,42 @@ Bench Press / 3x8 / update: custom() {~
 ~}
 ```
 
-Extra read var: `setIndex` (0 = initial run before any sets). Writable: `weights[set]`, `reps[set]`, `RPE[set]`, `timers[set]`, `numberOfSets` (no week/day targeting). Cannot modify already-completed sets.
+Extra read var: `setIndex` (0 = initial run before any sets). Writable: `weights[set]`, `reps[set]`, `minReps[set]`, `RPE[set]`, `timers[set]`, `numberOfSets`, `amraps[set]`, `logrpes[set]`, `askweights[set]` (no week/day targeting). Cannot modify already-completed sets.
 
 You can specify both `update: custom()` and any `progress:` on the same exercise.
+
+### Bodyweight and Assisted Exercises
+
+For bodyweight exercises (Pull Ups, Dips, etc.), use the `bodyweight` variable in update scripts to include the user's bodyweight in displayed weights. Equipment settings have **Bodyweight for Bar** (uses bodyweight as bar) and **Is assisting?** (plates reduce weight for assisted machines).
+
+Assisted pull-ups (machine reduces weight):
+```
+Pull Up, Leverage Machine / 3x8 50lb \
+  / update: custom() {~
+    if (setIndex == 0) {
+      weights = bodyweight - originalWeights[ns]
+    }
+  ~} / progress: lp(-5lb)
+```
+
+Weighted pull-ups (extra weight added via belt):
+```
+Pull Up, Bodyweight / 3x8 25lb \
+  / update: custom() {~
+    if (setIndex == 0) {
+      weights = bodyweight + originalWeights[ns]
+    }
+  ~} / progress: lp(5lb)
+```
+
+Bodyweight-only (no extra weight):
+```
+Pull Up / 3x8 0lb / update: custom() {~
+  if (setIndex == 0) {
+    weights = bodyweight
+  }
+~}
+```
 
 ## DRY Patterns
 

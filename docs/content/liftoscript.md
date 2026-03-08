@@ -96,12 +96,6 @@ To add AMRAP sets, add `+` after the reps number. And to log RPE, add `+` after 
 Bench Press / 4x5, 1x5+ @8+
 ```
 
-If you want to enable "Quick add sets" feature (where you may have more sets than you planned), add `+` after the set number:
-
-```liftoscript
-Bench Press / 3+x5
-```
-
 And if you want the app to ask you what was the weight you did (similar to AMRAP reps), you can add `+` after the weight:
 
 ```liftoscript
@@ -155,6 +149,16 @@ You can add descriptions to exercises via `//` comments, like this:
 // Pause **2 seconds** at the bottom
 Squat / 5x5 / progress: lp(5lb)
 ```
+
+There are also `///` (triple-slash) comments, which are **not** shown to the user during workout. Use them for general notes or explanations:
+
+```liftoscript
+/// This comment is NOT shown to the user
+// This description IS shown to the user during workout
+Squat / 5x5 / progress: lp(5lb)
+```
+
+Inside `{~ ~}` script blocks, `//` is just a regular code comment (not shown to users).
 
 You can use [Markdown](https://www.markdownguide.org/cheat-sheet/) syntax there, and also the descriptions would be reused in the following weeks/days, until you overwrite them. E.g. if you have description on Week 1 and Week 3, Week 2 would reuse Week 1 description, and Week 4+ would reuse Week 3 description. You can stop that by adding empty `//` comment, like this, then this week and following weeks won't reuse the description. Like this:
 
@@ -693,15 +697,17 @@ set all the weights equals to the weight of the last finished set and add 5lb to
 This is the list of available variables you can get values from in your `progress: custom()` scripts:
 
 - `weights[n]` or `w[n]` - initial weight after rounding of an N set. N starts from 1.
-- `originalWeights[n]` or `cw[n]` - initial weight before rounding of an N set. N starts from 1.
+- `originalWeights[n]` - initial weight before rounding of an N set. N starts from 1.
 - `completedWeights[n]` or `cw[n]` - completed weight of an N set. N starts from 1.
 - `reps[n]` or `r[n]` - number of reps for an N set.
+- `minReps[n]` or `mr[n]` - minimum reps for an N set (for rep ranges). If not a rep range, equals `reps[n]`.
 - `completedReps[n]` or `cr[n]` - number of completed reps for an N set.
 - `completedRepsLeft[n]` - number of completed reps for the left side for unilateral exercises for an N set.
 - `RPE[n]` - if exercise has RPE - the RPE expression that's required for an N set.
 - `completedRPE[n]` - if exercise has RPE, and the set is marked as Log RPE - RPE that user entered for an N set.
 - `timers[n]` - if the exercise sets have explicit timer set up - value of that timer
 - `rm1` - 1 Rep Max of a current exercise. You can set it in the Exercise Stats section (if you tap on exercise name on the workout screen)
+- `bodyweight` - user's current bodyweight.
 - `day` - current day number, starting from 1.
 - `week` - for multi-week programs - current week number, starting from 1.
 - `dayInWeek` - current index of day in week, starting from 1.
@@ -720,6 +726,7 @@ The weights/reps/RPE and timers:
 
 - `weights`
 - `reps`
+- `minReps`
 - `RPE`
 - `timers`
 - `amraps`
@@ -910,11 +917,14 @@ So, the list of variables you can get values from is pretty much the same:
 - `originalWeights`
 - `completedWeights`
 - `reps`
+- `minReps`
 - `completedReps`
 - `completedRepsLeft`
 - `RPE`
 - `completedRPE`
+- `timers`
 - `rm1`
+- `bodyweight`
 - `day`
 - `week`
 - `dayInWeek`
@@ -932,9 +942,13 @@ But assigning new values is only allowed to the following:
 
 - `weights`
 - `reps`
+- `minReps`
 - `RPE`
 - `timers`
 - `numberOfSets`
+- `amraps`
+- `logrpes`
+- `askweights`
 
 So, to change the 2nd set, you do `weights[2] = 60lb`, and to change all sets, you do `weights = 50lb`.
 You **cannot** change the sets that already completed, if you try that, it'd be ignored.
@@ -981,6 +995,59 @@ Squat / 3x8 / update: custom() { ...Bench Press }
 ```
 
 You can specify both `update: custom()` and any `progress: ` within the same exercise.
+
+### Bodyweight and Assisted Exercises
+
+For exercises like Pull Ups, Dips, etc., you may want to include your bodyweight into the total weight for tracking and volume calculations. Liftosaur supports this through equipment settings and the `bodyweight` variable in scripts.
+
+In **Equipment Settings** (Me -> Equipment), you can enable two options for any equipment type:
+
+- **Bodyweight for Bar** - uses your bodyweight as the "bar" weight. The plate calculator will account for this.
+- **Is assisting?** - if enabled, plates *reduce* the total weight instead of increasing it (for assisted pull-up machines, bands, etc.).
+
+Your bodyweight is pulled from your profile (Me -> Bodyweight), and syncs from Apple Health / Google Fit if connected.
+
+#### Assisted Pull Ups
+
+Enable both **Bodyweight for Bar** and **Is assisting?** for the equipment (e.g. Leverage Machine). The weight in the program represents the assistance load (how much the machine helps). Use an `update` script to show the actual weight you're lifting during the workout:
+
+```liftoscript
+Pull Up, Leverage Machine / 3x8 50lb \
+  / update: custom() {~
+    if (setIndex == 0) {
+      weights = bodyweight - originalWeights[ns]
+    }
+  ~} / progress: lp(-5lb)
+```
+
+The 50lb is the assistance load. At workout start, the displayed weight becomes your bodyweight minus 50lb. On success, `lp(-5lb)` reduces the assistance to 45lb next time (making it harder).
+
+#### Weighted Pull Ups
+
+Enable **Bodyweight for Bar** but keep **Is assisting?** disabled. The weight in the program represents the extra weight you add (e.g. on a belt). Create a custom equipment "Belt" or use "Bodyweight" equipment:
+
+```liftoscript
+Pull Up, Bodyweight / 3x8 25lb \
+  / update: custom() {~
+    if (setIndex == 0) {
+      weights = bodyweight + originalWeights[ns]
+    }
+  ~} / progress: lp(5lb)
+```
+
+The 25lb is the added weight. At workout start, the displayed weight becomes your bodyweight plus 25lb. On success, `lp(5lb)` increases the added weight to 30lb.
+
+#### Bodyweight-only (no extra weight)
+
+For exercises with just bodyweight and no machine or belt, set the weight to `0lb`:
+
+```liftoscript
+Pull Up / 3x8 0lb / update: custom() {~
+  if (setIndex == 0) {
+    weights = bodyweight
+  }
+~}
+```
 
 ### Number of sets
 
@@ -1134,7 +1201,8 @@ Using lb/kg is recommended for when you deal with weights, because they will be 
 The following operators are available:
 
 Math: +, -, /, \*, %
-Boolean: >, <, <=, >=, ==, &&, ||
+Comparison: >, <, <=, >=, ==, !=
+Logical: &&, ||, !
 Ternary operator: for example `3 > 4 ? 1 : 2`
 
 ### If/else
@@ -1188,13 +1256,16 @@ You cannot assign values to them, but you can use their values. They are:
 
 - `weights[n]` or `w[n]` - initial weight after rounding of an N set. N starts from 1.
 - `originalWeights[n]` - initial weight before rounding of an N set. N starts from 1.
-- `completedWeights[n]` - completed weight of an N set. N starts from 1.
+- `completedWeights[n]` or `cw[n]` - completed weight of an N set. N starts from 1.
 - `reps[n]` or `r[n]` - number of reps for an N set.
+- `minReps[n]` or `mr[n]` - minimum reps for an N set (for rep ranges). If not a rep range, equals `reps[n]`.
 - `completedReps[n]` or `cr[n]` - number of completed reps for an N set.
 - `completedRepsLeft[n]` - number of completed reps for a left side for unilateral exercises for an N set.
 - `RPE[n]` - if exercise has RPE - the RPE expression that's required for an N set.
 - `completedRPE[n]` - if exercise has RPE, and the set is marked as Log RPE - RPE that user entered for an N set.
+- `timers[n]` - if the exercise sets have explicit timer set up - value of that timer.
 - `rm1` - 1 Rep Max of a current exercise. You can set it in the Exercise Stats section (if you tap on exercise name on the workout screen)
+- `bodyweight` - user's current bodyweight.
 - `day` - current day number, starting from 1.
 - `week` - for multi-week programs - current week number, starting from 1.
 - `dayInWeek` - current index of day in week, starting from 1.
@@ -1203,6 +1274,9 @@ You cannot assign values to them, but you can use their values. They are:
 - `completedNumberOfSets` - how many sets are completed (by a checkmark).
 - `setVariationIndex` - current set variation index (see below about set variations)
 - `descriptionIndex` - current description index
+- `amraps[n]` - whether the set is AMRAP, `1` for AMRAP, `0` for not AMRAP
+- `logrpes[n]` - whether to ask user what was the actual RPE, `1` to ask, `0` to not ask
+- `askweights[n]` - whether to ask user what was the actual weight, `1` to ask, `0` to not ask
 
 #### For `update: custom()`:
 
@@ -1214,13 +1288,14 @@ You assign new values to them.
 
 #### For `progress: custom()`:
 
-- `weights[day:week:setvariation:set]` - weight of a set
-- `reps[day:week:setvariation:set]` - number of reps for a set.
-- `RPE[day:week:setvariation:set]` - RPE that's required for a set.
-- `timers[day:week:setvariation:set]` - timer that's assigned for a set.
-- `amraps[day:week:setvariation:set]` - whether to mark the set AMRAP, `1` for AMRAP, `0` for not AMRAP
-- `logrpes[day:week:setvariation:set]` - whether to ask user what was the actual RPE, `1` to ask, `0` to not ask
-- `askweights[day:week:setvariation:set]` - whether to ask user what was the actual weight, `1` to ask, `0` to not ask
+- `weights[week:day:setvariation:set]` - weight of a set
+- `reps[week:day:setvariation:set]` - number of reps for a set.
+- `minReps[week:day:setvariation:set]` - minimum reps for a set (for rep ranges).
+- `RPE[week:day:setvariation:set]` - RPE that's required for a set.
+- `timers[week:day:setvariation:set]` - timer that's assigned for a set.
+- `amraps[week:day:setvariation:set]` - whether to mark the set AMRAP, `1` for AMRAP, `0` for not AMRAP
+- `logrpes[week:day:setvariation:set]` - whether to ask user what was the actual RPE, `1` to ask, `0` to not ask
+- `askweights[week:day:setvariation:set]` - whether to ask user what was the actual weight, `1` to ask, `0` to not ask
 - `rm1` - 1 Rep Max of a current exercise.
 - `setVariationIndex` - index of the current set variation
 - `descriptionIndex` - index of the current description
@@ -1230,6 +1305,7 @@ You assign new values to them.
 
 - `weights[set]` - weight of a set
 - `reps[set]` - number of reps for a set.
+- `minReps[set]` - minimum reps for a set (for rep ranges).
 - `RPE[set]` - RPE that's required for a set.
 - `timers[set]` - timer that's assigned for a set.
 - `rm1` - 1 Rep Max of a current exercise.
@@ -1347,4 +1423,38 @@ If `minReps` and `maxReps` are diffrent, it'll make it a rep range. `isAmrap` an
 sets(2, 4, 6, 6, 0, 50lb, 8, 0)
 ```
 
-This will set 6 reps, 50lb, non-AMRAP, 50lb, @8 RPE (without logging RPE) to sets from 2 to 4.
+This will set 6 reps, 50lb, non-AMRAP, @8 RPE (without logging RPE) to sets from 2 to 4.
+
+#### `calculate1RM`
+
+Estimates 1 Rep Max from a weight and number of reps using the Epley formula.
+
+```javascript
+var.estimated = calculate1RM(completedWeights[1], completedReps[1])
+```
+
+#### `calculateTrainingMax`
+
+Calculates a Training Max from a weight and number of reps.
+
+```javascript
+var.tm = calculateTrainingMax(completedWeights[1], completedReps[1])
+```
+
+#### `roundWeight`
+
+Rounds a weight to the nearest valid plate increment based on the exercise's equipment settings.
+
+```javascript
+weights[1] = roundWeight(rm1 * 80%)
+```
+
+#### `zeroOrGte`
+
+Checks if each element in the first array is either zero or greater than or equal to the corresponding element in the second array. Returns `true` if all elements satisfy that condition. Useful for checking if all non-skipped sets met the rep target.
+
+```javascript
+if (zeroOrGte(completedReps, reps)) {
+  weights += 5lb
+}
+```
