@@ -207,7 +207,11 @@
   </url>
   <url>
     <loc>https://www.liftosaur.com/programs/bullmastiff</loc>
-    <lastmod>2026-02-26T23:51:44-06:00</lastmod>
+    <lastmod>2026-03-05T08:08:26-06:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/programs/cube-method</loc>
+    <lastmod>2026-03-07T01:11:09-06:00</lastmod>
   </url>
   <url>
     <loc>https://www.liftosaur.com/programs/deep-water</loc>
@@ -224,6 +228,10 @@
   <url>
     <loc>https://www.liftosaur.com/programs/ivysaur-4-4-8</loc>
     <lastmod>2026-02-26T00:13:18-06:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/programs/juggernaut-method</loc>
+    <lastmod>2026-03-07T01:11:09-06:00</lastmod>
   </url>
   <url>
     <loc>https://www.liftosaur.com/programs/mike-mentzer-consolidated</loc>
@@ -252,6 +260,22 @@
   <url>
     <loc>https://www.liftosaur.com/programs/tactical-barbell-operator</loc>
     <lastmod>2026-03-01T21:32:35-06:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/programs/westside-conjugate-method</loc>
+    <lastmod>2026-03-05T08:12:20-06:00</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/docs/api</loc>
+    <lastmod>2026-03-07</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/docs/liftoscript</loc>
+    <lastmod>2026-03-07</lastmod>
+  </url>
+  <url>
+    <loc>https://www.liftosaur.com/docs/mcp</loc>
+    <lastmod>2026-03-07</lastmod>
   </url>
   <url>
     <loc>https://www.liftosaur.com/exercises/bodyweight-ab-wheel</loc>

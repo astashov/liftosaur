@@ -30,7 +30,11 @@ export function DocsListContent(props: IDocsListContentProps): JSX.Element {
       </nav>
       <h1 className="mb-2 text-3xl font-bold">Documentation</h1>
       <p className="mb-8 text-text-secondary">Learn how to use Liftosaur and its features.</p>
-      {uncategorized.length > 0 && <DocsList docs={uncategorized} />}
+      {uncategorized.length > 0 && (
+        <div className="mb-8">
+          <DocsList docs={uncategorized} />
+        </div>
+      )}
       {Array.from(categories.entries()).map(([category, docs]) => (
         <div className="mb-8">
           <h2 className="mb-3 text-xl font-bold capitalize">{category}</h2>
