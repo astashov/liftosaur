@@ -300,6 +300,18 @@ const mainConfig = {
     devMiddleware: {
       index: false, // specify to enable root proxying
     },
+    setupMiddlewares: (middlewares, devServer) => {
+      middlewares.unshift({
+        name: "static-rewrite",
+        middleware: (req, res, next) => {
+          if (req.url.startsWith("/static/")) {
+            req.url = req.url.replace(/^\/static/, "");
+          }
+          next();
+        },
+      });
+      return middlewares;
+    },
     headers: {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
