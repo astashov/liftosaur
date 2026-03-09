@@ -146,7 +146,7 @@ function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
                   props.dispatch(Thunk_googleSignIn(() => setIsLoading(false)));
                   return;
                 }
-                const accessToken = await getGoogleAccessToken();
+                const accessToken = await getGoogleAccessToken(true);
                 if (accessToken != null) {
                   const userId = UidFactory_generateUid(8);
                   const result = await props.service.googleSignIn(accessToken, userId, {});

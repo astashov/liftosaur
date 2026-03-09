@@ -238,6 +238,10 @@ const mainConfig = {
         to: `googleauthcallback.html`,
       },
       {
+        from: `src/googleauthcallback-web.html`,
+        to: `googleauthcallback-web.html`,
+      },
+      {
         from: `src/liftosaur_example_csv.zip`,
         to: `liftosaur_example_csv.zip`,
       },

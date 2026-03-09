@@ -7,13 +7,14 @@ let windowRef: Window | null = null;
 let windowUrl: string | undefined;
 let receiveMessage: ((event: MessageEvent) => void) | undefined;
 
-export function getGoogleAccessToken(): Promise<string | undefined> {
+export function getGoogleAccessToken(useBrowserCallback?: boolean): Promise<string | undefined> {
   return new Promise((resolve) => {
+    const callbackPath = useBrowserCallback ? "/googleauthcallback-web.html" : "/googleauthcallback.html";
     const urlBuilder = UrlUtils_build("https://accounts.google.com/o/oauth2/v2/auth");
     urlBuilder.searchParams.append("scope", "openid email");
     urlBuilder.searchParams.append("include_granted_scopes", "true");
     urlBuilder.searchParams.append("response_type", "token");
-    urlBuilder.searchParams.append("redirect_uri", `${__HOST__}/googleauthcallback.html`);
+    urlBuilder.searchParams.append("redirect_uri", `${__HOST__}${callbackPath}`);
     urlBuilder.searchParams.append(
       "client_id",
       "944666871420-p8kv124sgte8o0p6ev2ah6npudsl7e4f.apps.googleusercontent.com"
