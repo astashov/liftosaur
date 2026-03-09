@@ -51,7 +51,7 @@ export const getProtectedResourceHandler: RouteHandler<
 > = async ({ payload }) => {
   const baseUrl = getBaseUrl();
   return oauthJson(200, {
-    resource: baseUrl,
+    resource: `${baseUrl}/mcp`,
     authorization_servers: [baseUrl],
   });
 };
