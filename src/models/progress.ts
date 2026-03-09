@@ -14,8 +14,6 @@ import {
 } from "./set";
 import {
   Weight_build,
-  Weight_add,
-  Weight_compare,
   Weight_eq,
   Weight_lt,
   Weight_increment,
@@ -34,6 +32,7 @@ import {
   Weight_formatOneSide,
   Weight_rpePct,
   Weight_evaluateWeight,
+  Weight_op,
 } from "./weight";
 import { DateUtils_fromYYYYMMDD, DateUtils_fromYYYYMMDDStr } from "../utils/date";
 import { lf, lb, LensBuilder } from "lens-shmens";
@@ -169,12 +168,15 @@ export interface IScriptFunctions {
   ceil(num: IWeight): IWeight;
   round(num: number): number;
   round(num: IWeight): IWeight;
-  sum(vals: number[]): number;
-  sum(vals: IWeight[]): IWeight;
-  min(vals: number[]): number;
-  min(vals: IWeight[]): IWeight;
-  max(vals: number[]): number;
-  max(vals: IWeight[]): IWeight;
+  sum(
+    ...vals: (number | number[] | IWeight | IWeight[] | IPercentage | IPercentage[])[]
+  ): number | IWeight | IPercentage;
+  min(
+    ...vals: (number | number[] | IWeight | IWeight[] | IPercentage | IPercentage[])[]
+  ): number | IWeight | IPercentage;
+  max(
+    ...vals: (number | number[] | IWeight | IWeight[] | IPercentage | IPercentage[])[]
+  ): number | IWeight | IPercentage;
   zeroOrGte(a: number[] | IWeight[], b: number[] | IWeight[]): boolean;
   print(...args: unknown[]): (typeof args)[0];
   increment(val: IWeight, context: IScriptFnContext): IWeight;
@@ -225,52 +227,50 @@ function round(num: IWeight | number): IWeight | number {
   return typeof num === "number" ? Math.round(num) : Weight_build(Math.round(num.value), num.unit);
 }
 
-function sum(vals: number[]): number;
-function sum(vals: IWeight[]): IWeight;
-function sum(vals: IWeight[] | number[]): IWeight | number {
-  const firstElement = vals[0];
-  if (firstElement == null) {
-    return 0;
-  }
-  if (typeof firstElement === "number") {
-    return (vals as number[]).reduce((acc, a) => acc + (a || 0), 0);
-  } else {
-    return (vals as IWeight[]).reduce((acc, a) => Weight_add(acc, a || 0), Weight_build(0, firstElement.unit));
-  }
+type IScriptArg = number | IWeight | IPercentage;
+
+function isScriptValue(v: unknown): v is IScriptArg {
+  return typeof v === "number" || Weight_is(v) || Weight_isPct(v);
 }
 
-function min(vals: number[]): number;
-function min(vals: IWeight[]): IWeight;
-function min(vals: IWeight[] | number[]): IWeight | number {
-  const firstElement = vals[0];
-  if (firstElement == null) {
-    return 0;
+function flattenScriptArgs(args: unknown[]): IScriptArg[] {
+  const result: IScriptArg[] = [];
+  for (const arg of args) {
+    if (Array.isArray(arg)) {
+      for (const item of arg) {
+        if (isScriptValue(item)) {
+          result.push(item);
+        }
+      }
+    } else if (isScriptValue(arg)) {
+      result.push(arg);
+    }
   }
-  if (typeof firstElement === "number") {
-    vals = vals.map((v) => v ?? 0) as number[];
-    return Math.min(...(vals as number[]));
-  } else {
-    vals = vals.map((v) => v ?? Weight_build(0, "lb")) as IWeight[];
-    const sortedWeights = (vals as IWeight[]).sort((a, b) => Weight_compare(a, b));
-    return sortedWeights[0];
-  }
+  return result;
 }
 
-function max(vals: number[]): number;
-function max(vals: IWeight[]): IWeight;
-function max(vals: IWeight[] | number[]): IWeight | number {
-  const firstElement = vals[0];
-  if (firstElement == null) {
+function sum(...args: unknown[]): IWeight | IPercentage | number {
+  const flat = flattenScriptArgs(args);
+  if (flat.length === 0) {
     return 0;
   }
-  if (typeof firstElement === "number") {
-    vals = vals.map((v) => v ?? 0) as number[];
-    return Math.max(...(vals as number[]));
-  } else {
-    vals = vals.map((v) => v ?? Weight_build(0, "lb")) as IWeight[];
-    const sortedWeights = (vals as IWeight[]).sort((a, b) => Weight_compare(b, a));
-    return sortedWeights[0];
+  return flat.reduce<IScriptArg>((acc, a) => Weight_op(undefined, acc, a, (x, y) => x + y), 0);
+}
+
+function min(...args: unknown[]): IWeight | IPercentage | number {
+  const flat = flattenScriptArgs(args);
+  if (flat.length === 0) {
+    return 0;
   }
+  return flat.reduce<IScriptArg>((acc, a) => (Weight_lt(a, acc) ? a : acc), flat[0]);
+}
+
+function max(...args: unknown[]): IWeight | IPercentage | number {
+  const flat = flattenScriptArgs(args);
+  if (flat.length === 0) {
+    return 0;
+  }
+  return flat.reduce<IScriptArg>((acc, a) => (Weight_lt(acc, a) ? a : acc), flat[0]);
 }
 
 function zeroOrGte(a: IWeight[] | number[], b: IWeight[] | number[]): boolean {

@@ -1291,28 +1291,37 @@ state.reps = round(2.7);
 
 #### `sum`
 
-It sums all the numbers or weights. Use it with `completedReps`, `completedRepsLeft`, `completedWeights`, `originalWeights`, `weights`, `reps`, `RPE` or `completedRPE` variables.
+Sums all values. Accepts any combination of arrays, individual numbers, and weights as arguments.
 
 ```javascript
 if (sum(completedReps) >= 15) {
   state.weight += 5lb;
 };
+state.total = sum(1, 2, 3);
+state.allReps = sum(reps, completedReps);
+state.adjusted = sum(10, completedReps);
 ```
 
 #### `min`
 
-Finds the minimum number or weight in an array. Use it with `completedReps`, `completedRepsLeft`, `completedWeights`, `originalWeights`, `weights`, `reps`, `RPE` or `completedRPE` variables.
+Finds the minimum value. Accepts any combination of arrays, individual numbers, and weights as arguments.
 
 ```javascript
 state.minWeight = min(weights);
+state.smallest = min(7, 2, 5);
+state.lowest = min(reps, completedReps);
+state.capped = min(10, completedReps);
 ```
 
 #### `max`
 
-Finds the maximum number or weight in an array. Use it with `completedReps`, `completedRepsLeft`, `completedWeights`, `originalWeights`, `weights`, `reps`, `RPE` or `completedRPE` variables.
+Finds the maximum value. Accepts any combination of arrays, individual numbers, and weights as arguments.
 
 ```javascript
 state.maxCompletedReps = max(completedReps);
+state.biggest = max(2, 7, 5);
+state.highest = max(reps, completedReps);
+state.floored = max(1, completedReps);
 ```
 
 #### `increment`
