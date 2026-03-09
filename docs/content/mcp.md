@@ -41,25 +41,37 @@ After that, Liftosaur tools will be available in your conversations. You can als
 
 ### Claude Desktop
 
+#### Option A: Via Settings UI
+
 1. Open Claude Desktop
-2. Click the **Settings** icon (bottom-left corner)
-3. Go to the **Developer** tab
-4. Click **Edit Config** - this opens `claude_desktop_config.json`
-5. Add the Liftosaur server:
+2. Go to **Settings** -> **Connectors**
+3. Click **Add custom connector**
+4. Paste the URL: `https://www.liftosaur.com/mcp`
+5. Click **Add**
+6. You'll be redirected to sign in with your Liftosaur account
+
+#### Option B: Via config file
+
+Claude Desktop doesn't support remote servers directly via `claude_desktop_config.json`. Use the [`mcp-remote`](https://www.npmjs.com/package/mcp-remote) package as a bridge:
+
+1. Click the **Settings** icon (bottom-left corner)
+2. Go to the **Developer** tab
+3. Click **Edit Config** - this opens `claude_desktop_config.json`
+4. Add the Liftosaur server:
 
 ```json
 {
   "mcpServers": {
     "liftosaur": {
-      "url": "https://www.liftosaur.com/mcp"
+      "command": "npx",
+      "args": ["mcp-remote", "https://www.liftosaur.com/mcp"]
     }
   }
 }
 ```
 
-6. Save the file and restart Claude Desktop
-7. You should see a hammer/tools icon in the bottom-right corner - that means the MCP server is connected
-8. On first use, Claude will open your browser to authenticate with Liftosaur
+5. Save the file and restart Claude Desktop
+6. On first use, Claude will open your browser to authenticate with Liftosaur
 
 ### Claude Code
 
