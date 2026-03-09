@@ -362,7 +362,20 @@ export class VersionTrackerUpdateVersions<TAtomicType extends string, TControlle
     path: string
   ): IVersionValue | undefined {
     if (Array.isArray(newValue)) {
-      return this.updateArrayCollectionVersion(oldValue, newValue, currentVersion, undefined, timestamp, path);
+      const hasTrackableItems = newValue.some(
+        (item) => VersionTrackerUtils_getId(item, this.versionTypes) !== undefined
+      );
+      const oldHasTrackableItems =
+        Array.isArray(oldValue) &&
+        oldValue.some((item: unknown) => VersionTrackerUtils_getId(item, this.versionTypes) !== undefined);
+      if (hasTrackableItems || oldHasTrackableItems) {
+        return this.updateArrayCollectionVersion(oldValue, newValue, currentVersion, undefined, timestamp, path);
+      } else if (newValue.length > 0 || (Array.isArray(oldValue) && oldValue.length > 0)) {
+        const fieldVersion = isFieldVersion(currentVersion) ? currentVersion : undefined;
+        return VersionTrackerUtils_createVersion(timestamp, fieldVersion, this.deviceId);
+      } else {
+        return this.updateArrayCollectionVersion(oldValue, newValue, currentVersion, undefined, timestamp, path);
+      }
     }
 
     if (VersionTrackerUtils_isRecord(newValue)) {

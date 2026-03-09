@@ -1405,4 +1405,127 @@ describe("VersionTracker", () => {
       expect(watchState.progress[0].entries[0].sets[0].id).to.equal("new-set-1");
     });
   });
+
+  describe("watch intervals sync (non-trackable array field versioning)", () => {
+    it("should propagate watch intervals change to phone on merge", () => {
+      const phoneTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "ios_phone" });
+      const watchTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "watch_abc" });
+
+      const entry: IHistoryEntry = {
+        id: "entry1",
+        vtype: "history_entry",
+        exercise: { id: "squat" },
+        sets: [
+          { vtype: "set" as const, index: 0, id: "set1", isAmrap: false, isUnilateral: false, askWeight: false, isCompleted: false },
+        ],
+        warmupSets: [],
+        index: 0,
+      };
+
+      // 1. Phone creates progress with intervals: [] (paused)
+      const storageBase = Storage_getDefault();
+      const storageWithProgress = {
+        ...storageBase,
+        progress: [
+          {
+            vtype: "progress" as const,
+            startTime: 5000,
+            intervals: [] as [number, number | undefined | null][],
+            entries: [entry],
+            date: "2024-01-01",
+            programId: "prog1",
+            programName: "Test",
+            day: 1,
+            dayName: "Day 1",
+            id: 1,
+          },
+        ],
+      };
+      const phoneVersions1 = phoneTracker.updateVersions(storageBase, storageWithProgress, {}, {}, 1000);
+
+      // 2. Watch receives phone's storage via merge
+      const watchStorage1 = ObjectUtils_clone(storageWithProgress);
+      const watchVersions1 = watchTracker.mergeVersions(phoneVersions1, {});
+      (watchStorage1 as any)._versions = watchVersions1;
+
+      // 3. Watch completes a set, which unpauses the workout (intervals: [[ts, null]])
+      const watchStorageUnpaused = {
+        ...watchStorage1,
+        progress: [
+          {
+            ...watchStorage1.progress[0],
+            intervals: [[6000, undefined] as [number, number | undefined | null]],
+          },
+        ],
+      };
+      const watchVersions2 = watchTracker.updateVersions(watchStorage1, watchStorageUnpaused, watchVersions1, {}, 6000);
+
+      // 4. Phone merges watch's updated storage - intervals should be updated
+      const phoneStorage = { ...storageWithProgress, _versions: phoneVersions1 } as any;
+      const watchStorageToSend = { ...watchStorageUnpaused, _versions: watchVersions2 } as any;
+      const merged = Storage_mergeStorage(phoneStorage, watchStorageToSend, "ios_phone");
+
+      expect(merged.progress[0].intervals).to.deep.equal([[6000, undefined]]);
+    });
+
+    it("should handle intervals going from running back to paused", () => {
+      const phoneTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "ios_phone" });
+      const watchTracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "watch_abc" });
+
+      const entry: IHistoryEntry = {
+        id: "entry1",
+        vtype: "history_entry",
+        exercise: { id: "squat" },
+        sets: [
+          { vtype: "set" as const, index: 0, id: "set1", isAmrap: false, isUnilateral: false, askWeight: false, isCompleted: false },
+        ],
+        warmupSets: [],
+        index: 0,
+      };
+
+      // 1. Phone creates progress with intervals: [[5000, null]] (running)
+      const storageBase = Storage_getDefault();
+      const storageWithProgress = {
+        ...storageBase,
+        progress: [
+          {
+            vtype: "progress" as const,
+            startTime: 5000,
+            intervals: [[5000, undefined]] as [number, number | undefined | null][],
+            entries: [entry],
+            date: "2024-01-01",
+            programId: "prog1",
+            programName: "Test",
+            day: 1,
+            dayName: "Day 1",
+            id: 1,
+          },
+        ],
+      };
+      const phoneVersions1 = phoneTracker.updateVersions(storageBase, storageWithProgress, {}, {}, 5000);
+
+      // 2. Watch receives phone's storage
+      const watchStorage1 = ObjectUtils_clone(storageWithProgress);
+      const watchVersions1 = watchTracker.mergeVersions(phoneVersions1, {});
+
+      // 3. Watch pauses: intervals: [[5000, 7000]]
+      const watchStoragePaused = {
+        ...watchStorage1,
+        progress: [
+          {
+            ...watchStorage1.progress[0],
+            intervals: [[5000, 7000] as [number, number | undefined | null]],
+          },
+        ],
+      };
+      const watchVersions2 = watchTracker.updateVersions(watchStorage1, watchStoragePaused, watchVersions1, {}, 7000);
+
+      // 4. Phone merges watch's storage - intervals should show paused
+      const phoneStorage = { ...storageWithProgress, _versions: phoneVersions1 } as any;
+      const watchStorageToSend = { ...watchStoragePaused, _versions: watchVersions2 } as any;
+      const merged = Storage_mergeStorage(phoneStorage, watchStorageToSend, "ios_phone");
+
+      expect(merged.progress[0].intervals).to.deep.equal([[5000, 7000]]);
+    });
+  });
 });
