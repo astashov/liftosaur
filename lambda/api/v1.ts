@@ -1,7 +1,7 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Endpoint, RouteHandler } from "yatro";
 import { IDI } from "../utils/di";
-import { withApiAuth, ResponseUtils_apiJson, apiError } from "../utils/apiKeyAuth";
+import { withApiAuth, ResponseUtils_apiJson, apiError, IApiKeyAuthResult } from "../utils/apiKeyAuth";
 import {
   ApiV1_getHistory,
   ApiV1_createHistory,
@@ -16,6 +16,7 @@ import {
   ApiV1_programStats,
   IApiError,
 } from "../utils/apiv1";
+import { EventDao } from "../dao/eventDao";
 
 interface IPayload {
   event: APIGatewayProxyEvent;
@@ -44,6 +45,24 @@ function resultToResponse<T>(
   return ResponseUtils_apiJson(status, { data: result.data });
 }
 
+function withApiAuthAndEvent(
+  event: APIGatewayProxyEvent,
+  di: IDI,
+  eventName: string,
+  handler: (auth: IApiKeyAuthResult) => Promise<APIGatewayProxyResult>
+): Promise<APIGatewayProxyResult> {
+  return withApiAuth(event, di, async (auth) => {
+    new EventDao(di).post({
+      type: "event",
+      userId: auth.userId,
+      timestamp: Date.now(),
+      name: eventName,
+      commithash: process.env.COMMIT_HASH ?? "",
+    });
+    return handler(auth);
+  });
+}
+
 // --- History Endpoints ---
 
 export const getV1HistoryEndpoint = Endpoint.build("/api/v1/history", {
@@ -57,7 +76,7 @@ export const getV1HistoryHandler: RouteHandler<IPayload, APIGatewayProxyResult, 
   match: { params },
 }) => {
   const { event, di } = payload;
-  return withApiAuth(event, di, async (auth) => {
+  return withApiAuthAndEvent(event, di, "api-v1-get-history", async (auth) => {
     return resultToResponse(await ApiV1_getHistory(auth.userId, auth.user, params, di));
   });
 };
@@ -69,7 +88,7 @@ export const postV1HistoryHandler: RouteHandler<
   typeof postV1HistoryEndpoint
 > = async ({ payload }) => {
   const { event, di } = payload;
-  return withApiAuth(event, di, async (auth) => {
+  return withApiAuthAndEvent(event, di, "api-v1-create-history", async (auth) => {
     const body = getBodyJson(event);
     if (!body.text) {
       return apiError(400, "invalid_input", "Missing 'text' field");
@@ -84,7 +103,7 @@ export const putV1HistoryHandler: RouteHandler<IPayload, APIGatewayProxyResult, 
   match: { params },
 }) => {
   const { event, di } = payload;
-  return withApiAuth(event, di, async (auth) => {
+  return withApiAuthAndEvent(event, di, "api-v1-update-history", async (auth) => {
     const body = getBodyJson(event);
     if (!body.text) {
       return apiError(400, "invalid_input", "Missing 'text' field");
@@ -102,7 +121,7 @@ export const deleteV1HistoryHandler: RouteHandler<
   typeof deleteV1HistoryEndpoint
 > = async ({ payload, match: { params } }) => {
   const { event, di } = payload;
-  return withApiAuth(event, di, async (auth) => {
+  return withApiAuthAndEvent(event, di, "api-v1-delete-history", async (auth) => {
     return resultToResponse(await ApiV1_deleteHistory(auth.userId, auth.user, parseInt(params.id, 10), di));
   });
 };
@@ -116,7 +135,7 @@ export const getV1ProgramsHandler: RouteHandler<
   typeof getV1ProgramsEndpoint
 > = async ({ payload }) => {
   const { event, di } = payload;
-  return withApiAuth(event, di, async (auth) => {
+  return withApiAuthAndEvent(event, di, "api-v1-list-programs", async (auth) => {
     return resultToResponse(await ApiV1_listPrograms(auth.userId, auth.user, di));
   });
 };
@@ -127,7 +146,7 @@ export const getV1ProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, 
   match: { params },
 }) => {
   const { event, di } = payload;
-  return withApiAuth(event, di, async (auth) => {
+  return withApiAuthAndEvent(event, di, "api-v1-get-program", async (auth) => {
     return resultToResponse(await ApiV1_getProgram(auth.userId, auth.user, params.id, di));
   });
 };
@@ -139,7 +158,7 @@ export const postV1ProgramHandler: RouteHandler<
   typeof postV1ProgramEndpoint
 > = async ({ payload }) => {
   const { event, di } = payload;
-  return withApiAuth(event, di, async (auth) => {
+  return withApiAuthAndEvent(event, di, "api-v1-create-program", async (auth) => {
     const body = getBodyJson(event);
     if (!body.text) {
       return apiError(400, "invalid_input", "Missing 'text' field");
@@ -163,7 +182,7 @@ export const putV1ProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, 
   match: { params },
 }) => {
   const { event, di } = payload;
-  return withApiAuth(event, di, async (auth) => {
+  return withApiAuthAndEvent(event, di, "api-v1-update-program", async (auth) => {
     const body = getBodyJson(event);
     if (!body.text) {
       return apiError(400, "invalid_input", "Missing 'text' field");
@@ -188,7 +207,7 @@ export const deleteV1ProgramHandler: RouteHandler<
   typeof deleteV1ProgramEndpoint
 > = async ({ payload, match: { params } }) => {
   const { event, di } = payload;
-  return withApiAuth(event, di, async (auth) => {
+  return withApiAuthAndEvent(event, di, "api-v1-delete-program", async (auth) => {
     return resultToResponse(await ApiV1_deleteProgram(auth.userId, auth.user, params.id, di));
   });
 };
@@ -202,7 +221,7 @@ export const postV1PlaygroundHandler: RouteHandler<
   typeof postV1PlaygroundEndpoint
 > = async ({ payload }) => {
   const { event, di } = payload;
-  return withApiAuth(event, di, async (auth) => {
+  return withApiAuthAndEvent(event, di, "api-v1-playground", async (auth) => {
     const body = getBodyJson(event);
     if (!body.programText) {
       return apiError(400, "invalid_input", "Missing 'programText' field");
@@ -227,7 +246,7 @@ export const postV1ProgramStatsHandler: RouteHandler<
   typeof postV1ProgramStatsEndpoint
 > = async ({ payload }) => {
   const { event, di } = payload;
-  return withApiAuth(event, di, async (auth) => {
+  return withApiAuthAndEvent(event, di, "api-v1-program-stats", async (auth) => {
     const body = getBodyJson(event);
     if (!body.programText) {
       return apiError(400, "invalid_input", "Missing 'programText' field");

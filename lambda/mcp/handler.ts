@@ -15,6 +15,7 @@ import {
 } from "./reference";
 import { McpToolExecutor_execute } from "./executor";
 import { Subscriptions } from "../utils/subscriptions";
+import { EventDao } from "../dao/eventDao";
 
 const SERVER_NAME = "liftosaur-mcp";
 const SERVER_VERSION = "1.0.0";
@@ -127,7 +128,18 @@ async function handleToolCall(
 
   di.log.log(`[MCP] tools/call: ${toolName}`, JSON.stringify(args));
 
+  function fireEvent(userId?: string): void {
+    new EventDao(di).post({
+      type: "event",
+      userId,
+      timestamp: Date.now(),
+      name: `mcp-${toolName}`,
+      commithash: process.env.COMMIT_HASH ?? "",
+    });
+  }
+
   if (toolName === "get_liftoscript_reference") {
+    fireEvent();
     di.log.log(`[MCP] ${toolName} -> ok (reference)`);
     return mcpJson(
       200,
@@ -138,6 +150,7 @@ async function handleToolCall(
   }
 
   if (toolName === "get_liftoscript_examples") {
+    fireEvent();
     di.log.log(`[MCP] ${toolName} -> ok (examples)`);
     return mcpJson(
       200,
@@ -148,6 +161,7 @@ async function handleToolCall(
   }
 
   if (toolName === "get_liftohistory_reference") {
+    fireEvent();
     di.log.log(`[MCP] ${toolName} -> ok (reference)`);
     return mcpJson(
       200,
@@ -158,6 +172,7 @@ async function handleToolCall(
   }
 
   if (toolName === "list_builtin_programs") {
+    fireEvent();
     const programs = McpReference_listBuiltinPrograms();
     const text = programs.map((p) => `${p.id}: ${p.name}`).join("\n");
     di.log.log(`[MCP] ${toolName} -> ok (${programs.length} programs)`);
@@ -170,6 +185,7 @@ async function handleToolCall(
   }
 
   if (toolName === "get_builtin_program") {
+    fireEvent();
     const id = (args.id as string) || "";
     const content = McpReference_getBuiltinProgram(id);
     if (!content) {
@@ -192,6 +208,7 @@ async function handleToolCall(
   }
 
   if (toolName === "list_exercises") {
+    fireEvent();
     const exercises = McpReference_listExercises();
     const text = exercises.join("\n");
     di.log.log(`[MCP] ${toolName} -> ok (${exercises.length} exercises)`);
@@ -248,6 +265,7 @@ async function handleToolCall(
   }
 
   const userId = tokenRecord.userId;
+  fireEvent(userId);
   di.log.log(`[MCP] ${toolName} user=${userId}`);
   const userDao = new UserDao(di);
   const user = await userDao.getLimitedById(userId);
