@@ -102,6 +102,7 @@ export const postMcpHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
           name: t.name,
           description: t.description,
           inputSchema: t.inputSchema,
+          annotations: t.annotations,
         })),
       })
     );

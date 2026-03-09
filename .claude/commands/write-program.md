@@ -276,6 +276,23 @@ The validation script outputs:
 
 Do NOT add separate volume or duration sections — the app shows this data in widgets.
 
+#### 3e2. Playground Validation (MCP - CRITICAL)
+
+After static validation passes, use the Liftosaur MCP tools to simulate the program and verify progression logic works correctly.
+
+Use `mcp__claude_ai_Liftosaur__run_playground` to simulate workouts. Pass the Liftoscript code (everything inside the ```liftoscript code block) as `programText`. Test the following:
+
+1. **Basic workout simulation** — call with just `programText` to verify the first workout day renders correctly with the right exercises, sets, reps, and weights.
+2. **Multi-day check** — if the program has multiple days, test at least 2 different days by passing the `day` parameter.
+3. **Multi-week check** — if the program is multi-week (`isMultiweek: true`), test at least 2 different weeks by passing the `week` parameter to verify week-to-week variation.
+4. **Progression test** — simulate completing a workout and finishing it to verify progression logic fires correctly:
+   - Use `complete_set(exercise, set)` commands to mark all sets done for at least one key exercise
+   - Use `finish_workout()` to trigger progression scripts
+   - Check the `updatedProgramText` in the response to verify weights/reps changed as expected
+5. **Failure path** — if the program has deload or failure logic, simulate a failed workout (e.g., use `change_reps` to set fewer reps than required) and `finish_workout()` to verify the deload/regression fires.
+
+If the playground reveals issues (wrong weights, progression not firing, incorrect sets), fix the Liftoscript code, re-run static validation, and re-test in the playground.
+
 #### 3f. Writing Style
 
 Follow the full writing style guide in `.claude/skills/writing-style/SKILL.md`. Key points for program descriptions:

@@ -221,7 +221,7 @@ After writing the full description with Liftoscript code, you MUST validate it:
 ### Step 1: Save the file
 Write the complete markdown file to `programs/builtin/<program-id>.md`.
 
-### Step 2: Validate
+### Step 2: Static Validation
 Run:
 ```bash
 TS_NODE_TRANSPILE_ONLY=1 npx ts-node scripts/validate_liftoscript.ts programs/builtin/<program-id>.md
@@ -236,6 +236,23 @@ The validation script outputs two pieces of feedback:
 2. **Weekly Volume Per Muscle Group** — use this to sanity-check the program and mention any glaring gaps (e.g., zero direct ab work) in the Pros & Cons section.
 
 Do NOT add separate volume or duration sections — the app shows this data in widgets on the program detail page. Just use the data to verify your description is accurate.
+
+### Step 4: Playground Validation (MCP)
+
+After static validation passes, use the Liftosaur MCP tools to simulate the program and verify progression logic works correctly.
+
+Use `mcp__claude_ai_Liftosaur__run_playground` to simulate workouts. Pass the Liftoscript code (everything inside the ```liftoscript code block) as `programText`. Test the following:
+
+1. **Basic workout simulation** — call with just `programText` to verify the first workout day renders correctly with the right exercises, sets, reps, and weights.
+2. **Multi-day check** — if the program has multiple days, test at least 2 different days by passing the `day` parameter.
+3. **Multi-week check** — if the program is multi-week (`isMultiweek: true`), test at least 2 different weeks by passing the `week` parameter to verify week-to-week variation.
+4. **Progression test** — simulate completing a workout and finishing it to verify progression logic fires correctly:
+   - Use `complete_set(exercise, set)` commands to mark all sets done for at least one key exercise
+   - Use `finish_workout()` to trigger progression scripts
+   - Check the `updatedProgramText` in the response to verify weights/reps changed as expected
+5. **Failure path** — if the program has deload or failure logic, simulate a failed workout (e.g., use `change_reps` to set fewer reps than required) and `finish_workout()` to verify the deload/regression fires.
+
+If the playground reveals issues (wrong weights, progression not firing, incorrect sets), fix the Liftoscript code, re-run static validation, and re-test in the playground.
 
 ## Writing Style
 
