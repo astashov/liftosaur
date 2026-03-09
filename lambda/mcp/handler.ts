@@ -67,6 +67,38 @@ function parseBody(event: APIGatewayProxyEvent): IJsonRpcRequest | undefined {
   }
 }
 
+// --- GET /mcp (SSE not supported on serverless) ---
+
+export const getMcpEndpoint = Endpoint.build("/mcp");
+export const getMcpHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getMcpEndpoint> = async () => {
+  return {
+    statusCode: 405,
+    body: "",
+    headers: {
+      "content-type": "application/json",
+      "access-control-allow-origin": "*",
+      "access-control-allow-headers": "content-type, authorization, mcp-protocol-version",
+      "access-control-allow-methods": "OPTIONS,GET,POST,DELETE",
+    },
+  };
+};
+
+// --- DELETE /mcp (session termination) ---
+
+export const deleteMcpEndpoint = Endpoint.build("/mcp");
+export const deleteMcpHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof deleteMcpEndpoint> = async () => {
+  return {
+    statusCode: 200,
+    body: "",
+    headers: {
+      "content-type": "application/json",
+      "access-control-allow-origin": "*",
+      "access-control-allow-headers": "content-type, authorization, mcp-protocol-version",
+      "access-control-allow-methods": "OPTIONS,GET,POST,DELETE",
+    },
+  };
+};
+
 // --- POST /mcp ---
 
 export const postMcpEndpoint = Endpoint.build("/mcp");
