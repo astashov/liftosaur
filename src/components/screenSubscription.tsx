@@ -281,11 +281,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
             description="Weekly stats about your performance"
             onClick={() => setIsWeekStatsShown(true)}
           />
-          <Feature
-            icon={<IconWatch />}
-            title="Apple Watch App"
-            description="Track workouts directly from your wrist"
-          />
+          <Feature icon={<IconWatch />} title="Apple Watch App" description="Track workouts directly from your wrist" />
           <Feature
             icon={<IconLink />}
             title="API & MCP"
@@ -519,11 +515,7 @@ function Feature(props: IFeatureProps): JSX.Element {
       <div className="w-6 pt-1 mr-3 text-center">{props.icon}</div>
       <div className="flex-1">
         <h3 className="text-base font-bold">
-          {props.onClick ? (
-            <LinkButton name="subscription-feature">{props.title}</LinkButton>
-          ) : (
-            props.title
-          )}
+          {props.onClick ? <LinkButton name="subscription-feature">{props.title}</LinkButton> : props.title}
         </h3>
         <p className="text-sm text-text-primary">{props.description}</p>
       </div>

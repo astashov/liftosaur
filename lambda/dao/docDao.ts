@@ -4,13 +4,13 @@ import { IDocIndexEntry } from "../../src/models/doc";
 import { IDocDetail, parseDocMarkdown } from "../../src/utils/docUtils";
 
 export class DocDao {
-  private docsDir: string;
+  private readonly docsDir: string;
 
   constructor() {
     this.docsDir = path.join(__dirname, "..", "..", "docs", "content");
   }
 
-  getIndex(): IDocIndexEntry[] {
+  public getIndex(): IDocIndexEntry[] {
     if (!fs.existsSync(this.docsDir)) {
       return [];
     }
@@ -25,7 +25,7 @@ export class DocDao {
     return entries;
   }
 
-  getById(id: string): { indexEntry: IDocIndexEntry; detail: IDocDetail } | undefined {
+  public getById(id: string): { indexEntry: IDocIndexEntry; detail: IDocDetail } | undefined {
     const filePath = path.join(this.docsDir, `${id}.md`);
     if (!fs.existsSync(filePath)) {
       return undefined;

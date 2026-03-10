@@ -12,9 +12,15 @@ import {
   ApiV1_deleteProgram,
   ApiV1_playground,
   ApiV1_programStats,
+  ApiV1_listCustomExercises,
+  ApiV1_getCustomExercise,
+  ApiV1_createCustomExercise,
+  ApiV1_updateCustomExercise,
+  ApiV1_deleteCustomExercise,
   IApiError,
 } from "../utils/apiv1";
 import { IEither } from "../../src/utils/types";
+import { IMuscle, IExerciseKind } from "../../src/types";
 
 type IToolResult = IEither<unknown, IApiError>;
 
@@ -107,7 +113,7 @@ export async function McpToolExecutor_execute(
 
     case "run_playground": {
       const commands = args.commands ? (JSON.parse(args.commands as string) as string[]) : undefined;
-      const playgroundResult = await ApiV1_playground(user, {
+      const playgroundResult = ApiV1_playground(user, {
         programText: args.programText as string,
         day: args.day ? parseInt(args.day as string, 10) : undefined,
         week: args.week ? parseInt(args.week as string, 10) : undefined,
@@ -122,6 +128,57 @@ export async function McpToolExecutor_execute(
         data: { ...playgroundResult.data, stats: playgroundStats.success ? playgroundStats.data : undefined },
       };
     }
+
+    case "list_custom_exercises":
+      return ApiV1_listCustomExercises(user, {
+        limit: args.limit as string | undefined,
+        cursor: args.cursor as string | undefined,
+      });
+
+    case "get_custom_exercise":
+      return ApiV1_getCustomExercise(user, args.id as string);
+
+    case "create_custom_exercise": {
+      const createTargetMuscles = args.targetMuscles ? (JSON.parse(args.targetMuscles as string) as IMuscle[]) : [];
+      const createSynergistMuscles = args.synergistMuscles
+        ? (JSON.parse(args.synergistMuscles as string) as IMuscle[])
+        : [];
+      const createTypes = args.types ? (JSON.parse(args.types as string) as IExerciseKind[]) : [];
+      return ApiV1_createCustomExercise(
+        userId,
+        user,
+        args.name as string,
+        createTargetMuscles,
+        createSynergistMuscles,
+        createTypes,
+        di
+      );
+    }
+
+    case "update_custom_exercise": {
+      const updateFields: {
+        name?: string;
+        targetMuscles?: IMuscle[];
+        synergistMuscles?: IMuscle[];
+        types?: IExerciseKind[];
+      } = {};
+      if (args.name != null) {
+        updateFields.name = args.name as string;
+      }
+      if (args.targetMuscles != null) {
+        updateFields.targetMuscles = JSON.parse(args.targetMuscles as string);
+      }
+      if (args.synergistMuscles != null) {
+        updateFields.synergistMuscles = JSON.parse(args.synergistMuscles as string);
+      }
+      if (args.types != null) {
+        updateFields.types = JSON.parse(args.types as string);
+      }
+      return ApiV1_updateCustomExercise(userId, user, args.id as string, updateFields, di);
+    }
+
+    case "delete_custom_exercise":
+      return ApiV1_deleteCustomExercise(userId, user, args.id as string, di);
 
     case "get_program_stats":
       return ApiV1_programStats(user, args.programText as string);

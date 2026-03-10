@@ -5,7 +5,7 @@ shortDescription: "Connect AI assistants like Claude or ChatGPT to Liftosaur - c
 order: 2
 category: "Integrations"
 datePublished: "2026-03-07"
-dateModified: "2026-03-07"
+dateModified: "2026-03-10"
 ---
 
 ## What is MCP?
@@ -140,6 +140,7 @@ Once connected, you can ask the AI to:
 - **Log workouts** - "I did 3x5 squats at 225lb and 3x8 bench at 155lb today"
 - **Analyze history** - "Show me my last 10 workouts" or "How has my squat progressed?"
 - **Test progressions** - simulate workouts in the playground to verify the logic works
+- **Manage custom exercises** - create, update, or delete exercises not in the built-in list
 
 The AI has access to the Liftoscript language reference and built-in program examples, so it can learn the syntax on the fly.
 
@@ -166,6 +167,16 @@ These are the tools the AI assistant can call on your behalf:
 | `create_history_record` | Log a new workout in Liftoscript Workouts format |
 | `update_history_record` | Update an existing workout record |
 | `delete_history_record` | Delete a workout record |
+
+### Custom Exercises
+
+| Tool | What it does |
+|------|-------------|
+| `list_custom_exercises` | List your custom exercises. Supports pagination via limit/cursor |
+| `get_custom_exercise` | Get a single custom exercise by ID |
+| `create_custom_exercise` | Create a custom exercise with name, target/synergist muscles, and types |
+| `update_custom_exercise` | Update an existing custom exercise. Only provided fields change |
+| `delete_custom_exercise` | Delete a custom exercise |
 
 ### Testing and Analysis
 

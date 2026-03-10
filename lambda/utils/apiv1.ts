@@ -13,7 +13,7 @@ import {
 } from "../../src/pages/planner/models/plannerProgram";
 import { PlannerSyntaxError } from "../../src/pages/planner/plannerExerciseEvaluator";
 import { IPlannerProgramExercise } from "../../src/pages/planner/models/types";
-import { IProgram, ISettings, IHistoryRecord } from "../../src/types";
+import { IProgram, ISettings, IHistoryRecord, IMuscle, IExerciseKind, ICustomExercise } from "../../src/types";
 import { UidFactory_generateUid } from "./generator";
 import {
   Program_evaluate,
@@ -21,7 +21,12 @@ import {
   Program_getProgramDay,
   Program_getProgramDayUsedExercises,
 } from "../../src/models/program";
-import { Exercise_toKey } from "../../src/models/exercise";
+import {
+  Exercise_toKey,
+  Exercise_createCustomExercise,
+  Exercise_editCustomExercise,
+  Exercise_deleteCustomExercise,
+} from "../../src/models/exercise";
 import { Playground_run, Playground_validateProgramText } from "../../src/playground/playground";
 import {
   PlannerStatsUtils_dayApproxTimeMs,
@@ -534,4 +539,147 @@ export function ApiV1_programStats(user: ILimitedUserDao, programText: string): 
     hypertrophySets: setResults.hypertrophy,
     muscleGroups,
   });
+}
+
+// --- Custom Exercises ---
+
+interface ICustomExerciseResponse {
+  id: string;
+  name: string;
+  targetMuscles: string[];
+  synergistMuscles: string[];
+  types: string[];
+}
+
+function formatCustomExercise(e: ICustomExercise): ICustomExerciseResponse {
+  return {
+    id: e.id,
+    name: e.name,
+    targetMuscles: e.meta?.targetMuscles || [],
+    synergistMuscles: e.meta?.synergistMuscles || [],
+    types: e.types || [],
+  };
+}
+
+export function ApiV1_listCustomExercises(
+  user: ILimitedUserDao,
+  params: { limit?: string; cursor?: string }
+): IApiResult<{ exercises: ICustomExerciseResponse[]; hasMore: boolean; nextCursor?: string }> {
+  const exercises = user.storage.settings.exercises || {};
+  const all = Object.values(exercises).filter((e): e is ICustomExercise => e != null && !e.isDeleted);
+  all.sort((a, b) => a.name.localeCompare(b.name));
+
+  const limit = Math.min(parseInt(params.limit || "50", 10) || 50, 200);
+  const cursorIdx = params.cursor ? all.findIndex((e) => e.id === params.cursor) : -1;
+  const start = cursorIdx >= 0 ? cursorIdx + 1 : 0;
+  const page = all.slice(start, start + limit + 1);
+  const hasMore = page.length > limit;
+  const result = page.slice(0, limit);
+  const nextCursor = hasMore && result.length > 0 ? result[result.length - 1].id : undefined;
+
+  return ok({ exercises: result.map(formatCustomExercise), hasMore, nextCursor });
+}
+
+export function ApiV1_getCustomExercise(
+  user: ILimitedUserDao,
+  exerciseId: string
+): IApiResult<ICustomExerciseResponse> {
+  const exercises = user.storage.settings.exercises || {};
+  const exercise = exercises[exerciseId];
+  if (!exercise || exercise.isDeleted) {
+    return err(404, "not_found", "Custom exercise not found");
+  }
+  return ok(formatCustomExercise(exercise));
+}
+
+export async function ApiV1_createCustomExercise(
+  userId: string,
+  user: ILimitedUserDao,
+  name: string,
+  targetMuscles: IMuscle[],
+  synergistMuscles: IMuscle[],
+  types: IExerciseKind[],
+  di: IDI
+): Promise<IApiResult<ICustomExerciseResponse>> {
+  if (!name.trim()) {
+    return err(400, "invalid_input", "Exercise name is required");
+  }
+
+  const exercise = Exercise_createCustomExercise(name.trim(), targetMuscles, synergistMuscles, types);
+  const userDao = new UserDao(di);
+
+  await userDao.applyStorageUpdate(user, (old) => ({
+    ...old,
+    settings: {
+      ...old.settings,
+      exercises: { ...(old.settings?.exercises || {}), [exercise.id]: exercise },
+    },
+  }));
+
+  return ok(formatCustomExercise(exercise));
+}
+
+export async function ApiV1_updateCustomExercise(
+  userId: string,
+  user: ILimitedUserDao,
+  exerciseId: string,
+  fields: { name?: string; targetMuscles?: IMuscle[]; synergistMuscles?: IMuscle[]; types?: IExerciseKind[] },
+  di: IDI
+): Promise<IApiResult<ICustomExerciseResponse>> {
+  const exercises = user.storage.settings.exercises || {};
+  const existing = exercises[exerciseId];
+  if (!existing || existing.isDeleted) {
+    return err(404, "not_found", "Custom exercise not found");
+  }
+
+  const newName = fields.name?.trim() ?? existing.name;
+  if (!newName) {
+    return err(400, "invalid_input", "Exercise name cannot be empty");
+  }
+
+  const updated = Exercise_editCustomExercise(
+    existing,
+    newName,
+    fields.targetMuscles ?? existing.meta?.targetMuscles ?? [],
+    fields.synergistMuscles ?? existing.meta?.synergistMuscles ?? [],
+    fields.types ?? existing.types ?? [],
+    existing.smallImageUrl,
+    existing.largeImageUrl
+  );
+
+  const userDao = new UserDao(di);
+  await userDao.applyStorageUpdate(user, (old) => ({
+    ...old,
+    settings: {
+      ...old.settings,
+      exercises: { ...(old.settings?.exercises || {}), [exerciseId]: updated },
+    },
+  }));
+
+  return ok(formatCustomExercise(updated));
+}
+
+export async function ApiV1_deleteCustomExercise(
+  userId: string,
+  user: ILimitedUserDao,
+  exerciseId: string,
+  di: IDI
+): Promise<IApiResult<{ deleted: true }>> {
+  const exercises = user.storage.settings.exercises || {};
+  const existing = exercises[exerciseId];
+  if (!existing || existing.isDeleted) {
+    return err(404, "not_found", "Custom exercise not found");
+  }
+
+  const updated = Exercise_deleteCustomExercise(exercises, exerciseId);
+  const userDao = new UserDao(di);
+  await userDao.applyStorageUpdate(user, (old) => ({
+    ...old,
+    settings: {
+      ...old.settings,
+      exercises: updated,
+    },
+  }));
+
+  return ok({ deleted: true as const });
 }

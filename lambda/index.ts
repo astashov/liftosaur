@@ -126,7 +126,14 @@ import {
   postV1ProgramStatsEndpoint,
   postV1ProgramStatsHandler,
 } from "./api/v1";
-import { getMcpEndpoint, getMcpHandler, deleteMcpEndpoint, deleteMcpHandler, postMcpEndpoint, postMcpHandler } from "./mcp/handler";
+import {
+  getMcpEndpoint,
+  getMcpHandler,
+  deleteMcpEndpoint,
+  deleteMcpHandler,
+  postMcpEndpoint,
+  postMcpHandler,
+} from "./mcp/handler";
 import {
   getProtectedResourceEndpoint,
   getProtectedResourceHandler,

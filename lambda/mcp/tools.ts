@@ -240,6 +240,97 @@ export const mcpTools: IMcpToolDef[] = [
       properties: {},
     },
   },
+
+  // --- Custom Exercises ---
+  {
+    name: "list_custom_exercises",
+    description:
+      "List the user's custom exercises. Returns id, name, target muscles, synergist muscles, and types for each. Use limit/cursor for pagination (max 200 per page).",
+    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+    inputSchema: {
+      type: "object",
+      properties: {
+        limit: { type: "string", description: "Max exercises to return (default 50, max 200)" },
+        cursor: { type: "string", description: "Pagination cursor (exercise ID) from previous response" },
+      },
+    },
+  },
+  {
+    name: "get_custom_exercise",
+    description: "Get a single custom exercise by ID.",
+    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: { type: "string", description: "Custom exercise ID" },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "create_custom_exercise",
+    description:
+      "Create a custom exercise. Only the name is required. Use this when a program references an exercise that doesn't exist in the built-in exercise list (from list_exercises). You should determine appropriate values for targetMuscles, synergistMuscles, and types based on the exercise name.\n\nAvailable muscles: Adductor Brevis, Adductor Longus, Adductor Magnus, Biceps Brachii, Brachialis, Brachioradialis, Deltoid Anterior, Deltoid Lateral, Deltoid Posterior, Erector Spinae, Gastrocnemius, Gluteus Maximus, Gluteus Medius, Hamstrings, Iliopsoas, Infraspinatus, Latissimus Dorsi, Levator Scapulae, Obliques, Pectineous, Pectoralis Major Clavicular Head, Pectoralis Major Sternal Head, Quadriceps, Rectus Abdominis, Sartorius, Serratus Anterior, Soleus, Splenius, Sternocleidomastoid, Tensor Fasciae Latae, Teres Major, Teres Minor, Tibialis Anterior, Trapezius Lower Fibers, Trapezius Middle Fibers, Trapezius Upper Fibers, Triceps Brachii, Wrist Extensors, Wrist Flexors.\n\nAvailable types: core, pull, push, legs, upper, lower.",
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+    inputSchema: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "Exercise name" },
+        targetMuscles: {
+          type: "string",
+          description: 'JSON array of primary target muscles. E.g. ["Quadriceps", "Gluteus Maximus"]',
+        },
+        synergistMuscles: {
+          type: "string",
+          description: 'JSON array of secondary/synergist muscles. E.g. ["Hamstrings", "Erector Spinae"]',
+        },
+        types: {
+          type: "string",
+          description:
+            'JSON array of exercise types. E.g. ["push", "upper"]. Available: core, pull, push, legs, upper, lower',
+        },
+      },
+      required: ["name"],
+    },
+  },
+  {
+    name: "update_custom_exercise",
+    description:
+      "Update an existing custom exercise. Only provided fields are changed; omitted fields keep their current values.\n\nSee create_custom_exercise for available muscles and types.",
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: { type: "string", description: "Custom exercise ID" },
+        name: { type: "string", description: "New exercise name (optional)" },
+        targetMuscles: {
+          type: "string",
+          description: "JSON array of primary target muscles (optional, replaces existing)",
+        },
+        synergistMuscles: {
+          type: "string",
+          description: "JSON array of secondary/synergist muscles (optional, replaces existing)",
+        },
+        types: {
+          type: "string",
+          description: "JSON array of exercise types (optional, replaces existing)",
+        },
+      },
+      required: ["id"],
+    },
+  },
+  {
+    name: "delete_custom_exercise",
+    description: "Delete a custom exercise by ID.",
+    annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: true },
+    inputSchema: {
+      type: "object",
+      properties: {
+        id: { type: "string", description: "Custom exercise ID to delete" },
+      },
+      required: ["id"],
+    },
+  },
   {
     name: "get_program_stats",
     description:

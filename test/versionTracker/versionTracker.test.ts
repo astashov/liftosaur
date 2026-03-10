@@ -1416,7 +1416,15 @@ describe("VersionTracker", () => {
         vtype: "history_entry",
         exercise: { id: "squat" },
         sets: [
-          { vtype: "set" as const, index: 0, id: "set1", isAmrap: false, isUnilateral: false, askWeight: false, isCompleted: false },
+          {
+            vtype: "set" as const,
+            index: 0,
+            id: "set1",
+            isAmrap: false,
+            isUnilateral: false,
+            askWeight: false,
+            isCompleted: false,
+          },
         ],
         warmupSets: [],
         index: 0,
@@ -1477,7 +1485,15 @@ describe("VersionTracker", () => {
         vtype: "history_entry",
         exercise: { id: "squat" },
         sets: [
-          { vtype: "set" as const, index: 0, id: "set1", isAmrap: false, isUnilateral: false, askWeight: false, isCompleted: false },
+          {
+            vtype: "set" as const,
+            index: 0,
+            id: "set1",
+            isAmrap: false,
+            isUnilateral: false,
+            askWeight: false,
+            isCompleted: false,
+          },
         ],
         warmupSets: [],
         index: 0,

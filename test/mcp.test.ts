@@ -158,10 +158,7 @@ describe("MCP", () => {
     });
 
     it("rejects tool call with invalid token", async () => {
-      const result = await handler(
-        buildMcpEvent(toolCall("list_programs"), authHeaders("lftot_invalid")),
-        ctx
-      );
+      const result = await handler(buildMcpEvent(toolCall("list_programs"), authHeaders("lftot_invalid")), ctx);
       expect(result.statusCode).to.equal(401);
     });
 
@@ -326,10 +323,7 @@ describe("MCP", () => {
     });
 
     it("returns error for unknown tool", async () => {
-      const result = await handler(
-        buildMcpEvent(toolCall("nonexistent_tool"), authHeaders(token)),
-        ctx
-      );
+      const result = await handler(buildMcpEvent(toolCall("nonexistent_tool"), authHeaders(token)), ctx);
       expect(result.statusCode).to.equal(200);
       expect(parseBody(result).error.code).to.equal(-32602);
     });
@@ -397,10 +391,7 @@ describe("MCP", () => {
 
     it("runs playground with valid program", async () => {
       const programText = "# Week 1\n## Day 1\nSquat / 3x5 / 135lb / progress: lp(5lb)";
-      const result = await handler(
-        buildMcpEvent(toolCall("run_playground", { programText }), authHeaders(token)),
-        ctx
-      );
+      const result = await handler(buildMcpEvent(toolCall("run_playground", { programText }), authHeaders(token)), ctx);
       expect(result.statusCode).to.equal(200);
       const body = parseBody(result);
       expect(body.result.isError).to.be.undefined;
@@ -422,7 +413,9 @@ describe("MCP", () => {
     it("runs playground with finish_workout", async () => {
       const programText = "# Week 1\n## Day 1\nSquat / 3x5 / 135lb / progress: lp(5lb)";
       const commands = JSON.stringify([
-        "complete_set(1, 1)", "complete_set(1, 2)", "complete_set(1, 3)",
+        "complete_set(1, 1)",
+        "complete_set(1, 2)",
+        "complete_set(1, 3)",
         "finish_workout()",
       ]);
       const result = await handler(
@@ -445,6 +438,273 @@ describe("MCP", () => {
       const body = parseBody(result);
       expect(body.result.isError).to.equal(true);
       expect(body.result.content[0].text).to.include("Hint");
+    });
+  });
+
+  describe("custom exercises", () => {
+    let token: string;
+
+    beforeEach(async () => {
+      token = await createOauthToken();
+    });
+
+    it("lists empty custom exercises", async () => {
+      const result = await handler(buildMcpEvent(toolCall("list_custom_exercises"), authHeaders(token)), ctx);
+      expect(result.statusCode).to.equal(200);
+      const body = parseBody(result);
+      expect(body.result.isError).to.be.undefined;
+      const data = JSON.parse(body.result.content[0].text);
+      expect(data.exercises).to.deep.equal([]);
+      expect(data.hasMore).to.equal(false);
+    });
+
+    it("creates a custom exercise with name only", async () => {
+      const result = await handler(
+        buildMcpEvent(toolCall("create_custom_exercise", { name: "Zercher Carry" }), authHeaders(token)),
+        ctx
+      );
+      expect(result.statusCode).to.equal(200);
+      const body = parseBody(result);
+      expect(body.result.isError).to.be.undefined;
+      const data = JSON.parse(body.result.content[0].text);
+      expect(data.id).to.be.a("string");
+      expect(data.name).to.equal("Zercher Carry");
+      expect(data.targetMuscles).to.deep.equal([]);
+      expect(data.types).to.deep.equal([]);
+    });
+
+    it("creates a custom exercise with muscles and types", async () => {
+      const result = await handler(
+        buildMcpEvent(
+          toolCall("create_custom_exercise", {
+            name: "Sled Push",
+            targetMuscles: JSON.stringify(["Quadriceps", "Gluteus Maximus"]),
+            synergistMuscles: JSON.stringify(["Hamstrings", "Gastrocnemius"]),
+            types: JSON.stringify(["push", "legs"]),
+          }),
+          authHeaders(token)
+        ),
+        ctx
+      );
+      expect(result.statusCode).to.equal(200);
+      const data = JSON.parse(parseBody(result).result.content[0].text);
+      expect(data.name).to.equal("Sled Push");
+      expect(data.targetMuscles).to.deep.equal(["Quadriceps", "Gluteus Maximus"]);
+      expect(data.synergistMuscles).to.deep.equal(["Hamstrings", "Gastrocnemius"]);
+      expect(data.types).to.deep.equal(["push", "legs"]);
+    });
+
+    it("rejects empty name", async () => {
+      const result = await handler(
+        buildMcpEvent(toolCall("create_custom_exercise", { name: "  " }), authHeaders(token)),
+        ctx
+      );
+      expect(result.statusCode).to.equal(200);
+      const body = parseBody(result);
+      expect(body.result.isError).to.equal(true);
+      expect(body.result.content[0].text).to.include("name");
+    });
+
+    it("creates and gets a custom exercise", async () => {
+      const createResult = await handler(
+        buildMcpEvent(toolCall("create_custom_exercise", { name: "Sled Push" }), authHeaders(token)),
+        ctx
+      );
+      const createData = JSON.parse(parseBody(createResult).result.content[0].text);
+
+      const getResult = await handler(
+        buildMcpEvent(toolCall("get_custom_exercise", { id: createData.id }), authHeaders(token)),
+        ctx
+      );
+      expect(getResult.statusCode).to.equal(200);
+      const getData = JSON.parse(parseBody(getResult).result.content[0].text);
+      expect(getData.name).to.equal("Sled Push");
+      expect(getData.id).to.equal(createData.id);
+    });
+
+    it("returns error for nonexistent custom exercise", async () => {
+      const result = await handler(
+        buildMcpEvent(toolCall("get_custom_exercise", { id: "nonexistent" }), authHeaders(token)),
+        ctx
+      );
+      expect(result.statusCode).to.equal(200);
+      const body = parseBody(result);
+      expect(body.result.isError).to.equal(true);
+      expect(body.result.content[0].text).to.include("not found");
+    });
+
+    it("lists created custom exercises", async () => {
+      await handler(
+        buildMcpEvent(toolCall("create_custom_exercise", { name: "Banana Curl" }), authHeaders(token)),
+        ctx
+      );
+      await handler(
+        buildMcpEvent(toolCall("create_custom_exercise", { name: "Axle Deadlift" }), authHeaders(token)),
+        ctx
+      );
+
+      const result = await handler(buildMcpEvent(toolCall("list_custom_exercises"), authHeaders(token)), ctx);
+      const data = JSON.parse(parseBody(result).result.content[0].text);
+      expect(data.exercises).to.have.lengthOf(2);
+      expect(data.exercises[0].name).to.equal("Axle Deadlift");
+      expect(data.exercises[1].name).to.equal("Banana Curl");
+    });
+
+    it("paginates custom exercises", async () => {
+      await handler(buildMcpEvent(toolCall("create_custom_exercise", { name: "Exercise A" }), authHeaders(token)), ctx);
+      await handler(buildMcpEvent(toolCall("create_custom_exercise", { name: "Exercise B" }), authHeaders(token)), ctx);
+      await handler(buildMcpEvent(toolCall("create_custom_exercise", { name: "Exercise C" }), authHeaders(token)), ctx);
+
+      const page1 = await handler(
+        buildMcpEvent(toolCall("list_custom_exercises", { limit: "2" }), authHeaders(token)),
+        ctx
+      );
+      const page1Data = JSON.parse(parseBody(page1).result.content[0].text);
+      expect(page1Data.exercises).to.have.lengthOf(2);
+      expect(page1Data.hasMore).to.equal(true);
+      expect(page1Data.nextCursor).to.be.a("string");
+
+      const page2 = await handler(
+        buildMcpEvent(
+          toolCall("list_custom_exercises", { limit: "2", cursor: page1Data.nextCursor }),
+          authHeaders(token)
+        ),
+        ctx
+      );
+      const page2Data = JSON.parse(parseBody(page2).result.content[0].text);
+      expect(page2Data.exercises).to.have.lengthOf(1);
+      expect(page2Data.hasMore).to.equal(false);
+    });
+
+    it("updates a custom exercise name", async () => {
+      const createResult = await handler(
+        buildMcpEvent(toolCall("create_custom_exercise", { name: "Old Name" }), authHeaders(token)),
+        ctx
+      );
+      const createData = JSON.parse(parseBody(createResult).result.content[0].text);
+
+      const updateResult = await handler(
+        buildMcpEvent(toolCall("update_custom_exercise", { id: createData.id, name: "New Name" }), authHeaders(token)),
+        ctx
+      );
+      expect(updateResult.statusCode).to.equal(200);
+      const updateData = JSON.parse(parseBody(updateResult).result.content[0].text);
+      expect(updateData.name).to.equal("New Name");
+      expect(updateData.id).to.equal(createData.id);
+    });
+
+    it("updates custom exercise muscles", async () => {
+      const createResult = await handler(
+        buildMcpEvent(
+          toolCall("create_custom_exercise", {
+            name: "Sled Push",
+            targetMuscles: JSON.stringify(["Quadriceps"]),
+          }),
+          authHeaders(token)
+        ),
+        ctx
+      );
+      const createData = JSON.parse(parseBody(createResult).result.content[0].text);
+
+      const updateResult = await handler(
+        buildMcpEvent(
+          toolCall("update_custom_exercise", {
+            id: createData.id,
+            targetMuscles: JSON.stringify(["Quadriceps", "Gluteus Maximus"]),
+            synergistMuscles: JSON.stringify(["Hamstrings"]),
+          }),
+          authHeaders(token)
+        ),
+        ctx
+      );
+      const updateData = JSON.parse(parseBody(updateResult).result.content[0].text);
+      expect(updateData.name).to.equal("Sled Push");
+      expect(updateData.targetMuscles).to.deep.equal(["Quadriceps", "Gluteus Maximus"]);
+      expect(updateData.synergistMuscles).to.deep.equal(["Hamstrings"]);
+    });
+
+    it("preserves unchanged fields on update", async () => {
+      const createResult = await handler(
+        buildMcpEvent(
+          toolCall("create_custom_exercise", {
+            name: "Sled Push",
+            targetMuscles: JSON.stringify(["Quadriceps"]),
+            types: JSON.stringify(["push", "legs"]),
+          }),
+          authHeaders(token)
+        ),
+        ctx
+      );
+      const createData = JSON.parse(parseBody(createResult).result.content[0].text);
+
+      const updateResult = await handler(
+        buildMcpEvent(
+          toolCall("update_custom_exercise", { id: createData.id, name: "Sled Drive" }),
+          authHeaders(token)
+        ),
+        ctx
+      );
+      const updateData = JSON.parse(parseBody(updateResult).result.content[0].text);
+      expect(updateData.name).to.equal("Sled Drive");
+      expect(updateData.targetMuscles).to.deep.equal(["Quadriceps"]);
+      expect(updateData.types).to.deep.equal(["push", "legs"]);
+    });
+
+    it("returns error when updating nonexistent exercise", async () => {
+      const result = await handler(
+        buildMcpEvent(toolCall("update_custom_exercise", { id: "nonexistent", name: "Foo" }), authHeaders(token)),
+        ctx
+      );
+      expect(result.statusCode).to.equal(200);
+      const body = parseBody(result);
+      expect(body.result.isError).to.equal(true);
+      expect(body.result.content[0].text).to.include("not found");
+    });
+
+    it("deletes a custom exercise", async () => {
+      const createResult = await handler(
+        buildMcpEvent(toolCall("create_custom_exercise", { name: "Sled Push" }), authHeaders(token)),
+        ctx
+      );
+      const createData = JSON.parse(parseBody(createResult).result.content[0].text);
+
+      const deleteResult = await handler(
+        buildMcpEvent(toolCall("delete_custom_exercise", { id: createData.id }), authHeaders(token)),
+        ctx
+      );
+      expect(deleteResult.statusCode).to.equal(200);
+      expect(parseBody(deleteResult).result.isError).to.be.undefined;
+
+      const getResult = await handler(
+        buildMcpEvent(toolCall("get_custom_exercise", { id: createData.id }), authHeaders(token)),
+        ctx
+      );
+      expect(parseBody(getResult).result.isError).to.equal(true);
+    });
+
+    it("deleted exercises don't appear in list", async () => {
+      const createResult = await handler(
+        buildMcpEvent(toolCall("create_custom_exercise", { name: "Sled Push" }), authHeaders(token)),
+        ctx
+      );
+      const createData = JSON.parse(parseBody(createResult).result.content[0].text);
+
+      await handler(buildMcpEvent(toolCall("delete_custom_exercise", { id: createData.id }), authHeaders(token)), ctx);
+
+      const listResult = await handler(buildMcpEvent(toolCall("list_custom_exercises"), authHeaders(token)), ctx);
+      const listData = JSON.parse(parseBody(listResult).result.content[0].text);
+      expect(listData.exercises).to.deep.equal([]);
+    });
+
+    it("returns error when deleting nonexistent exercise", async () => {
+      const result = await handler(
+        buildMcpEvent(toolCall("delete_custom_exercise", { id: "nonexistent" }), authHeaders(token)),
+        ctx
+      );
+      expect(result.statusCode).to.equal(200);
+      const body = parseBody(result);
+      expect(body.result.isError).to.equal(true);
+      expect(body.result.content[0].text).to.include("not found");
     });
   });
 });
