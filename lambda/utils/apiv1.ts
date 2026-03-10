@@ -13,7 +13,19 @@ import {
 } from "../../src/pages/planner/models/plannerProgram";
 import { PlannerSyntaxError } from "../../src/pages/planner/plannerExerciseEvaluator";
 import { IPlannerProgramExercise } from "../../src/pages/planner/models/types";
-import { IProgram, ISettings, IHistoryRecord, IMuscle, IExerciseKind, ICustomExercise } from "../../src/types";
+import {
+  IProgram,
+  ISettings,
+  IHistoryRecord,
+  IMuscle,
+  IExerciseKind,
+  ICustomExercise,
+  TMuscle,
+  TExerciseKind,
+  availableMuscles,
+  exerciseKinds,
+} from "../../src/types";
+import * as t from "io-ts";
 import { UidFactory_generateUid } from "./generator";
 import {
   Program_evaluate,
@@ -543,6 +555,28 @@ export function ApiV1_programStats(user: ILimitedUserDao, programText: string): 
 
 // --- Custom Exercises ---
 
+function validateExerciseFields(
+  targetMuscles: unknown[],
+  synergistMuscles: unknown[],
+  types: unknown[]
+): IApiError | undefined {
+  if (t.array(TMuscle).decode([...targetMuscles, ...synergistMuscles])._tag === "Left") {
+    return {
+      status: 400,
+      code: "invalid_input",
+      message: `Invalid muscle name(s). Valid muscles: ${availableMuscles.join(", ")}`,
+    };
+  }
+  if (t.array(TExerciseKind).decode(types)._tag === "Left") {
+    return {
+      status: 400,
+      code: "invalid_input",
+      message: `Invalid exercise type(s). Valid types: ${exerciseKinds.join(", ")}`,
+    };
+  }
+  return undefined;
+}
+
 interface ICustomExerciseResponse {
   id: string;
   name: string;
@@ -604,6 +638,10 @@ export async function ApiV1_createCustomExercise(
   if (!name.trim()) {
     return err(400, "invalid_input", "Exercise name is required");
   }
+  const validation = validateExerciseFields(targetMuscles, synergistMuscles, types);
+  if (validation) {
+    return { success: false, error: validation };
+  }
 
   const exercise = Exercise_createCustomExercise(name.trim(), targetMuscles, synergistMuscles, types);
   const userDao = new UserDao(di);
@@ -635,6 +673,14 @@ export async function ApiV1_updateCustomExercise(
   const newName = fields.name?.trim() ?? existing.name;
   if (!newName) {
     return err(400, "invalid_input", "Exercise name cannot be empty");
+  }
+  const validation = validateExerciseFields(
+    fields.targetMuscles ?? existing.meta?.targetMuscles ?? [],
+    fields.synergistMuscles ?? existing.meta?.synergistMuscles ?? [],
+    fields.types ?? existing.types ?? []
+  );
+  if (validation) {
+    return { success: false, error: validation };
   }
 
   const updated = Exercise_editCustomExercise(

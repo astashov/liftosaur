@@ -505,6 +505,63 @@ describe("MCP", () => {
       expect(body.result.content[0].text).to.include("name");
     });
 
+    it("rejects invalid muscle names", async () => {
+      const result = await handler(
+        buildMcpEvent(
+          toolCall("create_custom_exercise", {
+            name: "Sled Push",
+            targetMuscles: JSON.stringify(["Quadriceps", "NotARealMuscle"]),
+          }),
+          authHeaders(token)
+        ),
+        ctx
+      );
+      expect(result.statusCode).to.equal(200);
+      const body = parseBody(result);
+      expect(body.result.isError).to.equal(true);
+      expect(body.result.content[0].text).to.include("Invalid muscle");
+    });
+
+    it("rejects invalid exercise types", async () => {
+      const result = await handler(
+        buildMcpEvent(
+          toolCall("create_custom_exercise", {
+            name: "Sled Push",
+            types: JSON.stringify(["push", "flying"]),
+          }),
+          authHeaders(token)
+        ),
+        ctx
+      );
+      expect(result.statusCode).to.equal(200);
+      const body = parseBody(result);
+      expect(body.result.isError).to.equal(true);
+      expect(body.result.content[0].text).to.include("Invalid exercise type");
+    });
+
+    it("rejects invalid muscles on update", async () => {
+      const createResult = await handler(
+        buildMcpEvent(toolCall("create_custom_exercise", { name: "Sled Push" }), authHeaders(token)),
+        ctx
+      );
+      const createData = JSON.parse(parseBody(createResult).result.content[0].text);
+
+      const result = await handler(
+        buildMcpEvent(
+          toolCall("update_custom_exercise", {
+            id: createData.id,
+            synergistMuscles: JSON.stringify(["FakeMuscle"]),
+          }),
+          authHeaders(token)
+        ),
+        ctx
+      );
+      expect(result.statusCode).to.equal(200);
+      const body = parseBody(result);
+      expect(body.result.isError).to.equal(true);
+      expect(body.result.content[0].text).to.include("Invalid muscle");
+    });
+
     it("creates and gets a custom exercise", async () => {
       const createResult = await handler(
         buildMcpEvent(toolCall("create_custom_exercise", { name: "Sled Push" }), authHeaders(token)),
