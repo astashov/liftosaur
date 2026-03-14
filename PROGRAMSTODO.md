@@ -1,5 +1,3 @@
-Shortcut to Size (Jim Stoppani) |-| 1600 - 2/5
-Calgary Barbell 16-Week |-| 1050 - 1/5
 Ice Cream Fitness 5x5 |-| 1070 - 2/5
 Sheiko |-| 980 - 2/5
 Reddit BWF Recommended Routine |-| 1590 - 4/5
