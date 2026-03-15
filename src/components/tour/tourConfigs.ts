@@ -1,9 +1,11 @@
 import { IState } from "../../models/state";
 import { Tour_stepHelpFlag } from "./tourTypes";
 import { workoutTourConfig } from "./workoutTourConfig";
+import { programTourConfig } from "./programTourConfig";
 
 export const tourConfigs = {
   workout: workoutTourConfig,
+  program: programTourConfig,
 } as const;
 
 export function TourConfigs_findTourId(state: IState, checkSeen?: boolean): keyof typeof tourConfigs | undefined {
@@ -11,8 +13,8 @@ export function TourConfigs_findTourId(state: IState, checkSeen?: boolean): keyo
     if (config.shouldStart?.(state)) {
       for (const step of config.steps) {
         const helpId = Tour_stepHelpFlag(config.id, step.id);
-        const alreadySeen = !checkSeen || state.storage.helps.includes(helpId);
-        if (!alreadySeen && step.condition && !step.condition(state)) {
+        const alreadySeen = state.storage.helps.includes(helpId);
+        if ((!checkSeen || !alreadySeen) && (!step.condition || step.condition(state))) {
           return config.id;
         }
       }

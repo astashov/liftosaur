@@ -13,6 +13,7 @@ import { Link } from "./link";
 import { ObjectUtils_filter, ObjectUtils_values } from "../utils/object";
 import { ModalDebug } from "./modalDebug";
 import { Tailwind_semantic, Tailwind_colors } from "../utils/tailwindConfig";
+import { tourConfigs } from "./tour/tourConfigs";
 
 interface INavbarCenterProps {
   title: ComponentChildren;
@@ -25,6 +26,7 @@ interface INavbarProps extends INavbarCenterProps {
   rightButtons?: JSX.Element[];
   onBack?: () => boolean;
   navCommon: INavCommon;
+  helpTourId?: keyof typeof tourConfigs;
   helpContent?: ComponentChildren;
 }
 
@@ -62,7 +64,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
 
   const isLoading = Object.keys(loadingKeys).length > 0;
   const numberOfLeftButtons = [showBackButton ? 1 : 0, isLoading ? 1 : 0].reduce((a, b) => a + b);
-  const numberOfRightButtons = (props.rightButtons?.length ?? 0) + (props.helpContent ? 1 : 0);
+  const numberOfRightButtons = (props.rightButtons?.length ?? 0) + (props.helpContent || props.helpTourId ? 1 : 0);
   const numberOfButtons = Math.max(numberOfLeftButtons, numberOfRightButtons);
   const [shouldShowModalHelp, setShouldShowModalHelp] = useState(false);
 
@@ -109,8 +111,21 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
         />
         <div className="flex items-center justify-end" style={{ minWidth: numberOfButtons * 40 }}>
           {props.rightButtons}
-          {props.helpContent && (
-            <button className="p-2 nm-navbar-help" onClick={() => setShouldShowModalHelp(true)}>
+          {(props.helpContent || props.helpTourId) && (
+            <button
+              className="p-2 nm-navbar-help"
+              onClick={() => {
+                if (props.helpTourId) {
+                  updateState(
+                    props.dispatch,
+                    [lb<IState>().p("tour").record({ id: props.helpTourId, enforced: true })],
+                    "Start tour from navbar"
+                  );
+                } else {
+                  setShouldShowModalHelp(true);
+                }
+              }}
+            >
               <IconHelp color={Tailwind_semantic().icon.neutral} />
             </button>
           )}

@@ -130,7 +130,7 @@ export function AppView(props: IProps): JSX.Element | null {
     if (tourId && tourId !== state.tour?.id) {
       updateState(dispatch, [lb<IState>().p("tour").record({ id: tourId, enforced: false })], "Auto-start a tour");
     }
-  }, [Screen_currentName(state.screenStack), state.storage.progress]);
+  }, [state.screenStack, state.storage.progress]);
 
   useEffect(() => {
     const url =
@@ -170,15 +170,6 @@ export function AppView(props: IProps): JSX.Element | null {
         }
       }
     });
-    // window.addEventListener("keypress", (e) => {
-    //   if (e.key === "r") {
-    //     const progress = stateRef.current.progress[0];
-    //     const currentEntryIndex = progress?.ui?.currentEntryIndex ?? 0;
-    //     const currentEntry = progress?.entries[currentEntryIndex];
-    //     const setIndex = currentEntry ? Reps.findNextSetIndex(currentEntry) : 0;
-    //     window.postMessage({ type: "completeSet", entryIndex: currentEntryIndex, setIndex }, "*");
-    //   }
-    // });
     window.addEventListener("message", (event) => {
       if (event.data?.type === "setAppleReceipt") {
         dispatch(Thunk_setAppleReceipt(event.data.receipt));

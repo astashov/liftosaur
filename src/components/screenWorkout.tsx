@@ -56,8 +56,6 @@ import { Settings_toggleStarredExercise, Settings_changePickerSettings } from ".
 import { BottomSheetWorkoutSuperset } from "./bottomSheetWorkoutSuperset";
 import { Reps_findNextSetIndex } from "../models/set";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
-import { IState } from "../models/state";
-import { IconHelp } from "./icons/iconHelp";
 import { workoutTourConfig } from "./tour/workoutTourConfig";
 
 interface IScreenWorkoutProps {
@@ -136,6 +134,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                 });
               }
             }}
+            helpTourId={workoutTourConfig.id}
             title={Progress_isCurrent(progress) ? "Ongoing workout" : `${DateUtils_format(progress.date)}`}
             subtitle={
               !Progress_isCurrent(progress) && progress.endTime ? (
@@ -183,18 +182,6 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                 }}
               >
                 <IconTrash />
-              </button>,
-              <button
-                className="p-2 nm-workout-tour"
-                onClick={() => {
-                  updateState(
-                    props.dispatch,
-                    [lb<IState>().p("tour").record({ id: workoutTourConfig.id, enforced: true })],
-                    "Show first workout tour"
-                  );
-                }}
-              >
-                <IconHelp />
               </button>,
             ]}
           />

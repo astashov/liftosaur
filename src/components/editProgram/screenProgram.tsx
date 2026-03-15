@@ -9,7 +9,6 @@ import { Footer2View } from "../footer2";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb, LensBuilder } from "lens-shmens";
 import { IPlannerState } from "../../pages/planner/models/types";
-import { HelpEditProgramV2 } from "../help/helpEditProgramV2";
 import { useUndoRedo } from "../../pages/builder/utils/undoredo";
 import {
   IEvaluatedProgram,
@@ -53,6 +52,7 @@ import { pickerStateFromPlannerExercise } from "./editProgramUtils";
 import { ProgramPreviewTab } from "../preview/programPreviewTab";
 import { Nux } from "../nux";
 import { BottomSheetOrModalMuscleGroupsContent } from "../bottomSheetOrModalMuscleGroupsContent";
+import { programTourConfig } from "../tour/programTourConfig";
 
 interface IProps {
   originalProgram: IProgram;
@@ -139,7 +139,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
         <NavbarView
           navCommon={props.navCommon}
           dispatch={props.dispatch}
-          helpContent={<HelpEditProgramV2 />}
+          helpTourId={programTourConfig.id}
           rightButtons={[
             <button
               data-cy="navbar-3-dot"

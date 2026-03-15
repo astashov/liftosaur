@@ -15,14 +15,14 @@ interface ITourModalProps {
 }
 
 function isStepActive(
+  stateTour: IStateTour,
   step: (typeof tourConfigs)[keyof typeof tourConfigs]["steps"][number],
   helps: string[],
-  enforced: boolean,
   state: IState
 ): boolean {
   const conditionMet = !step.condition || step.condition(state);
-  const alreadySeen = helps.includes(Tour_stepHelpFlag(tourConfigs.workout.id, step.id));
-  return conditionMet && (enforced || !alreadySeen);
+  const alreadySeen = helps.includes(Tour_stepHelpFlag(stateTour.id, step.id));
+  return conditionMet && (stateTour.enforced || !alreadySeen);
 }
 
 export function TourModal(props: ITourModalProps): JSX.Element | null {
@@ -32,7 +32,7 @@ export function TourModal(props: ITourModalProps): JSX.Element | null {
   const [helps] = useState(state.storage.helps);
   const activeSteps = enforced
     ? config.steps
-    : config.steps.filter((step) => isStepActive(step, helps, enforced, state));
+    : config.steps.filter((step) => isStepActive(props.stateTour, step, helps, state));
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const seenRef = useRef<Set<string>>(new Set());
