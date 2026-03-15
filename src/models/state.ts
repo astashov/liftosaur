@@ -19,6 +19,7 @@ import {
 } from "../types";
 import { AsyncQueue } from "../utils/asyncQueue";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
+import { tourConfigs } from "../components/tour/tourConfigs";
 
 export type IEnv = {
   service: Service;
@@ -107,6 +108,11 @@ export interface IAttributionData {
   ad: string;
 }
 
+export interface IStateTour {
+  id: keyof typeof tourConfigs;
+  enforced: boolean;
+}
+
 export interface IState {
   user?: IUser;
   storage: IStorage;
@@ -135,6 +141,7 @@ export interface IState {
   adminKey?: string;
   showWhatsNew?: boolean;
   showSignupRequest?: boolean;
+  tour?: IStateTour;
   freshMigrations: boolean;
   errors: IStateErrors;
   reportedCorruptedStorage?: boolean;

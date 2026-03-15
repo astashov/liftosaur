@@ -1,13 +1,15 @@
 import { h, JSX, Fragment } from "preact";
-import { IEvaluatedProgram, Program_runExerciseFinishDayScript } from "../models/program";
+import {
+  IEvaluatedProgram,
+  Program_getDiffState,
+  Program_getDiffVars,
+  Program_runExerciseFinishDayScript,
+} from "../models/program";
 import { ObjectUtils_isNotEmpty, ObjectUtils_keys } from "../utils/object";
-import { Weight_print, Weight_eq, Weight_display, Weight_convertTo, Weight_printOrNumber } from "../models/weight";
+import { Weight_print } from "../models/weight";
 import { StringUtils_dashcase } from "../utils/string";
 import { Reps_isFinished } from "../models/set";
-import { IHistoryEntry, ISettings, IProgramState, IDayData, IUnit, IPercentage, IWeight, IStats } from "../types";
-import { Exercise_onerm } from "../models/exercise";
-import { IScriptBindings } from "../models/progress";
-import { ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
+import { IHistoryEntry, ISettings, IProgramState, IDayData, IPercentage, IWeight, IStats } from "../types";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { PlannerProgramExercise_getState } from "../pages/planner/models/plannerProgramExercise";
 import { LinkButton } from "./linkButton";
@@ -45,8 +47,8 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
 
   if (result.success) {
     const { state: newState, updates, bindings } = result.data;
-    const diffState = getDiffState(state, newState, units);
-    const diffVars = getDiffVars(entry, updates, bindings, settings);
+    const diffState = Program_getDiffState(state, newState, units);
+    const diffVars = Program_getDiffVars(entry, updates, bindings, settings);
     const prints = result.data.prints;
 
     if (
@@ -164,45 +166,4 @@ function Prints({
     );
   }
   return null;
-}
-
-function getDiffState(state: IProgramState, newState: IProgramState, units: IUnit): Record<string, string | undefined> {
-  return ObjectUtils_keys(state).reduce<Record<string, string | undefined>>((memo, key) => {
-    const oldValue = state[key];
-    const newValue = newState[key];
-    if (newValue != null && !Weight_eq(oldValue, newValue)) {
-      const oldValueStr = Weight_display(Weight_convertTo(oldValue as number, units));
-      const newValueStr = Weight_display(Weight_convertTo(newValue as number, units));
-      memo[key] = `${oldValueStr} -> ${newValueStr}`;
-    }
-    return memo;
-  }, {});
-}
-
-function getDiffVars(
-  entry: IHistoryEntry,
-  updates: ILiftoscriptEvaluatorUpdate[],
-  bindings: IScriptBindings,
-  settings: ISettings
-): Record<string, string | undefined> {
-  const diffVars: Record<string, string | undefined> = {};
-  if (bindings.rm1 != null) {
-    const oldOnerm = Exercise_onerm(entry.exercise, settings);
-    if (!Weight_eq(oldOnerm, bindings.rm1)) {
-      diffVars["1 RM"] = `${Weight_display(Weight_convertTo(oldOnerm, settings.units))} -> ${Weight_display(
-        Weight_convertTo(bindings.rm1, settings.units)
-      )}`;
-    }
-  }
-  for (const update of updates) {
-    const key = update.type;
-    const value = update.value;
-    const target = value.target;
-    while (target[0] === "*") {
-      target.shift();
-    }
-    const keyStr = `${key}${target.length > 0 ? `[${target.join(":")}]` : ""}`;
-    diffVars[keyStr] = `${value.op !== "=" ? `${value.op} ` : ""}${Weight_printOrNumber(value.value)}`;
-  }
-  return diffVars;
 }

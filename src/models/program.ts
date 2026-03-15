@@ -22,7 +22,17 @@ import {
 import { lb } from "lens-shmens";
 import { IDispatch } from "../ducks/types";
 import { IEither } from "../utils/types";
-import { Weight_is, Weight_build, Weight_isPct, Weight_buildPct, Weight_eq, Weight_roundTo005 } from "./weight";
+import {
+  Weight_is,
+  Weight_build,
+  Weight_isPct,
+  Weight_buildPct,
+  Weight_eq,
+  Weight_roundTo005,
+  Weight_convertTo,
+  Weight_display,
+  Weight_printOrNumber,
+} from "./weight";
 import { UidFactory_generateUid } from "../utils/generator";
 import { IState, updateState } from "./state";
 import {
@@ -55,7 +65,12 @@ import {
 import { Exporter_toFile } from "../utils/exporter";
 import { DateUtils_formatYYYYMMDD } from "../utils/date";
 import { ICustomExercise, IProgramContentSettings, IPlannerProgram, IPercentage } from "../types";
-import { ProgramExercise_approxTimeMs, ProgramExercise_applyVariables } from "./programExercise";
+import {
+  ProgramExercise_approxTimeMs,
+  ProgramExercise_applyVariables,
+  ProgramExercise_doesUse1RM,
+  ProgramExercise_doesUseRPE,
+} from "./programExercise";
 import { Thunk_pushScreen } from "../ducks/thunks";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 import { Encoder_encodeIntoUrl } from "../utils/encoder";
@@ -217,6 +232,16 @@ export function Program_cleanPlannerProgram(program: IProgram): IProgram {
 
 export function Program_isEmpty(program?: IProgram | IEvaluatedProgram): boolean {
   return program?.id === emptyProgramId;
+}
+
+export function Program_uses1RM(program: IEvaluatedProgram): boolean {
+  const allExercises = Program_getAllProgramExercises(program);
+  return allExercises.some((e) => ProgramExercise_doesUse1RM(e));
+}
+
+export function Program_usesRPE(program: IEvaluatedProgram): boolean {
+  const allExercises = Program_getAllProgramExercises(program);
+  return allExercises.some((e) => ProgramExercise_doesUseRPE(e));
 }
 
 export function Program_getProgramExercisesFromExerciseType(
@@ -1452,3 +1477,48 @@ export const Program_fullProgram = memoize(
 );
 
 export const Program_evaluate = memoize(Program_forceEvaluate, { maxSize: 10 });
+
+export function Program_getDiffState(
+  state: IProgramState,
+  newState: IProgramState,
+  units: IUnit
+): Record<string, string | undefined> {
+  return ObjectUtils_keys(state).reduce<Record<string, string | undefined>>((memo, key) => {
+    const oldValue = state[key];
+    const newValue = newState[key];
+    if (newValue != null && !Weight_eq(oldValue, newValue)) {
+      const oldValueStr = Weight_display(Weight_convertTo(oldValue as number, units));
+      const newValueStr = Weight_display(Weight_convertTo(newValue as number, units));
+      memo[key] = `${oldValueStr} -> ${newValueStr}`;
+    }
+    return memo;
+  }, {});
+}
+
+export function Program_getDiffVars(
+  entry: IHistoryEntry,
+  updates: ILiftoscriptEvaluatorUpdate[],
+  bindings: IScriptBindings,
+  settings: ISettings
+): Record<string, string | undefined> {
+  const diffVars: Record<string, string | undefined> = {};
+  if (bindings.rm1 != null) {
+    const oldOnerm = Exercise_onerm(entry.exercise, settings);
+    if (!Weight_eq(oldOnerm, bindings.rm1)) {
+      diffVars["1 RM"] = `${Weight_display(Weight_convertTo(oldOnerm, settings.units))} -> ${Weight_display(
+        Weight_convertTo(bindings.rm1, settings.units)
+      )}`;
+    }
+  }
+  for (const update of updates) {
+    const key = update.type;
+    const value = update.value;
+    const target = value.target;
+    while (target[0] === "*") {
+      target.shift();
+    }
+    const keyStr = `${key}${target.length > 0 ? `[${target.join(":")}]` : ""}`;
+    diffVars[keyStr] = `${value.op !== "=" ? `${value.op} ` : ""}${Weight_printOrNumber(value.value)}`;
+  }
+  return diffVars;
+}

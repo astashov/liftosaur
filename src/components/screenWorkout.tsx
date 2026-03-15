@@ -17,13 +17,10 @@ import {
   History_isPaused,
   History_resumeWorkoutAction,
   History_pauseWorkoutAction,
-  History_calories,
-  History_pauseWorkout,
 } from "../models/history";
 import {
   Progress_lbProgress,
   Progress_isCurrent,
-  Progress_isFullyFinishedSet,
   Progress_forceUpdateEntryIndex,
   Progress_addExercise,
   Progress_changeExercise,
@@ -36,7 +33,6 @@ import { IconTrash } from "./icons/iconTrash";
 import { NavbarView } from "./navbar";
 import { Surface } from "./surface";
 import { Timer } from "./timer";
-import { Button } from "./button";
 import { Workout } from "./workout";
 import { ModalAmrap } from "./modalAmrap";
 import { ModalDate } from "./modalDate";
@@ -46,7 +42,6 @@ import { Modal1RM } from "./modal1RM";
 import { ModalEquipment } from "./modalEquipment";
 import { BottomSheetEditTarget } from "./bottomSheetEditTarget";
 import {
-  SendMessage_toIosAndAndroid,
   SendMessage_isIos,
   SendMessage_iosAppVersion,
   SendMessage_isAndroid,
@@ -54,14 +49,16 @@ import {
 } from "../utils/sendMessage";
 import { BottomSheetMobileShareOptions } from "./bottomSheetMobileShareOptions";
 import { BottomSheetWebappShareOptions } from "./bottomSheetWebappShareOptions";
-import { Thunk_updateLiveActivity, Thunk_postevent } from "../ducks/thunks";
+import { Thunk_updateLiveActivity } from "../ducks/thunks";
 import { BottomSheetExercisePicker } from "./exercisePicker/bottomSheetExercisePicker";
 import { ILensDispatch } from "../utils/useLensReducer";
 import { Settings_toggleStarredExercise, Settings_changePickerSettings } from "../models/settings";
 import { BottomSheetWorkoutSuperset } from "./bottomSheetWorkoutSuperset";
 import { Reps_findNextSetIndex } from "../models/set";
-import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
+import { IState } from "../models/state";
+import { IconHelp } from "./icons/iconHelp";
+import { workoutTourConfig } from "./tour/workoutTourConfig";
 
 interface IScreenWorkoutProps {
   progress: IHistoryRecord;
@@ -174,7 +171,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
             }
             rightButtons={[
               <button
-                className="p-2 mr-2 nm-delete-progress ls-delete-progress"
+                className="p-2 nm-delete-progress ls-delete-progress"
                 onClick={() => {
                   if (
                     confirm(
@@ -187,43 +184,18 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
               >
                 <IconTrash />
               </button>,
-              <Button
-                name={Progress_isCurrent(props.progress) ? "finish-workout" : "save-history-record"}
-                kind="purple"
-                buttonSize="md"
-                data-cy="finish-workout"
-                className={Progress_isCurrent(props.progress) ? "ls-finish-workout" : "ls-save-history-record"}
+              <button
+                className="p-2 nm-workout-tour"
                 onClick={() => {
-                  if (
-                    (Progress_isCurrent(props.progress) && Progress_isFullyFinishedSet(props.progress)) ||
-                    confirm(
-                      Progress_isCurrent(props.progress)
-                        ? "Are you sure you want to FINISH this workout? Some sets are not marked as completed."
-                        : "Are you sure you want to SAVE this PAST workout?"
-                    )
-                  ) {
-                    SendMessage_toIosAndAndroid({ type: "pauseWorkout" });
-                    props.dispatch({ type: "FinishProgramDayAction" });
-                    if (Progress_isCurrent(props.progress)) {
-                      props.dispatch(Thunk_postevent("finish-workout", { workout: JSON.stringify(props.progress) }));
-                      const healthName = SendMessage_isIos() ? "Apple Health" : "Google Health";
-                      const shouldSyncToHealth =
-                        ((HealthSync_eligibleForAppleHealth() && props.settings.appleHealthSyncWorkout) ||
-                          (HealthSync_eligibleForGoogleHealth() && props.settings.googleHealthSyncWorkout)) &&
-                        (!props.settings.healthConfirmation ||
-                          confirm(`Do you want to sync this workout to ${healthName}?`));
-                      SendMessage_toIosAndAndroid({
-                        type: "finishWorkout",
-                        healthSync: shouldSyncToHealth ? "true" : "false",
-                        calories: `${History_calories(props.progress)}`,
-                        intervals: JSON.stringify(History_pauseWorkout(progress.intervals)),
-                      });
-                    }
-                  }
+                  updateState(
+                    props.dispatch,
+                    [lb<IState>().p("tour").record({ id: workoutTourConfig.id, enforced: true })],
+                    "Show first workout tour"
+                  );
                 }}
               >
-                {Progress_isCurrent(props.progress) ? "Finish" : "Save"}
-              </Button>,
+                <IconHelp />
+              </button>,
             ]}
           />
         }

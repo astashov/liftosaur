@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import { h, JSX } from "preact";
 import { IHistoryEntry, IHistoryRecord, IProgramState, ISettings, IStats, ISubscription, IWeight } from "../types";
 import { IState, updateProgress, updateSettings, updateState } from "../models/state";
 import { lb } from "lens-shmens";
@@ -13,14 +13,7 @@ import {
 import { IconArrowRight } from "./icons/iconArrowRight";
 import { LinkButton } from "./linkButton";
 import { ProgramExercise_doesUse1RM } from "../models/programExercise";
-import {
-  Weight_eqNull,
-  Weight_print,
-  Weight_build,
-  Weight_calculatePlates,
-  Weight_eq,
-  Weight_formatOneSide,
-} from "../models/weight";
+import { Weight_print, Weight_build, Weight_calculatePlates, Weight_eq, Weight_formatOneSide } from "../models/weight";
 import { Markdown } from "./markdown";
 import { CollectionUtils_removeAt } from "../utils/collection";
 import { IconKebab } from "./icons/iconKebab";
@@ -58,7 +51,6 @@ import { PlannerProgramExercise_currentDescription } from "../pages/planner/mode
 import { useMemo, useState } from "preact/hooks";
 import { Collector } from "../utils/collector";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
-import { Nux } from "./nux";
 import { IconReorder } from "./icons/iconReorder";
 
 interface IWorkoutExerciseCardProps {
@@ -91,7 +83,6 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
   const exerciseNotes = Exercise_getNotes(exerciseType, props.settings);
   const description = programExercise ? PlannerProgramExercise_currentDescription(programExercise) : undefined;
   const onerm = Exercise_onerm(exercise, props.settings);
-  const hasUnequalWeights = props.entry.sets.some((w) => !Weight_eqNull(w.originalWeight, w.weight));
   const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter((s) => !s.isCompleted)[0];
   const lbSets = lb<IHistoryRecord>().p("entries").i(props.entryIndex).p("sets");
   const lbWarmupSets = lb<IHistoryRecord>().p("entries").i(props.entryIndex).p("warmupSets");
@@ -373,10 +364,6 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
             />
           </div>
         )}
-      {props.showHelp && <HelpTarget helps={props.helps} dispatch={props.dispatch} />}
-      {props.showHelp && hasUnequalWeights && (
-        <HelpEquipment helps={props.helps} entry={props.entry} progress={props.progress} dispatch={props.dispatch} />
-      )}
       <div className="mt-1">
         <WorkoutExerciseAllSets
           stats={props.stats}
@@ -432,51 +419,6 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
         />
       </div>
     </section>
-  );
-}
-
-interface IHelpEquipmentProps {
-  helps: string[];
-  entry: IHistoryEntry;
-  progress: IHistoryRecord;
-  dispatch: IDispatch;
-}
-
-function HelpEquipment(props: IHelpEquipmentProps): JSX.Element {
-  return (
-    <Nux className="my-2" id="Rounded Weights" helps={props.helps} dispatch={props.dispatch}>
-      <>
-        <span>
-          <span className="line-through">Crossed out</span> weight means it's <strong>rounded</strong> to fit your bar
-          and plates. Adjust your{" "}
-          <LinkButton
-            name="nux-rounding-equipment-settings"
-            onClick={() => {
-              updateProgress(
-                props.dispatch,
-                [lb<IHistoryRecord>().pi("ui").p("equipmentModal").record({ exerciseType: props.entry.exercise })],
-                "nux-rounding-equipment-settings"
-              );
-            }}
-          >
-            Equipment settings there
-          </LinkButton>
-          .
-        </span>
-        <div className="mt-2">
-          Percentage weight (like <strong>75%</strong>) means it's 75% of 1 Rep Max (1RM). You can adjust 1RM above.
-        </div>
-      </>
-    </Nux>
-  );
-}
-
-function HelpTarget(props: { helps: string[]; dispatch: IDispatch }): JSX.Element {
-  return (
-    <Nux className="my-2" id="Set Target" helps={props.helps} dispatch={props.dispatch}>
-      <span className="font-semibold">Target</span> column shows the prescribed set from a program. The set is
-      considered successful if you complete required reps and weight.
-    </Nux>
   );
 }
 

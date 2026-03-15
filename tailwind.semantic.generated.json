@@ -73,6 +73,7 @@
     },
     "text": {
       "primary": "#000000",
+      "primaryinverse": "#FFFFFF",
       "secondary": "#3C5063",
       "secondarysubtle": "#A4B0BC",
       "disabled": "#778999",
@@ -189,6 +190,7 @@
     },
     "text": {
       "primary": "#FFFFFF",
+      "primaryinverse": "#000000",
       "secondary": "#A4B0BC",
       "secondarysubtle": "#4F5C6B",
       "disabled": "#607284",

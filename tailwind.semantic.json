@@ -72,6 +72,7 @@
   },
   "text": {
     "primary": { "light": "@colors.black", "dark": "@colors.white" },
+    "primaryinverse": { "light": "@colors.white", "dark": "@colors.black" },
     "secondary": { "light": "@colors.lightgray.700", "dark": "@colors.lightgray.300" },
     "secondarysubtle": { "light": "@colors.lightgray.300", "dark": "@colors.lightgray.600" },
     "disabled": { "light": "@colors.lightgray.400", "dark": "@colors.lightgray.500" },

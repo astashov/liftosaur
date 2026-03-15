@@ -69,7 +69,6 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
 
   return (
     <SwipeableRow
-      showHint={props.setIndex === 0 && props.helps && !props.helps.includes("swipeable-set")}
       width={hasEdit ? 128 : 64}
       openThreshold={hasEdit ? 30 : 15}
       closeThreshold={hasEdit ? 110 : 55}

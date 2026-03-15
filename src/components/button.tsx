@@ -30,7 +30,7 @@ export function Button(props: IProps): JSX.Element {
   } else if (kind === "lightgrayv3") {
     className += " bg-background-subtle text-text-link border border-background-subtle ";
   } else {
-    className += " bg-button-orangebackground text-text-alwayswhite";
+    className += " bg-button-orangebackground text-text-primaryinverse";
   }
   if (props.buttonSize === "sm") {
     className += " px-2 py-1 font-semibold";

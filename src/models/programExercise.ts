@@ -100,6 +100,15 @@ export function ProgramExercise_doesUse1RM(programExercise: IPlannerProgramExerc
   return usesPercentageWeights || usesRM1Var;
 }
 
+export function ProgramExercise_doesUseRPE(programExercise: IPlannerProgramExercise): boolean {
+  if (programExercise.globals.logRpe || programExercise.globals.rpe != null) {
+    return true;
+  }
+  return programExercise.evaluatedSetVariations.some((v) => {
+    return v.sets.some((set) => set.logRpe || set.rpe != null);
+  });
+}
+
 export function ProgramExercise_isUsingVariable(programExercise: IPlannerProgramExercise, name: string): boolean {
   const expressions = CollectionUtils_compact([
     PlannerProgramExercise_getProgressScript(programExercise),

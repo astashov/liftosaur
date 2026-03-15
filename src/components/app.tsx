@@ -85,6 +85,8 @@ import { Settings_applyTheme } from "../models/settings";
 import { AppContext } from "./appContext";
 import { ScreenMuscleGroups } from "./screenMuscleGroups";
 import { ModalThanks25 } from "./modalThanks25";
+import { TourModal } from "./tour/tourModal";
+import { TourConfigs_findTourId } from "./tour/tourConfigs";
 
 declare let Rollbar: RB;
 declare let __COMMIT_HASH__: string;
@@ -122,6 +124,13 @@ export function AppView(props: IProps): JSX.Element | null {
   }, [state.storage.settings.textSize]);
 
   useLoopCatcher();
+
+  useEffect(() => {
+    const tourId = TourConfigs_findTourId(state, true);
+    if (tourId && tourId !== state.tour?.id) {
+      updateState(dispatch, [lb<IState>().p("tour").record({ id: tourId, enforced: false })], "Auto-start a tour");
+    }
+  }, [Screen_currentName(state.screenStack), state.storage.progress]);
 
   useEffect(() => {
     const url =
@@ -776,6 +785,29 @@ export function AppView(props: IProps): JSX.Element | null {
       )}
       {state.showSignupRequest && (
         <ModalSignupRequest numberOfWorkouts={state.storage.history.length} dispatch={dispatch} />
+      )}
+      {state.tour && (
+        <TourModal
+          stateTour={state.tour}
+          state={state}
+          onClose={() => {
+            updateState(dispatch, [lb<IState>().p("tour").record(undefined)], "Close first workout tour");
+          }}
+          onStepSeen={(flag) => {
+            if (!state.storage.helps.includes(flag)) {
+              updateState(
+                dispatch,
+                [
+                  lb<IState>()
+                    .p("storage")
+                    .p("helps")
+                    .recordModify((hlps) => [...hlps, flag]),
+                ],
+                `Mark tour step ${flag} as seen`
+              );
+            }
+          }}
+        />
       )}
     </Fragment>
   );

@@ -2,7 +2,7 @@ import { h, JSX, Fragment } from "preact";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, IProgram, ISettings, IStats, ISubscription } from "../types";
 import { IState, updateProgress, updateState } from "../models/state";
-import { Thunk_pushScreen } from "../ducks/thunks";
+import { Thunk_postevent, Thunk_pushScreen } from "../ducks/thunks";
 import { IconMuscles2 } from "./icons/iconMuscles2";
 import {
   IEvaluatedProgram,
@@ -21,6 +21,7 @@ import {
   Progress_isCurrent,
   Progress_editNotes,
   Progress_getColorToSupersetGroup,
+  Progress_isFullyFinishedSet,
 } from "../models/progress";
 import { IconPlus2 } from "./icons/iconPlus2";
 import { WorkoutExercise } from "./workoutExercise";
@@ -34,6 +35,9 @@ import { LinkButton } from "./linkButton";
 import { Button } from "./button";
 import { ModalDayFromAdhoc } from "./modalDayFromAdhoc";
 import { ImagePreloader_preload, ImagePreloader_dynohappy } from "../utils/imagePreloader";
+import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
+import { History_calories, History_pauseWorkout } from "../models/history";
+import { SendMessage_toIosAndAndroid, SendMessage_isIos } from "../utils/sendMessage";
 
 interface IWorkoutViewProps {
   history: IHistoryRecord[];
@@ -80,6 +84,7 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
       <WorkoutHeader
         description={description}
         progress={props.progress}
+        settings={props.settings}
         allPrograms={props.allPrograms}
         dispatch={props.dispatch}
         program={props.program}
@@ -183,6 +188,7 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
 
 interface IWorkoutHeaderProps {
   progress: IHistoryRecord;
+  settings: ISettings;
   dispatch: IDispatch;
   setIsShareShown: (value: boolean) => void;
   setIsConvertToProgramShown?: (value: boolean) => void;
@@ -270,6 +276,45 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
               </ButtonIcon>
             </div>
           )}
+          <div>
+            <Button
+              name={Progress_isCurrent(props.progress) ? "finish-workout" : "save-history-record"}
+              kind="purple"
+              buttonSize="md"
+              data-cy="finish-workout"
+              className={Progress_isCurrent(props.progress) ? "ls-finish-workout" : "ls-save-history-record"}
+              onClick={() => {
+                if (
+                  (Progress_isCurrent(props.progress) && Progress_isFullyFinishedSet(props.progress)) ||
+                  confirm(
+                    Progress_isCurrent(props.progress)
+                      ? "Are you sure you want to FINISH this workout? Some sets are not marked as completed."
+                      : "Are you sure you want to SAVE this PAST workout?"
+                  )
+                ) {
+                  SendMessage_toIosAndAndroid({ type: "pauseWorkout" });
+                  props.dispatch({ type: "FinishProgramDayAction" });
+                  if (Progress_isCurrent(props.progress)) {
+                    props.dispatch(Thunk_postevent("finish-workout", { workout: JSON.stringify(props.progress) }));
+                    const healthName = SendMessage_isIos() ? "Apple Health" : "Google Health";
+                    const shouldSyncToHealth =
+                      ((HealthSync_eligibleForAppleHealth() && props.settings.appleHealthSyncWorkout) ||
+                        (HealthSync_eligibleForGoogleHealth() && props.settings.googleHealthSyncWorkout)) &&
+                      (!props.settings.healthConfirmation ||
+                        confirm(`Do you want to sync this workout to ${healthName}?`));
+                    SendMessage_toIosAndAndroid({
+                      type: "finishWorkout",
+                      healthSync: shouldSyncToHealth ? "true" : "false",
+                      calories: `${History_calories(props.progress)}`,
+                      intervals: JSON.stringify(History_pauseWorkout(props.progress.intervals)),
+                    });
+                  }
+                }
+              }}
+            >
+              {Progress_isCurrent(props.progress) ? "Finish" : "Save"}
+            </Button>
+          </div>
         </div>
       </div>
       {props.description && (
