@@ -1,16 +1,14 @@
 import { h, Fragment } from "preact";
 import { ITourConfig } from "./tourTypes";
 import {
-  IEvaluatedProgram,
-  Program_evaluate,
   Program_isEmpty,
   Program_uses1RM,
   Program_usesRPE,
-  Program_getCurrentProgram,
   Program_runExerciseFinishDayScript,
   Program_getProgramExerciseForKeyAndDay,
   Program_getDiffState,
   Program_getDiffVars,
+  Program_getEvaluatedProgramFromState,
 } from "../../models/program";
 import { Screen_currentName } from "../../models/screen";
 import { Progress_getCurrentProgress } from "../../models/progress";
@@ -19,13 +17,6 @@ import { IconKebab } from "../icons/iconKebab";
 import { Reps_isFinished } from "../../models/set";
 import { PlannerProgramExercise_getState } from "../../pages/planner/models/plannerProgramExercise";
 import { ObjectUtils_isNotEmpty } from "../../utils/object";
-
-function getEvaluatedProgram(
-  state: Parameters<NonNullable<ITourConfig["shouldStart"]>>[0]
-): IEvaluatedProgram | undefined {
-  const program = Program_getCurrentProgram(state.storage);
-  return program ? Program_evaluate(program, state.storage.settings) : undefined;
-}
 
 export const workoutTourConfig: ITourConfig = {
   id: "workout",
@@ -38,7 +29,7 @@ export const workoutTourConfig: ITourConfig = {
     if (!progress || progress.entries.length === 0) {
       return false;
     }
-    const evaluatedProgram = getEvaluatedProgram(state);
+    const evaluatedProgram = Program_getEvaluatedProgramFromState(state);
     return evaluatedProgram != null && !Program_isEmpty(evaluatedProgram);
   },
   steps: [
@@ -89,7 +80,7 @@ export const workoutTourConfig: ITourConfig = {
       title: "What is 1RM?",
       dino: "firstworkouttour1rm.png",
       condition: (state) => {
-        const evaluatedProgram = getEvaluatedProgram(state);
+        const evaluatedProgram = Program_getEvaluatedProgramFromState(state);
         return evaluatedProgram != null && Program_uses1RM(evaluatedProgram);
       },
       content: () => (
@@ -109,7 +100,7 @@ export const workoutTourConfig: ITourConfig = {
       title: "What is RPE?",
       dino: "firstworkouttourrpe.png",
       condition: (state) => {
-        const evaluatedProgram = getEvaluatedProgram(state);
+        const evaluatedProgram = Program_getEvaluatedProgramFromState(state);
         return evaluatedProgram != null && Program_usesRPE(evaluatedProgram);
       },
       content: () => (
@@ -169,7 +160,7 @@ export const workoutTourConfig: ITourConfig = {
         if (!progress || progress.entries.length === 0) {
           return false;
         }
-        const program = getEvaluatedProgram(state);
+        const program = Program_getEvaluatedProgramFromState(state);
         if (!program) {
           return false;
         }

@@ -1522,3 +1522,8 @@ export function Program_getDiffVars(
   }
   return diffVars;
 }
+
+export function Program_getEvaluatedProgramFromState(state: IState): IEvaluatedProgram | undefined {
+  const program = Program_getCurrentProgram(state.storage);
+  return program ? Program_evaluate(program, state.storage.settings) : undefined;
+}

@@ -29,6 +29,7 @@ import { EditProgramExerciseSets } from "./editProgramExerciseSets";
 import { BottomSheetEditProgramExerciseSet } from "./bottomSheetEditProgramExerciseSet";
 import { EditProgramExerciseNavbar } from "./editProgramExerciseNavbar";
 import { EditProgramBottomSheetPicker } from "../editProgram/editProgramBottomSheetPicker";
+import { editProgramExerciseTourConfig } from "../tour/editProgramExerciseTourConfig";
 
 interface IProps {
   plannerState: IPlannerExerciseState;
@@ -94,6 +95,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
         <NavbarView
           navCommon={props.navCommon}
           dispatch={props.dispatch}
+          helpTourId={editProgramExerciseTourConfig.id}
           title="Edit Program Exercise"
           subtitle={
             plannerExercise.notused ? (
