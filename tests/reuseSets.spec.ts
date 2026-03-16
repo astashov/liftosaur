@@ -50,7 +50,6 @@ a: Squat / ...Squat[1:2]
 Triceps Extension / ...Bench Press[1]`
   );
 
-
   await page.getByTestId("editor-v2-ui-program").click();
   await expect(
     page
@@ -87,7 +86,6 @@ Triceps Extension / ...Bench Press[1]`
   await page.getByTestId("save-program").click();
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
-
 
   await page.getByTestId("complete-set").nth(3).click();
 

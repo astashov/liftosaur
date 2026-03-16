@@ -27,12 +27,10 @@ Squat / 1x5 100% / warmup: none / progress: custom() {~
 ~}`
   );
 
-
   await page.getByTestId("save-program").click();
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
-
 
   await page.getByTestId("complete-set").nth(0).click();
 

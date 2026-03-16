@@ -24,7 +24,6 @@ test("Custom Muscles", async ({ page }) => {
 Bench Press / 10x5 / 100lb`
   );
 
-
   await page.getByTestId("save-program").click();
 
   await page.getByTestId("footer-workout").click();
@@ -44,7 +43,6 @@ Bench Press / 10x5 / 100lb`
   await page.getByTestId("navbar-back").click();
 
   await PlaywrightUtils_finishExercise(page, "bench-press", [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
-
 
   await page.getByTestId("finish-workout").click();
 

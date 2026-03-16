@@ -593,12 +593,7 @@ export function AppView(props: IProps): JSX.Element | null {
       />
     );
   } else if (Screen_currentName(state.screenStack) === "programselect") {
-    content = (
-      <ScreenProgramSelect
-        dispatch={dispatch}
-        settings={state.storage.settings}
-      />
-    );
+    content = <ScreenProgramSelect dispatch={dispatch} settings={state.storage.settings} />;
   } else if (Screen_currentName(state.screenStack) === "plates") {
     const allEquipment = Equipment_getEquipmentOfGym(state.storage.settings, state.selectedGymId);
     content = (

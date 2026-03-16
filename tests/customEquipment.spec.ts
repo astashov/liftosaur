@@ -26,14 +26,12 @@ test("custom equipment", async ({ page }) => {
 Bicep Curl / 1x5 20lb / warmup: none`
   );
 
-
   await page.getByTestId("save-program").click();
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("start-workout").click();
 
   await PlaywrightUtils_clickAll(page.getByTestId("entry-bicep-curl").getByTestId("complete-set"));
-
 
   await page.getByTestId("finish-workout").click();
   await page.getByTestId("finish-day-continue").click();
@@ -56,7 +54,6 @@ Bicep Curl / 1x5 20lb / warmup: none`
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("start-workout").click();
-
 
   await page.getByTestId("exercise-equipment-picker").click();
   await page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").click();

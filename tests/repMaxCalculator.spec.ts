@@ -25,12 +25,10 @@ test("Rep Max Calculator", async ({ page }) => {
 Squat / 1x8 / 80% / progress: lp(5lb)`
   );
 
-
   await page.getByTestId("save-program").click();
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
-
 
   await page.getByTestId("exercise-rm1-picker").click();
   await page.getByTestId("onerm-calculator").click();

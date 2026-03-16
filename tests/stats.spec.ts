@@ -1,4 +1,9 @@
-import { startpage, PlaywrightUtils_disableSubscriptions, PlaywrightUtils_selectBuiltin, PlaywrightUtils_disableTours } from "./playwrightUtils";
+import {
+  startpage,
+  PlaywrightUtils_disableSubscriptions,
+  PlaywrightUtils_selectBuiltin,
+  PlaywrightUtils_disableTours,
+} from "./playwrightUtils";
 import { test, expect } from "@playwright/test";
 
 test("enters stats and shows graphs", async ({ page }) => {

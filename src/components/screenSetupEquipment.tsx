@@ -89,7 +89,7 @@ export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Ele
         </div>
       </div>
       <div className="safe-area-inset-bottom">
-        <div className="flex gap-2 px-4 pb-8">
+        <div className="flex gap-2 px-4 pt-2 pb-8" style={{ boxShadow: "0 0 4px 0 rgba(0, 0, 0, 0.2)" }}>
           <Button
             className="flex-1"
             name="setup-equipment-skip"

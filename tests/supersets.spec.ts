@@ -39,7 +39,6 @@ Bench Press / 2x8 100lb / superset: A
 Overhead Press / 2x8 100lb / superset: A`
   );
 
-
   await page.getByTestId("save-program").click();
   await page.getByTestId("footer-program").click();
   await page.getByTestId("tab-edit").click();
@@ -61,7 +60,6 @@ Overhead Press / 2x8 100lb / superset: A`
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("start-workout").click();
-
 
   await page.getByTestId("workout-tab-skullcrusher").click();
   await page.getByTestId("entry-skullcrusher").getByTestId("exercise-options").click();

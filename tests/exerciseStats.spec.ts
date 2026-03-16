@@ -1,5 +1,10 @@
 import { test, expect, Page } from "@playwright/test";
-import { startpage, PlaywrightUtils_finishExercise, PlaywrightUtils_selectBuiltin, PlaywrightUtils_disableTours } from "./playwrightUtils";
+import {
+  startpage,
+  PlaywrightUtils_finishExercise,
+  PlaywrightUtils_selectBuiltin,
+  PlaywrightUtils_disableTours,
+} from "./playwrightUtils";
 
 async function switchBackToFirstDay(page: Page): Promise<void> {
   await page.getByTestId("footer-program").click({ force: true });

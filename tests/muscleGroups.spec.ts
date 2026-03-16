@@ -26,7 +26,6 @@ Squat / 3x5 / 100lb / warmup: none
 Bent Over Row / 3x5 / 100lb / warmup: none`
   );
 
-
   await page.getByTestId("save-program").click();
 
   await page.getByTestId("footer-me").click();
@@ -51,7 +50,6 @@ Bent Over Row / 3x5 / 100lb / warmup: none`
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
-
 
   await PlaywrightUtils_finishExercise(page, "bench-press", [1, 1, 1]);
 

@@ -1,4 +1,10 @@
-import { startpage, PlaywrightUtils_disableSubscriptions, PlaywrightUtils_typeKeyboard, PlaywrightUtils_selectBuiltin, PlaywrightUtils_disableTours } from "./playwrightUtils";
+import {
+  startpage,
+  PlaywrightUtils_disableSubscriptions,
+  PlaywrightUtils_typeKeyboard,
+  PlaywrightUtils_selectBuiltin,
+  PlaywrightUtils_disableTours,
+} from "./playwrightUtils";
 import { test, expect } from "@playwright/test";
 
 test("Copy Workout as Text", async ({ page }) => {
@@ -37,7 +43,6 @@ test("Copy Workout as Text", async ({ page }) => {
   await PlaywrightUtils_typeKeyboard(page, page.getByTestId("input-set-reps-field").nth(0), "5");
   await PlaywrightUtils_typeKeyboard(page, page.getByTestId("input-set-weight-field").nth(0), "100");
   await page.getByTestId("complete-set").nth(0).click();
-
 
   await page.getByTestId("finish-workout").click();
 

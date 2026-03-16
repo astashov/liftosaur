@@ -31,12 +31,10 @@ Bicep Curl / 2x5, 1x5+ / 10lb / warmup: none
 `
   );
 
-
   await page.getByTestId("save-program").click();
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("start-workout").click();
-
 
   await expect(page.getByTestId("entry-squat").getByTestId("input-set-reps-field")).toHaveCount(5);
   await expect(page.getByTestId("entry-squat").getByTestId("input-set-left-reps-field")).toHaveCount(0);

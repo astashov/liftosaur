@@ -25,7 +25,6 @@ Pull Up, Leverage Machine / 2x5 / -40lb / progress: lp(-5lb)
 Triceps Dip, Leverage Machine / 2x3-5 -20lb / progress: lp(30lb)`
   );
 
-
   await page.getByTestId("save-program").click();
 
   await page.getByTestId("footer-workout").click();
@@ -33,7 +32,6 @@ Triceps Dip, Leverage Machine / 2x3-5 -20lb / progress: lp(30lb)`
   await expect(page.getByTestId("history-entry-sets-next").nth(1)).toHaveText("2 × 3-5 × -20lb");
 
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
-
 
   await expect(page.getByTestId("input-set-weight-field").nth(0)).toHaveText("-40");
   await expect(page.getByTestId("input-set-weight-field").nth(1)).toHaveText("-40");

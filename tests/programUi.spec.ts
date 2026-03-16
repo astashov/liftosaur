@@ -65,7 +65,6 @@ test("Sets", async ({ page }) => {
   await page.getByTestId("exercise-picker-confirm").click();
   await page.getByTestId("edit-exercise").click();
 
-
   await PlaywrightUtils_typeKeyboard(page, page.getByTestId("input-set-reps-field"), "5");
   await PlaywrightUtils_typeKeyboard(page, page.getByTestId("input-set-weight-field"), "110");
   await page.getByTestId("input-set-reps-field").click();
@@ -214,10 +213,8 @@ Bent Over Row / 3x3 / progress: custom(foo: 1) { ...Overhead Press }
 Bicep Curl / 3x3`
   );
 
-
   await page.getByTestId("editor-v2-ui-program").click();
   await page.getByTestId("exercise-bicepcurl_dumbbell").getByTestId("edit-exercise").click();
-
 
   await page.getByTestId("program-exercise-navbar-kebab").click();
   await page.getByTestId("program-exercise-toggle-progress").click();

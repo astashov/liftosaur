@@ -41,7 +41,6 @@ test("Empty Workout", async ({ page }) => {
   await page.getByTestId("complete-set").nth(0).click();
   await page.getByTestId("complete-set").nth(1).click();
 
-
   await page.getByTestId("add-exercise-button").click();
   await page.getByTestId("exercise-filter-by-name").fill("Squat");
   await page.getByTestId("menu-item-squat-barbell").click();

@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { startpage, PlaywrightUtils_finishExercise, PlaywrightUtils_selectBuiltin, PlaywrightUtils_disableTours } from "./playwrightUtils";
+import {
+  startpage,
+  PlaywrightUtils_finishExercise,
+  PlaywrightUtils_selectBuiltin,
+  PlaywrightUtils_disableTours,
+} from "./playwrightUtils";
 
 test("Program Preview", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");

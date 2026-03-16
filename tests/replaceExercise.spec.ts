@@ -36,7 +36,6 @@ t1: Squat / 3x5
 Bicep Curl / 1x5`
   );
 
-
   await page.getByTestId("save-program").click();
 
   await page.getByTestId("footer-program").click();
@@ -73,7 +72,6 @@ Bicep Curl / 1x5`
   await page.getByTestId("save-program").click();
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
-
 
   await page.getByTestId("entry-squat").getByTestId("exercise-options").click();
   await page.getByTestId("exercise-swap").first().click();

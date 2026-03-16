@@ -10,7 +10,6 @@ test("rest timer", async ({ page }) => {
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
-
   await page.getByTestId("complete-set").first().click();
   await page.getByTestId("rest-timer-collapsed").click();
 

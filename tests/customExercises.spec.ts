@@ -47,7 +47,6 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
-
   await page.getByTestId("complete-set").click();
 
   await page.getByTestId("finish-workout").click();

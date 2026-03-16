@@ -40,7 +40,6 @@ Bicep Curl / ...t1 / used: none`
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
-
   await page.getByTestId("entry-bench-press").getByTestId("exercise-options").click();
   await page.getByTestId("exercise-swap").first().click();
 

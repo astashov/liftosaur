@@ -32,12 +32,10 @@ Bench Press / 3x8 70lb
 Bicep Curl / 1x8 80lb`
   );
 
-
   await page.getByTestId("save-program").click();
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
-
 
   await page.getByTestId("entry-squat").getByTestId("exercise-equipment-picker").click();
   await page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").click();

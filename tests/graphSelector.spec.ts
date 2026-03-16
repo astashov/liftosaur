@@ -1,5 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { startpage, PlaywrightUtils_disableSubscriptions, PlaywrightUtils_finishExercise, PlaywrightUtils_selectBuiltin, PlaywrightUtils_disableTours } from "./playwrightUtils";
+import {
+  startpage,
+  PlaywrightUtils_disableSubscriptions,
+  PlaywrightUtils_finishExercise,
+  PlaywrightUtils_selectBuiltin,
+  PlaywrightUtils_disableTours,
+} from "./playwrightUtils";
 
 test("Graphs", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1&nosync=true");
@@ -19,7 +25,6 @@ test("Graphs", async ({ page }) => {
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
-
 
   // Complete workout
   await PlaywrightUtils_finishExercise(page, "bent-over-row", [1, 1, { amrap: { reps: 5 } }]);

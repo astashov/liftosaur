@@ -41,7 +41,6 @@ Squat / 1x5 115lb / progress: none / warmup: none
 Squat / 1x5 115lb / warmup: none`
   );
 
-
   await page.getByTestId("save-program").click();
 
   await expect(page.getByTestId("history-record").first().getByTestId("history-entry-weight").first()).toHaveText(
@@ -51,9 +50,9 @@ Squat / 1x5 115lb / warmup: none`
   for (const weight of [120, 125, 130, 130, 130, 135]) {
     await page.getByTestId("footer-workout").click();
     await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
-  
+
     await PlaywrightUtils_finishExercise(page, "squat", [1]);
-  
+
     await page.getByTestId("finish-workout").click();
     await page.getByTestId("finish-day-continue").click();
     await page.getByTestId("footer-workout").click();
