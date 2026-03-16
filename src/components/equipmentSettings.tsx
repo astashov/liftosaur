@@ -25,6 +25,14 @@ import { IconEyeClosed } from "./icons/iconEyeClosed";
 import { StringUtils_dashcase } from "../utils/string";
 import { Stats_getCurrentMovingAverageBodyweight } from "../models/stats";
 import { MarkdownEditorBorderless } from "./markdownEditorBorderless";
+import { IconEquipmentBarbell } from "./icons/iconEquipmentBarbell";
+import { IconEquipmentCable } from "./icons/iconEquipmentCable";
+import { IconEquipmentDumbbell } from "./icons/iconEquipmentDumbbell";
+import { IconEquipmentEzBar } from "./icons/iconEquipmentEzBar";
+import { IconEquipmentKettlebell } from "./icons/iconEquipmentKettlebell";
+import { IconEquipmentLeverageMachine } from "./icons/iconEquipmentLeverageMachine";
+import { IconEquipmentSmith } from "./icons/iconEquipmentSmith";
+import { IconEquipmentTrapbar } from "./icons/iconEquipmentTrapbar";
 
 interface IProps<T> {
   dispatch: IDispatch;
@@ -34,6 +42,17 @@ interface IProps<T> {
   settings: ISettings;
   stats: IStats;
 }
+
+export const equipmentToIcon: Record<string, () => JSX.Element> = {
+  barbell: () => <IconEquipmentBarbell />,
+  trapbar: () => <IconEquipmentTrapbar />,
+  leverageMachine: () => <IconEquipmentLeverageMachine />,
+  smith: () => <IconEquipmentSmith />,
+  dumbbell: () => <IconEquipmentDumbbell />,
+  ezbar: () => <IconEquipmentEzBar />,
+  cable: () => <IconEquipmentCable />,
+  kettlebell: () => <IconEquipmentKettlebell />,
+};
 
 function buildLensDispatch(originalDispatch: IDispatch): ILensDispatch<IState> {
   return (lensRecording: ILensRecordingPayload<IState>[] | ILensRecordingPayload<IState>, desc: string) => {
@@ -141,6 +160,7 @@ interface IEquipmentSettingsContentProps<T> {
 export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProps<T>): JSX.Element {
   const [isExpanded, setIsExpanded] = useState<boolean>(props.isExpanded ?? false);
   const name = equipmentName(props.equipment, props.allEquipment);
+  const icon = equipmentToIcon[props.equipment] ? equipmentToIcon[props.equipment]() : undefined;
 
   return (
     <div>
@@ -160,6 +180,7 @@ export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProp
               {isExpanded ? <IconArrowUp /> : <IconArrowDown2 />}
             </button>
           </div>
+          {icon && <div className="mr-1">{icon}</div>}
           <div
             className="flex-1 font-semibold"
             onClick={() => {

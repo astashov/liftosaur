@@ -80,7 +80,7 @@ import { ImagePreloader_preload, ImagePreloader_dynocoach } from "../utils/image
 import { ScreenEditProgramExercise } from "./editProgramExercise/screenEditProgramExercise";
 import { FallbackScreen } from "./fallbackScreen";
 import { Screen1RM } from "./screen1RM";
-import { ScreenSetupEquipment } from "./screenSetupEquipment";
+import { ScreenSetupEquipment, ScreenSetupPlates } from "./screenSetupEquipment";
 import { Settings_applyTheme } from "../models/settings";
 import { AppContext } from "./appContext";
 import { ScreenMuscleGroups } from "./screenMuscleGroups";
@@ -576,6 +576,15 @@ export function AppView(props: IProps): JSX.Element | null {
   } else if (Screen_currentName(state.screenStack) === "setupequipment") {
     content = (
       <ScreenSetupEquipment
+        stats={state.storage.stats}
+        navCommon={navCommon}
+        dispatch={dispatch}
+        settings={state.storage.settings}
+      />
+    );
+  } else if (Screen_currentName(state.screenStack) === "setupplates") {
+    content = (
+      <ScreenSetupPlates
         stats={state.storage.stats}
         navCommon={navCommon}
         dispatch={dispatch}
