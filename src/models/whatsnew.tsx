@@ -6,6 +6,7 @@ import { UrlUtils_build } from "../utils/url";
 import { IconDoc } from "../components/icons/iconDoc";
 import { PlannerCodeBlock } from "../pages/planner/components/plannerCodeBlock";
 import { IconSwap } from "../components/icons/iconSwap";
+import { IconHelp } from "../components/icons/iconHelp";
 
 export interface IWhatsNew {
   title: JSX.Element;
@@ -2478,6 +2479,20 @@ Bent Over Row / 3x8 / superset: A`}
             programs, log workouts, simulate progressions, pull stats, etc.
           </li>
           <li>Both require a premium subscription.</li>
+        </ul>
+      ),
+    },
+    "20260316": {
+      title: <span>Added "tour" modals</span>,
+      body: (
+        <ul>
+          <li>
+            If you're a new user (did less than 4 workouts), you'll see a "tour" modal on key screens in the app -{" "}
+            <strong>workout screen</strong>, <strong>program editor</strong>, and{" "}
+            <strong>program exercise editor</strong>. It walks you through the key features of each screen, so you don't
+            miss out on anything important. You can also access those tours anytime by tapping the{" "}
+            <IconHelp className="inline-block mx-1" /> in the top right corner of those screens.
+          </li>
         </ul>
       ),
     },
