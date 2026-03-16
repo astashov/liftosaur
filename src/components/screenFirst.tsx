@@ -9,10 +9,11 @@ import { Tailwind_colors } from "../utils/tailwindConfig";
 import { IconWorkoutProgress } from "./icons/iconWorkoutProgress";
 import { IconEditor } from "./icons/iconEditor";
 import { IconTracker } from "./icons/iconTracker";
-import { useState } from "preact/hooks";
+import { useState, useEffect } from "preact/hooks";
 import { Modal } from "./modal";
 import { Account } from "./account";
 import { IAccount } from "../models/account";
+import { ImagePreloader_preload } from "../utils/imagePreloader";
 
 interface IProps {
   account?: IAccount;
@@ -20,8 +21,22 @@ interface IProps {
   dispatch: IDispatch;
 }
 
+const onboardingImages = [
+  "/images/dinounit.png",
+  "/images/dinoequipment.png",
+  "/images/dinoplates.png",
+  "/images/dinoprogramselect.png",
+];
+
 export function ScreenFirst(props: IProps): JSX.Element {
   const [showAccountModal, setShowAccountModal] = useState(false);
+
+  useEffect(() => {
+    for (const url of onboardingImages) {
+      ImagePreloader_preload(url);
+    }
+  }, []);
+
   return (
     <section className="flex flex-col h-screen text-black text-text-primary bg-background-default">
       <div className="flex-1 px-4 pt-16 pb-4">

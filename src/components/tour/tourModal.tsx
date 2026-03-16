@@ -6,6 +6,7 @@ import { Button } from "../button";
 import { IState, IStateTour } from "../../models/state";
 import { IconCloseCircleOutline } from "../icons/iconCloseCircleOutline";
 import { tourConfigs } from "./tourConfigs";
+import { ImagePreloader_preload } from "../../utils/imagePreloader";
 
 interface ITourModalProps {
   stateTour: IStateTour;
@@ -44,8 +45,7 @@ export function TourModal(props: ITourModalProps): JSX.Element | null {
 
   useEffect(() => {
     for (const step of config.steps) {
-      const img = new Image();
-      img.src = `/images/${step.dino}`;
+      ImagePreloader_preload(`/images/${step.dino}`);
     }
   }, []);
 
@@ -102,16 +102,25 @@ export function TourModal(props: ITourModalProps): JSX.Element | null {
     <Modal isHidden={false} shouldShowClose={false} noPaddings={true}>
       <div className="overflow-hidden rounded-lg">
         <div className="relative pb-6 bg-background-cardyellow">
-          <div className="flex gap-1.5 pl-4 pt-5 pb-3 pr-12">
-            {activeSteps.map((_, i) => (
-              <div
-                key={i}
-                className={`h-2 flex-1 rounded-full ${i <= currentIndex ? "bg-background-yellowdark" : "bg-color-yellow300"}`}
-              />
-            ))}
-          </div>
+          {activeSteps.length > 1 ? (
+            <div className="flex gap-1.5 pl-4 pt-5 pb-3 pr-12">
+              {activeSteps.map((_, i) => (
+                <div
+                  key={i}
+                  className={`h-2 flex-1 rounded-full ${i <= currentIndex ? "bg-background-yellowdark" : "bg-color-yellow300"}`}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="h-10" />
+          )}
 
-          <button className="absolute z-10 p-1 nm-tour-close" data-cy="tour-close" style={{ top: "8px", right: "8px" }} onClick={handleClose}>
+          <button
+            className="absolute z-10 p-1 nm-tour-close"
+            data-cy="tour-close"
+            style={{ top: "8px", right: "8px" }}
+            onClick={handleClose}
+          >
             <IconCloseCircleOutline size={24} />
           </button>
 
