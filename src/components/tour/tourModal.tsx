@@ -58,6 +58,16 @@ export function TourModal(props: ITourModalProps): JSX.Element | null {
     }
   }, [currentStep?.id]);
 
+  const handleClose = (): void => {
+    for (const step of activeSteps) {
+      if (!seenRef.current.has(step.id)) {
+        seenRef.current.add(step.id);
+        onStepSeen(Tour_stepHelpFlag(config.id, step.id));
+      }
+    }
+    onClose();
+  };
+
   const handleNext = (): void => {
     if (config.waitForNextTrigger?.(currentStep.id, state)) {
       setIsPaused(true);
@@ -82,7 +92,7 @@ export function TourModal(props: ITourModalProps): JSX.Element | null {
   }
 
   if (!currentStep) {
-    onClose();
+    handleClose();
     return null;
   }
 
@@ -101,7 +111,7 @@ export function TourModal(props: ITourModalProps): JSX.Element | null {
             ))}
           </div>
 
-          <button className="absolute z-10 p-1 nm-tour-close" style={{ top: "8px", right: "8px" }} onClick={onClose}>
+          <button className="absolute z-10 p-1 nm-tour-close" data-cy="tour-close" style={{ top: "8px", right: "8px" }} onClick={handleClose}>
             <IconCloseCircleOutline size={24} />
           </button>
 

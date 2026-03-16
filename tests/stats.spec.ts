@@ -1,9 +1,11 @@
-import { startpage, PlaywrightUtils_disableSubscriptions } from "./playwrightUtils";
+import { startpage, PlaywrightUtils_disableSubscriptions, PlaywrightUtils_selectBuiltin, PlaywrightUtils_disableTours } from "./playwrightUtils";
 import { test, expect } from "@playwright/test";
 
 test("enters stats and shows graphs", async ({ page }) => {
   page.on("dialog", (dialog) => dialog.accept());
   await page.goto(startpage + "?skipintro=1&nosync=true");
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_selectBuiltin(page);
   await page.click("button:has-text('Basic Beginner Routine')");
   await PlaywrightUtils_disableSubscriptions(page);
   await page.getByTestId("clone-program").click();
@@ -79,6 +81,7 @@ test("enters stats and shows graphs", async ({ page }) => {
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
+
   await page.getByTestId("complete-set").nth(0).click();
   await page.getByTestId("finish-workout").click();
   await page.getByTestId("finish-day-continue").click();

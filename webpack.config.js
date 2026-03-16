@@ -148,25 +148,31 @@ const mainConfig = {
     extensions: [".ts", ".tsx", ".js", ".css"],
   },
   plugins: [
-    {
-      apply(compiler) {
-        compiler.hooks.compilation.tap("LftMarkerPlugin", (compilation) => {
-          compilation.hooks.processAssets.tap(
-            { name: "LftMarkerPlugin", stage: Compilation.PROCESS_ASSETS_STAGE_REPORT },
-            (assets) => {
-              for (const [name, source] of Object.entries(assets)) {
-                if (/\.(js|css)$/.test(name) && !name.includes(".map")) {
-                  compilation.updateAsset(
-                    name,
-                    new sources.ConcatSource("/* LFTSTART */\n", source, "\n/* LFTEND */")
-                  );
-                }
-              }
-            }
-          );
-        });
-      },
-    },
+    // {
+    //   apply(compiler) {
+    //     compiler.hooks.compilation.tap("LftMarkerPlugin", (compilation) => {
+    //       compilation.hooks.processAssets.tap(
+    //         { name: "LftMarkerPlugin", stage: Compilation.PROCESS_ASSETS_STAGE_REPORT },
+    //         (assets) => {
+    //           for (const [name, source] of Object.entries(assets)) {
+    //             if (/\.(js|css)$/.test(name) && !name.includes(".map")) {
+    //               compilation.updateAsset(
+    //                 name,
+    //                 new sources.ConcatSource("/* LFTSTART */\n", source, "\n/* LFTEND */")
+    //               );
+    //               const mapName = `${name}.map`;
+    //               if (assets[mapName]) {
+    //                 const map = JSON.parse(assets[mapName].source());
+    //                 map.mappings = ";" + map.mappings;
+    //                 compilation.updateAsset(mapName, new sources.RawSource(JSON.stringify(map)));
+    //               }
+    //             }
+    //           }
+    //         }
+    //       );
+    //     });
+    //   },
+    // },
     new SourceMapDevToolPlugin({
       append: `\n//# sourceMappingURL=[name].js.map?version=${commitHash}`,
       filename: "[file].map",

@@ -81,6 +81,7 @@ import { ScreenEditProgramExercise } from "./editProgramExercise/screenEditProgr
 import { FallbackScreen } from "./fallbackScreen";
 import { Screen1RM } from "./screen1RM";
 import { ScreenSetupEquipment, ScreenSetupPlates } from "./screenSetupEquipment";
+import { ScreenProgramSelect } from "./screenProgramSelect";
 import { Settings_applyTheme } from "../models/settings";
 import { AppContext } from "./appContext";
 import { ScreenMuscleGroups } from "./screenMuscleGroups";
@@ -587,6 +588,13 @@ export function AppView(props: IProps): JSX.Element | null {
       <ScreenSetupPlates
         stats={state.storage.stats}
         navCommon={navCommon}
+        dispatch={dispatch}
+        settings={state.storage.settings}
+      />
+    );
+  } else if (Screen_currentName(state.screenStack) === "programselect") {
+    content = (
+      <ScreenProgramSelect
         dispatch={dispatch}
         settings={state.storage.settings}
       />

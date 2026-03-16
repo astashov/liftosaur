@@ -1,14 +1,17 @@
 import { test, expect } from "@playwright/test";
-import { startpage, PlaywrightUtils_clearCodeMirror, PlaywrightUtils_typeCodeMirror } from "./playwrightUtils";
+import {
+  startpage,
+  PlaywrightUtils_clearCodeMirror,
+  PlaywrightUtils_typeCodeMirror,
+  PlaywrightUtils_createProgram,
+  PlaywrightUtils_disableTours,
+} from "./playwrightUtils";
 
 test("reuses sets", async ({ page }) => {
   page.on("dialog", (dialog) => dialog.accept());
   await page.goto(startpage + "?skipintro=1");
-  await page.getByTestId("create-program").click();
-
-  await page.getByTestId("modal-create-program-input").clear();
-  await page.getByTestId("modal-create-program-input").type("My Program");
-  await page.getByTestId("modal-create-experimental-program-submit").click();
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_createProgram(page, "My Program");
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
 
@@ -47,6 +50,7 @@ a: Squat / ...Squat[1:2]
 Triceps Extension / ...Bench Press[1]`
   );
 
+
   await page.getByTestId("editor-v2-ui-program").click();
   await expect(
     page
@@ -83,6 +87,7 @@ Triceps Extension / ...Bench Press[1]`
   await page.getByTestId("save-program").click();
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
+
 
   await page.getByTestId("complete-set").nth(3).click();
 

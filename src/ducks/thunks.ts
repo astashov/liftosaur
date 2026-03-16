@@ -843,6 +843,7 @@ export function Thunk_pushScreen<T extends IScreen>(
       "programPreview",
       "setupequipment",
       "setupplates",
+      "programselect",
     ];
     if (getState().storage.currentProgramId == null && screensWithoutCurrentProgram.indexOf(screen) === -1) {
       screen = "programs" as T;

@@ -4,15 +4,14 @@ import {
   PlaywrightUtils_clearCodeMirror,
   PlaywrightUtils_typeCodeMirror,
   PlaywrightUtils_type,
+  PlaywrightUtils_createProgram,
+  PlaywrightUtils_disableTours,
 } from "./playwrightUtils";
 
 test("replaces weights", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
-  await page.getByTestId("create-program").click();
-
-  await page.getByTestId("modal-create-program-input").clear();
-  await page.getByTestId("modal-create-program-input").type("My Program");
-  await page.getByTestId("modal-create-experimental-program-submit").click();
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_createProgram(page, "My Program");
 
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
@@ -33,10 +32,12 @@ Bench Press / 3x8 70lb
 Bicep Curl / 1x8 80lb`
   );
 
+
   await page.getByTestId("save-program").click();
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
+
 
   await page.getByTestId("entry-squat").getByTestId("exercise-equipment-picker").click();
   await page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").click();

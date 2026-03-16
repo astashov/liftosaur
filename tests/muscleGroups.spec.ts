@@ -4,14 +4,14 @@ import {
   PlaywrightUtils_clearCodeMirror,
   PlaywrightUtils_typeCodeMirror,
   PlaywrightUtils_finishExercise,
+  PlaywrightUtils_createProgram,
+  PlaywrightUtils_disableTours,
 } from "./playwrightUtils";
 
 test("Muscle Groups", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
-  await page.getByTestId("create-program").click();
-
-  await page.getByTestId("modal-create-program-input").fill("My Program");
-  await page.getByTestId("modal-create-experimental-program-submit").click();
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_createProgram(page, "My Program");
 
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
@@ -25,6 +25,7 @@ Bench Press / 3x5 / 100lb / warmup: none
 Squat / 3x5 / 100lb / warmup: none
 Bent Over Row / 3x5 / 100lb / warmup: none`
   );
+
 
   await page.getByTestId("save-program").click();
 
@@ -51,7 +52,9 @@ Bent Over Row / 3x5 / 100lb / warmup: none`
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
+
   await PlaywrightUtils_finishExercise(page, "bench-press", [1, 1, 1]);
+
   await PlaywrightUtils_finishExercise(page, "squat", [1, 1, 1]);
   await PlaywrightUtils_finishExercise(page, "bent-over-row", [1, 1, 1]);
 

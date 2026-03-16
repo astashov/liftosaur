@@ -4,15 +4,14 @@ import {
   PlaywrightUtils_clearCodeMirror,
   PlaywrightUtils_typeCodeMirror,
   PlaywrightUtils_finishExercise,
+  PlaywrightUtils_createProgram,
+  PlaywrightUtils_disableTours,
 } from "./playwrightUtils";
 
 test("disable progress on marked days", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
-  await page.getByTestId("create-program").click();
-
-  await page.getByTestId("modal-create-program-input").clear();
-  await page.getByTestId("modal-create-program-input").type("My Program");
-  await page.getByTestId("modal-create-experimental-program-submit").click();
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_createProgram(page, "My Program");
 
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
@@ -42,6 +41,7 @@ Squat / 1x5 115lb / progress: none / warmup: none
 Squat / 1x5 115lb / warmup: none`
   );
 
+
   await page.getByTestId("save-program").click();
 
   await expect(page.getByTestId("history-record").first().getByTestId("history-entry-weight").first()).toHaveText(
@@ -51,7 +51,9 @@ Squat / 1x5 115lb / warmup: none`
   for (const weight of [120, 125, 130, 130, 130, 135]) {
     await page.getByTestId("footer-workout").click();
     await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
+  
     await PlaywrightUtils_finishExercise(page, "squat", [1]);
+  
     await page.getByTestId("finish-workout").click();
     await page.getByTestId("finish-day-continue").click();
     await page.getByTestId("footer-workout").click();

@@ -1,12 +1,15 @@
 import { test, expect } from "@playwright/test";
-import { startpage } from "./playwrightUtils";
+import { startpage, PlaywrightUtils_selectBuiltin, PlaywrightUtils_disableTours } from "./playwrightUtils";
 
 test("rest timer", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_selectBuiltin(page);
   await page.getByRole("button", { name: "Basic Beginner Routine" }).click();
   await page.getByTestId("clone-program").click();
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
+
 
   await page.getByTestId("complete-set").first().click();
   await page.getByTestId("rest-timer-collapsed").click();

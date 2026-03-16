@@ -1,15 +1,19 @@
 import { test, expect } from "@playwright/test";
-import { startpage, PlaywrightUtils_disableSubscriptions, PlaywrightUtils_swipeLeft } from "./playwrightUtils";
+import {
+  startpage,
+  PlaywrightUtils_disableSubscriptions,
+  PlaywrightUtils_swipeLeft,
+  PlaywrightUtils_createProgram,
+  PlaywrightUtils_disableTours,
+} from "./playwrightUtils";
 
 test("CRUD custom exercises", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
+  PlaywrightUtils_disableTours(page);
   page.on("dialog", (dialog) => dialog.accept());
 
-  await page.getByTestId("create-program").click({ force: true });
+  await PlaywrightUtils_createProgram(page, "My Program");
   PlaywrightUtils_disableSubscriptions(page);
-
-  await page.getByTestId("modal-create-program-input").fill("My Program");
-  await page.getByTestId("modal-create-experimental-program-submit").click();
 
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("add-exercise").click();
@@ -25,6 +29,7 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("exercise-picker-confirm").click();
 
   await page.getByTestId("edit-exercise").click();
+
   await page.getByTestId("edit-exercise-warmups-customize").click();
 
   await PlaywrightUtils_swipeLeft(page, page.getByTestId("warmup-set-x").nth(0));
@@ -42,13 +47,16 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
+
   await page.getByTestId("complete-set").click();
+
   await page.getByTestId("finish-workout").click();
   await page.getByTestId("finish-day-continue").click();
 
   await page.getByTestId("footer-program").click();
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("edit-exercise").click();
+
   await page.getByTestId("add-set").click();
   await page.getByTestId("edit-program-exercise-change").click();
   await page.getByTestId("custom-exercise-edit-my-exercise-2").click();
@@ -75,6 +83,7 @@ test("CRUD custom exercises", async ({ page }) => {
   await page.getByTestId("footer-program").click();
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("edit-exercise").click();
+
   await page.getByTestId("edit-program-exercise-change").click();
   await page.getByTestId("custom-exercise-create").click();
 

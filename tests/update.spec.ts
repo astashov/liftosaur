@@ -1,13 +1,16 @@
 import { test, expect } from "@playwright/test";
-import { startpage, PlaywrightUtils_clearCodeMirror, PlaywrightUtils_typeCodeMirror } from "./playwrightUtils";
+import {
+  startpage,
+  PlaywrightUtils_clearCodeMirror,
+  PlaywrightUtils_typeCodeMirror,
+  PlaywrightUtils_createProgram,
+  PlaywrightUtils_disableTours,
+} from "./playwrightUtils";
 
 test("updates reps in a workout", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
-  await page.getByTestId("create-program").click();
-
-  await page.getByTestId("modal-create-program-input").clear();
-  await page.getByTestId("modal-create-program-input").type("My Program");
-  await page.getByTestId("modal-create-experimental-program-submit").click();
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_createProgram(page, "My Program");
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-perday-program").click();
 
@@ -22,9 +25,11 @@ test("updates reps in a workout", async ({ page }) => {
 ~}`
   );
 
+
   await page.getByTestId("save-program").click();
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
+
 
   await page.getByTestId("complete-set").nth(2).click();
   await page.getByTestId("modal-amrap-input").clear();

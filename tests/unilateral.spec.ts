@@ -5,14 +5,14 @@ import {
   PlaywrightUtils_typeCodeMirror,
   PlaywrightUtils_clickAll,
   PlaywrightUtils_typeKeyboard,
+  PlaywrightUtils_createProgram,
+  PlaywrightUtils_disableTours,
 } from "./playwrightUtils";
 
 test("Unilateral exercises", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
-  await page.getByTestId("create-program").click();
-
-  await page.getByTestId("modal-create-program-input").fill("My Program");
-  await page.getByTestId("modal-create-experimental-program-submit").click();
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_createProgram(page, "My Program");
 
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
@@ -31,10 +31,12 @@ Bicep Curl / 2x5, 1x5+ / 10lb / warmup: none
 `
   );
 
+
   await page.getByTestId("save-program").click();
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("start-workout").click();
+
 
   await expect(page.getByTestId("entry-squat").getByTestId("input-set-reps-field")).toHaveCount(5);
   await expect(page.getByTestId("entry-squat").getByTestId("input-set-left-reps-field")).toHaveCount(0);
@@ -47,6 +49,7 @@ Bicep Curl / 2x5, 1x5+ / 10lb / warmup: none
   await expect(page.getByTestId("entry-squat").getByTestId("input-set-left-reps-field")).toHaveCount(5);
 
   await PlaywrightUtils_clickAll(page.getByTestId("entry-squat").getByTestId("complete-set"));
+
   await PlaywrightUtils_typeKeyboard(
     page,
     page.getByTestId("entry-squat").getByTestId("input-set-left-reps-field").nth(2),

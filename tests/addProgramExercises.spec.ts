@@ -4,16 +4,15 @@ import {
   PlaywrightUtils_disableSubscriptions,
   PlaywrightUtils_clearCodeMirror,
   PlaywrightUtils_typeCodeMirror,
+  PlaywrightUtils_createProgram,
+  PlaywrightUtils_disableTours,
 } from "./playwrightUtils";
 
 test("add program exercises to workout", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1&nosync=true");
-  await page.getByTestId("create-program").click();
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_createProgram(page, "My Program");
   PlaywrightUtils_disableSubscriptions(page);
-
-  await page.getByTestId("modal-create-program-input").clear();
-  await page.getByTestId("modal-create-program-input").type("My Program");
-  await page.getByTestId("modal-create-experimental-program-submit").click();
 
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
@@ -36,9 +35,11 @@ Overhead Press / 4x4 80lb / progress: lp(5lb)
 t1 / used: none / 1x1 50lb / progress: lp(5lb)
 Bicep Curl / ...t1 / used: none`
   );
+
   await page.getByTestId("save-program").click();
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
+
 
   await page.getByTestId("entry-bench-press").getByTestId("exercise-options").click();
   await page.getByTestId("exercise-swap").first().click();
@@ -50,6 +51,7 @@ Bicep Curl / ...t1 / used: none`
   await page.getByTestId("exercise-picker-confirm").click();
 
   await page.getByTestId("entry-bicep-curl").getByTestId("complete-set").nth(2).click();
+
   await expect(page.getByTestId("variable-changes-value-weights[1]")).toHaveText("+= 5lb");
 
   await page.getByTestId("add-exercise-button").click();

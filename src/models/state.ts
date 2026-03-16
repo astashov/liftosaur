@@ -167,7 +167,7 @@ export function buildState(args: {
   deviceId?: string;
 }): IState {
   return {
-    screenStack: [{ name: args.shouldSkipIntro ? "programs" : "first" }],
+    screenStack: [{ name: args.shouldSkipIntro ? "programselect" : "first" }],
     progress: {},
     programs: [basicBeginnerProgram],
     programsIndex: [],

@@ -1,12 +1,16 @@
 import { test, expect } from "@playwright/test";
-import { startpage, PlaywrightUtils_clearCodeMirror, PlaywrightUtils_typeCodeMirror } from "./playwrightUtils";
+import {
+  startpage,
+  PlaywrightUtils_clearCodeMirror,
+  PlaywrightUtils_typeCodeMirror,
+  PlaywrightUtils_createProgram,
+  PlaywrightUtils_disableTours,
+} from "./playwrightUtils";
 
 test("rpe", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
-  await page.getByTestId("create-program").click();
-
-  await page.getByTestId("modal-create-program-input").fill("My Program");
-  await page.getByTestId("modal-create-experimental-program-submit").click();
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_createProgram(page, "My Program");
 
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
@@ -20,6 +24,7 @@ Squat / 1x5 135lb @8+, 1x5 135lb @8, 1x5 135lb, 1x5 135lb @7+ / progress: custom
   state.boom = completedRPE[3] + completedRPE[4] + RPE[1] 
 ~}`
   );
+
 
   await page.getByTestId("save-program").click();
 
@@ -35,6 +40,7 @@ Squat / 1x5 135lb @8+, 1x5 135lb @8, 1x5 135lb, 1x5 135lb @7+ / progress: custom
   await expect(page.getByTestId("history-entry-sets-next").nth(2)).toHaveText("5 × 135lb @7");
 
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
+
 
   await expect(page.getByTestId("workout-set-target").nth(3)).toHaveText("5 × 135lb @8+");
   await expect(page.getByTestId("workout-set-target").nth(4)).toHaveText("5 × 135lb @8");
@@ -55,6 +61,7 @@ Squat / 1x5 135lb @8+, 1x5 135lb @8, 1x5 135lb, 1x5 135lb @7+ / progress: custom
   await page.getByTestId("complete-set").nth(6).click();
   await page.getByTestId("modal-rpe-input").type("11");
   await page.getByTestId("modal-amrap-submit").click();
+
 
   await expect(page.getByTestId("rpe-value")).toHaveCount(2);
   await expect(page.getByTestId("rpe-value").nth(0)).toHaveText("@7.5");

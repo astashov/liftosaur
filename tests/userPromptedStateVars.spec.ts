@@ -4,16 +4,15 @@ import {
   PlaywrightUtils_clearCodeMirror,
   PlaywrightUtils_typeCodeMirror,
   PlaywrightUtils_finishExercise,
+  PlaywrightUtils_createProgram,
+  PlaywrightUtils_disableTours,
 } from "./playwrightUtils";
 
 test("User Prompted State Vars", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
-  // Creating the program
+  PlaywrightUtils_disableTours(page);
 
-  await page.getByTestId("create-program").click();
-
-  await page.getByTestId("modal-create-program-input").fill("My Program");
-  await page.getByTestId("modal-create-experimental-program-submit").click();
+  await PlaywrightUtils_createProgram(page, "My Program");
 
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
@@ -32,10 +31,12 @@ Squat / 5x5 65lb / warmup: none / progress: custom(rpe+: 0) {~
 ~}`
   );
 
+
   await page.getByTestId("save-program").click();
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
+
 
   await PlaywrightUtils_finishExercise(page, "squat", [1, 1, 1, 1]);
   await page.getByTestId("complete-set").nth(4).click();
@@ -43,6 +44,7 @@ Squat / 5x5 65lb / warmup: none / progress: custom(rpe+: 0) {~
   await page.getByTestId("modal-state-vars-user-prompt-input-rpe").type("8");
 
   await page.getByTestId("modal-amrap-submit").click();
+
 
   await expect(page.getByTestId("variable-changes-value-weights")).toHaveText("-= 5lb");
   await expect(page.getByTestId("state-changes").first()).toContainText("rpe: 0 -> 8");
@@ -62,6 +64,7 @@ Squat / 5x5 65lb / warmup: none / progress: custom(rpe+: 0) {~
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
+
 
   await expect(page.getByTestId("input-set-weight-field").nth(1)).toContainText("70");
 

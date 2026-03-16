@@ -157,6 +157,48 @@ interface IEquipmentSettingsContentProps<T> {
   settings: ISettings;
 }
 
+function EquipmentSummary(props: { equipmentData: IEquipmentData; settings: ISettings }): JSX.Element {
+  const { equipmentData, settings } = props;
+  const unit = equipmentData.unit ?? settings.units;
+
+  if (equipmentData.isFixed) {
+    const fixedWeights = CollectionUtils_sort(
+      equipmentData.fixed.filter((w) => w.unit === unit),
+      (a, b) => Weight_compare(a, b)
+    );
+    if (fixedWeights.length === 0) {
+      return <>Fixed weights</>;
+    }
+    const display = fixedWeights.slice(0, 10).map((w) => Weight_print(w));
+    return (
+      <>
+        {display.join(", ")}
+        {fixedWeights.length > 10 ? `, and ${fixedWeights.length - 10} more` : ""}
+      </>
+    );
+  }
+
+  const barWeight = equipmentData.bar[unit];
+  const plates = CollectionUtils_sort(
+    equipmentData.plates.filter((p) => p.weight.unit === unit && p.num > 0),
+    (a, b) => Weight_compare(b.weight, a.weight)
+  );
+
+  const parts: string[] = [];
+  if (barWeight && barWeight.value > 0) {
+    parts.push(`Bar: ${Weight_print(barWeight)}`);
+  }
+  if (plates.length > 0) {
+    const plateStrs = plates.map((p) => `${Weight_print(p.weight)}×${p.num}`);
+    parts.push(plateStrs.join(", "));
+  }
+
+  if (parts.length === 0) {
+    return <>No plates configured</>;
+  }
+  return <>{parts.join(" · ")}</>;
+}
+
 export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProps<T>): JSX.Element {
   const [isExpanded, setIsExpanded] = useState<boolean>(props.isExpanded ?? false);
   const name = equipmentName(props.equipment, props.allEquipment);
@@ -182,12 +224,17 @@ export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProp
           </div>
           {icon && <div className="mr-1">{icon}</div>}
           <div
-            className="flex-1 font-semibold"
+            className="flex-1"
             onClick={() => {
               setIsExpanded(!isExpanded);
             }}
           >
-            {equipmentName(props.equipment, props.allEquipment)}
+            <div className="font-semibold">{equipmentName(props.equipment, props.allEquipment)}</div>
+            {!isExpanded && (
+              <div className="text-xs text-text-secondary">
+                <EquipmentSummary equipmentData={props.equipmentData} settings={props.settings} />
+              </div>
+            )}
           </div>
           <div className="flex items-center">
             <button

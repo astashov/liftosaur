@@ -1,11 +1,14 @@
-import { startpage } from "./playwrightUtils";
+import { startpage, PlaywrightUtils_selectBuiltin, PlaywrightUtils_disableTours } from "./playwrightUtils";
 import { test, expect } from "@playwright/test";
 
 test("subscriptions", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1&enforce=1");
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_selectBuiltin(page);
   await page.locator("button:has-text('Basic Beginner Routine')").click();
   const adminKey = process.env.CYPRESS_LIFTOSAUR_ADMIN_KEY;
   await page.getByTestId("clone-program").click();
+
   await page.getByTestId("footer-graphs").click();
 
   await expect(page.locator("body")).toContainText("Liftosaur Premium");
@@ -17,6 +20,7 @@ test("subscriptions", async ({ page }) => {
   });
   await page.waitForTimeout(2000);
   await page.goto(startpage + "?skipintro=1&enforce=1");
+  PlaywrightUtils_disableTours(page);
   await page.getByTestId("footer-graphs").click();
   await expect(page.getByTestId("screen")).toContainText("Select graphs you want to display");
   await page.getByTestId("footer-me").click();
@@ -36,6 +40,7 @@ test("subscriptions", async ({ page }) => {
 
   await page.waitForTimeout(2000);
   await page.goto(startpage + "?skipintro=1&enforce=1");
+  PlaywrightUtils_disableTours(page);
   await page.getByTestId("footer-graphs").click();
   await page.getByTestId("button-subscription-free").click();
   await page.getByTestId("footer-graphs").click();

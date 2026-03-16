@@ -3,18 +3,23 @@ import {
   PlaywrightUtils_disableSubscriptions,
   PlaywrightUtils_swipeLeft,
   PlaywrightUtils_typeKeyboard,
+  PlaywrightUtils_selectBuiltin,
+  PlaywrightUtils_disableTours,
 } from "./playwrightUtils";
 import { test, expect } from "@playwright/test";
 
 test("Empty Workout", async ({ page }) => {
   page.on("dialog", (dialog) => dialog.accept());
   await page.goto(startpage + "?skipintro=1&nosync=true");
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_selectBuiltin(page);
   await page.getByRole("button", { name: "Basic Beginner Routine" }).click();
   PlaywrightUtils_disableSubscriptions(page);
   await page.getByTestId("clone-program").click();
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-empty-workout").click();
+
   await page.getByTestId("exercise-filter-by-name").fill("Bench Press");
   await page.getByTestId("menu-item-bench-press-barbell").click();
   await page.getByTestId("exercise-picker-confirm").click();
@@ -35,6 +40,7 @@ test("Empty Workout", async ({ page }) => {
   await page.getByTestId("add-workout-set").click();
   await page.getByTestId("complete-set").nth(0).click();
   await page.getByTestId("complete-set").nth(1).click();
+
 
   await page.getByTestId("add-exercise-button").click();
   await page.getByTestId("exercise-filter-by-name").fill("Squat");

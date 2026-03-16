@@ -1,8 +1,10 @@
-import { startpage } from "./playwrightUtils";
+import { startpage, PlaywrightUtils_selectBuiltin, PlaywrightUtils_disableTours } from "./playwrightUtils";
 import { test, expect } from "@playwright/test";
 
 test("converts length units properly", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_selectBuiltin(page);
   await page.click("button:has-text('Basic Beginner Routine')");
   await page.getByTestId("clone-program").click();
 

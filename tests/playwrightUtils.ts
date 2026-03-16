@@ -138,3 +138,46 @@ export async function PlaywrightUtils_clickAll(locator: Locator): Promise<void> 
     await el.click();
   }
 }
+
+export async function PlaywrightUtils_selectBuiltin(page: Page): Promise<void> {
+  await page.getByTestId("program-select-builtin").click();
+}
+
+export async function PlaywrightUtils_createProgram(page: Page, name: string): Promise<void> {
+  await page.getByTestId("program-select-create").click();
+  await page.getByTestId("modal-create-program-input").fill(name);
+  await page.getByTestId("modal-create-experimental-program-submit").click();
+}
+
+export async function PlaywrightUtils_closeTour(page: Page): Promise<void> {
+  await page.getByTestId("tour-close").click();
+}
+
+export function PlaywrightUtils_disableTours(page: Page): Promise<void> {
+  return page.evaluate(() => {
+    const tourHelps = [
+      "workout.howItWorks",
+      "workout.completingSets",
+      "workout.whatIs1RM",
+      "workout.whatIsRPE",
+      "workout.equipment",
+      "workout.editingProgram",
+      "workout.progressionPreview",
+      "program.structure",
+      "program.updates",
+      "program.text",
+      "program.liftoscript",
+      "program.addExercise",
+      "program.editExercise",
+      "program.playground",
+      "editProgramExercise.overview",
+      "editProgramExercise.sets",
+      "editProgramExercise.warmups",
+      "editProgramExercise.progress",
+      "editProgramExercise.update",
+      "editProgramExercise.repeat",
+      "editProgramExercise.reuse",
+    ];
+    (window as any).state.storage.helps.push(...tourHelps);
+  });
+}

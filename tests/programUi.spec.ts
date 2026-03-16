@@ -6,20 +6,21 @@ import {
   PlaywrightUtils_clearCodeMirror,
   PlaywrightUtils_typeCodeMirror,
   PlaywrightUtils_select,
+  PlaywrightUtils_createProgram,
+  PlaywrightUtils_disableTours,
 } from "./playwrightUtils";
 
 test("Warmups", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
-  await page.getByTestId("create-program").click();
-  await page.getByTestId("modal-create-program-input").click();
-  await page.getByTestId("modal-create-program-input").fill("My Program");
-  await page.getByTestId("modal-create-experimental-program-submit").click();
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_createProgram(page, "My Program");
 
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("add-exercise").click();
   await page.getByTestId("menu-item-bench-press-barbell").click();
   await page.getByTestId("exercise-picker-confirm").click();
   await page.getByTestId("edit-exercise").click();
+
   await page.getByTestId("edit-exercise-warmups-customize").click();
 
   await PlaywrightUtils_typeKeyboard(
@@ -56,14 +57,14 @@ test("Warmups", async ({ page }) => {
 
 test("Sets", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
-  await page.getByTestId("create-program").click();
-  await page.getByTestId("modal-create-program-input").fill("My Program");
-  await page.getByTestId("modal-create-experimental-program-submit").click();
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_createProgram(page, "My Program");
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("add-exercise").click();
   await page.getByTestId("menu-item-bench-press-barbell").click();
   await page.getByTestId("exercise-picker-confirm").click();
   await page.getByTestId("edit-exercise").click();
+
 
   await PlaywrightUtils_typeKeyboard(page, page.getByTestId("input-set-reps-field"), "5");
   await PlaywrightUtils_typeKeyboard(page, page.getByTestId("input-set-weight-field"), "110");
@@ -114,9 +115,8 @@ test("Sets", async ({ page }) => {
 
 test("Change exercise", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
-  await page.getByTestId("create-program").click();
-  await page.getByTestId("modal-create-program-input").fill("My Program");
-  await page.getByTestId("modal-create-experimental-program-submit").click();
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_createProgram(page, "My Program");
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("add-exercise").click();
   await page.getByTestId("menu-item-arnold-press-dumbbell").click();
@@ -144,9 +144,8 @@ test("Change exercise", async ({ page }) => {
 
 test("Reuse without overwrite", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
-  await page.getByTestId("create-program").click();
-  await page.getByTestId("modal-create-program-input").fill("My Program");
-  await page.getByTestId("modal-create-experimental-program-submit").click();
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_createProgram(page, "My Program");
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
   await PlaywrightUtils_clearCodeMirror(page, "planner-editor");
@@ -158,6 +157,7 @@ test("Reuse without overwrite", async ({ page }) => {
 
 Squat / 3x8 60lb / warmup: 1x5 45lb, 1x3 135lb / progress: custom() {~ weights += 5lb ~}`
   );
+
   await page.getByTestId("editor-v2-ui-program").click();
   await page.getByTestId("add-day").click();
   await page.getByTestId("add-exercise").nth(1).click();
@@ -166,6 +166,7 @@ Squat / 3x8 60lb / warmup: 1x5 45lb, 1x3 135lb / progress: custom() {~ weights +
   await page.getByTestId("menu-item-bench-press-barbell").click();
   await page.getByTestId("exercise-picker-confirm").click();
   await page.getByTestId("exercise-benchpress_barbell").getByTestId("edit-exercise").click();
+
   await PlaywrightUtils_select(page, page.getByTestId("edit-exercise-reuse-sets"), "reuse-select", "squat_barbell");
   await page.getByTestId("edit-exercise-override-sets").click();
 
@@ -194,9 +195,8 @@ Squat / 3x8 60lb / warmup: 1x5 45lb, 1x3 135lb / progress: custom() {~ weights +
 
 test("Reuse progresses", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
-  await page.getByTestId("create-program").click();
-  await page.getByTestId("modal-create-program-input").fill("My Program");
-  await page.getByTestId("modal-create-experimental-program-submit").click();
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_createProgram(page, "My Program");
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
   await PlaywrightUtils_clearCodeMirror(page, "planner-editor");
@@ -214,8 +214,10 @@ Bent Over Row / 3x3 / progress: custom(foo: 1) { ...Overhead Press }
 Bicep Curl / 3x3`
   );
 
+
   await page.getByTestId("editor-v2-ui-program").click();
   await page.getByTestId("exercise-bicepcurl_dumbbell").getByTestId("edit-exercise").click();
+
 
   await page.getByTestId("program-exercise-navbar-kebab").click();
   await page.getByTestId("program-exercise-toggle-progress").click();

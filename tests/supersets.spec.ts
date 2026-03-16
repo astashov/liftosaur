@@ -1,12 +1,16 @@
 import { test, expect } from "@playwright/test";
-import { startpage, PlaywrightUtils_clearCodeMirror, PlaywrightUtils_typeCodeMirror } from "./playwrightUtils";
+import {
+  startpage,
+  PlaywrightUtils_clearCodeMirror,
+  PlaywrightUtils_typeCodeMirror,
+  PlaywrightUtils_createProgram,
+  PlaywrightUtils_disableTours,
+} from "./playwrightUtils";
 
 test("Supersets", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
-  await page.getByTestId("create-program").click();
-
-  await page.getByTestId("modal-create-program-input").fill("My Program");
-  await page.getByTestId("modal-create-experimental-program-submit").click();
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_createProgram(page, "My Program");
 
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
@@ -35,6 +39,7 @@ Bench Press / 2x8 100lb / superset: A
 Overhead Press / 2x8 100lb / superset: A`
   );
 
+
   await page.getByTestId("save-program").click();
   await page.getByTestId("footer-program").click();
   await page.getByTestId("tab-edit").click();
@@ -43,6 +48,7 @@ Overhead Press / 2x8 100lb / superset: A`
     .getByTestId("exercise-overheadpress_barbell")
     .getByTestId("edit-exercise")
     .click();
+
   await page.getByTestId("edit-day-1-1").getByTestId("day-kebab-menu").click();
   await page.getByTestId("edit-menu-exercise-toggle-supersets").click();
   await page.getByTestId("edit-day-1-1").getByTestId("superset-group").click();
@@ -55,6 +61,7 @@ Overhead Press / 2x8 100lb / superset: A`
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("start-workout").click();
+
 
   await page.getByTestId("workout-tab-skullcrusher").click();
   await page.getByTestId("entry-skullcrusher").getByTestId("exercise-options").click();
@@ -80,6 +87,7 @@ Overhead Press / 2x8 100lb / superset: A`
   await expect(page.getByTestId("workout-tab-squat")).toHaveAttribute("data-is-selected", "true");
 
   await page.getByTestId("entry-squat").getByTestId("complete-set").nth(4).click();
+
   await page.getByTestId("entry-deadlift").getByTestId("complete-set").nth(3).click();
   await expect(page.getByTestId("workout-tab-deadlift")).toHaveAttribute("data-is-selected", "true");
 

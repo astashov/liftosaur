@@ -1,8 +1,10 @@
 import { expect, test } from "@playwright/test";
-import { startpage, PlaywrightUtils_disableSubscriptions, PlaywrightUtils_finishExercise } from "./playwrightUtils";
+import { startpage, PlaywrightUtils_disableSubscriptions, PlaywrightUtils_finishExercise, PlaywrightUtils_selectBuiltin, PlaywrightUtils_disableTours } from "./playwrightUtils";
 
 test("Graphs", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1&nosync=true");
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_selectBuiltin(page);
   await page.click("button:has-text('Basic Beginner Routine')");
   await PlaywrightUtils_disableSubscriptions(page);
   await page.getByTestId("clone-program").click();
@@ -18,8 +20,10 @@ test("Graphs", async ({ page }) => {
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
+
   // Complete workout
   await PlaywrightUtils_finishExercise(page, "bent-over-row", [1, 1, { amrap: { reps: 5 } }]);
+
   await PlaywrightUtils_finishExercise(page, "bench-press", [1, 1, { amrap: { reps: 5 } }]);
   await PlaywrightUtils_finishExercise(page, "squat", [1, 1, { amrap: { reps: 5 } }]);
   await page.getByTestId("finish-workout").click();

@@ -1,5 +1,5 @@
 import { test, expect, Page } from "@playwright/test";
-import { startpage, PlaywrightUtils_finishExercise } from "./playwrightUtils";
+import { startpage, PlaywrightUtils_finishExercise, PlaywrightUtils_selectBuiltin, PlaywrightUtils_disableTours } from "./playwrightUtils";
 
 async function switchBackToFirstDay(page: Page): Promise<void> {
   await page.getByTestId("footer-program").click({ force: true });
@@ -12,10 +12,13 @@ async function switchBackToFirstDay(page: Page): Promise<void> {
 
 test("works", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_selectBuiltin(page);
   await page.locator("button:has-text('Basic Beginner Routine')").click({ force: true });
   await page.getByTestId("clone-program").click({ force: true });
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
+
   await page.getByTestId("entry-bent-over-row").getByTestId("exercise-name").click({ force: true });
   await expect(page.getByTestId("exercise-stats-image")).toBeVisible();
   await expect(page.getByTestId("max-weight-value")).not.toBeVisible();
@@ -25,6 +28,7 @@ test("works", async ({ page }) => {
 
   await page.getByTestId("navbar-back").click({ force: true });
   await PlaywrightUtils_finishExercise(page, "bent-over-row", [1, 1, { amrap: { reps: 5 } }]);
+
   await PlaywrightUtils_finishExercise(page, "bench-press", [1, 1, { amrap: { reps: 5 } }]);
   await PlaywrightUtils_finishExercise(page, "squat", [1, 1, { amrap: { reps: 5 } }]);
   await page.getByTestId("finish-workout").click();
@@ -43,6 +47,7 @@ test("works", async ({ page }) => {
 
   await page.getByTestId("navbar-back").click({ force: true });
   await PlaywrightUtils_finishExercise(page, "bent-over-row", [1, 1, 1, { amrap: { reps: 5 } }]);
+
   await PlaywrightUtils_finishExercise(page, "bench-press", [1, 1, 1, { amrap: { reps: 5 } }]);
   await PlaywrightUtils_finishExercise(page, "squat", [1, 1, 1, { amrap: { reps: 5 } }]);
   await page.getByTestId("finish-workout").click();

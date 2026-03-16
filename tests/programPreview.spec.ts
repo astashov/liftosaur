@@ -1,8 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { startpage, PlaywrightUtils_finishExercise } from "./playwrightUtils";
+import { startpage, PlaywrightUtils_finishExercise, PlaywrightUtils_selectBuiltin, PlaywrightUtils_disableTours } from "./playwrightUtils";
 
 test("Program Preview", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_selectBuiltin(page);
   await page.getByRole("button", { name: "Basic Beginner Routine" }).click();
   await page.getByTestId("preview-program").click();
   await expect(page.getByTestId("program-name")).toHaveText("Basic Beginner Routine");

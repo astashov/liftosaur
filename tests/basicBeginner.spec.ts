@@ -4,17 +4,22 @@ import {
   PlaywrightUtils_clickAll,
   PlaywrightUtils_forEach,
   PlaywrightUtils_typeKeyboard,
+  PlaywrightUtils_selectBuiltin,
+  PlaywrightUtils_disableTours,
 } from "./playwrightUtils";
 import { test, expect } from "@playwright/test";
 
 test("Basic Beginner Program", async ({ page }) => {
   page.on("dialog", (dialog) => dialog.accept());
   await page.goto(startpage + "?skipintro=1&nosync=true");
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_selectBuiltin(page);
   await page.getByRole("button", { name: "Basic Beginner Routine" }).click();
   PlaywrightUtils_disableSubscriptions(page);
   await page.getByTestId("clone-program").click();
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
+
 
   // Workout A
 
@@ -29,6 +34,7 @@ test("Basic Beginner Program", async ({ page }) => {
   await PlaywrightUtils_clickAll(page.getByTestId("entry-bent-over-row").getByTestId("complete-set"));
   await page.getByTestId("modal-amrap-input").fill("5");
   await page.getByTestId("modal-amrap-submit").click();
+
 
   await PlaywrightUtils_forEach(page.getByTestId("input-set-weight-field"), async (item) => {
     await PlaywrightUtils_typeKeyboard(page, item, "140");
@@ -196,6 +202,7 @@ test("Basic Beginner Program", async ({ page }) => {
   // Workout B
 
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
+
 
   await page.getByTestId("finish-workout").click();
   await page.getByTestId("finish-day-continue").click();

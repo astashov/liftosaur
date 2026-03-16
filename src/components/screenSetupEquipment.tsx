@@ -29,7 +29,7 @@ export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Ele
         <div className="p-4 text-center">
           <img
             src="/images/dinoequipment.png"
-            className="inline-block object-cover h-36"
+            className="inline-block object-cover h-60"
             alt="Dino with gym equipment"
           />
         </div>
@@ -96,7 +96,7 @@ export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Ele
             kind="lightgrayv3"
             buttonSize="lg"
             data-cy="setup-equipment-skip"
-            onClick={() => props.dispatch(Thunk_pushScreen("programs"))}
+            onClick={() => props.dispatch(Thunk_pushScreen("programselect"))}
           >
             Skip
           </Button>
@@ -152,7 +152,7 @@ export function ScreenSetupPlates(props: IScreenSetupPlatesProps): JSX.Element {
                   name="setup-plates-continue"
                   kind="purple"
                   buttonSize="lg"
-                  onClick={() => props.dispatch(Thunk_pushScreen("programs"))}
+                  onClick={() => props.dispatch(Thunk_pushScreen("programselect"))}
                   data-cy="setup-plates-continue"
                 >
                   Continue
@@ -165,7 +165,7 @@ export function ScreenSetupPlates(props: IScreenSetupPlatesProps): JSX.Element {
     >
       <section>
         <div className="p-4 text-center">
-          <img src="/images/dinoplates.png" className="inline-block object-cover h-36" alt="Dino with plates" />
+          <img src="/images/dinoplates.png" className="inline-block object-cover h-52" alt="Dino with plates" />
         </div>
         <div className="px-4 pb-4">
           <h2 className="mb-2 text-xl font-bold text-center text-text-primary">Set up your plates</h2>

@@ -167,7 +167,7 @@ export async function getInitialState(
     const screenStack: IScreenStack = finalStorage.currentProgramId
       ? [{ name: "main" }]
       : shouldSkipIntro
-        ? [{ name: "programs" }]
+        ? [{ name: "programselect" }]
         : [{ name: "first" }];
     return {
       storage: finalStorage,

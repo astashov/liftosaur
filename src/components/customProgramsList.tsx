@@ -30,10 +30,13 @@ interface IProps {
   progress?: IHistoryRecord;
   settings: ISettings;
   dispatch: IDispatch;
+  search?: string;
 }
 
 export function CustomProgramsList(props: IProps): JSX.Element {
-  const programs = CollectionUtils_sort(props.programs, (a, b) => a.name.localeCompare(b.name));
+  const searchLower = (props.search || "").toLowerCase();
+  const sorted = CollectionUtils_sort(props.programs, (a, b) => a.name.localeCompare(b.name));
+  const programs = searchLower ? sorted.filter((p) => p.name.toLowerCase().includes(searchLower)) : sorted;
   return (
     <>
       <div className="px-4">

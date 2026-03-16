@@ -1,14 +1,17 @@
 import { test, expect } from "@playwright/test";
-import { startpage, PlaywrightUtils_typeKeyboard, PlaywrightUtils_swipeLeft } from "./playwrightUtils";
+import { startpage, PlaywrightUtils_typeKeyboard, PlaywrightUtils_swipeLeft, PlaywrightUtils_selectBuiltin, PlaywrightUtils_disableTours } from "./playwrightUtils";
 
 test("edits sets properly", async ({ page }) => {
   page.on("dialog", (dialog) => dialog.accept());
   await page.goto(startpage + "?skipintro=1");
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_selectBuiltin(page);
   await page.locator("button:has-text('Basic Beginner Routine')").click();
   await page.getByTestId("clone-program").click();
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
+
 
   await page.getByTestId("workout-tab-bench-press").click();
   await page.getByTestId("entry-bench-press").getByTestId("add-warmup-set").click();
@@ -77,7 +80,6 @@ test("edits sets properly", async ({ page }) => {
   await page.getByTestId("modal-amrap-input").fill("15");
   await page.getByTestId("modal-amrap-submit").click();
 
-  // Adding and deleting exercises
 
   await page.getByTestId("add-exercise-button").click();
   await page.getByTestId("menu-item-arnold-press-kettlebell").click();

@@ -36,6 +36,7 @@ interface IProps {
   hasCustomPrograms: boolean;
   settings: ISettings;
   dispatch: IDispatch;
+  search?: string;
 }
 
 export function BuiltinProgramsList(props: IProps): JSX.Element {
@@ -43,7 +44,9 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
   const [sort, setSort] = useState<IProgramSort>(undefined);
   const [selectedProgram, setSelectedProgram] = useState<IProgram | undefined>(undefined);
 
-  const entries = ProgramFilter_sort(ProgramFilter_filter(props.programsIndex, filter), sort);
+  const searchLower = (props.search || "").toLowerCase();
+  const filtered = ProgramFilter_sort(ProgramFilter_filter(props.programsIndex, filter), sort);
+  const entries = searchLower ? filtered.filter((e) => e.name.toLowerCase().includes(searchLower)) : filtered;
 
   return (
     <>

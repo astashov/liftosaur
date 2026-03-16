@@ -5,16 +5,15 @@ import {
   PlaywrightUtils_clearCodeMirror,
   PlaywrightUtils_typeCodeMirror,
   PlaywrightUtils_clickAll,
+  PlaywrightUtils_createProgram,
+  PlaywrightUtils_disableTours,
 } from "./playwrightUtils";
 
 test("custom equipment", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1&nosync=true");
-  await page.getByTestId("create-program").click();
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_createProgram(page, "My Program");
   PlaywrightUtils_disableSubscriptions(page);
-
-  await page.getByTestId("modal-create-program-input").clear();
-  await page.getByTestId("modal-create-program-input").type("My Program");
-  await page.getByTestId("modal-create-experimental-program-submit").click();
 
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
@@ -27,11 +26,14 @@ test("custom equipment", async ({ page }) => {
 Bicep Curl / 1x5 20lb / warmup: none`
   );
 
+
   await page.getByTestId("save-program").click();
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("start-workout").click();
+
   await PlaywrightUtils_clickAll(page.getByTestId("entry-bicep-curl").getByTestId("complete-set"));
+
 
   await page.getByTestId("finish-workout").click();
   await page.getByTestId("finish-day-continue").click();
@@ -54,6 +56,7 @@ Bicep Curl / 1x5 20lb / warmup: none`
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("start-workout").click();
+
 
   await page.getByTestId("exercise-equipment-picker").click();
   await page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").click();

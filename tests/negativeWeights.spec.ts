@@ -4,14 +4,14 @@ import {
   PlaywrightUtils_clearCodeMirror,
   PlaywrightUtils_typeCodeMirror,
   PlaywrightUtils_finishExercise,
+  PlaywrightUtils_createProgram,
+  PlaywrightUtils_disableTours,
 } from "./playwrightUtils";
 
 test("negative weights", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
-  await page.getByTestId("create-program").click();
-
-  await page.getByTestId("modal-create-program-input").fill("My Program");
-  await page.getByTestId("modal-create-experimental-program-submit").click();
+  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_createProgram(page, "My Program");
 
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
@@ -25,6 +25,7 @@ Pull Up, Leverage Machine / 2x5 / -40lb / progress: lp(-5lb)
 Triceps Dip, Leverage Machine / 2x3-5 -20lb / progress: lp(30lb)`
   );
 
+
   await page.getByTestId("save-program").click();
 
   await page.getByTestId("footer-workout").click();
@@ -33,10 +34,12 @@ Triceps Dip, Leverage Machine / 2x3-5 -20lb / progress: lp(30lb)`
 
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
+
   await expect(page.getByTestId("input-set-weight-field").nth(0)).toHaveText("-40");
   await expect(page.getByTestId("input-set-weight-field").nth(1)).toHaveText("-40");
 
   await PlaywrightUtils_finishExercise(page, "pull-up", [1, 1]);
+
   await PlaywrightUtils_finishExercise(page, "triceps-dip", [1, 1]);
 
   await page.getByTestId("finish-workout").click();
