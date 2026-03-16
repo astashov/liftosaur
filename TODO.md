@@ -1,5 +1,4 @@
 - Use state vars for warmups
-- Import from Perseus
 - Graphs per reps
 - Copy plates for custom equipment from 'similar' equipment
 - Incorporate the latest RM into the RM calculator
@@ -22,13 +21,7 @@
 - Add a check when importing invalid program
 - Synergist multiplier is not saving
 
-- Add help NUXes for playground, etc
-- Borders on the edit exercise screen
-- Pop out the buttons on the choose program screen more
-- Pop out the NUXes more
 - Progress looks weird if tried to pick reuse set that reuses something else
-
-* Add syncing and storing progress on the server
 
 
 Version Tracker
@@ -42,50 +35,13 @@ Version Tracker
 
 Onboarding - first time open app
 * Units
-* Equipment - first toggle equipment you have
+* Equipment - toggle equipment you have
 * Equipment - set up plates
-* Lifting age - how long have you been lifting for?
 * Create your own program or pick a template?
   - Template:
+    * Lifting age - how long have you been lifting for?
     * How many days a week do you want to train?
     * Workout duration
     * Goals - strength, hypertrophy
   - Custom:
     * Go to Program screen, it'll have onboarding there as well
-
-First workout
-* How Liftosaur works - 
-  - Your **program** is the plan - it decides your exercises, sets, reps, and weights.
-  - Each **workout** is generated from that plan. When you **finish**, the app runs the program's logic to update itself
-    like bumping weights if you hit all your reps.
-  - Changes you make during a workout (going heavier or lighter) are just for today - they don't change the program.
-
-* If 1RM weights - explain what 1RM is and percentage based programs.
-* If RPE - explain what RPE is.
-
-* Completing sets -
-  - Target vs completed reps/weight
-  - Green = you hit the target. May not reflect program changes when you finish workout.
-
-* Equipment
-  - Under the name of each exercise, rounding
-  - You may notice a ~~crossed-out weight~~ next to a different one. That's **rounding** - the app adjusts the program's exact weight to match what you can actually load with your equipment. You can fine-tune this in Equipment settings.
-
-* After completing all sets, if there's progression
-  - This is how things will change in the program after you finish the workout.
-
-* Show you can modify the program exercise from there too via kebab -> Edit Program Exercise
-
-- If program empty - go straight to Edit
-
-Program Onboarding:
-* Explain that program consists of weeks (or just 1 week if it's a regular non-linear-periodization program). Each week consists of days (or workouts). Each workout consists of exercises.
-* Explain the program updates itself after finishing a workout and
-goes to the next day. If it was the last day, it loops and starts from the beginning, preserving all the changes.
-* Programs under the hood is just text. They use special syntax to write programs. You can use UI to create and edit them though. And you can use web editor to tweak the text on laptop.
-* Show how to add e.g Bench Press, and edit it
-* On the edit program screen - show you can change "Progress", change warmups, add sets. Swipe sets and add features (RPE, AMRAP, etc). Can change weights across all sets at once.
-
-
-
-  

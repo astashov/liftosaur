@@ -23,7 +23,14 @@ function getPlannerExerciseFromState(state: IState): IPlannerProgramExercise | u
 export const editProgramExerciseTourConfig: ITourConfig = {
   id: "editProgramExercise",
   shouldStart: (state) => {
-    return Screen_currentName(state.screenStack) === "editProgramExercise";
+    if (Screen_currentName(state.screenStack) !== "editProgramExercise") {
+      return false;
+    }
+    if (state.storage.history.length >= 4) {
+      return false;
+    }
+    const plannerExercise = getPlannerExerciseFromState(state);
+    return !!plannerExercise;
   },
   steps: [
     {

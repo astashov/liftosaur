@@ -17,10 +17,18 @@ export function ScreenUnitSelector(props: IProps): JSX.Element {
   return (
     <section className="flex flex-col h-screen text-text-primary bg-background-default">
       <div className="flex-1 px-4 pt-16 pb-4">
-        <div className="w-full h-full border border-border-neutral rounded-2xl bg-background-subtle">
-          <div className="px-6 pt-16 text-2xl font-semibold text-center">Pick your units</div>
+        <div className="w-full h-full border border-border-cardyellow rounded-2xl bg-background-cardyellow">
+          <div className="p-4 text-center">
+            <img
+              src="/images/dinounit.png"
+              className="inline-block object-cover h-48 rounded-t-2xl"
+              alt="Dino choosing a unit"
+            />
+          </div>
+          <div className="px-6 pt-4 text-2xl font-semibold text-center">Pick your units</div>
           <div className="px-6 py-4 text-base text-center">
-            Your chosen units will be the default, but you can override them or change them in Settings or per equipment
+            Your chosen units will be the default, but you can override them or change them in <strong>Settings</strong>{" "}
+            or <strong>per equipment</strong>
             anytime.
           </div>
           <div className="flex px-6">

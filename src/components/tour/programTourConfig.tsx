@@ -29,7 +29,7 @@ function isProgramEmpty(state: Parameters<NonNullable<ITourConfig["shouldStart"]
 export const programTourConfig: ITourConfig = {
   id: "program",
   shouldStart: (state) => {
-    return Screen_currentName(state.screenStack) === "editProgram";
+    return Screen_currentName(state.screenStack) === "editProgram" && state.storage.history.length < 4;
   },
   steps: [
     {
@@ -132,6 +132,24 @@ export const programTourConfig: ITourConfig = {
           <IconUiMode className="inline-block mx-1" /> (UI Mode), and then - <IconEdit2 className="inline-block mx-1" />
           on the right pane of the exercise.
         </p>
+      ),
+    },
+    {
+      id: "playground",
+      title: "Playground",
+      dino: "programtourplayground.png",
+      condition: (state) => !isProgramEmpty(state),
+      content: () => (
+        <>
+          <p className="mb-2">
+            Use the <strong>Playground</strong> tab to test your program before you start training. You can simulate
+            finishing workouts and see how reps, weights, and sets change over time.
+          </p>
+          <p>
+            Everything in the Playground is <strong>ephemeral</strong> - it doesn't affect your real workouts, settings,
+            or program. It's a safe sandbox to verify your progressions work as planned.
+          </p>
+        </>
       ),
     },
   ],

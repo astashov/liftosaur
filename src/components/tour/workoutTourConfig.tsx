@@ -25,6 +25,9 @@ export const workoutTourConfig: ITourConfig = {
     if (screen !== "progress") {
       return false;
     }
+    if (state.storage.history.length >= 4) {
+      return false;
+    }
     const progress = Progress_getCurrentProgress(state);
     if (!progress || progress.entries.length === 0) {
       return false;
