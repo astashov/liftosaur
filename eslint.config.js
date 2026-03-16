@@ -97,7 +97,7 @@ module.exports = defineConfig([
       sourceType: "module",
 
       parserOptions: {
-        project: "tsconfig.json",
+        project: ["tsconfig.json", "native/tsconfig.json"],
       },
     },
 
