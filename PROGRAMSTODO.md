@@ -1,4 +1,3 @@
-Ice Cream Fitness 5x5 |-| 1070 - 2/5
 Sheiko |-| 980 - 2/5
 Reddit BWF Recommended Routine |-| 1590 - 4/5
 Super Squats / 20 Rep Squat |-| 780 - 2/5
