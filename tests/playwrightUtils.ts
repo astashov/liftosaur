@@ -162,6 +162,7 @@ export function PlaywrightUtils_disableTours(page: Page): Promise<void> {
       "workout.whatIsRPE",
       "workout.equipment",
       "workout.editingProgram",
+      "workout.swipeSets",
       "workout.progressionPreview",
       "program.structure",
       "program.updates",

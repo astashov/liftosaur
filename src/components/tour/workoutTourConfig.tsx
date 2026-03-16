@@ -79,6 +79,24 @@ export const workoutTourConfig: ITourConfig = {
       ),
     },
     {
+      id: "swipeSets",
+      title: "Adjusting sets",
+      dino: "firstworkouttourswipe.png",
+      condition: (state) => state.storage.history.length >= 1,
+      content: () => (
+        <>
+          <p className="mb-2">
+            You can <strong>swipe left</strong> on any set to change its <strong>target</strong> reps and weight, or to
+            delete it.
+          </p>
+          <p>
+            These changes only affect <strong>this workout</strong> - they won't modify your program. To change the
+            program itself, use <strong>"Edit Program Exercise"</strong> from the exercise menu.
+          </p>
+        </>
+      ),
+    },
+    {
       id: "whatIs1RM",
       title: "What is 1RM?",
       dino: "firstworkouttour1rm.png",
