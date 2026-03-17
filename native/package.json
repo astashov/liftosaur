@@ -39,6 +39,19 @@
     "prettier": "2.8.8",
     "typescript": "^5.8.3"
   },
+  "codegenConfig": {
+    "name": "LiftosaurNativeSpecs",
+    "type": "modules",
+    "jsSrcsDir": "src/native",
+    "android": {
+      "javaPackageName": "com.liftosaur.www"
+    },
+    "ios": {
+      "modulesProvider": {
+        "LiftosaurStorage": "RCTLiftosaurStorage"
+      }
+    }
+  },
   "engines": {
     "node": ">= 22.11.0"
   }

@@ -33,15 +33,17 @@ Version Tracker
 * mergeByVersions - in applySafeSync2 and mergeStorage (dirty response, on the client)
 
 
-Onboarding - first time open app
-* Units
-* Equipment - toggle equipment you have
-* Equipment - set up plates
-* Create your own program or pick a template?
-  - Template:
-    * Lifting age - how long have you been lifting for?
-    * How many days a week do you want to train?
-    * Workout duration
-    * Goals - strength, hypertrophy
-  - Custom:
-    * Go to Program screen, it'll have onboarding there as well
+I want to migrate to React Native. People complain about not polished UI and missing native gestures and behaviors, which are hard to achieve in the web app.
+
+I still want to follow these principles:
+
+* We should have a way to escape React Native and go fully native when necessary. E.g. if I want to do some fancy native animation/gesture on a screen that would be hard to do on React Native.
+* We still need to preserve webapp. So, we'd have to use react-native-web.
+* We need to do migration gradually, screen by screen. There's probably some ground work (moving the state out, migrating to React native navigation stack), but after that we should be able to iteratively migrate one screen at a time.
+* I want to use LLM agents for migration. Ideally, I want to tell - migrate this screen, and it knows how, knows how to verify it's migrated, check both native apps and webapp, etc. Could do it in a separate worktree maybe. Need to think through that process.
+* There's already existing platform-specific codebases - iOS and Android. They have plenty integrations - paymetns, healthkit, notfications, etc. We should be able to reuse them.
+* There's playwright test suite taht tests the webapp. Need to think how we gonna do the same with React native.
+* There's Codemirror in the app for editing Liftoscript. We may have to keep it as a webview even in the native app.
+* ANything else I forgot?
+
+Let's figure out a plan how to do so
