@@ -71,6 +71,21 @@ export const tabInitialScreen: Record<ITab, IScreenName> = {
   me: "settings",
 };
 
+const screensWithoutTabBar: Set<IScreenName> = new Set([
+  "first",
+  "subscription",
+  "finishDay",
+  "setupequipment",
+  "setupplates",
+  "editProgram",
+  "editProgramExercise",
+  "progress",
+]);
+
+export function ScreenMap_hasTabBar(screen: IScreenName): boolean {
+  return !screensWithoutTabBar.has(screen);
+}
+
 export const tabScreens: Record<ITab, IScreenName[]> = {
   home: ["main"],
   program: [
