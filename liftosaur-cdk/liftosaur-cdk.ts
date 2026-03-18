@@ -694,6 +694,14 @@ export class LiftosaurCdkStack extends cdk.Stack {
             event.request.uri = '/api/recordimage';
           } else if (uri.indexOf('/programimage/') === 0) {
             event.request.uri = '/api' + uri;
+          } else if (uri.indexOf('/profileimage/') === 0) {
+            var user = uri.substring('/profileimage/'.length);
+            event.request.uri = '/profileimage';
+            event.request.querystring.user = { value: user };
+          } else if (uri.indexOf('/profile/') === 0) {
+            var user = uri.substring('/profile/'.length);
+            event.request.uri = '/profile';
+            event.request.querystring.user = { value: user };
           } else if (uri === '/app') {
             return { statusCode: 301, statusDescription: 'Moved Permanently', headers: { location: { value: '/app/' } } };
           } else if (uri === '/blog') {
