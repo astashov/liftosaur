@@ -20,7 +20,6 @@ Creeping Death 2 |-| 140 - 1/5
 Frankoman Dumbbell Split |-| 140 - 2/5
 Layne Norton PH3 |-| 110 - 1/5
 Simple Jack'd |-| 100 - 1/5
-TSA 9-Week Intermediate |-| 80 - 1/5
 5/3/1 BBB Beefcake |-| 70 - 1/5
 5/3/1 Boring But Strong |-| 70 - 1/5
 Brendan Tietz Program |-| 70 - 1/5
