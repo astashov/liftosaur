@@ -48,7 +48,8 @@
     },
     "ios": {
       "modulesProvider": {
-        "LiftosaurStorage": "RCTLiftosaurStorage"
+        "LiftosaurStorage": "RCTLiftosaurStorage",
+        "WebViewReparenter": "RCTWebViewReparenter"
       }
     }
   },

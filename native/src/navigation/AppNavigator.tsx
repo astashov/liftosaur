@@ -1,47 +1,70 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { View, StyleSheet } from "react-native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { NavigationContainer, useNavigationContainerRef, type NavigationState } from "@react-navigation/native";
-import { PersistentWebView, PersistentWebView_injectScreen } from "../screens/WebViewScreen";
-import { tabInitialScreen, ScreenMap_hasTabBar, type ITab, type IScreenName } from "./screenMap";
+import { NavigationContainer, useNavigationContainerRef } from "@react-navigation/native";
+import { PooledWebViewScreen } from "../screens/PooledWebViewScreen";
+import { WebViewPoolProvider, WebViewPool_prepareInitialScreens } from "../screens/WebViewPool";
+import { MigratedScreens_get } from "./migratedScreens";
+import { tabScreens, tabInitialScreen, ScreenMap_hasTabBar, type ITab, type IScreenName } from "./screenMap";
 import type { IWebViewToRN } from "../bridge/protocol";
 import { useStoreState } from "../context/StoreContext";
 
 const Tab = createBottomTabNavigator();
 
-const tabConfig: Array<{ name: ITab; label: string }> = [
-  { name: "home", label: "Home" },
-  { name: "program", label: "Program" },
-  { name: "workout", label: "Workout" },
-  { name: "graphs", label: "Graphs" },
-  { name: "me", label: "Me" },
+function createTabStack(tab: ITab): () => React.ReactElement {
+  const Stack = createNativeStackNavigator();
+  const screens = tabScreens[tab];
+
+  return function TabStack(): React.ReactElement {
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {screens.map((screen) => (
+          <Stack.Screen
+            key={screen}
+            name={screen}
+            component={(MigratedScreens_get(screen) ?? PooledWebViewScreen) as React.ComponentType}
+          />
+        ))}
+      </Stack.Navigator>
+    );
+  };
+}
+
+const HomeStack = createTabStack("home");
+const ProgramStack = createTabStack("program");
+const WorkoutStack = createTabStack("workout");
+const GraphsStack = createTabStack("graphs");
+const MeStack = createTabStack("me");
+
+const tabConfig: Array<{
+  name: ITab;
+  component: () => React.ReactElement;
+  label: string;
+}> = [
+  { name: "home", component: HomeStack, label: "Home" },
+  { name: "program", component: ProgramStack, label: "Program" },
+  { name: "workout", component: WorkoutStack, label: "Workout" },
+  { name: "graphs", component: GraphsStack, label: "Graphs" },
+  { name: "me", component: MeStack, label: "Me" },
 ];
 
-function EmptyScreen(): React.ReactElement | null {
-  return null;
-}
+const activeTab: ITab = "home";
+const initialScreensToPreload = Object.entries(tabInitialScreen)
+  .filter(([tab]) => tab !== activeTab)
+  .map(([, screen]) => screen);
 
 export function AppNavigator(): React.ReactElement {
   const navigationRef = useNavigationContainerRef();
-  const appState = useStoreState();
   const [showTabBar, setShowTabBar] = useState(true);
+  const appState = useStoreState();
 
-  const handleStateChange = useCallback(
-    (navState: NavigationState | undefined) => {
-      if (navState == null) {
-        return;
-      }
-      const activeTab = navState.routes[navState.index];
-      const tabName = activeTab.name as ITab;
-      const screen = tabInitialScreen[tabName];
-      setShowTabBar(ScreenMap_hasTabBar(screen));
-      PersistentWebView_injectScreen(screen, JSON.stringify(appState));
-    },
-    [appState]
-  );
+  useEffect(() => {
+    WebViewPool_prepareInitialScreens(initialScreensToPreload, JSON.stringify(appState));
+  }, []);
 
   const handleWebViewMessage = useCallback(
-    (msg: IWebViewToRN) => {
+    (_slotId: number, msg: IWebViewToRN) => {
       if (msg.type === "navigate") {
         const screen = msg.screen as IScreenName;
         setShowTabBar(ScreenMap_hasTabBar(screen));
@@ -56,22 +79,21 @@ export function AppNavigator(): React.ReactElement {
 
   return (
     <View style={styles.root}>
-      <PersistentWebView visible onMessage={handleWebViewMessage} />
-      <View style={[styles.tabBarOverlay, !showTabBar && styles.tabBarHidden]}>
-        <NavigationContainer ref={navigationRef} onStateChange={handleStateChange}>
-          <Tab.Navigator
-            screenOptions={{
-              headerShown: false,
-              tabBarActiveTintColor: "#6366f1",
-              tabBarInactiveTintColor: "#9ca3af",
-            }}
-          >
-            {tabConfig.map(({ name, label }) => (
-              <Tab.Screen key={name} name={name} component={EmptyScreen} options={{ title: label }} />
-            ))}
-          </Tab.Navigator>
-        </NavigationContainer>
-      </View>
+      <WebViewPoolProvider onMessage={handleWebViewMessage} />
+      <NavigationContainer ref={navigationRef}>
+        <Tab.Navigator
+          screenOptions={{
+            headerShown: false,
+            tabBarActiveTintColor: "#6366f1",
+            tabBarInactiveTintColor: "#9ca3af",
+            tabBarStyle: showTabBar ? undefined : styles.tabBarHidden,
+          }}
+        >
+          {tabConfig.map(({ name, component, label }) => (
+            <Tab.Screen key={name} name={name} component={component} options={{ title: label }} />
+          ))}
+        </Tab.Navigator>
+      </NavigationContainer>
     </View>
   );
 }
@@ -80,13 +102,7 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
-  tabBarOverlay: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
   tabBarHidden: {
-    bottom: -100,
+    display: "none",
   },
 });

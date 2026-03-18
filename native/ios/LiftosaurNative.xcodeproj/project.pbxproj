@@ -11,8 +11,10 @@
 		0C80B921A6F3F58F76C31292 /* libPods-LiftosaurNative.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-LiftosaurNative.a */; };
 		0CF6E85336AED0EAE776CF84 /* BuildFile in Sources */ = {isa = PBXBuildFile; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		355AF20C463546D77578AC0E /* RCTWebViewReparenter.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7876276936C864F65184E7FA /* RCTWebViewReparenter.mm */; };
 		5593D744E123E212BD915C0F /* RCTLiftosaurStorage.mm in Sources */ = {isa = PBXBuildFile; fileRef = 03D4D50C11AF8341B953BB83 /* RCTLiftosaurStorage.mm */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
+		7DEC3E20E137F4E292ABD2E3 /* WebViewReparenterImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = A66B09FF48924245FD79C2EC /* WebViewReparenterImpl.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		81E0D1134CED5B0DC10F5D2E /* BuildFile in Sources */ = {isa = PBXBuildFile; };
 		AAF85C956E2F528998BC1960 /* LiftosaurStorageImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9A615787195C875CD339470 /* LiftosaurStorageImpl.swift */; };
@@ -28,7 +30,10 @@
 		5709B34CF0A7D63546082F79 /* Pods-LiftosaurNative.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LiftosaurNative.release.xcconfig"; path = "Target Support Files/Pods-LiftosaurNative/Pods-LiftosaurNative.release.xcconfig"; sourceTree = "<group>"; };
 		5DCACB8F33CDC322A6C60F78 /* libPods-LiftosaurNative.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-LiftosaurNative.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = LiftosaurNative/AppDelegate.swift; sourceTree = "<group>"; };
+		7876276936C864F65184E7FA /* RCTWebViewReparenter.mm */ = {isa = PBXFileReference; includeInIndex = 1; name = RCTWebViewReparenter.mm; path = LiftosaurNative/RCTWebViewReparenter.mm; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = LiftosaurNative/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		A3AF395C653E0A709AE4141B /* RCTWebViewReparenter.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTWebViewReparenter.h; path = LiftosaurNative/RCTWebViewReparenter.h; sourceTree = "<group>"; };
+		A66B09FF48924245FD79C2EC /* WebViewReparenterImpl.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WebViewReparenterImpl.swift; path = LiftosaurNative/WebViewReparenterImpl.swift; sourceTree = "<group>"; };
 		B5EC373131DC43D4BE2AC2F3 /* RCTLiftosaurStorage.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTLiftosaurStorage.h; path = LiftosaurNative/RCTLiftosaurStorage.h; sourceTree = "<group>"; };
 		C9A615787195C875CD339470 /* LiftosaurStorageImpl.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LiftosaurStorageImpl.swift; path = LiftosaurNative/LiftosaurStorageImpl.swift; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
@@ -57,6 +62,9 @@
 				B5EC373131DC43D4BE2AC2F3 /* RCTLiftosaurStorage.h */,
 				03D4D50C11AF8341B953BB83 /* RCTLiftosaurStorage.mm */,
 				C9A615787195C875CD339470 /* LiftosaurStorageImpl.swift */,
+				A3AF395C653E0A709AE4141B /* RCTWebViewReparenter.h */,
+				7876276936C864F65184E7FA /* RCTWebViewReparenter.mm */,
+				A66B09FF48924245FD79C2EC /* WebViewReparenterImpl.swift */,
 			);
 			name = LiftosaurNative;
 			sourceTree = "<group>";
@@ -261,6 +269,8 @@
 				0CF6E85336AED0EAE776CF84 /* BuildFile in Sources */,
 				5593D744E123E212BD915C0F /* RCTLiftosaurStorage.mm in Sources */,
 				AAF85C956E2F528998BC1960 /* LiftosaurStorageImpl.swift in Sources */,
+				355AF20C463546D77578AC0E /* RCTWebViewReparenter.mm in Sources */,
+				7DEC3E20E137F4E292ABD2E3 /* WebViewReparenterImpl.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

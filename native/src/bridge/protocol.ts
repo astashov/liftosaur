@@ -6,4 +6,5 @@ export type IWebViewToRN =
   | { type: "action"; action: unknown }
   | { type: "navigate"; screen: string; params?: unknown; shouldResetStack?: boolean }
   | { type: "goBack" }
+  | { type: "rendered" }
   | { type: "ready" };
