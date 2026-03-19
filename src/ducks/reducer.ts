@@ -644,13 +644,6 @@ function newStorageApproach(oldState: IState, newState: IState, isStorageChanged
       const t1 = Date.now();
       const json = JSON.stringify(localStorage);
       const stringifyDuration = Date.now() - t1;
-      lgDebug("dbg-ios-persist", userId, {
-        stringifyMs: stringifyDuration,
-        isChangedMs: isChangedDuration,
-        jsonLen: json.length,
-        storageChanged: isStorageChanged ? 1 : 0,
-        lastSyncChanged: isLastSyncChanged ? 1 : 0,
-      });
       Promise.all([
         IndexedDBUtils_set("current_account", userId),
         IndexedDBUtils_set(`liftosaur_${userId}`, json),
