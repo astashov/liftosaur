@@ -18,10 +18,14 @@ export class AudioInterface implements IAudioInterface {
   }
 
   public play(volume: number, vibration: boolean): void {
+    if (volume <= 0 && !vibration) {
+      return;
+    }
     const isPlayed =
       SendMessage_toIos({ type: "playSound", volume: `${volume}`, vibration: vibration ? "true" : "false" }) ||
       SendMessage_toAndroid({ type: "playSound", volume: `${volume}`, vibration: vibration ? "true" : "false" });
-    if (!isPlayed) {
+    if (!isPlayed && volume > 0) {
+      this.audio.volume = volume;
       this.audio.play();
     }
   }
