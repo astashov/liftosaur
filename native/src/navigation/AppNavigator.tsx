@@ -1,15 +1,10 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer, StackActions, useNavigationContainerRef } from "@react-navigation/native";
 import { PooledWebViewScreen } from "../screens/PooledWebViewScreen";
-import {
-  WebViewPool_initialize,
-  WebViewPool_setOnMessage,
-  WebViewPool_prepareInitialScreens,
-  WebViewPool_prepareScreen,
-} from "../screens/WebViewPool";
+import { WebViewPool, WebViewPoolProvider } from "../screens/WebViewPool";
 import { MigratedScreens_get } from "./migratedScreens";
 import {
   tabInitialScreen,
@@ -69,12 +64,13 @@ const initialScreensToPreload = Object.entries(tabInitialScreen)
 export function AppNavigator(): React.ReactElement {
   const navigationRef = useNavigationContainerRef();
   const appState = useStoreState();
+  const pool = useRef(new WebViewPool()).current;
   const isFirstTimeUser = appState.storage.currentProgramId == null;
   const [showTabBar, setShowTabBar] = useState(!isFirstTimeUser);
 
   useEffect(() => {
-    WebViewPool_initialize();
-    WebViewPool_prepareInitialScreens(initialScreensToPreload, JSON.stringify(appState));
+    pool.initialize();
+    pool.prepareInitialScreens(initialScreensToPreload, JSON.stringify(appState));
   }, []);
 
   const handleWebViewMessage = useCallback(
@@ -87,7 +83,7 @@ export function AppNavigator(): React.ReactElement {
           (navigationRef as any).reset({ index: 0, routes: [{ name: screenToTab[screen], params: { screen } }] });
         } else {
           const stateJson = JSON.stringify(appState);
-          WebViewPool_prepareScreen(`screen-${screen}-${Date.now()}`, screen, stateJson).then((slotId) => {
+          pool.prepareScreen(screen, stateJson).then((slotId) => {
             navigationRef.dispatch(StackActions.push(screen, { ...(msg.params as object), preparedSlotId: slotId }));
           });
         }
@@ -99,29 +95,31 @@ export function AppNavigator(): React.ReactElement {
   );
 
   useEffect(() => {
-    WebViewPool_setOnMessage(handleWebViewMessage);
+    pool.setOnMessage(handleWebViewMessage);
     return () => {
-      WebViewPool_setOnMessage(null);
+      pool.setOnMessage(null);
     };
   }, [handleWebViewMessage]);
 
   return (
-    <View style={styles.root}>
-      <NavigationContainer ref={navigationRef}>
-        <Tab.Navigator
-          screenOptions={{
-            headerShown: false,
-            tabBarActiveTintColor: "#6366f1",
-            tabBarInactiveTintColor: "#9ca3af",
-            tabBarStyle: showTabBar ? undefined : styles.tabBarHidden,
-          }}
-        >
-          {tabConfig.map(({ name, component, label }) => (
-            <Tab.Screen key={name} name={name} component={component} options={{ title: label }} />
-          ))}
-        </Tab.Navigator>
-      </NavigationContainer>
-    </View>
+    <WebViewPoolProvider value={pool}>
+      <View style={styles.root}>
+        <NavigationContainer ref={navigationRef}>
+          <Tab.Navigator
+            screenOptions={{
+              headerShown: false,
+              tabBarActiveTintColor: "#6366f1",
+              tabBarInactiveTintColor: "#9ca3af",
+              tabBarStyle: showTabBar ? undefined : styles.tabBarHidden,
+            }}
+          >
+            {tabConfig.map(({ name, component, label }) => (
+              <Tab.Screen key={name} name={name} component={component} options={{ title: label }} />
+            ))}
+          </Tab.Navigator>
+        </NavigationContainer>
+      </View>
+    </WebViewPoolProvider>
   );
 }
 

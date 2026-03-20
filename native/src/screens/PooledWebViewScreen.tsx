@@ -1,14 +1,7 @@
 import React, { useCallback, useEffect, useRef } from "react";
 import { View, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  WebViewPool_acquire,
-  WebViewPool_release,
-  WebViewPool_injectScreen,
-  WebViewPool_attach,
-  WebViewPool_sendState,
-  WebViewPool_claimPrepared,
-} from "./WebViewPool";
+import { useWebViewPool } from "./WebViewPool";
 import { useStoreState } from "../context/StoreContext";
 import { useIsFocused } from "@react-navigation/native";
 import type { IScreenName } from "../navigation/screenMap";
@@ -24,9 +17,10 @@ interface IProps {
 export function PooledWebViewScreen({ route }: IProps): React.ReactElement {
   const screenName = route.name as IScreenName;
   const preparedSlotId = route.params?.preparedSlotId;
+  const pool = useWebViewPool();
   const state = useStoreState();
   const isFocused = useIsFocused();
-  const slotIdRef = useRef<number | undefined>(preparedSlotId ?? WebViewPool_claimPrepared(screenName));
+  const slotIdRef = useRef<number | undefined>(preparedSlotId ?? pool.claimPrepared(screenName));
   const containerIdRef = useRef(`screen-container-${screenName}-${Date.now()}`);
   const mountedRef = useRef(false);
 
@@ -37,7 +31,7 @@ export function PooledWebViewScreen({ route }: IProps): React.ReactElement {
     if (slot == null || !mounted) {
       return;
     }
-    WebViewPool_attach(slot, container).then((ok) => {
+    pool.attach(slot, container).then((ok) => {
       if (!ok && mountedRef.current) {
         setTimeout(() => doAttach(), 50);
       }
@@ -50,13 +44,13 @@ export function PooledWebViewScreen({ route }: IProps): React.ReactElement {
     if (slotIdRef.current != null) {
       doAttach();
     } else {
-      WebViewPool_acquire().then(async (slotId) => {
+      pool.acquire().then(async (slotId) => {
         if (!mountedRef.current) {
-          WebViewPool_release(slotId);
+          pool.release(slotId);
           return;
         }
         slotIdRef.current = slotId;
-        await WebViewPool_injectScreen(slotId, screenName, JSON.stringify(state));
+        await pool.injectScreen(slotId, screenName, JSON.stringify(state));
         if (mountedRef.current) {
           doAttach();
         }
@@ -66,7 +60,7 @@ export function PooledWebViewScreen({ route }: IProps): React.ReactElement {
     return () => {
       mountedRef.current = false;
       if (slotIdRef.current != null) {
-        WebViewPool_release(slotIdRef.current);
+        pool.release(slotIdRef.current);
         slotIdRef.current = undefined;
       }
     };
@@ -74,7 +68,7 @@ export function PooledWebViewScreen({ route }: IProps): React.ReactElement {
 
   useEffect(() => {
     if (slotIdRef.current != null && isFocused) {
-      WebViewPool_sendState(slotIdRef.current, JSON.stringify(state));
+      pool.sendState(slotIdRef.current, JSON.stringify(state));
     }
   }, [state, isFocused]);
 
