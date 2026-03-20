@@ -73,8 +73,10 @@ export const tabInitialScreen: Record<ITab, IScreenName> = {
 
 const screensWithoutTabBar: Set<IScreenName> = new Set([
   "first",
+  "units",
   "subscription",
   "finishDay",
+  "programselect",
   "setupequipment",
   "setupplates",
   "editProgram",

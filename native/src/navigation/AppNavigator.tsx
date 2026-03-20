@@ -8,6 +8,7 @@ import {
   WebViewPoolProvider,
   WebViewPool_prepareInitialScreens,
   WebViewPool_prepareScreen,
+  WebViewPool_returnAll,
 } from "../screens/WebViewPool";
 import { MigratedScreens_get } from "./migratedScreens";
 import {
@@ -67,11 +68,15 @@ const initialScreensToPreload = Object.entries(tabInitialScreen)
 
 export function AppNavigator(): React.ReactElement {
   const navigationRef = useNavigationContainerRef();
-  const [showTabBar, setShowTabBar] = useState(true);
   const appState = useStoreState();
+  const isFirstTimeUser = appState.storage.currentProgramId == null;
+  const [showTabBar, setShowTabBar] = useState(!isFirstTimeUser);
 
   useEffect(() => {
     WebViewPool_prepareInitialScreens(initialScreensToPreload, JSON.stringify(appState));
+    return () => {
+      WebViewPool_returnAll();
+    };
   }, []);
 
   const handleWebViewMessage = useCallback(

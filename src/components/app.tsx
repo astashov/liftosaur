@@ -18,6 +18,7 @@ import {
   Thunk_syncHealthKit,
   Thunk_pullScreen,
   Thunk_pushScreen,
+  Thunk_postToRN,
   Thunk_completeSetExternal,
   Thunk_updateLiveActivity,
   Thunk_updateTimer,
@@ -133,6 +134,9 @@ export function AppView(props: IProps): JSX.Element | null {
         const msg = JSON.parse(msgJson);
         if (msg.type === "init" && msg.screen) {
           dispatch(Thunk_pushScreen(msg.screen, msg.params, true, true));
+          requestAnimationFrame(() => {
+            Thunk_postToRN({ type: "rendered" });
+          });
         }
       } catch (e) {
         // noop

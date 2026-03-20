@@ -96,6 +96,16 @@ function WebViewPool_notifyWaiters(): void {
   }
 }
 
+export function WebViewPool_returnAll(): void {
+  for (const slot of globalPool) {
+    if (slot.status === "assigned") {
+      NativeWebViewReparenter.reparent(WebViewPool_slotNativeID(slot.id), POOL_CONTAINER_ID);
+      slot.status = "idle";
+      slot.assignedTo = undefined;
+    }
+  }
+}
+
 export function WebViewPool_release(slotId: number): void {
   const slot = globalPool.find((s) => s.id === slotId);
   if (slot == null) {
@@ -128,7 +138,7 @@ export function WebViewPool_injectScreen(slotId: number, screen: string, stateJs
     const js = `window.__receiveFromRN && window.__receiveFromRN(${JSON.stringify(JSON.stringify(msg))});true;`;
     onReadyCallbacks.set(slotId, resolve);
     slot.ref.injectJavaScript(js);
-    setTimeout(resolve, 300);
+    setTimeout(resolve, 100);
   });
 }
 

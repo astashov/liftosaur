@@ -90,7 +90,7 @@ function Thunk_isWebViewMode(): boolean {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function Thunk_postToRN(msg: Record<string, any>): void {
+export function Thunk_postToRN(msg: Record<string, any>): void {
   if (typeof window !== "undefined" && window.ReactNativeWebView?.postMessage) {
     window.ReactNativeWebView.postMessage(JSON.stringify(msg));
   }
