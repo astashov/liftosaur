@@ -1,6 +1,4 @@
-export type IRNToWebView =
-  | { type: "init"; screen: string; params?: unknown; state: string }
-  | { type: "stateUpdate"; state: string };
+export type IRNToWebView = { type: "init"; screen: string; params?: unknown; state: string };
 
 export type IWebViewToRN =
   | { type: "action"; action: unknown }

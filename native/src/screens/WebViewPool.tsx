@@ -84,12 +84,6 @@ class WebViewPool {
     });
   }
 
-  public sendState(slotId: number, stateJson: string): void {
-    const msg: IRNToWebView = { type: "stateUpdate", state: stateJson };
-    const js = `window.__receiveFromRN && window.__receiveFromRN(${JSON.stringify(JSON.stringify(msg))});true;`;
-    NativeWebViewPool.injectJavaScript(slotId, js);
-  }
-
   public async prepareScreen(screen: string, stateJson: string): Promise<number> {
     const slotId = await this.acquire();
     await this.injectScreen(slotId, screen, stateJson);

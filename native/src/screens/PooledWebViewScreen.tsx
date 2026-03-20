@@ -68,7 +68,7 @@ export function PooledWebViewScreen({ route }: IProps): React.ReactElement {
 
   useEffect(() => {
     if (slotIdRef.current != null && isFocused) {
-      pool.sendState(slotIdRef.current, JSON.stringify(state));
+      pool.injectScreen(slotIdRef.current, screenName, JSON.stringify(state));
     }
   }, [state, isFocused]);
 
