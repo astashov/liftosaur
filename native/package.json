@@ -49,7 +49,7 @@
     "ios": {
       "modulesProvider": {
         "LiftosaurStorage": "RCTLiftosaurStorage",
-        "WebViewReparenter": "RCTWebViewReparenter"
+        "WebViewPool": "RCTWebViewPool"
       }
     }
   },

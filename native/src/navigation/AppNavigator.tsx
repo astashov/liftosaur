@@ -5,10 +5,10 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer, StackActions, useNavigationContainerRef } from "@react-navigation/native";
 import { PooledWebViewScreen } from "../screens/PooledWebViewScreen";
 import {
-  WebViewPoolProvider,
+  WebViewPool_initialize,
+  WebViewPool_setOnMessage,
   WebViewPool_prepareInitialScreens,
   WebViewPool_prepareScreen,
-  WebViewPool_returnAll,
 } from "../screens/WebViewPool";
 import { MigratedScreens_get } from "./migratedScreens";
 import {
@@ -73,10 +73,8 @@ export function AppNavigator(): React.ReactElement {
   const [showTabBar, setShowTabBar] = useState(!isFirstTimeUser);
 
   useEffect(() => {
+    WebViewPool_initialize();
     WebViewPool_prepareInitialScreens(initialScreensToPreload, JSON.stringify(appState));
-    return () => {
-      WebViewPool_returnAll();
-    };
   }, []);
 
   const handleWebViewMessage = useCallback(
@@ -100,9 +98,15 @@ export function AppNavigator(): React.ReactElement {
     [navigationRef, appState]
   );
 
+  useEffect(() => {
+    WebViewPool_setOnMessage(handleWebViewMessage);
+    return () => {
+      WebViewPool_setOnMessage(null);
+    };
+  }, [handleWebViewMessage]);
+
   return (
     <View style={styles.root}>
-      <WebViewPoolProvider onMessage={handleWebViewMessage} />
       <NavigationContainer ref={navigationRef}>
         <Tab.Navigator
           screenOptions={{

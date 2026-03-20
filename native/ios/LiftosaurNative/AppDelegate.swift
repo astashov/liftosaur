@@ -1,5 +1,4 @@
 import UIKit
-import WebKit
 import React
 import React_RCTAppDelegate
 import ReactAppDependencyProvider
@@ -33,20 +32,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     return true
   }
 
-  func applicationWillTerminate(_ application: UIApplication) {
-    guard let root = window?.rootViewController?.view else { return }
-    Self.removeAllWebViews(from: root)
-  }
-
-  private static func removeAllWebViews(from view: UIView) {
-    for subview in view.subviews {
-      if subview is WKWebView {
-        subview.removeFromSuperview()
-      } else {
-        removeAllWebViews(from: subview)
-      }
-    }
-  }
 }
 
 class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
