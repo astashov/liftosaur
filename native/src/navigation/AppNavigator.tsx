@@ -2,11 +2,22 @@ import React, { useCallback, useEffect, useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { NavigationContainer, useNavigationContainerRef } from "@react-navigation/native";
+import { NavigationContainer, StackActions, useNavigationContainerRef } from "@react-navigation/native";
 import { PooledWebViewScreen } from "../screens/PooledWebViewScreen";
-import { WebViewPoolProvider, WebViewPool_prepareInitialScreens } from "../screens/WebViewPool";
+import {
+  WebViewPoolProvider,
+  WebViewPool_prepareInitialScreens,
+  WebViewPool_prepareScreen,
+} from "../screens/WebViewPool";
 import { MigratedScreens_get } from "./migratedScreens";
-import { tabScreens, tabInitialScreen, ScreenMap_hasTabBar, type ITab, type IScreenName } from "./screenMap";
+import {
+  tabInitialScreen,
+  screenToTab,
+  ScreenMap_hasTabBar,
+  ScreenMap_tabScreens,
+  type ITab,
+  type IScreenName,
+} from "./screenMap";
 import type { IWebViewToRN } from "../bridge/protocol";
 import { useStoreState } from "../context/StoreContext";
 
@@ -14,7 +25,7 @@ const Tab = createBottomTabNavigator();
 
 function createTabStack(tab: ITab): () => React.ReactElement {
   const Stack = createNativeStackNavigator();
-  const screens = tabScreens[tab];
+  const screens = ScreenMap_tabScreens(tab);
 
   return function TabStack(): React.ReactElement {
     return (
@@ -68,13 +79,20 @@ export function AppNavigator(): React.ReactElement {
       if (msg.type === "navigate") {
         const screen = msg.screen as IScreenName;
         setShowTabBar(ScreenMap_hasTabBar(screen));
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (navigationRef as any).navigate(msg.screen, msg.params);
+        if (msg.shouldResetStack) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (navigationRef as any).reset({ index: 0, routes: [{ name: screenToTab[screen], params: { screen } }] });
+        } else {
+          const stateJson = JSON.stringify(appState);
+          WebViewPool_prepareScreen(`screen-${screen}-${Date.now()}`, screen, stateJson).then((slotId) => {
+            navigationRef.dispatch(StackActions.push(screen, { ...(msg.params as object), preparedSlotId: slotId }));
+          });
+        }
       } else if (msg.type === "goBack") {
         navigationRef.goBack();
       }
     },
-    [navigationRef]
+    [navigationRef, appState]
   );
 
   return (

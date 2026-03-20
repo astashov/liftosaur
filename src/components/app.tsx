@@ -17,6 +17,7 @@ import {
   Thunk_setGooglePurchaseToken,
   Thunk_syncHealthKit,
   Thunk_pullScreen,
+  Thunk_pushScreen,
   Thunk_completeSetExternal,
   Thunk_updateLiveActivity,
   Thunk_updateTimer,
@@ -124,6 +125,24 @@ export function AppView(props: IProps): JSX.Element | null {
   }, [state.storage.settings.textSize]);
 
   useLoopCatcher();
+
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).__receiveFromRN = (msgJson: string) => {
+      try {
+        const msg = JSON.parse(msgJson);
+        if (msg.type === "init" && msg.screen) {
+          dispatch(Thunk_pushScreen(msg.screen, msg.params, true, true));
+        }
+      } catch (e) {
+        // noop
+      }
+    };
+    return () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      delete (window as any).__receiveFromRN;
+    };
+  }, [dispatch]);
 
   useEffect(() => {
     const tourId = TourConfigs_findTourId(state, true);

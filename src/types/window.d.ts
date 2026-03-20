@@ -64,6 +64,10 @@ interface Window {
   lastValidationErrors?: string[];
   loadRollbar: (item: string | number, token: string) => Promise<void>;
 
+  ReactNativeWebView?: {
+    postMessage?: (msg: string) => void;
+  };
+
   structuredClone?: (obj: any) => any;
   onYouTubeIframeAPIReady?: () => void;
   YT: typeof YT;

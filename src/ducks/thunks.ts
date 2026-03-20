@@ -85,6 +85,17 @@ import { LiveActivityManager_updateProgressLiveActivity } from "../utils/liveAct
 
 declare let Rollbar: RB;
 
+function Thunk_isWebViewMode(): boolean {
+  return typeof window !== "undefined" && !!new URLSearchParams(window.location?.search).get("webviewmode");
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function Thunk_postToRN(msg: Record<string, any>): void {
+  if (typeof window !== "undefined" && window.ReactNativeWebView?.postMessage) {
+    window.ReactNativeWebView.postMessage(JSON.stringify(msg));
+  }
+}
+
 export class NoRetryError extends Error {
   public noretry = true;
 }
@@ -813,7 +824,8 @@ export function Thunk_pushToEditProgramExercise(key: string, dayData: Required<I
 export function Thunk_pushScreen<T extends IScreen>(
   screen: T,
   params?: IScreenParams<T>,
-  shouldResetStack?: boolean
+  shouldResetStack?: boolean,
+  skipWebViewMode?: boolean
 ): IThunk {
   return async (dispatch, getState) => {
     dispatch(Thunk_postevent("navigate-to-" + screen));
@@ -848,8 +860,12 @@ export function Thunk_pushScreen<T extends IScreen>(
     if (getState().storage.currentProgramId == null && screensWithoutCurrentProgram.indexOf(screen) === -1) {
       screen = "programs" as T;
     }
-    dispatch({ type: "PushScreen", screen, params, shouldResetStack });
-    window.scroll(0, 0);
+    if (Thunk_isWebViewMode() && !skipWebViewMode) {
+      Thunk_postToRN({ type: "navigate", screen, params, shouldResetStack });
+    } else {
+      dispatch({ type: "PushScreen", screen, params, shouldResetStack });
+      window.scroll(0, 0);
+    }
   };
 }
 
@@ -942,8 +958,12 @@ export function Thunk_pullScreen(): IThunk {
         return;
       }
     }
-    dispatch({ type: "PullScreen" });
-    window.scroll(0, 0);
+    if (Thunk_isWebViewMode()) {
+      Thunk_postToRN({ type: "goBack" });
+    } else {
+      dispatch({ type: "PullScreen" });
+      window.scroll(0, 0);
+    }
   };
 }
 

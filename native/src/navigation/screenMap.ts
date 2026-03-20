@@ -86,36 +86,39 @@ export function ScreenMap_hasTabBar(screen: IScreenName): boolean {
   return !screensWithoutTabBar.has(screen);
 }
 
-export const tabScreens: Record<ITab, IScreenName[]> = {
-  home: ["main"],
-  program: [
-    "programs",
-    "first",
-    "muscles",
-    "editProgram",
-    "editProgramExercise",
-    "programPreview",
-    "onerms",
-    "setupequipment",
-    "setupplates",
-    "programselect",
-    "units",
-  ],
-  workout: ["progress", "finishDay", "subscription"],
-  graphs: ["graphs"],
-  me: [
-    "settings",
-    "account",
-    "timers",
-    "plates",
-    "appleHealth",
-    "googleHealth",
-    "gyms",
-    "exercises",
-    "muscleGroups",
-    "stats",
-    "measurements",
-    "exerciseStats",
-    "apiKeys",
-  ],
-};
+export const allScreens: IScreenName[] = [
+  "main",
+  "first",
+  "settings",
+  "account",
+  "timers",
+  "plates",
+  "gyms",
+  "programs",
+  "progress",
+  "graphs",
+  "finishDay",
+  "muscles",
+  "muscleGroups",
+  "stats",
+  "units",
+  "appleHealth",
+  "googleHealth",
+  "editProgram",
+  "editProgramExercise",
+  "measurements",
+  "subscription",
+  "exerciseStats",
+  "exercises",
+  "onerms",
+  "setupequipment",
+  "setupplates",
+  "programselect",
+  "programPreview",
+  "apiKeys",
+];
+
+export function ScreenMap_tabScreens(tab: ITab): IScreenName[] {
+  const initial = tabInitialScreen[tab];
+  return [initial, ...allScreens.filter((s) => s !== initial)];
+}

@@ -1,18 +1,16 @@
 import React, { useCallback, useEffect, useRef } from "react";
-import { View, StyleSheet, TouchableOpacity, Text } from "react-native";
+import { View, StyleSheet } from "react-native";
 import {
   WebViewPool_acquire,
   WebViewPool_release,
   WebViewPool_injectScreen,
   WebViewPool_reparentTo,
   WebViewPool_sendState,
-  WebViewPool_prepareScreen,
   WebViewPool_claimPrepared,
 } from "./WebViewPool";
 import { useStoreState } from "../context/StoreContext";
-import { useIsFocused, useNavigation } from "@react-navigation/native";
+import { useIsFocused } from "@react-navigation/native";
 import type { IScreenName } from "../navigation/screenMap";
-import { tabScreens, screenToTab } from "../navigation/screenMap";
 
 interface IRouteParams {
   preparedSlotId?: number;
@@ -27,7 +25,6 @@ export function PooledWebViewScreen({ route }: IProps): React.ReactElement {
   const preparedSlotId = route.params?.preparedSlotId;
   const state = useStoreState();
   const isFocused = useIsFocused();
-  const navigation = useNavigation();
   const slotIdRef = useRef<number | undefined>(preparedSlotId ?? WebViewPool_claimPrepared(screenName));
   const containerIdRef = useRef(`screen-container-${screenName}-${Date.now()}`);
   const mountedRef = useRef(false);
@@ -82,57 +79,11 @@ export function PooledWebViewScreen({ route }: IProps): React.ReactElement {
     }
   }, [state, isFocused]);
 
-  const tab = screenToTab[screenName];
-  const screensInTab = tabScreens[tab];
-  const nextScreen = screensInTab.find((s) => s !== screenName);
-
-  const handlePush = async (target: IScreenName): Promise<void> => {
-    const slotId = await WebViewPool_prepareScreen(
-      `screen-container-${target}-${Date.now()}`,
-      target,
-      JSON.stringify(state)
-    );
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (navigation as any).push(target, { preparedSlotId: slotId });
-  };
-
-  return (
-    <View style={styles.container}>
-      <View nativeID={containerIdRef.current} style={styles.webview} />
-      {nextScreen != null && (
-        <View style={styles.buttonOverlay} pointerEvents="box-none">
-          <TouchableOpacity style={styles.testButton} onPress={() => handlePush(nextScreen)}>
-            <Text style={styles.testButtonText}>Push: {nextScreen}</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </View>
-  );
+  return <View nativeID={containerIdRef.current} style={styles.container} />;
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  webview: {
-    flex: 1,
-  },
-  buttonOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: "flex-end",
-    alignItems: "flex-end",
-    padding: 20,
-    paddingBottom: 100,
-  },
-  testButton: {
-    backgroundColor: "#6366f1",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-  },
-  testButtonText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 14,
   },
 });
