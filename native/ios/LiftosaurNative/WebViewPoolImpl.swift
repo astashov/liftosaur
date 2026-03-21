@@ -42,12 +42,54 @@ private class PoolNavigationDelegate: NSObject, WKNavigationDelegate {
   }
 }
 
+private class PoolUIDelegate: NSObject, WKUIDelegate {
+  func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
+    guard let vc = Self.topViewController() else {
+      completionHandler()
+      return
+    }
+    let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+    alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in completionHandler() })
+    vc.present(alert, animated: true)
+  }
+
+  func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
+    guard let vc = Self.topViewController() else {
+      completionHandler(false)
+      return
+    }
+    let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+    alert.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in completionHandler(false) })
+    alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in completionHandler(true) })
+    vc.present(alert, animated: true)
+  }
+
+  func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (String?) -> Void) {
+    guard let vc = Self.topViewController() else {
+      completionHandler(nil)
+      return
+    }
+    let alert = UIAlertController(title: nil, message: prompt, preferredStyle: .alert)
+    alert.addTextField { textField in textField.text = defaultText }
+    alert.addAction(UIAlertAction(title: "Cancel", style: .cancel) { _ in completionHandler(nil) })
+    alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in completionHandler(alert.textFields?.first?.text) })
+    vc.present(alert, animated: true)
+  }
+
+  private static func topViewController() -> UIViewController? {
+    var vc = UIApplication.shared.keyWindow?.rootViewController
+    while let presented = vc?.presentedViewController { vc = presented }
+    return vc
+  }
+}
+
 @objc class WebViewPoolImpl: NSObject {
   @objc static let shared = WebViewPoolImpl()
 
   private var slots: [WebViewSlot] = []
   private var acquireWaiters: [(Int) -> Void] = []
   private var navigationDelegate: PoolNavigationDelegate?
+  private var uiDelegate: PoolUIDelegate?
   @objc var onMessage: ((Int, String) -> Void)?
 
   @objc func setup(url: String, poolSize: Int) {
@@ -57,6 +99,9 @@ private class PoolNavigationDelegate: NSObject, WKNavigationDelegate {
       let navDelegate = PoolNavigationDelegate()
       navDelegate.pool = self
       self.navigationDelegate = navDelegate
+
+      let uiDel = PoolUIDelegate()
+      self.uiDelegate = uiDel
 
       for i in 0..<poolSize {
         let handler = PoolMessageHandler(slotId: i)
@@ -72,6 +117,25 @@ private class PoolNavigationDelegate: NSObject, WKNavigationDelegate {
                 window.webkit.messageHandlers.liftosaur.postMessage(data);
               }
             };
+            (function() {
+              var levels = ['log', 'warn', 'error', 'info', 'debug'];
+              for (var i = 0; i < levels.length; i++) {
+                (function(level) {
+                  var orig = console[level];
+                  console[level] = function() {
+                    orig.apply(console, arguments);
+                    try {
+                      var args = Array.prototype.map.call(arguments, function(a) {
+                        return typeof a === 'object' ? JSON.stringify(a) : String(a);
+                      });
+                      window.webkit.messageHandlers.liftosaur.postMessage(
+                        JSON.stringify({ type: '__console', level: level, message: args.join(' ') })
+                      );
+                    } catch(e) {}
+                  };
+                })(levels[i]);
+              }
+            })();
             """,
           injectionTime: .atDocumentStart,
           forMainFrameOnly: true
@@ -86,6 +150,7 @@ private class PoolNavigationDelegate: NSObject, WKNavigationDelegate {
         }
         #endif
         webView.navigationDelegate = navDelegate
+        webView.uiDelegate = uiDel
         if let requestUrl = URL(string: url) {
           webView.load(URLRequest(url: requestUrl))
         }

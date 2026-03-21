@@ -90,6 +90,11 @@ class WebViewPool {
       } catch {
         return;
       }
+      if (msg.type === "__console") {
+        const level = msg.level === "warn" ? "warn" : msg.level === "error" ? "error" : "log";
+        console[level](`[WebView:${event.slotId}]`, msg.message);
+        return;
+      }
       if (isStorageMessage(msg)) {
         handleStorageMessage(event.slotId, msg);
         return;

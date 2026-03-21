@@ -79,9 +79,7 @@ const screensWithoutTabBar: Set<IScreenName> = new Set([
   "programselect",
   "setupequipment",
   "setupplates",
-  "editProgram",
-  "editProgramExercise",
-  "progress",
+  "subscription",
 ]);
 
 export function ScreenMap_hasTabBar(screen: IScreenName): boolean {

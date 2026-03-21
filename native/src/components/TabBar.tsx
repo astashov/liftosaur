@@ -65,12 +65,14 @@ export function TabBar({ state, navigation }: BottomTabBarProps): React.ReactEle
 
   const onWorkoutPress = useCallback(() => {
     if (hasOngoingProgress) {
-      pool.sendCommand({ type: "command", command: "startProgramDay" });
+      const workoutRoute = state.routes.find((r) => r.name === "workout");
+      if (workoutRoute) {
+        navigation.navigate("workout");
+      }
     } else {
-      // Navigate to the formSheet screen in the root stack
       navigation.getParent()?.navigate("NextWorkoutSheet");
     }
-  }, [hasOngoingProgress, pool, navigation]);
+  }, [hasOngoingProgress, navigation, state.routes]);
 
   const renderTab = (index: number) => {
     const route = state.routes[index];

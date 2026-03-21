@@ -2,7 +2,12 @@ import { JSX, Fragment, useEffect, useRef } from "react";
 import { reducerWrapper, defaultOnActions, IAction } from "../ducks/reducer";
 import { ChooseProgramView } from "./chooseProgram";
 import { ProgramHistoryView } from "./programHistory";
-import { Program_getProgram, Program_getFullProgram, Program_fullProgram, Program_selectProgram } from "../models/program";
+import {
+  Program_getProgram,
+  Program_getFullProgram,
+  Program_fullProgram,
+  Program_selectProgram,
+} from "../models/program";
 import { EditProgram_setNextDay } from "../models/editProgram";
 import { IScreen, Screen_currentName, Screen_current } from "../models/screen";
 import { ScreenSettings } from "./screenSettings";
@@ -411,6 +416,7 @@ export function AppView(props: IProps): JSX.Element | null {
     stats: state.storage.stats,
     userId: state.user?.id,
   };
+  console.log("Rendering app with screen stack", state.screenStack);
 
   let content: JSX.Element;
   if (Screen_currentName(state.screenStack) === "first") {
@@ -467,7 +473,9 @@ export function AppView(props: IProps): JSX.Element | null {
       throw new Error("Program is not selected on the 'main' screen");
     }
   } else if (Screen_currentName(state.screenStack) === "progress") {
+    console.log("Rendering progress screen, currentProgram:", currentProgram);
     const progress = Progress_getProgress(state);
+    console.log("Current progress:", progress);
     const program = progress
       ? Progress_isCurrent(progress)
         ? Program_getFullProgram(state, progress.programId) ||

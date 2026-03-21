@@ -96,10 +96,24 @@ export function AppNavigator(): React.ReactElement {
         const screen = msg.screen as IScreenName;
         setShowTabBar(ScreenMap_hasTabBar(screen));
         if (msg.shouldResetStack) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (navigationRef as any).reset({ index: 0, routes: [{ name: "MainTabs", params: { screen: screenToTab[screen], params: { screen } } }] });
+          const tab = screenToTab[screen];
+          const isInitialScreen = tabInitialScreen[tab] === screen;
+          const stateJson = JSON.stringify(appState);
+          pool.prepareScreen(isInitialScreen ? screen : tabInitialScreen[tab], stateJson).then((slotId) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (navigationRef as any).reset({
+              index: 0,
+              routes: [{ name: "MainTabs", params: { screen: tab, params: { screen: tabInitialScreen[tab], params: { preparedSlotId: slotId } } } }],
+            });
+            if (!isInitialScreen) {
+              pool.prepareScreen(screen, stateJson).then((targetSlotId) => {
+                navigationRef.dispatch(StackActions.push(screen, { ...(msg.params as object), preparedSlotId: targetSlotId }));
+              });
+            }
+          });
         } else {
           const stateJson = JSON.stringify(appState);
+          console.log("Pushing screen", screen, "with params", msg.params, "to slot", _slotId);
           pool.prepareScreen(screen, stateJson).then((slotId) => {
             navigationRef.dispatch(StackActions.push(screen, { ...(msg.params as object), preparedSlotId: slotId }));
           });
