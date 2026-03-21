@@ -3,6 +3,7 @@ import NativeWebViewPool from "../native/NativeWebViewPool";
 import { NativeEventEmitter } from "react-native";
 import type { IRNToWebView, IWebViewToRN } from "../bridge/protocol";
 import { localdomain } from "../../../src/localdomain";
+import { NativeStorageRN } from "../store/NativeStorageRN";
 
 const WEBVIEW_URL = __DEV__
   ? `https://${localdomain}.liftosaur.com:8080/app/?webviewmode=1`
@@ -10,6 +11,55 @@ const WEBVIEW_URL = __DEV__
 const INITIAL_POOL_SIZE = 8;
 
 type IOnMessage = (slotId: number, msg: IWebViewToRN) => void;
+type IOnStorageUpdated = () => void;
+
+const storageRN = new NativeStorageRN();
+let onStorageUpdatedCallback: IOnStorageUpdated | null = null;
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function isStorageMessage(msg: any): boolean {
+  return typeof msg.type === "string" && msg.type.startsWith("storage");
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function handleStorageMessage(slotId: number, msg: any): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let response: any;
+  switch (msg.type) {
+    case "storageGet": {
+      const value = await storageRN.get(msg.key);
+      response = { type: "storageGetResult", key: msg.key, requestId: msg.requestId, value: value ?? null };
+      break;
+    }
+    case "storageSet": {
+      const success = await storageRN.set(msg.key, msg.value);
+      response = { type: "storageSetResult", key: msg.key, requestId: msg.requestId, success };
+      if (success && typeof msg.key === "string" && msg.key.startsWith("liftosaur_")) {
+        onStorageUpdatedCallback?.();
+      }
+      break;
+    }
+    case "storageDelete": {
+      const success = await storageRN.delete(msg.key);
+      response = { type: "storageDeleteResult", key: msg.key, requestId: msg.requestId, success };
+      break;
+    }
+    case "storageHas": {
+      const exists = await storageRN.has(msg.key);
+      response = { type: "storageHasResult", key: msg.key, requestId: msg.requestId, exists };
+      break;
+    }
+    case "storageGetAllKeys": {
+      const keys = await storageRN.getAllKeys();
+      response = { type: "storageGetAllKeysResult", requestId: msg.requestId, keys };
+      break;
+    }
+    default:
+      return;
+  }
+  const js = `window.postMessage(${JSON.stringify(response)}, "*");true;`;
+  NativeWebViewPool.injectJavaScript(slotId, js);
+}
 
 class WebViewPool {
   private readonly preparedSlots: Map<string, number> = new Map();
@@ -26,21 +76,29 @@ class WebViewPool {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const emitter = new NativeEventEmitter(NativeWebViewPool as any);
     emitter.addListener("onWebViewMessage", (event: { slotId: number; data: string }) => {
-      if (this.onMessageCallback == null) {
-        return;
-      }
-      let msg: IWebViewToRN;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let msg: any;
       try {
-        msg = JSON.parse(event.data) as IWebViewToRN;
+        msg = JSON.parse(event.data);
       } catch {
         return;
       }
-      this.onMessageCallback(event.slotId, msg);
+      if (isStorageMessage(msg)) {
+        handleStorageMessage(event.slotId, msg);
+        return;
+      }
+      if (this.onMessageCallback != null) {
+        this.onMessageCallback(event.slotId, msg as IWebViewToRN);
+      }
     });
   }
 
   public setOnMessage(cb: IOnMessage | null): void {
     this.onMessageCallback = cb;
+  }
+
+  public setOnStorageUpdated(cb: IOnStorageUpdated | null): void {
+    onStorageUpdatedCallback = cb;
   }
 
   public claimPrepared(screenName: string): number | undefined {

@@ -6,6 +6,7 @@ import {
   SendMessage_isAndroid,
   SendMessage_androidAppVersion,
 } from "./sendMessage";
+import { ReactNativeUtils_isWebViewMode, ReactNativeUtils_postToRN } from "./reactNative";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 interface IPendingRequest<T = any> {
@@ -57,9 +58,11 @@ type IStorageResponse =
 
 export class NativeStorage {
   private readonly pendingRequests: Map<string, IPendingRequest>;
+  private readonly isRN: boolean;
 
   constructor() {
     this.pendingRequests = new Map();
+    this.isRN = ReactNativeUtils_isWebViewMode();
     window.addEventListener("message", (event) => {
       if (event.data != null) {
         this.handleResponse(event.data);
@@ -68,11 +71,20 @@ export class NativeStorage {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private send(msg: Record<string, any>): void {
+    if (this.isRN) {
+      ReactNativeUtils_postToRN(msg);
+    } else {
+      SendMessage_toIosAndAndroid(msg);
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public async set<T = any>(key: string, value: T): Promise<boolean> {
     const requestId = this.generateRequestId();
     const promise = this.createPromise<boolean>(requestId);
 
-    SendMessage_toIosAndAndroid({
+    this.send({
       type: "storageSet",
       key: key,
       value: typeof value === "string" ? value : JSON.stringify(value),
@@ -87,7 +99,7 @@ export class NativeStorage {
     const requestId = this.generateRequestId();
     const promise = this.createPromise<T | undefined>(requestId);
 
-    SendMessage_toIosAndAndroid({
+    this.send({
       type: "storageGet",
       key: key,
       requestId: requestId,
@@ -100,7 +112,7 @@ export class NativeStorage {
     const requestId = this.generateRequestId();
     const promise = this.createPromise<boolean>(requestId);
 
-    SendMessage_toIosAndAndroid({
+    this.send({
       type: "storageDelete",
       key: key,
       requestId: requestId,
@@ -113,7 +125,7 @@ export class NativeStorage {
     const requestId = this.generateRequestId();
     const promise = this.createPromise<boolean>(requestId);
 
-    SendMessage_toIosAndAndroid({
+    this.send({
       type: "storageHas",
       key: key,
       requestId: requestId,
@@ -126,7 +138,7 @@ export class NativeStorage {
     const requestId = this.generateRequestId();
     const promise = this.createPromise<string[]>(requestId);
 
-    SendMessage_toIosAndAndroid({
+    this.send({
       type: "storageGetAllKeys",
       requestId: requestId,
     });
@@ -142,6 +154,7 @@ export class NativeStorage {
 
   public static isAvailable(): boolean {
     return (
+      ReactNativeUtils_isWebViewMode() ||
       (SendMessage_isIos() && SendMessage_iosAppVersion() >= 12) ||
       (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 21)
     );

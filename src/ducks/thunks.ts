@@ -82,19 +82,13 @@ import { EditProgram_initPlannerProgramExerciseState } from "../models/editProgr
 import { ICollectionVersions } from "../models/versionTracker";
 import { DeviceId_get } from "../utils/deviceId";
 import { LiveActivityManager_updateProgressLiveActivity } from "../utils/liveActivityManager";
+import { ReactNativeUtils_isWebViewMode, ReactNativeUtils_postToRN } from "../utils/reactNative";
 
 declare let Rollbar: RB;
 
-function Thunk_isWebViewMode(): boolean {
-  return typeof window !== "undefined" && !!new URLSearchParams(window.location?.search).get("webviewmode");
-}
+const Thunk_isWebViewMode = ReactNativeUtils_isWebViewMode;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function Thunk_postToRN(msg: Record<string, any>): void {
-  if (typeof window !== "undefined" && window.ReactNativeWebView?.postMessage) {
-    window.ReactNativeWebView.postMessage(JSON.stringify(msg));
-  }
-}
+export const Thunk_postToRN = ReactNativeUtils_postToRN;
 
 export class NoRetryError extends Error {
   public noretry = true;

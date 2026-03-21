@@ -1,8 +1,18 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { Appearance } from "react-native";
 import { StateStore } from "../store/StateStore";
 import type { IState } from "@shared/models/state";
+import { Tailwind_setThemeDetector } from "@shared/utils/tailwindConfig";
 
 const storeInstance = new StateStore();
+
+Tailwind_setThemeDetector(() => {
+  const userTheme = storeInstance.getState().storage.settings?.theme;
+  if (userTheme) {
+    return userTheme;
+  }
+  return Appearance.getColorScheme() === "dark" ? "dark" : "light";
+});
 
 const StoreContext = createContext<StateStore>(storeInstance);
 

@@ -15,7 +15,8 @@ import {
   type IScreenName,
 } from "./screenMap";
 import type { IWebViewToRN } from "../bridge/protocol";
-import { useStoreState } from "../context/StoreContext";
+import { useStore, useStoreState } from "../context/StoreContext";
+import { TabBar } from "../components/TabBar";
 
 const Tab = createBottomTabNavigator();
 
@@ -63,14 +64,27 @@ const initialScreensToPreload = Object.entries(tabInitialScreen)
 
 export function AppNavigator(): React.ReactElement {
   const navigationRef = useNavigationContainerRef();
+  const store = useStore();
   const appState = useStoreState();
   const pool = useRef(new WebViewPool()).current;
   const isFirstTimeUser = appState.storage.currentProgramId == null;
   const [showTabBar, setShowTabBar] = useState(!isFirstTimeUser);
 
   useEffect(() => {
+    if (!isFirstTimeUser && !showTabBar) {
+      setShowTabBar(true);
+    }
+  }, [isFirstTimeUser]);
+
+  useEffect(() => {
     pool.initialize();
     pool.prepareInitialScreens(initialScreensToPreload, JSON.stringify(appState));
+    pool.setOnStorageUpdated(() => {
+      store.load();
+    });
+    return () => {
+      pool.setOnStorageUpdated(null);
+    };
   }, []);
 
   const handleWebViewMessage = useCallback(
@@ -106,11 +120,9 @@ export function AppNavigator(): React.ReactElement {
       <View style={styles.root}>
         <NavigationContainer ref={navigationRef}>
           <Tab.Navigator
+            tabBar={(props) => (showTabBar ? <TabBar {...props} /> : null)}
             screenOptions={{
               headerShown: false,
-              tabBarActiveTintColor: "#6366f1",
-              tabBarInactiveTintColor: "#9ca3af",
-              tabBarStyle: showTabBar ? undefined : styles.tabBarHidden,
             }}
           >
             {tabConfig.map(({ name, component, label }) => (
@@ -126,8 +138,5 @@ export function AppNavigator(): React.ReactElement {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-  },
-  tabBarHidden: {
-    display: "none",
   },
 });

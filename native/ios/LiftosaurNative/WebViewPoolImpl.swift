@@ -80,6 +80,11 @@ private class PoolNavigationDelegate: NSObject, WKNavigationDelegate {
         config.userContentController.add(handler, name: "liftosaur")
 
         let webView = WKWebView(frame: .zero, configuration: config)
+        #if DEBUG
+        if #available(iOS 16.4, *) {
+          webView.isInspectable = true
+        }
+        #endif
         webView.navigationDelegate = navDelegate
         if let requestUrl = URL(string: url) {
           webView.load(URLRequest(url: requestUrl))
