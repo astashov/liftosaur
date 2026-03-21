@@ -66,11 +66,14 @@ export function PooledWebViewScreen({ route }: IProps): React.ReactElement {
     };
   }, []);
 
+  const prevFocusedRef = useRef(isFocused);
   useEffect(() => {
-    if (slotIdRef.current != null && isFocused) {
+    const becameFocused = isFocused && !prevFocusedRef.current;
+    prevFocusedRef.current = isFocused;
+    if (slotIdRef.current != null && becameFocused) {
       pool.injectScreen(slotIdRef.current, screenName, JSON.stringify(state));
     }
-  }, [state, isFocused]);
+  }, [isFocused]);
 
   return (
     <SafeAreaView edges={["top"]} style={styles.safeArea}>

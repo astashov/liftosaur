@@ -17,8 +17,11 @@ import {
 import type { IWebViewToRN } from "../bridge/protocol";
 import { useStore, useStoreState } from "../context/StoreContext";
 import { TabBar } from "../components/TabBar";
+import { NextWorkoutScreen } from "../components/NextWorkoutSheet";
+import { ChangeNextDayScreen } from "../components/ChangeNextDaySheet";
 
 const Tab = createBottomTabNavigator();
+const RootStack = createNativeStackNavigator();
 
 function createTabStack(tab: ITab): () => React.ReactElement {
   const Stack = createNativeStackNavigator();
@@ -94,7 +97,7 @@ export function AppNavigator(): React.ReactElement {
         setShowTabBar(ScreenMap_hasTabBar(screen));
         if (msg.shouldResetStack) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (navigationRef as any).reset({ index: 0, routes: [{ name: screenToTab[screen], params: { screen } }] });
+          (navigationRef as any).reset({ index: 0, routes: [{ name: "MainTabs", params: { screen: screenToTab[screen], params: { screen } } }] });
         } else {
           const stateJson = JSON.stringify(appState);
           pool.prepareScreen(screen, stateJson).then((slotId) => {
@@ -119,16 +122,46 @@ export function AppNavigator(): React.ReactElement {
     <WebViewPoolProvider value={pool}>
       <View style={styles.root}>
         <NavigationContainer ref={navigationRef}>
-          <Tab.Navigator
-            tabBar={(props) => (showTabBar ? <TabBar {...props} /> : null)}
-            screenOptions={{
-              headerShown: false,
-            }}
-          >
-            {tabConfig.map(({ name, component, label }) => (
-              <Tab.Screen key={name} name={name} component={component} options={{ title: label }} />
-            ))}
-          </Tab.Navigator>
+          <RootStack.Navigator screenOptions={{ headerShown: false }}>
+            <RootStack.Screen name="MainTabs">
+              {() => (
+                <Tab.Navigator
+                  tabBar={(props) => (showTabBar ? <TabBar {...props} /> : null)}
+                  screenOptions={{ headerShown: false }}
+                >
+                  {tabConfig.map(({ name, component, label }) => (
+                    <Tab.Screen key={name} name={name} component={component} options={{ title: label }} />
+                  ))}
+                </Tab.Navigator>
+              )}
+            </RootStack.Screen>
+            <RootStack.Screen
+              name="NextWorkoutSheet"
+              component={NextWorkoutScreen}
+              options={{
+                presentation: "formSheet",
+                sheetGrabberVisible: true,
+                sheetAllowedDetents: [0.65, 1.0],
+                sheetExpandsWhenScrolledToEdge: false,
+                headerShown: true,
+                headerShadowVisible: false,
+                title: "New Workout",
+              }}
+            />
+            <RootStack.Screen
+              name="ChangeNextDaySheet"
+              component={ChangeNextDayScreen}
+              options={{
+                presentation: "formSheet",
+                sheetGrabberVisible: true,
+                sheetAllowedDetents: [0.65, 1.0],
+                sheetExpandsWhenScrolledToEdge: false,
+                headerShown: true,
+                headerShadowVisible: false,
+                title: "Change Next Workout",
+              }}
+            />
+          </RootStack.Navigator>
         </NavigationContainer>
       </View>
     </WebViewPoolProvider>

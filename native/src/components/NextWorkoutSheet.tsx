@@ -1,0 +1,174 @@
+import React, { useCallback } from "react";
+import { View, Text, Pressable, ScrollView, Image, useWindowDimensions } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import type { LayoutChangeEvent } from "react-native";
+import { Program_nextHistoryRecord, Program_isEmpty, Program_getProgram, emptyProgramId } from "@shared/models/program";
+import { Exercise_get, Exercise_nameWithEquipment } from "@shared/models/exercise";
+import { ExerciseImageUtils_url } from "@shared/models/exerciseImage";
+import type { IHistoryRecord, IHistoryEntry, ISet } from "@shared/types";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useStoreState } from "../context/StoreContext";
+import { useWebViewPool } from "../screens/WebViewPool";
+
+const IMAGE_BASE = "https://www.liftosaur.com";
+
+interface ISetGroup {
+  count: number;
+  reps: string;
+  weight: string;
+}
+
+function groupSets(sets: ISet[]): ISetGroup[] {
+  const groups: ISetGroup[] = [];
+  for (const s of sets) {
+    const reps = s.isAmrap ? `${s.reps ?? "?"}+` : s.minReps ? `${s.minReps}-${s.reps}` : `${s.reps ?? "?"}`;
+    const weight = s.weight ? `${s.weight.value}${s.weight.unit}` : "";
+    const key = `${reps}|${weight}`;
+    const last = groups[groups.length - 1];
+    if (last && `${last.reps}|${last.weight}` === key) {
+      last.count += 1;
+    } else {
+      groups.push({ count: 1, reps, weight });
+    }
+  }
+  return groups;
+}
+
+function ExerciseEntryView({
+  entry,
+  settings,
+  isLast,
+}: {
+  entry: IHistoryEntry;
+  settings: import("@shared/types").ISettings;
+  isLast: boolean;
+}): React.ReactElement {
+  const exercise = Exercise_get(entry.exercise, settings.exercises);
+  const name = Exercise_nameWithEquipment(exercise, settings);
+  const setGroups = groupSets(entry.sets);
+  const imageUrl = ExerciseImageUtils_url(entry.exercise, "small", settings);
+
+  return (
+    <View className={`py-3 ${isLast ? "" : "border-b border-border-purple"}`}>
+      <View className="flex-row items-center">
+        {imageUrl && (
+          <Image source={{ uri: `${IMAGE_BASE}${imageUrl}` }} className="w-10 h-10 mr-3" resizeMode="contain" />
+        )}
+        <Text className="flex-1 text-base font-bold text-text-primary" numberOfLines={1}>
+          {name}
+        </Text>
+        <View className="items-end ml-2">
+          {setGroups.map((g, i) => (
+            <Text key={i} className="text-sm text-text-primary">
+              <Text className="font-bold text-text-purple">{g.count}</Text>
+              <Text> × {g.reps}</Text>
+              {g.weight ? <Text> × </Text> : null}
+              {g.weight ? <Text className="font-bold">{g.weight}</Text> : null}
+            </Text>
+          ))}
+        </View>
+      </View>
+    </View>
+  );
+}
+
+export function NextWorkoutScreen(): React.ReactElement {
+  const navigation = useNavigation();
+  const { height: screenHeight } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const appState = useStoreState();
+  const pool = useWebViewPool();
+
+  const onContentLayout = useCallback(
+    (e: LayoutChangeEvent) => {
+      const contentHeight = e.nativeEvent.layout.height;
+      const headerHeight = 56;
+      const fraction = Math.min((contentHeight + headerHeight + insets.bottom) / screenHeight, 0.9);
+      navigation.setOptions({ sheetAllowedDetents: [fraction, 1.0] });
+    },
+    [screenHeight, navigation, insets.bottom]
+  );
+
+  const hasOngoingProgress = (appState.storage.progress?.length ?? 0) > 0;
+  const currentProgram = appState.storage.currentProgramId
+    ? Program_getProgram(appState, appState.storage.currentProgramId)
+    : undefined;
+  const settings = appState.storage.settings;
+  const stats = appState.storage.stats;
+
+  let nextHistoryRecord: IHistoryRecord | undefined;
+  if (currentProgram && !Program_isEmpty(currentProgram)) {
+    try {
+      nextHistoryRecord = Program_nextHistoryRecord(currentProgram, settings, stats);
+    } catch {
+      // Program evaluation can fail
+    }
+  }
+
+  const doesProgressNotMatchProgram =
+    nextHistoryRecord &&
+    hasOngoingProgress &&
+    (nextHistoryRecord.programId !== currentProgram?.id || nextHistoryRecord.day !== currentProgram?.nextDay);
+
+  const onStartWorkout = (): void => {
+    navigation.goBack();
+    pool.sendCommand({ type: "command", command: "startProgramDay" });
+  };
+
+  const onStartAdHoc = (): void => {
+    navigation.goBack();
+    pool.sendCommand({ type: "command", command: "startProgramDay", programId: emptyProgramId });
+  };
+
+  const onChangeNextDay = (): void => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (navigation as any).replace("ChangeNextDaySheet");
+  };
+
+  return (
+    <SafeAreaView edges={["bottom"]} className="flex-1 bg-background-default" onLayout={onContentLayout}>
+      {doesProgressNotMatchProgram && (
+        <Text className="mx-4 mb-2 text-xs text-center text-text-secondary">
+          You currently have ongoing workout. Finish it first to see newly chosen program or a different day.
+        </Text>
+      )}
+
+      {Program_isEmpty(currentProgram) && (
+        <Text className="mx-4 mb-2 text-xs text-center text-text-secondary">No program currently selected.</Text>
+      )}
+
+      {nextHistoryRecord && (
+        <ScrollView className="flex-1">
+          <View className="p-4 mx-4 mb-2 border rounded-2xl bg-background-subtlecardpurple border-border-cardpurple">
+            <Text className="text-lg font-bold text-text-primary">{nextHistoryRecord.dayName}</Text>
+            <Text className="mb-2 text-sm text-text-secondary">{nextHistoryRecord.programName}</Text>
+            {nextHistoryRecord.entries.map((entry, i) => (
+              <ExerciseEntryView
+                key={entry.id}
+                entry={entry}
+                settings={settings}
+                isLast={i === nextHistoryRecord!.entries.length - 1}
+              />
+            ))}
+            <Pressable
+              onPress={onStartWorkout}
+              className="items-center py-3 mt-4 rounded-xl bg-button-primarybackground"
+            >
+              <Text className="text-base font-bold text-button-primarylabel">Start</Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+      )}
+
+      <View className="flex-row justify-between px-4 pt-3 pb-6 bg-background-default">
+        <Pressable onPress={onChangeNextDay} className="p-1">
+          <Text className="text-base font-semibold underline text-text-link">Change next workout</Text>
+        </Pressable>
+        <Pressable onPress={onStartAdHoc} className="p-1">
+          <Text className="text-base font-semibold underline text-text-link">Ad-Hoc Workout</Text>
+        </Pressable>
+      </View>
+    </SafeAreaView>
+  );
+}

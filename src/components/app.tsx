@@ -2,7 +2,8 @@ import { JSX, Fragment, useEffect, useRef } from "react";
 import { reducerWrapper, defaultOnActions, IAction } from "../ducks/reducer";
 import { ChooseProgramView } from "./chooseProgram";
 import { ProgramHistoryView } from "./programHistory";
-import { Program_getProgram, Program_getFullProgram, Program_fullProgram } from "../models/program";
+import { Program_getProgram, Program_getFullProgram, Program_fullProgram, Program_selectProgram } from "../models/program";
+import { EditProgram_setNextDay } from "../models/editProgram";
 import { IScreen, Screen_currentName, Screen_current } from "../models/screen";
 import { ScreenSettings } from "./screenSettings";
 import { ScreenAccount } from "./screenAccount";
@@ -25,6 +26,7 @@ import {
   Thunk_handleWatchStorageMerge,
   Thunk_reloadStorageFromDisk,
   Thunk_fetchInitial,
+  Thunk_startProgramDay,
 } from "../ducks/thunks";
 import { Service } from "../api/service";
 import { IAudioInterface } from "../lib/audioInterface";
@@ -137,6 +139,13 @@ export function AppView(props: IProps): JSX.Element | null {
           requestAnimationFrame(() => {
             Thunk_postToRN({ type: "rendered" });
           });
+        } else if (msg.type === "command") {
+          if (msg.command === "startProgramDay") {
+            dispatch(Thunk_startProgramDay(msg.programId));
+          } else if (msg.command === "selectProgram") {
+            Program_selectProgram(dispatch, msg.programId);
+            EditProgram_setNextDay(dispatch, msg.programId, msg.day);
+          }
         }
       } catch (e) {
         // noop

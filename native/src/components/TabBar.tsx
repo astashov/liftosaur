@@ -1,8 +1,11 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { View, TouchableOpacity, Text, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Tailwind_semantic, Tailwind_colors } from "@shared/utils/tailwindConfig";
+import { Program_getProgram } from "@shared/models/program";
+import { useStoreState } from "../context/StoreContext";
+import { useWebViewPool } from "../screens/WebViewPool";
 import {
   IconHome,
   IconHomeSelected,
@@ -44,6 +47,10 @@ export function TabBar({ state, navigation }: BottomTabBarProps): React.ReactEle
   const insets = useSafeAreaInsets();
   const sem = Tailwind_semantic();
   const colors = Tailwind_colors();
+  const appState = useStoreState();
+  const pool = useWebViewPool();
+
+  const hasOngoingProgress = (appState.storage.progress?.length ?? 0) > 0;
 
   const onTabPress = (routeName: string, routeKey: string, isFocused: boolean) => {
     const event = navigation.emit({
@@ -55,6 +62,15 @@ export function TabBar({ state, navigation }: BottomTabBarProps): React.ReactEle
       navigation.navigate(routeName);
     }
   };
+
+  const onWorkoutPress = useCallback(() => {
+    if (hasOngoingProgress) {
+      pool.sendCommand({ type: "command", command: "startProgramDay" });
+    } else {
+      // Navigate to the formSheet screen in the root stack
+      navigation.getParent()?.navigate("NextWorkoutSheet");
+    }
+  }, [hasOngoingProgress, pool, navigation]);
 
   const renderTab = (index: number) => {
     const route = state.routes[index];
@@ -79,7 +95,6 @@ export function TabBar({ state, navigation }: BottomTabBarProps): React.ReactEle
   };
 
   const workoutIndex = state.routes.findIndex((r) => r.name === "workout");
-  const workoutRoute = state.routes[workoutIndex];
   const isWorkoutFocused = state.index === workoutIndex;
 
   return (
@@ -101,7 +116,7 @@ export function TabBar({ state, navigation }: BottomTabBarProps): React.ReactEle
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityState={isWorkoutFocused ? { selected: true } : {}}
-          onPress={() => onTabPress(workoutRoute.name, workoutRoute.key, isWorkoutFocused)}
+          onPress={onWorkoutPress}
           style={styles.workoutTouchable}
         >
           <View
@@ -117,11 +132,7 @@ export function TabBar({ state, navigation }: BottomTabBarProps): React.ReactEle
             )}
           </View>
           <Text
-            style={[
-              styles.label,
-              { color: sem.icon.neutral },
-              isWorkoutFocused && { color: sem.text.purple },
-            ]}
+            style={[styles.label, { color: sem.icon.neutral }, isWorkoutFocused && { color: sem.text.purple }]}
           >
             Workout
           </Text>

@@ -1,13 +1,28 @@
 {
   "extends": "@react-native/typescript-config",
   "compilerOptions": {
-    "types": ["jest"],
-    "lib": ["es2019", "es2020", "dom"],
+    "types": [
+      "jest"
+    ],
+    "lib": [
+      "es2019",
+      "es2020",
+      "dom"
+    ],
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["../src/*"]
+      "@shared/*": [
+        "../src/*"
+      ]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["**/node_modules", "**/Pods"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "nativewind-env.d.ts"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/Pods"
+  ]
 }

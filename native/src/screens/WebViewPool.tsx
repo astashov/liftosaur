@@ -15,6 +15,7 @@ type IOnStorageUpdated = () => void;
 
 const storageRN = new NativeStorageRN();
 let onStorageUpdatedCallback: IOnStorageUpdated | null = null;
+let storageUpdateTimer: ReturnType<typeof setTimeout> | undefined;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isStorageMessage(msg: any): boolean {
@@ -35,7 +36,13 @@ async function handleStorageMessage(slotId: number, msg: any): Promise<void> {
       const success = await storageRN.set(msg.key, msg.value);
       response = { type: "storageSetResult", key: msg.key, requestId: msg.requestId, success };
       if (success && typeof msg.key === "string" && msg.key.startsWith("liftosaur_")) {
-        onStorageUpdatedCallback?.();
+        if (storageUpdateTimer != null) {
+          clearTimeout(storageUpdateTimer);
+        }
+        storageUpdateTimer = setTimeout(() => {
+          storageUpdateTimer = undefined;
+          onStorageUpdatedCallback?.();
+        }, 500);
       }
       break;
     }
@@ -99,6 +106,13 @@ class WebViewPool {
 
   public setOnStorageUpdated(cb: IOnStorageUpdated | null): void {
     onStorageUpdatedCallback = cb;
+  }
+
+  public async sendCommand(command: IRNToWebView): Promise<void> {
+    const slotId = await this.acquire();
+    const js = `window.__receiveFromRN && window.__receiveFromRN(${JSON.stringify(JSON.stringify(command))});true;`;
+    NativeWebViewPool.injectJavaScript(slotId, js);
+    this.release(slotId);
   }
 
   public claimPrepared(screenName: string): number | undefined {
