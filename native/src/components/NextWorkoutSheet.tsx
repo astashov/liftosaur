@@ -8,7 +8,7 @@ import type { IHistoryRecord } from "@shared/types";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useStoreState } from "../context/StoreContext";
 import { useWebViewPool } from "../screens/WebViewPool";
-import { ExerciseEntryView } from "@crossplatform/components/ExerciseEntryView";
+import { HistoryEntryView } from "@crossplatform/components/HistoryEntryView";
 
 export function NextWorkoutScreen(): React.ReactElement {
   const navigation = useNavigation();
@@ -81,11 +81,13 @@ export function NextWorkoutScreen(): React.ReactElement {
             <Text className="text-lg font-bold text-text-primary">{nextHistoryRecord.dayName}</Text>
             <Text className="mb-2 text-sm text-text-secondary">{nextHistoryRecord.programName}</Text>
             {nextHistoryRecord.entries.map((entry, i) => (
-              <ExerciseEntryView
+              <HistoryEntryView
                 key={entry.id}
                 entry={entry}
-                settings={settings}
+                isNext={true}
                 isLast={i === nextHistoryRecord!.entries.length - 1}
+                settings={settings}
+                showNotes={false}
               />
             ))}
             <Pressable

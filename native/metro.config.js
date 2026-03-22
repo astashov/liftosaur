@@ -17,7 +17,10 @@ const sharedDeps = [
   'micro-memoize',
 ];
 
-const extraNodeModules = {};
+const extraNodeModules = {
+  react: path.resolve(__dirname, 'node_modules', 'react'),
+  'react-native': path.resolve(__dirname, 'node_modules', 'react-native'),
+};
 for (const dep of sharedDeps) {
   extraNodeModules[dep] = path.resolve(parentNodeModules, dep);
 }
@@ -34,8 +37,8 @@ const config = {
       },
     }),
     blockList: [
-      /\.\.\/node_modules\/react-native\/.*/,
-      /\.\.\/node_modules\/react\/.*/,
+      new RegExp(parentNodeModules.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '/react-native/.*'),
+      new RegExp(parentNodeModules.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '/react/.*'),
     ],
     nodeModulesPaths: [
       path.resolve(__dirname, 'node_modules'),

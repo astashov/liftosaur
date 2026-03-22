@@ -159,6 +159,7 @@ const mainConfig = {
       "react-dom/client": path.resolve(__dirname, "crossplatform/react-dom-client-shim.js"),
       "react-dom": "preact/compat",
       "react/jsx-runtime": "preact/jsx-runtime",
+      "react-native-svg": path.resolve(__dirname, "crossplatform/web/react-native-svg.tsx"),
       "react-native": "react-native-web",
       "@crossplatform": path.resolve(__dirname, "crossplatform"),
       "@shared": path.resolve(__dirname, "src"),

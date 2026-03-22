@@ -1,0 +1,147 @@
+import React from "react";
+import { View, Text } from "react-native";
+import { IDisplaySet, Reps_group, Reps_setToDisplaySet } from "@shared/models/set";
+import type { ISet, ISettings } from "@shared/types";
+import { CollectionUtils_groupBy, CollectionUtils_compact } from "@shared/utils/collection";
+import { ObjectUtils_keys } from "@shared/utils/object";
+import type { IHistoryEntryPersonalRecords } from "@shared/models/history";
+
+function isSameDisplaySet(a: IDisplaySet, b: IDisplaySet): boolean {
+  return (
+    a.reps === b.reps && a.weight === b.weight && a.rpe === b.rpe && a.askWeight === b.askWeight && a.timer === b.timer
+  );
+}
+
+export function groupDisplaySets(displaySets: IDisplaySet[]): IDisplaySet[][] {
+  return CollectionUtils_groupBy(displaySets, (last, set) => {
+    return !isSameDisplaySet(last, set);
+  });
+}
+
+interface IHistoryRecordSetsProps {
+  showPrDetails?: boolean;
+  sets: ISet[];
+  isNext: boolean;
+  settings: ISettings;
+  prs?: IHistoryEntryPersonalRecords;
+}
+
+export function HistoryRecordSetsView(props: IHistoryRecordSetsProps): React.ReactElement {
+  const { sets, isNext } = props;
+  const groups = Reps_group(sets, isNext);
+  const displayGroups = groups.map((g) => {
+    return g.map((set) => Reps_setToDisplaySet(set, isNext, props.settings));
+  });
+  return (
+    <View className="text-sm text-right">
+      {displayGroups.map((g, i) => (
+        <HistoryRecordSet
+          key={i}
+          sets={g}
+          prs={props.prs}
+          isNext={props.isNext}
+          showPrDetails={props.showPrDetails}
+          settings={props.settings}
+        />
+      ))}
+    </View>
+  );
+}
+
+interface IHistoryRecordSet2Props {
+  prs?: IHistoryEntryPersonalRecords;
+  settings: ISettings;
+  showPrDetails?: boolean;
+  sets: IDisplaySet[];
+  isNext: boolean;
+}
+
+function HistoryRecordSet(props: IHistoryRecordSet2Props): React.ReactElement {
+  const { isNext } = props;
+  const group = props.sets;
+  const set = group[0];
+  if (set == null) {
+    return <View />;
+  }
+  const prTypes = CollectionUtils_compact(
+    ObjectUtils_keys(props.prs || {}).map<"e1RM" | "Weight" | undefined>((k) => {
+      const prset = (props.prs || {})[k];
+      if (!prset) {
+        return undefined;
+      }
+      const displayPrSet = Reps_setToDisplaySet(prset, isNext, props.settings);
+      return isSameDisplaySet(set, displayPrSet)
+        ? k === "max1RMSet"
+          ? "e1RM"
+          : k === "maxWeightSet"
+            ? "Weight"
+            : undefined
+        : undefined;
+    })
+  );
+  const isPr = prTypes.length > 0;
+  const repsColor = isNext
+    ? "text-text-secondary"
+    : set.isCompleted
+      ? "text-text-success"
+      : set.isInRange
+        ? "text-orange-400"
+        : "text-text-error";
+  const rpeColor = isNext ? "text-text-secondary" : set.isRpeFailed ? "text-text-error" : "text-text-success";
+  const timerColor = isNext ? "text-text-secondary" : "text-text-purple";
+  return (
+    <View
+      className="text-sm whitespace-nowrap"
+      data-cy={
+        isNext
+          ? "history-entry-sets-next"
+          : set.isCompleted
+            ? "history-entry-sets-completed"
+            : set.isInRange
+              ? "history-entry-sets-in-range"
+              : "history-entry-sets-incompleted"
+      }
+    >
+      {props.showPrDetails && isPr && (
+        <Text className="mr-2 text-xs font-semibold text-yellow-600">
+          <Text>{prTypes.join(", ")}</Text> <Text>{"🏆"}</Text>
+        </Text>
+      )}
+      <Text className={`px-1 ${isPr ? "bg-color-yellow150" : ""}`}>
+        {group.length > 1 && (
+          <>
+            <Text className="font-semibold text-text-purple" data-cy="history-entry-sets">
+              {group.length}
+            </Text>
+            <Text className="text-text-secondary">{" \u00d7 "}</Text>
+          </>
+        )}
+        <Text className={`font-semibold ${repsColor}`} data-cy="history-entry-reps">
+          {set.reps}
+        </Text>
+        {set.weight && (
+          <>
+            <Text className="text-text-secondary">{" \u00d7 "}</Text>
+            <Text data-cy="history-entry-weight">
+              <Text className="font-semibold">{set.weight}</Text>
+              <Text className="text-xs">{set.askWeight ? "+" : ""}</Text>
+              <Text className="text-xs text-text-secondary">{set.unit}</Text>
+            </Text>
+          </>
+        )}
+        {set.rpe != null && (
+          <Text className={rpeColor} data-cy="history-entry-rpe">
+            <Text className="text-xs">{" @"}</Text>
+            <Text>{set.rpe}</Text>
+          </Text>
+        )}
+        {set.timer != null && (
+          <Text className={timerColor} data-cy="history-entry-timer">
+            <Text>{" "}{set.timer}</Text>
+            <Text className="text-xs">{"s"}</Text>
+          </Text>
+        )}
+      </Text>
+    </View>
+  );
+}

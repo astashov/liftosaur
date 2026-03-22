@@ -17,7 +17,7 @@ import { ComparerUtils_noFns } from "../utils/comparer";
 import { EditProgram_setNextDay } from "../models/editProgram";
 import { ModalChangeNextDay } from "./modalChangeNextDay";
 import { Thunk_startProgramDay } from "../ducks/thunks";
-import { ExerciseEntryView } from "@crossplatform/components/ExerciseEntryView";
+import { HistoryEntryView } from "@crossplatform/components/HistoryEntryView";
 
 interface IProps {
   isHidden: boolean;
@@ -61,11 +61,13 @@ export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
                 <div className="text-lg font-bold text-text-primary">{nextHistoryRecord.dayName}</div>
                 <div className="mb-2 text-sm text-text-secondary">{nextHistoryRecord.programName}</div>
                 {nextHistoryRecord.entries.map((entry, i) => (
-                  <ExerciseEntryView
+                  <HistoryEntryView
                     key={entry.id}
                     entry={entry}
-                    settings={props.settings}
+                    isNext={true}
                     isLast={i === nextHistoryRecord!.entries.length - 1}
+                    settings={props.settings}
+                    showNotes={false}
                   />
                 ))}
                 <button
