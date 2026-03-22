@@ -781,7 +781,11 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
         let isNewUser = false;
 
         if (userId == null) {
-          const existingUser = email !== "noemail@example.com" ? await userDao.getByEmail(email, { historyLimit: historylimit }) : undefined;
+          const existingUser =
+            email !== "noemail@example.com"
+              ? await userDao.getByEmail(email, { historyLimit: historylimit })
+              : undefined;
+          di.log.log("Existing user with same email", existingUser?.id);
           if (existingUser && existingUser.appleId) {
             userId = existingUser.id;
             user = existingUser;
