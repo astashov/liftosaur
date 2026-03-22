@@ -631,9 +631,7 @@ function newStorageApproach(oldState: IState, newState: IState, isStorageChanged
   if (typeof window !== "undefined") {
     window.tempUserId = newState.storage.tempUserId;
     (window as any).state = newState;
-    const t0 = Date.now();
     const isLastSyncChanged = Storage_isChanged(oldState.lastSyncedStorage, newState.lastSyncedStorage);
-    const isChangedDuration = Date.now() - t0;
     const isLocalStorageChanged = isStorageChanged || isLastSyncChanged;
     if (isLocalStorageChanged && newState.errors.corruptedstorage == null) {
       const userId = newState.user?.id || newState.storage.tempUserId;
@@ -641,9 +639,7 @@ function newStorageApproach(oldState: IState, newState: IState, isStorageChanged
         storage: newState.storage,
         lastSyncedStorage: newState.lastSyncedStorage,
       };
-      const t1 = Date.now();
       const json = JSON.stringify(localStorage);
-      const stringifyDuration = Date.now() - t1;
       Promise.all([
         IndexedDBUtils_set("current_account", userId),
         IndexedDBUtils_set(`liftosaur_${userId}`, json),

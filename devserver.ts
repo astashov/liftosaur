@@ -16,7 +16,7 @@ import { buildDi } from "./lambda/utils/di";
 import { LogUtil } from "./lambda/utils/log";
 import fetch from "node-fetch";
 import childProcess from "child_process";
-import { localdomain, localapidomain, localstreamingapidomain } from "./src/localdomain";
+import { localdomain, localapidomain, localstreamingapidomain, localport, localapiport, localstreamingapiport } from "./src/localdomain";
 
 declare global {
   namespace NodeJS {
@@ -202,12 +202,12 @@ const streamingServer = https.createServer(
 (global as any).__FULL_COMMIT_HASH__ = childProcess.execSync("git rev-parse HEAD").toString().trim();
 process.env.COMMIT_HASH = (global as any).__COMMIT_HASH__;
 process.env.FULL_COMMIT_HASH = (global as any).__FULL_COMMIT_HASH__;
-process.env.HOST = `https://${localdomain}.liftosaur.com:8080`;
+process.env.HOST = `https://${localdomain}.liftosaur.com:${localport}`;
 
-server.listen(3000, "0.0.0.0", () => {
-  console.log(`--------- API Server is running on port 3000 ----------`);
+server.listen(localapiport, "0.0.0.0", () => {
+  console.log(`--------- API Server is running on port ${localapiport} ----------`);
 });
 
-streamingServer.listen(3001, "0.0.0.0", () => {
-  console.log(`--------- Streaming API Server is running on port 3001 ----------`);
+streamingServer.listen(localstreamingapiport, "0.0.0.0", () => {
+  console.log(`--------- Streaming API Server is running on port ${localstreamingapiport} ----------`);
 });

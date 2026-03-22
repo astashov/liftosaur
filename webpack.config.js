@@ -1,4 +1,4 @@
-const { main: localdomain, api: localapidomain, streamingapi: localstreamingapidomain } = require("./localdomain");
+const { main: localdomain, api: localapidomain, streamingapi: localstreamingapidomain, port: localport = 8080, apiPort: localapiport = 3000, streamingApiPort: localstreamingapiport = 3001 } = require("./localdomain");
 
 const path = require("path");
 const fs = require("fs");
@@ -18,8 +18,8 @@ const bundleVersionAndroid = 1;
 const bundleVersionWatchIos = 1;
 const bundleVersionWatchAndroid = 1;
 
-const localapi = `https://${localapidomain}.liftosaur.com:3000/`;
-const local = `https://${localdomain}.liftosaur.com:8080/`;
+const localapi = `https://${localapidomain}.liftosaur.com:${localapiport}/`;
+const local = `https://${localdomain}.liftosaur.com:${localport}/`;
 
 const isDev = process.env.NODE_ENV !== "production";
 
@@ -182,14 +182,14 @@ const mainConfig = {
           ? process.env.STAGE
             ? "https://api3-dev.liftosaur.com"
             : "https://api3.liftosaur.com"
-          : `https://${localapidomain}.liftosaur.com:3000`
+          : `https://${localapidomain}.liftosaur.com:${localapiport}`
       ),
       __STREAMING_API_HOST__: JSON.stringify(
         process.env.NODE_ENV === "production"
           ? process.env.STAGE
             ? "https://streaming-api-dev.liftosaur.com"
             : "https://streaming-api.liftosaur.com"
-          : `https://${localstreamingapidomain}.liftosaur.com:3001`
+          : `https://${localstreamingapidomain}.liftosaur.com:${localstreamingapiport}`
       ),
       __ENV__: JSON.stringify(process.env.NODE_ENV === "production" ? "production" : "development"),
       __HOST__: JSON.stringify(
@@ -197,7 +197,7 @@ const mainConfig = {
           ? process.env.STAGE
             ? "https://stage.liftosaur.com"
             : "https://www.liftosaur.com"
-          : `https://${localdomain}.liftosaur.com:8080`
+          : `https://${localdomain}.liftosaur.com:${localport}`
       ),
     }),
     new CopyPlugin([
@@ -336,6 +336,7 @@ const mainConfig = {
     allowedHosts: "all",
     liveReload: false,
     host: "0.0.0.0",
+    port: localport,
     proxy: {
       "/.well-known/oauth-*": {
         target: localapi,
