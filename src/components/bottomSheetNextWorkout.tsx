@@ -4,12 +4,10 @@ import { IProgram, ISettings, IStats } from "../types";
 import {
   emptyProgramId,
   Program_evaluate,
-  Program_getProgramDay,
   Program_nextHistoryRecord,
   Program_isEmpty,
   Program_selectProgram,
 } from "../models/program";
-import { HistoryRecordView } from "./historyRecord";
 import { IDispatch } from "../ducks/types";
 import { LinkButton } from "./linkButton";
 import { IconSwap } from "./icons/iconSwap";
@@ -19,6 +17,7 @@ import { ComparerUtils_noFns } from "../utils/comparer";
 import { EditProgram_setNextDay } from "../models/editProgram";
 import { ModalChangeNextDay } from "./modalChangeNextDay";
 import { Thunk_startProgramDay } from "../ducks/thunks";
+import { ExerciseEntryView } from "@crossplatform/components/ExerciseEntryView";
 
 interface IProps {
   isHidden: boolean;
@@ -34,7 +33,6 @@ export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
   const [showChangeWorkout, setShowChangeWorkout] = useState(false);
   const evaluatedProgram = props.currentProgram ? Program_evaluate(props.currentProgram, props.settings) : undefined;
 
-  const programDay = evaluatedProgram ? Program_getProgramDay(evaluatedProgram, evaluatedProgram.nextDay) : undefined;
   const nextHistoryRecord = props.currentProgram
     ? Program_nextHistoryRecord(props.currentProgram, props.settings, props.stats)
     : undefined;
@@ -58,14 +56,25 @@ export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
         )}
         <div className="relative flex flex-col flex-1 min-h-0">
           <div className="flex-1 min-h-0 pb-10 overflow-y-auto">
-            {programDay && nextHistoryRecord && (
-              <HistoryRecordView
-                historyRecord={nextHistoryRecord}
-                programDay={programDay}
-                isOngoing={false}
-                settings={props.settings}
-                dispatch={props.dispatch}
-              />
+            {nextHistoryRecord && (
+              <div className="p-4 mx-4 mb-2 border rounded-2xl bg-background-subtlecardpurple border-border-cardpurple">
+                <div className="text-lg font-bold text-text-primary">{nextHistoryRecord.dayName}</div>
+                <div className="mb-2 text-sm text-text-secondary">{nextHistoryRecord.programName}</div>
+                {nextHistoryRecord.entries.map((entry, i) => (
+                  <ExerciseEntryView
+                    key={entry.id}
+                    entry={entry}
+                    settings={props.settings}
+                    isLast={i === nextHistoryRecord!.entries.length - 1}
+                  />
+                ))}
+                <button
+                  className="w-full py-3 mt-4 font-bold text-base rounded-xl bg-button-primarybackground text-button-primarylabel"
+                  onClick={() => props.dispatch(Thunk_startProgramDay())}
+                >
+                  Start
+                </button>
+              </div>
             )}
           </div>
           <div className="absolute bottom-0 left-0 flex justify-between w-full px-4 pt-4 pb-6 text-sm bg-background-default">

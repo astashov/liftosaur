@@ -26,7 +26,7 @@ function createSemanticColors() {
 // tailwind.config.js
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./src/**/*.tsx", "./src/utils/*.ts"],
+  content: ["./src/**/*.tsx", "./src/utils/*.ts", "./crossplatform/**/*.tsx"],
   safelist: [
     "line-clamp-1",
     "line-clamp-2",

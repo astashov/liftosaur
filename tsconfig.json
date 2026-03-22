@@ -20,7 +20,11 @@
     "skipLibCheck": true,
     "noEmit": true,
     "outDir": "out",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["src/*"]
+    }
   },
   "include": [
     "src/**/*",

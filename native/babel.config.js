@@ -7,6 +7,7 @@ module.exports = {
         root: ['.'],
         alias: {
           '@shared': '../src',
+          '@crossplatform': '../crossplatform',
         },
       },
     ],

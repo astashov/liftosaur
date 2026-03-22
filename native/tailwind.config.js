@@ -17,7 +17,7 @@ function resolveSemanticColors(theme) {
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   presets: [require('nativewind/preset')],
-  content: ['./src/**/*.tsx', './App.tsx'],
+  content: ['./src/**/*.tsx', './App.tsx', '../crossplatform/**/*.tsx'],
   theme: {
     extend: {
       colors: {

@@ -168,6 +168,7 @@
     "qrcode": "^1.5.3",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "react-native-web": "^0.21.2",
     "rollbar": "^2.26.2",
     "rsa-pem-from-mod-exp": "^0.8.5",
     "satori": "^0.19.2",

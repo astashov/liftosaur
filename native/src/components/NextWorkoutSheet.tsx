@@ -1,77 +1,14 @@
 import React, { useCallback } from "react";
-import { View, Text, Pressable, ScrollView, Image, useWindowDimensions } from "react-native";
+import { View, Text, Pressable, ScrollView, useWindowDimensions } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { LayoutChangeEvent } from "react-native";
 import { Program_nextHistoryRecord, Program_isEmpty, Program_getProgram, emptyProgramId } from "@shared/models/program";
-import { Exercise_get, Exercise_nameWithEquipment } from "@shared/models/exercise";
-import { ExerciseImageUtils_url } from "@shared/models/exerciseImage";
-import type { IHistoryRecord, IHistoryEntry, ISet } from "@shared/types";
+import type { IHistoryRecord } from "@shared/types";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useStoreState } from "../context/StoreContext";
 import { useWebViewPool } from "../screens/WebViewPool";
-
-const IMAGE_BASE = "https://www.liftosaur.com";
-
-interface ISetGroup {
-  count: number;
-  reps: string;
-  weight: string;
-}
-
-function groupSets(sets: ISet[]): ISetGroup[] {
-  const groups: ISetGroup[] = [];
-  for (const s of sets) {
-    const reps = s.isAmrap ? `${s.reps ?? "?"}+` : s.minReps ? `${s.minReps}-${s.reps}` : `${s.reps ?? "?"}`;
-    const weight = s.weight ? `${s.weight.value}${s.weight.unit}` : "";
-    const key = `${reps}|${weight}`;
-    const last = groups[groups.length - 1];
-    if (last && `${last.reps}|${last.weight}` === key) {
-      last.count += 1;
-    } else {
-      groups.push({ count: 1, reps, weight });
-    }
-  }
-  return groups;
-}
-
-function ExerciseEntryView({
-  entry,
-  settings,
-  isLast,
-}: {
-  entry: IHistoryEntry;
-  settings: import("@shared/types").ISettings;
-  isLast: boolean;
-}): React.ReactElement {
-  const exercise = Exercise_get(entry.exercise, settings.exercises);
-  const name = Exercise_nameWithEquipment(exercise, settings);
-  const setGroups = groupSets(entry.sets);
-  const imageUrl = ExerciseImageUtils_url(entry.exercise, "small", settings);
-
-  return (
-    <View className={`py-3 ${isLast ? "" : "border-b border-border-purple"}`}>
-      <View className="flex-row items-center">
-        {imageUrl && (
-          <Image source={{ uri: `${IMAGE_BASE}${imageUrl}` }} className="w-10 h-10 mr-3" resizeMode="contain" />
-        )}
-        <Text className="flex-1 text-base font-bold text-text-primary" numberOfLines={1}>
-          {name}
-        </Text>
-        <View className="items-end ml-2">
-          {setGroups.map((g, i) => (
-            <Text key={i} className="text-sm text-text-primary">
-              <Text className="font-bold text-text-purple">{g.count}</Text>
-              <Text> × {g.reps}</Text>
-              {g.weight ? <Text> × </Text> : null}
-              {g.weight ? <Text className="font-bold">{g.weight}</Text> : null}
-            </Text>
-          ))}
-        </View>
-      </View>
-    </View>
-  );
-}
+import { ExerciseEntryView } from "@crossplatform/components/ExerciseEntryView";
 
 export function NextWorkoutScreen(): React.ReactElement {
   const navigation = useNavigation();

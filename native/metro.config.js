@@ -5,6 +5,8 @@ const {withNativeWind} = require('nativewind/metro');
 const parentDir = path.resolve(__dirname, '..');
 const parentNodeModules = path.resolve(parentDir, 'node_modules');
 
+const crossplatformDir = path.resolve(parentDir, 'crossplatform');
+
 const sharedDeps = [
   'io-ts',
   'fp-ts',

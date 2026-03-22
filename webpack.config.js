@@ -119,6 +119,18 @@ const mainConfig = {
       },
       {
         test: /\.tsx?$/,
+        exclude: /crossplatform\//,
+        use: {
+          loader: "esbuild-loader",
+          options: {
+            target: "es2015",
+            jsx: "automatic",
+          },
+        },
+      },
+      {
+        test: /\.tsx?$/,
+        include: path.resolve(__dirname, "crossplatform"),
         use: {
           loader: "esbuild-loader",
           options: {
@@ -142,6 +154,15 @@ const mainConfig = {
   },
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".css"],
+    alias: {
+      "react": "preact/compat",
+      "react-dom/client": path.resolve(__dirname, "crossplatform/react-dom-client-shim.js"),
+      "react-dom": "preact/compat",
+      "react/jsx-runtime": "preact/jsx-runtime",
+      "react-native": "react-native-web",
+      "@crossplatform": path.resolve(__dirname, "crossplatform"),
+      "@shared": path.resolve(__dirname, "src"),
+    },
   },
   plugins: [
     {

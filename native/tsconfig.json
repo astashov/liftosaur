@@ -13,13 +13,20 @@
     "paths": {
       "@shared/*": [
         "../src/*"
+      ],
+      "@crossplatform/*": [
+        "../crossplatform/*"
+      ],
+      "react-native": [
+        "./node_modules/react-native"
       ]
     }
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
-    "nativewind-env.d.ts"
+    "nativewind-env.d.ts",
+    "../crossplatform/**/*.tsx"
   ],
   "exclude": [
     "**/node_modules",
