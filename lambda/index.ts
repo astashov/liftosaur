@@ -781,10 +781,18 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
         let isNewUser = false;
 
         if (userId == null) {
-          userId = (id as string) || UidFactory_generateUid(12);
-          user = UserDao.build(userId, email, { appleId: result.sub });
-          isNewUser = true;
-          await userDao.store(user);
+          const existingUser = email !== "noemail@example.com" ? await userDao.getByEmail(email, { historyLimit: historylimit }) : undefined;
+          if (existingUser && existingUser.appleId) {
+            userId = existingUser.id;
+            user = existingUser;
+            user.appleId = result.sub;
+            await userDao.store(user);
+          } else {
+            userId = (id as string) || UidFactory_generateUid(12);
+            user = UserDao.build(userId, email, { appleId: result.sub });
+            isNewUser = true;
+            await userDao.store(user);
+          }
         }
 
         const session = JWT.sign({ userId: userId }, cookieSecret);
@@ -857,10 +865,18 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   let isNewUser = false;
 
   if (userId == null) {
-    userId = (id as string) || UidFactory_generateUid(12);
-    user = UserDao.build(userId, openIdJson.email, { googleId: openIdJson.sub });
-    isNewUser = true;
-    await userDao.store(user);
+    const existingUser = await userDao.getByEmail(openIdJson.email, { historyLimit: historylimit });
+    if (existingUser && existingUser.googleId) {
+      userId = existingUser.id;
+      user = existingUser;
+      user.googleId = openIdJson.sub;
+      await userDao.store(user);
+    } else {
+      userId = (id as string) || UidFactory_generateUid(12);
+      user = UserDao.build(userId, openIdJson.email, { googleId: openIdJson.sub });
+      isNewUser = true;
+      await userDao.store(user);
+    }
   }
 
   const session = JWT.sign({ userId: userId }, cookieSecret);

@@ -63,6 +63,11 @@ export class LiftosaurCdkStack extends cdk.Stack {
       projectionType: dynamodb.ProjectionType.ALL,
     });
     usersTable.addGlobalSecondaryIndex({
+      indexName: `lftUsersEmail${suffix}`,
+      partitionKey: { name: "email", type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+    usersTable.addGlobalSecondaryIndex({
       indexName: `lftUsersNickname${suffix}`,
       partitionKey: { name: "nickname", type: dynamodb.AttributeType.STRING },
       projectionType: dynamodb.ProjectionType.ALL,

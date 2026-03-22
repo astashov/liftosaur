@@ -47,6 +47,7 @@ export const userTableNames = {
     users: "lftUsersDev",
     usersGoogleId: "lftUsersGoogleIdDev",
     usersAppleId: "lftUsersAppleIdDev",
+    usersEmail: "lftUsersEmailDev",
     usersNickname: "lftUsersNicknameDev",
     historyRecords: "lftHistoryRecordsDev",
     historyRecordsDate: "lftHistoryRecordsDateDev",
@@ -59,6 +60,7 @@ export const userTableNames = {
     users: "lftUsers",
     usersGoogleId: "lftUsersGoogleId",
     usersAppleId: "lftUsersAppleId",
+    usersEmail: "lftUsersEmail",
     usersNickname: "lftUsersNickname",
     historyRecords: "lftHistoryRecords",
     historyRecordsDate: "lftHistoryRecordsDate",
@@ -485,19 +487,23 @@ export class UserDao {
     }
   }
 
-  public async getByEmail(email: string): Promise<ILimitedUserDao | undefined> {
+  public async getByEmail(email: string, args?: { historyLimit?: number }): Promise<IUserDao | undefined> {
     const env = Utils_getEnv();
 
-    const users = await this.di.dynamo.scan<ILimitedUserDao>({
+    const items = await this.di.dynamo.query<IUserDao>({
       tableName: userTableNames[env].users,
-      filterExpression: "email = :email",
+      indexName: userTableNames[env].usersEmail,
+      expression: "#email = :email",
+      attrs: { "#email": "email" },
       values: { ":email": email },
     });
-    console.log(
-      "users",
-      users.map((u) => u.id)
-    );
-    return users[0];
+
+    const id: string | undefined = items?.[0]?.id;
+    if (id != null) {
+      return this.getById(id, args || {});
+    } else {
+      return undefined;
+    }
   }
 
   public static build(id: string, email: string, opts: { appleId?: string; googleId?: string }): IUserDao {
