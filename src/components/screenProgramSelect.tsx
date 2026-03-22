@@ -9,6 +9,8 @@ import { ModalImportFromLink } from "./modalImportFromLink";
 import { IconDoc } from "./icons/iconDoc";
 import { IconEditSquare } from "./icons/iconEditSquare";
 import { IconLink } from "./icons/iconLink";
+import { emptyProgramId, Program_selectProgram } from "../models/program";
+import { IconEquipmentKettlebell } from "./icons/iconEquipmentKettlebell";
 
 interface IScreenProgramSelectProps {
   dispatch: IDispatch;
@@ -41,6 +43,13 @@ export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Eleme
       description: "Paste a link from the program web editor",
       onClick: () => setShowImportFromLink(true),
     },
+    {
+      key: "adhoc",
+      icon: <IconEquipmentKettlebell size={24} />,
+      title: "Go without program",
+      description: "You can run adhoc workouts, and build the program along the way",
+      onClick: () => Program_selectProgram(props.dispatch, emptyProgramId),
+    },
   ];
 
   return (
@@ -49,7 +58,7 @@ export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Eleme
         <div className="p-4 text-center">
           <img
             src="/images/dinoprogramselect.png"
-            className="inline-block object-cover h-60"
+            className="inline-block object-cover h-52"
             alt="Dino selecting a program"
           />
         </div>
