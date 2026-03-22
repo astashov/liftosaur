@@ -1145,7 +1145,7 @@ export function Progress_applyBindings(
           entry.sets[i].askWeight = !!value;
         } else if (key === "timers") {
           const value = bindings.timers[i];
-          entry.sets[i].timer = value !== 0 ? value : undefined;
+          entry.sets[i].timer = value != null && value >= 0 ? value : undefined;
         }
       }
     }
