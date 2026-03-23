@@ -1,4 +1,3 @@
-Sheiko |-| 980 - 2/5
 Reddit BWF Recommended Routine |-| 1590 - 4/5
 Super Squats / 20 Rep Squat |-| 780 - 2/5
 PPLUL |-| 720 - 2/5
