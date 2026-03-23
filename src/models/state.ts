@@ -25,6 +25,8 @@ export type IEnv = {
   service: Service;
   audio: IAudioInterface;
   queue: AsyncQueue;
+  navigate?: (screen: string, params?: unknown, shouldResetStack?: boolean) => void;
+  goBack?: () => void;
 };
 
 export interface INotification {

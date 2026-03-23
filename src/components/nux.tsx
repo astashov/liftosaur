@@ -3,7 +3,7 @@ import { lb } from "lens-shmens";
 import { IDispatch } from "../ducks/types";
 import { IState, updateState } from "../models/state";
 import { IconClose2 } from "./icons/iconClose2";
-import { IconHelp } from "./icons/iconHelp";
+import { IconHelp } from "@crossplatform/components/icons/IconHelp";
 import { Tailwind_colors } from "../utils/tailwindConfig";
 
 interface IProps {

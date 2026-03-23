@@ -3,12 +3,7 @@ import { View, Text, Pressable, ScrollView, useWindowDimensions } from "react-na
 import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { LayoutChangeEvent } from "react-native";
-import {
-  Program_evaluate,
-  Program_getProgramDay,
-  Program_numberOfDays,
-  emptyProgramId,
-} from "@shared/models/program";
+import { Program_evaluate, Program_getProgramDay, Program_numberOfDays, emptyProgramId } from "@shared/models/program";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useStoreState } from "../context/StoreContext";
 import { useWebViewPool } from "../screens/WebViewPool";
@@ -33,7 +28,7 @@ export function ChangeNextDayScreen(): React.ReactElement {
   const allPrograms = appState.storage.programs;
   const currentProgramId = appState.storage.currentProgramId;
 
-  const onSelect = (programId: string, day: number) => {
+  const onSelect = (programId: string, day: number): void => {
     pool.sendCommand({ type: "command", command: "selectProgram", programId, day });
     navigation.goBack();
   };

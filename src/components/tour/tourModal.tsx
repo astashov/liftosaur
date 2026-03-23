@@ -3,7 +3,7 @@ import { Tour_stepHelpFlag } from "./tourTypes";
 import { Modal } from "../modal";
 import { Button } from "../button";
 import { IState, IStateTour } from "../../models/state";
-import { IconCloseCircleOutline } from "../icons/iconCloseCircleOutline";
+import { IconCloseCircleOutline } from "@crossplatform/components/icons/IconCloseCircleOutline";
 import { tourConfigs } from "./tourConfigs";
 import { ImagePreloader_preload } from "../../utils/imagePreloader";
 

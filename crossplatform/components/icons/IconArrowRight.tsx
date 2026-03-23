@@ -1,0 +1,22 @@
+import React from "react";
+import { Svg, Path } from "react-native-svg";
+import { Tailwind_semantic } from "@shared/utils/tailwindConfig";
+
+interface IProps {
+  width?: number;
+  height?: number;
+  color?: string;
+  style?: Record<string, string | number>;
+  className?: string;
+}
+
+export function IconArrowRight(props: IProps): React.ReactElement {
+  const width = props.width || 7;
+  const height = props.height || 12;
+  const color = props.color || Tailwind_semantic().icon.neutral;
+  return (
+    <Svg width={width} height={height} className={props.className} style={props.style} viewBox="0 0 7 12" fill="none">
+      <Path d="M1 1L6 6L1 11" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}

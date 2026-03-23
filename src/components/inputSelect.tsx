@@ -1,6 +1,6 @@
 import { JSX, useState } from "react";
 import { BottomSheet } from "./bottomSheet";
-import { IconArrowDown2 } from "./icons/iconArrowDown2";
+import { IconArrowDown2 } from "@crossplatform/components/icons/IconArrowDown2";
 
 interface IInputSelectProps<T extends string> {
   name: string;

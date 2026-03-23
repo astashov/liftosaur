@@ -2,7 +2,7 @@ import { JSX, useRef } from "react";
 import { IPlannerExerciseState, IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { IconArrowDown3 } from "../icons/iconArrowDown3";
+import { IconArrowDown3 } from "@crossplatform/components/icons/IconArrowDown3";
 import { Tailwind_colors } from "../../utils/tailwindConfig";
 import { IconPlus2 } from "../icons/iconPlus2";
 import { EditProgramUiHelpers_changeCurrentInstanceExercise } from "../editProgram/editProgramUi/editProgramUiHelpers";

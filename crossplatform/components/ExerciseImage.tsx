@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import type { JSX } from "preact";
 import { View, Text, Image } from "react-native";
 import { IconSpinner } from "./icons/IconSpinner";
 import { IconDefaultExercise } from "./icons/IconDefaultExercise";
@@ -22,7 +23,7 @@ interface IProps {
   width?: number;
 }
 
-export function ExerciseImage(props: IProps): React.ReactElement | null {
+export function ExerciseImage(props: IProps): JSX.Element | null {
   const { size } = props;
   const exercise = Exercise_get(props.exerciseType, props.settings?.exercises || {});
   const exerciseType = {
@@ -79,7 +80,10 @@ export function ExerciseImage(props: IProps): React.ReactElement | null {
         />
       )}
       {isLoading && !isError && (
-        <View className="items-center justify-center" style={{ width: imgWidth, height: imgHeight, position: "absolute" }}>
+        <View
+          className="items-center justify-center"
+          style={{ width: imgWidth, height: imgHeight, position: "absolute" }}
+        >
           <IconSpinner width={16} height={16} />
         </View>
       )}

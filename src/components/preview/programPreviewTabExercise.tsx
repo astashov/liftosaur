@@ -35,7 +35,7 @@ import {
 } from "../../models/equipment";
 import { Modal1RM } from "../modal1RM";
 import { ModalEquipment } from "../modalEquipment";
-import { IconArrowRight } from "../icons/iconArrowRight";
+import { IconArrowRight } from "@crossplatform/components/icons/IconArrowRight";
 import { GroupHeader } from "../groupHeader";
 import { Progress_getNextSupersetEntry } from "../../models/progress";
 

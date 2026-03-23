@@ -1,4 +1,4 @@
-import React from "react";
+import type { JSX } from "preact";
 import { View, Text } from "react-native";
 import { IDisplaySet, Reps_group, Reps_setToDisplaySet } from "@shared/models/set";
 import type { ISet, ISettings } from "@shared/types";
@@ -26,7 +26,7 @@ interface IHistoryRecordSetsProps {
   prs?: IHistoryEntryPersonalRecords;
 }
 
-export function HistoryRecordSetsView(props: IHistoryRecordSetsProps): React.ReactElement {
+export function HistoryRecordSetsView(props: IHistoryRecordSetsProps): JSX.Element {
   const { sets, isNext } = props;
   const groups = Reps_group(sets, isNext);
   const displayGroups = groups.map((g) => {
@@ -56,7 +56,7 @@ interface IHistoryRecordSet2Props {
   isNext: boolean;
 }
 
-function HistoryRecordSet(props: IHistoryRecordSet2Props): React.ReactElement {
+function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
   const { isNext } = props;
   const group = props.sets;
   const set = group[0];
@@ -137,7 +137,7 @@ function HistoryRecordSet(props: IHistoryRecordSet2Props): React.ReactElement {
         )}
         {set.timer != null && (
           <Text className={timerColor} data-cy="history-entry-timer">
-            <Text>{" "}{set.timer}</Text>
+            <Text> {set.timer}</Text>
             <Text className="text-xs">{"s"}</Text>
           </Text>
         )}

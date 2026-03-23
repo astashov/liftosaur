@@ -821,7 +821,7 @@ export function Thunk_pushScreen<T extends IScreen>(
   shouldResetStack?: boolean,
   skipWebViewMode?: boolean
 ): IThunk {
-  return async (dispatch, getState) => {
+  return async (dispatch, getState, env) => {
     dispatch(Thunk_postevent("navigate-to-" + screen));
     if (shouldResetStack) {
       const confirmation = Screen_shouldConfirmNavigation(getState(), true);
@@ -854,11 +854,15 @@ export function Thunk_pushScreen<T extends IScreen>(
     if (getState().storage.currentProgramId == null && screensWithoutCurrentProgram.indexOf(screen) === -1) {
       screen = "programs" as T;
     }
-    if (Thunk_isWebViewMode() && !skipWebViewMode) {
+    if (env.navigate) {
+      env.navigate(screen, params, shouldResetStack);
+    } else if (Thunk_isWebViewMode() && !skipWebViewMode) {
       Thunk_postToRN({ type: "navigate", screen, params, shouldResetStack });
     } else {
       dispatch({ type: "PushScreen", screen, params, shouldResetStack });
-      window.scroll(0, 0);
+      if (typeof window !== "undefined") {
+        window.scroll(0, 0);
+      }
     }
   };
 }
@@ -943,7 +947,7 @@ function cleanup(dispatch: IDispatch, state: IState): void {
 }
 
 export function Thunk_pullScreen(): IThunk {
-  return async (dispatch, getState) => {
+  return async (dispatch, getState, env) => {
     const confirmation = Screen_shouldConfirmNavigation(getState(), false);
     if (confirmation) {
       if (confirm(confirmation)) {
@@ -952,11 +956,15 @@ export function Thunk_pullScreen(): IThunk {
         return;
       }
     }
-    if (Thunk_isWebViewMode()) {
+    if (env.goBack) {
+      env.goBack();
+    } else if (Thunk_isWebViewMode()) {
       Thunk_postToRN({ type: "goBack" });
     } else {
       dispatch({ type: "PullScreen" });
-      window.scroll(0, 0);
+      if (typeof window !== "undefined") {
+        window.scroll(0, 0);
+      }
     }
   };
 }

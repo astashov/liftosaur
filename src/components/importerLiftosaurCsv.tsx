@@ -3,7 +3,7 @@ import { IDispatch } from "../ducks/types";
 import { MenuItemWrapper } from "./menuItem";
 import { Thunk_importCsvData } from "../ducks/thunks";
 import { Importer } from "./importer";
-import { IconHelp } from "./icons/iconHelp";
+import { IconHelp } from "@crossplatform/components/icons/IconHelp";
 import { InternalLink } from "../internalLink";
 
 interface IImporterLiftosaurCsvProps {

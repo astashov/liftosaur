@@ -52,7 +52,7 @@ export function TabBar({ state, navigation }: BottomTabBarProps): React.ReactEle
 
   const hasOngoingProgress = (appState.storage.progress?.length ?? 0) > 0;
 
-  const onTabPress = (routeName: string, routeKey: string, isFocused: boolean) => {
+  const onTabPress = (routeName: string, routeKey: string, isFocused: boolean): void => {
     const event = navigation.emit({
       type: "tabPress",
       target: routeKey,
@@ -74,7 +74,7 @@ export function TabBar({ state, navigation }: BottomTabBarProps): React.ReactEle
     }
   }, [hasOngoingProgress, navigation, state.routes]);
 
-  const renderTab = (index: number) => {
+  const renderTab = (index: number): React.ReactElement => {
     const route = state.routes[index];
     const isFocused = state.index === index;
     const label = TAB_LABELS[route.name] ?? route.name;
@@ -133,9 +133,7 @@ export function TabBar({ state, navigation }: BottomTabBarProps): React.ReactEle
               <IconBarbell color={colors.white} size={30} />
             )}
           </View>
-          <Text
-            style={[styles.label, { color: sem.icon.neutral }, isWorkoutFocused && { color: sem.text.purple }]}
-          >
+          <Text style={[styles.label, { color: sem.icon.neutral }, isWorkoutFocused && { color: sem.text.purple }]}>
             Workout
           </Text>
         </TouchableOpacity>

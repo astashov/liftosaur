@@ -2,7 +2,7 @@ import { JSX, ReactNode, useEffect, useRef, useState } from "react";
 import { Thunk_pullScreen } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { IconBack } from "./icons/iconBack";
-import { IconHelp } from "./icons/iconHelp";
+import { IconHelp } from "@crossplatform/components/icons/IconHelp";
 import { INavCommon, IState, updateState } from "../models/state";
 import { IconSpinner } from "./icons/iconSpinner";
 import { IconClose } from "./icons/iconClose";

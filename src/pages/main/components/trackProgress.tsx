@@ -1,5 +1,5 @@
 import { JSX, useState } from "react";
-import { IconFire } from "../../../components/icons/iconFire";
+import { IconFire } from "@crossplatform/components/icons/IconFire";
 import { IconGraphs } from "../../../components/icons/iconGraphs";
 import { IconBarbell } from "../../../components/icons/iconBarbell";
 import { IconCalculator } from "../../../components/icons/iconCalculator";

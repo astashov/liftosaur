@@ -1,6 +1,6 @@
 import { JSX, ReactNode, RefObject, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { IconCloseCircleOutline } from "./icons/iconCloseCircleOutline";
+import { IconCloseCircleOutline } from "@crossplatform/components/icons/IconCloseCircleOutline";
 
 interface IProps {
   name?: string;

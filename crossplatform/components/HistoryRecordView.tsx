@@ -43,16 +43,16 @@ export const HistoryRecordView = memo((props: IProps): React.ReactElement => {
     if (Progress_isCurrent(historyRecord)) {
       dispatch(Thunk_startProgramDay());
     } else {
-      editHistoryRecord(historyRecord, dispatch, Progress_isCurrent(historyRecord) && Progress_isFullyEmptySet(historyRecord));
+      editHistoryRecord(
+        historyRecord,
+        dispatch,
+        Progress_isCurrent(historyRecord) && Progress_isFullyEmptySet(historyRecord)
+      );
     }
   };
 
   return (
-    <View
-      data-cy="history-record"
-      data-id={props.historyRecord.id}
-      className="mx-4 mb-6"
-    >
+    <View data-cy="history-record" data-id={props.historyRecord.id} className="mx-4 mb-6">
       {props.showTitle && (
         <Text data-cy="history-record-date" className="mx-1 mb-1 font-semibold">
           {!isCurrent ? DateUtils_format(historyRecord.date) : props.isOngoing ? "Ongoing workout" : "Next workout"}
@@ -66,7 +66,7 @@ export const HistoryRecordView = memo((props: IProps): React.ReactElement => {
               : "border border-border-cardpurple bg-background-cardpurple"
             : "bg-background-cardpurple border border-border-cardpurple"
         }`}
-        style={{ boxShadow: "0 3px 3px -3px rgba(0, 0, 0, 0.1)" } as any}
+        style={{ boxShadow: "0 3px 3px -3px rgba(0, 0, 0, 0.1)" }}
         onPress={onCardPress}
       >
         <View className="py-4">

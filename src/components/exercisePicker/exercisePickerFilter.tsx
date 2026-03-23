@@ -11,8 +11,8 @@ import {
 } from "../../types";
 import { IconBack } from "../icons/iconBack";
 import { ObjectUtils_values, ObjectUtils_entries } from "../../utils/object";
-import { IconArrowUp } from "../icons/iconArrowUp";
-import { IconArrowDown2 } from "../icons/iconArrowDown2";
+import { IconArrowUp } from "@crossplatform/components/icons/IconArrowUp";
+import { IconArrowDown2 } from "@crossplatform/components/icons/IconArrowDown2";
 import { lb } from "lens-shmens";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { equipmentName } from "../../models/exercise";

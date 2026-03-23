@@ -1,8 +1,8 @@
 import { JSX, Fragment, ReactNode, useState } from "react";
 import { StringUtils_dashcase } from "../utils/string";
-import { IconArrowDown2 } from "./icons/iconArrowDown2";
-import { IconArrowUp } from "./icons/iconArrowUp";
-import { IconHelp } from "./icons/iconHelp";
+import { IconArrowDown2 } from "@crossplatform/components/icons/IconArrowDown2";
+import { IconArrowUp } from "@crossplatform/components/icons/IconArrowUp";
+import { IconHelp } from "@crossplatform/components/icons/IconHelp";
 
 interface IProps {
   name: string;

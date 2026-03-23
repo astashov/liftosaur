@@ -39,12 +39,7 @@ export function IconDoc({ color, size = 24 }: IIconProps): React.ReactElement {
   color = color ?? Tailwind_semantic().icon.neutral;
   return (
     <Svg width={size} height={size} viewBox="0 0 23 23" fill="none">
-      <Path
-        d="M19 7L15 3H12H5V12V21H12H19V14V7Z"
-        stroke={color}
-        strokeWidth={1.5}
-        strokeLinejoin="round"
-      />
+      <Path d="M19 7L15 3H12H5V12V21H12H19V14V7Z" stroke={color} strokeWidth={1.5} strokeLinejoin="round" />
       <Path
         d="M14 3V4C14 5.88562 14 6.82843 14.5858 7.41421C15.1716 8 16.1144 8 18 8H19"
         stroke={color}

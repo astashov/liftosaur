@@ -504,7 +504,10 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
       }
     },
     (dispatch, action, oldState, newState) => {
-      if (Screen_currentName(oldState.screenStack) !== Screen_currentName(newState.screenStack)) {
+      if (
+        typeof window !== "undefined" &&
+        Screen_currentName(oldState.screenStack) !== Screen_currentName(newState.screenStack)
+      ) {
         setTimeout(() => {
           window.scroll(0, 0);
         }, 0);
@@ -517,7 +520,12 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
       }
     },
     (dispatch, action, oldState, newState) => {
-      if ("type" in action && action.type === "UpdateState" && action.desc === "stop-is-undoing") {
+      if (
+        typeof window !== "undefined" &&
+        "type" in action &&
+        action.type === "UpdateState" &&
+        action.desc === "stop-is-undoing"
+      ) {
         setTimeout(() => {
           window.isUndoing = false;
         }, 200);

@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import type { JSX } from "preact";
 import { View, Text } from "react-native";
 import { Equipment_getUnitOrDefaultForExerciseType } from "@shared/models/equipment";
 import { Exercise_get, Exercise_nameWithEquipment } from "@shared/models/exercise";
@@ -19,7 +19,7 @@ interface IHistoryEntryProps {
   showNotes: boolean;
 }
 
-export const HistoryEntryView = memo((props: IHistoryEntryProps): React.ReactElement => {
+export function HistoryEntryView(props: IHistoryEntryProps): JSX.Element {
   const { entry, isNext, settings, showNotes, isOngoing, isLast } = props;
   const exercise = Exercise_get(entry.exercise, settings.exercises);
   const exerciseUnit = Equipment_getUnitOrDefaultForExerciseType(settings, exercise);
@@ -66,4 +66,4 @@ export const HistoryEntryView = memo((props: IHistoryEntryProps): React.ReactEle
       </View>
     </View>
   );
-});
+}

@@ -11,7 +11,7 @@ import { IProgram, ISettings, IScreenMuscle, IStats } from "../types";
 import { CollectionUtils_findBy, CollectionUtils_compact } from "../utils/collection";
 import { ObjectUtils_keys } from "../utils/object";
 import { ExerciseImage } from "./exerciseImage";
-import { IconArrowRight } from "./icons/iconArrowRight";
+import { IconArrowRight } from "@crossplatform/components/icons/IconArrowRight";
 import { MenuItemWrapper } from "./menuItem";
 import { MenuItemEditable } from "./menuItemEditable";
 import { IMuscleStyle, BackMusclesSvg } from "./muscles/images/backMusclesSvg";

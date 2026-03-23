@@ -1,0 +1,75 @@
+import React, { useState } from "react";
+import { View, Text, Pressable } from "react-native";
+import { StringUtils_dashcase } from "@shared/utils/string";
+import { IconArrowDown2 } from "./icons/IconArrowDown2";
+import { IconArrowUp } from "./icons/IconArrowUp";
+import { IconHelp } from "./icons/IconHelp";
+
+interface IProps {
+  name: string;
+  help?: React.ReactElement;
+  size?: "small" | "large";
+  children?: React.ReactNode;
+  headerClassName?: string;
+  nameAddOn?: React.ReactElement;
+  rightAddOn?: React.ReactElement;
+  leftExpandIcon?: boolean;
+  isExpanded?: boolean;
+  expandOnIconClick?: boolean;
+  topPadding?: boolean;
+  highlighted?: boolean;
+}
+
+export function GroupHeader(props: IProps): React.ReactElement {
+  const { name } = props;
+  const [isExpanded, setIsExpanded] = useState<boolean>(!!props.isExpanded);
+  const [isHelpShown, setIsHelpShown] = useState<boolean>(false);
+  const size = props.size || "small";
+  const testId = `group-header-${StringUtils_dashcase(name)}`;
+
+  function onClick(): void {
+    if (props.children) {
+      setIsExpanded(!isExpanded);
+    }
+  }
+
+  return (
+    <>
+      <Pressable
+        data-cy={testId}
+        onPress={!props.expandOnIconClick ? onClick : undefined}
+        className={`flex-row items-center pb-1 ${props.topPadding ? "mt-6 pt-4" : ""} ${props.headerClassName || ""}`}
+      >
+        {props.children && props.leftExpandIcon && (
+          <Pressable
+            className="items-center justify-center mr-2"
+            onPress={props.expandOnIconClick ? onClick : undefined}
+          >
+            {isExpanded ? <IconArrowUp /> : <IconArrowDown2 />}
+          </Pressable>
+        )}
+        <View className="flex-row items-center flex-1">
+          <Text
+            className={`${size === "small" ? "text-xs" : "text-base font-bold"} ${
+              props.highlighted ? "text-text-purple" : "text-text-secondary"
+            }`}
+          >
+            {name}
+          </Text>
+          {props.nameAddOn}
+        </View>
+        <View className="flex-row items-center justify-center">
+          {props.rightAddOn}
+          {props.help && (
+            <Pressable style={{ marginRight: -8 }} className="px-2" onPress={() => setIsHelpShown(!isHelpShown)}>
+              <IconHelp size={20} color="#607284" />
+            </Pressable>
+          )}
+          {props.children && !props.leftExpandIcon ? isExpanded ? <IconArrowUp /> : <IconArrowDown2 /> : null}
+        </View>
+      </Pressable>
+      {isHelpShown && props.help}
+      {isExpanded && props.children}
+    </>
+  );
+}

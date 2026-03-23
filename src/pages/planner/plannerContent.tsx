@@ -33,9 +33,9 @@ import {
   PlannerProgram_evaluateText,
   PlannerProgram_replaceAndValidateExercise,
 } from "./models/plannerProgram";
-import { IconCloseCircleOutline } from "../../components/icons/iconCloseCircleOutline";
+import { IconCloseCircleOutline } from "@crossplatform/components/icons/IconCloseCircleOutline";
 import { PlannerCodeBlock } from "./components/plannerCodeBlock";
-import { IconHelp } from "../../components/icons/iconHelp";
+import { IconHelp } from "@crossplatform/components/icons/IconHelp";
 import { IconDoc } from "../../components/icons/iconDoc";
 import { PlannerContentPerDay } from "./plannerContentPerDay";
 import { PlannerContentFull } from "./plannerContentFull";

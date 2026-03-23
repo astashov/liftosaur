@@ -7,7 +7,7 @@ import {
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { GroupHeader } from "../groupHeader";
 import { HistoryRecordSet } from "../historyRecordSets";
-import { IconArrowDown3 } from "../icons/iconArrowDown3";
+import { IconArrowDown3 } from "@crossplatform/components/icons/IconArrowDown3";
 import { ISettings } from "../../types";
 
 interface IEditProgramUiExerciseSetVariationsProps {

@@ -2,7 +2,7 @@ import { JSX, useEffect, useState } from "react";
 import { Thunk_pushScreen } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { Button } from "./button";
-import { IconArrowRight } from "./icons/iconArrowRight";
+import { IconArrowRight } from "@crossplatform/components/icons/IconArrowRight";
 import StorySlider from "./storySlider";
 import { IconKettlebell } from "./icons/iconKettlebell";
 import { Tailwind_colors } from "../utils/tailwindConfig";

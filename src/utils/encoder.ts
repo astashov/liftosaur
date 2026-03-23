@@ -31,7 +31,7 @@ export function Encoder_encode(str: string): Promise<string> {
             resolve(btoa(b64));
           }
         };
-        reader.readAsDataURL(new Blob([result]));
+        reader.readAsDataURL(new Blob([result as any]));
       } else {
         let binary = "";
         for (let i = 0; i < result.length; i++) {

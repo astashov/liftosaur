@@ -10,7 +10,7 @@ import { Reps_volume } from "../models/set";
 import { History_getPersonalRecords } from "../models/history";
 import { ObjectUtils_keys } from "../utils/object";
 import { HistoryRecordSetsView } from "./historyRecordSets";
-import { IconArrowRight } from "./icons/iconArrowRight";
+import { IconArrowRight } from "@crossplatform/components/icons/IconArrowRight";
 import { lb } from "lens-shmens";
 import { updateSettings } from "../models/state";
 import { GroupHeader } from "./groupHeader";

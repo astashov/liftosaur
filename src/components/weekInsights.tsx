@@ -1,7 +1,7 @@
 import { JSX, useState } from "react";
 import { IHistoryRecord, ISettings, ISubscription } from "../types";
 import { WeekInsightsUtils_calculateSetResults } from "../utils/weekInsightsUtils";
-import { IconFire } from "./icons/iconFire";
+import { IconFire } from "@crossplatform/components/icons/IconFire";
 import { Tailwind_colors } from "../utils/tailwindConfig";
 import { LinkButton } from "./linkButton";
 import { IPersonalRecords, History_getNumberOfPersonalRecords } from "../models/history";
@@ -12,7 +12,7 @@ import { colorPctValue, PlannerSetSplit } from "../pages/planner/components/plan
 import { ObjectUtils_keys } from "../utils/object";
 import { PersonalRecords } from "./personalRecords";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
-import { IconCrown } from "./icons/iconCrown";
+import { IconCrown } from "@crossplatform/components/icons/IconCrown";
 import { IDispatch } from "../ducks/types";
 import { Thunk_pushScreen } from "../ducks/thunks";
 import { DateUtils_firstDayOfWeekTimestamp, DateUtils_formatRange } from "../utils/date";

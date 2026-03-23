@@ -1,69 +1,69 @@
 declare module "react-native" {
-  import React from "react";
+  import { FunctionComponent, ComponentChildren } from "preact";
 
-  interface ViewProps {
+  interface IViewProps {
     className?: string;
-    children?: React.ReactNode;
-    style?: any;
+    children?: ComponentChildren;
+    style?: Record<string, unknown>;
     "data-cy"?: string;
     "data-id"?: string | number;
     id?: string;
   }
-  export const View: React.FC<ViewProps>;
+  export const View: FunctionComponent<IViewProps>;
 
-  interface TextProps {
+  interface ITextProps {
     className?: string;
-    children?: React.ReactNode;
-    style?: any;
+    children?: ComponentChildren;
+    style?: Record<string, unknown>;
     numberOfLines?: number;
     "data-cy"?: string;
   }
-  export const Text: React.FC<TextProps>;
+  export const Text: FunctionComponent<ITextProps>;
 
-  interface ImageProps {
+  interface IImageProps {
     source: { uri: string };
     className?: string;
-    style?: any;
+    style?: Record<string, unknown>;
     resizeMode?: "cover" | "contain" | "stretch" | "center";
     onLoad?: () => void;
     onError?: () => void;
     "data-cy"?: string;
   }
-  export const Image: React.FC<ImageProps>;
+  export const Image: FunctionComponent<IImageProps>;
 
-  interface PressableProps {
+  interface IPressableProps {
     className?: string;
-    children?: React.ReactNode;
-    style?: any;
+    children?: ComponentChildren;
+    style?: Record<string, unknown>;
     onPress?: () => void;
     disabled?: boolean;
     "data-cy"?: string;
   }
-  export const Pressable: React.FC<PressableProps>;
+  export const Pressable: FunctionComponent<IPressableProps>;
 
-  interface ScrollViewProps {
+  interface IScrollViewProps {
     className?: string;
-    children?: React.ReactNode;
-    style?: any;
+    children?: ComponentChildren;
+    style?: Record<string, unknown>;
   }
-  export const ScrollView: React.FC<ScrollViewProps>;
+  export const ScrollView: FunctionComponent<IScrollViewProps>;
 }
 
 declare module "react-native-svg" {
-  import React from "react";
+  import { FunctionComponent, ComponentChildren } from "preact";
 
-  interface SvgProps {
+  interface ISvgProps {
     width?: number | string;
     height?: number | string;
     viewBox?: string;
     fill?: string;
     className?: string;
-    style?: any;
-    children?: React.ReactNode;
+    style?: Record<string, unknown>;
+    children?: ComponentChildren;
   }
-  export function Svg(props: SvgProps): React.ReactElement;
+  export const Svg: FunctionComponent<ISvgProps>;
 
-  interface PathProps {
+  interface IPathProps {
     d?: string;
     fill?: string;
     stroke?: string;
@@ -73,9 +73,9 @@ declare module "react-native-svg" {
     fillRule?: string;
     clipRule?: string;
   }
-  export function Path(props: PathProps): React.ReactElement;
+  export const Path: FunctionComponent<IPathProps>;
 
-  interface RectProps {
+  interface IRectProps {
     x?: number | string;
     y?: number | string;
     width?: number | string;
@@ -84,30 +84,30 @@ declare module "react-native-svg" {
     ry?: number | string;
     fill?: string;
   }
-  export function Rect(props: RectProps): React.ReactElement;
+  export const Rect: FunctionComponent<IRectProps>;
 
-  interface CircleProps {
+  interface ICircleProps {
     cx?: number | string;
     cy?: number | string;
     r?: number | string;
     fill?: string;
     stroke?: string;
   }
-  export function Circle(props: CircleProps): React.ReactElement;
+  export const Circle: FunctionComponent<ICircleProps>;
 
   export default Svg;
 }
 
 declare module "markdown-to-jsx" {
-  import React from "react";
+  import { FunctionComponent } from "preact";
 
-  interface MarkdownProps {
+  interface IMarkdownProps {
     children: string;
     options?: {
-      overrides?: Record<string, { component: React.FC<any> }>;
+      overrides?: Record<string, { component: FunctionComponent<Record<string, unknown>> }>;
       forceBlock?: boolean;
     };
   }
-  const Markdown: React.FC<MarkdownProps>;
+  const Markdown: FunctionComponent<IMarkdownProps>;
   export default Markdown;
 }

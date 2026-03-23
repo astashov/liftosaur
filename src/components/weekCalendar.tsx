@@ -2,7 +2,7 @@ import { JSX, useCallback, useLayoutEffect, useRef } from "react";
 import { IHistoryRecord } from "../types";
 import { DateUtils_formatYYYYMMDD } from "../utils/date";
 import { History_getDateToHistory } from "../models/history";
-import { IconArrowRight } from "./icons/iconArrowRight";
+import { IconArrowRight } from "@crossplatform/components/icons/IconArrowRight";
 import { IconSpinner } from "./icons/iconSpinner";
 import { Progress_isCurrent } from "../models/progress";
 

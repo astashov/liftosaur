@@ -97,7 +97,7 @@ module.exports = defineConfig([
       sourceType: "module",
 
       parserOptions: {
-        project: ["tsconfig.json", "native/tsconfig.json"],
+        projectService: true,
       },
     },
 
@@ -206,5 +206,6 @@ module.exports = defineConfig([
     "test-results",
     "**/node_modules",
     "**/worktrees",
+    "codemods",
   ]),
 ]);

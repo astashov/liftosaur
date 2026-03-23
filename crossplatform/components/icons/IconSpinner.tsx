@@ -1,4 +1,4 @@
-import React from "react";
+import type { JSX } from "preact";
 import { Svg, Path } from "react-native-svg";
 import { Tailwind_semantic } from "@shared/utils/tailwindConfig";
 
@@ -8,7 +8,7 @@ interface IProps {
   color?: string;
 }
 
-export function IconSpinner(props: IProps): React.ReactElement {
+export function IconSpinner(props: IProps): JSX.Element {
   const color = props.color || Tailwind_semantic().icon.neutral;
   return (
     <Svg

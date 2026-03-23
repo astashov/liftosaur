@@ -10,7 +10,7 @@ import {
   Exercise_nameWithEquipment,
   Exercise_fullName,
 } from "../models/exercise";
-import { IconArrowRight } from "./icons/iconArrowRight";
+import { IconArrowRight } from "@crossplatform/components/icons/IconArrowRight";
 import { LinkButton } from "./linkButton";
 import { ProgramExercise_doesUse1RM } from "../models/programExercise";
 import { Weight_print, Weight_build, Weight_calculatePlates, Weight_eq, Weight_formatOneSide } from "../models/weight";

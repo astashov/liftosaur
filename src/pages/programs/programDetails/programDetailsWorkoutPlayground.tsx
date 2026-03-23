@@ -5,7 +5,7 @@ import { ProgramPreviewPlayground } from "../../../components/preview/programPre
 import { Stats_getEmpty } from "../../../models/stats";
 import { track } from "../../../utils/posthog";
 import { ProgramDetailsLiftoscript } from "./programDetailsLiftoscript";
-import { IconArrowRight } from "../../../components/icons/iconArrowRight";
+import { IconArrowRight } from "@crossplatform/components/icons/IconArrowRight";
 
 type ITab = "preview" | "playground" | "liftoscript";
 

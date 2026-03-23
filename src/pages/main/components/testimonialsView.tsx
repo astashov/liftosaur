@@ -2,7 +2,7 @@ import { JSX, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ITestimonial } from "../testimonitals";
 import { IconStar } from "../../../components/icons/iconStar";
 import { IconHeart } from "../../../components/icons/iconHeart";
-import { IconArrowRight } from "../../../components/icons/iconArrowRight";
+import { IconArrowRight } from "@crossplatform/components/icons/IconArrowRight";
 import { Tailwind_colors, Tailwind_semantic } from "../../../utils/tailwindConfig";
 import { Markdown } from "../../../components/markdown";
 

@@ -24,7 +24,7 @@ import { MenuItemWrapper } from "./menuItem";
 import { Multiselect } from "./multiselect";
 import { IHistoryRecord } from "../types";
 import { Weight_print } from "../models/weight";
-import { IconArrowRight } from "./icons/iconArrowRight";
+import { IconArrowRight } from "@crossplatform/components/icons/IconArrowRight";
 import { LinkButton } from "./linkButton";
 import { ObjectUtils_values } from "../utils/object";
 import { Settings_activeCustomExercises } from "../models/settings";

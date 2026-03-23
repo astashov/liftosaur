@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { View, StyleSheet } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { NavigationContainer, StackActions, useNavigationContainerRef } from "@react-navigation/native";
+import { NavigationContainer, StackActions } from "@react-navigation/native";
+import { navigationRef } from "./navigationRef";
 import { PooledWebViewScreen } from "../screens/PooledWebViewScreen";
 import { WebViewPool, WebViewPoolProvider } from "../screens/WebViewPool";
 import { MigratedScreens_get } from "./migratedScreens";
@@ -19,6 +20,9 @@ import { useStore, useStoreState } from "../context/StoreContext";
 import { TabBar } from "../components/TabBar";
 import { NextWorkoutScreen } from "../components/NextWorkoutSheet";
 import { ChangeNextDayScreen } from "../components/ChangeNextDaySheet";
+import { MonthCalendarSheet } from "../components/MonthCalendarSheet";
+import { WeekInsightsSheet } from "../components/WeekInsightsSheet";
+import { PlannerSettingsSheet } from "../components/PlannerSettingsSheet";
 
 const Tab = createBottomTabNavigator();
 const RootStack = createNativeStackNavigator();
@@ -66,7 +70,7 @@ const initialScreensToPreload = Object.entries(tabInitialScreen)
   .map(([, screen]) => screen);
 
 export function AppNavigator(): React.ReactElement {
-  const navigationRef = useNavigationContainerRef();
+  // navigationRef imported from ./navigationRef module
   const store = useStore();
   const appState = useStoreState();
   const pool = useRef(new WebViewPool()).current;
@@ -103,11 +107,21 @@ export function AppNavigator(): React.ReactElement {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (navigationRef as any).reset({
               index: 0,
-              routes: [{ name: "MainTabs", params: { screen: tab, params: { screen: tabInitialScreen[tab], params: { preparedSlotId: slotId } } } }],
+              routes: [
+                {
+                  name: "MainTabs",
+                  params: {
+                    screen: tab,
+                    params: { screen: tabInitialScreen[tab], params: { preparedSlotId: slotId } },
+                  },
+                },
+              ],
             });
             if (!isInitialScreen) {
               pool.prepareScreen(screen, stateJson).then((targetSlotId) => {
-                navigationRef.dispatch(StackActions.push(screen, { ...(msg.params as object), preparedSlotId: targetSlotId }));
+                navigationRef.dispatch(
+                  StackActions.push(screen, { ...(msg.params as object), preparedSlotId: targetSlotId })
+                );
               });
             }
           });
@@ -173,6 +187,45 @@ export function AppNavigator(): React.ReactElement {
                 headerShown: true,
                 headerShadowVisible: false,
                 title: "Change Next Workout",
+              }}
+            />
+            <RootStack.Screen
+              name="MonthCalendarSheet"
+              component={MonthCalendarSheet}
+              options={{
+                presentation: "formSheet",
+                sheetGrabberVisible: true,
+                sheetAllowedDetents: [0.85, 1.0],
+                sheetExpandsWhenScrolledToEdge: false,
+                headerShown: true,
+                headerShadowVisible: false,
+                title: "Calendar",
+              }}
+            />
+            <RootStack.Screen
+              name="WeekInsightsSheet"
+              component={WeekInsightsSheet}
+              options={{
+                presentation: "formSheet",
+                sheetGrabberVisible: true,
+                sheetAllowedDetents: [0.75, 1.0],
+                sheetExpandsWhenScrolledToEdge: false,
+                headerShown: true,
+                headerShadowVisible: false,
+                title: "Week Insights",
+              }}
+            />
+            <RootStack.Screen
+              name="PlannerSettingsSheet"
+              component={PlannerSettingsSheet}
+              options={{
+                presentation: "formSheet",
+                sheetGrabberVisible: true,
+                sheetAllowedDetents: [0.85, 1.0],
+                sheetExpandsWhenScrolledToEdge: false,
+                headerShown: true,
+                headerShadowVisible: false,
+                title: "Set Range Settings",
               }}
             />
           </RootStack.Navigator>

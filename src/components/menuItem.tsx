@@ -1,5 +1,5 @@
 import React, { JSX, ReactNode } from "react";
-import { IconArrowRight } from "./icons/iconArrowRight";
+import { IconArrowRight } from "@crossplatform/components/icons/IconArrowRight";
 import { IconHandle } from "./icons/iconHandle";
 import { StringUtils_dashcase } from "../utils/string";
 

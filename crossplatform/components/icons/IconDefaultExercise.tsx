@@ -1,4 +1,4 @@
-import React from "react";
+import type { JSX } from "preact";
 import { Svg, Path, Rect } from "react-native-svg";
 
 interface IProps {
@@ -6,7 +6,7 @@ interface IProps {
   className?: string;
 }
 
-export function IconDefaultExercise(props: IProps): React.ReactElement {
+export function IconDefaultExercise(props: IProps): JSX.Element {
   const size = props.size ?? 24;
   return (
     <Svg width={size} height={size} className={props.className} viewBox="0 0 64 64" fill="none">

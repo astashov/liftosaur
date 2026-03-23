@@ -2,7 +2,7 @@ import type { JSX } from "react";
 import { PlannerProgramExercise_currentDescriptionIndex } from "../../pages/planner/models/plannerProgramExercise";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { GroupHeader } from "../groupHeader";
-import { IconArrowDown3 } from "../icons/iconArrowDown3";
+import { IconArrowDown3 } from "@crossplatform/components/icons/IconArrowDown3";
 import { ISettings } from "../../types";
 import { Markdown } from "../markdown";
 

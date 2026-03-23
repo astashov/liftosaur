@@ -7,7 +7,7 @@ import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { Input2 } from "../input2";
 import { IconAi } from "../icons/iconAi";
 import { ExercisePickerOptionsMuscles } from "./exercisePickerOptionsMuscles";
-import { IconArrowDown2 } from "../icons/iconArrowDown2";
+import { IconArrowDown2 } from "@crossplatform/components/icons/IconArrowDown2";
 import { ExercisePickerOptions, IFilterValue } from "./exercisePickerOptions";
 import { StringUtils_capitalize } from "../../utils/string";
 import { ObjectUtils_keys, ObjectUtils_clone, ObjectUtils_mapValues } from "../../utils/object";
