@@ -12,13 +12,14 @@ import {
   PlannerProgram_generateFullText,
   PlannerProgram_replaceAndValidateExercise,
 } from "../../src/pages/planner/models/plannerProgram";
-import { IProgram, ISettings, IPlannerProgram, IExerciseType, IStats } from "../../src/types";
+import { IProgram, ISettings, IPlannerProgram, IExerciseType, IStats, IWeight } from "../../src/types";
 import { IWeightChange, ProgramExercise_weightChanges } from "../../src/models/programExercise";
 import { PlannerKey_fromFullName } from "../../src/pages/planner/plannerKey";
 import { Stats_getEmpty } from "../../src/models/stats";
 
 export interface ICompletedEntries {
   completedReps: number[][];
+  completedWeights?: IWeight[][];
 }
 
 export function PlannerTestUtils_get(text: string): { program: IProgram; planner: IPlannerProgram } {
@@ -71,9 +72,10 @@ export function PlannerTestUtils_finish(
     for (let setIndex = 0; setIndex < completed.completedReps[entryIndex].length; setIndex++) {
       const set = nextHistoryRecord.entries?.[entryIndex]?.sets[setIndex];
       const completedReps = completed.completedReps?.[entryIndex]?.[setIndex];
+      const completedWeights = completed.completedWeights?.[entryIndex]?.[setIndex];
       if (set != null && completedReps != null) {
         set.completedReps = completedReps;
-        set.completedWeight = set.weight;
+        set.completedWeight = completedWeights ?? set.weight;
         set.isCompleted = true;
       }
     }

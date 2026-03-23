@@ -563,7 +563,12 @@ if (completedReps >= reps && completedRPE <= RPE) {
   if (completedReps >= state.maxReps) {
     reps = state.minReps
     for (var.i in completedReps) {
-      weights[var.i] += (completedWeights[var.i] - weights[var.i]) + state.increment
+      var.isInitial = weights[var.i] == 0 && completedWeights[var.i] != 0
+      if (var.isInitial) {
+        weights[var.i] = completedWeights[var.i] + state.increment
+      } else {
+        weights[var.i] += (completedWeights[var.i] - weights[var.i]) + state.increment
+      }
     }
   } else {
     for (var.i in completedReps) {
@@ -584,7 +589,12 @@ export function PlannerProgramExercise_buildDpRangeScript(): string {
 if (completedReps >= reps && completedRPE <= RPE) {
   minReps = state.minReps
   for (var.i in completedReps) {
-    weights[var.i] += (completedWeights[var.i] - weights[var.i]) + state.increment
+    var.isInitial = weights[var.i] == 0 && completedWeights[var.i] != 0
+    if (var.isInitial) {
+      weights[var.i] = completedWeights[var.i] + state.increment
+    } else {
+      weights[var.i] += (completedWeights[var.i] - weights[var.i]) + state.increment
+    }
   }
 } else {
   for (var.i in completedReps) {
@@ -634,7 +644,12 @@ if (completedReps >= reps && completedRPE <= RPE) {
   state.successCounter += 1
   if (state.successCounter >= state.successes) {
     for (var.i in completedReps) {
-      weights[var.i] += (completedWeights[var.i] - weights[var.i]) + state.increment
+      var.isInitial = weights[var.i] == 0 && completedWeights[var.i] != 0
+      if (var.isInitial) {
+        weights[var.i] = completedWeights[var.i] + state.increment
+      } else {
+        weights[var.i] += (completedWeights[var.i] - weights[var.i]) + state.increment
+      }
     }
     state.successCounter = 0
     state.failureCounter = 0

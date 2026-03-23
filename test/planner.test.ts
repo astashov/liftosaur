@@ -33,6 +33,23 @@ Squat / 2x5 / 105lb / progress: lp(5lb)
 `);
   });
 
+  it("updates empty weight after completing", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 1x5 / progress: lp(5lb)`;
+    const { program } = PlannerTestUtils_finish(programText, {
+      completedReps: [[5]],
+      completedWeights: [[Weight_build(100, "lb")]],
+    });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 1x5 / 105lb / progress: lp(5lb)
+
+
+`);
+  });
+
   it("switches toe program from lb to kg", () => {
     const programText = `# Week 1
 ## Day 1
