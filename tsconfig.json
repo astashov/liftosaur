@@ -1,6 +1,7 @@
 {
   "ts-node": {
-    "files": true
+    "files": true,
+    "require": ["tsconfig-paths/register"]
   },
   "compilerOptions": {
     "target": "es2015",
@@ -23,7 +24,10 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "@shared/*": ["src/*"]
+      "@shared/*": ["src/*"],
+      "@crossplatform/*": ["crossplatform/*"],
+      "react-native-svg": ["crossplatform/web/react-native-svg.tsx"],
+      "react-native": ["node_modules/react-native-web"]
     }
   },
   "include": [

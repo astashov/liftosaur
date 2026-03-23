@@ -6,7 +6,9 @@
       "WebSearch",
       "WebFetch(*)",
       "Edit(**)",
-      "Write(**)"
+      "Write(**)",
+      "mcp__playwright__*",
+      "mcp__mobile-mcp__*"
     ],
     "deny": [
       "Bash(rm -rf /)",

@@ -6,7 +6,7 @@ import { UrlUtils_build } from "../utils/url";
 import { IconDoc } from "../components/icons/iconDoc";
 import { PlannerCodeBlock } from "../pages/planner/components/plannerCodeBlock";
 import { IconSwap } from "../components/icons/iconSwap";
-import { IconHelp } from "../components/icons/iconHelp";
+import { IconHelp } from "@crossplatform/components/icons/IconHelp";
 
 export interface IWhatsNew {
   title: JSX.Element;
