@@ -37,6 +37,7 @@ interface IProgramPreviewPlaygroundProps {
   hasNavbar?: boolean;
   showAllWeeks?: boolean;
   onEngage?: () => void;
+  scrollTabZIndex?: number;
 }
 
 interface IProgramPreviewPlaygroundState {
@@ -228,6 +229,7 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
   return (
     <ScrollableTabs
       offsetY={props.scrollableTabsProps?.offsetY ?? (props.hasNavbar ? "3rem" : undefined)}
+      zIndex={props.scrollTabZIndex}
       shouldNotExpand={true}
       color="purple"
       type={props.scrollableTabsProps?.type}

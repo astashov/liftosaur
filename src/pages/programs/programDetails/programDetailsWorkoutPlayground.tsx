@@ -155,6 +155,7 @@ export const ProgramDetailsWorkoutPlayground = memo((props: IPlaygroundProps): J
           the program adjusts weights, reps, and sets for next time.
         </p>
         <ProgramPreviewPlayground
+          scrollTabZIndex={20}
           key={`playground-${units}`}
           program={props.program}
           stats={Stats_getEmpty()}

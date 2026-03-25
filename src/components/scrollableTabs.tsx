@@ -17,6 +17,7 @@ export interface IScrollableTabsProps {
   offsetY?: string;
   topPadding?: string;
   nonSticky?: boolean;
+  zIndex?: number;
   onChange?: (index: number) => void;
 }
 
@@ -39,11 +40,12 @@ export function ScrollableTabs(props: IScrollableTabsProps): JSX.Element {
     <div className="relative">
       {tabs.length > 1 && (
         <div
-          className={`${props.nonSticky ? "" : "sticky"} left-0 z-10 bg-background-default`}
+          className={`${props.nonSticky ? "" : "sticky"} left-0 ${props.zIndex == null ? "z-10" : ""} bg-background-default`}
           style={{
             top: props.offsetY || "0",
             marginLeft: props.shouldNotExpand ? undefined : "-1rem",
             marginRight: props.shouldNotExpand ? undefined : "-1rem",
+            zIndex: props.zIndex,
           }}
         >
           <Scroller arrowYOffsetPct={0}>
