@@ -46,28 +46,6 @@ Home gym alternatives for T3 machine exercises:
 - [{Triceps Pushdown}] → [{Skullcrusher}] or [{Triceps Dip}]
 - [{Face Pull}] → [{Reverse Fly}] with dumbbells
 
-<!-- faq -->
-
-### Where can I learn more about General Gainz?
-
-Buy the [General Gainz book](https://www.amazon.com/General-Gainz-Weight-Training-Framework-ebook/dp/B0GNLQHM6S) by Cody Lefever. It covers the full framework in depth - effort ratings, Volume Drop Sets, the four actions (Find/Hold/Push/Extend), and several other programs beyond Riptide. It's essential reading to get the most out of this program.
-
-### Is General Gainz Riptide good for intermediates?
-
-Yes, Riptide works well for intermediate lifters with at least a year of training experience. You need to be comfortable estimating rep maxes and rating effort. If you're still making linear progress session to session, stick with [GZCLP](/programs/gzclp) instead.
-
-### How many days a week is Riptide?
-
-Riptide is a 4-day upper/lower split. Each day has 1 T1 heavy compound, 1 T2 moderate compound, and 4 T3 accessory exercises.
-
-### How is Riptide different from Abyssal Wake?
-
-Riptide is 8 weeks vs Abyssal Wake's 12. It has a simpler Find/Push alternation and less heavy T1 work. Riptide is a good entry point to General Gainz fixed-length programs before tackling the longer ones.
-
-### What should I do after finishing Riptide?
-
-The book covers several follow-up options including Undertow (Riptide in reverse), Steel Helm (peaking toward a 1RM), or another Riptide cycle with heavier weights. See the book for details on transitioning between programs.
-
 ```liftoscript
 # Week 1
 ## Day 1
