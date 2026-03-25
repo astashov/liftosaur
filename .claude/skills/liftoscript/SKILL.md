@@ -187,6 +187,13 @@ hyper: Bench Press / 3x10 / 60% / progress: dp(5lb, 10, 15)
 
 Add `+` after the rep count: `4x3, 1x3+`. The last set becomes as-many-reps-as-possible.
 
+### Ask weight
+
+Add `+` after a weight to prompt the user to confirm: `3x8 100lb+`. To ask for weight when none is explicit (e.g. inferred from RPE), use `?+`:
+```
+Squat / 3x8 @8 ?+
+```
+
 ### Rest times
 
 Specify per-exercise or per-set: `3x5 / 120s` or `1x5 60s, 3x5 120s`.

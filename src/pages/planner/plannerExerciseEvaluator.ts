@@ -345,7 +345,9 @@ export class PlannerExerciseEvaluator {
       const percentageNode = expr.getChild(PlannerNodeName.PercentageWithPlus);
       const weightNode = expr.getChild(PlannerNodeName.WeightWithPlus);
       const labelNode = expr.getChild(PlannerNodeName.SetLabel);
+      const askWeightNode = expr.getChild(PlannerNodeName.AskWeight);
       const askWeight =
+        askWeightNode != null ||
         (weightNode != null && this.getValue(weightNode).indexOf("+") !== -1) ||
         (percentageNode != null && this.getValue(percentageNode).indexOf("+") !== -1);
       const logRpe = rpeNode == null ? undefined : this.getValue(rpeNode).indexOf("+") !== -1;

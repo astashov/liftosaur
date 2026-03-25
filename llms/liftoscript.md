@@ -90,6 +90,12 @@ or
 Bench Press / 1x6 70%+, 5x5 50%
 ```
 
+If you want the app to ask for the weight but don't want to specify an explicit weight (e.g. weight is inferred from 1RM, reps and RPE), you can use `?+`:
+
+```
+Bench Press / 3x8 @8 ?+
+```
+
 An example workout may look something like this:
 
 ```

@@ -441,6 +441,8 @@ export class ProgramToPlanner {
                   const overriddenGlobals: string[] = [];
                   if (dereuseDecisions.includes("weight") && globals.weight != null) {
                     overriddenGlobals.push(`${this.weightExprToStr(globals.weight)}${globals.askWeight ? "+" : ""}`);
+                  } else if (dereuseDecisions.includes("weight") && globals.askWeight) {
+                    overriddenGlobals.push("?+");
                   }
                   if (dereuseDecisions.includes("rpe") && globals.rpe != null) {
                     overriddenGlobals.push(`@${n(globals.rpe)}${globals.logRpe ? "+" : ""}`);
@@ -461,6 +463,8 @@ export class ProgramToPlanner {
                   const globalsStr: string[] = [];
                   if (globals.weight != null) {
                     globalsStr.push(`${this.weightExprToStr(globals.weight)}${globals.askWeight ? "+" : ""}`);
+                  } else if (globals.askWeight) {
+                    globalsStr.push("?+");
                   }
                   if (globals.rpe != null) {
                     globalsStr.push(`@${globals.rpe}${globals.logRpe ? "+" : ""}`);
@@ -811,9 +815,13 @@ export class ProgramToPlanner {
       setStr += set.minrep != null ? `${n(Math.max(0, set.minrep))}-` : "";
       setStr += `${n(Math.max(0, set.maxrep ?? 0))}`;
       setStr += set.isAmrap ? "+" : "";
-      if (globals.weight == null) {
+      if (globals.weight == null && !globals.askWeight) {
         const weightValue = this.weightExprToStr(set.weight);
-        setStr += weightValue ? ` ${weightValue}${set.askWeight ? "+" : ""}` : "";
+        if (weightValue) {
+          setStr += ` ${weightValue}${set.askWeight ? "+" : ""}`;
+        } else if (set.askWeight) {
+          setStr += " ?+";
+        }
       }
       if (globals.rpe == null) {
         setStr += set.rpe != null ? ` @${n(Math.max(0, set.rpe))}` : "";

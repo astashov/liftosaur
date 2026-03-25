@@ -14,7 +14,7 @@ WarmupExerciseSets { (WarmupExerciseSet ("," WarmupExerciseSet)*) }
 ExerciseSection {  (ExerciseProperty | ExerciseSets | ReuseSectionWithWeekDay | Superset ) ("\\\\" linebreak)? }
 ReuseSectionWithWeekDay { ReuseSection WeekDay? }
 ReuseSection { "..." ExerciseName }
-ExerciseSet { (Rpe | Timer | SetPart | WeightWithPlus | PercentageWithPlus | SetLabel)+ }
+ExerciseSet { (Rpe | Timer | SetPart | WeightWithPlus | PercentageWithPlus | SetLabel | AskWeight)+ }
 WarmupExerciseSet { (WarmupSetPart | Weight | Percentage)+ }
 Superset { SupersetKeyword ":" ExerciseName }
 ExerciseProperty { ExercisePropertyName ":" (FunctionExpression | WarmupExerciseSets | None ) }
@@ -56,7 +56,9 @@ WarmupSetPart { (Rep "x")? Rep }
   @precedence { Weight, Percentage, Float, Int }
   @precedence { Day, Week }
   @precedence { TripleLineComment, LineComment }
+  @precedence { AskWeight, NonSeparator }
   @precedence { "\\\\", "[", "]", NonSeparator }
+  AskWeight { "?+" }
   SupersetKeyword { "superset" }
   TripleLineComment { "///" ![\\n]* linebreakOrEof }
   LineComment { "//" ![\\n]* linebreakOrEof }

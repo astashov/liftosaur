@@ -50,6 +50,7 @@ export enum PlannerNodeName {
   Current = "Current",
   Superset = "Superset",
   SupersetKeyword = "SupersetKeyword",
+  AskWeight = "AskWeight",
   EmptyExpression = "EmptyExpression",
 }
 
@@ -60,6 +61,7 @@ export const plannerExerciseStyles = {
   [`${[PlannerNodeName.Timer]}/...`]: t.keyword,
   [`${[PlannerNodeName.Weight]}/...`]: t.number,
   [`${[PlannerNodeName.Percentage]}/...`]: t.number,
+  [PlannerNodeName.AskWeight]: t.number,
   [PlannerNodeName.LineComment]: t.lineComment,
   [PlannerNodeName.TripleLineComment]: t.blockComment,
   [PlannerNodeName.SupersetKeyword]: t.keyword,

@@ -29,6 +29,7 @@ Bench Press / 3x8 75%
 Bench Press / 3x8 @8
 Bench Press / 3x8 @8+
 Bench Press / 3x8 100lb+
+Bench Press / 3x8 @8 ?+
 Bench Press / 3x8 / 120s
 Bench Press / 1x12 20s 60%, 5x5 20s 60%
 ```
@@ -46,8 +47,11 @@ Bench Press / 3x8 / 95lb         /// good - explicit weight
 Lateral Raise / 3x10 / 15lb      /// good - light weight for isolation
 Pull Up / 3x8 / 0lb              /// good - bodyweight (0lb)
 Bench Press / 3x8 @8             /// good - RPE infers weight from 1RM table
+Bench Press / 3x8 @8 ?+          /// good - RPE infers weight, and app will ask to confirm
 Squat / 3x8                      /// BAD - no weight, will be empty!
 ```
+
+The `?+` syntax means "no explicit weight, but ask the user to confirm the inferred weight". Use it with RPE-based exercises when you want the user to record the actual weight used.
 
 ## Equipment
 

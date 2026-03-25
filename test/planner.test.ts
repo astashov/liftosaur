@@ -492,6 +492,48 @@ Bench Press / ...Squat
 `);
   });
 
+  it("parses ?+ as askWeight without explicit weight", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 3x8 @8 ?+`;
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[8, 8, 8]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 3x8 / ?+ @8
+
+
+`);
+  });
+
+  it("handles ?+ with lp() progress", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 3x8 @8 ?+ / progress: lp(5lb)`;
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[8, 8, 8]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 3x8 / 102.5lb+ @8 / progress: lp(5lb)
+
+
+`);
+  });
+
+  it("handles per-set ?+ mixed with non-askWeight sets", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 1x8 @8 ?+, 1x5 100lb`;
+    const { program } = PlannerTestUtils_finish(programText, { completedReps: [[8, 5]] });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Squat / 1x8 ?+ @8, 1x5 100lb
+
+
+`);
+  });
+
   it("replace exercise", () => {
     const programText = `# Week 1
 ## Day 1
