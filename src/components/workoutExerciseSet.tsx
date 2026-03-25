@@ -435,6 +435,7 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
                 )}
               </span>
               <span className="font-semibold text-syntax-rpe">
+                {aSet.originalWeight == null && aSet.askWeight ? " ?" : ""}
                 {aSet.askWeight ? "+" : ""}
                 {aSet.rpe ? ` @${n(Math.max(0, aSet.rpe))}` : null}
                 {aSet.rpe && aSet.logRpe ? "+" : ""}

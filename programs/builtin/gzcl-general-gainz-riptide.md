@@ -28,7 +28,7 @@ This implementation uses a 4-day upper/lower split. T2 and T3 exercises are free
 
 ## How to Use This in the App
 
-On **Find weeks**, use the warmup setes (and you can add more if necessary via **+ warmup set** button) to add warm-up sets as you work up to your RM weight. Once you complete the RM set, the Volume Drop Sets auto-adjust to match your weight and reps.
+On **Find weeks**, use warmup sets to work up to your RM weight. Add more via **+ warmup set** if necessary. Once you complete the RM set, the Volume Drop Sets auto-adjust to match your weight and reps.
 
 On **Push weeks**, use the same weight as the previous Find week. The app remembers it. Push for as many reps as possible (AMRAP).
 
@@ -71,12 +71,10 @@ The book covers several follow-up options including Undertow (Riptide in reverse
 ```liftoscript
 # Week 1
 ## Day 1
-// **T1 - Week 1 (Find 5RM @8)**: Work up to a weight you can do for **5 reps** at **@8 RPE**
-// (easy effort, 2+ reps in reserve). Use the **+ warmup set** button to add warm-up sets
-// as you work up to your RM weight. Once you hit your working weight, complete the RM set -
-// the **VDS sets will auto-adjust** to match your weight.
-// Move each rep explosively (CAT).
-t1 / used: none / 1x5 ?+ @8, 5x2 80% / 180s / update: custom() {~
+// **T1 - Find week**. Use warmup sets to work up to your RM weight.
+// Add more via **+ warmup set** if necessary.
+// VDS auto-adjust after you complete the RM. Move each rep explosively (CAT).
+t1 / used: none / 1x5 (RM) ?+ @8, 5x2 (VDS) 80% / 180s / update: custom() {~
   if (setIndex == 1) {
     weights = completedWeights[1]
     if (week == 8) {
@@ -101,10 +99,9 @@ t1 / used: none / 1x5 ?+ @8, 5x2 80% / 180s / update: custom() {~
   }
 ~}
 
-// **T2 - Week 1 (Find 10RM @8)**: Find a weight for **10 reps** at **@8 RPE** (easy effort).
-// Use **+ warmup set** to work up. After you complete the RM set, **half-sets auto-adjust**
-// to match your weight and reps.
-t2 / used: none / 1x10 ?+ @8, 4x5 60% / 120s / update: custom() {~
+// **T2 - Find week**. Use warmup sets to work up to your RM weight.
+// Add more via **+ warmup set** if necessary. Half-sets auto-adjust after the RM.
+t2 / used: none / 1x10 (RM) ?+ @8, 4x5 (VDS) 60% / 120s / update: custom() {~
   if (setIndex == 1) {
     weights = completedWeights[1]
     var.r = max(floor(completedReps[1] / 2), 1)
@@ -116,8 +113,8 @@ t2 / used: none / 1x10 ?+ @8, 4x5 60% / 120s / update: custom() {~
   }
 ~}
 
-// **T3 - Week 1**: Max Rep Sets, **15-20 reps** at **@8 RPE** (easy effort). 3-4 sets.
-t3 / used: none / 4x15-20+ @8 / 60s
+// **T3** - Max Rep Sets. Easy effort.
+t3 / used: none / 4x15-20+ (MRS) ?+ @8 / 60s
 
 // ...t1
 t1: Squat[1-8] / ...t1
@@ -177,17 +174,14 @@ t3: Skullcrusher[1-8] / ...t3
 
 # Week 2
 ## Day 1
-// **T1 - Week 2 (Push RM @10)**: Use the **same weight as Week 1**. Push for **as many reps
-// as possible** past 5 reps at **@10 RPE** (hard effort, 0 reps in reserve).
-// Then do **half-sets** at the same weight.
-t1 / 1x5+ @10, 5x3 80% / 180s
+// **T1 - Push week**. Same weight as Week 1. Go for max reps.
+t1 / 1x5+ (RM) @10, 5x3 (VDS) 80% / 180s
 
-// **T2 - Week 2 (Push RM @10)**: Use the **same weight as Week 1**. Push past **10 reps**
-// at **@10 RPE** (hard effort). Then do **half-sets** at the same weight.
-t2 / 1x10+ @10, 4x5 60% / 120s
+// **T2 - Push week**. Same weight as Week 1.
+t2 / 1x10+ (RM) @10, 4x5 (VDS) 60% / 120s
 
-// **T3 - Week 2**: Max Rep Sets, **12-15 reps** at **@8 RPE** (easy effort).
-t3 / 4x12-15+ @8 / 60s
+// **T3** - Easy effort.
+t3 / 4x12-15+ (MRS) ?+ @8 / 60s
 ## Day 2
 ## Day 3
 ## Day 4
@@ -195,16 +189,14 @@ t3 / 4x12-15+ @8 / 60s
 
 # Week 3
 ## Day 1
-// **T1 - Week 3 (Find 3RM @9)**: Work up to a **heavier** weight for **3 reps** at **@9 RPE**
-// (moderate effort, 1 rep in reserve). Then do **3-6 singles** at the same weight.
-t1 / 1x3 ?+ @9, 5x1 85% / 180s
+// **T1 - Find week**. Go heavier than Week 1.
+t1 / 1x3 (RM) ?+ @9, 5x1 (VDS) 85% / 180s
 
-// **T2 - Week 3 (Find 6RM @9)**: Find a weight for **6 reps** at **@9 RPE** (moderate effort).
-// Then do **4-6 half-sets** (3 reps each) at the same weight.
-t2 / 1x6 ?+ @9, 4x3 70% / 120s
+// **T2 - Find week**.
+t2 / 1x6 (RM) ?+ @9, 4x3 (VDS) 70% / 120s
 
-// **T3 - Week 3**: Max Rep Sets, **10-12 reps** at **@9 RPE** (moderate effort).
-t3 / 4x10-12+ @9 / 60s
+// **T3** - Moderate effort.
+t3 / 4x10-12+ (MRS) ?+ @9 / 60s
 ## Day 2
 ## Day 3
 ## Day 4
@@ -212,17 +204,15 @@ t3 / 4x10-12+ @9 / 60s
 
 # Week 4
 ## Day 1
-// **T1 - Week 4 (Push RM @10)**: Use the **same weight as Week 3**. Push for **as many reps
-// as possible** past 3 reps at **@10 RPE** (hard effort).
-// If you hit <5 reps, do **singles**. If 5+, do **half-sets**.
-t1 / 1x3+ @10, 5x1 85% / 180s
+// **T1 - Push week**. Same weight as Week 3.
+// VDS: if you hit <5 reps, **singles**. If 5+, **half-sets**.
+t1 / 1x3+ (RM) @10, 5x1 (VDS) 85% / 180s
 
-// **T2 - Week 4 (Push RM @10)**: Use the **same weight as Week 3**. Push past **6 reps**
-// at **@10 RPE** (hard effort). Then do **half-sets** at the same weight.
-t2 / 1x6+ @10, 4x3 70% / 120s
+// **T2 - Push week**. Same weight as Week 3.
+t2 / 1x6+ (RM) @10, 4x3 (VDS) 70% / 120s
 
-// **T3 - Week 4**: Max Rep Sets, **8-10 reps** at **@10 RPE** (hard effort). 2-3 sets.
-t3 / 3x8-10+ @10 / 60s
+// **T3** - Hard effort.
+t3 / 3x8-10+ (MRS) ?+ @10 / 60s
 ## Day 2
 ## Day 3
 ## Day 4
@@ -230,16 +220,14 @@ t3 / 3x8-10+ @10 / 60s
 
 # Week 5
 ## Day 1
-// **T1 - Week 5 (Find 4RM @8)**: Work up to a weight for **4 reps** at **@8 RPE**
-// (easy effort). Then do **4-7 singles** at the same weight.
-t1 / 1x4 ?+ @8, 5x1 80% / 180s
+// **T1 - Find week**.
+t1 / 1x4 (RM) ?+ @8, 5x1 (VDS) 80% / 180s
 
-// **T2 - Week 5 (Find 8RM @8)**: Find a weight for **8 reps** at **@8 RPE** (easy effort).
-// Then do **4-6 half-sets** (4 reps each) at the same weight.
-t2 / 1x8 ?+ @8, 4x4 65% / 120s
+// **T2 - Find week**.
+t2 / 1x8 (RM) ?+ @8, 4x4 (VDS) 65% / 120s
 
-// **T3 - Week 5**: Max Rep Sets, **15-20 reps** at **@8 RPE** (easy effort). New wave.
-t3 / 4x15-20+ @8 / 60s
+// **T3** - New wave. Easy effort.
+t3 / 4x15-20+ (MRS) ?+ @8 / 60s
 ## Day 2
 ## Day 3
 ## Day 4
@@ -247,17 +235,15 @@ t3 / 4x15-20+ @8 / 60s
 
 # Week 6
 ## Day 1
-// **T1 - Week 6 (Push RM @10)**: Use the **same weight as Week 5**. Push for **as many reps
-// as possible** past 4 reps at **@10 RPE** (hard effort).
-// If <5 reps, do **singles**. If 5+, do **half-sets**.
-t1 / 1x4+ @10, 5x1 80% / 180s
+// **T1 - Push week**. Same weight as Week 5.
+// VDS: if you hit <5 reps, **singles**. If 5+, **half-sets**.
+t1 / 1x4+ (RM) @10, 5x1 (VDS) 80% / 180s
 
-// **T2 - Week 6 (Push RM @10)**: Use the **same weight as Week 5**. Push past **8 reps**
-// at **@10 RPE** (hard effort). Then do **half-sets** at the same weight.
-t2 / 1x8+ @10, 4x4 65% / 120s
+// **T2 - Push week**. Same weight as Week 5.
+t2 / 1x8+ (RM) @10, 4x4 (VDS) 65% / 120s
 
-// **T3 - Week 6**: Max Rep Sets, **12-15 reps** at **@8 RPE** (easy effort).
-t3 / 4x12-15+ @8 / 60s
+// **T3** - Easy effort.
+t3 / 4x12-15+ (MRS) ?+ @8 / 60s
 ## Day 2
 ## Day 3
 ## Day 4
@@ -265,16 +251,14 @@ t3 / 4x12-15+ @8 / 60s
 
 # Week 7
 ## Day 1
-// **T1 - Week 7 (Find 2RM @9)**: Work up to the **heaviest** weight - **2 reps** at
-// **@9 RPE** (moderate effort). Then do **1-2 singles** at the same weight.
-t1 / 1x2 ?+ @9, 2x1 90% / 180s
+// **T1 - Find week**. Heaviest of the cycle.
+t1 / 1x2 (RM) ?+ @9, 2x1 (VDS) 90% / 180s
 
-// **T2 - Week 7 (Find 5RM @9)**: Find a weight for **5 reps** at **@9 RPE**
-// (moderate effort). Then do **4-6 half-sets** (2 reps each) at the same weight.
-t2 / 1x5 ?+ @9, 4x2 75% / 120s
+// **T2 - Find week**.
+t2 / 1x5 (RM) ?+ @9, 4x2 (VDS) 75% / 120s
 
-// **T3 - Week 7**: Max Rep Sets, **10-12 reps** at **@9 RPE** (moderate effort).
-t3 / 4x10-12+ @9 / 60s
+// **T3** - Moderate effort.
+t3 / 4x10-12+ (MRS) ?+ @9 / 60s
 ## Day 2
 ## Day 3
 ## Day 4
@@ -282,18 +266,14 @@ t3 / 4x10-12+ @9 / 60s
 
 # Week 8
 ## Day 1
-// **T1 - Week 8 (Push RM @10)**: Use the **same weight as Week 7**. Push for **as many reps
-// as possible** past 2 reps at **@10 RPE** (hard effort). **No additional sets** this week.
-// Final push!
-t1 / 1x2+ @10 / 180s
+// **T1 - Push week**. Same weight as Week 7. No VDS. Final push!
+t1 / 1x2+ (RM) @10 / 180s
 
-// **T2 - Week 8 (Push RM @10)**: Use the **same weight as Week 7**. Push past **5 reps**
-// at **@10 RPE** (hard effort). Then do **half-sets**. Final week!
-t2 / 1x5+ @10, 4x2 75% / 120s
+// **T2 - Push week**. Same weight as Week 7. Final week!
+t2 / 1x5+ (RM) @10, 4x2 (VDS) 75% / 120s
 
-// **T3 - Week 8**: Max Rep Sets, **8-10 reps** at **@10 RPE** (hard effort). 2-3 sets.
-// Final wave!
-t3 / 3x8-10+ @10 / 60s
+// **T3** - Hard effort. Final wave!
+t3 / 3x8-10+ (MRS) ?+ @10 / 60s
 ## Day 2
 ## Day 3
 ## Day 4
