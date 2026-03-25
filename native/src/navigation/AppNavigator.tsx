@@ -23,6 +23,7 @@ import { ChangeNextDayScreen } from "../components/ChangeNextDaySheet";
 import { MonthCalendarSheet } from "../components/MonthCalendarSheet";
 import { WeekInsightsSheet } from "../components/WeekInsightsSheet";
 import { PlannerSettingsSheet } from "../components/PlannerSettingsSheet";
+import { ModalGraphsSheet } from "../components/ModalGraphsSheet";
 
 const Tab = createBottomTabNavigator();
 const RootStack = createNativeStackNavigator();
@@ -226,6 +227,19 @@ export function AppNavigator(): React.ReactElement {
                 headerShown: true,
                 headerShadowVisible: false,
                 title: "Set Range Settings",
+              }}
+            />
+            <RootStack.Screen
+              name="ModalGraphsSheet"
+              component={ModalGraphsSheet}
+              options={{
+                presentation: "formSheet",
+                sheetGrabberVisible: true,
+                sheetAllowedDetents: [0.85, 1.0],
+                sheetExpandsWhenScrolledToEdge: false,
+                headerShown: true,
+                headerShadowVisible: false,
+                title: "Graph Settings",
               }}
             />
           </RootStack.Navigator>
