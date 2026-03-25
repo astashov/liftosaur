@@ -16,7 +16,14 @@ import { buildDi } from "./lambda/utils/di";
 import { LogUtil } from "./lambda/utils/log";
 import fetch from "node-fetch";
 import childProcess from "child_process";
-import { localdomain, localapidomain, localstreamingapidomain, localport, localapiport, localstreamingapiport } from "./src/localdomain";
+import {
+  localdomain,
+  localapidomain,
+  localstreamingapidomain,
+  localport,
+  localapiport,
+  localstreamingapiport,
+} from "./src/localdomain";
 
 declare global {
   namespace NodeJS {

@@ -350,31 +350,90 @@ function calculatePlatesInternalFast(
   multiplier: number,
   isAssisting: boolean
 ): IPlate[] {
-  let total = Weight_build(0, weight.unit);
-  const plates: IPlate[] = [];
-  while (true) {
-    const availablePlate = availablePlates.find((potentialPlate) => {
-      const multipliedWeight = Weight_multiply(potentialPlate.weight, multiplier);
-      const weightToCompare = isAssisting
-        ? Weight_subtract(total, multipliedWeight)
-        : Weight_add(total, multipliedWeight);
-      return (
-        potentialPlate.num >= multiplier &&
-        (isAssisting ? Weight_gte(weightToCompare, weight) : Weight_lte(weightToCompare, weight))
-      );
-    });
-    if (availablePlate != null) {
-      const multipliedWeight = Weight_multiply(availablePlate.weight, multiplier);
-      total = isAssisting ? Weight_subtract(total, multipliedWeight) : Weight_add(total, multipliedWeight);
-      availablePlate.num -= multiplier;
-      let plate = plates.find((p) => Weight_eq(p.weight, availablePlate!.weight));
-      if (plate == null) {
-        plate = { weight: availablePlate.weight, num: 0 };
-        plates.push(plate);
+  const targetValue = isAssisting ? -weight.value : weight.value;
+  if (targetValue <= 0) {
+    return [];
+  }
+
+  const plateTypes: { weight: IWeight; unitWeight: number; maxUnits: number }[] = [];
+  for (const p of availablePlates) {
+    if (p.num >= multiplier) {
+      plateTypes.push({
+        weight: p.weight,
+        unitWeight: p.weight.value * multiplier,
+        maxUnits: Math.floor(p.num / multiplier),
+      });
+    }
+  }
+  if (plateTypes.length === 0) {
+    return [];
+  }
+
+  // Convert to integers for exact arithmetic
+  const allValues = [targetValue, ...plateTypes.map((p) => p.unitWeight)];
+  let maxDecimals = 0;
+  for (const v of allValues) {
+    const s = v.toString();
+    const dot = s.indexOf(".");
+    if (dot >= 0) {
+      maxDecimals = Math.max(maxDecimals, s.length - dot - 1);
+    }
+  }
+  const precision = Math.pow(10, Math.min(maxDecimals, 6));
+  const intTarget = Math.round(targetValue * precision);
+  const intWeights = plateTypes.map((p) => Math.round(p.unitWeight * precision));
+
+  // Max contribution from plates at index i and beyond (for pruning)
+  const maxFrom = new Array(plateTypes.length + 1).fill(0);
+  for (let i = plateTypes.length - 1; i >= 0; i--) {
+    maxFrom[i] = maxFrom[i + 1] + intWeights[i] * plateTypes[i].maxUnits;
+  }
+
+  const best = new Array(plateTypes.length).fill(0);
+  const current = new Array(plateTypes.length).fill(0);
+  let bestRemaining = intTarget + 1;
+  let iterations = 0;
+
+  function search(index: number, remaining: number): void {
+    if (bestRemaining === 0 || iterations >= 10000) {
+      return;
+    }
+    if (remaining === 0 || index >= plateTypes.length) {
+      if (remaining < bestRemaining) {
+        bestRemaining = remaining;
+        for (let i = 0; i < index; i++) {
+          best[i] = current[i];
+        }
+        for (let i = index; i < plateTypes.length; i++) {
+          best[i] = 0;
+        }
       }
-      plate.num += multiplier;
-    } else {
-      break;
+      return;
+    }
+
+    iterations += 1;
+    const w = intWeights[index];
+    const maxCount = Math.min(plateTypes[index].maxUnits, w > 0 ? Math.floor(remaining / w) : 0);
+
+    for (let count = maxCount; count >= 0; count--) {
+      const newRemaining = remaining - count * w;
+      if (newRemaining - maxFrom[index + 1] >= bestRemaining) {
+        continue;
+      }
+      current[index] = count;
+      search(index + 1, newRemaining);
+      if (bestRemaining === 0) {
+        return;
+      }
+    }
+  }
+
+  search(0, intTarget);
+
+  const plates: IPlate[] = [];
+  for (let i = 0; i < plateTypes.length; i++) {
+    if (best[i] > 0) {
+      plates.push({ weight: plateTypes[i].weight, num: best[i] * multiplier });
     }
   }
   return plates;

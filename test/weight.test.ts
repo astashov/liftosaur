@@ -53,6 +53,40 @@ describe("Weight", () => {
       ]);
     });
 
+    it("when greedy picks too-large plate and misses better combo", () => {
+      const settings = buildSettings([
+        { weight: Weight_build(45, "lb"), num: 4 },
+        { weight: Weight_build(35, "lb"), num: 4 },
+        { weight: Weight_build(25, "lb"), num: 4 },
+        { weight: Weight_build(15, "lb"), num: 4 },
+        { weight: Weight_build(10, "lb"), num: 4 },
+      ]);
+      // Target plates weight = 145 - 45 = 100. Greedy: 45x2=90, nothing fits remaining 10 → total 135.
+      // Optimal: 35x2 + 15x2 = 70+30=100 → total 145.
+      const result = Weight_calculatePlates(Weight_build(145, "lb"), settings, settings.units, exerciseType);
+      expect(result.totalWeight).to.eql(Weight_build(145, "lb"));
+      expect(result.plates).to.eql([
+        { weight: Weight_build(35, "lb"), num: 2 },
+        { weight: Weight_build(15, "lb"), num: 2 },
+      ]);
+    });
+
+    it("handles large plate counts without freezing", () => {
+      const settings = buildSettings([
+        { weight: Weight_build(45, "lb"), num: 500 },
+        { weight: Weight_build(35, "lb"), num: 500 },
+        { weight: Weight_build(25, "lb"), num: 500 },
+        { weight: Weight_build(15, "lb"), num: 500 },
+        { weight: Weight_build(10, "lb"), num: 500 },
+      ]);
+      const result = Weight_calculatePlates(Weight_build(345, "lb"), settings, settings.units, exerciseType);
+      // 345 - 45 bar = 300. Best: 45x2 + 25x2 + 10x2 + 15x2 = 90+50+20+30... wait
+      // 300 / 2 = 150 per side. 45+35+25+15+10+... = 150? 45+35+25+15+10=130. Need 150.
+      // 45x2=90, 35x2=70, 25x2=50, 15x2=30, 10x2=20 → just need sum ≤300
+      // 45*2=90, 35*2=70: 160. 25*2=50: 210. Need 90 more. 45*2=90: 300. Perfect!
+      expect(result.totalWeight).to.eql(Weight_build(345, "lb"));
+    });
+
     it("calculate with fast method", () => {
       const settings = buildSettings([
         { weight: { value: 45, unit: "lb" }, num: 50 },
