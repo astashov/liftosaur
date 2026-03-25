@@ -55,22 +55,19 @@ export function GraphStats(props: IProps): React.ReactElement {
   const allMaxX = props.maxX;
   const allMinX = Math.max(props.minX, allMaxX - 365 * 24 * 60 * 60);
 
-  const series = useMemo(
-    () => {
-      const s = [
-        {
-          color: colors.red[500],
-          label: props.statsKey === "weight" ? "Weight" : props.statsKey === "bodyfat" ? "Percentage" : "Size",
-          show: true,
-        },
-      ];
-      if (movingAverageWindowSize != null) {
-        s.push({ color: colors.blue[500], label: "Moving Average", show: true });
-      }
-      return s;
-    },
-    [props.statsKey, movingAverageWindowSize, colors]
-  );
+  const series = useMemo(() => {
+    const s = [
+      {
+        color: colors.red[500],
+        label: props.statsKey === "weight" ? "Weight" : props.statsKey === "bodyfat" ? "Percentage" : "Size",
+        show: true,
+      },
+    ];
+    if (movingAverageWindowSize != null) {
+      s.push({ color: colors.blue[500], label: "Moving Average", show: true });
+    }
+    return s;
+  }, [props.statsKey, movingAverageWindowSize, colors]);
 
   const [tooltipData, setTooltipData] = useState<{
     date: Date;
@@ -92,7 +89,7 @@ export function GraphStats(props: IProps): React.ReactElement {
       setTooltipData({
         date: new Date((timestamp as number) * 1000),
         value: chartData[1][index] as number | null,
-        avg: chartData[2]?.[index] as number | null ?? null,
+        avg: (chartData[2]?.[index] as number | null) ?? null,
       });
     },
     [chartData]
@@ -116,10 +113,12 @@ export function GraphStats(props: IProps): React.ReactElement {
       {tooltipData && tooltipData.value != null && (
         <View style={styles.tooltip}>
           <Text style={[styles.tooltipText, { color: sem.text.primary }]}>
-            {DateUtils_format(tooltipData.date)},{" "}
-            <Text style={styles.bold}>{tooltipData.value}</Text> {props.units}
+            {DateUtils_format(tooltipData.date)}, <Text style={styles.bold}>{tooltipData.value}</Text> {props.units}
             {movingAverageWindowSize != null && tooltipData.avg != null && (
-              <Text> (Avg. {tooltipData.avg} {props.units})</Text>
+              <Text>
+                {" "}
+                (Avg. {tooltipData.avg} {props.units})
+              </Text>
             )}
           </Text>
         </View>

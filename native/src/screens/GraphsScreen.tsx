@@ -7,11 +7,7 @@ import { useDispatch } from "../context/DispatchContext";
 import { GraphExercise } from "../components/GraphExercise";
 import { GraphMuscleGroup } from "../components/GraphMuscleGroup";
 import { GraphStats } from "../components/GraphStats";
-import {
-  GraphData_weightStats,
-  GraphData_lengthStats,
-  GraphData_percentageStats,
-} from "@shared/models/graphData";
+import { GraphData_weightStats, GraphData_lengthStats, GraphData_percentageStats } from "@shared/models/graphData";
 import {
   History_findAllMaxSetsPerId,
   History_collectMuscleGroups,
@@ -66,20 +62,32 @@ export function GraphsScreen(): React.ReactElement {
     let mx = 0;
     let mn = Infinity;
     for (const hr of history) {
-      if (mx < hr.startTime) mx = hr.startTime;
-      if (mn > hr.startTime) mn = hr.startTime;
+      if (mx < hr.startTime) {
+        mx = hr.startTime;
+      }
+      if (mn > hr.startTime) {
+        mn = hr.startTime;
+      }
     }
     if (isSameXAxis) {
       for (const key of ObjectUtils_keys(stats.weight)) {
         for (const value of stats.weight[key] || []) {
-          if (mn > value.timestamp) mn = value.timestamp;
-          if (mx < value.timestamp) mx = value.timestamp;
+          if (mn > value.timestamp) {
+            mn = value.timestamp;
+          }
+          if (mx < value.timestamp) {
+            mx = value.timestamp;
+          }
         }
       }
       for (const key of ObjectUtils_keys(stats.length)) {
         for (const value of stats.length[key] || []) {
-          if (mn > value.timestamp) mn = value.timestamp;
-          if (mx < value.timestamp) mx = value.timestamp;
+          if (mn > value.timestamp) {
+            mn = value.timestamp;
+          }
+          if (mx < value.timestamp) {
+            mx = value.timestamp;
+          }
         }
       }
     }

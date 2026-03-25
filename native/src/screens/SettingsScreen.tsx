@@ -113,10 +113,7 @@ function MenuItemSelect({
               onPress={() => onSelect(optValue)}
             >
               <Text
-                style={[
-                  styles.segmentOptionText,
-                  { color: isSelected ? sem.button.primarylabel : sem.text.primary },
-                ]}
+                style={[styles.segmentOptionText, { color: isSelected ? sem.button.primarylabel : sem.text.primary }]}
               >
                 {optLabel}
               </Text>
@@ -264,10 +261,7 @@ export function SettingsScreen(): React.ReactElement {
             onSelect={(v) => updateSettings(lb<ISettings>().p("currentGymId").record(v), "Change current gym")}
           />
         )}
-        <MenuItem
-          name="Available Equipment"
-          onPress={() => pushScreen(settings.gyms.length > 1 ? "gyms" : "plates")}
-        />
+        <MenuItem name="Available Equipment" onPress={() => pushScreen(settings.gyms.length > 1 ? "gyms" : "plates")} />
         <MenuItemSelect
           name="Weight Units"
           value={settings.units}
@@ -275,7 +269,14 @@ export function SettingsScreen(): React.ReactElement {
             ["kg", "kg"],
             ["lb", "lb"],
           ]}
-          onSelect={(v) => updateSettings(lb<ISettings>().p("units").record(v as IUnit), "Change weight units")}
+          onSelect={(v) =>
+            updateSettings(
+              lb<ISettings>()
+                .p("units")
+                .record(v as IUnit),
+              "Change weight units"
+            )
+          }
         />
         <MenuItemSelect
           name="Length Units"
@@ -285,7 +286,12 @@ export function SettingsScreen(): React.ReactElement {
             ["in", "in"],
           ]}
           onSelect={(v) =>
-            updateSettings(lb<ISettings>().p("lengthUnits").record(v as ILengthUnit), "Change length units")
+            updateSettings(
+              lb<ISettings>()
+                .p("lengthUnits")
+                .record(v as ILengthUnit),
+              "Change length units"
+            )
           }
         />
         <MenuItemSelect
@@ -296,15 +302,18 @@ export function SettingsScreen(): React.ReactElement {
             ["true", "Monday"],
           ]}
           onSelect={(v) =>
-            updateSettings(lb<ISettings>().p("startWeekFromMonday").record(v === "true"), "Toggle week start day")
+            updateSettings(
+              lb<ISettings>()
+                .p("startWeekFromMonday")
+                .record(v === "true"),
+              "Toggle week start day"
+            )
           }
         />
         <MenuItemToggle
           name="Always On Display"
           value={!!settings.alwaysOnDisplay}
-          onToggle={(v) =>
-            updateSettings(lb<ISettings>().p("alwaysOnDisplay").record(v), "Toggle always-on display")
-          }
+          onToggle={(v) => updateSettings(lb<ISettings>().p("alwaysOnDisplay").record(v), "Toggle always-on display")}
         />
 
         {/* Sound */}
@@ -370,11 +379,7 @@ export function SettingsScreen(): React.ReactElement {
 
         {/* Miscellaneous */}
         <GroupHeader name="Miscellaneous" />
-        <MenuItem
-          name="Contact Us"
-          showArrow={false}
-          onPress={() => Linking.openURL("mailto:info@liftosaur.com")}
-        />
+        <MenuItem name="Contact Us" showArrow={false} onPress={() => Linking.openURL("mailto:info@liftosaur.com")} />
         <MenuItem
           name="Discord Server"
           showArrow={false}

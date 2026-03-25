@@ -1,4 +1,4 @@
-import type { JSX } from "preact";
+import type { JSX } from "react";
 import { View, Text } from "react-native";
 import { Equipment_getUnitOrDefaultForExerciseType } from "@shared/models/equipment";
 import { Exercise_get, Exercise_nameWithEquipment } from "@shared/models/exercise";

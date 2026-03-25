@@ -1,7 +1,15 @@
 import React, { useRef, useCallback } from "react";
 import { View, Text, Pressable, Animated, PanResponder } from "react-native";
 import type { IDispatch } from "@shared/ducks/types";
-import type { ISettings, ISet, IExerciseType, ISubscription, IProgramState, IHistoryRecord, IHistoryEntry } from "@shared/types";
+import type {
+  ISettings,
+  ISet,
+  IExerciseType,
+  ISubscription,
+  IProgramState,
+  IHistoryRecord,
+  IHistoryEntry,
+} from "@shared/types";
 import type { IPlannerProgramExercise } from "@shared/pages/planner/models/types";
 import type { IByExercise } from "@shared/pages/planner/plannerEvaluator";
 import { LensBuilder } from "lens-shmens";
@@ -16,7 +24,15 @@ import {
   WorkoutExerciseUtils_setsStatusToTextColor,
 } from "@shared/utils/workoutExerciseUtils";
 import { Reps_enforceCompletedSet, Reps_setsStatus, Reps_avgUnilateralCompletedReps } from "@shared/models/set";
-import { Weight_eq, Weight_rpeMultiplier, Weight_multiply, Weight_calculatePlates, Weight_formatOneSide, Weight_isPct, Weight_getOneRepMax } from "@shared/models/weight";
+import {
+  Weight_eq,
+  Weight_rpeMultiplier,
+  Weight_multiply,
+  Weight_calculatePlates,
+  Weight_formatOneSide,
+  Weight_isPct,
+  Weight_getOneRepMax,
+} from "@shared/models/weight";
 import { Exercise_getIsUnilateral, Exercise_onerm } from "@shared/models/exercise";
 import { IconCheckCircle } from "./icons/IconCheckCircle";
 import { InputNumber } from "./InputNumber";
@@ -139,155 +155,169 @@ export function WorkoutExerciseSet(props: IProps): React.ReactElement {
         style={{ transform: [{ translateX }] }}
         className={`flex-row items-center ${bgClass} border-b ${borderClass}`}
       >
-      <View className="items-center justify-center px-2" style={{ width: 40 }}>
-        <View
-          className={`w-6 h-6 items-center justify-center rounded-full${
-            props.isNext ? " bg-button-primarybackground" : ""
-          }`}
-        >
-          <Text className={props.isNext ? "text-text-alwayswhite font-bold text-sm" : "text-sm"}>
-            {props.type === "warmup" ? "W" : props.setIndex + 1}
-          </Text>
+        <View className="items-center justify-center px-2" style={{ width: 40 }}>
+          <View
+            className={`w-6 h-6 items-center justify-center rounded-full${
+              props.isNext ? " bg-button-primarybackground" : ""
+            }`}
+          >
+            <Text className={props.isNext ? "text-text-alwayswhite font-bold text-sm" : "text-sm"}>
+              {props.type === "warmup" ? "W" : props.setIndex + 1}
+            </Text>
+          </View>
         </View>
-      </View>
-      <View className="flex-1" data-cy="workout-set-target">
-        <SetTargetField
-          set={set}
-          lastSet={props.lastSet}
-          setType={
-            props.type === "warmup"
-              ? "warmup"
-              : props.isCurrentProgress && props.programExercise == null
-                ? "adhoc"
-                : "program"
-          }
-          settings={props.settings}
-          exerciseType={props.exerciseType}
-        />
-      </View>
-      <View className="items-center" style={{ width: 60 }}>
-        {isUnilateral && (
-          <View className="flex-row items-center mb-1">
-            <Text className="text-xs text-text-secondary" style={{ width: 16 }}>L:</Text>
+        <View className="flex-1" data-cy="workout-set-target">
+          <SetTargetField
+            set={set}
+            lastSet={props.lastSet}
+            setType={
+              props.type === "warmup"
+                ? "warmup"
+                : props.isCurrentProgress && props.programExercise == null
+                  ? "adhoc"
+                  : "program"
+            }
+            settings={props.settings}
+            exerciseType={props.exerciseType}
+          />
+        </View>
+        <View className="items-center" style={{ width: 60 }}>
+          {isUnilateral && (
+            <View className="flex-row items-center mb-1">
+              <Text className="text-xs text-text-secondary" style={{ width: 16 }}>
+                L:
+              </Text>
+              <InputNumber
+                width={2.5}
+                data-cy="left-reps-value"
+                name="set-left-reps"
+                onInput={(value) => {
+                  if (value != null && !isNaN(value) && value >= 0) {
+                    updateProgress(
+                      props.dispatch,
+                      [props.lbSet.recordModify((s) => ({ ...s, completedRepsLeft: Math.round(value) }))],
+                      "input-left-reps"
+                    );
+                  }
+                }}
+                onBlur={(value) => {
+                  updateProgress(
+                    props.dispatch,
+                    [props.lbSet.recordModify((s) => ({ ...s, completedRepsLeft: value }))],
+                    "blur-left-reps"
+                  );
+                }}
+                placeholder={placeholderReps}
+                initialValue={set.reps}
+                value={set.completedRepsLeft != null ? set.completedRepsLeft : undefined}
+                min={0}
+                max={9999}
+                step={1}
+              />
+            </View>
+          )}
+          <View className="flex-row items-center">
+            {isUnilateral && (
+              <Text className="text-xs text-text-secondary" style={{ width: 16 }}>
+                R:
+              </Text>
+            )}
             <InputNumber
               width={2.5}
-              data-cy="left-reps-value"
-              name="set-left-reps"
+              data-cy="reps-value"
+              name="set-reps"
               onInput={(value) => {
                 if (value != null && !isNaN(value) && value >= 0) {
                   updateProgress(
                     props.dispatch,
-                    [props.lbSet.recordModify((s) => ({ ...s, completedRepsLeft: Math.round(value) }))],
-                    "input-left-reps"
+                    [
+                      props.lbSet.recordModify((s) =>
+                        Reps_enforceCompletedSet({ ...s, completedReps: Math.round(value) })
+                      ),
+                    ],
+                    "input-reps"
                   );
                 }
               }}
               onBlur={(value) => {
-                updateProgress(props.dispatch, [props.lbSet.recordModify((s) => ({ ...s, completedRepsLeft: value }))], "blur-left-reps");
+                updateProgress(
+                  props.dispatch,
+                  [props.lbSet.recordModify((s) => Reps_enforceCompletedSet({ ...s, completedReps: value }))],
+                  "blur-reps"
+                );
               }}
               placeholder={placeholderReps}
               initialValue={set.reps}
-              value={set.completedRepsLeft != null ? set.completedRepsLeft : undefined}
+              value={set.completedReps != null ? set.completedReps : undefined}
               min={0}
               max={9999}
               step={1}
             />
           </View>
-        )}
-        <View className="flex-row items-center">
-          {isUnilateral && <Text className="text-xs text-text-secondary" style={{ width: 16 }}>R:</Text>}
-          <InputNumber
-            width={2.5}
-            data-cy="reps-value"
-            name="set-reps"
-            onInput={(value) => {
-              if (value != null && !isNaN(value) && value >= 0) {
-                updateProgress(
-                  props.dispatch,
-                  [props.lbSet.recordModify((s) => Reps_enforceCompletedSet({ ...s, completedReps: Math.round(value) }))],
-                  "input-reps"
-                );
-              }
-            }}
-            onBlur={(value) => {
-              updateProgress(
-                props.dispatch,
-                [props.lbSet.recordModify((s) => Reps_enforceCompletedSet({ ...s, completedReps: value }))],
-                "blur-reps"
-              );
-            }}
-            placeholder={placeholderReps}
-            initialValue={set.reps}
-            value={set.completedReps != null ? set.completedReps : undefined}
-            min={0}
-            max={9999}
-            step={1}
-          />
         </View>
-      </View>
-      <Text className="px-1 text-sm text-text-secondary">×</Text>
-      <View style={{ width: 80 }}>
-        <View className="flex-row items-center">
-          <InputWeight
-            name="set-weight"
-            exerciseType={props.exerciseType}
-            data-cy="weight-value"
-            onBlur={(value) => {
-              if (value == null || value.unit !== "%") {
-                updateProgress(
-                  props.dispatch,
-                  [props.lbSet.recordModify((s) => Reps_enforceCompletedSet({ ...s, completedWeight: value }))],
-                  "blur-weight"
-                );
-              }
-            }}
-            onInput={(value) => {
-              if (value != null && value.unit !== "%") {
-                updateProgress(
-                  props.dispatch,
-                  [props.lbSet.recordModify((s) => Reps_enforceCompletedSet({ ...s, completedWeight: value }))],
-                  "input-weight"
-                );
-              }
-            }}
-            subscription={props.subscription}
-            placeholder={placeholderWeight}
-            initialValue={set.weight}
-            value={set.completedWeight || undefined}
-            max={9999}
-            min={-9999}
-            settings={props.settings}
-          />
-          {completedRpeValue != null && (
-            <Text className="ml-1 text-xs font-semibold text-text-success">@{n(completedRpeValue)}</Text>
-          )}
+        <Text className="px-1 text-sm text-text-secondary">×</Text>
+        <View style={{ width: 80 }}>
+          <View className="flex-row items-center">
+            <InputWeight
+              name="set-weight"
+              exerciseType={props.exerciseType}
+              data-cy="weight-value"
+              onBlur={(value) => {
+                if (value == null || value.unit !== "%") {
+                  updateProgress(
+                    props.dispatch,
+                    [props.lbSet.recordModify((s) => Reps_enforceCompletedSet({ ...s, completedWeight: value }))],
+                    "blur-weight"
+                  );
+                }
+              }}
+              onInput={(value) => {
+                if (value != null && value.unit !== "%") {
+                  updateProgress(
+                    props.dispatch,
+                    [props.lbSet.recordModify((s) => Reps_enforceCompletedSet({ ...s, completedWeight: value }))],
+                    "input-weight"
+                  );
+                }
+              }}
+              subscription={props.subscription}
+              placeholder={placeholderWeight}
+              initialValue={set.weight}
+              value={set.completedWeight || undefined}
+              max={9999}
+              min={-9999}
+              settings={props.settings}
+            />
+            {completedRpeValue != null && (
+              <Text className="ml-1 text-xs font-semibold text-text-success">@{n(completedRpeValue)}</Text>
+            )}
+          </View>
         </View>
-      </View>
-      <View className="pr-2 pl-1" style={{ width: 50 }}>
-        <Pressable
-          className="items-center justify-center p-2"
-          data-cy="complete-set"
-          onPress={() => {
-            props.dispatch({
-              type: "CompleteSetAction",
-              setIndex: props.setIndex,
-              entryIndex: props.entryIndex,
-              programExercise: props.programExercise,
-              otherStates: props.otherStates,
-              isPlayground: props.isPlayground,
-              mode: props.type,
-              forceUpdateEntryIndex: props.type === "workout" && !props.set.isCompleted,
-              isExternal: false,
-            });
-          }}
-        >
-          <IconCheckCircle
-            size={24}
-            isChecked={true}
-            color={WorkoutExerciseUtils_getIconColor([set], props.type === "warmup")}
-          />
-        </Pressable>
-      </View>
+        <View className="pr-2 pl-1" style={{ width: 50 }}>
+          <Pressable
+            className="items-center justify-center p-2"
+            data-cy="complete-set"
+            onPress={() => {
+              props.dispatch({
+                type: "CompleteSetAction",
+                setIndex: props.setIndex,
+                entryIndex: props.entryIndex,
+                programExercise: props.programExercise,
+                otherStates: props.otherStates,
+                isPlayground: props.isPlayground,
+                mode: props.type,
+                forceUpdateEntryIndex: props.type === "workout" && !props.set.isCompleted,
+                isExternal: false,
+              });
+            }}
+          >
+            <IconCheckCircle
+              size={24}
+              isChecked={true}
+              color={WorkoutExerciseUtils_getIconColor([set], props.type === "warmup")}
+            />
+          </Pressable>
+        </View>
       </Animated.View>
     </View>
   );
@@ -353,25 +383,36 @@ function SetTarget(props: { set: ISet; setType: "program" | "warmup" | "adhoc" }
           {set.reps != null && set.weight != null && <Text className="text-text-secondary"> × </Text>}
           {set.originalWeight && set.weight && isDiffWeight && (
             <Text className="line-through text-text-secondary">
-              {n(set.originalWeight.value)}<Text className="text-xs">{set.originalWeight.unit}</Text>
+              {n(set.originalWeight.value)}
+              <Text className="text-xs">{set.originalWeight.unit}</Text>
             </Text>
           )}
           {set.originalWeight && set.weight && !isDiffWeight && (
             <Text className="font-semibold text-syntax-weight">
-              {n(set.originalWeight.value)}<Text className="text-xs">{set.originalWeight.unit}</Text>
+              {n(set.originalWeight.value)}
+              <Text className="text-xs">{set.originalWeight.unit}</Text>
             </Text>
           )}
           {set.weight && isDiffWeight && (
             <Text className="text-syntax-weight">
-              {" "}<Text className="font-semibold">{n(set.weight.value)}</Text>
+              {" "}
+              <Text className="font-semibold">{n(set.weight.value)}</Text>
               <Text className="text-xs">{set.weight.unit}</Text>
             </Text>
           )}
           {set.rpe ? (
-            <Text className="font-semibold text-syntax-rpe"> @{n(Math.max(0, set.rpe))}{set.logRpe ? "+" : ""}</Text>
+            <Text className="font-semibold text-syntax-rpe">
+              {" "}
+              @{n(Math.max(0, set.rpe))}
+              {set.logRpe ? "+" : ""}
+            </Text>
           ) : null}
           {set.timer != null ? (
-            <Text className="text-syntax-timer"> {n(set.timer)}<Text className="text-xs">s</Text></Text>
+            <Text className="text-syntax-timer">
+              {" "}
+              {n(set.timer)}
+              <Text className="text-xs">s</Text>
+            </Text>
           ) : null}
         </Text>
       ) : (
@@ -392,9 +433,7 @@ function SetLastTime(props: { set?: ISet }): React.ReactElement {
     <View>
       {set.label ? <Text className="text-xs text-text-secondary">{set.label}</Text> : null}
       <Text className="text-sm">
-        <Text className={`font-semibold ${textColor}`}>
-          {set.completedReps != null ? n(set.completedReps) : "-"}
-        </Text>
+        <Text className={`font-semibold ${textColor}`}>{set.completedReps != null ? n(set.completedReps) : "-"}</Text>
         <Text className="text-text-secondary"> × </Text>
         <Text className={`font-semibold ${textColor}`}>
           {set.completedWeight ? String(set.completedWeight.value) : "-"}
@@ -419,7 +458,9 @@ function SetPlatesCalc(props: { set: ISet; settings: ISettings; exerciseType: IE
   const formattedPlates = plates.length > 0 ? Weight_formatOneSide(props.settings, plates, props.exerciseType) : "None";
   return (
     <Text className="text-sm font-semibold">
-      <Text className={Weight_eq(weight, props.set.completedWeight ?? setWeight) ? "text-text-primary" : "text-text-error"}>
+      <Text
+        className={Weight_eq(weight, props.set.completedWeight ?? setWeight) ? "text-text-primary" : "text-text-error"}
+      >
         {formattedPlates}
       </Text>
     </Text>

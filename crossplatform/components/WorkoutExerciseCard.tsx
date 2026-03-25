@@ -175,11 +175,7 @@ export function WorkoutExerciseCard(props: IProps): React.ReactElement {
             )}
           </View>
           <View>
-            <Pressable
-              data-cy="exercise-options"
-              className="px-4 py-2"
-              onPress={() => setIsKebabMenuOpen(true)}
-            >
+            <Pressable data-cy="exercise-options" className="px-4 py-2" onPress={() => setIsKebabMenuOpen(true)}>
               <IconKebab />
             </Pressable>
           </View>

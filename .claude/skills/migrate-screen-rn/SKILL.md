@@ -67,12 +67,28 @@ For each issue:
 2. Read the crossplatform RN component that needs fixing (files in `crossplatform/components/`)
 3. Make targeted changes
 
+### Preserve Component Structure
+When migrating from Preact to RN, mirror the original component hierarchy as closely as possible:
+- Use the **same component names** (e.g., if Preact has `ExerciseSetView`, the RN version should be `ExerciseSetView`, not `SetRow` or `WorkoutSet`)
+- Maintain the **same parent→child nesting** — if Preact splits a screen into `Header`, `ExerciseList`, `ExerciseCard`, `SetRow`, keep that breakdown rather than flattening or restructuring
+- Keep **props interfaces similar** — same prop names and shapes where feasible
+- If a Preact component maps 1:1 to a crossplatform component, name the file the same (e.g., `src/components/WorkoutHeader.tsx` → `crossplatform/components/WorkoutHeader.tsx`)
+- Only deviate from the original structure when React Native constraints make it necessary (e.g., FlatList requiring a different data flow)
+
 ### Key Directories
 - `crossplatform/components/` — crossplatform RN components (modify these)
 - `crossplatform/components/icons/` — SVG icons using react-native-svg
 - `native/src/screens/` — RN screen orchestrators
 - `src/components/` — Preact originals (READ ONLY, use as reference)
 - `src/models/`, `src/utils/` — shared business logic (import via `@shared/`, don't modify)
+
+### TypeScript: Avoid `any`
+- **Never use `any`** unless there is genuinely no other option. Prefer `unknown`, generics, or concrete types.
+- When importing from `@shared/`, use the actual types from `@shared/types` or the relevant module — don't cast to `any`.
+- For event handlers, use the correct React Native event types (e.g., `GestureResponderEvent`, `NativeSyntheticEvent<TextInputChangeEventData>`).
+- For dynamic data, use `unknown` and narrow with type guards instead of `any`.
+- If a third-party library lacks types, write a minimal type declaration rather than using `any`.
+- `as any` casts are a code smell — if you need one, add a comment explaining why no better option exists.
 
 ### Component Patterns
 ```tsx
@@ -147,3 +163,24 @@ At the **very start** of each invocation, before taking screenshots, read `cross
 - Any notes/context from prior runs
 
 If the file doesn't exist, this is the first iteration — start from scratch.
+
+## Step 7: Code Quality Review (Subagent)
+
+After fixing issues in Step 4, launch a **background subagent** to independently review all files you changed in this iteration. The subagent should check for:
+
+- **No `any` types** — flag every `any` and suggest a concrete type, `unknown`, or generic
+- **Modern React Native best practices** — functional components, hooks (not class components), proper `useMemo`/`useCallback` usage where needed
+- **Correct React Native APIs** — e.g., `StyleSheet.create` only when needed, proper use of `Animated` vs `Reanimated`, correct event types
+- **Performance** — unnecessary re-renders, missing `key` props in lists, heavy computation inside render
+- **Accessibility** — `accessibilityLabel`, `accessibilityRole`, `accessibilityHint` on interactive elements
+- **Platform safety** — no web-only APIs used without `Platform.OS` checks, no bare `window`/`document` access
+- **react-native-web compatibility** — all components must work on web via RNW. No native-only modules without web fallbacks, no `NativeModules` or `requireNativeComponent` without `Platform.OS` guards, no RN APIs unsupported by RNW (check `react-native-web` docs if unsure). Verify: `className` for Tailwind styling, `Pressable` instead of `TouchableOpacity` (better RNW support), no `PixelRatio`/`Appearance` usage that behaves differently on web, `Linking.openURL` instead of `window.open`, `Animated` API (not `react-native-reanimated`) unless a web-compatible version is configured. Platform-specific files (`.web.ts`/`.native.ts`) are acceptable as a tradeoff when they improve the native experience, but the web version must always remain functional
+- **Import hygiene** — no unused imports, correct use of `@shared/` aliases, type-only imports use `import type`
+- **Dead code** — no unused variables, functions, or parameters; remove rather than prefix with `_` unless required by a callback signature
+
+Prompt for the subagent:
+```
+Review the following files that were just modified during a web→React Native migration iteration. Check for: any types (suggest concrete replacements), modern RN best practices (hooks, functional components, proper memoization), correct RN APIs, performance issues (unnecessary re-renders, missing keys), accessibility props on interactive elements, platform safety (no bare window/document without Platform.OS checks), and import hygiene (unused imports, type-only imports). For each issue found, output the file path, line number, the problem, and a suggested fix. Files to review: [LIST OF CHANGED FILES]
+```
+
+Apply any valid fixes the subagent finds before finishing the iteration.

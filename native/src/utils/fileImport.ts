@@ -22,11 +22,7 @@ export function FileImport_pickAndRead(fileTypes: string[]): Promise<string | un
   });
 }
 
-export function FileImport_confirm(
-  title: string,
-  message: string,
-  onConfirm: () => void
-): void {
+export function FileImport_confirm(title: string, message: string, onConfirm: () => void): void {
   if (confirm(message)) {
     onConfirm();
   }

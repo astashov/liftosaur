@@ -1,13 +1,7 @@
 import React from "react";
 import { View, Text, Pressable } from "react-native";
-import type {
-  IEvaluatedProgram,
-} from "@shared/models/program";
-import {
-  Program_getDiffState,
-  Program_getDiffVars,
-  Program_runExerciseFinishDayScript,
-} from "@shared/models/program";
+import type { IEvaluatedProgram } from "@shared/models/program";
+import { Program_getDiffState, Program_getDiffVars, Program_runExerciseFinishDayScript } from "@shared/models/program";
 import { ObjectUtils_isNotEmpty, ObjectUtils_keys } from "@shared/utils/object";
 import { Weight_print } from "@shared/models/weight";
 import { Reps_isFinished } from "@shared/models/set";
@@ -94,7 +88,9 @@ export function ProgressStateChanges(props: IProps): React.ReactElement | null {
               <Text className="font-bold text-xs">Update Prints</Text>
               {updatePrints.map((print, i) => (
                 <Text key={i} className="text-xs">
-                  {print.map((p: IWeight | IPercentage | number, j: number) => `${j > 0 ? ", " : ""}${Weight_print(p)}`).join("")}
+                  {print
+                    .map((p: IWeight | IPercentage | number, j: number) => `${j > 0 ? ", " : ""}${Weight_print(p)}`)
+                    .join("")}
                 </Text>
               ))}
             </View>

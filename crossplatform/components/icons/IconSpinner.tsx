@@ -1,4 +1,4 @@
-import type { JSX } from "preact";
+import type { JSX } from "react";
 import { Svg, Path } from "react-native-svg";
 import { Tailwind_semantic } from "@shared/utils/tailwindConfig";
 

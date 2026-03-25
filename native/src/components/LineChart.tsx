@@ -49,15 +49,25 @@ function niceNum(range: number, round: boolean): number {
   const fraction = range / Math.pow(10, exponent);
   let niceFraction: number;
   if (round) {
-    if (fraction < 1.5) niceFraction = 1;
-    else if (fraction < 3) niceFraction = 2;
-    else if (fraction < 7) niceFraction = 5;
-    else niceFraction = 10;
+    if (fraction < 1.5) {
+      niceFraction = 1;
+    } else if (fraction < 3) {
+      niceFraction = 2;
+    } else if (fraction < 7) {
+      niceFraction = 5;
+    } else {
+      niceFraction = 10;
+    }
   } else {
-    if (fraction <= 1) niceFraction = 1;
-    else if (fraction <= 2) niceFraction = 2;
-    else if (fraction <= 5) niceFraction = 5;
-    else niceFraction = 10;
+    if (fraction <= 1) {
+      niceFraction = 1;
+    } else if (fraction <= 2) {
+      niceFraction = 2;
+    } else if (fraction <= 5) {
+      niceFraction = 5;
+    } else {
+      niceFraction = 10;
+    }
   }
   return niceFraction * Math.pow(10, exponent);
 }
@@ -79,7 +89,9 @@ function findNearestIndex(xValues: (number | null)[], targetX: number): number {
   let minDist = Infinity;
   for (let i = 0; i < xValues.length; i++) {
     const val = xValues[i];
-    if (val == null) continue;
+    if (val == null) {
+      continue;
+    }
     const dist = Math.abs(val - targetX);
     if (dist < minDist) {
       minDist = dist;
@@ -139,8 +151,10 @@ export function LineChart(props: ILineChartProps): React.ReactElement {
 
   const xValues = data[0] ?? [];
 
-  const initialMinX = props.minX ?? (xValues.length > 0 ? Math.min(...xValues.filter((v): v is number => v != null)) : 0);
-  const initialMaxX = props.maxX ?? (xValues.length > 0 ? Math.max(...xValues.filter((v): v is number => v != null)) : 1);
+  const initialMinX =
+    props.minX ?? (xValues.length > 0 ? Math.min(...xValues.filter((v): v is number => v != null)) : 0);
+  const initialMaxX =
+    props.maxX ?? (xValues.length > 0 ? Math.max(...xValues.filter((v): v is number => v != null)) : 1);
 
   const xMinShared = useSharedValue(initialMinX);
   const xMaxShared = useSharedValue(initialMaxX);
@@ -162,16 +176,28 @@ export function LineChart(props: ILineChartProps): React.ReactElement {
     let lo = Infinity;
     let hi = -Infinity;
     for (let s = 0; s < series.length; s++) {
-      if (!series[s].show) continue;
+      if (!series[s].show) {
+        continue;
+      }
       const yVals = data[s + 1];
-      if (!yVals) continue;
+      if (!yVals) {
+        continue;
+      }
       for (let i = 0; i < yVals.length; i++) {
         const xVal = xValues[i];
         const yVal = yVals[i];
-        if (xVal == null || yVal == null) continue;
-        if (xVal < xMin || xVal > xMax) continue;
-        if (yVal < lo) lo = yVal;
-        if (yVal > hi) hi = yVal;
+        if (xVal == null || yVal == null) {
+          continue;
+        }
+        if (xVal < xMin || xVal > xMax) {
+          continue;
+        }
+        if (yVal < lo) {
+          lo = yVal;
+        }
+        if (yVal > hi) {
+          hi = yVal;
+        }
       }
     }
     if (lo === Infinity) {
@@ -198,21 +224,26 @@ export function LineChart(props: ILineChartProps): React.ReactElement {
   const yTicks = useMemo(() => generateTicks(yMin, yMax, Y_TICK_COUNT), [yMin, yMax]);
   const xTicks = useMemo(() => generateTicks(xMin, xMax, X_TICK_COUNT), [xMin, xMax]);
 
-  const defaultFormatY = useCallback(
-    (v: number) => {
-      if (Math.abs(v) >= 1000) return `${(v / 1000).toFixed(1)}k`;
-      if (Number.isInteger(v)) return String(v);
-      return v.toFixed(1);
-    },
-    []
-  );
+  const defaultFormatY = useCallback((v: number) => {
+    if (Math.abs(v) >= 1000) {
+      return `${(v / 1000).toFixed(1)}k`;
+    }
+    if (Number.isInteger(v)) {
+      return String(v);
+    }
+    return v.toFixed(1);
+  }, []);
   const fmtY = formatY ?? defaultFormatY;
 
   const paths = useMemo(() => {
     return series.map((s, i) => {
-      if (!s.show) return null;
+      if (!s.show) {
+        return null;
+      }
       const yVals = data[i + 1];
-      if (!yVals) return null;
+      if (!yVals) {
+        return null;
+      }
       return buildLinePath(xValues, yVals, toPixelX, toPixelY, spanGaps);
     });
   }, [series, data, xValues, toPixelX, toPixelY, spanGaps]);
@@ -283,7 +314,9 @@ export function LineChart(props: ILineChartProps): React.ReactElement {
             {/* Grid lines */}
             {yTicks.map((tick) => {
               const y = toPixelY(tick);
-              if (y < PADDING_TOP || y > PADDING_TOP + plotHeight) return null;
+              if (y < PADDING_TOP || y > PADDING_TOP + plotHeight) {
+                return null;
+              }
               return (
                 <Line
                   key={`ygrid-${tick}`}
@@ -301,7 +334,9 @@ export function LineChart(props: ILineChartProps): React.ReactElement {
             {/* Y-axis labels */}
             {yTicks.map((tick) => {
               const y = toPixelY(tick);
-              if (y < PADDING_TOP || y > PADDING_TOP + plotHeight) return null;
+              if (y < PADDING_TOP || y > PADDING_TOP + plotHeight) {
+                return null;
+              }
               return (
                 <SvgText
                   key={`ylabel-${tick}`}
@@ -319,7 +354,9 @@ export function LineChart(props: ILineChartProps): React.ReactElement {
             {/* X-axis labels */}
             {xTicks.map((tick) => {
               const x = toPixelX(tick);
-              if (x < PADDING_LEFT || x > PADDING_LEFT + plotWidth) return null;
+              if (x < PADDING_LEFT || x > PADDING_LEFT + plotWidth) {
+                return null;
+              }
               return (
                 <SvgText
                   key={`xlabel-${tick}`}
@@ -385,16 +422,10 @@ export function LineChart(props: ILineChartProps): React.ReactElement {
             {/* Data lines */}
             <G clipPath="url(#plotArea)">
               {paths.map((d, i) => {
-                if (!d) return null;
-                return (
-                  <Path
-                    key={`line-${i}`}
-                    d={d}
-                    stroke={series[i].color}
-                    strokeWidth={1.5}
-                    fill="none"
-                  />
-                );
+                if (!d) {
+                  return null;
+                }
+                return <Path key={`line-${i}`} d={d} stroke={series[i].color} strokeWidth={1.5} fill="none" />;
               })}
             </G>
 
@@ -411,9 +442,13 @@ export function LineChart(props: ILineChartProps): React.ReactElement {
                   strokeDasharray="3,3"
                 />
                 {series.map((s, i) => {
-                  if (!s.show || cursorIndex == null) return null;
+                  if (!s.show || cursorIndex == null) {
+                    return null;
+                  }
                   const yVal = data[i + 1]?.[cursorIndex];
-                  if (yVal == null) return null;
+                  if (yVal == null) {
+                    return null;
+                  }
                   return (
                     <Circle
                       key={`cursor-dot-${i}`}

@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useStoreState } from "../context/StoreContext";
 import { useDispatch } from "../context/DispatchContext";
 import { Program_getProgram, Program_evaluate, Program_getProgramDay } from "@shared/models/program";
-import { Progress_isCurrent, Progress_lbProgress } from "@shared/models/progress";
+import { Progress_lbProgress } from "@shared/models/progress";
 import { updateProgress, updateState } from "@shared/models/state";
 import { lb } from "lens-shmens";
 import type { IHistoryRecord, IHistoryEntry } from "@shared/types";
@@ -27,22 +27,13 @@ export function WorkoutScreen(): React.ReactElement {
   const stats = state.storage.stats;
   const subscription = state.storage.subscription;
 
-  const currentProgram = state.storage.currentProgramId
-    ? Program_getProgram(state, state.storage.currentProgramId)
-    : undefined;
   const program = progress?.programId ? Program_getProgram(state, progress.programId) : undefined;
 
   const evaluatedProgram = useMemo(
     () => (program ? Program_evaluate(program, settings) : undefined),
     [program, settings]
   );
-  const evaluatedCurrentProgram = useMemo(
-    () => (currentProgram ? Program_evaluate(currentProgram, settings) : undefined),
-    [currentProgram, settings]
-  );
-  const programDay = evaluatedProgram
-    ? Program_getProgramDay(evaluatedProgram, progress?.day ?? 1)
-    : undefined;
+  const programDay = evaluatedProgram ? Program_getProgramDay(evaluatedProgram, progress?.day ?? 1) : undefined;
 
   const forceUpdateEntryIndex = !!progress?.ui?.forceUpdateEntryIndex;
   const currentEntryIndex = progress?.ui?.currentEntryIndex ?? 0;

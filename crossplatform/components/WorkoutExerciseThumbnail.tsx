@@ -42,7 +42,11 @@ export function WorkoutExerciseThumbnail(props: IProps): React.ReactElement {
 
   return (
     <View>
-      <Pressable onPress={props.onClick} className="items-center bg-background-default" style={{ paddingHorizontal: 2 }}>
+      <Pressable
+        onPress={props.onClick}
+        className="items-center bg-background-default"
+        style={{ paddingHorizontal: 2 }}
+      >
         <View
           className={`border ${borderColor} bg-background-image rounded-lg overflow-hidden`}
           style={{
@@ -92,9 +96,7 @@ export function WorkoutExerciseThumbnail(props: IProps): React.ReactElement {
           />
         </View>
       ) : hasSupersets ? (
-        <View
-          style={{ width: "100%", backgroundColor: "transparent", height: 2, marginTop: isCurrent ? 3 : 5 }}
-        />
+        <View style={{ width: "100%", backgroundColor: "transparent", height: 2, marginTop: isCurrent ? 3 : 5 }} />
       ) : null}
     </View>
   );

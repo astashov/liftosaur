@@ -16,11 +16,7 @@ export async function FileImport_pickAndRead(fileTypes: string[]): Promise<strin
   }
 }
 
-export function FileImport_confirm(
-  title: string,
-  message: string,
-  onConfirm: () => void
-): void {
+export function FileImport_confirm(title: string, message: string, onConfirm: () => void): void {
   Alert.alert(title, message, [
     { text: "Cancel", style: "cancel" },
     { text: "Import", style: "destructive", onPress: onConfirm },

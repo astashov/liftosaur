@@ -13,10 +13,17 @@
     "baseUrl": "..",
     "paths": {
       "@shared/*": ["src/*"],
-      "@crossplatform/*": ["crossplatform/*"]
+      "@crossplatform/*": ["crossplatform/*"],
+      "react-native": ["native/node_modules/react-native"],
+      "react-native-svg": ["native/node_modules/react-native-svg"]
     }
   },
   "include": [
-    "./**/*"
+    "./**/*",
+    "../native/node_modules/nativewind/types.d.ts",
+    "../native/node_modules/react-native-css-interop/types.d.ts"
+  ],
+  "exclude": [
+    "react-native.d.ts"
   ]
 }

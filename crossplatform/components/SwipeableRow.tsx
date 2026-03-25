@@ -67,10 +67,7 @@ export function SwipeableRow(props: IProps): React.ReactElement {
       >
         {props.renderActions()}
       </View>
-      <Animated.View
-        {...panResponder.panHandlers}
-        style={{ transform: [{ translateX }] }}
-      >
+      <Animated.View {...panResponder.panHandlers} style={{ transform: [{ translateX }] }}>
         {typeof props.children === "function"
           ? (props.children as (args: { close: () => void }) => React.ReactElement)({ close })
           : props.children}

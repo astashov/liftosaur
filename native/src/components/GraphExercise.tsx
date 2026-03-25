@@ -33,7 +33,8 @@ export function GraphExercise(props: IProps): React.ReactElement {
   const sem = Tailwind_semantic();
 
   const result = useMemo(
-    () => GraphData_exerciseData(props.history, props.exercise, props.settings, props.isWithOneRm, props.bodyweightData),
+    () =>
+      GraphData_exerciseData(props.history, props.exercise, props.settings, props.isWithOneRm, props.bodyweightData),
     [props.history, props.exercise, props.settings, props.isWithOneRm, props.bodyweightData]
   );
 
@@ -161,11 +162,12 @@ function TooltipContent(props: {
     return (
       <View style={styles.tooltip}>
         <Text style={[styles.tooltipText, { color: sem.text.primary }]}>
-          {DateUtils_format(data.date)},{" "}
-          <Text style={styles.bold}>{data.weight}</Text> {units}s x{" "}
+          {DateUtils_format(data.date)}, <Text style={styles.bold}>{data.weight}</Text> {units}s x{" "}
           <Text style={styles.bold}>{data.reps}</Text> reps
           {isWithOneRm && data.onerm != null && (
-            <Text>, e1RM = <Text style={styles.bold}>{data.onerm.toFixed(2)}</Text> {units}s</Text>
+            <Text>
+              , e1RM = <Text style={styles.bold}>{data.onerm.toFixed(2)}</Text> {units}s
+            </Text>
           )}
         </Text>
         {data.historyRecord && props.onGoToWorkout && (
@@ -182,7 +184,10 @@ function TooltipContent(props: {
     return (
       <View style={styles.tooltip}>
         <Text style={[styles.tooltipText, { color: sem.text.primary }]}>
-          {DateUtils_format(data.date)}, Volume: <Text style={styles.bold}>{data.volume} {units}s</Text>
+          {DateUtils_format(data.date)}, Volume:{" "}
+          <Text style={styles.bold}>
+            {data.volume} {units}s
+          </Text>
         </Text>
         {data.historyRecord && props.onGoToWorkout && (
           <Pressable onPress={() => props.onGoToWorkout!(data.historyRecord!)}>
@@ -212,7 +217,9 @@ function StateVars(props: {
   sem: ReturnType<typeof Tailwind_semantic>;
 }): React.ReactElement | null {
   const { historyRecord, exercise, sem } = props;
-  if (!historyRecord) return null;
+  if (!historyRecord) {
+    return null;
+  }
 
   const entries = historyRecord.entries.filter((e) => Exercise_eq(e.exercise, exercise));
   const stateVars: string[] = [];
@@ -230,7 +237,9 @@ function StateVars(props: {
     }
   }
 
-  if (stateVars.length === 0) return null;
+  if (stateVars.length === 0) {
+    return null;
+  }
 
   return (
     <View style={styles.stateVarsRow}>

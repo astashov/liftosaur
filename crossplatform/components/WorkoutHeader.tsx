@@ -5,7 +5,14 @@ import type { IHistoryRecord, IProgram, ISettings, ISubscription } from "@shared
 import type { IEvaluatedProgram, IEvaluatedProgramDay } from "@shared/models/program";
 import { Program_isEmpty, Program_getDayData, Program_editAction } from "@shared/models/program";
 import { Progress_isCurrent, Progress_isFullyFinishedSet, Progress_editNotes } from "@shared/models/progress";
-import { History_workoutTime, History_isPaused, History_resumeWorkoutAction, History_pauseWorkoutAction, History_calories, History_pauseWorkout } from "@shared/models/history";
+import {
+  History_workoutTime,
+  History_isPaused,
+  History_resumeWorkoutAction,
+  History_pauseWorkoutAction,
+  History_calories,
+  History_pauseWorkout,
+} from "@shared/models/history";
 import { Reps_findNextSetIndex } from "@shared/models/set";
 import { DateUtils_format } from "@shared/utils/date";
 import { TimeUtils_formatHHMM } from "@shared/utils/time";
@@ -63,11 +70,18 @@ export function WorkoutHeader(props: IProps): React.ReactElement {
                 progress={progress}
                 onPauseResume={() => {
                   if (History_isPaused(progress.intervals)) {
-                    History_resumeWorkoutAction(dispatch, false, props.settings, Subscriptions_hasSubscription(props.subscription));
+                    History_resumeWorkoutAction(
+                      dispatch,
+                      false,
+                      props.settings,
+                      Subscriptions_hasSubscription(props.subscription)
+                    );
                     const currentEntryIndex = progress.ui?.currentEntryIndex || 0;
                     const currentEntry = progress.entries[currentEntryIndex];
                     const setIndex = currentEntry ? Reps_findNextSetIndex(currentEntry) : 0;
-                    dispatch(Thunk_updateLiveActivity(currentEntryIndex, setIndex, progress.timer, progress.timerSince));
+                    dispatch(
+                      Thunk_updateLiveActivity(currentEntryIndex, setIndex, progress.timer, progress.timerSince)
+                    );
                   } else {
                     History_pauseWorkoutAction(dispatch);
                   }

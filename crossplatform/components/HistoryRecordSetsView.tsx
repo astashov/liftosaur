@@ -1,4 +1,4 @@
-import type { JSX } from "preact";
+import type { JSX } from "react";
 import { View, Text } from "react-native";
 import { IDisplaySet, Reps_group, Reps_setToDisplaySet } from "@shared/models/set";
 import type { ISet, ISettings } from "@shared/types";

@@ -107,12 +107,13 @@ function AmrapContent(props: IAmrapContentProps): React.ReactElement {
     : {};
   const stateMetadataKeys = ObjectUtils_keys(stateMetadata).filter((k) => stateMetadata[k]?.userPrompted);
   const state = props.programExercise ? PlannerProgramExercise_getState(props.programExercise) : {};
-  const initialUserVarInputValues = stateMetadataKeys.reduce<
-    Record<string, number | IWeight | IPercentage>
-  >((memo, k) => {
-    memo[k] = state[k];
-    return memo;
-  }, {});
+  const initialUserVarInputValues = stateMetadataKeys.reduce<Record<string, number | IWeight | IPercentage>>(
+    (memo, k) => {
+      memo[k] = state[k];
+      return memo;
+    },
+    {}
+  );
   const [userVarInputValues, setUserVarInputValues] = useState(initialUserVarInputValues);
 
   function onDone(
@@ -235,7 +236,13 @@ function AmrapContent(props: IAmrapContentProps): React.ReactElement {
           </View>
         )}
         <View className="flex-row justify-end gap-3 mt-4">
-          <Button name="modal-amrap-clear" data-cy="modal-amrap-clear" kind="grayv2" buttonSize="md" onPress={() => onDone()}>
+          <Button
+            name="modal-amrap-clear"
+            data-cy="modal-amrap-clear"
+            kind="grayv2"
+            buttonSize="md"
+            onPress={() => onDone()}
+          >
             Cancel
           </Button>
           <Button

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { JSX } from "preact";
+import type { JSX } from "react";
 import { View, Text, Image } from "react-native";
 import { IconSpinner } from "./icons/IconSpinner";
 import { IconDefaultExercise } from "./icons/IconDefaultExercise";

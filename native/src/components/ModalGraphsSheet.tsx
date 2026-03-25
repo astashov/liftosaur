@@ -81,7 +81,10 @@ export function ModalGraphsSheet(): React.ReactElement {
           onSelect={(v) =>
             updateSettings(
               dispatch,
-              lb<ISettings>().p("graphsSettings").p("defaultType").record(v as any),
+              lb<ISettings>()
+                .p("graphsSettings")
+                .p("defaultType")
+                .record(v as any),
               "Set default graph type"
             )
           }
@@ -94,7 +97,10 @@ export function ModalGraphsSheet(): React.ReactElement {
           onSelect={(v) =>
             updateSettings(
               dispatch,
-              lb<ISettings>().p("graphsSettings").p("defaultMuscleGroupType").record(v as any),
+              lb<ISettings>()
+                .p("graphsSettings")
+                .p("defaultMuscleGroupType")
+                .record(v as any),
               "Set muscle group graph type"
             )
           }
@@ -267,10 +273,7 @@ function SettingRow(props: {
           <Pressable
             key={opt}
             onPress={() => props.onSelect(opt)}
-            style={[
-              styles.optionBtn,
-              props.value === opt && { backgroundColor: props.sem.background.neutral },
-            ]}
+            style={[styles.optionBtn, props.value === opt && { backgroundColor: props.sem.background.neutral }]}
           >
             <Text style={[styles.optionText, { color: props.sem.text.primary }]}>
               {opt.charAt(0).toUpperCase() + opt.slice(1)}

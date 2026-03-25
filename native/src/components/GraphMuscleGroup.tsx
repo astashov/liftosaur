@@ -111,13 +111,14 @@ export function GraphMuscleGroup(props: IProps): React.ReactElement {
           {selectedType === "volume" && tooltipData.volume != null && (
             <Text style={[styles.tooltipText, { color: sem.text.primary }]}>
               {DateUtils_format(tooltipData.date)}, Volume:{" "}
-              <Text style={styles.bold}>{tooltipData.volume} {props.settings.units}s</Text>
+              <Text style={styles.bold}>
+                {tooltipData.volume} {props.settings.units}s
+              </Text>
             </Text>
           )}
           {selectedType === "sets" && tooltipData.sets != null && (
             <Text style={[styles.tooltipText, { color: sem.text.primary }]}>
-              {DateUtils_format(tooltipData.date)}, Sets:{" "}
-              <Text style={styles.bold}>{tooltipData.sets}</Text>
+              {DateUtils_format(tooltipData.date)}, Sets: <Text style={styles.bold}>{tooltipData.sets}</Text>
             </Text>
           )}
         </View>

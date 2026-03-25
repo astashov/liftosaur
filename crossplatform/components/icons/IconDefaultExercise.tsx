@@ -1,4 +1,4 @@
-import type { JSX } from "preact";
+import type { JSX } from "react";
 import { Svg, Path, Rect } from "react-native-svg";
 
 interface IProps {
