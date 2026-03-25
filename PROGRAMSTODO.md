@@ -1,13 +1,11 @@
 Reddit BWF Recommended Routine |-| 1590 - 4/5
 Super Squats / 20 Rep Squat |-| 780 - 2/5
 PPLUL |-| 720 - 2/5
-Fierce 5 |-| 650 - 2/5
 HST (Hypertrophy Specific Training) |-| 520 - 1/5
 Westside for Skinny Bastards |-| 560 - 2/5
 Candito Linear Program |-| 380 - 1/5
 5/3/1 FSL |-| 450 - 2/5
 5/3/1 Triumvirate |-| 360 - 1/5
-Coolcicada PPL |-| 350 - 1/5
 Easy Strength (Dan John) |-| 390 - 2/5
 Bill Starr 5x5 |-| 260 - 1/5
 Candito 6-Week Strength |-| 220 - 1/5
