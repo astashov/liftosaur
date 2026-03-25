@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import type { JSX } from "react";
 import { View, Text, Pressable } from "react-native";
 import type { ISetSplit } from "@shared/pages/planner/models/types";
 import type { ISettings, IScreenMuscle } from "@shared/types";
@@ -53,7 +54,7 @@ interface IProps {
   muscle?: IScreenMuscle;
 }
 
-export function PlannerSetSplit(props: IProps): React.ReactElement {
+export function PlannerSetSplit(props: IProps): JSX.Element {
   const { split, settings, shouldIncludeFrequency, muscle } = props;
   const [showTooltip, setShowTooltip] = useState(false);
   const total = split.strength + split.hypertrophy;
@@ -97,7 +98,7 @@ export function PlannerSetSplit(props: IProps): React.ReactElement {
   );
 }
 
-function PlannerStatsTooltip(props: { split: ISetSplit }): React.ReactElement | null {
+function PlannerStatsTooltip(props: { split: ISetSplit }): JSX.Element | null {
   const exercises = CollectionUtils_sort(props.split.exercises, (a, b) => {
     if ((a.isSynergist && b.isSynergist) || (!a.isSynergist && !b.isSynergist)) {
       return a.exerciseName.localeCompare(b.exerciseName);

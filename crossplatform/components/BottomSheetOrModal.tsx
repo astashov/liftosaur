@@ -1,4 +1,5 @@
-import React from "react";
+import type React from "react";
+import type { JSX } from "react";
 import { BottomSheet } from "./BottomSheet";
 
 interface IProps {
@@ -8,6 +9,6 @@ interface IProps {
   onClose: () => void;
 }
 
-export function BottomSheetOrModal(props: IProps): React.ReactElement | null {
+export function BottomSheetOrModal(props: IProps): JSX.Element | null {
   return <BottomSheet {...props} />;
 }

@@ -2,6 +2,7 @@ import React, { useMemo, useState, useCallback, useRef } from "react";
 import { FlatList, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
+import type { IRootNavigation } from "../navigation/types";
 import { useStoreState } from "../context/StoreContext";
 import { useDispatch } from "../context/DispatchContext";
 import { Program_getProgram, Program_evaluate, Program_getProgramDay } from "@shared/models/program";
@@ -49,7 +50,7 @@ function getWeeksData(
 }
 
 export function HomeScreen(): React.ReactElement {
-  const navigation = useNavigation();
+  const navigation = useNavigation<IRootNavigation>();
   const state = useStoreState();
   const dispatch = useDispatch();
   const settings = state.storage.settings;
@@ -153,7 +154,7 @@ export function HomeScreen(): React.ReactElement {
           firstDayOfWeeks={firstDayOfWeeks}
           isLoading={false}
           selectedFirstDayOfWeek={selectedFirstDayOfWeek}
-          onClick={() => (navigation as any).navigate("MonthCalendarSheet", { selectedFirstDayOfWeek })}
+          onClick={() => navigation.navigate("MonthCalendarSheet", { selectedFirstDayOfWeek })}
           onSelectFirstDayOfWeek={setSelectedWeekCalendarFirstDayOfWeek}
         />
       </View>
@@ -171,7 +172,7 @@ export function HomeScreen(): React.ReactElement {
             settings={settings}
             subscription={state.storage.subscription}
             dispatch={dispatch}
-            onShowMore={() => (navigation as any).navigate("WeekInsightsSheet", { selectedFirstDayOfWeek })}
+            onShowMore={() => navigation.navigate("WeekInsightsSheet", { selectedFirstDayOfWeek })}
           />
         }
         ListEmptyComponent={<HistoryRecordsNullState />}

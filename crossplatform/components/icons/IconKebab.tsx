@@ -1,4 +1,4 @@
-import React from "react";
+import type { JSX } from "react";
 import { Svg, Circle } from "react-native-svg";
 import { Tailwind_semantic } from "@shared/utils/tailwindConfig";
 
@@ -7,7 +7,7 @@ interface IProps {
   color?: string;
 }
 
-export function IconKebab(props: IProps): React.ReactElement {
+export function IconKebab(props: IProps): JSX.Element {
   const width = props.size || 16;
   const height = Math.round(width / 4);
   const color = props.color || Tailwind_semantic().icon.neutral;

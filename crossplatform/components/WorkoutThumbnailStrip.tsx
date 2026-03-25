@@ -1,4 +1,5 @@
-import React, { useCallback, useRef } from "react";
+import { useCallback, useRef } from "react";
+import type { JSX } from "react";
 import { View, FlatList, Pressable } from "react-native";
 import type { IHistoryRecord, IHistoryEntry, ISettings } from "@shared/types";
 import { Progress_getColorToSupersetGroup } from "@shared/models/progress";
@@ -13,7 +14,7 @@ interface IProps {
   onAddExercise: () => void;
 }
 
-export function WorkoutThumbnailStrip(props: IProps): React.ReactElement {
+export function WorkoutThumbnailStrip(props: IProps): JSX.Element {
   const flatListRef = useRef<FlatList>(null);
   const colorToSupersetGroup = Progress_getColorToSupersetGroup(props.progress);
   const currentIndex = props.progress.ui?.currentEntryIndex ?? 0;

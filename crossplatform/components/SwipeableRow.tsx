@@ -1,14 +1,15 @@
 import React, { useRef } from "react";
+import type { JSX } from "react";
 import { View, Animated, PanResponder } from "react-native";
 
 interface IProps {
   children: React.ReactNode;
-  renderActions?: () => React.ReactElement;
+  renderActions?: () => JSX.Element;
   actionWidth?: number;
   enabled?: boolean;
 }
 
-export function SwipeableRow(props: IProps): React.ReactElement {
+export function SwipeableRow(props: IProps): JSX.Element {
   const translateX = useRef(new Animated.Value(0)).current;
   const actionWidth = props.actionWidth ?? 128;
   const enabled = props.enabled !== false;
@@ -69,7 +70,7 @@ export function SwipeableRow(props: IProps): React.ReactElement {
       </View>
       <Animated.View {...panResponder.panHandlers} style={{ transform: [{ translateX }] }}>
         {typeof props.children === "function"
-          ? (props.children as (args: { close: () => void }) => React.ReactElement)({ close })
+          ? (props.children as (args: { close: () => void }) => JSX.Element)({ close })
           : props.children}
       </Animated.View>
     </View>

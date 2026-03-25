@@ -1,4 +1,4 @@
-import React from "react";
+import type { JSX } from "react";
 import { View, Text, Pressable } from "react-native";
 import type { IHistoryRecord, ISettings, ISubscription } from "@shared/types";
 import { WeekInsightsUtils_calculateSetResults } from "@shared/utils/weekInsightsUtils";
@@ -25,7 +25,7 @@ interface IProps {
   onShowMore: () => void;
 }
 
-export function WeekInsights(props: IProps): React.ReactElement {
+export function WeekInsights(props: IProps): JSX.Element {
   const isCurrentWeek =
     DateUtils_firstDayOfWeekTimestamp(new Date(), props.settings.startWeekFromMonday) === props.selectedFirstDayOfWeek;
 
@@ -99,14 +99,14 @@ export function WeekInsights(props: IProps): React.ReactElement {
 }
 
 interface IWeekInsightsPropertyProps {
-  icon?: React.ReactElement;
+  icon?: JSX.Element;
   value: string | number;
   hasPadding?: boolean;
   increment?: number;
   unit?: string;
 }
 
-function WeekInsightsProperty(props: IWeekInsightsPropertyProps): React.ReactElement {
+function WeekInsightsProperty(props: IWeekInsightsPropertyProps): JSX.Element {
   return (
     <View className="flex-row items-baseline">
       {props.icon}

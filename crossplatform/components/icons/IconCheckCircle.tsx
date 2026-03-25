@@ -1,4 +1,4 @@
-import React from "react";
+import type { JSX } from "react";
 import { View } from "react-native";
 import { Svg, Path } from "react-native-svg";
 
@@ -9,7 +9,7 @@ interface IProps {
   checkColor?: string;
 }
 
-export function IconCheckCircle(props: IProps): React.ReactElement {
+export function IconCheckCircle(props: IProps): JSX.Element {
   const size = props.size || 20;
   const color = props.color || "#ccc";
   const checkColor = props.checkColor || "#fff";

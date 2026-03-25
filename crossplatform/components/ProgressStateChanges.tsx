@@ -1,4 +1,4 @@
-import React from "react";
+import type { JSX } from "react";
 import { View, Text, Pressable } from "react-native";
 import type { IEvaluatedProgram } from "@shared/models/program";
 import { Program_getDiffState, Program_getDiffVars, Program_runExerciseFinishDayScript } from "@shared/models/program";
@@ -21,7 +21,7 @@ interface IProps {
   forceShow?: boolean;
 }
 
-export function ProgressStateChanges(props: IProps): React.ReactElement | null {
+export function ProgressStateChanges(props: IProps): JSX.Element | null {
   const state = PlannerProgramExercise_getState(props.programExercise);
   const { entry, settings, dayData } = props;
   const { units } = settings;

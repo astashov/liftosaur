@@ -1,4 +1,5 @@
-import React, { memo, useEffect, useRef } from "react";
+import { memo, useEffect, useRef } from "react";
+import type { JSX } from "react";
 import { View, Text, Pressable, ScrollView } from "react-native";
 import {
   DateUtils_formatYYYYMMDD,
@@ -23,7 +24,7 @@ interface IProps {
   onClick: (historyRecord: IHistoryRecord) => void;
 }
 
-export const MonthCalendar = memo((props: IProps): React.ReactElement => {
+export const MonthCalendar = memo((props: IProps): JSX.Element => {
   const scrollRef = useRef<ScrollViewType>(null);
   const monthLayouts = useRef<Record<string, number>>({});
 

@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { FlatList, View, Text, Pressable, useWindowDimensions, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
+import type { IRootNavigation } from "../navigation/types";
 import { useStoreState } from "../context/StoreContext";
 import { useDispatch } from "../context/DispatchContext";
 import { GraphExercise } from "../components/GraphExercise";
@@ -23,7 +24,7 @@ import type { IGraph, IScreenMuscle, IHistoryRecord } from "@shared/types";
 export function GraphsScreen(): React.ReactElement {
   const state = useStoreState();
   const dispatch = useDispatch();
-  const navigation = useNavigation();
+  const navigation = useNavigation<IRootNavigation>();
   const { width: screenWidth } = useWindowDimensions();
   const sem = Tailwind_semantic();
 
@@ -103,7 +104,7 @@ export function GraphsScreen(): React.ReactElement {
 
   const openSettings = useMemo(
     () => () => {
-      (navigation as any).navigate("ModalGraphsSheet");
+      navigation.navigate("ModalGraphsSheet");
     },
     [navigation]
   );
@@ -191,7 +192,6 @@ export function GraphsScreen(): React.ReactElement {
               minX={Math.round(minX / 1000)}
               maxX={Math.round(maxX / 1000)}
               units="%"
-              settings={settings}
               collection={collection}
               statsKey={graph.id}
               width={screenWidth}

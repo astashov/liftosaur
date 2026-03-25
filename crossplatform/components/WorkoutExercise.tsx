@@ -1,4 +1,5 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
+import type { JSX } from "react";
 import { View } from "react-native";
 import type { IDispatch } from "@shared/ducks/types";
 import type { IHistoryRecord, ISettings, ISubscription, IHistoryEntry, IProgramState, IStats } from "@shared/types";
@@ -29,7 +30,7 @@ interface IProps {
   dispatch: IDispatch;
 }
 
-export function WorkoutExercise(props: IProps): React.ReactElement {
+export function WorkoutExercise(props: IProps): JSX.Element {
   const exerciseType = props.entry.exercise;
 
   const historyCollector = Collector.build(props.history)

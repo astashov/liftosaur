@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { JSX } from "react";
 import { View, Text, Pressable } from "react-native";
 import { IconPlay } from "./icons/IconPlay";
 import { IconPause } from "./icons/IconPause";
@@ -11,7 +12,7 @@ interface IProps {
   onPauseResume: () => void;
 }
 
-export function WorkoutTimer(props: IProps): React.ReactElement {
+export function WorkoutTimer(props: IProps): JSX.Element {
   const intervalId = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
   const [, setTick] = useState(0);
 

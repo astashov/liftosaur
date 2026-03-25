@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from "react";
+import { useState, useCallback } from "react";
+import type { JSX } from "react";
 import { TextInput, View } from "react-native";
 
 interface IProps {
@@ -16,7 +17,7 @@ interface IProps {
   tabIndex?: number;
 }
 
-export function InputNumber(props: IProps): React.ReactElement {
+export function InputNumber(props: IProps): JSX.Element {
   const displayValue = props.value != null ? String(props.value) : "";
   const [localValue, setLocalValue] = useState(displayValue);
   const [isFocused, setIsFocused] = useState(false);

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import type { JSX } from "react";
 import { View, Text, Pressable } from "react-native";
 import { StringUtils_dashcase } from "@shared/utils/string";
 import { IconArrowDown2 } from "./icons/IconArrowDown2";
@@ -7,12 +8,12 @@ import { IconHelp } from "./icons/IconHelp";
 
 interface IProps {
   name: string;
-  help?: React.ReactElement;
+  help?: JSX.Element;
   size?: "small" | "large";
   children?: React.ReactNode;
   headerClassName?: string;
-  nameAddOn?: React.ReactElement;
-  rightAddOn?: React.ReactElement;
+  nameAddOn?: JSX.Element;
+  rightAddOn?: JSX.Element;
   leftExpandIcon?: boolean;
   isExpanded?: boolean;
   expandOnIconClick?: boolean;
@@ -20,7 +21,7 @@ interface IProps {
   highlighted?: boolean;
 }
 
-export function GroupHeader(props: IProps): React.ReactElement {
+export function GroupHeader(props: IProps): JSX.Element {
   const { name } = props;
   const [isExpanded, setIsExpanded] = useState<boolean>(!!props.isExpanded);
   const [isHelpShown, setIsHelpShown] = useState<boolean>(false);

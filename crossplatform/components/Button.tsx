@@ -1,4 +1,5 @@
-import React from "react";
+import type React from "react";
+import type { JSX } from "react";
 import { Pressable, Text } from "react-native";
 
 interface IProps {
@@ -12,7 +13,7 @@ interface IProps {
   "data-cy"?: string;
 }
 
-export function Button(props: IProps): React.ReactElement {
+export function Button(props: IProps): JSX.Element {
   const { children, buttonSize, kind, disabled } = props;
   let className = "text-xs rounded-lg";
   let textClassName = "";

@@ -47,6 +47,22 @@ declare module "react-native" {
     style?: Record<string, unknown>;
   }
   export const ScrollView: FunctionComponent<IScrollViewProps>;
+
+  export const Animated: {
+    View: FunctionComponent<{ style?: Record<string, unknown>; children?: ComponentChildren }>;
+    Value: new (value: number) => {
+      interpolate(config: { inputRange: number[]; outputRange: string[] }): unknown;
+    };
+    timing(
+      value: unknown,
+      config: { toValue: number; duration: number; easing: (value: number) => number; useNativeDriver: boolean }
+    ): { start(): void; stop(): void };
+    loop(animation: { start(): void; stop(): void }): { start(): void; stop(): void };
+  };
+
+  export const Easing: {
+    linear: (value: number) => number;
+  };
 }
 
 declare module "react-native-svg" {
@@ -92,6 +108,7 @@ declare module "react-native-svg" {
     r?: number | string;
     fill?: string;
     stroke?: string;
+    strokeWidth?: string | number;
   }
   export const Circle: FunctionComponent<ICircleProps>;
 

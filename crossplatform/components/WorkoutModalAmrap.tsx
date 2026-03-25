@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import type { JSX } from "react";
 import { View, Text } from "react-native";
 import type { IDispatch } from "@shared/ducks/types";
 import type { IHistoryRecord, IPercentage, IProgramState, ISettings, IWeight } from "@shared/types";
@@ -28,7 +29,7 @@ interface IProps {
   onDone?: () => void;
 }
 
-export function WorkoutModalAmrap(props: IProps): React.ReactElement | null {
+export function WorkoutModalAmrap(props: IProps): JSX.Element | null {
   const progress = props.progress;
   const amrapModal = progress?.ui?.amrapModal;
   if (!amrapModal) {
@@ -96,7 +97,7 @@ interface IAmrapContentProps {
   onDone?: () => void;
 }
 
-function AmrapContent(props: IAmrapContentProps): React.ReactElement {
+function AmrapContent(props: IAmrapContentProps): JSX.Element {
   const [repsInputValue, setRepsInputValue] = useState<number | undefined>(props.initialReps);
   const [repsLeftInputValue, setRepsLeftInputValue] = useState<number | undefined>(props.initialRepsLeft);
   const [weightInputValue, setWeightInputValue] = useState<IWeight | IPercentage | undefined>(props.initialWeight);

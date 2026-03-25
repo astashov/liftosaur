@@ -1,4 +1,5 @@
-import React, { useRef, useCallback } from "react";
+import { useRef, useCallback } from "react";
+import type { JSX } from "react";
 import { View, Text, Pressable, Animated, PanResponder } from "react-native";
 import type { IDispatch } from "@shared/ducks/types";
 import type {
@@ -60,7 +61,7 @@ interface IProps {
   dispatch: IDispatch;
 }
 
-export function WorkoutExerciseSet(props: IProps): React.ReactElement {
+export function WorkoutExerciseSet(props: IProps): JSX.Element {
   const set = props.set;
   const placeholderReps = `${set.minReps != null ? `${n(set.minReps)}-` : ""}${set.reps != null ? n(set.reps) : ""}${set.reps != null && set.isAmrap ? "+" : ""}`;
   const placeholderWeight = set.weight?.value != null ? `${n(set.weight.value)}${set.askWeight ? "+" : ""}` : undefined;
@@ -263,16 +264,14 @@ export function WorkoutExerciseSet(props: IProps): React.ReactElement {
               exerciseType={props.exerciseType}
               data-cy="weight-value"
               onBlur={(value) => {
-                if (value == null || value.unit !== "%") {
-                  updateProgress(
-                    props.dispatch,
-                    [props.lbSet.recordModify((s) => Reps_enforceCompletedSet({ ...s, completedWeight: value }))],
-                    "blur-weight"
-                  );
-                }
+                updateProgress(
+                  props.dispatch,
+                  [props.lbSet.recordModify((s) => Reps_enforceCompletedSet({ ...s, completedWeight: value }))],
+                  "blur-weight"
+                );
               }}
               onInput={(value) => {
-                if (value != null && value.unit !== "%") {
+                if (value != null) {
                   updateProgress(
                     props.dispatch,
                     [props.lbSet.recordModify((s) => Reps_enforceCompletedSet({ ...s, completedWeight: value }))],
@@ -331,7 +330,7 @@ interface ISetTargetFieldProps {
   exerciseType: IExerciseType;
 }
 
-function SetTargetField(props: ISetTargetFieldProps): React.ReactElement {
+function SetTargetField(props: ISetTargetFieldProps): JSX.Element {
   switch (props.settings.workoutSettings.targetType) {
     case "target":
       return <SetTarget set={props.set} setType={props.setType} />;
@@ -345,7 +344,7 @@ function SetTargetField(props: ISetTargetFieldProps): React.ReactElement {
   return <View />;
 }
 
-function SetTarget(props: { set: ISet; setType: "program" | "warmup" | "adhoc" }): React.ReactElement {
+function SetTarget(props: { set: ISet; setType: "program" | "warmup" | "adhoc" }): JSX.Element {
   const set = props.set;
   if (props.setType === "warmup") {
     return (
@@ -422,7 +421,7 @@ function SetTarget(props: { set: ISet; setType: "program" | "warmup" | "adhoc" }
   );
 }
 
-function SetLastTime(props: { set?: ISet }): React.ReactElement {
+function SetLastTime(props: { set?: ISet }): JSX.Element {
   const set = props.set;
   if (set == null) {
     return <Text className="text-xs text-text-secondary">No last set</Text>;
@@ -444,7 +443,7 @@ function SetLastTime(props: { set?: ISet }): React.ReactElement {
   );
 }
 
-function SetPlatesCalc(props: { set: ISet; settings: ISettings; exerciseType: IExerciseType }): React.ReactElement {
+function SetPlatesCalc(props: { set: ISet; settings: ISettings; exerciseType: IExerciseType }): JSX.Element {
   const setWeight = props.set.weight;
   if (setWeight == null) {
     return <Text className="text-sm font-semibold">None</Text>;
@@ -467,7 +466,7 @@ function SetPlatesCalc(props: { set: ISet; settings: ISettings; exerciseType: IE
   );
 }
 
-function SetE1RM(props: { set: ISet; settings: ISettings }): React.ReactElement {
+function SetE1RM(props: { set: ISet; settings: ISettings }): JSX.Element {
   const set = props.set;
   const isCompleted = !!set.isCompleted;
   const weight = set.completedWeight ?? set.weight ?? set.originalWeight;

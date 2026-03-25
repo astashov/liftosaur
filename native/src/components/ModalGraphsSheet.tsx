@@ -81,10 +81,7 @@ export function ModalGraphsSheet(): React.ReactElement {
           onSelect={(v) =>
             updateSettings(
               dispatch,
-              lb<ISettings>()
-                .p("graphsSettings")
-                .p("defaultType")
-                .record(v as any),
+              lb<ISettings>().p("graphsSettings").p("defaultType").record(v),
               "Set default graph type"
             )
           }
@@ -97,10 +94,7 @@ export function ModalGraphsSheet(): React.ReactElement {
           onSelect={(v) =>
             updateSettings(
               dispatch,
-              lb<ISettings>()
-                .p("graphsSettings")
-                .p("defaultMuscleGroupType")
-                .record(v as any),
+              lb<ISettings>().p("graphsSettings").p("defaultMuscleGroupType").record(v),
               "Set muscle group graph type"
             )
           }
@@ -258,12 +252,12 @@ export function ModalGraphsSheet(): React.ReactElement {
   );
 }
 
-function SettingRow(props: {
+function SettingRow<T extends string>(props: {
   label: string;
-  value: string;
-  options: string[];
+  value: T;
+  options: T[];
   sem: ReturnType<typeof Tailwind_semantic>;
-  onSelect: (v: string) => void;
+  onSelect: (v: T) => void;
 }): React.ReactElement {
   return (
     <View style={[styles.settingRow, { borderBottomColor: props.sem.border.neutral }]}>

@@ -1,4 +1,5 @@
-import React, { useRef, useEffect, useCallback, useState } from "react";
+import { useRef, useEffect, useCallback, useState } from "react";
+import type { JSX } from "react";
 import { View, Text, Pressable, ScrollView, useWindowDimensions } from "react-native";
 import type { IHistoryRecord } from "@shared/types";
 import { DateUtils_formatYYYYMMDD } from "@shared/utils/date";
@@ -20,7 +21,7 @@ interface IProps {
   history: IHistoryRecord[];
 }
 
-export function WeekCalendar(props: IProps): React.ReactElement {
+export function WeekCalendar(props: IProps): JSX.Element {
   const scrollRef = useRef<ScrollViewType>(null);
   const { width: screenWidth } = useWindowDimensions();
   const contentWidth = screenWidth - 32;

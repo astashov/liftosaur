@@ -1,6 +1,7 @@
 import React, { useCallback } from "react";
 import { View, Text, Pressable, ScrollView, useWindowDimensions } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import type { IRootNavigation } from "../navigation/types";
 import { SafeAreaView } from "react-native-safe-area-context";
 import type { LayoutChangeEvent } from "react-native";
 import { Program_nextHistoryRecord, Program_isEmpty, Program_getProgram, emptyProgramId } from "@shared/models/program";
@@ -11,7 +12,7 @@ import { useWebViewPool } from "../screens/WebViewPool";
 import { HistoryEntryView } from "@crossplatform/components/HistoryEntryView";
 
 export function NextWorkoutScreen(): React.ReactElement {
-  const navigation = useNavigation();
+  const navigation = useNavigation<IRootNavigation>();
   const { height: screenHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const appState = useStoreState();
@@ -59,8 +60,7 @@ export function NextWorkoutScreen(): React.ReactElement {
   };
 
   const onChangeNextDay = (): void => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (navigation as any).replace("ChangeNextDaySheet");
+    navigation.replace("ChangeNextDaySheet");
   };
 
   return (

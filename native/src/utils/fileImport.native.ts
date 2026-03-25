@@ -8,8 +8,8 @@ export async function FileImport_pickAndRead(fileTypes: string[]): Promise<strin
     const [result] = await pick({ type: fileTypes });
     const response = await fetch(result.uri);
     return await response.text();
-  } catch (e: any) {
-    if (e?.code !== "DOCUMENT_PICKER_CANCELED") {
+  } catch (e: unknown) {
+    if (e != null && typeof e === "object" && "code" in e && e.code !== "DOCUMENT_PICKER_CANCELED") {
       Alert.alert("Error", "Could not read the selected file");
     }
     return undefined;

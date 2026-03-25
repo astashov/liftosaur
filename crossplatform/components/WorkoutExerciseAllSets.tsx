@@ -1,4 +1,4 @@
-import React from "react";
+import type { JSX } from "react";
 import { View, Text, Pressable } from "react-native";
 import type { IDispatch } from "@shared/ducks/types";
 import type {
@@ -62,7 +62,7 @@ function getTargetColumnLabel(targetType: ITargetType): string {
   }
 }
 
-export function WorkoutExerciseAllSets(props: IProps): React.ReactElement {
+export function WorkoutExerciseAllSets(props: IProps): JSX.Element {
   const warmupSets = props.entry.warmupSets;
   const sets = props.entry.sets;
   const buttonBgColor = WorkoutExerciseUtils_getBgColor100(sets, false);

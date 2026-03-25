@@ -1,4 +1,4 @@
-import React from "react";
+import type { JSX } from "react";
 import { View, Text, TextInput, Pressable, Alert, Platform } from "react-native";
 import type { IDispatch } from "@shared/ducks/types";
 import type { IHistoryRecord, IProgram, ISettings, ISubscription } from "@shared/types";
@@ -53,7 +53,7 @@ function confirmAction(message: string, onConfirm: () => void): void {
   }
 }
 
-export function WorkoutHeader(props: IProps): React.ReactElement {
+export function WorkoutHeader(props: IProps): JSX.Element {
   const { progress, program, dispatch } = props;
   const isCurrent = Progress_isCurrent(progress);
   const description = props.programDay?.description;

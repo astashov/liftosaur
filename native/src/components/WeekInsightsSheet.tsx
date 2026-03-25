@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { View, Text, ScrollView } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
+import type { IRootNavigation } from "../navigation/types";
 import { useStoreState } from "../context/StoreContext";
 import {
   History_getPersonalRecords,
@@ -17,7 +18,7 @@ import { LinkButton } from "@crossplatform/components/LinkButton";
 import type { ISetSplit } from "@shared/pages/planner/models/types";
 
 export function WeekInsightsSheet(): React.ReactElement {
-  const navigation = useNavigation();
+  const navigation = useNavigation<IRootNavigation>();
   const route = useRoute();
   const params = (route.params || {}) as { selectedFirstDayOfWeek?: number };
   const state = useStoreState();
@@ -87,7 +88,7 @@ export function WeekInsightsSheet(): React.ReactElement {
       <View className="mt-4 pb-8">
         <LinkButton
           name="week-insights-show-planner-settings"
-          onPress={() => (navigation as any).navigate("PlannerSettingsSheet")}
+          onPress={() => navigation.navigate("PlannerSettingsSheet")}
         >
           Change Set Range Settings
         </LinkButton>

@@ -1,4 +1,4 @@
-import React from "react";
+import type { JSX } from "react";
 import { View, Text } from "react-native";
 import { Exercise_fromKey, Exercise_get } from "@shared/models/exercise";
 import { Weight_display, Weight_build, Weight_getOneRepMax } from "@shared/models/weight";
@@ -20,7 +20,7 @@ interface IPersonalRecordItems {
   max1RM: Partial<Record<string, { set: ISet; prev?: ISet }[]>>;
 }
 
-export function PersonalRecords(props: IProps): React.ReactElement {
+export function PersonalRecords(props: IProps): JSX.Element {
   if (History_getNumberOfPersonalRecords(props.historyRecords, props.prs) === 0) {
     return (
       <View className="px-4 pt-8 pb-4">

@@ -18,6 +18,7 @@ import { Thunk_importStorage, Thunk_importCsvData, Thunk_importProgram } from "@
 import { FileExport_share } from "../utils/fileExport";
 import { FileImport_pickAndRead, FileImport_confirm, docTypes } from "../utils/fileImport";
 import type { ISettings, ILengthUnit, IUnit } from "@shared/types";
+import type { ILensRecordingPayload } from "lens-shmens";
 
 function GroupHeader({ name }: { name: string }): React.ReactElement {
   const sem = Tailwind_semantic();
@@ -142,14 +143,14 @@ export function SettingsScreen(): React.ReactElement {
   const currentBodyfat = useMemo(() => Stats_getCurrentBodyfat(stats), [stats]);
 
   const pushScreen = useCallback(
-    (screen: string, params?: unknown) => {
-      dispatch({ type: "PushScreen", screen, params } as any);
+    (screen: string, params?: object) => {
+      dispatch({ type: "PushScreen", screen, params } as { type: "PushScreen"; screen: string; params?: object });
     },
     [dispatch]
   );
 
   const updateSettings = useCallback(
-    (lensRecording: any, desc: string) => {
+    (lensRecording: ILensRecordingPayload<ISettings>, desc: string) => {
       dispatch({ type: "UpdateSettings", lensRecording, desc });
     },
     [dispatch]

@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from "react";
+import { useState, useCallback } from "react";
+import type { JSX } from "react";
 import { TextInput, View, Text } from "react-native";
 import type { IWeight, IExerciseType, ISettings, ISubscription } from "@shared/types";
 
@@ -16,10 +17,10 @@ interface IProps {
   name?: string;
   "data-cy"?: string;
   tabIndex?: number;
-  addOn?: () => React.ReactElement;
+  addOn?: () => JSX.Element;
 }
 
-export function InputWeight(props: IProps): React.ReactElement {
+export function InputWeight(props: IProps): JSX.Element {
   const unit = props.value?.unit ?? props.initialValue?.unit ?? props.settings.units;
   const displayValue = props.value?.value != null ? String(props.value.value) : "";
   const [localValue, setLocalValue] = useState(displayValue);

@@ -1,4 +1,4 @@
-import React from "react";
+import type { JSX } from "react";
 import { Svg, Path } from "react-native-svg";
 import { Tailwind_semantic } from "@shared/utils/tailwindConfig";
 
@@ -8,7 +8,7 @@ interface IProps {
   className?: string;
 }
 
-export function IconArrowUp(props: IProps): React.ReactElement {
+export function IconArrowUp(props: IProps): JSX.Element {
   const color = props.color || Tailwind_semantic().icon.neutral;
   return (
     <Svg width={13} height={8} className={props.className} style={props.style} viewBox="0 0 13 8" fill="none">

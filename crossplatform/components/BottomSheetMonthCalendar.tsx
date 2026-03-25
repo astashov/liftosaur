@@ -1,4 +1,5 @@
-import React, { memo } from "react";
+import { memo } from "react";
+import type { JSX } from "react";
 import { View, Text } from "react-native";
 import { BottomSheet } from "./BottomSheet";
 import { MonthCalendar } from "./MonthCalendar";
@@ -18,7 +19,7 @@ interface IProps {
   onClose: () => void;
 }
 
-export const BottomSheetMonthCalendar = memo((props: IProps): React.ReactElement | null => {
+export const BottomSheetMonthCalendar = memo((props: IProps): JSX.Element | null => {
   const monthNames = props.startWeekFromMonday
     ? ["M", "T", "W", "T", "F", "S", "S"]
     : ["S", "M", "T", "W", "T", "F", "S"];

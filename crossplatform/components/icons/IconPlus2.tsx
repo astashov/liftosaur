@@ -1,4 +1,4 @@
-import React from "react";
+import type { JSX } from "react";
 import { Svg, Path } from "react-native-svg";
 import { Tailwind_semantic } from "@shared/utils/tailwindConfig";
 
@@ -8,7 +8,7 @@ interface IProps {
   className?: string;
 }
 
-export function IconPlus2(props: IProps): React.ReactElement {
+export function IconPlus2(props: IProps): JSX.Element {
   const size = props.size || 18;
   const color = props.color || Tailwind_semantic().icon.neutral;
   return (

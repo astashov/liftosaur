@@ -1,4 +1,5 @@
-import React from "react";
+import type React from "react";
+import type { JSX } from "react";
 import { View, Pressable, Modal as RNModal, ScrollView } from "react-native";
 import { IconCloseCircleOutline } from "./icons/IconCloseCircleOutline";
 
@@ -13,7 +14,7 @@ interface IProps {
   onClose?: () => void;
 }
 
-export function Modal(props: IProps): React.ReactElement | null {
+export function Modal(props: IProps): JSX.Element | null {
   if (props.isHidden) {
     return null;
   }

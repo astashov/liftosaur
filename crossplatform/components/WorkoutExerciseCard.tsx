@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import type { JSX } from "react";
 import { View, Text, Pressable, TextInput, Modal as RNModal } from "react-native";
 import type { IDispatch } from "@shared/ducks/types";
 import type { IHistoryEntry, IHistoryRecord, IProgramState, ISettings, IStats, ISubscription } from "@shared/types";
@@ -66,7 +67,7 @@ interface IProps {
   otherStates?: IByExercise<IProgramState>;
 }
 
-export function WorkoutExerciseCard(props: IProps): React.ReactElement {
+export function WorkoutExerciseCard(props: IProps): JSX.Element {
   const programExercise =
     props.program && props.entry.programExerciseId
       ? Program_getProgramExerciseForKeyAndDay(props.program, props.day, props.entry.programExerciseId)
@@ -276,7 +277,7 @@ interface IKebabMenuProps {
   dispatch: IDispatch;
 }
 
-function KebabMenu(props: IKebabMenuProps): React.ReactElement {
+function KebabMenu(props: IKebabMenuProps): JSX.Element {
   const { programExercise, programExerciseId, dispatch, entry, entryIndex } = props;
   return (
     <RNModal transparent={true} visible={true} onRequestClose={props.onClose} animationType="fade">

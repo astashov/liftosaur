@@ -1,4 +1,4 @@
-import React from "react";
+import type { JSX } from "react";
 import { Svg, Path } from "react-native-svg";
 import { Tailwind_semantic } from "@shared/utils/tailwindConfig";
 
@@ -8,7 +8,7 @@ interface IProps {
   isSelected?: boolean;
 }
 
-export function IconMuscles2(props: IProps): React.ReactElement {
+export function IconMuscles2(props: IProps): JSX.Element {
   const size = props.size || 20;
   const color = props.color || Tailwind_semantic().icon.neutral;
   const d = props.isSelected

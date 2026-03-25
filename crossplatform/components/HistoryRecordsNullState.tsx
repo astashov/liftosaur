@@ -1,8 +1,8 @@
-import React from "react";
+import type { JSX } from "react";
 import { View, Text, Image } from "react-native";
 import { IconArrowDown3 } from "./icons/IconArrowDown3";
 
-export function HistoryRecordsNullState(): React.ReactElement {
+export function HistoryRecordsNullState(): JSX.Element {
   return (
     <>
       <View className="absolute items-center justify-center left-0 right-0" style={{ top: 130 }}>

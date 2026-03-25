@@ -1,4 +1,4 @@
-import React from "react";
+import type { JSX } from "react";
 import { View, Text } from "react-native";
 import Markdown from "markdown-to-jsx";
 
@@ -7,7 +7,7 @@ interface IProps {
   className?: string;
 }
 
-export function MarkdownSimple(props: IProps): React.ReactElement {
+export function MarkdownSimple(props: IProps): JSX.Element {
   const stringValue = typeof props.value === "string" ? props.value : String(props.value ?? "");
   return (
     <View className={props.className || "markdown"}>

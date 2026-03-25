@@ -1,4 +1,4 @@
-import React from "react";
+import type { JSX } from "react";
 import { View, Text, Pressable } from "react-native";
 import { Exercise_get } from "@shared/models/exercise";
 import { Reps_setsStatus } from "@shared/models/set";
@@ -23,7 +23,7 @@ interface IProps {
   settings: ISettings;
 }
 
-export function WorkoutExerciseThumbnail(props: IProps): React.ReactElement {
+export function WorkoutExerciseThumbnail(props: IProps): JSX.Element {
   const { entry, entryIndex } = props;
   const hasSupersets = Object.keys(props.colorToSupersetGroup).length > 0;
   const colorAndSupersetGroup = ObjectUtils_entries(props.colorToSupersetGroup).find(([_, entries]) => {

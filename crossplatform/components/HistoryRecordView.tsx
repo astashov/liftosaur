@@ -1,4 +1,5 @@
-import React, { memo } from "react";
+import { memo } from "react";
+import type { JSX } from "react";
 import { View, Text, Pressable } from "react-native";
 import type { IDispatch } from "@shared/ducks/types";
 import { DateUtils_format } from "@shared/utils/date";
@@ -32,7 +33,7 @@ interface IProps {
   dispatch: IDispatch;
 }
 
-export const HistoryRecordView = memo((props: IProps): React.ReactElement => {
+export const HistoryRecordView = memo((props: IProps): JSX.Element => {
   const { historyRecord, dispatch } = props;
   const isCurrent = Progress_isCurrent(historyRecord);
   const description = isCurrent ? props.programDay?.description : undefined;
@@ -145,7 +146,7 @@ interface IHistoryRecordStatsProps {
   settings: ISettings;
 }
 
-function HistoryRecordStats(props: IHistoryRecordStatsProps): React.ReactElement {
+function HistoryRecordStats(props: IHistoryRecordStatsProps): JSX.Element {
   const record = props.historyRecord;
   const { value: time, unit: timeUnit } = TimeUtils_formatHOrMin(History_workoutTime(record));
   const totalWeight = History_totalRecordWeight(record, props.settings.units);
@@ -170,13 +171,13 @@ function HistoryRecordStats(props: IHistoryRecordStatsProps): React.ReactElement
 }
 
 interface IHistoryRecordPropertyProps {
-  icon?: React.ReactElement;
+  icon?: JSX.Element;
   value: string | number;
   hasPadding?: boolean;
   unit?: string;
 }
 
-function HistoryRecordProperty(props: IHistoryRecordPropertyProps): React.ReactElement {
+function HistoryRecordProperty(props: IHistoryRecordPropertyProps): JSX.Element {
   return (
     <View className="flex-row items-center">
       {props.icon}

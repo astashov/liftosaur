@@ -1,4 +1,4 @@
-import React from "react";
+import type { JSX } from "react";
 import { View } from "react-native";
 import type { IDispatch } from "@shared/ducks/types";
 import type { IPersonalRecords } from "@shared/models/history";
@@ -16,7 +16,7 @@ interface IProps {
   subscription: ISubscription;
 }
 
-export function HistoryRecordsList(props: IProps): React.ReactElement {
+export function HistoryRecordsList(props: IProps): JSX.Element {
   const { history, settings, dispatch } = props;
   const program = Program_evaluate(props.program, props.settings);
   const programDay = Program_getProgramDay(program, program.nextDay);
