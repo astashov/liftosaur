@@ -1,9 +1,8 @@
-import React, { useCallback, useMemo, useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useMemo, useState } from "react";
+import { View, Text } from "react-native";
 import Svg, { Line, Path, Circle, G, Text as SvgText, Rect, Defs, ClipPath } from "react-native-svg";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, { useSharedValue, useAnimatedReaction, runOnJS } from "react-native-reanimated";
-import { Tailwind_semantic, Tailwind_colors } from "@shared/utils/tailwindConfig";
+import { Tailwind_semantic } from "@shared/utils/tailwindConfig";
 
 export interface ILineChartSeries {
   color: string;
@@ -131,6 +130,16 @@ function buildLinePath(
   return d;
 }
 
+function defaultFormatY(v: number): string {
+  if (Math.abs(v) >= 1000) {
+    return `${(v / 1000).toFixed(1)}k`;
+  }
+  if (Number.isInteger(v)) {
+    return String(v);
+  }
+  return v.toFixed(1);
+}
+
 export function LineChart(props: ILineChartProps): React.ReactElement {
   const {
     width,
@@ -138,7 +147,7 @@ export function LineChart(props: ILineChartProps): React.ReactElement {
     data,
     series,
     formatX = formatTimeDefault,
-    formatY,
+    formatY = defaultFormatY,
     verticalLines,
     onCursorChange,
     spanGaps = true,
@@ -148,7 +157,6 @@ export function LineChart(props: ILineChartProps): React.ReactElement {
   const sem = Tailwind_semantic();
   const plotWidth = width - PADDING_LEFT - PADDING_RIGHT;
   const plotHeight = height - PADDING_TOP - PADDING_BOTTOM;
-
   const xValues = data[0] ?? [];
 
   const initialMinX =
@@ -156,21 +164,9 @@ export function LineChart(props: ILineChartProps): React.ReactElement {
   const initialMaxX =
     props.maxX ?? (xValues.length > 0 ? Math.max(...xValues.filter((v): v is number => v != null)) : 1);
 
-  const xMinShared = useSharedValue(initialMinX);
-  const xMaxShared = useSharedValue(initialMaxX);
   const [xMin, setXMin] = useState(initialMinX);
   const [xMax, setXMax] = useState(initialMaxX);
   const [cursorIndex, setCursorIndex] = useState<number | null>(null);
-
-  useAnimatedReaction(
-    () => ({ min: xMinShared.value, max: xMaxShared.value }),
-    (current, previous) => {
-      if (!previous || current.min !== previous.min || current.max !== previous.max) {
-        runOnJS(setXMin)(current.min);
-        runOnJS(setXMax)(current.max);
-      }
-    }
-  );
 
   const { yMin, yMax } = useMemo(() => {
     let lo = Infinity;
@@ -208,32 +204,12 @@ export function LineChart(props: ILineChartProps): React.ReactElement {
     return { yMin: lo - padding, yMax: hi + padding };
   }, [data, series, xMin, xMax, xValues]);
 
-  const toPixelX = useCallback(
-    (val: number) => ((val - xMin) / (xMax - xMin)) * plotWidth + PADDING_LEFT,
-    [xMin, xMax, plotWidth]
-  );
-  const toPixelY = useCallback(
-    (val: number) => PADDING_TOP + plotHeight - ((val - yMin) / (yMax - yMin)) * plotHeight,
-    [yMin, yMax, plotHeight]
-  );
-  const toValueX = useCallback(
-    (px: number) => ((px - PADDING_LEFT) / plotWidth) * (xMax - xMin) + xMin,
-    [xMin, xMax, plotWidth]
-  );
+  const toPixelX = (val: number): number => ((val - xMin) / (xMax - xMin)) * plotWidth + PADDING_LEFT;
+  const toPixelY = (val: number): number => PADDING_TOP + plotHeight - ((val - yMin) / (yMax - yMin)) * plotHeight;
+  const toValueX = (px: number): number => ((px - PADDING_LEFT) / plotWidth) * (xMax - xMin) + xMin;
 
   const yTicks = useMemo(() => generateTicks(yMin, yMax, Y_TICK_COUNT), [yMin, yMax]);
   const xTicks = useMemo(() => generateTicks(xMin, xMax, X_TICK_COUNT), [xMin, xMax]);
-
-  const defaultFormatY = useCallback((v: number) => {
-    if (Math.abs(v) >= 1000) {
-      return `${(v / 1000).toFixed(1)}k`;
-    }
-    if (Number.isInteger(v)) {
-      return String(v);
-    }
-    return v.toFixed(1);
-  }, []);
-  const fmtY = formatY ?? defaultFormatY;
 
   const paths = useMemo(() => {
     return series.map((s, i) => {
@@ -248,62 +224,55 @@ export function LineChart(props: ILineChartProps): React.ReactElement {
     });
   }, [series, data, xValues, toPixelX, toPixelY, spanGaps]);
 
-  const pinchFocalXShared = useSharedValue(0);
-  const pinchStartXMin = useSharedValue(0);
-  const pinchStartXMax = useSharedValue(0);
+  // Refs to track pinch start state (mutated in gesture callbacks, no re-render needed)
+  const pinchState = React.useRef({ focalX: 0, startXMin: 0, startXMax: 0 });
 
   const pinchGesture = Gesture.Pinch()
+    .runOnJS(true)
     .onStart((e) => {
-      pinchFocalXShared.value = e.focalX;
-      pinchStartXMin.value = xMinShared.value;
-      pinchStartXMax.value = xMaxShared.value;
+      pinchState.current.focalX = e.focalX;
+      pinchState.current.startXMin = xMin;
+      pinchState.current.startXMax = xMax;
     })
     .onUpdate((e) => {
-      const focalPct = (pinchFocalXShared.value - PADDING_LEFT) / plotWidth;
-      const origRange = pinchStartXMax.value - pinchStartXMin.value;
+      const { focalX, startXMin, startXMax } = pinchState.current;
+      const focalPct = (focalX - PADDING_LEFT) / plotWidth;
+      const origRange = startXMax - startXMin;
       const newRange = origRange / e.scale;
-      const focalVal = pinchStartXMin.value + focalPct * origRange;
-      xMinShared.value = focalVal - focalPct * newRange;
-      xMaxShared.value = focalVal + (1 - focalPct) * newRange;
+      const focalVal = startXMin + focalPct * origRange;
+      setXMin(focalVal - focalPct * newRange);
+      setXMax(focalVal + (1 - focalPct) * newRange);
     });
 
-  const handleCursorUpdate = useCallback(
-    (px: number) => {
-      const val = toValueX(px);
-      const idx = findNearestIndex(xValues, val);
-      setCursorIndex(idx);
-      onCursorChange?.(idx, xValues[idx] ?? null);
-    },
-    [toValueX, xValues, onCursorChange]
-  );
-
-  const handleCursorEnd = useCallback(() => {
-    setCursorIndex(null);
-    onCursorChange?.(null, null);
-  }, [onCursorChange]);
-
   const panGesture = Gesture.Pan()
+    .runOnJS(true)
     .minPointers(1)
     .maxPointers(1)
     .onStart((e) => {
-      runOnJS(handleCursorUpdate)(e.x);
+      const val = toValueX(e.x);
+      const idx = findNearestIndex(xValues, val);
+      setCursorIndex(idx);
+      onCursorChange?.(idx, xValues[idx] ?? null);
     })
     .onUpdate((e) => {
-      runOnJS(handleCursorUpdate)(e.x);
+      const val = toValueX(e.x);
+      const idx = findNearestIndex(xValues, val);
+      setCursorIndex(idx);
+      onCursorChange?.(idx, xValues[idx] ?? null);
     })
     .onEnd(() => {
-      runOnJS(handleCursorEnd)();
+      setCursorIndex(null);
+      onCursorChange?.(null, null);
     });
 
   const composed = Gesture.Simultaneous(pinchGesture, panGesture);
-
   const cursorPixelX = cursorIndex != null && xValues[cursorIndex] != null ? toPixelX(xValues[cursorIndex]!) : null;
 
   return (
-    <View style={styles.container}>
-      {title && <Text style={[styles.title, { color: sem.text.primary }]}>{title}</Text>}
+    <View>
+      {title && <Text className="text-sm font-semibold text-center pt-2 pb-1 text-text-primary">{title}</Text>}
       <GestureDetector gesture={composed}>
-        <Animated.View>
+        <View>
           <Svg width={width} height={height}>
             <Defs>
               <ClipPath id="plotArea">
@@ -311,7 +280,6 @@ export function LineChart(props: ILineChartProps): React.ReactElement {
               </ClipPath>
             </Defs>
 
-            {/* Grid lines */}
             {yTicks.map((tick) => {
               const y = toPixelY(tick);
               if (y < PADDING_TOP || y > PADDING_TOP + plotHeight) {
@@ -331,7 +299,6 @@ export function LineChart(props: ILineChartProps): React.ReactElement {
               );
             })}
 
-            {/* Y-axis labels */}
             {yTicks.map((tick) => {
               const y = toPixelY(tick);
               if (y < PADDING_TOP || y > PADDING_TOP + plotHeight) {
@@ -346,12 +313,11 @@ export function LineChart(props: ILineChartProps): React.ReactElement {
                   fontSize={10}
                   fill={sem.text.secondary}
                 >
-                  {fmtY(tick)}
+                  {formatY(tick)}
                 </SvgText>
               );
             })}
 
-            {/* X-axis labels */}
             {xTicks.map((tick) => {
               const x = toPixelX(tick);
               if (x < PADDING_LEFT || x > PADDING_LEFT + plotWidth) {
@@ -371,7 +337,6 @@ export function LineChart(props: ILineChartProps): React.ReactElement {
               );
             })}
 
-            {/* Axes */}
             <Line
               x1={PADDING_LEFT}
               y1={PADDING_TOP}
@@ -389,7 +354,6 @@ export function LineChart(props: ILineChartProps): React.ReactElement {
               strokeWidth={1}
             />
 
-            {/* Vertical overlay lines (program changes) */}
             <G clipPath="url(#plotArea)">
               {verticalLines?.map((vl, i) => {
                 const x = toPixelX(vl.x);
@@ -419,7 +383,6 @@ export function LineChart(props: ILineChartProps): React.ReactElement {
               })}
             </G>
 
-            {/* Data lines */}
             <G clipPath="url(#plotArea)">
               {paths.map((d, i) => {
                 if (!d) {
@@ -429,7 +392,6 @@ export function LineChart(props: ILineChartProps): React.ReactElement {
               })}
             </G>
 
-            {/* Cursor */}
             {cursorPixelX != null && (
               <G>
                 <Line
@@ -464,21 +426,8 @@ export function LineChart(props: ILineChartProps): React.ReactElement {
               </G>
             )}
           </Svg>
-        </Animated.View>
+        </View>
       </GestureDetector>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    position: "relative",
-  },
-  title: {
-    fontSize: 14,
-    fontWeight: "600",
-    textAlign: "center",
-    paddingTop: 8,
-    paddingBottom: 4,
-  },
-});

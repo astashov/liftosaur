@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useState } from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import React, { useMemo, useState } from "react";
+import { View, Text, Pressable } from "react-native";
 import { LineChart, type ILineChartVerticalLine } from "./LineChart";
 import { GraphData_exerciseData } from "@shared/models/graphData";
 import { Exercise_get, equipmentName, Exercise_eq } from "@shared/models/exercise";
@@ -48,16 +48,13 @@ export function GraphExercise(props: IProps): React.ReactElement {
     ? changeProgramTimes.map(([x, label]) => ({ x, label }))
     : undefined;
 
-  const series = useMemo(
-    () => [
-      { color: colors.red[500], label: "Weight", show: selectedType === "weight" },
-      { color: colors.yellow[500], label: "Reps", show: false },
-      { color: colors.blue[500], label: "e1RM", show: !!props.isWithOneRm && selectedType === "weight" },
-      { color: colors.red[500], label: "Volume", show: selectedType === "volume" },
-      { color: colors.green[500], label: "Bodyweight", show: !!props.bodyweightData },
-    ],
-    [selectedType, props.isWithOneRm, props.bodyweightData, colors]
-  );
+  const series = [
+    { color: colors.red[500], label: "Weight", show: selectedType === "weight" },
+    { color: colors.yellow[500], label: "Reps", show: false },
+    { color: colors.blue[500], label: "e1RM", show: !!props.isWithOneRm && selectedType === "weight" },
+    { color: colors.red[500], label: "Volume", show: selectedType === "volume" },
+    { color: colors.green[500], label: "Bodyweight", show: !!props.bodyweightData },
+  ];
 
   const [tooltipData, setTooltipData] = useState<{
     date: Date;
@@ -69,46 +66,43 @@ export function GraphExercise(props: IProps): React.ReactElement {
     historyRecord: IHistoryRecord | undefined;
   } | null>(null);
 
-  const handleCursorChange = useCallback(
-    (index: number | null) => {
-      if (index == null) {
-        setTooltipData(null);
-        return;
-      }
-      const timestamp = data[0][index];
-      if (timestamp == null) {
-        setTooltipData(null);
-        return;
-      }
-      setTooltipData({
-        date: new Date(timestamp * 1000),
-        weight: data[1][index],
-        reps: data[2][index],
-        onerm: data[3][index],
-        volume: data[4][index],
-        bodyweight: data[5][index],
-        historyRecord: historyRecords[timestamp],
-      });
-    },
-    [data, historyRecords]
-  );
+  function handleCursorChange(index: number | null): void {
+    if (index == null) {
+      setTooltipData(null);
+      return;
+    }
+    const timestamp = data[0][index];
+    if (timestamp == null) {
+      setTooltipData(null);
+      return;
+    }
+    setTooltipData({
+      date: new Date(timestamp * 1000),
+      weight: data[1][index],
+      reps: data[2][index],
+      onerm: data[3][index],
+      volume: data[4][index],
+      bodyweight: data[5][index],
+      historyRecord: historyRecords[timestamp],
+    });
+  }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={[styles.subtitle, { color: sem.text.secondary }]}>{eqName}</Text>
-        <View style={styles.toggleRow}>
+    <View className="mx-1 mb-2">
+      <View className="flex-row justify-between items-center px-3 pt-2">
+        <Text className="text-xs text-text-secondary">{eqName}</Text>
+        <View className="flex-row gap-1">
           <Pressable
             onPress={() => setSelectedType("weight")}
-            style={[styles.toggleBtn, selectedType === "weight" && { backgroundColor: sem.background.neutral }]}
+            className={`px-2 py-1 rounded ${selectedType === "weight" ? "bg-background-neutral" : ""}`}
           >
-            <Text style={[styles.toggleText, { color: sem.text.primary }]}>Max Weight</Text>
+            <Text className="text-xs text-text-primary">Max Weight</Text>
           </Pressable>
           <Pressable
             onPress={() => setSelectedType("volume")}
-            style={[styles.toggleBtn, selectedType === "volume" && { backgroundColor: sem.background.neutral }]}
+            className={`px-2 py-1 rounded ${selectedType === "volume" ? "bg-background-neutral" : ""}`}
           >
-            <Text style={[styles.toggleText, { color: sem.text.primary }]}>Volume</Text>
+            <Text className="text-xs text-text-primary">Volume</Text>
           </Pressable>
         </View>
       </View>
@@ -160,38 +154,42 @@ function TooltipContent(props: {
 
   if (data.weight != null && selectedType === "weight") {
     return (
-      <View style={styles.tooltip}>
-        <Text style={[styles.tooltipText, { color: sem.text.primary }]}>
-          {DateUtils_format(data.date)}, <Text style={styles.bold}>{data.weight}</Text> {units}s x{" "}
-          <Text style={styles.bold}>{data.reps}</Text> reps
+      <View className="px-8 pt-2 pb-1">
+        <Text className="text-sm text-center text-text-primary">
+          {DateUtils_format(data.date)}, <Text className="font-bold">{data.weight}</Text> {units}s x{" "}
+          <Text className="font-bold">{data.reps}</Text> reps
           {isWithOneRm && data.onerm != null && (
             <Text>
-              , e1RM = <Text style={styles.bold}>{data.onerm.toFixed(2)}</Text> {units}s
+              , e1RM = <Text className="font-bold">{data.onerm.toFixed(2)}</Text> {units}s
             </Text>
           )}
         </Text>
         {data.historyRecord && props.onGoToWorkout && (
           <Pressable onPress={() => props.onGoToWorkout!(data.historyRecord!)}>
-            <Text style={[styles.workoutLink, { color: sem.text.link }]}>Workout</Text>
+            <Text className="font-bold underline text-center mt-1" style={{ color: sem.text.link }}>
+              Workout
+            </Text>
           </Pressable>
         )}
-        <StateVars historyRecord={data.historyRecord} exercise={props.exercise} sem={sem} />
+        <StateVars historyRecord={data.historyRecord} exercise={props.exercise} />
       </View>
     );
   }
 
   if (data.volume != null && selectedType === "volume") {
     return (
-      <View style={styles.tooltip}>
-        <Text style={[styles.tooltipText, { color: sem.text.primary }]}>
+      <View className="px-8 pt-2 pb-1">
+        <Text className="text-sm text-center text-text-primary">
           {DateUtils_format(data.date)}, Volume:{" "}
-          <Text style={styles.bold}>
+          <Text className="font-bold">
             {data.volume} {units}s
           </Text>
         </Text>
         {data.historyRecord && props.onGoToWorkout && (
           <Pressable onPress={() => props.onGoToWorkout!(data.historyRecord!)}>
-            <Text style={[styles.workoutLink, { color: sem.text.link }]}>Workout</Text>
+            <Text className="font-bold underline text-center mt-1" style={{ color: sem.text.link }}>
+              Workout
+            </Text>
           </Pressable>
         )}
       </View>
@@ -200,9 +198,9 @@ function TooltipContent(props: {
 
   if (data.bodyweight != null) {
     return (
-      <View style={styles.tooltip}>
-        <Text style={[styles.tooltipText, { color: sem.text.primary }]}>
-          {DateUtils_format(data.date)}, Bodyweight - <Text style={styles.bold}>{data.bodyweight}</Text> {units}
+      <View className="px-8 pt-2 pb-1">
+        <Text className="text-sm text-center text-text-primary">
+          {DateUtils_format(data.date)}, Bodyweight - <Text className="font-bold">{data.bodyweight}</Text> {units}
         </Text>
       </View>
     );
@@ -214,9 +212,8 @@ function TooltipContent(props: {
 function StateVars(props: {
   historyRecord: IHistoryRecord | undefined;
   exercise: IExerciseType;
-  sem: ReturnType<typeof Tailwind_semantic>;
 }): React.ReactElement | null {
-  const { historyRecord, exercise, sem } = props;
+  const { historyRecord, exercise } = props;
   if (!historyRecord) {
     return null;
   }
@@ -242,68 +239,12 @@ function StateVars(props: {
   }
 
   return (
-    <View style={styles.stateVarsRow}>
+    <View className="flex-row flex-wrap gap-3 mt-1">
       {stateVars.map((sv, i) => (
-        <Text key={i} style={[styles.stateVarText, { color: sem.text.secondary }]}>
+        <Text key={i} className="text-xs text-text-secondary">
           {sv}
         </Text>
       ))}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    marginHorizontal: 4,
-    marginBottom: 8,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingTop: 8,
-  },
-  subtitle: {
-    fontSize: 11,
-  },
-  toggleRow: {
-    flexDirection: "row",
-    gap: 4,
-  },
-  toggleBtn: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  toggleText: {
-    fontSize: 12,
-  },
-  tooltip: {
-    paddingHorizontal: 32,
-    paddingTop: 8,
-    paddingBottom: 4,
-  },
-  tooltipText: {
-    fontSize: 13,
-    textAlign: "center",
-  },
-  bold: {
-    fontWeight: "700",
-  },
-  workoutLink: {
-    fontWeight: "700",
-    textDecorationLine: "underline",
-    textAlign: "center",
-    marginTop: 4,
-  },
-  stateVarsRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-    marginTop: 4,
-  },
-  stateVarText: {
-    fontSize: 11,
-  },
-});

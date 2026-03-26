@@ -79,6 +79,7 @@ When migrating from Preact to RN, mirror the original component hierarchy as clo
 - `crossplatform/components/` — crossplatform RN components (modify these)
 - `crossplatform/components/icons/` — SVG icons using react-native-svg
 - `native/src/screens/` — RN screen orchestrators
+- `native/src/components/` — RN-only components (e.g., LineChart, graph wrappers, modal sheets)
 - `src/components/` — Preact originals (READ ONLY, use as reference)
 - `src/models/`, `src/utils/` — shared business logic (import via `@shared/`, don't modify)
 
@@ -117,6 +118,67 @@ updateProgress(dispatch, [
 // Dispatch actions
 dispatch({ type: "CompleteSetAction", setIndex, entryIndex, ... });
 ```
+
+### Styling: Always Use NativeWind (className), Not StyleSheet
+- **Always** use `className` with Tailwind classes for styling. Never use `StyleSheet.create` — the codebase uses NativeWind which maps Tailwind classes to native styles.
+- Use semantic color classes: `text-text-primary`, `text-text-secondary`, `text-text-link`, `bg-background-default`, `bg-background-neutral`, `border-border-neutral`, etc.
+- For colors not available as Tailwind classes (e.g., dynamic chart colors), use the `style` prop with `Tailwind_semantic()` / `Tailwind_colors()` from `@shared/utils/tailwindConfig`.
+
+### Avoid Unnecessary useMemo / useCallback
+- Only use `useMemo` when computing from large datasets (e.g., sorting/filtering all history records, running collectors over history). Do NOT wrap small static derivations, simple object literals, or handler functions in `useMemo`/`useCallback`.
+- Inline event handlers directly in JSX when the handler is simple (e.g., `onPress={() => dispatch({ type: "Foo" })}`).
+- `dispatch` from context never changes — don't put it in dependency arrays or wrap handlers that only use it.
+- `renderItem` for FlatList: a plain function is fine; wrapping in `useMemo` is premature optimization.
+- When in doubt, don't memoize. Only add memoization when you have evidence of a performance problem.
+
+### Charts and Graphs (LineChart Component)
+
+The Graphs screen uses a custom SVG chart (`native/src/components/LineChart.tsx`) instead of a third-party library. Key decisions and patterns:
+
+**Why custom?** No RN chart library supports pinch-to-zoom + react-native-web + reasonable bundle size. Victory Native XL requires Skia (~3MB WASM on web). react-native-gifted-charts lacks pinch zoom. So we built a custom chart using `react-native-svg` + `react-native-gesture-handler`.
+
+**Architecture:**
+- `LineChart.tsx` — Core SVG chart with gesture support (pinch zoom, cursor tracking, axes, grid, series, vertical overlay lines)
+- `GraphExercise.tsx` / `GraphMuscleGroup.tsx` / `GraphStats.tsx` — Wrapper components that prepare data and render tooltips
+- `src/models/graphData.ts` — Shared pure functions for data computation (used by both web/Preact and RN)
+
+**Gesture handling pattern — use `.runOnJS(true)`, not Reanimated:**
+```tsx
+// CORRECT: gestures run on JS thread, no Reanimated needed
+const pinchGesture = Gesture.Pinch()
+  .runOnJS(true)
+  .onStart((e) => { /* direct setState here */ })
+  .onUpdate((e) => { /* direct setState here */ });
+
+const panGesture = Gesture.Pan()
+  .runOnJS(true)
+  .minPointers(1)
+  .maxPointers(1)
+  .onStart((e) => { setCursorIndex(findNearest(e.x)); });
+```
+Since SVG re-renders on the JS thread anyway, there is zero benefit to running gesture callbacks on the UI thread. Using `.runOnJS(true)` avoids the entire `useSharedValue` → `useAnimatedReaction` → `runOnJS` chain. Do NOT import `runOnJS` from `react-native-reanimated` (deprecated) or `react-native-worklets` for chart gestures.
+
+**Pinch zoom state — use `useRef`, not shared values:**
+```tsx
+// Mutable state that doesn't need re-render during pinch
+const pinchState = React.useRef({ focalX: 0, startXMin: 0, startXMax: 0 });
+```
+
+**Scale math — plain functions, no d3:**
+```tsx
+const toPixelX = (val: number): number => ((val - xMin) / (xMax - xMin)) * plotWidth + PADDING_LEFT;
+const toValueX = (px: number): number => ((px - PADDING_LEFT) / plotWidth) * (xMax - xMin) + xMin;
+```
+
+**Extract shared data functions** to `src/models/graphData.ts` (imported as `@shared/models/graphData`) so both the web Preact components and RN components can use them. Example: `GraphData_exerciseData()`, `GraphData_weightStats()`, `GraphData_xRange()`.
+
+### Adding New Screens
+
+Pattern for registering a new native RN screen:
+1. Create screen in `native/src/screens/FooScreen.tsx`
+2. Register in `native/src/screens/registerScreens.ts`: `MigratedScreens_register("foo", FooScreen as IScreenComponent)`
+3. Screen name must exist in `native/src/navigation/screenMap.ts` (`IScreenName` type)
+4. For modal sheets: add to `AppNavigator.tsx` as a `RootStack.Screen` with `presentation: "formSheet"`
 
 ## Step 5: Verify (Optional)
 

@@ -115,3 +115,43 @@ export function GraphData_percentageStats(coll: IStatsPercentageValue[], _settin
     return [i.timestamp / 1000, i.value.value];
   });
 }
+
+export function GraphData_xRange(
+  history: IHistoryRecord[],
+  stats: { weight: Record<string, { timestamp: number }[]>; length: Record<string, { timestamp: number }[]> },
+  isSameXAxis?: boolean
+): { minX: number; maxX: number } {
+  let mx = 0;
+  let mn = Infinity;
+  for (const hr of history) {
+    if (mx < hr.startTime) {
+      mx = hr.startTime;
+    }
+    if (mn > hr.startTime) {
+      mn = hr.startTime;
+    }
+  }
+  if (isSameXAxis) {
+    for (const key of Object.keys(stats.weight)) {
+      for (const value of stats.weight[key] || []) {
+        if (mn > value.timestamp) {
+          mn = value.timestamp;
+        }
+        if (mx < value.timestamp) {
+          mx = value.timestamp;
+        }
+      }
+    }
+    for (const key of Object.keys(stats.length)) {
+      for (const value of stats.length[key] || []) {
+        if (mn > value.timestamp) {
+          mn = value.timestamp;
+        }
+        if (mx < value.timestamp) {
+          mx = value.timestamp;
+        }
+      }
+    }
+  }
+  return { minX: mn, maxX: mx };
+}

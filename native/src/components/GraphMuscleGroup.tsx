@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useState } from "react";
-import { View, Text, Pressable, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { View, Text, Pressable } from "react-native";
 import { LineChart, type ILineChartVerticalLine } from "./LineChart";
 import { Muscle_getMuscleGroupName } from "@shared/models/muscle";
 import { StringUtils_capitalize } from "@shared/utils/string";
@@ -29,23 +29,10 @@ export function GraphMuscleGroup(props: IProps): React.ReactElement {
     ? props.programChangeTimes.map(([x, label]) => ({ x, label }))
     : undefined;
 
-  const series = useMemo(
-    () => [
-      { color: colors.red[500], label: "Volume", show: selectedType === "volume" },
-      { color: colors.red[500], label: "Sets", show: selectedType === "sets" },
-    ],
-    [selectedType, colors]
-  );
-
-  const formatY = useCallback(
-    (v: number) => {
-      if (selectedType === "volume") {
-        return `${Math.round(v / 1000)}k`;
-      }
-      return String(Math.round(v));
-    },
-    [selectedType]
-  );
+  const series = [
+    { color: colors.red[500], label: "Volume", show: selectedType === "volume" },
+    { color: colors.red[500], label: "Sets", show: selectedType === "sets" },
+  ];
 
   const [tooltipData, setTooltipData] = useState<{
     date: Date;
@@ -53,44 +40,40 @@ export function GraphMuscleGroup(props: IProps): React.ReactElement {
     sets: number | null;
   } | null>(null);
 
-  const handleCursorChange = useCallback(
-    (index: number | null) => {
-      if (index == null) {
-        setTooltipData(null);
-        return;
-      }
-      const timestamp = data[0][index];
-      if (timestamp == null) {
-        setTooltipData(null);
-        return;
-      }
-      setTooltipData({
-        date: new Date(timestamp * 1000),
-        volume: data[1][index],
-        sets: data[2][index],
-      });
-    },
-    [data]
-  );
+  function handleCursorChange(index: number | null): void {
+    if (index == null) {
+      setTooltipData(null);
+      return;
+    }
+    const timestamp = data[0][index];
+    if (timestamp == null) {
+      setTooltipData(null);
+      return;
+    }
+    setTooltipData({
+      date: new Date(timestamp * 1000),
+      volume: data[1][index],
+      sets: data[2][index],
+    });
+  }
 
   const title = `${Muscle_getMuscleGroupName(props.muscleGroup, props.settings)} Weekly ${StringUtils_capitalize(selectedType)}`;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <View />
-        <View style={styles.toggleRow}>
+    <View className="mx-1 mb-2">
+      <View className="flex-row justify-end items-center px-3 pt-2">
+        <View className="flex-row gap-1">
           <Pressable
             onPress={() => setSelectedType("volume")}
-            style={[styles.toggleBtn, selectedType === "volume" && { backgroundColor: sem.background.neutral }]}
+            className={`px-2 py-1 rounded ${selectedType === "volume" ? "bg-background-neutral" : ""}`}
           >
-            <Text style={[styles.toggleText, { color: sem.text.primary }]}>Volume</Text>
+            <Text className="text-xs text-text-primary">Volume</Text>
           </Pressable>
           <Pressable
             onPress={() => setSelectedType("sets")}
-            style={[styles.toggleBtn, selectedType === "sets" && { backgroundColor: sem.background.neutral }]}
+            className={`px-2 py-1 rounded ${selectedType === "sets" ? "bg-background-neutral" : ""}`}
           >
-            <Text style={[styles.toggleText, { color: sem.text.primary }]}>Sets</Text>
+            <Text className="text-xs text-text-primary">Sets</Text>
           </Pressable>
         </View>
       </View>
@@ -103,22 +86,22 @@ export function GraphMuscleGroup(props: IProps): React.ReactElement {
         maxX={dataMaxX}
         verticalLines={verticalLines}
         onCursorChange={handleCursorChange}
-        formatY={formatY}
+        formatY={(v) => (selectedType === "volume" ? `${Math.round(v / 1000)}k` : String(Math.round(v)))}
         title={title}
       />
       {tooltipData && (
-        <View style={styles.tooltip}>
+        <View className="px-8 pt-2 pb-1">
           {selectedType === "volume" && tooltipData.volume != null && (
-            <Text style={[styles.tooltipText, { color: sem.text.primary }]}>
+            <Text className="text-sm text-center text-text-primary">
               {DateUtils_format(tooltipData.date)}, Volume:{" "}
-              <Text style={styles.bold}>
+              <Text className="font-bold">
                 {tooltipData.volume} {props.settings.units}s
               </Text>
             </Text>
           )}
           {selectedType === "sets" && tooltipData.sets != null && (
-            <Text style={[styles.tooltipText, { color: sem.text.primary }]}>
-              {DateUtils_format(tooltipData.date)}, Sets: <Text style={styles.bold}>{tooltipData.sets}</Text>
+            <Text className="text-sm text-center text-text-primary">
+              {DateUtils_format(tooltipData.date)}, Sets: <Text className="font-bold">{tooltipData.sets}</Text>
             </Text>
           )}
         </View>
@@ -126,41 +109,3 @@ export function GraphMuscleGroup(props: IProps): React.ReactElement {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    marginHorizontal: 4,
-    marginBottom: 8,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingTop: 8,
-  },
-  toggleRow: {
-    flexDirection: "row",
-    gap: 4,
-  },
-  toggleBtn: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  toggleText: {
-    fontSize: 12,
-  },
-  tooltip: {
-    paddingHorizontal: 32,
-    paddingTop: 8,
-    paddingBottom: 4,
-  },
-  tooltipText: {
-    fontSize: 13,
-    textAlign: "center",
-  },
-  bold: {
-    fontWeight: "700",
-  },
-});

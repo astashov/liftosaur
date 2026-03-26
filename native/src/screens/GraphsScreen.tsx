@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { FlatList, View, Text, Pressable, useWindowDimensions, StyleSheet } from "react-native";
+import { FlatList, View, Text, Pressable, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import type { IRootNavigation } from "../navigation/types";
@@ -8,25 +8,23 @@ import { useDispatch } from "../context/DispatchContext";
 import { GraphExercise } from "../components/GraphExercise";
 import { GraphMuscleGroup } from "../components/GraphMuscleGroup";
 import { GraphStats } from "../components/GraphStats";
-import { GraphData_weightStats, GraphData_lengthStats, GraphData_percentageStats } from "@shared/models/graphData";
 import {
-  History_findAllMaxSetsPerId,
-  History_collectMuscleGroups,
-  History_collectProgramChangeTimes,
-} from "@shared/models/history";
+  GraphData_weightStats,
+  GraphData_lengthStats,
+  GraphData_percentageStats,
+  GraphData_xRange,
+} from "@shared/models/graphData";
+import { History_collectMuscleGroups, History_collectProgramChangeTimes } from "@shared/models/history";
 import { CollectionUtils_sort } from "@shared/utils/collection";
-import { ObjectUtils_keys } from "@shared/utils/object";
 import { Exercise_fromKey } from "@shared/models/exercise";
 import { Collector } from "@shared/utils/collector";
-import { Tailwind_semantic } from "@shared/utils/tailwindConfig";
-import type { IGraph, IScreenMuscle, IHistoryRecord } from "@shared/types";
+import type { IGraph, IScreenMuscle } from "@shared/types";
 
 export function GraphsScreen(): React.ReactElement {
   const state = useStoreState();
   const dispatch = useDispatch();
   const navigation = useNavigation<IRootNavigation>();
   const { width: screenWidth } = useWindowDimensions();
-  const sem = Tailwind_semantic();
 
   const settings = state.storage.settings;
   const history = state.storage.history;
@@ -36,9 +34,10 @@ export function GraphsScreen(): React.ReactElement {
 
   const sortedHistory = useMemo(
     () =>
-      CollectionUtils_sort(history, (a, b) => {
-        return new Date(Date.parse(a.date)).getTime() - new Date(Date.parse(b.date)).getTime();
-      }),
+      CollectionUtils_sort(
+        history,
+        (a, b) => new Date(Date.parse(a.date)).getTime() - new Date(Date.parse(b.date)).getTime()
+      ),
     [history]
   );
 
@@ -59,176 +58,98 @@ export function GraphsScreen(): React.ReactElement {
     return undefined;
   }, [hasBodyweight, isWithBodyweight, stats.weight.weight, settings]);
 
-  const { minX, maxX } = useMemo(() => {
-    let mx = 0;
-    let mn = Infinity;
-    for (const hr of history) {
-      if (mx < hr.startTime) {
-        mx = hr.startTime;
-      }
-      if (mn > hr.startTime) {
-        mn = hr.startTime;
-      }
+  const { minX, maxX } = useMemo(() => GraphData_xRange(history, stats, isSameXAxis), [history, stats, isSameXAxis]);
+
+  function renderItem({ item: graph }: { item: IGraph }): React.ReactElement {
+    if (graph.type === "exercise") {
+      return (
+        <GraphExercise
+          initialType={settings.graphsSettings.defaultType}
+          isSameXAxis={isSameXAxis}
+          minX={Math.round(minX / 1000)}
+          maxX={Math.round(maxX / 1000)}
+          bodyweightData={hasBodyweight && isWithBodyweight ? bodyweightData : undefined}
+          isWithOneRm={isWithOneRm}
+          isWithProgramLines={isWithProgramLines}
+          settings={settings}
+          history={history}
+          exercise={Exercise_fromKey(graph.id)}
+          width={screenWidth}
+          onGoToWorkout={(hr) => dispatch({ type: "EditHistoryRecord", historyRecord: hr })}
+        />
+      );
     }
-    if (isSameXAxis) {
-      for (const key of ObjectUtils_keys(stats.weight)) {
-        for (const value of stats.weight[key] || []) {
-          if (mn > value.timestamp) {
-            mn = value.timestamp;
-          }
-          if (mx < value.timestamp) {
-            mx = value.timestamp;
-          }
-        }
-      }
-      for (const key of ObjectUtils_keys(stats.length)) {
-        for (const value of stats.length[key] || []) {
-          if (mn > value.timestamp) {
-            mn = value.timestamp;
-          }
-          if (mx < value.timestamp) {
-            mx = value.timestamp;
-          }
-        }
-      }
+
+    if (graph.type === "muscleGroup") {
+      const muscleGroup = graph.id as IScreenMuscle | "total";
+      return (
+        <GraphMuscleGroup
+          initialType={settings.graphsSettings.defaultMuscleGroupType}
+          programChangeTimes={isWithProgramLines ? programChangeTimes.changeProgramTimes : undefined}
+          data={muscleGroupsData[muscleGroup] ?? [[], [], []]}
+          muscleGroup={muscleGroup}
+          settings={settings}
+          width={screenWidth}
+        />
+      );
     }
-    return { minX: mn, maxX: mx };
-  }, [history, stats, isSameXAxis]);
 
-  const handleGoToWorkout = useMemo(
-    () => (hr: IHistoryRecord) => {
-      dispatch({ type: "EditHistoryRecord", historyRecord: hr });
-    },
-    [dispatch]
-  );
+    if (graph.type === "statsWeight") {
+      const collection = GraphData_weightStats(stats.weight[graph.id] || [], settings);
+      return (
+        <GraphStats
+          isSameXAxis={isSameXAxis}
+          minX={Math.round(minX / 1000)}
+          maxX={Math.round(maxX / 1000)}
+          units={settings.units}
+          collection={collection}
+          statsKey={graph.id}
+          width={screenWidth}
+        />
+      );
+    }
 
-  const openSettings = useMemo(
-    () => () => {
-      navigation.navigate("ModalGraphsSheet");
-    },
-    [navigation]
-  );
+    if (graph.type === "statsLength") {
+      const collection = GraphData_lengthStats(stats.length[graph.id] || [], settings);
+      return (
+        <GraphStats
+          isSameXAxis={isSameXAxis}
+          minX={Math.round(minX / 1000)}
+          maxX={Math.round(maxX / 1000)}
+          units={settings.lengthUnits}
+          collection={collection}
+          statsKey={graph.id}
+          width={screenWidth}
+        />
+      );
+    }
 
-  const renderItem = useMemo(
-    () =>
-      ({ item: graph }: { item: IGraph }) => {
-        if (graph.type === "exercise") {
-          return (
-            <View style={styles.graphItem}>
-              <GraphExercise
-                initialType={settings.graphsSettings.defaultType}
-                isSameXAxis={isSameXAxis}
-                minX={Math.round(minX / 1000)}
-                maxX={Math.round(maxX / 1000)}
-                bodyweightData={hasBodyweight && isWithBodyweight ? bodyweightData : undefined}
-                isWithOneRm={isWithOneRm}
-                isWithProgramLines={isWithProgramLines}
-                settings={settings}
-                history={history}
-                exercise={Exercise_fromKey(graph.id)}
-                width={screenWidth}
-                onGoToWorkout={handleGoToWorkout}
-              />
-            </View>
-          );
-        }
-
-        if (graph.type === "muscleGroup") {
-          const muscleGroup = graph.id as IScreenMuscle | "total";
-          return (
-            <View style={styles.graphItem}>
-              <GraphMuscleGroup
-                initialType={settings.graphsSettings.defaultMuscleGroupType}
-                programChangeTimes={isWithProgramLines ? programChangeTimes.changeProgramTimes : undefined}
-                data={muscleGroupsData[muscleGroup] ?? [[], [], []]}
-                muscleGroup={muscleGroup}
-                settings={settings}
-                width={screenWidth}
-              />
-            </View>
-          );
-        }
-
-        if (graph.type === "statsWeight") {
-          const collection = GraphData_weightStats(stats.weight[graph.id] || [], settings);
-          return (
-            <View style={styles.graphItem}>
-              <GraphStats
-                isSameXAxis={isSameXAxis}
-                minX={Math.round(minX / 1000)}
-                maxX={Math.round(maxX / 1000)}
-                units={settings.units}
-                collection={collection}
-                statsKey={graph.id}
-                width={screenWidth}
-              />
-            </View>
-          );
-        }
-
-        if (graph.type === "statsLength") {
-          const collection = GraphData_lengthStats(stats.length[graph.id] || [], settings);
-          return (
-            <View style={styles.graphItem}>
-              <GraphStats
-                isSameXAxis={isSameXAxis}
-                minX={Math.round(minX / 1000)}
-                maxX={Math.round(maxX / 1000)}
-                units={settings.lengthUnits}
-                collection={collection}
-                statsKey={graph.id}
-                width={screenWidth}
-              />
-            </View>
-          );
-        }
-
-        // statsPercentage
-        const collection = GraphData_percentageStats(stats.percentage[graph.id] || [], settings);
-        return (
-          <View style={styles.graphItem}>
-            <GraphStats
-              isSameXAxis={isSameXAxis}
-              minX={Math.round(minX / 1000)}
-              maxX={Math.round(maxX / 1000)}
-              units="%"
-              collection={collection}
-              statsKey={graph.id}
-              width={screenWidth}
-            />
-          </View>
-        );
-      },
-    [
-      settings,
-      history,
-      stats,
-      isSameXAxis,
-      isWithOneRm,
-      isWithProgramLines,
-      isWithBodyweight,
-      bodyweightData,
-      muscleGroupsData,
-      programChangeTimes,
-      minX,
-      maxX,
-      screenWidth,
-      hasBodyweight,
-      handleGoToWorkout,
-    ]
-  );
+    // statsPercentage
+    const collection = GraphData_percentageStats(stats.percentage[graph.id] || [], settings);
+    return (
+      <GraphStats
+        isSameXAxis={isSameXAxis}
+        minX={Math.round(minX / 1000)}
+        maxX={Math.round(maxX / 1000)}
+        units="%"
+        collection={collection}
+        statsKey={graph.id}
+        width={screenWidth}
+      />
+    );
+  }
 
   return (
-    <SafeAreaView style={[styles.root, { backgroundColor: sem.background.default }]} edges={["top"]}>
-      <View style={styles.navbar}>
-        <Text style={[styles.navTitle, { color: sem.text.primary }]}>Graphs</Text>
-        <Pressable onPress={openSettings} style={styles.filterBtn}>
-          <Text style={[styles.filterIcon, { color: sem.text.primary }]}>⚙</Text>
+    <SafeAreaView className="flex-1 bg-background-default" edges={["top"]}>
+      <View className="flex-row justify-between items-center px-4 py-3">
+        <Text className="text-xl font-bold text-text-primary">Graphs</Text>
+        <Pressable className="p-2" onPress={() => navigation.navigate("ModalGraphsSheet")}>
+          <Text className="text-xl text-text-primary">⚙</Text>
         </Pressable>
       </View>
       {graphs.length === 0 ? (
-        <View style={styles.emptyState}>
-          <Text style={[styles.emptyText, { color: sem.text.secondary }]}>
+        <View className="flex-1 justify-center items-center p-8">
+          <Text className="text-lg font-bold text-center text-text-secondary">
             Select graphs you want to display by tapping the ⚙ icon at top right.
           </Text>
         </View>
@@ -237,49 +158,9 @@ export function GraphsScreen(): React.ReactElement {
           data={graphs}
           renderItem={renderItem}
           keyExtractor={(item) => `${item.type}-${item.id}`}
-          contentContainerStyle={styles.list}
+          contentContainerClassName="pb-4"
         />
       )}
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-  navbar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  navTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-  },
-  filterBtn: {
-    padding: 8,
-  },
-  filterIcon: {
-    fontSize: 20,
-  },
-  list: {
-    paddingBottom: 16,
-  },
-  graphItem: {
-    marginBottom: 8,
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 32,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: "700",
-    textAlign: "center",
-  },
-});

@@ -1,9 +1,9 @@
-import React, { useCallback, useMemo, useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useMemo, useState } from "react";
+import { View, Text } from "react-native";
 import { LineChart } from "./LineChart";
 import { Stats_name } from "@shared/models/stats";
 import { DateUtils_format } from "@shared/utils/date";
-import { Tailwind_colors, Tailwind_semantic } from "@shared/utils/tailwindConfig";
+import { Tailwind_colors } from "@shared/utils/tailwindConfig";
 import type { IStatsKey, IUnit, ILengthUnit, IPercentageUnit } from "@shared/types";
 
 interface IProps {
@@ -20,7 +20,6 @@ interface IProps {
 
 export function GraphStats(props: IProps): React.ReactElement {
   const colors = Tailwind_colors();
-  const sem = Tailwind_semantic();
   const { movingAverageWindowSize } = props;
 
   const chartData = useMemo(() => {
@@ -55,19 +54,14 @@ export function GraphStats(props: IProps): React.ReactElement {
   const allMaxX = props.maxX;
   const allMinX = Math.max(props.minX, allMaxX - 365 * 24 * 60 * 60);
 
-  const series = useMemo(() => {
-    const s = [
-      {
-        color: colors.red[500],
-        label: props.statsKey === "weight" ? "Weight" : props.statsKey === "bodyfat" ? "Percentage" : "Size",
-        show: true,
-      },
-    ];
-    if (movingAverageWindowSize != null) {
-      s.push({ color: colors.blue[500], label: "Moving Average", show: true });
-    }
-    return s;
-  }, [props.statsKey, movingAverageWindowSize, colors]);
+  const series = [
+    {
+      color: colors.red[500],
+      label: props.statsKey === "weight" ? "Weight" : props.statsKey === "bodyfat" ? "Percentage" : "Size",
+      show: true,
+    },
+    ...(movingAverageWindowSize != null ? [{ color: colors.blue[500], label: "Moving Average", show: true }] : []),
+  ];
 
   const [tooltipData, setTooltipData] = useState<{
     date: Date;
@@ -75,30 +69,27 @@ export function GraphStats(props: IProps): React.ReactElement {
     avg: number | null;
   } | null>(null);
 
-  const handleCursorChange = useCallback(
-    (index: number | null) => {
-      if (index == null) {
-        setTooltipData(null);
-        return;
-      }
-      const timestamp = chartData[0][index];
-      if (timestamp == null) {
-        setTooltipData(null);
-        return;
-      }
-      setTooltipData({
-        date: new Date((timestamp as number) * 1000),
-        value: chartData[1][index] as number | null,
-        avg: (chartData[2]?.[index] as number | null) ?? null,
-      });
-    },
-    [chartData]
-  );
+  function handleCursorChange(index: number | null): void {
+    if (index == null) {
+      setTooltipData(null);
+      return;
+    }
+    const timestamp = chartData[0][index];
+    if (timestamp == null) {
+      setTooltipData(null);
+      return;
+    }
+    setTooltipData({
+      date: new Date((timestamp as number) * 1000),
+      value: chartData[1][index] as number | null,
+      avg: (chartData[2]?.[index] as number | null) ?? null,
+    });
+  }
 
   const displayTitle = props.title === undefined ? Stats_name(props.statsKey) : props.title || undefined;
 
   return (
-    <View style={styles.container}>
+    <View className="mx-1 mb-2">
       <LineChart
         width={props.width}
         height={240}
@@ -111,9 +102,9 @@ export function GraphStats(props: IProps): React.ReactElement {
         title={displayTitle ?? undefined}
       />
       {tooltipData && tooltipData.value != null && (
-        <View style={styles.tooltip}>
-          <Text style={[styles.tooltipText, { color: sem.text.primary }]}>
-            {DateUtils_format(tooltipData.date)}, <Text style={styles.bold}>{tooltipData.value}</Text> {props.units}
+        <View className="px-8 pt-2 pb-1">
+          <Text className="text-sm text-center text-text-primary">
+            {DateUtils_format(tooltipData.date)}, <Text className="font-bold">{tooltipData.value}</Text> {props.units}
             {movingAverageWindowSize != null && tooltipData.avg != null && (
               <Text>
                 {" "}
@@ -126,22 +117,3 @@ export function GraphStats(props: IProps): React.ReactElement {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    marginHorizontal: 4,
-    marginBottom: 8,
-  },
-  tooltip: {
-    paddingHorizontal: 32,
-    paddingTop: 8,
-    paddingBottom: 4,
-  },
-  tooltipText: {
-    fontSize: 13,
-    textAlign: "center",
-  },
-  bold: {
-    fontWeight: "700",
-  },
-});
