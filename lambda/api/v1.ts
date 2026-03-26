@@ -12,11 +12,17 @@ import {
   ApiV1_createProgram,
   ApiV1_updateProgram,
   ApiV1_deleteProgram,
+  ApiV1_listCustomExercises,
+  ApiV1_getCustomExercise,
+  ApiV1_createCustomExercise,
+  ApiV1_updateCustomExercise,
+  ApiV1_deleteCustomExercise,
   ApiV1_playground,
   ApiV1_programStats,
   IApiError,
 } from "../utils/apiv1";
 import { EventDao } from "../dao/eventDao";
+import { availableMuscles, exerciseKinds, IExerciseKind, IMuscle } from "../../src/types";
 
 interface IPayload {
   event: APIGatewayProxyEvent;
@@ -29,6 +35,45 @@ function getBodyJson(event: APIGatewayProxyEvent): Record<string, unknown> {
   } catch (e) {
     return JSON.parse(event.body || "{}");
   }
+}
+
+function getOptionalStringArray(
+  body: Record<string, unknown>,
+  field: string
+): { value?: string[]; error?: APIGatewayProxyResult } {
+  const raw = body[field];
+  if (raw == null) {
+    return {};
+  }
+  if (!Array.isArray(raw) || raw.some((v) => typeof v !== "string")) {
+    return { error: apiError(400, "invalid_input", `Field '${field}' must be an array of strings`) };
+  }
+  return { value: raw as string[] };
+}
+
+function getOptionalEnumArray<T extends string>(
+  body: Record<string, unknown>,
+  field: string,
+  allowedValues: readonly T[]
+): { value?: T[]; error?: APIGatewayProxyResult } {
+  const parsed = getOptionalStringArray(body, field);
+  if (parsed.error) {
+    return { error: parsed.error };
+  }
+  if (!parsed.value) {
+    return {};
+  }
+  const invalid = parsed.value.find((v) => !allowedValues.includes(v as T));
+  if (invalid) {
+    return {
+      error: apiError(
+        400,
+        "invalid_input",
+        `Field '${field}' contains invalid value '${invalid}'. Allowed values: ${allowedValues.join(", ")}`
+      ),
+    };
+  }
+  return { value: parsed.value as T[] };
 }
 
 function apiErrorFromResult(e: IApiError): APIGatewayProxyResult {
@@ -209,6 +254,131 @@ export const deleteV1ProgramHandler: RouteHandler<
   const { event, di } = payload;
   return withApiAuthAndEvent(event, di, "api-v1-delete-program", async (auth) => {
     return resultToResponse(await ApiV1_deleteProgram(auth.userId, auth.user, params.id, di));
+  });
+};
+
+// --- Custom Exercise Endpoints ---
+
+export const getV1CustomExercisesEndpoint = Endpoint.build("/api/v1/custom-exercises", {
+  limit: "string?",
+  cursor: "string?",
+});
+export const getV1CustomExercisesHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getV1CustomExercisesEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-list-custom-exercises", async (auth) => {
+    return resultToResponse(ApiV1_listCustomExercises(auth.user, params));
+  });
+};
+
+export const getV1CustomExerciseEndpoint = Endpoint.build("/api/v1/custom-exercises/:id");
+export const getV1CustomExerciseHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getV1CustomExerciseEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-get-custom-exercise", async (auth) => {
+    return resultToResponse(ApiV1_getCustomExercise(auth.user, params.id));
+  });
+};
+
+export const postV1CustomExerciseEndpoint = Endpoint.build("/api/v1/custom-exercises");
+export const postV1CustomExerciseHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postV1CustomExerciseEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-create-custom-exercise", async (auth) => {
+    const body = getBodyJson(event);
+    if (!body.name || typeof body.name !== "string") {
+      return apiError(400, "invalid_input", "Missing 'name' field");
+    }
+
+    const targetMuscles = getOptionalEnumArray<IMuscle>(body, "targetMuscles", availableMuscles);
+    if (targetMuscles.error) {
+      return targetMuscles.error;
+    }
+    const synergistMuscles = getOptionalEnumArray<IMuscle>(body, "synergistMuscles", availableMuscles);
+    if (synergistMuscles.error) {
+      return synergistMuscles.error;
+    }
+    const types = getOptionalEnumArray<IExerciseKind>(body, "types", exerciseKinds);
+    if (types.error) {
+      return types.error;
+    }
+
+    return resultToResponse(
+      await ApiV1_createCustomExercise(
+        auth.userId,
+        auth.user,
+        body.name as string,
+        targetMuscles.value || [],
+        synergistMuscles.value || [],
+        types.value || [],
+        di
+      ),
+      201
+    );
+  });
+};
+
+export const putV1CustomExerciseEndpoint = Endpoint.build("/api/v1/custom-exercises/:id");
+export const putV1CustomExerciseHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof putV1CustomExerciseEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-update-custom-exercise", async (auth) => {
+    const body = getBodyJson(event);
+    if (body.name != null && typeof body.name !== "string") {
+      return apiError(400, "invalid_input", "Field 'name' must be a string");
+    }
+
+    const targetMuscles = getOptionalEnumArray<IMuscle>(body, "targetMuscles", availableMuscles);
+    if (targetMuscles.error) {
+      return targetMuscles.error;
+    }
+    const synergistMuscles = getOptionalEnumArray<IMuscle>(body, "synergistMuscles", availableMuscles);
+    if (synergistMuscles.error) {
+      return synergistMuscles.error;
+    }
+    const types = getOptionalEnumArray<IExerciseKind>(body, "types", exerciseKinds);
+    if (types.error) {
+      return types.error;
+    }
+
+    return resultToResponse(
+      await ApiV1_updateCustomExercise(
+        auth.userId,
+        auth.user,
+        params.id,
+        {
+          name: typeof body.name === "string" ? body.name : undefined,
+          targetMuscles: targetMuscles.value,
+          synergistMuscles: synergistMuscles.value,
+          types: types.value,
+        },
+        di
+      )
+    );
+  });
+};
+
+export const deleteV1CustomExerciseEndpoint = Endpoint.build("/api/v1/custom-exercises/:id");
+export const deleteV1CustomExerciseHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof deleteV1CustomExerciseEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-delete-custom-exercise", async (auth) => {
+    return resultToResponse(await ApiV1_deleteCustomExercise(auth.userId, auth.user, params.id, di));
   });
 };
 
