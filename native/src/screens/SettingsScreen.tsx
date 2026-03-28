@@ -2,7 +2,7 @@ import React, { useMemo, useCallback } from "react";
 import { ScrollView, View, Text, Pressable, Switch, StyleSheet, Linking, Platform } from "react-native";
 import Slider from "@react-native-community/slider";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useStoreState } from "../context/StoreContext";
+import { useStoreStateWhenFocused } from "../context/StoreContext";
 import { useDispatch } from "../context/DispatchContext";
 import { lb } from "lens-shmens";
 import { Tailwind_semantic } from "@shared/utils/tailwindConfig";
@@ -127,7 +127,7 @@ function MenuItemSelect({
 }
 
 export function SettingsScreen(): React.ReactElement {
-  const state = useStoreState();
+  const state = useStoreStateWhenFocused();
   const dispatch = useDispatch();
   const sem = Tailwind_semantic();
 

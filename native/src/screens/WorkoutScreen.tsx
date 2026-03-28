@@ -1,7 +1,7 @@
 import React, { useMemo, useCallback, useRef } from "react";
 import { View, FlatList, Text, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useStoreState } from "../context/StoreContext";
+import { useStoreStateWhenFocused } from "../context/StoreContext";
 import { useDispatch } from "../context/DispatchContext";
 import { Program_getProgram, Program_evaluate, Program_getProgramDay } from "@shared/models/program";
 import { Progress_lbProgress } from "@shared/models/progress";
@@ -16,7 +16,7 @@ import { Program_getProgramExercise, Program_getFirstProgramExercise } from "@sh
 import { Progress_forceUpdateEntryIndex } from "@shared/models/progress";
 
 export function WorkoutScreen(): React.ReactElement {
-  const state = useStoreState();
+  const state = useStoreStateWhenFocused();
   const dispatch = useDispatch();
   const { width: screenWidth } = useWindowDimensions();
   const flatListRef = useRef<FlatList>(null);

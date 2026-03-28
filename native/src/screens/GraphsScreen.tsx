@@ -3,7 +3,7 @@ import { FlatList, View, Text, Pressable, useWindowDimensions } from "react-nati
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import type { IRootNavigation } from "../navigation/types";
-import { useStoreState } from "../context/StoreContext";
+import { useStoreStateWhenFocused } from "../context/StoreContext";
 import { useDispatch } from "../context/DispatchContext";
 import { GraphExercise } from "../components/GraphExercise";
 import { GraphMuscleGroup } from "../components/GraphMuscleGroup";
@@ -21,7 +21,7 @@ import { Collector } from "@shared/utils/collector";
 import type { IGraph, IScreenMuscle } from "@shared/types";
 
 export function GraphsScreen(): React.ReactElement {
-  const state = useStoreState();
+  const state = useStoreStateWhenFocused();
   const dispatch = useDispatch();
   const navigation = useNavigation<IRootNavigation>();
   const { width: screenWidth } = useWindowDimensions();

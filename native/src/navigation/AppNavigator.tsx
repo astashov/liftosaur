@@ -24,6 +24,7 @@ import { MonthCalendarSheet } from "../components/MonthCalendarSheet";
 import { WeekInsightsSheet } from "../components/WeekInsightsSheet";
 import { PlannerSettingsSheet } from "../components/PlannerSettingsSheet";
 import { ModalGraphsSheet } from "../components/ModalGraphsSheet";
+import { MigratedScreens_isMigrated } from "./migratedScreens";
 
 const Tab = createBottomTabNavigator();
 const RootStack = createNativeStackNavigator();
@@ -147,10 +148,16 @@ export function AppNavigator(): React.ReactElement {
     };
   }, [handleWebViewMessage]);
 
+  const onNavigationReady = useCallback(() => {
+    if (isFirstTimeUser && MigratedScreens_isMigrated("first")) {
+      navigationRef.dispatch(StackActions.push("first"));
+    }
+  }, [isFirstTimeUser]);
+
   return (
     <WebViewPoolProvider value={pool}>
       <View style={styles.root}>
-        <NavigationContainer ref={navigationRef}>
+        <NavigationContainer ref={navigationRef} onReady={onNavigationReady}>
           <RootStack.Navigator screenOptions={{ headerShown: false }}>
             <RootStack.Screen name="MainTabs">
               {() => (

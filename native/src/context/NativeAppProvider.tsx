@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useCallback, useRef } from "react";
 import { useThunkReducer } from "@shared/utils/useThunkReducer";
 import { reducerWrapper, defaultOnActions } from "@shared/ducks/reducer";
 import type { IAction } from "@shared/ducks/reducer";
@@ -29,20 +29,20 @@ export function NativeAppProvider({ children }: IProps): React.ReactElement {
     goBack: NavigationRef_goBack,
   };
 
-  const [state, dispatch] = useThunkReducer<IState, IAction, IEnv>(
+  const onStateChange = useCallback(
+    (state: IState) => {
+      store.setState(state);
+    },
+    [store]
+  );
+
+  const [, dispatch] = useThunkReducer<IState, IAction, IEnv>(
     reducerWrapper(false),
     initialState,
     env,
-    defaultOnActions(env)
+    defaultOnActions(env),
+    onStateChange
   );
-
-  const prevStateRef = useRef(state);
-  useEffect(() => {
-    if (state !== prevStateRef.current) {
-      prevStateRef.current = state;
-      store.setState(state);
-    }
-  }, [state]);
 
   return <DispatchProvider dispatch={dispatch}>{children}</DispatchProvider>;
 }

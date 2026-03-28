@@ -3,7 +3,7 @@ import { FlatList, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import type { IRootNavigation } from "../navigation/types";
-import { useStoreState } from "../context/StoreContext";
+import { useStoreStateWhenFocused } from "../context/StoreContext";
 import { useDispatch } from "../context/DispatchContext";
 import { Program_getProgram, Program_evaluate, Program_getProgramDay } from "@shared/models/program";
 import { Progress_getProgress, Progress_isCurrent } from "@shared/models/progress";
@@ -51,7 +51,7 @@ function getWeeksData(
 
 export function HomeScreen(): React.ReactElement {
   const navigation = useNavigation<IRootNavigation>();
-  const state = useStoreState();
+  const state = useStoreStateWhenFocused();
   const dispatch = useDispatch();
   const settings = state.storage.settings;
   const history = state.storage.history;

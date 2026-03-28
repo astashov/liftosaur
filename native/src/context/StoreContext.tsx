@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { Appearance } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { StateStore } from "../store/StateStore";
 import type { IState } from "@shared/models/state";
 import { Tailwind_setThemeDetector } from "@shared/utils/tailwindConfig";
@@ -40,6 +41,32 @@ export function useStoreState(): IState {
 
   useEffect(() => {
     return store.subscribe(setState);
+  }, [store]);
+
+  return state;
+}
+
+export function useStoreStateWhenFocused(): IState {
+  const store = useStore();
+  const [state, setState] = useState(store.getState());
+  const isFocusedRef = useRef(true);
+
+  useFocusEffect(
+    useCallback(() => {
+      isFocusedRef.current = true;
+      setState(store.getState());
+      return () => {
+        isFocusedRef.current = false;
+      };
+    }, [store])
+  );
+
+  useEffect(() => {
+    return store.subscribe((newState) => {
+      if (isFocusedRef.current) {
+        setState(newState);
+      }
+    });
   }, [store]);
 
   return state;

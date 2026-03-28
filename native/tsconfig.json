@@ -26,6 +26,9 @@
       ],
       "dequal": [
         "../node_modules/dequal"
+      ],
+      "react-native-safe-area-context": [
+        "./node_modules/react-native-safe-area-context"
       ]
     }
   },

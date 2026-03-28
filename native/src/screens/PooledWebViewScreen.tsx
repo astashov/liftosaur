@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef } from "react";
 import { View, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useWebViewPool } from "./WebViewPool";
-import { useStoreState } from "../context/StoreContext";
+import { useStoreStateWhenFocused } from "../context/StoreContext";
 import { useIsFocused } from "@react-navigation/native";
 import type { IScreenName } from "../navigation/screenMap";
 
@@ -18,7 +18,7 @@ export function PooledWebViewScreen({ route }: IProps): React.ReactElement {
   const screenName = route.name as IScreenName;
   const preparedSlotId = route.params?.preparedSlotId;
   const pool = useWebViewPool();
-  const state = useStoreState();
+  const state = useStoreStateWhenFocused();
   const isFocused = useIsFocused();
   const slotIdRef = useRef<number | undefined>(preparedSlotId ?? pool.claimPrepared(screenName));
   const containerIdRef = useRef(`screen-container-${screenName}-${Date.now()}`);

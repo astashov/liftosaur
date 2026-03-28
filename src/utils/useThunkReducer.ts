@@ -5,25 +5,27 @@ export function useThunkReducer<TState, TAction extends Record<string, unknown>,
   reducer: Reducer<TState, TAction>,
   initialState: TState,
   env: TEnv,
-  onActions: IReducerOnIGAction<TState, TAction, TEnv>[] = []
+  onActions: IReducerOnIGAction<TState, TAction, TEnv>[] = [],
+  onStateChange?: (state: TState) => void
 ): [TState, IGDispatch<TState, TAction, TEnv>] {
   const [hookState, setHookState] = useState(initialState);
 
-  // State management.
   const state = useRef(hookState);
   const getState = useCallback(() => state.current, [state]);
   const setState = useCallback(
     (newState: TState): void => {
       state.current = newState;
-      setHookState(newState);
+      if (onStateChange) {
+        onStateChange(newState);
+      } else {
+        setHookState(newState);
+      }
     },
-    [state, setHookState]
+    [state, setHookState, onStateChange]
   );
 
-  // Reducer.
   const reduce = useCallback((action: TAction): TState => reducer(getState(), action), [reducer, getState]);
 
-  // Augmented dispatcher.
   const dispatch = useCallback(
     (action: IGThunk<TState, TAction, TEnv> | TAction) => {
       const oldState = state.current;

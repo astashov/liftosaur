@@ -345,6 +345,24 @@ export type IAction =
 
 let timerId: number | undefined = undefined;
 
+let reportedCorruptedStorage = false;
+let validateTimerId: ReturnType<typeof setTimeout> | undefined;
+function debouncedValidateStorage(storage: IStorage): void {
+  if (reportedCorruptedStorage) {
+    return;
+  }
+  if (validateTimerId != null) {
+    clearTimeout(validateTimerId);
+  }
+  validateTimerId = setTimeout(() => {
+    validateTimerId = undefined;
+    const validateResult = Storage_validateAndReportStorage(storage);
+    if (!validateResult.success) {
+      reportedCorruptedStorage = true;
+    }
+  }, 500);
+}
+
 function isExternalStorageMerge(action: unknown): boolean {
   return (
     typeof action === "object" &&
@@ -598,12 +616,10 @@ export const reducerWrapper =
       newState = { ...newState, storage: { ...newState.storage, _versions: versions } };
     }
 
-    if (!newState.reportedCorruptedStorage && newState.storage !== state.storage) {
-      const validateResult = Storage_validateAndReportStorage(newState.storage);
-      if (!validateResult.success) {
-        newState.reportedCorruptedStorage = true;
-      }
-    }
+    // io-ts decode takes ~450ms on Hermes, so skip synchronous validation
+    // if (!reportedCorruptedStorage && newState.storage !== state.storage) {
+    //   debouncedValidateStorage(newState.storage);
+    // }
 
     if (SendMessage_isIos()) {
       newStorageApproach(state, newState, isStorageChanged);

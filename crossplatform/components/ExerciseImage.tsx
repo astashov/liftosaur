@@ -11,7 +11,7 @@ import {
 } from "@shared/models/exerciseImage";
 import { Exercise_get, Exercise_nameWithEquipment } from "@shared/models/exercise";
 
-const IMAGE_BASE = "https://www.liftosaur.com";
+const IMAGE_BASE = __HOST__;
 
 interface IProps {
   exerciseType: IExerciseType;
