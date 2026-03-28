@@ -24,6 +24,8 @@ import { MonthCalendarSheet } from "../components/MonthCalendarSheet";
 import { WeekInsightsSheet } from "../components/WeekInsightsSheet";
 import { PlannerSettingsSheet } from "../components/PlannerSettingsSheet";
 import { ModalGraphsSheet } from "../components/ModalGraphsSheet";
+import { WorkoutAmrapSheet } from "../components/WorkoutAmrapSheet";
+import { WorkoutEquipmentSheet } from "../components/WorkoutEquipmentSheet";
 import { MigratedScreens_isMigrated } from "./migratedScreens";
 
 const Tab = createBottomTabNavigator();
@@ -247,6 +249,32 @@ export function AppNavigator(): React.ReactElement {
                 headerShown: true,
                 headerShadowVisible: false,
                 title: "Graph Settings",
+              }}
+            />
+            <RootStack.Screen
+              name="WorkoutAmrapSheet"
+              component={WorkoutAmrapSheet}
+              options={{
+                presentation: "formSheet",
+                sheetGrabberVisible: true,
+                sheetAllowedDetents: [0.5, 0.85],
+                sheetExpandsWhenScrolledToEdge: false,
+                headerShown: true,
+                headerShadowVisible: false,
+                title: "Log Set",
+              }}
+            />
+            <RootStack.Screen
+              name="WorkoutEquipmentSheet"
+              component={WorkoutEquipmentSheet}
+              options={{
+                presentation: "formSheet",
+                sheetGrabberVisible: true,
+                sheetAllowedDetents: [0.65, 1.0],
+                sheetExpandsWhenScrolledToEdge: false,
+                headerShown: true,
+                headerShadowVisible: false,
+                title: "Equipment",
               }}
             />
           </RootStack.Navigator>

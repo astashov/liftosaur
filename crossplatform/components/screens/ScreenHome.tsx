@@ -1,23 +1,28 @@
 import React, { useMemo, useState, useCallback, useRef } from "react";
 import { FlatList, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
-import type { IRootNavigation } from "../navigation/types";
-import { useStoreStateWhenFocused } from "../context/StoreContext";
-import { useDispatch } from "../context/DispatchContext";
 import { Program_getProgram, Program_evaluate, Program_getProgramDay } from "@shared/models/program";
 import { Progress_getProgress, Progress_isCurrent } from "@shared/models/progress";
 import { History_getPersonalRecords } from "@shared/models/history";
 import { Program_nextHistoryRecord } from "@shared/models/program";
 import { CollectionUtils_sort } from "@shared/utils/collection";
 import { DateUtils_firstDayOfWeekTimestamp } from "@shared/utils/date";
-import { HistoryRecordView } from "@crossplatform/components/HistoryRecordView";
-import { HistoryRecordsNullState } from "@crossplatform/components/HistoryRecordsNullState";
-import { WeekCalendar } from "@crossplatform/components/WeekCalendar";
-import { WeekInsights } from "@crossplatform/components/WeekInsights";
+import { HistoryRecordView } from "../HistoryRecordView";
+import { HistoryRecordsNullState } from "../HistoryRecordsNullState";
+import { WeekCalendar } from "../WeekCalendar";
+import { WeekInsights } from "../WeekInsights";
 import { History_getHistoryRecordsForTimerange } from "@shared/models/history";
 import type { IHistoryRecord } from "@shared/types";
 import type { ViewToken } from "react-native";
+import type { IState } from "@shared/models/state";
+import type { IDispatch } from "@shared/ducks/types";
+
+interface IProps {
+  state: IState;
+  dispatch: IDispatch;
+  onNavigateToCalendar: (selectedFirstDayOfWeek: number) => void;
+  onShowMoreInsights: (selectedFirstDayOfWeek: number) => void;
+}
 
 function getWeeksData(
   history: IHistoryRecord[],
@@ -49,10 +54,8 @@ function getWeeksData(
   return { firstDayOfWeeks, historyRecordDateToFirstDayOfWeek, firstDayOfWeekToHistoryRecord };
 }
 
-export function HomeScreen(): React.ReactElement {
-  const navigation = useNavigation<IRootNavigation>();
-  const state = useStoreStateWhenFocused();
-  const dispatch = useDispatch();
+export function ScreenHome(props: IProps): React.ReactElement {
+  const { state, dispatch } = props;
   const settings = state.storage.settings;
   const history = state.storage.history;
   const progress = Progress_getProgress(state);
@@ -154,7 +157,7 @@ export function HomeScreen(): React.ReactElement {
           firstDayOfWeeks={firstDayOfWeeks}
           isLoading={false}
           selectedFirstDayOfWeek={selectedFirstDayOfWeek}
-          onClick={() => navigation.navigate("MonthCalendarSheet", { selectedFirstDayOfWeek })}
+          onClick={() => props.onNavigateToCalendar(selectedFirstDayOfWeek)}
           onSelectFirstDayOfWeek={setSelectedWeekCalendarFirstDayOfWeek}
         />
       </View>
@@ -172,7 +175,7 @@ export function HomeScreen(): React.ReactElement {
             settings={settings}
             subscription={state.storage.subscription}
             dispatch={dispatch}
-            onShowMore={() => navigation.navigate("WeekInsightsSheet", { selectedFirstDayOfWeek })}
+            onShowMore={() => props.onShowMoreInsights(selectedFirstDayOfWeek)}
           />
         }
         ListEmptyComponent={<HistoryRecordsNullState />}

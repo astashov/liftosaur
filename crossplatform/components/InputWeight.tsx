@@ -70,7 +70,7 @@ export function InputWeight(props: IProps): JSX.Element {
           props.onBlur?.(parsed);
         }}
         className="px-1 py-0.5 text-sm text-center border rounded border-border-neutral bg-background-default"
-        style={{ width: 70, minHeight: 28 }}
+        style={{ width: 60, minHeight: 28 }}
         selectTextOnFocus={true}
       />
       {props.addOn && <View className="mt-1">{props.addOn()}</View>}

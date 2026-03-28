@@ -1,9 +1,7 @@
 import React, { useMemo, useCallback } from "react";
-import { ScrollView, View, Text, Pressable, Switch, StyleSheet, Linking, Platform } from "react-native";
+import { ScrollView, View, Text, StyleSheet, Linking, Platform } from "react-native";
 import Slider from "@react-native-community/slider";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useStoreStateWhenFocused } from "../context/StoreContext";
-import { useDispatch } from "../context/DispatchContext";
 import { lb } from "lens-shmens";
 import { Tailwind_semantic } from "@shared/utils/tailwindConfig";
 import { Stats_getCurrentBodyweight, Stats_getCurrentBodyfat } from "@shared/models/stats";
@@ -15,120 +13,22 @@ import { CSV_toString } from "@shared/utils/csv";
 import { DateUtils_formatYYYYMMDD } from "@shared/utils/date";
 import { PlannerProgram_generateFullText } from "@shared/pages/planner/models/plannerProgram";
 import { Thunk_importStorage, Thunk_importCsvData, Thunk_importProgram } from "@shared/ducks/thunks";
-import { FileExport_share } from "../utils/fileExport";
-import { FileImport_pickAndRead, FileImport_confirm, docTypes } from "../utils/fileImport";
+import { FileExport_share } from "../../utils/fileExport";
+import { FileImport_pickAndRead, FileImport_confirm, docTypes } from "../../utils/fileImport";
+import { GroupHeader } from "../GroupHeader";
+import { MenuItem } from "../MenuItem";
+import { MenuItemEditable } from "../MenuItemEditable";
 import type { ISettings, ILengthUnit, IUnit } from "@shared/types";
-import type { ILensRecordingPayload } from "lens-shmens";
+import type { IState } from "@shared/models/state";
+import type { IDispatch } from "@shared/ducks/types";
 
-function GroupHeader({ name }: { name: string }): React.ReactElement {
-  const sem = Tailwind_semantic();
-  return (
-    <View style={styles.groupHeader}>
-      <Text style={[styles.groupHeaderText, { color: sem.text.secondary }]}>{name}</Text>
-    </View>
-  );
+interface IProps {
+  state: IState;
+  dispatch: IDispatch;
 }
 
-function MenuItem({
-  name,
-  value,
-  valueColor,
-  onPress,
-  showArrow = true,
-}: {
-  name: string;
-  value?: string;
-  valueColor?: string;
-  onPress?: () => void;
-  showArrow?: boolean;
-}): React.ReactElement {
-  const sem = Tailwind_semantic();
-  return (
-    <Pressable
-      style={[styles.menuItem, { borderBottomColor: sem.border.neutral }]}
-      onPress={onPress}
-      disabled={!onPress}
-    >
-      <Text style={[styles.menuItemName, { color: sem.text.primary }]}>{name}</Text>
-      <View style={styles.menuItemRight}>
-        {value != null && (
-          <Text style={[styles.menuItemValue, { color: valueColor ?? sem.text.secondary }]}>{value}</Text>
-        )}
-        {showArrow && onPress && <Text style={[styles.menuItemArrow, { color: sem.text.secondary }]}>›</Text>}
-      </View>
-    </Pressable>
-  );
-}
-
-function MenuItemToggle({
-  name,
-  value,
-  subtitle,
-  onToggle,
-}: {
-  name: string;
-  value: boolean;
-  subtitle?: string;
-  onToggle: (v: boolean) => void;
-}): React.ReactElement {
-  const sem = Tailwind_semantic();
-  return (
-    <View style={[styles.menuItem, { borderBottomColor: sem.border.neutral }]}>
-      <View style={styles.toggleLeft}>
-        <Text style={[styles.menuItemName, { color: sem.text.primary }]}>{name}</Text>
-        {subtitle != null && <Text style={[styles.subtitle, { color: sem.text.secondary }]}>{subtitle}</Text>}
-      </View>
-      <Switch value={value} onValueChange={onToggle} />
-    </View>
-  );
-}
-
-function MenuItemSelect({
-  name,
-  value,
-  options,
-  onSelect,
-}: {
-  name: string;
-  value: string;
-  options: [string, string][];
-  onSelect: (v: string) => void;
-}): React.ReactElement {
-  const sem = Tailwind_semantic();
-  return (
-    <View style={[styles.menuItem, { borderBottomColor: sem.border.neutral }]}>
-      <Text style={[styles.menuItemName, { color: sem.text.primary }]}>{name}</Text>
-      <View style={styles.segmentedControl}>
-        {options.map(([optValue, optLabel]) => {
-          const isSelected = optValue === value;
-          return (
-            <Pressable
-              key={optValue}
-              style={[
-                styles.segmentOption,
-                {
-                  backgroundColor: isSelected ? sem.button.primarybackground : "transparent",
-                  borderColor: sem.border.neutral,
-                },
-              ]}
-              onPress={() => onSelect(optValue)}
-            >
-              <Text
-                style={[styles.segmentOptionText, { color: isSelected ? sem.button.primarylabel : sem.text.primary }]}
-              >
-                {optLabel}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
-    </View>
-  );
-}
-
-export function SettingsScreen(): React.ReactElement {
-  const state = useStoreStateWhenFocused();
-  const dispatch = useDispatch();
+export function ScreenSettings(props: IProps): React.ReactElement {
+  const { state, dispatch } = props;
   const sem = Tailwind_semantic();
 
   const settings = state.storage.settings;
@@ -144,14 +44,7 @@ export function SettingsScreen(): React.ReactElement {
 
   const pushScreen = useCallback(
     (screen: string, params?: object) => {
-      dispatch({ type: "PushScreen", screen, params } as { type: "PushScreen"; screen: string; params?: object });
-    },
-    [dispatch]
-  );
-
-  const updateSettings = useCallback(
-    (lensRecording: ILensRecordingPayload<ISettings>, desc: string) => {
-      dispatch({ type: "UpdateSettings", lensRecording, desc });
+      dispatch({ type: "PushScreen", screen, params });
     },
     [dispatch]
   );
@@ -213,16 +106,14 @@ export function SettingsScreen(): React.ReactElement {
   }, [user]);
 
   return (
-    <SafeAreaView style={[styles.root, { backgroundColor: sem.background.default }]} edges={["top"]}>
-      <View style={styles.navbar}>
-        <Text style={[styles.navTitle, { color: sem.text.primary }]}>Settings</Text>
+    <SafeAreaView className="flex-1 bg-background-default" edges={["top"]}>
+      <View className="flex-row items-center justify-between px-4 py-3">
+        <Text className="text-xl font-bold text-text-primary">Settings</Text>
       </View>
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-        {/* Program */}
+      <ScrollView className="flex-1" contentContainerClassName="px-4">
         <MenuItem name="Program" value={currentProgram?.name} onPress={() => pushScreen("programs")} />
 
-        {/* Account */}
-        <GroupHeader name="Account" />
+        <GroupHeader name="Account" topPadding={true} />
         <MenuItem
           name="Account"
           value={accountValue.text}
@@ -231,8 +122,7 @@ export function SettingsScreen(): React.ReactElement {
         />
         <MenuItem name="API Keys" onPress={() => pushScreen("apiKeys")} />
 
-        {/* My Measurements */}
-        <GroupHeader name="My Measurements" />
+        <GroupHeader name="My Measurements" topPadding={true} />
         {currentBodyweight && (
           <MenuItem
             name="Bodyweight"
@@ -249,83 +139,108 @@ export function SettingsScreen(): React.ReactElement {
         )}
         <MenuItem name="Measurements" onPress={() => pushScreen("measurements")} />
 
-        {/* Workout */}
-        <GroupHeader name="Workout" />
+        <GroupHeader name="Workout" topPadding={true} />
         <MenuItem name="Exercises" onPress={() => pushScreen("exercises")} />
         <MenuItem name="Muscle Groups" onPress={() => pushScreen("muscleGroups")} />
         <MenuItem name="Timers" onPress={() => pushScreen("timers")} />
         {settings.gyms.length > 1 && (
-          <MenuItemSelect
+          <MenuItemEditable
+            type="select"
             name="Current Gym"
             value={settings.currentGymId ?? settings.gyms[0].id}
             options={settings.gyms.map((g) => [g.id, g.name] as [string, string])}
-            onSelect={(v) => updateSettings(lb<ISettings>().p("currentGymId").record(v), "Change current gym")}
+            onChange={(v) =>
+              dispatch({
+                type: "UpdateSettings",
+                lensRecording: lb<ISettings>().p("currentGymId").record(v),
+                desc: "Change current gym",
+              })
+            }
           />
         )}
         <MenuItem name="Available Equipment" onPress={() => pushScreen(settings.gyms.length > 1 ? "gyms" : "plates")} />
-        <MenuItemSelect
+        <MenuItemEditable
+          type="select"
           name="Weight Units"
           value={settings.units}
           options={[
             ["kg", "kg"],
             ["lb", "lb"],
           ]}
-          onSelect={(v) =>
-            updateSettings(
-              lb<ISettings>()
+          onChange={(v) =>
+            dispatch({
+              type: "UpdateSettings",
+              lensRecording: lb<ISettings>()
                 .p("units")
                 .record(v as IUnit),
-              "Change weight units"
-            )
+              desc: "Change weight units",
+            })
           }
         />
-        <MenuItemSelect
+        <MenuItemEditable
+          type="select"
           name="Length Units"
           value={settings.lengthUnits}
           options={[
             ["cm", "cm"],
             ["in", "in"],
           ]}
-          onSelect={(v) =>
-            updateSettings(
-              lb<ISettings>()
+          onChange={(v) =>
+            dispatch({
+              type: "UpdateSettings",
+              lensRecording: lb<ISettings>()
                 .p("lengthUnits")
                 .record(v as ILengthUnit),
-              "Change length units"
-            )
+              desc: "Change length units",
+            })
           }
         />
-        <MenuItemSelect
+        <MenuItemEditable
+          type="select"
           name="Week starts from"
           value={settings.startWeekFromMonday ? "true" : "false"}
           options={[
             ["false", "Sunday"],
             ["true", "Monday"],
           ]}
-          onSelect={(v) =>
-            updateSettings(
-              lb<ISettings>()
+          onChange={(v) =>
+            dispatch({
+              type: "UpdateSettings",
+              lensRecording: lb<ISettings>()
                 .p("startWeekFromMonday")
                 .record(v === "true"),
-              "Toggle week start day"
-            )
+              desc: "Toggle week start day",
+            })
           }
         />
-        <MenuItemToggle
+        <MenuItemEditable
+          type="boolean"
           name="Always On Display"
           value={!!settings.alwaysOnDisplay}
-          onToggle={(v) => updateSettings(lb<ISettings>().p("alwaysOnDisplay").record(v), "Toggle always-on display")}
+          onChange={(v) =>
+            dispatch({
+              type: "UpdateSettings",
+              lensRecording: lb<ISettings>().p("alwaysOnDisplay").record(v),
+              desc: "Toggle always-on display",
+            })
+          }
         />
 
-        {/* Sound */}
-        <GroupHeader name="Sound" />
-        <MenuItemToggle
+        <GroupHeader name="Sound" topPadding={true} />
+        <MenuItemEditable
+          type="boolean"
           name="Vibration"
           value={!!settings.vibration}
-          onToggle={(v) => updateSettings(lb<ISettings>().p("vibration").record(v), "Toggle vibration")}
+          onChange={(v) =>
+            dispatch({
+              type: "UpdateSettings",
+              lensRecording: lb<ISettings>().p("vibration").record(v),
+              desc: "Toggle vibration",
+            })
+          }
         />
-        <View style={[styles.sliderRow, { borderBottomColor: sem.border.neutral }]}>
-          <Text style={[styles.sliderIcon, { color: sem.text.secondary }]}>🔊</Text>
+        <View className="flex-row items-center py-3 border-b border-border-neutral">
+          <Text className="text-lg text-text-secondary">🔊</Text>
           <Slider
             style={styles.slider}
             minimumValue={0}
@@ -334,28 +249,32 @@ export function SettingsScreen(): React.ReactElement {
             value={settings.volume ?? 1}
             minimumTrackTintColor={sem.button.primarybackground}
             maximumTrackTintColor={sem.border.neutral}
-            onValueChange={(v) => updateSettings(lb<ISettings>().p("volume").record(v), "Change volume")}
+            onValueChange={(v: number) =>
+              dispatch({
+                type: "UpdateSettings",
+                lensRecording: lb<ISettings>().p("volume").record(v),
+                desc: "Change volume",
+              })
+            }
           />
         </View>
 
-        {/* Sync */}
         {Platform.OS === "ios" && (
           <>
-            <GroupHeader name="Sync" />
+            <GroupHeader name="Sync" topPadding={true} />
             <MenuItem name="Apple Health" onPress={() => pushScreen("appleHealth")} />
           </>
         )}
         {Platform.OS === "android" && (
           <>
-            <GroupHeader name="Sync" />
+            <GroupHeader name="Sync" topPadding={true} />
             <MenuItem name="Google Health Connect" onPress={() => pushScreen("googleHealth")} />
           </>
         )}
 
-        {/* Appearance */}
-        <GroupHeader name="Appearance" />
-        <View style={[styles.sliderRow, { borderBottomColor: sem.border.neutral }]}>
-          <Text style={[styles.textSizeSmall, { color: sem.text.secondary }]}>A</Text>
+        <GroupHeader name="Appearance" topPadding={true} />
+        <View className="flex-row items-center py-3 border-b border-border-neutral">
+          <Text className="text-xs font-semibold text-text-secondary">A</Text>
           <Slider
             style={styles.slider}
             minimumValue={12}
@@ -364,13 +283,18 @@ export function SettingsScreen(): React.ReactElement {
             value={settings.textSize ?? 16}
             minimumTrackTintColor={sem.button.primarybackground}
             maximumTrackTintColor={sem.border.neutral}
-            onValueChange={(v) => updateSettings(lb<ISettings>().p("textSize").record(v), "Change text size")}
+            onValueChange={(v: number) =>
+              dispatch({
+                type: "UpdateSettings",
+                lensRecording: lb<ISettings>().p("textSize").record(v),
+                desc: "Change text size",
+              })
+            }
           />
-          <Text style={[styles.textSizeLarge, { color: sem.text.secondary }]}>A</Text>
+          <Text className="text-xl font-semibold text-text-secondary">A</Text>
         </View>
 
-        {/* Import / Export */}
-        <GroupHeader name="Import / Export" />
+        <GroupHeader name="Import / Export" topPadding={true} />
         <MenuItem name="Export data to JSON file" showArrow={false} onPress={handleExportJson} />
         <MenuItem name="Export history to CSV file" showArrow={false} onPress={handleExportCsv} />
         <MenuItem name="Export all programs to text file" showArrow={false} onPress={handleExportPrograms} />
@@ -378,8 +302,7 @@ export function SettingsScreen(): React.ReactElement {
         <MenuItem name="Import data from JSON file" showArrow={false} onPress={handleImportJson} />
         <MenuItem name="Import program from JSON file" showArrow={false} onPress={handleImportProgram} />
 
-        {/* Miscellaneous */}
-        <GroupHeader name="Miscellaneous" />
+        <GroupHeader name="Miscellaneous" topPadding={true} />
         <MenuItem name="Contact Us" showArrow={false} onPress={() => Linking.openURL("mailto:info@liftosaur.com")} />
         <MenuItem
           name="Discord Server"
@@ -406,114 +329,15 @@ export function SettingsScreen(): React.ReactElement {
           showArrow={false}
           onPress={() => Linking.openURL("https://github.com/astashov/liftosaur/discussions")}
         />
-        <View style={styles.bottomSpacer} />
+        <View className="h-8" />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-  navbar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  navTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 16,
-  },
-  groupHeader: {
-    paddingTop: 24,
-    paddingBottom: 8,
-  },
-  groupHeaderText: {
-    fontSize: 12,
-    fontWeight: "600",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  menuItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  menuItemName: {
-    fontSize: 16,
-    flexShrink: 1,
-  },
-  menuItemRight: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginLeft: 8,
-    flexShrink: 0,
-  },
-  menuItemValue: {
-    fontSize: 16,
-  },
-  menuItemArrow: {
-    fontSize: 20,
-    marginLeft: 4,
-    fontWeight: "600",
-  },
-  toggleLeft: {
-    flex: 1,
-    marginRight: 12,
-  },
-  subtitle: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  segmentedControl: {
-    flexDirection: "row",
-    borderRadius: 8,
-    overflow: "hidden",
-  },
-  segmentOption: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 6,
-    marginLeft: 4,
-  },
-  segmentOptionText: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  sliderRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
   slider: {
     flex: 1,
     marginHorizontal: 8,
-  },
-  sliderIcon: {
-    fontSize: 18,
-  },
-  textSizeSmall: {
-    fontSize: 12,
-    fontWeight: "600",
-  },
-  textSizeLarge: {
-    fontSize: 20,
-    fontWeight: "600",
-  },
-  bottomSpacer: {
-    height: 32,
   },
 });

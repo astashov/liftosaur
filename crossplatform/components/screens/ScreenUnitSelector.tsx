@@ -6,7 +6,7 @@ import type { ISettings } from "@shared/types";
 import { Thunk_pushScreen } from "@shared/ducks/thunks";
 import { updateSettings } from "@shared/models/state";
 import { lb } from "lens-shmens";
-import { Button } from "./Button";
+import { Button } from "../Button";
 
 interface IProps {
   dispatch: IDispatch;

@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import type { JSX } from "react";
-import { View, Text, Pressable, TextInput, Modal as RNModal } from "react-native";
+import { View, Text, Pressable, TextInput, Modal as RNModal, Alert, Platform } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import type { IDispatch } from "@shared/ducks/types";
 import type { IHistoryEntry, IHistoryRecord, IProgramState, ISettings, IStats, ISubscription } from "@shared/types";
-import { updateProgress, updateSettings, updateState } from "@shared/models/state";
+import { updateProgress, updateSettings } from "@shared/models/state";
 import { lb } from "lens-shmens";
 import {
   Exercise_get,
@@ -50,7 +51,8 @@ import { PlannerProgramExercise_currentDescription } from "@shared/pages/planner
 import { Collector } from "@shared/utils/collector";
 import type { IByExercise } from "@shared/pages/planner/plannerEvaluator";
 import { ExerciseImage } from "./ExerciseImage";
-import { Alert, Platform } from "react-native";
+import { WorkoutPlatesCalculator } from "./WorkoutPlatesCalculator";
+import { Weight_build } from "@shared/models/weight";
 
 interface IProps {
   entry: IHistoryEntry;
@@ -68,6 +70,7 @@ interface IProps {
 }
 
 export function WorkoutExerciseCard(props: IProps): JSX.Element {
+  const navigation = useNavigation();
   const programExercise =
     props.program && props.entry.programExerciseId
       ? Program_getProgramExerciseForKeyAndDay(props.program, props.day, props.entry.programExerciseId)
@@ -79,6 +82,7 @@ export function WorkoutExerciseCard(props: IProps): JSX.Element {
   const exerciseNotes = Exercise_getNotes(exerciseType, props.settings);
   const description = programExercise ? PlannerProgramExercise_currentDescription(programExercise) : undefined;
   const onerm = Exercise_onerm(exercise, props.settings);
+  const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter((s) => !s.isCompleted)[0];
   const lbSets = lb<IHistoryRecord>().p("entries").i(props.entryIndex).p("sets");
   const lbWarmupSets = lb<IHistoryRecord>().p("entries").i(props.entryIndex).p("warmupSets");
   const programExerciseId = props.entry.programExerciseId;
@@ -89,7 +93,7 @@ export function WorkoutExerciseCard(props: IProps): JSX.Element {
 
   const [{ lastHistoryEntry }, { lastNote, timestamp }] = useMemo(
     () => historyCollector.run(),
-    [props.history, exerciseType, props.settings]
+    [props.history, exerciseType, props.progress.startTime]
   );
 
   const [isKebabMenuOpen, setIsKebabMenuOpen] = useState(false);
@@ -98,7 +102,7 @@ export function WorkoutExerciseCard(props: IProps): JSX.Element {
 
   return (
     <View
-      className={`py-1 border rounded-xl ${WorkoutExerciseUtils_getBgColor50(props.entry.sets, false)} ${WorkoutExerciseUtils_getBorderColor100(props.entry.sets, false)}`}
+      className={`py-1 border rounded-xl overflow-hidden ${WorkoutExerciseUtils_getBgColor50(props.entry.sets, false)} ${WorkoutExerciseUtils_getBorderColor100(props.entry.sets, false)}`}
     >
       <View className="px-4">
         <View className="flex-row">
@@ -130,6 +134,7 @@ export function WorkoutExerciseCard(props: IProps): JSX.Element {
                     [lb<IHistoryRecord>().pi("ui").p("equipmentModal").record({ exerciseType: props.entry.exercise })],
                     "change-equipment"
                   );
+                  navigation.navigate("WorkoutEquipmentSheet" as never);
                 }}
               >
                 {currentEquipmentName || "None"}
@@ -153,7 +158,7 @@ export function WorkoutExerciseCard(props: IProps): JSX.Element {
               </View>
             )}
             {currentEquipmentNotes && (
-              <View className="text-xs">
+              <View>
                 <MarkdownSimple value={currentEquipmentNotes} />
               </View>
             )}
@@ -213,6 +218,17 @@ export function WorkoutExerciseCard(props: IProps): JSX.Element {
           className="mt-1 text-sm"
         />
       </View>
+      {nextSet && currentEquipmentName && (nextSet.completedWeight || nextSet.weight) && (
+        <View className="mx-4">
+          <WorkoutPlatesCalculator
+            entry={props.entry}
+            weight={nextSet.completedWeight ?? nextSet.weight ?? Weight_build(0, props.settings.units)}
+            subscription={props.subscription}
+            settings={props.settings}
+            dispatch={props.dispatch}
+          />
+        </View>
+      )}
       <View className="mt-1">
         <WorkoutExerciseAllSets
           stats={props.stats}

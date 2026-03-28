@@ -4,13 +4,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import type { IDispatch } from "@shared/ducks/types";
 import { Thunk_pushScreen } from "@shared/ducks/thunks";
 import { Tailwind_colors } from "@shared/utils/tailwindConfig";
-import { Button } from "./Button";
-import { StorySlider } from "./StorySlider";
-import { IconArrowRight } from "./icons/IconArrowRight";
-import { IconKettlebell } from "./icons/IconKettlebell";
-import { IconWorkoutProgress } from "./icons/IconWorkoutProgress";
-import { IconEditor } from "./icons/IconEditor";
-import { IconTracker } from "./icons/IconTracker";
+import { Button } from "../Button";
+import { StorySlider } from "../StorySlider";
+import { IconArrowRight } from "../icons/IconArrowRight";
+import { IconKettlebell } from "../icons/IconKettlebell";
+import { IconWorkoutProgress } from "../icons/IconWorkoutProgress";
+import { IconEditor } from "../icons/IconEditor";
+import { IconTracker } from "../icons/IconTracker";
 
 interface IProps {
   dispatch: IDispatch;

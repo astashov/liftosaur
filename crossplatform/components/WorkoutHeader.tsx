@@ -10,8 +10,6 @@ import {
   History_isPaused,
   History_resumeWorkoutAction,
   History_pauseWorkoutAction,
-  History_calories,
-  History_pauseWorkout,
 } from "@shared/models/history";
 import { Reps_findNextSetIndex } from "@shared/models/set";
 import { DateUtils_format } from "@shared/utils/date";
@@ -59,43 +57,53 @@ export function WorkoutHeader(props: IProps): JSX.Element {
   const description = props.programDay?.description;
   const currentProgram = props.allPrograms.find((p) => p.id === program?.id);
 
+  const handlePauseResume = (): void => {
+    if (History_isPaused(progress.intervals)) {
+      History_resumeWorkoutAction(dispatch, false, props.settings, Subscriptions_hasSubscription(props.subscription));
+      const currentEntryIndex = progress.ui?.currentEntryIndex ?? 0;
+      const currentEntry = progress.entries[currentEntryIndex];
+      const setIndex = currentEntry ? Reps_findNextSetIndex(currentEntry) : 0;
+      dispatch(Thunk_updateLiveActivity(currentEntryIndex, setIndex, progress.timer, progress.timerSince));
+    } else {
+      History_pauseWorkoutAction(dispatch);
+    }
+  };
+
+  const handleFinish = (): void => {
+    if (isCurrent && Progress_isFullyFinishedSet(progress)) {
+      dispatch({ type: "FinishProgramDayAction" });
+      dispatch(Thunk_postevent("finish-workout", { workout: JSON.stringify(progress) }));
+    } else {
+      const msg = isCurrent
+        ? "Are you sure you want to FINISH this workout? Some sets are not marked as completed."
+        : "Are you sure you want to SAVE this PAST workout?";
+      confirmAction(msg, () => {
+        dispatch({ type: "FinishProgramDayAction" });
+        if (isCurrent) {
+          dispatch(Thunk_postevent("finish-workout", { workout: JSON.stringify(progress) }));
+        }
+      });
+    }
+  };
+
   return (
     <View className="px-4">
-      <View className="flex-row items-center justify-between">
-        <View className="flex-row items-center flex-1">
+      <View className="flex-row items-center py-1">
+        <View style={{ minWidth: 40 }} />
+        <View className="flex-1 items-center">
           {isCurrent ? (
-            <View className="flex-row items-center gap-2">
-              <Text className="text-base font-semibold">Ongoing workout</Text>
-              <WorkoutTimer
-                progress={progress}
-                onPauseResume={() => {
-                  if (History_isPaused(progress.intervals)) {
-                    History_resumeWorkoutAction(
-                      dispatch,
-                      false,
-                      props.settings,
-                      Subscriptions_hasSubscription(props.subscription)
-                    );
-                    const currentEntryIndex = progress.ui?.currentEntryIndex || 0;
-                    const currentEntry = progress.entries[currentEntryIndex];
-                    const setIndex = currentEntry ? Reps_findNextSetIndex(currentEntry) : 0;
-                    dispatch(
-                      Thunk_updateLiveActivity(currentEntryIndex, setIndex, progress.timer, progress.timerSince)
-                    );
-                  } else {
-                    History_pauseWorkoutAction(dispatch);
-                  }
-                }}
-              />
-            </View>
+            <>
+              <Text className="text-sm font-semibold">Ongoing workout</Text>
+              <WorkoutTimer progress={progress} onPauseResume={handlePauseResume} />
+            </>
           ) : (
-            <View>
-              <Text className="text-base font-semibold">{DateUtils_format(progress.date)}</Text>
+            <>
+              <Text className="text-sm font-semibold">{DateUtils_format(progress.date)}</Text>
               <Text className="text-sm text-text-secondary">{TimeUtils_formatHHMM(History_workoutTime(progress))}</Text>
-            </View>
+            </>
           )}
         </View>
-        <View className="flex-row items-center gap-2">
+        <View className="flex-row items-center" style={{ minWidth: 40 }}>
           <Pressable
             className="p-2"
             onPress={() => {
@@ -107,6 +115,14 @@ export function WorkoutHeader(props: IProps): JSX.Element {
           >
             <IconTrash width={15} height={18} />
           </Pressable>
+        </View>
+      </View>
+      <View className="flex-row items-center gap-2 mt-1">
+        <View className="flex-1">
+          <Text className="text-sm font-semibold">{progress.dayName}</Text>
+          <Text className="text-sm text-text-secondary">{progress.programName}</Text>
+        </View>
+        <View className="flex-row items-center gap-2">
           {!isCurrent && (
             <Pressable className="p-2" onPress={() => props.setIsShareShown(true)}>
               <IconShare size={20} />
@@ -143,31 +159,10 @@ export function WorkoutHeader(props: IProps): JSX.Element {
             kind="purple"
             buttonSize="md"
             data-cy="finish-workout"
-            onPress={() => {
-              if (isCurrent && Progress_isFullyFinishedSet(progress)) {
-                dispatch({ type: "FinishProgramDayAction" });
-                dispatch(Thunk_postevent("finish-workout", { workout: JSON.stringify(progress) }));
-              } else {
-                const msg = isCurrent
-                  ? "Are you sure you want to FINISH this workout? Some sets are not marked as completed."
-                  : "Are you sure you want to SAVE this PAST workout?";
-                confirmAction(msg, () => {
-                  dispatch({ type: "FinishProgramDayAction" });
-                  if (isCurrent) {
-                    dispatch(Thunk_postevent("finish-workout", { workout: JSON.stringify(progress) }));
-                  }
-                });
-              }
-            }}
+            onPress={handleFinish}
           >
             {isCurrent ? "Finish" : "Save"}
           </Button>
-        </View>
-      </View>
-      <View className="flex-row mt-1">
-        <View className="flex-1">
-          <Text className="text-sm font-semibold">{progress.dayName}</Text>
-          <Text className="text-sm text-text-secondary">{progress.programName}</Text>
         </View>
       </View>
       {description && (

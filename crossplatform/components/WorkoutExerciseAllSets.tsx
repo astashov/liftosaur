@@ -16,7 +16,8 @@ import type { IPlannerProgramExercise } from "@shared/pages/planner/models/types
 import type { IByExercise } from "@shared/pages/planner/plannerEvaluator";
 import type { IEvaluatedProgram } from "@shared/models/program";
 import { updateProgress } from "@shared/models/state";
-import { lb, LensBuilder } from "lens-shmens";
+import { lb } from "lens-shmens";
+import type { LensBuilder } from "lens-shmens";
 import { WorkoutExerciseSet } from "./WorkoutExerciseSet";
 import { Reps_isFinishedSet, Reps_addSet } from "@shared/models/set";
 import { IconPlus2 } from "./icons/IconPlus2";
@@ -87,14 +88,14 @@ export function WorkoutExerciseAllSets(props: IProps): JSX.Element {
             {props.onTargetClick && <IconSwapSmall size={12} color={Tailwind_colors().lightgray[600]} />}
           </View>
         </Pressable>
-        <View className="items-center" style={{ width: 60 }}>
+        <View className="items-center" style={{ width: 48 }}>
           <Text className="text-xs text-text-secondary">Reps</Text>
         </View>
-        <View style={{ width: 20 }} />
-        <View className="items-center" style={{ width: 80 }}>
+        <View style={{ width: 14 }} />
+        <View className="items-center" style={{ width: 64 }}>
           <Text className="text-xs text-text-secondary">{exerciseUnit}</Text>
         </View>
-        <View style={{ width: 50 }} />
+        <View style={{ width: 56 }} />
       </View>
       {warmupSets.map((set, i) => (
         <WorkoutExerciseSet
@@ -113,7 +114,7 @@ export function WorkoutExerciseAllSets(props: IProps): JSX.Element {
           lbSet={props.lbWarmupSets.i(i)}
           set={set}
           entryIndex={props.entryIndex}
-          isNext={nextSetIndex === i}
+          isNext={nextSetIndex >= 0 && nextSetIndex === i}
           setIndex={i}
           settings={props.settings}
           dispatch={props.dispatch}
@@ -127,7 +128,7 @@ export function WorkoutExerciseAllSets(props: IProps): JSX.Element {
           type="workout"
           progress={props.progress}
           entry={props.entry}
-          isNext={nextSetIndex - warmupSets.length === i}
+          isNext={nextSetIndex >= 0 && nextSetIndex - warmupSets.length === i}
           programExercise={props.programExercise}
           day={props.day}
           otherStates={props.otherStates}

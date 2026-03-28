@@ -24,7 +24,6 @@ import {
   Storage_getHistoryRecord,
   Storage_isChanged,
   Storage_updateVersions,
-  Storage_validateAndReportStorage,
 } from "../models/storage";
 import {
   IScreen,
@@ -345,23 +344,23 @@ export type IAction =
 
 let timerId: number | undefined = undefined;
 
-let reportedCorruptedStorage = false;
-let validateTimerId: ReturnType<typeof setTimeout> | undefined;
-function debouncedValidateStorage(storage: IStorage): void {
-  if (reportedCorruptedStorage) {
-    return;
-  }
-  if (validateTimerId != null) {
-    clearTimeout(validateTimerId);
-  }
-  validateTimerId = setTimeout(() => {
-    validateTimerId = undefined;
-    const validateResult = Storage_validateAndReportStorage(storage);
-    if (!validateResult.success) {
-      reportedCorruptedStorage = true;
-    }
-  }, 500);
-}
+// let reportedCorruptedStorage = false;
+// let validateTimerId: ReturnType<typeof setTimeout> | undefined;
+// function debouncedValidateStorage(storage: IStorage): void {
+//   if (reportedCorruptedStorage) {
+//     return;
+//   }
+//   if (validateTimerId != null) {
+//     clearTimeout(validateTimerId);
+//   }
+//   validateTimerId = setTimeout(() => {
+//     validateTimerId = undefined;
+//     const validateResult = Storage_validateAndReportStorage(storage);
+//     if (!validateResult.success) {
+//       reportedCorruptedStorage = true;
+//     }
+//   }, 500);
+// }
 
 function isExternalStorageMerge(action: unknown): boolean {
   return (
@@ -527,7 +526,9 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
         Screen_currentName(oldState.screenStack) !== Screen_currentName(newState.screenStack)
       ) {
         setTimeout(() => {
-          window.scroll(0, 0);
+          if (typeof window.scroll === "function") {
+            window.scroll(0, 0);
+          }
         }, 0);
       }
     },

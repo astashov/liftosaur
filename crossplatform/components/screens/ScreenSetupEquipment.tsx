@@ -13,15 +13,15 @@ import {
 import { equipmentName } from "@shared/models/exercise";
 import { ObjectUtils_keys } from "@shared/utils/object";
 import { lb } from "lens-shmens";
-import { Button } from "./Button";
-import { IconEquipmentBarbell } from "./icons/IconEquipmentBarbell";
-import { IconEquipmentTrapbar } from "./icons/IconEquipmentTrapbar";
-import { IconEquipmentLeverageMachine } from "./icons/IconEquipmentLeverageMachine";
-import { IconEquipmentSmith } from "./icons/IconEquipmentSmith";
-import { IconEquipmentDumbbell } from "./icons/IconEquipmentDumbbell";
-import { IconEquipmentEzBar } from "./icons/IconEquipmentEzBar";
-import { IconEquipmentCable } from "./icons/IconEquipmentCable";
-import { IconEquipmentKettlebell } from "./icons/IconEquipmentKettlebell";
+import { Button } from "../Button";
+import { IconEquipmentBarbell } from "../icons/IconEquipmentBarbell";
+import { IconEquipmentTrapbar } from "../icons/IconEquipmentTrapbar";
+import { IconEquipmentLeverageMachine } from "../icons/IconEquipmentLeverageMachine";
+import { IconEquipmentSmith } from "../icons/IconEquipmentSmith";
+import { IconEquipmentDumbbell } from "../icons/IconEquipmentDumbbell";
+import { IconEquipmentEzBar } from "../icons/IconEquipmentEzBar";
+import { IconEquipmentCable } from "../icons/IconEquipmentCable";
+import { IconEquipmentKettlebell } from "../icons/IconEquipmentKettlebell";
 import { Tailwind_semantic } from "@shared/utils/tailwindConfig";
 
 interface IProps {
@@ -30,6 +30,7 @@ interface IProps {
   selectedGymId?: string;
 }
 
+declare const __HOST__: string;
 const IMAGE_BASE = `${__HOST__}/images`;
 
 const equipmentToIcon: Record<string, () => React.ReactElement> = {
@@ -50,7 +51,7 @@ export function ScreenSetupEquipment(props: IProps): React.ReactElement {
   return (
     <SafeAreaView edges={["bottom"]} className="flex-1 bg-background-default">
       <ScrollView className="flex-1 px-4 pt-8 pb-4">
-        <View className="p-4 items-center">
+        <View className="items-center p-4">
           <Image source={{ uri: `${IMAGE_BASE}/dinoequipment.png` }} className="h-60 w-60" resizeMode="contain" />
         </View>
         <View className="px-2 -mt-1">

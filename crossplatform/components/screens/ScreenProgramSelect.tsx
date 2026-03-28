@@ -4,11 +4,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import type { IDispatch } from "@shared/ducks/types";
 import { Thunk_pushScreen } from "@shared/ducks/thunks";
 import { emptyProgramId, Program_selectProgram } from "@shared/models/program";
-import { IconDoc } from "./icons/IconDoc";
-import { IconEditSquare } from "./icons/IconEditSquare";
-import { IconLink } from "./icons/IconLink";
-import { IconEquipmentKettlebell } from "./icons/IconEquipmentKettlebell";
-import { IconChevronRight } from "./icons/IconChevronRight";
+import { IconDoc } from "../icons/IconDoc";
+import { IconEditSquare } from "../icons/IconEditSquare";
+import { IconLink } from "../icons/IconLink";
+import { IconEquipmentKettlebell } from "../icons/IconEquipmentKettlebell";
+import { IconChevronRight } from "../icons/IconChevronRight";
 import { Tailwind_semantic } from "@shared/utils/tailwindConfig";
 
 interface IProps {

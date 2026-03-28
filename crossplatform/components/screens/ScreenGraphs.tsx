@@ -1,13 +1,9 @@
 import React, { useMemo } from "react";
 import { FlatList, View, Text, Pressable, useWindowDimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
-import type { IRootNavigation } from "../navigation/types";
-import { useStoreStateWhenFocused } from "../context/StoreContext";
-import { useDispatch } from "../context/DispatchContext";
-import { GraphExercise } from "../components/GraphExercise";
-import { GraphMuscleGroup } from "../components/GraphMuscleGroup";
-import { GraphStats } from "../components/GraphStats";
+import { GraphExercise } from "../GraphExercise";
+import { GraphMuscleGroup } from "../GraphMuscleGroup";
+import { GraphStats } from "../GraphStats";
 import {
   GraphData_weightStats,
   GraphData_lengthStats,
@@ -19,11 +15,17 @@ import { CollectionUtils_sort } from "@shared/utils/collection";
 import { Exercise_fromKey } from "@shared/models/exercise";
 import { Collector } from "@shared/utils/collector";
 import type { IGraph, IScreenMuscle } from "@shared/types";
+import type { IState } from "@shared/models/state";
+import type { IDispatch } from "@shared/ducks/types";
 
-export function GraphsScreen(): React.ReactElement {
-  const state = useStoreStateWhenFocused();
-  const dispatch = useDispatch();
-  const navigation = useNavigation<IRootNavigation>();
+interface IProps {
+  state: IState;
+  dispatch: IDispatch;
+  onOpenSettings: () => void;
+}
+
+export function ScreenGraphs(props: IProps): React.ReactElement {
+  const { state, dispatch } = props;
   const { width: screenWidth } = useWindowDimensions();
 
   const settings = state.storage.settings;
@@ -143,7 +145,7 @@ export function GraphsScreen(): React.ReactElement {
     <SafeAreaView className="flex-1 bg-background-default" edges={["top"]}>
       <View className="flex-row justify-between items-center px-4 py-3">
         <Text className="text-xl font-bold text-text-primary">Graphs</Text>
-        <Pressable className="p-2" onPress={() => navigation.navigate("ModalGraphsSheet")}>
+        <Pressable className="p-2" onPress={props.onOpenSettings}>
           <Text className="text-xl text-text-primary">⚙</Text>
         </Pressable>
       </View>

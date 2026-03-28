@@ -20,9 +20,9 @@
       "Read(**/secrets/**)"
     ],
     "additionalDirectories": [
-      "../LiftosauriOS/src",
-      "../LiftosaurAndroid",
-      "./worktrees"
+      "/Users/anton/projects/LiftosauriOS/src",
+      "/Users/anton/projects/LiftosaurAndroid",
+      "/Users/anton/projects/liftosaur"
     ]
   }
 }

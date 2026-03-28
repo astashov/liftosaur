@@ -18,13 +18,13 @@ import { Equipment_currentEquipment } from "@shared/models/equipment";
 import { Settings_doesProgramHaveUnset1RMs } from "@shared/models/settings";
 import { StringUtils_pluralize } from "@shared/utils/string";
 import { Tailwind_colors, Tailwind_semantic } from "@shared/utils/tailwindConfig";
-import { ExerciseImage } from "./ExerciseImage";
-import { IconMagnifyingGlass } from "./icons/IconMagnifyingGlass";
-import { IconCalendarSmall } from "./icons/IconCalendarSmall";
-import { IconKettlebellSmall } from "./icons/IconKettlebellSmall";
-import { IconWatch } from "./icons/IconWatch";
-import { IconBackArrow } from "./icons/IconBackArrow";
-import { MarkdownSimple } from "./MarkdownSimple";
+import { ExerciseImage } from "../ExerciseImage";
+import { IconMagnifyingGlass } from "../icons/IconMagnifyingGlass";
+import { IconCalendarSmall } from "../icons/IconCalendarSmall";
+import { IconKettlebellSmall } from "../icons/IconKettlebellSmall";
+import { IconWatch } from "../icons/IconWatch";
+import { IconBackArrow } from "../icons/IconBackArrow";
+import { MarkdownSimple } from "../MarkdownSimple";
 
 interface IProps {
   dispatch: IDispatch;
@@ -33,7 +33,7 @@ interface IProps {
   settings: ISettings;
 }
 
-export function ChooseProgram(props: IProps): React.ReactElement {
+export function ScreenPrograms(props: IProps): React.ReactElement {
   const [search, setSearch] = useState("");
   const [filter] = useState<IProgramFilter>({});
   const [sort] = useState<IProgramSort>(undefined);

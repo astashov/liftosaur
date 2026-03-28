@@ -1,13 +1,13 @@
 import React from "react";
 import { useStoreStateWhenFocused } from "../context/StoreContext";
 import { useDispatch } from "../context/DispatchContext";
-import { ChooseProgram } from "@crossplatform/components/ChooseProgram";
+import { ScreenPrograms } from "@crossplatform/components/screens/ScreenPrograms";
 
-export function ProgramsScreen(): React.ReactElement {
+export function NativeScreenPrograms(): React.ReactElement {
   const state = useStoreStateWhenFocused();
   const dispatch = useDispatch();
   return (
-    <ChooseProgram
+    <ScreenPrograms
       dispatch={dispatch}
       programs={state.programs || []}
       programsIndex={state.programsIndex || []}

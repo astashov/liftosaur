@@ -29,6 +29,15 @@
       ],
       "react-native-safe-area-context": [
         "./node_modules/react-native-safe-area-context"
+      ],
+      "react-native-gesture-handler": [
+        "./node_modules/react-native-gesture-handler"
+      ],
+      "@react-native-community/slider": [
+        "./node_modules/@react-native-community/slider"
+      ],
+      "@react-navigation/native": [
+        "./node_modules/@react-navigation/native"
       ]
     }
   },

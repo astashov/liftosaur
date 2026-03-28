@@ -1,6 +1,5 @@
 import type { JSX } from "react";
 import { View, Text, Pressable } from "react-native";
-import { Exercise_get } from "@shared/models/exercise";
 import { Reps_setsStatus } from "@shared/models/set";
 import type { IHistoryEntry, IHistoryRecord, ISettings } from "@shared/types";
 import {
@@ -36,14 +35,13 @@ export function WorkoutExerciseThumbnail(props: IProps): JSX.Element {
   const currentSuperset = currentEntry?.superset;
   const isCurrentSuperset = currentSuperset != null && currentSuperset === entry.superset;
   const borderColor = isCurrent ? "border-purple-600" : WorkoutExerciseUtils_setsStatusToBorderColor(setsStatus);
-  const exercise = Exercise_get(entry.exercise, props.settings.exercises);
   const totalSetsCount = entry.sets.length;
   const completedSetsCount = entry.sets.filter((set) => set.isCompleted).length;
 
   return (
     <View>
       <Pressable
-        onPress={props.onClick}
+        onPress={() => props.onClick?.()}
         className="items-center bg-background-default"
         style={{ paddingHorizontal: 2 }}
       >
@@ -64,12 +62,14 @@ export function WorkoutExerciseThumbnail(props: IProps): JSX.Element {
           />
           {setsStatus === "not-finished" ? (
             props.shouldShowProgress && (
-              <View className="absolute bottom-0 right-0" style={{ padding: 1 }}>
+              <View className="absolute bottom-0 right-0" style={{ paddingVertical: 1, paddingHorizontal: 3 }}>
                 <View className="absolute inset-0 rounded-md opacity-75 bg-lightgray-50" />
-                <Text className="text-xs">
-                  <Text className="font-semibold">{completedSetsCount}</Text>/
-                  <Text className="font-semibold">{totalSetsCount}</Text>
-                </Text>
+                <View style={{ position: "relative", zIndex: 10 }}>
+                  <Text className="text-xs">
+                    <Text className="font-semibold">{completedSetsCount}</Text>/
+                    <Text className="font-semibold">{totalSetsCount}</Text>
+                  </Text>
+                </View>
               </View>
             )
           ) : (

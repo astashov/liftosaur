@@ -1,6 +1,7 @@
-import { useRef, useCallback } from "react";
+import { useRef } from "react";
 import type { JSX } from "react";
-import { View, Text, Pressable, Animated, PanResponder } from "react-native";
+import { View, Text, Pressable } from "react-native";
+import { Swipeable } from "react-native-gesture-handler";
 import type { IDispatch } from "@shared/ducks/types";
 import type {
   ISettings,
@@ -13,7 +14,7 @@ import type {
 } from "@shared/types";
 import type { IPlannerProgramExercise } from "@shared/pages/planner/models/types";
 import type { IByExercise } from "@shared/pages/planner/plannerEvaluator";
-import { LensBuilder } from "lens-shmens";
+import type { LensBuilder } from "lens-shmens";
 import { updateProgress } from "@shared/models/state";
 import { n } from "@shared/utils/math";
 import { CollectionUtils_removeAt } from "@shared/utils/collection";
@@ -27,14 +28,12 @@ import {
 import { Reps_enforceCompletedSet, Reps_setsStatus, Reps_avgUnilateralCompletedReps } from "@shared/models/set";
 import {
   Weight_eq,
-  Weight_rpeMultiplier,
-  Weight_multiply,
   Weight_calculatePlates,
   Weight_formatOneSide,
   Weight_isPct,
   Weight_getOneRepMax,
 } from "@shared/models/weight";
-import { Exercise_getIsUnilateral, Exercise_onerm } from "@shared/models/exercise";
+import { Exercise_getIsUnilateral } from "@shared/models/exercise";
 import { IconCheckCircle } from "./icons/IconCheckCircle";
 import { InputNumber } from "./InputNumber";
 import { InputWeight } from "./InputWeight";
@@ -71,42 +70,15 @@ export function WorkoutExerciseSet(props: IProps): JSX.Element {
   const isUnilateral = Exercise_getIsUnilateral(props.exerciseType, props.settings);
   const hasEdit = props.type === "workout";
   const swipeActionWidth = hasEdit ? 128 : 64;
-  const translateX = useRef(new Animated.Value(0)).current;
+  const swipeableRef = useRef<Swipeable>(null);
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gs) => Math.abs(gs.dx) > 10 && Math.abs(gs.dx) > Math.abs(gs.dy),
-      onPanResponderMove: (_, gs) => {
-        if (gs.dx < 0) {
-          translateX.setValue(Math.max(gs.dx, -swipeActionWidth));
-        }
-      },
-      onPanResponderRelease: (_, gs) => {
-        if (gs.dx < -swipeActionWidth / 3) {
-          Animated.spring(translateX, { toValue: -swipeActionWidth, useNativeDriver: true, bounciness: 0 }).start();
-        } else {
-          Animated.spring(translateX, { toValue: 0, useNativeDriver: true, bounciness: 0 }).start();
-        }
-      },
-    })
-  ).current;
+  const closeSwipe = (): void => {
+    swipeableRef.current?.close();
+  };
 
-  const closeSwipe = useCallback(() => {
-    Animated.spring(translateX, { toValue: 0, useNativeDriver: true, bounciness: 0 }).start();
-  }, [translateX]);
-
-  return (
-    <View style={{ overflow: "hidden" }}>
-      <View
-        style={{
-          position: "absolute",
-          right: 0,
-          top: 0,
-          bottom: 0,
-          width: swipeActionWidth,
-          flexDirection: "row",
-        }}
-      >
+  const renderRightActions = (): JSX.Element => {
+    return (
+      <View style={{ flexDirection: "row", width: swipeActionWidth }}>
         {hasEdit && (
           <Pressable
             className="items-center justify-center flex-1 bg-background-darkgray"
@@ -151,18 +123,33 @@ export function WorkoutExerciseSet(props: IProps): JSX.Element {
           <Text className="text-text-alwayswhite">Delete</Text>
         </Pressable>
       </View>
-      <Animated.View
-        {...panResponder.panHandlers}
-        style={{ transform: [{ translateX }] }}
-        className={`flex-row items-center ${bgClass} border-b ${borderClass}`}
-      >
+    );
+  };
+
+  return (
+    <Swipeable
+      ref={swipeableRef}
+      renderRightActions={renderRightActions}
+      rightThreshold={swipeActionWidth / 3}
+      overshootRight={false}
+      friction={2}
+    >
+      <View className={`flex-row items-center py-2 ${bgClass} border-b ${borderClass}`}>
         <View className="items-center justify-center px-2" style={{ width: 40 }}>
           <View
             className={`w-6 h-6 items-center justify-center rounded-full${
               props.isNext ? " bg-button-primarybackground" : ""
             }`}
           >
-            <Text className={props.isNext ? "text-text-alwayswhite font-bold text-sm" : "text-sm"}>
+            <Text
+              className={
+                props.isNext
+                  ? `text-text-alwayswhite font-bold ${props.type === "warmup" ? "text-xs" : "text-sm"}`
+                  : props.type === "warmup"
+                    ? "text-xs"
+                    : "text-sm"
+              }
+            >
               {props.type === "warmup" ? "W" : props.setIndex + 1}
             </Text>
           </View>
@@ -182,7 +169,7 @@ export function WorkoutExerciseSet(props: IProps): JSX.Element {
             exerciseType={props.exerciseType}
           />
         </View>
-        <View className="items-center" style={{ width: 60 }}>
+        <View className="items-center" style={{ width: 48 }}>
           {isUnilateral && (
             <View className="flex-row items-center mb-1">
               <Text className="text-xs text-text-secondary" style={{ width: 16 }}>
@@ -256,8 +243,10 @@ export function WorkoutExerciseSet(props: IProps): JSX.Element {
             />
           </View>
         </View>
-        <Text className="px-1 text-sm text-text-secondary">×</Text>
-        <View style={{ width: 80 }}>
+        <Text className="text-sm text-text-secondary" style={{ width: 14, textAlign: "center" }}>
+          ×
+        </Text>
+        <View style={{ width: 64 }}>
           <View className="flex-row items-center">
             <InputWeight
               name="set-weight"
@@ -282,7 +271,7 @@ export function WorkoutExerciseSet(props: IProps): JSX.Element {
               subscription={props.subscription}
               placeholder={placeholderWeight}
               initialValue={set.weight}
-              value={set.completedWeight || undefined}
+              value={set.completedWeight ?? undefined}
               max={9999}
               min={-9999}
               settings={props.settings}
@@ -292,9 +281,9 @@ export function WorkoutExerciseSet(props: IProps): JSX.Element {
             )}
           </View>
         </View>
-        <View className="pr-2 pl-1" style={{ width: 50 }}>
+        <View className="pr-4 pl-1" style={{ width: 56 }}>
           <Pressable
-            className="items-center justify-center p-2"
+            className="items-center justify-center px-3 py-2"
             data-cy="complete-set"
             onPress={() => {
               props.dispatch({
@@ -317,8 +306,8 @@ export function WorkoutExerciseSet(props: IProps): JSX.Element {
             />
           </Pressable>
         </View>
-      </Animated.View>
-    </View>
+      </View>
+    </Swipeable>
   );
 }
 
@@ -350,9 +339,9 @@ function SetTarget(props: { set: ISet; setType: "program" | "warmup" | "adhoc" }
     return (
       <View>
         <Text className="text-xs text-text-secondary">Warmup</Text>
-        <Text className="text-sm">
+        <Text className="text-sm text-text-secondary">
           {set.reps != null && <Text className="font-semibold">{n(Math.max(0, set.reps))}</Text>}
-          {set.reps != null && set.weight != null && <Text className="text-text-secondary"> × </Text>}
+          {set.reps != null && set.weight != null && <Text> × </Text>}
           {set.weight != null && (
             <Text>
               <Text className="font-semibold">{n(set.weight.value)}</Text>
@@ -381,7 +370,7 @@ function SetTarget(props: { set: ISet; setType: "program" | "warmup" | "adhoc" }
           )}
           {set.reps != null && set.weight != null && <Text className="text-text-secondary"> × </Text>}
           {set.originalWeight && set.weight && isDiffWeight && (
-            <Text className="line-through text-text-secondary">
+            <Text style={{ textDecorationLine: "line-through" }} className="text-text-secondary">
               {n(set.originalWeight.value)}
               <Text className="text-xs">{set.originalWeight.unit}</Text>
             </Text>
@@ -399,13 +388,12 @@ function SetTarget(props: { set: ISet; setType: "program" | "warmup" | "adhoc" }
               <Text className="text-xs">{set.weight.unit}</Text>
             </Text>
           )}
-          {set.rpe ? (
-            <Text className="font-semibold text-syntax-rpe">
-              {" "}
-              @{n(Math.max(0, set.rpe))}
-              {set.logRpe ? "+" : ""}
-            </Text>
-          ) : null}
+          <Text className="font-semibold text-syntax-rpe">
+            {set.originalWeight == null && set.askWeight ? " ?" : ""}
+            {set.askWeight ? "+" : ""}
+            {set.rpe ? ` @${n(Math.max(0, set.rpe))}` : null}
+            {set.rpe && set.logRpe ? "+" : ""}
+          </Text>
           {set.timer != null ? (
             <Text className="text-syntax-timer">
               {" "}
