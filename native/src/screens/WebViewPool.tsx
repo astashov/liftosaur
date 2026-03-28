@@ -8,7 +8,7 @@ import { NativeStorageRN } from "../store/NativeStorageRN";
 const WEBVIEW_URL = __DEV__
   ? `https://${localdomain}.liftosaur.com:8080/app/?webviewmode=1`
   : "https://www.liftosaur.com/app/?webviewmode=1";
-const INITIAL_POOL_SIZE = 8;
+const INITIAL_POOL_SIZE = 0;
 
 type IOnMessage = (slotId: number, msg: IWebViewToRN) => void;
 type IOnStorageUpdated = () => void;
@@ -24,16 +24,20 @@ function isStorageMessage(msg: any): boolean {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function handleStorageMessage(slotId: number, msg: any): Promise<void> {
+  const t0 = Date.now();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let response: any;
   switch (msg.type) {
     case "storageGet": {
       const value = await storageRN.get(msg.key);
+      console.log(`[PERF] storageGet(${msg.key}): ${Date.now() - t0}ms`);
       response = { type: "storageGetResult", key: msg.key, requestId: msg.requestId, value: value ?? null };
       break;
     }
     case "storageSet": {
+      const valueSize = typeof msg.value === "string" ? msg.value.length : 0;
       const success = await storageRN.set(msg.key, msg.value);
+      console.log(`[PERF] storageSet(${msg.key}): ${Date.now() - t0}ms, size=${(valueSize / 1024).toFixed(0)}kb`);
       response = { type: "storageSetResult", key: msg.key, requestId: msg.requestId, success };
       if (success && typeof msg.key === "string" && msg.key.startsWith("liftosaur_")) {
         if (storageUpdateTimer != null) {
@@ -83,6 +87,7 @@ class WebViewPool {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const emitter = new NativeEventEmitter(NativeWebViewPool as any);
     emitter.addListener("onWebViewMessage", (event: { slotId: number; data: string }) => {
+      const t0 = Date.now();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let msg: any;
       try {
@@ -96,9 +101,13 @@ class WebViewPool {
         return;
       }
       if (isStorageMessage(msg)) {
-        handleStorageMessage(event.slotId, msg);
+        const t0Storage = Date.now();
+        handleStorageMessage(event.slotId, msg).then(() => {
+          console.log(`[PERF] handleStorageMessage(${msg.type}, ${msg.key ?? ""}): ${Date.now() - t0Storage}ms`);
+        });
         return;
       }
+      console.log(`[PERF] onWebViewMessage type=${msg.type}: parse=${Date.now() - t0}ms`);
       if (this.onMessageCallback != null) {
         this.onMessageCallback(event.slotId, msg as IWebViewToRN);
       }
@@ -153,17 +162,27 @@ class WebViewPool {
   }
 
   public injectScreen(slotId: number, screen: string, stateJson: string): Promise<void> {
+    const t0 = Date.now();
     return new Promise<void>((resolve) => {
       const msg: IRNToWebView = { type: "init", screen, state: stateJson };
       const js = `window.__receiveFromRN && window.__receiveFromRN(${JSON.stringify(JSON.stringify(msg))});true;`;
+      console.log(
+        `[PERF] injectScreen(${screen}): stateSize=${(stateJson.length / 1024).toFixed(0)}kb, jsSize=${(js.length / 1024).toFixed(0)}kb`
+      );
       NativeWebViewPool.injectJavaScript(slotId, js);
-      setTimeout(resolve, 100);
+      setTimeout(() => {
+        console.log(`[PERF] injectScreen(${screen}) resolved after: ${Date.now() - t0}ms`);
+        resolve();
+      }, 100);
     });
   }
 
   public async prepareScreen(screen: string, stateJson: string): Promise<number> {
+    const t0 = Date.now();
     const slotId = await this.acquire();
+    const acquireMs = Date.now() - t0;
     await this.injectScreen(slotId, screen, stateJson);
+    console.log(`[PERF] prepareScreen(${screen}): acquire=${acquireMs}ms, total=${Date.now() - t0}ms`);
     return slotId;
   }
 }

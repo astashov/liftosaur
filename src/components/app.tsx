@@ -138,10 +138,16 @@ export function AppView(props: IProps): JSX.Element | null {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).__receiveFromRN = (msgJson: string) => {
       try {
+        const t0 = Date.now();
         const msg = JSON.parse(msgJson);
+        const parseMs = Date.now() - t0;
         if (msg.type === "init" && msg.screen) {
+          console.log(
+            `[PERF] __receiveFromRN init(${msg.screen}): parse=${parseMs}ms, msgSize=${(msgJson.length / 1024).toFixed(0)}kb`
+          );
           dispatch(Thunk_pushScreen(msg.screen, msg.params, true, true));
           requestAnimationFrame(() => {
+            console.log(`[PERF] __receiveFromRN init(${msg.screen}) rendered: ${Date.now() - t0}ms`);
             Thunk_postToRN({ type: "rendered" });
           });
         } else if (msg.type === "command") {

@@ -1,3 +1,4 @@
+import React from "react";
 import type { JSX } from "react";
 import { View, ScrollView, Pressable } from "react-native";
 import type { IHistoryRecord, ISettings } from "@shared/types";
@@ -16,7 +17,7 @@ interface IProps {
   onMoveExercise?: (fromIndex: number, toIndex: number) => void;
 }
 
-export function WorkoutThumbnailStrip(props: IProps): JSX.Element {
+export const WorkoutThumbnailStrip = React.memo(function WorkoutThumbnailStrip(props: IProps): JSX.Element {
   const colorToSupersetGroup = Progress_getColorToSupersetGroup(props.progress);
   const currentIndex = props.progress.ui?.currentEntryIndex ?? 0;
   const entryCount = props.progress.entries.length;
@@ -78,4 +79,4 @@ export function WorkoutThumbnailStrip(props: IProps): JSX.Element {
       </ScrollView>
     </View>
   );
-}
+});

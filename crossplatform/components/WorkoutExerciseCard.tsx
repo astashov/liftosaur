@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import type { JSX } from "react";
 import { View, Text, Pressable, TextInput, Modal as RNModal, Alert, Platform } from "react-native";
 import { useNavigation } from "@react-navigation/native";
@@ -32,10 +32,10 @@ import { IconTrash } from "./icons/IconTrash";
 import { IconEdit2 } from "./icons/IconEdit2";
 import { IconReorder } from "./icons/IconReorder";
 import {
-  Progress_getNextSupersetEntry,
+
   Progress_doesUse1RM,
   Progress_editExerciseNotes,
-  Progress_isCurrent,
+
 } from "@shared/models/progress";
 import { GroupHeader } from "./GroupHeader";
 import { Settings_getNextTargetType } from "@shared/models/settings";
@@ -61,7 +61,10 @@ interface IProps {
   programDay?: IEvaluatedProgramDay;
   day: number;
   history: IHistoryRecord[];
-  progress: IHistoryRecord;
+  isCurrentProgress: boolean;
+  startTime: number;
+  supersetEntry?: IHistoryEntry;
+  userPromptedStateVars?: Partial<Record<string, IProgramState>>;
   stats: IStats;
   settings: ISettings;
   dispatch: IDispatch;
@@ -69,7 +72,8 @@ interface IProps {
   otherStates?: IByExercise<IProgramState>;
 }
 
-export function WorkoutExerciseCard(props: IProps): JSX.Element {
+export const WorkoutExerciseCard = React.memo(function WorkoutExerciseCard(props: IProps): JSX.Element {
+  const t0 = Date.now();
   const navigation = useNavigation();
   const programExercise =
     props.program && props.entry.programExerciseId
@@ -83,21 +87,19 @@ export function WorkoutExerciseCard(props: IProps): JSX.Element {
   const description = programExercise ? PlannerProgramExercise_currentDescription(programExercise) : undefined;
   const onerm = Exercise_onerm(exercise, props.settings);
   const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter((s) => !s.isCompleted)[0];
-  const lbSets = lb<IHistoryRecord>().p("entries").i(props.entryIndex).p("sets");
-  const lbWarmupSets = lb<IHistoryRecord>().p("entries").i(props.entryIndex).p("warmupSets");
   const programExerciseId = props.entry.programExerciseId;
 
   const historyCollector = Collector.build(props.history)
-    .addFn(History_collectLastEntry(props.progress.startTime, exerciseType))
-    .addFn(History_collectLastNote(props.progress.startTime, exerciseType));
+    .addFn(History_collectLastEntry(props.startTime, exerciseType))
+    .addFn(History_collectLastNote(props.startTime, exerciseType));
 
   const [{ lastHistoryEntry }, { lastNote, timestamp }] = useMemo(
     () => historyCollector.run(),
-    [props.history, exerciseType, props.progress.startTime]
+    [props.history, exerciseType, props.startTime]
   );
 
   const [isKebabMenuOpen, setIsKebabMenuOpen] = useState(false);
-  const supersetEntry = Progress_getNextSupersetEntry(props.progress.entries, props.entry);
+  const supersetEntry = props.supersetEntry;
   const supersetExercise = supersetEntry ? Exercise_get(supersetEntry.exercise, props.settings.exercises) : undefined;
 
   return (
@@ -129,12 +131,16 @@ export function WorkoutExerciseCard(props: IProps): JSX.Element {
                 name="exercise-equipment-picker"
                 data-cy="exercise-equipment-picker"
                 onPress={() => {
+                  console.log(`[PERF] Equipment modal tap`);
+                  const t0 = Date.now();
                   updateProgress(
                     props.dispatch,
                     [lb<IHistoryRecord>().pi("ui").p("equipmentModal").record({ exerciseType: props.entry.exercise })],
                     "change-equipment"
                   );
+                  console.log(`[PERF] Equipment modal dispatch: ${Date.now() - t0}ms`);
                   navigation.navigate("WorkoutEquipmentSheet" as never);
+                  console.log(`[PERF] Equipment modal navigate: ${Date.now() - t0}ms`);
                 }}
               >
                 {currentEquipmentName || "None"}
@@ -229,16 +235,16 @@ export function WorkoutExerciseCard(props: IProps): JSX.Element {
           />
         </View>
       )}
+      {(() => { console.log(`[PERF] WorkoutExerciseCard render idx=${props.entryIndex}: ${Date.now() - t0}ms`); return null; })()}
       <View className="mt-1">
         <WorkoutExerciseAllSets
           stats={props.stats}
           isPlayground={false}
-          progress={props.progress}
-          isCurrentProgress={Progress_isCurrent(props.progress)}
+          isCurrentProgress={props.isCurrentProgress}
           day={props.day}
           program={props.program}
           userPromptedStateVars={
-            programExercise ? props.progress.userPromptedStateVars?.[programExercise.key] : undefined
+            programExercise ? props.userPromptedStateVars?.[programExercise.key] : undefined
           }
           programExercise={programExercise}
           entryIndex={props.entryIndex}
@@ -259,8 +265,6 @@ export function WorkoutExerciseCard(props: IProps): JSX.Element {
           }}
           otherStates={props.otherStates}
           lastSets={lastHistoryEntry?.sets}
-          lbSets={lbSets}
-          lbWarmupSets={lbWarmupSets}
           exerciseType={exerciseType}
           entry={props.entry}
           settings={props.settings}
@@ -281,7 +285,7 @@ export function WorkoutExerciseCard(props: IProps): JSX.Element {
       )}
     </View>
   );
-}
+});
 
 interface IKebabMenuProps {
   onClose: () => void;

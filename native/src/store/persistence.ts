@@ -28,8 +28,13 @@ export function Persistence_saveLocalStorage(key: string, localStorage: ILocalSt
   }
   saveTimer = setTimeout(async () => {
     saveTimer = undefined;
+    const t0 = Date.now();
     const json = JSON.stringify(localStorage);
+    const stringifyMs = Date.now() - t0;
     const userId = localStorage.storage?.email || localStorage.storage?.tempUserId || key.replace("liftosaur_", "");
     await Promise.all([storage.set("current_account", userId), storage.set(`liftosaur_${userId}`, json)]);
+    console.log(
+      `[PERF] Persistence_saveLocalStorage: stringify=${stringifyMs}ms, total=${Date.now() - t0}ms, size=${(json.length / 1024).toFixed(0)}kb`
+    );
   }, 100);
 }

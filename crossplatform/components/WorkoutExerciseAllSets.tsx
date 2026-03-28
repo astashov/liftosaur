@@ -1,3 +1,4 @@
+import React from "react";
 import type { JSX } from "react";
 import { View, Text, Pressable } from "react-native";
 import type { IDispatch } from "@shared/ducks/types";
@@ -33,9 +34,6 @@ interface IProps {
   isCurrentProgress: boolean;
   isPlayground: boolean;
   exerciseType: IExerciseType;
-  lbWarmupSets: LensBuilder<IHistoryRecord, ISet[], {}>;
-  lbSets: LensBuilder<IHistoryRecord, ISet[], {}>;
-  progress: IHistoryRecord;
   entry: IHistoryEntry;
   entryIndex: number;
   lastSets?: ISet[];
@@ -63,7 +61,11 @@ function getTargetColumnLabel(targetType: ITargetType): string {
   }
 }
 
-export function WorkoutExerciseAllSets(props: IProps): JSX.Element {
+export const WorkoutExerciseAllSets = React.memo(function WorkoutExerciseAllSets(props: IProps): JSX.Element {
+  const t0 = Date.now();
+  const lbEntry = lb<IHistoryRecord>().p("entries").i(props.entryIndex);
+  const lbSets = lbEntry.p("sets");
+  const lbWarmupSets = lbEntry.p("warmupSets");
   const warmupSets = props.entry.warmupSets;
   const sets = props.entry.sets;
   const buttonBgColor = WorkoutExerciseUtils_getBgColor100(sets, false);
@@ -104,14 +106,12 @@ export function WorkoutExerciseAllSets(props: IProps): JSX.Element {
           isPlayground={props.isPlayground}
           type="warmup"
           day={props.day}
-          entry={props.entry}
-          progress={props.progress}
+
+
           exerciseType={props.exerciseType}
           programExercise={props.programExercise}
           otherStates={props.otherStates}
           subscription={props.subscription}
-          lbSets={props.lbWarmupSets}
-          lbSet={props.lbWarmupSets.i(i)}
           set={set}
           entryIndex={props.entryIndex}
           isNext={nextSetIndex >= 0 && nextSetIndex === i}
@@ -126,8 +126,8 @@ export function WorkoutExerciseAllSets(props: IProps): JSX.Element {
           isPlayground={props.isPlayground}
           isCurrentProgress={props.isCurrentProgress}
           type="workout"
-          progress={props.progress}
-          entry={props.entry}
+
+
           isNext={nextSetIndex >= 0 && nextSetIndex - warmupSets.length === i}
           programExercise={props.programExercise}
           day={props.day}
@@ -135,8 +135,6 @@ export function WorkoutExerciseAllSets(props: IProps): JSX.Element {
           exerciseType={props.exerciseType}
           lastSet={props.lastSets?.[i]}
           subscription={props.subscription}
-          lbSets={props.lbSets}
-          lbSet={props.lbSets.i(i)}
           set={set}
           entryIndex={props.entryIndex}
           setIndex={i}
@@ -144,6 +142,7 @@ export function WorkoutExerciseAllSets(props: IProps): JSX.Element {
           dispatch={props.dispatch}
         />
       ))}
+      {(() => { console.log(`[PERF] WorkoutExerciseAllSets render idx=${props.entryIndex}: ${Date.now() - t0}ms`); return null; })()}
       {props.programExercise && props.program && (
         <View className="mx-4 mt-2 mb-1">
           <ProgressStateChanges
@@ -173,7 +172,7 @@ export function WorkoutExerciseAllSets(props: IProps): JSX.Element {
             const isUnilateral = Exercise_getIsUnilateral(props.exerciseType, props.settings);
             updateProgress(
               props.dispatch,
-              [props.lbWarmupSets.recordModify((s) => Reps_addSet(s, isUnilateral, undefined, true))],
+              [lbWarmupSets.recordModify((s) => Reps_addSet(s, isUnilateral, undefined, true))],
               "add-warmupset"
             );
           }}
@@ -189,7 +188,7 @@ export function WorkoutExerciseAllSets(props: IProps): JSX.Element {
             updateProgress(
               props.dispatch,
               [
-                props.lbSets.recordModify((s) =>
+                lbSets.recordModify((s) =>
                   Reps_addSet(s, isUnilateral, props.lastSets ? props.lastSets[props.lastSets.length - 1] : undefined)
                 ),
               ],
@@ -203,4 +202,4 @@ export function WorkoutExerciseAllSets(props: IProps): JSX.Element {
       </View>
     </View>
   );
-}
+});

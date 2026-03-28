@@ -460,6 +460,7 @@ export function Thunk_syncHealthKit(cb?: () => void): IThunk {
 
 export function Thunk_sync2(args?: { force?: boolean; cb?: () => void; log?: boolean }): IThunk {
   return async (dispatch, getState, env) => {
+    const t0 = Date.now();
     if (args?.log) {
       dispatch(
         Thunk_postevent("sync2-enter", {
@@ -476,17 +477,23 @@ export function Thunk_sync2(args?: { force?: boolean; cb?: () => void; log?: boo
     try {
       const state = getState();
       if (state.errors.corruptedstorage == null && !state.nosync && (state.user != null || args?.force)) {
+        console.log(`[PERF] Thunk_sync2: starting enqueue, queueLen=${env.queue.length()}`);
         await env.queue.enqueue(
           async (args2, signal) => {
             await load(dispatch, "Sync", async () => {
               if (args2?.log) {
                 dispatch(Thunk_postevent("sync2-start"));
               }
+              const t0Sync = Date.now();
               await _sync2(dispatch, getState, env, args2, signal);
+              console.log(`[PERF] Thunk_sync2 _sync2 done: ${Date.now() - t0Sync}ms`);
             });
           },
           { force: !!args?.force, log: !!args?.log }
         );
+        console.log(`[PERF] Thunk_sync2 total: ${Date.now() - t0}ms`);
+      } else {
+        console.log(`[PERF] Thunk_sync2: skipped (nosync=${state.nosync}, user=${!!state.user})`);
       }
     } finally {
       if (args?.cb) {
@@ -857,6 +864,7 @@ export function Thunk_pushScreen<T extends IScreen>(
     if (env.navigate) {
       env.navigate(screen, params, shouldResetStack);
     } else if (Thunk_isWebViewMode() && !skipWebViewMode) {
+      console.log(`[PERF] Thunk_pushScreen posting to RN: screen=${screen}, shouldResetStack=${shouldResetStack}`);
       Thunk_postToRN({ type: "navigate", screen, params, shouldResetStack });
     } else {
       dispatch({ type: "PushScreen", screen, params, shouldResetStack });

@@ -81,21 +81,26 @@ export class NativeStorage {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public async set<T = any>(key: string, value: T): Promise<boolean> {
+    const t0 = Date.now();
     const requestId = this.generateRequestId();
     const promise = this.createPromise<boolean>(requestId);
 
+    const strValue = typeof value === "string" ? value : JSON.stringify(value);
     this.send({
       type: "storageSet",
       key: key,
-      value: typeof value === "string" ? value : JSON.stringify(value),
+      value: strValue,
       requestId: requestId,
     });
 
-    return promise;
+    const result = await promise;
+    console.log(`[PERF] NativeStorage.set(${key}): ${Date.now() - t0}ms, size=${(strValue.length / 1024).toFixed(0)}kb`);
+    return result;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public async get<T = any>(key: string): Promise<T | undefined> {
+    const t0 = Date.now();
     const requestId = this.generateRequestId();
     const promise = this.createPromise<T | undefined>(requestId);
 
@@ -105,7 +110,9 @@ export class NativeStorage {
       requestId: requestId,
     });
 
-    return promise;
+    const result = await promise;
+    console.log(`[PERF] NativeStorage.get(${key}): ${Date.now() - t0}ms`);
+    return result;
   }
 
   public async delete(key: string): Promise<boolean> {

@@ -1,3 +1,4 @@
+import React from "react";
 import type { JSX } from "react";
 import { View, Text, Pressable } from "react-native";
 import type { IDispatch } from "@shared/ducks/types";
@@ -14,7 +15,7 @@ interface IProps {
   max1RM?: { weight: IWeight; set?: ISet; historyRecord?: IHistoryRecord };
 }
 
-export function ExerciseAllTimePRs(props: IProps): JSX.Element {
+export const ExerciseAllTimePRs = React.memo(function ExerciseAllTimePRs(props: IProps): JSX.Element {
   const { maxWeight, max1RM } = props;
 
   return (
@@ -51,7 +52,7 @@ export function ExerciseAllTimePRs(props: IProps): JSX.Element {
       )}
     </View>
   );
-}
+});
 
 function PRRow(props: {
   label: string;

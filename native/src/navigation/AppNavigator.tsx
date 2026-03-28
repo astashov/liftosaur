@@ -68,10 +68,6 @@ const tabConfig: Array<{
   { name: "me", component: MeStack, label: "Me" },
 ];
 
-const activeTab: ITab = "home";
-const initialScreensToPreload = Object.entries(tabInitialScreen)
-  .filter(([tab]) => tab !== activeTab)
-  .map(([, screen]) => screen);
 
 export function AppNavigator(): React.ReactElement {
   // navigationRef imported from ./navigationRef module
@@ -89,7 +85,6 @@ export function AppNavigator(): React.ReactElement {
 
   useEffect(() => {
     pool.initialize();
-    pool.prepareInitialScreens(initialScreensToPreload, JSON.stringify(appState));
     pool.setOnStorageUpdated(() => {
       store.load();
     });
@@ -100,14 +95,21 @@ export function AppNavigator(): React.ReactElement {
 
   const handleWebViewMessage = useCallback(
     (_slotId: number, msg: IWebViewToRN) => {
+      const t0 = Date.now();
       if (msg.type === "navigate") {
         const screen = msg.screen as IScreenName;
         setShowTabBar(ScreenMap_hasTabBar(screen));
+        const t0Stringify = Date.now();
+        const stateJson = JSON.stringify(appState);
+        const stringifyMs = Date.now() - t0Stringify;
+        console.log(
+          `[PERF] handleWebViewMessage navigate(${screen}): stringify=${stringifyMs}ms, stateSize=${(stateJson.length / 1024).toFixed(0)}kb`
+        );
         if (msg.shouldResetStack) {
           const tab = screenToTab[screen];
           const isInitialScreen = tabInitialScreen[tab] === screen;
-          const stateJson = JSON.stringify(appState);
           pool.prepareScreen(isInitialScreen ? screen : tabInitialScreen[tab], stateJson).then((slotId) => {
+            console.log(`[PERF] handleWebViewMessage navigate(${screen}) resetStack prepareScreen done: ${Date.now() - t0}ms`);
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (navigationRef as any).reset({
               index: 0,
@@ -123,6 +125,7 @@ export function AppNavigator(): React.ReactElement {
             });
             if (!isInitialScreen) {
               pool.prepareScreen(screen, stateJson).then((targetSlotId) => {
+                console.log(`[PERF] handleWebViewMessage navigate(${screen}) push done: ${Date.now() - t0}ms`);
                 navigationRef.dispatch(
                   StackActions.push(screen, { ...(msg.params as object), preparedSlotId: targetSlotId })
                 );
@@ -130,13 +133,13 @@ export function AppNavigator(): React.ReactElement {
             }
           });
         } else {
-          const stateJson = JSON.stringify(appState);
-          console.log("Pushing screen", screen, "with params", msg.params, "to slot", _slotId);
           pool.prepareScreen(screen, stateJson).then((slotId) => {
+            console.log(`[PERF] handleWebViewMessage navigate(${screen}) push done: ${Date.now() - t0}ms`);
             navigationRef.dispatch(StackActions.push(screen, { ...(msg.params as object), preparedSlotId: slotId }));
           });
         }
       } else if (msg.type === "goBack") {
+        console.log(`[PERF] handleWebViewMessage goBack: ${Date.now() - t0}ms`);
         navigationRef.goBack();
       }
     },
@@ -168,7 +171,12 @@ export function AppNavigator(): React.ReactElement {
                   screenOptions={{ headerShown: false }}
                 >
                   {tabConfig.map(({ name, component, label }) => (
-                    <Tab.Screen key={name} name={name} component={component} options={{ title: label }} />
+                    <Tab.Screen
+                      key={name}
+                      name={name}
+                      component={component}
+                      options={{ title: label, freezeOnBlur: name !== "workout" }}
+                    />
                   ))}
                 </Tab.Navigator>
               )}

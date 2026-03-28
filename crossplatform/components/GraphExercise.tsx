@@ -24,7 +24,7 @@ interface IProps {
   onGoToWorkout?: (historyRecord: IHistoryRecord) => void;
 }
 
-export function GraphExercise(props: IProps): React.ReactElement {
+export const GraphExercise = React.memo(function GraphExercise(props: IProps): React.ReactElement {
   const [selectedType, setSelectedType] = useState<IExerciseSelectedType>(props.initialType || "weight");
   const exercise = Exercise_get(props.exercise, props.settings.exercises);
   const eqName = equipmentName(props.exercise.equipment);
@@ -131,7 +131,7 @@ export function GraphExercise(props: IProps): React.ReactElement {
       )}
     </View>
   );
-}
+});
 
 function TooltipContent(props: {
   data: {

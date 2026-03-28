@@ -292,6 +292,8 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                 data-cy="complete-set"
                 style={{ marginRight: "-0.5rem" }}
                 onClick={() => {
+                  console.log(`[PERF] CompleteSetAction tap: entry=${props.entryIndex}, set=${props.setIndex}`);
+                  const t0 = Date.now();
                   props.dispatch({
                     type: "CompleteSetAction",
                     setIndex: props.setIndex,
@@ -302,6 +304,10 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                     mode: props.type,
                     forceUpdateEntryIndex: props.type === "workout" && !props.set.isCompleted,
                     isExternal: false,
+                  });
+                  console.log(`[PERF] CompleteSetAction dispatch returned: ${Date.now() - t0}ms`);
+                  requestAnimationFrame(() => {
+                    console.log(`[PERF] CompleteSetAction rAF (visual update): ${Date.now() - t0}ms`);
                   });
                 }}
               >

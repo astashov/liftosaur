@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import React, { useMemo } from "react";
 import type { JSX } from "react";
 import { View, Text, Pressable, Platform } from "react-native";
 import type { IDispatch } from "@shared/ducks/types";
@@ -22,7 +22,7 @@ interface IProps {
   history: IHistoryRecord[];
 }
 
-export function ExerciseHistory(props: IProps): JSX.Element {
+export const ExerciseHistory = React.memo(function ExerciseHistory(props: IProps): JSX.Element {
   const fullExercise = Exercise_get(props.exerciseType, props.settings.exercises);
   const allPrs = useMemo(() => History_getPersonalRecords(props.history), [props.history]);
   const history = useMemo(() => {
@@ -139,4 +139,4 @@ export function ExerciseHistory(props: IProps): JSX.Element {
       })}
     </View>
   );
-}
+});

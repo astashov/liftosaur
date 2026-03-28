@@ -20,9 +20,15 @@ export class StateStore {
   }
 
   public setState(state: IState): void {
+    const t0 = Date.now();
     this.state = state;
     this.persist();
+    const persistMs = Date.now() - t0;
     this.notify();
+    const totalMs = Date.now() - t0;
+    if (totalMs > 2) {
+      console.log(`[PERF] StateStore.setState: persist=${persistMs}ms, notify=${totalMs - persistMs}ms, total=${totalMs}ms`);
+    }
   }
 
   public subscribe(fn: IListener): () => void {

@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import React, { useRef } from "react";
 import type { JSX } from "react";
 import { View, Text, Pressable } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
@@ -14,6 +14,7 @@ import type {
 } from "@shared/types";
 import type { IPlannerProgramExercise } from "@shared/pages/planner/models/types";
 import type { IByExercise } from "@shared/pages/planner/plannerEvaluator";
+import { lb } from "lens-shmens";
 import type { LensBuilder } from "lens-shmens";
 import { updateProgress } from "@shared/models/state";
 import { n } from "@shared/utils/math";
@@ -42,16 +43,12 @@ interface IProps {
   exerciseType: IExerciseType;
   day: number;
   type: "warmup" | "workout";
-  lbSet: LensBuilder<IHistoryRecord, ISet, {}>;
-  lbSets: LensBuilder<IHistoryRecord, ISet[], {}>;
   isCurrentProgress: boolean;
   lastSet?: ISet;
   set: ISet;
   isNext?: boolean;
   subscription?: ISubscription;
   isPlayground: boolean;
-  progress: IHistoryRecord;
-  entry: IHistoryEntry;
   entryIndex: number;
   programExercise?: IPlannerProgramExercise;
   otherStates?: IByExercise<IProgramState>;
@@ -60,7 +57,9 @@ interface IProps {
   dispatch: IDispatch;
 }
 
-export function WorkoutExerciseSet(props: IProps): JSX.Element {
+export const WorkoutExerciseSet = React.memo(function WorkoutExerciseSet(props: IProps): JSX.Element {
+  const lbSets = lb<IHistoryRecord>().p("entries").i(props.entryIndex).p(props.type === "warmup" ? "warmupSets" : "sets");
+  const lbSet = lbSets.i(props.setIndex);
   const set = props.set;
   const placeholderReps = `${set.minReps != null ? `${n(set.minReps)}-` : ""}${set.reps != null ? n(set.reps) : ""}${set.reps != null && set.isAmrap ? "+" : ""}`;
   const placeholderWeight = set.weight?.value != null ? `${n(set.weight.value)}${set.askWeight ? "+" : ""}` : undefined;
@@ -108,7 +107,7 @@ export function WorkoutExerciseSet(props: IProps): JSX.Element {
             updateProgress(
               props.dispatch,
               [
-                props.lbSets.recordModify((s) => {
+                lbSets.recordModify((s) => {
                   const newSets = CollectionUtils_removeAt(s, props.setIndex);
                   for (let i = 0; i < newSets.length; i++) {
                     newSets[i].index = i;
@@ -183,7 +182,7 @@ export function WorkoutExerciseSet(props: IProps): JSX.Element {
                   if (value != null && !isNaN(value) && value >= 0) {
                     updateProgress(
                       props.dispatch,
-                      [props.lbSet.recordModify((s) => ({ ...s, completedRepsLeft: Math.round(value) }))],
+                      [lbSet.recordModify((s) => ({ ...s, completedRepsLeft: Math.round(value) }))],
                       "input-left-reps"
                     );
                   }
@@ -191,7 +190,7 @@ export function WorkoutExerciseSet(props: IProps): JSX.Element {
                 onBlur={(value) => {
                   updateProgress(
                     props.dispatch,
-                    [props.lbSet.recordModify((s) => ({ ...s, completedRepsLeft: value }))],
+                    [lbSet.recordModify((s) => ({ ...s, completedRepsLeft: value }))],
                     "blur-left-reps"
                   );
                 }}
@@ -219,7 +218,7 @@ export function WorkoutExerciseSet(props: IProps): JSX.Element {
                   updateProgress(
                     props.dispatch,
                     [
-                      props.lbSet.recordModify((s) =>
+                      lbSet.recordModify((s) =>
                         Reps_enforceCompletedSet({ ...s, completedReps: Math.round(value) })
                       ),
                     ],
@@ -230,7 +229,7 @@ export function WorkoutExerciseSet(props: IProps): JSX.Element {
               onBlur={(value) => {
                 updateProgress(
                   props.dispatch,
-                  [props.lbSet.recordModify((s) => Reps_enforceCompletedSet({ ...s, completedReps: value }))],
+                  [lbSet.recordModify((s) => Reps_enforceCompletedSet({ ...s, completedReps: value }))],
                   "blur-reps"
                 );
               }}
@@ -255,7 +254,7 @@ export function WorkoutExerciseSet(props: IProps): JSX.Element {
               onBlur={(value) => {
                 updateProgress(
                   props.dispatch,
-                  [props.lbSet.recordModify((s) => Reps_enforceCompletedSet({ ...s, completedWeight: value }))],
+                  [lbSet.recordModify((s) => Reps_enforceCompletedSet({ ...s, completedWeight: value }))],
                   "blur-weight"
                 );
               }}
@@ -263,7 +262,7 @@ export function WorkoutExerciseSet(props: IProps): JSX.Element {
                 if (value != null) {
                   updateProgress(
                     props.dispatch,
-                    [props.lbSet.recordModify((s) => Reps_enforceCompletedSet({ ...s, completedWeight: value }))],
+                    [lbSet.recordModify((s) => Reps_enforceCompletedSet({ ...s, completedWeight: value }))],
                     "input-weight"
                   );
                 }
@@ -286,6 +285,8 @@ export function WorkoutExerciseSet(props: IProps): JSX.Element {
             className="items-center justify-center px-3 py-2"
             data-cy="complete-set"
             onPress={() => {
+              console.log(`[PERF] CompleteSetAction tap (RN): entry=${props.entryIndex}, set=${props.setIndex}`);
+              const t0 = Date.now();
               props.dispatch({
                 type: "CompleteSetAction",
                 setIndex: props.setIndex,
@@ -297,6 +298,7 @@ export function WorkoutExerciseSet(props: IProps): JSX.Element {
                 forceUpdateEntryIndex: props.type === "workout" && !props.set.isCompleted,
                 isExternal: false,
               });
+              console.log(`[PERF] CompleteSetAction dispatch returned (RN): ${Date.now() - t0}ms`);
             }}
           >
             <IconCheckCircle
@@ -309,7 +311,7 @@ export function WorkoutExerciseSet(props: IProps): JSX.Element {
       </View>
     </Swipeable>
   );
-}
+});
 
 interface ISetTargetFieldProps {
   setType: "program" | "warmup" | "adhoc";

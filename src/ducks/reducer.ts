@@ -379,7 +379,14 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
   return [
     (dispatch, action, oldState, newState) => {
       const isFinishDayAction = "type" in action && action.type === "FinishProgramDayAction";
-      if (!isExternalStorageMerge(action) && Storage_isChanged(oldState.storage, newState.storage)) {
+      const t0IsChanged = Date.now();
+      const changed = !isExternalStorageMerge(action) && Storage_isChanged(oldState.storage, newState.storage);
+      const isChangedMs = Date.now() - t0IsChanged;
+      if (isChangedMs > 2) {
+        console.log(`[PERF] defaultOnActions Storage_isChanged: ${isChangedMs}ms, changed=${changed}`);
+      }
+      if (changed) {
+        console.log(`[PERF] defaultOnActions: dispatching Thunk_sync2`);
         dispatch(Thunk_sync2({ log: isFinishDayAction }));
       }
     },
@@ -583,14 +590,21 @@ export const reducerWrapper =
         }
       }
     }
+    const t0ReducerRun = Date.now();
     let newState = reducer(state, action);
+    const reducerRunMs = Date.now() - t0ReducerRun;
     const isMergingStorage = isExternalStorageMerge(action);
     const t0Reducer = Date.now();
     const isStorageChanged = !isMergingStorage && Storage_isChanged(state.storage, newState.storage);
     const reducerIsChangedMs = Date.now() - t0Reducer;
+    const actionDesc =
+      "type" in action && action.type === "UpdateState" ? action.desc : "type" in action ? action.type : "thunk";
+    if (reducerRunMs > 2 || reducerIsChangedMs > 2) {
+      console.log(
+        `[PERF] reducerWrapper action=${actionDesc}: reducer=${reducerRunMs}ms, isChanged=${reducerIsChangedMs}ms, changed=${isStorageChanged}`
+      );
+    }
     if (reducerIsChangedMs > 5) {
-      const actionDesc =
-        "type" in action && action.type === "UpdateState" ? action.desc : "type" in action ? action.type : "thunk";
       lgDebug("dbg-reducer-is-changed", "lkqtuayqpa", {
         ms: reducerIsChangedMs,
         action: actionDesc || "unknown",
@@ -613,8 +627,13 @@ export const reducerWrapper =
           action: actionDesc || "unknown",
         });
       }
+      const t0Versions = Date.now();
       const versions = Storage_updateVersions(state.storage, newState.storage, state.deviceId);
       newState = { ...newState, storage: { ...newState.storage, _versions: versions } };
+      const versionsMs = Date.now() - t0Versions;
+      if (versionsMs > 2) {
+        console.log(`[PERF] Storage_updateVersions: ${versionsMs}ms`);
+      }
     }
 
     // io-ts decode takes ~450ms on Hermes, so skip synchronous validation
@@ -643,8 +662,15 @@ export const reducerWrapper =
               storage: newState2.storage,
               lastSyncedStorage: newState2.lastSyncedStorage,
             };
+            const t0Persist = Date.now();
+            const t0Stringify = Date.now();
+            const json = JSON.stringify(localStorage);
+            const stringifyMs = Date.now() - t0Stringify;
             await IndexedDBUtils_set("current_account", userId);
-            await IndexedDBUtils_set(`liftosaur_${userId}`, JSON.stringify(localStorage));
+            await IndexedDBUtils_set(`liftosaur_${userId}`, json);
+            console.log(
+              `[PERF] persist: stringify=${stringifyMs}ms, total=${Date.now() - t0Persist}ms, size=${(json.length / 1024).toFixed(0)}kb`
+            );
           }, 100);
         }
       }
