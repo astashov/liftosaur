@@ -1,5 +1,6 @@
-import { UserDao, ILimitedUserDao } from "../dao/userDao";
+import { UserDao, ILimitedUserDao, userTableNames } from "../dao/userDao";
 import { IDI } from "./di";
+import { Utils_getEnv } from "../utils";
 import { LiftohistorySerializer_serialize } from "../../src/liftohistory/liftohistorySerializer";
 import {
   LiftohistoryDeserializer_deserialize,
@@ -24,6 +25,22 @@ import {
   TExerciseKind,
   availableMuscles,
   exerciseKinds,
+  IStats,
+  IStatsWeight,
+  IStatsLength,
+  IStatsPercentage,
+  IWeight,
+  ILength,
+  IPercentage,
+  IStatsWeightValue,
+  IStatsLengthValue,
+  IStatsPercentageValue,
+  TWeight,
+  TLength,
+  TPercentage,
+  statsWeightDef,
+  statsLengthDef,
+  statsPercentageDef,
 } from "../../src/types";
 import * as t from "io-ts";
 import { UidFactory_generateUid } from "./generator";
@@ -46,6 +63,7 @@ import {
 } from "../../src/pages/planner/models/plannerStatsUtils";
 import { PlannerProgramExercise_sets } from "../../src/pages/planner/models/plannerProgramExercise";
 import { IEither } from "../../src/utils/types";
+import { ObjectUtils_keys } from "../../src/utils/object";
 
 export interface IApiError {
   status: number;
@@ -753,6 +771,282 @@ export async function ApiV1_deleteCustomExercise(
       exercises: updated,
     },
   }));
+
+  return ok({ deleted: true as const });
+}
+
+// --- Stats ---
+
+const validWeightNames = new Set(ObjectUtils_keys(statsWeightDef));
+const validLengthNames = new Set(ObjectUtils_keys(statsLengthDef));
+const validPercentageNames = new Set(ObjectUtils_keys(statsPercentageDef));
+const validTypes = new Set(["weight", "length", "percentage"] as const);
+
+type IStatType = "weight" | "length" | "percentage";
+type IStatValue = IStatsWeightValue | IStatsLengthValue | IStatsPercentageValue;
+
+interface IStatMeasurement {
+  type: string;
+  name: string;
+  value: IWeight | ILength | IPercentage;
+  timestamp: number;
+}
+
+function validateStatType(type: string): type is IStatType {
+  return validTypes.has(type as IStatType);
+}
+
+function validateStatName(type: IStatType, name: string): boolean {
+  switch (type) {
+    case "weight":
+      return validWeightNames.has(name as keyof IStatsWeight);
+    case "length":
+      return validLengthNames.has(name as keyof IStatsLength);
+    case "percentage":
+      return validPercentageNames.has(name as keyof IStatsPercentage);
+  }
+}
+
+function statsToMeasurements(stats: IStats, filters?: { type?: string; name?: string }): IStatMeasurement[] {
+  const measurements: IStatMeasurement[] = [];
+
+  for (const name of ObjectUtils_keys(stats.weight)) {
+    if (filters?.type && filters.type !== "weight") {
+      continue;
+    }
+    if (filters?.name && filters.name !== name) {
+      continue;
+    }
+    for (const entry of stats.weight[name] || []) {
+      measurements.push({ type: "weight", name, value: entry.value, timestamp: entry.timestamp });
+    }
+  }
+
+  for (const name of ObjectUtils_keys(stats.length)) {
+    if (filters?.type && filters.type !== "length") {
+      continue;
+    }
+    if (filters?.name && filters.name !== name) {
+      continue;
+    }
+    for (const entry of stats.length[name] || []) {
+      measurements.push({ type: "length", name, value: entry.value, timestamp: entry.timestamp });
+    }
+  }
+
+  for (const name of ObjectUtils_keys(stats.percentage)) {
+    if (filters?.type && filters.type !== "percentage") {
+      continue;
+    }
+    if (filters?.name && filters.name !== name) {
+      continue;
+    }
+    for (const entry of stats.percentage[name] || []) {
+      measurements.push({ type: "percentage", name, value: entry.value, timestamp: entry.timestamp });
+    }
+  }
+
+  measurements.sort((a, b) => b.timestamp - a.timestamp);
+  return measurements;
+}
+
+export async function ApiV1_getStats(
+  userId: string,
+  params: { type?: string; name?: string },
+  di: IDI
+): Promise<IApiResult<{ measurements: IStatMeasurement[] }>> {
+  const userDao = new UserDao(di);
+  const stats = await userDao.getStatsByUserId(userId);
+  const measurements = statsToMeasurements(stats, params);
+  return ok({ measurements });
+}
+
+export interface ICreateStatInput {
+  type: string;
+  name: string;
+  value: unknown;
+}
+
+interface IParsedStatInput {
+  type: IStatType;
+  name: string;
+  value: IWeight | ILength | IPercentage;
+}
+
+function parseStatTimestamp(timestamp: unknown): IApiResult<number> {
+  if (timestamp == null) {
+    return ok(Date.now());
+  }
+  if (typeof timestamp !== "number" || !Number.isSafeInteger(timestamp) || timestamp <= 0) {
+    return err(400, "invalid_input", "Invalid timestamp");
+  }
+  return ok(timestamp);
+}
+
+function parseStatValue(type: IStatType, value: unknown): IApiResult<IWeight | ILength | IPercentage> {
+  const result =
+    type === "weight" ? TWeight.decode(value) : type === "length" ? TLength.decode(value) : TPercentage.decode(value);
+  if (result._tag === "Left") {
+    return err(400, "invalid_input", `Invalid value for type "${type}"`);
+  }
+  return ok(result.right);
+}
+
+function statsBucket(stats: IStats, type: IStatType): Record<string, IStatValue[] | undefined> {
+  switch (type) {
+    case "weight":
+      return stats.weight as Record<string, IStatValue[] | undefined>;
+    case "length":
+      return stats.length as Record<string, IStatValue[] | undefined>;
+    case "percentage":
+      return stats.percentage as Record<string, IStatValue[] | undefined>;
+  }
+}
+
+function cloneStats(stats: IStats): IStats {
+  return {
+    weight: { ...stats.weight },
+    length: { ...stats.length },
+    percentage: { ...stats.percentage },
+  };
+}
+
+export async function ApiV1_createStats(
+  userId: string,
+  user: ILimitedUserDao,
+  inputs: ICreateStatInput[],
+  timestamp: number | undefined,
+  di: IDI
+): Promise<IApiResult<{ measurements: IStatMeasurement[] }>> {
+  if (!inputs || inputs.length === 0) {
+    return err(400, "invalid_input", "Missing 'measurements' array");
+  }
+
+  const timestampResult = parseStatTimestamp(timestamp);
+  if (!timestampResult.success) {
+    return timestampResult;
+  }
+  const ts = timestampResult.data;
+
+  const parsedInputs: IParsedStatInput[] = [];
+  const dbNames = new Set<string>();
+  for (const input of inputs) {
+    if (input == null || typeof input !== "object") {
+      return err(400, "invalid_input", "Invalid measurement");
+    }
+    if (typeof input.type !== "string" || !validateStatType(input.type)) {
+      return err(400, "invalid_input", `Invalid type "${input.type}". Valid types: weight, length, percentage`);
+    }
+    if (typeof input.name !== "string" || !validateStatName(input.type, input.name)) {
+      const validNames =
+        input.type === "weight"
+          ? [...validWeightNames]
+          : input.type === "length"
+            ? [...validLengthNames]
+            : [...validPercentageNames];
+      return err(
+        400,
+        "invalid_input",
+        `Invalid name "${input.name}" for type "${input.type}". Valid names: ${validNames.join(", ")}`
+      );
+    }
+
+    const valueResult = parseStatValue(input.type, input.value);
+    if (!valueResult.success) {
+      return valueResult;
+    }
+
+    const dbName = `${ts}_${input.name}`;
+    if (dbNames.has(dbName)) {
+      return err(400, "invalid_input", `Duplicate measurement "${input.name}" at timestamp ${ts}`);
+    }
+    dbNames.add(dbName);
+    parsedInputs.push({ type: input.type, name: input.name, value: valueResult.data });
+  }
+
+  const userDao = new UserDao(di);
+  const currentStats = await userDao.getStatsByUserId(userId);
+  const newStats = cloneStats(currentStats);
+  const created: IStatMeasurement[] = [];
+  const statDbItems: {
+    userId: string;
+    name: string;
+    value: IWeight | ILength | IPercentage;
+    timestamp: number;
+    type: IStatType;
+    vtype: string;
+  }[] = [];
+
+  for (const input of parsedInputs) {
+    const stat = { vtype: "stat" as const, value: input.value, timestamp: ts, updatedAt: ts } as IStatValue;
+    const bucket = statsBucket(newStats, input.type);
+    bucket[input.name] = [...(bucket[input.name] || []).filter((entry) => entry.timestamp !== ts), stat];
+    created.push({ type: input.type, name: input.name, value: input.value, timestamp: ts });
+    statDbItems.push({
+      userId,
+      name: `${ts}_${input.name}`,
+      value: input.value,
+      timestamp: ts,
+      type: input.type,
+      vtype: "stat",
+    });
+  }
+
+  const env = Utils_getEnv();
+  user.storage = { ...user.storage, stats: currentStats };
+  await userDao.applyStorageUpdate(user, (old) => ({ ...old, stats: newStats }), [
+    di.dynamo.batchPut({
+      tableName: userTableNames[env].stats,
+      items: statDbItems,
+    }),
+  ]);
+
+  return ok({ measurements: created });
+}
+
+export async function ApiV1_deleteStats(
+  userId: string,
+  user: ILimitedUserDao,
+  timestamp: number,
+  name: string,
+  di: IDI
+): Promise<IApiResult<{ deleted: true }>> {
+  if (!name) {
+    return err(400, "invalid_input", "Missing 'name' query parameter");
+  }
+  const timestampResult = parseStatTimestamp(timestamp);
+  if (!timestampResult.success) {
+    return timestampResult;
+  }
+
+  const userDao = new UserDao(di);
+  const currentStats = await userDao.getStatsByUserId(userId);
+  const newStats = cloneStats(currentStats);
+
+  let found = false;
+  for (const type of ["weight", "length", "percentage"] as const) {
+    const bucket = statsBucket(newStats, type);
+    const entries = bucket[name];
+    if (entries?.some((e) => e.timestamp === timestamp)) {
+      bucket[name] = entries.filter((e) => e.timestamp !== timestamp);
+      found = true;
+      break;
+    }
+  }
+
+  if (!found) {
+    return err(404, "not_found", "Stat not found");
+  }
+
+  const env = Utils_getEnv();
+  const dbName = `${timestamp}_${name}`;
+  user.storage = { ...user.storage, stats: currentStats };
+  await userDao.applyStorageUpdate(user, (old) => ({ ...old, stats: newStats }), [
+    di.dynamo.remove({
+      tableName: userTableNames[env].stats,
+      key: { userId, name: dbName },
+    }),
+  ]);
 
   return ok({ deleted: true as const });
 }
