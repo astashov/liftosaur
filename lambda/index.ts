@@ -125,6 +125,12 @@ import {
   postV1PlaygroundHandler,
   postV1ProgramStatsEndpoint,
   postV1ProgramStatsHandler,
+  getV1StatsEndpoint,
+  getV1StatsHandler,
+  postV1StatsEndpoint,
+  postV1StatsHandler,
+  deleteV1StatsEndpoint,
+  deleteV1StatsHandler,
 } from "./api/v1";
 import {
   getMcpEndpoint,
@@ -2987,6 +2993,9 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .delete(deleteV1ProgramEndpoint, deleteV1ProgramHandler)
       .post(postV1PlaygroundEndpoint, postV1PlaygroundHandler)
       .post(postV1ProgramStatsEndpoint, postV1ProgramStatsHandler)
+      .get(getV1StatsEndpoint, getV1StatsHandler)
+      .post(postV1StatsEndpoint, postV1StatsHandler)
+      .delete(deleteV1StatsEndpoint, deleteV1StatsHandler)
       .get(getMcpEndpoint, getMcpHandler)
       .delete(deleteMcpEndpoint, deleteMcpHandler)
       .post(postMcpEndpoint, postMcpHandler)

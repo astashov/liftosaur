@@ -1,5 +1,6 @@
-import { UserDao, ILimitedUserDao } from "../dao/userDao";
+import { UserDao, ILimitedUserDao, userTableNames } from "../dao/userDao";
 import { IDI } from "./di";
+import { Utils_getEnv } from "../utils";
 import { LiftohistorySerializer_serialize } from "../../src/liftohistory/liftohistorySerializer";
 import {
   LiftohistoryDeserializer_deserialize,
@@ -24,6 +25,16 @@ import {
   TExerciseKind,
   availableMuscles,
   exerciseKinds,
+  IStats,
+  IStatsWeight,
+  IStatsLength,
+  IStatsPercentage,
+  IWeight,
+  ILength,
+  IPercentage,
+  statsWeightDef,
+  statsLengthDef,
+  statsPercentageDef,
 } from "../../src/types";
 import * as t from "io-ts";
 import { UidFactory_generateUid } from "./generator";
@@ -46,6 +57,7 @@ import {
 } from "../../src/pages/planner/models/plannerStatsUtils";
 import { PlannerProgramExercise_sets } from "../../src/pages/planner/models/plannerProgramExercise";
 import { IEither } from "../../src/utils/types";
+import { ObjectUtils_keys } from "../../src/utils/object";
 
 export interface IApiError {
   status: number;
@@ -726,6 +738,172 @@ export async function ApiV1_deleteCustomExercise(
       exercises: updated,
     },
   }));
+
+  return ok({ deleted: true as const });
+}
+
+// --- Stats ---
+
+const validWeightNames = new Set(ObjectUtils_keys(statsWeightDef));
+const validLengthNames = new Set(ObjectUtils_keys(statsLengthDef));
+const validPercentageNames = new Set(ObjectUtils_keys(statsPercentageDef));
+const validTypes = new Set(["weight", "length", "percentage"] as const);
+
+interface IStatMeasurement {
+  type: string;
+  name: string;
+  value: IWeight | ILength | IPercentage;
+  timestamp: number;
+}
+
+function validateStatType(type: string): type is "weight" | "length" | "percentage" {
+  return validTypes.has(type as "weight" | "length" | "percentage");
+}
+
+function validateStatName(type: "weight" | "length" | "percentage", name: string): boolean {
+  switch (type) {
+    case "weight":
+      return validWeightNames.has(name as keyof IStatsWeight);
+    case "length":
+      return validLengthNames.has(name as keyof IStatsLength);
+    case "percentage":
+      return validPercentageNames.has(name as keyof IStatsPercentage);
+  }
+}
+
+function statsToMeasurements(stats: IStats, filters?: { type?: string; name?: string }): IStatMeasurement[] {
+  const measurements: IStatMeasurement[] = [];
+
+  for (const name of ObjectUtils_keys(stats.weight)) {
+    if (filters?.type && filters.type !== "weight") continue;
+    if (filters?.name && filters.name !== name) continue;
+    for (const entry of stats.weight[name] || []) {
+      measurements.push({ type: "weight", name, value: entry.value, timestamp: entry.timestamp });
+    }
+  }
+
+  for (const name of ObjectUtils_keys(stats.length)) {
+    if (filters?.type && filters.type !== "length") continue;
+    if (filters?.name && filters.name !== name) continue;
+    for (const entry of stats.length[name] || []) {
+      measurements.push({ type: "length", name, value: entry.value, timestamp: entry.timestamp });
+    }
+  }
+
+  for (const name of ObjectUtils_keys(stats.percentage)) {
+    if (filters?.type && filters.type !== "percentage") continue;
+    if (filters?.name && filters.name !== name) continue;
+    for (const entry of stats.percentage[name] || []) {
+      measurements.push({ type: "percentage", name, value: entry.value, timestamp: entry.timestamp });
+    }
+  }
+
+  measurements.sort((a, b) => b.timestamp - a.timestamp);
+  return measurements;
+}
+
+export async function ApiV1_getStats(
+  userId: string,
+  params: { type?: string; name?: string },
+  di: IDI
+): Promise<IApiResult<{ measurements: IStatMeasurement[] }>> {
+  const userDao = new UserDao(di);
+  const stats = await userDao.getStatsByUserId(userId);
+  const measurements = statsToMeasurements(stats, params);
+  return ok({ measurements });
+}
+
+export interface ICreateStatInput {
+  type: string;
+  name: string;
+  value: IWeight | ILength | IPercentage;
+}
+
+export async function ApiV1_createStats(
+  userId: string,
+  user: ILimitedUserDao,
+  inputs: ICreateStatInput[],
+  timestamp: number | undefined,
+  di: IDI
+): Promise<IApiResult<{ measurements: IStatMeasurement[] }>> {
+  if (!inputs || inputs.length === 0) {
+    return err(400, "invalid_input", "Missing 'measurements' array");
+  }
+
+  for (const input of inputs) {
+    if (!validateStatType(input.type)) {
+      return err(400, "invalid_input", `Invalid type "${input.type}". Valid types: weight, length, percentage`);
+    }
+    if (!validateStatName(input.type, input.name)) {
+      const validNames =
+        input.type === "weight"
+          ? [...validWeightNames]
+          : input.type === "length"
+            ? [...validLengthNames]
+            : [...validPercentageNames];
+      return err(400, "invalid_input", `Invalid name "${input.name}" for type "${input.type}". Valid names: ${validNames.join(", ")}`);
+    }
+  }
+
+  const ts = timestamp || Date.now();
+  const created: IStatMeasurement[] = [];
+  const statDbItems: { userId: string; name: string; value: IWeight | ILength | IPercentage; timestamp: number; type: string; vtype: string }[] = [];
+
+  for (const input of inputs) {
+    const type = input.type as "weight" | "length" | "percentage";
+    created.push({ type, name: input.name, value: input.value, timestamp: ts });
+    statDbItems.push({
+      userId,
+      name: `${ts}_${input.name}`,
+      value: input.value,
+      timestamp: ts,
+      type,
+      vtype: "stat",
+    });
+  }
+
+  const env = Utils_getEnv();
+  await di.dynamo.batchPut({
+    tableName: userTableNames[env].stats,
+    items: statDbItems,
+  });
+
+  return ok({ measurements: created });
+}
+
+export async function ApiV1_deleteStats(
+  userId: string,
+  user: ILimitedUserDao,
+  timestamp: number,
+  name: string,
+  di: IDI
+): Promise<IApiResult<{ deleted: true }>> {
+  if (!name) {
+    return err(400, "invalid_input", "Missing 'name' query parameter");
+  }
+
+  const userDao = new UserDao(di);
+  const stats = await userDao.getStatsByUserId(userId);
+
+  let found = false;
+  for (const type of ["weight", "length", "percentage"] as const) {
+    const entries = (stats[type] as Record<string, { timestamp: number }[]>)[name];
+    if (entries?.some((e) => e.timestamp === timestamp)) {
+      found = true;
+      break;
+    }
+  }
+
+  if (!found) {
+    return err(404, "not_found", "Stat not found");
+  }
+
+  const env = Utils_getEnv();
+  const dbName = `${timestamp}_${name}`;
+  await di.dynamo.remove({
+    tableName: userTableNames[env].stats,
+    key: { userId, name: dbName },
+  });
 
   return ok({ deleted: true as const });
 }
