@@ -18,7 +18,7 @@ export function ExerciseAllTimePRs(props: IProps): JSX.Element {
   const { maxWeight, max1RM } = props;
 
   return (
-    <View className="px-4 py-2 mx-4 bg-background-cardpurple rounded-2xl">
+    <View className="px-4 py-2 bg-background-cardpurple rounded-2xl">
       <GroupHeader topPadding={false} name="🏆 Personal Records" />
       {maxWeight && (
         <PRRow

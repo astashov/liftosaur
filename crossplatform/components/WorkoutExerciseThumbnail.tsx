@@ -34,7 +34,7 @@ export function WorkoutExerciseThumbnail(props: IProps): JSX.Element {
   const currentEntry = props.progress.entries[props.progress.ui?.currentEntryIndex ?? 0];
   const currentSuperset = currentEntry?.superset;
   const isCurrentSuperset = currentSuperset != null && currentSuperset === entry.superset;
-  const borderColor = isCurrent ? "border-purple-600" : WorkoutExerciseUtils_setsStatusToBorderColor(setsStatus);
+  const borderColor = isCurrent ? "border-icon-purple" : WorkoutExerciseUtils_setsStatusToBorderColor(setsStatus);
   const totalSetsCount = entry.sets.length;
   const completedSetsCount = entry.sets.filter((set) => set.isCompleted).length;
 

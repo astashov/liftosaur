@@ -17,12 +17,12 @@ function resolveSemanticColors(theme) {
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   presets: [require('nativewind/preset')],
-  content: ['./src/**/*.tsx', './App.tsx', '../crossplatform/**/*.tsx'],
+  content: ['./src/**/*.tsx', './App.tsx', '../crossplatform/**/*.tsx', '../src/utils/*.ts'],
   theme: {
     extend: {
       colors: {
         ...baseColors,
-        ...webConfigJson.theme.extend.colors,
+        purplev3: webConfigJson.theme.extend.colors.purplev3,
         ...resolveSemanticColors(semanticGenerated.light),
       },
       fontFamily: { sans: ['Poppins', 'sans-serif'], serif: ['Poppins', 'serif'] },

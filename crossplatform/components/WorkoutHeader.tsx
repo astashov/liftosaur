@@ -166,7 +166,7 @@ export function WorkoutHeader(props: IProps): JSX.Element {
         </View>
       </View>
       {description && (
-        <View className="mt-1">
+        <View className={`mt-1 ${progress.notes ? "border-b border-background-subtle mb-1 pb-1" : ""}`}>
           <MarkdownSimple value={description} />
         </View>
       )}

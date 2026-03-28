@@ -36,7 +36,7 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
   const currentEntry = props.progress.entries[props.progress.ui?.currentEntryIndex ?? 0];
   const currentSuperset = currentEntry?.superset;
   const isCurrentSuperset = currentSuperset != null && currentSuperset === entry.superset;
-  const borderColor = isCurrent ? "border-purple-600" : WorkoutExerciseUtils_setsStatusToBorderColor(setsStatus);
+  const borderColor = isCurrent ? "border-icon-purple" : WorkoutExerciseUtils_setsStatusToBorderColor(setsStatus);
   const exercise = Exercise_get(entry.exercise, props.settings.exercises);
   const ref = useRef<HTMLButtonElement>(null);
   const totalSetsCount = entry.sets.length;

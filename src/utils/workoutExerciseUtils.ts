@@ -143,25 +143,25 @@ export function WorkoutExerciseUtils_setsStatusToColor(status: ISetsStatus): str
 export function WorkoutExerciseUtils_setsStatusToBorderColor(status: ISetsStatus): string {
   switch (status) {
     case "success":
-      return "border-green-700";
+      return "border-icon-green";
     case "in-range":
-      return "border-yellow-700";
+      return "border-icon-yellow";
     case "failed":
-      return "border-red-700";
+      return "border-icon-red";
     case "not-finished":
-      return "border-gray-300";
+      return "border-icon-light";
   }
 }
 
 export function WorkoutExerciseUtils_setsStatusToTextColor(status: ISetsStatus): string {
   switch (status) {
     case "success":
-      return "text-green-600";
+      return "text-icon-green";
     case "in-range":
-      return "text-yellow-600";
+      return "text-icon-yellow";
     case "failed":
-      return "text-red-600";
+      return "text-icon-red";
     case "not-finished":
-      return "text-gray-300";
+      return "text-icon-light";
   }
 }

@@ -63,7 +63,7 @@ export function WorkoutExercise(props: IProps): JSX.Element {
   const shouldHideGraphs = props.settings.workoutSettings.shouldHideGraphs;
 
   return (
-    <View className="px-2">
+    <View>
       <WorkoutExerciseCard
         day={props.day}
         stats={props.stats}
@@ -108,7 +108,7 @@ export function WorkoutExercise(props: IProps): JSX.Element {
             </View>
           )}
           {showPrs && (
-            <View className="mx-2 mt-2">
+            <View className="mx-4 mt-2">
               <ExerciseAllTimePRs
                 maxWeight={
                   maxWeight.value > 0 ? { weight: maxWeight, historyRecord: maxWeightHistoryRecord } : undefined
@@ -124,7 +124,7 @@ export function WorkoutExercise(props: IProps): JSX.Element {
         </>
       )}
       {history.length > 0 && (
-        <View className="mx-2 mt-2">
+        <View className="mx-4 mt-2">
           <ExerciseHistory
             exerciseType={exerciseType}
             settings={props.settings}
