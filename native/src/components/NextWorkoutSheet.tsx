@@ -8,15 +8,19 @@ import { Program_nextHistoryRecord, Program_isEmpty, Program_getProgram, emptyPr
 import type { IHistoryRecord } from "@shared/types";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useStoreState } from "../context/StoreContext";
-import { useWebViewPool } from "../screens/WebViewPool";
+import { useDispatch } from "../context/DispatchContext";
 import { HistoryEntryView } from "@crossplatform/components/HistoryEntryView";
+import { updateState } from "@shared/models/state";
+import type { IState } from "@shared/models/state";
+import { lb } from "lens-shmens";
+import { NavigationRef_navigate } from "../navigation/navigationRef";
 
 export function NextWorkoutScreen(): React.ReactElement {
   const navigation = useNavigation<IRootNavigation>();
   const { height: screenHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const appState = useStoreState();
-  const pool = useWebViewPool();
+  const dispatch = useDispatch();
 
   const onContentLayout = useCallback(
     (e: LayoutChangeEvent) => {
@@ -49,14 +53,31 @@ export function NextWorkoutScreen(): React.ReactElement {
     hasOngoingProgress &&
     (nextHistoryRecord.programId !== currentProgram?.id || nextHistoryRecord.day !== currentProgram?.nextDay);
 
+  const startWorkoutWithProgram = (programId?: string): void => {
+    const progress = appState.storage.progress?.[0];
+    if (progress != null) {
+      navigation.goBack();
+      NavigationRef_navigate("progress", { id: progress.id }, true);
+      return;
+    }
+    const pid = programId ?? appState.storage.currentProgramId;
+    if (pid != null) {
+      const program = Program_getProgram(appState, pid);
+      if (program != null) {
+        const newProgress = Program_nextHistoryRecord(program, settings, stats);
+        updateState(dispatch, [lb<IState>().p("storage").p("progress").record([newProgress])], "Create new progress");
+        navigation.goBack();
+        NavigationRef_navigate("progress", { id: newProgress.id }, true);
+      }
+    }
+  };
+
   const onStartWorkout = (): void => {
-    navigation.goBack();
-    pool.sendCommand({ type: "command", command: "startProgramDay" });
+    startWorkoutWithProgram();
   };
 
   const onStartAdHoc = (): void => {
-    navigation.goBack();
-    pool.sendCommand({ type: "command", command: "startProgramDay", programId: emptyProgramId });
+    startWorkoutWithProgram(emptyProgramId);
   };
 
   const onChangeNextDay = (): void => {

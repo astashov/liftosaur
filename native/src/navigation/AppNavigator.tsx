@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Animated, Easing } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer, StackActions } from "@react-navigation/native";
@@ -18,6 +18,8 @@ import {
 import type { IWebViewToRN } from "../bridge/protocol";
 import { useStore, useStoreState } from "../context/StoreContext";
 import { TabBar } from "../components/TabBar";
+import { NumpadProvider, useNumpadContextOptional } from "../../../crossplatform/components/NumpadContext";
+import { Numpad } from "../../../crossplatform/components/Numpad";
 import { NextWorkoutScreen } from "../components/NextWorkoutSheet";
 import { ChangeNextDayScreen } from "../components/ChangeNextDaySheet";
 import { MonthCalendarSheet } from "../components/MonthCalendarSheet";
@@ -30,6 +32,68 @@ import { MigratedScreens_isMigrated } from "./migratedScreens";
 
 const Tab = createBottomTabNavigator();
 const RootStack = createNativeStackNavigator();
+
+const SLIDE_DURATION_IN = 250;
+const SLIDE_DURATION_OUT = 200;
+
+function NumpadOverlay(): React.ReactElement | null {
+  const numpad = useNumpadContextOptional();
+  const shouldShow = numpad?.isActive ?? false;
+
+  // slideAnim: 0 = hidden (offscreen below), 1 = fully visible
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const [mounted, setMounted] = useState(false);
+  const [numpadHeight, setNumpadHeight] = useState(350);
+
+  useEffect(() => {
+    if (shouldShow) {
+      setMounted(true);
+      slideAnim.setValue(0);
+      Animated.timing(slideAnim, {
+        toValue: 1,
+        duration: SLIDE_DURATION_IN,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    } else if (mounted) {
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: SLIDE_DURATION_OUT,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (finished) {
+          setMounted(false);
+        }
+      });
+    }
+  }, [shouldShow]);
+
+  if (!mounted) return null;
+
+  return (
+    <Animated.View
+      onLayout={(e) => setNumpadHeight(e.nativeEvent.layout.height)}
+      style={{
+        position: "absolute",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        // Start offscreen (translateY = numpadHeight), animate to 0
+        transform: [
+          {
+            translateY: slideAnim.interpolate({
+              inputRange: [0, 1],
+              outputRange: [numpadHeight, 0],
+            }),
+          },
+        ],
+      }}
+    >
+      <Numpad />
+    </Animated.View>
+  );
+}
 
 function createTabStack(tab: ITab): () => React.ReactElement {
   const Stack = createNativeStackNavigator();
@@ -166,19 +230,24 @@ export function AppNavigator(): React.ReactElement {
           <RootStack.Navigator screenOptions={{ headerShown: false }}>
             <RootStack.Screen name="MainTabs">
               {() => (
-                <Tab.Navigator
-                  tabBar={(props) => (showTabBar ? <TabBar {...props} /> : null)}
-                  screenOptions={{ headerShown: false }}
-                >
-                  {tabConfig.map(({ name, component, label }) => (
-                    <Tab.Screen
-                      key={name}
-                      name={name}
-                      component={component}
-                      options={{ title: label, freezeOnBlur: name !== "workout" }}
-                    />
-                  ))}
-                </Tab.Navigator>
+                <NumpadProvider>
+                  <View style={{ flex: 1 }}>
+                    <Tab.Navigator
+                      tabBar={(props) => (showTabBar ? <TabBar {...props} /> : null)}
+                      screenOptions={{ headerShown: false }}
+                    >
+                      {tabConfig.map(({ name, component, label }) => (
+                        <Tab.Screen
+                          key={name}
+                          name={name}
+                          component={component}
+                          options={{ title: label, freezeOnBlur: name !== "workout" }}
+                        />
+                      ))}
+                    </Tab.Navigator>
+                    <NumpadOverlay />
+                  </View>
+                </NumpadProvider>
               )}
             </RootStack.Screen>
             <RootStack.Screen

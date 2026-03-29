@@ -1,6 +1,6 @@
 import { pick, types as docTypes } from "@react-native-documents/picker";
 import { Alert } from "react-native";
-import NativeLiftosaurStorage from "../native/NativeLiftosaurStorage";
+import NativeLiftosaurStorage from "../../native/src/native/NativeLiftosaurStorage";
 
 export { docTypes };
 

@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import type { JSX } from "react";
-import { View, Text, Pressable, Platform } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import type { IDispatch } from "@shared/ducks/types";
 import type { IExerciseType, IHistoryRecord, ISettings } from "@shared/types";
 import { Thunk_pushScreen } from "@shared/ducks/thunks";
@@ -61,9 +61,7 @@ export const ExerciseHistory = React.memo(function ExerciseHistory(props: IProps
             accessibilityLabel={`View history for ${DateUtils_format(historyRecord.date)}`}
             onPress={() => {
               props.dispatch({ type: "EditHistoryRecord", historyRecord });
-              if (Platform.OS !== "web") {
-                props.dispatch(Thunk_pushScreen("progress", { id: historyRecord.id }));
-              }
+              props.dispatch(Thunk_pushScreen("progress", { id: historyRecord.id }));
             }}
           >
             <View className="py-2">

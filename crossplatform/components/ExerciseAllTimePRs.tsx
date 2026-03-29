@@ -5,6 +5,7 @@ import type { IDispatch } from "@shared/ducks/types";
 import type { IHistoryRecord, ISet, ISettings, IWeight } from "@shared/types";
 import { Weight_display, Weight_convertTo, Weight_build } from "@shared/models/weight";
 import { DateUtils_format } from "@shared/utils/date";
+import { Thunk_pushScreen } from "@shared/ducks/thunks";
 import { GroupHeader } from "./GroupHeader";
 import { IconArrowRight } from "./icons/IconArrowRight";
 
@@ -28,7 +29,10 @@ export const ExerciseAllTimePRs = React.memo(function ExerciseAllTimePRs(props: 
           date={maxWeight.historyRecord ? DateUtils_format(maxWeight.historyRecord.startTime) : undefined}
           onPress={
             maxWeight.historyRecord
-              ? () => props.dispatch({ type: "EditHistoryRecord", historyRecord: maxWeight.historyRecord! })
+              ? () => {
+                  props.dispatch({ type: "EditHistoryRecord", historyRecord: maxWeight.historyRecord! });
+                  props.dispatch(Thunk_pushScreen("progress", { id: maxWeight.historyRecord!.id }));
+                }
               : undefined
           }
         />
@@ -44,7 +48,10 @@ export const ExerciseAllTimePRs = React.memo(function ExerciseAllTimePRs(props: 
           date={max1RM.historyRecord ? DateUtils_format(max1RM.historyRecord.startTime) : undefined}
           onPress={
             max1RM.historyRecord
-              ? () => props.dispatch({ type: "EditHistoryRecord", historyRecord: max1RM.historyRecord! })
+              ? () => {
+                  props.dispatch({ type: "EditHistoryRecord", historyRecord: max1RM.historyRecord! });
+                  props.dispatch(Thunk_pushScreen("progress", { id: max1RM.historyRecord!.id }));
+                }
               : undefined
           }
           isBorderless={true}

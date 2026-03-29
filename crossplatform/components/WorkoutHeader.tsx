@@ -26,6 +26,7 @@ import { IconTrash } from "./icons/IconTrash";
 import { IconShare } from "./icons/IconShare";
 import { IconMuscles2 } from "./icons/IconMuscles2";
 import { IconEdit2 } from "./icons/IconEdit2";
+import { IconBackArrow } from "./icons/IconBackArrow";
 import { MarkdownSimple } from "./MarkdownSimple";
 
 interface IProps {
@@ -37,6 +38,7 @@ interface IProps {
   programDay?: IEvaluatedProgramDay;
   allPrograms: IProgram[];
   setIsShareShown: (value: boolean) => void;
+  onBack?: () => void;
 }
 
 function confirmAction(message: string, onConfirm: () => void): void {
@@ -90,7 +92,13 @@ export const WorkoutHeader = React.memo(function WorkoutHeader(props: IProps): J
   return (
     <View className="px-4">
       <View className="flex-row items-center py-1">
-        <View style={{ minWidth: 40 }} />
+        <View style={{ minWidth: 40 }}>
+          {props.onBack && (
+            <Pressable className="px-2 py-1" onPress={props.onBack}>
+              <IconBackArrow />
+            </Pressable>
+          )}
+        </View>
         <View className="flex-1 items-center">
           {isCurrent ? (
             <>

@@ -94,4 +94,19 @@ import Foundation
       }
     }
   }
+
+  @objc func readFile(_ path: String, completion: @escaping (String?) -> Void) {
+    Self.storageQueue.async {
+      guard let url = URL(string: path) else {
+        completion(nil)
+        return
+      }
+      do {
+        let data = try Data(contentsOf: url)
+        completion(String(data: data, encoding: .utf8))
+      } catch {
+        completion(nil)
+      }
+    }
+  }
 }

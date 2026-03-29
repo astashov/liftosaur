@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { View, FlatList, ScrollView, Text, Pressable, useWindowDimensions } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { View, FlatList, ScrollView, Text, Pressable, useWindowDimensions, Platform } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Program_getProgram, Program_evaluate, Program_getProgramDay } from "@shared/models/program";
 import { Progress_isCurrent, Progress_getNextSupersetEntry } from "@shared/models/progress";
 import type { IHistoryRecord, IHistoryEntry } from "@shared/types";
@@ -15,22 +15,33 @@ import {
 import { WorkoutHeader } from "../WorkoutHeader";
 import { WorkoutThumbnailStrip } from "../WorkoutThumbnailStrip";
 import { WorkoutExercise } from "../WorkoutExercise";
+import { useNumpadContextOptional } from "../NumpadContext";
+import { NUMPAD_HEIGHT } from "../Numpad";
 
 interface IProps {
   state: IState;
   dispatch: IDispatch;
+  progressId?: number;
+  onBack?: () => void;
   onOpenAmrapSheet: () => void;
 }
 
 export function ScreenWorkout(props: IProps): React.ReactElement {
   const { state, dispatch } = props;
-  const { width: screenWidth } = useWindowDimensions();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const flatListRef = useRef<FlatList>(null);
   const [enableReorder, setEnableReorder] = useState(false);
+  const numpad = useNumpadContextOptional();
+  const numpadActive = numpad?.isActive ?? false;
+  const bottomPadding = numpadActive ? NUMPAD_HEIGHT : 32;
+  const scrollViewRefs = useRef<Map<number, ScrollView>>(new Map());
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = 48 + insets.bottom;
+  const numpadScrollInset = numpadActive ? Math.max(0, NUMPAD_HEIGHT - tabBarHeight) : 0;
 
   const t0Screen = Date.now();
 
-  const progress = state.storage.progress?.[0];
+  const progress = props.progressId != null ? state.progress[props.progressId] : state.storage.progress?.[0];
   if (progress == null) {
     return (
       <SafeAreaView edges={["top"]} className="items-center justify-center flex-1 bg-background-default">
@@ -59,6 +70,26 @@ export function ScreenWorkout(props: IProps): React.ReactElement {
   const scrollToIndex = (index: number): void => {
     flatListRef.current?.scrollToOffset({ offset: index * screenWidth, animated: false });
   };
+
+  const activeFieldId = numpad?.activeField?.fieldId;
+  const activeInputRef = numpad?.activeField?.inputRef;
+  const scrollOffsets = useRef<Map<number, number>>(new Map());
+  useEffect(() => {
+    if (Platform.OS === "web" || !activeInputRef?.current || !activeFieldId) return;
+    const timer = setTimeout(() => {
+      activeInputRef.current?.measureInWindow((_x, y, _width, height) => {
+        const numpadTop = screenHeight - NUMPAD_HEIGHT;
+        const inputBottom = y + height;
+        if (inputBottom > numpadTop - 16) {
+          const overflow = inputBottom - numpadTop + 40;
+          const sv = scrollViewRefs.current.get(currentEntryIndex);
+          const currentOffset = scrollOffsets.current.get(currentEntryIndex) ?? 0;
+          sv?.scrollTo({ y: currentOffset + overflow, animated: true });
+        }
+      });
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [activeFieldId]);
 
   const prevAmrapModal = useRef(progress.ui?.amrapModal);
   useEffect(() => {
@@ -90,7 +121,16 @@ export function ScreenWorkout(props: IProps): React.ReactElement {
 
   const renderExercise = useCallback(
     ({ item, index }: { item: IHistoryEntry; index: number }) => (
-      <ScrollView style={{ width: screenWidth }} contentContainerStyle={{ paddingTop: 8, paddingBottom: 32 }}>
+      <ScrollView
+        ref={(ref) => {
+          if (ref) scrollViewRefs.current.set(index, ref);
+        }}
+        onScroll={(e) => scrollOffsets.current.set(index, e.nativeEvent.contentOffset.y)}
+        scrollEventThrottle={16}
+        style={{ width: screenWidth }}
+        contentContainerStyle={{ paddingTop: 8, paddingBottom: bottomPadding }}
+        scrollIndicatorInsets={{ bottom: numpadScrollInset }}
+      >
         <WorkoutExercise
           day={progressDay}
           stats={stats}
@@ -111,7 +151,7 @@ export function ScreenWorkout(props: IProps): React.ReactElement {
         />
       </ScrollView>
     ),
-    [screenWidth, progressDay, progressStartTime, userPromptedStateVars, supersetEntries, stats, history, evaluatedProgram, programDay, isCurrentProgress, subscription, settings, dispatch]
+    [screenWidth, bottomPadding, progressDay, progressStartTime, userPromptedStateVars, supersetEntries, stats, history, evaluatedProgram, programDay, isCurrentProgress, subscription, settings, dispatch]
   );
 
   console.log(`[PERF] ScreenWorkout render: ${Date.now() - t0Screen}ms`);
@@ -127,6 +167,7 @@ export function ScreenWorkout(props: IProps): React.ReactElement {
         programDay={programDay}
         allPrograms={state.storage.programs}
         setIsShareShown={() => {}}
+        onBack={props.onBack}
       />
       <View className="flex-row items-center justify-end px-4 py-2" style={{ zIndex: 1 }}>
         <Pressable

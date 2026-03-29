@@ -51,6 +51,14 @@ RCT_EXPORT_MODULE(LiftosaurStorage)
   }];
 }
 
+- (void)readFile:(NSString *)path
+         resolve:(RCTPromiseResolveBlock)resolve
+          reject:(RCTPromiseRejectBlock)reject {
+  [[LiftosaurStorageImpl shared] readFile:path completion:^(NSString *value) {
+    resolve(value ?: [NSNull null]);
+  }];
+}
+
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params {
   return std::make_shared<facebook::react::NativeLiftosaurStorageSpecJSI>(params);

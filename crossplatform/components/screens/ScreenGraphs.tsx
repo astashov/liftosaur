@@ -13,6 +13,7 @@ import {
 import { History_collectMuscleGroups, History_collectProgramChangeTimes } from "@shared/models/history";
 import { CollectionUtils_sort } from "@shared/utils/collection";
 import { Exercise_fromKey } from "@shared/models/exercise";
+import { Thunk_pushScreen } from "@shared/ducks/thunks";
 import { Collector } from "@shared/utils/collector";
 import type { IGraph, IScreenMuscle } from "@shared/types";
 import type { IState } from "@shared/models/state";
@@ -77,7 +78,10 @@ export function ScreenGraphs(props: IProps): React.ReactElement {
           history={history}
           exercise={Exercise_fromKey(graph.id)}
           width={screenWidth}
-          onGoToWorkout={(hr) => dispatch({ type: "EditHistoryRecord", historyRecord: hr })}
+          onGoToWorkout={(hr) => {
+            dispatch({ type: "EditHistoryRecord", historyRecord: hr });
+            dispatch(Thunk_pushScreen("progress", { id: hr.id }));
+          }}
         />
       );
     }

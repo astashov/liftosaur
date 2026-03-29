@@ -8,6 +8,7 @@ export interface Spec extends TurboModule {
   deleteValue(key: string): Promise<boolean>;
   hasValue(key: string): Promise<boolean>;
   getAllKeys(): Promise<string[]>;
+  readFile(path: string): Promise<string | null>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>("LiftosaurStorage");
