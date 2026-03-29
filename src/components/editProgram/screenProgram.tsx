@@ -7,7 +7,7 @@ import { Surface } from "../surface";
 import { NavbarView } from "../navbar";
 import { Footer2View } from "../footer2";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { lb, LensBuilder } from "lens-shmens";
+import { lb, Lens, LensBuilder } from "lens-shmens";
 import { IPlannerState } from "../../pages/planner/models/types";
 import { useUndoRedo } from "../../pages/builder/utils/undoredo";
 import {
@@ -74,14 +74,18 @@ export function ScreenProgram(props: IProps): JSX.Element {
   const plannerDispatch: ILensDispatch<IPlannerState> = useCallback(
     buildPlannerDispatch(
       props.dispatch,
-      (
-        lb<IState>().p("screenStack").findBy("name", "editProgram", true).pi("params") as LensBuilder<
-          IState,
-          { plannerState: IPlannerState },
-          {},
-          undefined
-        >
-      ).pi("plannerState"),
+      (() => {
+        // findBy can return undefined when the screen has been removed (e.g. onBlur fires after navigation)
+        const findByLens = lb<IState>().p("screenStack").findBy("name", "editProgram", true).get();
+        findByLens._optional = true;
+        type IScreenEntry = { params?: { plannerState: IPlannerState } };
+        return (
+          new LensBuilder<IState, IScreenEntry, {}, undefined>(
+            findByLens as unknown as Lens<IState, IScreenEntry>,
+            {}
+          ).pi("params") as LensBuilder<IState, { plannerState: IPlannerState }, {}, undefined>
+        ).pi("plannerState");
+      })(),
       plannerState
     ),
     [plannerState]
