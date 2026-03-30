@@ -76,6 +76,7 @@ Bicep Curl / 1x5`
   await page.getByTestId("entry-squat").getByTestId("exercise-options").click();
   await page.getByTestId("exercise-swap").first().click();
 
+  await page.getByTestId("exercise-filter-by-name").fill("squat");
   await page.getByTestId("menu-item-squat-dumbbell").click();
   await page.getByTestId("exercise-picker-confirm").click();
 
@@ -88,6 +89,7 @@ Bicep Curl / 1x5`
   await page.getByTestId("entry-squat").getByTestId("exercise-options").click();
   await page.getByTestId("exercise-swap").first().click();
 
+  await page.getByTestId("exercise-filter-by-name").fill("hack squat");
   await page.getByTestId("menu-item-hack-squat-smith").click();
   await page.getByTestId("exercise-picker-confirm").click();
 
