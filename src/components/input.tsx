@@ -1,4 +1,4 @@
-import React, { JSX, Ref, forwardRef, useCallback, useState } from "react";
+import React, { JSX, Ref, forwardRef, useCallback, useEffect, useState } from "react";
 import { UidFactory_generateUid } from "../utils/generator";
 import { StringUtils_dashcase } from "../utils/string";
 import { IEither } from "../utils/types";
@@ -54,12 +54,22 @@ export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement> | Ref
     labelSize: labelSizeProp,
     identifier: identifierProp,
     multiline,
+    value: valueProp,
+    defaultValue: _defaultValue,
     ...otherProps
   } = props;
   const changeType = changeTypeProp || "onblur";
   const identifier = identifierProp || StringUtils_dashcase((label || UidFactory_generateUid(8))?.toLowerCase());
   const [validationErrors, setValidationErrors] = useState<Set<IValidationError>>(new Set());
   const size = inputSize || "md";
+
+  const isControlled = valueProp !== undefined;
+  const [localValue, setLocalValue] = useState(valueProp);
+  useEffect(() => {
+    if (isControlled) {
+      setLocalValue(valueProp);
+    }
+  }, [valueProp, isControlled]);
 
   const onInputHandler = useCallback(
     (
@@ -145,7 +155,13 @@ export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement> | Ref
               <textarea
                 data-cy={`${identifier}-input`}
                 ref={ref as Ref<HTMLTextAreaElement>}
-                onChange={() => {}}
+                value={isControlled ? localValue : undefined}
+                defaultValue={!isControlled ? props.defaultValue : undefined}
+                onChange={(e) => {
+                  if (isControlled) {
+                    setLocalValue(e.target.value);
+                  }
+                }}
                 onBlur={changeType === "onblur" ? onInputHandler : undefined}
                 onInput={changeType === "oninput" ? onInputHandler : undefined}
                 onFocus={selectInputOnFocus}
@@ -157,7 +173,13 @@ export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement> | Ref
               <input
                 data-cy={`${identifier}-input`}
                 ref={ref as Ref<HTMLInputElement>}
-                onChange={() => {}}
+                value={isControlled ? localValue : undefined}
+                defaultValue={!isControlled ? props.defaultValue : undefined}
+                onChange={(e) => {
+                  if (isControlled) {
+                    setLocalValue(e.target.value);
+                  }
+                }}
                 onBlur={changeType === "onblur" ? onInputHandler : undefined}
                 onInput={changeType === "oninput" ? onInputHandler : undefined}
                 onFocus={selectInputOnFocus}
