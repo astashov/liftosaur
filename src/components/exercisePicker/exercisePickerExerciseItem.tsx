@@ -1,4 +1,4 @@
-import { JSX, h, Fragment } from "preact";
+import type { JSX } from "react";
 import {
   IExercise,
   equipmentName,
@@ -163,7 +163,7 @@ function MuscleView(props: {
           <span className="font-semibold">
             {targetMuscles.map((m, i) => {
               return (
-                <span>
+                <span key={m}>
                   <span
                     className={tms.length === 0 ? "" : tms.indexOf(m) !== -1 ? "text-text-success" : "text-text-error"}
                   >
@@ -182,7 +182,7 @@ function MuscleView(props: {
           <span className="font-semibold">
             {synergistMuscles.map((m, i) => {
               return (
-                <span>
+                <span key={m}>
                   <span
                     className={sms.length === 0 ? "" : sms.indexOf(m) !== -1 ? "text-text-success" : "text-text-error"}
                   >
@@ -230,7 +230,7 @@ export function MuscleGroupsView(props: {
               const muscles = Muscle_getMusclesFromScreenMuscle(m, props.settings);
               const doesContain = muscles.some((muscle) => tms.includes(muscle));
               return (
-                <span>
+                <span key={m}>
                   <span
                     className={!props.currentExerciseType ? "" : doesContain ? "text-text-success" : "text-text-error"}
                   >
@@ -251,7 +251,7 @@ export function MuscleGroupsView(props: {
               const muscles = Muscle_getMusclesFromScreenMuscle(m, props.settings);
               const doesContain = props.currentExerciseType && muscles.some((muscle) => sms.includes(muscle));
               return (
-                <span>
+                <span key={m}>
                   <span
                     className={!props.currentExerciseType ? "" : doesContain ? "text-text-success" : "text-text-error"}
                   >

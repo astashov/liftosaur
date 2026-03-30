@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { h, JSX } from "preact";
+import { JSX, useEffect, useRef, useState } from "react";
 import UPlot from "uplot";
-import { useRef, useEffect, useState } from "preact/hooks";
 import { CollectionUtils_sort, CollectionUtils_inGroupsOf } from "../utils/collection";
 import { DateUtils_format } from "../utils/date";
 import { equipmentName, Exercise_eq, Exercise_toKey, Exercise_get } from "../models/exercise";
@@ -126,12 +125,8 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
           value={selectedType}
           onChange={(e) => setSelectedType(e.currentTarget.value as any)}
         >
-          <option selected={selectedType === "weight"} value="weight">
-            Max Weight
-          </option>
-          <option selected={selectedType === "volume"} value="volume">
-            Volume
-          </option>
+          <option value="weight">Max Weight</option>
+          <option value="volume">Volume</option>
         </select>
       </div>
       <GraphExerciseContent key={selectedType} {...{ ...props, selectedType }} />
@@ -146,6 +141,9 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
   const graphGoToHistoryRecordFnName = `graphGoToHistoryRecord${Exercise_toKey(props.exercise)}`;
   const units = props.settings.units;
   useEffect(() => {
+    if (!graphRef.current) {
+      return;
+    }
     const rect = graphRef.current.getBoundingClientRect();
     const exercise = Exercise_get(props.exercise, props.settings.exercises);
     const result = getData(props.history, props.exercise, props.settings, props.isWithOneRm, props.bodyweightData);
@@ -319,9 +317,9 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
       ],
     };
 
-    const uplot = new UPlot(opts, data, graphRef.current);
+    const uplot = new UPlot(opts, data, graphRef.current!);
 
-    const underEl = graphRef.current.querySelector(".over");
+    const underEl = graphRef.current!.querySelector(".over");
     const underRect = underEl?.getBoundingClientRect();
 
     function handler(): void {

@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IIconEquipmentDumbbellProps {
@@ -30,7 +30,7 @@ export function IconEquipmentDumbbell(props: IIconEquipmentDumbbellProps): JSX.E
         height="4.4"
         rx="1"
         stroke="#3C5063"
-        stroke-width="3"
+        strokeWidth="3"
         mask="url(#path-1-inside-1_4385_1523)"
       />
       <mask id="path-2-inside-2_4385_1523" fill="white">
@@ -44,7 +44,7 @@ export function IconEquipmentDumbbell(props: IIconEquipmentDumbbellProps): JSX.E
         rx="1"
         fill="#FAF8FF"
         stroke="#3C5063"
-        stroke-width="3"
+        strokeWidth="3"
         mask="url(#path-2-inside-2_4385_1523)"
       />
       <mask id="path-3-inside-3_4385_1523" fill="white">
@@ -58,7 +58,7 @@ export function IconEquipmentDumbbell(props: IIconEquipmentDumbbellProps): JSX.E
         rx="1"
         fill="#FAF8FF"
         stroke="#3C5063"
-        stroke-width="3"
+        strokeWidth="3"
         mask="url(#path-3-inside-3_4385_1523)"
       />
     </svg>

@@ -1,8 +1,7 @@
-import { h, JSX } from "preact";
-import { useRef } from "preact/hooks";
+import React, { JSX, useRef } from "react";
 
-export interface IInlineInputProps extends JSX.HTMLAttributes<HTMLInputElement> {
-  style?: JSX.CSSProperties;
+export interface IInlineInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  style?: React.CSSProperties;
   minWidth?: number;
   onInputInt?: (value: number) => void;
   onInputFloat?: (value: number) => void;
@@ -14,7 +13,7 @@ export function LinkInlineInput(props: IInlineInputProps): JSX.Element {
 }
 
 export function InlineInput(props: IInlineInputProps): JSX.Element {
-  const { className, minWidth, style, onInput, ...otherProps } = props;
+  const { className, minWidth, style, onInput, onInputInt, onInputFloat, onInputString, ...otherProps } = props;
   const elRef = useRef<HTMLInputElement>(null);
   const length = Math.max(minWidth == null ? 0 : minWidth, `${props.value}`.length + 1);
 
@@ -28,13 +27,13 @@ export function InlineInput(props: IInlineInputProps): JSX.Element {
           const value = e.target.value;
           const int = parseInt(value, 10);
           if (!Number.isNaN(int)) {
-            props.onInputInt?.(int);
+            onInputInt?.(int);
           }
           const float = parseFloat(value);
           if (!Number.isNaN(float)) {
-            props.onInputFloat?.(float);
+            onInputFloat?.(float);
           }
-          props.onInputString?.(value);
+          onInputString?.(value);
         }
         if (onInput) {
           onInput.call(elRef.current, e);

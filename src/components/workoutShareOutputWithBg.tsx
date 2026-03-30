@@ -1,7 +1,6 @@
-import { JSX, h } from "preact";
+import { JSX, useEffect, useRef, useState } from "react";
 import { IHistoryRecord, ISettings } from "../types";
 import { WorkoutShareOutput } from "./workoutShareOutput";
-import { useEffect, useRef, useState } from "preact/hooks";
 
 interface IWorkoutShareOutputWithBgProps {
   record?: IHistoryRecord;

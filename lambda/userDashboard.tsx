@@ -1,5 +1,3 @@
-import { h } from "preact";
-
 import { renderPage } from "./render";
 import { UserDashboardHtml } from "../src/pages/userDashboard/userDashboardHtml";
 import { IEventPayload } from "../src/api/service";

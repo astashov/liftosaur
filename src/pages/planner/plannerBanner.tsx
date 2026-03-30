@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import type { JSX } from "react";
 import { Button } from "../../components/button";
 import { IconLink } from "../../components/icons/iconLink";
 import { IAccount } from "../../models/account";

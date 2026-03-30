@@ -1,9 +1,8 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, Fragment, useState } from "react";
 import { IPlannerProgramExercise, IPlannerExerciseState } from "../../pages/planner/models/types";
 import { ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IEvaluatedProgram, Program_getSupersetExercises } from "../../models/program";
-import { useState } from "preact/hooks";
 import { BottomSheetEditProgramExerciseSuperset } from "./bottomSheetEditProgramExerciseSuperset";
 import { LinkButton } from "../linkButton";
 import { EditProgramUiHelpers_changeCurrentInstanceExercise } from "../editProgram/editProgramUi/editProgramUiHelpers";
@@ -35,10 +34,10 @@ export function EditProgramExerciseSupersets(props: IEditProgramExerciseSuperset
             (
             {supersetExercises.map((e, i) => {
               return (
-                <>
+                <Fragment key={e.fullName}>
                   {i !== 0 ? ", " : ""}
                   <strong>{e.fullName}</strong>
-                </>
+                </Fragment>
               );
             })}
             )

@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { PageWrapper } from "./components/pageWrapper";
 import { IUsersDashboardContentProps, UsersDashboardContent } from "./pages/usersDashboard/usersDashboardContent";
 import { HydrateUtils_hydratePage } from "./utils/hydrate";

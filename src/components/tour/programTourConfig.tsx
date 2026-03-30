@@ -1,4 +1,3 @@
-import { h, Fragment } from "preact";
 import { ITourConfig } from "./tourTypes";
 import { Screen_currentName } from "../../models/screen";
 import { IPlannerProgram } from "../../types";

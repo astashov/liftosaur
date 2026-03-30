@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
@@ -24,9 +24,9 @@ export function IconArrowDown3(props: IProps): JSX.Element {
       <path
         d="M16 10.3333L9 17M9 17L2 10.3333M9 17L9 1"
         stroke={color}
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );

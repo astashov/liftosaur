@@ -1,5 +1,4 @@
-import { h, JSX, Fragment } from "preact";
-import { useState } from "preact/hooks";
+import { JSX, useState } from "react";
 import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
 import { Modal } from "./modal";
@@ -232,6 +231,7 @@ export function UserPromptedStateVars(props: IUserPromptedStateVarsProps): JSX.E
       {ObjectUtils_keys(props.userVarInputValues).map((key, i) => {
         return (
           <UserPromptedStateVar
+            key={key}
             k={key}
             index={i}
             value={props.userVarInputValues[key]}

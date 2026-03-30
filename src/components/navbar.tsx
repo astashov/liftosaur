@@ -1,9 +1,8 @@
-import { h, JSX, ComponentChildren, Fragment } from "preact";
+import { JSX, ReactNode, useEffect, useRef, useState } from "react";
 import { Thunk_pullScreen } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { IconBack } from "./icons/iconBack";
 import { IconHelp } from "./icons/iconHelp";
-import { useEffect, useRef, useState } from "preact/hooks";
 import { INavCommon, IState, updateState } from "../models/state";
 import { IconSpinner } from "./icons/iconSpinner";
 import { IconClose } from "./icons/iconClose";
@@ -16,8 +15,8 @@ import { Tailwind_semantic, Tailwind_colors } from "../utils/tailwindConfig";
 import { tourConfigs } from "./tour/tourConfigs";
 
 interface INavbarCenterProps {
-  title: ComponentChildren;
-  subtitle?: ComponentChildren;
+  title: ReactNode;
+  subtitle?: ReactNode;
   onTitleClick?: () => void;
 }
 
@@ -27,7 +26,7 @@ interface INavbarProps extends INavbarCenterProps {
   onBack?: () => boolean;
   navCommon: INavCommon;
   helpTourId?: keyof typeof tourConfigs;
-  helpContent?: ComponentChildren;
+  helpContent?: ReactNode;
 }
 
 export const NavbarView = (props: INavbarProps): JSX.Element => {

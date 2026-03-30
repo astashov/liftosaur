@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
@@ -23,7 +23,6 @@ import {
   SendMessage_androidAppVersion,
 } from "../utils/sendMessage";
 import { LinkButton } from "./linkButton";
-import { useState } from "preact/hooks";
 import { Modal } from "./modal";
 import { IconBell } from "./icons/iconBell";
 import { lb } from "lens-shmens";
@@ -92,6 +91,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
           dispatch={props.dispatch}
           rightButtons={[
             <button
+              key="close"
               className="p-2 nm-back"
               data-cy="navbar-back"
               onClick={() => {
@@ -112,6 +112,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
       footer={<></>}
       addons={[
         <Modal
+          key="plates"
           noPaddings={true}
           isHidden={!isPlatesCalculatorShown}
           onClose={() => setIsPlatesCalculatorShown(false)}
@@ -134,6 +135,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
           </div>
         </Modal>,
         <Modal
+          key="graphs"
           noPaddings={true}
           isHidden={!isGraphsShown}
           onClose={() => setIsGraphsShown(false)}
@@ -156,6 +158,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
           </div>
         </Modal>,
         <Modal
+          key="notifs"
           noPaddings={true}
           isHidden={!isNotifsShown}
           onClose={() => setIsNotifsShown(false)}
@@ -174,6 +177,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
           </div>
         </Modal>,
         <Modal
+          key="weekstats"
           noPaddings={true}
           isHidden={!isWeekStatsShown}
           onClose={() => setIsWeekStatsShown(false)}
@@ -194,7 +198,12 @@ export function ScreenSubscription(props: IProps): JSX.Element {
             />
           </div>
         </Modal>,
-        <ModalCoupon isHidden={!isRedeemShown} dispatch={props.dispatch} onClose={() => setIsRedeemShown(false)} />,
+        <ModalCoupon
+          key="coupon"
+          isHidden={!isRedeemShown}
+          dispatch={props.dispatch}
+          onClose={() => setIsRedeemShown(false)}
+        />,
       ]}
     >
       <section className="flex flex-col flex-1 px-4">

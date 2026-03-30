@@ -1,4 +1,3 @@
-import { h, Fragment } from "preact";
 import { ITourConfig } from "./tourTypes";
 import {
   Program_isEmpty,

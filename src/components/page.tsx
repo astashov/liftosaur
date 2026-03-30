@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import React, { JSX } from "react";
 import { IPageWrapperProps, PageWrapper } from "./pageWrapper";
 
 export interface IJsonLdArticle {
@@ -210,7 +210,7 @@ export function Page<T>(props: IProps<T>): JSX.Element {
       <head>
         <title>{props.title}</title>
         {props.css.map((c) => (
-          <link rel="stylesheet" type="text/css" href={`/${c}.css?version=${commitHash}`} />
+          <link key={c} rel="stylesheet" type="text/css" href={`/${c}.css?version=${commitHash}`} />
         ))}
         <meta charSet="UTF-8" />
         <link rel="preconnect" href="https://api3.liftosaur.com" />
@@ -251,8 +251,12 @@ export function Page<T>(props: IProps<T>): JSX.Element {
         <meta property="twitter:card" content="summary_large_image" />
         <script dangerouslySetInnerHTML={{ __html: rollbar() }} />
         <script dangerouslySetInnerHTML={{ __html: storeUtmInLocalStorage() }} />
-        {props.jsonLd?.map((ld) => (
-          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdToSchema(ld)) }} />
+        {props.jsonLd?.map((ld, i) => (
+          <script
+            key={i}
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdToSchema(ld)) }}
+          />
         ))}
         <link
           rel="preload"
@@ -278,8 +282,16 @@ export function Page<T>(props: IProps<T>): JSX.Element {
         {props.postHead}
       </head>
       <body>
-        <div class="content" id="app">
-          {props.nowrapper ? props.children : <PageWrapper {...pageWrapperProps}>{props.children}</PageWrapper>}
+        <div className="content" id="app">
+          {props.nowrapper ? (
+            typeof props.children === "function" ? (
+              (props.children as (ctx: any) => React.ReactNode)({})
+            ) : (
+              props.children
+            )
+          ) : (
+            <PageWrapper {...pageWrapperProps}>{props.children}</PageWrapper>
+          )}
         </div>
         <div id="pagewrapper" style={{ display: "none" }}>
           {JSON.stringify(pageWrapperProps)}
@@ -288,7 +300,7 @@ export function Page<T>(props: IProps<T>): JSX.Element {
           {JSON.stringify(props.data)}
         </div>
         {props.js.map((js) => (
-          <script src={`/${js}.js?version=${commitHash}`}></script>
+          <script key={js} src={`/${js}.js?version=${commitHash}`}></script>
         ))}
         <div id="modal"></div>
         <div id="bottomsheet"></div>

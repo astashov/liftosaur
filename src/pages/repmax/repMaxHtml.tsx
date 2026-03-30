@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IJsonLd, Page } from "../../components/page";
 import { MathUtils_toWord } from "../../utils/math";
 import { StringUtils_capitalize } from "../../utils/string";

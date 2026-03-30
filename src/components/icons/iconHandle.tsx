@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 export function IconHandle(): JSX.Element {

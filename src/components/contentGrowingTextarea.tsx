@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { useRef, useState, useLayoutEffect } from "preact/hooks";
+import React, { JSX, useLayoutEffect, useRef, useState } from "react";
 
 interface IContentGrowingTextareaProps {
   value: string;
@@ -24,13 +23,13 @@ export function ContentGrowingTextarea({ value, onInput, className = "" }: ICont
     setLocalValue(value);
   }, [value]);
 
-  const handleInput = (e: Event): void => {
+  const handleInput = (e: React.FormEvent<HTMLTextAreaElement>): void => {
     const val = (e.target as HTMLTextAreaElement).value.replace(/[\r\n]+/g, "");
     setLocalValue(val);
     onInput?.(val);
   };
 
-  const handleKeyDown = (e: KeyboardEvent): void => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>): void => {
     if (e.key === "Enter") {
       e.preventDefault(); // prevent newlines
     }

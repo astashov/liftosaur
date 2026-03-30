@@ -1,7 +1,6 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { IDispatch, buildCustomLensDispatch } from "../../ducks/types";
 import { INavCommon, IState, updateState } from "../../models/state";
-import { useCallback, useEffect, useLayoutEffect, useState } from "preact/hooks";
 import { IProgram, ISettings } from "../../types";
 import { Surface } from "../surface";
 import { NavbarView } from "../navbar";
@@ -142,6 +141,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
           helpTourId={programTourConfig.id}
           rightButtons={[
             <button
+              key="kebab"
               data-cy="navbar-3-dot"
               className="p-2 nm-edit-program-v2-navbar-kebab"
               onClick={() => setShouldShowBottomSheet(true)}

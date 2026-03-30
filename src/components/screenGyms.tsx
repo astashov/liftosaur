@@ -1,4 +1,4 @@
-import { Fragment, h, JSX } from "preact";
+import { JSX, Fragment, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import { IEquipment, IGym, ISettings } from "../types";
 import { INavCommon, IState, updateState } from "../models/state";
@@ -15,7 +15,6 @@ import { CollectionUtils_removeBy } from "../utils/collection";
 import { UidFactory_generateUid } from "../utils/generator";
 import { ObjectUtils_clone } from "../utils/object";
 import { ModalNewGym } from "./modalNewGym";
-import { useState } from "preact/hooks";
 import { Thunk_pushScreen } from "../ducks/thunks";
 import { LinkButton } from "./linkButton";
 import { Settings_defaultEquipment } from "../models/settings";
@@ -63,6 +62,7 @@ export function ScreenGyms(props: IProps): JSX.Element {
         {gyms.map((gym) => {
           return (
             <MenuItem
+              key={gym.id}
               name={gym.name}
               addons={
                 gym.id === props.settings.currentGymId ? (

@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { useState } from "preact/hooks";
+import { JSX, useState } from "react";
 import { IconFire } from "../../../components/icons/iconFire";
 import { IconGraphs } from "../../../components/icons/iconGraphs";
 import { IconBarbell } from "../../../components/icons/iconBarbell";
@@ -90,6 +89,7 @@ export function TrackProgress(): JSX.Element {
               const iconColor = isOpen ? Tailwind_colors().red[500] : Tailwind_semantic().text.primary;
               return (
                 <button
+                  key={i}
                   className="block w-full px-4 text-left cursor-pointer md:px-6"
                   style={{
                     backgroundColor: isOpen
@@ -147,6 +147,7 @@ export function TrackProgress(): JSX.Element {
                 />
                 {items.map((item, i) => (
                   <img
+                    key={i}
                     src={item.image}
                     loading="lazy"
                     className="w-full rounded-2xl"

@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IDispatch } from "../../ducks/types";
 import { INavCommon } from "../../models/state";
 import { IProgram, ISettings } from "../../types";

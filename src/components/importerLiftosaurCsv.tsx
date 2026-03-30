@@ -1,9 +1,8 @@
+import { JSX, useCallback, useState } from "react";
 import { IDispatch } from "../ducks/types";
-import { h, JSX } from "preact";
 import { MenuItemWrapper } from "./menuItem";
 import { Thunk_importCsvData } from "../ducks/thunks";
 import { Importer } from "./importer";
-import { useCallback, useState } from "preact/hooks";
 import { IconHelp } from "./icons/iconHelp";
 import { InternalLink } from "../internalLink";
 

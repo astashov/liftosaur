@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import type { JSX } from "react";
 import { IPlannerState } from "../../pages/planner/models/types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";

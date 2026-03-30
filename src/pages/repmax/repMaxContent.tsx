@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { JSX, useEffect, useState } from "react";
 import { InputNumber } from "../../components/inputNumber";
 import { LinkButton } from "../../components/linkButton";
 import { MathUtils_toWord, MathUtils_clamp, MathUtils_roundTo05 } from "../../utils/math";

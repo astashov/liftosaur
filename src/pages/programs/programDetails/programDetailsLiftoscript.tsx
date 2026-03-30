@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IProgram } from "../../../types";
 import { PlannerProgram_generateFullText } from "../../planner/models/plannerProgram";
 import { PlannerCodeBlock } from "../../planner/components/plannerCodeBlock";

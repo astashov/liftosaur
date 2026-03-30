@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { Modal } from "./modal";
 import { GroupHeader } from "./groupHeader";
 import { IDispatch } from "../ducks/types";

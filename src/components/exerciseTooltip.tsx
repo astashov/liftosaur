@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { JSX, useEffect, useRef, useState } from "react";
 import { IExerciseType, ISettings } from "../types";
 import { ExerciseImage } from "./exerciseImage";
 import { Exercise_targetMusclesGroups, Exercise_synergistMusclesGroups } from "../models/exercise";

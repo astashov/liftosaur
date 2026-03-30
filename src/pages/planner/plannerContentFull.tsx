@@ -1,6 +1,5 @@
+import { JSX, useEffect, useMemo, useRef, useState } from "react";
 import { lb, lbu, LensBuilder } from "lens-shmens";
-import { h, JSX } from "preact";
-import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { Service } from "../../api/service";
 import { Button } from "../../components/button";
 import { IconPreview } from "../../components/icons/iconPreview";

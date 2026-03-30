@@ -1,11 +1,10 @@
-import { RefObject } from "preact";
-import { useRef, useState, useEffect, useCallback } from "preact/hooks";
+import { RefObject, useCallback, useEffect, useRef, useState } from "react";
 
 export function useGradualList<T>(
   collection: T[],
   initialShift: number,
   pageLength: number,
-  containerRef: RefObject<HTMLElement>,
+  containerRef: RefObject<HTMLElement | null>,
   callback: (visibleRecords: number, nextVisibleRecords: number) => void
 ): { visibleRecords: number; loadMoreVisibleRecords: (cnt: number) => void } {
   const [visibleRecords, setVisibleRecords] = useState<number>(initialShift + pageLength);

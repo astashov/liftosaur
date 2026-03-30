@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, Fragment, useRef } from "react";
 import { IconMuscles2 } from "../icons/iconMuscles2";
 import { IconStar } from "../icons/iconStar";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
@@ -15,7 +15,6 @@ import { ExercisePickerUtils_getProgramExercisefullName } from "./exercisePicker
 import { CollectionUtils_compact } from "../../utils/collection";
 import { ExercisePickerCurrentExercise } from "./exercisePickerCurrentExercise";
 import { Input, IValidationError } from "../input";
-import { useRef } from "preact/hooks";
 import { IEither } from "../../utils/types";
 import { ExercisePickerTemplate } from "./exercisePickerTemplate";
 import { IconFilter } from "../icons/iconFilter";
@@ -269,10 +268,10 @@ function BottomButton(props: IBottomButtonProps): JSX.Element {
       {!(props.state.mode === "program" && props.state.selectedTab === 1) && (
         <div className="text-xs text-text-secondary">
           {selectedExercises.map((e, i) => (
-            <>
+            <Fragment key={i}>
               {i > 0 ? "; " : ""}
               <strong>{e}</strong>
-            </>
+            </Fragment>
           ))}
         </div>
       )}

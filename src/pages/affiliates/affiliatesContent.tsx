@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 
 export interface IAffiliatesContentProps {
   client: Window["fetch"];

@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 
 export function Backfill(): JSX.Element {
   return (

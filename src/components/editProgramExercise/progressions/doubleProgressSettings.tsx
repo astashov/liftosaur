@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import type { JSX } from "react";
 import { lb } from "lens-shmens";
 import { PlannerProgramExercise_progressionType } from "../../../pages/planner/models/plannerProgramExercise";
 import { IPlannerProgramExercise, IPlannerExerciseState } from "../../../pages/planner/models/types";

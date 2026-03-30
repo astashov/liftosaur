@@ -1,8 +1,7 @@
-import { h, JSX } from "preact";
+import { JSX, useRef, useState } from "react";
 import { Input } from "../../input";
 import { Modal } from "../../modal";
 import { IPercentageUnit, IUnit } from "../../../types";
-import { useRef, useState } from "preact/hooks";
 import { Button } from "../../button";
 import { InputSelect } from "../../inputSelect";
 import { MenuItemEditable } from "../../menuItemEditable";

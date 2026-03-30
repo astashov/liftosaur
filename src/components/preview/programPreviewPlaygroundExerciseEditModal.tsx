@@ -1,4 +1,4 @@
-import { JSX, h, Fragment } from "preact";
+import type { JSX } from "react";
 import { Button } from "../button";
 import { MenuItemEditable } from "../menuItemEditable";
 import { Modal } from "../modal";
@@ -95,6 +95,7 @@ function ProgramStateVariables(props: IStateProps): JSX.Element {
 
         return (
           <MenuItemEditable
+            key={stateKey}
             name={stateKey}
             isBorderless={i === Object.keys(props.state).length - 1}
             nextLine={

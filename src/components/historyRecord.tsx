@@ -1,10 +1,9 @@
-import { h, JSX } from "preact";
+import { JSX, memo, useRef } from "react";
 import { IDispatch } from "../ducks/types";
 import { DateUtils_format } from "../utils/date";
 import { TimeUtils_formatHOrMin } from "../utils/time";
 import { Progress_isCurrent, Progress_isFullyEmptySet } from "../models/progress";
 import { ComparerUtils_noFns } from "../utils/comparer";
-import { memo, useRef } from "preact/compat";
 import { IHistoryRecord, ISettings } from "../types";
 import { HtmlUtils_classInParents } from "../utils/html";
 import {
@@ -98,6 +97,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
               const pr = props.prs?.[props.historyRecord.id]?.[exerciseKey] || undefined;
               return (
                 <HistoryEntryView
+                  key={i}
                   entry={entry}
                   prs={pr}
                   isOngoing={props.isOngoing}

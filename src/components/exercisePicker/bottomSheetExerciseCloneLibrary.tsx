@@ -1,9 +1,8 @@
-import { h, JSX } from "preact";
+import { JSX, useState } from "react";
 import { ISettings } from "../../types";
-import { IExercise, Exercise_allExpanded } from "../../models/exercise";
+import { IExercise, Exercise_allExpanded, Exercise_toKey } from "../../models/exercise";
 import { Tailwind_colors } from "../../utils/tailwindConfig";
 import { IconMagnifyingGlass } from "../icons/iconMagnifyingGlass";
-import { useState } from "preact/hooks";
 import { StringUtils_fuzzySearch } from "../../utils/string";
 import { ExercisePickerExerciseItem } from "./exercisePickerExerciseItem";
 import { BottomSheetOrModal } from "../bottomSheetOrModal";
@@ -55,8 +54,9 @@ export function BottomSheetExerciseCloneLibrary(props: IProps): JSX.Element {
           <div className="pb-4">
             {exercises.map((ex) => {
               return (
-                <button
-                  className="block"
+                <div
+                  key={Exercise_toKey(ex)}
+                  className="block cursor-pointer"
                   onClick={() => {
                     props.onSelect(ex);
                   }}
@@ -67,7 +67,7 @@ export function BottomSheetExerciseCloneLibrary(props: IProps): JSX.Element {
                     settings={props.settings}
                     exercise={ex}
                   />
-                </button>
+                </div>
               );
             })}
           </div>

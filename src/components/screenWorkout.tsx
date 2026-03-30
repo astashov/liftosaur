@@ -1,6 +1,5 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, useEffect, useState } from "react";
 import { IExercisePickerState, IHistoryRecord, IProgram, ISettings, IStats, ISubscription } from "../types";
-import { useEffect, useState } from "preact/hooks";
 import { buildCustomDispatch, IDispatch } from "../ducks/types";
 import {
   Program_evaluate,
@@ -170,6 +169,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
             }
             rightButtons={[
               <button
+                key="delete"
                 className="p-2 nm-delete-progress ls-delete-progress"
                 onClick={() => {
                   if (

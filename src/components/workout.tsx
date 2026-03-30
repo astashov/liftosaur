@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, useEffect, useRef, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, IProgram, ISettings, IStats, ISubscription } from "../types";
 import { IState, updateProgress, updateState } from "../models/state";
@@ -30,7 +30,6 @@ import { WorkoutExerciseThumbnail } from "./workoutExerciseThumbnail";
 import { IconShare } from "./icons/iconShare";
 import { Markdown } from "./markdown";
 import { DraggableList } from "./draggableList";
-import { useEffect, useRef, useState } from "preact/hooks";
 import { LinkButton } from "./linkButton";
 import { Button } from "./button";
 import { ModalDayFromAdhoc } from "./modalDayFromAdhoc";
@@ -57,7 +56,7 @@ interface IWorkoutViewProps {
 export function Workout(props: IWorkoutViewProps): JSX.Element {
   const selectedEntry = props.progress.entries[props.progress.ui?.currentEntryIndex ?? 0];
   const description = props.programDay?.description;
-  const screensRef = useRef<HTMLDivElement>();
+  const screensRef = useRef<HTMLDivElement>(null);
   const [isConvertToProgramShown, setIsConvertToProgramShown] = useState(false);
   const forceUpdateEntryIndex = !!props.progress.ui?.forceUpdateEntryIndex;
 
@@ -147,7 +146,10 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
           >
             {props.progress.entries.map((entry, entryIndex) => {
               return (
-                <div style={{ minWidth: "100vw", scrollSnapAlign: "center", scrollSnapStop: "always" }}>
+                <div
+                  key={entryIndex}
+                  style={{ minWidth: "100vw", scrollSnapAlign: "center", scrollSnapStop: "always" }}
+                >
                   <WorkoutExercise
                     day={props.progress.day}
                     key={entry.id}

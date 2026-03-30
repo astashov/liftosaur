@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, memo, useState } from "react";
 import { BottomSheet } from "./bottomSheet";
 import { IProgram, ISettings, IStats } from "../types";
 import {
@@ -12,11 +12,9 @@ import {
 import { HistoryRecordView } from "./historyRecord";
 import { IDispatch } from "../ducks/types";
 import { LinkButton } from "./linkButton";
-import { useState } from "preact/hooks";
 import { IconSwap } from "./icons/iconSwap";
 import { Tailwind_colors } from "../utils/tailwindConfig";
 import { IconPlus2 } from "./icons/iconPlus2";
-import { memo } from "preact/compat";
 import { ComparerUtils_noFns } from "../utils/comparer";
 import { EditProgram_setNextDay } from "../models/editProgram";
 import { ModalChangeNextDay } from "./modalChangeNextDay";

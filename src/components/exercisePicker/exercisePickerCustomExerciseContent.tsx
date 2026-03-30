@@ -1,4 +1,4 @@
-import { JSX, h, Fragment } from "preact";
+import { JSX, useContext, useState } from "react";
 import { ISettings, ICustomExercise, IMuscle, exerciseKinds, IExerciseKind } from "../../types";
 import { Button } from "../button";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -7,7 +7,6 @@ import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { Input2 } from "../input2";
 import { IconAi } from "../icons/iconAi";
 import { ExercisePickerOptionsMuscles } from "./exercisePickerOptionsMuscles";
-import { useContext, useState } from "preact/hooks";
 import { IconArrowDown2 } from "../icons/iconArrowDown2";
 import { ExercisePickerOptions, IFilterValue } from "./exercisePickerOptions";
 import { StringUtils_capitalize } from "../../utils/string";
@@ -584,7 +583,10 @@ function ExercisePickerCustomExercise2SelectInput(props: IExercisePickerCustomEx
       <div className="flex items-center flex-1 p-2 text-sm border rounded-md bg-form-inputbg border-form-inputstroke min-h-8">
         <div className="flex-1">
           {props.selectedValues.map((m) => (
-            <span className="inline-block px-2 py-1 mr-1 text-xs rounded-full bg-background-subtle text-text-secondary">
+            <span
+              key={m}
+              className="inline-block px-2 py-1 mr-1 text-xs rounded-full bg-background-subtle text-text-secondary"
+            >
               {m}
             </span>
           ))}

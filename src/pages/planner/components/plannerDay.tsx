@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import type { JSX } from "react";
 import { LinkInlineInput } from "../../../components/inlineInput";
 import { IPlannerProgramExercise, IPlannerState, IPlannerUi } from "../models/types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
@@ -167,8 +167,8 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
               <>
                 <GroupHeader name="Repeated exercises from previous weeks:" />
                 <ul className="pl-1 ml-8 overflow-x-auto list-disc" style={{ marginTop: "-0.5rem" }}>
-                  {repeats.map((e) => (
-                    <li>
+                  {repeats.map((e, i) => (
+                    <li key={i}>
                       <PlannerCodeBlock script={e.text} />
                     </li>
                   ))}

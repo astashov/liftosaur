@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { useState, useCallback, useEffect } from "preact/hooks";
+import { JSX, useCallback, useEffect, useState } from "react";
 import { parseFrontmatter, parseProgramMarkdownContent } from "../../utils/programUtils";
 import { ProgramDetailsContent } from "./programDetailsContent";
 import { Program_create, IProgramIndexEntry } from "../../models/program";
@@ -40,16 +39,22 @@ function parseMarkdown(raw: string): IParsedProgram | { error: string } {
 }
 
 export function ProgramPreviewPage(): JSX.Element {
-  const params = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : undefined;
-  const [user, setUser] = useState(params?.get("user") || "");
-  const [commit, setCommit] = useState(params?.get("commit") || "");
-  const [programName, setProgramName] = useState(params?.get("program") || "");
+  const [user, setUser] = useState("");
+  const [commit, setCommit] = useState("");
+  const [programName, setProgramName] = useState("");
   const [markdown, setMarkdown] = useState("");
   const [parsed, setParsed] = useState<IParsedProgram | null>(null);
   const [parseVersion, setParseVersion] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [fetching, setFetching] = useState(false);
   const [editorVersion, setEditorVersion] = useState(0);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setUser(params.get("user") || "");
+    setCommit(params.get("commit") || "");
+    setProgramName(params.get("program") || "");
+  }, []);
 
   const doParse = useCallback((raw: string) => {
     if (!raw.trim()) {

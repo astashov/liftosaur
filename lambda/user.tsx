@@ -1,5 +1,3 @@
-import { h } from "preact";
-
 import { renderPage } from "./render";
 import { IStorage, IExerciseId } from "../src/types";
 import { UserHtml } from "../src/pages/user/userHtml";

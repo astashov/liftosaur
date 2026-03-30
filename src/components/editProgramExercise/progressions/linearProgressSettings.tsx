@@ -1,4 +1,4 @@
-import { JSX, h, Fragment } from "preact";
+import type { JSX } from "react";
 import { lb } from "lens-shmens";
 import { Weight_build } from "../../../models/weight";
 import { PlannerProgramExercise_progressionType } from "../../../pages/planner/models/plannerProgramExercise";

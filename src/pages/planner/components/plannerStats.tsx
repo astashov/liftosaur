@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, useState } from "react";
 import { IPlannerState, IPlannerUiFocusedExercise, ISetResults, ISetSplit } from "../models/types";
 import { ObjectUtils_keys } from "../../../utils/object";
 import { PlannerWeekMuscles } from "./plannerWeekMuscles";
@@ -6,7 +6,6 @@ import { IExerciseKind } from "../../../models/exercise";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { LinkButton } from "../../../components/linkButton";
 import { lb } from "lens-shmens";
-import { useState } from "preact/hooks";
 import { CollectionUtils_sort } from "../../../utils/collection";
 import { IScreenMuscle, ISettings } from "../../../types";
 import { n } from "../../../utils/math";
@@ -93,7 +92,7 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
 
       {ObjectUtils_keys(setResults.muscleGroup).map((muscleGroup) => {
         return (
-          <div>
+          <div key={muscleGroup}>
             {labelSet(
               Muscle_getMuscleGroupName(muscleGroup, props.settings),
               showLink,
@@ -265,7 +264,10 @@ function PlannerStatsTooltip(props: { split: ISetSplit }): JSX.Element | null {
         {exercises.map((exercise) => {
           const totalSets = exercise.strengthSets + exercise.hypertrophySets;
           return (
-            <li className={`font-bold ${exercise.isSynergist ? "text-text-secondary" : "text-text-primary"}`}>
+            <li
+              key={exercise.exerciseName}
+              className={`font-bold ${exercise.isSynergist ? "text-text-secondary" : "text-text-primary"}`}
+            >
               {exercise.exerciseName}: {n(totalSets)} ({n(exercise.strengthSets)}s, {n(exercise.hypertrophySets)}h)
             </li>
           );

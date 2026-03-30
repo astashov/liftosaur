@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { useState } from "preact/hooks";
+import { JSX, useState } from "react";
 import { IPaymentsDashboardData } from "../../../lambda/paymentsDashboard";
 import { StringUtils_truncate } from "../../utils/string";
 import { TimeUtils_formatUTCHHMM } from "../../utils/time";

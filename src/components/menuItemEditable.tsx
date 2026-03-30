@@ -1,6 +1,5 @@
-import { h, JSX, ComponentChildren } from "preact";
+import React, { JSX, Dispatch, ReactNode, SetStateAction, useState } from "react";
 import { MenuItemWrapper } from "./menuItem";
-import { useState, StateUpdater } from "preact/hooks";
 import { StringUtils_dashcase } from "../utils/string";
 import { ScrollBarrell } from "./scrollBarrell";
 import { IconTrash } from "./icons/iconTrash";
@@ -11,12 +10,12 @@ type IMenuItemType = "text" | "number" | "select" | "boolean" | "desktop-select"
 
 interface IMenuItemEditableValueProps {
   name: string;
-  prefix?: ComponentChildren;
+  prefix?: ReactNode;
   type: IMenuItemType;
   value: string | null | undefined;
   valueUnits?: string;
   values?: [string, string][];
-  onChange?: (v?: string, e?: Event) => void;
+  onChange?: (v?: string, e?: React.SyntheticEvent) => void;
   pattern?: string;
   patternMessage?: string;
   maxLength?: number;
@@ -41,7 +40,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
   if (numberOfVisibleItems % 2 === 0) {
     numberOfVisibleItems += 1;
   }
-  const onChange = (v?: string, e?: Event): void => {
+  const onChange = (v?: string, e?: React.SyntheticEvent): void => {
     lg(`menu-item-edit-${StringUtils_dashcase(props.name)}`);
     if (props.onChange != null) {
       props.onChange(v, e);
@@ -60,14 +59,21 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
       >
         <div className="flex items-center flex-1">
           {props.prefix}
-          <span
-            data-cy={`menu-item-name-${StringUtils_dashcase(props.name)}`}
-            className={`flex flex-col min-w-0 break-all items-start pr-2 ${props.isNameBold ? "font-bold" : ""}`}
-            {...(props.isNameHtml ? { dangerouslySetInnerHTML: { __html: props.name } } : {})}
-          >
-            <div className={props.size === "sm" ? "text-sm" : ""}>{props.isNameHtml ? "" : props.name}</div>
-            {props.underName}
-          </span>
+          {props.isNameHtml ? (
+            <span
+              data-cy={`menu-item-name-${StringUtils_dashcase(props.name)}`}
+              className={`flex flex-col min-w-0 break-all items-start pr-2 ${props.isNameBold ? "font-bold" : ""}`}
+              dangerouslySetInnerHTML={{ __html: props.name }}
+            />
+          ) : (
+            <span
+              data-cy={`menu-item-name-${StringUtils_dashcase(props.name)}`}
+              className={`flex flex-col min-w-0 break-all items-start pr-2 ${props.isNameBold ? "font-bold" : ""}`}
+            >
+              <div className={props.size === "sm" ? "text-sm" : ""}>{props.name}</div>
+              {props.underName}
+            </span>
+          )}
           <div className="flex-1" style={{ minWidth: "3rem" }}>
             <MenuItemValue
               name={props.name}
@@ -118,7 +124,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
 }
 
 export function MenuItemValue(
-  props: { setPatternError: StateUpdater<boolean> } & IMenuItemEditableValueProps
+  props: { setPatternError: Dispatch<SetStateAction<boolean>> } & IMenuItemEditableValueProps
 ): JSX.Element | null {
   if (props.type === "desktop-select") {
     return (
@@ -129,7 +135,7 @@ export function MenuItemValue(
         onChange={handleChange(props.onChange, props.setPatternError)}
       >
         {(props.values || []).map(([key, value]) => (
-          <option value={key} selected={key === props.value}>
+          <option key={key} value={key}>
             {value}
           </option>
         ))}
@@ -153,7 +159,7 @@ export function MenuItemValue(
         key={props.value}
         type="text"
         className="flex-1 w-full py-2 text-right bg-transparent text-text-link"
-        value={props.value || undefined}
+        defaultValue={props.value || undefined}
         title={props.patternMessage}
         maxLength={props.maxLength}
         onBlur={handleChange(props.onChange, props.setPatternError)}
@@ -180,7 +186,7 @@ export function MenuItemValue(
             type="checkbox"
             className="text-right text-text-link checkbox"
             checked={props.value === "true"}
-            onChange={(e: Event): void => {
+            onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
               if (props.onChange != null) {
                 const value = `${(e.target as HTMLInputElement).checked}`;
                 props.onChange(value, e);
@@ -212,7 +218,7 @@ export function MenuItemValue(
           }}
           title={props.patternMessage}
           className="items-center flex-1 w-0 min-w-0 p-2 text-right bg-transparent outline-none text-text-secondary"
-          value={props.value || undefined}
+          defaultValue={props.value || undefined}
           pattern={props.pattern}
         />
       </span>
@@ -223,10 +229,10 @@ export function MenuItemValue(
 }
 
 function handleChange(
-  cb: ((val: string, e: Event) => void) | undefined,
-  setPatternError: StateUpdater<boolean>
-): (e: Event) => void {
-  return (e: Event): void => {
+  cb: ((val: string, e: React.SyntheticEvent) => void) | undefined,
+  setPatternError: Dispatch<SetStateAction<boolean>>
+): (e: React.SyntheticEvent) => void {
+  return (e: React.SyntheticEvent): void => {
     setPatternError(e.target instanceof HTMLInputElement && e.target.validity.patternMismatch);
     if (cb != null) {
       const value = (e.target as HTMLInputElement).value;

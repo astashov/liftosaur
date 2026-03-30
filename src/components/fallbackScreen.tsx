@@ -1,5 +1,4 @@
-import { JSX, h } from "preact";
-import { useLayoutEffect } from "preact/hooks";
+import { JSX, useLayoutEffect } from "react";
 import { IDispatch } from "../ducks/types";
 import { Thunk_pushScreen } from "../ducks/thunks";
 

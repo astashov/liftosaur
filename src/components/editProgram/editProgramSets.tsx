@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 
 export function SetNumber(props: { setIndex: number; size?: "md" | "sm" }): JSX.Element {
   return (

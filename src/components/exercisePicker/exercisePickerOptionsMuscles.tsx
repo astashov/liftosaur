@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { availableMuscles, IMuscle, IScreenMuscle, ISettings } from "../../types";
 import { Muscle_getScreenMusclesFromMuscle, Muscle_getMuscleGroupName } from "../../models/muscle";
 import { ObjectUtils_keys } from "../../utils/object";
@@ -42,7 +42,7 @@ export function ExercisePickerOptionsMuscles(props: IProps): JSX.Element {
         const muscles = groupedMuscles[group];
         const sortedMuscles = ObjectUtils_keys(muscles).sort(([a], [b]) => a.localeCompare(b));
         return (
-          <div className="mb-4">
+          <div key={group} className="mb-4">
             <h3 className="mb-2 font-semibold">{Muscle_getMuscleGroupName(group, props.settings)}</h3>
             <div className="grid grid-cols-2 gap-4 mt-2">
               {sortedMuscles.map((key) => {
@@ -58,6 +58,7 @@ export function ExercisePickerOptionsMuscles(props: IProps): JSX.Element {
                       : "text-base";
                 return (
                   <button
+                    key={key}
                     data-cy={`select-muscle-${StringUtils_dashcase(value.label)}`}
                     className={`bg-background-subtle ${fontSize} flex gap-2 h-12 leading-none overflow-hidden bg-no-repeat items-center rounded-lg border text-left ${value.isSelected ? "border-text-purple text-text-purple" : "border-border-neutral"}`}
                     style={{ borderWidth: value.isSelected ? "2px" : "1px" }}

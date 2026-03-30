@@ -1,5 +1,5 @@
+import { JSX, ReactNode } from "react";
 import { lb } from "lens-shmens";
-import { ComponentChildren, h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
 import { IState, updateState } from "../models/state";
 import { IconClose2 } from "./icons/iconClose2";
@@ -11,7 +11,7 @@ interface IProps {
   id: string;
   helps: string[];
   className?: string;
-  children: ComponentChildren;
+  children: ReactNode;
 }
 
 export function Nux(props: IProps): JSX.Element | null {

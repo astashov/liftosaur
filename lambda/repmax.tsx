@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { RepMaxHtml } from "../src/pages/repmax/repMaxHtml";
 
 import { renderPage } from "./render";

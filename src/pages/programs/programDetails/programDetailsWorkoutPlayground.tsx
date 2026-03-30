@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { memo, useCallback, useEffect, useRef, useState } from "preact/compat";
+import { JSX, memo, useCallback, useEffect, useRef, useState } from "react";
 import { IProgram, ISettings, IUnit } from "../../../types";
 import { MenuItemValue } from "../../../components/menuItemEditable";
 import { ProgramPreviewPlayground } from "../../../components/preview/programPreviewPlayground";
@@ -74,6 +73,7 @@ export const ProgramDetailsWorkoutPlayground = memo((props: IPlaygroundProps): J
         <div className="flex" style={{ gap: "2px" }}>
           {(["preview", "liftoscript", "playground"] as const).map((t) => (
             <button
+              key={t}
               className={`px-3 py-1 rounded-md transition-colors ${
                 tab === t
                   ? "bg-white text-text-purple border-b brder-border-purple"

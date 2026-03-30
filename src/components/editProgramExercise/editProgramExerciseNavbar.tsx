@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import type { JSX } from "react";
 import { IPlannerExerciseState, IPlannerProgramExercise, IPlannerState } from "../../pages/planner/models/types";
 import { IconUndo } from "../icons/iconUndo";
 import { ILensDispatch } from "../../utils/useLensReducer";

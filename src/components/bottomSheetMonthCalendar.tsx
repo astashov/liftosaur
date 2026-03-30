@@ -1,6 +1,5 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, memo } from "react";
 import { BottomSheet } from "./bottomSheet";
-import { memo } from "preact/compat";
 import { ComparerUtils_noFns } from "../utils/comparer";
 import { MonthCalendar } from "./monthCalendar";
 import { LinkButton } from "./linkButton";
@@ -41,8 +40,8 @@ export const BottomSheetMonthCalendar = memo((props: IProps): JSX.Element => {
           </LinkButton>
         </div>
         <div className="flex flex-row justify-around py-2 mx-3 border-b border-background-subtle">
-          {monthNames.map((day) => (
-            <div key={day} class="text-gray-500 font-medium p-2 w-10 h-10 text-center">
+          {monthNames.map((day, i) => (
+            <div key={i} className="text-gray-500 font-medium p-2 w-10 h-10 text-center">
               {day}
             </div>
           ))}

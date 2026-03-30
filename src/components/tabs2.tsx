@@ -1,9 +1,8 @@
-import { h, JSX, ComponentChildren } from "preact";
+import { JSX, ReactNode, useState } from "react";
 import { StringUtils_dashcase } from "../utils/string";
-import { useState } from "preact/hooks";
 
 interface IProps {
-  tabs: [string, ComponentChildren][];
+  tabs: [string, ReactNode][];
   defaultIndex?: number;
   onChange?: (index: number, newValue: string) => void;
 }
@@ -18,7 +17,7 @@ export function Tabs2(props: IProps): JSX.Element {
           const nameClass = `tab-${StringUtils_dashcase(name.toLowerCase())}`;
 
           return (
-            <div className="flex-1 text-center border-b border-border-neutral">
+            <div key={name} className="flex-1 text-center border-b border-border-neutral">
               <button
                 className={`ls-${nameClass} inline-block text-base px-4 pb-1 outline-none focus:outline-none ${
                   selectedIndex === index ? "text-icon-yellow border-b border-icon-yellow" : ""

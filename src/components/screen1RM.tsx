@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import { JSX, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import { IExerciseType, IProgram, ISettings } from "../types";
 import { INavCommon } from "../models/state";
@@ -11,7 +11,6 @@ import { ExerciseImage } from "./exerciseImage";
 import { InputWeight2 } from "./inputWeight2";
 import { Button } from "./button";
 import { Weight_isPct } from "../models/weight";
-import { useState } from "preact/hooks";
 
 interface IScreen1RMProps {
   dispatch: IDispatch;
@@ -63,7 +62,7 @@ export function Screen1RM(props: IScreen1RMProps): JSX.Element {
               const exercise = Exercise_get(exerciseType, props.settings.exercises);
               const onerm = Exercise_onerm(exerciseType, props.settings);
               return (
-                <div className="table-row">
+                <div key={`${exerciseType.id}_${exerciseType.equipment}`} className="table-row">
                   <div className="table-cell py-1 pl-4 align-middle border-b border-background-subtle">
                     <div className="flex items-center gap-4">
                       <div className="w-12">

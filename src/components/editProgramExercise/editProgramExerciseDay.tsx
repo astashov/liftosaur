@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import { JSX, useState } from "react";
 import { IPlannerExerciseState, IPlannerExerciseUi } from "../../pages/planner/models/types";
 import { IExerciseType, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -6,7 +6,6 @@ import { IEvaluatedProgram, Program_getDayNumber } from "../../models/program";
 import { EditProgramExerciseDayExercise } from "./editProgramExerciseDayExercise";
 import { Button } from "../button";
 import { IconKebab } from "../icons/iconKebab";
-import { useState } from "preact/hooks";
 import { DropdownMenu, DropdownMenuItem } from "../dropdownMenu";
 import {
   EditProgramUiHelpers_changeCurrentInstanceExercise,

@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { CollectionUtils_compact } from "../../utils/collection";
 import { DateUtils_format } from "../../utils/date";
 
@@ -95,7 +95,7 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
   return (
     <section className="py-16">
       <h2 className="mb-4 text-2xl font-bold">Users</h2>
-      {data.map((monthGroup) => {
+      {data.map((monthGroup, mi) => {
         const activeMontlyCount = monthGroup.reduce((acc, dayGroup) => acc + dayGroup.length, 0);
         const activeMonthlyRegisteredCount = monthGroup.reduce(
           (acc, dayGroup) => acc + dayGroup.filter((i) => i.email != null).length,
@@ -112,7 +112,7 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
           0
         );
         return (
-          <div className="mb-16">
+          <div key={mi} className="mb-16">
             <h3 className="mb-4 text-xl font-bold">
               {new Date(monthGroup[0][0].lastAction.ts).toLocaleString("en-us", { month: "long" })}
               <span>
@@ -121,7 +121,7 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                 {newRegisteredThisMonth} new registered
               </span>
             </h3>
-            {monthGroup.map((dayGroup) => {
+            {monthGroup.map((dayGroup, di) => {
               const activeCount = dayGroup.length;
               const activeRegisteredCount = dayGroup.filter((i) => i.email != null).length;
               const newThisDay = dayGroup.filter((i) => Date.now() - i.firstAction.ts < 1000 * 60 * 60 * 24).length;
@@ -129,7 +129,7 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                 (i) => i.userTs != null && Date.now() - i.userTs < 1000 * 60 * 60 * 24
               ).length;
               return (
-                <div className="mb-8">
+                <div key={di} className="mb-8">
                   <h4 className="mb-4 text-lg">
                     {DateUtils_format(dayGroup[0].lastAction.ts)}
                     <span>
@@ -159,7 +159,7 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                         const isNew = getIsNew(item);
                         const isNewUser = getIsNewUser(item);
                         return (
-                          <tr>
+                          <tr key={item.userId}>
                             <td>
                               <div>
                                 <span className={`${isNew ? "text-text-success" : "text-text-primary"}`}>
@@ -239,14 +239,14 @@ export function UsersDashboardContent(props: IUsersDashboardContentProps): JSX.E
                             <td>{Math.ceil((item.lastAction.ts - item.firstAction.ts) / (1000 * 60 * 60 * 24))}</td>
                             <td>
                               {(item.programNames || []).map((name) => (
-                                <div>{name}</div>
+                                <div key={name}>{name}</div>
                               ))}
                             </td>
                             <td>{item.platforms.join(", ")}</td>
                             <td>{item.affiliates.join(", ")}</td>
                             <td>
                               {item.reviewRequests.map((i) => (
-                                <div>{DateUtils_format(i)}</div>
+                                <div key={i}>{DateUtils_format(i)}</div>
                               ))}
                             </td>
                             <td>{item.signupRequests.join(", ")}</td>

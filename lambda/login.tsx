@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { IAccount } from "../src/models/account";
 import { LoginHtml } from "../src/pages/login/loginHtml";
 

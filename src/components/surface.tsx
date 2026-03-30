@@ -1,11 +1,10 @@
-import { h, JSX, ComponentChildren } from "preact";
-import { forwardRef, Ref } from "preact/compat";
+import { JSX, ReactNode, Ref, forwardRef } from "react";
 
 interface IProps {
-  navbar?: ComponentChildren;
-  footer: ComponentChildren;
-  addons?: ComponentChildren;
-  children: ComponentChildren;
+  navbar?: ReactNode;
+  footer: ReactNode;
+  addons?: ReactNode;
+  children: ReactNode;
 }
 
 export const Surface = forwardRef((props: IProps, ref: Ref<HTMLElement>): JSX.Element => {

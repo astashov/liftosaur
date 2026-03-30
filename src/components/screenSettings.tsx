@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, useEffect, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import { MenuItem, MenuItemWrapper } from "./menuItem";
 import {
@@ -13,7 +13,6 @@ import { InternalLink } from "../internalLink";
 import { IUser } from "../models/user";
 import { ClipboardUtils_copy } from "../utils/clipboard";
 import { Share_generateProfileLink } from "../models/share";
-import { useEffect, useState } from "preact/hooks";
 import { ILengthUnit, ISettings, IStats, ISubscription, IUnit } from "../types";
 import { WhatsNew_showWhatsNew } from "../models/whatsnewUtils";
 import { ImporterStorage } from "./importerStorage";

@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { ObjectUtils_keys } from "../../../utils/object";
 import { BackMusclesSvg, IMuscleStyle } from "../../../components/muscles/images/backMusclesSvg";
 import { FrontMusclesSvg } from "../../../components/muscles/images/frontMusclesSvg";

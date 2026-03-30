@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import type { JSX } from "react";
 import { IHistoryRecord, ISettings } from "../types";
 import { ExerciseImage } from "./exerciseImage";
 import { Exercise_toKey, Exercise_get } from "../models/exercise";
@@ -63,7 +63,7 @@ export function WorkoutShareOutput(props: IWorkoutShareOutputProps): JSX.Element
           const hasPrs = ObjectUtils_keys(prs).length > 0;
           const exercise = Exercise_get(entry.exercise, settings.exercises);
           return (
-            <div className="flex items-center gap-4">
+            <div key={Exercise_toKey(entry.exercise)} className="flex items-center gap-4">
               <div className="w-12 h-12" style={{ minHeight: "3rem" }}>
                 <ExerciseImage
                   size="small"

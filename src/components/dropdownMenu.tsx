@@ -1,11 +1,11 @@
-import { ComponentChildren, JSX, h } from "preact";
+import React, { JSX, ReactNode } from "react";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 
 export function DropdownMenu(props: {
   rightOffset?: string;
   leftOffset?: string;
   topOffset?: string;
-  children: ComponentChildren;
+  children: ReactNode;
   maxWidth?: string;
   bgColor?: string;
   hideTip?: boolean;
@@ -40,7 +40,7 @@ export function DropdownMenu(props: {
   );
 }
 
-interface IDropdownMenuItemProps extends JSX.HTMLAttributes<HTMLButtonElement> {
+interface IDropdownMenuItemProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   isTop?: boolean;
 }
 

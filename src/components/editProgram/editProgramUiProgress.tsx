@@ -1,4 +1,4 @@
-import { JSX, h, Fragment } from "preact";
+import { JSX, Fragment } from "react";
 import { Weight_print } from "../../models/weight";
 import {
   PlannerProgramExercise_progressionType,
@@ -32,10 +32,10 @@ export function EditProgramUiProgress(props: IEditProgramUiProgressProps): JSX.E
         <>
           This progress reused by:{" "}
           {reusingProgressExercises.map((e, i) => (
-            <>
+            <Fragment key={i}>
               {i !== 0 ? ", " : ""}
               <strong>{e.fullName}</strong>
-            </>
+            </Fragment>
           ))}
           .
         </>

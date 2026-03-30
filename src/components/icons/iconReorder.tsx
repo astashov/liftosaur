@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
@@ -22,9 +22,9 @@ export function IconReorder(props: IProps): JSX.Element {
       <path
         d="M14.75 6.375L18.125 3M18.125 3L21.5 6.375M18.125 3L18.125 21M10.25 17.625L6.875 21M6.875 21L3.5 17.625M6.875 21L6.875 3"
         stroke={color}
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );

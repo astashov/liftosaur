@@ -1,5 +1,5 @@
+import type { JSX } from "react";
 import { LensBuilder, lb } from "lens-shmens";
-import { h, JSX } from "preact";
 import { PlannerCodeBlock } from "../../pages/planner/components/plannerCodeBlock";
 import { PlannerEditorView } from "../../pages/planner/components/plannerEditorView";
 import { PlannerStatsUtils_dayApproxTimeMs } from "../../pages/planner/models/plannerStatsUtils";
@@ -83,8 +83,8 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
       />
       {repeats.length > 0 && (
         <ul className="pl-1 ml-8 overflow-x-auto list-disc">
-          {repeats.map((e) => (
-            <li>
+          {repeats.map((e, i) => (
+            <li key={i}>
               <PlannerCodeBlock script={e.text} />
             </li>
           ))}

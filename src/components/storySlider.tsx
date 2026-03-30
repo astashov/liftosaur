@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { JSX, useEffect, useRef, useState } from "react";
 
 interface IStorySliderProps {
   slides: JSX.Element[];

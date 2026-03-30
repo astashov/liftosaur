@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { useState, useRef, useEffect } from "preact/hooks";
+import { JSX, useEffect, useRef, useState } from "react";
 import { Button } from "../../components/button";
 import { Service } from "../../api/service";
 import { IconDoc } from "../../components/icons/iconDoc";

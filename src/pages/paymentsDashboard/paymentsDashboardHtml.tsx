@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { Page } from "../../components/page";
 import { IPaymentsDashboardData } from "../../../lambda/paymentsDashboard";
 import { PaymentsDashboardContent } from "./paymentsDashboardContent";

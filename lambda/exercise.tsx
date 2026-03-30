@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { ExerciseHtml } from "../src/pages/exercise/exerciseHtml";
 import { IExerciseType } from "../src/types";
 

@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IAccount } from "../../models/account";
 import type { ICreatorStats } from "../../../lambda/userAffiliates";
 

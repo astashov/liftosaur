@@ -1,9 +1,8 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, useState } from "react";
 import { MenuItemEditable } from "./menuItemEditable";
 import { IExercise, Exercise_onerm } from "../models/exercise";
 import { IExerciseDataValue, ISettings } from "../types";
 import { IconCalculator } from "./icons/iconCalculator";
-import { useState } from "preact/hooks";
 import { Modal } from "./modal";
 import { RepMaxCalculator } from "./repMaxCalculator";
 

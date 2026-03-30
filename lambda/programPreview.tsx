@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { ProgramPreviewHtml } from "../src/pages/programs/programPreviewHtml";
 import { renderPage } from "./render";
 

@@ -1,5 +1,4 @@
-import { h, JSX, Fragment } from "preact";
-import { Ref, useRef, useState } from "preact/hooks";
+import { JSX, RefObject, forwardRef, useRef, useState } from "react";
 import { Modal } from "./modal";
 import { StringUtils_capitalize, StringUtils_dashcase } from "../utils/string";
 import {
@@ -13,7 +12,6 @@ import {
   equipments,
 } from "../types";
 import { GroupHeader } from "./groupHeader";
-import { forwardRef } from "preact/compat";
 import { Button } from "./button";
 import { ObjectUtils_keys } from "../utils/object";
 import { HtmlUtils_classInParents } from "../utils/html";
@@ -132,7 +130,7 @@ export function ModalExercise(props: IModalExerciseProps): JSX.Element {
 
 type IExercisePickerContainerProps = Omit<IExercisesListProps, "isSubstitute">;
 
-const ExercisePickerContainer = forwardRef((props: IExercisePickerContainerProps) => {
+const ExercisePickerContainer = forwardRef((props: IExercisePickerContainerProps, _ref) => {
   const exerciseType = props.exerciseType;
   const onSaveAsTemplate = props.onSaveAsTemplate;
   const labelRef = useRef<HTMLInputElement>(null);
@@ -198,7 +196,7 @@ interface IExercisesListProps {
   shouldAddExternalLinks?: boolean;
   templateName?: string;
   label?: string;
-  labelRef?: Ref<HTMLInputElement>;
+  labelRef?: RefObject<HTMLInputElement | null>;
   onSaveAsTemplate?: (name: string | undefined, label: string | undefined) => void;
   onLabelChange?: (label: string) => void;
   isSubstitute: boolean;
@@ -209,10 +207,10 @@ interface IExercisesListProps {
   exerciseType?: IExerciseType;
   onChange: (value: IExerciseType | undefined, label: string | undefined, shouldClose: boolean) => void;
   onDelete: (id: string) => void;
-  textInput: Ref<HTMLInputElement>;
+  textInput: RefObject<HTMLInputElement | null>;
 }
 
-const ExercisesList = forwardRef((props: IExercisesListProps): JSX.Element => {
+const ExercisesList = forwardRef((props: IExercisesListProps, _ref): JSX.Element => {
   const { textInput, setFilter, filter } = props;
 
   let exercises = Exercise_allExpanded({});
@@ -261,7 +259,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps): JSX.Element => {
         data-cy="exercise-filter-by-name"
         placeholder="Filter by name"
         onInput={() => {
-          setFilter(textInput.current.value.toLowerCase());
+          setFilter(textInput.current!.value.toLowerCase());
         }}
       />
       <Multiselect
@@ -282,7 +280,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps): JSX.Element => {
               const e = customExercises[id]!;
               return (
                 <section
-                  key={customExercises.id}
+                  key={id}
                   data-cy={`menu-item-${StringUtils_dashcase(e.name)}`}
                   className="w-full px-2 py-1 text-left border-b border-gray-200"
                   onClick={(event) => {
@@ -467,8 +465,8 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
           onDelete={() => {}}
         />
       </div>
-      <div class="py-4 flex">
-        <div class="flex-1">
+      <div className="py-4 flex">
+        <div className="flex-1">
           <Button
             name="custom-exercise-cancel"
             kind="grayv2"
@@ -481,7 +479,7 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
             {props.backLabel}
           </Button>
         </div>
-        <div class="flex-1 text-right">
+        <div className="flex-1 text-right">
           <Button
             name="custom-exercise-create"
             kind="purple"
@@ -571,7 +569,7 @@ function MuscleView(props: {
           <span className="font-bold">
             {targetMuscles.map((m, i) => {
               return (
-                <span>
+                <span key={m}>
                   <span
                     className={tms.length === 0 ? "" : tms.indexOf(m) !== -1 ? "text-text-success" : "text-text-error"}
                   >
@@ -590,7 +588,7 @@ function MuscleView(props: {
           <span className="font-bold">
             {synergistMuscles.map((m, i) => {
               return (
-                <span>
+                <span key={m}>
                   <span
                     className={sms.length === 0 ? "" : sms.indexOf(m) !== -1 ? "text-text-success" : "text-text-error"}
                   >
@@ -651,7 +649,7 @@ export function CustomMuscleGroupsView(props: { exercise: ICustomExercise; setti
 
 interface IExerciseTemplateProps {
   templateName?: string;
-  labelRef?: Ref<HTMLInputElement>;
+  labelRef?: RefObject<HTMLInputElement | null>;
   onSaveAsTemplate: (name: string | undefined, label: string | undefined) => void;
 }
 

@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import type { JSX } from "react";
 import { ISettings, IMuscle, IScreenMuscle } from "../types";
 import { Button } from "./button";
 import { ExercisePickerOptionsMuscles } from "./exercisePicker/exercisePickerOptionsMuscles";

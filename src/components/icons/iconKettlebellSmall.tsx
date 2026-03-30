@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
@@ -26,8 +26,8 @@ export function IconKettlebellSmall(props: IProps): JSX.Element {
       <path
         d="M9.30261 6.88928C7.59166 6.28746 5.47318 6.56206 4.1662 7.73766C3.4028 8.42434 3 9.33953 3 10.2888C3 11.232 3.39188 12.0895 4.0354 12.7613C4.39642 13.1382 4.95439 13.3303 5.51879 13.3303H9.48121C10.0456 13.3303 10.6036 13.1382 10.9646 12.7613C11.6082 12.0895 12 11.232 12 10.2888C12 10.1941 11.9962 10.1001 11.9885 10.0071C11.8956 8.87296 11.2302 7.86353 10.1194 7.25335C9.86046 7.11113 9.58664 6.98915 9.30261 6.88928Z"
         stroke={color}
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );

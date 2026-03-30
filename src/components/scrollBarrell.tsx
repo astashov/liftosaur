@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { useEffect, useRef } from "preact/hooks";
+import { JSX, useEffect, useRef } from "react";
 import { StringUtils_dashcase, StringUtils_truncate } from "../utils/string";
 
 interface IProps {
@@ -14,8 +13,8 @@ interface IProps {
 export function ScrollBarrell(props: IProps): JSX.Element {
   const height = props.itemHeight * props.numberOfVisibleItems;
   const numberOfDummyItems = Math.floor(props.numberOfVisibleItems / 2);
-  const containerRef = useRef<HTMLDivElement>();
-  const barrelRef = useRef<HTMLDivElement>();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const barrelRef = useRef<HTMLDivElement>(null);
   const timer = useRef<number | undefined>(undefined);
   const isDefaultSet = useRef<boolean>(false);
   const isTurnedOn = useRef<boolean>(props.isExpanded);
@@ -96,29 +95,32 @@ export function ScrollBarrell(props: IProps): JSX.Element {
       <div
         className="relative w-full h-full overflow-scroll"
         ref={barrelRef}
-        style={{ overflowScrolling: "touch", scrollSnapType: "y mandatory" }}
+        style={{ WebkitOverflowScrolling: "touch", scrollSnapType: "y mandatory" }}
       >
-        {Array.apply(null, Array(numberOfDummyItems)).map(() => (
+        {Array.apply(null, Array(numberOfDummyItems)).map((_, i) => (
           <div
+            key={`top-${i}`}
             className="flex items-center justify-center w-full"
             style={{ minHeight: `${props.itemHeight}px`, scrollSnapAlign: "start" }}
           />
         ))}
         {props.values.map(([value, label], index) => (
           <button
+            key={value}
             data-cy={`scroll-barrel-item-${StringUtils_dashcase(label)}`}
             className="flex items-center justify-center w-full cursor-pointer scroll-barrel-item"
             style={{ minHeight: `${props.itemHeight}px`, scrollSnapAlign: "start" }}
             onClick={() => {
               props.onSelect(value);
-              barrelRef.current.scrollTo({ top: index * props.itemHeight, behavior: "smooth" });
+              barrelRef.current?.scrollTo({ top: index * props.itemHeight, behavior: "smooth" });
             }}
           >
             {StringUtils_truncate(label, 35)}
           </button>
         ))}
-        {Array.apply(null, Array(numberOfDummyItems)).map(() => (
+        {Array.apply(null, Array(numberOfDummyItems)).map((_, i) => (
           <div
+            key={`bottom-${i}`}
             className="flex items-center justify-center w-full"
             style={{ minHeight: `${props.itemHeight}px`, scrollSnapAlign: "start" }}
           />

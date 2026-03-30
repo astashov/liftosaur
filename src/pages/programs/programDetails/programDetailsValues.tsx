@@ -1,5 +1,4 @@
-import { JSX, h } from "preact";
-import { memo } from "preact/compat";
+import { JSX, memo } from "react";
 import { IDayData, ISet, ISettings } from "../../../types";
 import { HistoryRecordSetsView } from "../../../components/historyRecordSets";
 import { IPlannerProgramExerciseEvaluatedSet, IPlannerProgramExerciseWithType } from "../../planner/models/types";

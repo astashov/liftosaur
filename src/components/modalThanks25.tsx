@@ -1,9 +1,8 @@
-import { h, JSX } from "preact";
+import { JSX, useEffect } from "react";
 import { Modal } from "./modal";
 import { IDispatch } from "../ducks/types";
 import { Button } from "./button";
 import { Thunk_postevent, Thunk_pushScreen } from "../ducks/thunks";
-import { useEffect } from "preact/hooks";
 import { SendMessage_isIos } from "../utils/sendMessage";
 
 interface IModalThanks25Props {

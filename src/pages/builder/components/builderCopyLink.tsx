@@ -1,8 +1,6 @@
-import { h, JSX } from "preact";
+import { JSX, useEffect, useState } from "react";
 import { IconLink } from "../../../components/icons/iconLink";
-import { useState } from "preact/compat";
 import { Service } from "../../../api/service";
-import { useEffect } from "preact/hooks";
 import { ClipboardUtils_copy } from "../../../utils/clipboard";
 
 interface IBuilderCopyLinkProps<T> {

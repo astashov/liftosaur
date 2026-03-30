@@ -1,5 +1,4 @@
-import { JSX, h } from "preact";
-import { useRef, useState } from "preact/hooks";
+import { JSX, useRef, useState } from "react";
 import { Weight_buildPct, Weight_build, Weight_decrement, Weight_increment } from "../models/weight";
 import { IExerciseType, IPercentage, ISettings, IUnit, IWeight } from "../types";
 import { IconCalculator } from "./icons/iconCalculator";
@@ -18,15 +17,15 @@ interface IInputWeightProps {
 }
 
 export function InputWeight(props: IInputWeightProps): JSX.Element {
-  const inputRef = useRef<HTMLInputElement>();
-  const unitRef = useRef<HTMLSelectElement>();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const unitRef = useRef<HTMLSelectElement>(null);
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
 
   function getValue(): IWeight | IPercentage | undefined {
-    const inputValue = inputRef.current.value;
+    const inputValue = inputRef.current!.value;
     const value = Number(inputValue);
     if (inputValue && !isNaN(value)) {
-      const unit = unitRef.current.value as IUnit | "%";
+      const unit = unitRef.current!.value as IUnit | "%";
       if (unit === "%") {
         return Weight_buildPct(value);
       } else {
@@ -83,6 +82,7 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
               ref={unitRef}
               className="bg-background-default"
               data-cy="edit-weight-unit"
+              value={unit}
               onChange={() => {
                 const value = getValue();
                 if (value != null) {
@@ -93,11 +93,7 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
               {(["kg", "lb", "%"] as const)
                 .filter((u) => props.units == null || props.units.indexOf(u) !== -1)
                 .map((u) => {
-                  return (
-                    <option value={u} selected={unit === u}>
-                      {u}
-                    </option>
-                  );
+                  return <option key={u} value={u}>{u}</option>;
                 })}
             </select>
           </div>

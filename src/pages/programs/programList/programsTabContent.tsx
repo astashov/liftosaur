@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { useRef } from "preact/hooks";
+import { JSX, useRef } from "react";
 import { ProgramCard } from "./programCard";
 import { ISettings } from "../../../types";
 import { StringUtils_pluralize } from "../../../utils/string";

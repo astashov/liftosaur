@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import { JSX, useState } from "react";
 import { Exercise_find } from "../models/exercise";
 import { Muscle_normalizeUnifiedPoints, Muscle_getUnifiedPointsForDay } from "../models/muscle";
 import {
@@ -16,7 +16,6 @@ import { MenuItemWrapper } from "./menuItem";
 import { MenuItemEditable } from "./menuItemEditable";
 import { IMuscleStyle, BackMusclesSvg } from "./muscles/images/backMusclesSvg";
 import { FrontMusclesSvg } from "./muscles/images/frontMusclesSvg";
-import { useState } from "preact/hooks";
 
 interface INextDayPickerProps {
   initialCurrentProgramId?: string;
@@ -90,7 +89,13 @@ export function NextDayPicker(props: INextDayPickerProps): JSX.Element {
                     <div>{dayName}</div>
                     <div>
                       {exerciseTypes.map((e) => (
-                        <ExerciseImage settings={props.settings} exerciseType={e} size="small" className="w-6 mr-1" />
+                        <ExerciseImage
+                          key={e.id}
+                          settings={props.settings}
+                          exerciseType={e}
+                          size="small"
+                          className="w-6 mr-1"
+                        />
                       ))}
                     </div>
                   </div>

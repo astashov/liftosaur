@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import type { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { IEquipment, IHistoryRecord, IProgram, ISettings } from "../types";
 import { IExercise, Exercise_find, Exercise_toKey } from "../models/exercise";
@@ -43,6 +43,7 @@ export function CustomProgramsList(props: IProps): JSX.Element {
         {programs.map((program) => {
           return (
             <CustomProgram
+              key={program.id}
               programs={programs}
               settings={props.settings}
               progress={props.progress}
@@ -143,7 +144,13 @@ function CustomProgram(props: ICustomProgramProps): JSX.Element {
             {exercises
               .filter((e) => ExerciseImageUtils_exists(e, "small"))
               .map((e) => (
-                <ExerciseImage settings={props.settings} exerciseType={e} size="small" className="w-6 mr-1" />
+                <ExerciseImage
+                  key={Exercise_toKey(e)}
+                  settings={props.settings}
+                  exerciseType={e}
+                  size="small"
+                  className="w-6 mr-1"
+                />
               ))}
           </div>
           <div className="flex mb-1 text-text-secondary">

@@ -1,10 +1,9 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, useCallback, useState } from "react";
 import { IPlannerExerciseState } from "../../pages/planner/models/types";
 import { IDispatch, buildCustomLensDispatch } from "../../ducks/types";
 import { IDayData, ISettings } from "../../types";
 import { INavCommon, IState, updateState } from "../../models/state";
 import { lb, LensBuilder } from "lens-shmens";
-import { useCallback, useState } from "preact/hooks";
 import { useUndoRedo } from "../../pages/builder/utils/undoredo";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { Footer2View } from "../footer2";
@@ -107,7 +106,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
             ) : undefined
           }
           rightButtons={[
-            <div className="flex items-center gap-4">
+            <div key="kebab" className="flex items-center gap-4">
               <div className="relative flex items-center">
                 <button
                   data-cy="program-exercise-navbar-kebab"

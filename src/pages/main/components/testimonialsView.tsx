@@ -1,5 +1,4 @@
-import { h, JSX, Fragment } from "preact";
-import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { JSX, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ITestimonial } from "../testimonitals";
 import { IconStar } from "../../../components/icons/iconStar";
 import { IconHeart } from "../../../components/icons/iconHeart";
@@ -213,6 +212,7 @@ export function TestimonialsView(props: { testimonials: ITestimonial[] }): JSX.E
           const pageItems = items.slice(pageIdx * perPage, pageIdx * perPage + perPage);
           return (
             <div
+              key={pageIdx}
               className="flex items-start flex-shrink-0"
               style={{
                 scrollSnapAlign: "start",
@@ -225,7 +225,7 @@ export function TestimonialsView(props: { testimonials: ITestimonial[] }): JSX.E
                   <IconStar key={si} isSelected={true} color={Tailwind_colors().yellow[500]} />
                 ));
                 return (
-                  <div className="flex-1 p-6 border border-yellow-200 md:p-8 rounded-2xl bg-yellow-50">
+                  <div key={t.author} className="flex-1 p-6 border border-yellow-200 md:p-8 rounded-2xl bg-yellow-50">
                     {t.source === "reddit" ? (
                       <div
                         className="mb-6 text-base leading-relaxed"

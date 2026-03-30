@@ -1,7 +1,5 @@
+import { JSX, useEffect, useRef } from "react";
 /* eslint-disable no-bitwise */
-
-import { h, JSX } from "preact";
-import { useRef, useEffect } from "preact/hooks";
 
 const confetti = {
   maxCount: 150,
@@ -24,9 +22,12 @@ interface IParticle {
 
 export function Confetti(): JSX.Element {
   const runner = useRef<ConfettiRunner | undefined>(undefined);
-  const canvasRef = useRef<HTMLCanvasElement>();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    if (!canvasRef.current) {
+      return;
+    }
     runner.current = new ConfettiRunner(canvasRef.current.getContext("2d")!);
     runner.current.start(2000, 100, 150);
     canvasRef.current.width = window.innerWidth;

@@ -1,4 +1,4 @@
-import { Fragment, h, JSX } from "preact";
+import { JSX, Fragment } from "react";
 import { IDispatch } from "../ducks/types";
 import { IPersonalRecords } from "../models/history";
 import { IHistoryRecord, IProgram, ISettings, ISubscription } from "../types";
@@ -25,6 +25,7 @@ export function HistoryRecordsList(props: IHistoryRecordsListProps): JSX.Element
       {history.map((record) => {
         return (
           <HistoryRecordView
+            key={record.id}
             isOngoing={props.isOngoing}
             showTitle={true}
             programDay={programDay}

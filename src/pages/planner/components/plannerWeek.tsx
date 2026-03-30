@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { LinkInlineInput } from "../../../components/inlineInput";
 import { LinkButton } from "../../../components/linkButton";
 import { CollectionUtils_removeAt } from "../../../utils/collection";

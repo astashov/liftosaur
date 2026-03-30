@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { EditProgramDaysList } from "./editProgram/editProgramDaysList";
 import { Screen_currentName } from "../models/screen";

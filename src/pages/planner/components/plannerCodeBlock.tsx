@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { PlannerHighlighter_highlight } from "../plannerHighlighter";
 
 interface IPlannerCodeBlockProps {

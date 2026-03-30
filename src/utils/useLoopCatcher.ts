@@ -1,4 +1,4 @@
-import { useRef } from "preact/hooks";
+import { useRef } from "react";
 import { DateUtils_formatHHMMSS } from "./date";
 
 export function useLoopCatcher(): void {

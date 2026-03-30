@@ -1,13 +1,12 @@
-import { JSX, RefObject, h } from "preact";
+import React, { JSX, RefObject, forwardRef, useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { StringUtils_dashcase } from "../utils/string";
-import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { IconKeyboardClose } from "./icons/iconKeyboardClose";
 import { n, MathUtils_clamp } from "../utils/math";
 import { IPercentageUnit, IUnit } from "../types";
 import { IconCalculator } from "./icons/iconCalculator";
 import { Modal } from "./modal";
 import { RepMaxCalculator } from "./repMaxCalculator";
-import { createPortal, forwardRef } from "preact/compat";
 import { Mobile_isMobile } from "../../lambda/utils/mobile";
 import { IconBackspace } from "./icons/iconBackspace";
 
@@ -54,21 +53,24 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
   const [isFocused, setIsFocused] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
 
-  const inputRef = useRef<HTMLInputElement>();
-  const containerRef = useRef<HTMLDivElement>();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const valueRef = useRef(value);
-  const keyboardRef = useRef<HTMLDivElement>();
+  const keyboardRef = useRef<HTMLDivElement>(null);
   const switchRef = useRef(false);
-  const onClickTarget = useRef<HTMLElement>();
+  const onClickTarget = useRef<HTMLElement>(null);
   const isFocusedRef = useRef(isFocused);
   const isTypingRef = useRef(isTyping);
   const allowDotRef = useRef(!!props.allowDot);
   const allowNegativeRef = useRef(!!props.allowNegative);
-  const isMobile = typeof window !== "undefined" && Mobile_isMobile(window.navigator?.userAgent || "");
+  const [isMobile, setIsMobile] = useState(false);
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const isCalculatorOpenRef = useRef(isCalculatorOpen);
   const onBlurRef = useRef<((v: number | undefined) => void) | undefined>(props.onBlur);
   const onInputRef = useRef<((v: number | undefined) => void) | undefined>(props.onInput);
+  useEffect(() => {
+    setIsMobile(Mobile_isMobile(window.navigator?.userAgent || ""));
+  }, []);
   useEffect(() => {
     onBlurRef.current = props.onBlur;
     onInputRef.current = props.onInput;
@@ -296,7 +298,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
             if (!result) {
               const currentTarget = event.currentTarget || event.target;
               event.preventDefault();
-              event.stopImmediatePropagation();
+              (event.nativeEvent as Event).stopImmediatePropagation();
               if (currentTarget) {
                 currentTarget.focus();
               }
@@ -408,7 +410,7 @@ interface ICustomKeyboardProps {
   allowDot?: boolean;
   allowNegative?: boolean;
   isNegative: boolean;
-  inputRef: RefObject<HTMLInputElement>;
+  inputRef: RefObject<HTMLInputElement | null>;
   withDot: boolean;
   keyboardAddon?: JSX.Element;
 
@@ -420,7 +422,7 @@ interface ICustomKeyboardProps {
   selectedUnit?: IUnit | IPercentageUnit;
 }
 
-const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<HTMLDivElement>) => {
+const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: React.ForwardedRef<HTMLDivElement>) => {
   const containerRef = typeof window !== "undefined" ? window.document.querySelector("#keyboard") : undefined;
 
   const element = (
@@ -458,7 +460,7 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<H
               props.allowNegative ? "-" : "",
               "0",
               props.allowDot ? "." : "",
-            ].map((key) => {
+            ].map((key, i) => {
               if (key) {
                 return (
                   <button
@@ -471,7 +473,7 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<H
                   </button>
                 );
               } else {
-                return <div key={key} />;
+                return <div key={`empty-${i}`} />;
               }
             })}
           </div>
@@ -509,6 +511,7 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: RefObject<H
               <div className="flex items-center h-10 gap-2 mt-4">
                 {props.enableUnits.map((unit) => (
                   <button
+                    key={unit}
                     className={`flex text-icon-neutral touch-manipulation items-center  aspect-square justify-center flex-1 w-full border rounded ${unit === props.selectedUnit ? "border-border-prominent bg-background-cardpurpleselected" : " border-border-cardpurple bg-background-cardpurple"}`}
                     data-cy={`keyboard-unit-${unit}`}
                     onClick={() => {

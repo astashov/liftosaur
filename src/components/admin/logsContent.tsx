@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { DateUtils_formatYYYYMMDD, DateUtils_format } from "../../utils/date";
 import { CollectionUtils_sort, CollectionUtils_compact } from "../../utils/collection";
 import { ILogPayloads } from "./logsHtml";
@@ -47,16 +47,16 @@ export function LogsContent(props: ILogsContentProps): JSX.Element {
         {sortedLogs.map((key) => {
           const payload = props.logs[key]!;
           return (
-            <tr>
+            <tr key={key}>
               <td className="logs-key">
                 {payload.email ? <a href={`/?admin=Dy8oxgtn,Nkew&userid=${key}`}>{key}</a> : key}{" "}
                 {payload.email ? <span className="logs-key-email">({payload.email})</span> : ""}
               </td>
               <td className="logs-actions">
-                {CollectionUtils_sort(payload.logs, (a, b) => (b.count || 0) - (a.count || 0)).map((log) => {
+                {CollectionUtils_sort(payload.logs, (a, b) => (b.count || 0) - (a.count || 0)).map((log, li) => {
                   const affiliates = log.affiliates || {};
                   return (
-                    <div className="logs-action">
+                    <div key={li} className="logs-action">
                       <span className="logs-action-name">{log.action.replace(/^ls-/, "")}</span> -{" "}
                       <span className="logs-action-count">{log.count}</span>
                       <span className="logs-action-date">{DateUtils_formatYYYYMMDD(log.timestamp)}</span>

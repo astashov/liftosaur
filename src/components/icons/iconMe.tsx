@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IInnerProps {
@@ -29,22 +29,22 @@ function IconMeUnselected(props: IProps): JSX.Element {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <path d="M13.6154 15.9506L12.1148 14.684" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M13.6154 15.9506L12.1148 14.684" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       <path
         d="M4.96121 10.5659C0.838258 15.7236 2.06397 19.5278 2.06397 19.5278C4.40407 21.2471 8.50406 21.62 11.2106 21.62H16.8184C19.1873 21.5397 21.1064 19.9424 21.1064 16.9673C21.1064 13.6142 18.7045 12.6144 16.5694 12.5375C14.9666 12.5373 13.4865 13.383 12.6913 14.7534L12.5288 15.0332L12.1149 14.6839C10.8944 13.6537 9.09328 13.6537 7.87275 14.6839L7.45884 15.0332L9.01152 11.913"
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
       <path
         d="M8.32785 11.6487C11.2072 11.6487 13.5414 9.34999 13.5414 6.51436C13.5414 3.67874 11.2072 1.38 8.32785 1.38C5.44848 1.38 3.11429 3.67874 3.11429 6.51436C3.11429 9.34999 5.44848 11.6487 8.32785 11.6487Z"
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
       <path
         d="M8.98961 6.51434C8.98961 6.85719 8.7042 7.15465 8.32785 7.15465C7.95151 7.15465 7.66609 6.85719 7.66609 6.51434C7.66609 6.17148 7.95151 5.87402 8.32785 5.87402C8.7042 5.87402 8.98961 6.17148 8.98961 6.51434Z"
-        stroke-width="1.5"
+        strokeWidth="1.5"
       />
     </svg>
   );

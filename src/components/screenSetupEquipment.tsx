@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import type { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { ISettings, IStats } from "../types";
 import { INavCommon, IState } from "../models/state";
@@ -41,50 +41,48 @@ export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Ele
           </p>
 
           <div className="space-y-2">
-            {ObjectUtils_keys(allEquipment)
-              .filter((e) => !allEquipment[e]?.isDeleted)
-              .map((eqid) => {
-                const equipmentData = Equipment_getEquipmentData(props.settings, eqid);
-                const isEnabled = equipmentData && !equipmentData.isDeleted;
-                const name = equipmentName(eqid, allEquipment);
-                const icon = equipmentToIcon[eqid] ? equipmentToIcon[eqid]() : null;
-                return (
-                  <label
-                    key={eqid}
-                    className={`flex items-center gap-3 px-4 py-3 border rounded-xl cursor-pointer ${
-                      isEnabled
-                        ? "bg-background-subtlecardpurple border-border-cardpurple"
-                        : "bg-background-default border-border-neutral"
-                    }`}
-                  >
-                    {icon && <div>{icon}</div>}
-                    <span className="flex-1 text-sm font-medium">{name}</span>
-                    <input
-                      type="checkbox"
-                      checked={isEnabled}
-                      className="block checkbox text-text-link"
-                      data-cy={`equipment-toggle-${eqid}`}
-                      onChange={() => {
-                        props.dispatch({
-                          type: "UpdateState",
-                          lensRecording: [
-                            lb<IState>()
-                              .p("storage")
-                              .p("settings")
-                              .p("gyms")
-                              .findBy("id", currentGym.id)
-                              .p("equipment")
-                              .pi(eqid)
-                              .p("isDeleted")
-                              .record(!isEnabled ? false : true),
-                          ],
-                          desc: `Toggle equipment ${eqid}`,
-                        });
-                      }}
-                    />
-                  </label>
-                );
-              })}
+            {ObjectUtils_keys(allEquipment).map((eqid) => {
+              const equipmentData = Equipment_getEquipmentData(props.settings, eqid);
+              const isEnabled = equipmentData && !equipmentData.isDeleted;
+              const name = equipmentName(eqid, allEquipment);
+              const icon = equipmentToIcon[eqid] ? equipmentToIcon[eqid]() : null;
+              return (
+                <label
+                  key={eqid}
+                  className={`flex items-center gap-3 px-4 py-3 border rounded-xl cursor-pointer ${
+                    isEnabled
+                      ? "bg-background-subtlecardpurple border-border-cardpurple"
+                      : "bg-background-default border-border-neutral"
+                  }`}
+                >
+                  {icon && <div>{icon}</div>}
+                  <span className="flex-1 text-sm font-medium">{name}</span>
+                  <input
+                    type="checkbox"
+                    checked={isEnabled}
+                    className="block checkbox text-text-link"
+                    data-cy={`equipment-toggle-${eqid}`}
+                    onChange={() => {
+                      props.dispatch({
+                        type: "UpdateState",
+                        lensRecording: [
+                          lb<IState>()
+                            .p("storage")
+                            .p("settings")
+                            .p("gyms")
+                            .findBy("id", currentGym.id)
+                            .p("equipment")
+                            .pi(eqid)
+                            .p("isDeleted")
+                            .record(!isEnabled ? false : true),
+                        ],
+                        desc: `Toggle equipment ${eqid}`,
+                      });
+                    }}
+                  />
+                </label>
+              );
+            })}
           </div>
         </div>
       </div>

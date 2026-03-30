@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { JSX, useEffect, useState } from "react";
 import { FooterPage } from "../../components/footerPage";
 import { TopNavMenu } from "../../components/topNavMenu";
 import { ITestimonial } from "./testimonitals";

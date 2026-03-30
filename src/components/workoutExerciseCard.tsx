@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import { JSX, useMemo, useState } from "react";
 import { IHistoryEntry, IHistoryRecord, IProgramState, ISettings, IStats, ISubscription, IWeight } from "../types";
 import { IState, updateProgress, updateSettings, updateState } from "../models/state";
 import { lb } from "lens-shmens";
@@ -48,7 +48,6 @@ import {
   Equipment_getEquipmentDataForExerciseType,
 } from "../models/equipment";
 import { PlannerProgramExercise_currentDescription } from "../pages/planner/models/plannerProgramExercise";
-import { useMemo, useState } from "preact/hooks";
 import { Collector } from "../utils/collector";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { IconReorder } from "./icons/iconReorder";

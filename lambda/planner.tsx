@@ -1,5 +1,3 @@
-import { h } from "preact";
-
 import { renderPage } from "./render";
 import { PlannerHtml } from "../src/pages/planner/plannerHtml";
 import { IAccount } from "../src/models/account";

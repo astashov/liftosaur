@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IWhatsNew, WhatsNew_all } from "../models/whatsnew";
 import { DateUtils_format, DateUtils_fromYYYYMMDDStr } from "../utils/date";
 import { ObjectUtils_keys } from "../utils/object";
@@ -24,7 +24,7 @@ export function ModalWhatsnew(props: IModalWhatsnewProps): JSX.Element {
         {sortedWhatsnewRecords.map(([dateStr, whatsNewRecord]) => {
           const date = DateUtils_format(DateUtils_fromYYYYMMDDStr(dateStr, ""), true);
           return (
-            <li className="pb-6">
+            <li key={dateStr} className="pb-6">
               <div className="text-xs font-bold text-gray-500">{date}</div>
               <div>
                 <h2 className="font-bold">{whatsNewRecord.title}</h2>

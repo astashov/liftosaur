@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, Fragment } from "react";
 import { Modal } from "./modal";
 import { equipmentName, Exercise_toKey, Exercise_get, Exercise_fromKey } from "../models/exercise";
 import { StringUtils_capitalize, StringUtils_dashcase } from "../utils/string";
@@ -225,6 +225,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
             {exercises.map((e) => {
               return (
                 <section
+                  key={Exercise_toKey(e)}
                   data-cy={`item-graph-${StringUtils_dashcase(e.name)}`}
                   className="flex w-full px-2 py-1 text-left border-b border-border-neutral"
                   onClick={() => EditGraphs_addExerciseGraph(props.dispatch, e)}
@@ -241,6 +242,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
             {availableMuscleGroups.map((muscleGroup) => {
               return (
                 <section
+                  key={muscleGroup}
                   data-cy={`item-graph-${muscleGroup}`}
                   className="flex w-full px-2 py-1 text-left border-b border-border-neutral"
                   onClick={() => EditGraphs_addMuscleGroupGraph(props.dispatch, muscleGroup)}
@@ -255,6 +257,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
         {statsWeightKeys.map((statsKey) => {
           return (
             <MenuItem
+              key={statsKey}
               name={Stats_name(statsKey)}
               onClick={() => EditGraphs_addStatsWeightGraph(props.dispatch, statsKey)}
             />
@@ -263,6 +266,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
         {statsPercentageKeys.map((statsKey) => {
           return (
             <MenuItem
+              key={statsKey}
               name={Stats_name(statsKey)}
               onClick={() => EditGraphs_addStatsPercentageGraph(props.dispatch, statsKey)}
             />
@@ -271,6 +275,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
         {statsLengthKeys.map((statsKey) => {
           return (
             <MenuItem
+              key={statsKey}
               name={Stats_name(statsKey)}
               onClick={() => EditGraphs_addStatsLengthGraph(props.dispatch, statsKey)}
             />

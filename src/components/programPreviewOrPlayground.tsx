@@ -1,9 +1,8 @@
-import { h, JSX } from "preact";
+import { JSX, useState } from "react";
 import { ProgramPreviewPlayground } from "./preview/programPreviewPlayground";
 import { IProgram, ISettings, IStats, IUnit } from "../types";
 import { IconEditSquare } from "./icons/iconEditSquare";
 import { MenuItemEditable, MenuItemValue } from "./menuItemEditable";
-import { useState } from "preact/hooks";
 
 interface IProgramPreviewOrPlaygroundProps {
   program: IProgram;

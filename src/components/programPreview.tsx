@@ -1,8 +1,7 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import { IProgram, ISettings, ISubscription, IExerciseType, IStats } from "../types";
 import { IconMuscles2 } from "./icons/iconMuscles2";
-import { useState } from "preact/hooks";
 import { IPoints, Muscle_normalizePoints, Muscle_getPointsForProgram, Muscle_getPointsForDay } from "../models/muscle";
 import { Modal } from "./modal";
 import { MusclesView } from "./muscles/musclesView";

@@ -1,9 +1,8 @@
+import { JSX, useCallback } from "react";
 import { IDispatch } from "../ducks/types";
-import { h, JSX } from "preact";
 import { MenuItemWrapper } from "./menuItem";
 import { Thunk_importProgram } from "../ducks/thunks";
 import { Importer } from "./importer";
-import { useCallback } from "preact/hooks";
 
 interface IImporterProgramProps {
   dispatch: IDispatch;

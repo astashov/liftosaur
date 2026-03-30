@@ -1,9 +1,8 @@
-import { h, JSX } from "preact";
+import { JSX, useCallback } from "react";
 import { Modal } from "./modal";
 import { GroupHeader } from "./groupHeader";
 import { MenuItemWrapper } from "./menuItem";
 import { Importer } from "./importer";
-import { useCallback } from "preact/hooks";
 import { ImportFromHevy_convertHevyCsvToHistoryRecords } from "../utils/importFromHevy";
 import { IDispatch } from "../ducks/types";
 import { IState, updateState } from "../models/state";

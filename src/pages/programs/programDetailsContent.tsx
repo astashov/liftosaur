@@ -1,5 +1,4 @@
-import { h, JSX, Fragment } from "preact";
-import { useState } from "preact/hooks";
+import { JSX, useState } from "react";
 import { Settings_build } from "../../models/settings";
 import { IProgram, IUnit } from "../../types";
 import { ProgramDetailsWorkoutPlayground } from "./programDetails/programDetailsWorkoutPlayground";

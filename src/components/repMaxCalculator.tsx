@@ -1,5 +1,4 @@
-import { JSX, h } from "preact";
-import { useState } from "preact/hooks";
+import React, { JSX, useState } from "react";
 import { Weight_calculateRepMax } from "../models/weight";
 import { IUnit } from "../types";
 import { SendMessage_isIos } from "../utils/sendMessage";
@@ -24,8 +23,8 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
     min: number,
     max: number,
     setter: (v: number) => void
-  ): (e: JSX.TargetedEvent<HTMLInputElement | HTMLTextAreaElement>) => void {
-    return (e: JSX.TargetedEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  ): (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void {
+    return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const target = e.target;
       if (target instanceof HTMLInputElement) {
         const value = target.value;

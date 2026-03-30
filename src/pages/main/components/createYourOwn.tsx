@@ -1,7 +1,6 @@
+import { JSX, useMemo, useState } from "react";
 import deepmerge from "deepmerge";
 import { lb } from "lens-shmens";
-import { h, JSX } from "preact";
-import { useMemo, useState } from "preact/hooks";
 import { ProgramPreviewPlaygroundDay } from "../../../components/preview/programPreviewPlaygroundDay";
 import {
   Program_create,

@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { HistoryRecordView } from "../historyRecord";
 import { IHistoryRecord, ISettings } from "../../types";
 import { DateUtils_formatYYYYMMDD } from "../../utils/date";
@@ -58,6 +58,7 @@ export function UsersContent(props: IUsersContentProps): JSX.Element {
                 <td className="px-2 align-top">
                   {user.history.map((record) => (
                     <HistoryRecordView
+                      key={record.id}
                       isOngoing={false}
                       historyRecord={record}
                       settings={user.settings}

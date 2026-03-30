@@ -1,5 +1,4 @@
-import { h, JSX, Ref } from "preact";
-import { forwardRef, useState, useCallback } from "preact/compat";
+import React, { JSX, Ref, forwardRef, useCallback, useState } from "react";
 import { IEither } from "../utils/types";
 
 export const inputClassName =
@@ -7,7 +6,7 @@ export const inputClassName =
 
 export type IValidationError = "required" | "pattern-mismatch";
 
-export interface IProps extends Omit<JSX.HTMLAttributes<HTMLTextAreaElement>, "ref"> {
+export interface IProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, "ref"> {
   labelElement?: string | JSX.Element;
   identifier: string;
   height: number;
@@ -18,7 +17,7 @@ export interface IProps extends Omit<JSX.HTMLAttributes<HTMLTextAreaElement>, "r
   changeHandler?: (e: IEither<string, Set<IValidationError>>) => void;
 }
 
-export function selectInputOnFocus(e: Event): boolean | undefined {
+export function selectInputOnFocus(e: React.FocusEvent<HTMLTextAreaElement>): boolean | undefined {
   const target = e.target;
   if (target instanceof HTMLInputElement) {
     const handleNumber = target.type === "number";
@@ -42,7 +41,7 @@ export const Textarea2 = forwardRef((props: IProps, ref: Ref<HTMLTextAreaElement
   const [validationErrors, setValidationErrors] = useState<Set<IValidationError>>(new Set());
 
   const onInputHandler = useCallback(
-    (e: Event) => {
+    (e: React.FocusEvent<HTMLTextAreaElement> | React.FormEvent<HTMLTextAreaElement>) => {
       const target = e.target;
       if (target instanceof HTMLInputElement) {
         const errors = new Set<IValidationError>();

@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, ISet, ISettings, IWeight } from "../types";
 import { Weight_display, Weight_convertTo, Weight_build } from "../models/weight";

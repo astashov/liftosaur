@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import { JSX, useRef } from "react";
 import { IPlannerExerciseState, IPlannerExerciseUi, IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -8,7 +8,6 @@ import { EditProgramExerciseSetVariation } from "./editProgramExerciseSetVariati
 import { IconPlus2 } from "../icons/iconPlus2";
 import { EditProgramUiHelpers_changeCurrentInstanceExercise } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { ObjectUtils_clone } from "../../utils/object";
-import { useRef } from "preact/hooks";
 
 interface IEditProgramExerciseSetVariationsListProps {
   plannerExercise: IPlannerProgramExercise;
@@ -19,7 +18,7 @@ interface IEditProgramExerciseSetVariationsListProps {
 
 export function EditProgramExerciseSetVariationsList(props: IEditProgramExerciseSetVariationsListProps): JSX.Element {
   const setVariations = props.plannerExercise.evaluatedSetVariations;
-  const scrollRef = useRef<HTMLDivElement>();
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   return (
     <div>
@@ -50,6 +49,9 @@ export function EditProgramExerciseSetVariationsList(props: IEditProgramExercise
               className="p-1 border rounded-full border-border-neutral"
               data-cy="set-variations-scroll-left"
               onClick={() => {
+                if (!scrollRef.current) {
+                  return;
+                }
                 scrollRef.current.scrollTo({
                   left: scrollRef.current.scrollLeft - scrollRef.current.clientWidth,
                   behavior: "smooth",
@@ -62,6 +64,9 @@ export function EditProgramExerciseSetVariationsList(props: IEditProgramExercise
               data-cy="set-variations-scroll-right"
               className="p-1 border rounded-full border-border-neutral"
               onClick={() => {
+                if (!scrollRef.current) {
+                  return;
+                }
                 scrollRef.current.scrollTo({
                   left: scrollRef.current.scrollLeft + scrollRef.current.clientWidth,
                   behavior: "smooth",

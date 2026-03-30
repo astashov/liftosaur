@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IInnerProps {
@@ -30,14 +30,14 @@ export function IconDoc2Unselected(props: IInnerProps): JSX.Element {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <path d="M19 7L15 3H12H5V12V21H12H19V14V7Z" stroke-width="1.5" stroke-linejoin="round" />
+      <path d="M19 7L15 3H12H5V12V21H12H19V14V7Z" strokeWidth="1.5" strokeLinejoin="round" />
       <path
         d="M14 3V4C14 5.88562 14 6.82843 14.5858 7.41421C15.1716 8 16.1144 8 18 8H19"
-        stroke-width="1.5"
-        stroke-linejoin="round"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
       />
-      <path d="M9 12L15 12" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-      <path d="M9 16L13 16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M9 12L15 12" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9 16L13 16" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -60,12 +60,12 @@ function IconDoc2Selected(props: IInnerProps): JSX.Element {
         d="M19 7L15 3H12H5V12V21H12H19V14V7Z"
         fill={color}
         stroke={color}
-        stroke-width="1.5"
-        stroke-linejoin="round"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
       />
       <path d="M14 4V3L19 8H18C16.1144 8 15.1716 8 14.5858 7.41421C14 6.82843 14 5.88562 14 4Z" fill={bgColor} />
-      <path d="M9 12L15 12" stroke={bgColor} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-      <path d="M9 16L13 16" stroke={bgColor} stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M9 12L15 12" stroke={bgColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9 16L13 16" stroke={bgColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

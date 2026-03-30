@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import { JSX, useEffect, useState } from "react";
 import { Thunk_pushScreen } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { Button } from "./button";
@@ -9,7 +9,6 @@ import { Tailwind_colors } from "../utils/tailwindConfig";
 import { IconWorkoutProgress } from "./icons/iconWorkoutProgress";
 import { IconEditor } from "./icons/iconEditor";
 import { IconTracker } from "./icons/iconTracker";
-import { useState, useEffect } from "preact/hooks";
 import { Modal } from "./modal";
 import { Account } from "./account";
 import { IAccount } from "../models/account";

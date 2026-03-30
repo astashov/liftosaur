@@ -1,7 +1,6 @@
-import { JSX, h } from "preact";
+import { JSX, useEffect, useRef, useState } from "react";
 import { IHistoryRecord, ISettings } from "../types";
 import { Button } from "./button";
-import { useEffect, useRef, useState } from "preact/hooks";
 import { IRect } from "../utils/types";
 import { Geometry_fitRectIntoRect } from "../utils/geometry";
 import { WorkoutShareOutput } from "./workoutShareOutput";
@@ -24,8 +23,8 @@ interface IWorkoutShareSheetProps {
 }
 
 export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Element {
-  const screensRef = useRef<HTMLDivElement>();
-  const workoutShareRef = useRef<HTMLDivElement>();
+  const screensRef = useRef<HTMLDivElement>(null);
+  const workoutShareRef = useRef<HTMLDivElement>(null);
   const [backgroundImage, setBackgroundImage] = useState<string | undefined>(undefined);
   const [showPickerOptions, setShowPickerOptions] = useState<boolean>(false);
   const [selectedFrameIndex, setSelectedFrameIndex] = useState<number>(0);
@@ -120,7 +119,7 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
               onClick={async () => {
                 setIsLoading(true);
                 try {
-                  const dataUrl = await ImageShareUtils.generateImageDataUrl(workoutShareRef.current);
+                  const dataUrl = await ImageShareUtils.generateImageDataUrl(workoutShareRef.current!);
                   setIsLoading(false);
                   SendMessage_toIosAndAndroid({
                     type: "share",
@@ -211,8 +210,8 @@ interface IWorkoutShareImageProps {
 
 function WorkoutShareImage(props: IWorkoutShareImageProps): JSX.Element {
   const [rect, setRect] = useState<IRect>({ x: 0, y: 0, width: 0, height: 0 });
-  const mainRef = useRef<HTMLDivElement>();
-  const workoutRef = useRef<HTMLDivElement>();
+  const mainRef = useRef<HTMLDivElement>(null);
+  const workoutRef = useRef<HTMLDivElement>(null);
   const [multiplier, setMultiplier] = useState<number>(1.0);
   const backgroundImage = props.backgroundImage;
 

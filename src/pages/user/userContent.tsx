@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, Fragment } from "react";
 import "../../models/state";
 import { equipmentName, Exercise_fromKey, Exercise_get } from "../../models/exercise";
 import { History_findAllMaxSetsPerId } from "../../models/history";

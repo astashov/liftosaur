@@ -1,8 +1,7 @@
-import { JSX, h } from "preact";
-import { useState, useEffect, useRef, useMemo } from "preact/hooks";
+import React, { JSX, useEffect, useMemo, useRef, useState } from "react";
 import { debounce } from "../utils/throttler";
 
-interface IProps extends JSX.HTMLAttributes<HTMLTextAreaElement> {
+interface IProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   onChangeText?: (text: string) => void;
   debounceMs?: number;
 }
@@ -25,7 +24,7 @@ export function TextareaAutogrow(props: IProps): JSX.Element {
     }
   }, [value]);
 
-  const handleChange = (event: Event): void => {
+  const handleChange = (event: React.FormEvent<HTMLTextAreaElement>): void => {
     const target = event.target as HTMLTextAreaElement;
     setValue(target.value);
     if (debouncedOnChangeText) {

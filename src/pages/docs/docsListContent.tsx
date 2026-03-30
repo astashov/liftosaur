@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IDocIndexEntry } from "../../models/doc";
 
 export interface IDocsListContentProps {
@@ -36,7 +36,7 @@ export function DocsListContent(props: IDocsListContentProps): JSX.Element {
         </div>
       )}
       {Array.from(categories.entries()).map(([category, docs]) => (
-        <div className="mb-8">
+        <div key={category} className="mb-8">
           <h2 className="mb-3 text-xl font-bold capitalize">{category}</h2>
           <DocsList docs={docs} />
         </div>
@@ -50,6 +50,7 @@ function DocsList(props: { docs: IDocIndexEntry[] }): JSX.Element {
     <div className="flex flex-col gap-3">
       {props.docs.map((doc) => (
         <a
+          key={doc.id}
           href={`/doc/${doc.id}`}
           className="block p-4 no-underline border rounded-lg border-border-neutral hover:bg-background-neutral"
         >

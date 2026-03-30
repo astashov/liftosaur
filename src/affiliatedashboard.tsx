@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { HydrateUtils_hydratePage } from "./utils/hydrate";
 import {
   AffiliateDashboardContent,

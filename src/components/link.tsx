@@ -1,6 +1,6 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 
-type IProps = JSX.HTMLAttributes<HTMLAnchorElement>;
+type IProps = React.AnchorHTMLAttributes<HTMLAnchorElement>;
 
 export function Link(props: IProps): JSX.Element {
   const { className, children, ...otherProps } = props;

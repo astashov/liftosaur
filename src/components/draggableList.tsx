@@ -1,5 +1,4 @@
-import { JSX, h, Fragment } from "preact";
-import { useRef, useState, useEffect } from "preact/hooks";
+import React, { JSX, Fragment, useEffect, useRef, useState } from "react";
 import { HtmlUtils_getPointX, HtmlUtils_getPointY } from "../utils/html";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 
@@ -19,7 +18,7 @@ interface IDraggableListProps<T> {
   element: (
     item: T,
     index: number,
-    handleWrapper?: (touchEvent: TouchEvent | MouseEvent) => void,
+    handleWrapper?: (touchEvent: React.MouseEvent | React.TouchEvent) => void,
     onClick?: (i: number) => void
   ) => JSX.Element;
   onClick?: (index: number) => void;
@@ -31,7 +30,7 @@ interface IDraggableListProps<T> {
 export function DraggableList<T>(props: IDraggableListProps<T>): JSX.Element {
   const [data, setData] = useState<IData | undefined>(undefined);
   const theData = useRef<IData | undefined>(undefined);
-  const elWrapper = useRef<HTMLDivElement>();
+  const elWrapper = useRef<HTMLDivElement>(null);
   const offsetX = useRef<number | undefined>(undefined);
   const offsetY = useRef<number | undefined>(undefined);
   const widths = useRef<(number | undefined)[]>([]);
@@ -48,7 +47,7 @@ export function DraggableList<T>(props: IDraggableListProps<T>): JSX.Element {
       ref={elWrapper}
     >
       {props.items.map((e, i) => (
-        <Fragment>
+        <Fragment key={i}>
           <DropTarget
             mode={props.mode}
             index={i}
@@ -136,7 +135,7 @@ function DropTarget({
   widths: (number | undefined)[];
   heights: (number | undefined)[];
 }): JSX.Element {
-  const el = useRef<HTMLDivElement>();
+  const el = useRef<HTMLDivElement>(null);
   const rect = useRef<{ y: number; x: number; width: number; height: number } | undefined>(undefined);
 
   const prevIsDragging = useRef(false);
@@ -197,7 +196,7 @@ interface IDraggableListItemProps<T> {
   element: (
     item: T,
     index: number,
-    handleWrapper?: (touchEvent: TouchEvent | MouseEvent) => void,
+    handleWrapper?: (touchEvent: React.MouseEvent | React.TouchEvent) => void,
     onClick?: (i: number) => void
   ) => JSX.Element;
   item: T;
@@ -205,8 +204,10 @@ interface IDraggableListItemProps<T> {
 }
 
 function DraggableListItem<T>(props: IDraggableListItemProps<T>): JSX.Element {
-  function handleTouchStart(es: TouchEvent | MouseEvent): void {
-    es.preventDefault();
+  function handleTouchStart(es: React.MouseEvent | React.TouchEvent): void {
+    if (es.nativeEvent instanceof MouseEvent) {
+      es.preventDefault();
+    }
     heightRef.current = el.current!.clientHeight;
     function handleTouchMove(em: TouchEvent | MouseEvent): void {
       em.preventDefault();
@@ -256,14 +257,14 @@ function DraggableListItem<T>(props: IDraggableListItemProps<T>): JSX.Element {
     startTime.current = Date.now();
 
     setTimeout(() => {
-      window.document.addEventListener("touchmove", handleTouchMove);
+      window.document.addEventListener("touchmove", handleTouchMove, { passive: false });
       window.document.addEventListener("mousemove", handleTouchMove);
       window.document.addEventListener("touchend", handleTouchEnd);
       window.document.addEventListener("mouseup", handleTouchEnd);
     }, 0);
   }
 
-  const el = useRef<HTMLDivElement>();
+  const el = useRef<HTMLDivElement>(null);
   const [point, setPoint] = useState<number | undefined>(undefined);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [, setWidth] = useState<number | undefined>(undefined);

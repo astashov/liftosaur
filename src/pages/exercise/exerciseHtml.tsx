@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IJsonLd, Page } from "../../components/page";
 import { Exercise_get, Exercise_reverseName, Exercise_toKey } from "../../models/exercise";
 import { exerciseDescriptions } from "../../models/exerciseDescriptions";

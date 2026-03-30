@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, Fragment } from "react";
 import { IExercisePickerState, IExerciseType, ISettings } from "../../types";
 import { IconMagnifyingGlass } from "../icons/iconMagnifyingGlass";
 import { Tailwind_colors, Tailwind_semantic } from "../../utils/tailwindConfig";
@@ -123,10 +123,10 @@ function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
             <span>
               , Filters:{" "}
               {filterNames.map((f, i) => (
-                <>
+                <Fragment key={i}>
                   {i > 0 ? ", " : ""}
                   <strong>{f}</strong>
-                </>
+                </Fragment>
               ))}
             </span>
             <LinkButton

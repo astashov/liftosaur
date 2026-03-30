@@ -1,4 +1,4 @@
-import { h, JSX, ComponentChildren } from "preact";
+import { JSX, ReactNode } from "react";
 import {
   SendMessage_isIos,
   SendMessage_iosAppVersion,
@@ -12,7 +12,7 @@ import { UrlUtils_build } from "./utils/url";
 interface IProps {
   href: string;
   className?: string;
-  children: ComponentChildren;
+  children: ReactNode;
   name: string;
 }
 

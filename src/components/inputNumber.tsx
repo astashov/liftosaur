@@ -1,10 +1,10 @@
-import { JSX, h } from "preact";
-import { useRef } from "preact/hooks";
+import React, { JSX, useRef } from "react";
 import { MathUtils_clamp } from "../utils/math";
 import { StringUtils_dashcase } from "../utils/string";
 import { Input } from "./input";
 
-interface IInputNumberProps extends Omit<JSX.HTMLAttributes<HTMLInputElement | HTMLTextAreaElement>, "ref"> {
+interface IInputNumberProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement> & React.TextareaHTMLAttributes<HTMLTextAreaElement>, "ref"> {
   value?: number;
   label?: string;
   step?: number;
@@ -15,7 +15,7 @@ interface IInputNumberProps extends Omit<JSX.HTMLAttributes<HTMLInputElement | H
 
 export function InputNumber(props: IInputNumberProps): JSX.Element {
   const { value, label, step, min, max, onUpdate, ...rest } = props;
-  const inputRef = useRef<HTMLInputElement>();
+  const inputRef = useRef<HTMLInputElement>(null);
   const actualStep = step ?? 1;
 
   function getValue(): number | undefined {

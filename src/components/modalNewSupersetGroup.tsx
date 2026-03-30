@@ -1,9 +1,8 @@
-import { JSX, h } from "preact";
+import { JSX, useState } from "react";
 import { Button } from "./button";
 import { GroupHeader } from "./groupHeader";
 import { Input2 } from "./input2";
 import { Modal } from "./modal";
-import { useState } from "preact/hooks";
 
 interface IModalNewSupersetGroupProps {
   onSelect: (name: string | undefined) => void;

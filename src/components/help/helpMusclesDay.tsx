@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import type { JSX } from "react";
 
 export function HelpMusclesDay(): JSX.Element {
   return (

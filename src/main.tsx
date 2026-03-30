@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { IMainContentProps, MainContent } from "./pages/main/mainContent";
 import { HydrateUtils_hydratePage } from "./utils/hydrate";
 import { Platform_isiOS, Platform_isAndroid } from "./utils/platform";

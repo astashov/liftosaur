@@ -1,11 +1,11 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
   isChecked: boolean;
   checkColor?: string;
   color?: string;
-  style?: JSX.CSSProperties;
+  style?: React.CSSProperties;
   size?: number;
   className?: string;
 }
@@ -32,9 +32,9 @@ export function IconCheckCircle(props: IProps): JSX.Element {
         <path
           d="M14.5 7L8.70846 13L6.5 10.6139"
           stroke={checkColor}
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       </svg>
     );

@@ -1,5 +1,4 @@
-import { h } from "preact";
-import { JSX, memo } from "preact/compat";
+import { JSX, memo } from "react";
 import { ExerciseImage } from "../exerciseImage";
 import { Markdown } from "../markdown";
 import {

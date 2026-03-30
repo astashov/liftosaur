@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { PageWrapper } from "./components/pageWrapper";
 import { ProgramPreviewPage } from "./pages/programs/programPreviewPage";
 import { HydrateUtils_hydratePage } from "./utils/hydrate";

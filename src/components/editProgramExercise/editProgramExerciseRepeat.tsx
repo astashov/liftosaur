@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import type { JSX } from "react";
 import { IPlannerProgramExercise, IPlannerExerciseState } from "../../pages/planner/models/types";
 import { ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -65,7 +65,7 @@ export function EditProgramExerciseRepeat(props: IEditProgramExerciseRepeatProps
       >
         {Array.from({ length: props.numberOfWeeks }, (_, i) => i + 1).map((w) => {
           return (
-            <option value={w} selected={repeatTo === w}>
+            <option key={w} value={w}>
               {w}
             </option>
           );

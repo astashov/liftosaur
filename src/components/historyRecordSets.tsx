@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import type { JSX } from "react";
 import { IDisplaySet, Reps_group, Reps_setToDisplaySet } from "../models/set";
 import { ISet, ISettings } from "../types";
 import { CollectionUtils_groupBy, CollectionUtils_compact } from "../utils/collection";
@@ -33,8 +33,9 @@ export function HistoryRecordSetsView(props: IHistoryRecordSetsProps): JSX.Eleme
   });
   return (
     <div className="text-sm text-right">
-      {displayGroups.map((g) => (
+      {displayGroups.map((g, i) => (
         <HistoryRecordSet
+          key={i}
           sets={g}
           prs={props.prs}
           isNext={props.isNext}

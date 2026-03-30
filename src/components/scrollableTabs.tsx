@@ -1,12 +1,11 @@
-import { h, JSX, ComponentChildren } from "preact";
+import { JSX, ReactNode, useEffect, useRef, useState } from "react";
 import { StringUtils_dashcase } from "../utils/string";
-import { useEffect, useRef, useState } from "preact/hooks";
 import { Scroller } from "./scroller";
 
 export interface IScrollableTabsProps {
   tabs: {
     label: string;
-    children: () => ComponentChildren;
+    children: () => ReactNode;
     isInvalid?: boolean;
   }[];
   color?: "orange" | "purple";
@@ -75,7 +74,7 @@ export function ScrollableTabs(props: IScrollableTabsProps): JSX.Element {
                       } ${isInvalid ? " text-text-error" : ""} nm-tab-${nameClass}`;
 
                 return (
-                  <div className={containerClassName}>
+                  <div key={label} className={containerClassName}>
                     <button
                       className={buttonClassName}
                       style={selectedIndex === index && props.type !== "squares" ? { borderBottomWidth: "2px" } : {}}

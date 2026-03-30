@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import type { JSX } from "react";
 import {
   IReuseCandidate,
   IPlannerProgramExercise,
@@ -54,7 +54,7 @@ export function EditProgramExerciseReuseAtWeekDay(props: IEditProgramExerciseReu
       >
         {[...(currentWeek ? [""] : []), ...ObjectUtils_keys(reuseCandidateWeeksAndDays || {})].map((w) => {
           return (
-            <option value={w} selected={(week ?? "") === w}>
+            <option key={w} value={w}>
               {w === "" ? "Same" : w}
             </option>
           );
@@ -80,7 +80,7 @@ export function EditProgramExerciseReuseAtWeekDay(props: IEditProgramExerciseReu
       >
         {Array.from(reuseCandidateWeeksAndDays[week ?? reuse.exercise?.dayData.week ?? 1]).map((d) => {
           return (
-            <option value={d} selected={day === d}>
+            <option key={d} value={d}>
               {d}
             </option>
           );

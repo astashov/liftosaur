@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import type { JSX } from "react";
 import { IPlannerState, IPlannerUiFocusedExercise } from "../models/types";
 import { PlannerStats } from "./plannerStats";
 import { PlannerStatsUtils_calculateSetResults } from "../models/plannerStatsUtils";

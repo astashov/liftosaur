@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { IUsersDashboardData } from "../src/pages/usersDashboard/usersDashboardContent";
 import { UsersDashboardHtml } from "../src/pages/usersDashboard/usersDashboardHtml";
 

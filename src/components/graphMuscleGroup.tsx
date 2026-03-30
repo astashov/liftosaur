@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { h, JSX } from "preact";
+import { JSX, useEffect, useRef, useState } from "react";
 import UPlot from "uplot";
-import { useRef, useEffect, useState } from "preact/hooks";
 import { ISettings, IVolumeSelectedType } from "../types";
 import { GraphsPlugins_zoom, GraphsPlugins_programLines } from "../utils/graphsPlugins";
 import { StringUtils_capitalize } from "../utils/string";
@@ -28,12 +27,8 @@ export function GraphMuscleGroup(props: IGraphMuscleGroupProps): JSX.Element {
           value={selectedType}
           onChange={(e) => setSelectedType(e.currentTarget.value as any)}
         >
-          <option selected={selectedType === "volume"} value="volume">
-            Volume
-          </option>
-          <option selected={selectedType === "sets"} value="sets">
-            Sets
-          </option>
+          <option value="volume">Volume</option>
+          <option value="sets">Sets</option>
         </select>
       </div>
       <GraphMuscleGroupContent key={selectedType} {...{ ...props, selectedType }} />
@@ -45,6 +40,9 @@ function GraphMuscleGroupContent(props: IGraphMuscleGroupProps & { selectedType:
   const graphRef = useRef<HTMLDivElement>(null);
   const legendRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    if (!graphRef.current) {
+      return;
+    }
     const rect = graphRef.current.getBoundingClientRect();
     const data = props.data;
     const dataMaxX = data[0]?.[data[0].length - 1] || new Date(0).getTime() / 1000;
@@ -134,9 +132,9 @@ function GraphMuscleGroupContent(props: IGraphMuscleGroupProps & { selectedType:
       ],
     };
 
-    const uplot = new UPlot(opts, data, graphRef.current);
+    const uplot = new UPlot(opts, data, graphRef.current!);
 
-    const underEl = graphRef.current.querySelector(".over");
+    const underEl = graphRef.current!.querySelector(".over");
     const underRect = underEl?.getBoundingClientRect();
 
     function handler(): void {

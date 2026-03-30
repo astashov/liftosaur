@@ -1,4 +1,4 @@
-import { useRef, useCallback } from "preact/hooks";
+import { useCallback, useRef } from "react";
 
 type IGestureDetectorCallback = (gesture: "swipeleft" | "swiperight") => void;
 

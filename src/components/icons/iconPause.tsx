@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
@@ -22,7 +22,7 @@ export function IconPause(props: IProps): JSX.Element {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <circle cx="9.81024" cy="9.79712" r="8" stroke={color} stroke-width="2" />
+      <circle cx="9.81024" cy="9.79712" r="8" stroke={color} strokeWidth="2" />
       <rect x="7.31024" y="6.29712" width="1" height="7" rx="0.5" fill={color} stroke={color} />
       <rect x="11.3102" y="6.29712" width="1" height="7" rx="0.5" fill={color} stroke={color} />
     </svg>
