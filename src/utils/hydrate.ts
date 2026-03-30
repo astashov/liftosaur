@@ -1,5 +1,6 @@
+import type { JSX } from "react";
+import { hydrateRoot } from "react-dom/client";
 import RB from "rollbar";
-import { hydrate, JSX } from "preact";
 import { RollbarUtils_config } from "./rollbar";
 import { IPageWrapperProps } from "../components/pageWrapper";
 
@@ -17,5 +18,5 @@ export function HydrateUtils_hydratePage<T>(cb: (pageWrapperProps: IPageWrapperP
     parser.parseFromString(escapedPageWrapperProps, "text/html").documentElement.textContent || "{}";
   const data = JSON.parse(unescapedRawData) as T;
   const pageWrapperProps = JSON.parse(unescapedPageWrapperProps) as IPageWrapperProps;
-  hydrate(cb({ ...pageWrapperProps, client: window.fetch.bind(window) }, data), document.getElementById("app")!);
+  hydrateRoot(document.getElementById("app")!, cb({ ...pageWrapperProps, client: window.fetch.bind(window) }, data));
 }

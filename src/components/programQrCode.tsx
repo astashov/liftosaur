@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { useEffect, useRef } from "preact/hooks";
+import { JSX, useEffect, useRef } from "react";
 import QRCode from "qrcode";
 
 interface IProgramQrCodeProps {
@@ -10,12 +9,15 @@ interface IProgramQrCodeProps {
 
 export function ProgramQrCode(props: IProgramQrCodeProps): JSX.Element {
   useEffect(() => {
+    if (!ref.current) {
+      return;
+    }
     QRCode.toCanvas(ref.current, props.url, function (error) {
       if (error) {
         console.error(error);
       }
-      ref.current.style.width = size;
-      ref.current.style.height = size;
+      ref.current!.style.width = size;
+      ref.current!.style.height = size;
     });
   }, [props.url]);
   const ref = useRef<HTMLCanvasElement>(null);

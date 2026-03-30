@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { ObjectUtils_entries } from "../../utils/object";
 
 interface IProps<T extends string> {
@@ -13,7 +13,7 @@ export function ExercisePickerOptions<T extends string>(props: IProps<T>): JSX.E
     <div className="grid grid-cols-2 gap-4 mt-2">
       {ObjectUtils_entries(props.values).map(([key, value]) => {
         return (
-          <div>
+          <div key={key}>
             <div>
               <button
                 className={`bg-background-subtle h-12 leading-none px-2 w-full ${value.disabledReason ? "text-border-neutral" : "text-text-primary"} rounded-lg border text-center ${value.isSelected ? "border-text-purple text-text-purple" : "border-border-neutral"}`}

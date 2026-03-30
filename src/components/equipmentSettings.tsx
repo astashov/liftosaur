@@ -1,5 +1,5 @@
+import { JSX, Fragment, useState } from "react";
 import { ILensRecordingPayload, lb, Lens } from "lens-shmens";
-import { h, JSX, Fragment } from "preact";
 import { Weight_build, Weight_eqeq, Weight_compare, Weight_display, Weight_print } from "../models/weight";
 import { ISettings, IEquipmentData, IEquipment, IAllEquipment, IUnit, IStats } from "../types";
 import { GroupHeader } from "./groupHeader";
@@ -9,7 +9,6 @@ import { CollectionUtils_sort } from "../utils/collection";
 import { ObjectUtils_keys } from "../utils/object";
 import { ModalPlates } from "./modalPlates";
 import { ModalNewFixedWeight } from "./modalNewFixedWeight";
-import { useState } from "preact/hooks";
 import { ILensDispatch } from "../utils/useLensReducer";
 import { LinkButton } from "./linkButton";
 import { IconTrash } from "./icons/iconTrash";
@@ -79,9 +78,8 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
           const equipmentData = props.allEquipment[bar];
           if (equipmentData) {
             return (
-              <div id={bar} className={`${i !== 0 ? "mt-6" : ""}`}>
+              <div key={bar} id={bar} className={`${i !== 0 ? "mt-6" : ""}`}>
                 <EquipmentSettingsContent
-                  key={bar}
                   lensPrefix={props.lensPrefix}
                   stats={props.stats}
                   allEquipment={props.allEquipment}
@@ -102,7 +100,7 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
         <div className="mx-4 my-2 leading-4">
           <span className="text-xs">Hidden Equipment: </span>
           {hiddenEquipment.map((e, i) => (
-            <>
+            <Fragment key={e}>
               {i !== 0 && <span>, </span>}
               <LinkButton
                 className="text-xs"
@@ -116,7 +114,7 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
               >
                 {equipmentName(e, props.allEquipment)}
               </LinkButton>
-            </>
+            </Fragment>
           ))}
         </div>
       )}
@@ -584,6 +582,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
       {plates.map((plate) => {
         return (
           <MenuItemEditable
+            key={`${plate.weight.value}-${plate.weight.unit}`}
             name={`${plate.weight.value} ${plate.weight.unit}`}
             type="number"
             value={plate.num.toString()}

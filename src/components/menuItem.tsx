@@ -1,26 +1,26 @@
-import { h, JSX, ComponentChildren } from "preact";
+import React, { JSX, ReactNode } from "react";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import { IconHandle } from "./icons/iconHandle";
 import { StringUtils_dashcase } from "../utils/string";
 
 interface IMenuItemProps {
-  prefix?: ComponentChildren;
+  prefix?: ReactNode;
   name: string;
   isBorderless?: boolean;
   value?: string | JSX.Element;
   expandName?: boolean;
   expandValue?: boolean;
-  addons?: ComponentChildren;
+  addons?: ReactNode;
   shouldShowRightArrow?: boolean;
-  handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
-  onClick?: (e: MouseEvent) => void;
+  handleTouchStart?: (e: React.MouseEvent | React.TouchEvent) => void;
+  onClick?: (e: React.MouseEvent) => void;
 }
 
 export function MenuItemWrapper(props: {
   name: string;
-  children: ComponentChildren;
+  children: ReactNode;
   isBorderless?: boolean;
-  onClick?: (e: MouseEvent) => void;
+  onClick?: (e: React.MouseEvent) => void;
 }): JSX.Element {
   return (
     <section

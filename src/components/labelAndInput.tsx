@@ -1,8 +1,7 @@
-import { h, JSX, Ref } from "preact";
-import { forwardRef } from "preact/compat";
+import React, { JSX, Ref, forwardRef } from "react";
 import { inputClassName } from "./input";
 
-interface ILabelAndInputProps extends JSX.HTMLAttributes<HTMLInputElement> {
+interface ILabelAndInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   identifier: string;
   star?: boolean;
   label: string;
@@ -15,7 +14,7 @@ export const LabelAndInput = forwardRef((props: ILabelAndInputProps, ref: Ref<HT
   const id = [props.id, identifier].filter((r) => r).join(" ");
   return (
     <div className="mb-4">
-      <label data-cy={`${identifier}-label`} for={identifier} className="block text-sm font-bold">
+      <label data-cy={`${identifier}-label`} htmlFor={identifier} className="block text-sm font-bold">
         {label}
         {props.star && <span className="text-text-error"> *</span>}
       </label>

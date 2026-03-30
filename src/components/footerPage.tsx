@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import type { JSX } from "react";
 import { IconInstagramFlat } from "./icons/iconInstagramFlat";
 import { IconYoutube } from "./icons/iconYoutube";
 import { IconReddit } from "./icons/iconReddit";
@@ -65,6 +65,7 @@ export function FooterPage(props: IProps): JSX.Element {
               <div className="footer-links-grid gap-x-10 gap-y-3">
                 {footerLinks.map(([text, link]) => (
                   <a
+                    key={text}
                     className="text-sm text-gray-300 no-underline hover:text-white"
                     href={link}
                     target={link.startsWith("http") ? "_blank" : undefined}

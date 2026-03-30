@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { useEffect, useRef } from "preact/hooks";
+import { JSX, useEffect, useRef } from "react";
 import { markdown } from "@codemirror/lang-markdown";
 import { drawSelection, EditorView, highlightSpecialChars, keymap } from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
@@ -12,7 +11,7 @@ interface IProps {
 }
 
 export function MarkdownEditor(props: IProps): JSX.Element {
-  const divRef = useRef<HTMLDivElement>();
+  const divRef = useRef<HTMLDivElement>(null);
   const codeEditor = useRef<EditorView | undefined>(undefined);
   useEffect(() => {
     const updateFacet = EditorView.updateListener.of((update) => {
@@ -40,7 +39,7 @@ export function MarkdownEditor(props: IProps): JSX.Element {
 
     codeEditor.current = new EditorView({
       state: editorState,
-      parent: divRef.current,
+      parent: divRef.current ?? undefined,
       // dispatch: (tr) => {
       //   onChange(tr.state.doc.toString());
       // },

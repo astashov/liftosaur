@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { Tailwind_colors } from "../../utils/tailwindConfig";
 
 interface IProps {

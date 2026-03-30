@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IDispatch } from "../../ducks/types";
 import { Muscle_normalizePoints, Muscle_getPointsForProgram } from "../../models/muscle";
 import { ScreenMuscles } from "./screenMuscles";

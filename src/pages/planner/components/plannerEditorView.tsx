@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { useEffect, useRef } from "preact/hooks";
+import { JSX, useEffect, useRef } from "react";
 import { IAllCustomExercises } from "../../../types";
 import { PlannerEditor } from "../plannerEditor";
 import { PlannerSyntaxError } from "../plannerExerciseEvaluator";
@@ -72,7 +71,7 @@ export function PlannerEditorView(props: IProps): JSX.Element {
     }
   }, [props.value]);
 
-  const divRef = useRef<HTMLDivElement>();
+  const divRef = useRef<HTMLDivElement>(null);
 
   let className =
     "block w-full px-2 py-2 leading-normal border rounded-lg appearance-none bg-background-default focus:outline-none focus:shadow-outline";

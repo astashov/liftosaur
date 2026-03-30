@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { memo } from "preact/compat";
+import { JSX, memo } from "react";
 import { IHistoryRecord, ISettings, IStats } from "../../types";
 import { IEvaluatedProgram, Program_getProgramDay, Program_getProgramDayUsedExercises } from "../../models/program";
 import { StringUtils_dashcase } from "../../utils/string";
@@ -44,6 +43,7 @@ export const ProgramPreviewTabDay = memo((props: IProgramPreviewTabDayProps): JS
         }
         return (
           <ProgramPreviewTabExercise
+            key={programExercise.key}
             stats={props.stats}
             ui={props.ui}
             entries={props.progress.entries}

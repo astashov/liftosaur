@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import { JSX, memo, useLayoutEffect, useRef } from "react";
 import {
   DateUtils_formatYYYYMMDD,
   DateUtils_lastDayOfWeekTimestamp,
@@ -8,7 +8,6 @@ import { IHistoryRecord } from "../types";
 import { StringUtils_pluralize } from "../utils/string";
 import { IPersonalRecords, History_getNumberOfPersonalRecords } from "../models/history";
 import { CollectionUtils_compact } from "../utils/collection";
-import { memo, useLayoutEffect, useRef } from "preact/compat";
 import { ComparerUtils_noFns } from "../utils/comparer";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { Progress_isCurrent } from "../models/progress";
@@ -66,7 +65,7 @@ export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
 
   return (
     <div className="flex-1 min-h-0 overflow-y-auto" ref={scrollRef}>
-      <div class="p-3">
+      <div className="p-3">
         {months.map((month) => {
           const year = month.getFullYear();
           const monthIndex = month.getMonth();
@@ -88,9 +87,9 @@ export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
             <div
               id={`month-calendar-${DateUtils_formatYYYYMMDD(month)}`}
               key={DateUtils_formatYYYYMMDD(month)}
-              class="mb-8"
+              className="mb-8"
             >
-              <h2 class="text-lg font-semibold">
+              <h2 className="text-lg font-semibold">
                 {month.toLocaleString("default", { month: "long", year: "numeric" })}
               </h2>
               <div className="text-sm">
@@ -102,11 +101,11 @@ export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
                   🏆 {numberOfPersonalRecords} {StringUtils_pluralize("PR", numberOfPersonalRecords)}
                 </span>
               </div>
-              <div class="grid grid-cols-7 mt-2 text-center">
+              <div className="grid grid-cols-7 mt-2 text-center">
                 {Array(firstDayOfWeek)
                   .fill(null)
                   .map((_, i) => (
-                    <div key={`empty-${i}`} class="text-transparent">
+                    <div key={`empty-${i}`} className="text-transparent">
                       .
                     </div>
                   ))}
@@ -123,7 +122,7 @@ export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
                     <div
                       key={yyyymmdd}
                       data-first-day-of-week={thisFirstDayOfWeek}
-                      class="flex items-center justify-center text-text-primary p-2"
+                      className="flex items-center justify-center text-text-primary p-2"
                       style={{ background: isSelectedWeek ? Tailwind_semantic().background.subtle : "transparent" }}
                       onClick={() => {
                         if (historyRecord != null) {

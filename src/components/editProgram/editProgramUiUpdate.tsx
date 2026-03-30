@@ -1,4 +1,4 @@
-import { JSX, h, Fragment } from "preact";
+import { JSX, Fragment } from "react";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { IEvaluatedProgram, Program_getReusingUpdateExercises } from "../../models/program";
 import { CollectionUtils_uniqBy } from "../../utils/collection";
@@ -31,10 +31,10 @@ export function EditProgramUiUpdate(props: IEditProgramUiUpdateProps): JSX.Eleme
         <>
           This update reused by:{" "}
           {reusingUpdateExercises.map((e, i) => (
-            <>
+            <Fragment key={i}>
               {i !== 0 ? ", " : ""}
               <strong>{e.fullName}</strong>
-            </>
+            </Fragment>
           ))}
           .
         </>

@@ -1,8 +1,7 @@
-import { useEffect, useState } from "preact/hooks";
+import React, { JSX, useEffect, useState } from "react";
 import { Platform_onelink } from "../utils/platform";
-import { JSX, h } from "preact";
 
-interface IOnelinkProps extends JSX.HTMLAttributes<HTMLAnchorElement> {
+interface IOnelinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
   type?: "ios" | "android";
 }
 

@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { memo } from "preact/compat";
+import { JSX, memo } from "react";
 import { IProgram, ISettings, IStats } from "../../types";
 import {
   Program_evaluate,
@@ -67,7 +66,7 @@ export const ProgramPreviewTab = memo((props: IProgramPreviewTabProps): JSX.Elem
               <div className="flex flex-wrap justify-center mt-4" style={{ gap: "1.5rem" }}>
                 {week.days.map((d, i) => {
                   return (
-                    <div style={{ maxWidth: "24rem", minWidth: "18rem" }} className="flex-1">
+                    <div key={i} style={{ maxWidth: "24rem", minWidth: "18rem" }} className="flex-1">
                       <ProgramPreviewTabDay
                         stats={props.stats}
                         dispatch={props.dispatch}

@@ -1,5 +1,5 @@
+import type { JSX } from "react";
 import { lf } from "lens-shmens";
-import { h, JSX } from "preact";
 import { GroupHeader } from "../../../components/groupHeader";
 import { Input } from "../../../components/input";
 import { MenuItemValue } from "../../../components/menuItemEditable";
@@ -327,7 +327,10 @@ export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Ele
           </li>
           {availableMuscleGroups.map((muscleGroup) => {
             return (
-              <li className={`${!props.inApp ? "flex" : ""} flex-col items-start mb-2 sm:items-center sm:flex-row`}>
+              <li
+                key={muscleGroup}
+                className={`${!props.inApp ? "flex" : ""} flex-col items-start mb-2 sm:items-center sm:flex-row`}
+              >
                 <div className="w-32 text-xs font-bold sm:text-sm">
                   {Muscle_getMuscleGroupName(muscleGroup, props.settings)}
                 </div>

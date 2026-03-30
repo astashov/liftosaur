@@ -1,11 +1,10 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import { IProgram, IHistoryRecord, ISettings, ISubscription } from "../types";
 import { INavCommon, IState, updateState } from "../models/state";
 import { Surface } from "./surface";
 import { Footer2View } from "./footer2";
 import { DateUtils_firstDayOfWeekTimestamp } from "../utils/date";
-import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import { HistoryRecordsList } from "./historyRecordsList";
 import { History_getHistoryRecordsForTimerange, History_getPersonalRecords } from "../models/history";
 import { Screen_current } from "../models/screen";
@@ -130,7 +129,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
 
   useEffect(() => {
     let initialOffset: number | undefined;
-    const scrollPosToFirstDayOfWeek = Array.from(historyRecordsListRef.current.childNodes).reduce<
+    const scrollPosToFirstDayOfWeek = Array.from(historyRecordsListRef.current!.childNodes).reduce<
       Partial<Record<number, number>>
     >((memo, node) => {
       const element = node as HTMLElement;

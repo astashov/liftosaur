@@ -1,6 +1,5 @@
-import { h, JSX } from "preact";
+import { JSX, useEffect, useRef } from "react";
 import UPlot from "uplot";
-import { useRef, useEffect } from "preact/hooks";
 import { IHistoryEntry } from "../../../types";
 import { GraphsPlugins_zoom } from "../../../utils/graphsPlugins";
 
@@ -16,6 +15,9 @@ export function ProgramDetailsExerciseExampleGraph(props: IProgramDetailsExercis
   const graphRef = useRef<HTMLDivElement>(null);
   const legendRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    if (!graphRef.current) {
+      return;
+    }
     const rect = graphRef.current.getBoundingClientRect();
     const opts: UPlot.Options = {
       title: props.title,
@@ -67,9 +69,9 @@ export function ProgramDetailsExerciseExampleGraph(props: IProgramDetailsExercis
       }),
     ];
 
-    const uplot = new UPlot(opts, data, graphRef.current);
+    const uplot = new UPlot(opts, data, graphRef.current!);
 
-    const underEl = graphRef.current.querySelector(".over");
+    const underEl = graphRef.current!.querySelector(".over");
     const underRect = underEl?.getBoundingClientRect();
 
     function handler(): void {

@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import type { JSX } from "react";
 import { IconUndo } from "../icons/iconUndo";
 import { undo, canUndo, canRedo, redo } from "../../pages/builder/utils/undoredo";
 import { IPlannerState } from "../../pages/planner/models/types";

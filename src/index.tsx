@@ -9,7 +9,7 @@ try {
 } catch (e) {
   // noop
 }
-import { h, render } from "preact";
+import { createRoot } from "react-dom/client";
 import RB from "rollbar";
 import { RollbarUtils_config } from "./utils/rollbar";
 
@@ -69,9 +69,8 @@ async function initialize(loadedData: unknown): Promise<void> {
     (window as any).service = new Service(window.fetch.bind(window));
     const queue = new AsyncQueue();
     (window as any).queue = queue;
-    render(
-      <AppView initialState={initialState} client={client} audio={audio} queue={queue} />,
-      document.getElementById("app")!
+    createRoot(document.getElementById("app")!).render(
+      <AppView initialState={initialState} client={client} audio={audio} queue={queue} />
     );
   } catch (e) {
     console.error(e);

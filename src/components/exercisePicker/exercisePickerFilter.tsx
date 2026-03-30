@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import { JSX, useState } from "react";
 import {
   equipments,
   exerciseKinds,
@@ -10,7 +10,6 @@ import {
   ISettings,
 } from "../../types";
 import { IconBack } from "../icons/iconBack";
-import { useState } from "preact/hooks";
 import { ObjectUtils_values, ObjectUtils_entries } from "../../utils/object";
 import { IconArrowUp } from "../icons/iconArrowUp";
 import { IconArrowDown2 } from "../icons/iconArrowDown2";
@@ -259,6 +258,7 @@ function FilterMuscles<T extends string>(props: IFilterMusclesProps<T>): JSX.Ele
                     {ObjectUtils_entries(muscleGroups).map(([key, value]) => {
                       return (
                         <button
+                          key={key}
                           className={`bg-background-subtle h-12 leading-none overflow-hidden bg-no-repeat flex gap-2 items-center rounded-lg border text-left ${value.isSelected ? "border-button-secondarystroke text-text-purple" : "border-border-neutral"}`}
                           style={{ borderWidth: value.isSelected ? "2px" : "1px" }}
                           onClick={() => {

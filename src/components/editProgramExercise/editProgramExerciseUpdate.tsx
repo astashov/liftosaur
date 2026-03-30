@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, useState } from "react";
 import { IPlannerProgramExercise, IPlannerExerciseState, IPlannerExerciseUi } from "../../pages/planner/models/types";
 import { IProgram, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -9,7 +9,6 @@ import { MenuItemWrapper } from "../menuItem";
 import { InputSelect } from "../inputSelect";
 import { lb } from "lens-shmens";
 import { EditProgramUiHelpers_changeFirstInstance } from "../editProgram/editProgramUi/editProgramUiHelpers";
-import { useState } from "preact/hooks";
 import { ObjectUtils_entries } from "../../utils/object";
 import { ModalEditUpdateScript } from "./progressions/modalEditUpdateScript";
 import { EditProgramUiUpdate } from "../editProgram/editProgramUiUpdate";
@@ -171,7 +170,7 @@ function UpdateContent(props: IUpdateContentProps): JSX.Element {
               <div>Custom update of this exercise is reused by:</div>
               <ul>
                 {reusingUpdateExercises.map((exercise) => (
-                  <li key={exercise} className="ml-4 text-xs font-semibold list-disc">
+                  <li key={exercise.fullName} className="ml-4 text-xs font-semibold list-disc">
                     {exercise.fullName}
                   </li>
                 ))}

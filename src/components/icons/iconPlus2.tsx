@@ -1,10 +1,10 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
   color?: string;
   size?: number;
-  style?: JSX.CSSProperties;
+  style?: React.CSSProperties;
   className?: string;
 }
 

@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IconKettlebell } from "../../../components/icons/iconKettlebell";
 import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 
@@ -45,6 +45,7 @@ export function BuiltinPrograms(): JSX.Element {
       <div className="flex flex-wrap justify-center gap-1 md:gap-2">
         {programs.map(([name, link]) => (
           <a
+            key={name}
             href={link}
             target="_blank"
             className="inline-block px-3 py-2 text-xs font-semibold no-underline bg-white border border-purple-200 rounded-full md:text-sm md:py-3 md:px-6 hover:bg-purple-50"

@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import {
   IExercise,
@@ -11,7 +11,6 @@ import { IExerciseType, IMuscleMultiplier, ISettings } from "../types";
 import { Button } from "./button";
 import { Nux } from "./nux";
 import { CollectionUtils_sort } from "../utils/collection";
-import { useState } from "preact/hooks";
 import { MenuItemWrapper } from "./menuItem";
 import { StringUtils_dashcase } from "../utils/string";
 import { MuscleImage } from "./muscleImage";
@@ -129,7 +128,7 @@ export function BottomSheetMusclesOverride(props: IBottomSheetMusclesOverridePro
                   return null;
                 }
                 return (
-                  <MenuItemWrapper name={`muscle-override-${StringUtils_dashcase(mm.muscle)}`}>
+                  <MenuItemWrapper key={mm.muscle} name={`muscle-override-${StringUtils_dashcase(mm.muscle)}`}>
                     <div className="py-2">
                       <div className="flex items-center gap-2">
                         <div>

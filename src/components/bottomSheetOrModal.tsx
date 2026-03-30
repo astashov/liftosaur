@@ -1,5 +1,4 @@
-import { JSX, ComponentChildren, h } from "preact";
-import { useContext } from "preact/hooks";
+import { JSX, ReactNode, useContext } from "react";
 import { AppContext } from "./appContext";
 import { BottomSheet } from "./bottomSheet";
 import { Modal } from "./modal";
@@ -7,7 +6,7 @@ import { Modal } from "./modal";
 interface IProps {
   isHidden: boolean;
   shouldShowClose?: boolean;
-  children: ComponentChildren;
+  children: ReactNode;
   zIndex?: number;
   onClose: () => void;
 }

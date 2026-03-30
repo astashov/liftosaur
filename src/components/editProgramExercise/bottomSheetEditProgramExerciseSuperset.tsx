@@ -1,11 +1,10 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, Fragment, useState } from "react";
 import { IEvaluatedProgram, Program_getSupersetGroups } from "../../models/program";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { BottomSheet } from "../bottomSheet";
 import { ISettings } from "../../types";
 import { ObjectUtils_entriesNonnull } from "../../utils/object";
 import { Button } from "../button";
-import { useState } from "preact/hooks";
 import { ModalNewSupersetGroup } from "../modalNewSupersetGroup";
 import { StringUtils_dashcase } from "../../utils/string";
 
@@ -59,10 +58,10 @@ export function BottomSheetEditProgramExerciseSuperset(
                       <div className="text-xs text-text-secondary">
                         {plannerExercises.map((e, i) => {
                           return (
-                            <>
+                            <Fragment key={e.fullName}>
                               {i !== 0 ? ", " : ""}
                               <strong>{e.fullName}</strong>
-                            </>
+                            </Fragment>
                           );
                         })}
                       </div>

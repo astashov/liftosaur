@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { RecordContent } from "./pages/record/recordContent";
 import { IRecordResponse } from "./api/service";
 import { HydrateUtils_hydratePage } from "./utils/hydrate";

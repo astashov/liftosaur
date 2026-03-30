@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 
 export function IconApple(props: { color?: string; size?: number }): JSX.Element {
   const color = props.color || "white";

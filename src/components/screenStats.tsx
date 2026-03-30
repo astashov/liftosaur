@@ -1,4 +1,4 @@
-import { h, JSX, ComponentChildren } from "preact";
+import { JSX, ReactNode, Ref, forwardRef, memo, useRef, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import { Thunk_pullScreen } from "../ducks/thunks";
 import {
@@ -15,7 +15,6 @@ import {
   IPercentageUnit,
 } from "../types";
 import { Button } from "./button";
-import { forwardRef, Ref, useRef, useState, memo } from "preact/compat";
 import { ObjectUtils_keys } from "../utils/object";
 import { Weight_convertTo, Weight_build } from "../models/weight";
 import { Length_convertTo, Length_build } from "../models/length";
@@ -88,21 +87,21 @@ export function ScreenStats(props: IProps): JSX.Element {
   const [syncToGoogleHealth, setSyncToGoogleHealth] = useState(!!props.settings.googleHealthSyncMeasurements);
 
   const refs = {
-    weight: useRef<HTMLInputElement>(),
-    bodyfat: useRef<HTMLInputElement>(),
-    neck: useRef<HTMLInputElement>(),
-    shoulders: useRef<HTMLInputElement>(),
-    bicepLeft: useRef<HTMLInputElement>(),
-    bicepRight: useRef<HTMLInputElement>(),
-    forearmLeft: useRef<HTMLInputElement>(),
-    forearmRight: useRef<HTMLInputElement>(),
-    chest: useRef<HTMLInputElement>(),
-    waist: useRef<HTMLInputElement>(),
-    hips: useRef<HTMLInputElement>(),
-    thighLeft: useRef<HTMLInputElement>(),
-    thighRight: useRef<HTMLInputElement>(),
-    calfLeft: useRef<HTMLInputElement>(),
-    calfRight: useRef<HTMLInputElement>(),
+    weight: useRef<HTMLInputElement>(null),
+    bodyfat: useRef<HTMLInputElement>(null),
+    neck: useRef<HTMLInputElement>(null),
+    shoulders: useRef<HTMLInputElement>(null),
+    bicepLeft: useRef<HTMLInputElement>(null),
+    bicepRight: useRef<HTMLInputElement>(null),
+    forearmLeft: useRef<HTMLInputElement>(null),
+    forearmRight: useRef<HTMLInputElement>(null),
+    chest: useRef<HTMLInputElement>(null),
+    waist: useRef<HTMLInputElement>(null),
+    hips: useRef<HTMLInputElement>(null),
+    thighLeft: useRef<HTMLInputElement>(null),
+    thighRight: useRef<HTMLInputElement>(null),
+    calfLeft: useRef<HTMLInputElement>(null),
+    calfRight: useRef<HTMLInputElement>(null),
   };
 
   function saveWeight(): Partial<Record<keyof IStatsWeight, IWeight>> {
@@ -110,7 +109,7 @@ export function ScreenStats(props: IProps): JSX.Element {
       (acc, key) => {
         const isEnabled = statsEnabled.weight[key];
         if (isEnabled) {
-          const stringValue = refs[key]?.current.value;
+          const stringValue = refs[key]?.current?.value;
           if (stringValue) {
             const value = parseFloat(stringValue);
             if (!isNaN(value)) {
@@ -131,7 +130,7 @@ export function ScreenStats(props: IProps): JSX.Element {
       (acc, key) => {
         const isEnabled = statsEnabled.length[key];
         if (isEnabled) {
-          const stringValue = refs[key]?.current.value;
+          const stringValue = refs[key]?.current?.value;
           if (stringValue) {
             const value = parseFloat(stringValue);
             if (!isNaN(value)) {
@@ -153,7 +152,7 @@ export function ScreenStats(props: IProps): JSX.Element {
     >((acc, key) => {
       const isEnabled = statsEnabled.percentage[key];
       if (isEnabled) {
-        const stringValue = refs[key]?.current.value;
+        const stringValue = refs[key]?.current?.value;
         if (stringValue) {
           const value = parseFloat(stringValue);
           if (!isNaN(value)) {
@@ -213,7 +212,12 @@ export function ScreenStats(props: IProps): JSX.Element {
           dispatch={props.dispatch}
           helpContent={<HelpStats />}
           rightButtons={[
-            <button className="p-2 ls-modify-stats" data-cy="modify-stats" onClick={() => setIsModalVisible(true)}>
+            <button
+              key="filter"
+              className="p-2 ls-modify-stats"
+              data-cy="modify-stats"
+              onClick={() => setIsModalVisible(true)}
+            >
               <IconFilter />
             </button>,
           ]}
@@ -434,7 +438,7 @@ interface IInputProps {
 }
 
 interface ISingleLineProps {
-  children: ComponentChildren;
+  children: ReactNode;
 }
 
 function SingleLine(props: ISingleLineProps): JSX.Element {
@@ -446,8 +450,8 @@ function SingleLine(props: ISingleLineProps): JSX.Element {
 }
 
 interface IDoubleLineProps {
-  first: ComponentChildren;
-  second: ComponentChildren;
+  first: ReactNode;
+  second: ReactNode;
 }
 
 function DoubleLine(props: IDoubleLineProps): JSX.Element {

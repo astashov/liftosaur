@@ -1,5 +1,3 @@
-import { h } from "preact";
-
 import { renderPage } from "./render";
 import { AffiliateDashboardHtml } from "../src/pages/affiliateDashboard/affiliateDashboardHtml";
 import type { IAffiliateData } from "../src/pages/affiliateDashboard/affiliateDashboardContent";

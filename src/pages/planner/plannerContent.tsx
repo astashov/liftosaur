@@ -1,11 +1,10 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, useEffect, useState } from "react";
 import { useLensReducer } from "../../utils/useLensReducer";
 import { IPlannerState } from "./models/types";
 import { LinkInlineInput } from "../../components/inlineInput";
 import { lb, lf } from "lens-shmens";
 import { HtmlUtils_escapeHtml } from "../../utils/html";
 import { Encoder_encodeIntoUrl } from "../../utils/encoder";
-import { useEffect, useState } from "preact/hooks";
 import { IconCog2 } from "../../components/icons/iconCog2";
 import { ModalPlannerSettings } from "./components/modalPlannerSettings";
 import { ModalExercise } from "../../components/modalExercise";
@@ -147,7 +146,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
 
   const initialProgram = props.initialProgram?.program
     ? { ...props.initialProgram.program, planner: props.initialProgram.program.planner || initialPlanner }
-    : { ...Program_create("My Program"), planner: initialPlanner };
+    : { ...Program_create("My Program", "newprogram"), planner: initialPlanner };
 
   const initialSettings: ISettings = Settings_build();
   initialSettings.exercises = {
@@ -169,7 +168,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   const [isBannerLoading, setIsBannerLoading] = useState(false);
 
   const initialState: IPlannerState = {
-    id: initialProgram.id || UidFactory_generateUid(8),
+    id: initialProgram.id,
     current: {
       program: initialProgram,
     },
@@ -225,6 +224,12 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   ]);
   const planner = state.current.program.planner!;
   useUndoRedo(state, dispatch, [!!state.fulltext], () => state.fulltext == null);
+  useEffect(() => {
+    if (state.id === "newprogram") {
+      const id = UidFactory_generateUid(8);
+      dispatch([lb<IPlannerState>().p("id").record(id), lb<IPlannerState>().p("current").p("program").p("id").record(id)], "Generate initial ID");
+    }
+  }, []);
   useEffect(() => {
     setShowHelp(typeof window !== "undefined" && window.localStorage.getItem("hide-planner-help") !== "true");
     if (props.initialProgram) {
@@ -321,7 +326,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             <p className="mb-2">
               Set the program name, create weeks and days, type the list of exercises for each day, putting each
               exercise on a new line, along with the number of sets and reps after slash (
-              <pre className="inline">/</pre>) character, like this:
+              <code>/</code>) character, like this:
             </p>
             <div>
               <div className="inline-block px-4 py-2 my-1 mb-2 border rounded-md bg-background-default border-border-neutral">

@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { ExerciseImage } from "../../../components/exerciseImage";
 import { IconCalendarSmall } from "../../../components/icons/iconCalendarSmall";
 import { IconKettlebellSmall } from "../../../components/icons/iconKettlebellSmall";

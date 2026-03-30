@@ -1,6 +1,5 @@
-import { h, JSX } from "preact";
+import { JSX, useEffect, useRef } from "react";
 import UPlot from "uplot";
-import { useRef, useEffect } from "preact/hooks";
 import { CollectionUtils_sort } from "../utils/collection";
 import { Weight_convertTo } from "../models/weight";
 import {
@@ -80,6 +79,9 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
     const dataMinX = Math.max(data[0]?.[0] || 0, dataMaxX - 365 * 24 * 60 * 60);
     const allMaxX = props.maxX;
     const allMinX = Math.max(props.minX, allMaxX - 365 * 24 * 60 * 60);
+    if (!graphRef.current) {
+      return;
+    }
     const rect = graphRef.current.getBoundingClientRect();
     const opts: UPlot.Options = {
       title: props.title === undefined ? `${Stats_name(props.statsKey)}` : props.title || undefined,
@@ -151,9 +153,9 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
       ],
     };
 
-    const uplot = new UPlot(opts, data, graphRef.current);
+    const uplot = new UPlot(opts, data, graphRef.current!);
 
-    const underEl = graphRef.current.querySelector(".over");
+    const underEl = graphRef.current!.querySelector(".over");
     const underRect = underEl?.getBoundingClientRect();
 
     function handler(): void {

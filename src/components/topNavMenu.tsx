@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { useState } from "preact/hooks";
+import { JSX, useState } from "react";
 import { IconHamburger } from "./icons/iconHamburger";
 import { Account } from "./account";
 import { IconUser } from "./icons/iconUser";
@@ -82,7 +81,7 @@ export function TopNavMenu(props: {
               </div>
               <div className="flex flex-col gap-4 mb-6">
                 {getMenuItems(isLoggedIn).map(([text, link]) => (
-                  <a className="font-semibold no-underline" href={link} onClick={() => setIsMenuOpen(false)}>
+                  <a key={text} className="font-semibold no-underline" href={link} onClick={() => setIsMenuOpen(false)}>
                     {text}
                   </a>
                 ))}
@@ -204,7 +203,7 @@ function DesktopNav(props: IDesktopNavProps): JSX.Element {
         <div className="flex items-center gap-4">
           <ul className="flex flex-wrap items-center justify-end leading-none list-none gap-x-4">
             {getMenuItems(props.isLoggedIn).map(([text, link, hideClass]) => (
-              <li className={`list-none ${hideClass || ""}`}>
+              <li key={text} className={`list-none ${hideClass || ""}`}>
                 {props.current === link ? (
                   <span className={`py-1 text-sm underline ${props.isWhite ? "text-white" : "text-purple-700"}`}>
                     {text}

@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { LogsContent } from "./logsContent";
 import { renderAdminHtml, AdminHtml } from "./adminHtml";
 

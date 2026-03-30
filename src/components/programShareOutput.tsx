@@ -1,4 +1,4 @@
-import { h, JSX, ComponentChildren, Ref } from "preact";
+import { JSX, ReactNode, Ref, forwardRef, useEffect, useRef } from "react";
 import { ISettings, IPlannerProgram, IPlannerProgramWeek, IPlannerProgramDay } from "../types";
 import { PlannerProgram_evaluate } from "../pages/planner/models/plannerProgram";
 import { StringUtils_pluralize } from "../utils/string";
@@ -13,7 +13,6 @@ import { IPlannerProgramExercise, IPlannerProgramExerciseSet } from "../pages/pl
 import { Markdown } from "./markdown";
 import { Weight_print } from "../models/weight";
 import { CollectionUtils_compact, CollectionUtils_inGroupsOf } from "../utils/collection";
-import { forwardRef, useEffect, useRef } from "preact/compat";
 import { ProgramQrCode } from "./programQrCode";
 import { Equipment_currentEquipment } from "../models/equipment";
 
@@ -33,7 +32,7 @@ interface IProgramShareOutputProps {
   url?: string;
 }
 
-function Card(props: { children: ComponentChildren }): JSX.Element {
+function Card(props: { children: ReactNode }): JSX.Element {
   return (
     <div
       style={{
@@ -52,8 +51,8 @@ export const ProgramShareOutput = forwardRef(
     const { evaluatedWeeks } = PlannerProgram_evaluate(props.program, props.settings);
     const minDays = Math.min(...evaluatedWeeks.map((week) => week.length));
     const maxDays = Math.max(...evaluatedWeeks.map((week) => week.length));
-    const contentRef = useRef<HTMLDivElement>();
-    const titleRef = useRef<HTMLDivElement>();
+    const contentRef = useRef<HTMLDivElement>(null);
+    const titleRef = useRef<HTMLDivElement>(null);
     let dayIndex = 0;
 
     useEffect(() => {
@@ -117,7 +116,7 @@ export const ProgramShareOutput = forwardRef(
             );
             const groupedDays = CollectionUtils_inGroupsOf(options.columns, visibleDays);
             return (
-              <div style={{ width: "max-content" }}>
+              <div key={weekIndex} style={{ width: "max-content" }}>
                 {options.showWeekDescription && week.description && visibleDays.length > 0 && (
                   <div className="mt-2">
                     <Card>
@@ -127,16 +126,16 @@ export const ProgramShareOutput = forwardRef(
                     </Card>
                   </div>
                 )}
-                {groupedDays.map((days) => {
+                {groupedDays.map((days, gi) => {
                   return (
-                    <div className="flex gap-2">
+                    <div key={gi} className="flex gap-2">
                       {days.map((day) => {
                         const evaluatedDay = findDayInEvaluatedWeeks(evaluatedWeeks, day.dayIndex);
                         if (evaluatedDay == null) {
                           return <div />;
                         }
                         const item = (
-                          <div className="mt-2" style={{ width: "24rem" }}>
+                          <div key={day.dayIndex} className="mt-2" style={{ width: "24rem" }}>
                             <Workout
                               isMultiweek={props.program.weeks.length > 1}
                               week={week}
@@ -241,7 +240,7 @@ function Workout(props: IWorkoutProps): JSX.Element {
         }
 
         return (
-          <div className={`mx-4 pb-4 ${i > 0 ? "pt-2 border-t border-border-neutral" : ""}`}>
+          <div key={i} className={`mx-4 pb-4 ${i > 0 ? "pt-2 border-t border-border-neutral" : ""}`}>
             <div className={`flex items-stretch pl-1`} style={{ paddingRight: "1px" }} key={Exercise_toKey(exercise)}>
               <div className="flex items-center w-12 pr-2">
                 <ExerciseImage suppressCustom={true} exerciseType={exercise} size="small" settings={props.settings} />
@@ -250,8 +249,8 @@ function Workout(props: IWorkoutProps): JSX.Element {
                 <div className={`flex gap-2 items-center w-full`}>
                   <div className="flex-1 font-bold">{plannerProgramExercise.fullName}</div>
                   <div className="pr-2">
-                    {PlannerProgramExercise_sets(plannerProgramExercise).map((set) => {
-                      return <Set set={set} />;
+                    {PlannerProgramExercise_sets(plannerProgramExercise).map((set, si) => {
+                      return <Set key={si} set={set} />;
                     })}
                   </div>
                 </div>

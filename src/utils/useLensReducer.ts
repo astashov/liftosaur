@@ -1,7 +1,7 @@
+import { useCallback } from "react";
 import { IGDispatch, IGThunk } from "../ducks/types";
 import { useThunkReducer } from "./useThunkReducer";
 import { ILensRecordingPayload } from "lens-shmens";
-import { useCallback } from "preact/hooks";
 import { UrlUtils_build } from "./url";
 
 type IAction<TState> = {

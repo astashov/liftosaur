@@ -1,5 +1,4 @@
-import { h, JSX, Fragment } from "preact";
-import { useState } from "preact/hooks";
+import { JSX, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import {
   EditStats_changeStatWeightTimestamp,

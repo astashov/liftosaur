@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { JSX, useEffect, useRef, useState } from "react";
 import { TimeUtils_formatMMSS } from "../utils/time";
 import { IDispatch } from "../ducks/types";
 import { Thunk_playAudioNotification, Thunk_updateTimer } from "../ducks/thunks";

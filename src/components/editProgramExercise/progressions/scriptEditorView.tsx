@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { useEffect, useRef } from "preact/hooks";
+import { JSX, useEffect, useRef } from "react";
 import { IProgramState } from "../../../types";
 import { LiftoscriptSyntaxError } from "../../../liftoscriptEvaluator";
 import { ScriptEditor } from "./scriptEditor";
@@ -65,7 +64,7 @@ export function ScriptEditorView(props: IProps): JSX.Element {
     }
   }, [props.value]);
 
-  const divRef = useRef<HTMLDivElement>();
+  const divRef = useRef<HTMLDivElement>(null);
 
   let className =
     "block w-full px-2 py-2 leading-normal bg-background-default border rounded-lg appearance-none focus:outline-none focus:shadow-outline";

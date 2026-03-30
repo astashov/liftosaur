@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
@@ -19,13 +19,13 @@ export function IconTracker(props: IProps): JSX.Element {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <path d="M2 19.5L22 19.5" stroke={color} stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M2 19.5L22 19.5" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       <path
         d="M2 12.2778L5.33333 15.0556L11.4444 7.83333L15.8889 11.7222L22 4.5"
         stroke={color}
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );

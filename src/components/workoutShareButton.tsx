@@ -1,6 +1,5 @@
-import { JSX, h } from "preact";
+import { JSX, useRef, useState } from "react";
 import { IHistoryRecord, ISettings } from "../types";
-import { useRef, useState } from "preact/hooks";
 import { WorkoutShareOutput } from "./workoutShareOutput";
 import { IconSpinner } from "./icons/iconSpinner";
 import { ImageShareUtils } from "../utils/imageshare";
@@ -13,7 +12,7 @@ interface IWorkoutShareButtonProps {
 }
 
 export function WorkoutShareButton(props: IWorkoutShareButtonProps): JSX.Element {
-  const workoutShareRef = useRef<HTMLDivElement>();
+  const workoutShareRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   return (
     <div className="relative overflow-hidden text-left">
@@ -22,7 +21,7 @@ export function WorkoutShareButton(props: IWorkoutShareButtonProps): JSX.Element
         onClick={async () => {
           setIsLoading(true);
           try {
-            const dataUrl = await ImageShareUtils.generateImageDataUrl(workoutShareRef.current);
+            const dataUrl = await ImageShareUtils.generateImageDataUrl(workoutShareRef.current!);
             const imageShare = new ImageShareUtils(dataUrl, "workout.png");
             setIsLoading(false);
             imageShare.shareOrDownload();

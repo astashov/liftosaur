@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { renderPage } from "./render";
 import { DocsListHtml } from "../src/pages/docs/docsListHtml";
 import { IDocIndexEntry } from "../src/models/doc";

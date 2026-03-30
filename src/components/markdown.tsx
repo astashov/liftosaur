@@ -1,6 +1,6 @@
-import { h, JSX, render } from "preact";
+import { JSX, useEffect, useRef, useState } from "react";
+import { createRoot } from "react-dom/client";
 import MarkdownIt from "markdown-it";
-import { useEffect, useRef, useState } from "preact/hooks";
 import { LinkButton } from "./linkButton";
 import { IEvaluatedProgram } from "../models/program";
 import { ISettings } from "../types";
@@ -56,7 +56,7 @@ export function Markdown(props: IProps): JSX.Element {
   useEffect(() => {
     const container = containerRef.current;
     if (isTruncated) {
-      setShouldTruncate(container.scrollHeight > container.clientHeight);
+      setShouldTruncate(container!.scrollHeight > container!.clientHeight);
     }
     if (container) {
       for (const element of Array.from(container.querySelectorAll("a"))) {
@@ -113,7 +113,7 @@ function hydrateLiftoscriptCodeBlocks(container: HTMLElement): void {
         const wrapper = document.createElement("div");
         wrapper.className = "md-liftoscript-block";
         pre.parentNode!.replaceChild(wrapper, pre);
-        render(<mod.PlannerCodeBlock script={script} />, wrapper);
+        createRoot(wrapper).render(<mod.PlannerCodeBlock script={script} />);
       }
     }
   });
@@ -132,7 +132,7 @@ function hydrateExerciseDirectives(container: HTMLElement, settings: ISettings):
     }
     const exerciseType = { id: exercise.id, equipment: exercise.equipment };
     el.textContent = "";
-    render(<ExerciseTooltip exerciseType={exerciseType} settings={settings} name={name} />, el);
+    createRoot(el).render(<ExerciseTooltip exerciseType={exerciseType} settings={settings} name={name} />);
   }
 }
 
@@ -170,7 +170,7 @@ function hydrateExerciseExampleDirectives(
     }
 
     import("../pages/programs/programDetails/programDetailsExerciseExample").then((mod) => {
-      render(
+      createRoot(el as HTMLElement).render(
         <mod.ProgramDetailsExerciseExample
           program={evaluatedProgram}
           settings={settings}
@@ -178,8 +178,7 @@ function hydrateExerciseExampleDirectives(
           exerciseType={exerciseType}
           weekSetup={weekSetup}
           defaultOnerm={onermStr ? parseFloat(onermStr) : undefined}
-        />,
-        el as HTMLElement
+        />
       );
     });
   }

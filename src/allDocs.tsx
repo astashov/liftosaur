@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { PageWrapper } from "./components/pageWrapper";
 import { IDocsListContentProps, DocsListContent } from "./pages/docs/docsListContent";
 import { HydrateUtils_hydratePage } from "./utils/hydrate";

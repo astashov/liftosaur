@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { memo } from "preact/compat";
+import { JSX, memo } from "react";
 import { Equipment_getUnitOrDefaultForExerciseType } from "../models/equipment";
 import { Exercise_get, Exercise_nameWithEquipment } from "../models/exercise";
 import { Weight_roundConvertTo } from "../models/weight";

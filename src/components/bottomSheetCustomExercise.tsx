@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { ISettings, ICustomExercise } from "../types";
 import { BottomSheet } from "./bottomSheet";
 import { ExercisePickerCustomExercise } from "./exercisePicker/exercisePickerCustomExercise";

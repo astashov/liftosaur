@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import type { JSX } from "react";
 import { ISettings } from "../types";
 import { BottomSheetOrModal } from "./bottomSheetOrModal";
 import {

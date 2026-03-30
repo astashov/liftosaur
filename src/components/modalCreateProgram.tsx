@@ -1,7 +1,6 @@
-import { h, JSX } from "preact";
+import { JSX, useRef } from "react";
 import { Button } from "./button";
 import { Modal } from "./modal";
-import { useRef } from "preact/hooks";
 import { Input } from "./input";
 import { IconSpinner } from "./icons/iconSpinner";
 
@@ -51,7 +50,7 @@ export function ModalCreateProgram(props: IProps): JSX.Element {
           kind="purple"
           className="ls-modal-create-program"
           onClick={() => {
-            if (!props.isLoading && textInput.current.value) {
+            if (!props.isLoading && textInput.current?.value) {
               props.onSelect(textInput.current.value);
             }
           }}

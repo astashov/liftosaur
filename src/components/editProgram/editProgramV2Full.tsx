@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import { JSX, useEffect, useMemo, useRef } from "react";
 import { IPlannerProgram, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
@@ -8,7 +8,6 @@ import {
   PlannerProgram_evaluateFull,
   PlannerProgram_evaluateText,
 } from "../../pages/planner/models/plannerProgram";
-import { useEffect, useMemo, useRef } from "preact/hooks";
 import { PlannerEditorView } from "../../pages/planner/components/plannerEditorView";
 import { EditProgramCustomErrorCta } from "./editProgramCustomErrorCta";
 

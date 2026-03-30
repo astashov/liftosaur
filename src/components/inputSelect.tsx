@@ -1,5 +1,4 @@
-import { JSX, h, Fragment } from "preact";
-import { useState } from "preact/hooks";
+import { JSX, useState } from "react";
 import { BottomSheet } from "./bottomSheet";
 import { IconArrowDown2 } from "./icons/iconArrowDown2";
 

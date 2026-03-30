@@ -1,4 +1,4 @@
-import { h, JSX, RefObject, Fragment } from "preact";
+import { JSX, Fragment, RefObject, memo, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import { IExerciseType, IHistoryRecord, ISettings } from "../types";
 import { Weight_print, Weight_is, Weight_isPct, Weight_display } from "../models/weight";
@@ -16,12 +16,10 @@ import { updateSettings } from "../models/state";
 import { GroupHeader } from "./groupHeader";
 import { IconFilter } from "./icons/iconFilter";
 import { MenuItemEditable } from "./menuItemEditable";
-import { useState } from "preact/hooks";
-import { memo } from "preact/compat";
 import { ComparerUtils_noFns } from "../utils/comparer";
 
 interface IExerciseHistoryProps {
-  surfaceRef: RefObject<HTMLElement>;
+  surfaceRef: RefObject<HTMLElement | null>;
   exerciseType: IExerciseType;
   settings: ISettings;
   dispatch: IDispatch;
@@ -120,6 +118,7 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
         const exerciseNotes = exerciseEntries.map((e) => e.notes).filter((e) => e);
         return (
           <MenuItemWrapper
+            key={historyRecord.id}
             onClick={() => {
               props.dispatch({ type: "EditHistoryRecord", historyRecord });
             }}
@@ -135,7 +134,7 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
               <div className="flex">
                 <div className="flex-1">
                   <div>
-                    {exerciseEntries.map((entry) => {
+                    {exerciseEntries.map((entry, ei) => {
                       const prs = allPrs[historyRecord.id]?.[Exercise_toKey(entry.exercise)];
                       const state = { ...entry.state };
                       const vars = entry.vars || {};
@@ -145,7 +144,7 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
                       }
                       const volume = Reps_volume(entry.sets, props.settings.units);
                       return (
-                        <div className="pt-1">
+                        <div key={ei} className="pt-1">
                           <div className="text-right">
                             <HistoryRecordSetsView
                               showPrDetails={true}
@@ -167,12 +166,12 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
                                 const displayValue =
                                   Weight_is(value) || Weight_isPct(value) ? Weight_display(value) : value;
                                 return (
-                                  <>
+                                  <Fragment key={stateKey}>
                                     {i !== 0 && ", "}
                                     <span>
                                       {stateKey} - <strong>{displayValue}</strong>
                                     </span>
-                                  </>
+                                  </Fragment>
                                 );
                               })}
                             </div>
@@ -183,8 +182,10 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
                   </div>
                   {exerciseNotes.length > 0 && (
                     <ul>
-                      {exerciseNotes.map((n) => (
-                        <li className="text-sm text-text-secondary">{n}</li>
+                      {exerciseNotes.map((n, ni) => (
+                        <li key={ni} className="text-sm text-text-secondary">
+                          {n}
+                        </li>
                       ))}
                     </ul>
                   )}

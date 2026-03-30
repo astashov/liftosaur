@@ -1,14 +1,13 @@
-import { JSX } from "preact";
-import { useState, useRef } from "preact/hooks";
+import React, { JSX, useCallback, useEffect, useRef, useState } from "react";
 import { MathUtils_clamp } from "../utils/math";
 
 interface ISwipeableRowProps {
   children: (props: {
-    onPointerDown: (event: TouchEvent | PointerEvent) => void;
-    onPointerMove: (event: TouchEvent | PointerEvent) => void;
+    onPointerDown: (event: React.TouchEvent | React.PointerEvent) => void;
     onPointerUp: () => void;
-    style: JSX.CSSProperties;
+    style: React.CSSProperties;
     close: () => void;
+    moveRef: React.RefObject<HTMLElement | null>;
   }) => JSX.Element;
   width: number;
   onPointerDown?: () => void;
@@ -29,8 +28,9 @@ export function SwipeableRow(props: ISwipeableRowProps): JSX.Element {
   const isScrolling = useRef(false);
   const isSwiping = useRef(false);
   const isOpen = useRef(false);
+  const moveRef = useRef<HTMLElement | null>(null);
 
-  const handlePointerDown = (event: TouchEvent | PointerEvent): void => {
+  const handlePointerDown = (event: React.TouchEvent | React.PointerEvent): void => {
     if (props.onPointerDown) {
       props.onPointerDown();
     }
@@ -38,16 +38,17 @@ export function SwipeableRow(props: ISwipeableRowProps): JSX.Element {
     for (const scroller of Array.from(parentScroller)) {
       (scroller as HTMLElement).style.overflowX = "hidden";
     }
-    startX.current = "touches" in event ? event.touches[0].clientX : event.clientX;
-    startY.current = "touches" in event ? event.touches[0].clientY : event.clientY;
+    const nativeEvent = event.nativeEvent;
+    startX.current = "touches" in nativeEvent ? nativeEvent.touches[0].clientX : nativeEvent.clientX;
+    startY.current = "touches" in nativeEvent ? nativeEvent.touches[0].clientY : nativeEvent.clientY;
     startScrollTop.current = document.documentElement.scrollTop;
     isDragging.current = true;
     isScrolling.current = false;
     isSwiping.current = false;
   };
 
-  const handlePointerMove = (event: TouchEvent | PointerEvent): void => {
-    if (isSwiping.current) {
+  const handlePointerMove = useCallback((event: TouchEvent | PointerEvent): void => {
+    if (isSwiping.current && event.cancelable) {
       event.preventDefault();
     }
     if (!isDragging.current) {
@@ -67,7 +68,18 @@ export function SwipeableRow(props: ISwipeableRowProps): JSX.Element {
       setTranslateX(MathUtils_clamp(deltaX, -width, 0));
       return;
     }
-  };
+  }, [width, props.scrollThreshold, props.initiateTreshold]);
+
+  useEffect(() => {
+    const el = moveRef.current;
+    if (!el) return;
+    el.addEventListener("touchmove", handlePointerMove, { passive: false });
+    el.addEventListener("pointermove", handlePointerMove, { passive: false });
+    return () => {
+      el.removeEventListener("touchmove", handlePointerMove);
+      el.removeEventListener("pointermove", handlePointerMove);
+    };
+  }, [handlePointerMove]);
 
   const handlePointerUp = (): void => {
     isDragging.current = false;
@@ -77,15 +89,12 @@ export function SwipeableRow(props: ISwipeableRowProps): JSX.Element {
     }
 
     if (!isOpen.current && translateX < -openThreshold) {
-      // If swiped far enough left, keep it open
       setTranslateX(-width);
       isOpen.current = true;
     } else if (isOpen.current && translateX > -closeThreshold) {
-      // If swiped back right past close threshold, close it smoothly
       setTranslateX(0);
       isOpen.current = false;
     } else {
-      // Otherwise, keep the current state
       setTranslateX(isOpen.current ? -width : 0);
     }
   };
@@ -97,7 +106,6 @@ export function SwipeableRow(props: ISwipeableRowProps): JSX.Element {
 
   return children({
     onPointerDown: handlePointerDown,
-    onPointerMove: handlePointerMove,
     onPointerUp: handlePointerUp,
     style: {
       animation: props.showHint ? "swipeable-row-hint 3s ease-in-out infinite" : undefined,
@@ -105,5 +113,6 @@ export function SwipeableRow(props: ISwipeableRowProps): JSX.Element {
       transition: isDragging.current ? "none" : "transform 0.3s ease-in-out",
     },
     close,
+    moveRef,
   });
 }

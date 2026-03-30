@@ -1,8 +1,7 @@
-import { h, JSX, ComponentChildren } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { JSX, ReactNode, useEffect, useRef, useState } from "react";
 
 interface IProps {
-  children: ComponentChildren;
+  children: ReactNode;
   arrowYOffsetPct?: number;
   scrollOffset?: number;
 }
@@ -60,9 +59,10 @@ export function Scroller(props: IProps): JSX.Element {
             transform: `translateY(${-50 + (props.arrowYOffsetPct || 0)}%)`,
           }}
           onClick={() => {
-            const newScrollRight = tabsRef.current?.scrollLeft + tabsRef.current?.clientWidth;
-            if (newScrollRight !== undefined) {
-              tabsRef.current?.scrollTo({ left: newScrollRight, behavior: "smooth" });
+            const scrollLeft = tabsRef.current?.scrollLeft;
+            const clientWidth = tabsRef.current?.clientWidth;
+            if (scrollLeft != null && clientWidth != null) {
+              tabsRef.current?.scrollTo({ left: scrollLeft + clientWidth, behavior: "smooth" });
             }
           }}
         >
@@ -75,9 +75,10 @@ export function Scroller(props: IProps): JSX.Element {
         ref={tabsRef}
         onScroll={() => {
           setAtLeft(tabsRef.current?.scrollLeft === 0);
-          const diff = Math.abs(
-            tabsRef.current?.scrollLeft - (tabsRef.current?.scrollWidth - tabsRef.current?.clientWidth)
-          );
+          const scrollLeft = tabsRef.current?.scrollLeft ?? 0;
+          const scrollWidth = tabsRef.current?.scrollWidth ?? 0;
+          const clientWidth = tabsRef.current?.clientWidth ?? 0;
+          const diff = Math.abs(scrollLeft - (scrollWidth - clientWidth));
           setAtRight(diff < 3);
         }}
       >

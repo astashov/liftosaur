@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import React, { JSX, useRef } from "react";
 import { Exercise_get } from "../models/exercise";
 import { Reps_setsStatus } from "../models/set";
 import { IHistoryEntry, IHistoryRecord, ISettings } from "../types";
@@ -9,12 +9,11 @@ import {
 import { ExerciseImage } from "./exerciseImage";
 import { IconCheckCircle } from "./icons/iconCheckCircle";
 import { StringUtils_dashcase } from "../utils/string";
-import { useRef } from "preact/hooks";
 import { Tailwind_colors, Tailwind_semantic } from "../utils/tailwindConfig";
 import { ObjectUtils_entries } from "../utils/object";
 
 interface IWorkoutExerciseThumbnailProps {
-  handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
+  handleTouchStart?: (e: React.MouseEvent | React.TouchEvent) => void;
   onClick?: () => void;
   selectedIndex: number;
   colorToSupersetGroup: Partial<Record<string, IHistoryEntry[]>>;

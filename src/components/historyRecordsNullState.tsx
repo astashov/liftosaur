@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import type { JSX } from "react";
 import { IconArrowDown3 } from "./icons/iconArrowDown3";
 import { ImagePreloader_dynocoach } from "../utils/imagePreloader";
 

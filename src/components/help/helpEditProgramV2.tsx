@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import type { JSX } from "react";
 import { PlannerCodeBlock } from "../../pages/planner/components/plannerCodeBlock";
 import { IconGraphsE } from "../icons/iconGraphsE";
 import { IconMusclesD } from "../icons/iconMusclesD";
@@ -31,7 +31,7 @@ export function HelpEditProgramV2(): JSX.Element {
         Set the program name, create weeks and days. Then, either create exercises through UI, or switch to the plain
         text mode (by tapping on <IconDoc />
         ), type the list of exercises for each day, putting each exercise on a new line, along with the number of sets
-        and reps after slash (<pre className="inline">/</pre>) character, like this:
+        and reps after slash (<code>/</code>) character, like this:
       </p>
       <div>
         <div className="px-4 py-2 my-1 mb-2 bg-background-default border rounded-md border-border-neutral">

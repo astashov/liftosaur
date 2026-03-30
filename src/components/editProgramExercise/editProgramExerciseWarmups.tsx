@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IPlannerProgramExercise, IPlannerExerciseState } from "../../pages/planner/models/types";
 import { IPercentage, IPlannerProgram, ISettings, IWeight } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -138,8 +138,8 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
             {reuseWarmups ? <div>Reused from</div> : <div className="font-semibold">Default warmups</div>}
           </div>
           <div className="">
-            {displayWarmupSets.map((g) => (
-              <HistoryRecordSet sets={g} isNext={true} settings={props.settings} />
+            {displayWarmupSets.map((g, i) => (
+              <HistoryRecordSet key={i} sets={g} isNext={true} settings={props.settings} />
             ))}
           </div>
         </div>
@@ -160,22 +160,22 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
               {ownWarmups.map((set, setIndex) => {
                 return (
                   <SwipeableRow
+                    key={setIndex}
                     width={64}
                     openThreshold={15}
                     closeThreshold={55}
                     scrollThreshold={7}
                     initiateTreshold={15}
                   >
-                    {({ onPointerDown, onPointerMove, onPointerUp, style, close }) => (
+                    {({ onPointerDown, onPointerUp, style, close, moveRef }) => (
                       <div
+                        ref={moveRef}
                         className={`will-change-transform relative table-row`}
                         data-cy="warmup-set"
                         style={style}
                         onTouchStart={shouldUseTouch ? onPointerDown : undefined}
-                        onTouchMove={shouldUseTouch ? onPointerMove : undefined}
                         onTouchEnd={shouldUseTouch ? onPointerUp : undefined}
                         onPointerDown={!shouldUseTouch ? onPointerDown : undefined}
-                        onPointerMove={!shouldUseTouch ? onPointerMove : undefined}
                         onPointerUp={!shouldUseTouch ? onPointerUp : undefined}
                       >
                         <div

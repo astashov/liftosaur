@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IconLaptop } from "../../../components/icons/iconLaptop";
 import { Tailwind_colors } from "../../../utils/tailwindConfig";
 

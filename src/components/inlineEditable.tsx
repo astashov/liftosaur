@@ -1,5 +1,4 @@
-import { h, Fragment, JSX } from "preact";
-import { useState, useRef, useEffect } from "preact/hooks";
+import React, { JSX, useEffect, useRef, useState } from "react";
 
 interface IInlineEditableProps {
   value: string;
@@ -44,7 +43,7 @@ export function InlineEditable({ value, onChange, onInput, className = "" }: IIn
     textarea.style.width = width + "px";
   };
 
-  const handleInput = (e: Event): void => {
+  const handleInput = (e: React.FormEvent<HTMLTextAreaElement>): void => {
     const target = e.target as HTMLTextAreaElement;
     const newValue = target.value;
     setInternalValue(newValue);
@@ -60,7 +59,7 @@ export function InlineEditable({ value, onChange, onInput, className = "" }: IIn
     }
   };
 
-  const handleKeyDown = (e: KeyboardEvent): void => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>): void => {
     if (e.key === "Escape") {
       setInternalValue(value);
       setIsEditing(false);

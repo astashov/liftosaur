@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { JSX, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ITestimonial, Testimonials_getHighRatingTitles } from "../testimonitals";
 import { IconStar } from "../../../components/icons/iconStar";
 import { Tailwind_colors } from "../../../utils/tailwindConfig";
@@ -93,6 +92,7 @@ function TopTestimonials(props: { testimonials: ITestimonial[] }): JSX.Element {
 
   const stars = Array.from({ length: 5 }, (_, i) => (
     <IconStar
+      key={i}
       isSelected={true}
       color={Tailwind_colors().yellow[500]}
       style={{ marginLeft: i !== 0 ? "-0.25rem" : 0 }}

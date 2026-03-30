@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import type { JSX } from "react";
 import { Page } from "../../components/page";
 import { AiPromptContent } from "./aiPromptContent";
 import { IAccount } from "../../models/account";

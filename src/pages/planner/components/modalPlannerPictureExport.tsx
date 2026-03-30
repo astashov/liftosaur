@@ -1,11 +1,10 @@
-import { h, JSX } from "preact";
+import { JSX, RefObject, useEffect, useRef, useState } from "react";
 import { GroupHeader } from "../../../components/groupHeader";
 import { Modal } from "../../../components/modal";
 import { IPlannerProgram, IProgram, ISettings } from "../../../types";
 import { IProgramShareOutputOptions, ProgramShareOutput } from "../../../components/programShareOutput";
 import { Button } from "../../../components/button";
 import * as htmlToImage from "html-to-image";
-import { Ref, useEffect, useRef, useState } from "preact/hooks";
 import { IconSpinner } from "../../../components/icons/iconSpinner";
 import { MenuItemEditable } from "../../../components/menuItemEditable";
 import { CollectionUtils_removeAll, CollectionUtils_remove } from "../../../utils/collection";
@@ -127,7 +126,7 @@ export function ModalPlannerPictureExport(props: IModalPlannerPictureExportProps
 interface ISettingsTabProps {
   program: IPlannerProgram;
   initialDaysToShow: number[];
-  sourceRef: Ref<HTMLDivElement>;
+  sourceRef: RefObject<HTMLDivElement | null>;
   config: IProgramShareOutputOptions;
   setConfig: (config: IProgramShareOutputOptions) => void;
 }
@@ -150,8 +149,8 @@ function SettingsTab(props: ISettingsTabProps): JSX.Element {
 
   function save(): void {
     const maxSize = 16384;
-    const width = sourceRef.current.clientWidth;
-    const height = sourceRef.current.clientHeight;
+    const width = sourceRef.current!.clientWidth;
+    const height = sourceRef.current!.clientHeight;
     console.log(`${width}x${height}`);
     if (width >= maxSize || height >= maxSize) {
       alert(
@@ -161,7 +160,7 @@ function SettingsTab(props: ISettingsTabProps): JSX.Element {
     }
     setIsLoading(true);
     htmlToImage
-      .toPng(sourceRef.current, {
+      .toPng(sourceRef.current!, {
         pixelRatio: 2,
       })
       .then((dataUrl) => {
@@ -243,9 +242,8 @@ function SettingsTab(props: ISettingsTabProps): JSX.Element {
         const dayIndexes = week.days.map((_, i) => weekDayMapping[weekIndex][i]);
         const allDaysSelected = dayIndexes.every((di) => config.daysToShow.includes(di));
         return (
-          <div>
+          <div key={weekIndex}>
             <MenuItemEditable
-              key={weekIndex}
               name={`Week ${weekIndex + 1}`}
               type="boolean"
               value={allDaysSelected ? "true" : "false"}

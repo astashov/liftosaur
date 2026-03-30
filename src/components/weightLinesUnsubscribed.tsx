@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import type { JSX } from "react";
 import { Weight_eq } from "../models/weight";
 import { IPercentage, IWeight } from "../types";
 
@@ -11,9 +11,9 @@ export function WeightLinesUnsubscribed(props: IWeightLinesUnsubscribedProps): J
     <>
       {props.weights
         .filter((w) => !Weight_eq(w.original, w.rounded))
-        .map((w) => {
+        .map((w, i) => {
           return (
-            <div>
+            <div key={i}>
               <div className="text-xs text-text-secondary">
                 <span className="line-through">
                   {Number(w.original.value?.toFixed(2))} {w.original.unit}

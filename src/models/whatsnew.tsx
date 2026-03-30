@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { ObjectUtils_keys } from "../utils/object";
 import { InternalLink } from "../internalLink";
 import { IconDiscord } from "../components/icons/iconDiscord";

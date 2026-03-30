@@ -46,9 +46,7 @@ const watchConfig = {
           loader: "esbuild-loader",
           options: {
             target: "es2020",
-            jsx: "transform",
-            jsxFactory: "h",
-            jsxFragment: "Fragment",
+            jsx: "automatic",
           },
         },
       },
@@ -125,9 +123,7 @@ const mainConfig = {
           loader: "esbuild-loader",
           options: {
             target: "es2015",
-            jsx: "transform",
-            jsxFactory: "h",
-            jsxFragment: "Fragment",
+            jsx: "automatic",
           },
         },
       },

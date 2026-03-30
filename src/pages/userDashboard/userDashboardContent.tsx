@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IEventPayload } from "../../api/service";
 import { CollectionUtils_groupByExpr, CollectionUtils_sort, CollectionUtils_sortBy } from "../../utils/collection";
 import { DateUtils_formatYYYYMMDD, DateUtils_formatHHMMSS } from "../../utils/date";

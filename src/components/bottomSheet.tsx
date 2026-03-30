@@ -1,19 +1,23 @@
-import { h, JSX, ComponentChildren } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { JSX, ReactNode, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { IconCloseCircleOutline } from "./icons/iconCloseCircleOutline";
-import { createPortal } from "preact/compat";
 
 interface IProps {
   isHidden: boolean;
   shouldShowClose?: boolean;
-  children?: ComponentChildren;
+  children?: ReactNode;
   zIndex?: number;
   onClose: () => void;
 }
 
 export function BottomSheet(props: IProps): JSX.Element {
-  const [bottomShift, setBottomShift] = useState(typeof window !== "undefined" ? window.innerHeight : 0);
+  const [bottomShift, setBottomShift] = useState(0);
   const bottomSheetRef = useRef<HTMLDivElement>(null);
+  const [containerRef, setContainerRef] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setContainerRef(document.getElementById("bottomsheet"));
+  }, []);
 
   useEffect(() => {
     if (!props.isHidden) {
@@ -28,14 +32,13 @@ export function BottomSheet(props: IProps): JSX.Element {
 
   useEffect(() => {
     const bottomSheet = bottomSheetRef.current;
-    const height = bottomSheet?.clientHeight;
+    const height = bottomSheet?.clientHeight ?? 0;
     setBottomShift(height);
   }, []);
 
   useEffect(() => {
     setBottomShift(props.isHidden ? (bottomSheetRef.current?.clientHeight ?? 0) : 0);
   }, [props.isHidden]);
-  const containerRef = typeof window !== "undefined" ? window.document.getElementById("bottomsheet") : undefined;
 
   const element = (
     <div
@@ -85,5 +88,8 @@ export function BottomSheet(props: IProps): JSX.Element {
     </div>
   );
 
-  return containerRef ? createPortal(element, containerRef) : element;
+  if (!containerRef) {
+    return <></>;
+  }
+  return createPortal(element, containerRef);
 }

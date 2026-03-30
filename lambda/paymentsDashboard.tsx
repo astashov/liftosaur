@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { IPaymentDao } from "./dao/paymentDao";
 import { PaymentsDashboardHtml } from "../src/pages/paymentsDashboard/paymentsDashboardHtml";
 import { renderPage } from "./render";

@@ -1,5 +1,5 @@
+import type { JSX } from "react";
 import { lb } from "lens-shmens";
-import { h, JSX, Fragment } from "preact";
 import { IPlannerState } from "../../pages/planner/models/types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IShortDayData } from "../../types";

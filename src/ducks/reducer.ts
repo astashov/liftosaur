@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Reducer } from "preact/hooks";
+import { Reducer } from "react";
 import { Program_getProgram, Program_nextHistoryRecord, Program_evaluate } from "../models/program";
 import {
   Progress_getProgress,

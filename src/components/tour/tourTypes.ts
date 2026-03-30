@@ -1,4 +1,4 @@
-import { JSX } from "preact";
+import type { JSX } from "react";
 import { IState } from "../../models/state";
 import { tourConfigs } from "./tourConfigs";
 

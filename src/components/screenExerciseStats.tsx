@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, useRef, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import { IExerciseType, IHistoryRecord, IProgram, ISettings, ISubscription } from "../types";
 import { INavCommon, updateSettings } from "../models/state";
@@ -30,7 +30,6 @@ import { lb } from "lens-shmens";
 import { ExerciseImage } from "./exerciseImage";
 import { GraphExercise } from "./graphExercise";
 import { Collector } from "../utils/collector";
-import { useRef, useState } from "preact/hooks";
 import { Locker } from "./locker";
 import { HelpExerciseStats } from "./help/helpExerciseStats";
 import { ExerciseDataSettings } from "./exerciseDataSettings";

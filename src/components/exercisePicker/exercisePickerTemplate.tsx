@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { useState } from "preact/hooks";
+import { JSX, useState } from "react";
 import { LabelAndInput } from "../labelAndInput";
 import { IExercisePickerState } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";

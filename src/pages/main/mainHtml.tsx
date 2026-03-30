@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { Page, IJsonLd } from "../../components/page";
 import { MainContent } from "./mainContent";
 import { ITestimonial } from "./testimonitals";

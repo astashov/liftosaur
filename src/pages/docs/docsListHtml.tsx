@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IJsonLd, Page } from "../../components/page";
 import { IDocIndexEntry } from "../../models/doc";
 import { DocsListContent } from "./docsListContent";

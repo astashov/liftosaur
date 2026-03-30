@@ -1,5 +1,4 @@
-import { h, JSX, Fragment } from "preact";
-import { useState, useEffect } from "preact/hooks";
+import { JSX, useEffect, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import { NavbarView } from "./navbar";
 import { Surface } from "./surface";

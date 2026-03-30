@@ -1,5 +1,4 @@
-import { h, JSX, Ref } from "preact";
-import { forwardRef, useState, useCallback } from "preact/compat";
+import React, { JSX, Ref, forwardRef, useCallback, useState } from "react";
 import { IEither } from "../utils/types";
 
 export const inputClassName =
@@ -7,7 +6,7 @@ export const inputClassName =
 
 export type IValidationError = "required" | "pattern-mismatch";
 
-export interface IProps extends Omit<JSX.HTMLAttributes<HTMLInputElement>, "ref"> {
+export interface IProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "ref"> {
   label?: string;
   identifier: string;
   changeType?: "onblur" | "oninput";
@@ -17,7 +16,7 @@ export interface IProps extends Omit<JSX.HTMLAttributes<HTMLInputElement>, "ref"
   changeHandler?: (e: IEither<string, Set<IValidationError>>) => void;
 }
 
-export function selectInputOnFocus(e: Event): boolean | undefined {
+export function selectInputOnFocus(e: React.FocusEvent<HTMLInputElement>): boolean | undefined {
   const target = e.target;
   if (target instanceof HTMLInputElement) {
     const handleNumber = target.type === "number";
@@ -35,13 +34,13 @@ export function selectInputOnFocus(e: Event): boolean | undefined {
 }
 
 export const Input2 = forwardRef((props: IProps, ref: Ref<HTMLInputElement>): JSX.Element => {
-  const { label, changeHandler, errorMessage, patternMessage, className: otherClassName, ...otherProps } = props;
-  const changeType = props.changeType || "onblur";
-  const identifier = props.identifier;
+  const { label, changeHandler, errorMessage, patternMessage, requiredMessage, changeType: changeTypeProp, identifier: identifierProp, className: otherClassName, ...otherProps } = props;
+  const changeType = changeTypeProp || "onblur";
+  const identifier = identifierProp;
   const [validationErrors, setValidationErrors] = useState<Set<IValidationError>>(new Set());
 
   const onInputHandler = useCallback(
-    (e: Event) => {
+    (e: React.FocusEvent<HTMLInputElement> | React.FormEvent<HTMLInputElement>) => {
       const target = e.target;
       if (target instanceof HTMLInputElement) {
         const errors = new Set<IValidationError>();
@@ -52,12 +51,12 @@ export const Input2 = forwardRef((props: IProps, ref: Ref<HTMLInputElement>): JS
           errors.add("required");
         }
         setValidationErrors(errors);
-        if (props.changeHandler != null) {
+        if (changeHandler != null) {
           if (errors.size > 0) {
-            props.changeHandler({ success: false, error: errors });
+            changeHandler({ success: false, error: errors });
           } else {
             const value = (e.target as HTMLInputElement).value;
-            props.changeHandler({ success: true, data: value });
+            changeHandler({ success: true, data: value });
           }
         }
       }
@@ -66,27 +65,27 @@ export const Input2 = forwardRef((props: IProps, ref: Ref<HTMLInputElement>): JS
   );
 
   let className = "relative block text-left border rounded-md appearance-none ";
-  if (props.errorMessage || validationErrors.size > 0) {
+  if (errorMessage || validationErrors.size > 0) {
     className += " border-text-error";
   } else {
     className += " border-form-inputstroke";
   }
 
   const errorMessages = [];
-  if (props.errorMessage) {
-    errorMessages.push(props.errorMessage);
+  if (errorMessage) {
+    errorMessages.push(errorMessage);
   }
   for (const error of validationErrors) {
     if (error === "required") {
-      errorMessages.push(props.requiredMessage);
+      errorMessages.push(requiredMessage);
     } else if (error === "pattern-mismatch") {
-      errorMessages.push(props.patternMessage);
+      errorMessages.push(patternMessage);
     }
   }
 
   return (
     <div className="w-full">
-      {props.label && (
+      {label && (
         <label id={identifier} className={`leading-none text-sm text-text-primary pb-1`}>
           {props.label}
         </label>

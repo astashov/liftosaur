@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, useEffect, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import {
   Thunk_logOut,
@@ -16,7 +16,6 @@ import { Footer2View } from "./footer2";
 import { Button } from "./button";
 import { HelpAccount } from "./help/helpAccount";
 import { IAccount, Account_getAll } from "../models/account";
-import { useEffect, useState } from "preact/hooks";
 import { GroupHeader } from "./groupHeader";
 import { MenuItem } from "./menuItem";
 import { IconDoc } from "./icons/iconDoc";
@@ -172,6 +171,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
         />
         {otherAccounts.map((account) => (
           <MenuItem
+            key={account.id}
             shouldShowRightArrow={!isOtherAccountsEditMode}
             name={account.name ? account.name : `id: ${account.id}`}
             onClick={() => {

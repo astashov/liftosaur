@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { AllExercisesHtml } from "../src/pages/allExercises/allExercisesHtml";
 
 import { renderPage } from "./render";

@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { track } from "../../../utils/posthog";
 import { Platform_isiOS, Platform_isAndroid } from "../../../utils/platform";
 import { Onelink } from "../../../components/onelink";

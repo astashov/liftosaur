@@ -1,9 +1,8 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, useState } from "react";
 import { Modal } from "./modal";
 import { IHistoryRecord, IProgram, ISettings, IStats } from "../types";
 import { NextDayPicker } from "./nextDayPicker";
 import { LinkButton } from "./linkButton";
-import { useState } from "preact/hooks";
 import { ModalCreateProgram } from "./modalCreateProgram";
 import { IDispatch } from "../ducks/types";
 import { lb } from "lens-shmens";

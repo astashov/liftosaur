@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import type { JSX } from "react";
 import {
   IEvaluatedProgram,
   Program_getDiffState,
@@ -81,7 +81,6 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
             <div>
               <LinkButton
                 name="supress-progress"
-                kind="purple"
                 className="text-xs"
                 data-cy="suppress-progress"
                 onClick={() => {
@@ -106,7 +105,7 @@ function ExerciseChanges({ diffVars }: { diffVars: Record<string, string | undef
         <header className="font-bold">Exercise Changes</header>
         <ul data-cy="variable-changes">
           {ObjectUtils_keys(diffVars).map((key) => (
-            <li data-cy={`variable-changes-key-${StringUtils_dashcase(key)}`}>
+            <li key={key} data-cy={`variable-changes-key-${StringUtils_dashcase(key)}`}>
               <span className="italic">{key}</span>:{" "}
               <strong data-cy={`variable-changes-value-${StringUtils_dashcase(key)}`}>{diffVars[key]}</strong>
             </li>
@@ -125,7 +124,7 @@ function StateVariablesChanges({ diffState }: { diffState: Record<string, string
         <header className="font-bold">State Variables changes</header>
         <ul data-cy="state-changes">
           {ObjectUtils_keys(diffState).map((key) => (
-            <li data-cy={`state-changes-key-${StringUtils_dashcase(key)}`}>
+            <li key={key} data-cy={`state-changes-key-${StringUtils_dashcase(key)}`}>
               <span className="italic">{key}</span>:{" "}
               <strong data-cy={`state-changes-value-${StringUtils_dashcase(key)}`}>{diffState[key]}</strong>
             </li>

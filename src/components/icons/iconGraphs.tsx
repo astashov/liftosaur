@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
@@ -22,18 +22,18 @@ export function IconGraphs(props: IProps): JSX.Element {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <path d="M1 1V19H19" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M1 1V19H19" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
       <path
         d="M4.16663 16.1667L9.62117 10.4067L12.8598 13.8267L19.1666 7.16675"
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
       <path
         d="M4.16663 10.1667L9.62117 4.40675L12.8598 7.82675L19.1666 1.16675"
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );

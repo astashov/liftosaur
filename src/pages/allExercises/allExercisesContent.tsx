@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { useRef, useState } from "preact/hooks";
+import { JSX, useRef, useState } from "react";
 import { ExerciseItem } from "../../components/modalExercise";
 import { Multiselect } from "../../components/multiselect";
 import { equipmentName, Exercise_filterExercisesByNameAndType, Exercise_toKey } from "../../models/exercise";
@@ -43,7 +42,7 @@ export function AllExercisesContent(props: IAllExercisesContentProps): JSX.Eleme
           value={filter}
           placeholder="Filter by name"
           onInput={() => {
-            setFilter(textInput.current.value.toLowerCase());
+            setFilter(textInput.current!.value.toLowerCase());
           }}
         />
         <Multiselect

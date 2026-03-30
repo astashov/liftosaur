@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { useState, useEffect, useRef } from "preact/hooks";
+import { JSX, useEffect, useRef, useState } from "react";
 import { Tour_stepHelpFlag } from "./tourTypes";
 import { Modal } from "../modal";
 import { Button } from "../button";

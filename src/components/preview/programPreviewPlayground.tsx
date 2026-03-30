@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { memo, useMemo } from "preact/compat";
+import { JSX, memo, useMemo } from "react";
 import { IHistoryRecord, IProgram, ISettings, IStats } from "../../types";
 import {
   IEvaluatedProgram,
@@ -250,7 +249,7 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
               <div className="flex flex-wrap justify-center mt-4" style={{ gap: "1.5rem" }}>
                 {week.days.map((d: IProgramPreviewPlaygroundDaySetupWithProgress, i) => {
                   return (
-                    <div style={{ maxWidth: "24rem", minWidth: "18rem" }} className="flex-1">
+                    <div key={i} style={{ maxWidth: "24rem", minWidth: "18rem" }} className="flex-1">
                       <ProgramPreviewPlaygroundDay
                         weekName={state.progresses.length > 1 ? week.name : undefined}
                         day={d.day}

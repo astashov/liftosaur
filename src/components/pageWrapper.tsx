@@ -1,5 +1,4 @@
-import { JSX, h, ComponentChildren } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { JSX, ReactNode, useEffect, useState } from "react";
 import { FooterPage } from "./footerPage";
 import { TopNavMenu } from "./topNavMenu";
 import { IAccount } from "../models/account";
@@ -17,7 +16,7 @@ export interface IPageWrapperProps {
   url?: string;
   maxWidth?: number;
   maxBodyWidth?: number;
-  children?: ComponentChildren | ((ctx: IUserContext) => ComponentChildren);
+  children?: ReactNode | ((ctx: IUserContext) => ReactNode);
   isLoggedIn?: boolean;
   client: Window["fetch"];
 }

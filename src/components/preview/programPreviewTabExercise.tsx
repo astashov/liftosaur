@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import type { JSX } from "react";
 import {
   Exercise_get,
   Exercise_getNotes,

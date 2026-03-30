@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import { JSX, useEffect } from "react";
 import { IDispatch } from "../ducks/types";
 import { ISettings, IEquipment, IAllEquipment, IStats } from "../types";
 import { INavCommon, IState, updateState } from "../models/state";
@@ -8,7 +8,6 @@ import { Surface } from "./surface";
 import { NavbarView } from "./navbar";
 import { Footer2View } from "./footer2";
 import { HelpPlates } from "./help/helpPlates";
-import { useEffect } from "preact/hooks";
 import { MenuItemEditable } from "./menuItemEditable";
 import { LinkButton } from "./linkButton";
 import { Thunk_pushScreen } from "../ducks/thunks";

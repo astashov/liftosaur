@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, useState } from "react";
 import {
   IPlannerProgramExercise,
   IPlannerExerciseState,
@@ -29,7 +29,6 @@ import { DoubleProgressSettings } from "./progressions/doubleProgressSettings";
 import { SumRepsProgressSettings } from "./progressions/sumRepsProgressSettings";
 import { CustomProgressSettings } from "./progressions/customProgressSettings";
 import { ModalEditProgressScript } from "./progressions/modalEditProgressScript";
-import { useState } from "preact/hooks";
 import { CollectionUtils_uniqByExpr } from "../../utils/collection";
 import { EditProgramUiProgress } from "../editProgram/editProgramUiProgress";
 import { ObjectUtils_entries } from "../../utils/object";
@@ -211,7 +210,7 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
               <div>Custom progress of this exercise is reused by:</div>
               <ul>
                 {reusingProgressExercises.map((exercise) => (
-                  <li key={exercise} className="ml-4 text-xs font-semibold list-disc">
+                  <li key={exercise.fullName} className="ml-4 text-xs font-semibold list-disc">
                     {exercise.fullName}
                   </li>
                 ))}

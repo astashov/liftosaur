@@ -1,5 +1,4 @@
-import { JSX, h, Fragment } from "preact";
-import { useState } from "preact/hooks";
+import { JSX, Fragment, useState } from "react";
 import {
   Muscle_getAvailableMuscleGroups,
   Muscle_getHiddenMuscleGroups,
@@ -43,7 +42,7 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
         const muscleGroupSlug = StringUtils_dashcase(muscleGroupName);
         const isBuiltin = Muscle_isBuiltInMuscleGroup(muscleGroup);
         return (
-          <MenuItemWrapper name={`muscle-group-${muscleGroup}`}>
+          <MenuItemWrapper key={muscleGroup} name={`muscle-group-${muscleGroup}`}>
             <div className="flex items-center gap-4">
               <div className="w-12">
                 <MuscleGroupImage muscleGroup={muscleGroup} size={48} />
@@ -103,7 +102,7 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
             const muscleGroupName = Muscle_getMuscleGroupName(muscleGroup, props.settings);
             const muscleGroupSlug = StringUtils_dashcase(muscleGroupName);
             return (
-              <>
+              <Fragment key={muscleGroup}>
                 {i !== 0 ? ", " : ""}
                 <LinkButton
                   data-cy={`unhide-muscle-group-${muscleGroupSlug}`}
@@ -112,7 +111,7 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
                 >
                   {muscleGroupName}
                 </LinkButton>
-              </>
+              </Fragment>
             );
           })}
         </div>

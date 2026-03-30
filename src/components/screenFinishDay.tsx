@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, Fragment, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import {
   History_getPersonalRecords,
@@ -12,7 +12,6 @@ import {
 import { Button } from "./button";
 import { ScreenActions_setScreen } from "../actions/screenActions";
 import { Weight_display } from "../models/weight";
-import { useState } from "preact/hooks";
 import { Confetti } from "./confetti";
 import { IHistoryRecord, IScreenMuscle, ISettings } from "../types";
 import { NavbarView } from "./navbar";
@@ -143,6 +142,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
               {startedEntries.map((entry, i) => {
                 return (
                   <HistoryEntryView
+                    key={`${entry.exercise.id}_${entry.exercise.equipment}`}
                     showNotes={false}
                     entry={entry}
                     isNext={false}
@@ -160,12 +160,12 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
         <div data-cy="sets-per-muscle-group" className="px-4 py-2 mt-2 rounded-lg bg-background-purpledark">
           <GroupHeader name="Sets per muscle group" />
           <div className="flex gap-4">
-            {muscleGroupsGrouped.map((group) => {
+            {muscleGroupsGrouped.map((group, gi) => {
               return (
-                <ul className="flex-1">
+                <ul key={gi} className="flex-1">
                   {group.map(([mg, value]) => {
                     return (
-                      <li>
+                      <li key={mg}>
                         {Muscle_getMuscleGroupName(mg, props.settings)}: <strong>{n(value)}</strong>
                       </li>
                     );

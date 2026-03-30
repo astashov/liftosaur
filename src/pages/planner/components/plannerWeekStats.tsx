@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IPlannerState } from "../models/types";
 import { PlannerStats } from "./plannerStats";
 import { PlannerStatsUtils_calculateSetResults } from "../models/plannerStatsUtils";

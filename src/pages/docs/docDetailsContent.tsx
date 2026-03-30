@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IDocIndexEntry } from "../../models/doc";
 import { Markdown } from "../../components/markdown";
 

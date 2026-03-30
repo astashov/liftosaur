@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import { JSX, useState } from "react";
 import { ISettings, ICustomExercise, IExercisePickerScreen } from "../../types";
 import { Button } from "../button";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -6,7 +6,6 @@ import { IconBack } from "../icons/iconBack";
 import { IconClose2 } from "../icons/iconClose2";
 import { ObjectUtils_isEqual } from "../../utils/object";
 import { ExercisePickerCustomExerciseContent } from "./exercisePickerCustomExerciseContent";
-import { useState } from "preact/hooks";
 import { Exercise_getNotes } from "../../models/exercise";
 
 interface IExercisePickerCustomExercise2Props {

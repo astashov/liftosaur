@@ -1,5 +1,4 @@
-import { h, JSX, Fragment } from "preact";
-import { useEffect, useRef } from "preact/hooks";
+import { JSX, Fragment, useEffect, useRef } from "react";
 import { reducerWrapper, defaultOnActions, IAction } from "../ducks/reducer";
 import { ChooseProgramView } from "./chooseProgram";
 import { ProgramHistoryView } from "./programHistory";

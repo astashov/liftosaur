@@ -1,10 +1,9 @@
-import { JSX, h } from "preact";
+import { JSX, useState } from "react";
 import { IHistoryRecord, ISettings, ISubscription } from "../types";
 import { WeekInsightsUtils_calculateSetResults } from "../utils/weekInsightsUtils";
 import { IconFire } from "./icons/iconFire";
 import { Tailwind_colors } from "../utils/tailwindConfig";
 import { LinkButton } from "./linkButton";
-import { useState } from "preact/hooks";
 import { IPersonalRecords, History_getNumberOfPersonalRecords } from "../models/history";
 import { StringUtils_pluralize } from "../utils/string";
 import { ISetResults } from "../pages/planner/models/types";
@@ -220,7 +219,7 @@ function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Element {
         <div className="flex-1">
           {ObjectUtils_keys(setResults.muscleGroup).map((muscleGroup) => {
             return (
-              <div>
+              <div key={muscleGroup}>
                 <span className="text-text-secondary">{Muscle_getMuscleGroupName(muscleGroup, props.settings)}:</span>{" "}
                 <PlannerSetSplit
                   split={setResults.muscleGroup[muscleGroup]}

@@ -1,4 +1,4 @@
-import { JSX, h, Fragment } from "preact";
+import type { JSX } from "react";
 import { PlannerProgramExercise_currentDescriptionIndex } from "../../pages/planner/models/plannerProgramExercise";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { GroupHeader } from "../groupHeader";
@@ -24,7 +24,7 @@ export function EditProgramUiExerciseDescriptions(props: IEditProgramUiExerciseD
     <>
       {descriptions.map((_, i) => {
         return (
-          <div className={`${i > 0 ? "mt-2 pt-2" : ""}`}>
+          <div key={i} className={`${i > 0 ? "mt-2 pt-2" : ""}`}>
             <div>
               {descriptions.length > 1 && (
                 <GroupHeader

@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { IAccount } from "../src/models/account";
 import { AffiliatesHtml } from "../src/pages/affiliates/affiliatesHtml";
 

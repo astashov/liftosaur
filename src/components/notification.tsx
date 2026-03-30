@@ -1,5 +1,5 @@
+import type { JSX } from "react";
 import { lb } from "lens-shmens";
-import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
 import { INotification, IState, updateState } from "../models/state";
 import { IconClose } from "./icons/iconClose";

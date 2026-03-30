@@ -1,5 +1,4 @@
-import { JSX, h } from "preact";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { JSX, useEffect, useRef, useState } from "react";
 import { IExerciseType, IPercentage, IPercentageUnit, ISettings, ISubscription, IUnit, IWeight } from "../types";
 import { InputNumber2 } from "./inputNumber2";
 import {

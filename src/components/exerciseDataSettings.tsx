@@ -1,5 +1,5 @@
+import type { JSX } from "react";
 import { lb } from "lens-shmens";
-import { h, JSX } from "preact";
 import { IDispatch } from "../ducks/types";
 import {
   equipmentName,
@@ -62,6 +62,7 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
         ];
         return (
           <MenuItemEditable
+            key={gym.id}
             type="select"
             name={props.settings.gyms.length > 1 ? gym.name : "Equipment"}
             underName={

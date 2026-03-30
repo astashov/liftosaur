@@ -1,6 +1,5 @@
-import { h, JSX } from "preact";
+import { JSX, useEffect, useRef } from "react";
 import UPlot from "uplot";
-import { useRef, useEffect } from "preact/hooks";
 import { GraphsPlugins_zoom } from "../../utils/graphsPlugins";
 
 interface IPlannerGraphProps {
@@ -15,6 +14,9 @@ export function PlannerGraph(props: IPlannerGraphProps): JSX.Element {
   const graphRef = useRef<HTMLDivElement>(null);
   const legendRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    if (!graphRef.current) {
+      return;
+    }
     const rect = graphRef.current.getBoundingClientRect();
     const opts: UPlot.Options = {
       class: "planner-exercise-graph",
@@ -54,9 +56,9 @@ export function PlannerGraph(props: IPlannerGraphProps): JSX.Element {
     };
 
     const data = props.data;
-    const uplot = new UPlot(opts, data, graphRef.current);
+    const uplot = new UPlot(opts, data, graphRef.current!);
 
-    const underEl = graphRef.current.querySelector(".over");
+    const underEl = graphRef.current!.querySelector(".over");
     const underRect = underEl?.getBoundingClientRect();
 
     function handler(): void {

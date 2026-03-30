@@ -1,6 +1,4 @@
-import { h, JSX } from "preact";
-import { memo } from "preact/compat";
-import { useCallback } from "preact/hooks";
+import { JSX, memo, useCallback } from "react";
 import { buildCardsReducer, ICardsAction } from "../../ducks/reducer";
 import { IHistoryRecord, ISettings, IStats } from "../../types";
 import { IDispatch } from "../../ducks/types";
@@ -96,6 +94,7 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
         }
         return (
           <ProgramPreviewPlaygroundExercise
+            key={programExercise.key}
             entry={anEntry}
             dayIndex={props.day}
             progress={props.progress}

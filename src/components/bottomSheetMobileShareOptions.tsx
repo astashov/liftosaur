@@ -1,9 +1,8 @@
-import { h, JSX } from "preact";
+import { JSX, useState } from "react";
 import { BottomSheet } from "./bottomSheet";
 import { BottomSheetItem } from "./bottomSheetItem";
 import { IHistoryRecord, ISettings } from "../types";
 import { IconInstagram } from "./icons/iconInstagram";
-import { useState } from "preact/hooks";
 import { WorkoutSocialShareSheet } from "./workoutSocialShareSheet";
 import { WorkoutShareBottomSheetItem } from "./workoutShareBottomSheetItem";
 import { IconLink } from "./icons/iconLink";

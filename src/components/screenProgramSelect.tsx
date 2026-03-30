@@ -1,5 +1,4 @@
-import { JSX, h } from "preact";
-import { useState } from "preact/hooks";
+import { JSX, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import { ISettings } from "../types";
 import { Thunk_pushScreen, Thunk_importFromLink } from "../ducks/thunks";
@@ -84,9 +83,9 @@ export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Eleme
                     <path
                       d="M6 4l4 4-4 4"
                       stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
                   </svg>
                 </div>

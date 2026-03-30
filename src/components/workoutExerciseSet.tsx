@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { ISettings, ISet, IExerciseType, ISubscription, IProgramState, IHistoryRecord, IHistoryEntry } from "../types";
 import { IconCheckCircle } from "./icons/iconCheckCircle";
@@ -76,16 +76,15 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
       initiateTreshold={15}
       onPointerDown={props.onStopShowingHint}
     >
-      {({ onPointerDown, onPointerMove, onPointerUp, style, close }) => (
+      {({ onPointerDown, onPointerUp, style, close, moveRef }) => (
         <div
+          ref={moveRef}
           className={`will-change-transform relative table-row ${WorkoutExerciseUtils_getBgColor50([set], props.type === "warmup")}`}
           data-cy={getDataCy(set)}
           style={style}
           onTouchStart={shouldUseTouch ? onPointerDown : undefined}
-          onTouchMove={shouldUseTouch ? onPointerMove : undefined}
           onTouchEnd={shouldUseTouch ? onPointerUp : undefined}
           onPointerDown={!shouldUseTouch ? onPointerDown : undefined}
-          onPointerMove={!shouldUseTouch ? onPointerMove : undefined}
           onPointerUp={!shouldUseTouch ? onPointerUp : undefined}
         >
           <div className={`table-cell px-2 py-1 text-sm align-middle ${borderClass}`}>

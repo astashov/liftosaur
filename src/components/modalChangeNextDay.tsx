@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { Modal } from "./modal";
 import { IProgram, ISettings, IStats } from "../types";
 import { NextDayPicker } from "./nextDayPicker";

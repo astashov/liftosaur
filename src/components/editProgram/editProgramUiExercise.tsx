@@ -1,4 +1,4 @@
-import { JSX, h, Fragment } from "preact";
+import React, { JSX, Fragment } from "react";
 import { IPlannerProgramExercise, IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { ISettings } from "../../types";
@@ -45,7 +45,7 @@ interface IEditProgramUiExerciseViewProps {
   settings: ISettings;
   dispatch: IDispatch;
   plannerDispatch: ILensDispatch<IPlannerState>;
-  handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
+  handleTouchStart?: (e: React.MouseEvent | React.TouchEvent) => void;
 }
 
 export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps): JSX.Element {
@@ -252,8 +252,8 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
                         <div className="pb-1 text-xs text-left text-text-secondary">Warmups</div>
                         <div>
                           <div>
-                            {displayWarmupSets.map((g) => (
-                              <HistoryRecordSet sets={g} isNext={true} settings={props.settings} />
+                            {displayWarmupSets.map((g, gi) => (
+                              <HistoryRecordSet key={gi} sets={g} isNext={true} settings={props.settings} />
                             ))}
                           </div>
                         </div>
@@ -278,10 +278,10 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
                   <span> (</span>
                   {supersetExercises.map((ex, i) => {
                     return (
-                      <>
+                      <Fragment key={i}>
                         {i > 0 ? ", " : ""}
                         <strong>{ex.name}</strong>
-                      </>
+                      </Fragment>
                     );
                   })}
                   <span>)</span>

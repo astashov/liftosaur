@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { ProgramDetailsHtml } from "../src/pages/programs/programDetailsHtml";
 import { IProgram } from "../src/types";
 import { IProgramIndexEntry } from "../src/models/program";

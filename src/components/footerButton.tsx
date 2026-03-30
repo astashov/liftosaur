@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IScreen, ITab, Screen_tab } from "../models/screen";
 import { StringUtils_dashcase } from "../utils/string";
 

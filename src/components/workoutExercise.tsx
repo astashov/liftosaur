@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, useMemo, useRef } from "react";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, ISettings, ISubscription, IHistoryEntry, IProgramState, IStats } from "../types";
 import { updateSettings } from "../models/state";
@@ -13,7 +13,6 @@ import {
 import { LinkButton } from "./linkButton";
 import { CollectionUtils_sort } from "../utils/collection";
 import { IEvaluatedProgram, IEvaluatedProgramDay } from "../models/program";
-import { useMemo, useRef } from "preact/hooks";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { Collector } from "../utils/collector";
 import { Locker } from "./locker";

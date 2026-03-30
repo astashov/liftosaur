@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import type { JSX } from "react";
 import { lb } from "lens-shmens";
 import {
   IPlannerProgramExercise,

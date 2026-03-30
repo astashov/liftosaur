@@ -1,4 +1,4 @@
-import { JSX, h, Fragment } from "preact";
+import type { JSX } from "react";
 import { Exercise_fromKey, Exercise_get } from "../models/exercise";
 import { Weight_display, Weight_build, Weight_getOneRepMax } from "../models/weight";
 import { History_getNumberOfPersonalRecords } from "../models/history";
@@ -66,7 +66,7 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
               const exercise = Exercise_get(exerciseType, props.settings.exercises);
               return (items.maxWeight[exerciseKey] || []).map((item, i) => {
                 return (
-                  <li key={i}>
+                  <li key={`${exerciseKey}_${i}`}>
                     <div>
                       <strong>{exercise.name}</strong>:{" "}
                       <span className="whitespace-nowrap">
@@ -117,7 +117,7 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
                 const setRpe = item.set.completedRpe ?? item.set.rpe;
                 const prevRpe = item.prev?.completedRpe ?? item.prev?.rpe;
                 return (
-                  <li>
+                  <li key={`${exerciseKey}_${i}`}>
                     <div>
                       <strong>{exercise.name}</strong>:{" "}
                       <span className="whitespace-nowrap">

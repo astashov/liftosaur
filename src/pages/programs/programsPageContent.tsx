@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { useState } from "preact/hooks";
+import { JSX, useState } from "react";
 import { Settings_build } from "../../models/settings";
 import { ProgramsTabContent } from "./programList/programsTabContent";
 import { IProgramIndexEntry } from "../../models/program";

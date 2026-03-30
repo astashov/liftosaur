@@ -1,5 +1,4 @@
-import { h, JSX, Fragment } from "preact";
-import { useState } from "preact/hooks";
+import { JSX, Fragment, useState } from "react";
 import { Progress_getSupersetGroups } from "../models/progress";
 import { IHistoryRecord, IHistoryEntry, ISettings } from "../types";
 import { ObjectUtils_entriesNonnull } from "../utils/object";
@@ -58,10 +57,10 @@ export function BottomSheetWorkoutSuperset(props: IBottomSheetWorkoutSupersetPro
                         {entries.map((e, i) => {
                           const exercise = Exercise_get(e.exercise, props.settings.exercises);
                           return (
-                            <>
+                            <Fragment key={`${e.exercise.id}_${e.exercise.equipment}`}>
                               {i !== 0 ? ", " : ""}
                               <strong>{Exercise_fullName(exercise, props.settings)}</strong>
-                            </>
+                            </Fragment>
                           );
                         })}
                       </div>

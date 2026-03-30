@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { renderPage } from "./render";
 import { AiHtml } from "../src/pages/ai/aiHtml";
 import { IAccount } from "../src/models/account";

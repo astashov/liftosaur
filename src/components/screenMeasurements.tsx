@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IStats, ISettings, ISubscription } from "../types";
 import { IDispatch } from "../ducks/types";
 import { Surface } from "./surface";

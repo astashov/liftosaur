@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IExportedProgram } from "../../models/program";
 import { Settings_build, Settings_programContentBuild } from "../../models/settings";
 import { UidFactory_generateUid } from "../../utils/generator";

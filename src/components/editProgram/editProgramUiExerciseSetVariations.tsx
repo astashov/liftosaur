@@ -1,4 +1,4 @@
-import { JSX, h, Fragment } from "preact";
+import type { JSX } from "react";
 import {
   PlannerProgramExercise_setVariations,
   PlannerProgramExercise_sets,
@@ -29,7 +29,7 @@ export function EditProgramUiExerciseSetVariations(props: IEditProgramUiExercise
         let currentIndex = setVariations.findIndex((v) => v.isCurrent);
         currentIndex = currentIndex === -1 ? 0 : currentIndex;
         return (
-          <div className={`${i > 0 ? "mt-2 pt-2 border-t border-border-neutral" : ""}`}>
+          <div key={i} className={`${i > 0 ? "mt-2 pt-2 border-t border-border-neutral" : ""}`}>
             <div>
               {setVariations.length > 1 && (
                 <GroupHeader
@@ -51,8 +51,8 @@ export function EditProgramUiExerciseSetVariations(props: IEditProgramUiExercise
             <div className="text-right">
               <div className="flex">
                 <div>
-                  {displayGroups.map((g) => (
-                    <HistoryRecordSet sets={g} isNext={true} settings={props.settings} />
+                  {displayGroups.map((g, gi) => (
+                    <HistoryRecordSet key={gi} sets={g} isNext={true} settings={props.settings} />
                   ))}
                 </div>
               </div>

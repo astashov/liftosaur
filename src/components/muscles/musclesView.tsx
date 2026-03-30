@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import {
   Exercise_fromKey,
   Exercise_toKey,
@@ -95,6 +95,7 @@ export function MusclesTypeView(props: IMusclesTypeViewProps): JSX.Element {
             }
             return (
               <MenuItem
+                key={muscleName}
                 name={StringUtils_capitalize(muscleName)}
                 value={<div className={color}>{(value || 0).toFixed(0)}%</div>}
               />
@@ -107,6 +108,7 @@ export function MusclesTypeView(props: IMusclesTypeViewProps): JSX.Element {
               {exercises
                 .filter((e) => props.points.exercisePoints[type][Exercise_toKey(e)] != null)
                 .map((e) => {
+                  const exerciseKey = Exercise_toKey(e);
                   const targetScreenMuscles = Array.from(
                     new Set(
                       CollectionUtils_flat(
@@ -136,13 +138,13 @@ export function MusclesTypeView(props: IMusclesTypeViewProps): JSX.Element {
                   ]);
                   synergistScreenMusclesWithPercentage.sort((a, b) => b[1] - a[1]);
                   return (
-                    <div className="pb-2">
+                    <div key={exerciseKey} className="pb-2">
                       <div className="text-base font-bold">{Exercise_get(e, props.settings.exercises).name}</div>
                       <div className="flex">
                         <div data-cy="target-muscles-list" className="flex-1">
                           <div className="text-sm text-text-secondary">Target</div>
                           {targetScreenMusclesWithPercentage.map(([m, val]) => (
-                            <div>
+                            <div key={m}>
                               <span>{m}</span>: <span>{val.toFixed(1)}%</span>
                             </div>
                           ))}
@@ -150,7 +152,7 @@ export function MusclesTypeView(props: IMusclesTypeViewProps): JSX.Element {
                         <div data-cy="synergist-muscles-list" className="flex-1">
                           <span className="text-sm text-text-secondary">Synergist</span>
                           {synergistScreenMusclesWithPercentage.map(([m, val]) => (
-                            <div>
+                            <div key={m}>
                               <span>{m}</span>: <span>{val.toFixed(1)}%</span>
                             </div>
                           ))}

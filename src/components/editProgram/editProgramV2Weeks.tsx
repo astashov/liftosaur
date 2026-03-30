@@ -1,5 +1,5 @@
+import type { JSX } from "react";
 import { lb } from "lens-shmens";
-import { h, JSX } from "preact";
 import { Exercise_findByName } from "../../models/exercise";
 import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { IPlannerProgramWeek, ISettings } from "../../types";
@@ -311,6 +311,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                                           if (exerciseType) {
                                             return (
                                               <ExerciseImage
+                                                key={`${exerciseType.id}-${exerciseType.equipment}`}
                                                 settings={props.settings}
                                                 exerciseType={exerciseType}
                                                 size="small"

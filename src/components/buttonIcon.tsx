@@ -1,6 +1,6 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 
-interface IButtonIconProps extends JSX.HTMLAttributes<HTMLButtonElement> {
+interface IButtonIconProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   name: string;
 }
 

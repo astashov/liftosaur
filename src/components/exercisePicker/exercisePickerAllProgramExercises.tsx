@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IEvaluatedProgram, IEvaluatedProgramWeek } from "../../models/program";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { ObjectUtils_keys } from "../../utils/object";
@@ -102,12 +102,12 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
                 );
                 const isItemDisabled = isMultiselect ? isUsedForDay || (isDisabled && !isSelected) : isUsedForDay;
                 return (
-                  <li key={exercise.id} className={`pb-1 ${isItemDisabled && !isAllDisabled ? "opacity-40" : ""}`}>
+                  <li key={`${exercise.key}_${exercise.dayData.week}_${exercise.dayData.dayInWeek}`} className={`pb-1 ${isItemDisabled && !isAllDisabled ? "opacity-40" : ""}`}>
                     <label className="flex w-full text-right tap-2">
                       <div>
                         <div className="px-1 pb-1 text-xs text-text-secondary">Day {exercise.dayData.dayInWeek}</div>
-                        {displayGroups.map((g) => (
-                          <HistoryRecordSet sets={g} isNext={true} settings={props.settings} />
+                        {displayGroups.map((g, gi) => (
+                          <HistoryRecordSet key={gi} sets={g} isNext={true} settings={props.settings} />
                         ))}
                       </div>
                       <div>

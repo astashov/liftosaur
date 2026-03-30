@@ -1,6 +1,4 @@
-import { h, JSX, Fragment } from "preact";
-import { useRef } from "preact/hooks";
-import { useState } from "preact/compat";
+import { JSX, useRef, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, IProgram, ISettings } from "../types";
 import { INavCommon } from "../models/state";
@@ -64,6 +62,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
             hasCustomPrograms
               ? [
                   <LinkButton
+                    key="import"
                     className="px-2 text-sm no-underline"
                     name="import-program"
                     onClick={() => setShowImportFromLink(true)}

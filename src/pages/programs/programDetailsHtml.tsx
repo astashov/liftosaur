@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import MarkdownIt from "markdown-it";
 import { IJsonLd, IJsonLdFAQEntry, Page } from "../../components/page";
 import { IProgramIndexEntry } from "../../models/program";

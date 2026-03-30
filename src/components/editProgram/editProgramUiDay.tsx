@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import React, { JSX } from "react";
 import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb, LensBuilder } from "lens-shmens";
@@ -47,7 +47,7 @@ interface IEditProgramDayViewProps {
   exerciseFullNames: string[];
   dispatch: IDispatch;
   plannerDispatch: ILensDispatch<IPlannerState>;
-  handleTouchStart?: (e: TouchEvent | MouseEvent) => void;
+  handleTouchStart?: (e: React.MouseEvent | React.TouchEvent) => void;
 }
 
 export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Element {
@@ -344,6 +344,7 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
             />
             {notUsedExercises.map((exercise, exerciseIndex) => (
               <EditProgramUiExerciseView
+                key={exercise.key || exerciseIndex}
                 ui={props.ui}
                 plannerExercise={exercise}
                 evaluatedProgram={props.evaluatedProgram}

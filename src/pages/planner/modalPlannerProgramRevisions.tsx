@@ -1,5 +1,4 @@
-import { h, JSX, Fragment } from "preact";
-import { useState, useEffect } from "preact/hooks";
+import { JSX, useEffect, useState } from "react";
 import { Service } from "../../api/service";
 import { Button } from "../../components/button";
 import { IconSpinner } from "../../components/icons/iconSpinner";
@@ -79,7 +78,7 @@ export function ModalPlannerProgramRevisions(props: IModalPlannerProgramRevision
               }
               const text = DateUtils_formatWithTime(date);
               return (
-                <li className="text-left">
+                <li key={revision} className="text-left">
                   {revision === currentRevision ? (
                     <span className="font-bold">{text}</span>
                   ) : (

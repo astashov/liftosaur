@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import type { JSX } from "react";
 import { ISettings, IExerciseType, IExercisePickerState } from "../../types";
 import { GroupHeader } from "../groupHeader";
 import { ExercisePickerExerciseItem } from "./exercisePickerExerciseItem";

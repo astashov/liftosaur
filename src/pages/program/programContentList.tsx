@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import { JSX, useState } from "react";
 import { IStorage, IProgram } from "../../types";
 import { IAccount } from "../../models/account";
 import { IconDuplicate2 } from "../../components/icons/iconDuplicate2";
@@ -11,7 +11,6 @@ import { Service } from "../../api/service";
 import { ExerciseImageUtils_exists } from "../../models/exerciseImage";
 import { ExerciseImage } from "../../components/exerciseImage";
 import { Button } from "../../components/button";
-import { useState } from "preact/hooks";
 import { ModalCreateProgram } from "../../components/modalCreateProgram";
 import {
   CollectionUtils_sortByExpr,
@@ -117,7 +116,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
           );
 
           return (
-            <li className="mb-8">
+            <li key={program.id} className="mb-8">
               <div>
                 <a
                   className={`text-lg font-bold text-text-link underline`}
@@ -194,6 +193,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
                   .filter((e) => ExerciseImageUtils_exists(e, "small"))
                   .map((e) => (
                     <ExerciseImage
+                      key={`${e.id}_${e.equipment}`}
                       settings={state.storage.settings}
                       exerciseType={e}
                       size="small"

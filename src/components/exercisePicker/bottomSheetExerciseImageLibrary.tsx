@@ -1,11 +1,10 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, useEffect, useState } from "react";
 import { ISettings } from "../../types";
 import { Exercise_allExpanded, Exercise_find, Exercise_fullName } from "../../models/exercise";
 import { MenuItemWrapper } from "../menuItem";
 import { ExerciseImage } from "../exerciseImage";
 import { Tailwind_colors } from "../../utils/tailwindConfig";
 import { IconMagnifyingGlass } from "../icons/iconMagnifyingGlass";
-import { useState, useEffect } from "preact/hooks";
 import { StringUtils_fuzzySearch } from "../../utils/string";
 import { Service } from "../../api/service";
 import { GroupHeader } from "../groupHeader";

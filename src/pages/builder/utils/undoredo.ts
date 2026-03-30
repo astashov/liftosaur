@@ -1,5 +1,5 @@
+import { useEffect } from "react";
 import { lb, lbu } from "lens-shmens";
-import { useEffect } from "preact/hooks";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 
 export interface IUndoRedoState<T> {

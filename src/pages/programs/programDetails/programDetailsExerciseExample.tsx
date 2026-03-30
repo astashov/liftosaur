@@ -1,5 +1,4 @@
-import { h, JSX, Fragment } from "preact";
-import { useState } from "preact/hooks";
+import { JSX, Fragment, useState } from "react";
 import { ExerciseImage } from "../../../components/exerciseImage";
 import { HistoryRecordSetsView } from "../../../components/historyRecordSets";
 import { Input } from "../../../components/input";
@@ -130,7 +129,7 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
               <section className="relative flex items-center mt-1 ml-2">
                 {weekEntries.map((week, i) => {
                   return (
-                    <>
+                    <Fragment key={i}>
                       {i !== 0 && <div className="h-12 mr-2 border-l border-border-neutral" />}
                       <div>
                         <div className="px-2 text-xs text-center whitespace-nowrap text-text-secondary">
@@ -140,7 +139,7 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
                           <HistoryRecordSetsView sets={week.entry.sets} isNext={true} settings={props.settings} />
                         </div>
                       </div>
-                    </>
+                    </Fragment>
                   );
                 })}
               </section>

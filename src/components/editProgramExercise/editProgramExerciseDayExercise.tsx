@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import { JSX, useState } from "react";
 import { IPlannerProgramExercise, IPlannerExerciseState, IPlannerExerciseUi } from "../../pages/planner/models/types";
 import { ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -11,7 +11,6 @@ import { EditProgramExerciseReuseDescriptions } from "./editProgramExerciseReuse
 import { EditProgramUiExerciseDescriptions } from "../editProgram/editProgramUiExerciseDescriptions";
 import { EditProgramExerciseRepeat } from "./editProgramExerciseRepeat";
 import { LinkButton } from "../linkButton";
-import { useState } from "preact/hooks";
 import { EditProgramExerciseOrder } from "./editProgramExerciseOrder";
 import { ObjectUtils_isEqual } from "../../utils/object";
 import { EditProgramExerciseSupersets } from "./editProgramExerciseSupersets";

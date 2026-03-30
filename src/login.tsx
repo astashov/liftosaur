@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { ILoginContentProps, LoginContent } from "./pages/login/loginContent";
 import { HydrateUtils_hydratePage } from "./utils/hydrate";
 

@@ -1,5 +1,4 @@
-import { ComponentChildren, h, JSX, Ref } from "preact";
-import { useRef, useState, useEffect } from "preact/hooks";
+import { JSX, ReactNode, Ref, forwardRef, useEffect, useRef, useState } from "react";
 import { ExerciseImage } from "../../components/exerciseImage";
 import { ExerciseItem } from "../../components/modalExercise";
 import { Multiselect } from "../../components/multiselect";
@@ -23,7 +22,6 @@ import { muscleDescriptions } from "../../models/muscleDescriptions";
 import { Muscle_getAvailableMuscleGroups, Muscle_getMuscleGroupName, Muscle_imageUrl } from "../../models/muscle";
 import { exerciseDescriptions } from "../../models/exerciseDescriptions";
 import { Markdown } from "../../components/markdown";
-import { forwardRef } from "preact/compat";
 import { UrlUtils_build } from "../../utils/url";
 import { ScrollableTabs } from "../../components/scrollableTabs";
 import { GroupHeader } from "../../components/groupHeader";
@@ -246,8 +244,8 @@ export interface IExercisesListProps {
   onChange: (exerciseType: IExerciseType) => void;
 }
 
-const ExerciseListWrapper = forwardRef(
-  (props: Omit<IExercisesListProps, "isSubstitute">, ref: Ref<HTMLDivElement>): JSX.Element => {
+const ExerciseListWrapper = forwardRef<HTMLDivElement, Omit<IExercisesListProps, "isSubstitute">>(
+  (props, ref): JSX.Element => {
     const tabs = ["Select", "Substitute"];
     return (
       <ScrollableTabs
@@ -308,7 +306,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps, ref: Ref<HTMLDivEl
           value={filter}
           placeholder="Filter by name"
           onInput={() => {
-            setFilter(textInput.current.value.toLowerCase());
+            setFilter(textInput.current!.value.toLowerCase());
           }}
         />
         <Multiselect
@@ -436,19 +434,26 @@ function MuscleGroups(props: IMuscleGroupsProps): JSX.Element {
         <div className="font-bold">Type</div>
         <ul className="pb-2 ml-4 list-disc">
           {types.map((t) => {
-            return <MuscleGroupItem type={t} exerciseType={props.exerciseType} setFilterTypes={props.setFilterTypes} />;
+            return (
+              <MuscleGroupItem
+                key={t}
+                type={t}
+                exerciseType={props.exerciseType}
+                setFilterTypes={props.setFilterTypes}
+              />
+            );
           })}
         </ul>
         <div className="font-bold">Target</div>
         <ul className="pb-2 ml-4 list-disc">
           {targetMuscleGroups.map((m) => (
-            <MuscleGroupItem type={m} exerciseType={props.exerciseType} setFilterTypes={props.setFilterTypes} />
+            <MuscleGroupItem key={m} type={m} exerciseType={props.exerciseType} setFilterTypes={props.setFilterTypes} />
           ))}
         </ul>
         <div className="font-bold">Synergist</div>
         <ul className="pb-2 ml-4 list-disc">
           {synergistMuscleGroups.map((m) => (
-            <MuscleGroupItem type={m} exerciseType={props.exerciseType} setFilterTypes={props.setFilterTypes} />
+            <MuscleGroupItem key={m} type={m} exerciseType={props.exerciseType} setFilterTypes={props.setFilterTypes} />
           ))}
         </ul>
       </div>
@@ -457,7 +462,7 @@ function MuscleGroups(props: IMuscleGroupsProps): JSX.Element {
         <div className="font-bold">Target</div>
         <ul className="pb-2 ml-4 list-disc">
           {targetMuscles.map((m) => (
-            <li className="relative">
+            <li key={m} className="relative">
               <MuscleView
                 insideModal={props.insideModal}
                 muscle={m}
@@ -470,7 +475,7 @@ function MuscleGroups(props: IMuscleGroupsProps): JSX.Element {
         <div className="font-bold">Synergist</div>
         <ul className="pb-2 ml-4 list-disc">
           {synergistMuscles.map((m) => (
-            <li className="relative">
+            <li key={m} className="relative">
               <MuscleView
                 insideModal={props.insideModal}
                 muscle={m}
@@ -536,8 +541,10 @@ function MuscleDescription(props: { muscle: IMuscle; insideModal: boolean }): JS
         <div className="flex-1 text-left">
           <div className="font-bold">{props.muscle}</div>
           <div>
-            {muscleDescriptions[props.muscle].map((d) => (
-              <p className="mb-2">{d}</p>
+            {muscleDescriptions[props.muscle].map((d, i) => (
+              <p key={i} className="mb-2">
+                {d}
+              </p>
             ))}
           </div>
         </div>
@@ -549,7 +556,7 @@ function MuscleDescription(props: { muscle: IMuscle; insideModal: boolean }): JS
 function DropdownMenu(props: {
   onTop: boolean;
   noPointerEvents?: boolean;
-  children: ComponentChildren;
+  children: ReactNode;
   onClose: () => void;
 }): JSX.Element {
   return (

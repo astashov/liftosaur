@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { PageWrapper } from "./components/pageWrapper";
 import { IProgramIndexEntry } from "./models/program";
 import { ProgramDetailsContent } from "./pages/programs/programDetailsContent";

@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IEvaluatedProgram } from "../../models/program";
 import { ScrollableTabs } from "../scrollableTabs";
 import { ExercisePickerAllProgramExercises } from "./exercisePickerAllProgramExercises";

@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { useState } from "preact/hooks";
+import { JSX, useState } from "react";
 import { IProgram, ISettings } from "../../../types";
 import { Program_exportProgram } from "../../../models/program";
 import { Service } from "../../../api/service";

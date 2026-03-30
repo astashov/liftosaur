@@ -1,4 +1,4 @@
-import { JSX, h } from "preact";
+import type { JSX } from "react";
 import { IProgram, ISettings } from "../types";
 
 interface IMigrationBannerProps {

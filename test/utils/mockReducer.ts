@@ -1,4 +1,4 @@
-import { Reducer } from "preact/hooks";
+import { Reducer } from "react";
 import { IAction, reducerWrapper } from "../../src/ducks/reducer";
 import { Storage_isChanged } from "../../src/models/storage";
 import { NoRetryError, Thunk_sync2 } from "../../src/ducks/thunks";

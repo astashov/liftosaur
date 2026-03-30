@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, Dispatch, SetStateAction } from "react";
 import {
   IPlannerExerciseState,
   IPlannerExerciseUi,
@@ -14,7 +14,6 @@ import { InputWeight2 } from "../inputWeight2";
 import { lb } from "lens-shmens";
 import { EditProgramUiHelpers_changeCurrentInstance2 } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { CollectionUtils_removeAt } from "../../utils/collection";
-import { StateUpdater } from "preact/hooks";
 
 interface IEditProgramExerciseSetProps {
   set: IPlannerProgramExerciseEvaluatedSet;
@@ -24,7 +23,7 @@ interface IEditProgramExerciseSetProps {
   setVariationIndex: number;
   plannerDispatch: ILensDispatch<IPlannerExerciseState>;
   setIds: string[];
-  setSetIds: StateUpdater<string[]>;
+  setSetIds: Dispatch<SetStateAction<string[]>>;
   settings: ISettings;
   widthAdd: number;
   opts: {
@@ -87,7 +86,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
 
   return (
     <SwipeableRow width={128} openThreshold={30} closeThreshold={110} scrollThreshold={7} initiateTreshold={15}>
-      {({ onPointerDown, onPointerMove, onPointerUp, style, close }) => {
+      {({ onPointerDown, onPointerUp, style, close, moveRef }) => {
         const buttons = (
           <div
             className={`absolute top-0 bottom-0 flex w-32 will-change-transform left-full`}
@@ -144,13 +143,12 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
 
         return (
           <div
+            ref={moveRef}
             className={`will-change-transform relative table-row`}
             style={style}
             onTouchStart={shouldUseTouch ? onPointerDown : undefined}
-            onTouchMove={shouldUseTouch ? onPointerMove : undefined}
             onTouchEnd={shouldUseTouch ? onPointerUp : undefined}
             onPointerDown={!shouldUseTouch ? onPointerDown : undefined}
-            onPointerMove={!shouldUseTouch ? onPointerMove : undefined}
             onPointerUp={!shouldUseTouch ? onPointerUp : undefined}
           >
             <div className="table-cell w-2 px-2 py-1 text-sm align-middle border-b border-border-cardpurple">

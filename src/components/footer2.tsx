@@ -1,11 +1,10 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, useCallback, useState } from "react";
 import { Thunk_pushScreen, Thunk_pushToEditProgram, Thunk_startProgramDay } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { Screen_currentName, Screen_tab } from "../models/screen";
 import { FooterButton } from "./footerButton";
 import { IconGraphs } from "./icons/iconGraphs";
 import { IconHome } from "./icons/iconHome";
-import { useCallback, useState } from "preact/hooks";
 import { IconMe } from "./icons/iconMe";
 import { Tailwind_semantic, Tailwind_colors } from "../utils/tailwindConfig";
 import { IconDoc2 } from "./icons/iconDoc2";

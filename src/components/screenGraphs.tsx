@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import { JSX, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import { GraphExercise } from "./graphExercise";
 import {
@@ -6,7 +6,6 @@ import {
   History_collectMuscleGroups,
   History_collectProgramChangeTimes,
 } from "../models/history";
-import { useState } from "preact/hooks";
 import { ModalGraphs } from "./modalGraphs";
 import { ObjectUtils_keys } from "../utils/object";
 import { ISettings, IHistoryRecord, IStats, IScreenMuscle } from "../types";
@@ -93,6 +92,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
           helpContent={<HelpGraphs />}
           rightButtons={[
             <button
+              key="filter"
               data-cy="graphs-modify"
               className="p-2 nm-graphs-navbar-filter"
               onClick={() => setIsModalOpen(true)}
@@ -125,7 +125,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
           {props.settings.graphs.graphs.map((graph) => {
             if (graph.type === "exercise") {
               return (
-                <div className="mb-2">
+                <div key={`${graph.id}_${isSameXAxis}_${isWithBodyweight}_${isWithOneRm}_${isWithProgramLines}`} className="mb-2">
                   <GraphExercise
                     initialType={props.settings.graphsSettings.defaultType}
                     isSameXAxis={isSameXAxis}
@@ -133,7 +133,6 @@ export function ScreenGraphs(props: IProps): JSX.Element {
                     maxX={Math.round(maxX / 1000)}
                     bodyweightData={hasBodyweight && isWithBodyweight ? bodyweightData : undefined}
                     isWithOneRm={isWithOneRm}
-                    key={`${graph.id}_${isSameXAxis}_${isWithBodyweight}_${isWithOneRm}_${isWithProgramLines}`}
                     settings={props.settings}
                     isWithProgramLines={isWithProgramLines}
                     history={props.history}
@@ -145,13 +144,12 @@ export function ScreenGraphs(props: IProps): JSX.Element {
             } else if (graph.type === "statsWeight") {
               const collection = getWeightDataForGraph(props.stats.weight[graph.id] || [], props.settings);
               return (
-                <div className="mb-2">
+                <div key={`${graph.id}_${isSameXAxis}`} className="mb-2">
                   <GraphStats
                     isSameXAxis={isSameXAxis}
                     minX={Math.round(minX / 1000)}
                     maxX={Math.round(maxX / 1000)}
                     units={props.settings.units}
-                    key={`${graph.id}_${isSameXAxis}`}
                     settings={props.settings}
                     collection={collection}
                     statsKey={graph.id}
@@ -161,13 +159,12 @@ export function ScreenGraphs(props: IProps): JSX.Element {
             } else if (graph.type === "statsLength") {
               const collection = getLengthDataForGraph(props.stats.length[graph.id] || [], props.settings);
               return (
-                <div className="mb-2">
+                <div key={graph.id} className="mb-2">
                   <GraphStats
                     isSameXAxis={isSameXAxis}
                     minX={Math.round(minX / 1000)}
                     maxX={Math.round(maxX / 1000)}
                     units={props.settings.lengthUnits}
-                    key={graph.id}
                     settings={props.settings}
                     collection={collection}
                     statsKey={graph.id}
@@ -178,6 +175,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
               const muscleGroup = graph.id as IScreenMuscle | "total";
               return (
                 <GraphMuscleGroup
+                  key={graph.id}
                   initialType={props.settings.graphsSettings.defaultMuscleGroupType}
                   programChangeTimes={isWithProgramLines ? programChangeTimes.changeProgramTimes : undefined}
                   data={muscleGroupsData[muscleGroup] ?? [[], [], []]}
@@ -188,13 +186,12 @@ export function ScreenGraphs(props: IProps): JSX.Element {
             } else {
               const collection = getPercentageDataForGraph(props.stats.percentage[graph.id] || [], props.settings);
               return (
-                <div className="mb-2">
+                <div key={graph.id} className="mb-2">
                   <GraphStats
                     isSameXAxis={isSameXAxis}
                     minX={Math.round(minX / 1000)}
                     maxX={Math.round(maxX / 1000)}
                     units="%"
-                    key={graph.id}
                     settings={props.settings}
                     collection={collection}
                     statsKey={graph.id}

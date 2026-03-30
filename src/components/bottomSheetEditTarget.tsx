@@ -1,11 +1,10 @@
-import { h, JSX } from "preact";
+import { JSX, useRef, useState } from "react";
 import { BottomSheet } from "./bottomSheet";
 import { IHistoryRecord, IProgressUi, ISettings, ISubscription } from "../types";
 import { MenuItemWrapper } from "./menuItem";
 import { InputNumber2 } from "./inputNumber2";
 import { IDispatch } from "../ducks/types";
 import { InputWeight2 } from "./inputWeight2";
-import { useRef, useState } from "preact/hooks";
 import { MenuItemEditable } from "./menuItemEditable";
 import { IconTrash } from "./icons/iconTrash";
 import { lb } from "lens-shmens";

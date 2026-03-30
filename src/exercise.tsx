@@ -1,4 +1,3 @@
-import { h } from "preact";
 import { IExerciseContentProps, ExerciseContent } from "./pages/exercise/exerciseContent";
 import { HydrateUtils_hydratePage } from "./utils/hydrate";
 

@@ -1,5 +1,4 @@
-import { JSX, h } from "preact";
-import { useRef, useLayoutEffect, useCallback } from "preact/hooks";
+import { JSX, useCallback, useLayoutEffect, useRef } from "react";
 import { IHistoryRecord } from "../types";
 import { DateUtils_formatYYYYMMDD } from "../utils/date";
 import { History_getDateToHistory } from "../models/history";
@@ -39,7 +38,7 @@ export function WeekCalendar(props: IWeekCalendarProps): JSX.Element {
   const handleScroll = useCallback(() => {
     const scrollLeft = scrollRef.current?.scrollLeft ?? 0;
     const width = scrollRef.current?.clientWidth;
-    const selectedWeekIndex = Math.floor((scrollLeft + width / 2) / width);
+    const selectedWeekIndex = Math.floor((scrollLeft + (width ?? 0) / 2) / (width ?? 1));
     const selectedFirstDayOfWeek = props.firstDayOfWeeks[selectedWeekIndex];
     props.onSelectFirstDayOfWeek(selectedFirstDayOfWeek);
   }, []);
@@ -107,7 +106,7 @@ export function WeekCalendar(props: IWeekCalendarProps): JSX.Element {
             <div className="flex flex-row justify-around w-full">
               {getWeekDays(firstDayOfWeek, dateToHistory, props.startWeekFromMonday).map((day, idx) => {
                 return (
-                  <div key={day.dayName} className="flex flex-col items-center justify-center rounded-full">
+                  <div key={idx} className="flex flex-col items-center justify-center rounded-full">
                     <div className="text-xs text-text-secondary">{day.dayName}</div>
                     <div
                       className={`flex items-center justify-center text-sm w-8 h-8 rounded-full ${

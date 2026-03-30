@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { useRef } from "preact/hooks";
+import { JSX, useRef } from "react";
 import { Button } from "./button";
 import { Modal } from "./modal";
 import { IUnit } from "../types";

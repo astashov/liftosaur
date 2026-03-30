@@ -1,9 +1,8 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, useState } from "react";
 import { Modal } from "../../modal";
 import { Button } from "../../button";
 import { IPlannerProgramExercise } from "../../../pages/planner/models/types";
 import { ScriptEditorView } from "./scriptEditorView";
-import { useState } from "preact/hooks";
 import { StringUtils_unindent, StringUtils_indent } from "../../../utils/string";
 import { ScriptRunner } from "../../../parser";
 import { ISettings } from "../../../types";

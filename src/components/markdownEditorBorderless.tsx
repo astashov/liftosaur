@@ -1,5 +1,4 @@
-import { h, JSX } from "preact";
-import { useEffect, useRef, useMemo } from "preact/hooks";
+import { JSX, useEffect, useMemo, useRef } from "react";
 import { markdown } from "@codemirror/lang-markdown";
 import { debounce } from "../utils/throttler";
 import { drawSelection, EditorView, highlightSpecialChars, keymap, placeholder } from "@codemirror/view";
@@ -16,7 +15,7 @@ interface IProps {
 }
 
 export function MarkdownEditorBorderless(props: IProps): JSX.Element {
-  const divRef = useRef<HTMLDivElement>();
+  const divRef = useRef<HTMLDivElement>(null);
   const codeEditor = useRef<EditorView | undefined>(undefined);
 
   const debouncedOnChange = useMemo(() => {
@@ -56,7 +55,7 @@ export function MarkdownEditorBorderless(props: IProps): JSX.Element {
 
     codeEditor.current = new EditorView({
       state: editorState,
-      parent: divRef.current,
+      parent: divRef.current ?? undefined,
     });
   }, []);
 

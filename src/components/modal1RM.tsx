@@ -1,4 +1,4 @@
-import { h, JSX } from "preact";
+import type { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { Modal } from "./modal";
 import { Weight_build } from "../models/weight";

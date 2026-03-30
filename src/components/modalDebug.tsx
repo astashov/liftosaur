@@ -1,4 +1,4 @@
-import { h, JSX, Fragment } from "preact";
+import type { JSX } from "react";
 import { Thunk_postDebug } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { ILoading } from "../models/state";
@@ -36,7 +36,7 @@ export function ModalDebug(props: IModalDebugProps): JSX.Element {
             color = "text-gray2-main";
           }
           return (
-            <li className={`${color} pb-1`}>
+            <li key={item.startTime} className={`${color} pb-1`}>
               <div>
                 <strong>{startTime}</strong>: <span>{item.type}</span>
                 {attempt > 0 ? <span>({attempt + 1})</span> : <></>} - <span>{duration}ms</span>

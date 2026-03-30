@@ -1,7 +1,6 @@
-import { h, JSX, Fragment } from "preact";
+import { JSX, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import { IProgram, ISettings } from "../types";
-import { useState } from "preact/compat";
 import {
   builtinProgramAges,
   builtinProgramDurations,
@@ -105,6 +104,7 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
           entries.map((entry) => {
             return (
               <BuiltInProgram
+                key={entry.id}
                 settings={props.settings}
                 entry={entry}
                 onClick={() => {
@@ -177,7 +177,13 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
           {exercises
             .filter((e) => ExerciseImageUtils_exists(e, "small"))
             .map((e) => (
-              <ExerciseImage settings={props.settings} exerciseType={e} size="small" className="w-6 mr-1" />
+              <ExerciseImage
+                key={`${e.id}_${e.equipment}`}
+                settings={props.settings}
+                exerciseType={e}
+                size="small"
+                className="w-6 mr-1"
+              />
             ))}
         </div>
         <div className="flex mb-1 text-text-secondary">

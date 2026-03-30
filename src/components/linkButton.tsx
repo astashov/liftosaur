@@ -1,6 +1,6 @@
-import { h, JSX } from "preact";
+import React, { JSX } from "react";
 
-type IProps = JSX.HTMLAttributes<HTMLButtonElement> & { name: string; "data-cy"?: string };
+type IProps = React.ButtonHTMLAttributes<HTMLButtonElement> & { name: string; "data-cy"?: string };
 
 export function LinkButton(props: IProps): JSX.Element {
   const { className, children, "data-cy": dataCy, ...otherProps } = props;
