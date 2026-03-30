@@ -1,4 +1,4 @@
-import { JSX, Fragment } from "react";
+import { JSX, Fragment, useMemo, useCallback } from "react";
 import { IExercisePickerState, IExerciseType, ISettings } from "../../types";
 import { IconMagnifyingGlass } from "../icons/iconMagnifyingGlass";
 import { Tailwind_colors, Tailwind_semantic } from "../../utils/tailwindConfig";
@@ -30,6 +30,7 @@ import {
   ExercisePickerUtils_sortExercises,
 } from "./exercisePickerUtils";
 import { ExercisePickerExerciseItem } from "./exercisePickerExerciseItem";
+import { useProgressiveList } from "../../utils/useProgressiveList";
 
 interface IProps {
   settings: ISettings;
@@ -84,7 +85,7 @@ function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
               placeholder="Search by name"
               className="block w-full text-sm bg-transparent border-none outline-none bg-none text-text-secondary placeholder-text-secondarysubtle"
               data-cy="exercise-filter-by-name"
-              value={props.state.search}
+              value={props.state.search ?? ""}
               onInput={(event) => {
                 const target = event.target as HTMLInputElement;
                 const value = target.value;
@@ -152,18 +153,28 @@ interface ICustomExercisesProps {
 }
 
 function CustomExercises(props: ICustomExercisesProps): JSX.Element {
-  let exercises = props.settings.exercises;
+  const exercisesList = useMemo(() => {
+    let exercises = props.settings.exercises;
+    if (props.state.search) {
+      exercises = Exercise_filterCustomExercises(exercises, props.state.search);
+    }
+    exercises = ExercisePickerUtils_filterCustomExercises(exercises, props.state.filters);
+    let list = CollectionUtils_compact(ObjectUtils_values(exercises));
+    if (props.state.filters.isStarred) {
+      list = list.filter((e) => props.settings.starredExercises?.[Exercise_toKey(e)]);
+    }
+    list = list.filter((e) => !e.isDeleted);
+    list = ExercisePickerUtils_sortCustomExercises(list, props.settings, props.state);
+    return list;
+  }, [props.settings, props.state.search, props.state.filters, props.state.sort]);
 
-  if (props.state.search) {
-    exercises = Exercise_filterCustomExercises(exercises, props.state.search);
-  }
-  exercises = ExercisePickerUtils_filterCustomExercises(exercises, props.state.filters);
-  let exercisesList = CollectionUtils_compact(ObjectUtils_values(exercises));
-  if (props.state.filters.isStarred) {
-    exercisesList = exercisesList.filter((e) => props.settings.starredExercises?.[Exercise_toKey(e)]);
-  }
-  exercisesList = exercisesList.filter((e) => !e.isDeleted);
-  exercisesList = ExercisePickerUtils_sortCustomExercises(exercisesList, props.settings, props.state);
+  const isMultiselect = ExercisePickerUtils_getIsMultiselect(props.state);
+  const onChoose = useCallback(
+    (key: string) => {
+      ExercisePickerUtils_chooseAdhocExercise(props.dispatch, key, props.state);
+    },
+    [props.dispatch, props.state]
+  );
 
   return (
     <div className="py-2">
@@ -202,7 +213,6 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
             (exrcs) => "exerciseType" in exrcs && Exercise_eq(exrcs.exerciseType, e)
           );
           const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise_eq(et, e));
-          const isMultiselect = ExercisePickerUtils_getIsMultiselect(props.state);
           const isSelected = props.state.selectedExercises.some(
             (exrcs) => exrcs.type === "adhoc" && Exercise_eq(exrcs.exerciseType, e)
           );
@@ -222,9 +232,7 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
                 currentExerciseType={props.state.exerciseType}
                 exercise={ex}
                 isSelected={isSelected}
-                onChoose={(key) => {
-                  ExercisePickerUtils_chooseAdhocExercise(props.dispatch, key, props.state);
-                }}
+                onChoose={onChoose}
                 onEdit={() => {
                   props.dispatch(
                     [
@@ -255,20 +263,33 @@ interface IBuiltinExercisesProps {
 }
 
 function BuiltinExercises(props: IBuiltinExercisesProps): JSX.Element {
-  let exercises = Exercise_allExpanded({});
-  if (props.state.search) {
-    exercises = Exercise_filterExercises(exercises, props.state.search);
-  }
-  exercises = ExercisePickerUtils_filterExercises(exercises, props.state.filters, props.settings);
-  if (props.state.filters.isStarred) {
-    exercises = exercises.filter((e) => props.settings.starredExercises?.[Exercise_toKey(e)]);
-  }
-  exercises = ExercisePickerUtils_sortExercises(exercises, props.settings, props.state);
+  const exercises = useMemo(() => {
+    let result = Exercise_allExpanded({});
+    if (props.state.search) {
+      result = Exercise_filterExercises(result, props.state.search);
+    }
+    result = ExercisePickerUtils_filterExercises(result, props.state.filters, props.settings);
+    if (props.state.filters.isStarred) {
+      result = result.filter((e) => props.settings.starredExercises?.[Exercise_toKey(e)]);
+    }
+    result = ExercisePickerUtils_sortExercises(result, props.settings, props.state);
+    return result;
+  }, [props.state.search, props.state.filters, props.state.sort, props.settings]);
+
+  const { visibleItems, sentinelRef, hasMore } = useProgressiveList(exercises);
+
+  const isMultiselect = ExercisePickerUtils_getIsMultiselect(props.state);
+  const onChoose = useCallback(
+    (key: string) => {
+      ExercisePickerUtils_chooseAdhocExercise(props.dispatch, key, props.state);
+    },
+    [props.dispatch, props.state]
+  );
+
   return (
     <div className="py-2">
       <GroupHeader isExpanded={true} leftExpandIcon={true} name="Built-in Exercises" headerClassName="mx-4">
-        {exercises.map((e) => {
-          const isMultiselect = ExercisePickerUtils_getIsMultiselect(props.state);
+        {visibleItems.map((e) => {
           const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise_eq(et, e));
           const isSelectedAlready = props.state.selectedExercises.some(
             (ex) => "exerciseType" in ex && Exercise_eq(ex.exerciseType, e)
@@ -290,9 +311,7 @@ function BuiltinExercises(props: IBuiltinExercisesProps): JSX.Element {
                 isMultiselect={isMultiselect}
                 isEnabled={!isUsedForDay && (!isMultiselect || !isSelectedAlready)}
                 isSelected={isSelected}
-                onChoose={(key) => {
-                  ExercisePickerUtils_chooseAdhocExercise(props.dispatch, key, props.state);
-                }}
+                onChoose={onChoose}
                 showMuscles={props.state.showMuscles}
                 settings={props.settings}
                 currentExerciseType={props.state.exerciseType}
@@ -301,6 +320,7 @@ function BuiltinExercises(props: IBuiltinExercisesProps): JSX.Element {
             </section>
           );
         })}
+        {hasMore && <div ref={sentinelRef} style={{ height: 1 }} />}
       </GroupHeader>
     </div>
   );

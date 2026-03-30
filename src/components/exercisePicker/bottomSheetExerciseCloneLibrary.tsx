@@ -1,4 +1,4 @@
-import { JSX, useState } from "react";
+import { JSX, useState, useMemo } from "react";
 import { ISettings } from "../../types";
 import { IExercise, Exercise_allExpanded, Exercise_toKey } from "../../models/exercise";
 import { Tailwind_colors } from "../../utils/tailwindConfig";
@@ -6,6 +6,7 @@ import { IconMagnifyingGlass } from "../icons/iconMagnifyingGlass";
 import { StringUtils_fuzzySearch } from "../../utils/string";
 import { ExercisePickerExerciseItem } from "./exercisePickerExerciseItem";
 import { BottomSheetOrModal } from "../bottomSheetOrModal";
+import { useProgressiveList } from "../../utils/useProgressiveList";
 
 interface IProps {
   isHidden: boolean;
@@ -18,12 +19,17 @@ interface IProps {
 export function BottomSheetExerciseCloneLibrary(props: IProps): JSX.Element {
   const [search, setSearch] = useState<string>("");
   const trimmedSearch = search.trim().toLowerCase();
-  let exercises = !trimmedSearch
-    ? Exercise_allExpanded(props.settings.exercises)
-    : Exercise_allExpanded(props.settings.exercises).filter((e) => {
-        return StringUtils_fuzzySearch(trimmedSearch, e.name.toLowerCase());
-      });
-  exercises = exercises.sort((a, b) => a.name.localeCompare(b.name));
+  const exercises = useMemo(() => {
+    let result = !trimmedSearch
+      ? Exercise_allExpanded(props.settings.exercises)
+      : Exercise_allExpanded(props.settings.exercises).filter((e) => {
+          return StringUtils_fuzzySearch(trimmedSearch, e.name.toLowerCase());
+        });
+    result = result.sort((a, b) => a.name.localeCompare(b.name));
+    return result;
+  }, [trimmedSearch, props.settings.exercises]);
+
+  const { visibleItems: visibleExercises, sentinelRef, hasMore } = useProgressiveList(exercises);
 
   return (
     <BottomSheetOrModal isHidden={props.isHidden} onClose={props.onClose} shouldShowClose={true}>
@@ -52,7 +58,7 @@ export function BottomSheetExerciseCloneLibrary(props: IProps): JSX.Element {
         </div>
         <div className="flex-1 overflow-y-auto">
           <div className="pb-4">
-            {exercises.map((ex) => {
+            {visibleExercises.map((ex) => {
               return (
                 <div
                   key={Exercise_toKey(ex)}
@@ -70,6 +76,7 @@ export function BottomSheetExerciseCloneLibrary(props: IProps): JSX.Element {
                 </div>
               );
             })}
+            {hasMore && <div ref={sentinelRef} style={{ height: 1 }} />}
           </div>
         </div>
       </div>
