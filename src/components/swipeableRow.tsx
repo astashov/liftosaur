@@ -7,7 +7,7 @@ interface ISwipeableRowProps {
     onPointerUp: () => void;
     style: React.CSSProperties;
     close: () => void;
-    moveRef: React.RefObject<HTMLElement | null>;
+    moveRef: React.RefObject<HTMLDivElement | null>;
   }) => JSX.Element;
   width: number;
   onPointerDown?: () => void;
@@ -28,7 +28,7 @@ export function SwipeableRow(props: ISwipeableRowProps): JSX.Element {
   const isScrolling = useRef(false);
   const isSwiping = useRef(false);
   const isOpen = useRef(false);
-  const moveRef = useRef<HTMLElement | null>(null);
+  const moveRef = useRef<HTMLDivElement | null>(null);
 
   const handlePointerDown = (event: React.TouchEvent | React.PointerEvent): void => {
     if (props.onPointerDown) {

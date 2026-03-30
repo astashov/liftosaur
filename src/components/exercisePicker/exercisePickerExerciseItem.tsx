@@ -1,3 +1,4 @@
+import { memo } from "react";
 import type { JSX } from "react";
 import {
   IExercise,
@@ -29,7 +30,7 @@ interface IExerciseItemProps {
   isMultiselect?: boolean;
 }
 
-export function ExercisePickerExerciseItem(props: IExerciseItemProps): JSX.Element {
+export const ExercisePickerExerciseItem = memo(function ExercisePickerExerciseItem(props: IExerciseItemProps): JSX.Element {
   const { exercise: e } = props;
   const exerciseType = { id: e.id, equipment: e.equipment || e.defaultEquipment };
   const key = Exercise_toKey(e);
@@ -134,7 +135,7 @@ export function ExercisePickerExerciseItem(props: IExerciseItemProps): JSX.Eleme
       </div>
     </section>
   );
-}
+});
 
 function MuscleView(props: {
   currentExerciseType?: IExerciseType;

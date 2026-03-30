@@ -1,4 +1,4 @@
-import { JSX, useEffect, useState } from "react";
+import { JSX, useEffect, useMemo, useState } from "react";
 import { ISettings } from "../../types";
 import { Exercise_allExpanded, Exercise_find, Exercise_fullName } from "../../models/exercise";
 import { MenuItemWrapper } from "../menuItem";
@@ -12,6 +12,7 @@ import { IconSpinner } from "../icons/iconSpinner";
 import { UidFactory_generateUid } from "../../utils/generator";
 import { ExerciseImageUtils_url } from "../../models/exerciseImage";
 import { BottomSheetOrModal } from "../bottomSheetOrModal";
+import { useProgressiveList } from "../../utils/useProgressiveList";
 
 interface IProps {
   isHidden: boolean;
@@ -40,11 +41,17 @@ export function BottomSheetExerciseImageLibrary(props: IProps): JSX.Element {
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [search, setSearch] = useState<string>("");
   const trimmedSearch = search.trim().toLowerCase();
-  const exercises = !trimmedSearch
-    ? Exercise_allExpanded({})
-    : Exercise_allExpanded({}).filter((e) => {
-        return StringUtils_fuzzySearch(trimmedSearch, e.name.toLowerCase());
-      });
+  const exercises = useMemo(
+    () =>
+      !trimmedSearch
+        ? Exercise_allExpanded({})
+        : Exercise_allExpanded({}).filter((e) => {
+            return StringUtils_fuzzySearch(trimmedSearch, e.name.toLowerCase());
+          }),
+    [trimmedSearch]
+  );
+
+  const { visibleItems: visibleExercises, sentinelRef, hasMore } = useProgressiveList(exercises);
   const filteredUploadedImages = !trimmedSearch
     ? uploadedImages
     : uploadedImages.filter((img) => {
@@ -120,7 +127,7 @@ export function BottomSheetExerciseImageLibrary(props: IProps): JSX.Element {
                 <GroupHeader name="Built-in Images" topPadding={true} />
               </>
             )}
-            {exercises.map((exercise) => (
+            {visibleExercises.map((exercise) => (
               <MenuItemWrapper
                 key={exercise.id}
                 name={exercise.name}
@@ -138,6 +145,7 @@ export function BottomSheetExerciseImageLibrary(props: IProps): JSX.Element {
                 </div>
               </MenuItemWrapper>
             ))}
+            {hasMore && <div ref={sentinelRef} style={{ height: 1 }} />}
           </div>
         </div>
       </div>
