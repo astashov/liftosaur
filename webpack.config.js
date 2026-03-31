@@ -152,7 +152,7 @@ const mainConfig = {
       apply(compiler) {
         compiler.hooks.compilation.tap("LftMarkerPlugin", (compilation) => {
           compilation.hooks.processAssets.tap(
-            { name: "LftMarkerPlugin", stage: Compilation.PROCESS_ASSETS_STAGE_REPORT },
+            { name: "LftMarkerPlugin", stage: Compilation.PROCESS_ASSETS_STAGE_DEV_TOOLING - 1 },
             (assets) => {
               for (const [name, source] of Object.entries(assets)) {
                 if (/\.(js|css)$/.test(name) && !name.includes(".map")) {
