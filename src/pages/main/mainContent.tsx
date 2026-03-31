@@ -27,9 +27,9 @@ export function MainContent(props: IMainContentProps): JSX.Element {
     const params = new URLSearchParams(window.location.search);
     let source = params.get("cpgsrc");
     if (source) {
-      window.localStorage.setItem("source", source);
+      window.localStorage?.setItem("source", source);
     }
-    source = window.localStorage.getItem("source");
+    source = window.localStorage?.getItem("source") ?? null;
     if (source) {
       for (const link of Array.from(document.querySelectorAll(".google-play-link"))) {
         const href = link.getAttribute("href");
