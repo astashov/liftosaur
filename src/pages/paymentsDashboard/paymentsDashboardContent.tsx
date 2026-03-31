@@ -619,7 +619,10 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
               </thead>
               <tbody>
                 {periodData.payments.map((payment, idx) => (
-                  <tr key={`${payment.transactionId}-${idx}`} className="border-b hover:bg-gray-50">
+                  <tr
+                    key={`${payment.transactionId}-${idx}`}
+                    className={`border-b ${payment.source === "reconciler" ? "bg-yellow-50 hover:bg-yellow-100" : "hover:bg-gray-50"}`}
+                  >
                     <td className="px-2 py-2">
                       {payment.subscriptionStartTimestamp != null
                         ? DateUtils_formatUTCYYYYMMDD(payment.subscriptionStartTimestamp)

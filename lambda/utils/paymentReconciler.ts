@@ -474,7 +474,7 @@ export class PaymentReconciler {
     if (!orderId || existingTxIds.has(orderId)) {
       return { added: 0 };
     }
-    if (purchaseDetails.purchaseTimeMillis < PAYMENT_TRACKING_START) {
+    if (Number(purchaseDetails.purchaseTimeMillis) < PAYMENT_TRACKING_START) {
       return { added: 0 };
     }
 
@@ -497,7 +497,7 @@ export class PaymentReconciler {
     } else {
       await this.paymentDao.addIfNotExists({
         userId: sub.userId,
-        timestamp: purchaseDetails.purchaseTimeMillis,
+        timestamp: Number(purchaseDetails.purchaseTimeMillis),
         originalTransactionId: sub.originalTransactionId!,
         transactionId: orderId,
         productId: GOOGLE_PRODUCT_IDS[sub.product]!,
@@ -508,7 +508,7 @@ export class PaymentReconciler {
         source: "reconciler",
         paymentType: "purchase",
         isFreeTrialPayment: false,
-        subscriptionStartTimestamp: purchaseDetails.purchaseTimeMillis,
+        subscriptionStartTimestamp: Number(purchaseDetails.purchaseTimeMillis),
       });
       this.di.log.log(`Reconciler: Added Google product payment ${orderId} for user ${sub.userId}`);
     }
@@ -567,9 +567,11 @@ export class PaymentReconciler {
         continue;
       }
 
-      const timestamp = orderInfo.purchaseTime || orderInfo.createTime
-        ? new Date(orderInfo.createTime).getTime()
-        : Date.now();
+      const timestamp = orderInfo.purchaseTime
+        ? orderInfo.purchaseTime
+        : orderInfo.createTime
+          ? new Date(orderInfo.createTime).getTime()
+          : Date.now();
       if (timestamp < PAYMENT_TRACKING_START) {
         continue;
       }
