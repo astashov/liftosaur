@@ -73,10 +73,7 @@ export class GooglePaymentProcessor {
       }
 
       const paymentDao = new PaymentDao(this.di);
-      if (await paymentDao.doesExist(token)) {
-        this.di.log.log(`Google verification: Payment with transaction ID ${token} already exists`);
-        return;
-      }
+      let transactionId = token;
 
       const subscriptions = new Subscriptions(this.di.log, this.di.secrets);
 
@@ -86,6 +83,7 @@ export class GooglePaymentProcessor {
         amount = Number((Number(googleJson.priceAmountMicros || "0") / 1000000).toFixed(2));
         currency = googleJson.priceCurrencyCode || "USD";
         originalTransactionId = googleJson.linkedPurchaseToken || token;
+        transactionId = googleJson.orderId || token;
         purchaseTime = googleJson.startTimeMillis != null ? Number(googleJson.startTimeMillis) : purchaseTime;
 
         // Try to fetch order info for subscription to get tax details
@@ -114,6 +112,7 @@ export class GooglePaymentProcessor {
         }
       } else if (googleJson.kind === "androidpublisher#productPurchase") {
         this.di.log.log(`Google verification: Fetching order info for product ${productId}`);
+        transactionId = googleJson.orderId || token;
         const orderInfo = await subscriptions.getGoogleOrderInfo(googleJson.orderId);
         this.di.log.log("Google verification: Order Info", JSON.stringify(orderInfo, null, 2));
         purchaseTime = googleJson.purchaseTimeMillis != null ? Number(googleJson.purchaseTimeMillis) : purchaseTime;
@@ -124,6 +123,11 @@ export class GooglePaymentProcessor {
         if (orderInfo && orderInfo.tax) {
           tax = convertGooglePriceToNumber(orderInfo.tax);
         }
+      }
+
+      if (await paymentDao.doesExist(transactionId)) {
+        this.di.log.log(`Google verification: Payment with transaction ID ${transactionId} already exists`);
+        return;
       }
 
       let timestamp = Date.now();
@@ -147,7 +151,7 @@ export class GooglePaymentProcessor {
         userId,
         timestamp,
         originalTransactionId,
-        transactionId: token,
+        transactionId,
         productId,
         amount,
         tax,

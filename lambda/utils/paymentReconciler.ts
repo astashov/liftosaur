@@ -407,11 +407,7 @@ export class PaymentReconciler {
       return true;
     });
 
-    const needsReconciliation = uniqueSubscriptions.filter((sub) => {
-      const purchaseToken = sub.originalTransactionId!;
-      if (existingTxIds.has(purchaseToken)) {
-        return false;
-      }
+    const validSubscriptions = uniqueSubscriptions.filter((sub) => {
       const productId = GOOGLE_PRODUCT_IDS[sub.product];
       if (!productId) {
         result.errors.push(`Google: Unknown product "${sub.product}" for user ${sub.userId}`);
@@ -421,18 +417,18 @@ export class PaymentReconciler {
     });
 
     result.googleSubscriptionsChecked += uniqueSubscriptions.length;
-    this.di.log.log(
-      `Reconciler: ${needsReconciliation.length} Google subscriptions need reconciliation (${uniqueSubscriptions.length - needsReconciliation.length} already have payments)`
-    );
+    this.di.log.log(`Reconciler: Checking ${validSubscriptions.length} Google subscriptions for missing renewals`);
 
     const BATCH_SIZE = 10;
-    for (let batchStart = 0; batchStart < needsReconciliation.length; batchStart += BATCH_SIZE) {
-      const batch = needsReconciliation.slice(batchStart, batchStart + BATCH_SIZE);
+    for (let batchStart = 0; batchStart < validSubscriptions.length; batchStart += BATCH_SIZE) {
+      const batch = validSubscriptions.slice(batchStart, batchStart + BATCH_SIZE);
       this.di.log.log(
-        `Reconciler: Google batch [${batchStart + 1}-${batchStart + batch.length}/${needsReconciliation.length}]`
+        `Reconciler: Google batch [${batchStart + 1}-${batchStart + batch.length}/${validSubscriptions.length}]`
       );
 
-      const batchResults = await Promise.all(batch.map((sub) => this.reconcileOneGoogleSub(sub)));
+      const batchResults = await Promise.all(
+        batch.map((sub) => this.reconcileOneGoogleSub(sub, existingTxIds))
+      );
 
       for (const br of batchResults) {
         result.googlePaymentsAdded += br.added;
@@ -444,7 +440,8 @@ export class PaymentReconciler {
   }
 
   private async reconcileOneGoogleSub(
-    sub: ISubscriptionDetailsDao
+    sub: ISubscriptionDetailsDao,
+    existingTxIds: Set<string>
   ): Promise<{ added: number; error?: string }> {
     try {
       const purchaseToken = sub.originalTransactionId!;
@@ -458,89 +455,166 @@ export class PaymentReconciler {
         };
       }
 
+      if (purchaseDetails.kind === "androidpublisher#productPurchase") {
+        return this.reconcileGoogleProduct(sub, purchaseDetails, existingTxIds);
+      }
+
+      return this.reconcileGoogleSubscription(sub, purchaseDetails, purchaseToken, productId, existingTxIds);
+    } catch (error) {
+      return { added: 0, error: `Google ${sub.originalTransactionId}: ${error}` };
+    }
+  }
+
+  private async reconcileGoogleProduct(
+    sub: ISubscriptionDetailsDao,
+    purchaseDetails: { purchaseTimeMillis: number; orderId: string; kind: "androidpublisher#productPurchase" },
+    existingTxIds: Set<string>
+  ): Promise<{ added: number; error?: string }> {
+    const orderId = purchaseDetails.orderId;
+    if (!orderId || existingTxIds.has(orderId)) {
+      return { added: 0 };
+    }
+    if (purchaseDetails.purchaseTimeMillis < PAYMENT_TRACKING_START) {
+      return { added: 0 };
+    }
+
+    let amount = 0;
+    let tax: number | undefined;
+    let currency = "USD";
+    const orderInfo = await this.subscriptionsUtil.getGoogleOrderInfo(orderId);
+    if (orderInfo?.total) {
+      amount = convertGooglePriceToNumber(orderInfo.total);
+      currency = orderInfo.total.currencyCode || "USD";
+    }
+    if (orderInfo?.tax) {
+      tax = convertGooglePriceToNumber(orderInfo.tax);
+    }
+
+    if (this.dryRun) {
+      this.di.log.log(
+        `Reconciler [DRY RUN]: Would add Google product payment ${orderId} for user ${sub.userId}, amount: ${amount} ${currency}`
+      );
+    } else {
+      await this.paymentDao.addIfNotExists({
+        userId: sub.userId,
+        timestamp: purchaseDetails.purchaseTimeMillis,
+        originalTransactionId: sub.originalTransactionId!,
+        transactionId: orderId,
+        productId: GOOGLE_PRODUCT_IDS[sub.product]!,
+        amount,
+        tax,
+        currency,
+        type: "google",
+        source: "reconciler",
+        paymentType: "purchase",
+        isFreeTrialPayment: false,
+        subscriptionStartTimestamp: purchaseDetails.purchaseTimeMillis,
+      });
+      this.di.log.log(`Reconciler: Added Google product payment ${orderId} for user ${sub.userId}`);
+    }
+    return { added: 1 };
+  }
+
+  // Google renewal orderIds follow: GPA.xxxx (initial), GPA.xxxx..0 (1st renewal), GPA.xxxx..1, etc.
+  private async reconcileGoogleSubscription(
+    sub: ISubscriptionDetailsDao,
+    purchaseDetails: {
+      orderId: string;
+      priceCurrencyCode: string;
+      priceAmountMicros: string;
+      startTimeMillis: string;
+      linkedPurchaseToken?: string;
+      paymentState?: number;
+      introductoryPriceInfo?: { introductoryPriceAmountMicros?: string };
+      kind: "androidpublisher#subscriptionPurchase";
+    },
+    purchaseToken: string,
+    productId: string,
+    existingTxIds: Set<string>
+  ): Promise<{ added: number; error?: string }> {
+    const currentOrderId = purchaseDetails.orderId;
+    if (!currentOrderId) {
+      return { added: 0 };
+    }
+
+    const originalTransactionId = purchaseDetails.linkedPurchaseToken || purchaseToken;
+    const subscriptionStartTimestamp =
+      purchaseDetails.startTimeMillis != null ? Number(purchaseDetails.startTimeMillis) : undefined;
+    const isFreeTrialPayment =
+      purchaseDetails.paymentState === 2 ||
+      purchaseDetails.introductoryPriceInfo?.introductoryPriceAmountMicros === "0";
+
+    const baseOrderId = currentOrderId.replace(/\.\.\d+$/, "");
+    const renewalMatch = currentOrderId.match(/\.\.(\d+)$/);
+    const latestRenewalIndex = renewalMatch ? parseInt(renewalMatch[1], 10) : -1;
+
+    // Enumerate: base order (initial purchase) + all renewals ..0 through ..N
+    const orderIds: { orderId: string; paymentType: "purchase" | "renewal" }[] = [
+      { orderId: baseOrderId, paymentType: "purchase" },
+    ];
+    for (let i = 0; i <= latestRenewalIndex; i++) {
+      orderIds.push({ orderId: `${baseOrderId}..${i}`, paymentType: "renewal" });
+    }
+
+    let added = 0;
+    for (const { orderId, paymentType } of orderIds) {
+      if (existingTxIds.has(orderId)) {
+        continue;
+      }
+
+      const orderInfo = await this.subscriptionsUtil.getGoogleOrderInfo(orderId);
+      if (!orderInfo) {
+        continue;
+      }
+
+      const timestamp = orderInfo.purchaseTime || orderInfo.createTime
+        ? new Date(orderInfo.createTime).getTime()
+        : Date.now();
+      if (timestamp < PAYMENT_TRACKING_START) {
+        continue;
+      }
+
       let amount = 0;
       let tax: number | undefined;
-      let currency = "USD";
-      let timestamp = Date.now();
-      let isFreeTrialPayment = false;
-      let subscriptionStartTimestamp: number | undefined;
+      let currency = purchaseDetails.priceCurrencyCode || "USD";
       let offerIdentifier: string | undefined;
-
-      if (purchaseDetails.kind === "androidpublisher#subscriptionPurchase") {
-        amount = Math.round(Number(purchaseDetails.priceAmountMicros || "0") / 1000000);
-        currency = purchaseDetails.priceCurrencyCode || "USD";
-        timestamp = Number(purchaseDetails.startTimeMillis || Date.now());
-        subscriptionStartTimestamp =
-          purchaseDetails.startTimeMillis != null ? Number(purchaseDetails.startTimeMillis) : undefined;
-
-        if (purchaseDetails.paymentState === 2) {
-          isFreeTrialPayment = true;
-        } else if (purchaseDetails.introductoryPriceInfo) {
-          isFreeTrialPayment = purchaseDetails.introductoryPriceInfo.introductoryPriceAmountMicros === "0";
-        }
-
-        if (purchaseDetails.orderId) {
-          const orderInfo = await this.subscriptionsUtil.getGoogleOrderInfo(purchaseDetails.orderId);
-          if (orderInfo?.total) {
-            amount = convertGooglePriceToNumber(orderInfo.total);
-            currency = orderInfo.total.currencyCode || currency;
-          }
-          if (orderInfo?.tax) {
-            tax = convertGooglePriceToNumber(orderInfo.tax);
-          }
-          if (orderInfo?.lineItems?.[0]?.subscriptionDetails?.offerId) {
-            offerIdentifier = orderInfo.lineItems[0].subscriptionDetails.offerId;
-          }
-        }
-      } else if (purchaseDetails.kind === "androidpublisher#productPurchase") {
-        timestamp = purchaseDetails.purchaseTimeMillis;
-        if (purchaseDetails.orderId) {
-          const orderInfo = await this.subscriptionsUtil.getGoogleOrderInfo(purchaseDetails.orderId);
-          if (orderInfo?.total) {
-            amount = convertGooglePriceToNumber(orderInfo.total);
-            currency = orderInfo.total.currencyCode || "USD";
-          }
-          if (orderInfo?.tax) {
-            tax = convertGooglePriceToNumber(orderInfo.tax);
-          }
-        }
+      if (orderInfo.total) {
+        amount = convertGooglePriceToNumber(orderInfo.total);
+        currency = orderInfo.total.currencyCode || currency;
+      }
+      if (orderInfo.tax) {
+        tax = convertGooglePriceToNumber(orderInfo.tax);
+      }
+      if (orderInfo.lineItems?.[0]?.subscriptionDetails?.offerId) {
+        offerIdentifier = orderInfo.lineItems[0].subscriptionDetails.offerId;
       }
 
-      if (timestamp < PAYMENT_TRACKING_START) {
-        return { added: 0 };
-      }
-
-      const originalTransactionId =
-        purchaseDetails.kind === "androidpublisher#subscriptionPurchase"
-          ? purchaseDetails.linkedPurchaseToken || purchaseToken
-          : purchaseToken;
-
+      added += 1;
       if (this.dryRun) {
         this.di.log.log(
-          `Reconciler [DRY RUN]: Would add Google payment for user ${sub.userId}, product ${productId}, amount: ${amount} ${currency}`
+          `Reconciler [DRY RUN]: Would add Google ${paymentType} ${orderId} for user ${sub.userId}, amount: ${amount} ${currency}`
         );
       } else {
         await this.paymentDao.addIfNotExists({
           userId: sub.userId,
           timestamp,
           originalTransactionId,
-          transactionId: purchaseToken,
+          transactionId: orderId,
           productId,
           amount,
           tax,
           currency,
           type: "google",
           source: "reconciler",
-          paymentType: "purchase",
-          isFreeTrialPayment,
+          paymentType,
+          isFreeTrialPayment: paymentType === "purchase" && isFreeTrialPayment,
           subscriptionStartTimestamp,
           offerIdentifier,
         });
-        this.di.log.log(`Reconciler: Added Google payment for user ${sub.userId}, product ${productId}`);
+        this.di.log.log(`Reconciler: Added Google ${paymentType} ${orderId} for user ${sub.userId}`);
       }
-      return { added: 1 };
-    } catch (error) {
-      return { added: 0, error: `Google ${sub.originalTransactionId}: ${error}` };
     }
+
+    return { added };
   }
 }

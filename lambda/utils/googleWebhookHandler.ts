@@ -189,10 +189,7 @@ export class GoogleWebhookHandler {
       let offerIdentifier: string | undefined = undefined;
 
       const paymentDao = new PaymentDao(this.di);
-      if (await paymentDao.doesExist(purchaseToken)) {
-        this.di.log.log(`Google webhook: Payment with transaction ID ${purchaseToken} already exists`);
-        return;
-      }
+      let transactionId = purchaseToken;
 
       if (productType !== "voided") {
         const subscriptions = new Subscriptions(this.di.log, this.di.secrets);
@@ -208,6 +205,7 @@ export class GoogleWebhookHandler {
           amount = Math.round(Number(purchaseDetails.priceAmountMicros || "0") / 1000000);
           currency = purchaseDetails.priceCurrencyCode || "USD";
           originalTransactionId = purchaseDetails.linkedPurchaseToken || purchaseToken;
+          transactionId = purchaseDetails.orderId || purchaseToken;
           timestamp = Date.now();
           subscriptionStartTimestamp =
             purchaseDetails.startTimeMillis != null ? Number(purchaseDetails.startTimeMillis) : undefined;
@@ -237,6 +235,7 @@ export class GoogleWebhookHandler {
           }
         } else if (purchaseDetails.kind === "androidpublisher#productPurchase") {
           this.di.log.log(`Google webhook: Fetching order info for product ${productId}`);
+          transactionId = purchaseDetails.orderId || purchaseToken;
           timestamp = purchaseDetails.purchaseTimeMillis;
           const orderInfo = await subscriptions.getGoogleOrderInfo(purchaseDetails.orderId);
           if (orderInfo && orderInfo.total) {
@@ -247,6 +246,11 @@ export class GoogleWebhookHandler {
             tax = convertGooglePriceToNumber(orderInfo.tax);
           }
         }
+      }
+
+      if (await paymentDao.doesExist(transactionId)) {
+        this.di.log.log(`Google webhook: Payment with transaction ID ${transactionId} already exists`);
+        return;
       }
 
       const userDao = new UserDao(this.di);
@@ -270,7 +274,7 @@ export class GoogleWebhookHandler {
         userId,
         timestamp,
         originalTransactionId,
-        transactionId: purchaseToken,
+        transactionId,
         productId,
         amount,
         tax,
