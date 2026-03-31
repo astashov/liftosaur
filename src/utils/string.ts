@@ -55,8 +55,7 @@ export function StringUtils_unindent(string: string): string {
   if (indent2 != null) {
     return string
       .split("\n")
-      .filter((s) => s.trim() !== "")
-      .map((s) => s.slice(indent2, s.length).trimEnd())
+      .map((s) => (s.trim() === "" ? "" : s.slice(indent2, s.length).trimEnd()))
       .join("\n");
   } else {
     return string;
