@@ -1,4 +1,3 @@
-Easy Strength (Dan John) |-| 590 - 2/5
 Westside for Skinny Bastards |-| 390 - 2/5
 Super Squats / 20 Rep Squat |-| 710 - 2/5
 Candito Linear Program |-| 140 - 1/5

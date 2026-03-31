@@ -20,7 +20,7 @@ export interface IPaymentDao {
   tax?: number;
   currency?: string;
   type: "apple" | "google";
-  source: "verifier" | "webhook";
+  source: "verifier" | "webhook" | "reconciler";
   paymentType: "purchase" | "renewal" | "refund";
   isFreeTrialPayment: boolean;
   subscriptionStartTimestamp?: number;

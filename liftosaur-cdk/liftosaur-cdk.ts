@@ -451,6 +451,29 @@ export class LiftosaurCdkStack extends cdk.Stack {
 
     rule.addTarget(new aws_events_targets.LambdaFunction(statsLambdaFunction));
 
+    const reconcileLambdaFunction = new lambda.Function(this, `LftReconcilePaymentsLambda${suffix}`, {
+      runtime: lambda.Runtime.NODEJS_24_X,
+      functionName: `LftReconcilePaymentsLambda${suffix}`,
+      code: lambda.Code.fromAsset("dist-lambda"),
+      memorySize: 2048,
+      layers: [depsLayer],
+      timeout: cdk.Duration.seconds(900),
+      handler: `lambda/run.LftReconcilePaymentsLambda${suffix}`,
+      environment: {
+        IS_DEV: `${isDev}`,
+      },
+    });
+    const reconcileRule = new aws_events.Rule(this, `LftReconcilePaymentsLambdaRule${suffix}`, {
+      schedule: aws_events.Schedule.cron({
+        minute: "0",
+        hour: "6",
+        weekDay: "SUN",
+        month: "*",
+        year: "*",
+      }),
+    });
+    reconcileRule.addTarget(new aws_events_targets.LambdaFunction(reconcileLambdaFunction));
+
     const cert = acm.Certificate.fromCertificateArn(
       this,
       `LftEndpointCert${suffix}`,
@@ -498,6 +521,11 @@ export class LiftosaurCdkStack extends cdk.Stack {
     subscriptionDetailsTable.grantReadWriteData(lambdaFunction);
     logsTable.grantReadWriteData(lambdaFunction);
     logsTable.grantReadWriteData(statsLambdaFunction);
+    paymentsTable.grantReadWriteData(reconcileLambdaFunction);
+    subscriptionDetailsTable.grantReadWriteData(reconcileLambdaFunction);
+    usersTable.grantReadData(reconcileLambdaFunction);
+    allSecrets.grantRead(reconcileLambdaFunction);
+    statsBucket.grantReadWrite(reconcileLambdaFunction);
     eventsTable.grantReadWriteData(lambdaFunction);
     urlsTable.grantReadWriteData(lambdaFunction);
     affiliatesTable.grantReadWriteData(lambdaFunction);

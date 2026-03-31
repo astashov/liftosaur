@@ -24,6 +24,8 @@ interface IVerifyGoogleProductTokenSuccess {
 
 export interface IAppleTransactionHistory {
   signedTransactions?: string[];
+  hasMore?: boolean;
+  revision?: string;
 }
 
 export interface IAppleTransaction {
@@ -45,6 +47,7 @@ export interface IAppleTransaction {
   currency: string;
   appTransactionId: string;
   offerDiscountType?: "FREE_TRIAL" | "PAY_UP_FRONT" | "PAY_AS_YOU_GO";
+  offerIdentifier?: string;
 }
 
 interface IGoogleOrderInfo {

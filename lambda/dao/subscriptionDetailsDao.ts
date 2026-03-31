@@ -33,6 +33,13 @@ export class SubscriptionDetailsDao {
     });
   }
 
+  public async scanAll(): Promise<ISubscriptionDetailsDao[]> {
+    const env = Utils_getEnv();
+    return this.di.dynamo.scan<ISubscriptionDetailsDao>({
+      tableName: subscriptionDetailsTableNames[env].subscriptionDetails,
+    });
+  }
+
   public async add(subscriptionDetails: ISubscriptionDetailsDao): Promise<void> {
     const env = Utils_getEnv();
     await this.di.dynamo.put({

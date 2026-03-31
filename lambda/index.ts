@@ -65,6 +65,7 @@ import { renderAiPromptHtml } from "./aiPrompt";
 import { FreeUserDao } from "./dao/freeUserDao";
 import { SubscriptionDetailsDao } from "./dao/subscriptionDetailsDao";
 import { AppleWebhookHandler } from "./utils/appleWebhookHandler";
+import { PaymentReconciler } from "./utils/paymentReconciler";
 import { ApplePaymentProcessor } from "./utils/applePaymentProcessor";
 import { GooglePaymentProcessor } from "./utils/googlePaymentProcessor";
 import { GoogleWebhookHandler } from "./utils/googleWebhookHandler";
@@ -2713,6 +2714,44 @@ export const getLftStatsLambda = (
   rollbar.lambdaHandler(
     async (event: {}): Promise<APIGatewayProxyResult> => statsLambdaHandler(diBuilder)(event)
   ) as Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown>;
+
+export const getLftReconcilePaymentsLambdaDev = (
+  diBuilder: () => IDI
+): Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown> =>
+  rollbar.lambdaHandler(
+    async (event: {}): Promise<APIGatewayProxyResult> => reconcilePaymentsLambdaHandler(diBuilder)(event)
+  ) as Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown>;
+
+export const getLftReconcilePaymentsLambda = (
+  diBuilder: () => IDI
+): Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown> =>
+  rollbar.lambdaHandler(
+    async (event: {}): Promise<APIGatewayProxyResult> => reconcilePaymentsLambdaHandler(diBuilder)(event)
+  ) as Rollbar.LambdaHandler<unknown, APIGatewayProxyResult, unknown>;
+
+export const reconcilePaymentsLambdaHandler = (
+  diBuilder: () => IDI
+): ((event: {}) => Promise<APIGatewayProxyResult>) => {
+  return async () => {
+    const di = diBuilder();
+    const reconciler = new PaymentReconciler(di);
+    const result = await reconciler.reconcile();
+
+    const bucket = `${LftS3Buckets.stats}${Utils_getEnv() === "dev" ? "dev" : ""}`;
+    await di.s3.putObject({
+      bucket,
+      key: `reconciliation/${DateUtils_formatYYYYMMDD(new Date())}.json`,
+      body: JSON.stringify(result, null, 2),
+      opts: { contentType: "application/json" },
+    });
+
+    return {
+      statusCode: 200,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ data: "done", result }),
+    };
+  };
+};
 
 export const statsLambdaHandler = (diBuilder: () => IDI): ((event: {}) => Promise<APIGatewayProxyResult>) => {
   return async () => {
