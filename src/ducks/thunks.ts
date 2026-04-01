@@ -1,5 +1,15 @@
 import { IThunk, IDispatch } from "./types";
 import { IScreen, IScreenParams } from "../models/screen";
+import type { IAllScreenParamList } from "../navigation/types";
+
+// Lazy imports — @react-navigation/native is ESM-only and breaks ts-node scripts
+// that transitively reach this module.
+function getNavigationService(): Promise<typeof import("../navigation/navigationService")> {
+  return import("../navigation/navigationService");
+}
+function getNavigationRef(): Promise<typeof import("../navigation/navigationRef")> {
+  return import("../navigation/navigationRef");
+}
 import RB from "rollbar";
 import { IGetStorageResponse, IPostSyncResponse, Service } from "../api/service";
 import { lb } from "lens-shmens";
@@ -33,7 +43,7 @@ import { DateUtils_formatYYYYMMDD, DateUtils_format } from "../utils/date";
 import { getInitialState } from "./reducer";
 import { IndexedDBUtils_get, IndexedDBUtils_remove } from "../utils/indexeddb";
 import { WhatsNew_updateStorage } from "../models/whatsnewUtils";
-import { Screen_currentName, Screen_shouldConfirmNavigation, Screen_updateParams } from "../models/screen";
+import { Screen_currentName, Screen_shouldConfirmNavigation } from "../models/screen";
 import {
   Subscriptions_listOfSubscriptions,
   Subscriptions_hasSubscription,
@@ -822,7 +832,6 @@ export function Thunk_pushScreen<T extends IScreen>(
       if (confirmation) {
         if (confirm(confirmation)) {
           cleanup(dispatch, getState());
-          dispatch({ type: "PullScreen" });
         } else {
           return;
         }
@@ -848,24 +857,18 @@ export function Thunk_pushScreen<T extends IScreen>(
     if (getState().storage.currentProgramId == null && screensWithoutCurrentProgram.indexOf(screen) === -1) {
       screen = "programs" as T;
     }
-    dispatch({ type: "PushScreen", screen, params, shouldResetStack });
+    const { navigateTo } = await getNavigationService();
+    navigateTo(screen, params as IAllScreenParamList[typeof screen], shouldResetStack);
     window.scroll(0, 0);
   };
 }
 
 export function Thunk_updateScreenParams<T extends IScreen>(params?: IScreenParams<T>): IThunk {
-  return async (dispatch, getState) => {
-    updateState(
-      dispatch,
-      [
-        lb<IState>()
-          .p("screenStack")
-          .recordModify((stack) => {
-            return Screen_updateParams(stack, params);
-          }),
-      ],
-      "Update screen params"
-    );
+  return async (_dispatch, _getState) => {
+    const { navigationRef } = await getNavigationRef();
+    if (navigationRef.isReady()) {
+      navigationRef.setParams(params as Record<string, unknown>);
+    }
   };
 }
 
@@ -942,8 +945,40 @@ export function Thunk_pullScreen(): IThunk {
         return;
       }
     }
-    dispatch({ type: "PullScreen" });
+    const { goBack } = await getNavigationService();
+    goBack();
     window.scroll(0, 0);
+  };
+}
+
+export function Thunk_editHistoryRecord(historyRecord: IHistoryRecord): IThunk {
+  return async (dispatch) => {
+    dispatch({ type: "EditHistoryRecord", historyRecord });
+    const { navigateTo } = await getNavigationService();
+    navigateTo("progress", { id: historyRecord.id });
+  };
+}
+
+export function Thunk_finishProgramDay(): IThunk {
+  return async (dispatch, getState) => {
+    const state = getState();
+    const progress = Progress_getProgress(state);
+    const isCurrent = progress ? Progress_isCurrent(progress) : false;
+    dispatch({ type: "FinishProgramDayAction" });
+    const { navigateTo, goBack } = await getNavigationService();
+    if (isCurrent) {
+      navigateTo("finishDay", undefined, true);
+    } else {
+      goBack();
+    }
+  };
+}
+
+export function Thunk_deleteProgress(): IThunk {
+  return async (dispatch) => {
+    dispatch({ type: "DeleteProgress" });
+    const { navigateTo } = await getNavigationService();
+    navigateTo("main", undefined, true);
   };
 }
 

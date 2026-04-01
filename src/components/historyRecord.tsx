@@ -21,7 +21,7 @@ import { Markdown } from "./markdown";
 import { StringUtils_pluralize } from "../utils/string";
 import { n } from "../utils/math";
 import { IEvaluatedProgramDay } from "../models/program";
-import { Thunk_startProgramDay } from "../ducks/thunks";
+import { Thunk_startProgramDay, Thunk_editHistoryRecord } from "../ducks/thunks";
 
 interface IProps {
   historyRecord: IHistoryRecord;
@@ -197,6 +197,6 @@ function HistoryRecordProperty(props: IHistoryRecordPropertyProps): JSX.Element 
 
 function editHistoryRecord(historyRecord: IHistoryRecord, dispatch: IDispatch, isNext: boolean): void {
   if (!isNext) {
-    dispatch({ type: "EditHistoryRecord", historyRecord });
+    dispatch(Thunk_editHistoryRecord(historyRecord));
   }
 }

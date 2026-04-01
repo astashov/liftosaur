@@ -42,10 +42,21 @@ input.no-arrows[type="number"] {
   -moz-appearance: textfield;
 }
 
+html {
+  height: 100%;
+}
+
+body,
+#app {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
 body {
   background: var(--color-white);
   color: var(--color-blackv2);
-  height: auto;
 }
 
 .safe-area-inset-top {

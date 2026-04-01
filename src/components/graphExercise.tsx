@@ -13,6 +13,7 @@ import { Reps_volume } from "../models/set";
 import { ObjectUtils_keys } from "../utils/object";
 import { History_getMaxWeightSetFromEntry, History_getMax1RMSetFromEntry } from "../models/history";
 import { Tailwind_semantic, Tailwind_colors } from "../utils/tailwindConfig";
+import { Thunk_editHistoryRecord } from "../ducks/thunks";
 
 interface IGraphProps {
   history: IHistoryRecord[];
@@ -344,7 +345,7 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
 
     (window as any)[graphGoToHistoryRecordFnName] = (): void => {
       if (props.dispatch && selectedHistoryRecordRef.current != null) {
-        props.dispatch({ type: "EditHistoryRecord", historyRecord: selectedHistoryRecordRef.current });
+        props.dispatch(Thunk_editHistoryRecord(selectedHistoryRecordRef.current));
       }
     };
     return () => {

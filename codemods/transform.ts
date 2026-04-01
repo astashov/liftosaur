@@ -1,15 +1,15 @@
 import { Project, SyntaxKind, Node, SourceFile, FunctionDeclaration } from "ts-morph";
 
-interface MemberMapping {
+interface IMemberMapping {
   oldName: string;
   newName: string;
   kind: "function" | "variable" | "type" | "interface" | "enum";
 }
 
-interface Target {
+interface ITarget {
   containerName: string;
   filePath: string;
-  members: MemberMapping[];
+  members: IMemberMapping[];
   kind: "namespace" | "class";
 }
 
@@ -53,44 +53,69 @@ function main(): void {
   console.log("Done!");
 }
 
-function findTargets(project: Project, typeFilter: string, targetFilter?: string, fileFilter?: string): Target[] {
-  const targets: Target[] = [];
+function findTargets(project: Project, typeFilter: string, targetFilter?: string, fileFilter?: string): ITarget[] {
+  const targets: ITarget[] = [];
 
   for (const sf of project.getSourceFiles()) {
     const fp = sf.getFilePath();
-    if (fp.includes("node_modules") || fp.endsWith(".d.ts") || fp.includes("/worktrees/") || fp.includes("/lambda/scripts/")) continue;
-    if (fileFilter && !fp.includes(fileFilter)) continue;
+    if (
+      fp.includes("node_modules") ||
+      fp.endsWith(".d.ts") ||
+      fp.includes("/worktrees/") ||
+      fp.includes("/lambda/scripts/")
+    ) {
+      continue;
+    }
+    if (fileFilter && !fp.includes(fileFilter)) {
+      continue;
+    }
 
     if (typeFilter === "all" || typeFilter === "namespace") {
       for (const ns of sf.getModules()) {
-        if (!ns.isExported()) continue;
+        if (!ns.isExported()) {
+          continue;
+        }
         const name = ns.getName();
-        if (targetFilter && name !== targetFilter) continue;
+        if (targetFilter && name !== targetFilter) {
+          continue;
+        }
 
-        const members: MemberMapping[] = [];
+        const members: IMemberMapping[] = [];
 
         for (const fn of ns.getFunctions()) {
-          if (!fn.isExported()) continue;
+          if (!fn.isExported()) {
+            continue;
+          }
           const fnName = fn.getName();
-          if (!fnName) continue;
+          if (!fnName) {
+            continue;
+          }
           members.push({ oldName: fnName, newName: `${name}_${fnName}`, kind: "function" });
         }
         for (const vs of ns.getVariableStatements()) {
-          if (!vs.isExported()) continue;
+          if (!vs.isExported()) {
+            continue;
+          }
           for (const vd of vs.getDeclarations()) {
             members.push({ oldName: vd.getName(), newName: `${name}_${vd.getName()}`, kind: "variable" });
           }
         }
         for (const ta of ns.getTypeAliases()) {
-          if (!ta.isExported()) continue;
+          if (!ta.isExported()) {
+            continue;
+          }
           members.push({ oldName: ta.getName(), newName: `${name}_${ta.getName()}`, kind: "type" });
         }
         for (const iface of ns.getInterfaces()) {
-          if (!iface.isExported()) continue;
+          if (!iface.isExported()) {
+            continue;
+          }
           members.push({ oldName: iface.getName(), newName: `${name}_${iface.getName()}`, kind: "interface" });
         }
         for (const en of ns.getEnums()) {
-          if (!en.isExported()) continue;
+          if (!en.isExported()) {
+            continue;
+          }
           members.push({ oldName: en.getName(), newName: `${name}_${en.getName()}`, kind: "enum" });
         }
 
@@ -102,25 +127,45 @@ function findTargets(project: Project, typeFilter: string, targetFilter?: string
 
     if (typeFilter === "all" || typeFilter === "class") {
       for (const cls of sf.getClasses()) {
-        if (!cls.isExported()) continue;
+        if (!cls.isExported()) {
+          continue;
+        }
         const allMembers = cls.getMembers();
-        if (allMembers.length === 0) continue;
+        if (allMembers.length === 0) {
+          continue;
+        }
 
         const allStatic = allMembers.every((m) => {
-          if (Node.isConstructorDeclaration(m)) return false;
-          if (Node.isMethodDeclaration(m)) return m.isStatic();
-          if (Node.isPropertyDeclaration(m)) return m.isStatic();
-          if (Node.isGetAccessorDeclaration(m)) return m.isStatic();
-          if (Node.isSetAccessorDeclaration(m)) return m.isStatic();
+          if (Node.isConstructorDeclaration(m)) {
+            return false;
+          }
+          if (Node.isMethodDeclaration(m)) {
+            return m.isStatic();
+          }
+          if (Node.isPropertyDeclaration(m)) {
+            return m.isStatic();
+          }
+          if (Node.isGetAccessorDeclaration(m)) {
+            return m.isStatic();
+          }
+          if (Node.isSetAccessorDeclaration(m)) {
+            return m.isStatic();
+          }
           return false;
         });
-        if (!allStatic) continue;
+        if (!allStatic) {
+          continue;
+        }
 
         const name = cls.getName();
-        if (!name) continue;
-        if (targetFilter && name !== targetFilter) continue;
+        if (!name) {
+          continue;
+        }
+        if (targetFilter && name !== targetFilter) {
+          continue;
+        }
 
-        const memberMappings: MemberMapping[] = [];
+        const memberMappings: IMemberMapping[] = [];
         for (const method of cls.getMethods()) {
           memberMappings.push({ oldName: method.getName(), newName: `${name}_${method.getName()}`, kind: "function" });
         }
@@ -144,7 +189,7 @@ function findTargets(project: Project, typeFilter: string, targetFilter?: string
 
 function getMemberDeclaration(
   container: ReturnType<SourceFile["getModuleOrThrow"]> | ReturnType<SourceFile["getClassOrThrow"]>,
-  member: MemberMapping,
+  member: IMemberMapping,
   kind: "namespace" | "class"
 ): Node | undefined {
   if (kind === "namespace") {
@@ -157,7 +202,9 @@ function getMemberDeclaration(
       case "variable": {
         for (const vs of ns.getVariableStatements()) {
           for (const vd of vs.getDeclarations()) {
-            if (vd.getName() === member.oldName) return vd;
+            if (vd.getName() === member.oldName) {
+              return vd;
+            }
           }
         }
         return undefined;
@@ -181,7 +228,7 @@ function getMemberDeclaration(
   return undefined;
 }
 
-function processTarget(project: Project, target: Target): void {
+function processTarget(project: Project, target: ITarget): void {
   console.log(`Processing ${target.kind}: ${target.containerName} (${target.filePath})`);
 
   const sourceFile = project.getSourceFileOrThrow(target.filePath);
@@ -215,7 +262,7 @@ function processTarget(project: Project, target: Target): void {
         (decl as FunctionDeclaration).getNameNode()!.rename(member.newName);
       }
     } else {
-      const nameNode = (decl as any).getNameNode?.();
+      const nameNode = (decl as unknown as { getNameNode?: () => Node }).getNameNode?.();
       if (nameNode) {
         nameNode.rename(member.newName);
       } else {
@@ -236,7 +283,14 @@ function processTarget(project: Project, target: Target): void {
 
   for (const sf of project.getSourceFiles()) {
     const fp = sf.getFilePath();
-    if (fp.includes("node_modules") || fp.endsWith(".d.ts") || fp.includes("/worktrees/") || fp.includes("/lambda/scripts/")) continue;
+    if (
+      fp.includes("node_modules") ||
+      fp.endsWith(".d.ts") ||
+      fp.includes("/worktrees/") ||
+      fp.includes("/lambda/scripts/")
+    ) {
+      continue;
+    }
 
     const replacements: { node: Node; newText: string }[] = [];
     const fileUsages = new Set<string>();
@@ -283,15 +337,28 @@ function processTarget(project: Project, target: Target): void {
   // These may use the container as a value (e.g., sandbox.stub(Foo, "bar")) and need manual fixing.
   for (const sf of project.getSourceFiles()) {
     const fp = sf.getFilePath();
-    if (fp.includes("node_modules") || fp.endsWith(".d.ts") || fp.includes("/worktrees/") || fp.includes("/lambda/scripts/")) continue;
-    if (fp === target.filePath) continue;
-    if (usagesByFile.has(fp)) continue;
+    if (
+      fp.includes("node_modules") ||
+      fp.endsWith(".d.ts") ||
+      fp.includes("/worktrees/") ||
+      fp.includes("/lambda/scripts/")
+    ) {
+      continue;
+    }
+    if (fp === target.filePath) {
+      continue;
+    }
+    if (usagesByFile.has(fp)) {
+      continue;
+    }
 
-    const hasImport = sf.getImportDeclarations().some((imp) =>
-      imp.getNamedImports().some((ni) => ni.getName() === target.containerName)
-    );
+    const hasImport = sf
+      .getImportDeclarations()
+      .some((imp) => imp.getNamedImports().some((ni) => ni.getName() === target.containerName));
     if (hasImport) {
-      console.warn(`  WARNING: ${fp} imports ${target.containerName} but no property accesses were found — needs manual fix`);
+      console.warn(
+        `  WARNING: ${fp} imports ${target.containerName} but no property accesses were found — needs manual fix`
+      );
     }
   }
 
@@ -329,7 +396,7 @@ function unwrapNamespace(sourceFile: SourceFile, namespaceName: string): void {
   }
 
   for (const vs of ns.getVariableStatements()) {
-    let text = vs.getFullText().replace(/^\n+/, "");
+    const text = vs.getFullText().replace(/^\n+/, "");
     if (!vs.isExported()) {
       memberTexts.push(text.replace(/^(\s*)/, ""));
     } else {
@@ -338,7 +405,7 @@ function unwrapNamespace(sourceFile: SourceFile, namespaceName: string): void {
   }
 
   for (const ta of ns.getTypeAliases()) {
-    let text = ta.getFullText().replace(/^\n+/, "");
+    const text = ta.getFullText().replace(/^\n+/, "");
     if (!ta.isExported()) {
       memberTexts.push(text.replace(/^(\s*)/, ""));
     } else {
@@ -347,7 +414,7 @@ function unwrapNamespace(sourceFile: SourceFile, namespaceName: string): void {
   }
 
   for (const iface of ns.getInterfaces()) {
-    let text = iface.getFullText().replace(/^\n+/, "");
+    const text = iface.getFullText().replace(/^\n+/, "");
     if (!iface.isExported()) {
       memberTexts.push(text.replace(/^(\s*)/, ""));
     } else {
@@ -356,7 +423,7 @@ function unwrapNamespace(sourceFile: SourceFile, namespaceName: string): void {
   }
 
   for (const en of ns.getEnums()) {
-    let text = en.getFullText().replace(/^\n+/, "");
+    const text = en.getFullText().replace(/^\n+/, "");
     if (!en.isExported()) {
       memberTexts.push(text.replace(/^(\s*)/, ""));
     } else {
@@ -385,9 +452,12 @@ function unwrapStaticClass(sourceFile: SourceFile, className: string): void {
   for (const method of cls.getMethods()) {
     let text = method.getFullText().replace(/^\n+/, "");
     // Remove access modifiers and static keyword, add export function
-    text = text.replace(/^(\s*)(public\s+|private\s+|protected\s+)?(static\s+)?(async\s+)?/, (_, _ws, _access, _static, asyncKw) => {
-      return "export " + (asyncKw || "") + "function ";
-    });
+    text = text.replace(
+      /^(\s*)(public\s+|private\s+|protected\s+)?(static\s+)?(async\s+)?/,
+      (_, _ws, _access, _static, asyncKw) => {
+        return "export " + (asyncKw || "") + "function ";
+      }
+    );
     memberTexts.push(text);
   }
 
@@ -415,7 +485,7 @@ function unwrapStaticClass(sourceFile: SourceFile, className: string): void {
   cls.replaceWithText(unindented);
 }
 
-function updateImports(project: Project, target: Target, usagesByFile: Map<string, Set<string>>): void {
+function updateImports(project: Project, target: ITarget, usagesByFile: Map<string, Set<string>>): void {
   for (const [filePath, usedNames] of usagesByFile) {
     const sf = project.getSourceFileOrThrow(filePath);
 
@@ -429,10 +499,14 @@ function updateImports(project: Project, target: Target, usagesByFile: Map<strin
       const typeImportDecl = sf.getImportDeclarations().find((imp) => {
         return imp.getNamedImports().some((ni) => ni.getName() === target.containerName);
       });
-      if (!typeImportDecl) continue;
+      if (!typeImportDecl) {
+        continue;
+      }
     }
 
-    if (!importDecl) continue;
+    if (!importDecl) {
+      continue;
+    }
 
     // Check if this is a type-only import
     const isTypeOnly = importDecl.isTypeOnly();
@@ -458,7 +532,11 @@ function updateImports(project: Project, target: Target, usagesByFile: Map<strin
         return { name };
       });
 
-      if (importDecl.getNamedImports().length === 0 && !importDecl.getDefaultImport() && !importDecl.getNamespaceImport()) {
+      if (
+        importDecl.getNamedImports().length === 0 &&
+        !importDecl.getDefaultImport() &&
+        !importDecl.getNamespaceImport()
+      ) {
         // Import is now empty, replace with new import
         importDecl.addNamedImports(newImports);
       } else {

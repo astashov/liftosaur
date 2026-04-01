@@ -1,6 +1,9 @@
 import { RefObject, useEffect, useRef, useState } from "react";
 
-export function useProgressiveList<T>(collection: T[], batchSize: number = 30): {
+export function useProgressiveList<T>(
+  collection: T[],
+  batchSize: number = 30
+): {
   visibleItems: T[];
   sentinelRef: RefObject<HTMLDivElement | null>;
   hasMore: boolean;
@@ -14,7 +17,9 @@ export function useProgressiveList<T>(collection: T[], batchSize: number = 30): 
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
-    if (!sentinel) return;
+    if (!sentinel) {
+      return;
+    }
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting) {

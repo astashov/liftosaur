@@ -125,7 +125,10 @@ export function ScreenGraphs(props: IProps): JSX.Element {
           {props.settings.graphs.graphs.map((graph) => {
             if (graph.type === "exercise") {
               return (
-                <div key={`${graph.id}_${isSameXAxis}_${isWithBodyweight}_${isWithOneRm}_${isWithProgramLines}`} className="mb-2">
+                <div
+                  key={`${graph.id}_${isSameXAxis}_${isWithBodyweight}_${isWithOneRm}_${isWithProgramLines}`}
+                  className="mb-2"
+                >
                   <GraphExercise
                     initialType={props.settings.graphsSettings.defaultType}
                     isSameXAxis={isSameXAxis}

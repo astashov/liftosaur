@@ -9,7 +9,7 @@ let count = 0;
 for (const [key, { content, video }] of Object.entries(exerciseDescriptions)) {
   const md = `---\nvideo: "${video}"\n---\n\n${content}\n`;
   fs.writeFileSync(path.join(outputDir, `${key}.md`), md);
-  count++;
+  count += 1;
 }
 
 console.log(`Extracted ${count} exercises to ${outputDir}`);

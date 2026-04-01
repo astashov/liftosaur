@@ -1,7 +1,17 @@
-import { createContext } from "react";
+import { createContext, useContext } from "react";
 import { Service } from "../api/service";
 
-export const AppContext = createContext<{
-  service?: Service;
+export interface IAppContext {
+  service: Service;
   isApp?: boolean;
-}>({ service: undefined });
+}
+
+export const AppContext = createContext<Partial<IAppContext>>({});
+
+export function useAppContext(): IAppContext {
+  const ctx = useContext(AppContext);
+  if (!ctx.service) {
+    throw new Error("AppContext.service not provided");
+  }
+  return ctx as IAppContext;
+}

@@ -10,14 +10,13 @@ import {
   History_workoutTime,
 } from "../models/history";
 import { Button } from "./button";
-import { ScreenActions_setScreen } from "../actions/screenActions";
 import { Weight_display } from "../models/weight";
 import { Confetti } from "./confetti";
 import { IHistoryRecord, IScreenMuscle, ISettings } from "../types";
 import { NavbarView } from "./navbar";
 import { Surface } from "./surface";
 import { INavCommon } from "../models/state";
-import { Thunk_maybeRequestReview, Thunk_maybeRequestSignup } from "../ducks/thunks";
+import { Thunk_maybeRequestReview, Thunk_maybeRequestSignup, Thunk_pushScreen } from "../ducks/thunks";
 import { GroupHeader } from "./groupHeader";
 import { HistoryEntryView } from "./historyEntry";
 import { Collector } from "../utils/collector";
@@ -215,7 +214,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
               className="w-36"
               data-cy="finish-day-continue"
               onClick={() => {
-                ScreenActions_setScreen(props.dispatch, "main");
+                props.dispatch(Thunk_pushScreen("main", undefined, true));
                 props.dispatch(Thunk_maybeRequestReview());
                 props.dispatch(Thunk_maybeRequestSignup());
               }}

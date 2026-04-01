@@ -34,7 +34,17 @@ export function selectInputOnFocus(e: React.FocusEvent<HTMLInputElement>): boole
 }
 
 export const Input2 = forwardRef((props: IProps, ref: Ref<HTMLInputElement>): JSX.Element => {
-  const { label, changeHandler, errorMessage, patternMessage, requiredMessage, changeType: changeTypeProp, identifier: identifierProp, className: otherClassName, ...otherProps } = props;
+  const {
+    label,
+    changeHandler,
+    errorMessage,
+    patternMessage,
+    requiredMessage,
+    changeType: changeTypeProp,
+    identifier: identifierProp,
+    className: otherClassName,
+    ...otherProps
+  } = props;
   const changeType = changeTypeProp || "onblur";
   const identifier = identifierProp;
   const [validationErrors, setValidationErrors] = useState<Set<IValidationError>>(new Set());

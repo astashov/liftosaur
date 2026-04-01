@@ -212,7 +212,10 @@ function Tab(props: ITabProps): JSX.Element {
         }
         const set = exercise.evaluatedSetVariations[first.setVariation - 1].sets[first.set - 1];
         return (
-          <div key={key} className="flex items-center gap-4 p-2 mb-4 border rounded-lg bg-background-cardpurple border-border-cardpurple">
+          <div
+            key={key}
+            className="flex items-center gap-4 p-2 mb-4 border rounded-lg bg-background-cardpurple border-border-cardpurple"
+          >
             <div className="text-sm">
               <GroupLabel
                 group={group}

@@ -47,32 +47,37 @@ export function SwipeableRow(props: ISwipeableRowProps): JSX.Element {
     isSwiping.current = false;
   };
 
-  const handlePointerMove = useCallback((event: TouchEvent | PointerEvent): void => {
-    if (isSwiping.current && event.cancelable) {
-      event.preventDefault();
-    }
-    if (!isDragging.current) {
-      return;
-    }
-    const clientX = "touches" in event ? event.touches[0].clientX : event.clientX;
-    const clientY = "touches" in event ? event.touches[0].clientY : event.clientY;
-    const deltaX = clientX - startX.current - (isOpen.current ? width : 0);
-    const deltaY = Math.abs(clientY - startY.current);
+  const handlePointerMove = useCallback(
+    (event: TouchEvent | PointerEvent): void => {
+      if (isSwiping.current && event.cancelable) {
+        event.preventDefault();
+      }
+      if (!isDragging.current) {
+        return;
+      }
+      const clientX = "touches" in event ? event.touches[0].clientX : event.clientX;
+      const clientY = "touches" in event ? event.touches[0].clientY : event.clientY;
+      const deltaX = clientX - startX.current - (isOpen.current ? width : 0);
+      const deltaY = Math.abs(clientY - startY.current);
 
-    if (deltaY > props.scrollThreshold && !isSwiping.current) {
-      isScrolling.current = true;
-    }
+      if (deltaY > props.scrollThreshold && !isSwiping.current) {
+        isScrolling.current = true;
+      }
 
-    if (deltaX < -props.initiateTreshold && !isScrolling.current) {
-      isSwiping.current = true;
-      setTranslateX(MathUtils_clamp(deltaX, -width, 0));
-      return;
-    }
-  }, [width, props.scrollThreshold, props.initiateTreshold]);
+      if (deltaX < -props.initiateTreshold && !isScrolling.current) {
+        isSwiping.current = true;
+        setTranslateX(MathUtils_clamp(deltaX, -width, 0));
+        return;
+      }
+    },
+    [width, props.scrollThreshold, props.initiateTreshold]
+  );
 
   useEffect(() => {
     const el = moveRef.current;
-    if (!el) return;
+    if (!el) {
+      return;
+    }
     el.addEventListener("touchmove", handlePointerMove, { passive: false });
     el.addEventListener("pointermove", handlePointerMove, { passive: false });
     return () => {

@@ -2,7 +2,7 @@ import { JSX, useEffect, useRef, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, IProgram, ISettings, IStats, ISubscription } from "../types";
 import { IState, updateProgress, updateState } from "../models/state";
-import { Thunk_postevent, Thunk_pushScreen } from "../ducks/thunks";
+import { Thunk_postevent, Thunk_pushScreen, Thunk_finishProgramDay } from "../ducks/thunks";
 import { IconMuscles2 } from "./icons/iconMuscles2";
 import {
   IEvaluatedProgram,
@@ -295,7 +295,7 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
                   )
                 ) {
                   SendMessage_toIosAndAndroid({ type: "pauseWorkout" });
-                  props.dispatch({ type: "FinishProgramDayAction" });
+                  props.dispatch(Thunk_finishProgramDay());
                   if (Progress_isCurrent(props.progress)) {
                     props.dispatch(Thunk_postevent("finish-workout", { workout: JSON.stringify(props.progress) }));
                     const healthName = SendMessage_isIos() ? "Apple Health" : "Google Health";

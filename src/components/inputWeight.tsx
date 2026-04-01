@@ -93,7 +93,11 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
               {(["kg", "lb", "%"] as const)
                 .filter((u) => props.units == null || props.units.indexOf(u) !== -1)
                 .map((u) => {
-                  return <option key={u} value={u}>{u}</option>;
+                  return (
+                    <option key={u} value={u}>
+                      {u}
+                    </option>
+                  );
                 })}
             </select>
           </div>

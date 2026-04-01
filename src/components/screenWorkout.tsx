@@ -48,7 +48,7 @@ import {
 } from "../utils/sendMessage";
 import { BottomSheetMobileShareOptions } from "./bottomSheetMobileShareOptions";
 import { BottomSheetWebappShareOptions } from "./bottomSheetWebappShareOptions";
-import { Thunk_updateLiveActivity } from "../ducks/thunks";
+import { Thunk_updateLiveActivity, Thunk_deleteProgress } from "../ducks/thunks";
 import { BottomSheetExercisePicker } from "./exercisePicker/bottomSheetExercisePicker";
 import { ILensDispatch } from "../utils/useLensReducer";
 import { Settings_toggleStarredExercise, Settings_changePickerSettings } from "../models/settings";
@@ -177,7 +177,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
                       `Are you sure you want to delete this ${Progress_isCurrent(props.progress) ? "ONGOING" : "PAST"} workout?`
                     )
                   ) {
-                    props.dispatch({ type: "DeleteProgress" });
+                    props.dispatch(Thunk_deleteProgress());
                   }
                 }}
               >

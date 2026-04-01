@@ -30,7 +30,9 @@ interface IExerciseItemProps {
   isMultiselect?: boolean;
 }
 
-export const ExercisePickerExerciseItem = memo(function ExercisePickerExerciseItem(props: IExerciseItemProps): JSX.Element {
+export const ExercisePickerExerciseItem = memo(function ExercisePickerExerciseItem(
+  props: IExerciseItemProps
+): JSX.Element {
   const { exercise: e } = props;
   const exerciseType = { id: e.id, equipment: e.equipment || e.defaultEquipment };
   const key = Exercise_toKey(e);
