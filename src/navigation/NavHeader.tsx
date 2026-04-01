@@ -1,5 +1,5 @@
 import { JSX, ReactNode } from "react";
-import type { NativeStackHeaderProps } from "@react-navigation/native-stack";
+import type { StackHeaderProps } from "@react-navigation/stack";
 import { NavbarView } from "../components/navbar";
 import { useAppState } from "./StateContext";
 import { buildNavCommon } from "./utils";
@@ -16,13 +16,13 @@ export interface INavHeaderOptions {
   navHidden?: boolean;
 }
 
-export function NavHeader(props: NativeStackHeaderProps): JSX.Element | null {
+export function NavHeader(props: StackHeaderProps): JSX.Element | null {
   const options = props.options as INavHeaderOptions;
+  const { state, dispatch } = useAppState();
+  const navCommon = buildNavCommon(state);
   if (options.navHidden) {
     return null;
   }
-  const { state, dispatch } = useAppState();
-  const navCommon = buildNavCommon(state);
   return (
     <NavbarView
       isStatic

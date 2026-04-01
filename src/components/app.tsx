@@ -1,7 +1,7 @@
 import { JSX, Fragment, useEffect, useRef, useCallback } from "react";
 import { reducerWrapper, defaultOnActions, IAction } from "../ducks/reducer";
 import { Program_getProgram } from "../models/program";
-import { IScreen, Screen_currentName, Screen_tab } from "../models/screen";
+import { IScreen, Screen_currentName } from "../models/screen";
 import { useThunkReducer } from "../utils/useThunkReducer";
 import {
   Thunk_fetchStorage,

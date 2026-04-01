@@ -2,6 +2,7 @@ import { JSX } from "react";
 import { useRoute } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { buildNavCommon } from "../utils";
+import { NavScreenContent } from "../NavScreenContent";
 import { ChooseProgramView } from "../../components/chooseProgram";
 import { ScreenEditProgram as ScreenEditProgramComponent } from "../../components/screenEditProgram";
 import { ScreenEditProgramExercise as ScreenEditProgramExerciseComponent } from "../../components/editProgramExercise/screenEditProgramExercise";
@@ -29,16 +30,18 @@ export function NavScreenPrograms(): JSX.Element {
   const { state, dispatch } = useAppState();
   const navCommon = buildNavCommon(state);
   return (
-    <ChooseProgramView
-      navCommon={navCommon}
-      settings={state.storage.settings}
-      dispatch={dispatch}
-      progress={Progress_getProgress(state)}
-      programs={state.programs || []}
-      programsIndex={state.programsIndex || []}
-      customPrograms={state.storage.programs || []}
-      editProgramId={Progress_getProgress(state)?.programId}
-    />
+    <NavScreenContent>
+      <ChooseProgramView
+        navCommon={navCommon}
+        settings={state.storage.settings}
+        dispatch={dispatch}
+        progress={Progress_getProgress(state)}
+        programs={state.programs || []}
+        programsIndex={state.programsIndex || []}
+        customPrograms={state.storage.programs || []}
+        editProgramId={Progress_getProgress(state)?.programId}
+      />
+    </NavScreenContent>
   );
 }
 
@@ -53,22 +56,24 @@ export function NavScreenEditProgram(): JSX.Element {
     plannerState ? plannerState.current.program.id : Progress_getProgress(state)?.programId
   );
   return (
-    <FallbackScreen state={{ plannerState, editProgram }} dispatch={dispatch}>
-      {({ plannerState: plannerState2, editProgram: editProgram2 }) => (
-        <ScreenEditProgramComponent
-          client={service.client}
-          helps={state.storage.helps}
-          navCommon={navCommon}
-          subscription={state.storage.subscription}
-          settings={state.storage.settings}
-          dispatch={dispatch}
-          originalProgram={editProgram2}
-          plannerState={plannerState2}
-          revisions={(state.revisions || {})[editProgram2.id] || []}
-          isLoggedIn={state.user != null}
-        />
-      )}
-    </FallbackScreen>
+    <NavScreenContent>
+      <FallbackScreen state={{ plannerState, editProgram }} dispatch={dispatch}>
+        {({ plannerState: plannerState2, editProgram: editProgram2 }) => (
+          <ScreenEditProgramComponent
+            client={service.client}
+            helps={state.storage.helps}
+            navCommon={navCommon}
+            subscription={state.storage.subscription}
+            settings={state.storage.settings}
+            dispatch={dispatch}
+            originalProgram={editProgram2}
+            plannerState={plannerState2}
+            revisions={(state.revisions || {})[editProgram2.id] || []}
+            isLoggedIn={state.user != null}
+          />
+        )}
+      </FallbackScreen>
+    </NavScreenContent>
   );
 }
 
@@ -80,18 +85,20 @@ export function NavScreenEditProgramExercise(): JSX.Element {
   const dayData = route.params?.dayData;
   const plannerState = route.params?.plannerState;
   return (
-    <FallbackScreen state={{ plannerState, exerciseKey, dayData }} dispatch={dispatch}>
-      {({ plannerState: plannerState2, exerciseKey: exerciseKey2, dayData: dayData2 }) => (
-        <ScreenEditProgramExerciseComponent
-          plannerState={plannerState2}
-          exerciseKey={exerciseKey2}
-          dayData={dayData2}
-          dispatch={dispatch}
-          settings={state.storage.settings}
-          navCommon={navCommon}
-        />
-      )}
-    </FallbackScreen>
+    <NavScreenContent>
+      <FallbackScreen state={{ plannerState, exerciseKey, dayData }} dispatch={dispatch}>
+        {({ plannerState: plannerState2, exerciseKey: exerciseKey2, dayData: dayData2 }) => (
+          <ScreenEditProgramExerciseComponent
+            plannerState={plannerState2}
+            exerciseKey={exerciseKey2}
+            dayData={dayData2}
+            dispatch={dispatch}
+            settings={state.storage.settings}
+            navCommon={navCommon}
+          />
+        )}
+      </FallbackScreen>
+    </NavScreenContent>
   );
 }
 
@@ -112,22 +119,26 @@ export function NavScreenMuscles(): JSX.Element {
   program = Program_fullProgram(program, state.storage.settings);
   if (type.type === "program") {
     return (
-      <ScreenMusclesProgram
-        navCommon={navCommon}
-        dispatch={dispatch}
-        program={program}
-        settings={state.storage.settings}
-      />
+      <NavScreenContent>
+        <ScreenMusclesProgram
+          navCommon={navCommon}
+          dispatch={dispatch}
+          program={program}
+          settings={state.storage.settings}
+        />
+      </NavScreenContent>
     );
   }
   return (
-    <ScreenMusclesDay
-      navCommon={navCommon}
-      dispatch={dispatch}
-      program={program}
-      day={type.day ?? 1}
-      settings={state.storage.settings}
-    />
+    <NavScreenContent>
+      <ScreenMusclesDay
+        navCommon={navCommon}
+        dispatch={dispatch}
+        program={program}
+        day={type.day ?? 1}
+        settings={state.storage.settings}
+      />
+    </NavScreenContent>
   );
 }
 
@@ -140,7 +151,9 @@ export function NavScreenOnerms(): JSX.Element {
     throw new Error("Opened 'onerms' screen, but 'currentProgram' is null");
   }
   return (
-    <Screen1RM navCommon={navCommon} dispatch={dispatch} program={currentProgram} settings={state.storage.settings} />
+    <NavScreenContent>
+      <Screen1RM navCommon={navCommon} dispatch={dispatch} program={currentProgram} settings={state.storage.settings} />
+    </NavScreenContent>
   );
 }
 
@@ -148,12 +161,14 @@ export function NavScreenSetupEquipment(): JSX.Element {
   const { state, dispatch } = useAppState();
   const navCommon = buildNavCommon(state);
   return (
-    <ScreenSetupEquipmentComponent
-      stats={state.storage.stats}
-      navCommon={navCommon}
-      dispatch={dispatch}
-      settings={state.storage.settings}
-    />
+    <NavScreenContent>
+      <ScreenSetupEquipmentComponent
+        stats={state.storage.stats}
+        navCommon={navCommon}
+        dispatch={dispatch}
+        settings={state.storage.settings}
+      />
+    </NavScreenContent>
   );
 }
 
@@ -161,18 +176,24 @@ export function NavScreenSetupPlates(): JSX.Element {
   const { state, dispatch } = useAppState();
   const navCommon = buildNavCommon(state);
   return (
-    <ScreenSetupPlatesComponent
-      stats={state.storage.stats}
-      navCommon={navCommon}
-      dispatch={dispatch}
-      settings={state.storage.settings}
-    />
+    <NavScreenContent>
+      <ScreenSetupPlatesComponent
+        stats={state.storage.stats}
+        navCommon={navCommon}
+        dispatch={dispatch}
+        settings={state.storage.settings}
+      />
+    </NavScreenContent>
   );
 }
 
 export function NavScreenProgramSelect(): JSX.Element {
   const { state, dispatch } = useAppState();
-  return <ScreenProgramSelectComponent dispatch={dispatch} settings={state.storage.settings} />;
+  return (
+    <NavScreenContent>
+      <ScreenProgramSelectComponent dispatch={dispatch} settings={state.storage.settings} />
+    </NavScreenContent>
+  );
 }
 
 export function NavScreenProgramPreview(): JSX.Element {
@@ -180,23 +201,29 @@ export function NavScreenProgramPreview(): JSX.Element {
   const navCommon = buildNavCommon(state);
   if (state.previewProgram?.id == null) {
     setTimeout(() => dispatch(Thunk_pullScreen()), 0);
-    return <></>;
+    return <NavScreenContent><></></NavScreenContent>;
   }
   return (
-    <ScreenProgramPreviewComponent
-      navCommon={navCommon}
-      dispatch={dispatch}
-      settings={state.storage.settings}
-      selectedProgramId={state.previewProgram.id}
-      programs={state.previewProgram.showCustomPrograms ? state.storage.programs : state.programs}
-      subscription={state.storage.subscription}
-    />
+    <NavScreenContent>
+      <ScreenProgramPreviewComponent
+        navCommon={navCommon}
+        dispatch={dispatch}
+        settings={state.storage.settings}
+        selectedProgramId={state.previewProgram.id}
+        programs={state.previewProgram.showCustomPrograms ? state.storage.programs : state.programs}
+        subscription={state.storage.subscription}
+      />
+    </NavScreenContent>
   );
 }
 
 export function NavScreenUnits(): JSX.Element {
   const { state, dispatch } = useAppState();
-  return <ScreenUnitSelector settings={state.storage.settings} dispatch={dispatch} />;
+  return (
+    <NavScreenContent>
+      <ScreenUnitSelector settings={state.storage.settings} dispatch={dispatch} />
+    </NavScreenContent>
+  );
 }
 
 export function NavScreenFirst(): JSX.Element {
@@ -205,5 +232,9 @@ export function NavScreenFirst(): JSX.Element {
   const userId = state.user?.id;
   const userEmail = state.user?.email;
   const account = userId && userEmail ? Account_getFromStorage(userId, userEmail, state.storage) : undefined;
-  return <ScreenFirstComponent account={account} client={service.client} dispatch={dispatch} />;
+  return (
+    <NavScreenContent>
+      <ScreenFirstComponent account={account} client={service.client} dispatch={dispatch} />
+    </NavScreenContent>
+  );
 }

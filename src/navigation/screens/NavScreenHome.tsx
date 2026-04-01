@@ -1,6 +1,7 @@
 import { JSX } from "react";
 import { useAppState } from "../StateContext";
 import { buildNavCommon } from "../utils";
+import { NavScreenContent } from "../NavScreenContent";
 import { ProgramHistoryView } from "../../components/programHistory";
 import { ChooseProgramView } from "../../components/chooseProgram";
 import { Program_getProgram } from "../../models/program";
@@ -14,28 +15,32 @@ export function NavScreenMain(): JSX.Element {
 
   if (currentProgram == null) {
     return (
-      <ChooseProgramView
-        navCommon={navCommon}
-        settings={state.storage.settings}
-        dispatch={dispatch}
-        progress={Progress_getProgress(state)}
-        programs={state.programs || []}
-        programsIndex={state.programsIndex || []}
-        customPrograms={state.storage.programs || []}
-        editProgramId={Progress_getProgress(state)?.programId}
-      />
+      <NavScreenContent>
+        <ChooseProgramView
+          navCommon={navCommon}
+          settings={state.storage.settings}
+          dispatch={dispatch}
+          progress={Progress_getProgress(state)}
+          programs={state.programs || []}
+          programsIndex={state.programsIndex || []}
+          customPrograms={state.storage.programs || []}
+          editProgramId={Progress_getProgress(state)?.programId}
+        />
+      </NavScreenContent>
     );
   }
 
   return (
-    <ProgramHistoryView
-      progress={Progress_getProgress(state)}
-      navCommon={navCommon}
-      program={currentProgram}
-      settings={state.storage.settings}
-      history={state.storage.history}
-      subscription={state.storage.subscription}
-      dispatch={dispatch}
-    />
+    <NavScreenContent>
+      <ProgramHistoryView
+        progress={Progress_getProgress(state)}
+        navCommon={navCommon}
+        program={currentProgram}
+        settings={state.storage.settings}
+        history={state.storage.history}
+        subscription={state.storage.subscription}
+        dispatch={dispatch}
+      />
+    </NavScreenContent>
   );
 }

@@ -1,5 +1,5 @@
 import { JSX } from "react";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createStackNavigator, type StackHeaderProps } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import type {
   IHomeStackParamList,
@@ -45,17 +45,17 @@ import {
 import { Footer2Wrapper } from "./screens/NavScreenFooter2";
 import { NavHeader } from "./NavHeader";
 
-const HomeStack = createNativeStackNavigator<IHomeStackParamList>();
-const ProgramStack = createNativeStackNavigator<IProgramStackParamList>();
-const WorkoutStack = createNativeStackNavigator<IWorkoutStackParamList>();
-const GraphsStack = createNativeStackNavigator<IGraphsStackParamList>();
-const MeStack = createNativeStackNavigator<IMeStackParamList>();
+const HomeStack = createStackNavigator<IHomeStackParamList>();
+const ProgramStack = createStackNavigator<IProgramStackParamList>();
+const WorkoutStack = createStackNavigator<IWorkoutStackParamList>();
+const GraphsStack = createStackNavigator<IGraphsStackParamList>();
+const MeStack = createStackNavigator<IMeStackParamList>();
 const Tab = createBottomTabNavigator<IRootTabParamList>();
 
 const stackScreenOptions = {
   header: NavHeader,
-  animation: "none" as const,
-  contentStyle: { flex: 1, overflowY: "auto" as const, overscrollBehavior: "contain" as const },
+  animationEnabled: false,
+  cardStyle: { flex: 1, overflow: "hidden" as const },
 };
 
 function HomeStackScreen(): JSX.Element {
