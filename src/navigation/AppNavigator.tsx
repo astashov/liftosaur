@@ -43,6 +43,7 @@ import {
   NavScreenApiKeys,
 } from "./screens/NavScreenMe";
 import { Footer2Wrapper } from "./screens/NavScreenFooter2";
+import { NavHeader } from "./NavHeader";
 
 const HomeStack = createNativeStackNavigator<IHomeStackParamList>();
 const ProgramStack = createNativeStackNavigator<IProgramStackParamList>();
@@ -51,11 +52,15 @@ const GraphsStack = createNativeStackNavigator<IGraphsStackParamList>();
 const MeStack = createNativeStackNavigator<IMeStackParamList>();
 const Tab = createBottomTabNavigator<IRootTabParamList>();
 
-const screenOptions = { headerShown: false, animation: "none" as const };
+const stackScreenOptions = {
+  header: NavHeader,
+  animation: "none" as const,
+  contentStyle: { flex: 1, overflowY: "auto" as const, overscrollBehavior: "contain" as const },
+};
 
 function HomeStackScreen(): JSX.Element {
   return (
-    <HomeStack.Navigator screenOptions={screenOptions}>
+    <HomeStack.Navigator screenOptions={stackScreenOptions}>
       <HomeStack.Screen name="main" component={NavScreenMain} />
     </HomeStack.Navigator>
   );
@@ -63,7 +68,7 @@ function HomeStackScreen(): JSX.Element {
 
 function ProgramStackScreen(props: { initialScreen?: keyof IProgramStackParamList }): JSX.Element {
   return (
-    <ProgramStack.Navigator screenOptions={screenOptions} initialRouteName={props.initialScreen}>
+    <ProgramStack.Navigator screenOptions={stackScreenOptions} initialRouteName={props.initialScreen}>
       <ProgramStack.Screen name="programs" component={NavScreenPrograms} />
       <ProgramStack.Screen name="editProgram" component={NavScreenEditProgram} />
       <ProgramStack.Screen name="editProgramExercise" component={NavScreenEditProgramExercise} />
@@ -81,7 +86,7 @@ function ProgramStackScreen(props: { initialScreen?: keyof IProgramStackParamLis
 
 function WorkoutStackScreen(): JSX.Element {
   return (
-    <WorkoutStack.Navigator screenOptions={screenOptions}>
+    <WorkoutStack.Navigator screenOptions={stackScreenOptions}>
       <WorkoutStack.Screen name="progress" component={NavScreenProgress} />
       <WorkoutStack.Screen name="finishDay" component={NavScreenFinishDay} />
       <WorkoutStack.Screen name="subscription" component={NavScreenSubscription} />
@@ -91,7 +96,7 @@ function WorkoutStackScreen(): JSX.Element {
 
 function GraphsStackScreen(): JSX.Element {
   return (
-    <GraphsStack.Navigator screenOptions={screenOptions}>
+    <GraphsStack.Navigator screenOptions={stackScreenOptions}>
       <GraphsStack.Screen name="graphs" component={NavScreenGraphs} />
     </GraphsStack.Navigator>
   );
@@ -99,7 +104,7 @@ function GraphsStackScreen(): JSX.Element {
 
 function MeStackScreen(): JSX.Element {
   return (
-    <MeStack.Navigator screenOptions={screenOptions}>
+    <MeStack.Navigator screenOptions={stackScreenOptions}>
       <MeStack.Screen name="settings" component={NavScreenSettings} />
       <MeStack.Screen name="account" component={NavScreenAccount} />
       <MeStack.Screen name="timers" component={NavScreenTimers} />
@@ -131,7 +136,9 @@ function getInitialProgramScreen(
   initialScreen: IScreen | undefined,
   initialTab: keyof IRootTabParamList | undefined
 ): keyof IProgramStackParamList | undefined {
-  if (initialTab !== "programTab" || !initialScreen) return undefined;
+  if (initialTab !== "programTab" || !initialScreen) {
+    return undefined;
+  }
   return initialScreen as keyof IProgramStackParamList;
 }
 
@@ -146,9 +153,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
       tabBar={(tabProps) => <Footer2Wrapper {...tabProps} />}
     >
       <Tab.Screen name="homeTab" component={HomeStackScreen} />
-      <Tab.Screen name="programTab">
-        {() => <ProgramStackScreen initialScreen={initialProgramScreen} />}
-      </Tab.Screen>
+      <Tab.Screen name="programTab">{() => <ProgramStackScreen initialScreen={initialProgramScreen} />}</Tab.Screen>
       <Tab.Screen name="workoutTab" component={WorkoutStackScreen} />
       <Tab.Screen name="graphsTab" component={GraphsStackScreen} />
       <Tab.Screen name="meTab" component={MeStackScreen} />

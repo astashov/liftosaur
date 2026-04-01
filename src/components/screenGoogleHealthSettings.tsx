@@ -3,10 +3,8 @@ import { IDispatch } from "../ducks/types";
 import { lb } from "lens-shmens";
 import { MenuItemEditable } from "./menuItemEditable";
 import { ISettings } from "../types";
-import { Surface } from "./surface";
-import { Footer2View } from "./footer2";
-import { NavbarView } from "./navbar";
 import { INavCommon } from "../models/state";
+import { useNavOptions } from "../navigation/useNavOptions";
 
 interface IProps {
   dispatch: IDispatch;
@@ -15,11 +13,10 @@ interface IProps {
 }
 
 export function ScreenGoogleHealthSettings(props: IProps): JSX.Element {
+  useNavOptions({ navTitle: "Google Health Connect" });
+
   return (
-    <Surface
-      navbar={<NavbarView navCommon={props.navCommon} dispatch={props.dispatch} title="Google Health Connect" />}
-      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
-    >
+    <>
       <section className="px-4">
         <MenuItemEditable
           name="Sync Workouts"
@@ -64,6 +61,6 @@ export function ScreenGoogleHealthSettings(props: IProps): JSX.Element {
           }}
         />
       </section>
-    </Surface>
+    </>
   );
 }

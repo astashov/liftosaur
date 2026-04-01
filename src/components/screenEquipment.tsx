@@ -4,9 +4,7 @@ import { ISettings, IEquipment, IAllEquipment, IStats } from "../types";
 import { INavCommon, IState, updateState } from "../models/state";
 import { EquipmentSettings } from "./equipmentSettings";
 import { lb } from "lens-shmens";
-import { Surface } from "./surface";
-import { NavbarView } from "./navbar";
-import { Footer2View } from "./footer2";
+import { useNavOptions } from "../navigation/useNavOptions";
 import { HelpPlates } from "./help/helpPlates";
 import { MenuItemEditable } from "./menuItemEditable";
 import { LinkButton } from "./linkButton";
@@ -39,18 +37,10 @@ export function ScreenEquipment(props: IProps): JSX.Element {
   }, []);
   const selectedGym = props.settings.gyms.find((g) => g.id === props.selectedGymId) ?? props.settings.gyms[0];
 
+  useNavOptions({ navTitle: "Equipment Settings", navHelpContent: <HelpPlates /> });
+
   return (
-    <Surface
-      navbar={
-        <NavbarView
-          navCommon={props.navCommon}
-          dispatch={props.dispatch}
-          title="Equipment Settings"
-          helpContent={<HelpPlates />}
-        />
-      }
-      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
-    >
+    <>
       <section>
         <div className="px-4 pb-2">
           {props.settings.gyms.length > 1 && (
@@ -100,6 +90,6 @@ export function ScreenEquipment(props: IProps): JSX.Element {
           settings={props.settings}
         />
       </section>
-    </Surface>
+    </>
   );
 }

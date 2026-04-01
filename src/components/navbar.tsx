@@ -27,6 +27,7 @@ interface INavbarProps extends INavbarCenterProps {
   navCommon: INavCommon;
   helpTourId?: keyof typeof tourConfigs;
   helpContent?: ReactNode;
+  isStatic?: boolean;
 }
 
 export const NavbarView = (props: INavbarProps): JSX.Element => {
@@ -50,8 +51,9 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
     };
   });
 
-  let className =
-    "fixed top-0 left-0 z-30 flex items-center justify-center w-full px-2 text-center bg-background-default safe-area-inset-top";
+  let className = props.isStatic
+    ? "z-30 flex items-center justify-center w-full px-2 text-center bg-background-default safe-area-inset-top"
+    : "fixed top-0 left-0 z-30 flex items-center justify-center w-full px-2 text-center bg-background-default safe-area-inset-top";
   if (isScrolled) {
     className += " has-shadow";
   }

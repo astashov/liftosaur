@@ -10,9 +10,7 @@ import {
   Thunk_deleteAccountRemote,
 } from "../ducks/thunks";
 import { INavCommon } from "../models/state";
-import { Surface } from "./surface";
-import { NavbarView } from "./navbar";
-import { Footer2View } from "./footer2";
+import { useNavOptions } from "../navigation/useNavOptions";
 import { Button } from "./button";
 import { HelpAccount } from "./help/helpAccount";
 import { IAccount, Account_getAll } from "../models/account";
@@ -57,18 +55,10 @@ export function ScreenAccount(props: IProps): JSX.Element {
     });
   }, []);
 
+  useNavOptions({ navTitle: "Account", navHelpContent: <HelpAccount /> });
+
   return (
-    <Surface
-      navbar={
-        <NavbarView
-          navCommon={props.navCommon}
-          dispatch={props.dispatch}
-          title="Account"
-          helpContent={<HelpAccount />}
-        />
-      }
-      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
-    >
+    <>
       <section className="px-4">
         <GroupHeader name="Current Account" />
         {currentAccount && (
@@ -302,6 +292,6 @@ export function ScreenAccount(props: IProps): JSX.Element {
           </>
         )}
       </section>
-    </Surface>
+    </>
   );
 }

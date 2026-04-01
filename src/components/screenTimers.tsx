@@ -4,9 +4,7 @@ import { Lens, lb } from "lens-shmens";
 import { MenuItemEditable } from "./menuItemEditable";
 import { ISettingsTimers, ISettings } from "../types";
 import { INavCommon } from "../models/state";
-import { Surface } from "./surface";
-import { Footer2View } from "./footer2";
-import { NavbarView } from "./navbar";
+import { useNavOptions } from "../navigation/useNavOptions";
 import { HelpTimers } from "./help/helpTimers";
 import { GroupHeader } from "./groupHeader";
 import {
@@ -31,18 +29,10 @@ export function ScreenTimers(props: IProps): JSX.Element {
     };
   };
 
+  useNavOptions({ navTitle: "Rest Timers", navHelpContent: <HelpTimers /> });
+
   return (
-    <Surface
-      navbar={
-        <NavbarView
-          navCommon={props.navCommon}
-          dispatch={props.dispatch}
-          title="Rest Timers"
-          helpContent={<HelpTimers />}
-        />
-      }
-      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
-    >
+    <>
       <section className="px-4">
         <GroupHeader name="Rest Timers between sets" />
         <MenuItemEditable
@@ -80,6 +70,6 @@ export function ScreenTimers(props: IProps): JSX.Element {
           </>
         )}
       </section>
-    </Surface>
+    </>
   );
 }

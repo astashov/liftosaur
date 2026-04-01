@@ -1,6 +1,7 @@
 import { JSX, useEffect, useState } from "react";
 import { Thunk_pushScreen } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
+import { useNavOptions } from "../navigation/useNavOptions";
 import { Button } from "./button";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import StorySlider from "./storySlider";
@@ -29,6 +30,8 @@ const onboardingImages = [
 
 export function ScreenFirst(props: IProps): JSX.Element {
   const [showAccountModal, setShowAccountModal] = useState(false);
+
+  useNavOptions({ navHidden: true });
 
   useEffect(() => {
     for (const url of onboardingImages) {

@@ -1,12 +1,10 @@
 import type { JSX } from "react";
 import { IStats, ISettings, ISubscription } from "../types";
 import { IDispatch } from "../ducks/types";
-import { Surface } from "./surface";
-import { NavbarView } from "./navbar";
-import { Footer2View } from "./footer2";
 import { StatsList } from "./statsList";
 import { HelpMeasurements } from "./help/helpMeasurements";
 import { INavCommon } from "../models/state";
+import { useNavOptions } from "../navigation/useNavOptions";
 import { Screen_current } from "../models/screen";
 
 interface IProps {
@@ -23,18 +21,10 @@ export function ScreenMeasurements(props: IProps): JSX.Element {
   const screenData = Screen_current(stack);
   const initialKey = screenData.name === "measurements" ? screenData.params?.key : undefined;
 
+  useNavOptions({ navTitle: "Measurements", navHelpContent: <HelpMeasurements /> });
+
   return (
-    <Surface
-      navbar={
-        <NavbarView
-          navCommon={props.navCommon}
-          dispatch={props.dispatch}
-          helpContent={<HelpMeasurements />}
-          title="Measurements"
-        />
-      }
-      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
-    >
+    <>
       <StatsList
         initialKey={initialKey}
         subscription={props.subscription}
@@ -42,6 +32,6 @@ export function ScreenMeasurements(props: IProps): JSX.Element {
         settings={settings}
         dispatch={dispatch}
       />
-    </Surface>
+    </>
   );
 }

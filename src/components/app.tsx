@@ -49,7 +49,7 @@ import { AppContext } from "./appContext";
 import { ModalThanks25 } from "./modalThanks25";
 import { TourModal } from "./tour/tourModal";
 import { TourConfigs_findTourId } from "./tour/tourConfigs";
-import { NavigationContainer, type NavigationState } from "@react-navigation/native";
+import { NavigationContainer, DefaultTheme, type NavigationState } from "@react-navigation/native";
 import { navigationRef } from "../navigation/navigationRef";
 import { StateContext } from "../navigation/StateContext";
 import { AppNavigator } from "../navigation/AppNavigator";
@@ -92,8 +92,6 @@ function deriveScreenStack(navState: NavigationState | undefined): IScreenStack 
   }
   return stack;
 }
-
-
 
 export function AppView(props: IProps): JSX.Element | null {
   const { client, audio, queue } = props;
@@ -395,7 +393,11 @@ export function AppView(props: IProps): JSX.Element | null {
       />
       <StateContext.Provider value={{ state, dispatch }}>
         <AppContext.Provider value={{ service, isApp: true }}>
-          <NavigationContainer ref={navigationRef} onStateChange={onNavigationStateChange}>
+          <NavigationContainer
+            ref={navigationRef}
+            onStateChange={onNavigationStateChange}
+            theme={{ ...DefaultTheme, colors: { ...DefaultTheme.colors, background: "transparent" } }}
+          >
             <AppNavigator initialScreen={initialScreen} />
           </NavigationContainer>
         </AppContext.Provider>

@@ -2,9 +2,7 @@ import { JSX, Fragment, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import { IEquipment, IGym, ISettings } from "../types";
 import { INavCommon, IState, updateState } from "../models/state";
-import { Surface } from "./surface";
-import { NavbarView } from "./navbar";
-import { Footer2View } from "./footer2";
+import { useNavOptions } from "../navigation/useNavOptions";
 import { MenuItem } from "./menuItem";
 import { StringUtils_nextName, StringUtils_dashcase } from "../utils/string";
 import { IconDuplicate2 } from "./icons/iconDuplicate2";
@@ -29,35 +27,10 @@ interface IProps {
 export function ScreenGyms(props: IProps): JSX.Element {
   const gyms = props.settings.gyms;
   const [modalNewGym, setModalNewGym] = useState(false);
+  useNavOptions({ navTitle: "Gyms" });
+
   return (
-    <Surface
-      navbar={<NavbarView navCommon={props.navCommon} dispatch={props.dispatch} title="Gyms" />}
-      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
-      addons={[
-        <ModalNewGym
-          isHidden={!modalNewGym}
-          onInput={(name) => {
-            if (name) {
-              updateState(
-                props.dispatch,
-                [
-                  lb<IState>()
-                    .p("storage")
-                    .p("settings")
-                    .p("gyms")
-                    .recordModify((oldGyms) => {
-                      const id = `gym-${UidFactory_generateUid(8)}`;
-                      return [...oldGyms, { vtype: "gym", id, name, equipment: Settings_defaultEquipment() }];
-                    }),
-                ],
-                "Add new gym"
-              );
-            }
-            setModalNewGym(false);
-          }}
-        />,
-      ]}
-    >
+    <>
       <section className="px-4">
         {gyms.map((gym) => {
           return (
@@ -160,6 +133,28 @@ export function ScreenGyms(props: IProps): JSX.Element {
           </LinkButton>
         </div>
       </section>
-    </Surface>
+      <ModalNewGym
+        isHidden={!modalNewGym}
+        onInput={(name) => {
+          if (name) {
+            updateState(
+              props.dispatch,
+              [
+                lb<IState>()
+                  .p("storage")
+                  .p("settings")
+                  .p("gyms")
+                  .recordModify((oldGyms) => {
+                    const id = `gym-${UidFactory_generateUid(8)}`;
+                    return [...oldGyms, { vtype: "gym", id, name, equipment: Settings_defaultEquipment() }];
+                  }),
+              ],
+              "Add new gym"
+            );
+          }
+          setModalNewGym(false);
+        }}
+      />
+    </>
   );
 }

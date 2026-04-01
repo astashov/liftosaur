@@ -1,4 +1,4 @@
-import { JSX, Fragment, useState } from "react";
+import { JSX, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import {
   History_getPersonalRecords,
@@ -13,8 +13,7 @@ import { Button } from "./button";
 import { Weight_display } from "../models/weight";
 import { Confetti } from "./confetti";
 import { IHistoryRecord, IScreenMuscle, ISettings } from "../types";
-import { NavbarView } from "./navbar";
-import { Surface } from "./surface";
+import { useNavOptions } from "../navigation/useNavOptions";
 import { INavCommon } from "../models/state";
 import { Thunk_maybeRequestReview, Thunk_maybeRequestSignup, Thunk_pushScreen } from "../ducks/thunks";
 import { GroupHeader } from "./groupHeader";
@@ -81,26 +80,10 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
   const [showCreateProgramDay, setShowCreateProgramDay] = useState(false);
   const eligibleForCreateProgramDay = props.navCommon.allPrograms.every((p) => p.id !== record.programId);
 
+  useNavOptions({ navTitle: "Congratulations!" });
+
   return (
-    <Surface
-      navbar={<NavbarView dispatch={props.dispatch} navCommon={props.navCommon} title="Congratulations!" />}
-      addons={
-        <Fragment>
-          {showCreateProgramDay && (
-            <ModalDayFromAdhoc
-              stats={props.navCommon.stats}
-              initialCurrentProgramId={props.navCommon.currentProgram?.id}
-              allPrograms={props.navCommon.allPrograms}
-              settings={props.settings}
-              dispatch={props.dispatch}
-              record={record}
-              onClose={() => setShowCreateProgramDay(false)}
-            />
-          )}
-        </Fragment>
-      }
-      footer={<></>}
-    >
+    <>
       <section className="px-4 text-sm">
         <div className="flex items-center justify-center pb-2">
           <div>
@@ -225,7 +208,18 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
         </div>
       </section>
       <Confetti />
-    </Surface>
+      {showCreateProgramDay && (
+        <ModalDayFromAdhoc
+          stats={props.navCommon.stats}
+          initialCurrentProgramId={props.navCommon.currentProgram?.id}
+          allPrograms={props.navCommon.allPrograms}
+          settings={props.settings}
+          dispatch={props.dispatch}
+          record={record}
+          onClose={() => setShowCreateProgramDay(false)}
+        />
+      )}
+    </>
   );
 }
 

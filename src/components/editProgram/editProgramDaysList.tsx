@@ -2,9 +2,7 @@ import type { JSX } from "react";
 import { IDispatch } from "../../ducks/types";
 import { INavCommon } from "../../models/state";
 import { IProgram, ISettings } from "../../types";
-import { Surface } from "../surface";
-import { NavbarView } from "../navbar";
-import { Footer2View } from "../footer2";
+import { useNavOptions } from "../../navigation/useNavOptions";
 import { MigrationBanner } from "../migrationBanner";
 import { Thunk_pushScreen } from "../../ducks/thunks";
 import { GroupHeader } from "../groupHeader";
@@ -18,22 +16,19 @@ interface IProps {
 }
 
 export function EditProgramDaysList(props: IProps): JSX.Element {
+  useNavOptions({ navTitle: "Edit Program" });
+
   return (
-    <Surface
-      navbar={<NavbarView navCommon={props.navCommon} dispatch={props.dispatch} title="Edit Program" />}
-      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
-    >
-      <section className="px-4">
-        <MigrationBanner program={props.editProgram} settings={props.settings} client={window.fetch.bind(window)} />
-        <GroupHeader name="Current Program" />
-        <MenuItem
-          name="Program"
-          value={props.editProgram.name}
-          expandValue={true}
-          shouldShowRightArrow={true}
-          onClick={() => props.dispatch(Thunk_pushScreen("programs"))}
-        />
-      </section>
-    </Surface>
+    <section className="px-4">
+      <MigrationBanner program={props.editProgram} settings={props.settings} client={window.fetch.bind(window)} />
+      <GroupHeader name="Current Program" />
+      <MenuItem
+        name="Program"
+        value={props.editProgram.name}
+        expandValue={true}
+        shouldShowRightArrow={true}
+        onClick={() => props.dispatch(Thunk_pushScreen("programs"))}
+      />
+    </section>
   );
 }

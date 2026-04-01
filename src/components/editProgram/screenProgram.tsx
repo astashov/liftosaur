@@ -2,9 +2,7 @@ import { JSX, useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { IDispatch, buildCustomLensDispatch } from "../../ducks/types";
 import { INavCommon, IState, updateState } from "../../models/state";
 import { IProgram, ISettings } from "../../types";
-import { Surface } from "../surface";
-import { NavbarView } from "../navbar";
-import { Footer2View } from "../footer2";
+import { useNavOptions } from "../../navigation/useNavOptions";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb, LensBuilder } from "lens-shmens";
 import { IPlannerState } from "../../pages/planner/models/types";
@@ -132,290 +130,23 @@ export function ScreenProgram(props: IProps): JSX.Element {
       )
     : undefined;
 
+  useNavOptions({
+    navTitle: "Program",
+    navHelpTourId: programTourConfig.id,
+    navRightButtons: [
+      <button
+        key="kebab"
+        data-cy="navbar-3-dot"
+        className="p-2 nm-edit-program-v2-navbar-kebab"
+        onClick={() => setShouldShowBottomSheet(true)}
+      >
+        <IconKebab />
+      </button>,
+    ],
+  });
+
   return (
-    <Surface
-      navbar={
-        <NavbarView
-          navCommon={props.navCommon}
-          dispatch={props.dispatch}
-          helpTourId={programTourConfig.id}
-          rightButtons={[
-            <button
-              key="kebab"
-              data-cy="navbar-3-dot"
-              className="p-2 nm-edit-program-v2-navbar-kebab"
-              onClick={() => setShouldShowBottomSheet(true)}
-            >
-              <IconKebab />
-            </button>,
-          ]}
-          title="Program"
-        />
-      }
-      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
-      addons={
-        <>
-          <BottomSheetEditProgramV2
-            isAffiliateEnabled={!!props.settings.affiliateEnabled}
-            isLoadingRevisions={isLoadingRevisions}
-            isLoggedIn={props.isLoggedIn}
-            onExportProgramToLink={() => {
-              setShouldShowBottomSheet(false);
-              const url = UrlUtils_build(`/user/p/${props.originalProgram.id}`, __HOST__);
-              ClipboardUtils_copy(url.toString());
-              alert(`Copied link to the clipboard: ${url}`);
-            }}
-            onShareProgramToLink={() => {
-              setShouldShowBottomSheet(false);
-              props.dispatch(
-                Thunk_generateAndCopyLink(props.originalProgram, props.settings, (url) => {
-                  alert(`Copied link to the clipboard: ${url}`);
-                })
-              );
-            }}
-            onGenerateProgramImage={() => {
-              setShouldShowBottomSheet(false);
-              setShouldShowGenerateImageModal(true);
-            }}
-            onLoadRevisions={() => {
-              setIsLoadingRevisions(true);
-              props.dispatch(
-                Thunk_fetchRevisions(props.originalProgram.id, () => {
-                  setIsLoadingRevisions(false);
-                  setShowRevisions(true);
-                  setShouldShowBottomSheet(false);
-                })
-              );
-            }}
-            isHidden={!shouldShowBottomSheet}
-            onClose={() => setShouldShowBottomSheet(false)}
-          />
-          {showChangeNextDay && (
-            <ModalProgramNextDay
-              onClose={() => setShowChangeNextDay(false)}
-              stats={props.navCommon.stats}
-              initialCurrentProgramId={program.id}
-              onSelect={(_, day) => {
-                updateState(
-                  props.dispatch,
-                  [lb<IState>().p("storage").p("programs").findBy("id", program.id).p("nextDay").record(day)],
-                  `Select program day ${program.name} - ${day}`
-                );
-                plannerDispatch(
-                  [lb<IPlannerState>().p("current").p("program").p("nextDay").record(day)],
-                  `Select program day ${program.name} - ${day}`
-                );
-              }}
-              allPrograms={[program]}
-              settings={props.settings}
-            />
-          )}
-          {shouldShowGenerateImageModal && (
-            <ModalPlannerPictureExport
-              settings={props.settings}
-              userId={props.navCommon.userId}
-              client={props.client}
-              isChanged={false}
-              program={plannerState.current.program}
-              onClose={() => {
-                setShouldShowGenerateImageModal(false);
-              }}
-            />
-          )}
-          {exercisePickerUi && (
-            <EditProgramBottomSheetPicker
-              isLoggedIn={props.isLoggedIn}
-              program={program}
-              dayData={exercisePickerUi.dayData}
-              plannerExercise={exercisePickerPlannerExercise}
-              exercisePickerState={exercisePickerUi.state}
-              change={exercisePickerUi.change}
-              settings={props.settings}
-              evaluatedProgram={evaluatedProgram}
-              plannerDispatch={buildCustomLensDispatch(plannerDispatch, lbPlanner)}
-              onClose={() => {
-                plannerDispatch(lbUi.p("exercisePicker").record(undefined), "Close exercise picker");
-              }}
-              stopIsUndoing={() => {
-                plannerDispatch(
-                  [
-                    lb<IPlannerState>()
-                      .p("ui")
-                      .recordModify((ui2) => {
-                        return { ...ui2, isUndoing: false };
-                      }),
-                  ],
-                  "stop-is-undoing"
-                );
-              }}
-              pickerDispatch={buildCustomLensDispatch(
-                plannerDispatch,
-                lb<IPlannerState>().p("ui").pi("exercisePicker").p("state")
-              )}
-              dispatch={props.dispatch}
-            />
-          )}
-          {showRevisions && props.revisions.length > 0 && (
-            <ModalPlannerProgramRevisions
-              programId={props.originalProgram.id}
-              client={props.client}
-              revisions={props.revisions}
-              onClose={() => setShowRevisions(false)}
-              onRestore={(text) => {
-                window.isUndoing = true;
-                const weeks = PlannerProgram_evaluateText(text);
-                plannerDispatch(lbPlanner.p("weeks").record(weeks), "stop-is-undoing");
-                setShowRevisions(false);
-              }}
-            />
-          )}
-          {ui.showWeekStats != null && (
-            <Modal
-              shouldShowClose={true}
-              isFullWidth={true}
-              onClose={() => {
-                plannerDispatch(lbUi.p("showWeekStats").record(undefined), "Close week stats");
-              }}
-            >
-              <PlannerWeekStats
-                dispatch={plannerDispatch}
-                onEditSettings={() => {
-                  plannerDispatch(lbUi.p("showSettingsModal").record(true), "Show settings modal");
-                }}
-                evaluatedDays={evaluatedWeeks[ui.showWeekStats]}
-                settings={props.settings}
-              />
-            </Modal>
-          )}
-          {ui.showDayStats != null && (
-            <Modal
-              shouldShowClose={true}
-              isFullWidth={true}
-              onClose={() => plannerDispatch(lbUi.p("showDayStats").record(undefined), "Close day stats")}
-            >
-              <PlannerDayStats
-                dispatch={plannerDispatch}
-                settings={props.settings}
-                evaluatedDay={evaluatedWeeks[ui.weekIndex][ui.showDayStats]}
-              />
-            </Modal>
-          )}
-          {plannerState.ui.showSettingsModal && (
-            <ModalPlannerSettings
-              inApp={true}
-              onNewSettings={(newSettings) =>
-                updateState(
-                  props.dispatch,
-                  [lb<IState>().p("storage").p("settings").record(newSettings)],
-                  "Update planner settings"
-                )
-              }
-              onShowEditMuscleGroups={() => {
-                plannerDispatch(
-                  lb<IPlannerState>().p("ui").p("showEditMuscleGroups").record(true),
-                  "Show muscle groups"
-                );
-              }}
-              settings={props.settings}
-              onClose={() =>
-                plannerDispatch(
-                  lb<IPlannerState>().p("ui").p("showSettingsModal").record(false),
-                  "Close settings modal"
-                )
-              }
-            />
-          )}
-          {ui.showEditMuscleGroups && (
-            <BottomSheetOrModalMuscleGroupsContent
-              settings={props.settings}
-              onClose={() => plannerDispatch(lbUi.p("showEditMuscleGroups").record(false), "Close muscle groups")}
-              onNewSettings={(newSettings) => {
-                updateState(
-                  props.dispatch,
-                  [lb<IState>().p("storage").p("settings").record(newSettings)],
-                  "Update planner settings"
-                );
-              }}
-            />
-          )}
-          {ui.showExerciseStats && ui.focusedExercise && (
-            <Modal
-              shouldShowClose={true}
-              isFullWidth={true}
-              onClose={() => plannerDispatch(lbUi.p("showExerciseStats").record(undefined), "Close exercise stats")}
-            >
-              <PlannerExerciseStats
-                dispatch={plannerDispatch}
-                settings={props.settings}
-                evaluatedWeeks={evaluatedWeeks}
-                weekIndex={ui.focusedExercise.weekIndex}
-                dayIndex={ui.focusedExercise.dayIndex}
-                exerciseLine={ui.focusedExercise.exerciseLine}
-                hideSwap={true}
-              />
-            </Modal>
-          )}
-          {editExerciseModal && (
-            <Modal
-              shouldShowClose={true}
-              onClose={() =>
-                plannerDispatch(lbUi.p("editExerciseModal").record(undefined), "Close edit exercise modal")
-              }
-            >
-              <h3 className="mb-2 text-lg font-semibold text-center">Change Exercise</h3>
-              <div className="flex gap-4">
-                <div>
-                  <Button
-                    name="edit-exercise-change-one"
-                    data-cy="edit-exercise-change-one"
-                    kind="purple"
-                    onClick={() => {
-                      plannerDispatch(
-                        [
-                          lbUi.p("editExerciseModal").record(undefined),
-                          lbUi.p("exercisePicker").record({
-                            state: pickerStateFromPlannerExercise(props.settings, editExerciseModal.plannerExercise),
-                            exerciseKey: editExerciseModal.plannerExercise.key,
-                            dayData: editExerciseModal.plannerExercise.dayData,
-                            change: "one",
-                          }),
-                        ],
-                        "Change exercise for one instance"
-                      );
-                    }}
-                  >
-                    Change only for this week/day
-                  </Button>
-                </div>
-                <div>
-                  <Button
-                    name="edit-exercise-change-all"
-                    data-cy="edit-exercise-change-all"
-                    kind="purple"
-                    onClick={() => {
-                      plannerDispatch(
-                        [
-                          lbUi.p("editExerciseModal").record(undefined),
-                          lbUi.p("exercisePicker").record({
-                            state: pickerStateFromPlannerExercise(props.settings, editExerciseModal.plannerExercise),
-                            exerciseKey: editExerciseModal.plannerExercise.key,
-                            dayData: editExerciseModal.plannerExercise.dayData,
-                            change: "all",
-                          }),
-                        ],
-                        "Change exercise for all instances"
-                      );
-                    }}
-                  >
-                    Change across whole program
-                  </Button>
-                </div>
-              </div>
-            </Modal>
-          )}
-        </>
-      }
-    >
+    <>
       <div>
         <EditProgramHeader
           evaluatedProgram={evaluatedProgram}
@@ -504,7 +235,257 @@ export function ScreenProgram(props: IProps): JSX.Element {
           ]}
         />
       </div>
-    </Surface>
+      <BottomSheetEditProgramV2
+        isAffiliateEnabled={!!props.settings.affiliateEnabled}
+        isLoadingRevisions={isLoadingRevisions}
+        isLoggedIn={props.isLoggedIn}
+        onExportProgramToLink={() => {
+          setShouldShowBottomSheet(false);
+          const url = UrlUtils_build(`/user/p/${props.originalProgram.id}`, __HOST__);
+          ClipboardUtils_copy(url.toString());
+          alert(`Copied link to the clipboard: ${url}`);
+        }}
+        onShareProgramToLink={() => {
+          setShouldShowBottomSheet(false);
+          props.dispatch(
+            Thunk_generateAndCopyLink(props.originalProgram, props.settings, (url) => {
+              alert(`Copied link to the clipboard: ${url}`);
+            })
+          );
+        }}
+        onGenerateProgramImage={() => {
+          setShouldShowBottomSheet(false);
+          setShouldShowGenerateImageModal(true);
+        }}
+        onLoadRevisions={() => {
+          setIsLoadingRevisions(true);
+          props.dispatch(
+            Thunk_fetchRevisions(props.originalProgram.id, () => {
+              setIsLoadingRevisions(false);
+              setShowRevisions(true);
+              setShouldShowBottomSheet(false);
+            })
+          );
+        }}
+        isHidden={!shouldShowBottomSheet}
+        onClose={() => setShouldShowBottomSheet(false)}
+      />
+      {showChangeNextDay && (
+        <ModalProgramNextDay
+          onClose={() => setShowChangeNextDay(false)}
+          stats={props.navCommon.stats}
+          initialCurrentProgramId={program.id}
+          onSelect={(_, day) => {
+            updateState(
+              props.dispatch,
+              [lb<IState>().p("storage").p("programs").findBy("id", program.id).p("nextDay").record(day)],
+              `Select program day ${program.name} - ${day}`
+            );
+            plannerDispatch(
+              [lb<IPlannerState>().p("current").p("program").p("nextDay").record(day)],
+              `Select program day ${program.name} - ${day}`
+            );
+          }}
+          allPrograms={[program]}
+          settings={props.settings}
+        />
+      )}
+      {shouldShowGenerateImageModal && (
+        <ModalPlannerPictureExport
+          settings={props.settings}
+          userId={props.navCommon.userId}
+          client={props.client}
+          isChanged={false}
+          program={plannerState.current.program}
+          onClose={() => {
+            setShouldShowGenerateImageModal(false);
+          }}
+        />
+      )}
+      {exercisePickerUi && (
+        <EditProgramBottomSheetPicker
+          isLoggedIn={props.isLoggedIn}
+          program={program}
+          dayData={exercisePickerUi.dayData}
+          plannerExercise={exercisePickerPlannerExercise}
+          exercisePickerState={exercisePickerUi.state}
+          change={exercisePickerUi.change}
+          settings={props.settings}
+          evaluatedProgram={evaluatedProgram}
+          plannerDispatch={buildCustomLensDispatch(plannerDispatch, lbPlanner)}
+          onClose={() => {
+            plannerDispatch(lbUi.p("exercisePicker").record(undefined), "Close exercise picker");
+          }}
+          stopIsUndoing={() => {
+            plannerDispatch(
+              [
+                lb<IPlannerState>()
+                  .p("ui")
+                  .recordModify((ui2) => {
+                    return { ...ui2, isUndoing: false };
+                  }),
+              ],
+              "stop-is-undoing"
+            );
+          }}
+          pickerDispatch={buildCustomLensDispatch(
+            plannerDispatch,
+            lb<IPlannerState>().p("ui").pi("exercisePicker").p("state")
+          )}
+          dispatch={props.dispatch}
+        />
+      )}
+      {showRevisions && props.revisions.length > 0 && (
+        <ModalPlannerProgramRevisions
+          programId={props.originalProgram.id}
+          client={props.client}
+          revisions={props.revisions}
+          onClose={() => setShowRevisions(false)}
+          onRestore={(text) => {
+            window.isUndoing = true;
+            const weeks = PlannerProgram_evaluateText(text);
+            plannerDispatch(lbPlanner.p("weeks").record(weeks), "stop-is-undoing");
+            setShowRevisions(false);
+          }}
+        />
+      )}
+      {ui.showWeekStats != null && (
+        <Modal
+          shouldShowClose={true}
+          isFullWidth={true}
+          onClose={() => {
+            plannerDispatch(lbUi.p("showWeekStats").record(undefined), "Close week stats");
+          }}
+        >
+          <PlannerWeekStats
+            dispatch={plannerDispatch}
+            onEditSettings={() => {
+              plannerDispatch(lbUi.p("showSettingsModal").record(true), "Show settings modal");
+            }}
+            evaluatedDays={evaluatedWeeks[ui.showWeekStats]}
+            settings={props.settings}
+          />
+        </Modal>
+      )}
+      {ui.showDayStats != null && (
+        <Modal
+          shouldShowClose={true}
+          isFullWidth={true}
+          onClose={() => plannerDispatch(lbUi.p("showDayStats").record(undefined), "Close day stats")}
+        >
+          <PlannerDayStats
+            dispatch={plannerDispatch}
+            settings={props.settings}
+            evaluatedDay={evaluatedWeeks[ui.weekIndex][ui.showDayStats]}
+          />
+        </Modal>
+      )}
+      {plannerState.ui.showSettingsModal && (
+        <ModalPlannerSettings
+          inApp={true}
+          onNewSettings={(newSettings) =>
+            updateState(
+              props.dispatch,
+              [lb<IState>().p("storage").p("settings").record(newSettings)],
+              "Update planner settings"
+            )
+          }
+          onShowEditMuscleGroups={() => {
+            plannerDispatch(lb<IPlannerState>().p("ui").p("showEditMuscleGroups").record(true), "Show muscle groups");
+          }}
+          settings={props.settings}
+          onClose={() =>
+            plannerDispatch(lb<IPlannerState>().p("ui").p("showSettingsModal").record(false), "Close settings modal")
+          }
+        />
+      )}
+      {ui.showEditMuscleGroups && (
+        <BottomSheetOrModalMuscleGroupsContent
+          settings={props.settings}
+          onClose={() => plannerDispatch(lbUi.p("showEditMuscleGroups").record(false), "Close muscle groups")}
+          onNewSettings={(newSettings) => {
+            updateState(
+              props.dispatch,
+              [lb<IState>().p("storage").p("settings").record(newSettings)],
+              "Update planner settings"
+            );
+          }}
+        />
+      )}
+      {ui.showExerciseStats && ui.focusedExercise && (
+        <Modal
+          shouldShowClose={true}
+          isFullWidth={true}
+          onClose={() => plannerDispatch(lbUi.p("showExerciseStats").record(undefined), "Close exercise stats")}
+        >
+          <PlannerExerciseStats
+            dispatch={plannerDispatch}
+            settings={props.settings}
+            evaluatedWeeks={evaluatedWeeks}
+            weekIndex={ui.focusedExercise.weekIndex}
+            dayIndex={ui.focusedExercise.dayIndex}
+            exerciseLine={ui.focusedExercise.exerciseLine}
+            hideSwap={true}
+          />
+        </Modal>
+      )}
+      {editExerciseModal && (
+        <Modal
+          shouldShowClose={true}
+          onClose={() => plannerDispatch(lbUi.p("editExerciseModal").record(undefined), "Close edit exercise modal")}
+        >
+          <h3 className="mb-2 text-lg font-semibold text-center">Change Exercise</h3>
+          <div className="flex gap-4">
+            <div>
+              <Button
+                name="edit-exercise-change-one"
+                data-cy="edit-exercise-change-one"
+                kind="purple"
+                onClick={() => {
+                  plannerDispatch(
+                    [
+                      lbUi.p("editExerciseModal").record(undefined),
+                      lbUi.p("exercisePicker").record({
+                        state: pickerStateFromPlannerExercise(props.settings, editExerciseModal.plannerExercise),
+                        exerciseKey: editExerciseModal.plannerExercise.key,
+                        dayData: editExerciseModal.plannerExercise.dayData,
+                        change: "one",
+                      }),
+                    ],
+                    "Change exercise for one instance"
+                  );
+                }}
+              >
+                Change only for this week/day
+              </Button>
+            </div>
+            <div>
+              <Button
+                name="edit-exercise-change-all"
+                data-cy="edit-exercise-change-all"
+                kind="purple"
+                onClick={() => {
+                  plannerDispatch(
+                    [
+                      lbUi.p("editExerciseModal").record(undefined),
+                      lbUi.p("exercisePicker").record({
+                        state: pickerStateFromPlannerExercise(props.settings, editExerciseModal.plannerExercise),
+                        exerciseKey: editExerciseModal.plannerExercise.key,
+                        dayData: editExerciseModal.plannerExercise.dayData,
+                        change: "all",
+                      }),
+                    ],
+                    "Change exercise for all instances"
+                  );
+                }}
+              >
+                Change across whole program
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+    </>
   );
 }
 

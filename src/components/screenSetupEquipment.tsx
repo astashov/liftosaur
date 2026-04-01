@@ -2,8 +2,7 @@ import type { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { ISettings, IStats } from "../types";
 import { INavCommon, IState } from "../models/state";
-import { NavbarView } from "./navbar";
-import { Surface } from "./surface";
+import { useNavOptions } from "../navigation/useNavOptions";
 import { Thunk_pushScreen } from "../ducks/thunks";
 import { Button } from "./button";
 import { EquipmentSettings, equipmentToIcon } from "./equipmentSettings";
@@ -23,6 +22,9 @@ interface IScreenSetupEquipmentProps {
 export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Element {
   const currentGym = Equipment_getCurrentGym(props.settings);
   const allEquipment = Equipment_getEquipmentOfGym(props.settings, props.selectedGymId);
+
+  useNavOptions({ navHidden: true });
+
   return (
     <section className="flex flex-col h-screen text-text-primary bg-background-default">
       <div className="flex-1 px-4 pt-8 pb-4 overflow-y-auto">
@@ -123,44 +125,11 @@ interface IScreenSetupPlatesProps {
 
 export function ScreenSetupPlates(props: IScreenSetupPlatesProps): JSX.Element {
   const currentGym = Equipment_getCurrentGym(props.settings);
+
+  useNavOptions({ navTitle: "Set Up Plates" });
+
   return (
-    <Surface
-      navbar={<NavbarView navCommon={props.navCommon} dispatch={props.dispatch} title="Set Up Plates" />}
-      footer={
-        <div
-          className="fixed bottom-0 left-0 z-10 items-center w-full text-center pointer-events-none"
-          style={{ marginBottom: "-2px" }}
-        >
-          <div
-            className="box-content absolute flex bg-background-default safe-area-inset-bottom"
-            style={{
-              width: "4000px",
-              marginLeft: "-2000px",
-              left: "50%",
-              height: "4.25rem",
-              bottom: "0",
-              boxShadow: "0 0 4px 0 rgba(0, 0, 0, 0.2)",
-            }}
-          />
-          <div className="safe-area-inset-bottom">
-            <div className="box-content relative z-10 flex px-2 py-4 pointer-events-auto">
-              <div className="flex-1 w-full">
-                <Button
-                  className="w-full"
-                  name="setup-plates-continue"
-                  kind="purple"
-                  buttonSize="lg"
-                  onClick={() => props.dispatch(Thunk_pushScreen("programselect"))}
-                  data-cy="setup-plates-continue"
-                >
-                  Continue
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      }
-    >
+    <>
       <section>
         <div className="p-4 text-center">
           <img src="/images/dinoplates.png" className="inline-block object-cover h-52" alt="Dino with plates" />
@@ -186,6 +155,38 @@ export function ScreenSetupPlates(props: IScreenSetupPlatesProps): JSX.Element {
           settings={props.settings}
         />
       </section>
-    </Surface>
+      <div
+        className="fixed bottom-0 left-0 z-10 items-center w-full text-center pointer-events-none"
+        style={{ marginBottom: "-2px" }}
+      >
+        <div
+          className="box-content absolute flex bg-background-default safe-area-inset-bottom"
+          style={{
+            width: "4000px",
+            marginLeft: "-2000px",
+            left: "50%",
+            height: "4.25rem",
+            bottom: "0",
+            boxShadow: "0 0 4px 0 rgba(0, 0, 0, 0.2)",
+          }}
+        />
+        <div className="safe-area-inset-bottom">
+          <div className="box-content relative z-10 flex px-2 py-4 pointer-events-auto">
+            <div className="flex-1 w-full">
+              <Button
+                className="w-full"
+                name="setup-plates-continue"
+                kind="purple"
+                buttonSize="lg"
+                onClick={() => props.dispatch(Thunk_pushScreen("programselect"))}
+                data-cy="setup-plates-continue"
+              >
+                Continue
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
   );
 }

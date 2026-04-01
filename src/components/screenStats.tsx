@@ -22,9 +22,7 @@ import { ModalStats } from "./modalStats";
 import { EditStats_addWeightStats, EditStats_addLengthStats, EditStats_addPercentageStats } from "../models/editStats";
 import { StringUtils_dashcase } from "../utils/string";
 import { INavCommon } from "../models/state";
-import { Surface } from "./surface";
-import { NavbarView } from "./navbar";
-import { Footer2View } from "./footer2";
+import { useNavOptions } from "../navigation/useNavOptions";
 import { Input } from "./input";
 import { IconFilter } from "./icons/iconFilter";
 import { HelpStats } from "./help/helpStats";
@@ -204,36 +202,23 @@ export function ScreenStats(props: IProps): JSX.Element {
     return healthSyncUpdates;
   }
 
+  useNavOptions({
+    navTitle: "Add Measurements",
+    navHelpContent: <HelpStats />,
+    navRightButtons: [
+      <button
+        key="filter"
+        className="p-2 ls-modify-stats"
+        data-cy="modify-stats"
+        onClick={() => setIsModalVisible(true)}
+      >
+        <IconFilter />
+      </button>,
+    ],
+  });
+
   return (
-    <Surface
-      navbar={
-        <NavbarView
-          navCommon={props.navCommon}
-          dispatch={props.dispatch}
-          helpContent={<HelpStats />}
-          rightButtons={[
-            <button
-              key="filter"
-              className="p-2 ls-modify-stats"
-              data-cy="modify-stats"
-              onClick={() => setIsModalVisible(true)}
-            >
-              <IconFilter />
-            </button>,
-          ]}
-          title="Add Measurements"
-        />
-      }
-      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
-      addons={
-        <ModalStats
-          isHidden={!isModalVisible}
-          settings={props.settings}
-          dispatch={props.dispatch}
-          onClose={() => setIsModalVisible(false)}
-        />
-      }
-    >
+    <>
       <section className="px-4">
         <p className="py-2 text-sm text-text-secondary">
           All fields are optional, input only the fields you want this time. Empty fields won't be added.
@@ -427,7 +412,13 @@ export function ScreenStats(props: IProps): JSX.Element {
           </Button>
         </div>
       </section>
-    </Surface>
+      <ModalStats
+        isHidden={!isModalVisible}
+        settings={props.settings}
+        dispatch={props.dispatch}
+        onClose={() => setIsModalVisible(false)}
+      />
+    </>
   );
 }
 

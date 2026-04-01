@@ -1,10 +1,8 @@
 import type { JSX } from "react";
 import { ISettings } from "../types";
 import { IDispatch } from "../ducks/types";
-import { Surface } from "./surface";
-import { NavbarView } from "./navbar";
-import { Footer2View } from "./footer2";
 import { INavCommon, updateSettings } from "../models/state";
+import { useNavOptions } from "../navigation/useNavOptions";
 import { MuscleGroupsContent } from "./muscleGroupsContent";
 import { lb } from "lens-shmens";
 import {
@@ -21,11 +19,10 @@ interface IProps {
 }
 
 export function ScreenMuscleGroups(props: IProps): JSX.Element {
+  useNavOptions({ navTitle: "Muscle Groups" });
+
   return (
-    <Surface
-      navbar={<NavbarView navCommon={props.navCommon} dispatch={props.dispatch} title="Muscle Groups" />}
-      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
-    >
+    <>
       <div className="px-4">
         <MuscleGroupsContent
           onCreate={(name) => {
@@ -75,6 +72,6 @@ export function ScreenMuscleGroups(props: IProps): JSX.Element {
           settings={props.settings}
         />
       </div>
-    </Surface>
+    </>
   );
 }

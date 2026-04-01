@@ -1,13 +1,11 @@
 import type { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, IProgram, ISettings } from "../types";
-import { Surface } from "./surface";
-import { NavbarView } from "./navbar";
-import { Footer2View } from "./footer2";
 import { ExercisesList } from "./exercisesList";
 import { Program_fullProgram } from "../models/program";
 import { HelpExercises } from "./help/helpExercises";
 import { INavCommon } from "../models/state";
+import { useNavOptions } from "../navigation/useNavOptions";
 
 interface IProps {
   dispatch: IDispatch;
@@ -18,18 +16,10 @@ interface IProps {
 }
 
 export function ScreenExercises(props: IProps): JSX.Element {
+  useNavOptions({ navTitle: "Exercises", navHelpContent: <HelpExercises /> });
+
   return (
-    <Surface
-      navbar={
-        <NavbarView
-          navCommon={props.navCommon}
-          dispatch={props.dispatch}
-          title="Exercises"
-          helpContent={<HelpExercises />}
-        />
-      }
-      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
-    >
+    <>
       <section className="px-4">
         <ExercisesList
           isLoggedIn={!!props.navCommon.userId}
@@ -39,6 +29,6 @@ export function ScreenExercises(props: IProps): JSX.Element {
           history={props.history}
         />
       </section>
-    </Surface>
+    </>
   );
 }

@@ -9,9 +9,7 @@ import {
   History_collectWeightPersonalRecord,
   History_collect1RMPersonalRecord,
 } from "../models/history";
-import { Surface } from "./surface";
-import { NavbarView } from "./navbar";
-import { Footer2View } from "./footer2";
+import { useNavOptions } from "../navigation/useNavOptions";
 import {
   IExercise,
   Exercise_get,
@@ -88,61 +86,11 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
   const containerRef = useRef<HTMLElement>(null);
   const showPrs = maxWeight.value > 0 || max1RM.value > 0;
 
+  useNavOptions({ navTitle: "Exercise Stats", navHelpContent: <HelpExerciseStats /> });
+
   return (
-    <Surface
-      ref={containerRef}
-      navbar={
-        <NavbarView
-          navCommon={props.navCommon}
-          dispatch={props.dispatch}
-          helpContent={<HelpExerciseStats />}
-          title="Exercise Stats"
-        />
-      }
-      addons={
-        <>
-          {showCustomExerciseModal && customExercise && (
-            <BottomSheetCustomExercise
-              settings={props.settings}
-              onClose={() => setShowCustomExerciseModal(false)}
-              onChange={(action, exercise, notes) => {
-                Exercise_handleCustomExerciseChange(
-                  props.dispatch,
-                  action,
-                  exercise,
-                  notes,
-                  props.settings,
-                  props.currentProgram
-                );
-              }}
-              dispatch={props.dispatch}
-              isHidden={!showCustomExerciseModal}
-              isLoggedIn={props.navCommon.userId != null}
-              exercise={customExercise}
-            />
-          )}
-          {showOverrideMuscles != null && (
-            <BottomSheetMusclesOverride
-              helps={props.navCommon.helps}
-              isHidden={showOverrideMuscles == null}
-              exerciseType={showOverrideMuscles}
-              settings={props.settings}
-              onClose={() => setShowOverrideMuscles(undefined)}
-              onNewExerciseData={(newExerciseData) => {
-                updateSettings(
-                  props.dispatch,
-                  lb<ISettings>().p("exerciseData").record(newExerciseData),
-                  "Update exercise muscle override"
-                );
-              }}
-              dispatch={props.dispatch}
-            />
-          )}
-        </>
-      }
-      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
-    >
-      <section className="px-4">
+    <>
+      <section ref={containerRef} className="px-4">
         <h1 className="text-xl font-bold">{Exercise_fullName(fullExercise, props.settings)}</h1>
         <div className="text-xs text-text-secondary" style={{ marginTop: "-0.25rem" }}>
           {Exercise_isCustom(fullExercise.id, props.settings.exercises) ? "Custom exercise" : "Built-in exercise"}
@@ -266,7 +214,44 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
           history={history}
         />
       </section>
-    </Surface>
+      {showCustomExerciseModal && customExercise && (
+        <BottomSheetCustomExercise
+          settings={props.settings}
+          onClose={() => setShowCustomExerciseModal(false)}
+          onChange={(action, exercise, notes) => {
+            Exercise_handleCustomExerciseChange(
+              props.dispatch,
+              action,
+              exercise,
+              notes,
+              props.settings,
+              props.currentProgram
+            );
+          }}
+          dispatch={props.dispatch}
+          isHidden={!showCustomExerciseModal}
+          isLoggedIn={props.navCommon.userId != null}
+          exercise={customExercise}
+        />
+      )}
+      {showOverrideMuscles != null && (
+        <BottomSheetMusclesOverride
+          helps={props.navCommon.helps}
+          isHidden={showOverrideMuscles == null}
+          exerciseType={showOverrideMuscles}
+          settings={props.settings}
+          onClose={() => setShowOverrideMuscles(undefined)}
+          onNewExerciseData={(newExerciseData) => {
+            updateSettings(
+              props.dispatch,
+              lb<ISettings>().p("exerciseData").record(newExerciseData),
+              "Update exercise muscle override"
+            );
+          }}
+          dispatch={props.dispatch}
+        />
+      )}
+    </>
   );
 }
 

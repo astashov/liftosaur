@@ -1,6 +1,7 @@
 import { JSX, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import { ISettings } from "../types";
+import { useNavOptions } from "../navigation/useNavOptions";
 import { Thunk_pushScreen, Thunk_importFromLink } from "../ducks/thunks";
 import { EditProgram_create } from "../models/editProgram";
 import { ModalCreateProgram } from "./modalCreateProgram";
@@ -19,6 +20,8 @@ interface IScreenProgramSelectProps {
 export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Element {
   const [shouldCreateProgram, setShouldCreateProgram] = useState(false);
   const [showImportFromLink, setShowImportFromLink] = useState(false);
+
+  useNavOptions({ navHidden: true });
 
   const options = [
     {

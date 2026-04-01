@@ -6,9 +6,7 @@ import { INavCommon, IState, updateState } from "../../models/state";
 import { lb, LensBuilder } from "lens-shmens";
 import { useUndoRedo } from "../../pages/builder/utils/undoredo";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { Footer2View } from "../footer2";
-import { NavbarView } from "../navbar";
-import { Surface } from "../surface";
+import { useNavOptions } from "../../navigation/useNavOptions";
 import { Program_evaluate, Program_getFirstProgramExercise } from "../../models/program";
 import {
   PlannerProgramExercise_buildProgress,
@@ -77,220 +75,144 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
 
   const exercisePickerState = props.plannerState.ui.exercisePickerState;
 
+  useNavOptions({
+    navTitle: "Edit Program Exercise",
+    navHelpTourId: editProgramExerciseTourConfig.id,
+    navSubtitle: plannerExercise?.notused ? (
+      <div className="pb-1">
+        <div className="inline-block px-1 ml-3 text-xs font-bold rounded text-text-alwayswhite bg-background-darkgray">
+          UNUSED
+        </div>
+      </div>
+    ) : undefined,
+    navRightButtons: [
+      <div key="kebab" className="flex items-center gap-4">
+        <div className="relative flex items-center">
+          <button
+            data-cy="program-exercise-navbar-kebab"
+            className="p-2"
+            onClick={() => {
+              setIsKebabMenuOpen(!isKebabMenuOpen);
+            }}
+          >
+            <IconKebab />
+          </button>
+          {isKebabMenuOpen && plannerExercise && (
+            <DropdownMenu rightOffset="3rem" onClose={() => setIsKebabMenuOpen(false)}>
+              <DropdownMenuItem
+                isTop={true}
+                data-cy="program-exercise-toggle-progress"
+                onClick={() => {
+                  setIsKebabMenuOpen(false);
+                  plannerDispatch(
+                    [
+                      lb<IPlannerExerciseState>()
+                        .p("ui")
+                        .p("isProgressEnabled")
+                        .record(!plannerState.ui.isProgressEnabled),
+                      lbProgram.recordModify((program) => {
+                        return EditProgramUiHelpers_changeFirstInstance(
+                          program,
+                          plannerExercise,
+                          props.settings,
+                          true,
+                          (e) => {
+                            if (plannerState.ui.isProgressEnabled) {
+                              e.progress = undefined;
+                            } else {
+                              const result = PlannerProgramExercise_buildProgress(
+                                "lp",
+                                PlannerProgramExercise_getProgressDefaultArgs("lp")
+                              );
+                              if (result.success) {
+                                e.progress = result.data;
+                              } else {
+                                alert(result.error);
+                              }
+                            }
+                          }
+                        );
+                      }),
+                    ],
+                    "Toggle progress"
+                  );
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <div>{ui.isProgressEnabled ? "Disable" : "Enable"} Progress</div>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                data-cy="program-exercise-toggle-update"
+                onClick={() => {
+                  setIsKebabMenuOpen(false);
+                  plannerDispatch(
+                    [
+                      lb<IPlannerExerciseState>().p("ui").p("isUpdateEnabled").record(!plannerState.ui.isUpdateEnabled),
+                      lbProgram.recordModify((program) => {
+                        return EditProgramUiHelpers_changeFirstInstance(
+                          program,
+                          plannerExercise,
+                          props.settings,
+                          true,
+                          (e) => {
+                            if (plannerState.ui.isUpdateEnabled) {
+                              e.update = undefined;
+                            } else {
+                              e.update = { type: "custom", script: `{~~}` };
+                            }
+                          }
+                        );
+                      }),
+                    ],
+                    "Toggle update"
+                  );
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <div>{ui.isUpdateEnabled ? "Disable" : "Enable"} Update</div>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                data-cy="program-exercise-toggle-used"
+                onClick={() => {
+                  setIsKebabMenuOpen(false);
+                  plannerDispatch(
+                    [
+                      lbProgram.recordModify((program) => {
+                        const notused = plannerExercise.notused;
+                        return EditProgramUiHelpers_changeAllInstances(
+                          program,
+                          plannerExercise.fullName,
+                          props.settings,
+                          true,
+                          (e) => {
+                            e.notused = !notused;
+                          }
+                        );
+                      }),
+                    ],
+                    "Toggle used status"
+                  );
+                }}
+              >
+                <div className="flex items-center gap-2">
+                  <div>Make {plannerExercise.notused ? "Used" : "Unused"}</div>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenu>
+          )}
+        </div>
+      </div>,
+    ],
+  });
+
   if (!plannerExercise) {
-    return (
-      <Surface
-        navbar={<NavbarView navCommon={props.navCommon} dispatch={props.dispatch} title="Edit Program Exercise" />}
-        footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
-      >
-        No such exercise
-      </Surface>
-    );
+    return <>No such exercise</>;
   }
 
   return (
-    <Surface
-      navbar={
-        <NavbarView
-          navCommon={props.navCommon}
-          dispatch={props.dispatch}
-          helpTourId={editProgramExerciseTourConfig.id}
-          title="Edit Program Exercise"
-          subtitle={
-            plannerExercise.notused ? (
-              <div className="pb-1">
-                <div className="inline-block px-1 ml-3 text-xs font-bold rounded text-text-alwayswhite bg-background-darkgray">
-                  UNUSED
-                </div>
-              </div>
-            ) : undefined
-          }
-          rightButtons={[
-            <div key="kebab" className="flex items-center gap-4">
-              <div className="relative flex items-center">
-                <button
-                  data-cy="program-exercise-navbar-kebab"
-                  className="p-2"
-                  onClick={() => {
-                    setIsKebabMenuOpen(!isKebabMenuOpen);
-                  }}
-                >
-                  <IconKebab />
-                </button>
-                {isKebabMenuOpen && (
-                  <DropdownMenu rightOffset="3rem" onClose={() => setIsKebabMenuOpen(false)}>
-                    <DropdownMenuItem
-                      isTop={true}
-                      data-cy="program-exercise-toggle-progress"
-                      onClick={() => {
-                        setIsKebabMenuOpen(false);
-                        plannerDispatch(
-                          [
-                            lb<IPlannerExerciseState>()
-                              .p("ui")
-                              .p("isProgressEnabled")
-                              .record(!plannerState.ui.isProgressEnabled),
-                            lbProgram.recordModify((program) => {
-                              return EditProgramUiHelpers_changeFirstInstance(
-                                program,
-                                plannerExercise,
-                                props.settings,
-                                true,
-                                (e) => {
-                                  if (plannerState.ui.isProgressEnabled) {
-                                    e.progress = undefined;
-                                  } else {
-                                    const result = PlannerProgramExercise_buildProgress(
-                                      "lp",
-                                      PlannerProgramExercise_getProgressDefaultArgs("lp")
-                                    );
-                                    if (result.success) {
-                                      e.progress = result.data;
-                                    } else {
-                                      alert(result.error);
-                                    }
-                                  }
-                                }
-                              );
-                            }),
-                          ],
-                          "Toggle progress"
-                        );
-                      }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div>{ui.isProgressEnabled ? "Disable" : "Enable"} Progress</div>
-                      </div>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      data-cy="program-exercise-toggle-update"
-                      onClick={() => {
-                        setIsKebabMenuOpen(false);
-                        plannerDispatch(
-                          [
-                            lb<IPlannerExerciseState>()
-                              .p("ui")
-                              .p("isUpdateEnabled")
-                              .record(!plannerState.ui.isUpdateEnabled),
-                            lbProgram.recordModify((program) => {
-                              return EditProgramUiHelpers_changeFirstInstance(
-                                program,
-                                plannerExercise,
-                                props.settings,
-                                true,
-                                (e) => {
-                                  if (plannerState.ui.isUpdateEnabled) {
-                                    e.update = undefined;
-                                  } else {
-                                    e.update = { type: "custom", script: `{~~}` };
-                                  }
-                                }
-                              );
-                            }),
-                          ],
-                          "Toggle update"
-                        );
-                      }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div>{ui.isUpdateEnabled ? "Disable" : "Enable"} Update</div>
-                      </div>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      data-cy="program-exercise-toggle-used"
-                      onClick={() => {
-                        setIsKebabMenuOpen(false);
-                        plannerDispatch(
-                          [
-                            lbProgram.recordModify((program) => {
-                              const notused = plannerExercise.notused;
-                              return EditProgramUiHelpers_changeAllInstances(
-                                program,
-                                plannerExercise.fullName,
-                                props.settings,
-                                true,
-                                (e) => {
-                                  e.notused = !notused;
-                                }
-                              );
-                            }),
-                          ],
-                          "Toggle used status"
-                        );
-                      }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div>Make {plannerExercise.notused ? "Used" : "Unused"}</div>
-                      </div>
-                    </DropdownMenuItem>
-                  </DropdownMenu>
-                )}
-              </div>
-            </div>,
-          ]}
-        />
-      }
-      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
-      addons={
-        <>
-          <BottomSheetEditProgramExerciseSet
-            evaluatedProgram={evaluatedProgram}
-            ui={plannerState.ui}
-            plannerDispatch={plannerDispatch}
-            settings={props.settings}
-          />
-          {exercisePickerState && (
-            <EditProgramBottomSheetPicker
-              program={plannerState.current.program}
-              isLoggedIn={!!props.navCommon.userId}
-              exercisePickerState={exercisePickerState}
-              settings={props.settings}
-              evaluatedProgram={evaluatedProgram}
-              plannerExercise={plannerExercise}
-              dayData={props.dayData}
-              change="all"
-              stopIsUndoing={() => {
-                plannerDispatch(
-                  [
-                    lb<IPlannerExerciseState>()
-                      .p("ui")
-                      .recordModify((ui2) => {
-                        return { ...ui2, isUndoing: false };
-                      }),
-                  ],
-                  "stop-is-undoing"
-                );
-              }}
-              onClose={() => {
-                plannerDispatch(lbUi.p("exercisePickerState").record(undefined), "Close exercise picker");
-              }}
-              plannerDispatch={buildCustomLensDispatch(plannerDispatch, lbProgram)}
-              pickerDispatch={buildCustomLensDispatch(plannerDispatch, lbUi.pi("exercisePickerState"))}
-              dispatch={props.dispatch}
-              onNewKey={(newKey) => {
-                const hasEditExerciseScreen = props.navCommon.screenStack.some((s) => s.name === "editProgramExercise");
-                if (hasEditExerciseScreen) {
-                  updateState(
-                    props.dispatch,
-                    [
-                      (
-                        lb<IState>()
-                          .p("screenStack")
-                          .findBy("name", "editProgramExercise", true)
-                          .pi("params") as LensBuilder<IState, { key: string }, {}, undefined>
-                      )
-                        .pi("key")
-                        .record(newKey),
-                    ],
-                    "Update exercise key in screen params"
-                  );
-                }
-              }}
-            />
-          )}
-        </>
-      }
-    >
+    <>
       <EditProgramExerciseNavbar
         state={plannerState}
         plannerDispatch={plannerDispatch}
@@ -337,6 +259,61 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
           plannerDispatch={plannerDispatch}
         />
       </div>
-    </Surface>
+      <BottomSheetEditProgramExerciseSet
+        evaluatedProgram={evaluatedProgram}
+        ui={plannerState.ui}
+        plannerDispatch={plannerDispatch}
+        settings={props.settings}
+      />
+      {exercisePickerState && (
+        <EditProgramBottomSheetPicker
+          program={plannerState.current.program}
+          isLoggedIn={!!props.navCommon.userId}
+          exercisePickerState={exercisePickerState}
+          settings={props.settings}
+          evaluatedProgram={evaluatedProgram}
+          plannerExercise={plannerExercise}
+          dayData={props.dayData}
+          change="all"
+          stopIsUndoing={() => {
+            plannerDispatch(
+              [
+                lb<IPlannerExerciseState>()
+                  .p("ui")
+                  .recordModify((ui2) => {
+                    return { ...ui2, isUndoing: false };
+                  }),
+              ],
+              "stop-is-undoing"
+            );
+          }}
+          onClose={() => {
+            plannerDispatch(lbUi.p("exercisePickerState").record(undefined), "Close exercise picker");
+          }}
+          plannerDispatch={buildCustomLensDispatch(plannerDispatch, lbProgram)}
+          pickerDispatch={buildCustomLensDispatch(plannerDispatch, lbUi.pi("exercisePickerState"))}
+          dispatch={props.dispatch}
+          onNewKey={(newKey) => {
+            const hasEditExerciseScreen = props.navCommon.screenStack.some((s) => s.name === "editProgramExercise");
+            if (hasEditExerciseScreen) {
+              updateState(
+                props.dispatch,
+                [
+                  (
+                    lb<IState>()
+                      .p("screenStack")
+                      .findBy("name", "editProgramExercise", true)
+                      .pi("params") as LensBuilder<IState, { key: string }, {}, undefined>
+                  )
+                    .pi("key")
+                    .record(newKey),
+                ],
+                "Update exercise key in screen params"
+              );
+            }
+          }}
+        />
+      )}
+    </>
   );
 }
