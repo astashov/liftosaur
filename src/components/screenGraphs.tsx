@@ -11,9 +11,7 @@ import { ObjectUtils_keys } from "../utils/object";
 import { ISettings, IHistoryRecord, IStats, IScreenMuscle } from "../types";
 import { getLengthDataForGraph, getPercentageDataForGraph, getWeightDataForGraph, GraphStats } from "./graphStats";
 import { INavCommon } from "../models/state";
-import { Surface } from "./surface";
-import { NavbarView } from "./navbar";
-import { Footer2View } from "./footer2";
+import { useNavOptions } from "../navigation/useNavOptions";
 import { IconFilter } from "./icons/iconFilter";
 import { HelpGraphs } from "./help/helpGraphs";
 import { Collector } from "../utils/collector";
@@ -83,39 +81,23 @@ export function ScreenGraphs(props: IProps): JSX.Element {
     }
   }
 
+  useNavOptions({
+    navTitle: "Graphs",
+    navHelpContent: <HelpGraphs />,
+    navRightButtons: [
+      <button
+        key="filter"
+        data-cy="graphs-modify"
+        className="p-2 nm-graphs-navbar-filter"
+        onClick={() => setIsModalOpen(true)}
+      >
+        <IconFilter />
+      </button>,
+    ],
+  });
+
   return (
-    <Surface
-      navbar={
-        <NavbarView
-          navCommon={props.navCommon}
-          dispatch={props.dispatch}
-          helpContent={<HelpGraphs />}
-          rightButtons={[
-            <button
-              key="filter"
-              data-cy="graphs-modify"
-              className="p-2 nm-graphs-navbar-filter"
-              onClick={() => setIsModalOpen(true)}
-            >
-              <IconFilter />
-            </button>,
-          ]}
-          title="Graphs"
-        />
-      }
-      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
-      addons={
-        <ModalGraphs
-          settings={props.settings}
-          isHidden={!isModalOpen}
-          exerciseTypes={exerciseTypes}
-          stats={props.stats}
-          graphs={props.settings.graphs.graphs}
-          onClose={() => setIsModalOpen(false)}
-          dispatch={props.dispatch}
-        />
-      }
-    >
+    <>
       {props.settings.graphs.graphs.length === 0 ? (
         <div className="p-8 text-2xl font-bold text-center text-gray-600">
           Select graphs you want to display by tapping <IconFilter /> icon at right top corner.
@@ -205,6 +187,15 @@ export function ScreenGraphs(props: IProps): JSX.Element {
           })}
         </section>
       )}
-    </Surface>
+      <ModalGraphs
+        settings={props.settings}
+        isHidden={!isModalOpen}
+        exerciseTypes={exerciseTypes}
+        stats={props.stats}
+        graphs={props.settings.graphs.graphs}
+        onClose={() => setIsModalOpen(false)}
+        dispatch={props.dispatch}
+      />
+    </>
   );
 }

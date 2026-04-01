@@ -1,8 +1,6 @@
 import { JSX, useEffect, useState } from "react";
 import { IDispatch } from "../ducks/types";
-import { NavbarView } from "./navbar";
-import { Surface } from "./surface";
-import { Footer2View } from "./footer2";
+import { useNavOptions } from "../navigation/useNavOptions";
 import { GroupHeader } from "./groupHeader";
 import { Button } from "./button";
 import { Input } from "./input";
@@ -79,11 +77,10 @@ export function ScreenApiKeys(props: IProps): JSX.Element {
     setTimeout(() => setCopiedKey(undefined), 2000);
   };
 
+  useNavOptions({ navTitle: "API Keys" });
+
   return (
-    <Surface
-      navbar={<NavbarView navCommon={props.navCommon} dispatch={props.dispatch} title="API Keys" />}
-      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
-    >
+    <>
       <section className="px-4">
         {!isLoggedIn ? (
           <div className="py-8 text-center">
@@ -173,6 +170,6 @@ export function ScreenApiKeys(props: IProps): JSX.Element {
           </>
         )}
       </section>
-    </Surface>
+    </>
   );
 }

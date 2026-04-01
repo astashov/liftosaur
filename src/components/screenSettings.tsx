@@ -17,9 +17,7 @@ import { ILengthUnit, ISettings, IStats, ISubscription, IUnit } from "../types";
 import { WhatsNew_showWhatsNew } from "../models/whatsnewUtils";
 import { ImporterStorage } from "./importerStorage";
 import { ImporterProgram } from "./importerProgram";
-import { NavbarView } from "./navbar";
-import { Surface } from "./surface";
-import { Footer2View } from "./footer2";
+import { useNavOptions } from "../navigation/useNavOptions";
 import { GroupHeader } from "./groupHeader";
 import { HelpSettings } from "./help/helpSettings";
 import { StringUtils_truncate } from "../utils/string";
@@ -67,34 +65,10 @@ export function ScreenSettings(props: IProps): JSX.Element {
     }
   }, []);
 
+  useNavOptions({ navTitle: "Settings", navHelpContent: <HelpSettings /> });
+
   return (
-    <Surface
-      navbar={
-        <NavbarView
-          navCommon={props.navCommon}
-          dispatch={props.dispatch}
-          helpContent={<HelpSettings />}
-          title="Settings"
-        />
-      }
-      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
-      addons={
-        <>
-          <ModalImportFromOtherApps
-            settings={props.settings}
-            dispatch={props.dispatch}
-            isHidden={!showImportFromOtherAppsModal}
-            onClose={() => setShowImportFromOtherAppsModal(false)}
-          />
-          <ModalAffiliate
-            dispatch={props.dispatch}
-            isAffiliateEnabled={!!props.settings.affiliateEnabled}
-            isHidden={!showAffiliateModal}
-            onClose={() => setShowAffiliateModal(false)}
-          />
-        </>
-      }
-    >
+    <>
       <section className="px-4">
         <MenuItem
           shouldShowRightArrow={true}
@@ -570,6 +544,18 @@ export function ScreenSettings(props: IProps): JSX.Element {
           📍 Roadmap
         </a>
       </section>
-    </Surface>
+      <ModalImportFromOtherApps
+        settings={props.settings}
+        dispatch={props.dispatch}
+        isHidden={!showImportFromOtherAppsModal}
+        onClose={() => setShowImportFromOtherAppsModal(false)}
+      />
+      <ModalAffiliate
+        dispatch={props.dispatch}
+        isAffiliateEnabled={!!props.settings.affiliateEnabled}
+        isHidden={!showAffiliateModal}
+        onClose={() => setShowAffiliateModal(false)}
+      />
+    </>
   );
 }

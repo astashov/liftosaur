@@ -27,10 +27,8 @@ import {
 import { INavCommon, updateProgress, updateState } from "../models/state";
 import { DateUtils_format } from "../utils/date";
 import { TimeUtils_formatHHMM } from "../utils/time";
-import { Footer2View } from "./footer2";
 import { IconTrash } from "./icons/iconTrash";
-import { NavbarView } from "./navbar";
-import { Surface } from "./surface";
+import { useNavOptions } from "../navigation/useNavOptions";
 import { Timer } from "./timer";
 import { Workout } from "./workout";
 import { ModalAmrap } from "./modalAmrap";
@@ -117,321 +115,66 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
   const exercisePickerState = progress.ui?.exercisePicker?.state;
   const exerciseSuperset = progress.ui?.showSupersetPicker;
 
+  useNavOptions({
+    navHelpTourId: workoutTourConfig.id,
+    navTitle: Progress_isCurrent(progress) ? "Ongoing workout" : `${DateUtils_format(progress.date)}`,
+    navOnTitleClick: !Progress_isCurrent(progress)
+      ? () => {
+          props.dispatch({
+            type: "ChangeDate",
+            date: progress.date,
+            time: History_workoutTime(progress),
+          });
+        }
+      : undefined,
+    navSubtitle:
+      !Progress_isCurrent(progress) && progress.endTime ? (
+        TimeUtils_formatHHMM(History_workoutTime(props.progress))
+      ) : (
+        <Timer
+          progress={props.progress}
+          onPauseResume={() => {
+            if (History_isPaused(props.progress.intervals)) {
+              History_resumeWorkoutAction(
+                props.dispatch,
+                false,
+                props.settings,
+                Subscriptions_hasSubscription(props.subscription)
+              );
+              const currentEntryIndex = props.progress.ui?.currentEntryIndex || 0;
+              const currentEntry = props.progress.entries[currentEntryIndex];
+              const setIndex = currentEntry ? Reps_findNextSetIndex(currentEntry) : 0;
+              props.dispatch(
+                Thunk_updateLiveActivity(currentEntryIndex, setIndex, props.progress.timer, props.progress.timerSince)
+              );
+            } else {
+              History_pauseWorkoutAction(props.dispatch);
+            }
+          }}
+        />
+      ),
+    navRightButtons: [
+      <button
+        key="delete"
+        className="p-2 nm-delete-progress ls-delete-progress"
+        onClick={() => {
+          if (
+            confirm(
+              `Are you sure you want to delete this ${Progress_isCurrent(props.progress) ? "ONGOING" : "PAST"} workout?`
+            )
+          ) {
+            props.dispatch(Thunk_deleteProgress());
+          }
+        }}
+      >
+        <IconTrash />
+      </button>,
+    ],
+  });
+
   if (progress != null) {
     return (
-      <Surface
-        navbar={
-          <NavbarView
-            navCommon={props.navCommon}
-            dispatch={dispatch}
-            onTitleClick={() => {
-              if (!Progress_isCurrent(progress)) {
-                props.dispatch({
-                  type: "ChangeDate",
-                  date: progress.date,
-                  time: History_workoutTime(progress),
-                });
-              }
-            }}
-            helpTourId={workoutTourConfig.id}
-            title={Progress_isCurrent(progress) ? "Ongoing workout" : `${DateUtils_format(progress.date)}`}
-            subtitle={
-              !Progress_isCurrent(progress) && progress.endTime ? (
-                TimeUtils_formatHHMM(History_workoutTime(props.progress))
-              ) : (
-                <Timer
-                  progress={props.progress}
-                  onPauseResume={() => {
-                    if (History_isPaused(props.progress.intervals)) {
-                      History_resumeWorkoutAction(
-                        props.dispatch,
-                        false,
-                        props.settings,
-                        Subscriptions_hasSubscription(props.subscription)
-                      );
-                      const currentEntryIndex = props.progress.ui?.currentEntryIndex || 0;
-                      const currentEntry = props.progress.entries[currentEntryIndex];
-                      const setIndex = currentEntry ? Reps_findNextSetIndex(currentEntry) : 0;
-                      props.dispatch(
-                        Thunk_updateLiveActivity(
-                          currentEntryIndex,
-                          setIndex,
-                          props.progress.timer,
-                          props.progress.timerSince
-                        )
-                      );
-                    } else {
-                      History_pauseWorkoutAction(props.dispatch);
-                    }
-                  }}
-                />
-              )
-            }
-            rightButtons={[
-              <button
-                key="delete"
-                className="p-2 nm-delete-progress ls-delete-progress"
-                onClick={() => {
-                  if (
-                    confirm(
-                      `Are you sure you want to delete this ${Progress_isCurrent(props.progress) ? "ONGOING" : "PAST"} workout?`
-                    )
-                  ) {
-                    props.dispatch(Thunk_deleteProgress());
-                  }
-                }}
-              >
-                <IconTrash />
-              </button>,
-            ]}
-          />
-        }
-        footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
-        addons={
-          <>
-            {progress?.ui?.amrapModal && (
-              <ModalAmrap
-                isPlayground={false}
-                settings={props.settings}
-                dispatch={props.dispatch}
-                programExercise={
-                  Program_getProgramExercise(
-                    progress.day,
-                    evaluatedProgram,
-                    progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.programExerciseId
-                  ) ||
-                  Program_getFirstProgramExercise(
-                    evaluatedProgram,
-                    progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.programExerciseId
-                  )
-                }
-                progress={progress}
-                onDone={() => {
-                  Progress_forceUpdateEntryIndex(props.dispatch);
-                }}
-              />
-            )}
-            {dateModal != null && (
-              <ModalDate
-                isHidden={false}
-                dispatch={props.dispatch}
-                date={dateModal.date ?? ""}
-                time={dateModal.time ?? 0}
-              />
-            )}
-            {exerciseSuperset && (
-              <BottomSheetWorkoutSuperset
-                isHidden={exerciseSuperset == null}
-                onClose={() => {
-                  updateProgress(
-                    props.dispatch,
-                    [lb<IHistoryRecord>().pi("ui").p("showSupersetPicker").record(undefined)],
-                    "Close superset picker"
-                  );
-                }}
-                progress={progress}
-                entry={exerciseSuperset}
-                settings={props.settings}
-                onSelect={(selectedEntry) => {
-                  updateProgress(
-                    props.dispatch,
-                    [
-                      lb<IHistoryRecord>()
-                        .p("entries")
-                        .findBy("id", exerciseSuperset.id)
-                        .p("superset")
-                        .record(selectedEntry),
-                    ],
-                    "select-superset-entry"
-                  );
-                  updateProgress(
-                    props.dispatch,
-                    [lb<IHistoryRecord>().pi("ui").p("showSupersetPicker").record(undefined)],
-                    "Close superset picker"
-                  );
-                }}
-              />
-            )}
-            {exercisePickerState && (
-              <BottomSheetExercisePicker
-                settings={props.settings}
-                isLoggedIn={!!props.navCommon.userId}
-                isHidden={exercisePickerState == null}
-                usedExerciseTypes={progress.entries.map((e) => e.exercise)}
-                onChoose={(selectedExercises) => {
-                  for (const exercise of selectedExercises) {
-                    if (exercise.type === "adhoc") {
-                      if (exercisePickerState.entryIndex == null) {
-                        Progress_addExercise(props.dispatch, exercise.exerciseType, progress.entries.length);
-                      } else {
-                        Progress_changeExercise(
-                          props.dispatch,
-                          props.settings,
-                          props.progress.id,
-                          exercise.exerciseType,
-                          exercisePickerState.entryIndex,
-                          !!props.settings.workoutSettings.shouldKeepProgramExerciseId
-                        );
-                      }
-                    } else if (exercise.type === "program" && evaluatedCurrentProgram) {
-                      const programExercise = Program_getProgramExerciseByTypeWeekAndDay(
-                        evaluatedCurrentProgram,
-                        exercise.exerciseType,
-                        exercise.week,
-                        exercise.dayInWeek
-                      );
-                      if (programExercise && programExercise.exerciseType) {
-                        if (exercisePickerState.entryIndex == null) {
-                          updateProgress(
-                            dispatch,
-                            [
-                              lb<IHistoryRecord>()
-                                .p("entries")
-                                .recordModify((entries) => {
-                                  const nextHistoryEntry = Program_nextHistoryEntry(
-                                    evaluatedCurrentProgram,
-                                    Program_getDayData(evaluatedCurrentProgram, evaluatedCurrentProgram.nextDay),
-                                    entries.length,
-                                    { ...programExercise, exerciseType: exercise.exerciseType },
-                                    props.stats,
-                                    props.settings
-                                  );
-                                  return [...entries, nextHistoryEntry].map((e, i) => ({ ...e, index: i }));
-                                }),
-                            ],
-                            "add-exercise"
-                          );
-                        } else {
-                          const nextHistoryEntry = Program_nextHistoryEntry(
-                            evaluatedCurrentProgram,
-                            Program_getDayData(evaluatedCurrentProgram, evaluatedCurrentProgram.nextDay),
-                            exercisePickerState.entryIndex,
-                            { ...programExercise, exerciseType: exercise.exerciseType },
-                            props.stats,
-                            props.settings
-                          );
-                          updateProgress(
-                            dispatch,
-                            [
-                              lb<IHistoryRecord>()
-                                .p("entries")
-                                .i(exercisePickerState.entryIndex)
-                                .record(nextHistoryEntry),
-                            ],
-                            "change-program-exercise"
-                          );
-                        }
-                      }
-                    }
-                  }
-                  updateState(
-                    props.dispatch,
-                    [Progress_lbProgress(progress.id).pi("ui").p("exercisePicker").record(undefined)],
-                    "Close exercise picker"
-                  );
-                  setTimeout(() => {
-                    Progress_forceUpdateEntryIndex(props.dispatch);
-                    document
-                      .querySelector(`[data-name=workout-exercise-tab-${progress.entries.length}]`)
-                      ?.scrollIntoView({
-                        behavior: "smooth",
-                        block: "center",
-                      });
-                  }, 0);
-                }}
-                exercisePicker={exercisePickerState}
-                onChangeCustomExercise={(action, exercise, notes) => {
-                  Exercise_handleCustomExerciseChange(
-                    props.dispatch,
-                    action,
-                    exercise,
-                    notes,
-                    props.settings,
-                    props.program
-                  );
-                }}
-                evaluatedProgram={evaluatedCurrentProgram}
-                onStar={(key) => Settings_toggleStarredExercise(props.dispatch, key)}
-                onChangeSettings={(pickerSettings) => Settings_changePickerSettings(props.dispatch, pickerSettings)}
-                dispatch={buildExercisePickerDispatch(props.dispatch, progress.id)}
-                onClose={() => {
-                  updateState(
-                    props.dispatch,
-                    [Progress_lbProgress(progress.id).pi("ui").p("exercisePicker").record(undefined)],
-                    "Close exercise picker"
-                  );
-                }}
-              />
-            )}
-            <BottomSheetEditTarget
-              settings={props.settings}
-              subscription={props.subscription}
-              progress={progress}
-              dispatch={dispatch}
-              editSetModal={progress.ui?.editSetModal}
-              isHidden={progress.ui?.editSetModal == null}
-              onClose={() => {
-                dispatch({
-                  type: "UpdateProgress",
-                  lensRecordings: [lb<IHistoryRecord>().pi("ui").p("editSetModal").record(undefined)],
-                  desc: "Close edit set modal",
-                });
-              }}
-            />
-            {progress.ui?.equipmentModal?.exerciseType && (
-              <ModalEquipment
-                stats={props.stats}
-                onClose={() => {
-                  updateState(
-                    props.dispatch,
-                    [Progress_lbProgress(progress.id).pi("ui").p("equipmentModal").record(undefined)],
-                    "Close equipment modal"
-                  );
-                }}
-                settings={props.settings}
-                exercise={progress.ui?.equipmentModal.exerciseType}
-                entries={progress.entries}
-                dispatch={props.dispatch}
-              />
-            )}
-            {progress.ui?.rm1Modal?.exerciseType && (
-              <Modal1RM
-                onClose={() => {
-                  updateState(
-                    props.dispatch,
-                    [Progress_lbProgress(progress.id).pi("ui").p("rm1Modal").record(undefined)],
-                    "Close 1RM modal"
-                  );
-                }}
-                settings={props.settings}
-                exercise={progress.ui?.rm1Modal.exerciseType}
-                dispatch={props.dispatch}
-              />
-            )}
-            {!Progress_isCurrent(progress) &&
-              ((SendMessage_isIos() && SendMessage_iosAppVersion() >= 11) ||
-              (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 20) ? (
-                <BottomSheetMobileShareOptions
-                  userId={props.userId}
-                  history={props.history}
-                  settings={props.settings}
-                  record={progress}
-                  isHidden={!isShareShown}
-                  onClose={() => setIsShareShown(false)}
-                />
-              ) : (
-                <BottomSheetWebappShareOptions
-                  userId={props.userId}
-                  history={props.history}
-                  settings={props.settings}
-                  record={progress}
-                  isHidden={!isShareShown}
-                  onClose={() => setIsShareShown(false)}
-                />
-              ))}
-          </>
-        }
-      >
+      <>
         <Workout
           setIsShareShown={setIsShareShown}
           stats={props.navCommon.stats}
@@ -446,7 +189,240 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
           progress={progress}
           dispatch={props.dispatch}
         />
-      </Surface>
+        {progress?.ui?.amrapModal && (
+          <ModalAmrap
+            isPlayground={false}
+            settings={props.settings}
+            dispatch={props.dispatch}
+            programExercise={
+              Program_getProgramExercise(
+                progress.day,
+                evaluatedProgram,
+                progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.programExerciseId
+              ) ||
+              Program_getFirstProgramExercise(
+                evaluatedProgram,
+                progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.programExerciseId
+              )
+            }
+            progress={progress}
+            onDone={() => {
+              Progress_forceUpdateEntryIndex(props.dispatch);
+            }}
+          />
+        )}
+        {dateModal != null && (
+          <ModalDate
+            isHidden={false}
+            dispatch={props.dispatch}
+            date={dateModal.date ?? ""}
+            time={dateModal.time ?? 0}
+          />
+        )}
+        {exerciseSuperset && (
+          <BottomSheetWorkoutSuperset
+            isHidden={exerciseSuperset == null}
+            onClose={() => {
+              updateProgress(
+                props.dispatch,
+                [lb<IHistoryRecord>().pi("ui").p("showSupersetPicker").record(undefined)],
+                "Close superset picker"
+              );
+            }}
+            progress={progress}
+            entry={exerciseSuperset}
+            settings={props.settings}
+            onSelect={(selectedEntry) => {
+              updateProgress(
+                props.dispatch,
+                [
+                  lb<IHistoryRecord>()
+                    .p("entries")
+                    .findBy("id", exerciseSuperset.id)
+                    .p("superset")
+                    .record(selectedEntry),
+                ],
+                "select-superset-entry"
+              );
+              updateProgress(
+                props.dispatch,
+                [lb<IHistoryRecord>().pi("ui").p("showSupersetPicker").record(undefined)],
+                "Close superset picker"
+              );
+            }}
+          />
+        )}
+        {exercisePickerState && (
+          <BottomSheetExercisePicker
+            settings={props.settings}
+            isLoggedIn={!!props.navCommon.userId}
+            isHidden={exercisePickerState == null}
+            usedExerciseTypes={progress.entries.map((e) => e.exercise)}
+            onChoose={(selectedExercises) => {
+              for (const exercise of selectedExercises) {
+                if (exercise.type === "adhoc") {
+                  if (exercisePickerState.entryIndex == null) {
+                    Progress_addExercise(props.dispatch, exercise.exerciseType, progress.entries.length);
+                  } else {
+                    Progress_changeExercise(
+                      props.dispatch,
+                      props.settings,
+                      props.progress.id,
+                      exercise.exerciseType,
+                      exercisePickerState.entryIndex,
+                      !!props.settings.workoutSettings.shouldKeepProgramExerciseId
+                    );
+                  }
+                } else if (exercise.type === "program" && evaluatedCurrentProgram) {
+                  const programExercise = Program_getProgramExerciseByTypeWeekAndDay(
+                    evaluatedCurrentProgram,
+                    exercise.exerciseType,
+                    exercise.week,
+                    exercise.dayInWeek
+                  );
+                  if (programExercise && programExercise.exerciseType) {
+                    if (exercisePickerState.entryIndex == null) {
+                      updateProgress(
+                        dispatch,
+                        [
+                          lb<IHistoryRecord>()
+                            .p("entries")
+                            .recordModify((entries) => {
+                              const nextHistoryEntry = Program_nextHistoryEntry(
+                                evaluatedCurrentProgram,
+                                Program_getDayData(evaluatedCurrentProgram, evaluatedCurrentProgram.nextDay),
+                                entries.length,
+                                { ...programExercise, exerciseType: exercise.exerciseType },
+                                props.stats,
+                                props.settings
+                              );
+                              return [...entries, nextHistoryEntry].map((e, i) => ({ ...e, index: i }));
+                            }),
+                        ],
+                        "add-exercise"
+                      );
+                    } else {
+                      const nextHistoryEntry = Program_nextHistoryEntry(
+                        evaluatedCurrentProgram,
+                        Program_getDayData(evaluatedCurrentProgram, evaluatedCurrentProgram.nextDay),
+                        exercisePickerState.entryIndex,
+                        { ...programExercise, exerciseType: exercise.exerciseType },
+                        props.stats,
+                        props.settings
+                      );
+                      updateProgress(
+                        dispatch,
+                        [lb<IHistoryRecord>().p("entries").i(exercisePickerState.entryIndex).record(nextHistoryEntry)],
+                        "change-program-exercise"
+                      );
+                    }
+                  }
+                }
+              }
+              updateState(
+                props.dispatch,
+                [Progress_lbProgress(progress.id).pi("ui").p("exercisePicker").record(undefined)],
+                "Close exercise picker"
+              );
+              setTimeout(() => {
+                Progress_forceUpdateEntryIndex(props.dispatch);
+                document.querySelector(`[data-name=workout-exercise-tab-${progress.entries.length}]`)?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                });
+              }, 0);
+            }}
+            exercisePicker={exercisePickerState}
+            onChangeCustomExercise={(action, exercise, notes) => {
+              Exercise_handleCustomExerciseChange(
+                props.dispatch,
+                action,
+                exercise,
+                notes,
+                props.settings,
+                props.program
+              );
+            }}
+            evaluatedProgram={evaluatedCurrentProgram}
+            onStar={(key) => Settings_toggleStarredExercise(props.dispatch, key)}
+            onChangeSettings={(pickerSettings) => Settings_changePickerSettings(props.dispatch, pickerSettings)}
+            dispatch={buildExercisePickerDispatch(props.dispatch, progress.id)}
+            onClose={() => {
+              updateState(
+                props.dispatch,
+                [Progress_lbProgress(progress.id).pi("ui").p("exercisePicker").record(undefined)],
+                "Close exercise picker"
+              );
+            }}
+          />
+        )}
+        <BottomSheetEditTarget
+          settings={props.settings}
+          subscription={props.subscription}
+          progress={progress}
+          dispatch={dispatch}
+          editSetModal={progress.ui?.editSetModal}
+          isHidden={progress.ui?.editSetModal == null}
+          onClose={() => {
+            dispatch({
+              type: "UpdateProgress",
+              lensRecordings: [lb<IHistoryRecord>().pi("ui").p("editSetModal").record(undefined)],
+              desc: "Close edit set modal",
+            });
+          }}
+        />
+        {progress.ui?.equipmentModal?.exerciseType && (
+          <ModalEquipment
+            stats={props.stats}
+            onClose={() => {
+              updateState(
+                props.dispatch,
+                [Progress_lbProgress(progress.id).pi("ui").p("equipmentModal").record(undefined)],
+                "Close equipment modal"
+              );
+            }}
+            settings={props.settings}
+            exercise={progress.ui?.equipmentModal.exerciseType}
+            entries={progress.entries}
+            dispatch={props.dispatch}
+          />
+        )}
+        {progress.ui?.rm1Modal?.exerciseType && (
+          <Modal1RM
+            onClose={() => {
+              updateState(
+                props.dispatch,
+                [Progress_lbProgress(progress.id).pi("ui").p("rm1Modal").record(undefined)],
+                "Close 1RM modal"
+              );
+            }}
+            settings={props.settings}
+            exercise={progress.ui?.rm1Modal.exerciseType}
+            dispatch={props.dispatch}
+          />
+        )}
+        {!Progress_isCurrent(progress) &&
+          ((SendMessage_isIos() && SendMessage_iosAppVersion() >= 11) ||
+          (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 20) ? (
+            <BottomSheetMobileShareOptions
+              userId={props.userId}
+              history={props.history}
+              settings={props.settings}
+              record={progress}
+              isHidden={!isShareShown}
+              onClose={() => setIsShareShown(false)}
+            />
+          ) : (
+            <BottomSheetWebappShareOptions
+              userId={props.userId}
+              history={props.history}
+              settings={props.settings}
+              record={progress}
+              isHidden={!isShareShown}
+              onClose={() => setIsShareShown(false)}
+            />
+          ))}
+      </>
     );
   } else {
     return null;

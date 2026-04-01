@@ -2,8 +2,7 @@ import { JSX, useRef, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, IProgram, ISettings } from "../types";
 import { INavCommon } from "../models/state";
-import { NavbarView } from "./navbar";
-import { Surface } from "./surface";
+import { useNavOptions } from "../navigation/useNavOptions";
 import { BuiltinProgramsList } from "./builtinProgramsList";
 import { CustomProgramsList } from "./customProgramsList";
 import { ScrollableTabs } from "./scrollableTabs";
@@ -54,60 +53,24 @@ export function ChooseProgramView(props: IProps): JSX.Element {
     />
   );
 
+  useNavOptions({
+    navTitle: "Choose a program",
+    navRightButtons: hasCustomPrograms
+      ? [
+          <LinkButton
+            key="import"
+            className="px-2 text-sm no-underline"
+            name="import-program"
+            onClick={() => setShowImportFromLink(true)}
+          >
+            Import
+          </LinkButton>,
+        ]
+      : undefined,
+  });
+
   return (
-    <Surface
-      navbar={
-        <NavbarView
-          rightButtons={
-            hasCustomPrograms
-              ? [
-                  <LinkButton
-                    key="import"
-                    className="px-2 text-sm no-underline"
-                    name="import-program"
-                    onClick={() => setShowImportFromLink(true)}
-                  >
-                    Import
-                  </LinkButton>,
-                ]
-              : undefined
-          }
-          navCommon={props.navCommon}
-          title="Choose a program"
-          dispatch={props.dispatch}
-        />
-      }
-      footer={
-        hasCustomPrograms ? (
-          <Footer
-            onCreate={() => setShouldCreateProgram(true)}
-            onEmpty={() => {
-              Program_selectProgram(props.dispatch, emptyProgramId);
-            }}
-          />
-        ) : null
-      }
-      addons={
-        <>
-          <ModalImportFromLink
-            isHidden={!showImportFromLink}
-            onSubmit={async (link) => {
-              if (link) {
-                props.dispatch(Thunk_importFromLink(link));
-              }
-              setShowImportFromLink(false);
-            }}
-          />
-          <ModalCreateProgram
-            isHidden={!shouldCreateProgram}
-            onClose={() => setShouldCreateProgram(false)}
-            onSelect={(name) => {
-              EditProgram_create(props.dispatch, name);
-            }}
-          />
-        </>
-      }
-    >
+    <>
       <div className="px-4 pt-2 pb-2">
         <div className="relative">
           <IconMagnifyingGlass
@@ -148,7 +111,31 @@ export function ChooseProgramView(props: IProps): JSX.Element {
       ) : (
         builtinPrograms()
       )}
-    </Surface>
+      {hasCustomPrograms ? (
+        <Footer
+          onCreate={() => setShouldCreateProgram(true)}
+          onEmpty={() => {
+            Program_selectProgram(props.dispatch, emptyProgramId);
+          }}
+        />
+      ) : null}
+      <ModalImportFromLink
+        isHidden={!showImportFromLink}
+        onSubmit={async (link) => {
+          if (link) {
+            props.dispatch(Thunk_importFromLink(link));
+          }
+          setShowImportFromLink(false);
+        }}
+      />
+      <ModalCreateProgram
+        isHidden={!shouldCreateProgram}
+        onClose={() => setShouldCreateProgram(false)}
+        onSelect={(name) => {
+          EditProgram_create(props.dispatch, name);
+        }}
+      />
+    </>
   );
 }
 

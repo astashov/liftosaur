@@ -3,6 +3,7 @@ import { IDispatch } from "../ducks/types";
 import { Button } from "./button";
 import { updateSettings } from "../models/state";
 import { ISettings } from "../types";
+import { useNavOptions } from "../navigation/useNavOptions";
 import { Thunk_pushScreen } from "../ducks/thunks";
 import { lb } from "lens-shmens";
 
@@ -14,6 +15,9 @@ interface IProps {
 export function ScreenUnitSelector(props: IProps): JSX.Element {
   const selectedButtonCls = "text-button-primarylabel bg-button-primarybackground border-button-primarybackground";
   const unselectedButtonCls = "text-text-purple bg-background-default border-border-neutral";
+
+  useNavOptions({ navHidden: true });
+
   return (
     <section className="flex flex-col h-screen text-text-primary bg-background-default">
       <div className="flex-1 px-4 pt-16 pb-4">

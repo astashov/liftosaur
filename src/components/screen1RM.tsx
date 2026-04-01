@@ -2,8 +2,7 @@ import { JSX, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import { IExerciseType, IProgram, ISettings } from "../types";
 import { INavCommon } from "../models/state";
-import { NavbarView } from "./navbar";
-import { Surface } from "./surface";
+import { useNavOptions } from "../navigation/useNavOptions";
 import { Thunk_pushScreen } from "../ducks/thunks";
 import { Settings_getExercisesWithUnset1RMs, Settings_setOneRM } from "../models/settings";
 import { Exercise_get, Exercise_onerm, Exercise_nameWithEquipment } from "../models/exercise";
@@ -22,17 +21,10 @@ interface IScreen1RMProps {
 export function Screen1RM(props: IScreen1RMProps): JSX.Element {
   const [exerciseTypes] = useState<IExerciseType[]>(Settings_getExercisesWithUnset1RMs(props.program, props.settings));
 
+  useNavOptions({ navTitle: "Set 1 Rep Maxes" });
+
   return (
-    <Surface
-      navbar={<NavbarView navCommon={props.navCommon} dispatch={props.dispatch} title="Set 1 Rep Maxes" />}
-      footer={
-        <Footer
-          onContinue={() => {
-            props.dispatch(Thunk_pushScreen("main", undefined, true));
-          }}
-        />
-      }
-    >
+    <>
       <section>
         <p className="px-4 pb-2 text-sm">
           The selected program uses <strong>1RM</strong> - <strong>1 Rep Max</strong> weights - it calculates set
@@ -113,7 +105,12 @@ export function Screen1RM(props: IScreen1RMProps): JSX.Element {
           </div>
         </div>
       </section>
-    </Surface>
+      <Footer
+        onContinue={() => {
+          props.dispatch(Thunk_pushScreen("main", undefined, true));
+        }}
+      />
+    </>
   );
 }
 

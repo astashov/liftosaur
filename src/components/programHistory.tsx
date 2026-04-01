@@ -2,8 +2,7 @@ import { JSX, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import { IProgram, IHistoryRecord, ISettings, ISubscription } from "../types";
 import { INavCommon, IState, updateState } from "../models/state";
-import { Surface } from "./surface";
-import { Footer2View } from "./footer2";
+import { useNavOptions } from "../navigation/useNavOptions";
 import { DateUtils_firstDayOfWeekTimestamp } from "../utils/date";
 import { HistoryRecordsList } from "./historyRecordsList";
 import { History_getHistoryRecordsForTimerange, History_getPersonalRecords } from "../models/history";
@@ -185,85 +184,25 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
 
   const [showEditMuscleGroups, setShowEditMuscleGroups] = useState(false);
 
+  useNavOptions({ navHidden: true });
+
   return (
-    <Surface
-      ref={surfaceRef}
-      navbar={
-        <div className="fixed top-0 left-0 z-30 w-full border-b border-border-neutral">
-          <WeekCalendar
-            startWeekFromMonday={props.settings.startWeekFromMonday}
-            selectedWeekCalendarFirstDayOfWeek={selectedWeekCalendarFirstDayOfWeek}
-            history={sortedHistory}
-            firstDayOfWeekToHistoryRecord={firstDayOfWeekToHistoryRecord}
-            firstDayOfWeeks={firstDayOfWeeks}
-            isLoading={isLoading}
-            selectedFirstDayOfWeek={selectedFirstDayOfWeek}
-            onClick={() => setShowMonthCalendar(true)}
-            onSelectFirstDayOfWeek={(firstDayOfWeek) => {
-              setSelectedWeekCalendarFirstDayOfWeek(firstDayOfWeek);
-            }}
-          />
-        </div>
-      }
-      footer={<Footer2View navCommon={props.navCommon} dispatch={props.dispatch} />}
-      addons={
-        <>
-          {showEditMuscleGroups && (
-            <BottomSheetOrModalMuscleGroupsContent
-              settings={props.settings}
-              onClose={() => setShowEditMuscleGroups(false)}
-              onNewSettings={(newSettings) => {
-                updateState(
-                  props.dispatch,
-                  [lb<IState>().p("storage").p("settings").record(newSettings)],
-                  "Update planner settings"
-                );
-              }}
-            />
-          )}
-          <BottomSheetMonthCalendar
-            prs={prs}
-            firstDayOfWeeks={firstDayOfWeeks}
-            history={sortedHistory}
-            startWeekFromMonday={props.settings.startWeekFromMonday}
-            selectedFirstDayOfWeek={selectedWeekCalendarFirstDayOfWeek}
-            visibleRecords={visibleRecords}
-            isHidden={!showMonthCalendar}
-            onClose={() => setShowMonthCalendar(false)}
-            onClick={(historyRecord) => {
-              const index = sortedHistory.findIndex((record) => record.id === historyRecord.id);
-              const scrollToElementCal = (): void => {
-                scrollToElement(historyRecord.id);
-                setShowMonthCalendar(false);
-              };
-              if (visibleHistory.length < index) {
-                loadMoreVisibleRecords(index - visibleHistory.length + 20);
-                setTimeout(scrollToElementCal, 100);
-              } else {
-                scrollToElementCal();
-              }
-            }}
-          />
-          {showPlannerSettings && (
-            <ModalPlannerSettings
-              inApp={true}
-              onNewSettings={(newSettings) =>
-                updateState(
-                  props.dispatch,
-                  [lb<IState>().p("storage").p("settings").record(newSettings)],
-                  "Update planner settings"
-                )
-              }
-              onShowEditMuscleGroups={() => {
-                setShowEditMuscleGroups(true);
-              }}
-              settings={props.settings}
-              onClose={() => setShowPlannerSettings(false)}
-            />
-          )}
-        </>
-      }
-    >
+    <section ref={surfaceRef}>
+      <div className="fixed top-0 left-0 z-30 w-full border-b border-border-neutral">
+        <WeekCalendar
+          startWeekFromMonday={props.settings.startWeekFromMonday}
+          selectedWeekCalendarFirstDayOfWeek={selectedWeekCalendarFirstDayOfWeek}
+          history={sortedHistory}
+          firstDayOfWeekToHistoryRecord={firstDayOfWeekToHistoryRecord}
+          firstDayOfWeeks={firstDayOfWeeks}
+          isLoading={isLoading}
+          selectedFirstDayOfWeek={selectedFirstDayOfWeek}
+          onClick={() => setShowMonthCalendar(true)}
+          onSelectFirstDayOfWeek={(firstDayOfWeek) => {
+            setSelectedWeekCalendarFirstDayOfWeek(firstDayOfWeek);
+          }}
+        />
+      </div>
       <WeekInsights
         dispatch={props.dispatch}
         prs={prs}
@@ -292,6 +231,59 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
           )}
         </div>
       </div>
-    </Surface>
+      {showEditMuscleGroups && (
+        <BottomSheetOrModalMuscleGroupsContent
+          settings={props.settings}
+          onClose={() => setShowEditMuscleGroups(false)}
+          onNewSettings={(newSettings) => {
+            updateState(
+              props.dispatch,
+              [lb<IState>().p("storage").p("settings").record(newSettings)],
+              "Update planner settings"
+            );
+          }}
+        />
+      )}
+      <BottomSheetMonthCalendar
+        prs={prs}
+        firstDayOfWeeks={firstDayOfWeeks}
+        history={sortedHistory}
+        startWeekFromMonday={props.settings.startWeekFromMonday}
+        selectedFirstDayOfWeek={selectedWeekCalendarFirstDayOfWeek}
+        visibleRecords={visibleRecords}
+        isHidden={!showMonthCalendar}
+        onClose={() => setShowMonthCalendar(false)}
+        onClick={(historyRecord) => {
+          const index = sortedHistory.findIndex((record) => record.id === historyRecord.id);
+          const scrollToElementCal = (): void => {
+            scrollToElement(historyRecord.id);
+            setShowMonthCalendar(false);
+          };
+          if (visibleHistory.length < index) {
+            loadMoreVisibleRecords(index - visibleHistory.length + 20);
+            setTimeout(scrollToElementCal, 100);
+          } else {
+            scrollToElementCal();
+          }
+        }}
+      />
+      {showPlannerSettings && (
+        <ModalPlannerSettings
+          inApp={true}
+          onNewSettings={(newSettings) =>
+            updateState(
+              props.dispatch,
+              [lb<IState>().p("storage").p("settings").record(newSettings)],
+              "Update planner settings"
+            )
+          }
+          onShowEditMuscleGroups={() => {
+            setShowEditMuscleGroups(true);
+          }}
+          settings={props.settings}
+          onClose={() => setShowPlannerSettings(false)}
+        />
+      )}
+    </section>
   );
 }
