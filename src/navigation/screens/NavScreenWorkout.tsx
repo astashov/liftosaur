@@ -1,6 +1,7 @@
 import { JSX } from "react";
 import { useAppState } from "../StateContext";
 import { buildNavCommon } from "../utils";
+import { NavScreenContent } from "../NavScreenContent";
 import { ScreenWorkout } from "../../components/screenWorkout";
 import { ScreenFinishDay as ScreenFinishDayComponent } from "../../components/screenFinishDay";
 import { ScreenSubscription as ScreenSubscriptionComponent } from "../../components/screenSubscription";
@@ -22,24 +23,26 @@ export function NavScreenProgress(): JSX.Element {
     : undefined;
 
   return (
-    <FallbackScreen state={{ progress }} dispatch={dispatch}>
-      {({ progress: progress2 }) => (
-        <ScreenWorkout
-          navCommon={navCommon}
-          stats={state.storage.stats}
-          helps={state.storage.helps}
-          history={state.storage.history}
-          subscription={state.storage.subscription}
-          userId={state.user?.id}
-          progress={progress2}
-          allPrograms={state.storage.programs}
-          program={program}
-          currentProgram={currentProgram}
-          dispatch={dispatch}
-          settings={state.storage.settings}
-        />
-      )}
-    </FallbackScreen>
+    <NavScreenContent>
+      <FallbackScreen state={{ progress }} dispatch={dispatch}>
+        {({ progress: progress2 }) => (
+          <ScreenWorkout
+            navCommon={navCommon}
+            stats={state.storage.stats}
+            helps={state.storage.helps}
+            history={state.storage.history}
+            subscription={state.storage.subscription}
+            userId={state.user?.id}
+            progress={progress2}
+            allPrograms={state.storage.programs}
+            program={program}
+            currentProgram={currentProgram}
+            dispatch={dispatch}
+            settings={state.storage.settings}
+          />
+        )}
+      </FallbackScreen>
+    </NavScreenContent>
   );
 }
 
@@ -47,13 +50,15 @@ export function NavScreenFinishDay(): JSX.Element {
   const { state, dispatch } = useAppState();
   const navCommon = buildNavCommon(state);
   return (
-    <ScreenFinishDayComponent
-      navCommon={navCommon}
-      settings={state.storage.settings}
-      dispatch={dispatch}
-      history={state.storage.history}
-      userId={state.user?.id}
-    />
+    <NavScreenContent>
+      <ScreenFinishDayComponent
+        navCommon={navCommon}
+        settings={state.storage.settings}
+        dispatch={dispatch}
+        history={state.storage.history}
+        userId={state.user?.id}
+      />
+    </NavScreenContent>
   );
 }
 
@@ -61,16 +66,18 @@ export function NavScreenSubscription(): JSX.Element {
   const { state, dispatch } = useAppState();
   const navCommon = buildNavCommon(state);
   return (
-    <ScreenSubscriptionComponent
-      history={state.storage.history}
-      prices={state.prices}
-      offers={state.offers}
-      appleOffer={state.appleOffer}
-      googleOffer={state.googleOffer}
-      subscription={state.storage.subscription}
-      subscriptionLoading={state.subscriptionLoading}
-      dispatch={dispatch}
-      navCommon={navCommon}
-    />
+    <NavScreenContent>
+      <ScreenSubscriptionComponent
+        history={state.storage.history}
+        prices={state.prices}
+        offers={state.offers}
+        appleOffer={state.appleOffer}
+        googleOffer={state.googleOffer}
+        subscription={state.storage.subscription}
+        subscriptionLoading={state.subscriptionLoading}
+        dispatch={dispatch}
+        navCommon={navCommon}
+      />
+    </NavScreenContent>
   );
 }

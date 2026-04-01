@@ -130,7 +130,7 @@ export function ScreenSetupPlates(props: IScreenSetupPlatesProps): JSX.Element {
 
   return (
     <>
-      <section>
+      <section className="pb-16">
         <div className="p-4 text-center">
           <img src="/images/dinoplates.png" className="inline-block object-cover h-52" alt="Dino with plates" />
         </div>
