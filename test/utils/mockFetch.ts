@@ -25,7 +25,7 @@ export class MockFetch {
     public readonly logs: IMockFetchLog[]
   ) {}
 
-  public fetch: Window["fetch"] = async (urlStr, options) => {
+  public fetch: typeof globalThis.fetch = async (urlStr, options) => {
     const session = JWT.sign({ userId: this.userId }, "cookieSecret");
     if (!this.handler) {
       throw new Error("No handler");
@@ -57,7 +57,7 @@ export class MockFetch {
         arrayBuffer: async () => new ArrayBuffer(0),
         blob: async () => new Blob(),
         formData: async () => new FormData(),
-      };
+      } as unknown as Response;
     }
     const qs: Record<string, string> = {};
     url.searchParams.forEach((value, key) => (qs[key] = value));
@@ -102,7 +102,7 @@ export class MockFetch {
       arrayBuffer: async () => new ArrayBuffer(0),
       blob: async () => new Blob(),
       formData: async () => new FormData(),
-    };
+    } as unknown as Response;
   };
 }
 
@@ -133,5 +133,24 @@ class MockHeaders implements Headers {
 
   public getSetCookie(): string[] {
     return this.headers["Set-Cookie"]?.split(",") || [];
+  }
+
+  public entries(): ReturnType<Headers["entries"]> {
+    const entries = ObjectUtils_keys(this.headers).map((k) => [k, this.headers[k]] as [string, string]);
+    return entries[Symbol.iterator]();
+  }
+
+  public keys(): ReturnType<Headers["keys"]> {
+    const keys = ObjectUtils_keys(this.headers);
+    return keys[Symbol.iterator]();
+  }
+
+  public values(): ReturnType<Headers["values"]> {
+    const values = ObjectUtils_keys(this.headers).map((k) => this.headers[k]);
+    return values[Symbol.iterator]();
+  }
+
+  public [Symbol.iterator](): ReturnType<Headers[typeof Symbol.iterator]> {
+    return this.entries();
   }
 }

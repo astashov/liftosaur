@@ -285,7 +285,7 @@ export function Page<T>(props: IProps<T>): JSX.Element {
         <div className="content" id="app">
           {props.nowrapper ? (
             typeof props.children === "function" ? (
-              (props.children as (ctx: any) => React.ReactNode)({})
+              (props.children as (ctx: Record<string, unknown>) => React.ReactNode)({})
             ) : (
               props.children
             )

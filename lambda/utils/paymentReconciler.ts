@@ -67,8 +67,7 @@ export class PaymentReconciler {
 
     this.di.log.log("Reconciler: Starting reconciliation");
 
-    let allSubscriptionDetails =
-      preloaded?.subscriptionDetails ?? (await this.subscriptionDetailsDao.scanAll());
+    let allSubscriptionDetails = preloaded?.subscriptionDetails ?? (await this.subscriptionDetailsDao.scanAll());
     this.di.log.log(`Reconciler: Found ${allSubscriptionDetails.length} subscription details`);
 
     const newDetails = await this.auditUserStorage(allSubscriptionDetails, result, preloaded?.users);
@@ -132,9 +131,7 @@ export class PaymentReconciler {
     if (!appleRaw) {
       return undefined;
     }
-    const receiptValues = Array.isArray(appleRaw)
-      ? appleRaw.map((r) => r.value)
-      : Object.keys(appleRaw);
+    const receiptValues = Array.isArray(appleRaw) ? appleRaw.map((r) => r.value) : Object.keys(appleRaw);
     if (receiptValues.length === 0) {
       return undefined;
     }
@@ -176,9 +173,7 @@ export class PaymentReconciler {
     if (!googleRaw) {
       return undefined;
     }
-    const tokenStrings = Array.isArray(googleRaw)
-      ? googleRaw.map((r) => r.value)
-      : Object.keys(googleRaw);
+    const tokenStrings = Array.isArray(googleRaw) ? googleRaw.map((r) => r.value) : Object.keys(googleRaw);
     if (tokenStrings.length === 0) {
       return undefined;
     }
@@ -339,7 +334,6 @@ export class PaymentReconciler {
     const allTransactions: string[] = [];
     let revision: string | undefined;
 
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       const history = await this.fetchAppleTransactionPage(originalTransactionId, appleToken, revision);
       if (!history?.signedTransactions) {
@@ -426,9 +420,7 @@ export class PaymentReconciler {
         `Reconciler: Google batch [${batchStart + 1}-${batchStart + batch.length}/${validSubscriptions.length}]`
       );
 
-      const batchResults = await Promise.all(
-        batch.map((sub) => this.reconcileOneGoogleSub(sub, existingTxIds))
-      );
+      const batchResults = await Promise.all(batch.map((sub) => this.reconcileOneGoogleSub(sub, existingTxIds)));
 
       for (const br of batchResults) {
         result.googlePaymentsAdded += br.added;

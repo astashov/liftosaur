@@ -5,6 +5,7 @@ import { Weight_display, Weight_convertTo, Weight_build } from "../models/weight
 import { DateUtils_format } from "../utils/date";
 import { GroupHeader } from "./groupHeader";
 import { MenuItem } from "./menuItem";
+import { Thunk_editHistoryRecord } from "../ducks/thunks";
 
 interface IExerciseAllTimePRsProps {
   settings: ISettings;
@@ -23,10 +24,7 @@ export function ExerciseAllTimePRs(props: IExerciseAllTimePRsProps): JSX.Element
         <MenuItem
           name="Max Weight"
           expandName={true}
-          onClick={() =>
-            maxWeight.historyRecord &&
-            props.dispatch({ type: "EditHistoryRecord", historyRecord: maxWeight.historyRecord })
-          }
+          onClick={() => maxWeight.historyRecord && props.dispatch(Thunk_editHistoryRecord(maxWeight.historyRecord))}
           value={
             <div className="text-text-primary">
               <div data-cy="max-weight-value">
@@ -44,9 +42,7 @@ export function ExerciseAllTimePRs(props: IExerciseAllTimePRsProps): JSX.Element
         <MenuItem
           isBorderless={true}
           expandValue={true}
-          onClick={() =>
-            max1RM.historyRecord && props.dispatch({ type: "EditHistoryRecord", historyRecord: max1RM.historyRecord })
-          }
+          onClick={() => max1RM.historyRecord && props.dispatch(Thunk_editHistoryRecord(max1RM.historyRecord))}
           name="Max 1RM"
           value={
             <div className="text-text-primary">

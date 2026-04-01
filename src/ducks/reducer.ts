@@ -26,16 +26,7 @@ import {
   Storage_updateVersions,
   Storage_validateAndReportStorage,
 } from "../models/storage";
-import {
-  IScreen,
-  IScreenStack,
-  IScreenParams,
-  Screen_current,
-  Screen_currentName,
-  Screen_push,
-  Screen_updateParams,
-  Screen_pull,
-} from "../models/screen";
+import { IScreen, IScreenStack, IScreenParams, Screen_current, Screen_currentName } from "../models/screen";
 import { ILensRecordingPayload, lb, LensBuilder } from "lens-shmens";
 import { buildState, IEnv, ILocalStorage, INotification, IState, IStateErrors, updateState } from "../models/state";
 import { UidFactory_generateUid } from "../utils/generator";
@@ -321,6 +312,11 @@ export type IUpdateProgressAction = {
   desc: string;
 };
 
+export type ISyncScreenStack = {
+  type: "SyncScreenStack";
+  screenStack: IScreenStack;
+};
+
 export type ICardsAction = ICompleteSetAction | IChangeAMRAPAction | IUpdateProgressAction;
 
 export type IAction =
@@ -332,6 +328,7 @@ export type IAction =
   | IDeleteProgress
   | IPushScreen<any>
   | IPullScreen
+  | ISyncScreenStack
   | IChangeDate
   | IConfirmDate
   | ILoginAction
@@ -673,25 +670,6 @@ export function buildCardsReducer(
   };
 }
 
-function pushScreen<T extends IScreen>(
-  screenStack: IScreenStack,
-  name: T,
-  params?: IScreenParams<T>,
-  shouldResetStack?: boolean
-): IScreenStack {
-  if (screenStack.length > 0) {
-    const current = Screen_current(screenStack);
-    if (current.name !== name || !ObjectUtils_isEqual(current.params || {}, params || {})) {
-      if (shouldResetStack) {
-        return [{ name, ...(params ? { params } : {}) } as Extract<IScreen, { name: string }>];
-      } else {
-        return Screen_push(screenStack, name, params as any);
-      }
-    }
-  }
-  return screenStack;
-}
-
 export const reducer: Reducer<IState, IAction> = (state, action): IState => {
   if (action.type === "CompleteSetAction" || action.type === "ChangeAMRAPAction" || action.type === "UpdateProgress") {
     const progress = Progress_getProgress(state);
@@ -705,17 +683,13 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
   } else if (action.type === "StartProgramDayAction") {
     const progress = Progress_getProgress(state);
     if (progress != null) {
-      return {
-        ...state,
-        screenStack: pushScreen(state.screenStack, "progress", { id: progress.id }, true),
-      };
+      return state;
     } else if (state.storage.currentProgramId != null) {
       const program = Program_getProgram(state, action.programId || state.storage.currentProgramId);
       if (program != null) {
         const newProgress = Program_nextHistoryRecord(program, state.storage.settings, state.storage.stats);
         return {
           ...state,
-          screenStack: pushScreen(state.screenStack, "progress", { id: 0 }, true),
           storage: { ...state.storage, progress: [newProgress] },
         };
       } else {
@@ -726,13 +700,8 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       return state;
     }
   } else if (action.type === "EditHistoryRecord") {
-    let newScreenStack = state.screenStack;
-    if (Screen_currentName(state.screenStack) === "main") {
-      newScreenStack = Screen_updateParams<"main">(state.screenStack, { historyRecordId: action.historyRecord.id });
-    }
     return {
       ...state,
-      screenStack: pushScreen(newScreenStack, "progress", { id: action.historyRecord.id }),
       progress: { ...state.progress, [action.historyRecord.id]: { ...action.historyRecord, ui: {} } },
     };
   } else if (action.type === "FinishProgramDayAction") {
@@ -744,7 +713,6 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     return {
       ...state,
       storage: newStorage,
-      screenStack: Progress_isCurrent(progress) ? [{ name: "finishDay" }] : Screen_pull(state.screenStack),
       progress: Progress_isCurrent(progress) ? state.progress : Progress_stop(state.progress, progress.id),
     };
   } else if (action.type === "ChangeDate") {
@@ -755,7 +723,6 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     const progress = Progress_getProgress(state)!;
     return {
       ...state,
-      screenStack: pushScreen(state.screenStack, "main", undefined, true),
       storage: Progress_isCurrent(progress) ? { ...state.storage, progress: [] } : state.storage,
       progress: Progress_isCurrent(progress)
         ? state.progress
@@ -771,7 +738,6 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       }
       return {
         ...state,
-        screenStack: pushScreen(state.screenStack, "main", undefined, true),
         storage: {
           ...state.storage,
           history,
@@ -795,10 +761,11 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       return state;
     }
   } else if (action.type === "PushScreen") {
-    const newScreenStack = pushScreen(state.screenStack, action.screen, action.params, action.shouldResetStack);
-    return newScreenStack === state.screenStack ? state : { ...state, screenStack: newScreenStack };
+    return state;
   } else if (action.type === "PullScreen") {
-    return { ...state, screenStack: Screen_pull(state.screenStack) };
+    return state;
+  } else if (action.type === "SyncScreenStack") {
+    return { ...state, screenStack: action.screenStack };
   } else if (action.type === "Login") {
     return {
       ...state,

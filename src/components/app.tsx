@@ -1,12 +1,7 @@
-import { JSX, Fragment, useEffect, useRef } from "react";
+import { JSX, Fragment, useEffect, useRef, useCallback } from "react";
 import { reducerWrapper, defaultOnActions, IAction } from "../ducks/reducer";
-import { ChooseProgramView } from "./chooseProgram";
-import { ProgramHistoryView } from "./programHistory";
-import { Program_getProgram, Program_getFullProgram, Program_fullProgram } from "../models/program";
-import { IScreen, Screen_currentName, Screen_current } from "../models/screen";
-import { ScreenSettings } from "./screenSettings";
-import { ScreenAccount } from "./screenAccount";
-import { ScreenApiKeys } from "./screenApiKeys";
+import { Program_getProgram } from "../models/program";
+import { IScreen, Screen_currentName, Screen_tab } from "../models/screen";
 import { useThunkReducer } from "../utils/useThunkReducer";
 import {
   Thunk_fetchStorage,
@@ -26,38 +21,19 @@ import {
 } from "../ducks/thunks";
 import { Service } from "../api/service";
 import { IAudioInterface } from "../lib/audioInterface";
-import { ScreenTimers } from "./screenTimers";
-import { ScreenEquipment } from "./screenEquipment";
-import { ScreenGraphs } from "./screenGraphs";
-import { ScreenEditProgram } from "./screenEditProgram";
-import {
-  Progress_getCurrentProgress,
-  Progress_lbProgress,
-  Progress_getProgress,
-  Progress_isCurrent,
-} from "../models/progress";
-import { IAttributionData, IEnv, INavCommon, IState, updateState } from "../models/state";
-import { ScreenFinishDay } from "./screenFinishDay";
-import { ScreenMusclesProgram } from "./muscles/screenMusclesProgram";
-import { ScreenMusclesDay } from "./muscles/screenMusclesDay";
-import { ScreenStats } from "./screenStats";
+import { Progress_getCurrentProgress, Progress_lbProgress, Progress_getProgress } from "../models/progress";
+import { IAttributionData, IEnv, IState, updateState } from "../models/state";
 import { Notification } from "./notification";
 import { WhatsNew_doesHaveNewUpdates } from "../models/whatsnew";
 import { WhatsNew_updateStorage } from "../models/whatsnewUtils";
 import { ModalWhatsnew } from "./modalWhatsnew";
-import { ScreenMeasurements } from "./screenMeasurements";
-import { ScreenSubscription } from "./screenSubscription";
 import {
   Subscriptions_cleanupOutdatedAppleReceipts,
   Subscriptions_cleanupOutdatedGooglePurchaseTokens,
   Subscriptions_isEligibleForThanksgivingPromo,
 } from "../utils/subscriptions";
 import { lb } from "lens-shmens";
-import { ScreenProgramPreview } from "./screenProgramPreview";
-import { ScreenExerciseStats } from "./screenExerciseStats";
-import { Exercise_find, Exercise_toKey } from "../models/exercise";
 import { RestTimer } from "./restTimer";
-import { ScreenFirst } from "./screenFirst";
 import { ImportExporter_handleUniversalLink } from "../lib/importexporter";
 import { ModalSignupRequest } from "./modalSignupRequest";
 import { SendMessage_toAndroid, SendMessage_toIos, SendMessage_print } from "../utils/sendMessage";
@@ -65,28 +41,19 @@ import { ModalCorruptedState } from "./modalCorruptedState";
 import { UrlUtils_build } from "../utils/url";
 import { AsyncQueue } from "../utils/asyncQueue";
 import { useLoopCatcher } from "../utils/useLoopCatcher";
-import { Equipment_getEquipmentOfGym } from "../models/equipment";
-import { ScreenGyms } from "./screenGyms";
-import { ScreenExercises } from "./screenExercises";
-import { ScreenAppleHealthSettings } from "./screenAppleHealthSettings";
-import { ScreenGoogleHealthSettings } from "./screenGoogleHealthSettings";
-import { ScreenUnitSelector } from "./screenUnitSelector";
 import RB from "rollbar";
 import { exceptionIgnores } from "../utils/rollbar";
-import { ScreenWorkout } from "./screenWorkout";
-import { Account_getFromStorage } from "../models/account";
 import { ImagePreloader_preload, ImagePreloader_dynocoach } from "../utils/imagePreloader";
-import { ScreenEditProgramExercise } from "./editProgramExercise/screenEditProgramExercise";
-import { FallbackScreen } from "./fallbackScreen";
-import { Screen1RM } from "./screen1RM";
-import { ScreenSetupEquipment, ScreenSetupPlates } from "./screenSetupEquipment";
-import { ScreenProgramSelect } from "./screenProgramSelect";
 import { Settings_applyTheme } from "../models/settings";
 import { AppContext } from "./appContext";
-import { ScreenMuscleGroups } from "./screenMuscleGroups";
 import { ModalThanks25 } from "./modalThanks25";
 import { TourModal } from "./tour/tourModal";
 import { TourConfigs_findTourId } from "./tour/tourConfigs";
+import { NavigationContainer, type NavigationState } from "@react-navigation/native";
+import { navigationRef } from "../navigation/navigationRef";
+import { StateContext } from "../navigation/StateContext";
+import { AppNavigator } from "../navigation/AppNavigator";
+import type { IScreenStack, IScreenData } from "../models/screen";
 
 declare let Rollbar: RB;
 declare let __COMMIT_HASH__: string;
@@ -97,6 +64,36 @@ interface IProps {
   initialState: IState;
   queue: AsyncQueue;
 }
+
+const tabToDefaultScreen: Record<string, IScreen> = {
+  homeTab: "main",
+  programTab: "programs",
+  workoutTab: "progress",
+  graphsTab: "graphs",
+  meTab: "settings",
+};
+
+function deriveScreenStack(navState: NavigationState | undefined): IScreenStack {
+  if (!navState) {
+    return [{ name: "main" }];
+  }
+  const activeTabRoute = navState.routes[navState.index ?? 0];
+  const tabState = activeTabRoute.state as NavigationState | undefined;
+  if (!tabState) {
+    return [{ name: tabToDefaultScreen[activeTabRoute.name] || "main" } as IScreenData];
+  }
+  const stack: IScreenStack = [];
+  for (let i = 0; i <= (tabState.index ?? 0); i++) {
+    const route = tabState.routes[i];
+    stack.push({
+      name: route.name as IScreen,
+      ...(route.params ? { params: route.params } : {}),
+    } as IScreenData);
+  }
+  return stack;
+}
+
+
 
 export function AppView(props: IProps): JSX.Element | null {
   const { client, audio, queue } = props;
@@ -341,6 +338,8 @@ export function AppView(props: IProps): JSX.Element | null {
     SendMessage_toIos({ type: "loaded", userid: userId });
     SendMessage_toAndroid({ type: "loaded", userid: userId });
 
+    const currentProgram =
+      state.storage.currentProgramId != null ? Program_getProgram(state, state.storage.currentProgramId) : undefined;
     if (currentProgram != null && currentProgram.planner == null) {
       alert(
         "You're using OLD STYLE programs, which won't be supported, and WILL STOP WORKING starting from Feb 3, 2025! Please go to Program screen, and migrate the program to the new style"
@@ -363,363 +362,15 @@ export function AppView(props: IProps): JSX.Element | null {
     document.body.setAttribute("data-screen", Screen_currentName(state.screenStack));
   }, [state.screenStack]);
 
-  const currentProgram =
-    state.storage.currentProgramId != null ? Program_getProgram(state, state.storage.currentProgramId) : undefined;
+  const onNavigationStateChange = useCallback(
+    (navState: NavigationState | undefined) => {
+      const screenStack = deriveScreenStack(navState);
+      dispatch({ type: "SyncScreenStack", screenStack });
+    },
+    [dispatch]
+  );
 
-  const navCommon: INavCommon = {
-    subscription: state.storage.subscription,
-    screenStack: state.screenStack,
-    doesHaveWorkouts: state.storage.history.length > 0,
-    helps: state.storage.helps,
-    loading: state.loading,
-    currentProgram,
-    allPrograms: state.storage.programs,
-    settings: state.storage.settings,
-    progress: Progress_getCurrentProgress(state),
-    stats: state.storage.stats,
-    userId: state.user?.id,
-  };
-
-  let content: JSX.Element;
-  if (Screen_currentName(state.screenStack) === "first") {
-    const userId = state.user?.id;
-    const userEmail = state.user?.email;
-    const account = userId && userEmail ? Account_getFromStorage(userId, userEmail, state.storage) : undefined;
-    content = <ScreenFirst account={account} client={client} dispatch={dispatch} />;
-  } else if (Screen_currentName(state.screenStack) === "units") {
-    content = <ScreenUnitSelector settings={state.storage.settings} dispatch={dispatch} />;
-  } else if (Screen_currentName(state.screenStack) === "subscription") {
-    content = (
-      <ScreenSubscription
-        history={state.storage.history}
-        prices={state.prices}
-        offers={state.offers}
-        appleOffer={state.appleOffer}
-        googleOffer={state.googleOffer}
-        subscription={state.storage.subscription}
-        subscriptionLoading={state.subscriptionLoading}
-        dispatch={dispatch}
-        navCommon={navCommon}
-      />
-    );
-  } else if (
-    Screen_currentName(state.screenStack) === "programs" ||
-    (Screen_currentName(state.screenStack) === "main" && currentProgram == null)
-  ) {
-    content = (
-      <ChooseProgramView
-        navCommon={navCommon}
-        settings={state.storage.settings}
-        dispatch={dispatch}
-        progress={Progress_getProgress(state)}
-        programs={state.programs || []}
-        programsIndex={state.programsIndex || []}
-        customPrograms={state.storage.programs || []}
-        editProgramId={Progress_getProgress(state)?.programId}
-      />
-    );
-  } else if (Screen_currentName(state.screenStack) === "main") {
-    if (currentProgram != null) {
-      content = (
-        <ProgramHistoryView
-          progress={Progress_getProgress(state)}
-          navCommon={navCommon}
-          program={currentProgram}
-          settings={state.storage.settings}
-          history={state.storage.history}
-          subscription={state.storage.subscription}
-          dispatch={dispatch}
-        />
-      );
-    } else {
-      throw new Error("Program is not selected on the 'main' screen");
-    }
-  } else if (Screen_currentName(state.screenStack) === "progress") {
-    const progress = Progress_getProgress(state);
-    const program = progress
-      ? Progress_isCurrent(progress)
-        ? Program_getFullProgram(state, progress.programId) ||
-          (currentProgram ? Program_fullProgram(currentProgram, state.storage.settings) : undefined)
-        : undefined
-      : undefined;
-    content = (
-      <FallbackScreen state={{ progress }} dispatch={dispatch}>
-        {({ progress: progress2 }) => (
-          <ScreenWorkout
-            navCommon={navCommon}
-            stats={state.storage.stats}
-            helps={state.storage.helps}
-            history={state.storage.history}
-            subscription={state.storage.subscription}
-            userId={state.user?.id}
-            progress={progress2}
-            allPrograms={state.storage.programs}
-            program={program}
-            currentProgram={currentProgram}
-            dispatch={dispatch}
-            settings={state.storage.settings}
-          />
-        )}
-      </FallbackScreen>
-    );
-  } else if (Screen_currentName(state.screenStack) === "settings") {
-    content = (
-      <ScreenSettings
-        stats={state.storage.stats}
-        tempUserId={state.storage.tempUserId}
-        navCommon={navCommon}
-        subscription={state.storage.subscription}
-        dispatch={dispatch}
-        user={state.user}
-        currentProgramName={Program_getProgram(state, state.storage.currentProgramId)?.name || ""}
-        settings={state.storage.settings}
-      />
-    );
-  } else if (Screen_currentName(state.screenStack) === "programPreview") {
-    if (state.previewProgram?.id == null) {
-      setTimeout(() => {
-        dispatch(Thunk_pullScreen());
-      }, 0);
-      content = <></>;
-    } else {
-      content = (
-        <ScreenProgramPreview
-          navCommon={navCommon}
-          dispatch={dispatch}
-          settings={state.storage.settings}
-          selectedProgramId={state.previewProgram?.id}
-          programs={state.previewProgram?.showCustomPrograms ? state.storage.programs : state.programs}
-          subscription={state.storage.subscription}
-        />
-      );
-    }
-  } else if (Screen_currentName(state.screenStack) === "onerms") {
-    if (currentProgram == null) {
-      throw new Error("Opened 'exercises' screen, but 'currentProgram' is null");
-    }
-    content = (
-      <Screen1RM navCommon={navCommon} dispatch={dispatch} program={currentProgram} settings={state.storage.settings} />
-    );
-  } else if (Screen_currentName(state.screenStack) === "stats") {
-    content = (
-      <ScreenStats
-        navCommon={navCommon}
-        dispatch={dispatch}
-        settings={state.storage.settings}
-        stats={state.storage.stats}
-      />
-    );
-  } else if (Screen_currentName(state.screenStack) === "muscleGroups") {
-    content = <ScreenMuscleGroups navCommon={navCommon} dispatch={dispatch} settings={state.storage.settings} />;
-  } else if (Screen_currentName(state.screenStack) === "measurements") {
-    content = (
-      <ScreenMeasurements
-        navCommon={navCommon}
-        subscription={state.storage.subscription}
-        dispatch={dispatch}
-        settings={state.storage.settings}
-        stats={state.storage.stats}
-      />
-    );
-  } else if (Screen_currentName(state.screenStack) === "account") {
-    content = <ScreenAccount navCommon={navCommon} dispatch={dispatch} email={state.user?.email} />;
-  } else if (Screen_currentName(state.screenStack) === "apiKeys") {
-    content = (
-      <ScreenApiKeys
-        navCommon={navCommon}
-        dispatch={dispatch}
-        service={service}
-        subscription={state.storage.subscription}
-        userId={state.user?.id}
-      />
-    );
-  } else if (Screen_currentName(state.screenStack) === "exerciseStats") {
-    const exercise = state.viewExerciseType
-      ? Exercise_find(state.viewExerciseType, state.storage.settings.exercises)
-      : undefined;
-    if (exercise == null) {
-      setTimeout(() => {
-        dispatch(Thunk_pullScreen());
-      }, 0);
-      content = <></>;
-    } else {
-      content = (
-        <ScreenExerciseStats
-          navCommon={navCommon}
-          currentProgram={currentProgram}
-          key={Exercise_toKey(exercise)}
-          history={state.storage.history}
-          dispatch={dispatch}
-          exerciseType={exercise}
-          settings={state.storage.settings}
-          subscription={state.storage.subscription}
-        />
-      );
-    }
-  } else if (Screen_currentName(state.screenStack) === "timers") {
-    content = <ScreenTimers navCommon={navCommon} dispatch={dispatch} timers={state.storage.settings.timers} />;
-  } else if (Screen_currentName(state.screenStack) === "appleHealth") {
-    content = <ScreenAppleHealthSettings navCommon={navCommon} dispatch={dispatch} settings={state.storage.settings} />;
-  } else if (Screen_currentName(state.screenStack) === "googleHealth") {
-    content = (
-      <ScreenGoogleHealthSettings navCommon={navCommon} dispatch={dispatch} settings={state.storage.settings} />
-    );
-  } else if (Screen_currentName(state.screenStack) === "gyms") {
-    content = (
-      <ScreenGyms
-        navCommon={navCommon}
-        expandedEquipment={state.defaultEquipmentExpanded}
-        dispatch={dispatch}
-        settings={state.storage.settings}
-      />
-    );
-  } else if (Screen_currentName(state.screenStack) === "setupequipment") {
-    content = (
-      <ScreenSetupEquipment
-        stats={state.storage.stats}
-        navCommon={navCommon}
-        dispatch={dispatch}
-        settings={state.storage.settings}
-      />
-    );
-  } else if (Screen_currentName(state.screenStack) === "setupplates") {
-    content = (
-      <ScreenSetupPlates
-        stats={state.storage.stats}
-        navCommon={navCommon}
-        dispatch={dispatch}
-        settings={state.storage.settings}
-      />
-    );
-  } else if (Screen_currentName(state.screenStack) === "programselect") {
-    content = <ScreenProgramSelect dispatch={dispatch} settings={state.storage.settings} />;
-  } else if (Screen_currentName(state.screenStack) === "plates") {
-    const allEquipment = Equipment_getEquipmentOfGym(state.storage.settings, state.selectedGymId);
-    content = (
-      <ScreenEquipment
-        stats={state.storage.stats}
-        navCommon={navCommon}
-        allEquipment={allEquipment}
-        expandedEquipment={state.defaultEquipmentExpanded}
-        selectedGymId={state.selectedGymId}
-        dispatch={dispatch}
-        settings={state.storage.settings}
-      />
-    );
-  } else if (Screen_currentName(state.screenStack) === "exercises") {
-    if (currentProgram == null) {
-      throw new Error("Opened 'exercises' screen, but 'currentProgram' is null");
-    }
-    content = (
-      <ScreenExercises
-        navCommon={navCommon}
-        settings={state.storage.settings}
-        dispatch={dispatch}
-        program={currentProgram}
-        history={state.storage.history}
-      />
-    );
-  } else if (Screen_currentName(state.screenStack) === "graphs") {
-    content = (
-      <ScreenGraphs
-        navCommon={navCommon}
-        settings={state.storage.settings}
-        dispatch={dispatch}
-        history={state.storage.history}
-        stats={state.storage.stats}
-      />
-    );
-  } else if (Screen_currentName(state.screenStack) === "editProgramExercise") {
-    const screenData = Screen_current(navCommon.screenStack);
-    const exerciseKey = screenData.name === "editProgramExercise" ? screenData.params?.key : undefined;
-    const dayData = screenData.name === "editProgramExercise" ? screenData.params?.dayData : undefined;
-    const plannerState = screenData.name === "editProgramExercise" ? screenData.params?.plannerState : undefined;
-    content = (
-      <FallbackScreen state={{ plannerState, exerciseKey, dayData }} dispatch={dispatch}>
-        {({ plannerState: plannerState2, exerciseKey: exerciseKey2, dayData: dayData2 }) => (
-          <ScreenEditProgramExercise
-            plannerState={plannerState2}
-            exerciseKey={exerciseKey2}
-            dayData={dayData2}
-            dispatch={dispatch}
-            settings={state.storage.settings}
-            navCommon={navCommon}
-          />
-        )}
-      </FallbackScreen>
-    );
-  } else if (Screen_currentName(state.screenStack) === "editProgram") {
-    const screenData = Screen_current(navCommon.screenStack);
-    const plannerState = screenData.name === "editProgram" ? screenData.params?.plannerState : undefined;
-    const editProgram = Program_getProgram(
-      state,
-      plannerState ? plannerState.current.program.id : Progress_getProgress(state)?.programId
-    );
-    content = (
-      <FallbackScreen state={{ plannerState, editProgram }} dispatch={dispatch}>
-        {({ plannerState: plannerState2, editProgram: editProgram2 }) => (
-          <ScreenEditProgram
-            client={client}
-            helps={state.storage.helps}
-            navCommon={navCommon}
-            subscription={state.storage.subscription}
-            settings={state.storage.settings}
-            dispatch={dispatch}
-            originalProgram={editProgram2}
-            plannerState={plannerState2}
-            revisions={(state.revisions || {})[editProgram2.id] || []}
-            isLoggedIn={state.user != null}
-          />
-        )}
-      </FallbackScreen>
-    );
-  } else if (Screen_currentName(state.screenStack) === "finishDay") {
-    content = (
-      <ScreenFinishDay
-        navCommon={navCommon}
-        settings={state.storage.settings}
-        dispatch={dispatch}
-        history={state.storage.history}
-        userId={state.user?.id}
-      />
-    );
-  } else if (Screen_currentName(state.screenStack) === "muscles") {
-    const type = state.muscleView || {
-      type: "program",
-      programId: state.storage.currentProgramId || state.storage.programs[0]?.id,
-    };
-    if (type.programId == null) {
-      throw new Error("Opened 'muscles' screen, but 'state.storage.currentProgramId' is null");
-    }
-    let program = Program_getProgram(state, type.programId);
-    if (program == null) {
-      throw new Error("Opened 'muscles' screen, but 'program' is null");
-    }
-    program = Program_fullProgram(program, state.storage.settings);
-    if (type.type === "program") {
-      content = (
-        <ScreenMusclesProgram
-          navCommon={navCommon}
-          dispatch={dispatch}
-          program={program}
-          settings={state.storage.settings}
-        />
-      );
-    } else {
-      content = (
-        <ScreenMusclesDay
-          navCommon={navCommon}
-          dispatch={dispatch}
-          program={program}
-          day={type.day ?? 1}
-          settings={state.storage.settings}
-        />
-      );
-    }
-  } else {
-    Rollbar.error(`Unknown screen: ${state.screenStack.length > 0 ? Screen_currentName(state.screenStack) : "empty"}`);
-    return null;
-  }
+  const initialScreen = props.initialState.screenStack[0]?.name;
 
   const progress = Progress_getProgress(state);
   const { lftAndroidSafeInsetTop, lftAndroidSafeInsetBottom } = window;
@@ -729,6 +380,7 @@ export function AppView(props: IProps): JSX.Element | null {
     state.storage.subscription
   );
   const helps = state.storage.helps;
+
   return (
     <Fragment>
       <style
@@ -741,7 +393,13 @@ export function AppView(props: IProps): JSX.Element | null {
       `,
         }}
       />
-      <AppContext.Provider value={{ service, isApp: true }}>{content}</AppContext.Provider>
+      <StateContext.Provider value={{ state, dispatch }}>
+        <AppContext.Provider value={{ service, isApp: true }}>
+          <NavigationContainer ref={navigationRef} onStateChange={onNavigationStateChange}>
+            <AppNavigator initialScreen={initialScreen} />
+          </NavigationContainer>
+        </AppContext.Provider>
+      </StateContext.Provider>
       {progress && screensWithoutTimer.indexOf(Screen_currentName(state.screenStack)) === -1 && (
         <RestTimer
           progress={progress}

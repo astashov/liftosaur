@@ -227,7 +227,10 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
   useEffect(() => {
     if (state.id === "newprogram") {
       const id = UidFactory_generateUid(8);
-      dispatch([lb<IPlannerState>().p("id").record(id), lb<IPlannerState>().p("current").p("program").p("id").record(id)], "Generate initial ID");
+      dispatch(
+        [lb<IPlannerState>().p("id").record(id), lb<IPlannerState>().p("current").p("program").p("id").record(id)],
+        "Generate initial ID"
+      );
     }
   }, []);
   useEffect(() => {
@@ -325,8 +328,8 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             </p>
             <p className="mb-2">
               Set the program name, create weeks and days, type the list of exercises for each day, putting each
-              exercise on a new line, along with the number of sets and reps after slash (
-              <code>/</code>) character, like this:
+              exercise on a new line, along with the number of sets and reps after slash (<code>/</code>) character,
+              like this:
             </p>
             <div>
               <div className="inline-block px-4 py-2 my-1 mb-2 border rounded-md bg-background-default border-border-neutral">

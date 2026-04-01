@@ -50,10 +50,21 @@ const watchConfig = {
           },
         },
       },
+      {
+        test: /\.m?js$/,
+        include: /node_modules/,
+        type: "javascript/auto",
+        resolve: {
+          fullySpecified: false,
+        },
+      },
     ],
   },
   resolve: {
     extensions: [".ts", ".tsx", ".js"],
+    alias: {
+      "react-native$": "react-native-web",
+    },
   },
   plugins: [
     new DefinePlugin({
@@ -127,6 +138,18 @@ const mainConfig = {
           },
         },
       },
+      {
+        test: /\.m?js$/,
+        include: /node_modules/,
+        type: "javascript/auto",
+        resolve: {
+          fullySpecified: false,
+        },
+      },
+      {
+        test: /\.(png|jpe?g|gif|webp)$/,
+        type: "asset/resource",
+      },
     ],
   },
   optimization: {
@@ -141,7 +164,10 @@ const mainConfig = {
     },
   },
   resolve: {
-    extensions: [".ts", ".tsx", ".js", ".css"],
+    extensions: [".web.tsx", ".web.ts", ".web.js", ".tsx", ".ts", ".js", ".css"],
+    alias: {
+      "react-native$": "react-native-web",
+    },
   },
   plugins: [
     {

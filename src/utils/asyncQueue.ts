@@ -76,7 +76,8 @@ export class AsyncQueue {
 
     lgDebug("dbg-queue-process", "lkqtuayqpa", { queueLength: this.queue.length });
     this.isProcessing = true;
-    const generation = ++this._processingGeneration;
+    this._processingGeneration += 1;
+    const generation = this._processingGeneration;
     try {
       const item = this.queue.shift();
       this.addLog("processing item", { queueLength: this.queue.length });
@@ -119,11 +120,11 @@ export class AsyncQueue {
           currentGen: this._processingGeneration,
           queueLength: this.queue.length,
         });
-        return;
+      } else {
+        this.currentItem = null;
+        this.isProcessing = false;
+        this.processQueue();
       }
-      this.currentItem = null;
-      this.isProcessing = false;
-      this.processQueue();
     }
   }
 

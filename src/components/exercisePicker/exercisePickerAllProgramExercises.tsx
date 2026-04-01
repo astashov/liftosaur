@@ -102,7 +102,10 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
                 );
                 const isItemDisabled = isMultiselect ? isUsedForDay || (isDisabled && !isSelected) : isUsedForDay;
                 return (
-                  <li key={`${exercise.key}_${exercise.dayData.week}_${exercise.dayData.dayInWeek}`} className={`pb-1 ${isItemDisabled && !isAllDisabled ? "opacity-40" : ""}`}>
+                  <li
+                    key={`${exercise.key}_${exercise.dayData.week}_${exercise.dayData.dayInWeek}`}
+                    className={`pb-1 ${isItemDisabled && !isAllDisabled ? "opacity-40" : ""}`}
+                  >
                     <label className="flex w-full text-right tap-2">
                       <div>
                         <div className="px-1 pb-1 text-xs text-text-secondary">Day {exercise.dayData.dayInWeek}</div>

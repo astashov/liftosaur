@@ -17,6 +17,7 @@ import { GroupHeader } from "./groupHeader";
 import { IconFilter } from "./icons/iconFilter";
 import { MenuItemEditable } from "./menuItemEditable";
 import { ComparerUtils_noFns } from "../utils/comparer";
+import { Thunk_editHistoryRecord } from "../ducks/thunks";
 
 interface IExerciseHistoryProps {
   surfaceRef: RefObject<HTMLElement | null>;
@@ -120,7 +121,7 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
           <MenuItemWrapper
             key={historyRecord.id}
             onClick={() => {
-              props.dispatch({ type: "EditHistoryRecord", historyRecord });
+              props.dispatch(Thunk_editHistoryRecord(historyRecord));
             }}
             name={`${historyRecord.startTime}`}
           >
