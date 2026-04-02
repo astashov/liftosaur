@@ -28,6 +28,7 @@ interface INavbarProps extends INavbarCenterProps {
   helpTourId?: keyof typeof tourConfigs;
   helpContent?: ReactNode;
   isStatic?: boolean;
+  showBack?: boolean;
 }
 
 export const NavbarView = (props: INavbarProps): JSX.Element => {
@@ -35,7 +36,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
   const [showDebug, setShowDebug] = useState(0);
   const timerRef = useRef<number | undefined>(undefined);
   const { screenStack, loading } = props.navCommon;
-  const showBackButton = screenStack.length > 1;
+  const showBackButton = props.showBack ?? screenStack.length > 1;
 
   useEffect(() => {
     const onScroll = (): void => {

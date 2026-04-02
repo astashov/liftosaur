@@ -75,7 +75,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
           name="Program"
           value={props.currentProgramName}
           onClick={() => {
-            props.dispatch({ type: "PushScreen", screen: "programs" });
+            props.dispatch(Thunk_pushScreen("me/programs"));
           }}
         />
         <GroupHeader name="Account" topPadding={true} />

@@ -22,6 +22,8 @@ const onboardingScreens: Set<string> = new Set<keyof IOnboardingStackParamList>(
   "onboarding/programPreview",
 ]);
 
+const rootScreens: Set<string> = new Set(["subscription"]);
+
 export function navigateTo<T extends IScreen>(
   screen: T,
   params?: IAllScreenParamList[T],
@@ -32,6 +34,13 @@ export function navigateTo<T extends IScreen>(
   if (onboardingScreens.has(screen)) {
     navigationRef.dispatch(
       CommonActions.navigate({ name: "onboarding", params: { screen, params } })
+    );
+    return;
+  }
+
+  if (rootScreens.has(screen)) {
+    navigationRef.dispatch(
+      CommonActions.navigate({ name: screen as string, params: params as object | undefined })
     );
     return;
   }

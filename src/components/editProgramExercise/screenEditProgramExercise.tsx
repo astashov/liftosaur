@@ -1,9 +1,11 @@
 import { JSX, useCallback, useState } from "react";
-import { IPlannerExerciseState } from "../../pages/planner/models/types";
+import { IPlannerExerciseState, IPlannerState } from "../../pages/planner/models/types";
 import { IDispatch, buildCustomLensDispatch } from "../../ducks/types";
 import { IDayData, ISettings } from "../../types";
 import { INavCommon, IState, updateState } from "../../models/state";
-import { lb, LensBuilder } from "lens-shmens";
+import { lb } from "lens-shmens";
+import { CommonActions } from "@react-navigation/native";
+import { navigationRef } from "../../navigation/navigationRef";
 import { useUndoRedo } from "../../pages/builder/utils/undoredo";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { useNavOptions } from "../../navigation/useNavOptions";
@@ -31,28 +33,20 @@ import { editProgramExerciseTourConfig } from "../tour/editProgramExerciseTourCo
 interface IProps {
   plannerState: IPlannerExerciseState;
   exerciseKey: string;
+  exerciseStateKey: string;
+  programId: string;
   dayData: Required<IDayData>;
   dispatch: IDispatch;
   settings: ISettings;
   navCommon: INavCommon;
+  editProgramState: IPlannerState;
 }
 
 export function ScreenEditProgramExercise(props: IProps): JSX.Element {
   const { plannerState } = props;
 
   const plannerDispatch: ILensDispatch<IPlannerExerciseState> = useCallback(
-    buildPlannerDispatch(
-      props.dispatch,
-      (
-        lb<IState>().p("screenStack").findBy("name", "editProgramExercise", true).pi("params") as LensBuilder<
-          IState,
-          { plannerState: IPlannerExerciseState },
-          {},
-          undefined
-        >
-      ).pi("plannerState"),
-      plannerState
-    ),
+    buildPlannerDispatch(props.dispatch, lb<IState>().p("editProgramExerciseStates").p(props.exerciseStateKey), plannerState),
     [plannerState]
   );
   useUndoRedo(plannerState, plannerDispatch);
@@ -66,8 +60,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
     plannerExercise = Program_getFirstProgramExercise(evaluatedProgram, props.exerciseKey);
   }
 
-  const editProgramScreen = props.navCommon.screenStack.find((s) => s.name === "editProgram");
-  const editProgramState = editProgramScreen?.params?.plannerState;
+  const editProgramState = props.editProgramState;
   const ui = plannerState.ui;
   const [isKebabMenuOpen, setIsKebabMenuOpen] = useState(false);
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
@@ -218,6 +211,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
         plannerDispatch={plannerDispatch}
         dispatch={props.dispatch}
         editProgramState={editProgramState}
+        programId={props.programId}
         settings={props.settings}
         plannerExercise={plannerExercise}
       />
@@ -288,28 +282,51 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
             );
           }}
           onClose={() => {
-            plannerDispatch(lbUi.p("exercisePickerState").record(undefined), "Close exercise picker");
+            updateState(
+              props.dispatch,
+              [
+                lb<IState>()
+                  .p("editProgramExerciseStates")
+                  .recordModify((states) => {
+                    const current = states[props.exerciseStateKey];
+                    if (!current) return states;
+                    return { ...states, [props.exerciseStateKey]: { ...current, ui: { ...current.ui, exercisePickerState: undefined } } };
+                  }),
+              ],
+              "Close exercise picker"
+            );
           }}
           plannerDispatch={buildCustomLensDispatch(plannerDispatch, lbProgram)}
           pickerDispatch={buildCustomLensDispatch(plannerDispatch, lbUi.pi("exercisePickerState"))}
           dispatch={props.dispatch}
           onNewKey={(newKey) => {
-            const hasEditExerciseScreen = props.navCommon.screenStack.some((s) => s.name === "editProgramExercise");
-            if (hasEditExerciseScreen) {
-              updateState(
-                props.dispatch,
-                [
-                  (
-                    lb<IState>()
-                      .p("screenStack")
-                      .findBy("name", "editProgramExercise", true)
-                      .pi("params") as LensBuilder<IState, { key: string }, {}, undefined>
-                  )
-                    .pi("key")
-                    .record(newKey),
-                ],
-                "Update exercise key in screen params"
-              );
+            const oldStateKey = props.exerciseStateKey;
+            const newStateKey = `${props.programId}_${newKey}`;
+            updateState(
+              props.dispatch,
+              [
+                lb<IState>()
+                  .p("editProgramExerciseStates")
+                  .recordModify((states) => {
+                    const currentState = states[oldStateKey];
+                    if (!currentState) return states;
+                    const { [oldStateKey]: _, ...rest } = states;
+                    return { ...rest, [newStateKey]: { ...currentState, ui: { ...currentState.ui, exercisePickerState: undefined } } };
+                  }),
+                lb<IState>()
+                  .p("screenStack")
+                  .recordModify((stack) =>
+                    stack.map((s) =>
+                      s.name === "editProgramExercise" && s.params
+                        ? { ...s, params: { ...s.params, key: newKey } }
+                        : s
+                    )
+                  ),
+              ],
+              "Update exercise key"
+            );
+            if (navigationRef.isReady()) {
+              navigationRef.dispatch(CommonActions.setParams({ key: newKey }));
             }
           }}
         />

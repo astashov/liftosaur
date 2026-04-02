@@ -116,7 +116,6 @@ function WorkoutStackScreen(): JSX.Element {
     <WorkoutStack.Navigator screenOptions={getStackScreenOptions()}>
       <WorkoutStack.Screen name="progress" component={NavScreenProgress} />
       <WorkoutStack.Screen name="finishDay" component={NavScreenFinishDay} />
-      <WorkoutStack.Screen name="subscription" component={NavScreenSubscription} />
     </WorkoutStack.Navigator>
   );
 }
@@ -145,6 +144,7 @@ function MeStackScreen(): JSX.Element {
       <MeStack.Screen name="measurements" component={NavScreenMeasurements} />
       <MeStack.Screen name="exerciseStats" component={NavScreenExerciseStats} />
       <MeStack.Screen name="apiKeys" component={NavScreenApiKeys} />
+      <MeStack.Screen name="me/programs" component={NavScreenPrograms} />
     </MeStack.Navigator>
   );
 }
@@ -160,10 +160,7 @@ function getRootScreenOptions() {
 
 function MainTabsScreen(): JSX.Element {
   return (
-    <Tab.Navigator
-      screenOptions={tabScreenOptions}
-      tabBar={(tabProps) => <Footer2Wrapper {...tabProps} />}
-    >
+    <Tab.Navigator screenOptions={tabScreenOptions} tabBar={(tabProps) => <Footer2Wrapper {...tabProps} />}>
       <Tab.Screen name="homeTab" component={HomeStackScreen} />
       <Tab.Screen name="programTab" component={ProgramStackScreen} />
       <Tab.Screen name="workoutTab" component={WorkoutStackScreen} />
@@ -185,6 +182,11 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
     >
       <RootStack.Screen name="onboarding" component={OnboardingStackScreen} />
       <RootStack.Screen name="mainTabs" component={MainTabsScreen} />
+      <RootStack.Screen
+        name="subscription"
+        component={NavScreenSubscription}
+        options={{ ...getStackScreenOptions(), headerShown: true }}
+      />
     </RootStack.Navigator>
   );
 }
