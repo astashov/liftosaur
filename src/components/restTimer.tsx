@@ -80,7 +80,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
       <div className="fixed z-30 safe-area-inset-bottom " style={{ left: "1rem", right: "1rem", bottom: "5rem" }}>
         <div
           className={`flex w-full ${className} text-center rounded-lg shadow-xl text-text-alwayswhite`}
-          style={{ boxShadow: "0px 0px 8px rgb(0 0 0 / 25%);" }}
+          style={{ boxShadow: "0px 0px 8px rgb(0 0 0 / 25%)" }}
         >
           <button
             data-cy="rest-timer-minus"
@@ -146,7 +146,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
           data-cy="rest-timer-collapsed"
           onClick={() => setIsExpanded(true)}
           className={`${className} w-16 text-center px-2 py-2 rounded-lg shadow-xl`}
-          style={{ boxShadow: "0px 0px 8px rgb(0 0 0 / 25%);" }}
+          style={{ boxShadow: "0px 0px 8px rgb(0 0 0 / 25%)" }}
         >
           <span data-cy="rest-timer-current" className="font-bold text-text-alwayswhite ">
             {TimeUtils_formatMMSS(timeDifference)}

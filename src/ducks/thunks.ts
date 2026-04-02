@@ -797,7 +797,11 @@ export function Thunk_startProgramDay(programId?: string): IThunk {
   };
 }
 
-export function Thunk_pushToEditProgramExercise(key: string, dayData: Required<IDayData>): IThunk {
+export function Thunk_pushToEditProgramExercise(
+  key: string,
+  dayData: Required<IDayData>,
+  screen: "editProgramExercise" | "workout/editProgramExercise" = "editProgramExercise"
+): IThunk {
   return async (dispatch, getState) => {
     const state = getState();
     const editProgramScreen = state.screenStack.find((s) => s.name === "editProgram");
@@ -806,8 +810,7 @@ export function Thunk_pushToEditProgramExercise(key: string, dayData: Required<I
       state.storage.currentProgramId;
     const editProgramState = programId ? state.editProgramStates[programId] : undefined;
     const currentProgram =
-      editProgramState?.current.program ||
-      (programId != null ? Program_getProgram(state, programId) : undefined);
+      editProgramState?.current.program || (programId != null ? Program_getProgram(state, programId) : undefined);
     if (currentProgram && !Program_isEmpty(currentProgram) && programId) {
       const exerciseStateKey = `${programId}_${key}`;
       const plannerState = EditProgram_initPlannerProgramExerciseState(
@@ -817,8 +820,12 @@ export function Thunk_pushToEditProgramExercise(key: string, dayData: Required<I
         dayData,
         !editProgramState
       );
-      updateState(dispatch, [lb<IState>().p("editProgramExerciseStates").p(exerciseStateKey).record(plannerState)], "Set edit exercise state");
-      dispatch(Thunk_pushScreen("editProgramExercise", { programId, key, dayData }));
+      updateState(
+        dispatch,
+        [lb<IState>().p("editProgramExerciseStates").p(exerciseStateKey).record(plannerState)],
+        "Set edit exercise state"
+      );
+      dispatch(Thunk_pushScreen(screen, { programId, key, dayData }));
     } else {
       dispatch(Thunk_pushScreen("main"));
     }

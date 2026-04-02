@@ -1,8 +1,8 @@
-import { JSX, ReactNode } from "react";
+import { JSX, ReactNode, Ref } from "react";
 
-export function NavScreenContent(props: { children: ReactNode }): JSX.Element {
+export function NavScreenContent(props: { children: ReactNode; scrollRef?: Ref<HTMLDivElement> }): JSX.Element {
   return (
-    <div style={{ flex: 1, overflowY: "auto", overscrollBehavior: "contain" }}>
+    <div ref={props.scrollRef} style={{ flex: 1, overflowY: "auto", overscrollBehavior: "contain" }}>
       {props.children}
     </div>
   );

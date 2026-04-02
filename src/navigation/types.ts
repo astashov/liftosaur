@@ -19,7 +19,6 @@ export type IProgramStackParamList = {
   programs: undefined;
   editProgram: { programId: string };
   editProgramExercise: { programId: string; key: string; dayData: Required<IDayData> };
-  muscles: undefined;
   onerms: undefined;
   programselect: undefined;
   programPreview: undefined;
@@ -28,6 +27,8 @@ export type IProgramStackParamList = {
 export type IWorkoutStackParamList = {
   progress: { id?: number } | undefined;
   finishDay: undefined;
+  "workout/editProgramExercise": { programId: string; key: string; dayData: Required<IDayData> };
+  muscles: undefined;
 };
 
 export type IGraphsStackParamList = {

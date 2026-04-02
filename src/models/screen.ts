@@ -40,7 +40,8 @@ export type IScreenData =
   | { name: "onboarding/programselect"; params?: Record<string, never> }
   | { name: "onboarding/programs"; params?: Record<string, never> }
   | { name: "onboarding/programPreview"; params?: Record<string, never> }
-  | { name: "me/programs"; params?: Record<string, never> };
+  | { name: "me/programs"; params?: Record<string, never> }
+  | { name: "workout/editProgramExercise"; params: { programId: string; key: string; dayData: Required<IDayData> } };
 
 export type IScreen = IScreenData["name"];
 export type IScreenStack = IScreenData[];
@@ -107,7 +108,7 @@ export function Screen_shouldConfirmNavigation(state: IState, isPush: boolean): 
     }
   }
 
-  if (currentScreen.name === "editProgramExercise") {
+  if (currentScreen.name === "editProgramExercise" || currentScreen.name === "workout/editProgramExercise") {
     const exerciseKey = currentScreen.params?.key;
     const exerciseProgramId = currentScreen.params?.programId;
     const exerciseStateKey = exerciseProgramId && exerciseKey ? `${exerciseProgramId}_${exerciseKey}` : undefined;
@@ -177,7 +178,7 @@ export function Screen_tab(screen: IScreen): ITab {
       return "workout";
     }
     case "muscles": {
-      return "program";
+      return "workout";
     }
     case "muscleGroups": {
       return "me";
@@ -231,6 +232,9 @@ export function Screen_tab(screen: IScreen): ITab {
     }
     case "me/programs": {
       return "me";
+    }
+    case "workout/editProgramExercise": {
+      return "workout";
     }
   }
 }
