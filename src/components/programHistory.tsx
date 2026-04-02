@@ -1,4 +1,4 @@
-import { JSX, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { JSX, RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { IDispatch } from "../ducks/types";
 import { IProgram, IHistoryRecord, ISettings, ISubscription } from "../types";
 import { INavCommon, IState, updateState } from "../models/state";
@@ -28,6 +28,7 @@ interface IProps {
   subscription: ISubscription;
   navCommon: INavCommon;
   dispatch: IDispatch;
+  scrollContainerRef?: RefObject<HTMLDivElement | null>;
 }
 
 interface IWeekData {
@@ -96,7 +97,8 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
     initialShift,
     20,
     surfaceRef,
-    () => {}
+    () => {},
+    props.scrollContainerRef
   );
   const visibleHistory = useMemo(() => {
     return sortedHistory.slice(0, visibleRecords);
@@ -127,6 +129,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   }, [selectedFirstDayOfWeek]);
 
   useEffect(() => {
+    const scrollEl = props.scrollContainerRef?.current;
     let initialOffset: number | undefined;
     const scrollPosToFirstDayOfWeek = Array.from(historyRecordsListRef.current!.childNodes).reduce<
       Partial<Record<number, number>>
@@ -141,8 +144,9 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
       return memo;
     }, {});
     function scrollHandler(e: Event): void {
+      const scrollTop = scrollEl ? scrollEl.scrollTop : window.scrollY;
       for (const scrollPos of ObjectUtils_keys(scrollPosToFirstDayOfWeek)) {
-        if (scrollPos >= window.scrollY) {
+        if (scrollPos >= scrollTop) {
           const firstDayOfWeek = scrollPosToFirstDayOfWeek[scrollPos];
           if (firstDayOfWeek != null && firstDayOfWeek !== selectedFirstDayOfWeekRef.current) {
             const weekElement = document.querySelector(`#week-calendar-${firstDayOfWeek}`);
@@ -159,9 +163,10 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         }
       }
     }
-    window.addEventListener("scroll", scrollHandler);
+    const target = scrollEl || window;
+    target.addEventListener("scroll", scrollHandler);
     return () => {
-      window.removeEventListener("scroll", scrollHandler);
+      target.removeEventListener("scroll", scrollHandler);
     };
   }, [visibleRecords]);
 
@@ -214,7 +219,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         subscription={props.subscription}
       />
       <div className="flex flex-col h-full">
-        <div className="flex-1 min-h-0 pt-20 overflow-y-auto" ref={historyRecordsListRef}>
+        <div className="flex-1 min-h-0 overflow-y-auto pt-36" ref={historyRecordsListRef}>
           {visibleHistory.length > 0 ? (
             <HistoryRecordsList
               history={visibleHistory}

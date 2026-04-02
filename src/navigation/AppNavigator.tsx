@@ -103,7 +103,6 @@ function ProgramStackScreen(): JSX.Element {
       <ProgramStack.Screen name="programs" component={NavScreenPrograms} />
       <ProgramStack.Screen name="editProgram" component={NavScreenEditProgram} />
       <ProgramStack.Screen name="editProgramExercise" component={NavScreenEditProgramExercise} />
-      <ProgramStack.Screen name="muscles" component={NavScreenMuscles} />
       <ProgramStack.Screen name="onerms" component={NavScreenOnerms} />
       <ProgramStack.Screen name="programselect" component={NavScreenProgramSelect} />
       <ProgramStack.Screen name="programPreview" component={NavScreenProgramPreview} />
@@ -116,6 +115,8 @@ function WorkoutStackScreen(): JSX.Element {
     <WorkoutStack.Navigator screenOptions={getStackScreenOptions()}>
       <WorkoutStack.Screen name="progress" component={NavScreenProgress} />
       <WorkoutStack.Screen name="finishDay" component={NavScreenFinishDay} />
+      <WorkoutStack.Screen name="workout/editProgramExercise" component={NavScreenEditProgramExercise} />
+      <WorkoutStack.Screen name="muscles" component={NavScreenMuscles} />
     </WorkoutStack.Navigator>
   );
 }

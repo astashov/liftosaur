@@ -1,4 +1,4 @@
-import { JSX } from "react";
+import { JSX, useRef } from "react";
 import { useAppState } from "../StateContext";
 import { buildNavCommon } from "../utils";
 import { NavScreenContent } from "../NavScreenContent";
@@ -10,6 +10,7 @@ import { Progress_getProgress } from "../../models/progress";
 export function NavScreenMain(): JSX.Element {
   const { state, dispatch } = useAppState();
   const navCommon = buildNavCommon(state);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const currentProgram =
     state.storage.currentProgramId != null ? Program_getProgram(state, state.storage.currentProgramId) : undefined;
 
@@ -31,8 +32,9 @@ export function NavScreenMain(): JSX.Element {
   }
 
   return (
-    <NavScreenContent>
+    <NavScreenContent scrollRef={scrollRef}>
       <ProgramHistoryView
+        scrollContainerRef={scrollRef}
         progress={Progress_getProgress(state)}
         navCommon={navCommon}
         program={currentProgram}

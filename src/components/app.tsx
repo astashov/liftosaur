@@ -416,6 +416,7 @@ export function AppView(props: IProps): JSX.Element | null {
           <NavigationContainer
             ref={navigationRef}
             onStateChange={onNavigationStateChange}
+            documentTitle={{ enabled: false }}
             theme={{ ...DefaultTheme, colors: { ...DefaultTheme.colors, background: "transparent" } }}
           >
             <AppNavigator initialScreen={initialScreen} />
