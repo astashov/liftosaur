@@ -15,6 +15,7 @@ import { IconEquipmentKettlebell } from "./icons/iconEquipmentKettlebell";
 interface IScreenProgramSelectProps {
   dispatch: IDispatch;
   settings: ISettings;
+  programsScreen?: "programs" | "onboarding/programs";
 }
 
 export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Element {
@@ -29,7 +30,7 @@ export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Eleme
       icon: <IconDoc width={24} height={24} />,
       title: "Pick a built-in program",
       description: "Choose from popular routines like 5/3/1, GZCLP, and more",
-      onClick: () => props.dispatch(Thunk_pushScreen("programs")),
+      onClick: () => props.dispatch(Thunk_pushScreen(props.programsScreen ?? "programs")),
     },
     {
       key: "create",

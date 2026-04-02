@@ -113,10 +113,9 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
 
   return (
     <div
-      className="sticky left-0 flex flex-row items-center justify-between gap-2 py-2 pl-2 pr-4 border-b bg-background-default border-background-subtle"
+      className="sticky top-0 left-0 flex flex-row items-center justify-between gap-2 py-2 pl-2 pr-4 border-b bg-background-default border-background-subtle"
       style={{
         zIndex: 25,
-        top: "3.75rem",
       }}
     >
       <div className="flex items-center">

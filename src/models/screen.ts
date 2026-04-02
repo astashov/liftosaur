@@ -41,7 +41,10 @@ export type IScreenData =
   | { name: "setupplates"; params?: Record<string, never> }
   | { name: "programselect"; params?: Record<string, never> }
   | { name: "programPreview"; params?: Record<string, never> }
-  | { name: "apiKeys"; params?: Record<string, never> };
+  | { name: "apiKeys"; params?: Record<string, never> }
+  | { name: "onboarding/programselect"; params?: Record<string, never> }
+  | { name: "onboarding/programs"; params?: Record<string, never> }
+  | { name: "onboarding/programPreview"; params?: Record<string, never> };
 
 export type IScreen = IScreenData["name"];
 export type IScreenStack = IScreenData[];
@@ -236,6 +239,11 @@ export function Screen_tab(screen: IScreen): ITab {
     }
     case "apiKeys": {
       return "me";
+    }
+    case "onboarding/programselect":
+    case "onboarding/programs":
+    case "onboarding/programPreview": {
+      return "program";
     }
   }
 }

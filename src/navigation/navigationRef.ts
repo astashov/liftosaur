@@ -1,4 +1,4 @@
 import { createNavigationContainerRef } from "@react-navigation/native";
-import type { IRootTabParamList } from "./types";
+import type { IRootStackParamList } from "./types";
 
-export const navigationRef = createNavigationContainerRef<IRootTabParamList>();
+export const navigationRef = createNavigationContainerRef<IRootStackParamList>();

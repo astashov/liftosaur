@@ -73,24 +73,40 @@ const tabToDefaultScreen: Record<string, IScreen> = {
   meTab: "settings",
 };
 
-function deriveScreenStack(navState: NavigationState | undefined): IScreenStack {
-  if (!navState) {
-    return [{ name: "main" }];
-  }
-  const activeTabRoute = navState.routes[navState.index ?? 0];
-  const tabState = activeTabRoute.state as NavigationState | undefined;
-  if (!tabState) {
-    return [{ name: tabToDefaultScreen[activeTabRoute.name] || "main" } as IScreenData];
-  }
+function extractStackRoutes(state: NavigationState | undefined): IScreenStack {
+  if (!state) return [];
   const stack: IScreenStack = [];
-  for (let i = 0; i <= (tabState.index ?? 0); i++) {
-    const route = tabState.routes[i];
+  for (let i = 0; i <= (state.index ?? 0); i++) {
+    const route = state.routes[i];
     stack.push({
       name: route.name as IScreen,
       ...(route.params ? { params: route.params } : {}),
     } as IScreenData);
   }
   return stack;
+}
+
+function deriveScreenStack(navState: NavigationState | undefined): IScreenStack {
+  if (!navState) return [{ name: "main" }];
+
+  const rootRoute = navState.routes[navState.index ?? 0];
+
+  if (rootRoute.name === "onboarding") {
+    const onboardingState = rootRoute.state as NavigationState | undefined;
+    const routes = extractStackRoutes(onboardingState);
+    return routes.length > 0 ? routes : [{ name: "first" }];
+  }
+
+  const mainTabsState = rootRoute.state as NavigationState | undefined;
+  if (!mainTabsState) return [{ name: "main" }];
+
+  const activeTab = mainTabsState.routes[mainTabsState.index ?? 0];
+  const tabStackState = activeTab.state as NavigationState | undefined;
+  if (!tabStackState) {
+    return [{ name: tabToDefaultScreen[activeTab.name] || "main" } as IScreenData];
+  }
+
+  return extractStackRoutes(tabStackState);
 }
 
 export function AppView(props: IProps): JSX.Element | null {

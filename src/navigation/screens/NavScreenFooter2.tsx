@@ -5,7 +5,7 @@ import { buildNavCommon } from "../utils";
 import { Footer2View } from "../../components/footer2";
 import { Screen_currentName } from "../../models/screen";
 
-const screensWithoutFooter = ["first", "units", "setupequipment", "setupplates", "programselect", "subscription"];
+const screensWithoutFooter = ["programs", "subscription"];
 
 export function Footer2Wrapper(_props: BottomTabBarProps): JSX.Element | null {
   const { state, dispatch } = useAppState();
@@ -14,5 +14,5 @@ export function Footer2Wrapper(_props: BottomTabBarProps): JSX.Element | null {
     return null;
   }
   const navCommon = buildNavCommon(state);
-  return <Footer2View dispatch={dispatch} navCommon={navCommon} />;
+  return <Footer2View isStatic dispatch={dispatch} navCommon={navCommon} />;
 }

@@ -721,7 +721,12 @@ export function Program_createExercise(units: IUnit): IProgramExercise {
   };
 }
 
-export function Program_previewProgram(dispatch: IDispatch, programId: string, showCustomPrograms: boolean): void {
+export function Program_previewProgram(
+  dispatch: IDispatch,
+  programId: string,
+  showCustomPrograms: boolean,
+  screen: "programPreview" | "onboarding/programPreview" = "programPreview"
+): void {
   updateState(
     dispatch,
     [
@@ -732,7 +737,7 @@ export function Program_previewProgram(dispatch: IDispatch, programId: string, s
     ],
     "Preview program"
   );
-  dispatch(Thunk_pushScreen("programPreview"));
+  dispatch(Thunk_pushScreen(screen));
 }
 
 export function Program_createEmptyProgram(): IProgram {
