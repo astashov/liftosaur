@@ -26,6 +26,7 @@ export function NavHeader(props: StackHeaderProps): JSX.Element | null {
   return (
     <NavbarView
       isStatic
+      showBack={!!props.back}
       dispatch={dispatch}
       navCommon={navCommon}
       title={options.navTitle ?? ""}

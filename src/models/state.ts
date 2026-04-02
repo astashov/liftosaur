@@ -1,6 +1,7 @@
 import { Service } from "../api/service";
 import { IAudioInterface } from "../lib/audioInterface";
 import { IScreenStack } from "./screen";
+import { IPlannerState, IPlannerExerciseState } from "../pages/planner/models/types";
 import { IDispatch } from "../ducks/types";
 import { Storage_getDefault } from "../models/storage";
 import { ILensRecordingPayload } from "lens-shmens";
@@ -150,6 +151,8 @@ export interface IState {
   appleOffer?: IAppleOffer;
   googleOffer?: IGoogleOffer;
   deviceId?: string;
+  editProgramStates: Record<string, IPlannerState>;
+  editProgramExerciseStates: Record<string, IPlannerExerciseState>;
 }
 
 export interface ILocalStorage {
@@ -180,6 +183,8 @@ export function buildState(args: {
     freshMigrations: false,
     nosync: !!args.nosync,
     deviceId: args.deviceId,
+    editProgramStates: {},
+    editProgramExerciseStates: {},
   };
 }
 

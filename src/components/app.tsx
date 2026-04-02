@@ -97,6 +97,10 @@ function deriveScreenStack(navState: NavigationState | undefined): IScreenStack 
     return routes.length > 0 ? routes : [{ name: "first" }];
   }
 
+  if (rootRoute.name === "subscription") {
+    return [{ name: "subscription" }];
+  }
+
   const mainTabsState = rootRoute.state as NavigationState | undefined;
   if (!mainTabsState) return [{ name: "main" }];
 

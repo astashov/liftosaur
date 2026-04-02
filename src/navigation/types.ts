@@ -1,5 +1,4 @@
 import type { NavigatorScreenParams } from "@react-navigation/native";
-import type { IPlannerState, IPlannerExerciseState } from "../pages/planner/models/types";
 import type { IDayData, IStatsKey } from "../types";
 
 export type IHomeStackParamList = {
@@ -18,8 +17,8 @@ export type IOnboardingStackParamList = {
 
 export type IProgramStackParamList = {
   programs: undefined;
-  editProgram: { plannerState: IPlannerState } | undefined;
-  editProgramExercise: { key: string; dayData: Required<IDayData>; plannerState: IPlannerExerciseState } | undefined;
+  editProgram: { programId: string };
+  editProgramExercise: { programId: string; key: string; dayData: Required<IDayData> };
   muscles: undefined;
   onerms: undefined;
   programselect: undefined;
@@ -29,7 +28,6 @@ export type IProgramStackParamList = {
 export type IWorkoutStackParamList = {
   progress: { id?: number } | undefined;
   finishDay: undefined;
-  subscription: undefined;
 };
 
 export type IGraphsStackParamList = {
@@ -50,6 +48,7 @@ export type IMeStackParamList = {
   measurements: { key: IStatsKey } | undefined;
   exerciseStats: undefined;
   apiKeys: undefined;
+  "me/programs": undefined;
 };
 
 export type IRootTabParamList = {
@@ -63,6 +62,11 @@ export type IRootTabParamList = {
 export type IRootStackParamList = {
   onboarding: NavigatorScreenParams<IOnboardingStackParamList>;
   mainTabs: NavigatorScreenParams<IRootTabParamList>;
+  subscription: undefined;
+};
+
+export type IRootLevelScreenParamList = {
+  subscription: undefined;
 };
 
 export type IAllScreenParamList = IOnboardingStackParamList &
@@ -70,4 +74,5 @@ export type IAllScreenParamList = IOnboardingStackParamList &
   IProgramStackParamList &
   IWorkoutStackParamList &
   IGraphsStackParamList &
-  IMeStackParamList;
+  IMeStackParamList &
+  IRootLevelScreenParamList;

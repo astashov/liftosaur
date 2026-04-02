@@ -2,10 +2,8 @@ import { IState } from "./state";
 import { dequal } from "dequal";
 import { Progress_getProgress, Progress_isCurrent } from "./progress";
 import { IDayData, IStatsKey } from "../types";
-import { IPlannerExerciseState, IPlannerState } from "../pages/planner/models/types";
 import { Program_getProgram, Program_cleanPlannerProgram } from "./program";
 import { ObjectUtils_isEqual } from "../utils/object";
-import { CollectionUtils_findBy } from "../utils/collection";
 
 export type ITab = "home" | "program" | "workout" | "graphs" | "me";
 
@@ -27,11 +25,8 @@ export type IScreenData =
   | { name: "units"; params?: Record<string, never> }
   | { name: "appleHealth"; params?: Record<string, never> }
   | { name: "googleHealth"; params?: Record<string, never> }
-  | { name: "editProgram"; params?: { plannerState: IPlannerState } }
-  | {
-      name: "editProgramExercise";
-      params?: { key: string; dayData: Required<IDayData>; plannerState: IPlannerExerciseState };
-    }
+  | { name: "editProgram"; params: { programId: string } }
+  | { name: "editProgramExercise"; params: { programId: string; key: string; dayData: Required<IDayData> } }
   | { name: "measurements"; params?: { key: IStatsKey } }
   | { name: "subscription"; params?: Record<string, never> }
   | { name: "exerciseStats"; params?: Record<string, never> }
@@ -44,7 +39,8 @@ export type IScreenData =
   | { name: "apiKeys"; params?: Record<string, never> }
   | { name: "onboarding/programselect"; params?: Record<string, never> }
   | { name: "onboarding/programs"; params?: Record<string, never> }
-  | { name: "onboarding/programPreview"; params?: Record<string, never> };
+  | { name: "onboarding/programPreview"; params?: Record<string, never> }
+  | { name: "me/programs"; params?: Record<string, never> };
 
 export type IScreen = IScreenData["name"];
 export type IScreenStack = IScreenData[];
@@ -83,7 +79,7 @@ export function Screen_previous(stack: IScreenStack): IScreen | undefined {
 
 export function Screen_enablePtr(stack: IScreenStack): boolean {
   const curr = Screen_currentName(stack);
-  return ["first", "finishDay", "subscription", "programs", "measurements"].indexOf(curr) === -1;
+  return ["first", "finishDay", "subscription", "programs", "me/programs", "measurements"].indexOf(curr) === -1;
 }
 
 export function Screen_shouldConfirmNavigation(state: IState, isPush: boolean): string | undefined {
@@ -96,42 +92,30 @@ export function Screen_shouldConfirmNavigation(state: IState, isPush: boolean): 
   }
 
   const currentScreen = Screen_current(state.screenStack);
-  const screens = isPush ? [...state.screenStack].reverse() : [currentScreen];
-  for (const screen of screens) {
-    if (screen.name === "editProgram") {
-      const editProgramState = screen.params?.plannerState;
-      if (editProgramState) {
-        const currentProgram = Program_getProgram(state, editProgramState.current.program.id);
-        if (currentProgram != null && currentProgram.planner && editProgramState.current.program.planner) {
-          const oldCleanedProgram = Program_cleanPlannerProgram(currentProgram);
-          const newCleanedProgram = Program_cleanPlannerProgram(editProgramState.current.program);
-          if (!ObjectUtils_isEqual(oldCleanedProgram.planner!, newCleanedProgram.planner!)) {
-            return "Are you sure? Your program changes won't be saved.";
-          }
-        }
+  const editProgramScreen = state.screenStack.find((s) => s.name === "editProgram");
+  const programId = editProgramScreen?.name === "editProgram" ? editProgramScreen.params?.programId : undefined;
+  const editProgramState = programId ? state.editProgramStates[programId] : undefined;
+
+  if (editProgramState && currentScreen.name === "editProgram") {
+    const currentProgram = Program_getProgram(state, editProgramState.current.program.id);
+    if (currentProgram != null && currentProgram.planner && editProgramState.current.program.planner) {
+      const oldCleanedProgram = Program_cleanPlannerProgram(currentProgram);
+      const newCleanedProgram = Program_cleanPlannerProgram(editProgramState.current.program);
+      if (!ObjectUtils_isEqual(oldCleanedProgram.planner!, newCleanedProgram.planner!)) {
+        return "Are you sure? Your program changes won't be saved.";
       }
     }
   }
 
   if (currentScreen.name === "editProgramExercise") {
-    const editProgramExerciseState = currentScreen.params?.plannerState;
+    const exerciseKey = currentScreen.params?.key;
+    const exerciseProgramId = currentScreen.params?.programId;
+    const exerciseStateKey = exerciseProgramId && exerciseKey ? `${exerciseProgramId}_${exerciseKey}` : undefined;
+    const editProgramExerciseState = exerciseStateKey ? state.editProgramExerciseStates[exerciseStateKey] : undefined;
     if (editProgramExerciseState) {
-      const editProgramScreen = CollectionUtils_findBy(state.screenStack, "name", "editProgram");
-      if (editProgramScreen != null && editProgramScreen.name === "editProgram") {
-        const editProgramState = editProgramScreen.params?.plannerState;
-        if (
-          editProgramState &&
-          editProgramState.current.program.planner &&
-          editProgramExerciseState.current.program.planner
-        ) {
-          if (
-            !ObjectUtils_isEqual(
-              editProgramExerciseState.current.program.planner,
-              editProgramState.current.program.planner
-            )
-          ) {
-            return "Are you sure? Your program exercise changes won't be saved.";
-          }
+      if (editProgramState && editProgramState.current.program.planner && editProgramExerciseState.current.program.planner) {
+        if (!ObjectUtils_isEqual(editProgramExerciseState.current.program.planner, editProgramState.current.program.planner)) {
+          return "Are you sure? Your program exercise changes won't be saved.";
         }
       } else {
         const currentProgram = Program_getProgram(state, editProgramExerciseState.current.program.id);
@@ -244,6 +228,9 @@ export function Screen_tab(screen: IScreen): ITab {
     case "onboarding/programs":
     case "onboarding/programPreview": {
       return "program";
+    }
+    case "me/programs": {
+      return "me";
     }
   }
 }

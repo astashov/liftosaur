@@ -5,8 +5,7 @@ import { ILensDispatch } from "../../utils/useLensReducer";
 import { canRedo, canUndo, redo, undo } from "../../pages/builder/utils/undoredo";
 import { Button } from "../button";
 import { IDispatch } from "../../ducks/types";
-import { buildPlannerDispatch } from "../../utils/plannerDispatch";
-import { lb, LensBuilder } from "lens-shmens";
+import { lb } from "lens-shmens";
 import { Thunk_pullScreen } from "../../ducks/thunks";
 import { IState, updateState } from "../../models/state";
 import { CollectionUtils_setBy } from "../../utils/collection";
@@ -21,7 +20,8 @@ import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IEditProgramExerciseNavbarProps {
   state: IPlannerExerciseState;
-  editProgramState: IPlannerState | undefined;
+  editProgramState: IPlannerState;
+  programId: string;
   dispatch: IDispatch;
   plannerDispatch: ILensDispatch<IPlannerExerciseState>;
   plannerExercise: IPlannerProgramExercise;
@@ -113,19 +113,10 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
           data-cy="save-program-exercise"
           onClick={delayfn(() => {
             if (editProgramStateRef.current) {
-              const plannerDispatch = buildPlannerDispatch(
+              const updatedProgram = stateRef.current.current.program;
+              updateState(
                 props.dispatch,
-                (
-                  lb<IState>().p("screenStack").findBy("name", "editProgram").p("params") as LensBuilder<
-                    IState,
-                    { plannerState: IPlannerState },
-                    {}
-                  >
-                ).pi("plannerState"),
-                editProgramStateRef.current
-              );
-              plannerDispatch(
-                [lb<IPlannerState>().p("current").p("program").record(stateRef.current.current.program)],
+                [lb<IState>().p("editProgramStates").p(props.programId).p("current").p("program").record(updatedProgram)],
                 "Update program from edit exercise"
               );
             } else {

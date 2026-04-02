@@ -4,7 +4,7 @@ import { INavCommon, IState, updateState } from "../../models/state";
 import { IProgram, ISettings } from "../../types";
 import { useNavOptions } from "../../navigation/useNavOptions";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { lb, LensBuilder } from "lens-shmens";
+import { lb } from "lens-shmens";
 import { IPlannerState } from "../../pages/planner/models/types";
 import { useUndoRedo } from "../../pages/builder/utils/undoredo";
 import {
@@ -69,18 +69,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
   const plannerState = props.plannerState;
 
   const plannerDispatch: ILensDispatch<IPlannerState> = useCallback(
-    buildPlannerDispatch(
-      props.dispatch,
-      (
-        lb<IState>().p("screenStack").findBy("name", "editProgram", true).pi("params") as LensBuilder<
-          IState,
-          { plannerState: IPlannerState },
-          {},
-          undefined
-        >
-      ).pi("plannerState"),
-      plannerState
-    ),
+    buildPlannerDispatch(props.dispatch, lb<IState>().p("editProgramStates").p(props.originalProgram.id), plannerState),
     [plannerState]
   );
   useUndoRedo(plannerState, plannerDispatch);

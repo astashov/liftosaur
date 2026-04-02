@@ -1,5 +1,6 @@
 import { JSX } from "react";
 import { useRoute } from "@react-navigation/native";
+import type { IDayData } from "../../types";
 import { useAppState } from "../StateContext";
 import { buildNavCommon } from "../utils";
 import { NavScreenContent } from "../NavScreenContent";
@@ -15,8 +16,6 @@ import { Program_getProgram, Program_fullProgram } from "../../models/program";
 import { Progress_getProgress } from "../../models/progress";
 import { FallbackScreen } from "../../components/fallbackScreen";
 import { Thunk_pullScreen } from "../../ducks/thunks";
-import type { IProgramStackParamList } from "../types";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useAppContext } from "../../components/appContext";
 
 export function NavScreenPrograms(): JSX.Element {
@@ -42,8 +41,9 @@ export function NavScreenEditProgram(): JSX.Element {
   const { state, dispatch } = useAppState();
   const { service } = useAppContext();
   const navCommon = buildNavCommon(state);
-  const route = useRoute<NativeStackScreenProps<IProgramStackParamList, "editProgram">["route"]>();
-  const plannerState = route.params?.plannerState;
+  const route = useRoute<{ key: string; name: "editProgram"; params: { programId: string } }>();
+  const programId = route.params.programId;
+  const plannerState = state.editProgramStates[programId];
   const editProgram = Program_getProgram(
     state,
     plannerState ? plannerState.current.program.id : Progress_getProgress(state)?.programId
@@ -73,10 +73,11 @@ export function NavScreenEditProgram(): JSX.Element {
 export function NavScreenEditProgramExercise(): JSX.Element {
   const { state, dispatch } = useAppState();
   const navCommon = buildNavCommon(state);
-  const route = useRoute<NativeStackScreenProps<IProgramStackParamList, "editProgramExercise">["route"]>();
-  const exerciseKey = route.params?.key;
-  const dayData = route.params?.dayData;
-  const plannerState = route.params?.plannerState;
+  const route = useRoute<{ key: string; name: "editProgramExercise"; params: { programId: string; key: string; dayData: Required<IDayData> } }>();
+  const { programId, key: exerciseKey, dayData } = route.params;
+  const exerciseStateKey = `${programId}_${exerciseKey}`;
+  const plannerState = state.editProgramExerciseStates[exerciseStateKey];
+  const editProgramState = state.editProgramStates[programId];
   return (
     <NavScreenContent>
       <FallbackScreen state={{ plannerState, exerciseKey, dayData }} dispatch={dispatch}>
@@ -84,10 +85,13 @@ export function NavScreenEditProgramExercise(): JSX.Element {
           <ScreenEditProgramExerciseComponent
             plannerState={plannerState2}
             exerciseKey={exerciseKey2}
+            exerciseStateKey={exerciseStateKey}
+            programId={programId}
             dayData={dayData2}
             dispatch={dispatch}
             settings={state.storage.settings}
             navCommon={navCommon}
+            editProgramState={editProgramState}
           />
         )}
       </FallbackScreen>

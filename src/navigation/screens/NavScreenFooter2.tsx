@@ -5,7 +5,7 @@ import { buildNavCommon } from "../utils";
 import { Footer2View } from "../../components/footer2";
 import { Screen_currentName } from "../../models/screen";
 
-const screensWithoutFooter = ["programs", "subscription"];
+const screensWithoutFooter = ["programs", "me/programs", "subscription"];
 
 export function Footer2Wrapper(_props: BottomTabBarProps): JSX.Element | null {
   const { state, dispatch } = useAppState();

@@ -27,7 +27,7 @@ import {
   Storage_validateAndReportStorage,
 } from "../models/storage";
 import { IScreen, IScreenStack, IScreenParams, Screen_current, Screen_currentName } from "../models/screen";
-import { ILensRecordingPayload, lb, LensBuilder } from "lens-shmens";
+import { ILensRecordingPayload, lb } from "lens-shmens";
 import { buildState, IEnv, ILocalStorage, INotification, IState, IStateErrors, updateState } from "../models/state";
 import { UidFactory_generateUid } from "../utils/generator";
 import {
@@ -175,6 +175,8 @@ export async function getInitialState(
       errors,
       nosync,
       deviceId,
+      editProgramStates: {},
+      editProgramExerciseStates: {},
     };
   }
   const newState = buildState({
@@ -416,35 +418,33 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
     (dispatch, action, oldState, newState) => {
       if ("type" in action && action.type === "UpdateState" && (action.desc === "undo" || action.desc === "redo")) {
         const oldScreenData = Screen_current(oldState.screenStack);
-        const newScreenData = Screen_current(newState.screenStack);
         const oldExerciseKey = oldScreenData.name === "editProgramExercise" ? oldScreenData.params?.key : undefined;
-        const oldPlannerState =
-          oldScreenData.name === "editProgramExercise" ? oldScreenData.params?.plannerState : undefined;
-        const newExerciseKey = newScreenData.name === "editProgramExercise" ? newScreenData.params?.key : undefined;
-        const newPlannerState =
-          newScreenData.name === "editProgramExercise" ? newScreenData.params?.plannerState : undefined;
-        if (oldPlannerState != null && newPlannerState != null && oldExerciseKey != null && newExerciseKey != null) {
+        const oldProgramId = oldScreenData.name === "editProgramExercise" ? oldScreenData.params?.programId : undefined;
+        const oldExerciseStateKey = oldProgramId && oldExerciseKey ? `${oldProgramId}_${oldExerciseKey}` : undefined;
+        const oldPlannerState = oldExerciseStateKey
+          ? oldState.editProgramExerciseStates[oldExerciseStateKey]
+          : undefined;
+        const newPlannerState = oldExerciseStateKey
+          ? newState.editProgramExerciseStates[oldExerciseStateKey]
+          : undefined;
+        if (oldPlannerState != null && newPlannerState != null && oldExerciseKey != null) {
           const changedKeys = EditProgramUiHelpers_getChangedKeys(
             oldPlannerState.current.program.planner!,
             newPlannerState.current.program.planner!,
             newState.storage.settings
           );
           const newKey = changedKeys[oldExerciseKey];
-          const editExerciseScreen = newState.screenStack.find((s) => s.name === "editProgramExercise");
-          if (newKey && editExerciseScreen) {
+          if (newKey) {
             updateState(
               dispatch,
               [
-                (
-                  lb<IState>().p("screenStack").findBy("name", "editProgramExercise", true).pi("params") as LensBuilder<
-                    IState,
-                    { key: string },
-                    {},
-                    undefined
-                  >
-                )
-                  .pi("key")
-                  .record(newKey),
+                lb<IState>()
+                  .p("screenStack")
+                  .recordModify((stack) =>
+                    stack.map((s) =>
+                      s.name === "editProgramExercise" && s.params ? { ...s, params: { ...s.params, key: newKey } } : s
+                    )
+                  ),
               ],
               "Update exercise key"
             );
