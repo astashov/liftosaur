@@ -6,18 +6,24 @@ export type IHomeStackParamList = {
   main: { historyRecordId?: number } | undefined;
 };
 
+export type IOnboardingStackParamList = {
+  first: undefined;
+  units: undefined;
+  setupequipment: undefined;
+  setupplates: undefined;
+  "onboarding/programselect": undefined;
+  "onboarding/programs": undefined;
+  "onboarding/programPreview": undefined;
+};
+
 export type IProgramStackParamList = {
   programs: undefined;
   editProgram: { plannerState: IPlannerState } | undefined;
   editProgramExercise: { key: string; dayData: Required<IDayData>; plannerState: IPlannerExerciseState } | undefined;
   muscles: undefined;
   onerms: undefined;
-  setupequipment: undefined;
-  setupplates: undefined;
   programselect: undefined;
   programPreview: undefined;
-  units: undefined;
-  first: undefined;
 };
 
 export type IWorkoutStackParamList = {
@@ -54,7 +60,13 @@ export type IRootTabParamList = {
   meTab: NavigatorScreenParams<IMeStackParamList>;
 };
 
-export type IAllScreenParamList = IHomeStackParamList &
+export type IRootStackParamList = {
+  onboarding: NavigatorScreenParams<IOnboardingStackParamList>;
+  mainTabs: NavigatorScreenParams<IRootTabParamList>;
+};
+
+export type IAllScreenParamList = IOnboardingStackParamList &
+  IHomeStackParamList &
   IProgramStackParamList &
   IWorkoutStackParamList &
   IGraphsStackParamList &

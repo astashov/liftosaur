@@ -9,18 +9,11 @@ import { ScreenEditProgramExercise as ScreenEditProgramExerciseComponent } from 
 import { ScreenMusclesProgram } from "../../components/muscles/screenMusclesProgram";
 import { ScreenMusclesDay } from "../../components/muscles/screenMusclesDay";
 import { Screen1RM } from "../../components/screen1RM";
-import {
-  ScreenSetupEquipment as ScreenSetupEquipmentComponent,
-  ScreenSetupPlates as ScreenSetupPlatesComponent,
-} from "../../components/screenSetupEquipment";
 import { ScreenProgramSelect as ScreenProgramSelectComponent } from "../../components/screenProgramSelect";
 import { ScreenProgramPreview as ScreenProgramPreviewComponent } from "../../components/screenProgramPreview";
-import { ScreenUnitSelector } from "../../components/screenUnitSelector";
-import { ScreenFirst as ScreenFirstComponent } from "../../components/screenFirst";
 import { Program_getProgram, Program_fullProgram } from "../../models/program";
 import { Progress_getProgress } from "../../models/progress";
 import { FallbackScreen } from "../../components/fallbackScreen";
-import { Account_getFromStorage } from "../../models/account";
 import { Thunk_pullScreen } from "../../ducks/thunks";
 import type { IProgramStackParamList } from "../types";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -157,36 +150,6 @@ export function NavScreenOnerms(): JSX.Element {
   );
 }
 
-export function NavScreenSetupEquipment(): JSX.Element {
-  const { state, dispatch } = useAppState();
-  const navCommon = buildNavCommon(state);
-  return (
-    <NavScreenContent>
-      <ScreenSetupEquipmentComponent
-        stats={state.storage.stats}
-        navCommon={navCommon}
-        dispatch={dispatch}
-        settings={state.storage.settings}
-      />
-    </NavScreenContent>
-  );
-}
-
-export function NavScreenSetupPlates(): JSX.Element {
-  const { state, dispatch } = useAppState();
-  const navCommon = buildNavCommon(state);
-  return (
-    <NavScreenContent>
-      <ScreenSetupPlatesComponent
-        stats={state.storage.stats}
-        navCommon={navCommon}
-        dispatch={dispatch}
-        settings={state.storage.settings}
-      />
-    </NavScreenContent>
-  );
-}
-
 export function NavScreenProgramSelect(): JSX.Element {
   const { state, dispatch } = useAppState();
   return (
@@ -217,24 +180,3 @@ export function NavScreenProgramPreview(): JSX.Element {
   );
 }
 
-export function NavScreenUnits(): JSX.Element {
-  const { state, dispatch } = useAppState();
-  return (
-    <NavScreenContent>
-      <ScreenUnitSelector settings={state.storage.settings} dispatch={dispatch} />
-    </NavScreenContent>
-  );
-}
-
-export function NavScreenFirst(): JSX.Element {
-  const { state, dispatch } = useAppState();
-  const { service } = useAppContext();
-  const userId = state.user?.id;
-  const userEmail = state.user?.email;
-  const account = userId && userEmail ? Account_getFromStorage(userId, userEmail, state.storage) : undefined;
-  return (
-    <NavScreenContent>
-      <ScreenFirstComponent account={account} client={service.client} dispatch={dispatch} />
-    </NavScreenContent>
-  );
-}

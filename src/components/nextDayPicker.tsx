@@ -74,10 +74,9 @@ export function NextDayPicker(props: INextDayPickerProps): JSX.Element {
             return memo;
           }, {});
           return (
-            <div className="px-2">
+            <div className="px-2" key={dayId}>
               <MenuItemWrapper
                 name={`next-day-picker-${dayIndex + 1}`}
-                key={dayId}
                 onClick={() => {
                   props.onSelect(evaluatedProgram.id, dayIndex + 1);
                 }}

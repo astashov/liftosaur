@@ -18,6 +18,7 @@ import { Subscriptions_isEligibleForThanksgivingPromo } from "../utils/subscript
 interface IFooterProps {
   dispatch: IDispatch;
   navCommon: INavCommon;
+  isStatic?: boolean;
 }
 
 function getHasErrorsInProgram(navCommon: INavCommon): boolean {
@@ -42,7 +43,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
   return (
     <>
       <div
-        className="fixed bottom-0 left-0 z-10 items-center w-full text-center pointer-events-none"
+        className={`${props.isStatic ? "" : "fixed bottom-0 left-0 "}z-10 items-center w-full text-center pointer-events-none`}
         style={{ marginBottom: "-2px" }}
       >
         <div
