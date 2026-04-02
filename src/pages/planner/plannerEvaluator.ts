@@ -331,7 +331,14 @@ export function PlannerEvaluator_fillRepeats(
             0) + 1,
       };
       const repeatedExercise: IPlannerProgramExercise = {
-        ...ObjectUtils_clone(exercise),
+        ...exercise,
+        reuse: exercise.reuse ? { ...exercise.reuse } : undefined,
+        progress: exercise.progress
+          ? { ...exercise.progress, reuse: exercise.progress.reuse ? { ...exercise.progress.reuse } : undefined }
+          : undefined,
+        update: exercise.update
+          ? { ...exercise.update, reuse: exercise.update.reuse ? { ...exercise.update.reuse } : undefined }
+          : undefined,
         repeat: [],
         dayData,
         isRepeat: true,
