@@ -11,7 +11,9 @@ import { IState } from "../../models/state";
 function getPlannerFromState(state: IState): IPlannerProgram | undefined {
   const screenData = getCurrentScreenData();
   const programId = screenData?.name === "editProgram" ? screenData.params?.programId : undefined;
-  if (!programId) return undefined;
+  if (!programId) {
+    return undefined;
+  }
   const editProgramState = state.editProgramStates[programId];
   return editProgramState?.current?.program?.planner;
 }

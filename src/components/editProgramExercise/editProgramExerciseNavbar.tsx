@@ -116,7 +116,14 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
               const updatedProgram = stateRef.current.current.program;
               updateState(
                 props.dispatch,
-                [lb<IState>().p("editProgramStates").p(props.programId).p("current").p("program").record(updatedProgram)],
+                [
+                  lb<IState>()
+                    .p("editProgramStates")
+                    .p(props.programId)
+                    .p("current")
+                    .p("program")
+                    .record(updatedProgram),
+                ],
                 "Update program from edit exercise"
               );
             } else {

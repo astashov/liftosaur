@@ -205,7 +205,13 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                     data-cy="exercise-edit-mode"
                     onClick={() => {
                       setIsKebabMenuOpen(false);
-                      props.dispatch(Thunk_pushToEditProgramExercise(programExercise.key, programExercise.dayData, "workout/editProgramExercise"));
+                      props.dispatch(
+                        Thunk_pushToEditProgramExercise(
+                          programExercise.key,
+                          programExercise.dayData,
+                          "workout/editProgramExercise"
+                        )
+                      );
                     }}
                   >
                     <div className="flex items-center gap-2">

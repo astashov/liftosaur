@@ -7,14 +7,20 @@ import { getCurrentScreenData } from "../../navigation/navigationService";
 
 function getPlannerExerciseFromState(state: IState): IPlannerProgramExercise | undefined {
   const screenData = getCurrentScreenData();
-  if (!screenData || screenData.name !== "editProgramExercise") return undefined;
+  if (!screenData || screenData.name !== "editProgramExercise") {
+    return undefined;
+  }
   const exerciseKey = screenData.params?.key;
   const dayData = screenData.params?.dayData;
   const programId = screenData.params?.programId;
-  if (!exerciseKey || !dayData || !programId) return undefined;
+  if (!exerciseKey || !dayData || !programId) {
+    return undefined;
+  }
   const exerciseStateKey = `${programId}_${exerciseKey}`;
   const plannerExerciseState = state.editProgramExerciseStates[exerciseStateKey];
-  if (!plannerExerciseState) return undefined;
+  if (!plannerExerciseState) {
+    return undefined;
+  }
   const evaluatedProgram = Program_evaluate(plannerExerciseState.current.program, state.storage.settings);
   return evaluatedProgram?.weeks[dayData.week - 1]?.days[dayData.dayInWeek - 1].exercises.find(
     (e) => e.key === exerciseKey

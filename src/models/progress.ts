@@ -919,7 +919,9 @@ export function Progress_changeDate(progress: IHistoryRecord, dateStr?: string, 
 }
 
 export function Progress_getProgressId(state: Pick<IState, "progress">): number {
-  const editIds = Object.keys((state as IState).progress).map(Number).filter(Boolean);
+  const editIds = Object.keys((state as IState).progress)
+    .map(Number)
+    .filter(Boolean);
   return editIds.length > 0 ? editIds[0] : 0;
 }
 
@@ -931,9 +933,7 @@ export function Progress_lbProgress(progressId?: number): LensBuilder<IState, IH
   }
 }
 
-export function Progress_getCurrentProgress(
-  state: Pick<IState, "storage">
-): IHistoryRecord | undefined {
+export function Progress_getCurrentProgress(state: Pick<IState, "storage">): IHistoryRecord | undefined {
   return state.storage.progress?.[0];
 }
 

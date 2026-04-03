@@ -843,13 +843,13 @@ export function Thunk_pushScreen<T extends IScreen>(
       const confirmation = currentScreen ? Screen_shouldConfirmNavigation(getState(), currentScreen) : undefined;
       if (confirmation) {
         if (confirm(confirmation)) {
-          const progressId = currentScreen?.name === "progress" ? currentScreen.params?.id ?? 0 : 0;
+          const progressId = currentScreen?.name === "progress" ? (currentScreen.params?.id ?? 0) : 0;
           cleanup(dispatch, getState(), progressId);
         } else {
           return;
         }
       } else {
-        const progressId = currentScreen?.name === "progress" ? currentScreen.params?.id ?? 0 : 0;
+        const progressId = currentScreen?.name === "progress" ? (currentScreen.params?.id ?? 0) : 0;
         if (progressId !== 0) {
           cleanup(dispatch, getState(), progressId);
         }
@@ -961,13 +961,13 @@ export function Thunk_pullScreen(): IThunk {
       const confirmation = Screen_shouldConfirmNavigation(getState(), currentScreen);
       if (confirmation) {
         if (confirm(confirmation)) {
-          const progressId = currentScreen.name === "progress" ? currentScreen.params?.id ?? 0 : 0;
+          const progressId = currentScreen.name === "progress" ? (currentScreen.params?.id ?? 0) : 0;
           cleanup(dispatch, getState(), progressId);
         } else {
           return;
         }
       } else {
-        const progressId = currentScreen.name === "progress" ? currentScreen.params?.id ?? 0 : 0;
+        const progressId = currentScreen.name === "progress" ? (currentScreen.params?.id ?? 0) : 0;
         if (progressId !== 0) {
           cleanup(dispatch, getState(), progressId);
         }
