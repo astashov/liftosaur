@@ -910,6 +910,24 @@ Bench Press / ...Squat / progress: custom() {~ ~}
     expect(evaluatedWeeks[0][0].success).to.be.true;
   });
 
+  it("doesn't show an error for same dp progress on exercise with different rep ranges across days", () => {
+    const programText = `# Week 1
+## Day 1
+Front Squat / 3x10-12 / 120s / progress: dp(5lb, 8, 12)
+
+## Day 2
+Front Squat / 3x8 / 120s / progress: dp(5lb, 8, 12)
+`;
+    const planner: IPlannerProgram = {
+      vtype: "planner",
+      name: "MyProgram",
+      weeks: PlannerProgram_evaluateText(programText),
+    };
+    const evaluatedWeeks = PlannerProgram_evaluate(planner, Settings_build()).evaluatedWeeks;
+    expect(evaluatedWeeks[0][0].success).to.be.true;
+    expect(evaluatedWeeks[0][1].success).to.be.true;
+  });
+
   it("doesn't show an error if original exercise update reuses another exercise but overrides update", () => {
     const programText = `# Week 1
 ## Day 1
