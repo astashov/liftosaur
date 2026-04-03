@@ -367,6 +367,170 @@ Squat / 3x5 / 120lb / progress: lp(5lb)`;
     });
   });
 
+  describe("custom exercise endpoints", () => {
+    let apiKey: string;
+
+    beforeEach(async () => {
+      const created = await service.createApiKey("Custom Exercise Key");
+      apiKey = created!.key;
+    });
+
+    it("creates, reads, updates, lists, and deletes a custom exercise", async () => {
+      const createResult = await handler(
+        buildEvent("POST", "/api/v1/custom-exercises", {
+          headers: apiHeaders(apiKey),
+          body: {
+            name: "Sled Push",
+            targetMuscles: ["Quadriceps", "Gluteus Maximus"],
+            synergistMuscles: ["Hamstrings"],
+            types: ["push", "legs"],
+          },
+        }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(createResult.statusCode).to.equal(201);
+      const created = parseBody(createResult).data;
+      expect(created.id).to.be.a("string");
+      expect(created.name).to.equal("Sled Push");
+
+      const getResult = await handler(
+        buildEvent("GET", `/api/v1/custom-exercises/${created.id}`, { headers: apiHeaders(apiKey) }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(getResult.statusCode).to.equal(200);
+      expect(parseBody(getResult).data.name).to.equal("Sled Push");
+
+      const updateResult = await handler(
+        buildEvent("PUT", `/api/v1/custom-exercises/${created.id}`, {
+          headers: apiHeaders(apiKey),
+          body: {
+            name: "Sled Drive",
+            targetMuscles: ["Quadriceps"],
+          },
+        }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(updateResult.statusCode).to.equal(200);
+      const updated = parseBody(updateResult).data;
+      expect(updated.name).to.equal("Sled Drive");
+      expect(updated.targetMuscles).to.deep.equal(["Quadriceps"]);
+      expect(updated.synergistMuscles).to.deep.equal(["Hamstrings"]);
+
+      const listResult = await handler(
+        buildEvent("GET", "/api/v1/custom-exercises", { headers: apiHeaders(apiKey) }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(listResult.statusCode).to.equal(200);
+      const listed = parseBody(listResult).data;
+      expect(listed.exercises).to.have.lengthOf(1);
+      expect(listed.exercises[0].id).to.equal(created.id);
+
+      const deleteResult = await handler(
+        buildEvent("DELETE", `/api/v1/custom-exercises/${created.id}`, { headers: apiHeaders(apiKey) }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(deleteResult.statusCode).to.equal(200);
+      expect(parseBody(deleteResult).data.deleted).to.equal(true);
+
+      const listAfterDelete = await handler(
+        buildEvent("GET", "/api/v1/custom-exercises", { headers: apiHeaders(apiKey) }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(parseBody(listAfterDelete).data.exercises).to.deep.equal([]);
+    });
+
+    it("supports pagination", async () => {
+      await handler(
+        buildEvent("POST", "/api/v1/custom-exercises", {
+          headers: apiHeaders(apiKey),
+          body: { name: "Exercise A" },
+        }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      await handler(
+        buildEvent("POST", "/api/v1/custom-exercises", {
+          headers: apiHeaders(apiKey),
+          body: { name: "Exercise B" },
+        }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      await handler(
+        buildEvent("POST", "/api/v1/custom-exercises", {
+          headers: apiHeaders(apiKey),
+          body: { name: "Exercise C" },
+        }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+
+      const page1 = await handler(
+        buildEvent("GET", "/api/v1/custom-exercises", {
+          headers: apiHeaders(apiKey),
+          qs: { limit: "2" },
+        }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(page1.statusCode).to.equal(200);
+      const page1Data = parseBody(page1).data;
+      expect(page1Data.exercises).to.have.lengthOf(2);
+      expect(page1Data.hasMore).to.equal(true);
+      expect(page1Data.nextCursor).to.be.a("string");
+
+      const page2 = await handler(
+        buildEvent("GET", "/api/v1/custom-exercises", {
+          headers: apiHeaders(apiKey),
+          qs: { limit: "2", cursor: page1Data.nextCursor },
+        }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(page2.statusCode).to.equal(200);
+      const page2Data = parseBody(page2).data;
+      expect(page2Data.exercises).to.have.lengthOf(1);
+      expect(page2Data.hasMore).to.equal(false);
+    });
+
+    it("validates required and typed fields", async () => {
+      const missingName = await handler(
+        buildEvent("POST", "/api/v1/custom-exercises", {
+          headers: apiHeaders(apiKey),
+          body: { targetMuscles: ["Quadriceps"] },
+        }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(missingName.statusCode).to.equal(400);
+      expect(parseBody(missingName).error.code).to.equal("invalid_input");
+
+      const invalidArrayField = await handler(
+        buildEvent("POST", "/api/v1/custom-exercises", {
+          headers: apiHeaders(apiKey),
+          body: { name: "Sled Push", targetMuscles: "Quadriceps" },
+        }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(invalidArrayField.statusCode).to.equal(400);
+      expect(parseBody(invalidArrayField).error.code).to.equal("invalid_input");
+
+      const invalidMuscle = await handler(
+        buildEvent("POST", "/api/v1/custom-exercises", {
+          headers: apiHeaders(apiKey),
+          body: { name: "Sled Push", targetMuscles: ["NotARealMuscle"] },
+        }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(invalidMuscle.statusCode).to.equal(400);
+      expect(parseBody(invalidMuscle).error.code).to.equal("invalid_input");
+
+      const invalidUpdateName = await handler(
+        buildEvent("PUT", "/api/v1/custom-exercises/nonexistent", {
+          headers: apiHeaders(apiKey),
+          body: { name: 123 },
+        }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(invalidUpdateName.statusCode).to.equal(400);
+      expect(parseBody(invalidUpdateName).error.code).to.equal("invalid_input");
+    });
+  });
+
   describe("playground endpoint", () => {
     let apiKey: string;
 

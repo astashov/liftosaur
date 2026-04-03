@@ -122,6 +122,16 @@ import {
   putV1ProgramHandler,
   deleteV1ProgramEndpoint,
   deleteV1ProgramHandler,
+  getV1CustomExercisesEndpoint,
+  getV1CustomExercisesHandler,
+  getV1CustomExerciseEndpoint,
+  getV1CustomExerciseHandler,
+  postV1CustomExerciseEndpoint,
+  postV1CustomExerciseHandler,
+  putV1CustomExerciseEndpoint,
+  putV1CustomExerciseHandler,
+  deleteV1CustomExerciseEndpoint,
+  deleteV1CustomExerciseHandler,
   postV1PlaygroundEndpoint,
   postV1PlaygroundHandler,
   postV1ProgramStatsEndpoint,
@@ -3024,6 +3034,11 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .post(postV1ProgramEndpoint, postV1ProgramHandler)
       .put(putV1ProgramEndpoint, putV1ProgramHandler)
       .delete(deleteV1ProgramEndpoint, deleteV1ProgramHandler)
+      .get(getV1CustomExercisesEndpoint, getV1CustomExercisesHandler)
+      .get(getV1CustomExerciseEndpoint, getV1CustomExerciseHandler)
+      .post(postV1CustomExerciseEndpoint, postV1CustomExerciseHandler)
+      .put(putV1CustomExerciseEndpoint, putV1CustomExerciseHandler)
+      .delete(deleteV1CustomExerciseEndpoint, deleteV1CustomExerciseHandler)
       .post(postV1PlaygroundEndpoint, postV1PlaygroundHandler)
       .post(postV1ProgramStatsEndpoint, postV1ProgramStatsHandler)
       .get(getMcpEndpoint, getMcpHandler)

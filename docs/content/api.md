@@ -277,6 +277,129 @@ DELETE /api/v1/history/:id
 }
 ```
 
+### List Custom Exercises
+
+```
+GET /api/v1/custom-exercises?limit=50&cursor=exercise_id
+```
+
+Query parameters (all optional):
+- `limit` - max exercises to return (default 50, max 200)
+- `cursor` - pagination cursor from previous response (`nextCursor`)
+
+**Response:**
+
+```json
+{
+  "data": {
+    "exercises": [
+      {
+        "id": "custom_abc123",
+        "name": "Zercher Carry",
+        "targetMuscles": ["Quadriceps"],
+        "synergistMuscles": ["Gluteus Maximus"],
+        "types": ["legs"]
+      }
+    ],
+    "hasMore": false
+  }
+}
+```
+
+### Get a Custom Exercise
+
+```
+GET /api/v1/custom-exercises/:id
+```
+
+**Response:**
+
+```json
+{
+  "data": {
+    "id": "custom_abc123",
+    "name": "Zercher Carry",
+    "targetMuscles": ["Quadriceps"],
+    "synergistMuscles": ["Gluteus Maximus"],
+    "types": ["legs"]
+  }
+}
+```
+
+### Create a Custom Exercise
+
+```
+POST /api/v1/custom-exercises
+Content-Type: application/json
+
+{
+  "name": "Zercher Carry",
+  "targetMuscles": ["Quadriceps"],
+  "synergistMuscles": ["Gluteus Maximus"],
+  "types": ["legs"]
+}
+```
+
+Only `name` is required. Other fields are optional and default to empty arrays.
+
+**Response (201):**
+
+```json
+{
+  "data": {
+    "id": "custom_abc123",
+    "name": "Zercher Carry",
+    "targetMuscles": ["Quadriceps"],
+    "synergistMuscles": ["Gluteus Maximus"],
+    "types": ["legs"]
+  }
+}
+```
+
+### Update a Custom Exercise
+
+```
+PUT /api/v1/custom-exercises/:id
+Content-Type: application/json
+
+{
+  "name": "Zercher Carry March",
+  "targetMuscles": ["Quadriceps", "Gluteus Maximus"]
+}
+```
+
+All fields are optional. Only provided fields are updated.
+
+**Response:**
+
+```json
+{
+  "data": {
+    "id": "custom_abc123",
+    "name": "Zercher Carry March",
+    "targetMuscles": ["Quadriceps", "Gluteus Maximus"],
+    "synergistMuscles": ["Gluteus Maximus"],
+    "types": ["legs"]
+  }
+}
+```
+
+### Delete a Custom Exercise
+
+```
+DELETE /api/v1/custom-exercises/:id
+```
+
+**Response:**
+
+```json
+{
+  "data": {
+    "deleted": true
+  }
+}
+```
+
 ### Playground
 
 Simulate a workout without saving anything. Use this to test program logic and progressions before committing.
