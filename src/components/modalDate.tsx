@@ -32,7 +32,7 @@ export function ModalDate(props: IModalDateProps): JSX.Element {
           className="block w-full px-4 py-2 leading-normal border rounded-lg appearance-none bg-background-default border-border-neutral focus:outline-none focus:shadow-outline"
           type="date"
           placeholder="Date"
-          value={formattedDate}
+          defaultValue={formattedDate}
         />
         <h3 className="pt-2 font-bold">Please enter workout length</h3>
         <div className="pb-2 text-xs text-text-secondary">(in hh:mm)</div>
