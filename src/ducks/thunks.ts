@@ -99,7 +99,7 @@ export class NoRetryError extends Error {
   public noretry = true;
 }
 
-export function Thunk_googleSignIn(cb?: () => void): IThunk {
+export function Thunk_googleSignIn(cb?: (state: IState) => void): IThunk {
   return async (dispatch, getState, env) => {
     const url = UrlUtils_build(window.location.href);
     const forcedUserEmail = url.searchParams.get("forceuseremail");
@@ -115,7 +115,7 @@ export function Thunk_googleSignIn(cb?: () => void): IThunk {
           return handleLogin(dispatch, result, env.service.client, userId);
         });
         if (cb) {
-          cb();
+          cb(getState());
         }
         dispatch(Thunk_sync2());
       }
@@ -125,7 +125,7 @@ export function Thunk_googleSignIn(cb?: () => void): IThunk {
       const result = await env.service.googleSignIn(forcedUserEmail, userId, { forcedUserEmail });
       await load(dispatch, "Logging in", () => handleLogin(dispatch, result, env.service.client, userId));
       if (cb) {
-        cb();
+        cb(getState());
       }
       dispatch(Thunk_sync2());
     }
@@ -138,7 +138,7 @@ export function Thunk_postevent(action: string, extra?: Record<string, string | 
   };
 }
 
-export function Thunk_appleSignIn(cb?: () => void): IThunk {
+export function Thunk_appleSignIn(cb?: (state: IState) => void): IThunk {
   return async (dispatch, getState, env) => {
     dispatch(Thunk_postevent("apple-sign-in"));
     let id_token: string;
@@ -160,7 +160,7 @@ export function Thunk_appleSignIn(cb?: () => void): IThunk {
       if (!window.AppleID?.auth) {
         alert("Apple Sign In is not available");
         if (cb) {
-          cb();
+          cb(getState());
         }
         return;
       }
@@ -173,12 +173,12 @@ export function Thunk_appleSignIn(cb?: () => void): IThunk {
       const result = await load(dispatch, "Logging in", async () => env.service.appleSignIn(code, id_token, userId));
       await load(dispatch, "Signing in", () => handleLogin(dispatch, result, env.service.client, userId));
       if (cb) {
-        cb();
+        cb(getState());
       }
       dispatch(Thunk_sync2());
     } else {
       if (cb) {
-        cb();
+        cb(getState());
       }
     }
   };

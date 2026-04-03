@@ -94,7 +94,7 @@ function HomeStackScreen(): JSX.Element {
   return (
     <HomeStack.Navigator screenOptions={getStackScreenOptions()}>
       <HomeStack.Screen name="main" component={NavScreenMain} />
-      <HomeStack.Screen name="progress" component={NavScreenProgress} />
+      <HomeStack.Screen name="progress" component={NavScreenProgress} getId={({ params }) => String(params?.id ?? 0)} />
     </HomeStack.Navigator>
   );
 }
@@ -131,7 +131,7 @@ function GraphsStackScreen(): JSX.Element {
   return (
     <GraphsStack.Navigator screenOptions={getStackScreenOptions()}>
       <GraphsStack.Screen name="graphs" component={NavScreenGraphs} />
-      <GraphsStack.Screen name="progress" component={NavScreenProgress} />
+      <GraphsStack.Screen name="progress" component={NavScreenProgress} getId={({ params }) => String(params?.id ?? 0)} />
     </GraphsStack.Navigator>
   );
 }
@@ -153,7 +153,7 @@ function MeStackScreen(): JSX.Element {
       <MeStack.Screen name="exerciseStats" component={NavScreenExerciseStats} />
       <MeStack.Screen name="apiKeys" component={NavScreenApiKeys} />
       <MeStack.Screen name="me/programs" component={NavScreenPrograms} />
-      <MeStack.Screen name="progress" component={NavScreenProgress} />
+      <MeStack.Screen name="progress" component={NavScreenProgress} getId={({ params }) => String(params?.id ?? 0)} />
     </MeStack.Navigator>
   );
 }

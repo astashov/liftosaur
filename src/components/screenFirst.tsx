@@ -1,4 +1,4 @@
-import { JSX, useEffect, useState } from "react";
+import { JSX, useEffect, useCallback, useState } from "react";
 import { Thunk_pushScreen } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { useNavOptions } from "../navigation/useNavOptions";
@@ -14,6 +14,7 @@ import { Modal } from "./modal";
 import { Account } from "./account";
 import { IAccount } from "../models/account";
 import { ImagePreloader_preload } from "../utils/imagePreloader";
+import { IState } from "../models/state";
 
 interface IProps {
   account?: IAccount;
@@ -30,6 +31,11 @@ const onboardingImages = [
 
 export function ScreenFirst(props: IProps): JSX.Element {
   const [showAccountModal, setShowAccountModal] = useState(false);
+  const onSignIn = useCallback((state: IState) => {
+    if (state.storage.currentProgramId) {
+      props.dispatch(Thunk_pushScreen("main", undefined, true));
+    }
+  }, []);
 
   useNavOptions({ navHidden: true });
 
@@ -135,7 +141,7 @@ export function ScreenFirst(props: IProps): JSX.Element {
       </div>
       {showAccountModal && (
         <Modal onClose={() => setShowAccountModal(false)} shouldShowClose={true}>
-          <Account account={props.account} client={props.client} dispatch={props.dispatch} />
+          <Account account={props.account} client={props.client} dispatch={props.dispatch} onSignIn={onSignIn} />
         </Modal>
       )}
     </section>
