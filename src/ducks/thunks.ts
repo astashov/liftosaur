@@ -320,6 +320,20 @@ async function _sync2(
         "Update subscription no storage"
       );
       return false;
+    } else if (result.type === "error" && result.error === "corrupted_server_storage") {
+      dispatch(Thunk_postevent("corrupted-server-storage"));
+      updateState(
+        dispatch,
+        [lb<IState>().p("lastSyncedStorage").record(undefined)],
+        "Clear last sync on corrupted server storage"
+      );
+      if (typeof window !== "undefined") {
+        alert(
+          "Server storage is corrupted, so sync failed. " +
+            "To fix it - kill/restart the app a couple times. If it persists, please contact support."
+        );
+      }
+      return false;
     } else if (result.type === "error") {
       if (result.error === "outdated_client_storage") {
         if (typeof window !== "undefined") {
