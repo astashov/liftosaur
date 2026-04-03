@@ -1,4 +1,4 @@
-import { CommonActions } from "@react-navigation/native";
+import { CommonActions, type NavigationState } from "@react-navigation/native";
 import { navigationRef } from "./navigationRef";
 import { Screen_tab, IScreen } from "../models/screen";
 import type { ITab, IScreenData } from "../models/screen";
@@ -10,6 +10,14 @@ const tabNameMap: Record<ITab, string> = {
   workout: "workoutTab",
   graphs: "graphsTab",
   me: "meTab",
+};
+
+const tabNameToTab: Record<string, ITab> = {
+  homeTab: "home",
+  programTab: "program",
+  workoutTab: "workout",
+  graphsTab: "graphs",
+  meTab: "me",
 };
 
 const onboardingScreens: Set<string> = new Set<keyof IOnboardingStackParamList>([
@@ -25,14 +33,15 @@ const onboardingScreens: Set<string> = new Set<keyof IOnboardingStackParamList>(
 const rootScreens: Set<string> = new Set(["subscription"]);
 
 export function getCurrentTab(): ITab | undefined {
-  if (!navigationRef.isReady()) {
-    return undefined;
-  }
-  const route = navigationRef.getCurrentRoute();
-  if (!route) {
-    return undefined;
-  }
-  return Screen_tab(route.name as IScreen);
+  if (!navigationRef.isReady()) return undefined;
+  const navState = navigationRef.getRootState();
+  if (!navState) return undefined;
+  const rootRoute = navState.routes[navState.index ?? 0];
+  if (rootRoute.name !== "mainTabs") return undefined;
+  const tabsState = rootRoute.state as NavigationState | undefined;
+  if (!tabsState) return undefined;
+  const activeTab = tabsState.routes[tabsState.index ?? 0];
+  return tabNameToTab[activeTab.name];
 }
 
 export function navigateTo<T extends IScreen>(

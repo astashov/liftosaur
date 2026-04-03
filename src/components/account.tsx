@@ -10,6 +10,7 @@ import { IconDumbbell } from "./icons/iconDumbbell";
 import { IconGoogle } from "./icons/iconGoogle";
 import { IconSpinner } from "./icons/iconSpinner";
 import { IDispatch } from "../ducks/types";
+import { IState } from "../models/state";
 import { Thunk_googleSignIn, Thunk_appleSignIn } from "../ducks/thunks";
 import { track } from "../utils/posthog";
 
@@ -18,6 +19,7 @@ interface IAccountProps {
   redirectUrl?: string;
   dispatch?: IDispatch;
   client: Window["fetch"];
+  onSignIn?: (state: IState) => void;
 }
 
 declare let __HOST__: string;
@@ -29,7 +31,12 @@ export function Account(props: IAccountProps): JSX.Element {
       {props.account ? (
         <AccountLoggedInView service={service} account={props.account} />
       ) : (
-        <AccountLoggedOutView service={service} redirectUrl={props.redirectUrl} dispatch={props.dispatch} />
+        <AccountLoggedOutView
+          service={service}
+          redirectUrl={props.redirectUrl}
+          dispatch={props.dispatch}
+          onSignIn={props.onSignIn}
+        />
       )}
     </div>
   );
@@ -108,6 +115,7 @@ interface IAccountLoggedOutViewProps {
   service: Service;
   redirectUrl?: string;
   dispatch?: IDispatch;
+  onSignIn?: (state: IState) => void;
 }
 
 function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
@@ -142,7 +150,12 @@ function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
                 track({ name: "SignUp" });
                 setIsLoading(true);
                 if (props.dispatch) {
-                  props.dispatch(Thunk_googleSignIn(() => setIsLoading(false)));
+                  props.dispatch(
+                    Thunk_googleSignIn((newState) => {
+                      setIsLoading(false);
+                      props.onSignIn?.(newState);
+                    })
+                  );
                   return;
                 }
                 const accessToken = await getGoogleAccessToken(true);
@@ -175,7 +188,12 @@ function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
                 track({ name: "SignUp" });
                 setIsLoading(true);
                 if (props.dispatch) {
-                  props.dispatch(Thunk_appleSignIn(() => setIsLoading(false)));
+                  props.dispatch(
+                    Thunk_appleSignIn((newState) => {
+                      setIsLoading(false);
+                      props.onSignIn?.(newState);
+                    })
+                  );
                   return;
                 }
                 if (!window.AppleID?.auth) {
