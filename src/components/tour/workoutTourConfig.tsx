@@ -9,8 +9,8 @@ import {
   Program_getDiffVars,
   Program_getEvaluatedProgramFromState,
 } from "../../models/program";
-import { Screen_currentName } from "../../models/screen";
 import { Progress_getCurrentProgress } from "../../models/progress";
+import { getCurrentScreenData } from "../../navigation/navigationService";
 import { Weight_eqNull } from "../../models/weight";
 import { IconKebab } from "../icons/iconKebab";
 import { Reps_isFinished } from "../../models/set";
@@ -20,7 +20,7 @@ import { ObjectUtils_isNotEmpty } from "../../utils/object";
 export const workoutTourConfig: ITourConfig = {
   id: "workout",
   shouldStart: (state) => {
-    const screen = Screen_currentName(state.screenStack);
+    const screen = getCurrentScreenData()?.name;
     if (screen !== "progress") {
       return false;
     }

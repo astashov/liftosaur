@@ -1,6 +1,6 @@
 import { IState } from "./state";
 import { dequal } from "dequal";
-import { Progress_getProgress, Progress_isCurrent } from "./progress";
+import { Progress_isCurrent } from "./progress";
 import { IDayData, IStatsKey } from "../types";
 import { Program_getProgram, Program_cleanPlannerProgram } from "./program";
 import { ObjectUtils_isEqual } from "../utils/object";
@@ -44,66 +44,30 @@ export type IScreenData =
   | { name: "workout/editProgramExercise"; params: { programId: string; key: string; dayData: Required<IDayData> } };
 
 export type IScreen = IScreenData["name"];
-export type IScreenStack = IScreenData[];
 export type IScreenParams<T extends IScreen> = Extract<IScreenData, { name: T }>["params"];
 
-export function Screen_currentName(stack: IScreenStack): IScreen {
-  return stack[stack.length - 1].name;
-}
-
-export function Screen_current(stack: IScreenStack): IScreenData {
-  return stack[stack.length - 1];
-}
-
-export function Screen_push<T extends IScreenData["name"]>(
-  stack: IScreenStack,
-  name: T,
-  params?: IScreenParams<T>
-): IScreenStack {
-  const newEntry: IScreenData = { name, ...(params ? { params } : {}) } as Extract<IScreenData, { name: T }>;
-  return [...stack, newEntry];
-}
-
-export function Screen_updateParams<T extends IScreen>(stack: IScreenStack, params?: IScreenParams<T>): IScreenStack {
-  const topStack = stack[stack.length - 1];
-  const newTopStack = { ...topStack, params };
-  return [...stack.slice(0, stack.length - 1), newTopStack] as IScreenStack;
-}
-
-export function Screen_pull(stack: IScreenStack): IScreenStack {
-  return stack.length > 1 ? [...stack].slice(0, stack.length - 1) : stack;
-}
-
-export function Screen_previous(stack: IScreenStack): IScreen | undefined {
-  return stack[stack.length - 2]?.name;
-}
-
-export function Screen_enablePtr(stack: IScreenStack): boolean {
-  const curr = Screen_currentName(stack);
-  return ["first", "finishDay", "subscription", "programs", "me/programs", "measurements"].indexOf(curr) === -1;
-}
-
-export function Screen_shouldConfirmNavigation(state: IState, isPush: boolean): string | undefined {
-  const progress = Progress_getProgress(state);
+export function Screen_shouldConfirmNavigation(state: IState, currentScreen: IScreenData): string | undefined {
+  const progressId = currentScreen.name === "progress" ? currentScreen.params?.id ?? 0 : 0;
+  const progress = progressId === 0 ? state.storage.progress?.[0] : state.progress[progressId];
   if (progress && !Progress_isCurrent(progress)) {
     const oldHistoryRecord = state.storage.history.find((hr) => hr.id === progress.id);
-    if (oldHistoryRecord != null && !dequal(oldHistoryRecord, progress)) {
+    const { ui: _ui, ...progressWithoutUi } = progress;
+    if (oldHistoryRecord != null && !dequal(oldHistoryRecord, progressWithoutUi)) {
       return "Are you sure? Changes won't be saved.";
     }
   }
 
-  const currentScreen = Screen_current(state.screenStack);
-  const editProgramScreen = state.screenStack.find((s) => s.name === "editProgram");
-  const programId = editProgramScreen?.name === "editProgram" ? editProgramScreen.params?.programId : undefined;
-  const editProgramState = programId ? state.editProgramStates[programId] : undefined;
-
-  if (editProgramState && currentScreen.name === "editProgram") {
-    const currentProgram = Program_getProgram(state, editProgramState.current.program.id);
-    if (currentProgram != null && currentProgram.planner && editProgramState.current.program.planner) {
-      const oldCleanedProgram = Program_cleanPlannerProgram(currentProgram);
-      const newCleanedProgram = Program_cleanPlannerProgram(editProgramState.current.program);
-      if (!ObjectUtils_isEqual(oldCleanedProgram.planner!, newCleanedProgram.planner!)) {
-        return "Are you sure? Your program changes won't be saved.";
+  if (currentScreen.name === "editProgram") {
+    const programId = currentScreen.params?.programId;
+    const editProgramState = programId ? state.editProgramStates[programId] : undefined;
+    if (editProgramState) {
+      const currentProgram = Program_getProgram(state, editProgramState.current.program.id);
+      if (currentProgram != null && currentProgram.planner && editProgramState.current.program.planner) {
+        const oldCleanedProgram = Program_cleanPlannerProgram(currentProgram);
+        const newCleanedProgram = Program_cleanPlannerProgram(editProgramState.current.program);
+        if (!ObjectUtils_isEqual(oldCleanedProgram.planner!, newCleanedProgram.planner!)) {
+          return "Are you sure? Your program changes won't be saved.";
+        }
       }
     }
   }
@@ -114,6 +78,8 @@ export function Screen_shouldConfirmNavigation(state: IState, isPush: boolean): 
     const exerciseStateKey = exerciseProgramId && exerciseKey ? `${exerciseProgramId}_${exerciseKey}` : undefined;
     const editProgramExerciseState = exerciseStateKey ? state.editProgramExerciseStates[exerciseStateKey] : undefined;
     if (editProgramExerciseState) {
+      const programId = currentScreen.params?.programId;
+      const editProgramState = programId ? state.editProgramStates[programId] : undefined;
       if (editProgramState && editProgramState.current.program.planner && editProgramExerciseState.current.program.planner) {
         if (!ObjectUtils_isEqual(editProgramExerciseState.current.program.planner, editProgramState.current.program.planner)) {
           return "Are you sure? Your program exercise changes won't be saved.";

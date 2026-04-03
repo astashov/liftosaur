@@ -1,4 +1,5 @@
 import { JSX } from "react";
+import { useRoute } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { buildNavCommon } from "../utils";
 import { NavScreenContent } from "../NavScreenContent";
@@ -163,6 +164,7 @@ export function NavScreenStats(): JSX.Element {
 export function NavScreenMeasurements(): JSX.Element {
   const { state, dispatch } = useAppState();
   const navCommon = buildNavCommon(state);
+  const route = useRoute<{ key: string; name: "measurements"; params?: { key?: import("../../types").IStatsKey } }>();
   return (
     <NavScreenContent>
       <ScreenMeasurementsComponent
@@ -171,6 +173,7 @@ export function NavScreenMeasurements(): JSX.Element {
         dispatch={dispatch}
         settings={state.storage.settings}
         stats={state.storage.stats}
+        initialKey={route.params?.key}
       />
     </NavScreenContent>
   );

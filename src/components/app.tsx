@@ -1,7 +1,6 @@
 import { JSX, Fragment, useEffect, useRef, useCallback } from "react";
 import { reducerWrapper, defaultOnActions, IAction } from "../ducks/reducer";
 import { Program_getProgram } from "../models/program";
-import { IScreen, Screen_currentName } from "../models/screen";
 import { useThunkReducer } from "../utils/useThunkReducer";
 import {
   Thunk_fetchStorage,
@@ -21,7 +20,7 @@ import {
 } from "../ducks/thunks";
 import { Service } from "../api/service";
 import { IAudioInterface } from "../lib/audioInterface";
-import { Progress_getCurrentProgress, Progress_lbProgress, Progress_getProgress } from "../models/progress";
+import { Progress_getCurrentProgress, Progress_lbProgress } from "../models/progress";
 import { IAttributionData, IEnv, IState, updateState } from "../models/state";
 import { Notification } from "./notification";
 import { WhatsNew_doesHaveNewUpdates } from "../models/whatsnew";
@@ -53,7 +52,7 @@ import { NavigationContainer, DefaultTheme, type NavigationState } from "@react-
 import { navigationRef } from "../navigation/navigationRef";
 import { StateContext } from "../navigation/StateContext";
 import { AppNavigator } from "../navigation/AppNavigator";
-import type { IScreenStack, IScreenData } from "../models/screen";
+import type { IScreen } from "../models/screen";
 
 declare let Rollbar: RB;
 declare let __COMMIT_HASH__: string;
@@ -65,52 +64,21 @@ interface IProps {
   queue: AsyncQueue;
 }
 
-const tabToDefaultScreen: Record<string, IScreen> = {
-  homeTab: "main",
-  programTab: "programs",
-  workoutTab: "progress",
-  graphsTab: "graphs",
-  meTab: "settings",
-};
-
-function extractStackRoutes(state: NavigationState | undefined): IScreenStack {
-  if (!state) return [];
-  const stack: IScreenStack = [];
-  for (let i = 0; i <= (state.index ?? 0); i++) {
-    const route = state.routes[i];
-    stack.push({
-      name: route.name as IScreen,
-      ...(route.params ? { params: route.params } : {}),
-    } as IScreenData);
-  }
-  return stack;
-}
-
-function deriveScreenStack(navState: NavigationState | undefined): IScreenStack {
-  if (!navState) return [{ name: "main" }];
-
+function getScreenNameFromNavState(navState: NavigationState | undefined): IScreen {
+  if (!navState) return "main";
   const rootRoute = navState.routes[navState.index ?? 0];
-
   if (rootRoute.name === "onboarding") {
     const onboardingState = rootRoute.state as NavigationState | undefined;
-    const routes = extractStackRoutes(onboardingState);
-    return routes.length > 0 ? routes : [{ name: "first" }];
+    if (!onboardingState) return "first";
+    return onboardingState.routes[onboardingState.index ?? 0].name as IScreen;
   }
-
-  if (rootRoute.name === "subscription") {
-    return [{ name: "subscription" }];
-  }
-
+  if (rootRoute.name === "subscription") return "subscription";
   const mainTabsState = rootRoute.state as NavigationState | undefined;
-  if (!mainTabsState) return [{ name: "main" }];
-
+  if (!mainTabsState) return "main";
   const activeTab = mainTabsState.routes[mainTabsState.index ?? 0];
   const tabStackState = activeTab.state as NavigationState | undefined;
-  if (!tabStackState) {
-    return [{ name: tabToDefaultScreen[activeTab.name] || "main" } as IScreenData];
-  }
-
-  return extractStackRoutes(tabStackState);
+  if (!tabStackState) return "main";
+  return tabStackState.routes[tabStackState.index ?? 0].name as IScreen;
 }
 
 export function AppView(props: IProps): JSX.Element | null {
@@ -140,12 +108,18 @@ export function AppView(props: IProps): JSX.Element | null {
 
   useLoopCatcher();
 
-  useEffect(() => {
-    const tourId = TourConfigs_findTourId(state, true);
-    if (tourId && tourId !== state.tour?.id) {
+  const checkToursRef = useRef(() => {
+    const tourId = TourConfigs_findTourId(stateRef.current, true);
+    if (tourId && tourId !== stateRef.current.tour?.id) {
       updateState(dispatch, [lb<IState>().p("tour").record({ id: tourId, enforced: false })], "Auto-start a tour");
     }
-  }, [state.screenStack, state.storage.progress]);
+  });
+  checkToursRef.current = () => {
+    const tourId = TourConfigs_findTourId(stateRef.current, true);
+    if (tourId && tourId !== stateRef.current.tour?.id) {
+      updateState(dispatch, [lb<IState>().p("tour").record({ id: tourId, enforced: false })], "Auto-start a tour");
+    }
+  };
 
   useEffect(() => {
     const url =
@@ -376,22 +350,21 @@ export function AppView(props: IProps): JSX.Element | null {
     };
   }, []);
 
-  useEffect(() => {
-    document.body.setAttribute("data-screen", Screen_currentName(state.screenStack));
-  }, [state.screenStack]);
-
   const onNavigationStateChange = useCallback(
     (navState: NavigationState | undefined) => {
-      const screenStack = deriveScreenStack(navState);
-      dispatch({ type: "SyncScreenStack", screenStack });
+      const screenName = getScreenNameFromNavState(navState);
+      document.body.setAttribute("data-screen", screenName);
+      window.scroll(0, 0);
+      checkToursRef.current();
     },
-    [dispatch]
+    []
   );
 
-  const initialScreen = props.initialState.screenStack[0]?.name;
+  const initialScreen = props.initialState.storage.currentProgramId ? "main" : "first";
 
-  const progress = Progress_getProgress(state);
+  const progress = Progress_getCurrentProgress(state);
   const { lftAndroidSafeInsetTop, lftAndroidSafeInsetBottom } = window;
+  const currentScreenName = navigationRef.isReady() ? (navigationRef.getCurrentRoute()?.name as IScreen | undefined) : undefined;
   const screensWithoutTimer: IScreen[] = ["subscription"];
   const isEligibleForThanks25 = Subscriptions_isEligibleForThanksgivingPromo(
     state.storage.history.length > 0,
@@ -423,7 +396,7 @@ export function AppView(props: IProps): JSX.Element | null {
           </NavigationContainer>
         </AppContext.Provider>
       </StateContext.Provider>
-      {progress && screensWithoutTimer.indexOf(Screen_currentName(state.screenStack)) === -1 && (
+      {progress && currentScreenName && screensWithoutTimer.indexOf(currentScreenName) === -1 && (
         <RestTimer
           progress={progress}
           dispatch={dispatch}

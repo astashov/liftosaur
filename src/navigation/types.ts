@@ -3,6 +3,7 @@ import type { IDayData, IStatsKey } from "../types";
 
 export type IHomeStackParamList = {
   main: { historyRecordId?: number } | undefined;
+  progress: { id?: number } | undefined;
 };
 
 export type IOnboardingStackParamList = {
@@ -33,6 +34,7 @@ export type IWorkoutStackParamList = {
 
 export type IGraphsStackParamList = {
   graphs: undefined;
+  progress: { id?: number } | undefined;
 };
 
 export type IMeStackParamList = {
@@ -50,6 +52,7 @@ export type IMeStackParamList = {
   exerciseStats: undefined;
   apiKeys: undefined;
   "me/programs": undefined;
+  progress: { id?: number } | undefined;
 };
 
 export type IRootTabParamList = {

@@ -6,7 +6,6 @@ import { useNavOptions } from "../navigation/useNavOptions";
 import { DateUtils_firstDayOfWeekTimestamp } from "../utils/date";
 import { HistoryRecordsList } from "./historyRecordsList";
 import { History_getHistoryRecordsForTimerange, History_getPersonalRecords } from "../models/history";
-import { Screen_current } from "../models/screen";
 import { WeekInsights } from "./weekInsights";
 import { ModalPlannerSettings } from "../pages/planner/components/modalPlannerSettings";
 import { lb } from "lens-shmens";
@@ -29,6 +28,7 @@ interface IProps {
   navCommon: INavCommon;
   dispatch: IDispatch;
   scrollContainerRef?: RefObject<HTMLDivElement | null>;
+  initialHistoryRecordId?: number;
 }
 
 interface IWeekData {
@@ -87,8 +87,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
     return history;
   }, [props.history, props.progress, props.program, props.settings]);
   const surfaceRef = useRef<HTMLElement>(null);
-  const screenData = Screen_current(props.navCommon.screenStack);
-  const initialHistoryRecordId = screenData.name === "main" ? screenData.params?.historyRecordId : undefined;
+  const initialHistoryRecordId = props.initialHistoryRecordId;
   let initialShift =
     initialHistoryRecordId != null ? sortedHistory.findIndex((record) => record.id === initialHistoryRecordId) : -1;
   initialShift = Math.max(0, initialShift);

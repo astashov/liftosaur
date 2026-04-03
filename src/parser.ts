@@ -12,7 +12,6 @@ import { Weight_build } from "./models/weight";
 import { IUnit, IWeight, IProgramState, IPercentage, IDayData, IExerciseType, ISettings } from "./types";
 import type { Tree } from "@lezer/common";
 import RB from "rollbar";
-import { IState } from "./models/state";
 import { IProgramMode } from "./models/program";
 import { ILiftoscriptEvaluatorUpdate } from "./liftoscriptEvaluator";
 
@@ -242,8 +241,6 @@ export class ScriptRunner {
     }
     const payload = {
       error: error ? { message: error.message, name: error.name, stack: error.stack } : undefined,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      screen: JSON.stringify(((window as any)?.state as IState)?.screenStack),
     };
     Rollbar.error(msg, payload);
   }

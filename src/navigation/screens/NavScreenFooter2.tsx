@@ -3,13 +3,13 @@ import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { useAppState } from "../StateContext";
 import { buildNavCommon } from "../utils";
 import { Footer2View } from "../../components/footer2";
-import { Screen_currentName } from "../../models/screen";
+import { getCurrentScreenData } from "../navigationService";
 
 const screensWithoutFooter = ["programs", "me/programs", "subscription"];
 
 export function Footer2Wrapper(_props: BottomTabBarProps): JSX.Element | null {
   const { state, dispatch } = useAppState();
-  const currentScreen = Screen_currentName(state.screenStack);
+  const currentScreen = getCurrentScreenData()?.name ?? "main";
   if (screensWithoutFooter.includes(currentScreen)) {
     return null;
   }

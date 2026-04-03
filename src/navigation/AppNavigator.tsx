@@ -93,6 +93,7 @@ function HomeStackScreen(): JSX.Element {
   return (
     <HomeStack.Navigator screenOptions={getStackScreenOptions()}>
       <HomeStack.Screen name="main" component={NavScreenMain} />
+      <HomeStack.Screen name="progress" component={NavScreenProgress} />
     </HomeStack.Navigator>
   );
 }
@@ -113,7 +114,7 @@ function ProgramStackScreen(): JSX.Element {
 function WorkoutStackScreen(): JSX.Element {
   return (
     <WorkoutStack.Navigator screenOptions={getStackScreenOptions()}>
-      <WorkoutStack.Screen name="progress" component={NavScreenProgress} />
+      <WorkoutStack.Screen name="progress" component={NavScreenProgress} getId={({ params }) => String(params?.id ?? 0)} />
       <WorkoutStack.Screen name="finishDay" component={NavScreenFinishDay} />
       <WorkoutStack.Screen name="workout/editProgramExercise" component={NavScreenEditProgramExercise} />
       <WorkoutStack.Screen name="muscles" component={NavScreenMuscles} />
@@ -125,6 +126,7 @@ function GraphsStackScreen(): JSX.Element {
   return (
     <GraphsStack.Navigator screenOptions={getStackScreenOptions()}>
       <GraphsStack.Screen name="graphs" component={NavScreenGraphs} />
+      <GraphsStack.Screen name="progress" component={NavScreenProgress} />
     </GraphsStack.Navigator>
   );
 }
@@ -146,6 +148,7 @@ function MeStackScreen(): JSX.Element {
       <MeStack.Screen name="exerciseStats" component={NavScreenExerciseStats} />
       <MeStack.Screen name="apiKeys" component={NavScreenApiKeys} />
       <MeStack.Screen name="me/programs" component={NavScreenPrograms} />
+      <MeStack.Screen name="progress" component={NavScreenProgress} />
     </MeStack.Navigator>
   );
 }

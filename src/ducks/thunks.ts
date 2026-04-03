@@ -43,7 +43,7 @@ import { DateUtils_formatYYYYMMDD, DateUtils_format } from "../utils/date";
 import { getInitialState } from "./reducer";
 import { IndexedDBUtils_get, IndexedDBUtils_remove } from "../utils/indexeddb";
 import { WhatsNew_updateStorage } from "../models/whatsnewUtils";
-import { Screen_currentName, Screen_shouldConfirmNavigation } from "../models/screen";
+import { Screen_shouldConfirmNavigation } from "../models/screen";
 import {
   Subscriptions_listOfSubscriptions,
   Subscriptions_hasSubscription,
@@ -630,8 +630,8 @@ export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivit
       const phoneHistoryLen = state.storage.history?.length ?? 0;
       const watchHistoryLen = watchStorage.history?.length ?? 0;
 
-      // Check if we're currently on the progress screen
-      const wasOnProgressScreen = Screen_currentName(state.screenStack) === "progress";
+      const { getCurrentScreenData: getScreen } = await getNavigationService();
+      const wasOnProgressScreen = getScreen()?.name === "progress";
       const hadProgress = state.storage.progress && state.storage.progress.length > 0;
 
       // Merge watch storage with phone storage
@@ -804,10 +804,8 @@ export function Thunk_pushToEditProgramExercise(
 ): IThunk {
   return async (dispatch, getState) => {
     const state = getState();
-    const editProgramScreen = state.screenStack.find((s) => s.name === "editProgram");
-    const programId =
-      (editProgramScreen?.name === "editProgram" ? editProgramScreen.params?.programId : undefined) ??
-      state.storage.currentProgramId;
+    const editProgramIds = Object.keys(state.editProgramStates);
+    const programId = editProgramIds[0] ?? state.storage.currentProgramId;
     const editProgramState = programId ? state.editProgramStates[programId] : undefined;
     const currentProgram =
       editProgramState?.current.program || (programId != null ? Program_getProgram(state, programId) : undefined);
@@ -840,12 +838,20 @@ export function Thunk_pushScreen<T extends IScreen>(
   return async (dispatch, getState) => {
     dispatch(Thunk_postevent("navigate-to-" + screen));
     if (shouldResetStack) {
-      const confirmation = Screen_shouldConfirmNavigation(getState(), true);
+      const { getCurrentScreenData } = await getNavigationService();
+      const currentScreen = getCurrentScreenData();
+      const confirmation = currentScreen ? Screen_shouldConfirmNavigation(getState(), currentScreen) : undefined;
       if (confirmation) {
         if (confirm(confirmation)) {
-          cleanup(dispatch, getState());
+          const progressId = currentScreen?.name === "progress" ? currentScreen.params?.id ?? 0 : 0;
+          cleanup(dispatch, getState(), progressId);
         } else {
           return;
+        }
+      } else {
+        const progressId = currentScreen?.name === "progress" ? currentScreen.params?.id ?? 0 : 0;
+        if (progressId !== 0) {
+          cleanup(dispatch, getState(), progressId);
         }
       }
     }
@@ -932,8 +938,8 @@ export function Thunk_maybeRequestSignup(): IThunk {
   };
 }
 
-function cleanup(dispatch: IDispatch, state: IState): void {
-  const progress = Progress_getProgress(state);
+function cleanup(dispatch: IDispatch, state: IState, progressId: number): void {
+  const progress = progressId === 0 ? state.storage.progress?.[0] : state.progress[progressId];
   if (progress && !Progress_isCurrent(progress)) {
     updateState(
       dispatch,
@@ -949,15 +955,24 @@ function cleanup(dispatch: IDispatch, state: IState): void {
 
 export function Thunk_pullScreen(): IThunk {
   return async (dispatch, getState) => {
-    const confirmation = Screen_shouldConfirmNavigation(getState(), false);
-    if (confirmation) {
-      if (confirm(confirmation)) {
-        cleanup(dispatch, getState());
+    const { goBack, getCurrentScreenData } = await getNavigationService();
+    const currentScreen = getCurrentScreenData();
+    if (currentScreen) {
+      const confirmation = Screen_shouldConfirmNavigation(getState(), currentScreen);
+      if (confirmation) {
+        if (confirm(confirmation)) {
+          const progressId = currentScreen.name === "progress" ? currentScreen.params?.id ?? 0 : 0;
+          cleanup(dispatch, getState(), progressId);
+        } else {
+          return;
+        }
       } else {
-        return;
+        const progressId = currentScreen.name === "progress" ? currentScreen.params?.id ?? 0 : 0;
+        if (progressId !== 0) {
+          cleanup(dispatch, getState(), progressId);
+        }
       }
     }
-    const { goBack } = await getNavigationService();
     goBack();
     window.scroll(0, 0);
   };
@@ -966,8 +981,8 @@ export function Thunk_pullScreen(): IThunk {
 export function Thunk_editHistoryRecord(historyRecord: IHistoryRecord): IThunk {
   return async (dispatch) => {
     dispatch({ type: "EditHistoryRecord", historyRecord });
-    const { navigateTo } = await getNavigationService();
-    navigateTo("progress", { id: historyRecord.id });
+    const { navigateTo, getCurrentTab } = await getNavigationService();
+    navigateTo("progress", { id: historyRecord.id }, false, getCurrentTab());
   };
 }
 
@@ -1454,7 +1469,8 @@ export function Thunk_setAppleReceipt(receipt?: string): IThunk {
         dispatch(Thunk_postevent("complete-apple-subscription"));
         dispatch(Thunk_log("ls-set-apple-receipt"));
         Subscriptions_setAppleReceipt(dispatch, receipt);
-        if (Screen_currentName(getState().screenStack) === "subscription") {
+        const { getCurrentScreenData: getAppleScreen } = await getNavigationService();
+        if (getAppleScreen()?.name === "subscription") {
           dispatch(Thunk_pullScreen());
         }
       } else {
@@ -1481,7 +1497,8 @@ export function Thunk_setGooglePurchaseToken(productId?: string, token?: string)
         dispatch(Thunk_postevent("complete-google-subscription"));
         dispatch(Thunk_log("ls-set-google-purchase-token"));
         Subscriptions_setGooglePurchaseToken(dispatch, purchaseToken);
-        if (Screen_currentName(getState().screenStack) === "subscription") {
+        const { getCurrentScreenData: getGoogleScreen } = await getNavigationService();
+        if (getGoogleScreen()?.name === "subscription") {
           dispatch(Thunk_pullScreen());
         }
       } else {
