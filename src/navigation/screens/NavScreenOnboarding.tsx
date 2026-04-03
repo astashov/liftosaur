@@ -108,7 +108,11 @@ export function NavScreenProgramPreviewOnboarding(): JSX.Element {
   const navCommon = buildNavCommon(state);
   if (state.previewProgram?.id == null) {
     setTimeout(() => dispatch(Thunk_pullScreen()), 0);
-    return <NavScreenContent><></></NavScreenContent>;
+    return (
+      <NavScreenContent>
+        <></>
+      </NavScreenContent>
+    );
   }
   return (
     <NavScreenContent>

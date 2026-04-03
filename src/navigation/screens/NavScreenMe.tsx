@@ -131,7 +131,11 @@ export function NavScreenGoogleHealth(): JSX.Element {
   const navCommon = buildNavCommon(state);
   return (
     <NavScreenContent>
-      <ScreenGoogleHealthSettingsComponent navCommon={navCommon} dispatch={dispatch} settings={state.storage.settings} />
+      <ScreenGoogleHealthSettingsComponent
+        navCommon={navCommon}
+        dispatch={dispatch}
+        settings={state.storage.settings}
+      />
     </NavScreenContent>
   );
 }
@@ -189,7 +193,11 @@ export function NavScreenExerciseStats(): JSX.Element {
     : undefined;
   if (exercise == null) {
     setTimeout(() => dispatch(Thunk_pullScreen()), 0);
-    return <NavScreenContent><></></NavScreenContent>;
+    return (
+      <NavScreenContent>
+        <></>
+      </NavScreenContent>
+    );
   }
   return (
     <NavScreenContent>

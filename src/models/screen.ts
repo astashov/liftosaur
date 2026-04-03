@@ -47,7 +47,7 @@ export type IScreen = IScreenData["name"];
 export type IScreenParams<T extends IScreen> = Extract<IScreenData, { name: T }>["params"];
 
 export function Screen_shouldConfirmNavigation(state: IState, currentScreen: IScreenData): string | undefined {
-  const progressId = currentScreen.name === "progress" ? currentScreen.params?.id ?? 0 : 0;
+  const progressId = currentScreen.name === "progress" ? (currentScreen.params?.id ?? 0) : 0;
   const progress = progressId === 0 ? state.storage.progress?.[0] : state.progress[progressId];
   if (progress && !Progress_isCurrent(progress)) {
     const oldHistoryRecord = state.storage.history.find((hr) => hr.id === progress.id);
@@ -80,8 +80,17 @@ export function Screen_shouldConfirmNavigation(state: IState, currentScreen: ISc
     if (editProgramExerciseState) {
       const programId = currentScreen.params?.programId;
       const editProgramState = programId ? state.editProgramStates[programId] : undefined;
-      if (editProgramState && editProgramState.current.program.planner && editProgramExerciseState.current.program.planner) {
-        if (!ObjectUtils_isEqual(editProgramExerciseState.current.program.planner, editProgramState.current.program.planner)) {
+      if (
+        editProgramState &&
+        editProgramState.current.program.planner &&
+        editProgramExerciseState.current.program.planner
+      ) {
+        if (
+          !ObjectUtils_isEqual(
+            editProgramExerciseState.current.program.planner,
+            editProgramState.current.program.planner
+          )
+        ) {
           return "Are you sure? Your program exercise changes won't be saved.";
         }
       } else {

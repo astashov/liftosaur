@@ -46,7 +46,11 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
   const { plannerState } = props;
 
   const plannerDispatch: ILensDispatch<IPlannerExerciseState> = useCallback(
-    buildPlannerDispatch(props.dispatch, lb<IState>().p("editProgramExerciseStates").p(props.exerciseStateKey), plannerState),
+    buildPlannerDispatch(
+      props.dispatch,
+      lb<IState>().p("editProgramExerciseStates").p(props.exerciseStateKey),
+      plannerState
+    ),
     [plannerState]
   );
   useUndoRedo(plannerState, plannerDispatch);
@@ -289,8 +293,13 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
                   .p("editProgramExerciseStates")
                   .recordModify((states) => {
                     const current = states[props.exerciseStateKey];
-                    if (!current) return states;
-                    return { ...states, [props.exerciseStateKey]: { ...current, ui: { ...current.ui, exercisePickerState: undefined } } };
+                    if (!current) {
+                      return states;
+                    }
+                    return {
+                      ...states,
+                      [props.exerciseStateKey]: { ...current, ui: { ...current.ui, exercisePickerState: undefined } },
+                    };
                   }),
               ],
               "Close exercise picker"
@@ -309,9 +318,14 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
                   .p("editProgramExerciseStates")
                   .recordModify((states) => {
                     const currentState = states[oldStateKey];
-                    if (!currentState) return states;
+                    if (!currentState) {
+                      return states;
+                    }
                     const { [oldStateKey]: _, ...rest } = states;
-                    return { ...rest, [newStateKey]: { ...currentState, ui: { ...currentState.ui, exercisePickerState: undefined } } };
+                    return {
+                      ...rest,
+                      [newStateKey]: { ...currentState, ui: { ...currentState.ui, exercisePickerState: undefined } },
+                    };
                   }),
               ],
               "Update exercise key"

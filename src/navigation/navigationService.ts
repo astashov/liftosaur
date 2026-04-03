@@ -25,9 +25,13 @@ const onboardingScreens: Set<string> = new Set<keyof IOnboardingStackParamList>(
 const rootScreens: Set<string> = new Set(["subscription"]);
 
 export function getCurrentTab(): ITab | undefined {
-  if (!navigationRef.isReady()) return undefined;
+  if (!navigationRef.isReady()) {
+    return undefined;
+  }
   const route = navigationRef.getCurrentRoute();
-  if (!route) return undefined;
+  if (!route) {
+    return undefined;
+  }
   return Screen_tab(route.name as IScreen);
 }
 
@@ -94,15 +98,21 @@ export function navigateTo<T extends IScreen>(
 }
 
 export function goBack(): void {
-  if (!navigationRef.isReady()) return;
+  if (!navigationRef.isReady()) {
+    return;
+  }
   if (navigationRef.canGoBack()) {
     navigationRef.goBack();
   }
 }
 
 export function getCurrentScreenData(): IScreenData | undefined {
-  if (!navigationRef.isReady()) return undefined;
+  if (!navigationRef.isReady()) {
+    return undefined;
+  }
   const route = navigationRef.getCurrentRoute();
-  if (!route) return undefined;
+  if (!route) {
+    return undefined;
+  }
   return { name: route.name, params: route.params } as IScreenData;
 }

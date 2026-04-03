@@ -61,6 +61,7 @@ const MeStack = createStackNavigator<IMeStackParamList>();
 const Tab = createBottomTabNavigator<IRootTabParamList>();
 const RootStack = createStackNavigator<IRootStackParamList>();
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function getStackScreenOptions() {
   return {
     header: NavHeader,
@@ -114,7 +115,11 @@ function ProgramStackScreen(): JSX.Element {
 function WorkoutStackScreen(): JSX.Element {
   return (
     <WorkoutStack.Navigator screenOptions={getStackScreenOptions()}>
-      <WorkoutStack.Screen name="progress" component={NavScreenProgress} getId={({ params }) => String(params?.id ?? 0)} />
+      <WorkoutStack.Screen
+        name="progress"
+        component={NavScreenProgress}
+        getId={({ params }) => String(params?.id ?? 0)}
+      />
       <WorkoutStack.Screen name="finishDay" component={NavScreenFinishDay} />
       <WorkoutStack.Screen name="workout/editProgramExercise" component={NavScreenEditProgramExercise} />
       <WorkoutStack.Screen name="muscles" component={NavScreenMuscles} />
@@ -154,6 +159,7 @@ function MeStackScreen(): JSX.Element {
 }
 
 const tabScreenOptions = { headerShown: false };
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function getRootScreenOptions() {
   return {
     headerShown: false,

@@ -408,7 +408,9 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
           const { getCurrentScreenData } = await import("../navigation/navigationService");
           const { navigationRef } = await import("../navigation/navigationRef");
           const screenData = getCurrentScreenData();
-          if (!screenData || screenData.name !== "editProgramExercise") return;
+          if (!screenData || screenData.name !== "editProgramExercise") {
+            return;
+          }
           const oldExerciseKey = screenData.params?.key;
           const oldProgramId = screenData.params?.programId;
           const oldExerciseStateKey = oldProgramId && oldExerciseKey ? `${oldProgramId}_${oldExerciseKey}` : undefined;
@@ -697,9 +699,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     return {
       ...state,
       storage: Progress_isCurrent(progress) ? { ...state.storage, progress: [] } : state.storage,
-      progress: Progress_isCurrent(progress)
-        ? state.progress
-        : Progress_stop(state.progress, progress.id),
+      progress: Progress_isCurrent(progress) ? state.progress : Progress_stop(state.progress, progress.id),
     };
   } else if (action.type === "DeleteProgress") {
     const progress = Progress_getProgress(state);

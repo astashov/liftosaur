@@ -73,7 +73,11 @@ export function NavScreenEditProgram(): JSX.Element {
 export function NavScreenEditProgramExercise(): JSX.Element {
   const { state, dispatch } = useAppState();
   const navCommon = buildNavCommon(state);
-  const route = useRoute<{ key: string; name: "editProgramExercise"; params: { programId: string; key: string; dayData: Required<IDayData> } }>();
+  const route = useRoute<{
+    key: string;
+    name: "editProgramExercise";
+    params: { programId: string; key: string; dayData: Required<IDayData> };
+  }>();
   const { programId, key: exerciseKey, dayData } = route.params;
   const exerciseStateKey = `${programId}_${exerciseKey}`;
   const plannerState = state.editProgramExerciseStates[exerciseStateKey];
@@ -168,7 +172,11 @@ export function NavScreenProgramPreview(): JSX.Element {
   const navCommon = buildNavCommon(state);
   if (state.previewProgram?.id == null) {
     setTimeout(() => dispatch(Thunk_pullScreen()), 0);
-    return <NavScreenContent><></></NavScreenContent>;
+    return (
+      <NavScreenContent>
+        <></>
+      </NavScreenContent>
+    );
   }
   return (
     <NavScreenContent>
@@ -183,4 +191,3 @@ export function NavScreenProgramPreview(): JSX.Element {
     </NavScreenContent>
   );
 }
-

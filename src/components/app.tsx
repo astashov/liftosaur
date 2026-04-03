@@ -65,19 +65,29 @@ interface IProps {
 }
 
 function getScreenNameFromNavState(navState: NavigationState | undefined): IScreen {
-  if (!navState) return "main";
+  if (!navState) {
+    return "main";
+  }
   const rootRoute = navState.routes[navState.index ?? 0];
   if (rootRoute.name === "onboarding") {
     const onboardingState = rootRoute.state as NavigationState | undefined;
-    if (!onboardingState) return "first";
+    if (!onboardingState) {
+      return "first";
+    }
     return onboardingState.routes[onboardingState.index ?? 0].name as IScreen;
   }
-  if (rootRoute.name === "subscription") return "subscription";
+  if (rootRoute.name === "subscription") {
+    return "subscription";
+  }
   const mainTabsState = rootRoute.state as NavigationState | undefined;
-  if (!mainTabsState) return "main";
+  if (!mainTabsState) {
+    return "main";
+  }
   const activeTab = mainTabsState.routes[mainTabsState.index ?? 0];
   const tabStackState = activeTab.state as NavigationState | undefined;
-  if (!tabStackState) return "main";
+  if (!tabStackState) {
+    return "main";
+  }
   return tabStackState.routes[tabStackState.index ?? 0].name as IScreen;
 }
 
@@ -350,21 +360,20 @@ export function AppView(props: IProps): JSX.Element | null {
     };
   }, []);
 
-  const onNavigationStateChange = useCallback(
-    (navState: NavigationState | undefined) => {
-      const screenName = getScreenNameFromNavState(navState);
-      document.body.setAttribute("data-screen", screenName);
-      window.scroll(0, 0);
-      checkToursRef.current();
-    },
-    []
-  );
+  const onNavigationStateChange = useCallback((navState: NavigationState | undefined) => {
+    const screenName = getScreenNameFromNavState(navState);
+    document.body.setAttribute("data-screen", screenName);
+    window.scroll(0, 0);
+    checkToursRef.current();
+  }, []);
 
   const initialScreen = props.initialState.storage.currentProgramId ? "main" : "first";
 
   const progress = Progress_getCurrentProgress(state);
   const { lftAndroidSafeInsetTop, lftAndroidSafeInsetBottom } = window;
-  const currentScreenName = navigationRef.isReady() ? (navigationRef.getCurrentRoute()?.name as IScreen | undefined) : undefined;
+  const currentScreenName = navigationRef.isReady()
+    ? (navigationRef.getCurrentRoute()?.name as IScreen | undefined)
+    : undefined;
   const screensWithoutTimer: IScreen[] = ["subscription"];
   const isEligibleForThanks25 = Subscriptions_isEligibleForThanksgivingPromo(
     state.storage.history.length > 0,

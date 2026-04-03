@@ -1162,7 +1162,11 @@ export function Program_editAction(
   resetStack?: boolean
 ): void {
   const plannerState = EditProgram_initPlannerState(program.id, program, dayData, key);
-  updateState(dispatch, [lb<IState>().p("editProgramStates").p(program.id).record(plannerState)], "Set edit program state");
+  updateState(
+    dispatch,
+    [lb<IState>().p("editProgramStates").p(program.id).record(plannerState)],
+    "Set edit program state"
+  );
   dispatch(Thunk_pushScreen("editProgram", { programId: program.id }, resetStack));
 }
 
