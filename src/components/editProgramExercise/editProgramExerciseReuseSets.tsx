@@ -136,11 +136,13 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
                 if (newReuseCandidate) {
                   const currentWeek = newReuseCandidate.weekAndDays[plannerExercise.dayData.week];
                   const week = !currentWeek ? ObjectUtils_keys(newReuseCandidate.weekAndDays)[0] : undefined;
+                  const weekDays = newReuseCandidate.weekAndDays[week ?? plannerExercise.dayData.week];
                   const day =
-                    plannerExercise.key === newReuseCandidate.exercise.key ||
-                    week != null ||
-                    (currentWeek != null && currentWeek.size > 1)
-                      ? Array.from(newReuseCandidate.weekAndDays[week ?? plannerExercise.dayData.week])[0]
+                    (plannerExercise.key === newReuseCandidate.exercise.key ||
+                      week != null ||
+                      (currentWeek != null && currentWeek.size > 1)) &&
+                    weekDays != null
+                      ? Array.from(weekDays)[0]
                       : undefined;
                   ex.reuse = {
                     fullName: newReuseCandidate.exercise.fullName,
