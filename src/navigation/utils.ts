@@ -9,7 +9,6 @@ export function buildNavCommon(state: IState): INavCommon {
     state.storage.currentProgramId != null ? Program_getProgram(state, state.storage.currentProgramId) : undefined;
   return {
     subscription: state.storage.subscription,
-    screenStack: state.screenStack,
     doesHaveWorkouts: state.storage.history.length > 0,
     helps: state.storage.helps,
     loading: state.loading,

@@ -1,6 +1,5 @@
 import { Service } from "../api/service";
 import { IAudioInterface } from "../lib/audioInterface";
-import { IScreenStack } from "./screen";
 import { IPlannerState, IPlannerExerciseState } from "../pages/planner/models/types";
 import { IDispatch } from "../ducks/types";
 import { Storage_getDefault } from "../models/storage";
@@ -20,7 +19,6 @@ import {
 } from "../types";
 import { AsyncQueue } from "../utils/asyncQueue";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
-import { tourConfigs } from "../components/tour/tourConfigs";
 
 export type IEnv = {
   service: Service;
@@ -39,7 +37,6 @@ export interface INavCommon {
   helps: string[];
   doesHaveWorkouts: boolean;
   userId?: string;
-  screenStack: IScreenStack;
   currentProgram?: IProgram;
   allPrograms: IProgram[];
   progress?: IHistoryRecord;
@@ -109,8 +106,10 @@ export interface IAttributionData {
   ad: string;
 }
 
+export type ITourId = "workout" | "program" | "editProgramExercise";
+
 export interface IStateTour {
-  id: keyof typeof tourConfigs;
+  id: ITourId;
   enforced: boolean;
 }
 
@@ -121,7 +120,6 @@ export interface IState {
   programs: IProgram[];
   programsIndex: IProgramIndexEntry[];
   notification?: INotification;
-  screenStack: IScreenStack;
   revisions: Partial<Record<string, string[]>>;
   prices?: Partial<Record<string, string>>;
   offers?: Partial<Record<string, IOfferData[]>>;
@@ -170,7 +168,6 @@ export function buildState(args: {
   deviceId?: string;
 }): IState {
   return {
-    screenStack: [{ name: args.shouldSkipIntro ? "programselect" : "first" }],
     progress: {},
     programs: [basicBeginnerProgram],
     programsIndex: [],

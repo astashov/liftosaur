@@ -3,7 +3,7 @@ import type { StackHeaderProps } from "@react-navigation/stack";
 import { NavbarView } from "../components/navbar";
 import { useAppState } from "./StateContext";
 import { buildNavCommon } from "./utils";
-import type { tourConfigs } from "../components/tour/tourConfigs";
+import type { ITourId } from "../models/state";
 
 export interface INavHeaderOptions {
   navTitle?: ReactNode;
@@ -11,7 +11,7 @@ export interface INavHeaderOptions {
   navRightButtons?: JSX.Element[];
   navOnBack?: () => boolean;
   navOnTitleClick?: () => void;
-  navHelpTourId?: keyof typeof tourConfigs;
+  navHelpTourId?: ITourId;
   navHelpContent?: ReactNode;
   navHidden?: boolean;
 }

@@ -1,16 +1,16 @@
-import { IState } from "../../models/state";
+import { IState, ITourId } from "../../models/state";
 import { Tour_stepHelpFlag } from "./tourTypes";
 import { workoutTourConfig } from "./workoutTourConfig";
 import { programTourConfig } from "./programTourConfig";
 import { editProgramExerciseTourConfig } from "./editProgramExerciseTourConfig";
 
-export const tourConfigs = {
+export const tourConfigs: Record<ITourId, import("./tourTypes").ITourConfig> = {
   workout: workoutTourConfig,
   program: programTourConfig,
   editProgramExercise: editProgramExerciseTourConfig,
-} as const;
+};
 
-export function TourConfigs_findTourId(state: IState, checkSeen?: boolean): keyof typeof tourConfigs | undefined {
+export function TourConfigs_findTourId(state: IState, checkSeen?: boolean): ITourId | undefined {
   for (const config of Object.values(tourConfigs)) {
     if (config.shouldStart?.(state)) {
       for (const step of config.steps) {

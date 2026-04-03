@@ -1,19 +1,21 @@
 import { ITourConfig } from "./tourTypes";
-import { Screen_current, Screen_currentName } from "../../models/screen";
 import { IconSwap } from "../icons/iconSwap";
 import { Program_evaluate } from "../../models/program";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { IState } from "../../models/state";
+import { getCurrentScreenData } from "../../navigation/navigationService";
 
 function getPlannerExerciseFromState(state: IState): IPlannerProgramExercise | undefined {
-  const screenData = Screen_current(state.screenStack);
-  const exerciseKey = screenData.name === "editProgramExercise" ? screenData.params?.key : undefined;
-  const dayData = screenData.name === "editProgramExercise" ? screenData.params?.dayData : undefined;
-  const plannerState = screenData.name === "editProgramExercise" ? screenData.params?.plannerState : undefined;
-  if (!exerciseKey || !dayData || !plannerState) {
-    return undefined;
-  }
-  const evaluatedProgram = Program_evaluate(plannerState.current.program, state.storage.settings);
+  const screenData = getCurrentScreenData();
+  if (!screenData || screenData.name !== "editProgramExercise") return undefined;
+  const exerciseKey = screenData.params?.key;
+  const dayData = screenData.params?.dayData;
+  const programId = screenData.params?.programId;
+  if (!exerciseKey || !dayData || !programId) return undefined;
+  const exerciseStateKey = `${programId}_${exerciseKey}`;
+  const plannerExerciseState = state.editProgramExerciseStates[exerciseStateKey];
+  if (!plannerExerciseState) return undefined;
+  const evaluatedProgram = Program_evaluate(plannerExerciseState.current.program, state.storage.settings);
   return evaluatedProgram?.weeks[dayData.week - 1]?.days[dayData.dayInWeek - 1].exercises.find(
     (e) => e.key === exerciseKey
   );
@@ -22,7 +24,7 @@ function getPlannerExerciseFromState(state: IState): IPlannerProgramExercise | u
 export const editProgramExerciseTourConfig: ITourConfig = {
   id: "editProgramExercise",
   shouldStart: (state) => {
-    if (Screen_currentName(state.screenStack) !== "editProgramExercise") {
+    if (getCurrentScreenData()?.name !== "editProgramExercise") {
       return false;
     }
     if (state.storage.history.length >= 4) {

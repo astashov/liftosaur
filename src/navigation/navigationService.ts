@@ -1,7 +1,7 @@
 import { CommonActions } from "@react-navigation/native";
 import { navigationRef } from "./navigationRef";
 import { Screen_tab, IScreen } from "../models/screen";
-import type { ITab } from "../models/screen";
+import type { ITab, IScreenData } from "../models/screen";
 import type { IAllScreenParamList, IOnboardingStackParamList } from "./types";
 
 const tabNameMap: Record<ITab, string> = {
@@ -24,28 +24,34 @@ const onboardingScreens: Set<string> = new Set<keyof IOnboardingStackParamList>(
 
 const rootScreens: Set<string> = new Set(["subscription"]);
 
+export function getCurrentTab(): ITab | undefined {
+  if (!navigationRef.isReady()) return undefined;
+  const route = navigationRef.getCurrentRoute();
+  if (!route) return undefined;
+  return Screen_tab(route.name as IScreen);
+}
+
 export function navigateTo<T extends IScreen>(
   screen: T,
   params?: IAllScreenParamList[T],
-  shouldResetStack?: boolean
+  shouldResetStack?: boolean,
+  tabOverride?: ITab
 ): void {
-  if (!navigationRef.isReady()) return;
+  if (!navigationRef.isReady()) {
+    return;
+  }
 
   if (onboardingScreens.has(screen)) {
-    navigationRef.dispatch(
-      CommonActions.navigate({ name: "onboarding", params: { screen, params } })
-    );
+    navigationRef.dispatch(CommonActions.navigate({ name: "onboarding", params: { screen, params } }));
     return;
   }
 
   if (rootScreens.has(screen)) {
-    navigationRef.dispatch(
-      CommonActions.navigate({ name: screen as string, params: params as object | undefined })
-    );
+    navigationRef.dispatch(CommonActions.navigate({ name: screen as string, params: params as object | undefined }));
     return;
   }
 
-  const tab = Screen_tab(screen);
+  const tab = tabOverride ?? Screen_tab(screen);
   const tabName = tabNameMap[tab];
 
   if (shouldResetStack) {
@@ -92,4 +98,11 @@ export function goBack(): void {
   if (navigationRef.canGoBack()) {
     navigationRef.goBack();
   }
+}
+
+export function getCurrentScreenData(): IScreenData | undefined {
+  if (!navigationRef.isReady()) return undefined;
+  const route = navigationRef.getCurrentRoute();
+  if (!route) return undefined;
+  return { name: route.name, params: route.params } as IScreenData;
 }

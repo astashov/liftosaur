@@ -12,7 +12,7 @@ import { Link } from "./link";
 import { ObjectUtils_filter, ObjectUtils_values } from "../utils/object";
 import { ModalDebug } from "./modalDebug";
 import { Tailwind_semantic, Tailwind_colors } from "../utils/tailwindConfig";
-import { tourConfigs } from "./tour/tourConfigs";
+import { ITourId } from "../models/state";
 
 interface INavbarCenterProps {
   title: ReactNode;
@@ -25,7 +25,7 @@ interface INavbarProps extends INavbarCenterProps {
   rightButtons?: JSX.Element[];
   onBack?: () => boolean;
   navCommon: INavCommon;
-  helpTourId?: keyof typeof tourConfigs;
+  helpTourId?: ITourId;
   helpContent?: ReactNode;
   isStatic?: boolean;
   showBack?: boolean;
@@ -35,8 +35,8 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [showDebug, setShowDebug] = useState(0);
   const timerRef = useRef<number | undefined>(undefined);
-  const { screenStack, loading } = props.navCommon;
-  const showBackButton = props.showBack ?? screenStack.length > 1;
+  const { loading } = props.navCommon;
+  const showBackButton = props.showBack ?? false;
 
   useEffect(() => {
     const onScroll = (): void => {

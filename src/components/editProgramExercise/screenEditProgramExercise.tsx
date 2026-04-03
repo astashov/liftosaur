@@ -313,15 +313,6 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
                     const { [oldStateKey]: _, ...rest } = states;
                     return { ...rest, [newStateKey]: { ...currentState, ui: { ...currentState.ui, exercisePickerState: undefined } } };
                   }),
-                lb<IState>()
-                  .p("screenStack")
-                  .recordModify((stack) =>
-                    stack.map((s) =>
-                      s.name === "editProgramExercise" && s.params
-                        ? { ...s, params: { ...s.params, key: newKey } }
-                        : s
-                    )
-                  ),
               ],
               "Update exercise key"
             );

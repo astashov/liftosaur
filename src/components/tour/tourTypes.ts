@@ -1,6 +1,5 @@
 import type { JSX } from "react";
-import { IState } from "../../models/state";
-import { tourConfigs } from "./tourConfigs";
+import { IState, ITourId } from "../../models/state";
 
 export interface ITourStep {
   id: string;
@@ -12,7 +11,7 @@ export interface ITourStep {
 }
 
 export interface ITourConfig {
-  id: keyof typeof tourConfigs;
+  id: ITourId;
   steps: ITourStep[];
   shouldStart?: (state: IState) => boolean;
   waitForNextTrigger?: (stepId: string, state: IState) => boolean;

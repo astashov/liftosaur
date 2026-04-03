@@ -1,7 +1,8 @@
 import { JSX, useCallback, useState } from "react";
 import { Thunk_pushScreen, Thunk_pushToEditProgram, Thunk_startProgramDay } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
-import { Screen_currentName, Screen_tab } from "../models/screen";
+import { Screen_tab, IScreen } from "../models/screen";
+import { getCurrentScreenData } from "../navigation/navigationService";
 import { FooterButton } from "./footerButton";
 import { IconGraphs } from "./icons/iconGraphs";
 import { IconHome } from "./icons/iconHome";
@@ -33,7 +34,7 @@ function getHasErrorsInProgram(navCommon: INavCommon): boolean {
 export function Footer2View(props: IFooterProps): JSX.Element {
   const activeColor = Tailwind_semantic().icon.purple;
   const inactiveColor = Tailwind_semantic().icon.neutral;
-  const screen = Screen_currentName(props.navCommon.screenStack);
+  const screen = (getCurrentScreenData()?.name ?? "main") as IScreen;
   const [showNextWorkoutSheet, setShowNextWorkoutSheet] = useState(false);
   const onClose = useCallback(() => setShowNextWorkoutSheet(false), []);
   const isUserLoading = ObjectUtils_values(props.navCommon.loading.items).some(

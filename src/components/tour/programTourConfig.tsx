@@ -1,20 +1,19 @@
 import { ITourConfig } from "./tourTypes";
-import { Screen_currentName } from "../../models/screen";
 import { IPlannerProgram } from "../../types";
 import { IconDayTextMode } from "../icons/iconDayTextMode";
 import { Link } from "../link";
 import { PlannerCodeBlock } from "../../pages/planner/components/plannerCodeBlock";
 import { IconEdit2 } from "../icons/iconEdit2";
 import { IconUiMode } from "../icons/iconUiMode";
+import { getCurrentScreenData } from "../../navigation/navigationService";
+import { IState } from "../../models/state";
 
-function getPlannerFromState(
-  state: Parameters<NonNullable<ITourConfig["shouldStart"]>>[0]
-): IPlannerProgram | undefined {
-  const screen = state.screenStack.find((s) => s.name === "editProgram");
-  if (!screen || screen.name !== "editProgram") {
-    return undefined;
-  }
-  return screen.params?.plannerState?.current?.program?.planner;
+function getPlannerFromState(state: IState): IPlannerProgram | undefined {
+  const screenData = getCurrentScreenData();
+  const programId = screenData?.name === "editProgram" ? screenData.params?.programId : undefined;
+  if (!programId) return undefined;
+  const editProgramState = state.editProgramStates[programId];
+  return editProgramState?.current?.program?.planner;
 }
 
 function isProgramEmpty(state: Parameters<NonNullable<ITourConfig["shouldStart"]>>[0]): boolean {
@@ -28,7 +27,7 @@ function isProgramEmpty(state: Parameters<NonNullable<ITourConfig["shouldStart"]
 export const programTourConfig: ITourConfig = {
   id: "program",
   shouldStart: (state) => {
-    return Screen_currentName(state.screenStack) === "editProgram" && state.storage.history.length < 4;
+    return getCurrentScreenData()?.name === "editProgram" && state.storage.history.length < 4;
   },
   steps: [
     {

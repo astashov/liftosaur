@@ -11,7 +11,6 @@ import {
   Progress_stop,
   Progress_showUpdateDate,
   Progress_changeDate,
-  Progress_getProgressId,
   Progress_stopTimer,
   Progress_startTimer,
   Progress_getCurrentProgress,
@@ -26,7 +25,7 @@ import {
   Storage_updateVersions,
   Storage_validateAndReportStorage,
 } from "../models/storage";
-import { IScreen, IScreenStack, IScreenParams, Screen_current, Screen_currentName } from "../models/screen";
+import { IScreen, IScreenParams } from "../models/screen";
 import { ILensRecordingPayload, lb } from "lens-shmens";
 import { buildState, IEnv, ILocalStorage, INotification, IState, IStateErrors, updateState } from "../models/state";
 import { UidFactory_generateUid } from "../utils/generator";
@@ -155,11 +154,6 @@ export async function getInitialState(
       }
     }
 
-    const screenStack: IScreenStack = finalStorage.currentProgramId
-      ? [{ name: "main" }]
-      : shouldSkipIntro
-        ? [{ name: "programselect" }]
-        : [{ name: "first" }];
     return {
       storage: finalStorage,
       lastSyncedStorage: finalLastSyncedStorage,
@@ -169,7 +163,6 @@ export async function getInitialState(
       programs: [basicBeginnerProgram],
       programsIndex: [],
       revisions: {},
-      screenStack,
       user: undefined,
       freshMigrations: maybeStorage.success && hasUnrunMigrations,
       errors,
@@ -314,11 +307,6 @@ export type IUpdateProgressAction = {
   desc: string;
 };
 
-export type ISyncScreenStack = {
-  type: "SyncScreenStack";
-  screenStack: IScreenStack;
-};
-
 export type ICardsAction = ICompleteSetAction | IChangeAMRAPAction | IUpdateProgressAction;
 
 export type IAction =
@@ -330,7 +318,6 @@ export type IAction =
   | IDeleteProgress
   | IPushScreen<any>
   | IPullScreen
-  | ISyncScreenStack
   | IChangeDate
   | IConfirmDate
   | ILoginAction
@@ -417,39 +404,32 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
     },
     (dispatch, action, oldState, newState) => {
       if ("type" in action && action.type === "UpdateState" && (action.desc === "undo" || action.desc === "redo")) {
-        const oldScreenData = Screen_current(oldState.screenStack);
-        const oldExerciseKey = oldScreenData.name === "editProgramExercise" ? oldScreenData.params?.key : undefined;
-        const oldProgramId = oldScreenData.name === "editProgramExercise" ? oldScreenData.params?.programId : undefined;
-        const oldExerciseStateKey = oldProgramId && oldExerciseKey ? `${oldProgramId}_${oldExerciseKey}` : undefined;
-        const oldPlannerState = oldExerciseStateKey
-          ? oldState.editProgramExerciseStates[oldExerciseStateKey]
-          : undefined;
-        const newPlannerState = oldExerciseStateKey
-          ? newState.editProgramExerciseStates[oldExerciseStateKey]
-          : undefined;
-        if (oldPlannerState != null && newPlannerState != null && oldExerciseKey != null) {
-          const changedKeys = EditProgramUiHelpers_getChangedKeys(
-            oldPlannerState.current.program.planner!,
-            newPlannerState.current.program.planner!,
-            newState.storage.settings
-          );
-          const newKey = changedKeys[oldExerciseKey];
-          if (newKey) {
-            updateState(
-              dispatch,
-              [
-                lb<IState>()
-                  .p("screenStack")
-                  .recordModify((stack) =>
-                    stack.map((s) =>
-                      s.name === "editProgramExercise" && s.params ? { ...s, params: { ...s.params, key: newKey } } : s
-                    )
-                  ),
-              ],
-              "Update exercise key"
+        (async () => {
+          const { getCurrentScreenData } = await import("../navigation/navigationService");
+          const { navigationRef } = await import("../navigation/navigationRef");
+          const screenData = getCurrentScreenData();
+          if (!screenData || screenData.name !== "editProgramExercise") return;
+          const oldExerciseKey = screenData.params?.key;
+          const oldProgramId = screenData.params?.programId;
+          const oldExerciseStateKey = oldProgramId && oldExerciseKey ? `${oldProgramId}_${oldExerciseKey}` : undefined;
+          const oldPlannerState = oldExerciseStateKey
+            ? oldState.editProgramExerciseStates[oldExerciseStateKey]
+            : undefined;
+          const newPlannerState = oldExerciseStateKey
+            ? newState.editProgramExerciseStates[oldExerciseStateKey]
+            : undefined;
+          if (oldPlannerState != null && newPlannerState != null && oldExerciseKey != null) {
+            const changedKeys = EditProgramUiHelpers_getChangedKeys(
+              oldPlannerState.current.program.planner!,
+              newPlannerState.current.program.planner!,
+              newState.storage.settings
             );
+            const newKey = changedKeys[oldExerciseKey];
+            if (newKey && navigationRef.isReady()) {
+              navigationRef.setParams({ ...screenData.params, key: newKey } as Record<string, unknown>);
+            }
           }
-        }
+        })();
       }
     },
     (dispatch, action, oldState, newState) => {
@@ -498,13 +478,6 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
             });
           }
         }
-      }
-    },
-    (dispatch, action, oldState, newState) => {
-      if (Screen_currentName(oldState.screenStack) !== Screen_currentName(newState.screenStack)) {
-        setTimeout(() => {
-          window.scroll(0, 0);
-        }, 0);
       }
     },
     (dispatch, action, oldState, newState) => {
@@ -726,7 +699,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       storage: Progress_isCurrent(progress) ? { ...state.storage, progress: [] } : state.storage,
       progress: Progress_isCurrent(progress)
         ? state.progress
-        : Progress_stop(state.progress, Progress_getProgressId(state.screenStack)),
+        : Progress_stop(state.progress, progress.id),
     };
   } else if (action.type === "DeleteProgress") {
     const progress = Progress_getProgress(state);
@@ -764,8 +737,6 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     return state;
   } else if (action.type === "PullScreen") {
     return state;
-  } else if (action.type === "SyncScreenStack") {
-    return { ...state, screenStack: action.screenStack };
   } else if (action.type === "Login") {
     return {
       ...state,

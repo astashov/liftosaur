@@ -1,20 +1,23 @@
 import { JSX } from "react";
+import { useRoute } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { buildNavCommon } from "../utils";
 import { NavScreenContent } from "../NavScreenContent";
 import { ScreenWorkout } from "../../components/screenWorkout";
 import { ScreenFinishDay as ScreenFinishDayComponent } from "../../components/screenFinishDay";
 import { ScreenSubscription as ScreenSubscriptionComponent } from "../../components/screenSubscription";
-import { Progress_getProgress, Progress_isCurrent } from "../../models/progress";
+import { Progress_isCurrent } from "../../models/progress";
 import { Program_getFullProgram, Program_getProgram, Program_fullProgram } from "../../models/program";
 import { FallbackScreen } from "../../components/fallbackScreen";
 
 export function NavScreenProgress(): JSX.Element {
   const { state, dispatch } = useAppState();
+  const route = useRoute<{ key: string; name: string; params?: { id?: number } }>();
+  const progressId = route.params?.id ?? 0;
   const navCommon = buildNavCommon(state);
   const currentProgram =
     state.storage.currentProgramId != null ? Program_getProgram(state, state.storage.currentProgramId) : undefined;
-  const progress = Progress_getProgress(state);
+  const progress = progressId === 0 ? state.storage.progress?.[0] : state.progress[progressId];
   const program = progress
     ? Progress_isCurrent(progress)
       ? Program_getFullProgram(state, progress.programId) ||

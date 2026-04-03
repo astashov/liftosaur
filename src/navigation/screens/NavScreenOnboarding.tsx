@@ -11,7 +11,7 @@ import {
 import { ScreenProgramSelect as ScreenProgramSelectComponent } from "../../components/screenProgramSelect";
 import { ChooseProgramView } from "../../components/chooseProgram";
 import { ScreenProgramPreview as ScreenProgramPreviewComponent } from "../../components/screenProgramPreview";
-import { Progress_getProgress } from "../../models/progress";
+import { Progress_getCurrentProgress } from "../../models/progress";
 import { Thunk_pullScreen } from "../../ducks/thunks";
 import { Account_getFromStorage } from "../../models/account";
 import { useAppContext } from "../../components/appContext";
@@ -92,11 +92,11 @@ export function NavScreenProgramsOnboarding(): JSX.Element {
         navCommon={navCommon}
         settings={state.storage.settings}
         dispatch={dispatch}
-        progress={Progress_getProgress(state)}
+        progress={Progress_getCurrentProgress(state)}
         programs={state.programs || []}
         programsIndex={state.programsIndex || []}
         customPrograms={state.storage.programs || []}
-        editProgramId={Progress_getProgress(state)?.programId}
+        editProgramId={Progress_getCurrentProgress(state)?.programId}
         previewScreen="onboarding/programPreview"
       />
     </NavScreenContent>

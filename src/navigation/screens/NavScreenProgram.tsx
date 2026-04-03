@@ -13,7 +13,7 @@ import { Screen1RM } from "../../components/screen1RM";
 import { ScreenProgramSelect as ScreenProgramSelectComponent } from "../../components/screenProgramSelect";
 import { ScreenProgramPreview as ScreenProgramPreviewComponent } from "../../components/screenProgramPreview";
 import { Program_getProgram, Program_fullProgram } from "../../models/program";
-import { Progress_getProgress } from "../../models/progress";
+import { Progress_getCurrentProgress } from "../../models/progress";
 import { FallbackScreen } from "../../components/fallbackScreen";
 import { Thunk_pullScreen } from "../../ducks/thunks";
 import { useAppContext } from "../../components/appContext";
@@ -27,11 +27,11 @@ export function NavScreenPrograms(): JSX.Element {
         navCommon={navCommon}
         settings={state.storage.settings}
         dispatch={dispatch}
-        progress={Progress_getProgress(state)}
+        progress={Progress_getCurrentProgress(state)}
         programs={state.programs || []}
         programsIndex={state.programsIndex || []}
         customPrograms={state.storage.programs || []}
-        editProgramId={Progress_getProgress(state)?.programId}
+        editProgramId={Progress_getCurrentProgress(state)?.programId}
       />
     </NavScreenContent>
   );
@@ -46,7 +46,7 @@ export function NavScreenEditProgram(): JSX.Element {
   const plannerState = state.editProgramStates[programId];
   const editProgram = Program_getProgram(
     state,
-    plannerState ? plannerState.current.program.id : Progress_getProgress(state)?.programId
+    plannerState ? plannerState.current.program.id : Progress_getCurrentProgress(state)?.programId
   );
   return (
     <NavScreenContent>

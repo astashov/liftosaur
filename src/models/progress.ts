@@ -92,7 +92,6 @@ import {
   PlannerProgramExercise_currentSetVariationIndex,
   PlannerProgramExercise_programWarmups,
 } from "../pages/planner/models/plannerProgramExercise";
-import { IScreenStack, Screen_current } from "./screen";
 import { UidFactory_generateUid } from "../utils/generator";
 import { ProgramSet_getEvaluatedWeight } from "./programSet";
 import { Stats_getCurrentMovingAverageBodyweight } from "./stats";
@@ -919,12 +918,9 @@ export function Progress_changeDate(progress: IHistoryRecord, dateStr?: string, 
   };
 }
 
-export function Progress_getProgressId(screenStack: IScreenStack): number {
-  const currentScreen = Screen_current(screenStack);
-  if (currentScreen.name === "progress") {
-    return currentScreen.params?.id ?? 0;
-  }
-  return 0;
+export function Progress_getProgressId(state: Pick<IState, "progress">): number {
+  const editIds = Object.keys((state as IState).progress).map(Number).filter(Boolean);
+  return editIds.length > 0 ? editIds[0] : 0;
 }
 
 export function Progress_lbProgress(progressId?: number): LensBuilder<IState, IHistoryRecord, {}, undefined> {
@@ -936,17 +932,13 @@ export function Progress_lbProgress(progressId?: number): LensBuilder<IState, IH
 }
 
 export function Progress_getCurrentProgress(
-  state: Pick<IState, "screenStack" | "storage">
+  state: Pick<IState, "storage">
 ): IHistoryRecord | undefined {
-  const progressId = Progress_getProgressId(state.screenStack);
-  if (progressId === 0) {
-    return state.storage.progress?.[0];
-  }
-  return undefined;
+  return state.storage.progress?.[0];
 }
 
-export function Progress_getProgress(state: Pick<IState, "screenStack" | "storage">): IHistoryRecord | undefined {
-  const progressId = Progress_getProgressId(state.screenStack);
+export function Progress_getProgress(state: Pick<IState, "progress" | "storage">): IHistoryRecord | undefined {
+  const progressId = Progress_getProgressId(state);
   if (progressId === 0) {
     return state.storage.progress?.[0];
   } else {
