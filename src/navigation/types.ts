@@ -1,5 +1,5 @@
 import type { NavigatorScreenParams } from "@react-navigation/native";
-import type { IDayData, IProgressUi, IStatsKey } from "../types";
+import type { IDayData, IProgressUi, IShortDayData, IStatsKey } from "../types";
 
 export type IHomeStackParamList = {
   main: { historyRecordId?: number } | undefined;
@@ -71,6 +71,15 @@ export type IRootStackParamList = {
   mainTabs: NavigatorScreenParams<IRootTabParamList>;
   subscription: undefined;
   amrapModal: NonNullable<IProgressUi["amrapModal"]> & { progressId: number };
+  exercisePickerModal: { progressId: number };
+  editProgramExercisePickerModal: {
+    context: "editProgram" | "editProgramExercise";
+    programId: string;
+    exerciseStateKey?: string;
+    dayData: IShortDayData;
+    change: "one" | "all" | "duplicate";
+    exerciseKey?: string;
+  };
 };
 
 export type IRootLevelScreenParamList = {

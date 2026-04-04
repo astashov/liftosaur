@@ -275,6 +275,7 @@ export interface IPlannerExerciseUi {
   editSetBottomSheet?: IPlannerExerciseUiEditSetBottomSheet;
   modeTabIndex?: number;
   acrossWeeksTabIndex?: number;
+  pendingNewKey?: string;
 }
 
 export interface IPlannerFullText {

@@ -1,5 +1,5 @@
-import { JSX, useCallback, useEffect, useLayoutEffect, useState } from "react";
-import { IDispatch, buildCustomLensDispatch } from "../../ducks/types";
+import { JSX, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { IDispatch } from "../../ducks/types";
 import { INavCommon, IState, updateState } from "../../models/state";
 import { IProgram, ISettings } from "../../types";
 import { useNavOptions } from "../../navigation/useNavOptions";
@@ -10,7 +10,6 @@ import { useUndoRedo } from "../../pages/builder/utils/undoredo";
 import {
   IEvaluatedProgram,
   Program_evaluate,
-  Program_getProgramExerciseForKeyAndShortDayData,
   Program_dayAverageTimeMs,
   Program_daysRange,
   Program_exerciseRange,
@@ -44,7 +43,7 @@ import { UidFactory_generateUid } from "../../utils/generator";
 import { buildPlannerDispatch } from "../../utils/plannerDispatch";
 import { UrlUtils_build } from "../../utils/url";
 import { ClipboardUtils_copy } from "../../utils/clipboard";
-import { EditProgramBottomSheetPicker } from "./editProgramBottomSheetPicker";
+import { navigationRef } from "../../navigation/navigationRef";
 import { pickerStateFromPlannerExercise } from "./editProgramUtils";
 import { ProgramPreviewTab } from "../preview/programPreviewTab";
 import { Nux } from "../nux";
@@ -111,13 +110,19 @@ export function ScreenProgram(props: IProps): JSX.Element {
 
   const editExerciseModal = ui.editExerciseModal;
   const exercisePickerUi = props.plannerState.ui.exercisePicker;
-  const exercisePickerPlannerExercise = exercisePickerUi?.exerciseKey
-    ? Program_getProgramExerciseForKeyAndShortDayData(
-        evaluatedProgram,
-        exercisePickerUi.dayData,
-        exercisePickerUi.exerciseKey
-      )
-    : undefined;
+  const prevExercisePickerUi = useRef(exercisePickerUi);
+  useEffect(() => {
+    if (exercisePickerUi && !prevExercisePickerUi.current) {
+      navigationRef.navigate("editProgramExercisePickerModal", {
+        context: "editProgram",
+        programId: props.originalProgram.id,
+        dayData: exercisePickerUi.dayData,
+        change: exercisePickerUi.change,
+        exerciseKey: exercisePickerUi.exerciseKey,
+      });
+    }
+    prevExercisePickerUi.current = exercisePickerUi;
+  }, [exercisePickerUi]);
 
   useNavOptions({
     navTitle: "Program",
@@ -289,39 +294,6 @@ export function ScreenProgram(props: IProps): JSX.Element {
           onClose={() => {
             setShouldShowGenerateImageModal(false);
           }}
-        />
-      )}
-      {exercisePickerUi && (
-        <EditProgramBottomSheetPicker
-          isLoggedIn={props.isLoggedIn}
-          program={program}
-          dayData={exercisePickerUi.dayData}
-          plannerExercise={exercisePickerPlannerExercise}
-          exercisePickerState={exercisePickerUi.state}
-          change={exercisePickerUi.change}
-          settings={props.settings}
-          evaluatedProgram={evaluatedProgram}
-          plannerDispatch={buildCustomLensDispatch(plannerDispatch, lbPlanner)}
-          onClose={() => {
-            plannerDispatch(lbUi.p("exercisePicker").record(undefined), "Close exercise picker");
-          }}
-          stopIsUndoing={() => {
-            plannerDispatch(
-              [
-                lb<IPlannerState>()
-                  .p("ui")
-                  .recordModify((ui2) => {
-                    return { ...ui2, isUndoing: false };
-                  }),
-              ],
-              "stop-is-undoing"
-            );
-          }}
-          pickerDispatch={buildCustomLensDispatch(
-            plannerDispatch,
-            lb<IPlannerState>().p("ui").pi("exercisePicker").p("state")
-          )}
-          dispatch={props.dispatch}
         />
       )}
       {showRevisions && props.revisions.length > 0 && (

@@ -16,8 +16,7 @@ import { ExercisePickerCustomExercise } from "./exercisePickerCustomExercise";
 import { lb } from "lens-shmens";
 import { buildCustomLensDispatch } from "../../ducks/types";
 
-interface IProps {
-  isHidden: boolean;
+interface IExercisePickerContentProps {
   isLoggedIn: boolean;
   settings: ISettings;
   exercisePicker: IExercisePickerState;
@@ -31,17 +30,16 @@ interface IProps {
   onClose: () => void;
 }
 
-export function BottomSheetExercisePicker(props: IProps): JSX.Element {
+export function ExercisePickerContent(props: IExercisePickerContentProps): JSX.Element {
   const { evaluatedProgram } = props;
-  let content: JSX.Element | undefined;
   const state = props.exercisePicker;
   const currentScreen = state.screenStack[state.screenStack.length - 1] ?? "exercisePicker";
   if (currentScreen === "exercisePicker") {
-    content = (
+    return (
       <ExercisePickerMain
         dispatch={props.dispatch}
         onStar={props.onStar}
-        isHidden={props.isHidden}
+        isHidden={false}
         usedExerciseTypes={props.usedExerciseTypes}
         onChoose={props.onChoose}
         state={state}
@@ -51,11 +49,11 @@ export function BottomSheetExercisePicker(props: IProps): JSX.Element {
       />
     );
   } else if (currentScreen === "settings") {
-    content = (
+    return (
       <ExercisePickerSettings onChange={props.onChangeSettings} settings={props.settings} dispatch={props.dispatch} />
     );
   } else if (currentScreen === "filter") {
-    content = (
+    return (
       <ExercisePickerFilter
         state={state}
         settings={props.settings}
@@ -65,7 +63,7 @@ export function BottomSheetExercisePicker(props: IProps): JSX.Element {
     );
   } else if (currentScreen === "customExercise" && state.editCustomExercise != null) {
     const originalExercise = props.settings.exercises[state.editCustomExercise.id];
-    content = (
+    return (
       <ExercisePickerCustomExercise
         screenStack={state.screenStack}
         settings={props.settings}
@@ -96,9 +94,17 @@ export function BottomSheetExercisePicker(props: IProps): JSX.Element {
       />
     );
   }
+  return <></>;
+}
+
+interface IBottomSheetExercisePickerProps extends IExercisePickerContentProps {
+  isHidden: boolean;
+}
+
+export function BottomSheetExercisePicker(props: IBottomSheetExercisePickerProps): JSX.Element {
   return (
     <BottomSheet isHidden={props.isHidden} onClose={props.onClose}>
-      {content}
+      <ExercisePickerContent {...props} />
     </BottomSheet>
   );
 }
