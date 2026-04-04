@@ -50,8 +50,8 @@ export function Footer2View(props: IFooterProps): JSX.Element {
         <div
           className="box-content absolute flex items-end footer-shadow bg-background-default safe-area-inset-bottom"
           style={{
-            width: "4000px",
-            marginLeft: "-2000px",
+            width: "100%",
+            marginLeft: "-50%",
             left: "50%",
             height: "141px",
             bottom: "-76px",
@@ -67,7 +67,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
               screen={screen}
               icon={(isActive) => <IconHome className="inline-block" size={20} isSelected={isActive} />}
               text="Home"
-              onClick={() => props.dispatch(Thunk_pushScreen("main", undefined, true))}
+              onClick={() => props.dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }))}
             />
             <FooterButton
               name="program"
@@ -136,7 +136,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
                   ? "Promo"
                   : "Graphs"
               }
-              onClick={() => props.dispatch(Thunk_pushScreen("graphs", undefined, true))}
+              onClick={() => props.dispatch(Thunk_pushScreen("graphs", undefined, { tab: "graphs" }))}
             />
             <FooterButton
               name="me"
@@ -152,7 +152,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
                 return <IconMe isSelected={isActive} color={color} />;
               }}
               text="Me"
-              onClick={() => props.dispatch(Thunk_pushScreen("settings", undefined, true))}
+              onClick={() => props.dispatch(Thunk_pushScreen("settings", undefined, { tab: "me" }))}
             />
           </div>
         </div>

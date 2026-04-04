@@ -197,7 +197,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
               className="w-36"
               data-cy="finish-day-continue"
               onClick={() => {
-                props.dispatch(Thunk_pushScreen("main", undefined, true));
+                props.dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }));
                 props.dispatch(Thunk_maybeRequestReview());
                 props.dispatch(Thunk_maybeRequestSignup());
               }}

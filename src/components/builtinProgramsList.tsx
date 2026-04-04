@@ -36,7 +36,6 @@ interface IProps {
   settings: ISettings;
   dispatch: IDispatch;
   search?: string;
-  previewScreen?: "programPreview" | "onboarding/programPreview";
 }
 
 export function BuiltinProgramsList(props: IProps): JSX.Element {
@@ -129,14 +128,18 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
           program={selectedProgram}
           hasCustomPrograms={props.hasCustomPrograms}
           onClose={() => setSelectedProgram(undefined)}
-          onPreview={() => Program_previewProgram(props.dispatch, selectedProgram.id, false, props.previewScreen)}
+          onPreview={() => {
+            Program_previewProgram(props.dispatch, selectedProgram.id, false);
+            setSelectedProgram(undefined);
+          }}
           onSelect={() => {
             Program_cloneProgram(props.dispatch, selectedProgram, props.settings);
             if (Settings_doesProgramHaveUnset1RMs(selectedProgram, props.settings)) {
-              props.dispatch(Thunk_pushScreen("onerms", undefined, true));
+              props.dispatch(Thunk_pushScreen("onerms"));
             } else {
-              props.dispatch(Thunk_pushScreen("main", undefined, true));
+              props.dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }));
             }
+            setSelectedProgram(undefined);
           }}
         />
       )}

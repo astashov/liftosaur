@@ -37,11 +37,6 @@ export type IScreenData =
   | { name: "programselect"; params?: Record<string, never> }
   | { name: "programPreview"; params?: Record<string, never> }
   | { name: "apiKeys"; params?: Record<string, never> }
-  | { name: "onboarding/programselect"; params?: Record<string, never> }
-  | { name: "onboarding/programs"; params?: Record<string, never> }
-  | { name: "onboarding/programPreview"; params?: Record<string, never> }
-  | { name: "me/programs"; params?: Record<string, never> }
-  | { name: "workout/editProgramExercise"; params: { programId: string; key: string; dayData: Required<IDayData> } };
 
 export type IScreen = IScreenData["name"];
 export type IScreenParams<T extends IScreen> = Extract<IScreenData, { name: T }>["params"];
@@ -72,7 +67,7 @@ export function Screen_shouldConfirmNavigation(state: IState, currentScreen: ISc
     }
   }
 
-  if (currentScreen.name === "editProgramExercise" || currentScreen.name === "workout/editProgramExercise") {
+  if (currentScreen.name === "editProgramExercise") {
     const exerciseKey = currentScreen.params?.key;
     const exerciseProgramId = currentScreen.params?.programId;
     const exerciseStateKey = exerciseProgramId && exerciseKey ? `${exerciseProgramId}_${exerciseKey}` : undefined;
@@ -199,17 +194,6 @@ export function Screen_tab(screen: IScreen): ITab {
     }
     case "apiKeys": {
       return "me";
-    }
-    case "onboarding/programselect":
-    case "onboarding/programs":
-    case "onboarding/programPreview": {
-      return "program";
-    }
-    case "me/programs": {
-      return "me";
-    }
-    case "workout/editProgramExercise": {
-      return "workout";
     }
   }
 }

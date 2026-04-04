@@ -11,9 +11,10 @@ export type IOnboardingStackParamList = {
   units: undefined;
   setupequipment: undefined;
   setupplates: undefined;
-  "onboarding/programselect": undefined;
-  "onboarding/programs": undefined;
-  "onboarding/programPreview": undefined;
+  programselect: undefined;
+  programs: undefined;
+  programPreview: undefined;
+  onerms: undefined;
 };
 
 export type IProgramStackParamList = {
@@ -23,13 +24,15 @@ export type IProgramStackParamList = {
   onerms: undefined;
   programselect: undefined;
   programPreview: undefined;
+  exerciseStats: undefined;
 };
 
 export type IWorkoutStackParamList = {
   progress: { id?: number } | undefined;
   finishDay: undefined;
-  "workout/editProgramExercise": { programId: string; key: string; dayData: Required<IDayData> };
+  editProgramExercise: { programId: string; key: string; dayData: Required<IDayData> };
   muscles: undefined;
+  exerciseStats: undefined;
 };
 
 export type IGraphsStackParamList = {
@@ -51,16 +54,16 @@ export type IMeStackParamList = {
   measurements: { key: IStatsKey } | undefined;
   exerciseStats: undefined;
   apiKeys: undefined;
-  "me/programs": undefined;
+  programs: undefined;
   progress: { id?: number } | undefined;
 };
 
 export type IRootTabParamList = {
-  homeTab: NavigatorScreenParams<IHomeStackParamList>;
-  programTab: NavigatorScreenParams<IProgramStackParamList>;
-  workoutTab: NavigatorScreenParams<IWorkoutStackParamList>;
-  graphsTab: NavigatorScreenParams<IGraphsStackParamList>;
-  meTab: NavigatorScreenParams<IMeStackParamList>;
+  home: NavigatorScreenParams<IHomeStackParamList>;
+  program: NavigatorScreenParams<IProgramStackParamList>;
+  workout: NavigatorScreenParams<IWorkoutStackParamList>;
+  graphs: NavigatorScreenParams<IGraphsStackParamList>;
+  me: NavigatorScreenParams<IMeStackParamList>;
 };
 
 export type IRootStackParamList = {

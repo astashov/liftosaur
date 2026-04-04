@@ -6,7 +6,7 @@ import { buildNavCommon } from "../utils";
 import { Footer2View } from "../../components/footer2";
 import type { IScreen } from "../../models/screen";
 
-const screensWithoutFooter: string[] = ["programs", "me/programs", "subscription"];
+const screensWithoutFooter: string[] = ["programs", "subscription"];
 
 function getScreenFromTabProps(tabState: BottomTabBarProps["state"]): IScreen {
   const activeTab = tabState.routes[tabState.index];
@@ -15,11 +15,11 @@ function getScreenFromTabProps(tabState: BottomTabBarProps["state"]): IScreen {
     return tabStackState.routes[tabStackState.index ?? 0].name as IScreen;
   }
   const tabToDefaultScreen: Record<string, IScreen> = {
-    homeTab: "main",
-    programTab: "programs",
-    workoutTab: "progress",
-    graphsTab: "graphs",
-    meTab: "settings",
+    home: "main",
+    program: "programs",
+    workout: "progress",
+    graphs: "graphs",
+    me: "settings",
   };
   return tabToDefaultScreen[activeTab.name] ?? "main";
 }

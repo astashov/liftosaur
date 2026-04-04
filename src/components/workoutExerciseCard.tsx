@@ -208,8 +208,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                       props.dispatch(
                         Thunk_pushToEditProgramExercise(
                           programExercise.key,
-                          programExercise.dayData,
-                          "workout/editProgramExercise"
+                          programExercise.dayData
                         )
                       );
                     }}

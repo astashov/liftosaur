@@ -208,7 +208,7 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
               ],
               `Save program '${newProgram.name}'`
             );
-            props.dispatch(Thunk_pushScreen("main", undefined, true));
+            props.dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }));
           }}
         >
           Save

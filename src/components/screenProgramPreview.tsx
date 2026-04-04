@@ -41,7 +41,7 @@ export function ScreenProgramPreview(props: IProps): JSX.Element {
         />
 
         <ProgramPreview
-          hasNavbar={true}
+          hasNavbar={false}
           key={props.selectedProgramId}
           isMobile={true}
           dispatch={props.dispatch}

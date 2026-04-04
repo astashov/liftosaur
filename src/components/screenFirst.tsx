@@ -33,7 +33,7 @@ export function ScreenFirst(props: IProps): JSX.Element {
   const [showAccountModal, setShowAccountModal] = useState(false);
   const onSignIn = useCallback((state: IState) => {
     if (state.storage.currentProgramId) {
-      props.dispatch(Thunk_pushScreen("main", undefined, true));
+      props.dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }));
     }
   }, []);
 

@@ -271,7 +271,7 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
                 name="workout-edit-day"
                 onClick={() => {
                   const dayData = Program_getDayData(program, props.progress.day);
-                  Program_editAction(props.dispatch, currentProgram, dayData, undefined, true);
+                  Program_editAction(props.dispatch, currentProgram, dayData, undefined, { tab: "program" });
                 }}
               >
                 <IconEdit2 />
