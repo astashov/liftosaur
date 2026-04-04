@@ -69,6 +69,11 @@ import { NavModalImportFromLink } from "./modals/NavModalImportFromLink";
 import { NavModalAffiliate } from "./modals/NavModalAffiliate";
 import { NavModalImportFromOtherApps } from "./modals/NavModalImportFromOtherApps";
 import { NavModalDayFromAdhoc } from "./modals/NavModalDayFromAdhoc";
+import { NavModalNextWorkout } from "./modals/NavModalNextWorkout";
+import { NavModalWhatsnew } from "./modals/NavModalWhatsnew";
+import { NavModalSignupRequest } from "./modals/NavModalSignupRequest";
+import { NavModalThanks25 } from "./modals/NavModalThanks25";
+import { NavModalCorruptedState } from "./modals/NavModalCorruptedState";
 
 const OnboardingStack = createStackNavigator<IOnboardingStackParamList>();
 const HomeStack = createStackNavigator<IHomeStackParamList>();
@@ -251,6 +256,11 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
         <RootStack.Screen name="affiliateModal" component={NavModalAffiliate} />
         <RootStack.Screen name="importFromOtherAppsModal" component={NavModalImportFromOtherApps} />
         <RootStack.Screen name="dayFromAdhocModal" component={NavModalDayFromAdhoc} />
+        <RootStack.Screen name="nextWorkoutModal" component={NavModalNextWorkout} />
+        <RootStack.Screen name="whatsnewModal" component={NavModalWhatsnew} />
+        <RootStack.Screen name="signupRequestModal" component={NavModalSignupRequest} />
+        <RootStack.Screen name="thanks25Modal" component={NavModalThanks25} />
+        <RootStack.Screen name="corruptedStateModal" component={NavModalCorruptedState} />
       </RootStack.Group>
     </RootStack.Navigator>
   );
