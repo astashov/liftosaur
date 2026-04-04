@@ -70,7 +70,8 @@ export type IRootStackParamList = {
   onboarding: NavigatorScreenParams<IOnboardingStackParamList>;
   mainTabs: NavigatorScreenParams<IRootTabParamList>;
   subscription: undefined;
-  amrapModal: NonNullable<IProgressUi["amrapModal"]> & { progressId: number };
+  amrapModal: NonNullable<IProgressUi["amrapModal"]> &
+    ({ context: "workout"; progressId: number } | { context: "playground"; weekIndex: number; dayIndex: number });
   exercisePickerModal: { progressId: number };
   editProgramExercisePickerModal: {
     context: "editProgram" | "editProgramExercise";
@@ -80,7 +81,9 @@ export type IRootStackParamList = {
     change: "one" | "all" | "duplicate";
     exerciseKey?: string;
   };
-  editSetTargetModal: { progressId: number };
+  editSetTargetModal:
+    | { context: "workout"; progressId: number }
+    | { context: "playground"; weekIndex: number; dayIndex: number };
 };
 
 export type IRootLevelScreenParamList = {

@@ -11,6 +11,7 @@ interface IProgramPreviewOrPlaygroundProps {
   hasNavbar?: boolean;
   onChangeUnit?: (unit: IUnit) => void;
   stats: IStats;
+  useNavModals?: boolean;
 }
 
 export function ProgramPreviewOrPlayground(props: IProgramPreviewOrPlaygroundProps): JSX.Element {
@@ -77,6 +78,7 @@ export function ProgramPreviewOrPlayground(props: IProgramPreviewOrPlaygroundPro
         program={props.program}
         settings={props.settings}
         stats={props.stats}
+        useNavModals={props.useNavModals}
       />
     </div>
   );

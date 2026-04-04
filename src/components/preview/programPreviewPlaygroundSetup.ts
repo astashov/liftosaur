@@ -1,4 +1,4 @@
-import { IProgramState } from "../../types";
+import { IHistoryRecord, IProgram, IProgramState, ISettings } from "../../types";
 
 export interface IProgramPreviewPlaygroundDaySetup {
   day: number;
@@ -8,4 +8,19 @@ export interface IProgramPreviewPlaygroundDaySetup {
 export interface IProgramPreviewPlaygroundWeekSetup {
   name: string;
   days: IProgramPreviewPlaygroundDaySetup[];
+}
+
+export type IProgramPreviewPlaygroundDaySetupWithProgress = IProgramPreviewPlaygroundDaySetup & {
+  progress: IHistoryRecord;
+};
+
+export type IProgramPreviewPlaygroundProgresses = (IProgramPreviewPlaygroundWeekSetup & {
+  days: IProgramPreviewPlaygroundDaySetupWithProgress[];
+})[];
+
+export interface IProgramPreviewPlaygroundState {
+  program: IProgram;
+  settings: ISettings;
+  isPlayground: boolean;
+  progresses: IProgramPreviewPlaygroundProgresses;
 }

@@ -1,7 +1,10 @@
-import { JSX, useMemo, useState } from "react";
+import { JSX, useCallback, useMemo, useState } from "react";
 import deepmerge from "deepmerge";
 import { lb } from "lens-shmens";
 import { ProgramPreviewPlaygroundDay } from "../../../components/preview/programPreviewPlaygroundDay";
+import { WebWorkoutModals } from "../../../components/preview/webWorkoutModals";
+import { buildCardsReducer, ICardsAction } from "../../../ducks/reducer";
+import { IDispatch } from "../../../ducks/types";
 import {
   Program_create,
   Program_nextHistoryRecord,
@@ -193,45 +196,63 @@ function MainPlayground(props: IMainPlaygroundProps): JSX.Element {
   const [progress, setProgress] = useState(Program_nextHistoryRecord(program, settings, stats, 1));
   const evaluatedProgram = Program_evaluate(program, settings);
 
+  const dispatch: IDispatch = useCallback(
+    (async (action: unknown) => {
+      const newProgress = buildCardsReducer(settings, stats, undefined)(progress, action as ICardsAction);
+      track({ name: "main_playground" });
+      setProgress(newProgress);
+    }) as IDispatch,
+    [settings, progress]
+  );
+
   return (
-    <ProgramPreviewPlaygroundDay
-      stats={stats}
-      program={evaluatedProgram}
-      day={1}
-      isPlayground={true}
-      settings={settings}
-      progress={progress}
-      onProgressChange={(newProgress) => {
-        track({ name: "main_playground" });
-        setProgress(newProgress);
-      }}
-      onProgramChange={(newEvaluatedProgram) => {
-        track({ name: "main_playground" });
-        const newProgram = Program_applyEvaluatedProgram(program, newEvaluatedProgram, settings);
-        setProgram(newProgram);
-        setProgress(Program_nextHistoryRecord(newProgram, settings, stats, 1));
-      }}
-      onSettingsChange={(newSettings) => {
-        track({ name: "main_playground" });
-        setSettings(newSettings);
-        setProgress(Program_nextHistoryRecord(program, newSettings, stats, 1));
-      }}
-      onFinish={() => {
-        const { program: newProgram, exerciseData } = Program_runAllFinishDayScripts(
-          program,
-          progress,
-          stats,
-          settings
-        );
-        const newSettings = {
-          ...settings,
-          exerciseData: deepmerge(settings.exerciseData, exerciseData),
-        };
-        const newProgress = Program_nextHistoryRecord(newProgram, newSettings, stats, 1);
-        setSettings(newSettings);
-        setProgram(newProgram);
-        setProgress(newProgress);
-      }}
-    />
+    <>
+      <ProgramPreviewPlaygroundDay
+        stats={stats}
+        program={evaluatedProgram}
+        day={1}
+        isPlayground={true}
+        settings={settings}
+        progress={progress}
+        onProgressChange={(newProgress) => {
+          track({ name: "main_playground" });
+          setProgress(newProgress);
+        }}
+        onFinish={() => {
+          const { program: newProgram, exerciseData } = Program_runAllFinishDayScripts(
+            program,
+            progress,
+            stats,
+            settings
+          );
+          const newSettings = {
+            ...settings,
+            exerciseData: deepmerge(settings.exerciseData, exerciseData),
+          };
+          const newProgress = Program_nextHistoryRecord(newProgram, newSettings, stats, 1);
+          setSettings(newSettings);
+          setProgram(newProgram);
+          setProgress(newProgress);
+        }}
+      />
+      <WebWorkoutModals
+        progress={progress}
+        dispatch={dispatch}
+        settings={settings}
+        program={evaluatedProgram}
+        day={1}
+        onProgramChange={(newEvaluatedProgram) => {
+          track({ name: "main_playground" });
+          const newProgram = Program_applyEvaluatedProgram(program, newEvaluatedProgram, settings);
+          setProgram(newProgram);
+          setProgress(Program_nextHistoryRecord(newProgram, settings, stats, 1));
+        }}
+        onSettingsChange={(newSettings) => {
+          track({ name: "main_playground" });
+          setSettings(newSettings);
+          setProgress(Program_nextHistoryRecord(program, newSettings, stats, 1));
+        }}
+      />
+    </>
   );
 }

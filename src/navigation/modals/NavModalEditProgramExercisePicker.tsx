@@ -1,4 +1,4 @@
-import { JSX, useCallback } from "react";
+import { JSX, useCallback, useEffect } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
@@ -136,7 +136,6 @@ export function NavModalEditProgramExercisePicker(): JSX.Element {
       ? Program_getProgramExerciseForKeyAndShortDayData(evaluatedProgram, dayData, exerciseKey)
       : undefined;
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const { programPlannerDispatch, pickerDispatch, stopIsUndoing } = useCallback(() => {
     if (isEditProgram) {
       const base = buildPlannerDispatch(
@@ -245,8 +244,14 @@ export function NavModalEditProgramExercisePicker(): JSX.Element {
     navigation.goBack();
   };
 
-  if (!plannerState || !exercisePickerState || !evaluatedProgram || !planner || !program) {
-    navigation.goBack();
+  const shouldGoBack = !plannerState || !exercisePickerState || !evaluatedProgram || !planner || !program;
+  useEffect(() => {
+    if (shouldGoBack) {
+      navigation.goBack();
+    }
+  }, [shouldGoBack]);
+
+  if (shouldGoBack) {
     return <></>;
   }
 

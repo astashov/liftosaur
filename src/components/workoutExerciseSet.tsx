@@ -30,7 +30,6 @@ import {
   Weight_getOneRepMax,
 } from "../models/weight";
 import { Exercise_getIsUnilateral, Exercise_onerm } from "../models/exercise";
-import { getNavigationRef } from "../navigation/navUtils";
 
 interface IWorkoutExerciseSet {
   exerciseType: IExerciseType;
@@ -333,9 +332,6 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                       props.exerciseType,
                       set
                     );
-                    getNavigationRef().then(({ navigationRef }) => {
-                      navigationRef.navigate("editSetTargetModal", { progressId: props.progress.id });
-                    });
                   }}
                   className="flex-1 h-full text-text-alwayswhite bg-background-darkgray nm-workout-exercise-set-edit"
                 >

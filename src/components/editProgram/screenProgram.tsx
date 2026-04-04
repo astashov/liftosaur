@@ -222,6 +222,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
                     program={program}
                     settings={props.settings}
                     stats={props.navCommon.stats}
+                    useNavModals={true}
                   />
                 </div>
               ),

@@ -37,6 +37,7 @@ interface IProps {
   subscription: ISubscription;
   stats: IStats;
   hasNavbar?: boolean;
+  useNavModals?: boolean;
 }
 
 export function ProgramPreview(props: IProps): JSX.Element {
@@ -96,6 +97,7 @@ export function ProgramPreview(props: IProps): JSX.Element {
         isMobile={props.isMobile}
         hasNavbar={props.hasNavbar}
         stats={props.stats}
+        useNavModals={props.useNavModals}
       />
       {musclesModal && (
         <ProgramPreviewMusclesModal

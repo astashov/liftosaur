@@ -1,4 +1,4 @@
-import { JSX } from "react";
+import { JSX, useEffect } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
@@ -67,8 +67,14 @@ export function NavModalExercisePicker(): JSX.Element {
     navigation.goBack();
   };
 
-  if (!progress || !exercisePickerState) {
-    navigation.goBack();
+  const shouldGoBack = !progress || !exercisePickerState;
+  useEffect(() => {
+    if (shouldGoBack) {
+      navigation.goBack();
+    }
+  }, [shouldGoBack]);
+
+  if (shouldGoBack) {
     return <></>;
   }
 

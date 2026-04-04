@@ -30,6 +30,12 @@ export function SheetScreenContainer(props: IProps): JSX.Element {
           maxHeight: "90vh",
         }}
       >
+        <div
+          className="absolute top-1 left-1 px-1 text-xs font-bold rounded bg-purple-500 text-white opacity-50"
+          style={{ fontSize: "8px", zIndex: 100 }}
+        >
+          NAV
+        </div>
         {props.shouldShowClose && (
           <button
             data-cy="bottom-sheet-close"

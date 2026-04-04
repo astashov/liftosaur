@@ -85,10 +85,28 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
   const prevAmrapModal = useRef(amrapModal);
   useEffect(() => {
     if (amrapModal && !prevAmrapModal.current) {
-      navigationRef.navigate("amrapModal", { ...amrapModal, progressId: progress.id });
+      navigationRef.navigate("amrapModal", { ...amrapModal, context: "workout", progressId: progress.id });
     }
     prevAmrapModal.current = amrapModal;
   }, [amrapModal]);
+
+  const exercisePickerState = progress.ui?.exercisePicker?.state;
+  const prevExercisePickerState = useRef(exercisePickerState);
+  useEffect(() => {
+    if (exercisePickerState && !prevExercisePickerState.current) {
+      navigationRef.navigate("exercisePickerModal", { progressId: progress.id });
+    }
+    prevExercisePickerState.current = exercisePickerState;
+  }, [exercisePickerState]);
+
+  const editSetModal = progress.ui?.editSetModal;
+  const prevEditSetModal = useRef(editSetModal);
+  useEffect(() => {
+    if (editSetModal && !prevEditSetModal.current) {
+      navigationRef.navigate("editSetTargetModal", { context: "workout", progressId: progress.id });
+    }
+    prevEditSetModal.current = editSetModal;
+  }, [editSetModal]);
 
   const exerciseSuperset = progress.ui?.showSupersetPicker;
 
