@@ -5,6 +5,7 @@ import { navigationRef } from "./navigationRef";
 interface IPlaygroundModalState {
   editSetModal: boolean;
   amrapModal: boolean;
+  editModal: boolean;
 }
 
 function findActivePlaygroundModal(
@@ -19,13 +20,14 @@ function findActivePlaygroundModal(
     for (let dayIndex = 0; dayIndex < week.days.length; dayIndex++) {
       const day = week.days[dayIndex];
       const ui = day.progress.ui;
-      if (ui?.editSetModal || ui?.amrapModal) {
+      if (ui?.editSetModal || ui?.amrapModal || ui?.editModal) {
         return {
           weekIndex,
           dayIndex,
           modal: {
             editSetModal: ui.editSetModal != null,
             amrapModal: ui.amrapModal != null,
+            editModal: ui.editModal != null,
           },
         };
       }
@@ -39,6 +41,7 @@ export function usePlaygroundModalBridges(state: IState): void {
 
   const prevEditSetModal = useRef(false);
   const prevAmrapModal = useRef(false);
+  const prevEditModal = useRef(false);
 
   useEffect(() => {
     if (active?.modal.editSetModal && !prevEditSetModal.current) {
@@ -66,4 +69,14 @@ export function usePlaygroundModalBridges(state: IState): void {
     }
     prevAmrapModal.current = active?.modal.amrapModal ?? false;
   }, [active?.modal.amrapModal, active?.weekIndex, active?.dayIndex]);
+
+  useEffect(() => {
+    if (active?.modal.editModal && !prevEditModal.current) {
+      navigationRef.navigate("playgroundEditModal", {
+        weekIndex: active.weekIndex,
+        dayIndex: active.dayIndex,
+      });
+    }
+    prevEditModal.current = active?.modal.editModal ?? false;
+  }, [active?.modal.editModal, active?.weekIndex, active?.dayIndex]);
 }

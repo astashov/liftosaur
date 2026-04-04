@@ -72,10 +72,10 @@ function onProgressChange(
   );
 }
 
-function onProgramChange(
+export function playgroundOnProgramChange(
   dispatch: ILensDispatch<IProgramPreviewPlaygroundState>,
   newEvaluatedProgram: IEvaluatedProgram,
-  props: IProgramPreviewPlaygroundProps,
+  stats: IStats,
   state: IProgramPreviewPlaygroundState
 ): void {
   const newPlanner = new ProgramToPlanner(newEvaluatedProgram, state.settings).convertToPlanner();
@@ -96,7 +96,7 @@ function onProgramChange(
                   day.day,
                   newEvaluatedProgram,
                   state.settings,
-                  props.stats
+                  stats
                 );
                 return {
                   ...day,
@@ -112,10 +112,10 @@ function onProgramChange(
   );
 }
 
-function onSettingsChange(
+export function playgroundOnSettingsChange(
   dispatch: ILensDispatch<IProgramPreviewPlaygroundState>,
   newSettings: ISettings,
-  props: IProgramPreviewPlaygroundProps,
+  stats: IStats,
   evaluatedProgram: IEvaluatedProgram
 ): void {
   dispatch(
@@ -134,7 +134,7 @@ function onSettingsChange(
                   day.day,
                   evaluatedProgram,
                   newSettings,
-                  props.stats
+                  stats
                 );
                 return {
                   ...day,
@@ -277,10 +277,10 @@ function ProgramPreviewPlaygroundInner(p: IProgramPreviewPlaygroundInnerProps): 
                           program={evaluatedProgram}
                           day={d.day}
                           onProgramChange={(newEvaluatedProgram) =>
-                            onProgramChange(dispatch, newEvaluatedProgram, props, state)
+                            playgroundOnProgramChange(dispatch, newEvaluatedProgram, props.stats, state)
                           }
                           onSettingsChange={(newSettings) =>
-                            onSettingsChange(dispatch, newSettings, props, evaluatedProgram)
+                            playgroundOnSettingsChange(dispatch, newSettings, props.stats, evaluatedProgram)
                           }
                         />
                       )}
@@ -462,9 +462,11 @@ function ProgramPreviewAllWeeks(props: IProgramPreviewAllWeeksProps): JSX.Elemen
                     program={evaluatedProgram}
                     day={d.day}
                     onProgramChange={(newEvaluatedProgram) =>
-                      onProgramChange(dispatch, newEvaluatedProgram, props, state)
+                      playgroundOnProgramChange(dispatch, newEvaluatedProgram, props.stats, state)
                     }
-                    onSettingsChange={(newSettings) => onSettingsChange(dispatch, newSettings, props, evaluatedProgram)}
+                    onSettingsChange={(newSettings) =>
+                      playgroundOnSettingsChange(dispatch, newSettings, props.stats, evaluatedProgram)
+                    }
                   />
                 )}
               </div>
