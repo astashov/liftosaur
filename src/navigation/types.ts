@@ -104,6 +104,7 @@ export type IRootStackParamList = {
   corruptedStateModal: undefined;
   debugModal: undefined;
   workoutShareModal: { progressId: number };
+  socialShareModal: { type: "igstory" | "igfeed" | "tiktok" };
 };
 
 export type IRootLevelScreenParamList = {

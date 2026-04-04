@@ -28,8 +28,6 @@ import {
   SendMessage_isAndroid,
   SendMessage_androidAppVersion,
 } from "../utils/sendMessage";
-import { WorkoutSocialShareSheet } from "./workoutSocialShareSheet";
-import { BottomSheet } from "./bottomSheet";
 import { IconInstagram } from "./icons/iconInstagram";
 import { WorkoutShareButton } from "./workoutShareButton";
 import { IconLink } from "./icons/iconLink";
@@ -47,6 +45,7 @@ import { n } from "../utils/math";
 import { Muscle_getMuscleGroupName } from "../models/muscle";
 import { IconDoc } from "./icons/iconDoc";
 import { LiftohistorySerializer_serialize } from "../liftohistory/liftohistorySerializer";
+import { navigationRef } from "../navigation/navigationRef";
 
 interface IProps {
   history: IHistoryRecord[];
@@ -230,9 +229,6 @@ interface IMobileShareProps {
 }
 
 function MobileShare(props: IMobileShareProps): JSX.Element {
-  const [isShareShown, setIsShareShown] = useState<boolean>(false);
-  const [shareType, setShareType] = useState<"tiktok" | "igstory" | "igfeed">("igstory");
-
   return (
     <div>
       <div className="px-4 py-4">
@@ -241,10 +237,7 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
           <div className="text-center">
             <button
               className="nm-finishday-share-igstory"
-              onClick={() => {
-                setShareType("igstory");
-                setIsShareShown(true);
-              }}
+              onClick={() => navigationRef.navigate("socialShareModal", { type: "igstory" })}
             >
               <IconInstagram />
             </button>
@@ -253,10 +246,7 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
           <div className="text-center">
             <button
               className="nm-finishday-share-igfeed"
-              onClick={() => {
-                setShareType("igfeed");
-                setIsShareShown(true);
-              }}
+              onClick={() => navigationRef.navigate("socialShareModal", { type: "igfeed" })}
             >
               <IconInstagram />
             </button>
@@ -265,10 +255,7 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
           <div className="text-center">
             <button
               className="nm-finishday-share-tiktok"
-              onClick={() => {
-                setShareType("tiktok");
-                setIsShareShown(true);
-              }}
+              onClick={() => navigationRef.navigate("socialShareModal", { type: "tiktok" })}
             >
               <IconTiktok />
             </button>
@@ -314,15 +301,6 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
           </LinkButton>
         </div>
       </div>
-      <BottomSheet isHidden={!isShareShown} onClose={() => setIsShareShown(false)} shouldShowClose={true}>
-        <WorkoutSocialShareSheet
-          history={props.history}
-          type={shareType}
-          isHidden={!isShareShown}
-          record={props.history[0]}
-          settings={props.settings}
-        />
-      </BottomSheet>
     </div>
   );
 }

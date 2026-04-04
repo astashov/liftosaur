@@ -76,6 +76,7 @@ import { NavModalThanks25 } from "./modals/NavModalThanks25";
 import { NavModalCorruptedState } from "./modals/NavModalCorruptedState";
 import { NavModalDebug } from "./modals/NavModalDebug";
 import { NavModalWorkoutShare } from "./modals/NavModalWorkoutShare";
+import { NavModalSocialShare } from "./modals/NavModalSocialShare";
 
 const OnboardingStack = createStackNavigator<IOnboardingStackParamList>();
 const HomeStack = createStackNavigator<IHomeStackParamList>();
@@ -265,6 +266,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
         <RootStack.Screen name="corruptedStateModal" component={NavModalCorruptedState} />
         <RootStack.Screen name="debugModal" component={NavModalDebug} />
         <RootStack.Screen name="workoutShareModal" component={NavModalWorkoutShare} />
+        <RootStack.Screen name="socialShareModal" component={NavModalSocialShare} />
       </RootStack.Group>
     </RootStack.Navigator>
   );
