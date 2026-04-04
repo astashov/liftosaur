@@ -9,17 +9,13 @@ import {
   History_pauseWorkoutAction,
 } from "../models/history";
 import { Progress_lbProgress, Progress_isCurrent } from "../models/progress";
-import { INavCommon, updateProgress, updateState } from "../models/state";
+import { INavCommon, updateState } from "../models/state";
 import { DateUtils_format } from "../utils/date";
 import { TimeUtils_formatHHMM } from "../utils/time";
 import { IconTrash } from "./icons/iconTrash";
 import { useNavOptions } from "../navigation/useNavOptions";
 import { Timer } from "./timer";
 import { Workout } from "./workout";
-import { ModalDate } from "./modalDate";
-import { lb } from "lens-shmens";
-import { Modal1RM } from "./modal1RM";
-import { ModalEquipment } from "./modalEquipment";
 import {
   SendMessage_isIos,
   SendMessage_iosAppVersion,
@@ -29,7 +25,6 @@ import {
 import { BottomSheetMobileShareOptions } from "./bottomSheetMobileShareOptions";
 import { BottomSheetWebappShareOptions } from "./bottomSheetWebappShareOptions";
 import { Thunk_updateLiveActivity, Thunk_deleteProgress } from "../ducks/thunks";
-import { BottomSheetWorkoutSuperset } from "./bottomSheetWorkoutSuperset";
 import { Reps_findNextSetIndex } from "../models/set";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { workoutTourConfig } from "./tour/workoutTourConfig";
@@ -54,7 +49,6 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
   const progress = props.progress;
   const evaluatedProgram = props.program ? Program_evaluate(props.program, props.settings) : undefined;
   const [isShareShown, setIsShareShown] = useState<boolean>(false);
-  const dateModal = progress.ui?.dateModal;
   const programDay = evaluatedProgram ? Program_getProgramDay(evaluatedProgram, progress.day) : undefined;
 
   useEffect(() => {
@@ -108,8 +102,6 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
     prevEditSetModal.current = editSetModal;
   }, [editSetModal]);
 
-  const exerciseSuperset = progress.ui?.showSupersetPicker;
-
   useNavOptions({
     navHelpTourId: workoutTourConfig.id,
     navTitle: Progress_isCurrent(progress) ? "Ongoing workout" : `${DateUtils_format(progress.date)}`,
@@ -120,6 +112,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
             date: progress.date,
             time: History_workoutTime(progress),
           });
+          navigationRef.navigate("dateModal", { progressId: progress.id });
         }
       : undefined,
     navSubtitle:
@@ -184,77 +177,6 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
           progress={progress}
           dispatch={props.dispatch}
         />
-        {dateModal != null && (
-          <ModalDate
-            isHidden={false}
-            dispatch={props.dispatch}
-            date={dateModal.date ?? ""}
-            time={dateModal.time ?? 0}
-          />
-        )}
-        {exerciseSuperset && (
-          <BottomSheetWorkoutSuperset
-            isHidden={exerciseSuperset == null}
-            onClose={() => {
-              updateProgress(
-                props.dispatch,
-                [lb<IHistoryRecord>().pi("ui").p("showSupersetPicker").record(undefined)],
-                "Close superset picker"
-              );
-            }}
-            progress={progress}
-            entry={exerciseSuperset}
-            settings={props.settings}
-            onSelect={(selectedEntry) => {
-              updateProgress(
-                props.dispatch,
-                [
-                  lb<IHistoryRecord>()
-                    .p("entries")
-                    .findBy("id", exerciseSuperset.id)
-                    .p("superset")
-                    .record(selectedEntry),
-                ],
-                "select-superset-entry"
-              );
-              updateProgress(
-                props.dispatch,
-                [lb<IHistoryRecord>().pi("ui").p("showSupersetPicker").record(undefined)],
-                "Close superset picker"
-              );
-            }}
-          />
-        )}
-        {progress.ui?.equipmentModal?.exerciseType && (
-          <ModalEquipment
-            stats={props.stats}
-            onClose={() => {
-              updateState(
-                props.dispatch,
-                [Progress_lbProgress(progress.id).pi("ui").p("equipmentModal").record(undefined)],
-                "Close equipment modal"
-              );
-            }}
-            settings={props.settings}
-            exercise={progress.ui?.equipmentModal.exerciseType}
-            entries={progress.entries}
-            dispatch={props.dispatch}
-          />
-        )}
-        {progress.ui?.rm1Modal?.exerciseType && (
-          <Modal1RM
-            onClose={() => {
-              updateState(
-                props.dispatch,
-                [Progress_lbProgress(progress.id).pi("ui").p("rm1Modal").record(undefined)],
-                "Close 1RM modal"
-              );
-            }}
-            settings={props.settings}
-            exercise={progress.ui?.rm1Modal.exerciseType}
-            dispatch={props.dispatch}
-          />
-        )}
         {!Progress_isCurrent(progress) &&
           ((SendMessage_isIos() && SendMessage_iosAppVersion() >= 11) ||
           (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 20) ? (
