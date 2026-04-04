@@ -79,7 +79,9 @@ function getInitialMusclesAndMultipliers(exercise: IExercise, settings: ISetting
   }
 }
 
-export function BottomSheetMusclesOverride(props: IBottomSheetMusclesOverrideProps): JSX.Element {
+export type IBottomSheetMusclesOverrideContentProps = Omit<IBottomSheetMusclesOverrideProps, "isHidden">;
+
+export function BottomSheetMusclesOverrideContent(props: IBottomSheetMusclesOverrideContentProps): JSX.Element {
   const exercise = Exercise_get(props.exerciseType, props.settings.exercises);
   const [musclesAndMultipliers, setMusclesAndMultipliers] = useState(
     getInitialMusclesAndMultipliers(exercise, props.settings)
@@ -88,8 +90,7 @@ export function BottomSheetMusclesOverride(props: IBottomSheetMusclesOverridePro
 
   return (
     <>
-      <BottomSheetOrModal shouldShowClose={true} onClose={props.onClose} isHidden={props.isHidden}>
-        <div className="flex flex-col h-full px-4 py-2" style={{ marginTop: "-0.5rem" }}>
+      <div className="flex flex-col h-full px-4 py-2">
           <div className="py-2">
             <h3 className="text-base font-semibold leading-none text-center">Override Muscles</h3>
             <div className="leading-none text-center">
@@ -211,7 +212,6 @@ export function BottomSheetMusclesOverride(props: IBottomSheetMusclesOverridePro
             </Button>
           </div>
         </div>
-      </BottomSheetOrModal>
       {showAddMuscle && (
         <BottomSheetOrModal shouldShowClose={true} onClose={() => setShowAddMuscle(false)} isHidden={!showAddMuscle}>
           <div className="flex flex-col h-full px-4 py-2" style={{ marginTop: "-0.5rem" }}>
@@ -253,5 +253,20 @@ export function BottomSheetMusclesOverride(props: IBottomSheetMusclesOverridePro
         </BottomSheetOrModal>
       )}
     </>
+  );
+}
+
+export function BottomSheetMusclesOverride(props: IBottomSheetMusclesOverrideProps): JSX.Element {
+  return (
+    <BottomSheetOrModal shouldShowClose={true} onClose={props.onClose} isHidden={props.isHidden}>
+      <BottomSheetMusclesOverrideContent
+        exerciseType={props.exerciseType}
+        settings={props.settings}
+        helps={props.helps}
+        onNewExerciseData={props.onNewExerciseData}
+        onClose={props.onClose}
+        dispatch={props.dispatch}
+      />
+    </BottomSheetOrModal>
   );
 }

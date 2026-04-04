@@ -105,6 +105,8 @@ export type IRootStackParamList = {
   debugModal: undefined;
   workoutShareModal: { progressId: number };
   socialShareModal: { type: "igstory" | "igfeed" | "tiktok" };
+  customExerciseModal: { exerciseId?: string };
+  musclesOverrideModal: { exerciseType: IExerciseType };
 };
 
 export type IRootLevelScreenParamList = {
