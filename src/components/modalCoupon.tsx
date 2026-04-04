@@ -1,22 +1,20 @@
 import { JSX, useRef, useState } from "react";
 import { Button } from "./button";
-import { Modal } from "./modal";
 import { Input } from "./input";
 import { IDispatch } from "../ducks/types";
 import { Thunk_redeemCoupon } from "../ducks/thunks";
 import { IconSpinner } from "./icons/iconSpinner";
 
-interface IProps {
+interface IModalCouponContentProps {
   dispatch: IDispatch;
   onClose: () => void;
-  isHidden: boolean;
 }
 
-export function ModalCoupon(props: IProps): JSX.Element {
+export function ModalCouponContent(props: IModalCouponContentProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   return (
-    <Modal isHidden={props.isHidden} autofocusInputRef={textInput} onClose={props.onClose} shouldShowClose={true}>
+    <>
       <h3 className="pt-4 pb-2 text-lg font-bold">Redeem Code</h3>
       <div className="mb-2 text-center">
         <Input maxLength={8} labelSize="xs" label="Code" ref={textInput} />
@@ -43,6 +41,7 @@ export function ModalCoupon(props: IProps): JSX.Element {
           {isLoading ? <IconSpinner color="white" width={18} height={18} /> : "Redeem"}
         </Button>
       </div>
-    </Modal>
+    </>
   );
 }
+

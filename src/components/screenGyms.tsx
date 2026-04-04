@@ -1,4 +1,4 @@
-import { JSX, Fragment, useState } from "react";
+import { JSX, Fragment } from "react";
 import { IDispatch } from "../ducks/types";
 import { IEquipment, IGym, ISettings } from "../types";
 import { INavCommon, IState, updateState } from "../models/state";
@@ -12,10 +12,9 @@ import { lb } from "lens-shmens";
 import { CollectionUtils_removeBy } from "../utils/collection";
 import { UidFactory_generateUid } from "../utils/generator";
 import { ObjectUtils_clone } from "../utils/object";
-import { ModalNewGym } from "./modalNewGym";
 import { Thunk_pushScreen } from "../ducks/thunks";
+import { navigationRef } from "../navigation/navigationRef";
 import { LinkButton } from "./linkButton";
-import { Settings_defaultEquipment } from "../models/settings";
 
 interface IProps {
   dispatch: IDispatch;
@@ -26,7 +25,6 @@ interface IProps {
 
 export function ScreenGyms(props: IProps): JSX.Element {
   const gyms = props.settings.gyms;
-  const [modalNewGym, setModalNewGym] = useState(false);
   useNavOptions({ navTitle: "Gyms" });
 
   return (
@@ -128,33 +126,11 @@ export function ScreenGyms(props: IProps): JSX.Element {
           );
         })}
         <div className="mt-1">
-          <LinkButton name="new-gym" onClick={() => setModalNewGym(true)}>
+          <LinkButton name="new-gym" onClick={() => navigationRef.navigate("newGymModal")}>
             Add Gym
           </LinkButton>
         </div>
       </section>
-      <ModalNewGym
-        isHidden={!modalNewGym}
-        onInput={(name) => {
-          if (name) {
-            updateState(
-              props.dispatch,
-              [
-                lb<IState>()
-                  .p("storage")
-                  .p("settings")
-                  .p("gyms")
-                  .recordModify((oldGyms) => {
-                    const id = `gym-${UidFactory_generateUid(8)}`;
-                    return [...oldGyms, { vtype: "gym", id, name, equipment: Settings_defaultEquipment() }];
-                  }),
-              ],
-              "Add new gym"
-            );
-          }
-          setModalNewGym(false);
-        }}
-      />
     </>
   );
 }

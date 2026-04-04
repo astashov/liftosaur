@@ -1,5 +1,4 @@
 import { JSX, useCallback } from "react";
-import { Modal } from "./modal";
 import { GroupHeader } from "./groupHeader";
 import { MenuItemWrapper } from "./menuItem";
 import { Importer } from "./importer";
@@ -13,14 +12,13 @@ import { ICustomExercise, IHistoryRecord, ISettings } from "../types";
 
 declare let Rollbar: RB;
 
-interface IProps {
-  isHidden: boolean;
+interface IModalImportFromOtherAppsContentProps {
   settings: ISettings;
   onClose: () => void;
   dispatch: IDispatch;
 }
 
-export function ModalImportFromOtherApps(props: IProps): JSX.Element {
+export function ModalImportFromOtherAppsContent(props: IModalImportFromOtherAppsContentProps): JSX.Element {
   const onFileSelect = useCallback((contents: string) => {
     let historyRecords: IHistoryRecord[];
     let customExercises: Record<string, ICustomExercise>;
@@ -66,7 +64,7 @@ export function ModalImportFromOtherApps(props: IProps): JSX.Element {
   }, []);
 
   return (
-    <Modal isFullWidth={true} isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose}>
+    <>
       <GroupHeader size="large" name="Import history from other apps" />
       <Importer onFileSelect={onFileSelect}>
         {(onClick) => (
@@ -77,6 +75,7 @@ export function ModalImportFromOtherApps(props: IProps): JSX.Element {
           </div>
         )}
       </Importer>
-    </Modal>
+    </>
   );
 }
+

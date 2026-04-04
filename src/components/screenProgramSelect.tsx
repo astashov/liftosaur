@@ -1,12 +1,10 @@
-import { JSX, useState } from "react";
+import { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { ISettings } from "../types";
 import { useNavOptions } from "../navigation/useNavOptions";
-import { Thunk_pushScreen, Thunk_importFromLink } from "../ducks/thunks";
-import { EditProgram_create } from "../models/editProgram";
-import { ModalCreateProgram } from "./modalCreateProgram";
-import { ModalImportFromLink } from "./modalImportFromLink";
+import { Thunk_pushScreen } from "../ducks/thunks";
 import { IconDoc } from "./icons/iconDoc";
+import { navigationRef } from "../navigation/navigationRef";
 import { IconEditSquare } from "./icons/iconEditSquare";
 import { IconLink } from "./icons/iconLink";
 import { emptyProgramId, Program_selectProgram } from "../models/program";
@@ -18,9 +16,6 @@ interface IScreenProgramSelectProps {
 }
 
 export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Element {
-  const [shouldCreateProgram, setShouldCreateProgram] = useState(false);
-  const [showImportFromLink, setShowImportFromLink] = useState(false);
-
   useNavOptions({ navHidden: true });
 
   const options = [
@@ -36,14 +31,14 @@ export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Eleme
       icon: <IconEditSquare />,
       title: "Create a program",
       description: "Build your own custom routine from scratch",
-      onClick: () => setShouldCreateProgram(true),
+      onClick: () => navigationRef.navigate("createProgramModal"),
     },
     {
       key: "import",
       icon: <IconLink size={24} />,
       title: "Import from link",
       description: "Paste a link from the program web editor",
-      onClick: () => setShowImportFromLink(true),
+      onClick: () => navigationRef.navigate("importFromLinkModal"),
     },
     {
       key: "adhoc",
@@ -97,23 +92,6 @@ export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Eleme
           </div>
         </div>
       </div>
-
-      <ModalCreateProgram
-        isHidden={!shouldCreateProgram}
-        onClose={() => setShouldCreateProgram(false)}
-        onSelect={(name) => {
-          EditProgram_create(props.dispatch, name);
-        }}
-      />
-      <ModalImportFromLink
-        isHidden={!showImportFromLink}
-        onSubmit={async (link) => {
-          if (link) {
-            props.dispatch(Thunk_importFromLink(link));
-          }
-          setShowImportFromLink(false);
-        }}
-      />
     </section>
   );
 }

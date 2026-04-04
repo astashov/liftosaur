@@ -61,6 +61,14 @@ import { NavModal1RM } from "./modals/NavModal1RM";
 import { NavModalEquipment } from "./modals/NavModalEquipment";
 import { NavModalWorkoutSuperset } from "./modals/NavModalWorkoutSuperset";
 import { NavModalPlaygroundEditExercise } from "./modals/NavModalPlaygroundEditExercise";
+import { NavModalExerciseInfo } from "./modals/NavModalExerciseInfo";
+import { NavModalCoupon } from "./modals/NavModalCoupon";
+import { NavModalNewGym } from "./modals/NavModalNewGym";
+import { NavModalCreateProgram } from "./modals/NavModalCreateProgram";
+import { NavModalImportFromLink } from "./modals/NavModalImportFromLink";
+import { NavModalAffiliate } from "./modals/NavModalAffiliate";
+import { NavModalImportFromOtherApps } from "./modals/NavModalImportFromOtherApps";
+import { NavModalDayFromAdhoc } from "./modals/NavModalDayFromAdhoc";
 
 const OnboardingStack = createStackNavigator<IOnboardingStackParamList>();
 const HomeStack = createStackNavigator<IHomeStackParamList>();
@@ -235,6 +243,14 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
         <RootStack.Screen name="equipmentModal" component={NavModalEquipment} />
         <RootStack.Screen name="supersetPickerModal" component={NavModalWorkoutSuperset} />
         <RootStack.Screen name="playgroundEditModal" component={NavModalPlaygroundEditExercise} />
+        <RootStack.Screen name="exerciseInfoModal" component={NavModalExerciseInfo} />
+        <RootStack.Screen name="couponModal" component={NavModalCoupon} />
+        <RootStack.Screen name="newGymModal" component={NavModalNewGym} />
+        <RootStack.Screen name="createProgramModal" component={NavModalCreateProgram} />
+        <RootStack.Screen name="importFromLinkModal" component={NavModalImportFromLink} />
+        <RootStack.Screen name="affiliateModal" component={NavModalAffiliate} />
+        <RootStack.Screen name="importFromOtherAppsModal" component={NavModalImportFromOtherApps} />
+        <RootStack.Screen name="dayFromAdhocModal" component={NavModalDayFromAdhoc} />
       </RootStack.Group>
     </RootStack.Navigator>
   );
