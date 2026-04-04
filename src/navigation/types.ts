@@ -84,6 +84,10 @@ export type IRootStackParamList = {
   editSetTargetModal:
     | { context: "workout"; progressId: number }
     | { context: "playground"; weekIndex: number; dayIndex: number };
+  dateModal: { progressId: number };
+  equipmentModal: { progressId: number };
+  rm1Modal: { progressId: number };
+  supersetPickerModal: { progressId: number };
 };
 
 export type IRootLevelScreenParamList = {

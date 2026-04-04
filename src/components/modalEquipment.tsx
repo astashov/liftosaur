@@ -27,7 +27,9 @@ interface IModalEquipmentProps {
   dispatch: IDispatch;
 }
 
-export function ModalEquipment(props: IModalEquipmentProps): JSX.Element {
+export type IModalEquipmentContentProps = Omit<IModalEquipmentProps, "onClose">;
+
+export function ModalEquipmentContent(props: IModalEquipmentContentProps): JSX.Element {
   const availableEquipment = ObjectUtils_filter(Equipment_getCurrentGym(props.settings).equipment, (k, v) => {
     return !v?.isDeleted;
   });
@@ -41,65 +43,77 @@ export function ModalEquipment(props: IModalEquipmentProps): JSX.Element {
 
   const currentGymId = props.settings.currentGymId ?? props.settings.gyms[0].id;
   return (
-    <Modal isHidden={false} onClose={props.onClose} shouldShowClose={true} isFullWidth>
-      <div data-cy="modal-equipment">
-        <MenuItemEditable
-          type="select"
-          name="Equipment"
-          value={currentEquipment ?? ""}
-          values={[
-            ["", "None"],
-            ...ObjectUtils_keys(availableEquipment).map<[string, string]>((k) => [
-              k,
-              equipmentName(k, availableEquipment),
-            ]),
-          ]}
-          onChange={(value) => {
-            EditEquipment_setEquipmentForExercise(
-              props.exercise,
-              value === "" ? undefined : value,
-              programExerciseIds,
-              props.dispatch,
-              props.settings
-            );
-          }}
-        />
-        <div className="mt-2">
-          {currentEquipment == null ? (
-            <InputNumber
-              type="number"
-              label="Default Rounding"
-              min={0}
-              step={0.5}
-              max={100}
-              value={Exercise_defaultRounding(props.exercise, props.settings)}
-              onUpdate={(value) => {
-                EditEquipment_setDefaultRoundingForExercise(props.dispatch, props.exercise, value);
-              }}
+    <div data-cy="modal-equipment">
+      <MenuItemEditable
+        type="select"
+        name="Equipment"
+        value={currentEquipment ?? ""}
+        values={[
+          ["", "None"],
+          ...ObjectUtils_keys(availableEquipment).map<[string, string]>((k) => [
+            k,
+            equipmentName(k, availableEquipment),
+          ]),
+        ]}
+        onChange={(value) => {
+          EditEquipment_setEquipmentForExercise(
+            props.exercise,
+            value === "" ? undefined : value,
+            programExerciseIds,
+            props.dispatch,
+            props.settings
+          );
+        }}
+      />
+      <div className="mt-2">
+        {currentEquipment == null ? (
+          <InputNumber
+            type="number"
+            label="Default Rounding"
+            min={0}
+            step={0.5}
+            max={100}
+            value={Exercise_defaultRounding(props.exercise, props.settings)}
+            onUpdate={(value) => {
+              EditEquipment_setDefaultRoundingForExercise(props.dispatch, props.exercise, value);
+            }}
+          />
+        ) : (
+          <div>
+            <GroupHeader name="Equipment Settings" topPadding={true} />
+            <EquipmentSettingsValues
+              lensDispatch={buildDispatch(props.dispatch)}
+              dispatch={props.dispatch}
+              lensPrefix={lb<IState>()
+                .p("storage")
+                .p("settings")
+                .p("gyms")
+                .findBy("id", currentGymId)
+                .p("equipment")
+                .get()}
+              allEquipment={availableEquipment}
+              stats={props.stats}
+              settings={props.settings}
+              equipment={currentEquipment}
+              equipmentData={availableEquipment[currentEquipment]!}
             />
-          ) : (
-            <div>
-              <GroupHeader name="Equipment Settings" topPadding={true} />
-              <EquipmentSettingsValues
-                lensDispatch={buildDispatch(props.dispatch)}
-                dispatch={props.dispatch}
-                lensPrefix={lb<IState>()
-                  .p("storage")
-                  .p("settings")
-                  .p("gyms")
-                  .findBy("id", currentGymId)
-                  .p("equipment")
-                  .get()}
-                allEquipment={availableEquipment}
-                stats={props.stats}
-                settings={props.settings}
-                equipment={currentEquipment}
-                equipmentData={availableEquipment[currentEquipment]!}
-              />
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
+    </div>
+  );
+}
+
+export function ModalEquipment(props: IModalEquipmentProps): JSX.Element {
+  return (
+    <Modal isHidden={false} onClose={props.onClose} shouldShowClose={true} isFullWidth>
+      <ModalEquipmentContent
+        settings={props.settings}
+        stats={props.stats}
+        exercise={props.exercise}
+        entries={props.entries}
+        dispatch={props.dispatch}
+      />
     </Modal>
   );
 }

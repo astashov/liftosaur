@@ -56,6 +56,10 @@ import { NavModalAmrap } from "./modals/NavModalAmrap";
 import { NavModalExercisePicker } from "./modals/NavModalExercisePicker";
 import { NavModalEditProgramExercisePicker } from "./modals/NavModalEditProgramExercisePicker";
 import { NavModalEditTarget } from "./modals/NavModalEditTarget";
+import { NavModalDate } from "./modals/NavModalDate";
+import { NavModal1RM } from "./modals/NavModal1RM";
+import { NavModalEquipment } from "./modals/NavModalEquipment";
+import { NavModalWorkoutSuperset } from "./modals/NavModalWorkoutSuperset";
 
 const OnboardingStack = createStackNavigator<IOnboardingStackParamList>();
 const HomeStack = createStackNavigator<IHomeStackParamList>();
@@ -225,6 +229,10 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
         <RootStack.Screen name="exercisePickerModal" component={NavModalExercisePicker} />
         <RootStack.Screen name="editProgramExercisePickerModal" component={NavModalEditProgramExercisePicker} />
         <RootStack.Screen name="editSetTargetModal" component={NavModalEditTarget} />
+        <RootStack.Screen name="dateModal" component={NavModalDate} />
+        <RootStack.Screen name="rm1Modal" component={NavModal1RM} />
+        <RootStack.Screen name="equipmentModal" component={NavModalEquipment} />
+        <RootStack.Screen name="supersetPickerModal" component={NavModalWorkoutSuperset} />
       </RootStack.Group>
     </RootStack.Navigator>
   );

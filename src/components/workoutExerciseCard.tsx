@@ -51,6 +51,7 @@ import { PlannerProgramExercise_currentDescription } from "../pages/planner/mode
 import { Collector } from "../utils/collector";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { IconReorder } from "./icons/iconReorder";
+import { navigationRef } from "../navigation/navigationRef";
 
 interface IWorkoutExerciseCardProps {
   entry: IHistoryEntry;
@@ -141,6 +142,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                     [lb<IHistoryRecord>().pi("ui").p("equipmentModal").record({ exerciseType: props.entry.exercise })],
                     "change-equipment"
                   );
+                  navigationRef.navigate("equipmentModal", { progressId: props.progress.id });
                 }}
               >
                 {currentEquipmentName || "None"}
@@ -158,6 +160,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                       [lb<IHistoryRecord>().pi("ui").p("showSupersetPicker").record(props.entry)],
                       "change-superset"
                     );
+                    navigationRef.navigate("supersetPickerModal", { progressId: props.progress.id });
                   }}
                 >
                   {Exercise_fullName(supersetExercise, props.settings)}
@@ -181,6 +184,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                       [lb<IHistoryRecord>().pi("ui").p("rm1Modal").record({ exerciseType: props.entry.exercise })],
                       "change-rm1"
                     );
+                    navigationRef.navigate("rm1Modal", { progressId: props.progress.id });
                   }}
                 >
                   {Weight_print(onerm)}
@@ -259,6 +263,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                       [lb<IHistoryRecord>().pi("ui").p("showSupersetPicker").record(props.entry)],
                       "kebab-edit-superset"
                     );
+                    navigationRef.navigate("supersetPickerModal", { progressId: props.progress.id });
                   }}
                 >
                   <div className="flex items-center gap-2">
