@@ -1,18 +1,17 @@
 import type { JSX } from "react";
-import { Modal } from "./modal";
-import { Button } from "./button";
-import { IDispatch } from "../ducks/types";
-import { IState, updateState } from "../models/state";
+import { useNavigation } from "@react-navigation/native";
+import { useAppState } from "../StateContext";
+import { ModalScreenContainer } from "../ModalScreenContainer";
+import { Button } from "../../components/button";
+import { IState, updateState } from "../../models/state";
 import { lb } from "lens-shmens";
-import { SendMessage_isIos, SendMessage_isAndroid } from "../utils/sendMessage";
-import { Thunk_log, Thunk_pushScreen } from "../ducks/thunks";
+import { SendMessage_isIos, SendMessage_isAndroid } from "../../utils/sendMessage";
+import { Thunk_log, Thunk_pushScreen } from "../../ducks/thunks";
 
-interface IProps {
-  numberOfWorkouts: number;
-  dispatch: IDispatch;
-}
+export function NavModalSignupRequest(): JSX.Element {
+  const { state, dispatch } = useAppState();
+  const navigation = useNavigation();
 
-export function ModalSignupRequest(props: IProps): JSX.Element {
   const lbSaveSignupRequestDate = [
     lb<IState>().p("showSignupRequest").record(false),
     lb<IState>()
@@ -21,15 +20,14 @@ export function ModalSignupRequest(props: IProps): JSX.Element {
       .recordModify((r) => [...r, Date.now()]),
   ];
 
+  const onClose = (): void => {
+    dispatch(Thunk_log("ls-signup-request-close"));
+    updateState(dispatch, lbSaveSignupRequestDate, "Close signup request");
+    navigation.goBack();
+  };
+
   return (
-    <Modal
-      shouldShowClose={true}
-      isFullWidth={true}
-      onClose={() => {
-        props.dispatch(Thunk_log("ls-signup-request-close"));
-        updateState(props.dispatch, lbSaveSignupRequestDate, "Close signup request");
-      }}
-    >
+    <ModalScreenContainer onClose={onClose} isFullWidth>
       <div className="text-center">
         <h3 className="pb-4 text-xl font-bold text-center">Please Sign Up!</h3>
         <div className="mx-8">
@@ -41,8 +39,9 @@ export function ModalSignupRequest(props: IProps): JSX.Element {
           />
         </div>
         <div className="mt-4">
-          You finished <span className="font-bold text-text-error">{props.numberOfWorkouts} workouts</span> already!
-          This is awesome! Consider
+          You finished{" "}
+          <span className="font-bold text-text-error">{state.storage.history.length} workouts</span> already! This is
+          awesome! Consider
           <strong> signing up</strong> so your workout history would be backed up in the cloud.
         </div>
         <div className="mt-4">
@@ -57,7 +56,6 @@ export function ModalSignupRequest(props: IProps): JSX.Element {
             </>
           )}
         </div>
-
         <div className="mt-4 text-center">
           <Button
             name="modal-signup-request-later"
@@ -66,7 +64,8 @@ export function ModalSignupRequest(props: IProps): JSX.Element {
             data-cy="modal-signup-request-later"
             className="mr-3 ls-signup-request-maybe-later"
             onClick={() => {
-              updateState(props.dispatch, lbSaveSignupRequestDate, "Defer signup request");
+              updateState(dispatch, lbSaveSignupRequestDate, "Defer signup request");
+              navigation.goBack();
             }}
           >
             Maybe later
@@ -77,14 +76,15 @@ export function ModalSignupRequest(props: IProps): JSX.Element {
             data-cy="modal-signup-request-submit"
             className="ls-signup-request-signup"
             onClick={() => {
-              updateState(props.dispatch, lbSaveSignupRequestDate, "Accept signup request");
-              props.dispatch(Thunk_pushScreen("account"));
+              updateState(dispatch, lbSaveSignupRequestDate, "Accept signup request");
+              dispatch(Thunk_pushScreen("account"));
+              navigation.goBack();
             }}
           >
             Sign up
           </Button>
         </div>
       </div>
-    </Modal>
+    </ModalScreenContainer>
   );
 }

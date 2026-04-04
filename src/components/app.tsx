@@ -24,8 +24,6 @@ import { Progress_getCurrentProgress, Progress_lbProgress } from "../models/prog
 import { IAttributionData, IEnv, IState, updateState } from "../models/state";
 import { Notification } from "./notification";
 import { WhatsNew_doesHaveNewUpdates } from "../models/whatsnew";
-import { WhatsNew_updateStorage } from "../models/whatsnewUtils";
-import { ModalWhatsnew } from "./modalWhatsnew";
 import {
   Subscriptions_cleanupOutdatedAppleReceipts,
   Subscriptions_cleanupOutdatedGooglePurchaseTokens,
@@ -34,9 +32,7 @@ import {
 import { lb } from "lens-shmens";
 import { RestTimer } from "./restTimer";
 import { ImportExporter_handleUniversalLink } from "../lib/importexporter";
-import { ModalSignupRequest } from "./modalSignupRequest";
 import { SendMessage_toAndroid, SendMessage_toIos, SendMessage_print } from "../utils/sendMessage";
-import { ModalCorruptedState } from "./modalCorruptedState";
 import { UrlUtils_build } from "../utils/url";
 import { AsyncQueue } from "../utils/asyncQueue";
 import { useLoopCatcher } from "../utils/useLoopCatcher";
@@ -45,7 +41,6 @@ import { exceptionIgnores } from "../utils/rollbar";
 import { ImagePreloader_preload, ImagePreloader_dynocoach } from "../utils/imagePreloader";
 import { Settings_applyTheme } from "../models/settings";
 import { AppContext } from "./appContext";
-import { ModalThanks25 } from "./modalThanks25";
 import { TourModal } from "./tour/tourModal";
 import { TourConfigs_findTourId } from "./tour/tourConfigs";
 import { NavigationContainer, DefaultTheme, type NavigationState } from "@react-navigation/native";
@@ -107,6 +102,11 @@ export function AppView(props: IProps): JSX.Element | null {
     stateRef.current = state;
   });
   const shouldShowWhatsNew = WhatsNew_doesHaveNewUpdates(state.storage.whatsNew) || state.showWhatsNew;
+  const isEligibleForThanks25 = Subscriptions_isEligibleForThanksgivingPromo(
+    state.storage.history.length > 0,
+    state.storage.subscription
+  );
+  const helps = state.storage.helps;
 
   useEffect(() => {
     SendMessage_toAndroid({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
@@ -118,6 +118,40 @@ export function AppView(props: IProps): JSX.Element | null {
   }, [state.storage.settings.textSize]);
 
   useLoopCatcher();
+
+  const prevShouldShowWhatsNew = useRef(false);
+  useEffect(() => {
+    if (shouldShowWhatsNew && state.storage.whatsNew != null && !prevShouldShowWhatsNew.current) {
+      navigationRef.navigate("whatsnewModal" as never);
+    }
+    prevShouldShowWhatsNew.current = !!(shouldShowWhatsNew && state.storage.whatsNew != null);
+  }, [shouldShowWhatsNew, state.storage.whatsNew]);
+
+  const showThanks25 = isEligibleForThanks25 && !helps.includes("thanks25");
+  const prevShowThanks25 = useRef(false);
+  useEffect(() => {
+    if (showThanks25 && !prevShowThanks25.current) {
+      navigationRef.navigate("thanks25Modal" as never);
+    }
+    prevShowThanks25.current = showThanks25;
+  }, [showThanks25]);
+
+  const showCorruptedState = state.errors.corruptedstorage != null;
+  const prevShowCorruptedState = useRef(false);
+  useEffect(() => {
+    if (showCorruptedState && !prevShowCorruptedState.current) {
+      navigationRef.navigate("corruptedStateModal" as never);
+    }
+    prevShowCorruptedState.current = showCorruptedState;
+  }, [showCorruptedState]);
+
+  const prevShowSignupRequest = useRef(false);
+  useEffect(() => {
+    if (state.showSignupRequest && !prevShowSignupRequest.current) {
+      navigationRef.navigate("signupRequestModal" as never);
+    }
+    prevShowSignupRequest.current = !!state.showSignupRequest;
+  }, [state.showSignupRequest]);
 
   const checkToursRef = useRef(() => {
     const tourId = TourConfigs_findTourId(stateRef.current, true);
@@ -376,11 +410,6 @@ export function AppView(props: IProps): JSX.Element | null {
     ? (navigationRef.getCurrentRoute()?.name as IScreen | undefined)
     : undefined;
   const screensWithoutTimer: IScreen[] = ["subscription"];
-  const isEligibleForThanks25 = Subscriptions_isEligibleForThanksgivingPromo(
-    state.storage.history.length > 0,
-    state.storage.subscription
-  );
-  const helps = state.storage.helps;
 
   return (
     <Fragment>
@@ -415,43 +444,6 @@ export function AppView(props: IProps): JSX.Element | null {
         />
       )}
       <Notification dispatch={dispatch} notification={state.notification} />
-      {shouldShowWhatsNew && state.storage.whatsNew != null && (
-        <ModalWhatsnew lastDateStr={state.storage.whatsNew} onClose={() => WhatsNew_updateStorage(dispatch)} />
-      )}
-      {isEligibleForThanks25 && !helps.includes("thanks25") && (
-        <ModalThanks25
-          dispatch={dispatch}
-          onClose={() => {
-            updateState(
-              dispatch,
-              [
-                lb<IState>()
-                  .p("storage")
-                  .p("helps")
-                  .recordModify((help) => [...help, "thanks25"]),
-              ],
-              "Dismiss Thanksgiving 25% modal"
-            );
-          }}
-        />
-      )}
-      {state.errors.corruptedstorage != null && (
-        <ModalCorruptedState
-          userId={state.errors.corruptedstorage?.userid}
-          backup={state.errors.corruptedstorage?.backup || false}
-          local={state.errors.corruptedstorage?.local}
-          onReset={() =>
-            updateState(
-              dispatch,
-              [lb<IState>().p("errors").p("corruptedstorage").record(undefined)],
-              "Reset corrupted storage"
-            )
-          }
-        />
-      )}
-      {state.showSignupRequest && (
-        <ModalSignupRequest numberOfWorkouts={state.storage.history.length} dispatch={dispatch} />
-      )}
       {state.tour && (
         <TourModal
           stateTour={state.tour}

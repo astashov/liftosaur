@@ -1,4 +1,4 @@
-import { JSX, useCallback, useState } from "react";
+import { JSX } from "react";
 import { Thunk_pushScreen, Thunk_pushToEditProgram, Thunk_startProgramDay } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { IScreen, Screen_tab } from "../models/screen";
@@ -8,12 +8,12 @@ import { IconHome } from "./icons/iconHome";
 import { IconMe } from "./icons/iconMe";
 import { Tailwind_semantic, Tailwind_colors } from "../utils/tailwindConfig";
 import { IconDoc2 } from "./icons/iconDoc2";
-import { BottomSheetNextWorkout } from "./bottomSheetNextWorkout";
 import { INavCommon } from "../models/state";
 import { IconBarbell2 } from "./icons/iconBarbell2";
 import { ObjectUtils_values } from "../utils/object";
 import { Program_evaluate } from "../models/program";
 import { Subscriptions_isEligibleForThanksgivingPromo } from "../utils/subscriptions";
+import { navigationRef } from "../navigation/navigationRef";
 
 interface IFooterProps {
   dispatch: IDispatch;
@@ -35,125 +35,112 @@ export function Footer2View(props: IFooterProps): JSX.Element {
   const activeColor = Tailwind_semantic().icon.purple;
   const inactiveColor = Tailwind_semantic().icon.neutral;
   const screen = props.screen;
-  const [showNextWorkoutSheet, setShowNextWorkoutSheet] = useState(false);
-  const onClose = useCallback(() => setShowNextWorkoutSheet(false), []);
   const isUserLoading = ObjectUtils_values(props.navCommon.loading.items).some(
     (i) => i?.type === "fetchStorage" && !i.endTime
   );
   const hasErrorsInProgram = getHasErrorsInProgram(props.navCommon);
   return (
-    <>
-      <div
-        className={`${props.isStatic ? "relative" : "fixed bottom-0 left-0"} z-10 items-center w-full text-center footer-shadow bg-background-default safe-area-inset-bottom`}
-        style={{ overscrollBehavior: "none" }}
-      >
-        <div className="flex px-2 pt-4" style={{ minHeight: "63px" }}>
-          <div className="flex justify-around flex-1" style={{ marginTop: "-13px" }}>
-            <FooterButton
-              name="home"
-              screen={screen}
-              icon={(isActive) => <IconHome className="inline-block" size={20} isSelected={isActive} />}
-              text="Home"
-              onClick={() => props.dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }))}
-            />
-            <FooterButton
-              name="program"
-              screen={screen}
-              icon={(isActive) => <IconDoc2 className="inline-block" isSelected={isActive} />}
-              hasDot={hasErrorsInProgram}
-              text="Program"
+    <div
+      className={`${props.isStatic ? "relative" : "fixed bottom-0 left-0"} z-10 items-center w-full text-center footer-shadow bg-background-default safe-area-inset-bottom`}
+      style={{ overscrollBehavior: "none" }}
+    >
+      <div className="flex px-2 pt-4" style={{ minHeight: "63px" }}>
+        <div className="flex justify-around flex-1" style={{ marginTop: "-13px" }}>
+          <FooterButton
+            name="home"
+            screen={screen}
+            icon={(isActive) => <IconHome className="inline-block" size={20} isSelected={isActive} />}
+            text="Home"
+            onClick={() => props.dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }))}
+          />
+          <FooterButton
+            name="program"
+            screen={screen}
+            icon={(isActive) => <IconDoc2 className="inline-block" isSelected={isActive} />}
+            hasDot={hasErrorsInProgram}
+            text="Program"
+            onClick={() => {
+              props.dispatch(Thunk_pushToEditProgram());
+            }}
+          />
+        </div>
+        <div className="relative" style={{ width: "75px" }}>
+          <div>
+            <button
+              className="absolute nm-footer-workout"
+              data-cy="footer-workout"
+              style={{ top: "-32px", left: "50%", marginLeft: "-27px" }}
               onClick={() => {
-                props.dispatch(Thunk_pushToEditProgram());
-              }}
-            />
-          </div>
-          <div className="relative" style={{ width: "75px" }}>
-            <div>
-              <button
-                className="absolute nm-footer-workout"
-                data-cy="footer-workout"
-                style={{ top: "-32px", left: "50%", marginLeft: "-27px" }}
-                onClick={() => {
-                  if (!!props.navCommon.progress) {
-                    props.dispatch(Thunk_startProgramDay());
-                  } else {
-                    setShowNextWorkoutSheet(true);
-                  }
-                }}
-              >
-                <CreateButton isActive={Screen_tab(screen) === "workout"} />
-              </button>
-              <div
-                className={Screen_tab(screen) === "workout" ? "text-purplev2-700" : ""}
-                style={{ fontSize: "0.625rem", paddingTop: "25px" }}
-              >
-                Workout
-              </div>
-            </div>
-          </div>
-          <div className="flex justify-around flex-1" style={{ marginTop: "-13px" }}>
-            <FooterButton
-              name="graphs"
-              screen={screen}
-              icon={(isActive) => {
-                if (
-                  Subscriptions_isEligibleForThanksgivingPromo(
-                    props.navCommon.doesHaveWorkouts,
-                    props.navCommon.subscription
-                  )
-                ) {
-                  return (
-                    <div className="inline-block w-full text-center">
-                      <img
-                        src="/images/turkeyicon.png"
-                        className="inline-block"
-                        style={{ width: "24px", height: "24px" }}
-                      />
-                    </div>
-                  );
+                if (!!props.navCommon.progress) {
+                  props.dispatch(Thunk_startProgramDay());
                 } else {
-                  return <IconGraphs color={isActive ? activeColor : inactiveColor} />;
+                  navigationRef.navigate("nextWorkoutModal" as never);
                 }
               }}
-              text={
+            >
+              <CreateButton isActive={Screen_tab(screen) === "workout"} />
+            </button>
+            <div
+              className={Screen_tab(screen) === "workout" ? "text-purplev2-700" : ""}
+              style={{ fontSize: "0.625rem", paddingTop: "25px" }}
+            >
+              Workout
+            </div>
+          </div>
+        </div>
+        <div className="flex justify-around flex-1" style={{ marginTop: "-13px" }}>
+          <FooterButton
+            name="graphs"
+            screen={screen}
+            icon={(isActive) => {
+              if (
                 Subscriptions_isEligibleForThanksgivingPromo(
                   props.navCommon.doesHaveWorkouts,
                   props.navCommon.subscription
                 )
-                  ? "Promo"
-                  : "Graphs"
+              ) {
+                return (
+                  <div className="inline-block w-full text-center">
+                    <img
+                      src="/images/turkeyicon.png"
+                      className="inline-block"
+                      style={{ width: "24px", height: "24px" }}
+                    />
+                  </div>
+                );
+              } else {
+                return <IconGraphs color={isActive ? activeColor : inactiveColor} />;
               }
-              onClick={() => props.dispatch(Thunk_pushScreen("graphs", undefined, { tab: "graphs" }))}
-            />
-            <FooterButton
-              name="me"
-              screen={screen}
-              icon={(isActive) => {
-                const color = isActive
-                  ? undefined
-                  : props.navCommon.userId
-                    ? Tailwind_colors().green[600]
-                    : isUserLoading
-                      ? Tailwind_colors().lightgray[600]
-                      : Tailwind_colors().red[600];
-                return <IconMe isSelected={isActive} color={color} />;
-              }}
-              text="Me"
-              onClick={() => props.dispatch(Thunk_pushScreen("settings", undefined, { tab: "me" }))}
-            />
-          </div>
+            }}
+            text={
+              Subscriptions_isEligibleForThanksgivingPromo(
+                props.navCommon.doesHaveWorkouts,
+                props.navCommon.subscription
+              )
+                ? "Promo"
+                : "Graphs"
+            }
+            onClick={() => props.dispatch(Thunk_pushScreen("graphs", undefined, { tab: "graphs" }))}
+          />
+          <FooterButton
+            name="me"
+            screen={screen}
+            icon={(isActive) => {
+              const color = isActive
+                ? undefined
+                : props.navCommon.userId
+                  ? Tailwind_colors().green[600]
+                  : isUserLoading
+                    ? Tailwind_colors().lightgray[600]
+                    : Tailwind_colors().red[600];
+              return <IconMe isSelected={isActive} color={color} />;
+            }}
+            text="Me"
+            onClick={() => props.dispatch(Thunk_pushScreen("settings", undefined, { tab: "me" }))}
+          />
         </div>
       </div>
-      <BottomSheetNextWorkout
-        dispatch={props.dispatch}
-        allPrograms={props.navCommon.allPrograms}
-        currentProgram={props.navCommon.currentProgram}
-        settings={props.navCommon.settings}
-        isHidden={!showNextWorkoutSheet}
-        stats={props.navCommon.stats}
-        onClose={onClose}
-      />
-    </>
+    </div>
   );
 }
 

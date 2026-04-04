@@ -97,6 +97,11 @@ export type IRootStackParamList = {
   affiliateModal: undefined;
   importFromOtherAppsModal: undefined;
   dayFromAdhocModal: { progressId: number };
+  nextWorkoutModal: undefined;
+  whatsnewModal: undefined;
+  signupRequestModal: undefined;
+  thanks25Modal: undefined;
+  corruptedStateModal: undefined;
 };
 
 export type IRootLevelScreenParamList = {

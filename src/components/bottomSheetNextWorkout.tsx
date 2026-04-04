@@ -1,5 +1,4 @@
-import { JSX, memo, useState } from "react";
-import { BottomSheet } from "./bottomSheet";
+import { JSX, useState } from "react";
 import { IProgram, ISettings, IStats } from "../types";
 import {
   emptyProgramId,
@@ -15,13 +14,11 @@ import { LinkButton } from "./linkButton";
 import { IconSwap } from "./icons/iconSwap";
 import { Tailwind_colors } from "../utils/tailwindConfig";
 import { IconPlus2 } from "./icons/iconPlus2";
-import { ComparerUtils_noFns } from "../utils/comparer";
 import { EditProgram_setNextDay } from "../models/editProgram";
 import { ModalChangeNextDay } from "./modalChangeNextDay";
 import { Thunk_startProgramDay } from "../ducks/thunks";
 
-interface IProps {
-  isHidden: boolean;
+export interface IBottomSheetNextWorkoutContentProps {
   currentProgram?: IProgram;
   allPrograms: IProgram[];
   settings: ISettings;
@@ -30,7 +27,7 @@ interface IProps {
   onClose: () => void;
 }
 
-export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
+export function BottomSheetNextWorkoutContent(props: IBottomSheetNextWorkoutContentProps): JSX.Element {
   const [showChangeWorkout, setShowChangeWorkout] = useState(false);
   const evaluatedProgram = props.currentProgram ? Program_evaluate(props.currentProgram, props.settings) : undefined;
 
@@ -46,50 +43,48 @@ export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
 
   return (
     <>
-      <BottomSheet shouldShowClose={true} onClose={props.onClose} isHidden={props.isHidden}>
-        <h3 className="pt-3 pb-4 text-lg font-semibold text-center">New Workout</h3>
-        {doesProgressNotMatchProgram && (
-          <div className="mx-4 mb-1 text-xs text-center text-text-secondary">
-            You currently have ongoing workout. Finish it first to see newly chosen program or a different day.
+      <h3 className="pt-3 pb-4 text-lg font-semibold text-center">New Workout</h3>
+      {doesProgressNotMatchProgram && (
+        <div className="mx-4 mb-1 text-xs text-center text-text-secondary">
+          You currently have ongoing workout. Finish it first to see newly chosen program or a different day.
+        </div>
+      )}
+      {Program_isEmpty(props.currentProgram) && (
+        <div className="mx-4 mb-1 text-xs text-center text-text-secondary">No program currently selected.</div>
+      )}
+      <div className="relative flex flex-col flex-1 min-h-0">
+        <div className="flex-1 min-h-0 pb-10 overflow-y-auto">
+          {programDay && nextHistoryRecord && (
+            <HistoryRecordView
+              historyRecord={nextHistoryRecord}
+              programDay={programDay}
+              isOngoing={false}
+              settings={props.settings}
+              dispatch={props.dispatch}
+            />
+          )}
+        </div>
+        <div className="absolute bottom-0 left-0 flex justify-between w-full px-4 pt-4 pb-6 text-sm bg-background-default">
+          <div>
+            <LinkButton name="change-next-day" data-cy="change-next-day" onClick={() => setShowChangeWorkout(true)}>
+              <IconSwap color={Tailwind_colors().blue[400]} className="inline-block pr-1" />
+              Change next workout
+            </LinkButton>
           </div>
-        )}
-        {Program_isEmpty(props.currentProgram) && (
-          <div className="mx-4 mb-1 text-xs text-center text-text-secondary">No program currently selected.</div>
-        )}
-        <div className="relative flex flex-col flex-1 min-h-0">
-          <div className="flex-1 min-h-0 pb-10 overflow-y-auto">
-            {programDay && nextHistoryRecord && (
-              <HistoryRecordView
-                historyRecord={nextHistoryRecord}
-                programDay={programDay}
-                isOngoing={false}
-                settings={props.settings}
-                dispatch={props.dispatch}
-              />
-            )}
-          </div>
-          <div className="absolute bottom-0 left-0 flex justify-between w-full px-4 pt-4 pb-6 text-sm bg-background-default">
-            <div>
-              <LinkButton name="change-next-day" data-cy="change-next-day" onClick={() => setShowChangeWorkout(true)}>
-                <IconSwap color={Tailwind_colors().blue[400]} className="inline-block pr-1" />
-                Change next workout
-              </LinkButton>
-            </div>
-            <div>
-              <LinkButton
-                name="start-empty-workout"
-                data-cy="start-empty-workout"
-                onClick={() => {
-                  props.dispatch(Thunk_startProgramDay(emptyProgramId));
-                }}
-              >
-                <IconPlus2 color={Tailwind_colors().blue[400]} className="inline-block pr-1" />
-                Ad-Hoc Workout
-              </LinkButton>
-            </div>
+          <div>
+            <LinkButton
+              name="start-empty-workout"
+              data-cy="start-empty-workout"
+              onClick={() => {
+                props.dispatch(Thunk_startProgramDay(emptyProgramId));
+              }}
+            >
+              <IconPlus2 color={Tailwind_colors().blue[400]} className="inline-block pr-1" />
+              Ad-Hoc Workout
+            </LinkButton>
           </div>
         </div>
-      </BottomSheet>
+      </div>
       {showChangeWorkout && evaluatedProgram && (
         <ModalChangeNextDay
           stats={props.stats}
@@ -105,4 +100,4 @@ export const BottomSheetNextWorkout = memo((props: IProps): JSX.Element => {
       )}
     </>
   );
-}, ComparerUtils_noFns);
+}

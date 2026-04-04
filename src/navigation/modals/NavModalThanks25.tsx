@@ -1,21 +1,37 @@
 import { JSX, useEffect } from "react";
-import { Modal } from "./modal";
-import { IDispatch } from "../ducks/types";
-import { Button } from "./button";
-import { Thunk_postevent, Thunk_pushScreen } from "../ducks/thunks";
-import { SendMessage_isIos } from "../utils/sendMessage";
+import { useNavigation } from "@react-navigation/native";
+import { useAppState } from "../StateContext";
+import { ModalScreenContainer } from "../ModalScreenContainer";
+import { Button } from "../../components/button";
+import { IState, updateState } from "../../models/state";
+import { lb } from "lens-shmens";
+import { Thunk_postevent, Thunk_pushScreen } from "../../ducks/thunks";
+import { SendMessage_isIos } from "../../utils/sendMessage";
 
-interface IModalThanks25Props {
-  dispatch: IDispatch;
-  onClose: () => void;
-}
+export function NavModalThanks25(): JSX.Element {
+  const { dispatch } = useAppState();
+  const navigation = useNavigation();
 
-export function ModalThanks25(props: IModalThanks25Props): JSX.Element {
   useEffect(() => {
-    props.dispatch(Thunk_postevent("thanks25-impression"));
+    dispatch(Thunk_postevent("thanks25-impression"));
   }, []);
+
+  const onClose = (): void => {
+    updateState(
+      dispatch,
+      [
+        lb<IState>()
+          .p("storage")
+          .p("helps")
+          .recordModify((help) => [...help, "thanks25"]),
+      ],
+      "Dismiss Thanksgiving 25% modal"
+    );
+    navigation.goBack();
+  };
+
   return (
-    <Modal isHidden={false} isFullWidth={true} shouldShowClose={true} onClose={props.onClose} zIndex={60}>
+    <ModalScreenContainer onClose={onClose} isFullWidth>
       <div className="px-8 py-4">
         <div className="pb-2 text-center">
           <img
@@ -63,9 +79,9 @@ export function ModalThanks25(props: IModalThanks25Props): JSX.Element {
               name="modal-thanks25-purchase"
               kind="purple"
               onClick={() => {
-                props.dispatch(Thunk_postevent("thanks25-cta"));
-                props.dispatch(Thunk_pushScreen("subscription"));
-                props.onClose();
+                dispatch(Thunk_postevent("thanks25-cta"));
+                dispatch(Thunk_pushScreen("subscription"));
+                onClose();
               }}
             >
               Purchase Now!
@@ -73,6 +89,6 @@ export function ModalThanks25(props: IModalThanks25Props): JSX.Element {
           </div>
         </div>
       </div>
-    </Modal>
+    </ModalScreenContainer>
   );
 }

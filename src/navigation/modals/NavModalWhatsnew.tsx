@@ -1,15 +1,21 @@
 import type { JSX } from "react";
-import { IWhatsNew, WhatsNew_all } from "../models/whatsnew";
-import { DateUtils_format, DateUtils_fromYYYYMMDDStr } from "../utils/date";
-import { ObjectUtils_keys } from "../utils/object";
-import { Modal } from "./modal";
+import { useNavigation } from "@react-navigation/native";
+import { useAppState } from "../StateContext";
+import { ModalScreenContainer } from "../ModalScreenContainer";
+import { IWhatsNew, WhatsNew_all } from "../../models/whatsnew";
+import { WhatsNew_updateStorage } from "../../models/whatsnewUtils";
+import { DateUtils_format, DateUtils_fromYYYYMMDDStr } from "../../utils/date";
+import { ObjectUtils_keys } from "../../utils/object";
 
-export interface IModalWhatsnewProps {
-  lastDateStr: string;
-  onClose: () => void;
-}
+export function NavModalWhatsnew(): JSX.Element {
+  const { dispatch } = useAppState();
+  const navigation = useNavigation();
 
-export function ModalWhatsnew(props: IModalWhatsnewProps): JSX.Element {
+  const onClose = (): void => {
+    WhatsNew_updateStorage(dispatch);
+    navigation.goBack();
+  };
+
   const all = WhatsNew_all();
   const sortedWhatsnewRecords = ObjectUtils_keys(all).reduce<[string, IWhatsNew][]>((memo, dateStr) => {
     memo.push([dateStr, all[dateStr]]);
@@ -18,7 +24,7 @@ export function ModalWhatsnew(props: IModalWhatsnewProps): JSX.Element {
   sortedWhatsnewRecords.sort((a, b) => parseInt(b[0], 10) - parseInt(a[0], 10));
 
   return (
-    <Modal shouldShowClose={true} onClose={props.onClose}>
+    <ModalScreenContainer onClose={onClose}>
       <h3 className="pb-2 text-xl font-bold text-center">What's new?</h3>
       <ul className="text-sm">
         {sortedWhatsnewRecords.map(([dateStr, whatsNewRecord]) => {
@@ -34,6 +40,6 @@ export function ModalWhatsnew(props: IModalWhatsnewProps): JSX.Element {
           );
         })}
       </ul>
-    </Modal>
+    </ModalScreenContainer>
   );
 }
