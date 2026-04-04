@@ -32,6 +32,7 @@ import { Markdown } from "./markdown";
 import { DraggableList } from "./draggableList";
 import { LinkButton } from "./linkButton";
 import { Button } from "./button";
+import { getNavigationRef } from "../navigation/navUtils";
 import { ModalDayFromAdhoc } from "./modalDayFromAdhoc";
 import { ImagePreloader_preload, ImagePreloader_dynohappy } from "../utils/imagePreloader";
 import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
@@ -442,6 +443,9 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
                     ],
                     "Open exercise picker"
                   );
+                  getNavigationRef().then(({ navigationRef }) => {
+                    navigationRef.navigate("exercisePickerModal", { progressId: props.progress.id });
+                  });
                 }}
               >
                 <IconPlus2 size={15} color={Tailwind_colors().lightgray[600]} />

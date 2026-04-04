@@ -21,11 +21,7 @@ export function SheetScreenContainer(props: IProps): JSX.Element {
 
   const element = (
     <div className="fixed inset-0 z-40">
-      <div
-        data-name="overlay"
-        className="absolute inset-0 opacity-50 bg-text-secondary"
-        onClick={props.onClose}
-      ></div>
+      <div data-name="overlay" className="absolute inset-0 opacity-50 bg-text-secondary" onClick={props.onClose}></div>
       <div
         className="bottom-sticked absolute bottom-0 left-0 flex w-full overflow-y-auto bg-background-default"
         style={{

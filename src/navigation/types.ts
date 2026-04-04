@@ -80,6 +80,7 @@ export type IRootStackParamList = {
     change: "one" | "all" | "duplicate";
     exerciseKey?: string;
   };
+  editSetTargetModal: { progressId: number };
 };
 
 export type IRootLevelScreenParamList = {

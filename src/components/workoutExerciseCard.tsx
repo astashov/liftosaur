@@ -51,6 +51,7 @@ import { PlannerProgramExercise_currentDescription } from "../pages/planner/mode
 import { Collector } from "../utils/collector";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { IconReorder } from "./icons/iconReorder";
+import { getNavigationRef } from "../navigation/navUtils";
 
 interface IWorkoutExerciseCardProps {
   entry: IHistoryEntry;
@@ -241,6 +242,9 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                       ],
                       "kebab-swap-exercise"
                     );
+                    getNavigationRef().then(({ navigationRef }) => {
+                      navigationRef.navigate("exercisePickerModal", { progressId: props.progress.id });
+                    });
                   }}
                 >
                   <div className="flex items-center gap-2">

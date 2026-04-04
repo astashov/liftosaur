@@ -3,7 +3,11 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
 import { ExercisePickerContent } from "../../components/exercisePicker/bottomSheetExercisePicker";
-import { Program_evaluate, Program_getProgramExerciseForKeyAndShortDayData, Program_getExerciseTypesForWeekDay } from "../../models/program";
+import {
+  Program_evaluate,
+  Program_getProgramExerciseForKeyAndShortDayData,
+  Program_getExerciseTypesForWeekDay,
+} from "../../models/program";
 import { Settings_toggleStarredExercise, Settings_changePickerSettings } from "../../models/settings";
 import { Exercise_handleCustomExerciseChange } from "../../models/exercise";
 import { IState, updateState } from "../../models/state";
@@ -14,7 +18,10 @@ import { IPlannerExerciseState, IPlannerState } from "../../pages/planner/models
 import { PlannerProgram_replaceExercise } from "../../pages/planner/models/plannerProgram";
 import { Exercise_get, Exercise_fullName } from "../../models/exercise";
 import { ObjectUtils_clone } from "../../utils/object";
-import { EditProgramUiHelpers_duplicateCurrentInstance, EditProgramUiHelpers_getChangedKeys } from "../../components/editProgram/editProgramUi/editProgramUiHelpers";
+import {
+  EditProgramUiHelpers_duplicateCurrentInstance,
+  EditProgramUiHelpers_getChangedKeys,
+} from "../../components/editProgram/editProgramUi/editProgramUiHelpers";
 import type { IRootStackParamList } from "../types";
 import type { IExercisePickerSelectedExercise, IPlannerProgram, ISettings, IShortDayData } from "../../types";
 import type { IPlannerProgramExercise } from "../../pages/planner/models/types";
@@ -60,7 +67,13 @@ function onChangeExercise(
       );
       plannerDispatch(lb<IPlannerProgram>().record(newPlannerProgram), "Duplicate exercise in planner");
     } else {
-      const newPlanner = PlannerProgram_replaceExercise(planner, plannerExercise.key, newLabel, newExerciseType, settings);
+      const newPlanner = PlannerProgram_replaceExercise(
+        planner,
+        plannerExercise.key,
+        newLabel,
+        newExerciseType,
+        settings
+      );
       plannerDispatch(lb<IPlannerProgram>().record(newPlanner), "Replace all exercises in planner");
       if (onNewKey) {
         const changedKeys = EditProgramUiHelpers_getChangedKeys(planner, newPlanner, settings);
@@ -136,12 +149,16 @@ export function NavModalEditProgramExercisePicker(): JSX.Element {
           base,
           lb<IPlannerState>().p("current").p("program").pi("planner")
         ),
-        pickerDispatch: buildCustomLensDispatch(
-          base,
-          lb<IPlannerState>().p("ui").pi("exercisePicker").p("state")
-        ),
+        pickerDispatch: buildCustomLensDispatch(base, lb<IPlannerState>().p("ui").pi("exercisePicker").p("state")),
         stopIsUndoing: () => {
-          base([lb<IPlannerState>().p("ui").recordModify((ui) => ({ ...ui, isUndoing: false }))], "stop-is-undoing");
+          base(
+            [
+              lb<IPlannerState>()
+                .p("ui")
+                .recordModify((ui) => ({ ...ui, isUndoing: false })),
+            ],
+            "stop-is-undoing"
+          );
         },
       };
     } else {
@@ -155,13 +172,14 @@ export function NavModalEditProgramExercisePicker(): JSX.Element {
           base,
           lb<IPlannerExerciseState>().p("current").p("program").pi("planner")
         ),
-        pickerDispatch: buildCustomLensDispatch(
-          base,
-          lb<IPlannerExerciseState>().p("ui").pi("exercisePickerState")
-        ),
+        pickerDispatch: buildCustomLensDispatch(base, lb<IPlannerExerciseState>().p("ui").pi("exercisePickerState")),
         stopIsUndoing: () => {
           base(
-            [lb<IPlannerExerciseState>().p("ui").recordModify((ui) => ({ ...ui, isUndoing: false }))],
+            [
+              lb<IPlannerExerciseState>()
+                .p("ui")
+                .recordModify((ui) => ({ ...ui, isUndoing: false })),
+            ],
             "stop-is-undoing"
           );
         },
@@ -169,31 +187,32 @@ export function NavModalEditProgramExercisePicker(): JSX.Element {
     }
   }, [plannerState])();
 
-  const onNewKey = !isEditProgram && exerciseStateKey
-    ? (newKey: string): void => {
-        const oldStateKey = exerciseStateKey;
-        const newStateKey = `${programId}_${newKey}`;
-        updateState(
-          dispatch,
-          [
-            lb<IState>()
-              .p("editProgramExerciseStates")
-              .recordModify((states) => {
-                const currentState = states[oldStateKey];
-                if (!currentState) {
-                  return states;
-                }
-                return {
-                  ...states,
-                  [oldStateKey]: { ...currentState, ui: { ...currentState.ui, pendingNewKey: newKey } },
-                  [newStateKey]: { ...currentState, ui: { ...currentState.ui, exercisePickerState: undefined } },
-                };
-              }),
-          ],
-          "Update exercise key"
-        );
-      }
-    : undefined;
+  const onNewKey =
+    !isEditProgram && exerciseStateKey
+      ? (newKey: string): void => {
+          const oldStateKey = exerciseStateKey;
+          const newStateKey = `${programId}_${newKey}`;
+          updateState(
+            dispatch,
+            [
+              lb<IState>()
+                .p("editProgramExerciseStates")
+                .recordModify((states) => {
+                  const currentState = states[oldStateKey];
+                  if (!currentState) {
+                    return states;
+                  }
+                  return {
+                    ...states,
+                    [oldStateKey]: { ...currentState, ui: { ...currentState.ui, pendingNewKey: newKey } },
+                    [newStateKey]: { ...currentState, ui: { ...currentState.ui, exercisePickerState: undefined } },
+                  };
+                }),
+            ],
+            "Update exercise key"
+          );
+        }
+      : undefined;
 
   const onClose = (): void => {
     if (isEditProgram) {
