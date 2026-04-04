@@ -17,7 +17,6 @@ interface IScreenSetupEquipmentProps {
   selectedGymId?: string;
   stats: IStats;
   navCommon: INavCommon;
-  programSelectScreen?: "programselect" | "onboarding/programselect";
 }
 
 export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Element {
@@ -97,7 +96,7 @@ export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Ele
             kind="lightgrayv3"
             buttonSize="lg"
             data-cy="setup-equipment-skip"
-            onClick={() => props.dispatch(Thunk_pushScreen(props.programSelectScreen ?? "programselect"))}
+            onClick={() => props.dispatch(Thunk_pushScreen("programselect"))}
           >
             Skip
           </Button>
@@ -122,7 +121,6 @@ interface IScreenSetupPlatesProps {
   settings: ISettings;
   stats: IStats;
   navCommon: INavCommon;
-  programSelectScreen?: "programselect" | "onboarding/programselect";
 }
 
 export function ScreenSetupPlates(props: IScreenSetupPlatesProps): JSX.Element {
@@ -180,7 +178,7 @@ export function ScreenSetupPlates(props: IScreenSetupPlatesProps): JSX.Element {
                 name="setup-plates-continue"
                 kind="purple"
                 buttonSize="lg"
-                onClick={() => props.dispatch(Thunk_pushScreen(props.programSelectScreen ?? "programselect"))}
+                onClick={() => props.dispatch(Thunk_pushScreen("programselect"))}
                 data-cy="setup-plates-continue"
               >
                 Continue

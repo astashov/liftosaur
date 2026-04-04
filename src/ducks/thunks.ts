@@ -1,5 +1,6 @@
 import { IThunk, IDispatch } from "./types";
 import { IScreen, IScreenParams } from "../models/screen";
+import type { INavigateOpts } from "../navigation/navigationService";
 import type { IAllScreenParamList } from "../navigation/types";
 
 // Lazy imports — @react-navigation/native is ESM-only and breaks ts-node scripts
@@ -689,7 +690,7 @@ export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivit
         const progressIsNowEmpty = !mergedStorage.progress || mergedStorage.progress.length === 0;
         if (wasOnProgressScreen && hadProgress && progressIsNowEmpty) {
           SendMessage_print("handleWatchStorageMerge: workout finished on watch, navigating to main screen");
-          dispatch(Thunk_pushScreen("main", undefined, true));
+          dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }));
         }
       } else {
         SendMessage_print("handleWatchStorageMerge: no changes after merge");
@@ -773,7 +774,7 @@ export function Thunk_pushToEditProgram(dayData?: Required<IDayData>, key?: stri
     if (Program_isEmpty(currentProgram)) {
       dispatch(Thunk_pushScreen("programs"));
     } else if (currentProgram) {
-      Program_editAction(dispatch, currentProgram, dayData, key, true);
+      Program_editAction(dispatch, currentProgram, dayData, key, { tab: "program" });
     }
   };
 }
@@ -783,13 +784,13 @@ export function Thunk_startProgramDay(programId?: string): IThunk {
     const state = getState();
     const progress = Progress_getCurrentProgress(state);
     if (progress != null) {
-      dispatch(Thunk_pushScreen("progress", { id: progress.id }, true));
+      dispatch(Thunk_pushScreen("progress", { id: progress.id }, { tab: "workout" }));
     } else if (state.storage.currentProgramId != null) {
       const program = Program_getProgram(state, programId ?? state.storage.currentProgramId);
       if (program != null) {
         const newProgress = Program_nextHistoryRecord(program, state.storage.settings, state.storage.stats);
         updateState(dispatch, [lb<IState>().p("storage").p("progress").record([newProgress])], "Create new progress");
-        dispatch(Thunk_pushScreen("progress", { id: newProgress.id }, true));
+        dispatch(Thunk_pushScreen("progress", { id: newProgress.id }, { tab: "workout" }));
       } else {
         alert("No currently selected program");
       }
@@ -797,11 +798,7 @@ export function Thunk_startProgramDay(programId?: string): IThunk {
   };
 }
 
-export function Thunk_pushToEditProgramExercise(
-  key: string,
-  dayData: Required<IDayData>,
-  screen: "editProgramExercise" | "workout/editProgramExercise" = "editProgramExercise"
-): IThunk {
+export function Thunk_pushToEditProgramExercise(key: string, dayData: Required<IDayData>): IThunk {
   return async (dispatch, getState) => {
     const state = getState();
     const editProgramIds = Object.keys(state.editProgramStates);
@@ -823,7 +820,8 @@ export function Thunk_pushToEditProgramExercise(
         [lb<IState>().p("editProgramExerciseStates").p(exerciseStateKey).record(plannerState)],
         "Set edit exercise state"
       );
-      dispatch(Thunk_pushScreen(screen, { programId, key, dayData }));
+      const { navigateTo } = await getNavigationService();
+      navigateTo("editProgramExercise", { programId, key, dayData });
     } else {
       dispatch(Thunk_pushScreen("main"));
     }
@@ -833,11 +831,11 @@ export function Thunk_pushToEditProgramExercise(
 export function Thunk_pushScreen<T extends IScreen>(
   screen: T,
   params?: IScreenParams<T>,
-  shouldResetStack?: boolean
+  opts?: INavigateOpts
 ): IThunk {
   return async (dispatch, getState) => {
     dispatch(Thunk_postevent("navigate-to-" + screen));
-    if (shouldResetStack) {
+    if (opts?.tab || opts?.stack) {
       const { getCurrentScreenData } = await getNavigationService();
       const currentScreen = getCurrentScreenData();
       const confirmation = currentScreen ? Screen_shouldConfirmNavigation(getState(), currentScreen) : undefined;
@@ -859,7 +857,7 @@ export function Thunk_pushScreen<T extends IScreen>(
       ["musclesProgram", "musclesDay", "graphs"].indexOf(screen) !== -1 &&
       !Subscriptions_hasSubscription(getState().storage.subscription)
     ) {
-      shouldResetStack = false;
+      opts = { stack: "subscription" };
       screen = "subscription" as T;
     }
     const screensWithoutCurrentProgram = [
@@ -876,7 +874,7 @@ export function Thunk_pushScreen<T extends IScreen>(
       screen = "programs" as T;
     }
     const { navigateTo } = await getNavigationService();
-    navigateTo(screen, params as IAllScreenParamList[typeof screen], shouldResetStack);
+    navigateTo(screen, params as IAllScreenParamList[typeof screen], opts);
     window.scroll(0, 0);
   };
 }
@@ -981,8 +979,8 @@ export function Thunk_pullScreen(): IThunk {
 export function Thunk_editHistoryRecord(historyRecord: IHistoryRecord): IThunk {
   return async (dispatch) => {
     dispatch({ type: "EditHistoryRecord", historyRecord });
-    const { navigateTo, getCurrentTab } = await getNavigationService();
-    navigateTo("progress", { id: historyRecord.id }, false, getCurrentTab());
+    const { navigateTo } = await getNavigationService();
+    navigateTo("progress", { id: historyRecord.id });
   };
 }
 
@@ -994,7 +992,7 @@ export function Thunk_finishProgramDay(): IThunk {
     dispatch({ type: "FinishProgramDayAction" });
     const { navigateTo, goBack } = await getNavigationService();
     if (isCurrent) {
-      navigateTo("finishDay", undefined, true);
+      navigateTo("finishDay", undefined, { tab: "workout" });
     } else {
       goBack();
     }
@@ -1005,7 +1003,7 @@ export function Thunk_deleteProgress(): IThunk {
   return async (dispatch) => {
     dispatch({ type: "DeleteProgress" });
     const { navigateTo } = await getNavigationService();
-    navigateTo("main", undefined, true);
+    navigateTo("main", undefined, { tab: "home" });
   };
 }
 

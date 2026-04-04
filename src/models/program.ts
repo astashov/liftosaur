@@ -72,6 +72,7 @@ import {
   ProgramExercise_doesUseRPE,
 } from "./programExercise";
 import { Thunk_pushScreen } from "../ducks/thunks";
+import type { INavigateOpts } from "../navigation/navigationService";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 import { Encoder_encodeIntoUrl } from "../utils/encoder";
 import { StringUtils_pluralize, StringUtils_hashString } from "../utils/string";
@@ -721,12 +722,7 @@ export function Program_createExercise(units: IUnit): IProgramExercise {
   };
 }
 
-export function Program_previewProgram(
-  dispatch: IDispatch,
-  programId: string,
-  showCustomPrograms: boolean,
-  screen: "programPreview" | "onboarding/programPreview" = "programPreview"
-): void {
+export function Program_previewProgram(dispatch: IDispatch, programId: string, showCustomPrograms: boolean): void {
   updateState(
     dispatch,
     [
@@ -737,7 +733,7 @@ export function Program_previewProgram(
     ],
     "Preview program"
   );
-  dispatch(Thunk_pushScreen(screen));
+  dispatch(Thunk_pushScreen("programPreview"));
 }
 
 export function Program_createEmptyProgram(): IProgram {
@@ -785,7 +781,7 @@ export function Program_cloneProgram(dispatch: IDispatch, program: IProgram, set
 
 export function Program_selectProgram(dispatch: IDispatch, programId: string): void {
   updateState(dispatch, [lb<IState>().p("storage").p("currentProgramId").record(programId)], "Select program");
-  dispatch(Thunk_pushScreen("main", undefined, true));
+  dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }));
 }
 
 export function Program_getAllProgramExercises(evaluatedProgram: IEvaluatedProgram): IPlannerProgramExercise[] {
@@ -1159,7 +1155,7 @@ export function Program_editAction(
   program: IProgram,
   dayData?: IDayData,
   key?: string,
-  resetStack?: boolean
+  opts?: INavigateOpts
 ): void {
   const plannerState = EditProgram_initPlannerState(program.id, program, dayData, key);
   updateState(
@@ -1167,7 +1163,7 @@ export function Program_editAction(
     [lb<IState>().p("editProgramStates").p(program.id).record(plannerState)],
     "Set edit program state"
   );
-  dispatch(Thunk_pushScreen("editProgram", { programId: program.id }, resetStack));
+  dispatch(Thunk_pushScreen("editProgram", { programId: program.id }, opts));
 }
 
 export function Program_exportProgramToFile(program: IProgram, settings: ISettings, version: string): void {

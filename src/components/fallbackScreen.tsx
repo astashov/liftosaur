@@ -16,7 +16,7 @@ export function FallbackScreen<T extends Record<string, unknown>>(props: IProps<
   const hasAnyNulls = Object.values(props.state).some((value) => value == null);
   useLayoutEffect(() => {
     if (hasAnyNulls) {
-      props.dispatch(Thunk_pushScreen("main", undefined, true));
+      props.dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }));
     }
   }, [hasAnyNulls]);
 

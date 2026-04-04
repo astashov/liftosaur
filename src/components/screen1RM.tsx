@@ -107,7 +107,7 @@ export function Screen1RM(props: IScreen1RMProps): JSX.Element {
       </section>
       <Footer
         onContinue={() => {
-          props.dispatch(Thunk_pushScreen("main", undefined, true));
+          props.dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }));
         }}
       />
     </>

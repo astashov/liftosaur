@@ -70,22 +70,17 @@ function getStackScreenOptions() {
   };
 }
 
-const onboardingScreenOptions = {
-  headerShown: false,
-  animationEnabled: false,
-  cardStyle: { flex: 1, backgroundColor: Tailwind_semantic().background.default },
-};
-
 function OnboardingStackScreen(): JSX.Element {
   return (
-    <OnboardingStack.Navigator screenOptions={onboardingScreenOptions}>
+    <OnboardingStack.Navigator screenOptions={getStackScreenOptions()}>
       <OnboardingStack.Screen name="first" component={NavScreenFirst} />
       <OnboardingStack.Screen name="units" component={NavScreenUnits} />
       <OnboardingStack.Screen name="setupequipment" component={NavScreenSetupEquipment} />
       <OnboardingStack.Screen name="setupplates" component={NavScreenSetupPlates} />
-      <OnboardingStack.Screen name="onboarding/programselect" component={NavScreenProgramSelectOnboarding} />
-      <OnboardingStack.Screen name="onboarding/programs" component={NavScreenProgramsOnboarding} />
-      <OnboardingStack.Screen name="onboarding/programPreview" component={NavScreenProgramPreviewOnboarding} />
+      <OnboardingStack.Screen name="programselect" component={NavScreenProgramSelectOnboarding} />
+      <OnboardingStack.Screen name="programs" component={NavScreenProgramsOnboarding} />
+      <OnboardingStack.Screen name="programPreview" component={NavScreenProgramPreviewOnboarding} />
+      <OnboardingStack.Screen name="onerms" component={NavScreenOnerms} />
     </OnboardingStack.Navigator>
   );
 }
@@ -108,6 +103,7 @@ function ProgramStackScreen(): JSX.Element {
       <ProgramStack.Screen name="onerms" component={NavScreenOnerms} />
       <ProgramStack.Screen name="programselect" component={NavScreenProgramSelect} />
       <ProgramStack.Screen name="programPreview" component={NavScreenProgramPreview} />
+      <ProgramStack.Screen name="exerciseStats" component={NavScreenExerciseStats} />
     </ProgramStack.Navigator>
   );
 }
@@ -121,8 +117,9 @@ function WorkoutStackScreen(): JSX.Element {
         getId={({ params }) => String(params?.id ?? 0)}
       />
       <WorkoutStack.Screen name="finishDay" component={NavScreenFinishDay} />
-      <WorkoutStack.Screen name="workout/editProgramExercise" component={NavScreenEditProgramExercise} />
+      <WorkoutStack.Screen name="editProgramExercise" component={NavScreenEditProgramExercise} />
       <WorkoutStack.Screen name="muscles" component={NavScreenMuscles} />
+      <WorkoutStack.Screen name="exerciseStats" component={NavScreenExerciseStats} />
     </WorkoutStack.Navigator>
   );
 }
@@ -131,7 +128,11 @@ function GraphsStackScreen(): JSX.Element {
   return (
     <GraphsStack.Navigator screenOptions={getStackScreenOptions()}>
       <GraphsStack.Screen name="graphs" component={NavScreenGraphs} />
-      <GraphsStack.Screen name="progress" component={NavScreenProgress} getId={({ params }) => String(params?.id ?? 0)} />
+      <GraphsStack.Screen
+        name="progress"
+        component={NavScreenProgress}
+        getId={({ params }) => String(params?.id ?? 0)}
+      />
     </GraphsStack.Navigator>
   );
 }
@@ -152,7 +153,7 @@ function MeStackScreen(): JSX.Element {
       <MeStack.Screen name="measurements" component={NavScreenMeasurements} />
       <MeStack.Screen name="exerciseStats" component={NavScreenExerciseStats} />
       <MeStack.Screen name="apiKeys" component={NavScreenApiKeys} />
-      <MeStack.Screen name="me/programs" component={NavScreenPrograms} />
+      <MeStack.Screen name="programs" component={NavScreenPrograms} />
       <MeStack.Screen name="progress" component={NavScreenProgress} getId={({ params }) => String(params?.id ?? 0)} />
     </MeStack.Navigator>
   );
@@ -171,11 +172,11 @@ function getRootScreenOptions() {
 function MainTabsScreen(): JSX.Element {
   return (
     <Tab.Navigator screenOptions={tabScreenOptions} tabBar={(tabProps) => <Footer2Wrapper {...tabProps} />}>
-      <Tab.Screen name="homeTab" component={HomeStackScreen} />
-      <Tab.Screen name="programTab" component={ProgramStackScreen} />
-      <Tab.Screen name="workoutTab" component={WorkoutStackScreen} />
-      <Tab.Screen name="graphsTab" component={GraphsStackScreen} />
-      <Tab.Screen name="meTab" component={MeStackScreen} />
+      <Tab.Screen name="home" component={HomeStackScreen} />
+      <Tab.Screen name="program" component={ProgramStackScreen} />
+      <Tab.Screen name="workout" component={WorkoutStackScreen} />
+      <Tab.Screen name="graphs" component={GraphsStackScreen} />
+      <Tab.Screen name="me" component={MeStackScreen} />
     </Tab.Navigator>
   );
 }

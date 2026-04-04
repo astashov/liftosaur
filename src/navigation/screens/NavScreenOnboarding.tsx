@@ -48,7 +48,6 @@ export function NavScreenSetupEquipment(): JSX.Element {
         navCommon={navCommon}
         dispatch={dispatch}
         settings={state.storage.settings}
-        programSelectScreen="onboarding/programselect"
       />
     </NavScreenContent>
   );
@@ -64,7 +63,6 @@ export function NavScreenSetupPlates(): JSX.Element {
         navCommon={navCommon}
         dispatch={dispatch}
         settings={state.storage.settings}
-        programSelectScreen="onboarding/programselect"
       />
     </NavScreenContent>
   );
@@ -74,11 +72,7 @@ export function NavScreenProgramSelectOnboarding(): JSX.Element {
   const { state, dispatch } = useAppState();
   return (
     <NavScreenContent>
-      <ScreenProgramSelectComponent
-        dispatch={dispatch}
-        settings={state.storage.settings}
-        programsScreen="onboarding/programs"
-      />
+      <ScreenProgramSelectComponent dispatch={dispatch} settings={state.storage.settings} />
     </NavScreenContent>
   );
 }
@@ -97,7 +91,6 @@ export function NavScreenProgramsOnboarding(): JSX.Element {
         programsIndex={state.programsIndex || []}
         customPrograms={state.storage.programs || []}
         editProgramId={Progress_getCurrentProgress(state)?.programId}
-        previewScreen="onboarding/programPreview"
       />
     </NavScreenContent>
   );

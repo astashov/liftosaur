@@ -24,7 +24,6 @@ interface IProps {
   customPrograms: IProgram[];
   editProgramId?: string;
   navCommon: INavCommon;
-  previewScreen?: "programPreview" | "onboarding/programPreview";
 }
 
 export function ChooseProgramView(props: IProps): JSX.Element {
@@ -42,7 +41,6 @@ export function ChooseProgramView(props: IProps): JSX.Element {
       settings={props.settings}
       dispatch={props.dispatch}
       search={search}
-      previewScreen={props.previewScreen}
     />
   );
   const customPrograms = (): JSX.Element => (
