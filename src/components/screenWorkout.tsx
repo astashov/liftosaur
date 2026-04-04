@@ -1,4 +1,4 @@
-import { JSX, useEffect, useRef, useState } from "react";
+import { JSX, useEffect, useRef } from "react";
 import { IHistoryRecord, IProgram, ISettings, IStats, ISubscription } from "../types";
 import { IDispatch } from "../ducks/types";
 import { Program_evaluate, Program_getProgramDay } from "../models/program";
@@ -16,14 +16,6 @@ import { IconTrash } from "./icons/iconTrash";
 import { useNavOptions } from "../navigation/useNavOptions";
 import { Timer } from "./timer";
 import { Workout } from "./workout";
-import {
-  SendMessage_isIos,
-  SendMessage_iosAppVersion,
-  SendMessage_isAndroid,
-  SendMessage_androidAppVersion,
-} from "../utils/sendMessage";
-import { BottomSheetMobileShareOptions } from "./bottomSheetMobileShareOptions";
-import { BottomSheetWebappShareOptions } from "./bottomSheetWebappShareOptions";
 import { Thunk_updateLiveActivity, Thunk_deleteProgress } from "../ducks/thunks";
 import { Reps_findNextSetIndex } from "../models/set";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
@@ -48,7 +40,6 @@ interface IScreenWorkoutProps {
 export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
   const progress = props.progress;
   const evaluatedProgram = props.program ? Program_evaluate(props.program, props.settings) : undefined;
-  const [isShareShown, setIsShareShown] = useState<boolean>(false);
   const programDay = evaluatedProgram ? Program_getProgramDay(evaluatedProgram, progress.day) : undefined;
 
   useEffect(() => {
@@ -164,7 +155,11 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
     return (
       <>
         <Workout
-          setIsShareShown={setIsShareShown}
+          onShare={() => {
+            if (!Progress_isCurrent(progress)) {
+              navigationRef.navigate("workoutShareModal", { progressId: progress.id });
+            }
+          }}
           stats={props.navCommon.stats}
           allPrograms={props.allPrograms}
           subscription={props.subscription}
@@ -177,27 +172,6 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
           progress={progress}
           dispatch={props.dispatch}
         />
-        {!Progress_isCurrent(progress) &&
-          ((SendMessage_isIos() && SendMessage_iosAppVersion() >= 11) ||
-          (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 20) ? (
-            <BottomSheetMobileShareOptions
-              userId={props.userId}
-              history={props.history}
-              settings={props.settings}
-              record={progress}
-              isHidden={!isShareShown}
-              onClose={() => setIsShareShown(false)}
-            />
-          ) : (
-            <BottomSheetWebappShareOptions
-              userId={props.userId}
-              history={props.history}
-              settings={props.settings}
-              record={progress}
-              isHidden={!isShareShown}
-              onClose={() => setIsShareShown(false)}
-            />
-          ))}
       </>
     );
   } else {
