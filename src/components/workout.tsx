@@ -32,8 +32,8 @@ import { Markdown } from "./markdown";
 import { DraggableList } from "./draggableList";
 import { LinkButton } from "./linkButton";
 import { Button } from "./button";
-import { ModalDayFromAdhoc } from "./modalDayFromAdhoc";
 import { ImagePreloader_preload, ImagePreloader_dynohappy } from "../utils/imagePreloader";
+import { navigationRef } from "../navigation/navigationRef";
 import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
 import { History_calories, History_pauseWorkout } from "../models/history";
 import { SendMessage_toIosAndAndroid, SendMessage_isIos } from "../utils/sendMessage";
@@ -57,7 +57,6 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
   const selectedEntry = props.progress.entries[props.progress.ui?.currentEntryIndex ?? 0];
   const description = props.programDay?.description;
   const screensRef = useRef<HTMLDivElement>(null);
-  const [isConvertToProgramShown, setIsConvertToProgramShown] = useState(false);
   const forceUpdateEntryIndex = !!props.progress.ui?.forceUpdateEntryIndex;
 
   useEffect(() => {
@@ -87,7 +86,9 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
         allPrograms={props.allPrograms}
         dispatch={props.dispatch}
         program={props.program}
-        setIsConvertToProgramShown={setIsConvertToProgramShown}
+        onConvertToProgram={() => {
+          navigationRef.navigate("dayFromAdhocModal", { progressId: props.progress.id });
+        }}
         setIsShareShown={props.setIsShareShown}
       />
       <WorkoutListOfExercises
@@ -173,17 +174,6 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
           </div>
         </div>
       )}
-      {isConvertToProgramShown && (
-        <ModalDayFromAdhoc
-          onClose={() => setIsConvertToProgramShown(false)}
-          initialCurrentProgramId={props.progress.programId}
-          stats={props.stats}
-          record={props.progress}
-          dispatch={props.dispatch}
-          allPrograms={props.allPrograms}
-          settings={props.settings}
-        />
-      )}
     </section>
   );
 }
@@ -193,7 +183,7 @@ interface IWorkoutHeaderProps {
   settings: ISettings;
   dispatch: IDispatch;
   setIsShareShown: (value: boolean) => void;
-  setIsConvertToProgramShown?: (value: boolean) => void;
+  onConvertToProgram?: () => void;
   description?: string;
   allPrograms: IProgram[];
   program?: IEvaluatedProgram;
@@ -222,8 +212,8 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
                 data-cy="save-to-program"
                 name="save-to-program"
                 onClick={() => {
-                  if (props.setIsConvertToProgramShown != null) {
-                    props.setIsConvertToProgramShown(true);
+                  if (props.onConvertToProgram != null) {
+                    props.onConvertToProgram();
                   }
                 }}
               >

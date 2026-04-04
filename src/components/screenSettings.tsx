@@ -29,9 +29,8 @@ import {
   SendMessage_androidAppVersion,
 } from "../utils/sendMessage";
 import { IconSpeaker } from "./icons/iconSpeaker";
-import { ModalImportFromOtherApps } from "./modalImportFromOtherApps";
-import { ModalAffiliate } from "./modalAffiliate";
 import { ImporterLiftosaurCsv } from "./importerLiftosaurCsv";
+import { navigationRef } from "../navigation/navigationRef";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
 import { INavCommon } from "../models/state";
@@ -54,8 +53,6 @@ interface IProps {
 
 export function ScreenSettings(props: IProps): JSX.Element {
   const [isCopied, setIsCopied] = useState<boolean>(false);
-  const [showImportFromOtherAppsModal, setShowImportFromOtherAppsModal] = useState(false);
-  const [showAffiliateModal, setShowAffiliateModal] = useState(false);
   const currentBodyweight = Stats_getCurrentBodyweight(props.stats);
   const currentBodyfat = Stats_getCurrentBodyfat(props.stats);
 
@@ -445,7 +442,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
             <MenuItem
               expandName={true}
               name="Affiliate Program"
-              onClick={() => setShowAffiliateModal(true)}
+              onClick={() => navigationRef.navigate("affiliateModal")}
               value={props.settings.affiliateEnabled ? "On" : "Off"}
               shouldShowRightArrow={true}
             />
@@ -480,7 +477,10 @@ export function ScreenSettings(props: IProps): JSX.Element {
           <ImporterProgram dispatch={props.dispatch} />
         </div>
         <div className="ls-import-other-apps">
-          <MenuItemWrapper name="Import history from other apps" onClick={() => setShowImportFromOtherAppsModal(true)}>
+          <MenuItemWrapper
+            name="Import history from other apps"
+            onClick={() => navigationRef.navigate("importFromOtherAppsModal")}
+          >
             <button className="py-3 nm-import-history-from-other-apps">Import history from other apps</button>
           </MenuItemWrapper>
         </div>
@@ -544,18 +544,6 @@ export function ScreenSettings(props: IProps): JSX.Element {
           📍 Roadmap
         </a>
       </section>
-      <ModalImportFromOtherApps
-        settings={props.settings}
-        dispatch={props.dispatch}
-        isHidden={!showImportFromOtherAppsModal}
-        onClose={() => setShowImportFromOtherAppsModal(false)}
-      />
-      <ModalAffiliate
-        dispatch={props.dispatch}
-        isAffiliateEnabled={!!props.settings.affiliateEnabled}
-        isHidden={!showAffiliateModal}
-        onClose={() => setShowAffiliateModal(false)}
-      />
     </>
   );
 }

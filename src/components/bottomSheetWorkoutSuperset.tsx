@@ -2,24 +2,18 @@ import { JSX, Fragment, useState } from "react";
 import { Progress_getSupersetGroups } from "../models/progress";
 import { IHistoryRecord, IHistoryEntry, ISettings } from "../types";
 import { ObjectUtils_entriesNonnull } from "../utils/object";
-import { BottomSheet } from "./bottomSheet";
 import { Button } from "./button";
 import { ModalNewSupersetGroup } from "./modalNewSupersetGroup";
 import { Exercise_get, Exercise_fullName } from "../models/exercise";
 import { StringUtils_dashcase } from "../utils/string";
 
-interface IBottomSheetWorkoutSupersetProps {
+export interface IBottomSheetWorkoutSupersetContentProps {
   onSelect: (name: string | undefined) => void;
   progress: IHistoryRecord;
   entry: IHistoryEntry;
   settings: ISettings;
-  isHidden: boolean;
   onClose: () => void;
 }
-
-export type IBottomSheetWorkoutSupersetContentProps = Omit<IBottomSheetWorkoutSupersetProps, "isHidden" | "onClose"> & {
-  onClose: () => void;
-};
 
 export function BottomSheetWorkoutSupersetContent(props: IBottomSheetWorkoutSupersetContentProps): JSX.Element {
   const supersetGroups = Progress_getSupersetGroups(props.progress.entries);
@@ -101,18 +95,3 @@ export function BottomSheetWorkoutSupersetContent(props: IBottomSheetWorkoutSupe
   );
 }
 
-export function BottomSheetWorkoutSuperset(props: IBottomSheetWorkoutSupersetProps): JSX.Element {
-  return (
-    <BottomSheet isHidden={props.isHidden} onClose={props.onClose} shouldShowClose={true}>
-      <div style={{ marginTop: "-0.75rem" }}>
-        <BottomSheetWorkoutSupersetContent
-          onSelect={props.onSelect}
-          onClose={props.onClose}
-          progress={props.progress}
-          entry={props.entry}
-          settings={props.settings}
-        />
-      </div>
-    </BottomSheet>
-  );
-}

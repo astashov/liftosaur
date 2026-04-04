@@ -29,8 +29,8 @@ import { IconSpinner } from "./icons/iconSpinner";
 import { InternalLink } from "../internalLink";
 import { IHistoryRecord, ISubscription } from "../types";
 import { Thunk_pullScreen, Thunk_claimkey } from "../ducks/thunks";
-import { ModalCoupon } from "./modalCoupon";
 import { IconClose } from "./icons/iconClose";
+import { navigationRef } from "../navigation/navigationRef";
 import { ObjectUtils_entries, ObjectUtils_keys } from "../utils/object";
 import { lg } from "../utils/posthog";
 import { IconW } from "./icons/iconW";
@@ -54,7 +54,6 @@ export function ScreenSubscription(props: IProps): JSX.Element {
   const [isPlatesCalculatorShown, setIsPlatesCalculatorShown] = useState<boolean>(false);
   const [isGraphsShown, setIsGraphsShown] = useState<boolean>(false);
   const [isNotifsShown, setIsNotifsShown] = useState<boolean>(false);
-  const [isRedeemShown, setIsRedeemShown] = useState<boolean>(false);
   const [isWeekStatsShown, setIsWeekStatsShown] = useState<boolean>(false);
   const monthlyPrice =
     ObjectUtils_entries(props.prices || {}).filter(([k]) => k.indexOf("mont") !== -1)?.[0]?.[1] ?? "$4.99";
@@ -366,7 +365,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                     if (SendMessage_isIos()) {
                       SendMessage_toIos({ type: "redeemCoupon" });
                     } else {
-                      setIsRedeemShown(true);
+                      navigationRef.navigate("couponModal");
                     }
                   }}
                   className="pt-2 font-bold text-center"
@@ -473,7 +472,6 @@ export function ScreenSubscription(props: IProps): JSX.Element {
           />
         </div>
       </Modal>
-      <ModalCoupon isHidden={!isRedeemShown} dispatch={props.dispatch} onClose={() => setIsRedeemShown(false)} />
     </>
   );
 }

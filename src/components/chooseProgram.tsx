@@ -9,11 +9,8 @@ import { ScrollableTabs } from "./scrollableTabs";
 import { emptyProgramId, IProgramIndexEntry, Program_selectProgram } from "../models/program";
 import { IconMagnifyingGlass } from "./icons/iconMagnifyingGlass";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
-import { Thunk_importFromLink } from "../ducks/thunks";
-import { EditProgram_create } from "../models/editProgram";
-import { ModalCreateProgram } from "./modalCreateProgram";
-import { ModalImportFromLink } from "./modalImportFromLink";
 import { LinkButton } from "./linkButton";
+import { navigationRef } from "../navigation/navigationRef";
 
 interface IProps {
   dispatch: IDispatch;
@@ -29,8 +26,6 @@ interface IProps {
 export function ChooseProgramView(props: IProps): JSX.Element {
   const [search, setSearch] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const [shouldCreateProgram, setShouldCreateProgram] = useState<boolean>(false);
-  const [showImportFromLink, setShowImportFromLink] = useState<boolean>(false);
   const hasCustomPrograms = props.customPrograms.length > 0;
 
   const builtinPrograms = (): JSX.Element => (
@@ -61,7 +56,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
             key="import"
             className="px-2 text-sm no-underline"
             name="import-program"
-            onClick={() => setShowImportFromLink(true)}
+            onClick={() => navigationRef.navigate("importFromLinkModal")}
           >
             Import
           </LinkButton>,
@@ -113,28 +108,12 @@ export function ChooseProgramView(props: IProps): JSX.Element {
       )}
       {hasCustomPrograms ? (
         <Footer
-          onCreate={() => setShouldCreateProgram(true)}
+          onCreate={() => navigationRef.navigate("createProgramModal")}
           onEmpty={() => {
             Program_selectProgram(props.dispatch, emptyProgramId);
           }}
         />
       ) : null}
-      <ModalImportFromLink
-        isHidden={!showImportFromLink}
-        onSubmit={async (link) => {
-          if (link) {
-            props.dispatch(Thunk_importFromLink(link));
-          }
-          setShowImportFromLink(false);
-        }}
-      />
-      <ModalCreateProgram
-        isHidden={!shouldCreateProgram}
-        onClose={() => setShouldCreateProgram(false)}
-        onSelect={(name) => {
-          EditProgram_create(props.dispatch, name);
-        }}
-      />
     </>
   );
 }

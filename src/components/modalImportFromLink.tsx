@@ -1,23 +1,12 @@
 import { JSX, useRef } from "react";
 import { Button } from "./button";
-import { Modal } from "./modal";
 import { GroupHeader } from "./groupHeader";
 import { inputClassName } from "./input";
 
-interface IProps {
-  onSubmit: (value?: string) => void;
-  isHidden: boolean;
-}
-
-export function ModalImportFromLink(props: IProps): JSX.Element {
+export function ModalImportFromLinkContent(props: { onSubmit: (value?: string) => void }): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
   return (
-    <Modal
-      isHidden={props.isHidden}
-      autofocusInputRef={textInput}
-      shouldShowClose={true}
-      onClose={() => props.onSubmit(undefined)}
-    >
+    <>
       <GroupHeader size="large" name="Paste link here from /program web editor here" />
       <form onSubmit={(e) => e.preventDefault()}>
         <input ref={textInput} className={inputClassName} type="text" />
@@ -48,6 +37,7 @@ export function ModalImportFromLink(props: IProps): JSX.Element {
           </Button>
         </div>
       </form>
-    </Modal>
+    </>
   );
 }
+

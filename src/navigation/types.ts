@@ -1,5 +1,5 @@
 import type { NavigatorScreenParams } from "@react-navigation/native";
-import type { IDayData, IProgressUi, IShortDayData, IStatsKey } from "../types";
+import type { IDayData, IExerciseType, IProgressUi, IShortDayData, IStatsKey } from "../types";
 
 export type IHomeStackParamList = {
   main: { historyRecordId?: number } | undefined;
@@ -89,6 +89,14 @@ export type IRootStackParamList = {
   rm1Modal: { progressId: number };
   supersetPickerModal: { progressId: number };
   playgroundEditModal: { weekIndex: number; dayIndex: number };
+  exerciseInfoModal: { exerciseType: IExerciseType };
+  couponModal: undefined;
+  newGymModal: undefined;
+  createProgramModal: undefined;
+  importFromLinkModal: undefined;
+  affiliateModal: undefined;
+  importFromOtherAppsModal: undefined;
+  dayFromAdhocModal: { progressId: number };
 };
 
 export type IRootLevelScreenParamList = {

@@ -1,23 +1,12 @@
 import { JSX, useRef } from "react";
 import { Button } from "./button";
-import { Modal } from "./modal";
 import { GroupHeader } from "./groupHeader";
 import { Input } from "./input";
 
-interface IProps {
-  onInput: (value?: string) => void;
-  isHidden: boolean;
-}
-
-export function ModalNewGym(props: IProps): JSX.Element {
+export function ModalNewGymContent(props: { onInput: (value?: string) => void }): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
   return (
-    <Modal
-      isHidden={props.isHidden}
-      autofocusInputRef={textInput}
-      shouldShowClose={true}
-      onClose={() => props.onInput(undefined)}
-    >
+    <>
       <h2 className="mb-2 text-lg font-bold text-center">New Gym</h2>
       <div className="mb-2 text-xs text-text-secondary">
         You can add a new gym with a set of exercises, and when you switch between gyms, the exercises will use the
@@ -59,6 +48,7 @@ export function ModalNewGym(props: IProps): JSX.Element {
           </Button>
         </div>
       </form>
-    </Modal>
+    </>
   );
 }
+

@@ -1,17 +1,9 @@
 import { JSX, useRef } from "react";
 import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
-import { Modal } from "./modal";
 import { DateUtils_formatYYYYMMDD } from "../utils/date";
 import { Input } from "./input";
 import { MathUtils_clamp } from "../utils/math";
-
-interface IModalDateProps {
-  dispatch: IDispatch;
-  date: string;
-  time: number;
-  isHidden: boolean;
-}
 
 interface IModalDateContentProps {
   dispatch: IDispatch;
@@ -97,10 +89,3 @@ export function ModalDateContent(props: IModalDateContentProps): JSX.Element {
   );
 }
 
-export function ModalDate(props: IModalDateProps): JSX.Element {
-  return (
-    <Modal isHidden={props.isHidden}>
-      <ModalDateContent dispatch={props.dispatch} date={props.date} time={props.time} />
-    </Modal>
-  );
-}

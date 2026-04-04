@@ -1,11 +1,10 @@
 import { JSX, useState } from "react";
 import { IDispatch } from "../ducks/types";
-import { IProgram, ISettings, ISubscription, IExerciseType, IStats } from "../types";
+import { IProgram, ISettings, ISubscription, IStats } from "../types";
 import { IconMuscles2 } from "./icons/iconMuscles2";
 import { IPoints, Muscle_normalizePoints, Muscle_getPointsForProgram, Muscle_getPointsForDay } from "../models/muscle";
 import { Modal } from "./modal";
 import { MusclesView } from "./muscles/musclesView";
-import { ModalExerciseInfo } from "./modalExerciseInfo";
 import { Locker } from "./locker";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import {
@@ -44,7 +43,6 @@ export function ProgramPreview(props: IProps): JSX.Element {
   const program = props.program;
   const evaluatedProgram = Program_evaluate(program, props.settings);
   const [musclesModal, setMusclesModal] = useState<IPreviewProgramMuscles | undefined>(undefined);
-  const [exerciseTypeInfo, setExerciseTypeInfo] = useState<IExerciseType | undefined>(undefined);
 
   return (
     <div>
@@ -108,14 +106,6 @@ export function ProgramPreview(props: IProps): JSX.Element {
           subscription={props.subscription}
           dispatch={props.dispatch}
           settings={props.settings}
-        />
-      )}
-      {exerciseTypeInfo && (
-        <ModalExerciseInfo
-          settings={props.settings}
-          isHidden={exerciseTypeInfo == null}
-          exerciseType={exerciseTypeInfo}
-          onClose={() => setExerciseTypeInfo(undefined)}
         />
       )}
     </div>

@@ -11,16 +11,10 @@ interface IProps {
   isHidden: boolean;
 }
 
-export function ModalCreateProgram(props: IProps): JSX.Element {
+export function ModalCreateProgramContent(props: Omit<IProps, "isHidden">): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
   return (
-    <Modal
-      zIndex={70}
-      isHidden={props.isHidden}
-      autofocusInputRef={textInput}
-      onClose={props.onClose}
-      shouldShowClose={true}
-    >
+    <>
       <h3 className="pb-2 text-xl font-bold text-center">Create Program</h3>
       <Input
         label="Program Name"
@@ -58,6 +52,14 @@ export function ModalCreateProgram(props: IProps): JSX.Element {
           {props.isLoading ? <IconSpinner color="white" width={18} height={18} /> : "Create"}
         </Button>
       </p>
+    </>
+  );
+}
+
+export function ModalCreateProgram(props: IProps): JSX.Element {
+  return (
+    <Modal zIndex={70} isHidden={props.isHidden} onClose={props.onClose} shouldShowClose={true}>
+      <ModalCreateProgramContent onSelect={props.onSelect} onClose={props.onClose} isLoading={props.isLoading} />
     </Modal>
   );
 }
