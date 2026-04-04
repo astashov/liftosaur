@@ -50,6 +50,7 @@ import { TourModal } from "./tour/tourModal";
 import { TourConfigs_findTourId } from "./tour/tourConfigs";
 import { NavigationContainer, DefaultTheme, type NavigationState } from "@react-navigation/native";
 import { navigationRef } from "../navigation/navigationRef";
+import { getCurrentScreenData } from "../navigation/navigationService";
 import { StateContext } from "../navigation/StateContext";
 import { AppNavigator } from "../navigation/AppNavigator";
 import type { IScreen } from "../models/screen";
@@ -94,7 +95,7 @@ function getScreenNameFromNavState(navState: NavigationState | undefined): IScre
 export function AppView(props: IProps): JSX.Element | null {
   const { client, audio, queue } = props;
   const service = new Service(client);
-  const env: IEnv = { service, audio, queue };
+  const env: IEnv = { service, audio, queue, navigationRef, getCurrentScreenData };
   const [state, dispatch] = useThunkReducer<IState, IAction, IEnv>(
     reducerWrapper(true),
     props.initialState,

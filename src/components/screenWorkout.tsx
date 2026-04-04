@@ -1,20 +1,14 @@
 import { JSX, useEffect, useRef, useState } from "react";
 import { IHistoryRecord, IProgram, ISettings, IStats, ISubscription } from "../types";
 import { IDispatch } from "../ducks/types";
-import {
-  Program_evaluate,
-  Program_getProgramDay,
-} from "../models/program";
+import { Program_evaluate, Program_getProgramDay } from "../models/program";
 import {
   History_workoutTime,
   History_isPaused,
   History_resumeWorkoutAction,
   History_pauseWorkoutAction,
 } from "../models/history";
-import {
-  Progress_lbProgress,
-  Progress_isCurrent,
-} from "../models/progress";
+import { Progress_lbProgress, Progress_isCurrent } from "../models/progress";
 import { INavCommon, updateProgress, updateState } from "../models/state";
 import { DateUtils_format } from "../utils/date";
 import { TimeUtils_formatHHMM } from "../utils/time";
@@ -26,7 +20,6 @@ import { ModalDate } from "./modalDate";
 import { lb } from "lens-shmens";
 import { Modal1RM } from "./modal1RM";
 import { ModalEquipment } from "./modalEquipment";
-import { BottomSheetEditTarget } from "./bottomSheetEditTarget";
 import {
   SendMessage_isIos,
   SendMessage_iosAppVersion,
@@ -60,7 +53,6 @@ interface IScreenWorkoutProps {
 export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
   const progress = props.progress;
   const evaluatedProgram = props.program ? Program_evaluate(props.program, props.settings) : undefined;
-  const dispatch = props.dispatch;
   const [isShareShown, setIsShareShown] = useState<boolean>(false);
   const dateModal = progress.ui?.dateModal;
   const programDay = evaluatedProgram ? Program_getProgramDay(evaluatedProgram, progress.day) : undefined;
@@ -85,6 +77,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
         ],
         "Open exercise picker on workout start"
       );
+      navigationRef.navigate("exercisePickerModal", { progressId: progress.id });
     }
   }, []);
 
@@ -96,15 +89,6 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
     }
     prevAmrapModal.current = amrapModal;
   }, [amrapModal]);
-
-  const exercisePickerState = progress.ui?.exercisePicker?.state;
-  const prevExercisePickerState = useRef(exercisePickerState);
-  useEffect(() => {
-    if (exercisePickerState && !prevExercisePickerState.current) {
-      navigationRef.navigate("exercisePickerModal", { progressId: progress.id });
-    }
-    prevExercisePickerState.current = exercisePickerState;
-  }, [exercisePickerState]);
 
   const exerciseSuperset = progress.ui?.showSupersetPicker;
 
@@ -223,21 +207,6 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
             }}
           />
         )}
-        <BottomSheetEditTarget
-          settings={props.settings}
-          subscription={props.subscription}
-          progress={progress}
-          dispatch={dispatch}
-          editSetModal={progress.ui?.editSetModal}
-          isHidden={progress.ui?.editSetModal == null}
-          onClose={() => {
-            dispatch({
-              type: "UpdateProgress",
-              lensRecordings: [lb<IHistoryRecord>().pi("ui").p("editSetModal").record(undefined)],
-              desc: "Close edit set modal",
-            });
-          }}
-        />
         {progress.ui?.equipmentModal?.exerciseType && (
           <ModalEquipment
             stats={props.stats}

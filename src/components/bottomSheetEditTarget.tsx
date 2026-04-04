@@ -22,11 +22,11 @@ interface IBottomSheetEditTargetProps {
   onClose: () => void;
 }
 
-type IBottomSheetEditTargetContentProps = Omit<IBottomSheetEditTargetProps, "isHidden"> & {
+export type IBottomSheetEditTargetContentProps = Omit<IBottomSheetEditTargetProps, "isHidden"> & {
   editSetModal: Required<IProgressUi>["editSetModal"];
 };
 
-function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps): JSX.Element {
+export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps): JSX.Element {
   const set = props.editSetModal.set;
   const [enableRpe, setEnableRpe] = useState(set.rpe != null);
   const [enableTimer, setEnableTimer] = useState(set.timer != null);

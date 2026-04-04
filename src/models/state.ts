@@ -19,11 +19,16 @@ import {
 } from "../types";
 import { AsyncQueue } from "../utils/asyncQueue";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
+import type { NavigationContainerRef } from "@react-navigation/native";
+import type { IRootStackParamList } from "../navigation/types";
+import type { IScreenData } from "./screen";
 
 export type IEnv = {
   service: Service;
   audio: IAudioInterface;
   queue: AsyncQueue;
+  navigationRef?: NavigationContainerRef<IRootStackParamList>;
+  getCurrentScreenData?: () => IScreenData | undefined;
 };
 
 export interface INotification {

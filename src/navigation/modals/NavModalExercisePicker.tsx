@@ -3,7 +3,13 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
 import { ExercisePickerContent } from "../../components/exercisePicker/bottomSheetExercisePicker";
-import { Progress_lbProgress, Progress_isCurrent, Progress_forceUpdateEntryIndex, Progress_addExercise, Progress_changeExercise } from "../../models/progress";
+import {
+  Progress_lbProgress,
+  Progress_isCurrent,
+  Progress_forceUpdateEntryIndex,
+  Progress_addExercise,
+  Progress_changeExercise,
+} from "../../models/progress";
 import {
   Program_getFullProgram,
   Program_evaluate,
@@ -24,7 +30,11 @@ import type { IRootStackParamList } from "../types";
 export function NavModalExercisePicker(): JSX.Element {
   const { state, dispatch } = useAppState();
   const navigation = useNavigation();
-  const route = useRoute<{ key: string; name: "exercisePickerModal"; params: IRootStackParamList["exercisePickerModal"] }>();
+  const route = useRoute<{
+    key: string;
+    name: "exercisePickerModal";
+    params: IRootStackParamList["exercisePickerModal"];
+  }>();
   const { progressId } = route.params;
 
   const progress = progressId === 0 ? state.storage.progress?.[0] : state.progress[progressId];

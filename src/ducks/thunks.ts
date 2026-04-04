@@ -3,14 +3,7 @@ import { IScreen, IScreenParams } from "../models/screen";
 import type { INavigateOpts } from "../navigation/navigationService";
 import type { IAllScreenParamList } from "../navigation/types";
 
-// Lazy imports — @react-navigation/native is ESM-only and breaks ts-node scripts
-// that transitively reach this module.
-function getNavigationService(): Promise<typeof import("../navigation/navigationService")> {
-  return import("../navigation/navigationService");
-}
-function getNavigationRef(): Promise<typeof import("../navigation/navigationRef")> {
-  return import("../navigation/navigationRef");
-}
+import { getNavigationService } from "../navigation/navUtils";
 import RB from "rollbar";
 import { IGetStorageResponse, IPostSyncResponse, Service } from "../api/service";
 import { lb } from "lens-shmens";
@@ -623,7 +616,7 @@ export function Thunk_playAudioNotification(): IThunk {
 }
 
 export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivity?: boolean): IThunk {
-  return async (dispatch, getState) => {
+  return async (dispatch, getState, env) => {
     try {
       const watchStorage: IStorage = JSON.parse(storageJson);
       const state = getState();
@@ -631,8 +624,7 @@ export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivit
       const phoneHistoryLen = state.storage.history?.length ?? 0;
       const watchHistoryLen = watchStorage.history?.length ?? 0;
 
-      const { getCurrentScreenData: getScreen } = await getNavigationService();
-      const wasOnProgressScreen = getScreen()?.name === "progress";
+      const wasOnProgressScreen = env.getCurrentScreenData?.()?.name === "progress";
       const hadProgress = state.storage.progress && state.storage.progress.length > 0;
 
       // Merge watch storage with phone storage
@@ -833,11 +825,10 @@ export function Thunk_pushScreen<T extends IScreen>(
   params?: IScreenParams<T>,
   opts?: INavigateOpts
 ): IThunk {
-  return async (dispatch, getState) => {
+  return async (dispatch, getState, env) => {
     dispatch(Thunk_postevent("navigate-to-" + screen));
     if (opts?.tab || opts?.stack) {
-      const { getCurrentScreenData } = await getNavigationService();
-      const currentScreen = getCurrentScreenData();
+      const currentScreen = env.getCurrentScreenData?.();
       const confirmation = currentScreen ? Screen_shouldConfirmNavigation(getState(), currentScreen) : undefined;
       if (confirmation) {
         if (confirm(confirmation)) {
@@ -880,10 +871,9 @@ export function Thunk_pushScreen<T extends IScreen>(
 }
 
 export function Thunk_updateScreenParams<T extends IScreen>(params?: IScreenParams<T>): IThunk {
-  return async (_dispatch, _getState) => {
-    const { navigationRef } = await getNavigationRef();
-    if (navigationRef.isReady()) {
-      navigationRef.setParams(params as Record<string, unknown>);
+  return async (_dispatch, _getState, env) => {
+    if (env.navigationRef?.isReady()) {
+      env.navigationRef.setParams(params as Record<string, unknown>);
     }
   };
 }
@@ -952,9 +942,9 @@ function cleanup(dispatch: IDispatch, state: IState, progressId: number): void {
 }
 
 export function Thunk_pullScreen(): IThunk {
-  return async (dispatch, getState) => {
-    const { goBack, getCurrentScreenData } = await getNavigationService();
-    const currentScreen = getCurrentScreenData();
+  return async (dispatch, getState, env) => {
+    const { goBack } = await getNavigationService();
+    const currentScreen = env.getCurrentScreenData?.();
     if (currentScreen) {
       const confirmation = Screen_shouldConfirmNavigation(getState(), currentScreen);
       if (confirmation) {
@@ -1467,8 +1457,7 @@ export function Thunk_setAppleReceipt(receipt?: string): IThunk {
         dispatch(Thunk_postevent("complete-apple-subscription"));
         dispatch(Thunk_log("ls-set-apple-receipt"));
         Subscriptions_setAppleReceipt(dispatch, receipt);
-        const { getCurrentScreenData: getAppleScreen } = await getNavigationService();
-        if (getAppleScreen()?.name === "subscription") {
+        if (env.getCurrentScreenData?.()?.name === "subscription") {
           dispatch(Thunk_pullScreen());
         }
       } else {
@@ -1495,8 +1484,7 @@ export function Thunk_setGooglePurchaseToken(productId?: string, token?: string)
         dispatch(Thunk_postevent("complete-google-subscription"));
         dispatch(Thunk_log("ls-set-google-purchase-token"));
         Subscriptions_setGooglePurchaseToken(dispatch, purchaseToken);
-        const { getCurrentScreenData: getGoogleScreen } = await getNavigationService();
-        if (getGoogleScreen()?.name === "subscription") {
+        if (env.getCurrentScreenData?.()?.name === "subscription") {
           dispatch(Thunk_pullScreen());
         }
       } else {

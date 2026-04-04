@@ -404,34 +404,30 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
     },
     (dispatch, action, oldState, newState) => {
       if ("type" in action && action.type === "UpdateState" && (action.desc === "undo" || action.desc === "redo")) {
-        (async () => {
-          const { getCurrentScreenData } = await import("../navigation/navigationService");
-          const { navigationRef } = await import("../navigation/navigationRef");
-          const screenData = getCurrentScreenData();
-          if (!screenData || screenData.name !== "editProgramExercise") {
-            return;
+        const screenData = env.getCurrentScreenData?.();
+        if (!screenData || screenData.name !== "editProgramExercise") {
+          return;
+        }
+        const oldExerciseKey = screenData.params?.key;
+        const oldProgramId = screenData.params?.programId;
+        const oldExerciseStateKey = oldProgramId && oldExerciseKey ? `${oldProgramId}_${oldExerciseKey}` : undefined;
+        const oldPlannerState = oldExerciseStateKey
+          ? oldState.editProgramExerciseStates[oldExerciseStateKey]
+          : undefined;
+        const newPlannerState = oldExerciseStateKey
+          ? newState.editProgramExerciseStates[oldExerciseStateKey]
+          : undefined;
+        if (oldPlannerState != null && newPlannerState != null && oldExerciseKey != null) {
+          const changedKeys = EditProgramUiHelpers_getChangedKeys(
+            oldPlannerState.current.program.planner!,
+            newPlannerState.current.program.planner!,
+            newState.storage.settings
+          );
+          const newKey = changedKeys[oldExerciseKey];
+          if (newKey && env.navigationRef?.isReady()) {
+            env.navigationRef.setParams({ ...screenData.params, key: newKey } as Record<string, unknown>);
           }
-          const oldExerciseKey = screenData.params?.key;
-          const oldProgramId = screenData.params?.programId;
-          const oldExerciseStateKey = oldProgramId && oldExerciseKey ? `${oldProgramId}_${oldExerciseKey}` : undefined;
-          const oldPlannerState = oldExerciseStateKey
-            ? oldState.editProgramExerciseStates[oldExerciseStateKey]
-            : undefined;
-          const newPlannerState = oldExerciseStateKey
-            ? newState.editProgramExerciseStates[oldExerciseStateKey]
-            : undefined;
-          if (oldPlannerState != null && newPlannerState != null && oldExerciseKey != null) {
-            const changedKeys = EditProgramUiHelpers_getChangedKeys(
-              oldPlannerState.current.program.planner!,
-              newPlannerState.current.program.planner!,
-              newState.storage.settings
-            );
-            const newKey = changedKeys[oldExerciseKey];
-            if (newKey && navigationRef.isReady()) {
-              navigationRef.setParams({ ...screenData.params, key: newKey } as Record<string, unknown>);
-            }
-          }
-        })();
+        }
       }
     },
     (dispatch, action, oldState, newState) => {
