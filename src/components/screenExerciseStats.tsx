@@ -13,7 +13,6 @@ import { useNavOptions } from "../navigation/useNavOptions";
 import {
   IExercise,
   Exercise_get,
-  Exercise_handleCustomExerciseChange,
   Exercise_fullName,
   Exercise_isCustom,
   Exercise_getNotes,
@@ -38,10 +37,9 @@ import { ExerciseAllTimePRs } from "./exerciseAllTimePRs";
 import { ExerciseHistory } from "./exerciseHistory";
 import { MarkdownEditorBorderless } from "./markdownEditorBorderless";
 import { GroupHeader } from "./groupHeader";
-import { BottomSheetCustomExercise } from "./bottomSheetCustomExercise";
 import { StringUtils_capitalize } from "../utils/string";
-import { BottomSheetMusclesOverride } from "./bottomSheetMusclesOverride";
 import { Muscle_getMuscleGroupName } from "../models/muscle";
+import { navigationRef } from "../navigation/navigationRef";
 
 interface IProps {
   exerciseType: IExerciseType;
@@ -60,7 +58,6 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
     ? Program_getProgramExercisesFromExerciseType(evaluatedProgram, exerciseType).map((pe) => pe.key)
     : [];
   const fullExercise = Exercise_get(props.exerciseType, props.settings.exercises);
-  const customExercise = props.settings.exercises[exerciseType.id];
   const historyCollector = Collector.build(props.history)
     .addFn(History_collectMinAndMaxTime())
     .addFn(History_collectAllUsedExerciseTypes())
@@ -68,8 +65,6 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
     .addFn(History_collectWeightPersonalRecord(exerciseType, props.settings.units))
     .addFn(History_collect1RMPersonalRecord(exerciseType, props.settings));
 
-  const [showCustomExerciseModal, setShowCustomExerciseModal] = useState(false);
-  const [showOverrideMuscles, setShowOverrideMuscles] = useState<IExercise | undefined>(undefined);
 
   const [
     { maxTime: maxX, minTime: minX },
@@ -99,7 +94,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
           <MuscleGroupsView
             exercise={fullExercise}
             settings={props.settings}
-            onOverride={() => setShowOverrideMuscles(fullExercise)}
+            onOverride={() => navigationRef.navigate("musclesOverrideModal", { exerciseType })}
           />
         </div>
         {Exercise_isCustom(fullExercise.id, props.settings.exercises) && (
@@ -108,7 +103,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
               <LinkButton
                 className="text-sm"
                 name="edit-custom-exercise-stats"
-                onClick={() => setShowCustomExerciseModal(true)}
+                onClick={() => navigationRef.navigate("customExerciseModal", { exerciseId: exerciseType.id })}
               >
                 Edit
               </LinkButton>
@@ -214,43 +209,6 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
           history={history}
         />
       </section>
-      {showCustomExerciseModal && customExercise && (
-        <BottomSheetCustomExercise
-          settings={props.settings}
-          onClose={() => setShowCustomExerciseModal(false)}
-          onChange={(action, exercise, notes) => {
-            Exercise_handleCustomExerciseChange(
-              props.dispatch,
-              action,
-              exercise,
-              notes,
-              props.settings,
-              props.currentProgram
-            );
-          }}
-          dispatch={props.dispatch}
-          isHidden={!showCustomExerciseModal}
-          isLoggedIn={props.navCommon.userId != null}
-          exercise={customExercise}
-        />
-      )}
-      {showOverrideMuscles != null && (
-        <BottomSheetMusclesOverride
-          helps={props.navCommon.helps}
-          isHidden={showOverrideMuscles == null}
-          exerciseType={showOverrideMuscles}
-          settings={props.settings}
-          onClose={() => setShowOverrideMuscles(undefined)}
-          onNewExerciseData={(newExerciseData) => {
-            updateSettings(
-              props.dispatch,
-              lb<ISettings>().p("exerciseData").record(newExerciseData),
-              "Update exercise muscle override"
-            );
-          }}
-          dispatch={props.dispatch}
-        />
-      )}
     </>
   );
 }

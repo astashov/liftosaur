@@ -12,8 +12,6 @@ import {
   Exercise_isCustom,
   Exercise_filterExercises,
   Exercise_filterExercisesByType,
-  Exercise_handleCustomExerciseChange,
-  Exercise_createCustomExercise,
 } from "../models/exercise";
 import { equipments, exerciseKinds, IExerciseType, IProgram, ISettings, IWeight } from "../types";
 import { CollectionUtils_uniqByExpr, CollectionUtils_compact } from "../utils/collection";
@@ -29,8 +27,8 @@ import { LinkButton } from "./linkButton";
 import { ObjectUtils_values } from "../utils/object";
 import { Settings_activeCustomExercises } from "../models/settings";
 import { Program_evaluate, Program_getAllUsedProgramExercises } from "../models/program";
-import { BottomSheetCustomExercise } from "./bottomSheetCustomExercise";
 import { Muscle_getAvailableMuscleGroups, Muscle_getMuscleGroupName } from "../models/muscle";
+import { navigationRef } from "../navigation/navigationRef";
 
 interface IExercisesListProps {
   dispatch: IDispatch;
@@ -65,7 +63,6 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
   const textInput = useRef<HTMLInputElement>(null);
   const [filter, setFilter] = useState<string>("");
   const [filterTypes, setFilterTypes] = useState<string[]>([]);
-  const [showCustomExerciseModal, setShowCustomExerciseModal] = useState<boolean>(false);
 
   let programExercises = buildExercises(
     CollectionUtils_uniqByExpr(Program_getAllUsedProgramExercises(evaluatedProgram), (e) =>
@@ -140,7 +137,7 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
         />
       </form>
       <div className="text-sm text-right">
-        <LinkButton name="create-custom-exercise" onClick={() => setShowCustomExerciseModal(true)}>
+        <LinkButton name="create-custom-exercise" onClick={() => navigationRef.navigate("customExerciseModal", {})}>
           Create custom exercise
         </LinkButton>
       </div>
@@ -179,19 +176,6 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
           />
         );
       })}
-      {showCustomExerciseModal && (
-        <BottomSheetCustomExercise
-          settings={props.settings}
-          onClose={() => setShowCustomExerciseModal(false)}
-          onChange={(action, exercise, notes) => {
-            Exercise_handleCustomExerciseChange(props.dispatch, action, exercise, notes, props.settings, props.program);
-          }}
-          dispatch={props.dispatch}
-          isHidden={!showCustomExerciseModal}
-          isLoggedIn={props.isLoggedIn}
-          exercise={Exercise_createCustomExercise("", [], [], [])}
-        />
-      )}
     </div>
   );
 }
