@@ -1,5 +1,7 @@
-import { JSX, memo, useMemo } from "react";
+import { JSX, memo, useEffect, useMemo } from "react";
 import { IHistoryRecord, IProgram, ISettings, IStats } from "../../types";
+import { IDispatch } from "../../ducks/types";
+import { buildCardsReducer, ICardsAction } from "../../ducks/reducer";
 import {
   IEvaluatedProgram,
   Program_runAllFinishDayScripts,
@@ -13,19 +15,31 @@ import { ILensDispatch, useLensReducer } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
 import { Progress_applyProgramDay, Progress_runInitialUpdateScripts } from "../../models/progress";
 import { IScrollableTabsProps, ScrollableTabs } from "../scrollableTabs";
-import { IProgramPreviewPlaygroundDaySetup, IProgramPreviewPlaygroundWeekSetup } from "./programPreviewPlaygroundSetup";
+import {
+  IProgramPreviewPlaygroundDaySetupWithProgress,
+  IProgramPreviewPlaygroundState,
+} from "./programPreviewPlaygroundSetup";
 import deepmerge from "deepmerge";
 import { Markdown } from "../markdown";
 import { ObjectUtils_filter } from "../../utils/object";
 import { ProgramToPlanner } from "../../models/programToPlanner";
+import { WebWorkoutModals } from "./webWorkoutModals";
+import { useAppState } from "../../navigation/StateContext";
+import { IState, updateState } from "../../models/state";
 
-type IProgramPreviewPlaygroundDaySetupWithProgress = IProgramPreviewPlaygroundDaySetup & {
-  progress: IHistoryRecord;
-};
-
-type IProgramPreviewPlaygroundProgresses = (IProgramPreviewPlaygroundWeekSetup & {
-  days: IProgramPreviewPlaygroundDaySetupWithProgress[];
-})[];
+function buildDayDispatch(
+  playgroundDispatch: ILensDispatch<IProgramPreviewPlaygroundState>,
+  weekIndex: number,
+  dayIndex: number,
+  progress: IHistoryRecord,
+  settings: ISettings,
+  stats: IStats
+): IDispatch {
+  return (async (action: unknown) => {
+    const newProgress = buildCardsReducer(settings, stats, undefined)(progress, action as ICardsAction);
+    onProgressChange(playgroundDispatch, weekIndex, dayIndex, newProgress);
+  }) as IDispatch;
+}
 
 interface IProgramPreviewPlaygroundProps {
   program: IProgram;
@@ -37,13 +51,7 @@ interface IProgramPreviewPlaygroundProps {
   showAllWeeks?: boolean;
   onEngage?: () => void;
   scrollTabZIndex?: number;
-}
-
-interface IProgramPreviewPlaygroundState {
-  program: IProgram;
-  settings: ISettings;
-  isPlayground: boolean;
-  progresses: IProgramPreviewPlaygroundProgresses;
+  useNavModals?: boolean;
 }
 
 function onProgressChange(
@@ -183,13 +191,10 @@ function onFinish(
   );
 }
 
-export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundProps): JSX.Element => {
-  const initialEvaluatedProgram = useMemo(
-    () => Program_evaluate(props.program, props.settings),
-    [props.program, props.settings]
-  );
+function buildInitialState(props: IProgramPreviewPlaygroundProps): IProgramPreviewPlaygroundState {
+  const initialEvaluatedProgram = Program_evaluate(props.program, props.settings);
   let dayNumber = 0;
-  const initialState: IProgramPreviewPlaygroundState = {
+  return {
     program: props.program,
     settings: props.settings,
     isPlayground: props.isPlayground,
@@ -202,7 +207,7 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
           const programDay = Program_getProgramDay(initialEvaluatedProgram, dayNumber);
           const dayExercises = programDay ? Program_getProgramDayUsedExercises(programDay) : [];
           const exerciseTags = new Set(dayExercises.map((e) => e.tags).flat());
-          const states = ObjectUtils_filter(initialEvaluatedProgram.states, (key, state) => {
+          const states = ObjectUtils_filter(initialEvaluatedProgram.states, (key) => {
             return exerciseTags.has(key);
           });
           return { day: dayNumber, states, progress };
@@ -210,16 +215,19 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
       };
     }),
   };
-  const [state, dispatch] = useLensReducer(initialState, {}, [
-    (action, oldState, newState) => {
-      if (props.onEngage) {
-        props.onEngage();
-      }
-    },
-  ]);
-  const evaluatedProgram = useMemo(() => {
-    return Program_evaluate(state.program, state.settings);
-  }, [state.program, state.settings]);
+}
+
+// --- Inner rendering shared by both local and nav variants ---
+
+interface IProgramPreviewPlaygroundInnerProps {
+  props: IProgramPreviewPlaygroundProps;
+  state: IProgramPreviewPlaygroundState;
+  dispatch: ILensDispatch<IProgramPreviewPlaygroundState>;
+  evaluatedProgram: IEvaluatedProgram;
+}
+
+function ProgramPreviewPlaygroundInner(p: IProgramPreviewPlaygroundInnerProps): JSX.Element {
+  const { props, state, dispatch, evaluatedProgram } = p;
 
   if (props.showAllWeeks && !props.isPlayground) {
     return <ProgramPreviewAllWeeks {...props} state={state} dispatch={dispatch} evaluatedProgram={evaluatedProgram} />;
@@ -259,14 +267,23 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
                         isPlayground={state.isPlayground}
                         stats={props.stats}
                         onProgressChange={(newProgress) => onProgressChange(dispatch, weekIndex, i, newProgress)}
-                        onProgramChange={(newEvaluatedProgram) =>
-                          onProgramChange(dispatch, newEvaluatedProgram, props, state)
-                        }
-                        onSettingsChange={(newSettings) =>
-                          onSettingsChange(dispatch, newSettings, props, evaluatedProgram)
-                        }
                         onFinish={() => onFinish(dispatch, props, state, d)}
                       />
+                      {!props.useNavModals && (
+                        <WebWorkoutModals
+                          progress={d.progress}
+                          dispatch={buildDayDispatch(dispatch, weekIndex, i, d.progress, props.settings, props.stats)}
+                          settings={state.settings}
+                          program={evaluatedProgram}
+                          day={d.day}
+                          onProgramChange={(newEvaluatedProgram) =>
+                            onProgramChange(dispatch, newEvaluatedProgram, props, state)
+                          }
+                          onSettingsChange={(newSettings) =>
+                            onSettingsChange(dispatch, newSettings, props, evaluatedProgram)
+                          }
+                        />
+                      )}
                     </div>
                   );
                 })}
@@ -277,7 +294,92 @@ export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundPr
       })}
     />
   );
+}
+
+// --- Local variant (standalone web pages) ---
+
+function ProgramPreviewPlaygroundLocal(props: IProgramPreviewPlaygroundProps): JSX.Element {
+  const initialState = useMemo(() => buildInitialState(props), [props.program, props.settings]);
+  const [state, dispatch] = useLensReducer(initialState, {}, [
+    () => {
+      if (props.onEngage) {
+        props.onEngage();
+      }
+    },
+  ]);
+  const evaluatedProgram = useMemo(() => {
+    return Program_evaluate(state.program, state.settings);
+  }, [state.program, state.settings]);
+
+  return (
+    <ProgramPreviewPlaygroundInner
+      props={props}
+      state={state}
+      dispatch={dispatch}
+      evaluatedProgram={evaluatedProgram}
+    />
+  );
+}
+
+// --- Nav variant (app, uses global state.playgroundState) ---
+
+function buildGlobalPlaygroundDispatch(globalDispatch: IDispatch): ILensDispatch<IProgramPreviewPlaygroundState> {
+  return (lensRecordings, desc) => {
+    const recordings = Array.isArray(lensRecordings) ? lensRecordings : [lensRecordings];
+    updateState(
+      globalDispatch,
+      recordings.map((lr) =>
+        lb<IState>()
+          .pi("playgroundState")
+          .recordModify((s) => lr.fn(s))
+      ),
+      desc
+    );
+  };
+}
+
+function ProgramPreviewPlaygroundNav(props: IProgramPreviewPlaygroundProps): JSX.Element {
+  const { state: globalState, dispatch: globalDispatch } = useAppState();
+  const initialState = useMemo(() => buildInitialState(props), [props.program, props.settings]);
+
+  useEffect(() => {
+    updateState(
+      globalDispatch,
+      [lb<IState>().p("playgroundState").record(initialState)],
+      "Initialize playground state"
+    );
+    return () => {
+      updateState(globalDispatch, [lb<IState>().p("playgroundState").record(undefined)], "Cleanup playground state");
+    };
+  }, [initialState]);
+
+  const state = globalState.playgroundState ?? initialState;
+  const dispatch = useMemo(() => buildGlobalPlaygroundDispatch(globalDispatch), [globalDispatch]);
+
+  const evaluatedProgram = useMemo(() => {
+    return Program_evaluate(state.program, state.settings);
+  }, [state.program, state.settings]);
+
+  return (
+    <ProgramPreviewPlaygroundInner
+      props={props}
+      state={state}
+      dispatch={dispatch}
+      evaluatedProgram={evaluatedProgram}
+    />
+  );
+}
+
+// --- Entry point ---
+
+export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundProps): JSX.Element => {
+  if (props.useNavModals) {
+    return <ProgramPreviewPlaygroundNav {...props} />;
+  }
+  return <ProgramPreviewPlaygroundLocal {...props} />;
 });
+
+// --- All Weeks layout ---
 
 interface IProgramPreviewAllWeeksProps extends IProgramPreviewPlaygroundProps {
   evaluatedProgram: IEvaluatedProgram;
@@ -350,12 +452,21 @@ function ProgramPreviewAllWeeks(props: IProgramPreviewAllWeeksProps): JSX.Elemen
                   isPlayground={props.isPlayground}
                   stats={props.stats}
                   onProgressChange={(newProgress) => onProgressChange(dispatch, weekIndex, i, newProgress)}
-                  onProgramChange={(newEvaluatedProgram) =>
-                    onProgramChange(dispatch, newEvaluatedProgram, props, state)
-                  }
-                  onSettingsChange={(newSettings) => onSettingsChange(dispatch, newSettings, props, evaluatedProgram)}
                   onFinish={() => onFinish(dispatch, props, state, d)}
                 />
+                {!props.useNavModals && (
+                  <WebWorkoutModals
+                    progress={d.progress}
+                    dispatch={buildDayDispatch(dispatch, weekIndex, i, d.progress, props.settings, props.stats)}
+                    settings={state.settings}
+                    program={evaluatedProgram}
+                    day={d.day}
+                    onProgramChange={(newEvaluatedProgram) =>
+                      onProgramChange(dispatch, newEvaluatedProgram, props, state)
+                    }
+                    onSettingsChange={(newSettings) => onSettingsChange(dispatch, newSettings, props, evaluatedProgram)}
+                  />
+                )}
               </div>
             ))
           )}

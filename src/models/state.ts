@@ -22,6 +22,7 @@ import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
 import type { NavigationContainerRef } from "@react-navigation/native";
 import type { IRootStackParamList } from "../navigation/types";
 import type { IScreenData } from "./screen";
+import type { IProgramPreviewPlaygroundState } from "../components/preview/programPreviewPlaygroundSetup";
 
 export type IEnv = {
   service: Service;
@@ -156,6 +157,7 @@ export interface IState {
   deviceId?: string;
   editProgramStates: Record<string, IPlannerState>;
   editProgramExerciseStates: Record<string, IPlannerExerciseState>;
+  playgroundState?: IProgramPreviewPlaygroundState;
 }
 
 export interface ILocalStorage {

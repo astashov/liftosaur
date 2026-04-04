@@ -42,9 +42,9 @@ input.no-arrows[type="number"] {
   -moz-appearance: textfield;
 }
 
-html,
-body,
-#app {
+html.liftosaur-app,
+html.liftosaur-app body,
+html.liftosaur-app #app {
   height: 100%;
   overflow: hidden;
 }

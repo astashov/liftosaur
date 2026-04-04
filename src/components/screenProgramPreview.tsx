@@ -49,6 +49,7 @@ export function ScreenProgramPreview(props: IProps): JSX.Element {
           program={program}
           subscription={props.subscription}
           stats={props.navCommon.stats}
+          useNavModals={true}
         />
       </section>
     </div>

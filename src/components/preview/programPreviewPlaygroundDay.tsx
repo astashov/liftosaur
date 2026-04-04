@@ -3,27 +3,13 @@ import { buildCardsReducer, ICardsAction } from "../../ducks/reducer";
 import { IHistoryRecord, ISettings, IStats } from "../../types";
 import { IDispatch } from "../../ducks/types";
 import { ProgramPreviewPlaygroundExercise } from "./programPreviewPlaygroundExercise";
-import { ModalAmrap } from "../modalAmrap";
-import { ProgramPreviewPlaygroundExerciseEditModal } from "./programPreviewPlaygroundExerciseEditModal";
 import { lb } from "lens-shmens";
-import { EditProgramLenses_properlyUpdateStateVariable } from "../../models/editProgramLenses";
 import { Button } from "../button";
-import {
-  IEvaluatedProgram,
-  Program_getProgramExercise,
-  Program_getProgramDay,
-  Program_getProgramDayUsedExercises,
-  Program_getDayData,
-  Program_stateValue,
-} from "../../models/program";
+import { IEvaluatedProgram, Program_getProgramDay, Program_getProgramDayUsedExercises } from "../../models/program";
 import { StringUtils_dashcase } from "../../utils/string";
-import { Exercise_toKey } from "../../models/exercise";
-import { Weight_build } from "../../models/weight";
 import { Markdown } from "../markdown";
-import { PlannerProgramExercise_getState } from "../../pages/planner/models/plannerProgramExercise";
 import { Scroller } from "../scroller";
 import { WorkoutExerciseThumbnail } from "../workoutExerciseThumbnail";
-import { BottomSheetEditTarget } from "../bottomSheetEditTarget";
 import { updateProgress } from "../../models/state";
 import { Progress_getColorToSupersetGroup } from "../../models/progress";
 
@@ -35,8 +21,6 @@ interface IProgramPreviewPlaygroundDayProps {
   settings: ISettings;
   progress: IHistoryRecord;
   onProgressChange: (newProgress: IHistoryRecord) => void;
-  onProgramChange: (newProgram: IEvaluatedProgram) => void;
-  onSettingsChange: (newSettings: ISettings) => void;
   stats: IStats;
   onFinish: () => void;
 }
@@ -54,10 +38,6 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
     [props.settings, props.progress]
   );
 
-  const editModalProgramExerciseId = props.progress.ui?.editModal?.programExerciseId;
-  const editModalProgramExercise = editModalProgramExerciseId
-    ? Program_getProgramExercise(props.day, props.program, editModalProgramExerciseId)
-    : undefined;
   const programDay = Program_getProgramDay(props.program, props.day)!;
   const index = props.progress.ui?.currentEntryIndex ?? 0;
   const entry = props.progress.entries[index];
@@ -119,85 +99,6 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
             Finish this day
           </Button>
         </div>
-      )}
-      {props.progress.ui?.amrapModal && (
-        <ModalAmrap
-          isPlayground={true}
-          progress={props.progress}
-          dispatch={dispatch}
-          settings={props.settings}
-          programExercise={Program_getProgramExercise(
-            props.day,
-            props.program,
-            props.progress.entries[props.progress.ui?.amrapModal?.entryIndex || 0]?.programExerciseId
-          )}
-          otherStates={props.program.states}
-        />
-      )}
-      <BottomSheetEditTarget
-        settings={props.settings}
-        progress={props.progress}
-        dispatch={dispatch}
-        editSetModal={props.progress.ui?.editSetModal}
-        isHidden={props.progress.ui?.editSetModal == null}
-        onClose={() => {
-          dispatch({
-            type: "UpdateProgress",
-            lensRecordings: [lb<IHistoryRecord>().pi("ui").p("editSetModal").record(undefined)],
-            desc: "close-bottomsheet-target",
-          });
-        }}
-      />
-      {editModalProgramExercise && (
-        <ProgramPreviewPlaygroundExerciseEditModal
-          onClose={() =>
-            dispatch({
-              type: "UpdateProgress",
-              lensRecordings: [lb<IHistoryRecord>().pi("ui").p("editModal").record(undefined)],
-              desc: "close-playground-exercise-edit-modal",
-            })
-          }
-          onEditStateVariable={(stateKey, newValue) => {
-            const dayData = Program_getDayData(props.program, props.day);
-            const lensRecording = EditProgramLenses_properlyUpdateStateVariable(
-              lb<IEvaluatedProgram>()
-                .p("weeks")
-                .i(dayData.week - 1)
-                .p("days")
-                .i(dayData.dayInWeek - 1)
-                .p("exercises")
-                .find((e) => e.key === editModalProgramExerciseId),
-              {
-                [stateKey]: Program_stateValue(
-                  PlannerProgramExercise_getState(editModalProgramExercise),
-                  stateKey,
-                  newValue
-                ),
-              }
-            );
-            const newProgram = lensRecording.reduce((acc, lens) => lens.fn(acc), props.program);
-            props.onProgramChange(newProgram);
-          }}
-          onEditVariable={(variableKey, newValue) => {
-            if (!editModalProgramExercise.exerciseType) {
-              return;
-            }
-            const exerciseType = Exercise_toKey(editModalProgramExercise.exerciseType);
-            const newSettings = {
-              ...props.settings,
-              exerciseData: {
-                ...props.settings.exerciseData,
-                [exerciseType]: {
-                  ...props.settings.exerciseData[exerciseType],
-                  [variableKey]: Weight_build(newValue, props.settings.units),
-                },
-              },
-            };
-            props.onSettingsChange(newSettings);
-          }}
-          programExercise={editModalProgramExercise}
-          settings={props.settings}
-        />
       )}
     </div>
   );

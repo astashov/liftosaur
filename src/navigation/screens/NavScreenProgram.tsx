@@ -17,6 +17,7 @@ import { Progress_getCurrentProgress } from "../../models/progress";
 import { FallbackScreen } from "../../components/fallbackScreen";
 import { Thunk_pullScreen } from "../../ducks/thunks";
 import { useAppContext } from "../../components/appContext";
+import { usePlaygroundModalBridges } from "../usePlaygroundModalBridges";
 
 export function NavScreenPrograms(): JSX.Element {
   const { state, dispatch } = useAppState();
@@ -40,6 +41,7 @@ export function NavScreenPrograms(): JSX.Element {
 export function NavScreenEditProgram(): JSX.Element {
   const { state, dispatch } = useAppState();
   const { service } = useAppContext();
+  usePlaygroundModalBridges(state);
   const navCommon = buildNavCommon(state);
   const route = useRoute<{ key: string; name: "editProgram"; params: { programId: string } }>();
   const programId = route.params.programId;
@@ -179,6 +181,9 @@ export function NavScreenProgramSelect(): JSX.Element {
 export function NavScreenProgramPreview(): JSX.Element {
   const { state, dispatch } = useAppState();
   const navCommon = buildNavCommon(state);
+
+  usePlaygroundModalBridges(state);
+
   if (state.previewProgram?.id == null) {
     setTimeout(() => dispatch(Thunk_pullScreen()), 0);
     return (
