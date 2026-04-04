@@ -1,6 +1,7 @@
 import { JSX } from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { useAppState } from "./StateContext";
 import type {
   IOnboardingStackParamList,
   IHomeStackParamList,
@@ -62,7 +63,8 @@ const Tab = createBottomTabNavigator<IRootTabParamList>();
 const RootStack = createStackNavigator<IRootStackParamList>();
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-function getStackScreenOptions() {
+function useStackScreenOptions() {
+  useAppState();
   return {
     header: NavHeader,
     animationEnabled: false,
@@ -71,8 +73,9 @@ function getStackScreenOptions() {
 }
 
 function OnboardingStackScreen(): JSX.Element {
+  const screenOptions = useStackScreenOptions();
   return (
-    <OnboardingStack.Navigator screenOptions={getStackScreenOptions()}>
+    <OnboardingStack.Navigator screenOptions={screenOptions}>
       <OnboardingStack.Screen name="first" component={NavScreenFirst} />
       <OnboardingStack.Screen name="units" component={NavScreenUnits} />
       <OnboardingStack.Screen name="setupequipment" component={NavScreenSetupEquipment} />
@@ -86,8 +89,9 @@ function OnboardingStackScreen(): JSX.Element {
 }
 
 function HomeStackScreen(): JSX.Element {
+  const screenOptions = useStackScreenOptions();
   return (
-    <HomeStack.Navigator screenOptions={getStackScreenOptions()}>
+    <HomeStack.Navigator screenOptions={screenOptions}>
       <HomeStack.Screen name="main" component={NavScreenMain} />
       <HomeStack.Screen name="progress" component={NavScreenProgress} getId={({ params }) => String(params?.id ?? 0)} />
     </HomeStack.Navigator>
@@ -95,8 +99,9 @@ function HomeStackScreen(): JSX.Element {
 }
 
 function ProgramStackScreen(): JSX.Element {
+  const screenOptions = useStackScreenOptions();
   return (
-    <ProgramStack.Navigator screenOptions={getStackScreenOptions()}>
+    <ProgramStack.Navigator screenOptions={screenOptions}>
       <ProgramStack.Screen name="programs" component={NavScreenPrograms} />
       <ProgramStack.Screen name="editProgram" component={NavScreenEditProgram} />
       <ProgramStack.Screen name="editProgramExercise" component={NavScreenEditProgramExercise} />
@@ -109,8 +114,9 @@ function ProgramStackScreen(): JSX.Element {
 }
 
 function WorkoutStackScreen(): JSX.Element {
+  const screenOptions = useStackScreenOptions();
   return (
-    <WorkoutStack.Navigator screenOptions={getStackScreenOptions()}>
+    <WorkoutStack.Navigator screenOptions={screenOptions}>
       <WorkoutStack.Screen
         name="progress"
         component={NavScreenProgress}
@@ -125,8 +131,9 @@ function WorkoutStackScreen(): JSX.Element {
 }
 
 function GraphsStackScreen(): JSX.Element {
+  const screenOptions = useStackScreenOptions();
   return (
-    <GraphsStack.Navigator screenOptions={getStackScreenOptions()}>
+    <GraphsStack.Navigator screenOptions={screenOptions}>
       <GraphsStack.Screen name="graphs" component={NavScreenGraphs} />
       <GraphsStack.Screen
         name="progress"
@@ -138,8 +145,9 @@ function GraphsStackScreen(): JSX.Element {
 }
 
 function MeStackScreen(): JSX.Element {
+  const screenOptions = useStackScreenOptions();
   return (
-    <MeStack.Navigator screenOptions={getStackScreenOptions()}>
+    <MeStack.Navigator screenOptions={screenOptions}>
       <MeStack.Screen name="settings" component={NavScreenSettings} />
       <MeStack.Screen name="account" component={NavScreenAccount} />
       <MeStack.Screen name="timers" component={NavScreenTimers} />
@@ -164,7 +172,8 @@ const tabScreenOptions = {
   sceneStyle: { flex: 1, overflow: "hidden" as const },
 };
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-function getRootScreenOptions() {
+function useRootScreenOptions() {
+  useAppState();
   return {
     headerShown: false,
     animationEnabled: false,
@@ -188,10 +197,12 @@ const onboardingScreens: IScreen[] = ["first", "units", "setupequipment", "setup
 
 export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
   const { initialScreen } = props;
+  const rootScreenOptions = useRootScreenOptions();
+  const stackScreenOptions = useStackScreenOptions();
   const isOnboarding = initialScreen ? onboardingScreens.includes(initialScreen) : false;
   return (
     <RootStack.Navigator
-      screenOptions={getRootScreenOptions()}
+      screenOptions={rootScreenOptions}
       initialRouteName={isOnboarding ? "onboarding" : "mainTabs"}
     >
       <RootStack.Screen name="onboarding" component={OnboardingStackScreen} />
@@ -199,7 +210,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
       <RootStack.Screen
         name="subscription"
         component={NavScreenSubscription}
-        options={{ ...getStackScreenOptions(), headerShown: true }}
+        options={{ ...stackScreenOptions, headerShown: true }}
       />
     </RootStack.Navigator>
   );
