@@ -1,5 +1,5 @@
 import type { NavigatorScreenParams } from "@react-navigation/native";
-import type { IDayData, IStatsKey } from "../types";
+import type { IDayData, IProgressUi, IStatsKey } from "../types";
 
 export type IHomeStackParamList = {
   main: { historyRecordId?: number } | undefined;
@@ -70,6 +70,7 @@ export type IRootStackParamList = {
   onboarding: NavigatorScreenParams<IOnboardingStackParamList>;
   mainTabs: NavigatorScreenParams<IRootTabParamList>;
   subscription: undefined;
+  amrapModal: NonNullable<IProgressUi["amrapModal"]> & { progressId: number };
 };
 
 export type IRootLevelScreenParamList = {

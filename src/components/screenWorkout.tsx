@@ -1,12 +1,10 @@
-import { JSX, useEffect, useState } from "react";
+import { JSX, useEffect, useRef, useState } from "react";
 import { IExercisePickerState, IHistoryRecord, IProgram, ISettings, IStats, ISubscription } from "../types";
 import { buildCustomDispatch, IDispatch } from "../ducks/types";
 import {
   Program_evaluate,
   Program_isEmpty,
   Program_getProgramDay,
-  Program_getProgramExercise,
-  Program_getFirstProgramExercise,
   Program_getProgramExerciseByTypeWeekAndDay,
   Program_nextHistoryEntry,
   Program_getDayData,
@@ -31,7 +29,6 @@ import { IconTrash } from "./icons/iconTrash";
 import { useNavOptions } from "../navigation/useNavOptions";
 import { Timer } from "./timer";
 import { Workout } from "./workout";
-import { ModalAmrap } from "./modalAmrap";
 import { ModalDate } from "./modalDate";
 import { Exercise_handleCustomExerciseChange } from "../models/exercise";
 import { lb } from "lens-shmens";
@@ -54,6 +51,7 @@ import { BottomSheetWorkoutSuperset } from "./bottomSheetWorkoutSuperset";
 import { Reps_findNextSetIndex } from "../models/set";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { workoutTourConfig } from "./tour/workoutTourConfig";
+import { navigationRef } from "../navigation/navigationRef";
 
 interface IScreenWorkoutProps {
   progress: IHistoryRecord;
@@ -112,6 +110,16 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
       );
     }
   }, []);
+
+  const amrapModal = progress.ui?.amrapModal;
+  const prevAmrapModal = useRef(amrapModal);
+  useEffect(() => {
+    if (amrapModal && !prevAmrapModal.current) {
+      navigationRef.navigate("amrapModal", { ...amrapModal, progressId: progress.id });
+    }
+    prevAmrapModal.current = amrapModal;
+  }, [amrapModal]);
+
   const exercisePickerState = progress.ui?.exercisePicker?.state;
   const exerciseSuperset = progress.ui?.showSupersetPicker;
 
@@ -189,28 +197,6 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
           progress={progress}
           dispatch={props.dispatch}
         />
-        {progress?.ui?.amrapModal && (
-          <ModalAmrap
-            isPlayground={false}
-            settings={props.settings}
-            dispatch={props.dispatch}
-            programExercise={
-              Program_getProgramExercise(
-                progress.day,
-                evaluatedProgram,
-                progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.programExerciseId
-              ) ||
-              Program_getFirstProgramExercise(
-                evaluatedProgram,
-                progress.entries[progress.ui?.amrapModal?.entryIndex || 0]?.programExerciseId
-              )
-            }
-            progress={progress}
-            onDone={() => {
-              Progress_forceUpdateEntryIndex(props.dispatch);
-            }}
-          />
-        )}
         {dateModal != null && (
           <ModalDate
             isHidden={false}
