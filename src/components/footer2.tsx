@@ -44,24 +44,11 @@ export function Footer2View(props: IFooterProps): JSX.Element {
   return (
     <>
       <div
-        className={`${props.isStatic ? "" : "fixed bottom-0 left-0 "}z-10 items-center w-full text-center pointer-events-none`}
-        style={{ marginBottom: "-2px" }}
+        className={`${props.isStatic ? "relative" : "fixed bottom-0 left-0"} z-10 items-center w-full text-center footer-shadow bg-background-default safe-area-inset-bottom`}
+        style={{ overscrollBehavior: "none" }}
       >
-        <div
-          className="box-content absolute flex items-end footer-shadow bg-background-default safe-area-inset-bottom"
-          style={{
-            width: "100%",
-            marginLeft: "-50%",
-            left: "50%",
-            height: "141px",
-            bottom: "-76px",
-          }}
-        />
-        <div
-          className="box-content relative z-10 flex px-2 pt-4 pointer-events-auto safe-area-inset-bottom"
-          style={{ minHeight: "54px" }}
-        >
-          <div className="flex justify-around flex-1" style={{ marginTop: "-10px" }}>
+        <div className="flex px-2 pt-4" style={{ minHeight: "63px" }}>
+          <div className="flex justify-around flex-1" style={{ marginTop: "-13px" }}>
             <FooterButton
               name="home"
               screen={screen}
@@ -85,7 +72,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
               <button
                 className="absolute nm-footer-workout"
                 data-cy="footer-workout"
-                style={{ top: "-27px", left: "50%", marginLeft: "-27px" }}
+                style={{ top: "-32px", left: "50%", marginLeft: "-27px" }}
                 onClick={() => {
                   if (!!props.navCommon.progress) {
                     props.dispatch(Thunk_startProgramDay());
@@ -98,13 +85,13 @@ export function Footer2View(props: IFooterProps): JSX.Element {
               </button>
               <div
                 className={Screen_tab(screen) === "workout" ? "text-purplev2-700" : ""}
-                style={{ fontSize: "0.625rem", paddingTop: "30px" }}
+                style={{ fontSize: "0.625rem", paddingTop: "25px" }}
               >
                 Workout
               </div>
             </div>
           </div>
-          <div className="flex justify-around flex-1" style={{ marginTop: "-10px" }}>
+          <div className="flex justify-around flex-1" style={{ marginTop: "-13px" }}>
             <FooterButton
               name="graphs"
               screen={screen}
