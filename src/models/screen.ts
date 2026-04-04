@@ -36,7 +36,7 @@ export type IScreenData =
   | { name: "setupplates"; params?: Record<string, never> }
   | { name: "programselect"; params?: Record<string, never> }
   | { name: "programPreview"; params?: Record<string, never> }
-  | { name: "apiKeys"; params?: Record<string, never> }
+  | { name: "apiKeys"; params?: Record<string, never> };
 
 export type IScreen = IScreenData["name"];
 export type IScreenParams<T extends IScreen> = Extract<IScreenData, { name: T }>["params"];

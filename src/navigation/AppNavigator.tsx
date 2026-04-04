@@ -52,6 +52,7 @@ import {
   NavScreenApiKeys,
 } from "./screens/NavScreenMe";
 import { Footer2Wrapper } from "./screens/NavScreenFooter2";
+import { NavModalAmrap } from "./modals/NavModalAmrap";
 
 const OnboardingStack = createStackNavigator<IOnboardingStackParamList>();
 const HomeStack = createStackNavigator<IHomeStackParamList>();
@@ -201,10 +202,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
   const stackScreenOptions = useStackScreenOptions();
   const isOnboarding = initialScreen ? onboardingScreens.includes(initialScreen) : false;
   return (
-    <RootStack.Navigator
-      screenOptions={rootScreenOptions}
-      initialRouteName={isOnboarding ? "onboarding" : "mainTabs"}
-    >
+    <RootStack.Navigator screenOptions={rootScreenOptions} initialRouteName={isOnboarding ? "onboarding" : "mainTabs"}>
       <RootStack.Screen name="onboarding" component={OnboardingStackScreen} />
       <RootStack.Screen name="mainTabs" component={MainTabsScreen} />
       <RootStack.Screen
@@ -212,6 +210,16 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
         component={NavScreenSubscription}
         options={{ ...stackScreenOptions, headerShown: true }}
       />
+      <RootStack.Group
+        screenOptions={{
+          presentation: "transparentModal",
+          headerShown: false,
+          cardOverlayEnabled: false,
+          cardStyle: { backgroundColor: "transparent" },
+        }}
+      >
+        <RootStack.Screen name="amrapModal" component={NavModalAmrap} />
+      </RootStack.Group>
     </RootStack.Navigator>
   );
 }

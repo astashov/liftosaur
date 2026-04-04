@@ -2,7 +2,7 @@ import { JSX, useState } from "react";
 import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
 import { Modal } from "./modal";
-import { IHistoryRecord, IPercentage, IProgramState, ISettings, IWeight } from "../types";
+import { IHistoryRecord, IPercentage, IProgressUi, IProgramState, ISettings, IWeight } from "../types";
 import { GroupHeader } from "./groupHeader";
 import { ObjectUtils_keys } from "../utils/object";
 import { Weight_build, Weight_is, Weight_isPct, Weight_buildPct } from "../models/weight";
@@ -28,10 +28,39 @@ interface IModalAmrapProps {
 }
 
 export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
+  const amrapModal = props.progress?.ui?.amrapModal;
+  return (
+    <Modal maxWidth="480px" isHidden={!amrapModal} isFullWidth={true} shouldShowClose={true} onClose={props.onDone}>
+      {amrapModal && (
+        <ModalAmrapContent
+          progress={props.progress}
+          dispatch={props.dispatch}
+          isPlayground={props.isPlayground}
+          settings={props.settings}
+          programExercise={props.programExercise}
+          otherStates={props.otherStates}
+          amrapModal={amrapModal}
+          onDone={props.onDone}
+        />
+      )}
+    </Modal>
+  );
+}
+
+interface IModalAmrapContentProps {
+  progress: IHistoryRecord;
+  dispatch: IDispatch;
+  isPlayground: boolean;
+  settings: ISettings;
+  amrapModal: NonNullable<IProgressUi["amrapModal"]>;
+  programExercise?: IPlannerProgramExercise;
+  otherStates?: IByExercise<IProgramState>;
+  onDone?: () => void;
+}
+
+export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
   const progress = props.progress;
-  const amrapModal = progress?.ui?.amrapModal;
-  const entryIndex = amrapModal?.entryIndex || 0;
-  const setIndex = amrapModal?.setIndex || 0;
+  const { entryIndex, setIndex } = props.amrapModal;
   const entry = progress.entries[entryIndex];
   const isUnilateral = Exercise_getIsUnilateral(entry?.exercise || props.programExercise?.exerciseType, props.settings);
 
@@ -42,10 +71,10 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
   const initialRpe = entry?.sets[setIndex]?.completedRpe ?? entry?.sets[setIndex]?.rpe;
   const initialWeight = entry?.sets[setIndex]?.weight;
 
-  const isAmrap = !!amrapModal?.isAmrap;
-  const logRpe = !!amrapModal?.logRpe;
-  const askWeight = !!amrapModal?.askWeight;
-  const userVars = !!amrapModal?.userVars;
+  const isAmrap = !!props.amrapModal.isAmrap;
+  const logRpe = !!props.amrapModal.logRpe;
+  const askWeight = !!props.amrapModal.askWeight;
+  const userVars = !!props.amrapModal.userVars;
 
   const [repsInputValue, setRepsInputValue] = useState<number | undefined>(initialReps);
   const [repsLeftInputValue, setRepsLeftInputValue] = useState<number | undefined>(initialRepsLeft);
@@ -94,128 +123,126 @@ export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
   }
 
   return (
-    <Modal maxWidth="480px" isHidden={!amrapModal} isFullWidth={true} shouldShowClose={true} onClose={() => onDone()}>
-      <form className="mx-1 my-4" onSubmit={(e) => e.preventDefault()}>
-        {isAmrap && (
-          <div>
-            {isUnilateral && (
-              <div className="mb-2">
-                <InputNumber
-                  label="Completed reps (left)"
-                  value={repsLeftInputValue ?? 0}
-                  data-cy="modal-amrap-left-input"
-                  data-name="modal-input-left-autofocus"
-                  min={0}
-                  step={1}
-                  onUpdate={(newValue) => {
-                    setRepsLeftInputValue(newValue);
-                  }}
-                />
-              </div>
-            )}
+    <form className="mx-1 my-4" onSubmit={(e) => e.preventDefault()}>
+      {isAmrap && (
+        <div>
+          {isUnilateral && (
             <div className="mb-2">
               <InputNumber
-                label={isUnilateral ? "Completed reps (right)" : "Completed reps"}
-                value={repsInputValue ?? 0}
-                data-cy="modal-amrap-input"
-                data-name="modal-input-autofocus"
+                label="Completed reps (left)"
+                value={repsLeftInputValue ?? 0}
+                data-cy="modal-amrap-left-input"
+                data-name="modal-input-left-autofocus"
                 min={0}
                 step={1}
                 onUpdate={(newValue) => {
-                  setRepsInputValue(newValue);
+                  setRepsLeftInputValue(newValue);
                 }}
               />
             </div>
-          </div>
-        )}
-        {askWeight && (
-          <div className="mb-2">
-            <InputWeight
-              exerciseType={entry?.exercise || props.programExercise?.exerciseType}
-              label="Weight"
-              units={["kg", "lb"]}
-              value={weightInputValue || Weight_build(0, props.settings.units)}
-              data-cy="modal-amrap-weight-input"
-              settings={props.settings}
-              onUpdate={(newValue) => {
-                setWeightInputValue(newValue);
-              }}
-            />
-          </div>
-        )}
-        {logRpe && (
+          )}
           <div className="mb-2">
             <InputNumber
-              label="Completed RPE"
-              value={rpeInputValue ?? 0}
-              data-cy="modal-rpe-input"
-              data-name="modal-rpe-autofocus"
+              label={isUnilateral ? "Completed reps (right)" : "Completed reps"}
+              value={repsInputValue ?? 0}
+              data-cy="modal-amrap-input"
+              data-name="modal-input-autofocus"
               min={0}
-              max={10}
-              step={0.5}
+              step={1}
               onUpdate={(newValue) => {
-                setRpeInputValue(newValue);
+                setRepsInputValue(newValue);
               }}
             />
           </div>
-        )}
-        {props.programExercise && userVars && (
-          <UserPromptedStateVars
-            userVarInputValues={userVarInputValues}
-            onUpdate={(key, value) => {
-              setUserVarInputValues((prev) => {
-                const previousValue = prev[key];
-                const typedValue = Weight_is(previousValue)
-                  ? Weight_build(value, previousValue.unit)
-                  : Weight_isPct(previousValue)
-                    ? Weight_buildPct(value)
-                    : value;
-                return { ...prev, [key]: typedValue };
-              });
+        </div>
+      )}
+      {askWeight && (
+        <div className="mb-2">
+          <InputWeight
+            exerciseType={entry?.exercise || props.programExercise?.exerciseType}
+            label="Weight"
+            units={["kg", "lb"]}
+            value={weightInputValue || Weight_build(0, props.settings.units)}
+            data-cy="modal-amrap-weight-input"
+            settings={props.settings}
+            onUpdate={(newValue) => {
+              setWeightInputValue(newValue);
             }}
           />
-        )}
-        <div className="mt-4 text-right">
-          <Button
-            name="modal-amrap-clear"
-            data-cy="modal-amrap-clear"
-            type="button"
-            kind="grayv2"
-            className="mr-3"
-            onClick={(e) => {
-              e.preventDefault();
-              onDone();
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            name="modal-amrap-submit"
-            kind="purple"
-            type="submit"
-            data-cy="modal-amrap-submit"
-            className="ls-modal-set-amrap"
-            onClick={(e) => {
-              e.preventDefault();
-              const amrapValue = isAmrap ? (repsInputValue ?? 0) : undefined;
-              const amrapLeftValue = isAmrap && isUnilateral ? (repsLeftInputValue ?? 0) : undefined;
-              const rpeValue = logRpe ? rpeInputValue : undefined;
-              const weightOrPctValue = askWeight
-                ? (weightInputValue ?? Weight_build(0, props.settings.units))
-                : undefined;
-              const weightValue =
-                weightOrPctValue != null && Weight_isPct(weightOrPctValue)
-                  ? Weight_build(weightOrPctValue.value, props.settings.units)
-                  : weightOrPctValue;
-
-              onDone(amrapValue, amrapLeftValue, rpeValue, weightValue, userVarInputValues);
-            }}
-          >
-            Done
-          </Button>
         </div>
-      </form>
-    </Modal>
+      )}
+      {logRpe && (
+        <div className="mb-2">
+          <InputNumber
+            label="Completed RPE"
+            value={rpeInputValue ?? 0}
+            data-cy="modal-rpe-input"
+            data-name="modal-rpe-autofocus"
+            min={0}
+            max={10}
+            step={0.5}
+            onUpdate={(newValue) => {
+              setRpeInputValue(newValue);
+            }}
+          />
+        </div>
+      )}
+      {props.programExercise && userVars && (
+        <UserPromptedStateVars
+          userVarInputValues={userVarInputValues}
+          onUpdate={(key, value) => {
+            setUserVarInputValues((prev) => {
+              const previousValue = prev[key];
+              const typedValue = Weight_is(previousValue)
+                ? Weight_build(value, previousValue.unit)
+                : Weight_isPct(previousValue)
+                  ? Weight_buildPct(value)
+                  : value;
+              return { ...prev, [key]: typedValue };
+            });
+          }}
+        />
+      )}
+      <div className="mt-4 text-right">
+        <Button
+          name="modal-amrap-clear"
+          data-cy="modal-amrap-clear"
+          type="button"
+          kind="grayv2"
+          className="mr-3"
+          onClick={(e) => {
+            e.preventDefault();
+            onDone();
+          }}
+        >
+          Cancel
+        </Button>
+        <Button
+          name="modal-amrap-submit"
+          kind="purple"
+          type="submit"
+          data-cy="modal-amrap-submit"
+          className="ls-modal-set-amrap"
+          onClick={(e) => {
+            e.preventDefault();
+            const amrapValue = isAmrap ? (repsInputValue ?? 0) : undefined;
+            const amrapLeftValue = isAmrap && isUnilateral ? (repsLeftInputValue ?? 0) : undefined;
+            const rpeValue = logRpe ? rpeInputValue : undefined;
+            const weightOrPctValue = askWeight
+              ? (weightInputValue ?? Weight_build(0, props.settings.units))
+              : undefined;
+            const weightValue =
+              weightOrPctValue != null && Weight_isPct(weightOrPctValue)
+                ? Weight_build(weightOrPctValue.value, props.settings.units)
+                : weightOrPctValue;
+
+            onDone(amrapValue, amrapLeftValue, rpeValue, weightValue, userVarInputValues);
+          }}
+        >
+          Done
+        </Button>
+      </div>
+    </form>
   );
 }
 
