@@ -40,7 +40,7 @@ import { SendMessage_toIosAndAndroid, SendMessage_isIos } from "../utils/sendMes
 
 interface IWorkoutViewProps {
   history: IHistoryRecord[];
-  setIsShareShown: (value: boolean) => void;
+  onShare?: () => void;
   progress: IHistoryRecord;
   allPrograms: IProgram[];
   program?: IEvaluatedProgram;
@@ -89,7 +89,7 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
         onConvertToProgram={() => {
           navigationRef.navigate("dayFromAdhocModal", { progressId: props.progress.id });
         }}
-        setIsShareShown={props.setIsShareShown}
+        onShare={props.onShare}
       />
       <WorkoutListOfExercises
         progress={props.progress}
@@ -182,7 +182,7 @@ interface IWorkoutHeaderProps {
   progress: IHistoryRecord;
   settings: ISettings;
   dispatch: IDispatch;
-  setIsShareShown: (value: boolean) => void;
+  onShare?: () => void;
   onConvertToProgram?: () => void;
   description?: string;
   allPrograms: IProgram[];
@@ -227,7 +227,7 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
                 name="past-workout-share"
                 className="ls-past-workout-share"
                 onClick={() => {
-                  props.setIsShareShown(true);
+                  props.onShare?.();
                 }}
               >
                 <IconShare />

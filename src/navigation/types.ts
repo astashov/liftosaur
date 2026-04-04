@@ -102,6 +102,8 @@ export type IRootStackParamList = {
   signupRequestModal: undefined;
   thanks25Modal: undefined;
   corruptedStateModal: undefined;
+  debugModal: undefined;
+  workoutShareModal: { progressId: number };
 };
 
 export type IRootLevelScreenParamList = {

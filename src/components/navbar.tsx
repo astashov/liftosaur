@@ -10,7 +10,7 @@ import { lb } from "lens-shmens";
 import { Modal } from "./modal";
 import { Link } from "./link";
 import { ObjectUtils_filter, ObjectUtils_values } from "../utils/object";
-import { ModalDebug } from "./modalDebug";
+import { navigationRef } from "../navigation/navigationRef";
 import { Tailwind_semantic, Tailwind_colors } from "../utils/tailwindConfig";
 import { ITourId } from "../models/state";
 
@@ -102,9 +102,14 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
                 clearTimeout(timerRef.current);
                 timerRef.current = undefined;
               }
-              setShowDebug(showDebug + 1);
+              const newCount = showDebug + 1;
+              setShowDebug(newCount);
+              if (newCount > 4) {
+                setShowDebug(0);
+                navigationRef.navigate("debugModal");
+              }
               timerRef.current = window.setTimeout(() => {
-                if (showDebug <= 3) {
+                if (newCount <= 3) {
                   setShowDebug(0);
                 }
               }, 1000);
@@ -184,7 +189,6 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
           </div>
         </Modal>
       )}
-      {showDebug > 4 && <ModalDebug onClose={() => setShowDebug(0)} loading={loading} dispatch={props.dispatch} />}
     </>
   );
 };

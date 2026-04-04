@@ -1,25 +1,23 @@
 import type { JSX } from "react";
-import { Thunk_postDebug } from "../ducks/thunks";
-import { IDispatch } from "../ducks/types";
-import { ILoading } from "../models/state";
-import { CollectionUtils_sortBy, CollectionUtils_nonnull } from "../utils/collection";
-import { DateUtils_formatHHMMSS } from "../utils/date";
-import { ObjectUtils_values } from "../utils/object";
-import { Button } from "./button";
-import { Modal } from "./modal";
-import { SendMessage_toIos } from "../utils/sendMessage";
+import { useNavigation } from "@react-navigation/native";
+import { useAppState } from "../StateContext";
+import { ModalScreenContainer } from "../ModalScreenContainer";
+import { Thunk_postDebug } from "../../ducks/thunks";
+import { CollectionUtils_sortBy, CollectionUtils_nonnull } from "../../utils/collection";
+import { DateUtils_formatHHMMSS } from "../../utils/date";
+import { ObjectUtils_values } from "../../utils/object";
+import { Button } from "../../components/button";
+import { SendMessage_toIos } from "../../utils/sendMessage";
 
-interface IModalDebugProps {
-  onClose: () => void;
-  loading: ILoading;
-  dispatch: IDispatch;
-}
+export function NavModalDebug(): JSX.Element {
+  const { state, dispatch } = useAppState();
+  const navigation = useNavigation();
 
-export function ModalDebug(props: IModalDebugProps): JSX.Element {
-  const loadingItems = props.loading.items;
+  const loadingItems = state.loading.items;
   const items = CollectionUtils_sortBy(CollectionUtils_nonnull(ObjectUtils_values(loadingItems)), "startTime");
+
   return (
-    <Modal isHidden={false} onClose={props.onClose} shouldShowClose={true} isFullWidth>
+    <ModalScreenContainer onClose={() => navigation.goBack()} isFullWidth>
       <h3 className="pb-2 font-bold">Network calls</h3>
       <ul>
         {items.map((item) => {
@@ -47,7 +45,7 @@ export function ModalDebug(props: IModalDebugProps): JSX.Element {
         })}
       </ul>
       <div className="mt-4 text-center">
-        <Button name="send-debug-info" kind="purple" onClick={() => props.dispatch(Thunk_postDebug())}>
+        <Button name="send-debug-info" kind="purple" onClick={() => dispatch(Thunk_postDebug())}>
           Send Debug Info
         </Button>
       </div>
@@ -56,6 +54,6 @@ export function ModalDebug(props: IModalDebugProps): JSX.Element {
           Share device logs
         </Button>
       </div>
-    </Modal>
+    </ModalScreenContainer>
   );
 }
