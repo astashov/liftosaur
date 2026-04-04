@@ -159,7 +159,10 @@ function MeStackScreen(): JSX.Element {
   );
 }
 
-const tabScreenOptions = { headerShown: false };
+const tabScreenOptions = {
+  headerShown: false,
+  sceneStyle: { flex: 1, overflow: "hidden" as const },
+};
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function getRootScreenOptions() {
   return {
