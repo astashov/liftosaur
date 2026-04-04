@@ -22,7 +22,7 @@ interface IProgramPreviewPlaygroundExerciseEditModalProps {
   settings: ISettings;
 }
 
-export function ProgramPreviewPlaygroundExerciseEditModal(
+export function ProgramPreviewPlaygroundExerciseEditContent(
   props: IProgramPreviewPlaygroundExerciseEditModalProps
 ): JSX.Element | null {
   const programExercise = props.programExercise;
@@ -34,47 +34,55 @@ export function ProgramPreviewPlaygroundExerciseEditModal(
   }
   const exercise = Exercise_get(programExercise.exerciseType, props.settings.exercises);
   return (
-    <Modal shouldShowClose={true} onClose={props.onClose}>
-      <div style={{ minWidth: "15rem" }}>
-        {!props.hideVariables && (
-          <>
-            <ExerciseRM
-              name="1 Rep Max"
-              rmKey="rm1"
-              exercise={exercise}
+    <div style={{ minWidth: "15rem" }}>
+      {!props.hideVariables && (
+        <>
+          <ExerciseRM
+            name="1 Rep Max"
+            rmKey="rm1"
+            exercise={exercise}
+            settings={props.settings}
+            onEditVariable={(value) => {
+              props.onEditVariable("rm1", value);
+            }}
+          />
+        </>
+      )}
+      {(hasStateVariables || props.hideVariables) && (
+        <>
+          <h2 className="mb-2 text-lg text-center">Edit state variables</h2>
+          {hasStateVariables ? (
+            <ProgramStateVariables
               settings={props.settings}
-              onEditVariable={(value) => {
-                props.onEditVariable("rm1", value);
-              }}
+              state={state}
+              stateMetadata={stateMetadata}
+              onEditStateVariable={props.onEditStateVariable}
             />
-          </>
-        )}
-        {(hasStateVariables || props.hideVariables) && (
-          <>
-            <h2 className="mb-2 text-lg text-center">Edit state variables</h2>
-            {hasStateVariables ? (
-              <ProgramStateVariables
-                settings={props.settings}
-                state={state}
-                stateMetadata={stateMetadata}
-                onEditStateVariable={props.onEditStateVariable}
-              />
-            ) : (
-              <div className="px-4 py-2 text-sm italic text-center text-text-secondary">No state variables</div>
-            )}
-          </>
-        )}
-        <div className="mt-4 text-center">
-          <Button
-            name="details-workout-playground-save-statvars"
-            kind="purple"
-            onClick={props.onClose}
-            data-cy="modal-edit-mode-save-statvars"
-          >
-            Done
-          </Button>
-        </div>
+          ) : (
+            <div className="px-4 py-2 text-sm italic text-center text-text-secondary">No state variables</div>
+          )}
+        </>
+      )}
+      <div className="mt-4 text-center">
+        <Button
+          name="details-workout-playground-save-statvars"
+          kind="purple"
+          onClick={props.onClose}
+          data-cy="modal-edit-mode-save-statvars"
+        >
+          Done
+        </Button>
       </div>
+    </div>
+  );
+}
+
+export function ProgramPreviewPlaygroundExerciseEditModal(
+  props: IProgramPreviewPlaygroundExerciseEditModalProps
+): JSX.Element | null {
+  return (
+    <Modal shouldShowClose={true} onClose={props.onClose}>
+      <ProgramPreviewPlaygroundExerciseEditContent {...props} />
     </Modal>
   );
 }

@@ -88,6 +88,7 @@ export type IRootStackParamList = {
   equipmentModal: { progressId: number };
   rm1Modal: { progressId: number };
   supersetPickerModal: { progressId: number };
+  playgroundEditModal: { weekIndex: number; dayIndex: number };
 };
 
 export type IRootLevelScreenParamList = {
