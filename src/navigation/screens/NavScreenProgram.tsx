@@ -1,5 +1,5 @@
-import { JSX } from "react";
-import { useRoute } from "@react-navigation/native";
+import { JSX, useEffect } from "react";
+import { useRoute, useNavigation } from "@react-navigation/native";
 import type { IDayData } from "../../types";
 import { useAppState } from "../StateContext";
 import { buildNavCommon } from "../utils";
@@ -72,6 +72,7 @@ export function NavScreenEditProgram(): JSX.Element {
 
 export function NavScreenEditProgramExercise(): JSX.Element {
   const { state, dispatch } = useAppState();
+  const navigation = useNavigation();
   const navCommon = buildNavCommon(state);
   const route = useRoute<{
     key: string;
@@ -82,6 +83,14 @@ export function NavScreenEditProgramExercise(): JSX.Element {
   const exerciseStateKey = `${programId}_${exerciseKey}`;
   const plannerState = state.editProgramExerciseStates[exerciseStateKey];
   const editProgramState = state.editProgramStates[programId];
+
+  const pendingNewKey = plannerState?.ui.pendingNewKey;
+  useEffect(() => {
+    if (pendingNewKey) {
+      navigation.setParams({ key: pendingNewKey } as never);
+    }
+  }, [pendingNewKey]);
+
   return (
     <NavScreenContent>
       <FallbackScreen state={{ plannerState, exerciseKey, dayData }} dispatch={dispatch}>

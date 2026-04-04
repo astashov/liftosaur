@@ -1,10 +1,9 @@
-import { JSX, useCallback, useState } from "react";
+import { JSX, useCallback, useEffect, useRef, useState } from "react";
 import { IPlannerExerciseState, IPlannerState } from "../../pages/planner/models/types";
-import { IDispatch, buildCustomLensDispatch } from "../../ducks/types";
+import { IDispatch } from "../../ducks/types";
 import { IDayData, ISettings } from "../../types";
-import { INavCommon, IState, updateState } from "../../models/state";
+import { INavCommon, IState } from "../../models/state";
 import { lb } from "lens-shmens";
-import { CommonActions } from "@react-navigation/native";
 import { navigationRef } from "../../navigation/navigationRef";
 import { useUndoRedo } from "../../pages/builder/utils/undoredo";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -27,7 +26,6 @@ import {
 import { EditProgramExerciseSets } from "./editProgramExerciseSets";
 import { BottomSheetEditProgramExerciseSet } from "./bottomSheetEditProgramExerciseSet";
 import { EditProgramExerciseNavbar } from "./editProgramExerciseNavbar";
-import { EditProgramBottomSheetPicker } from "../editProgram/editProgramBottomSheetPicker";
 import { editProgramExerciseTourConfig } from "../tour/editProgramExerciseTourConfig";
 
 interface IProps {
@@ -68,9 +66,22 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
   const ui = plannerState.ui;
   const [isKebabMenuOpen, setIsKebabMenuOpen] = useState(false);
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
-  const lbUi = lb<IPlannerExerciseState>().p("ui");
 
   const exercisePickerState = props.plannerState.ui.exercisePickerState;
+  const prevExercisePickerState = useRef(exercisePickerState);
+  useEffect(() => {
+    if (exercisePickerState && !prevExercisePickerState.current) {
+      navigationRef.navigate("editProgramExercisePickerModal", {
+        context: "editProgramExercise",
+        programId: props.programId,
+        exerciseStateKey: props.exerciseStateKey,
+        dayData: props.dayData,
+        change: "all",
+        exerciseKey: props.exerciseKey,
+      });
+    }
+    prevExercisePickerState.current = exercisePickerState;
+  }, [exercisePickerState]);
 
   useNavOptions({
     navTitle: "Edit Program Exercise",
@@ -263,79 +274,6 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
         plannerDispatch={plannerDispatch}
         settings={props.settings}
       />
-      {exercisePickerState && (
-        <EditProgramBottomSheetPicker
-          program={plannerState.current.program}
-          isLoggedIn={!!props.navCommon.userId}
-          exercisePickerState={exercisePickerState}
-          settings={props.settings}
-          evaluatedProgram={evaluatedProgram}
-          plannerExercise={plannerExercise}
-          dayData={props.dayData}
-          change="all"
-          stopIsUndoing={() => {
-            plannerDispatch(
-              [
-                lb<IPlannerExerciseState>()
-                  .p("ui")
-                  .recordModify((ui2) => {
-                    return { ...ui2, isUndoing: false };
-                  }),
-              ],
-              "stop-is-undoing"
-            );
-          }}
-          onClose={() => {
-            updateState(
-              props.dispatch,
-              [
-                lb<IState>()
-                  .p("editProgramExerciseStates")
-                  .recordModify((states) => {
-                    const current = states[props.exerciseStateKey];
-                    if (!current) {
-                      return states;
-                    }
-                    return {
-                      ...states,
-                      [props.exerciseStateKey]: { ...current, ui: { ...current.ui, exercisePickerState: undefined } },
-                    };
-                  }),
-              ],
-              "Close exercise picker"
-            );
-          }}
-          plannerDispatch={buildCustomLensDispatch(plannerDispatch, lbProgram)}
-          pickerDispatch={buildCustomLensDispatch(plannerDispatch, lbUi.pi("exercisePickerState"))}
-          dispatch={props.dispatch}
-          onNewKey={(newKey) => {
-            const oldStateKey = props.exerciseStateKey;
-            const newStateKey = `${props.programId}_${newKey}`;
-            updateState(
-              props.dispatch,
-              [
-                lb<IState>()
-                  .p("editProgramExerciseStates")
-                  .recordModify((states) => {
-                    const currentState = states[oldStateKey];
-                    if (!currentState) {
-                      return states;
-                    }
-                    const { [oldStateKey]: _, ...rest } = states;
-                    return {
-                      ...rest,
-                      [newStateKey]: { ...currentState, ui: { ...currentState.ui, exercisePickerState: undefined } },
-                    };
-                  }),
-              ],
-              "Update exercise key"
-            );
-            if (navigationRef.isReady()) {
-              navigationRef.dispatch(CommonActions.setParams({ key: newKey }));
-            }
-          }}
-        />
-      )}
     </>
   );
 }

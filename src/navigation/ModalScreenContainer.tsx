@@ -1,4 +1,5 @@
-import { JSX, ReactNode, useEffect } from "react";
+import { JSX, ReactNode, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { IconCloseCircleOutline } from "../components/icons/iconCloseCircleOutline";
 
 interface IProps {
@@ -13,14 +14,17 @@ interface IProps {
 }
 
 export function ModalScreenContainer(props: IProps): JSX.Element {
+  const [containerRef, setContainerRef] = useState<HTMLElement | null>(null);
+
   useEffect(() => {
+    setContainerRef(document.getElementById("modal"));
     document.body.classList.add("stop-scrolling-modal");
     return () => {
       document.body.classList.remove("stop-scrolling-modal");
     };
   }, []);
 
-  return (
+  const element = (
     <section className="fixed inset-0 flex items-center justify-center bottom-sticked" style={{ zIndex: 40 }}>
       <div
         data-name="overlay"
@@ -50,4 +54,9 @@ export function ModalScreenContainer(props: IProps): JSX.Element {
       </div>
     </section>
   );
+
+  if (!containerRef) {
+    return <></>;
+  }
+  return createPortal(element, containerRef);
 }

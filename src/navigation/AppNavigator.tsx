@@ -53,6 +53,8 @@ import {
 } from "./screens/NavScreenMe";
 import { Footer2Wrapper } from "./screens/NavScreenFooter2";
 import { NavModalAmrap } from "./modals/NavModalAmrap";
+import { NavModalExercisePicker } from "./modals/NavModalExercisePicker";
+import { NavModalEditProgramExercisePicker } from "./modals/NavModalEditProgramExercisePicker";
 
 const OnboardingStack = createStackNavigator<IOnboardingStackParamList>();
 const HomeStack = createStackNavigator<IHomeStackParamList>();
@@ -219,6 +221,8 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
         }}
       >
         <RootStack.Screen name="amrapModal" component={NavModalAmrap} />
+        <RootStack.Screen name="exercisePickerModal" component={NavModalExercisePicker} />
+        <RootStack.Screen name="editProgramExercisePickerModal" component={NavModalEditProgramExercisePicker} />
       </RootStack.Group>
     </RootStack.Navigator>
   );
