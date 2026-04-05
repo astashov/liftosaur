@@ -11,6 +11,7 @@ interface IProps {
   noPaddings?: boolean;
   overflowHidden?: boolean;
   innerClassName?: string;
+  shouldShowClose?: boolean;
 }
 
 export function ModalScreenContainer(props: IProps): JSX.Element {
@@ -54,9 +55,11 @@ export function ModalScreenContainer(props: IProps): JSX.Element {
           </div>
           {props.children}
         </div>
-        <button onClick={props.onClose} className="absolute p-2 nm-modal-close" style={{ top: "-3px", right: "-3px" }}>
-          <IconCloseCircleOutline />
-        </button>
+        {props.shouldShowClose !== false && (
+          <button onClick={props.onClose} className="absolute p-2 nm-modal-close" style={{ top: "-3px", right: "-3px" }}>
+            <IconCloseCircleOutline />
+          </button>
+        )}
       </div>
     </section>
   );
