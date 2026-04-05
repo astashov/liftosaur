@@ -90,6 +90,15 @@ import { NavModalProgramRevisions } from "./modals/NavModalProgramRevisions";
 import { NavModalEditProgressScript } from "./modals/NavModalEditProgressScript";
 import { NavModalEditUpdateScript } from "./modals/NavModalEditUpdateScript";
 import { NavModalMonthCalendar } from "./modals/NavModalMonthCalendar";
+import { NavModalAccount } from "./modals/NavModalAccount";
+import { NavModalSubscriptionInfo } from "./modals/NavModalSubscriptionInfo";
+import { NavModalWeekInsightsDetails } from "./modals/NavModalWeekInsightsDetails";
+import { NavModalPlannerSettings } from "./modals/NavModalPlannerSettings";
+import { NavModalEditMuscleGroups } from "./modals/NavModalEditMuscleGroups";
+import { NavModalWeekStats } from "./modals/NavModalWeekStats";
+import { NavModalDayStats } from "./modals/NavModalDayStats";
+import { NavModalExerciseStats } from "./modals/NavModalExerciseStats";
+import { NavModalEditExerciseChange } from "./modals/NavModalEditExerciseChange";
 
 const OnboardingStack = createStackNavigator<IOnboardingStackParamList>();
 const HomeStack = createStackNavigator<IHomeStackParamList>();
@@ -293,6 +302,15 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
         <RootStack.Screen name="editProgressScriptModal" component={NavModalEditProgressScript} />
         <RootStack.Screen name="editUpdateScriptModal" component={NavModalEditUpdateScript} />
         <RootStack.Screen name="monthCalendarModal" component={NavModalMonthCalendar} />
+        <RootStack.Screen name="accountModal" component={NavModalAccount} />
+        <RootStack.Screen name="subscriptionInfoModal" component={NavModalSubscriptionInfo} />
+        <RootStack.Screen name="weekInsightsDetailsModal" component={NavModalWeekInsightsDetails} />
+        <RootStack.Screen name="plannerSettingsModal" component={NavModalPlannerSettings} />
+        <RootStack.Screen name="editMuscleGroupsModal" component={NavModalEditMuscleGroups} />
+        <RootStack.Screen name="weekStatsModal" component={NavModalWeekStats} />
+        <RootStack.Screen name="dayStatsModal" component={NavModalDayStats} />
+        <RootStack.Screen name="exerciseStatsModal" component={NavModalExerciseStats} />
+        <RootStack.Screen name="editExerciseChangeModal" component={NavModalEditExerciseChange} />
       </RootStack.Group>
     </RootStack.Navigator>
   );

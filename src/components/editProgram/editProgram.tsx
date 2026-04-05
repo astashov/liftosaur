@@ -29,6 +29,7 @@ interface IEditProgramViewProps {
   evaluatedProgram: IEvaluatedProgram;
   state: IPlannerState;
   originalProgram: IProgram;
+  programId: string;
   dispatch: IDispatch;
   plannerDispatch: ILensDispatch<IPlannerState>;
   settings: ISettings;
@@ -81,6 +82,7 @@ export function EditProgramView(props: IEditProgramViewProps): JSX.Element {
                 <EditProgramUiWeekView
                   evaluatedProgram={props.evaluatedProgram}
                   dispatch={props.dispatch}
+                  programId={props.programId}
                   state={props.state}
                   exerciseFullNames={exerciseFullNames}
                   evaluatedWeeks={evaluatedWeeks}

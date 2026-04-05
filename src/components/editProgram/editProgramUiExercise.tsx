@@ -34,6 +34,7 @@ import { EditProgramUiUpdate } from "./editProgramUiUpdate";
 import { EditProgramUiExerciseSetVariations } from "./editProgramUiExerciseSetVariations";
 import { EditProgramUiExerciseDescriptions } from "./editProgramUiExerciseDescriptions";
 import { pickerStateFromPlannerExercise } from "./editProgramUtils";
+import { navigationRef } from "../../navigation/navigationRef";
 
 interface IEditProgramUiExerciseViewProps {
   evaluatedProgram: IEvaluatedProgram;
@@ -43,6 +44,7 @@ interface IEditProgramUiExerciseViewProps {
   weekIndex: number;
   dayIndex: number;
   settings: ISettings;
+  programId: string;
   dispatch: IDispatch;
   plannerDispatch: ILensDispatch<IPlannerState>;
   handleTouchStart?: (e: React.MouseEvent | React.TouchEvent) => void;
@@ -110,6 +112,7 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
                   }),
                   "Open edit exercise modal"
                 );
+                navigationRef.navigate("editExerciseChangeModal", { programId: props.programId });
               } else {
                 props.plannerDispatch(
                   lb<IPlannerState>()
@@ -148,6 +151,7 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
                 ],
                 "Show exercise stats"
               );
+              navigationRef.navigate("exerciseStatsModal", { programId: props.programId });
             }}
           >
             <IconGraphsE width={16} height={19} />

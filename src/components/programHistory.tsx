@@ -7,7 +7,6 @@ import { DateUtils_firstDayOfWeekTimestamp } from "../utils/date";
 import { HistoryRecordsList } from "./historyRecordsList";
 import { History_getHistoryRecordsForTimerange, History_getPersonalRecords } from "../models/history";
 import { WeekInsights } from "./weekInsights";
-import { ModalPlannerSettings } from "../pages/planner/components/modalPlannerSettings";
 import { lb } from "lens-shmens";
 import { WeekCalendar } from "./weekCalendar";
 import { HistoryRecordsNullState } from "./historyRecordsNullState";
@@ -16,7 +15,6 @@ import { ObjectUtils_keys } from "../utils/object";
 import { Progress_isCurrent } from "../models/progress";
 import { useGradualList } from "../utils/useGradualList";
 import { Program_nextHistoryRecord } from "../models/program";
-import { BottomSheetOrModalMuscleGroupsContent } from "./bottomSheetOrModalMuscleGroupsContent";
 import { navigationRef } from "../navigation/navigationRef";
 import { useAppState } from "../navigation/StateContext";
 
@@ -112,7 +110,6 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   const previousWeekFirstDayDate = new Date(selectedFirstDayOfWeek);
   previousWeekFirstDayDate.setDate(previousWeekFirstDayDate.getDate() - 7);
   const previousWeekFirstDay = previousWeekFirstDayDate.getTime();
-  const [showPlannerSettings, setShowPlannerSettings] = useState(false);
   const historyRecordsListRef = useRef<HTMLDivElement>(null);
   const [selectedWeekCalendarFirstDayOfWeek, setSelectedWeekCalendarFirstDayOfWeek] = useState(selectedFirstDayOfWeek);
 
@@ -201,8 +198,6 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
     }
   }, [scrollToRecordId]);
 
-  const [showEditMuscleGroups, setShowEditMuscleGroups] = useState(false);
-
   useNavOptions({ navHidden: true });
 
   return (
@@ -229,7 +224,6 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         thisWeekHistory={thisWeekHistory}
         lastWeekHistory={lastWeekHistory}
         settings={props.settings}
-        onOpenPlannerSettings={() => setShowPlannerSettings(true)}
         subscription={props.subscription}
       />
       <div className="flex flex-col h-full">
@@ -250,36 +244,6 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
           )}
         </div>
       </div>
-      {showEditMuscleGroups && (
-        <BottomSheetOrModalMuscleGroupsContent
-          settings={props.settings}
-          onClose={() => setShowEditMuscleGroups(false)}
-          onNewSettings={(newSettings) => {
-            updateState(
-              props.dispatch,
-              [lb<IState>().p("storage").p("settings").record(newSettings)],
-              "Update planner settings"
-            );
-          }}
-        />
-      )}
-      {showPlannerSettings && (
-        <ModalPlannerSettings
-          inApp={true}
-          onNewSettings={(newSettings) =>
-            updateState(
-              props.dispatch,
-              [lb<IState>().p("storage").p("settings").record(newSettings)],
-              "Update planner settings"
-            )
-          }
-          onShowEditMuscleGroups={() => {
-            setShowEditMuscleGroups(true);
-          }}
-          settings={props.settings}
-          onClose={() => setShowPlannerSettings(false)}
-        />
-      )}
     </section>
   );
 }

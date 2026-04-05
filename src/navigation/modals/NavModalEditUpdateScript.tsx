@@ -24,8 +24,14 @@ export function NavModalEditUpdateScript(): JSX.Element {
   const plannerState = state.editProgramExerciseStates?.[exerciseStateKey] as IPlannerExerciseState | undefined;
 
   const plannerDispatch = useMemo(() => {
-    if (!plannerState) return undefined;
-    return buildPlannerDispatch(dispatch, lb<IState>().p("editProgramExerciseStates").p(exerciseStateKey), plannerState);
+    if (!plannerState) {
+      return undefined;
+    }
+    return buildPlannerDispatch(
+      dispatch,
+      lb<IState>().p("editProgramExerciseStates").p(exerciseStateKey),
+      plannerState
+    );
   }, [dispatch, exerciseStateKey, plannerState]);
 
   const evaluatedProgram = plannerState

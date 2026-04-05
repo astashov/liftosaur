@@ -28,77 +28,77 @@ export function ModalCreateStateVariableContent(props: IModalCreateStateVariable
 
   return (
     <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          const isValid = textInputRef.current?.checkValidity();
-          if (!type) {
-            setShowTypeError(true);
-            return;
-          }
-          if (name && isValid) {
-            props.onCreate(name, type, isUserPrompted);
-            props.onClose();
-          }
+      onSubmit={(e) => {
+        e.preventDefault();
+        const isValid = textInputRef.current?.checkValidity();
+        if (!type) {
+          setShowTypeError(true);
+          return;
+        }
+        if (name && isValid) {
+          props.onCreate(name, type, isUserPrompted);
+          props.onClose();
+        }
+      }}
+      className="flex flex-col items-center"
+    >
+      <h2 className="mb-1 text-lg font-bold text-center">Add New State Variable</h2>
+      <p className="mb-2 text-xs text-text-secondary">
+        You can use state variables to store values between workouts, or parameterize your progress scripts. Use them
+        via <strong>state.yourVariable</strong> in the script.
+      </p>
+      <Input
+        label="Variable name"
+        type="text"
+        placeholder="MyVariable"
+        ref={textInputRef}
+        pattern="^[a-zA-Z_][a-zA-Z0-9_]*$"
+        patternMessage="Variable names must start with a letter or underscore, and can only contain letters, numbers, and underscores."
+        value={name}
+        required={true}
+        requiredMessage="Please enter a name for the variable"
+        onInput={(e) => {
+          setName((e.target as HTMLInputElement).value);
         }}
-        className="flex flex-col items-center"
-      >
-        <h2 className="mb-1 text-lg font-bold text-center">Add New State Variable</h2>
-        <p className="mb-2 text-xs text-text-secondary">
-          You can use state variables to store values between workouts, or parameterize your progress scripts. Use them
-          via <strong>state.yourVariable</strong> in the script.
-        </p>
-        <Input
-          label="Variable name"
-          type="text"
-          placeholder="MyVariable"
-          ref={textInputRef}
-          pattern="^[a-zA-Z_][a-zA-Z0-9_]*$"
-          patternMessage="Variable names must start with a letter or underscore, and can only contain letters, numbers, and underscores."
-          value={name}
-          required={true}
-          requiredMessage="Please enter a name for the variable"
-          onInput={(e) => {
-            setName((e.target as HTMLInputElement).value);
-          }}
-        />
-        <div className="w-full pt-2">
-          <InputSelect
-            name="create-state-variable-type"
-            label="Type"
-            expandValue={true}
-            placeholder="Select a type"
-            values={typeValues}
-            value={type}
-            onChange={(v) => {
-              if (v) {
-                setType(v);
-                setShowTypeError(false);
-              } else {
-                setType(undefined);
-                setShowTypeError(true);
-              }
-            }}
-          />
-          {showTypeError && <div className="text-xs text-text-error">Please select a type for the variable.</div>}
-        </div>
-        <MenuItemEditable
-          name="User Prompted?"
-          type="boolean"
-          nextLine={
-            <div className="pb-2 text-xs text-text-secondary" style={{ marginTop: "-0.5rem" }}>
-              Will be asked for value at the end of workout
-            </div>
-          }
-          value={isUserPrompted ? "true" : "false"}
+      />
+      <div className="w-full pt-2">
+        <InputSelect
+          name="create-state-variable-type"
+          label="Type"
+          expandValue={true}
+          placeholder="Select a type"
+          values={typeValues}
+          value={type}
           onChange={(v) => {
-            setIsUserPrompted(v === "true");
+            if (v) {
+              setType(v);
+              setShowTypeError(false);
+            } else {
+              setType(undefined);
+              setShowTypeError(true);
+            }
           }}
         />
-        <div className="mt-4 text-center">
-          <Button kind="purple" name="modal-create-state-variable-submit">
-            Create
-          </Button>
-        </div>
+        {showTypeError && <div className="text-xs text-text-error">Please select a type for the variable.</div>}
+      </div>
+      <MenuItemEditable
+        name="User Prompted?"
+        type="boolean"
+        nextLine={
+          <div className="pb-2 text-xs text-text-secondary" style={{ marginTop: "-0.5rem" }}>
+            Will be asked for value at the end of workout
+          </div>
+        }
+        value={isUserPrompted ? "true" : "false"}
+        onChange={(v) => {
+          setIsUserPrompted(v === "true");
+        }}
+      />
+      <div className="mt-4 text-center">
+        <Button kind="purple" name="modal-create-state-variable-submit">
+          Create
+        </Button>
+      </div>
     </form>
   );
 }

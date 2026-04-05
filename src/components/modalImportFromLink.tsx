@@ -40,4 +40,3 @@ export function ModalImportFromLinkContent(props: { onSubmit: (value?: string) =
     </>
   );
 }
-

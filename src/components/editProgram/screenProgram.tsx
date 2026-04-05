@@ -1,6 +1,6 @@
 import { JSX, useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import { IDispatch } from "../../ducks/types";
-import { INavCommon, IState, updateState } from "../../models/state";
+import { INavCommon, IState } from "../../models/state";
 import { IProgram, ISettings } from "../../types";
 import { useNavOptions } from "../../navigation/useNavOptions";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -28,20 +28,12 @@ import { IconSwap } from "../icons/iconSwap";
 import { ContentGrowingTextarea } from "../contentGrowingTextarea";
 import { LinkButton } from "../linkButton";
 import { PlannerProgram_evaluate } from "../../pages/planner/models/plannerProgram";
-import { Button } from "../button";
 import { IconKebab } from "../icons/iconKebab";
-import { PlannerWeekStats } from "../../pages/planner/components/plannerWeekStats";
-import { Modal } from "../modal";
-import { ModalPlannerSettings } from "../../pages/planner/components/modalPlannerSettings";
-import { PlannerDayStats } from "../../pages/planner/components/plannerDayStats";
-import { PlannerExerciseStats } from "../../pages/planner/components/plannerExerciseStats";
 import { UidFactory_generateUid } from "../../utils/generator";
 import { buildPlannerDispatch } from "../../utils/plannerDispatch";
 import { navigationRef } from "../../navigation/navigationRef";
-import { pickerStateFromPlannerExercise } from "./editProgramUtils";
 import { ProgramPreviewTab } from "../preview/programPreviewTab";
 import { Nux } from "../nux";
-import { BottomSheetOrModalMuscleGroupsContent } from "../bottomSheetOrModalMuscleGroupsContent";
 import { programTourConfig } from "../tour/programTourConfig";
 
 interface IProps {
@@ -66,7 +58,6 @@ export function ScreenProgram(props: IProps): JSX.Element {
     [plannerState]
   );
   useUndoRedo(plannerState, plannerDispatch);
-  const lbUi = lb<IPlannerState>().p("ui");
 
   useLayoutEffect(() => {
     if (props.plannerState) {
@@ -96,7 +87,6 @@ export function ScreenProgram(props: IProps): JSX.Element {
   const { evaluatedWeeks, exerciseFullNames } = PlannerProgram_evaluate(planner, props.settings);
   const ui = plannerState.ui;
 
-  const editExerciseModal = ui.editExerciseModal;
   const exercisePickerUi = props.plannerState.ui.exercisePicker;
   const prevExercisePickerUi = useRef(exercisePickerUi);
   useEffect(() => {
@@ -183,6 +173,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
                   exerciseFullNames={exerciseFullNames}
                   dispatch={props.dispatch}
                   originalProgram={props.originalProgram}
+                  programId={props.originalProgram.id}
                   settings={props.settings}
                   plannerDispatch={plannerDispatch}
                   state={plannerState}
@@ -218,142 +209,6 @@ export function ScreenProgram(props: IProps): JSX.Element {
           ]}
         />
       </div>
-      {ui.showWeekStats != null && (
-        <Modal
-          shouldShowClose={true}
-          isFullWidth={true}
-          onClose={() => {
-            plannerDispatch(lbUi.p("showWeekStats").record(undefined), "Close week stats");
-          }}
-        >
-          <PlannerWeekStats
-            dispatch={plannerDispatch}
-            onEditSettings={() => {
-              plannerDispatch(lbUi.p("showSettingsModal").record(true), "Show settings modal");
-            }}
-            evaluatedDays={evaluatedWeeks[ui.showWeekStats]}
-            settings={props.settings}
-          />
-        </Modal>
-      )}
-      {ui.showDayStats != null && (
-        <Modal
-          shouldShowClose={true}
-          isFullWidth={true}
-          onClose={() => plannerDispatch(lbUi.p("showDayStats").record(undefined), "Close day stats")}
-        >
-          <PlannerDayStats
-            dispatch={plannerDispatch}
-            settings={props.settings}
-            evaluatedDay={evaluatedWeeks[ui.weekIndex][ui.showDayStats]}
-          />
-        </Modal>
-      )}
-      {plannerState.ui.showSettingsModal && (
-        <ModalPlannerSettings
-          inApp={true}
-          onNewSettings={(newSettings) =>
-            updateState(
-              props.dispatch,
-              [lb<IState>().p("storage").p("settings").record(newSettings)],
-              "Update planner settings"
-            )
-          }
-          onShowEditMuscleGroups={() => {
-            plannerDispatch(lb<IPlannerState>().p("ui").p("showEditMuscleGroups").record(true), "Show muscle groups");
-          }}
-          settings={props.settings}
-          onClose={() =>
-            plannerDispatch(lb<IPlannerState>().p("ui").p("showSettingsModal").record(false), "Close settings modal")
-          }
-        />
-      )}
-      {ui.showEditMuscleGroups && (
-        <BottomSheetOrModalMuscleGroupsContent
-          settings={props.settings}
-          onClose={() => plannerDispatch(lbUi.p("showEditMuscleGroups").record(false), "Close muscle groups")}
-          onNewSettings={(newSettings) => {
-            updateState(
-              props.dispatch,
-              [lb<IState>().p("storage").p("settings").record(newSettings)],
-              "Update planner settings"
-            );
-          }}
-        />
-      )}
-      {ui.showExerciseStats && ui.focusedExercise && (
-        <Modal
-          shouldShowClose={true}
-          isFullWidth={true}
-          onClose={() => plannerDispatch(lbUi.p("showExerciseStats").record(undefined), "Close exercise stats")}
-        >
-          <PlannerExerciseStats
-            dispatch={plannerDispatch}
-            settings={props.settings}
-            evaluatedWeeks={evaluatedWeeks}
-            weekIndex={ui.focusedExercise.weekIndex}
-            dayIndex={ui.focusedExercise.dayIndex}
-            exerciseLine={ui.focusedExercise.exerciseLine}
-            hideSwap={true}
-          />
-        </Modal>
-      )}
-      {editExerciseModal && (
-        <Modal
-          shouldShowClose={true}
-          onClose={() => plannerDispatch(lbUi.p("editExerciseModal").record(undefined), "Close edit exercise modal")}
-        >
-          <h3 className="mb-2 text-lg font-semibold text-center">Change Exercise</h3>
-          <div className="flex gap-4">
-            <div>
-              <Button
-                name="edit-exercise-change-one"
-                data-cy="edit-exercise-change-one"
-                kind="purple"
-                onClick={() => {
-                  plannerDispatch(
-                    [
-                      lbUi.p("editExerciseModal").record(undefined),
-                      lbUi.p("exercisePicker").record({
-                        state: pickerStateFromPlannerExercise(props.settings, editExerciseModal.plannerExercise),
-                        exerciseKey: editExerciseModal.plannerExercise.key,
-                        dayData: editExerciseModal.plannerExercise.dayData,
-                        change: "one",
-                      }),
-                    ],
-                    "Change exercise for one instance"
-                  );
-                }}
-              >
-                Change only for this week/day
-              </Button>
-            </div>
-            <div>
-              <Button
-                name="edit-exercise-change-all"
-                data-cy="edit-exercise-change-all"
-                kind="purple"
-                onClick={() => {
-                  plannerDispatch(
-                    [
-                      lbUi.p("editExerciseModal").record(undefined),
-                      lbUi.p("exercisePicker").record({
-                        state: pickerStateFromPlannerExercise(props.settings, editExerciseModal.plannerExercise),
-                        exerciseKey: editExerciseModal.plannerExercise.key,
-                        dayData: editExerciseModal.plannerExercise.dayData,
-                        change: "all",
-                      }),
-                    ],
-                    "Change exercise for all instances"
-                  );
-                }}
-              >
-                Change across whole program
-              </Button>
-            </div>
-          </div>
-        </Modal>
-      )}
     </>
   );
 }

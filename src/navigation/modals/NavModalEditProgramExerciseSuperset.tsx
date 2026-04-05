@@ -24,7 +24,9 @@ export function NavModalEditProgramExerciseSuperset(): JSX.Element {
   const plannerState = state.editProgramExerciseStates?.[exerciseStateKey] as IPlannerExerciseState | undefined;
 
   const plannerDispatch = useMemo(() => {
-    if (!plannerState) return undefined;
+    if (!plannerState) {
+      return undefined;
+    }
     return buildPlannerDispatch(
       dispatch,
       lb<IState>().p("editProgramExerciseStates").p(exerciseStateKey),

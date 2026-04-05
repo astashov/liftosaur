@@ -1,4 +1,4 @@
-import { JSX, useState } from "react";
+import { JSX } from "react";
 import { IHistoryRecord, ISettings, ISubscription } from "../types";
 import { WeekInsightsUtils_calculateSetResults } from "../utils/weekInsightsUtils";
 import { IconFire } from "./icons/iconFire";
@@ -16,8 +16,8 @@ import { IconCrown } from "./icons/iconCrown";
 import { IDispatch } from "../ducks/types";
 import { Thunk_pushScreen } from "../ducks/thunks";
 import { DateUtils_firstDayOfWeekTimestamp, DateUtils_formatRange } from "../utils/date";
-import { Modal } from "./modal";
 import { Muscle_getMuscleGroupName } from "../models/muscle";
+import { navigationRef } from "../navigation/navigationRef";
 
 interface IWeekInsightsProps {
   prs: IPersonalRecords;
@@ -27,11 +27,9 @@ interface IWeekInsightsProps {
   settings: ISettings;
   subscription: ISubscription;
   dispatch: IDispatch;
-  onOpenPlannerSettings: () => void;
 }
 
 export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
-  const [isExpanded, setIsExpanded] = useState(false);
   const isCurrentWeek =
     DateUtils_firstDayOfWeekTimestamp(new Date(), props.settings.startWeekFromMonday) === props.selectedFirstDayOfWeek;
 
@@ -79,8 +77,15 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
             </span>
           </div>
           <div className="ml-auto text-sm">
-            <LinkButton name="toggle-week-insights" onClick={() => setIsExpanded(!isExpanded)}>
-              {isExpanded ? "Show Less" : "Show More"}
+            <LinkButton
+              name="toggle-week-insights"
+              onClick={() =>
+                navigationRef.navigate("weekInsightsDetailsModal", {
+                  selectedFirstDayOfWeek: props.selectedFirstDayOfWeek,
+                })
+              }
+            >
+              Show More
             </LinkButton>
           </div>
         </div>
@@ -104,17 +109,6 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
           />
         </div>
       </div>
-      {isExpanded && (
-        <Modal shouldShowClose={true} isFullWidth={true} isHidden={!isExpanded} onClose={() => setIsExpanded(false)}>
-          <WeekInsightsDetails
-            thisWeekHistory={props.thisWeekHistory}
-            prs={props.prs}
-            setResults={setResults}
-            settings={props.settings}
-            onOpenPlannerSettings={props.onOpenPlannerSettings}
-          />
-        </Modal>
-      )}
     </section>
   );
 }
@@ -145,7 +139,7 @@ function WeekInsightsProperty(props: IWeekInsightsPropertyProps): JSX.Element {
   );
 }
 
-interface IWeekInsightsDetailsProps {
+export interface IWeekInsightsDetailsProps {
   prs: IPersonalRecords;
   thisWeekHistory: IHistoryRecord[];
   setResults: ISetResults;
@@ -153,7 +147,7 @@ interface IWeekInsightsDetailsProps {
   onOpenPlannerSettings: () => void;
 }
 
-function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Element {
+export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Element {
   const setResults = props.setResults;
   const hasPersonalRecords = History_getNumberOfPersonalRecords(props.thisWeekHistory, props.prs) > 0;
 

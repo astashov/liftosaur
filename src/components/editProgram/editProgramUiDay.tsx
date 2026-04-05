@@ -31,6 +31,7 @@ import {
 } from "./editProgramUi/editProgramUiHelpers";
 import { IDispatch } from "../../ducks/types";
 import { IEvaluatedProgram } from "../../models/program";
+import { navigationRef } from "../../navigation/navigationRef";
 
 interface IEditProgramDayViewProps {
   state: IPlannerState;
@@ -45,6 +46,7 @@ interface IEditProgramDayViewProps {
   dayInWeekIndex: number;
   settings: ISettings;
   exerciseFullNames: string[];
+  programId: string;
   dispatch: IDispatch;
   plannerDispatch: ILensDispatch<IPlannerState>;
   handleTouchStart?: (e: React.MouseEvent | React.TouchEvent) => void;
@@ -89,6 +91,7 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
                   lb<IPlannerState>().p("ui").p("showDayStats").record(props.dayInWeekIndex),
                   "Show day stats"
                 );
+                navigationRef.navigate("dayStatsModal", { programId: props.programId });
               }}
             >
               <IconMusclesD size={20} />
@@ -199,6 +202,7 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
           isValidProgram={props.isValidProgram}
           day={props.day}
           dispatch={props.dispatch}
+          programId={props.programId}
           settings={props.settings}
           ui={ui}
           dayData={props.dayData}
@@ -217,6 +221,7 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
 interface IEditProgramDayContentViewProps {
   day: IPlannerProgramDay;
   dispatch: IDispatch;
+  programId: string;
   plannerDispatch: ILensDispatch<IPlannerState>;
   evaluatedProgram: IEvaluatedProgram;
   lbPlannerDay: LensBuilder<IPlannerState, IPlannerProgramDay, {}, undefined>;
@@ -332,6 +337,7 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
                     plannerExercise={exercise}
                     evaluatedProgram={props.evaluatedProgram}
                     dispatch={props.dispatch}
+                    programId={props.programId}
                     plannerDispatch={props.plannerDispatch}
                     weekIndex={props.weekIndex}
                     dayIndex={props.dayIndex}
@@ -349,6 +355,7 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
                 plannerExercise={exercise}
                 evaluatedProgram={props.evaluatedProgram}
                 dispatch={props.dispatch}
+                programId={props.programId}
                 plannerDispatch={props.plannerDispatch}
                 weekIndex={props.weekIndex}
                 dayIndex={props.dayIndex}

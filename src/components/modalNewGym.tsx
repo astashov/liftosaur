@@ -51,4 +51,3 @@ export function ModalNewGymContent(props: { onInput: (value?: string) => void })
     </>
   );
 }
-

@@ -29,7 +29,11 @@ export function NavModalMusclesOverride(): JSX.Element {
         settings={state.storage.settings}
         helps={state.storage.helps}
         onNewExerciseData={(newExerciseData) => {
-          updateSettings(dispatch, lb<ISettings>().p("exerciseData").record(newExerciseData), "Update exercise muscle override");
+          updateSettings(
+            dispatch,
+            lb<ISettings>().p("exerciseData").record(newExerciseData),
+            "Update exercise muscle override"
+          );
         }}
         onClose={onClose}
         dispatch={dispatch}

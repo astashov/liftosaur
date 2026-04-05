@@ -39,9 +39,8 @@ export function NavModalSignupRequest(): JSX.Element {
           />
         </div>
         <div className="mt-4">
-          You finished{" "}
-          <span className="font-bold text-text-error">{state.storage.history.length} workouts</span> already! This is
-          awesome! Consider
+          You finished <span className="font-bold text-text-error">{state.storage.history.length} workouts</span>{" "}
+          already! This is awesome! Consider
           <strong> signing up</strong> so your workout history would be backed up in the cloud.
         </div>
         <div className="mt-4">

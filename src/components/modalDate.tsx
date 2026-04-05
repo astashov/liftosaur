@@ -88,4 +88,3 @@ export function ModalDateContent(props: IModalDateContentProps): JSX.Element {
     </form>
   );
 }
-
