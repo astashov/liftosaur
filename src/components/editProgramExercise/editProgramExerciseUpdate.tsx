@@ -10,8 +10,8 @@ import { InputSelect } from "../inputSelect";
 import { lb } from "lens-shmens";
 import { EditProgramUiHelpers_changeFirstInstance } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { ObjectUtils_entries } from "../../utils/object";
-import { ModalEditUpdateScript } from "./progressions/modalEditUpdateScript";
 import { EditProgramUiUpdate } from "../editProgram/editProgramUiUpdate";
+import { navigationRef } from "../../navigation/navigationRef";
 import { CollectionUtils_uniqBy } from "../../utils/collection";
 
 interface IEditProgramExerciseUpdateProps {
@@ -20,6 +20,8 @@ interface IEditProgramExerciseUpdateProps {
   plannerExercise: IPlannerProgramExercise;
   plannerDispatch: ILensDispatch<IPlannerExerciseState>;
   settings: ISettings;
+  exerciseStateKey: string;
+  programId: string;
 }
 
 function getUpdateReuseCandidates(
@@ -45,7 +47,6 @@ export function EditProgramExerciseUpdate(props: IEditProgramExerciseUpdateProps
   const { plannerExercise } = props;
   const ownUpdate = plannerExercise.update;
   const evaluatedProgram = Program_evaluate(props.program, props.settings);
-  const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
   const lbUi = lb<IPlannerExerciseState>().p("ui");
   const [isOverriding, setIsOverriding] = useState(false);
 
@@ -65,6 +66,10 @@ export function EditProgramExerciseUpdate(props: IEditProgramExerciseUpdateProps
                     lbUi.p("showEditUpdateScriptModal").record(true),
                     "Show edit update script modal"
                   );
+                  navigationRef.navigate("editUpdateScriptModal", {
+                    exerciseStateKey: props.exerciseStateKey,
+                    programId: props.programId,
+                  });
                 }}
               >
                 Edit Script
@@ -99,29 +104,6 @@ export function EditProgramExerciseUpdate(props: IEditProgramExerciseUpdateProps
           />
         )}
       </div>
-      {props.ui.showEditUpdateScriptModal && (
-        <ModalEditUpdateScript
-          settings={props.settings}
-          onClose={() => {
-            props.plannerDispatch(lbUi.p("showEditUpdateScriptModal").record(false), "Close edit update script modal");
-          }}
-          plannerExercise={plannerExercise}
-          onChange={(script) => {
-            props.plannerDispatch(
-              lbProgram.recordModify((program) => {
-                return EditProgramUiHelpers_changeFirstInstance(program, plannerExercise, props.settings, true, (e) => {
-                  e.update = {
-                    ...e.update,
-                    type: "custom",
-                    script: script,
-                  };
-                });
-              }),
-              "Update script"
-            );
-          }}
-        />
-      )}
     </>
   );
 }

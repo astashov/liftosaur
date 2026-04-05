@@ -21,7 +21,7 @@ function cleanScript(script?: string): string {
   return StringUtils_unindent(script.replace(/{~/, "").replace(/~}/, ""));
 }
 
-export function ModalEditProgressScript(props: IModalEditProgressScriptProps): JSX.Element {
+export function ModalEditProgressScriptContent(props: IModalEditProgressScriptProps): JSX.Element {
   const progress = props.plannerExercise.progress;
   if (!progress) {
     return <></>;
@@ -40,7 +40,7 @@ export function ModalEditProgressScript(props: IModalEditProgressScriptProps): J
   );
 
   return (
-    <Modal name="modal-edit-progress-script" isFullWidth isFullHeight onClose={props.onClose} shouldShowClose={true}>
+    <>
       <h2 className="mb-1 text-lg font-bold text-center">Progress Script</h2>
       <p className="mb-2 text-xs text-text-secondary">
         It's executed when you finish a workout, and it can modify the program text.
@@ -71,6 +71,14 @@ export function ModalEditProgressScript(props: IModalEditProgressScriptProps): J
           Save
         </Button>
       </div>
+    </>
+  );
+}
+
+export function ModalEditProgressScript(props: IModalEditProgressScriptProps): JSX.Element {
+  return (
+    <Modal name="modal-edit-progress-script" isFullWidth isFullHeight onClose={props.onClose} shouldShowClose={true}>
+      <ModalEditProgressScriptContent {...props} />
     </Modal>
   );
 }
