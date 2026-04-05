@@ -3,8 +3,7 @@ import { Weight_buildPct, Weight_build, Weight_decrement, Weight_increment } fro
 import { IExerciseType, IPercentage, ISettings, IUnit, IWeight } from "../types";
 import { IconCalculator } from "./icons/iconCalculator";
 import { Input } from "./input";
-import { useModalDispatch, useModalResult, Modal_open } from "../navigation/ModalStateContext";
-import { getNavigationRef } from "../navigation/navUtils";
+import { useModal } from "../navigation/ModalStateContext";
 
 interface IInputWeightProps {
   value: IWeight | IPercentage;
@@ -19,7 +18,6 @@ interface IInputWeightProps {
 export function InputWeight(props: IInputWeightProps): JSX.Element {
   const inputRef = useRef<HTMLInputElement>(null);
   const unitRef = useRef<HTMLSelectElement>(null);
-  const modalDispatch = useModalDispatch();
 
   function getValue(): IWeight | IPercentage | undefined {
     const inputValue = inputRef.current!.value;
@@ -36,7 +34,7 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
   }
   const unit = props.value.unit;
 
-  useModalResult("repMaxCalculatorModal", (weightValue) => {
+  const openCalculator = useModal("repMaxCalculatorModal", (weightValue) => {
     if (weightValue != null && unit !== "%") {
       props.onUpdate(Weight_build(weightValue, unit));
     }
@@ -114,8 +112,7 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
               className="w-10 h-10 p-2 leading-none border rounded-lg bg-background-purpledark border-border-neutral nm-weight-calc"
               data-cy="edit-weight-calculator"
               onClick={() => {
-                Modal_open(modalDispatch, "repMaxCalculatorModal", { unit });
-                getNavigationRef().then(({ navigationRef: ref }) => ref.navigate("repMaxCalculatorModal"));
+                openCalculator({ unit });
               }}
             >
               <IconCalculator className="inline-block" size={16} />

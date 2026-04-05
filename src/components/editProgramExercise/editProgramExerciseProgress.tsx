@@ -226,7 +226,7 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
                         props.settings,
                         true,
                         (e) => {
-                          if (value == null) {
+                          if (!value) {
                             e.progress = undefined;
                           } else {
                             if (savedProgressTypes[value]) {

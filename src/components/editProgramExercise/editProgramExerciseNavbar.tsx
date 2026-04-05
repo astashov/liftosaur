@@ -112,8 +112,28 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
           className="keyboard-close"
           data-cy="save-program-exercise"
           onClick={delayfn(() => {
-            if (editProgramStateRef.current) {
-              const updatedProgram = stateRef.current.current.program;
+            const updatedProgram = stateRef.current.current.program;
+            if (stateRef.current.ui.fromWorkout) {
+              const lensUpdates = [
+                lb<IState>()
+                  .p("storage")
+                  .p("programs")
+                  .recordModify((programs) => {
+                    return CollectionUtils_setBy(programs, "id", updatedProgram.id, updatedProgram);
+                  }),
+              ];
+              if (editProgramStateRef.current) {
+                lensUpdates.push(
+                  lb<IState>()
+                    .p("editProgramStates")
+                    .p(props.programId)
+                    .p("current")
+                    .p("program")
+                    .record(updatedProgram)
+                );
+              }
+              updateState(props.dispatch, lensUpdates, "Save program changes");
+            } else {
               updateState(
                 props.dispatch,
                 [
@@ -125,24 +145,6 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
                     .record(updatedProgram),
                 ],
                 "Update program from edit exercise"
-              );
-            } else {
-              updateState(
-                props.dispatch,
-                [
-                  lb<IState>()
-                    .p("storage")
-                    .p("programs")
-                    .recordModify((programs) => {
-                      return CollectionUtils_setBy(
-                        programs,
-                        "id",
-                        stateRef.current.current.program.id,
-                        stateRef.current.current.program
-                      );
-                    }),
-                ],
-                "Save program changes"
               );
             }
             props.dispatch(Thunk_pullScreen());

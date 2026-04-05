@@ -5,8 +5,7 @@ import { ObjectUtils_entriesNonnull } from "../utils/object";
 import { Button } from "./button";
 import { Exercise_get, Exercise_fullName } from "../models/exercise";
 import { StringUtils_dashcase } from "../utils/string";
-import { useModalDispatch, useModalResult, Modal_open } from "../navigation/ModalStateContext";
-import { navigationRef } from "../navigation/navigationRef";
+import { useModal } from "../navigation/ModalStateContext";
 
 export interface IBottomSheetWorkoutSupersetContentProps {
   onSelect: (name: string | undefined) => void;
@@ -18,9 +17,8 @@ export interface IBottomSheetWorkoutSupersetContentProps {
 
 export function BottomSheetWorkoutSupersetContent(props: IBottomSheetWorkoutSupersetContentProps): JSX.Element {
   const supersetGroups = Progress_getSupersetGroups(props.progress.entries);
-  const modalDispatch = useModalDispatch();
 
-  useModalResult("textInputModal", (name) => {
+  const openTextInput = useModal("textInputModal", (name) => {
     props.onSelect(name);
     props.onClose();
   });
@@ -82,14 +80,13 @@ export function BottomSheetWorkoutSupersetContent(props: IBottomSheetWorkoutSupe
             kind="purple"
             buttonSize="lg"
             onClick={() => {
-              Modal_open(modalDispatch, "textInputModal", {
+              openTextInput({
                 title: "Enter new group name",
                 inputLabel: "Name",
                 placeholder: "My Group Name",
                 submitLabel: "Add",
                 dataCyPrefix: "modal-new-superset",
               });
-              navigationRef.navigate("textInputModal");
             }}
             data-cy="superset-create-group"
           >

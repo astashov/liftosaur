@@ -13,6 +13,7 @@ import { ChooseProgramView } from "../../components/chooseProgram";
 import { ScreenProgramPreview as ScreenProgramPreviewComponent } from "../../components/screenProgramPreview";
 import { Progress_getCurrentProgress } from "../../models/progress";
 import { Thunk_pullScreen } from "../../ducks/thunks";
+import { usePlaygroundModalBridges } from "../usePlaygroundModalBridges";
 
 export function NavScreenFirst(): JSX.Element {
   const { dispatch } = useAppState();
@@ -93,6 +94,9 @@ export function NavScreenProgramsOnboarding(): JSX.Element {
 export function NavScreenProgramPreviewOnboarding(): JSX.Element {
   const { state, dispatch } = useAppState();
   const navCommon = buildNavCommon(state);
+
+  usePlaygroundModalBridges(state);
+
   if (state.previewProgram?.id == null) {
     setTimeout(() => dispatch(Thunk_pullScreen()), 0);
     return (

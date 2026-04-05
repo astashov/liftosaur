@@ -128,6 +128,7 @@ export function EditProgram_initPlannerProgramExerciseState(
       isUpdateEnabled: !!programExercise?.update,
       modeTabIndex: fromWorkout ? 1 : 0,
       acrossWeeksTabIndex: fromWorkout ? 1 : undefined,
+      fromWorkout,
     },
   };
 }

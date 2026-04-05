@@ -22,7 +22,7 @@ test("subscriptions", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1&enforce=1");
   PlaywrightUtils_disableTours(page);
   await page.getByTestId("footer-graphs").click();
-  await expect(page.getByTestId("screen")).toContainText("Select graphs you want to display");
+  await expect(page.getByTestId("screen").and(page.locator(":visible"))).toContainText("Select graphs you want to display");
   await page.getByTestId("footer-me").click();
   await page.getByTestId("menu-item-changelog").click();
   await page.getByTestId("modal-close").and(page.locator(":visible")).click();
@@ -44,5 +44,5 @@ test("subscriptions", async ({ page }) => {
   await page.getByTestId("footer-graphs").click();
   await page.getByTestId("button-subscription-free").click();
   await page.getByTestId("footer-graphs").click();
-  await expect(page.getByTestId("screen")).toContainText("Select graphs you want to display");
+  await expect(page.getByTestId("screen").and(page.locator(":visible"))).toContainText("Select graphs you want to display");
 });

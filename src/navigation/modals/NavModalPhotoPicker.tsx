@@ -25,7 +25,7 @@ export function NavModalPhotoPicker(): JSX.Element {
       source,
     });
     setIsLoading(false);
-    Modal_setResult(modalDispatch, "photoPickerModal", result?.data ?? null);
+    Modal_setResult(modalDispatch, "photoPickerModal", result?.data ?? "");
     Modal_clear(modalDispatch, "photoPickerModal");
     navigation.goBack();
   };

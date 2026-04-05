@@ -4,6 +4,10 @@ import { localdomain } from "../src/localdomain";
 
 export const startpage = `https://${localdomain}.liftosaur.com:8080/app/`;
 
+export function PlaywrightUtils_activeScreen(page: Page): Locator {
+  return page.getByTestId("screen").and(page.locator(":visible")).last();
+}
+
 type ITestSet = 0 | 1 | { amrap: { reps?: number; weight?: number } };
 
 export async function PlaywrightUtils_clearCodeMirror(page: Page, dataCy: string, index?: number): Promise<void> {

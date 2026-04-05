@@ -26,8 +26,7 @@ export function NavModalTextInput(): JSX.Element {
       <GroupHeader size="large" name={data.title} />
       <form onSubmit={(e) => e.preventDefault()}>
         <Input2
-          identifier={`${data.dataCyPrefix}-input`}
-          data-cy={`${data.dataCyPrefix}-input`}
+          identifier={data.dataCyPrefix}
           onInput={(event) => {
             setName(event.currentTarget.value);
           }}

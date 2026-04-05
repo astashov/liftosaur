@@ -1,4 +1,4 @@
-import { JSX, ReactNode, useEffect, useState } from "react";
+import { JSX, ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { IconCloseCircleOutline } from "../components/icons/iconCloseCircleOutline";
 
@@ -10,21 +10,52 @@ interface IProps {
 
 export function SheetScreenContainer(props: IProps): JSX.Element {
   const [containerRef, setContainerRef] = useState<HTMLElement | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(props.onClose);
+  onCloseRef.current = props.onClose;
 
   useEffect(() => {
     setContainerRef(document.getElementById("bottomsheet"));
     document.body.classList.add("stop-scrolling-bottom-sheet");
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setIsVisible(true);
+      });
+    });
     return () => {
       document.body.classList.remove("stop-scrolling-bottom-sheet");
     };
   }, []);
 
+  const handleClose = useCallback(() => {
+    setIsVisible(false);
+    setTimeout(() => {
+      onCloseRef.current();
+    }, 200);
+  }, []);
+
+  const bottomShift = isVisible ? 0 : sheetRef.current?.clientHeight ?? 800;
+
   const element = (
     <div className="fixed inset-0 z-40">
-      <div data-name="overlay" className="absolute inset-0 opacity-50 bg-text-secondary" onClick={props.onClose}></div>
       <div
-        className="bottom-sticked absolute bottom-0 left-0 flex w-full overflow-y-auto bg-background-default"
+        data-name="overlay"
+        className={`absolute inset-0 bg-text-secondary will-change-transform ${
+          isVisible ? "visible opacity-50" : "invisible opacity-0"
+        }`}
+        style={{ transition: "visibility 0.2s ease-out, opacity 0.2s ease-out" }}
+        onClick={handleClose}
+      ></div>
+      <div
+        ref={sheetRef}
+        data-cy="bottom-sheet"
+        className={`bottom-sticked absolute bottom-0 left-0 flex w-full overflow-y-auto bg-background-default will-change-transform ${
+          isVisible ? "visible" : "invisible"
+        }`}
         style={{
+          transition: "transform 0.2s ease-out, visibility 0.2s",
+          transform: `translateY(${bottomShift}px)`,
           borderRadius: "16px 16px 0 0",
           boxShadow: "0 -5px 15px rgb(0 0 0 / 30%)",
           maxHeight: "90vh",
@@ -39,7 +70,7 @@ export function SheetScreenContainer(props: IProps): JSX.Element {
         {props.shouldShowClose && (
           <button
             data-cy="bottom-sheet-close"
-            onClick={props.onClose}
+            onClick={handleClose}
             className="absolute top-0 right-0 z-20 p-2 nm-bottom-sheet-close"
           >
             <IconCloseCircleOutline size={28} />

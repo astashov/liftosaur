@@ -33,11 +33,11 @@ Bent Over Row / 3x5 / 100lb / warmup: none`
   await page.getByTestId("delete-muscle-group-shoulders").click();
 
   await page.getByTestId("add-muscle-group").click();
-  await page.getByTestId("muscle-group-input").fill("Front Delts");
+  await page.getByTestId("modal-new-muscle-group-input").fill("Front Delts");
   await page.getByTestId("modal-new-muscle-group-submit").click();
 
   await page.getByTestId("add-muscle-group").click();
-  await page.getByTestId("muscle-group-input").fill("Rear Delts");
+  await page.getByTestId("modal-new-muscle-group-input").fill("Rear Delts");
   await page.getByTestId("modal-new-muscle-group-submit").click();
 
   await page.getByTestId("edit-muscle-group-front-delts").click();

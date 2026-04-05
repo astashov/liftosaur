@@ -1,8 +1,7 @@
-import { JSX, useEffect, useRef, useState } from "react";
+import { JSX, useEffect, useState } from "react";
 import { ObjectUtils_keys } from "../utils/object";
 import { DropdownMenu, DropdownMenuItem } from "./dropdownMenu";
-import { useModalDispatch, useModalResult, Modal_open } from "../navigation/ModalStateContext";
-import { getNavigationRef } from "../navigation/navUtils";
+import { useModal } from "../navigation/ModalStateContext";
 
 interface ISelectLinkProps<T extends string | number> {
   values: Record<T, string>;
@@ -18,8 +17,6 @@ export function SelectLink<T extends string | number>(props: ISelectLinkProps<T>
   const selectedOption = props.value ? props.values[props.value] : undefined;
   const keys = ObjectUtils_keys(props.values);
   const [isDesktop, setIsDesktop] = useState(typeof window !== "undefined" && window.innerWidth >= 768);
-  const modalDispatch = useModalDispatch();
-  const isOpenRef = useRef(false);
 
   useEffect(() => {
     const check = (): void => setIsDesktop(window.innerWidth >= 768);
@@ -27,11 +24,8 @@ export function SelectLink<T extends string | number>(props: ISelectLinkProps<T>
     return () => window.removeEventListener("resize", check);
   }, []);
 
-  useModalResult("inputSelectModal", (value) => {
-    if (isOpenRef.current) {
-      isOpenRef.current = false;
-      props.onChange(value === null ? undefined : (value as T));
-    }
+  const openModal = useModal("inputSelectModal", (value) => {
+    props.onChange(value === "" ? undefined : (value as T));
   });
 
   return (
@@ -43,13 +37,12 @@ export function SelectLink<T extends string | number>(props: ISelectLinkProps<T>
             setShowOptions(!showOptions);
           } else {
             const values: [string, string][] = keys.map((key) => [String(key), props.values[key]]);
-            isOpenRef.current = true;
-            Modal_open(modalDispatch, "inputSelectModal", {
+            openModal({
+              name: props.name,
               values,
               selectedValue: props.value != null ? String(props.value) : undefined,
               emptyLabel: props.emptyLabel,
             });
-            getNavigationRef().then(({ navigationRef: ref }) => ref.navigate("inputSelectModal"));
           }
         }}
       >

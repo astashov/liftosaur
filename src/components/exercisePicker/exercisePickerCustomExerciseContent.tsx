@@ -1,4 +1,4 @@
-import { JSX, useContext, useRef, useState } from "react";
+import { JSX, useContext, useState } from "react";
 import { ISettings, ICustomExercise, IMuscle, exerciseKinds, IExerciseKind } from "../../types";
 import { Button } from "../button";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -31,8 +31,7 @@ import { MarkdownEditor } from "../markdownEditor";
 import { BottomSheetExerciseCloneLibrary } from "./bottomSheetExerciseCloneLibrary";
 import { ExerciseImageUtils_url } from "../../models/exerciseImage";
 import { BottomSheetOrModal } from "../bottomSheetOrModal";
-import { useModalDispatch, useModalResult, Modal_open } from "../../navigation/ModalStateContext";
-import { getNavigationRef } from "../../navigation/navUtils";
+import { useModal } from "../../navigation/ModalStateContext";
 
 interface IExercisePickerCustomExerciseContentProps {
   settings: ISettings;
@@ -76,8 +75,6 @@ async function uploadAndUpdateImage(
 export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustomExerciseContentProps): JSX.Element {
   const appContext = useContext(AppContext);
   const service = appContext.service ?? new Service(window.fetch.bind(window));
-  const modalDispatch = useModalDispatch();
-
   const editCustomExercise = props.exercise;
   const { notes, setNotes } = props;
   const isValid = editCustomExercise.name.trim().length ?? 0 > 0;
@@ -88,7 +85,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
   const [showImageLibrary, setShowImageLibrary] = useState<boolean>(false);
   const [isUploading, setIsUploading] = useState<boolean>(false);
 
-  useModalResult("exerciseImageLibraryModal", (result) => {
+  const openImageSource = useModal("exerciseImageSourceModal", (result) => {
     props.dispatch(
       [
         lb<ICustomExercise>().p("smallImageUrl").record(result.smallImageUrl),
@@ -98,7 +95,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
     );
   });
 
-  useModalResult("exerciseCloneLibraryModal", (result) => {
+  const openCloneLibraryModal = useModal("exerciseCloneLibraryModal", (result) => {
     props.dispatch(
       [
         lb<ICustomExercise>().p("smallImageUrl").record(result.smallImageUrl),
@@ -108,19 +105,6 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
         lb<ICustomExercise>().p("types").record(result.types),
       ],
       "Clone built-in exercise into custom exercise"
-    );
-  });
-
-  useModalResult("exerciseTypesPickerModal", (types) => {
-    props.dispatch(lb<ICustomExercise>().p("types").record(types), "Update custom exercise types");
-  });
-
-  const activeMuscleKeyRef = useRef<"targetMuscles" | "synergistMuscles">("targetMuscles");
-
-  useModalResult("exerciseMusclesPickerModal", (muscles) => {
-    props.dispatch(
-      lb<ICustomExercise>().p("meta").p(activeMuscleKeyRef.current).record(muscles),
-      `Update custom exercise ${activeMuscleKeyRef.current}`
     );
   });
 
@@ -139,18 +123,15 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
     if (props.useInlineModals) {
       setShowCloneBottomSheet(true);
     } else {
-      Modal_open(modalDispatch, "exerciseCloneLibraryModal", {});
-      getNavigationRef().then(({ navigationRef: ref }) => ref.navigate("exerciseCloneLibraryModal"));
+      openCloneLibraryModal({});
     }
   };
 
-  const openImageSource = (): void => {
+  const openImageSourceAction = (): void => {
     if (props.useInlineModals) {
       setShowImageBottomSheet(true);
     } else {
-      getNavigationRef().then(({ navigationRef: ref }) =>
-        ref.navigate("exerciseImageSourceModal", { exerciseId: editCustomExercise.id })
-      );
+      openImageSource({ exerciseId: editCustomExercise.id });
     }
   };
 
@@ -183,14 +164,14 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
             <div className="text-center">
               <div className="text-center">
                 <img
-                  onClick={openImageSource}
+                  onClick={openImageSourceAction}
                   src={editCustomExercise.largeImageUrl ?? editCustomExercise.smallImageUrl}
                   alt="Exercise"
                   className="inline-block object-contain h-48"
                 />
               </div>
               <div>
-                <LinkButton name="custom-exercise-change-image" className="text-xs" onClick={openImageSource}>
+                <LinkButton name="custom-exercise-change-image" className="text-xs" onClick={openImageSourceAction}>
                   Change Image
                 </LinkButton>
               </div>
@@ -202,7 +183,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
                 kind="purple"
                 className="w-full"
                 buttonSize="md"
-                onClick={openImageSource}
+                onClick={openImageSourceAction}
               >
                 Add image
               </Button>
@@ -258,9 +239,6 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
           <ExercisePickerCustomExerciseMuscles
             settings={props.settings}
             useInlineModals={props.useInlineModals}
-            onSetActiveMuscleKey={() => {
-              activeMuscleKeyRef.current = "targetMuscles";
-            }}
             name="target-muscles"
             bottomSheetTitle="Target Muscles"
             muscleKey="targetMuscles"
@@ -282,15 +260,18 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
                 "Update custom exercise target muscles"
               );
             }}
+            onMusclesSelected={(muscles) => {
+              props.dispatch(
+                lb<ICustomExercise>().p("meta").p("targetMuscles").record(muscles),
+                "Update custom exercise targetMuscles"
+              );
+            }}
           />
         </div>
         <div className="pt-2">
           <ExercisePickerCustomExerciseMuscles
             settings={props.settings}
             useInlineModals={props.useInlineModals}
-            onSetActiveMuscleKey={() => {
-              activeMuscleKeyRef.current = "synergistMuscles";
-            }}
             name="synergist-muscles"
             bottomSheetTitle="Synergist Muscles"
             muscleKey="synergistMuscles"
@@ -312,6 +293,12 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
                 "Update custom exercise synergist muscles"
               );
             }}
+            onMusclesSelected={(muscles) => {
+              props.dispatch(
+                lb<ICustomExercise>().p("meta").p("synergistMuscles").record(muscles),
+                "Update custom exercise synergistMuscles"
+              );
+            }}
           />
         </div>
         <div className="pt-2">
@@ -322,6 +309,9 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
             onNewTypes={(types) => {
               const newTypes = ObjectUtils_keys(types).filter((k) => types[k].isSelected);
               props.dispatch(lb<ICustomExercise>().p("types").record(newTypes), "Update custom exercise types");
+            }}
+            onTypesSelected={(types) => {
+              props.dispatch(lb<ICustomExercise>().p("types").record(types), "Update custom exercise types");
             }}
           />
         </div>
@@ -524,19 +514,22 @@ interface IExercisePickerCustomExerciseTypesProps {
   types: Record<IExerciseKind, IFilterValue>;
   selectedTypes: IExerciseKind[];
   onNewTypes: (types: Record<IExerciseKind, IFilterValue>) => void;
+  onTypesSelected: (types: IExerciseKind[]) => void;
 }
 
 function ExercisePickerCustomExerciseTypes(props: IExercisePickerCustomExerciseTypesProps): JSX.Element {
   const [isOpened, setIsOpened] = useState<boolean>(false);
   const selectedValues = ObjectUtils_keys(props.types).filter((k) => props.types[k].isSelected);
-  const modalDispatch = useModalDispatch();
+
+  const openTypesModal = useModal("exerciseTypesPickerModal", (types) => {
+    props.onTypesSelected(types);
+  });
 
   const openPicker = (): void => {
     if (props.useInlineModals) {
       setIsOpened(true);
     } else {
-      Modal_open(modalDispatch, "exerciseTypesPickerModal", { selectedTypes: props.selectedTypes });
-      getNavigationRef().then(({ navigationRef: ref }) => ref.navigate("exerciseTypesPickerModal"));
+      openTypesModal({ selectedTypes: props.selectedTypes });
     }
   };
 
@@ -600,27 +593,28 @@ interface IExercisePickerCustomExerciseMusclesProps {
   bottomSheetTitle: string;
   muscleKey: "targetMuscles" | "synergistMuscles";
   useInlineModals?: boolean;
-  onSetActiveMuscleKey?: () => void;
   selectedMuscles: IMuscle[];
   settings: ISettings;
   onSelect: (muscle: IMuscle) => void;
+  onMusclesSelected: (muscles: IMuscle[]) => void;
 }
 
 function ExercisePickerCustomExerciseMuscles(props: IExercisePickerCustomExerciseMusclesProps): JSX.Element {
   const [isOpened, setIsOpened] = useState<boolean>(false);
-  const modalDispatch = useModalDispatch();
+
+  const openMusclesModal = useModal("exerciseMusclesPickerModal", (muscles) => {
+    props.onMusclesSelected(muscles);
+  });
 
   const openPicker = (): void => {
     if (props.useInlineModals) {
       setIsOpened(true);
     } else {
-      props.onSetActiveMuscleKey?.();
-      Modal_open(modalDispatch, "exerciseMusclesPickerModal", {
+      openMusclesModal({
         title: props.bottomSheetTitle,
         name: props.name,
         selectedMuscles: props.selectedMuscles,
       });
-      getNavigationRef().then(({ navigationRef: ref }) => ref.navigate("exerciseMusclesPickerModal"));
     }
   };
 
