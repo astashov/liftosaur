@@ -6,8 +6,7 @@ import { ISettings } from "../../types";
 import { ObjectUtils_entriesNonnull } from "../../utils/object";
 import { Button } from "../button";
 import { StringUtils_dashcase } from "../../utils/string";
-import { useModalDispatch, useModalResult, Modal_open } from "../../navigation/ModalStateContext";
-import { navigationRef } from "../../navigation/navigationRef";
+import { useModal } from "../../navigation/ModalStateContext";
 
 interface IBottomSheetEditProgramExerciseSupersetProps {
   onSelect: (name: string | undefined) => void;
@@ -27,9 +26,8 @@ export function BottomSheetEditProgramExerciseSupersetContent(
   props: IBottomSheetEditProgramExerciseSupersetContentProps
 ): JSX.Element {
   const supersetGroups = Program_getSupersetGroups(props.evaluatedProgram, props.plannerExercise.dayData);
-  const modalDispatch = useModalDispatch();
 
-  useModalResult("textInputModal", (name) => {
+  const openTextInput = useModal("textInputModal", (name) => {
     props.onSelect(name);
   });
 
@@ -87,14 +85,13 @@ export function BottomSheetEditProgramExerciseSupersetContent(
             kind="purple"
             buttonSize="lg"
             onClick={() => {
-              Modal_open(modalDispatch, "textInputModal", {
+              openTextInput({
                 title: "Enter new group name",
                 inputLabel: "Name",
                 placeholder: "My Group Name",
                 submitLabel: "Add",
                 dataCyPrefix: "modal-new-superset",
               });
-              navigationRef.navigate("textInputModal");
             }}
             data-cy="superset-create-group"
           >

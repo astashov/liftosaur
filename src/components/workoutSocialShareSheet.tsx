@@ -10,8 +10,7 @@ import { IconSpinner } from "./icons/iconSpinner";
 import { WorkoutShareOutputWithBg } from "./workoutShareOutputWithBg";
 import { ImageShareUtils } from "../utils/imageshare";
 import { LinkButton } from "./linkButton";
-import { useModalDispatch, useModalResult, Modal_open } from "../navigation/ModalStateContext";
-import { getNavigationRef } from "../navigation/navUtils";
+import { useModal } from "../navigation/ModalStateContext";
 
 interface IWorkoutShareSheetProps {
   record?: IHistoryRecord;
@@ -27,9 +26,8 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
   const [backgroundImage, setBackgroundImage] = useState<string | undefined>(undefined);
   const [selectedFrameIndex, setSelectedFrameIndex] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const modalDispatch = useModalDispatch();
 
-  useModalResult("photoPickerModal", (result) => {
+  const openPhotoPicker = useModal("photoPickerModal", (result) => {
     if (result) {
       setBackgroundImage(result);
     }
@@ -95,8 +93,7 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
                   isCustomBg={true}
                   backgroundImage={backgroundImage}
                   onPickCustomBg={() => {
-                    Modal_open(modalDispatch, "photoPickerModal", {});
-                    getNavigationRef().then(({ navigationRef: ref }) => ref.navigate("photoPickerModal"));
+                    openPhotoPicker({});
                   }}
                 />
               )}
@@ -105,8 +102,7 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
               <LinkButton
                 name="your-photo-bg"
                 onClick={() => {
-                  Modal_open(modalDispatch, "photoPickerModal", {});
-                  getNavigationRef().then(({ navigationRef: ref }) => ref.navigate("photoPickerModal"));
+                  openPhotoPicker({});
                 }}
               >
                 Your photo as background

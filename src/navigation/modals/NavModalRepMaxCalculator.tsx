@@ -25,7 +25,9 @@ export function NavModalRepMaxCalculator(): JSX.Element {
           backLabel="Back"
           unit={data.unit}
           onSelect={(weightValue) => {
-            Modal_setResult(modalDispatch, "repMaxCalculatorModal", weightValue);
+            if (weightValue != null) {
+              Modal_setResult(modalDispatch, "repMaxCalculatorModal", weightValue);
+            }
             Modal_clear(modalDispatch, "repMaxCalculatorModal");
             navigation.goBack();
           }}

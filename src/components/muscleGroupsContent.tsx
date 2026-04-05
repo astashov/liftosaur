@@ -16,7 +16,7 @@ import { MenuItemWrapper } from "./menuItem";
 import { MuscleGroupImage } from "./muscleGroupImage";
 import { BottomSheetMuscleGroupMusclePicker } from "./bottomSheetMuscleGroupMusclePicker";
 import { StringUtils_dashcase } from "../utils/string";
-import { useModalDispatch, useModalResult, Modal_open } from "../navigation/ModalStateContext";
+import { useModal } from "../navigation/ModalStateContext";
 import { getNavigationRef } from "../navigation/navUtils";
 
 interface IProps {
@@ -32,9 +32,8 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
   const visibleMuscleGroups = Muscle_getAvailableMuscleGroups(props.settings);
   const hiddenMuscleGroups = Muscle_getHiddenMuscleGroups(props.settings);
   const [showMusclePicker, setShowMusclePicker] = useState<IScreenMuscle | undefined>(undefined);
-  const modalDispatch = useModalDispatch();
 
-  useModalResult("textInputModal", (name) => {
+  const openTextInput = useModal("textInputModal", (name) => {
     props.onCreate(name);
   });
   return (
@@ -97,14 +96,13 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
           data-cy="add-muscle-group"
           className="text-sm"
           onClick={() => {
-            Modal_open(modalDispatch, "textInputModal", {
+            openTextInput({
               title: "Enter new group name",
               inputLabel: "Name",
               placeholder: "My Group Name",
               submitLabel: "Add",
               dataCyPrefix: "modal-new-muscle-group",
             });
-            getNavigationRef().then(({ navigationRef: ref }) => ref.navigate("textInputModal"));
           }}
         >
           Add custom muscle group

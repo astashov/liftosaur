@@ -26,7 +26,7 @@ export function ModalScreenContainer(props: IProps): JSX.Element {
   }, []);
 
   const element = (
-    <section className="fixed inset-0 flex items-center justify-center bottom-sticked" style={{ zIndex: 40 }}>
+    <section className="fixed inset-0 flex items-center justify-center bottom-sticked" style={{ zIndex: 50 }}>
       <div
         data-name="overlay"
         onClick={props.onClose}
@@ -34,6 +34,7 @@ export function ModalScreenContainer(props: IProps): JSX.Element {
       ></div>
       <div
         data-name="modal"
+        data-cy="modal"
         className={`relative z-20 flex flex-col ${props.noPaddings ? "" : "py-6"} bg-background-default rounded-lg shadow-lg text-text-primary`}
         style={{
           maxWidth: props.maxWidth ?? "92%",
@@ -57,6 +58,7 @@ export function ModalScreenContainer(props: IProps): JSX.Element {
         </div>
         {props.shouldShowClose !== false && (
           <button
+            data-cy="modal-close"
             onClick={props.onClose}
             className="absolute p-2 nm-modal-close"
             style={{ top: "-3px", right: "-3px" }}

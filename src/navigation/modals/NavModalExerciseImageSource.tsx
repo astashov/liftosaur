@@ -1,5 +1,5 @@
 import { JSX, useContext, useState } from "react";
-import { useRoute, useNavigation } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
 import { BottomSheetItem } from "../../components/bottomSheetItem";
@@ -11,31 +11,33 @@ import {
   SendMessage_isIos,
   SendMessage_isAndroid,
 } from "../../utils/sendMessage";
-import { useModalDispatch, Modal_setResult, Modal_open } from "../ModalStateContext";
+import { useModalDispatch, useModalData, Modal_setResult, Modal_clear, useModal } from "../ModalStateContext";
 import { AppContext } from "../../components/appContext";
 import { Service } from "../../api/service";
 import { ImageUploader } from "../../utils/imageUploader";
 import { Importer } from "../../components/importer";
-import type { IRootStackParamList } from "../types";
 
 export function NavModalExerciseImageSource(): JSX.Element {
   const { state } = useAppState();
   const navigation = useNavigation();
   const modalDispatch = useModalDispatch();
-  const route = useRoute<{
-    key: string;
-    name: "exerciseImageSourceModal";
-    params: IRootStackParamList["exerciseImageSourceModal"];
-  }>();
-  const { exerciseId } = route.params;
+  const data = useModalData("exerciseImageSourceModal");
+  const exerciseId = data?.exerciseId ?? "";
   const appContext = useContext(AppContext);
   const service = appContext.service ?? new Service(window.fetch.bind(window));
   const isLoggedIn = !!state.user?.id;
   const [isUploading, setIsUploading] = useState(false);
 
   const onClose = (): void => {
+    Modal_clear(modalDispatch, "exerciseImageSourceModal");
     navigation.goBack();
   };
+
+  const openImageLibrary = useModal("exerciseImageLibraryModal", (result) => {
+    Modal_setResult(modalDispatch, "exerciseImageSourceModal", result);
+    Modal_clear(modalDispatch, "exerciseImageSourceModal");
+    navigation.goBack();
+  });
 
   const uploadFromNative = async (source: "camera" | "photo-library"): Promise<void> => {
     if (!isLoggedIn) {
@@ -50,11 +52,16 @@ export function NavModalExerciseImageSource(): JSX.Element {
     if (result?.data) {
       const imageUploader = new ImageUploader(service);
       const url = await imageUploader.uploadBase64Image(result.data, exerciseId);
-      Modal_setResult(modalDispatch, "exerciseImageLibraryModal", { smallImageUrl: url });
+      Modal_setResult(modalDispatch, "exerciseImageSourceModal", { smallImageUrl: url });
     }
     setIsUploading(false);
-    onClose();
+    Modal_clear(modalDispatch, "exerciseImageSourceModal");
+    navigation.goBack();
   };
+
+  if (!data) {
+    return <></>;
+  }
 
   return (
     <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
@@ -65,9 +72,7 @@ export function NavModalExerciseImageSource(): JSX.Element {
           className="ls-custom-exercise-image-library"
           title="From Image Library"
           onClick={() => {
-            onClose();
-            Modal_open(modalDispatch, "exerciseImageLibraryModal", {});
-            navigation.navigate("exerciseImageLibraryModal" as never);
+            openImageLibrary({});
           }}
         />
         {SendMessage_isIos() || SendMessage_isAndroid() ? (
@@ -97,9 +102,10 @@ export function NavModalExerciseImageSource(): JSX.Element {
               setIsUploading(true);
               const imageUploader = new ImageUploader(service);
               const url = await imageUploader.uploadImage(file, exerciseId);
-              Modal_setResult(modalDispatch, "exerciseImageLibraryModal", { smallImageUrl: url });
+              Modal_setResult(modalDispatch, "exerciseImageSourceModal", { smallImageUrl: url });
               setIsUploading(false);
-              onClose();
+              Modal_clear(modalDispatch, "exerciseImageSourceModal");
+              navigation.goBack();
             }}
           >
             {(onClick) => (

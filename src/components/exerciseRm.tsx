@@ -3,8 +3,7 @@ import { MenuItemEditable } from "./menuItemEditable";
 import { IExercise, Exercise_onerm } from "../models/exercise";
 import { IExerciseDataValue, ISettings } from "../types";
 import { IconCalculator } from "./icons/iconCalculator";
-import { useModalDispatch, useModalResult, Modal_open } from "../navigation/ModalStateContext";
-import { getNavigationRef } from "../navigation/navUtils";
+import { useModal } from "../navigation/ModalStateContext";
 
 interface IExerciseRMProps {
   name: string;
@@ -16,9 +15,8 @@ interface IExerciseRMProps {
 
 export function ExerciseRM(props: IExerciseRMProps): JSX.Element {
   const rm = Exercise_onerm(props.exercise, props.settings);
-  const modalDispatch = useModalDispatch();
 
-  useModalResult("repMaxCalculatorModal", (weightValue) => {
+  const openCalculator = useModal("repMaxCalculatorModal", (weightValue) => {
     if (weightValue != null) {
       props.onEditVariable(weightValue);
     }
@@ -45,8 +43,7 @@ export function ExerciseRM(props: IExerciseRMProps): JSX.Element {
               data-cy="onerm-calculator"
               style={{ marginRight: "-0.25rem" }}
               onClick={() => {
-                Modal_open(modalDispatch, "repMaxCalculatorModal", { unit: props.settings.units });
-                getNavigationRef().then(({ navigationRef: ref }) => ref.navigate("repMaxCalculatorModal"));
+                openCalculator({ unit: props.settings.units });
               }}
             >
               <IconCalculator size={16} />

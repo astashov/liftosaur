@@ -1,7 +1,6 @@
 import { JSX } from "react";
 import { IconArrowDown2 } from "./icons/iconArrowDown2";
-import { useModalDispatch, useModalResult, Modal_open } from "../navigation/ModalStateContext";
-import { getNavigationRef } from "../navigation/navUtils";
+import { useModal } from "../navigation/ModalStateContext";
 
 interface IInputSelectProps<T extends string> {
   name: string;
@@ -31,12 +30,11 @@ export function InputSelect<T extends string>(props: IInputSelectProps<T>): JSX.
 }
 
 export function InputSelectValue<T extends string>(props: IInputSelectProps<T>): JSX.Element {
-  const modalDispatch = useModalDispatch();
   const selectedLabel = props.values?.find((v) => v[0] === props.value)?.[1];
 
-  useModalResult("inputSelectModal", (value) => {
+  const openModal = useModal("inputSelectModal", (value) => {
     if (props.onChange) {
-      props.onChange(value === null ? undefined : (value as T));
+      props.onChange(value === "" ? undefined : (value as T));
     }
   });
 
@@ -46,13 +44,13 @@ export function InputSelectValue<T extends string>(props: IInputSelectProps<T>):
       className="flex items-center w-full gap-2 p-2 text-left border rounded bg-background-default border-border-neutral"
       onClick={() => {
         if (!props.disabled && props.values && props.values.length > 0) {
-          Modal_open(modalDispatch, "inputSelectModal", {
+          openModal({
+            name: props.name,
             values: props.values,
             hint: props.hint,
             selectedValue: props.value,
             placeholder: props.placeholder,
           });
-          getNavigationRef().then(({ navigationRef: ref }) => ref.navigate("inputSelectModal"));
         }
       }}
     >

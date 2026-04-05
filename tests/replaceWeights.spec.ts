@@ -6,6 +6,7 @@ import {
   PlaywrightUtils_type,
   PlaywrightUtils_createProgram,
   PlaywrightUtils_disableTours,
+  PlaywrightUtils_activeScreen,
 } from "./playwrightUtils";
 
 test("replaces weights", async ({ page }) => {
@@ -50,29 +51,29 @@ Bicep Curl / 1x8 80lb`
   await page.getByTestId("tab-across-all-weeks").click();
   await page.getByTestId("tab-weights").click();
 
-  await expect(page.getByTestId("input-set-weight-field").nth(0)).toHaveText("51 lb");
-  await expect(page.getByTestId("input-set-weight-field").nth(1)).toHaveText("62 kg");
-  await expect(page.getByTestId("input-set-weight-field").nth(2)).toHaveText("30 %");
-  await expect(page.getByTestId("input-set-weight-field").nth(3)).toHaveText("70 lb");
-  await expect(page.getByTestId("input-set-weight-field").nth(4)).toHaveText("80 lb");
+  await expect(PlaywrightUtils_activeScreen(page).getByTestId("input-set-weight-field").nth(0)).toHaveText("51 lb");
+  await expect(PlaywrightUtils_activeScreen(page).getByTestId("input-set-weight-field").nth(1)).toHaveText("62 kg");
+  await expect(PlaywrightUtils_activeScreen(page).getByTestId("input-set-weight-field").nth(2)).toHaveText("30 %");
+  await expect(PlaywrightUtils_activeScreen(page).getByTestId("input-set-weight-field").nth(3)).toHaveText("70 lb");
+  await expect(PlaywrightUtils_activeScreen(page).getByTestId("input-set-weight-field").nth(4)).toHaveText("80 lb");
 
-  await page.getByTestId("input-set-weight-field").nth(0).click();
+  await PlaywrightUtils_activeScreen(page).getByTestId("input-set-weight-field").nth(0).click();
   await page.getByTestId("keyboard-plus").click();
   await page.getByTestId("keyboard-close").click();
 
-  await page.getByTestId("input-set-weight-field").nth(1).click();
+  await PlaywrightUtils_activeScreen(page).getByTestId("input-set-weight-field").nth(1).click();
   await page.getByTestId("keyboard-minus").click();
   await page.getByTestId("keyboard-close").click();
 
-  await page.getByTestId("input-set-weight-field").nth(2).click();
+  await PlaywrightUtils_activeScreen(page).getByTestId("input-set-weight-field").nth(2).click();
   await page.getByTestId("keyboard-plus").click();
   await page.getByTestId("keyboard-close").click();
 
-  await expect(page.getByTestId("input-set-weight-field").nth(0)).toHaveText("52.5 lb");
-  await expect(page.getByTestId("input-set-weight-field").nth(1)).toHaveText("60 kg");
-  await expect(page.getByTestId("input-set-weight-field").nth(2)).toHaveText("31 %");
+  await expect(PlaywrightUtils_activeScreen(page).getByTestId("input-set-weight-field").nth(0)).toHaveText("52.5 lb");
+  await expect(PlaywrightUtils_activeScreen(page).getByTestId("input-set-weight-field").nth(1)).toHaveText("60 kg");
+  await expect(PlaywrightUtils_activeScreen(page).getByTestId("input-set-weight-field").nth(2)).toHaveText("31 %");
 
-  await page.getByTestId("input-set-weight-field").nth(3).click();
+  await PlaywrightUtils_activeScreen(page).getByTestId("input-set-weight-field").nth(3).click();
   await page.getByTestId("keyboard-rm-calculator").click();
 
   await PlaywrightUtils_type("3", () => page.getByTestId("rep-max-calculator-known-reps"));
@@ -81,22 +82,32 @@ Bicep Curl / 1x8 80lb`
   await PlaywrightUtils_type("7", () => page.getByTestId("rep-max-calculator-target-rpe"));
 
   await page.getByTestId("rep-max-calculator-submit").click();
-  await expect(page.getByTestId("input-set-weight-field").nth(3)).toHaveText("182 lb");
-  await page.getByTestId("save-program-exercise").click();
+  await expect(PlaywrightUtils_activeScreen(page).getByTestId("input-set-weight-field").nth(3)).toHaveText("182 lb");
+  await PlaywrightUtils_activeScreen(page).getByTestId("save-program-exercise").click();
 
-  await expect(page.getByTestId("entry-squat").getByTestId("input-set-weight-field").nth(1)).toHaveText("52.5");
-  await expect(page.getByTestId("entry-squat").getByTestId("input-set-weight-field").nth(4)).toHaveText("132.5");
+  await expect(
+    PlaywrightUtils_activeScreen(page).getByTestId("entry-squat").getByTestId("input-set-weight-field").nth(1)
+  ).toHaveText("52.5");
+  await expect(
+    PlaywrightUtils_activeScreen(page).getByTestId("entry-squat").getByTestId("input-set-weight-field").nth(4)
+  ).toHaveText("132.5");
 
   await page.getByTestId("footer-program").click();
-  await page.getByTestId("tab-edit").click();
-  await page.getByTestId("editor-v2-perday-program").click();
+  await PlaywrightUtils_activeScreen(page).getByTestId("tab-edit").click();
+  await PlaywrightUtils_activeScreen(page).getByTestId("editor-v2-perday-program").click();
 
-  await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText(
-    `Squat / 3x8 52.5lb, 2x8 60kg / 4x8 31%Bench Press / 3x8 / 50lbBicep Curl / ...Bench Press / 30lb`
-  );
-  await page.getByTestId("tab-week-2").click();
+  await expect(
+    PlaywrightUtils_activeScreen(page)
+      .getByTestId("planner-editor")
+      .and(PlaywrightUtils_activeScreen(page).locator(":visible"))
+      .first()
+  ).toContainText(`Squat / 3x8 52.5lb, 2x8 60kg / 4x8 31%Bench Press / 3x8 / 50lbBicep Curl / ...Bench Press / 30lb`);
+  await PlaywrightUtils_activeScreen(page).getByTestId("tab-week-2").click();
 
-  await expect(page.getByTestId("planner-editor").and(page.locator(":visible")).first()).toContainText(
-    `Squat / 3x8 52.5lb, 1x8 182lb / 4x8 80lbBench Press / 3x8 / 70lbBicep Curl / 1x8 / 80lb`
-  );
+  await expect(
+    PlaywrightUtils_activeScreen(page)
+      .getByTestId("planner-editor")
+      .and(PlaywrightUtils_activeScreen(page).locator(":visible"))
+      .first()
+  ).toContainText(`Squat / 3x8 52.5lb, 1x8 182lb / 4x8 80lbBench Press / 3x8 / 70lbBicep Curl / 1x8 / 80lb`);
 });

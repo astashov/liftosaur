@@ -6,8 +6,7 @@ import { n, MathUtils_clamp } from "../utils/math";
 import { IPercentageUnit, IUnit } from "../types";
 import { IconCalculator } from "./icons/iconCalculator";
 import { Mobile_isMobile } from "../../lambda/utils/mobile";
-import { useModalDispatch, useModalResult, Modal_open } from "../navigation/ModalStateContext";
-import { getNavigationRef } from "../navigation/navUtils";
+import { useModal } from "../navigation/ModalStateContext";
 import { IconBackspace } from "./icons/iconBackspace";
 
 interface IInputNumber2Props {
@@ -66,21 +65,12 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
   const [isMobile, setIsMobile] = useState(false);
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const isCalculatorOpenRef = useRef(isCalculatorOpen);
-  const modalDispatch = useModalDispatch();
-  useModalResult("repMaxCalculatorModal", (weightValue) => {
-    if (weightValue == null) {
-      valueRef.current = "";
-      setValue("");
-      if (props.onBlur) {
-        props.onBlur(undefined);
-      }
-    } else {
-      const newValue = clamp(weightValue, props.min, props.max);
-      valueRef.current = newValue?.toString() ?? "";
-      setValue(newValue?.toString() ?? "");
-      if (props.onBlur) {
-        props.onBlur(newValue);
-      }
+  const openCalculator = useModal("repMaxCalculatorModal", (weightValue) => {
+    const newValue = clamp(weightValue, props.min, props.max);
+    valueRef.current = newValue?.toString() ?? "";
+    setValue(newValue?.toString() ?? "");
+    if (props.onBlur) {
+      props.onBlur(newValue);
     }
     setIsCalculatorOpen(false);
   });
@@ -384,8 +374,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
             blur();
             setIsCalculatorOpen(true);
             if (props.selectedUnit && props.selectedUnit !== "%") {
-              Modal_open(modalDispatch, "repMaxCalculatorModal", { unit: props.selectedUnit });
-              getNavigationRef().then(({ navigationRef: ref }) => ref.navigate("repMaxCalculatorModal"));
+              openCalculator({ unit: props.selectedUnit });
             }
           }}
           enableUnits={props.enableUnits}

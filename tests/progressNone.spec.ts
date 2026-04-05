@@ -43,9 +43,11 @@ Squat / 1x5 115lb / warmup: none`
 
   await page.getByTestId("save-program").click();
 
+  await page.getByTestId("footer-workout").click();
   await expect(page.getByTestId("history-record").first().getByTestId("history-entry-weight").first()).toHaveText(
     "115lb"
   );
+  await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
 
   for (const weight of [120, 125, 130, 130, 130, 135]) {
     await page.getByTestId("footer-workout").click();

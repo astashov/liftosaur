@@ -790,14 +790,22 @@ export function Thunk_startProgramDay(programId?: string): IThunk {
   };
 }
 
-export function Thunk_pushToEditProgramExercise(key: string, dayData: Required<IDayData>): IThunk {
+export function Thunk_pushToEditProgramExercise(
+  key: string,
+  dayData: Required<IDayData>,
+  fromWorkout?: boolean
+): IThunk {
   return async (dispatch, getState) => {
     const state = getState();
     const editProgramIds = Object.keys(state.editProgramStates);
     const programId = editProgramIds[0] ?? state.storage.currentProgramId;
     const editProgramState = programId ? state.editProgramStates[programId] : undefined;
-    const currentProgram =
-      editProgramState?.current.program || (programId != null ? Program_getProgram(state, programId) : undefined);
+    const isFromWorkout = fromWorkout ?? !editProgramState;
+    const currentProgram = isFromWorkout
+      ? programId != null
+        ? Program_getProgram(state, programId)
+        : undefined
+      : editProgramState?.current.program || (programId != null ? Program_getProgram(state, programId) : undefined);
     if (currentProgram && !Program_isEmpty(currentProgram) && programId) {
       const exerciseStateKey = `${programId}_${key}`;
       const plannerState = EditProgram_initPlannerProgramExerciseState(
@@ -805,7 +813,7 @@ export function Thunk_pushToEditProgramExercise(key: string, dayData: Required<I
         state.storage.settings,
         key,
         dayData,
-        !editProgramState
+        isFromWorkout
       );
       updateState(
         dispatch,
@@ -979,13 +987,15 @@ export function Thunk_finishProgramDay(): IThunk {
     const state = getState();
     const progress = Progress_getProgress(state);
     const isCurrent = progress ? Progress_isCurrent(progress) : false;
-    dispatch({ type: "FinishProgramDayAction" });
     const { navigateTo, goBack } = await getNavigationService();
+    // Navigate before dispatch so the progress screen unmounts before
+    // FallbackScreen can detect null progress and redirect to home
     if (isCurrent) {
       navigateTo("finishDay", undefined, { tab: "workout" });
     } else {
       goBack();
     }
+    dispatch({ type: "FinishProgramDayAction" });
   };
 }
 

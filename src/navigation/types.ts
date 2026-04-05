@@ -135,7 +135,7 @@ export type IRootStackParamList = {
   textInputModal: undefined;
   repMaxCalculatorModal: undefined;
   muscleGroupMusclePickerModal: { muscleGroup: IScreenMuscle };
-  exerciseImageSourceModal: { exerciseId: string };
+  exerciseImageSourceModal: undefined;
   exerciseImageLibraryModal: undefined;
   exerciseCloneLibraryModal: undefined;
   exerciseTypesPickerModal: undefined;

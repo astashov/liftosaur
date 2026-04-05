@@ -1,7 +1,9 @@
-import { JSX, ReactNode, createContext, useContext, useReducer, useEffect, useRef } from "react";
+import { JSX, ReactNode, createContext, useContext, useReducer, useEffect, useRef, useCallback } from "react";
 import type { IMuscle, IExerciseKind } from "../types";
+import { getNavigationRef } from "./navUtils";
 
 export interface IInputSelectModalData {
+  name?: string;
   values: [string, string][];
   hint?: string;
   selectedValue?: string;
@@ -50,20 +52,22 @@ export interface IModalDataMap {
   repMaxCalculatorModal: IRepMaxCalculatorModalData;
   exerciseTypesPickerModal: IExerciseTypesPickerModalData;
   exerciseMusclesPickerModal: IExerciseMusclesPickerModalData;
+  exerciseImageSourceModal: { exerciseId: string };
   exerciseImageLibraryModal: {};
   exerciseCloneLibraryModal: {};
   photoPickerModal: {};
 }
 
 export interface IModalResultMap {
-  inputSelectModal: string | null;
+  inputSelectModal: string;
   textInputModal: string;
-  repMaxCalculatorModal: number | undefined;
+  repMaxCalculatorModal: number;
   exerciseTypesPickerModal: IExerciseKind[];
   exerciseMusclesPickerModal: IMuscle[];
+  exerciseImageSourceModal: IExerciseImageLibraryResult;
   exerciseImageLibraryModal: IExerciseImageLibraryResult;
   exerciseCloneLibraryModal: IExerciseCloneLibraryResult;
-  photoPickerModal: string | null;
+  photoPickerModal: string;
 }
 
 export interface IModalState {
@@ -160,4 +164,33 @@ export function useModalResult<K extends keyof IModalResultMap>(
       callbackRef.current(result as IModalResultMap[K]);
     }
   }, [result]);
+}
+
+export function useModal<K extends keyof IModalDataMap & keyof IModalResultMap>(
+  key: K,
+  callback: (value: IModalResultMap[K]) => void
+): (data: IModalDataMap[K]) => void {
+  const state = useModalState();
+  const dispatch = useModalDispatch();
+  const result = state.results[key];
+  const callbackRef = useRef(callback);
+  callbackRef.current = callback;
+  const isOpenRef = useRef(false);
+
+  useEffect(() => {
+    if (result != null && isOpenRef.current) {
+      isOpenRef.current = false;
+      dispatch({ type: "clearResult", key });
+      callbackRef.current(result as IModalResultMap[K]);
+    }
+  }, [result, dispatch, key]);
+
+  return useCallback(
+    (data: IModalDataMap[K]) => {
+      isOpenRef.current = true;
+      Modal_open(dispatch, key, data);
+      getNavigationRef().then(({ navigationRef: ref }) => ref.navigate(key as never));
+    },
+    [dispatch, key]
+  );
 }

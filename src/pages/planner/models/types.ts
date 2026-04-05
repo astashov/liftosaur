@@ -276,6 +276,7 @@ export interface IPlannerExerciseUi {
   modeTabIndex?: number;
   acrossWeeksTabIndex?: number;
   pendingNewKey?: string;
+  fromWorkout?: boolean;
 }
 
 export interface IPlannerFullText {
