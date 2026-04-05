@@ -1,4 +1,4 @@
-import { JSX, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { JSX, useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import { IDispatch } from "../../ducks/types";
 import { INavCommon, IState, updateState } from "../../models/state";
 import { IProgram, ISettings } from "../../types";
@@ -23,17 +23,13 @@ import { EditProgram_setName } from "../../models/editProgram";
 import { ScrollableTabs } from "../scrollableTabs";
 import { EditProgramView } from "./editProgram";
 import { ProgramPreviewPlayground } from "../preview/programPreviewPlayground";
-import { Thunk_generateAndCopyLink, Thunk_fetchRevisions, Thunk_pushScreen } from "../../ducks/thunks";
+import { Thunk_pushScreen } from "../../ducks/thunks";
 import { IconSwap } from "../icons/iconSwap";
 import { ContentGrowingTextarea } from "../contentGrowingTextarea";
 import { LinkButton } from "../linkButton";
-import { ModalProgramNextDay } from "../modalProgramNextDay";
-import { PlannerProgram_evaluate, PlannerProgram_evaluateText } from "../../pages/planner/models/plannerProgram";
+import { PlannerProgram_evaluate } from "../../pages/planner/models/plannerProgram";
 import { Button } from "../button";
-import { BottomSheetEditProgramV2 } from "../bottomSheetEditProgramV2";
 import { IconKebab } from "../icons/iconKebab";
-import { ModalPlannerPictureExport } from "../../pages/planner/components/modalPlannerPictureExport";
-import { ModalPlannerProgramRevisions } from "../../pages/planner/modalPlannerProgramRevisions";
 import { PlannerWeekStats } from "../../pages/planner/components/plannerWeekStats";
 import { Modal } from "../modal";
 import { ModalPlannerSettings } from "../../pages/planner/components/modalPlannerSettings";
@@ -41,8 +37,6 @@ import { PlannerDayStats } from "../../pages/planner/components/plannerDayStats"
 import { PlannerExerciseStats } from "../../pages/planner/components/plannerExerciseStats";
 import { UidFactory_generateUid } from "../../utils/generator";
 import { buildPlannerDispatch } from "../../utils/plannerDispatch";
-import { UrlUtils_build } from "../../utils/url";
-import { ClipboardUtils_copy } from "../../utils/clipboard";
 import { navigationRef } from "../../navigation/navigationRef";
 import { pickerStateFromPlannerExercise } from "./editProgramUtils";
 import { ProgramPreviewTab } from "../preview/programPreviewTab";
@@ -72,12 +66,6 @@ export function ScreenProgram(props: IProps): JSX.Element {
     [plannerState]
   );
   useUndoRedo(plannerState, plannerDispatch);
-  const [showChangeNextDay, setShowChangeNextDay] = useState(false);
-  const [shouldShowBottomSheet, setShouldShowBottomSheet] = useState<boolean>(false);
-  const [shouldShowGenerateImageModal, setShouldShowGenerateImageModal] = useState<boolean>(false);
-  const [isLoadingRevisions, setIsLoadingRevisions] = useState<boolean>(false);
-  const [showRevisions, setShowRevisions] = useState<boolean>(false);
-  const lbPlanner = lb<IPlannerState>().p("current").p("program").pi("planner");
   const lbUi = lb<IPlannerState>().p("ui");
 
   useLayoutEffect(() => {
@@ -132,7 +120,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
         key="kebab"
         data-cy="navbar-3-dot"
         className="p-2 nm-edit-program-v2-navbar-kebab"
-        onClick={() => setShouldShowBottomSheet(true)}
+        onClick={() => navigationRef.navigate("editProgramMenuModal", { programId: props.originalProgram.id })}
       >
         <IconKebab />
       </button>,
@@ -149,7 +137,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
             props.dispatch(Thunk_pushScreen("programs"));
           }}
           onChangeDay={() => {
-            setShowChangeNextDay(true);
+            navigationRef.navigate("programNextDayModal", { programId: props.originalProgram.id });
           }}
           onChangeName={(newValue) => {
             EditProgram_setName(props.dispatch, props.originalProgram, newValue);
@@ -230,87 +218,6 @@ export function ScreenProgram(props: IProps): JSX.Element {
           ]}
         />
       </div>
-      <BottomSheetEditProgramV2
-        isAffiliateEnabled={!!props.settings.affiliateEnabled}
-        isLoadingRevisions={isLoadingRevisions}
-        isLoggedIn={props.isLoggedIn}
-        onExportProgramToLink={() => {
-          setShouldShowBottomSheet(false);
-          const url = UrlUtils_build(`/user/p/${props.originalProgram.id}`, __HOST__);
-          ClipboardUtils_copy(url.toString());
-          alert(`Copied link to the clipboard: ${url}`);
-        }}
-        onShareProgramToLink={() => {
-          setShouldShowBottomSheet(false);
-          props.dispatch(
-            Thunk_generateAndCopyLink(props.originalProgram, props.settings, (url) => {
-              alert(`Copied link to the clipboard: ${url}`);
-            })
-          );
-        }}
-        onGenerateProgramImage={() => {
-          setShouldShowBottomSheet(false);
-          setShouldShowGenerateImageModal(true);
-        }}
-        onLoadRevisions={() => {
-          setIsLoadingRevisions(true);
-          props.dispatch(
-            Thunk_fetchRevisions(props.originalProgram.id, () => {
-              setIsLoadingRevisions(false);
-              setShowRevisions(true);
-              setShouldShowBottomSheet(false);
-            })
-          );
-        }}
-        isHidden={!shouldShowBottomSheet}
-        onClose={() => setShouldShowBottomSheet(false)}
-      />
-      {showChangeNextDay && (
-        <ModalProgramNextDay
-          onClose={() => setShowChangeNextDay(false)}
-          stats={props.navCommon.stats}
-          initialCurrentProgramId={program.id}
-          onSelect={(_, day) => {
-            updateState(
-              props.dispatch,
-              [lb<IState>().p("storage").p("programs").findBy("id", program.id).p("nextDay").record(day)],
-              `Select program day ${program.name} - ${day}`
-            );
-            plannerDispatch(
-              [lb<IPlannerState>().p("current").p("program").p("nextDay").record(day)],
-              `Select program day ${program.name} - ${day}`
-            );
-          }}
-          allPrograms={[program]}
-          settings={props.settings}
-        />
-      )}
-      {shouldShowGenerateImageModal && (
-        <ModalPlannerPictureExport
-          settings={props.settings}
-          userId={props.navCommon.userId}
-          client={props.client}
-          isChanged={false}
-          program={plannerState.current.program}
-          onClose={() => {
-            setShouldShowGenerateImageModal(false);
-          }}
-        />
-      )}
-      {showRevisions && props.revisions.length > 0 && (
-        <ModalPlannerProgramRevisions
-          programId={props.originalProgram.id}
-          client={props.client}
-          revisions={props.revisions}
-          onClose={() => setShowRevisions(false)}
-          onRestore={(text) => {
-            window.isUndoing = true;
-            const weeks = PlannerProgram_evaluateText(text);
-            plannerDispatch(lbPlanner.p("weeks").record(weeks), "stop-is-undoing");
-            setShowRevisions(false);
-          }}
-        />
-      )}
       {ui.showWeekStats != null && (
         <Modal
           shouldShowClose={true}

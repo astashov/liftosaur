@@ -108,9 +108,13 @@ export type IRootStackParamList = {
   customExerciseModal: { exerciseId?: string };
   musclesOverrideModal: { exerciseType: IExerciseType };
   tourModal: undefined;
+  editProgramMenuModal: { programId: string };
+  programNextDayModal: { programId: string };
   editProgramExerciseSetModal: { exerciseStateKey: string; programId: string };
   editProgramExerciseSupersetModal: { exerciseStateKey: string; programId: string; exerciseKey: string };
   createStateVariableModal: { exerciseStateKey: string; programId: string };
+  programImageExportModal: { programId: string };
+  programRevisionsModal: { programId: string };
 };
 
 export type IRootLevelScreenParamList = {

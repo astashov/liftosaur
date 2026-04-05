@@ -12,9 +12,9 @@ interface IModalProgramNextDayProps {
   onClose: () => void;
 }
 
-export function ModalProgramNextDay(props: IModalProgramNextDayProps): JSX.Element {
+export function ModalProgramNextDayContent(props: IModalProgramNextDayProps): JSX.Element {
   return (
-    <Modal noPaddings shouldShowClose onClose={props.onClose} isFullWidth>
+    <>
       <div className="mt-4 mb-1 text-lg font-semibold text-center">Change Next Day</div>
       <NextDayPicker
         stats={props.stats}
@@ -26,6 +26,14 @@ export function ModalProgramNextDay(props: IModalProgramNextDayProps): JSX.Eleme
           props.onClose();
         }}
       />
+    </>
+  );
+}
+
+export function ModalProgramNextDay(props: IModalProgramNextDayProps): JSX.Element {
+  return (
+    <Modal noPaddings shouldShowClose onClose={props.onClose} isFullWidth>
+      <ModalProgramNextDayContent {...props} />
     </Modal>
   );
 }
