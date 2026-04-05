@@ -41,7 +41,6 @@ import { exceptionIgnores } from "../utils/rollbar";
 import { ImagePreloader_preload, ImagePreloader_dynocoach } from "../utils/imagePreloader";
 import { Settings_applyTheme } from "../models/settings";
 import { AppContext } from "./appContext";
-import { TourModal } from "./tour/tourModal";
 import { TourConfigs_findTourId } from "./tour/tourConfigs";
 import { NavigationContainer, DefaultTheme, type NavigationState } from "@react-navigation/native";
 import { navigationRef } from "../navigation/navigationRef";
@@ -152,6 +151,14 @@ export function AppView(props: IProps): JSX.Element | null {
     }
     prevShowSignupRequest.current = !!state.showSignupRequest;
   }, [state.showSignupRequest]);
+
+  const prevTour = useRef(false);
+  useEffect(() => {
+    if (state.tour && !prevTour.current) {
+      navigationRef.navigate("tourModal" as never);
+    }
+    prevTour.current = !!state.tour;
+  }, [state.tour]);
 
   const checkToursRef = useRef(() => {
     const tourId = TourConfigs_findTourId(stateRef.current, true);
@@ -444,29 +451,6 @@ export function AppView(props: IProps): JSX.Element | null {
         />
       )}
       <Notification dispatch={dispatch} notification={state.notification} />
-      {state.tour && (
-        <TourModal
-          stateTour={state.tour}
-          state={state}
-          onClose={() => {
-            updateState(dispatch, [lb<IState>().p("tour").record(undefined)], "Close first workout tour");
-          }}
-          onStepSeen={(flag) => {
-            if (!state.storage.helps.includes(flag)) {
-              updateState(
-                dispatch,
-                [
-                  lb<IState>()
-                    .p("storage")
-                    .p("helps")
-                    .recordModify((hlps) => [...hlps, flag]),
-                ],
-                `Mark tour step ${flag} as seen`
-              );
-            }
-          }}
-        />
-      )}
     </Fragment>
   );
 }

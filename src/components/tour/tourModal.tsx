@@ -1,6 +1,5 @@
 import { JSX, useEffect, useRef, useState } from "react";
 import { Tour_stepHelpFlag } from "./tourTypes";
-import { Modal } from "../modal";
 import { Button } from "../button";
 import { IState, IStateTour } from "../../models/state";
 import { IconCloseCircleOutline } from "../icons/iconCloseCircleOutline";
@@ -25,7 +24,7 @@ function isStepActive(
   return conditionMet && (stateTour.enforced || !alreadySeen);
 }
 
-export function TourModal(props: ITourModalProps): JSX.Element | null {
+export function TourModalContent(props: ITourModalProps): JSX.Element | null {
   const { state, onClose, onStepSeen } = props;
   const { id, enforced } = props.stateTour;
   const config = tourConfigs[id];
@@ -98,8 +97,7 @@ export function TourModal(props: ITourModalProps): JSX.Element | null {
   const dinoImage = `/images/${currentStep.dino}`;
 
   return (
-    <Modal isHidden={false} shouldShowClose={false} noPaddings={true}>
-      <div className="overflow-hidden rounded-lg">
+    <div className="overflow-hidden rounded-lg">
         <div className="relative pb-6 bg-background-cardyellow">
           {activeSteps.length > 1 ? (
             <div className="flex gap-1.5 pl-4 pt-5 pb-3 pr-12">
@@ -168,7 +166,7 @@ export function TourModal(props: ITourModalProps): JSX.Element | null {
             </Button>
           </div>
         </div>
-      </div>
-    </Modal>
+    </div>
   );
 }
+
