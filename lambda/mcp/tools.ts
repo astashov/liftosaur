@@ -115,7 +115,7 @@ export const mcpTools: IMcpToolDef[] = [
   {
     name: "create_program",
     description:
-      "Create a new weightlifting program from Liftoscript source code.\n\nIMPORTANT: You MUST call get_liftoscript_reference BEFORE using this tool. Liftoscript is a custom DSL with specific syntax — programs written without reading the reference will have errors. Use run_playground to validate the program before saving.",
+      "Create a new weightlifting program from Liftoscript source code.\n\nIMPORTANT: You MUST call get_liftoscript_reference BEFORE using this tool. Liftoscript is a custom DSL with specific syntax — programs written without reading the reference will have errors. Use run_playground to validate the program before saving.\n\nBefore writing the program, call list_custom_exercises to check for existing custom exercises. Reuse them by name instead of creating duplicates — this preserves workout history.",
     annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
     inputSchema: {
       type: "object",
@@ -129,7 +129,7 @@ export const mcpTools: IMcpToolDef[] = [
   {
     name: "update_program",
     description:
-      'Update an existing program\'s Liftoscript source code. Use id="current" to update the active program.\n\nIMPORTANT: You MUST call get_liftoscript_reference BEFORE using this tool. Liftoscript is a custom DSL with specific syntax — programs written without reading the reference will have errors. Use run_playground to validate before saving.',
+      'Update an existing program\'s Liftoscript source code. Use id="current" to update the active program.\n\nIMPORTANT: You MUST call get_liftoscript_reference BEFORE using this tool. Liftoscript is a custom DSL with specific syntax — programs written without reading the reference will have errors. Use run_playground to validate before saving.\n\nBefore writing the program, call list_custom_exercises to check for existing custom exercises. Reuse them by name instead of creating duplicates — this preserves workout history.',
     annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
     inputSchema: {
       type: "object",
@@ -270,7 +270,7 @@ export const mcpTools: IMcpToolDef[] = [
   {
     name: "create_custom_exercise",
     description:
-      "Create a custom exercise. Only the name is required. Use this when a program references an exercise that doesn't exist in the built-in exercise list (from list_exercises). You should determine appropriate values for targetMuscles, synergistMuscles, and types based on the exercise name.\n\nAvailable muscles: Adductor Brevis, Adductor Longus, Adductor Magnus, Biceps Brachii, Brachialis, Brachioradialis, Deltoid Anterior, Deltoid Lateral, Deltoid Posterior, Erector Spinae, Gastrocnemius, Gluteus Maximus, Gluteus Medius, Hamstrings, Iliopsoas, Infraspinatus, Latissimus Dorsi, Levator Scapulae, Obliques, Pectineous, Pectoralis Major Clavicular Head, Pectoralis Major Sternal Head, Quadriceps, Rectus Abdominis, Sartorius, Serratus Anterior, Soleus, Splenius, Sternocleidomastoid, Tensor Fasciae Latae, Teres Major, Teres Minor, Tibialis Anterior, Trapezius Lower Fibers, Trapezius Middle Fibers, Trapezius Upper Fibers, Triceps Brachii, Wrist Extensors, Wrist Flexors.\n\nAvailable types: core, pull, push, legs, upper, lower.",
+      "Create a custom exercise, or update an existing one with the same name. If a custom exercise with the same name (case-insensitive) already exists, it will be updated with the provided fields and the existing ID is preserved — this keeps workout history linked correctly.\n\nOnly the name is required. Use this when a program references an exercise that doesn't exist in the built-in exercise list (from list_exercises). You should determine appropriate values for targetMuscles, synergistMuscles, and types based on the exercise name.\n\nAvailable muscles: Adductor Brevis, Adductor Longus, Adductor Magnus, Biceps Brachii, Brachialis, Brachioradialis, Deltoid Anterior, Deltoid Lateral, Deltoid Posterior, Erector Spinae, Gastrocnemius, Gluteus Maximus, Gluteus Medius, Hamstrings, Iliopsoas, Infraspinatus, Latissimus Dorsi, Levator Scapulae, Obliques, Pectineous, Pectoralis Major Clavicular Head, Pectoralis Major Sternal Head, Quadriceps, Rectus Abdominis, Sartorius, Serratus Anterior, Soleus, Splenius, Sternocleidomastoid, Tensor Fasciae Latae, Teres Major, Teres Minor, Tibialis Anterior, Trapezius Lower Fibers, Trapezius Middle Fibers, Trapezius Upper Fibers, Triceps Brachii, Wrist Extensors, Wrist Flexors.\n\nAvailable types: core, pull, push, legs, upper, lower.",
     annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
     inputSchema: {
       type: "object",

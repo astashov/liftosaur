@@ -643,7 +643,34 @@ export async function ApiV1_createCustomExercise(
     return { success: false, error: validation };
   }
 
-  const exercise = Exercise_createCustomExercise(name.trim(), targetMuscles, synergistMuscles, types);
+  const trimmedName = name.trim();
+  const exercises = user.storage.settings.exercises || {};
+  const existing = Object.values(exercises).find(
+    (e): e is ICustomExercise => e != null && !e.isDeleted && e.name.toLowerCase() === trimmedName.toLowerCase()
+  );
+
+  if (existing) {
+    const updated = Exercise_editCustomExercise(
+      existing,
+      trimmedName,
+      targetMuscles,
+      synergistMuscles,
+      types,
+      existing.smallImageUrl,
+      existing.largeImageUrl
+    );
+    const userDao = new UserDao(di);
+    await userDao.applyStorageUpdate(user, (old) => ({
+      ...old,
+      settings: {
+        ...old.settings,
+        exercises: { ...(old.settings?.exercises || {}), [existing.id]: updated },
+      },
+    }));
+    return ok(formatCustomExercise(updated));
+  }
+
+  const exercise = Exercise_createCustomExercise(trimmedName, targetMuscles, synergistMuscles, types);
   const userDao = new UserDao(di);
 
   await userDao.applyStorageUpdate(user, (old) => ({

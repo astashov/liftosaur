@@ -67,6 +67,8 @@ Lat Pulldown / 3x8                 /// short for "Lat Pulldown, Cable"
 
 Almost every exercise has a short alias for its default equipment. Use `list_exercises` tool to find valid exercise names, their default equipment, and available variants.
 
+**Custom exercises:** Users may have custom exercises not in the built-in list. Before creating or updating a program, call `list_custom_exercises` to see the user's existing custom exercises. If a program uses an exercise not in the built-in list, check if it already exists as a custom exercise before calling `create_custom_exercise`. This preserves exercise IDs and keeps workout history linked correctly.
+
 ## Warmups
 
 ```
