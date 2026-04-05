@@ -132,6 +132,8 @@ export type IRootStackParamList = {
   programInfoModal: { programId: string; hasCustomPrograms: boolean };
   changeNextDayModal: undefined;
   inputSelectModal: undefined;
+  textInputModal: undefined;
+  repMaxCalculatorModal: undefined;
 };
 
 export type IRootLevelScreenParamList = {

@@ -14,12 +14,10 @@ import { IconTrash } from "./icons/iconTrash";
 import { LinkButton } from "./linkButton";
 import { MenuItemWrapper } from "./menuItem";
 import { MuscleGroupImage } from "./muscleGroupImage";
-import { Button } from "./button";
-import { GroupHeader } from "./groupHeader";
-import { Input2 } from "./input2";
-import { Modal } from "./modal";
 import { BottomSheetMuscleGroupMusclePicker } from "./bottomSheetMuscleGroupMusclePicker";
 import { StringUtils_dashcase } from "../utils/string";
+import { useModalDispatch, useModalResult, Modal_open } from "../navigation/ModalStateContext";
+import { getNavigationRef } from "../navigation/navUtils";
 
 interface IProps {
   settings: ISettings;
@@ -32,9 +30,12 @@ interface IProps {
 export function MuscleGroupsContent(props: IProps): JSX.Element {
   const visibleMuscleGroups = Muscle_getAvailableMuscleGroups(props.settings);
   const hiddenMuscleGroups = Muscle_getHiddenMuscleGroups(props.settings);
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showMusclePicker, setShowMusclePicker] = useState<IScreenMuscle | undefined>(undefined);
-  const [name, setName] = useState("");
+  const modalDispatch = useModalDispatch();
+
+  useModalResult("textInputModal", (name) => {
+    props.onCreate(name);
+  });
   return (
     <div>
       {visibleMuscleGroups.map((muscleGroup) => {
@@ -89,7 +90,14 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
           data-cy="add-muscle-group"
           className="text-sm"
           onClick={() => {
-            setShowCreateModal(true);
+            Modal_open(modalDispatch, "textInputModal", {
+              title: "Enter new group name",
+              inputLabel: "Name",
+              placeholder: "My Group Name",
+              submitLabel: "Add",
+              dataCyPrefix: "modal-new-muscle-group",
+            });
+            getNavigationRef().then(({ navigationRef: ref }) => ref.navigate("textInputModal"));
           }}
         >
           Add custom muscle group
@@ -129,53 +137,6 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
             props.onUpdate(showMusclePicker, newMuscles);
           }}
         />
-      )}
-      {showCreateModal && (
-        <Modal zIndex={60} onClose={() => setShowCreateModal(false)} isHidden={false}>
-          <GroupHeader size="large" name="Enter new group name" />
-          <form onSubmit={(e) => e.preventDefault()}>
-            <Input2
-              identifier="muscle-group-input"
-              data-cy="muscle-group-input"
-              onInput={(event) => {
-                setName(event.currentTarget.value);
-              }}
-              label="Name"
-              required
-              requiredMessage="Name cannot be empty"
-              type="text"
-              placeholder="My Group Name"
-            />
-            <div className="mt-4 text-right">
-              <Button
-                name="modal-new-muscle-group-cancel"
-                data-cy="modal-new-muscle-group-cancel"
-                type="button"
-                kind="grayv2"
-                className="mr-3"
-                onClick={() => setShowCreateModal(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                kind="purple"
-                name="modal-new-muscle-group-submit"
-                data-cy="modal-new-muscle-group-submit"
-                type="submit"
-                disabled={!name.trim()}
-                className="ls-add-muscle-group"
-                onClick={() => {
-                  if (name.trim() !== "") {
-                    props.onCreate(name.trim());
-                    setShowCreateModal(false);
-                  }
-                }}
-              >
-                Add
-              </Button>
-            </div>
-          </form>
-        </Modal>
       )}
     </div>
   );

@@ -1,12 +1,13 @@
-import { JSX, Fragment, useState } from "react";
+import { JSX, Fragment } from "react";
 import { IEvaluatedProgram, Program_getSupersetGroups } from "../../models/program";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { BottomSheet } from "../bottomSheet";
 import { ISettings } from "../../types";
 import { ObjectUtils_entriesNonnull } from "../../utils/object";
 import { Button } from "../button";
-import { ModalNewSupersetGroup } from "../modalNewSupersetGroup";
 import { StringUtils_dashcase } from "../../utils/string";
+import { useModalDispatch, useModalResult, Modal_open } from "../../navigation/ModalStateContext";
+import { navigationRef } from "../../navigation/navigationRef";
 
 interface IBottomSheetEditProgramExerciseSupersetProps {
   onSelect: (name: string | undefined) => void;
@@ -26,7 +27,11 @@ export function BottomSheetEditProgramExerciseSupersetContent(
   props: IBottomSheetEditProgramExerciseSupersetContentProps
 ): JSX.Element {
   const supersetGroups = Program_getSupersetGroups(props.evaluatedProgram, props.plannerExercise.dayData);
-  const [newGroupModal, setNewGroupModal] = useState(false);
+  const modalDispatch = useModalDispatch();
+
+  useModalResult("textInputModal", (name) => {
+    props.onSelect(name);
+  });
 
   return (
     <>
@@ -81,21 +86,22 @@ export function BottomSheetEditProgramExerciseSupersetContent(
             name="superset-create-group"
             kind="purple"
             buttonSize="lg"
-            onClick={() => setNewGroupModal(true)}
+            onClick={() => {
+              Modal_open(modalDispatch, "textInputModal", {
+                title: "Enter new group name",
+                inputLabel: "Name",
+                placeholder: "My Group Name",
+                submitLabel: "Add",
+                dataCyPrefix: "modal-new-superset",
+              });
+              navigationRef.navigate("textInputModal");
+            }}
             data-cy="superset-create-group"
           >
             Create New Group
           </Button>
         </div>
       </div>
-      {newGroupModal && (
-        <ModalNewSupersetGroup
-          onSelect={(name) => {
-            props.onSelect(name);
-          }}
-          onClose={() => setNewGroupModal(false)}
-        />
-      )}
     </>
   );
 }

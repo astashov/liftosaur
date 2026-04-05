@@ -7,12 +7,28 @@ export interface IInputSelectModalData {
   placeholder?: string;
 }
 
+export interface ITextInputModalData {
+  title: string;
+  inputLabel: string;
+  placeholder: string;
+  submitLabel: string;
+  dataCyPrefix: string;
+}
+
+export interface IRepMaxCalculatorModalData {
+  unit: "kg" | "lb";
+}
+
 export interface IModalDataMap {
   inputSelectModal: IInputSelectModalData;
+  textInputModal: ITextInputModalData;
+  repMaxCalculatorModal: IRepMaxCalculatorModalData;
 }
 
 export interface IModalResultMap {
   inputSelectModal: string | undefined;
+  textInputModal: string;
+  repMaxCalculatorModal: number | undefined;
 }
 
 export interface IModalState {
