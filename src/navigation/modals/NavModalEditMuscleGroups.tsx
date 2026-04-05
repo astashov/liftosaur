@@ -8,12 +8,7 @@ import { lb } from "lens-shmens";
 import { lf } from "lens-shmens";
 import { IPlannerState } from "../../pages/planner/models/types";
 import { buildPlannerDispatch } from "../../utils/plannerDispatch";
-import {
-  Muscle_createMuscleGroup,
-  Muscle_deleteMuscleGroup,
-  Muscle_updateMuscleGroup,
-  Muscle_restoreMuscleGroup,
-} from "../../models/muscle";
+import { Muscle_createMuscleGroup, Muscle_deleteMuscleGroup, Muscle_restoreMuscleGroup } from "../../models/muscle";
 import type { IRootStackParamList } from "../types";
 
 export function NavModalEditMuscleGroups(): JSX.Element {
@@ -76,13 +71,6 @@ export function NavModalEditMuscleGroups(): JSX.Element {
               lf(settings)
                 .p("muscleGroups")
                 .modify((muscleGroups) => Muscle_deleteMuscleGroup(muscleGroups, muscleGroup))
-            );
-          }}
-          onUpdate={(muscleGroup, muscles) => {
-            onNewSettings(
-              lf(settings)
-                .p("muscleGroups")
-                .modify((muscleGroups) => Muscle_updateMuscleGroup(muscleGroups, muscleGroup, muscles))
             );
           }}
           onRestore={(muscleGroup) => {

@@ -8,6 +8,7 @@ import { useLensReducer } from "../utils/useLensReducer";
 interface IProps {
   isHidden: boolean;
   isLoggedIn: boolean;
+  useInlineModals?: boolean;
   settings: ISettings;
   exercise: ICustomExercise;
   dispatch: IDispatch;
@@ -23,6 +24,7 @@ export function BottomSheetCustomExerciseContent(props: IBottomSheetCustomExerci
     <ExercisePickerCustomExercise
       screenStack={[]}
       settings={props.settings}
+      useInlineModals={props.useInlineModals}
       showMuscles={true}
       isLoggedIn={props.isLoggedIn}
       dispatch={dispatch}

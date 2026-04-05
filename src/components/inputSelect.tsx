@@ -36,7 +36,7 @@ export function InputSelectValue<T extends string>(props: IInputSelectProps<T>):
 
   useModalResult("inputSelectModal", (value) => {
     if (props.onChange) {
-      props.onChange(value as T | undefined);
+      props.onChange(value === null ? undefined : (value as T));
     }
   });
 

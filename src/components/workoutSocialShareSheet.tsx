@@ -4,15 +4,14 @@ import { Button } from "./button";
 import { IRect } from "../utils/types";
 import { Geometry_fitRectIntoRect } from "../utils/geometry";
 import { WorkoutShareOutput } from "./workoutShareOutput";
+import { SendMessage_toIosAndAndroid } from "../utils/sendMessage";
 import { IconCamera } from "./icons/iconCamera";
-import { SendMessage_toIosAndAndroid, SendMessage_toIosAndAndroidWithResult } from "../utils/sendMessage";
-import { BottomSheet } from "./bottomSheet";
-import { BottomSheetItem } from "./bottomSheetItem";
-import { IconPicture } from "./icons/iconPicture";
 import { IconSpinner } from "./icons/iconSpinner";
 import { WorkoutShareOutputWithBg } from "./workoutShareOutputWithBg";
 import { ImageShareUtils } from "../utils/imageshare";
 import { LinkButton } from "./linkButton";
+import { useModalDispatch, useModalResult, Modal_open } from "../navigation/ModalStateContext";
+import { getNavigationRef } from "../navigation/navUtils";
 
 interface IWorkoutShareSheetProps {
   record?: IHistoryRecord;
@@ -26,9 +25,15 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
   const screensRef = useRef<HTMLDivElement>(null);
   const workoutShareRef = useRef<HTMLDivElement>(null);
   const [backgroundImage, setBackgroundImage] = useState<string | undefined>(undefined);
-  const [showPickerOptions, setShowPickerOptions] = useState<boolean>(false);
   const [selectedFrameIndex, setSelectedFrameIndex] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const modalDispatch = useModalDispatch();
+
+  useModalResult("photoPickerModal", (result) => {
+    if (result) {
+      setBackgroundImage(result);
+    }
+  });
   const title =
     props.type === "igstory"
       ? "Share workout to IG Story"
@@ -90,7 +95,8 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
                   isCustomBg={true}
                   backgroundImage={backgroundImage}
                   onPickCustomBg={() => {
-                    setShowPickerOptions(true);
+                    Modal_open(modalDispatch, "photoPickerModal", {});
+                    getNavigationRef().then(({ navigationRef: ref }) => ref.navigate("photoPickerModal"));
                   }}
                 />
               )}
@@ -99,7 +105,8 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
               <LinkButton
                 name="your-photo-bg"
                 onClick={() => {
-                  setShowPickerOptions(true);
+                  Modal_open(modalDispatch, "photoPickerModal", {});
+                  getNavigationRef().then(({ navigationRef: ref }) => ref.navigate("photoPickerModal"));
                 }}
               >
                 Your photo as background
@@ -161,39 +168,6 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
           ) : null}
         </div>
       </div>
-      <BottomSheet isHidden={!showPickerOptions} onClose={() => setShowPickerOptions(false)} zIndex={50}>
-        <div className="p-4">
-          <BottomSheetItem
-            title="From Camera"
-            name="from-camera"
-            icon={<IconCamera size={24} color="black" />}
-            isFirst={true}
-            description="Take a photo"
-            onClick={async () => {
-              const result = await SendMessage_toIosAndAndroidWithResult<{ data: string }>({
-                type: "pickphoto",
-                source: "camera",
-              });
-              setBackgroundImage(result?.data);
-              setShowPickerOptions(false);
-            }}
-          />
-          <BottomSheetItem
-            title="From Photo Library"
-            name="from-photo-library"
-            icon={<IconPicture size={24} color="black" />}
-            description="Pick photo from your photo library"
-            onClick={async () => {
-              const result = await SendMessage_toIosAndAndroidWithResult<{ data: string }>({
-                type: "pickphoto",
-                source: "photo-library",
-              });
-              setBackgroundImage(result?.data);
-              setShowPickerOptions(false);
-            }}
-          />
-        </div>
-      </BottomSheet>
     </section>
   );
 }

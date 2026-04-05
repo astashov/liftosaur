@@ -1,10 +1,12 @@
 import { JSX, ReactNode, createContext, useContext, useReducer, useEffect, useRef } from "react";
+import type { IMuscle, IExerciseKind } from "../types";
 
 export interface IInputSelectModalData {
   values: [string, string][];
   hint?: string;
   selectedValue?: string;
   placeholder?: string;
+  emptyLabel?: string;
 }
 
 export interface ITextInputModalData {
@@ -19,16 +21,49 @@ export interface IRepMaxCalculatorModalData {
   unit: "kg" | "lb";
 }
 
+export interface IExerciseTypesPickerModalData {
+  selectedTypes: IExerciseKind[];
+}
+
+export interface IExerciseMusclesPickerModalData {
+  title: string;
+  name: string;
+  selectedMuscles: IMuscle[];
+}
+
+export interface IExerciseImageLibraryResult {
+  smallImageUrl?: string;
+  largeImageUrl?: string;
+}
+
+export interface IExerciseCloneLibraryResult {
+  smallImageUrl?: string;
+  largeImageUrl?: string;
+  targetMuscles: IMuscle[];
+  synergistMuscles: IMuscle[];
+  types: IExerciseKind[];
+}
+
 export interface IModalDataMap {
   inputSelectModal: IInputSelectModalData;
   textInputModal: ITextInputModalData;
   repMaxCalculatorModal: IRepMaxCalculatorModalData;
+  exerciseTypesPickerModal: IExerciseTypesPickerModalData;
+  exerciseMusclesPickerModal: IExerciseMusclesPickerModalData;
+  exerciseImageLibraryModal: {};
+  exerciseCloneLibraryModal: {};
+  photoPickerModal: {};
 }
 
 export interface IModalResultMap {
-  inputSelectModal: string | undefined;
+  inputSelectModal: string | null;
   textInputModal: string;
   repMaxCalculatorModal: number | undefined;
+  exerciseTypesPickerModal: IExerciseKind[];
+  exerciseMusclesPickerModal: IMuscle[];
+  exerciseImageLibraryModal: IExerciseImageLibraryResult;
+  exerciseCloneLibraryModal: IExerciseCloneLibraryResult;
+  photoPickerModal: string | null;
 }
 
 export interface IModalState {
