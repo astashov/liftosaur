@@ -117,6 +117,7 @@ export type IRootStackParamList = {
   programRevisionsModal: { programId: string };
   editProgressScriptModal: { exerciseStateKey: string; programId: string };
   editUpdateScriptModal: { exerciseStateKey: string; programId: string };
+  monthCalendarModal: undefined;
 };
 
 export type IRootLevelScreenParamList = {

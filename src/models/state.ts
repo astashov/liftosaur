@@ -147,6 +147,7 @@ export interface IState {
   showWhatsNew?: boolean;
   showSignupRequest?: boolean;
   tour?: IStateTour;
+  scrollToHistoryRecordId?: number;
   freshMigrations: boolean;
   errors: IStateErrors;
   reportedCorruptedStorage?: boolean;

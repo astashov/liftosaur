@@ -10,7 +10,6 @@ import { WeekInsights } from "./weekInsights";
 import { ModalPlannerSettings } from "../pages/planner/components/modalPlannerSettings";
 import { lb } from "lens-shmens";
 import { WeekCalendar } from "./weekCalendar";
-import { BottomSheetMonthCalendar } from "./bottomSheetMonthCalendar";
 import { HistoryRecordsNullState } from "./historyRecordsNullState";
 import { CollectionUtils_sort } from "../utils/collection";
 import { ObjectUtils_keys } from "../utils/object";
@@ -18,6 +17,8 @@ import { Progress_isCurrent } from "../models/progress";
 import { useGradualList } from "../utils/useGradualList";
 import { Program_nextHistoryRecord } from "../models/program";
 import { BottomSheetOrModalMuscleGroupsContent } from "./bottomSheetOrModalMuscleGroupsContent";
+import { navigationRef } from "../navigation/navigationRef";
+import { useAppState } from "../navigation/StateContext";
 
 interface IProps {
   program: IProgram;
@@ -111,7 +112,6 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   const previousWeekFirstDayDate = new Date(selectedFirstDayOfWeek);
   previousWeekFirstDayDate.setDate(previousWeekFirstDayDate.getDate() - 7);
   const previousWeekFirstDay = previousWeekFirstDayDate.getTime();
-  const [showMonthCalendar, setShowMonthCalendar] = useState(false);
   const [showPlannerSettings, setShowPlannerSettings] = useState(false);
   const historyRecordsListRef = useRef<HTMLDivElement>(null);
   const [selectedWeekCalendarFirstDayOfWeek, setSelectedWeekCalendarFirstDayOfWeek] = useState(selectedFirstDayOfWeek);
@@ -186,6 +186,21 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
     }
   }, [initialHistoryRecordId]);
 
+  const { state: appState } = useAppState();
+  const scrollToRecordId = appState.scrollToHistoryRecordId;
+  useEffect(() => {
+    if (scrollToRecordId != null) {
+      updateState(props.dispatch, [lb<IState>().p("scrollToHistoryRecordId").record(undefined)], "Clear scroll target");
+      const index = sortedHistory.findIndex((record) => record.id === scrollToRecordId);
+      if (visibleHistory.length < index) {
+        loadMoreVisibleRecords(index - visibleHistory.length + 20);
+        setTimeout(() => scrollToElement(scrollToRecordId), 100);
+      } else {
+        scrollToElement(scrollToRecordId);
+      }
+    }
+  }, [scrollToRecordId]);
+
   const [showEditMuscleGroups, setShowEditMuscleGroups] = useState(false);
 
   useNavOptions({ navHidden: true });
@@ -201,7 +216,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
           firstDayOfWeeks={firstDayOfWeeks}
           isLoading={isLoading}
           selectedFirstDayOfWeek={selectedFirstDayOfWeek}
-          onClick={() => setShowMonthCalendar(true)}
+          onClick={() => navigationRef.navigate("monthCalendarModal")}
           onSelectFirstDayOfWeek={(firstDayOfWeek) => {
             setSelectedWeekCalendarFirstDayOfWeek(firstDayOfWeek);
           }}
@@ -248,29 +263,6 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
           }}
         />
       )}
-      <BottomSheetMonthCalendar
-        prs={prs}
-        firstDayOfWeeks={firstDayOfWeeks}
-        history={sortedHistory}
-        startWeekFromMonday={props.settings.startWeekFromMonday}
-        selectedFirstDayOfWeek={selectedWeekCalendarFirstDayOfWeek}
-        visibleRecords={visibleRecords}
-        isHidden={!showMonthCalendar}
-        onClose={() => setShowMonthCalendar(false)}
-        onClick={(historyRecord) => {
-          const index = sortedHistory.findIndex((record) => record.id === historyRecord.id);
-          const scrollToElementCal = (): void => {
-            scrollToElement(historyRecord.id);
-            setShowMonthCalendar(false);
-          };
-          if (visibleHistory.length < index) {
-            loadMoreVisibleRecords(index - visibleHistory.length + 20);
-            setTimeout(scrollToElementCal, 100);
-          } else {
-            scrollToElementCal();
-          }
-        }}
-      />
       {showPlannerSettings && (
         <ModalPlannerSettings
           inApp={true}
