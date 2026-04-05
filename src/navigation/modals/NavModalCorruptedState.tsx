@@ -13,7 +13,11 @@ export function NavModalCorruptedState(): JSX.Element {
   const corruptedstorage = state.errors.corruptedstorage;
 
   const onReset = (): void => {
-    updateState(dispatch, [lb<IState>().p("errors").p("corruptedstorage").record(undefined)], "Reset corrupted storage");
+    updateState(
+      dispatch,
+      [lb<IState>().p("errors").p("corruptedstorage").record(undefined)],
+      "Reset corrupted storage"
+    );
     navigation.goBack();
   };
 

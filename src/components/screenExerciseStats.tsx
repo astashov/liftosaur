@@ -65,7 +65,6 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
     .addFn(History_collectWeightPersonalRecord(exerciseType, props.settings.units))
     .addFn(History_collect1RMPersonalRecord(exerciseType, props.settings));
 
-
   const [
     { maxTime: maxX, minTime: minX },
     _exerciseTypes,

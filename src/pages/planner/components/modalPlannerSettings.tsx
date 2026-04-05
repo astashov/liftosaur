@@ -17,7 +17,7 @@ interface IModalPlannerSettingsProps {
   onClose: () => void;
 }
 
-export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Element {
+export function ModalPlannerSettingsContent(props: IModalPlannerSettingsProps): JSX.Element {
   let allWeeklySetsMin: number | undefined;
   if (
     ObjectUtils_keys(props.settings.planner.weeklyRangeSets).every(
@@ -53,7 +53,7 @@ export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Ele
   const availableMuscleGroups = Muscle_getAvailableMuscleGroups(props.settings);
 
   return (
-    <Modal shouldShowClose={true} onClose={props.onClose}>
+    <>
       <GroupHeader size="large" name="Muscle Settings" />
       <form className="mt-2" style={{ minWidth: props.inApp ? "auto" : "32rem" }}>
         {!props.inApp && (
@@ -401,6 +401,14 @@ export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Ele
           })}
         </ul>
       </form>
+    </>
+  );
+}
+
+export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Element {
+  return (
+    <Modal shouldShowClose={true} onClose={props.onClose}>
+      <ModalPlannerSettingsContent {...props} />
     </Modal>
   );
 }

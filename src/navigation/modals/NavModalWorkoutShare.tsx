@@ -151,11 +151,7 @@ export function NavModalWorkoutShare(): JSX.Element {
         />
       </div>
       {shouldShowShareSheet && (
-        <BottomSheet
-          isHidden={false}
-          onClose={() => setShouldShowShareSheet(false)}
-          shouldShowClose={true}
-        >
+        <BottomSheet isHidden={false} onClose={() => setShouldShowShareSheet(false)} shouldShowClose={true}>
           <WorkoutSocialShareSheet
             history={state.storage.history}
             record={progress}

@@ -1,4 +1,4 @@
-import { JSX, useEffect, useCallback, useState } from "react";
+import { JSX, useEffect } from "react";
 import { Thunk_pushScreen } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { useNavOptions } from "../navigation/useNavOptions";
@@ -10,15 +10,10 @@ import { Tailwind_colors } from "../utils/tailwindConfig";
 import { IconWorkoutProgress } from "./icons/iconWorkoutProgress";
 import { IconEditor } from "./icons/iconEditor";
 import { IconTracker } from "./icons/iconTracker";
-import { Modal } from "./modal";
-import { Account } from "./account";
-import { IAccount } from "../models/account";
 import { ImagePreloader_preload } from "../utils/imagePreloader";
-import { IState } from "../models/state";
+import { navigationRef } from "../navigation/navigationRef";
 
 interface IProps {
-  account?: IAccount;
-  client: Window["fetch"];
   dispatch: IDispatch;
 }
 
@@ -30,13 +25,6 @@ const onboardingImages = [
 ];
 
 export function ScreenFirst(props: IProps): JSX.Element {
-  const [showAccountModal, setShowAccountModal] = useState(false);
-  const onSignIn = useCallback((state: IState) => {
-    if (state.storage.currentProgramId) {
-      props.dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }));
-    }
-  }, []);
-
   useNavOptions({ navHidden: true });
 
   useEffect(() => {
@@ -132,18 +120,13 @@ export function ScreenFirst(props: IProps): JSX.Element {
               className="w-full"
               name="see-how-it-works"
               kind="transparent-purple"
-              onClick={() => setShowAccountModal(true)}
+              onClick={() => navigationRef.navigate("accountModal")}
             >
               I have an account
             </Button>
           </div>
         </div>
       </div>
-      {showAccountModal && (
-        <Modal onClose={() => setShowAccountModal(false)} shouldShowClose={true}>
-          <Account account={props.account} client={props.client} dispatch={props.dispatch} onSignIn={onSignIn} />
-        </Modal>
-      )}
     </section>
   );
 }

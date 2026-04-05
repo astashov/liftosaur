@@ -58,71 +58,71 @@ export function ModalPlannerProgramRevisionsContent(props: IModalPlannerProgramR
 
   return (
     <div className="flex flex-col flex-1 min-h-0 sm:flex-row">
-        <div
-          className="h-40 p-4 overflow-y-auto border-r min-h-40 bg-background-subtle border-border-neutral sm:h-auto sm:min-h-max"
-          style={{ borderRadius: "0.5rem 0 0 0.5rem", minWidth: "16rem" }}
-        >
-          <h3 className="mb-2 text-lg font-bold">Version History</h3>
-          <ul>
-            {props.revisions.map((revision) => {
-              const date = DateUtils_parseYYYYMMDDHHMM(revision);
-              if (!date) {
-                return null;
-              }
-              const text = DateUtils_formatWithTime(date);
-              return (
-                <li key={revision} className="text-left">
-                  {revision === currentRevision ? (
-                    <span className="font-bold">{text}</span>
-                  ) : (
-                    <LinkButton
-                      className="text-left"
-                      name="change-program-revision"
-                      onClick={() => {
-                        loadRevision(revision);
-                      }}
-                    >
-                      {text}
-                    </LinkButton>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-        <div className="flex flex-col flex-1 overflow-auto">
-          {!programRevision || programRevision.isLoading ? (
-            <div className="flex items-center justify-center h-full">
-              <IconSpinner width={40} height={40} />
+      <div
+        className="h-40 p-4 overflow-y-auto border-r min-h-40 bg-background-subtle border-border-neutral sm:h-auto sm:min-h-max"
+        style={{ borderRadius: "0.5rem 0 0 0.5rem", minWidth: "16rem" }}
+      >
+        <h3 className="mb-2 text-lg font-bold">Version History</h3>
+        <ul>
+          {props.revisions.map((revision) => {
+            const date = DateUtils_parseYYYYMMDDHHMM(revision);
+            if (!date) {
+              return null;
+            }
+            const text = DateUtils_formatWithTime(date);
+            return (
+              <li key={revision} className="text-left">
+                {revision === currentRevision ? (
+                  <span className="font-bold">{text}</span>
+                ) : (
+                  <LinkButton
+                    className="text-left"
+                    name="change-program-revision"
+                    onClick={() => {
+                      loadRevision(revision);
+                    }}
+                  >
+                    {text}
+                  </LinkButton>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+      <div className="flex flex-col flex-1 overflow-auto">
+        {!programRevision || programRevision.isLoading ? (
+          <div className="flex items-center justify-center h-full">
+            <IconSpinner width={40} height={40} />
+          </div>
+        ) : programRevision.result.success ? (
+          <>
+            <div className="flex-1 p-4 overflow-auto">
+              <div>
+                <PlannerCodeBlock script={programRevision.result.data} />
+              </div>
             </div>
-          ) : programRevision.result.success ? (
-            <>
-              <div className="flex-1 p-4 overflow-auto">
-                <div>
-                  <PlannerCodeBlock script={programRevision.result.data} />
-                </div>
-              </div>
-              <div className="p-4 text-center border-t bg-background-subtle border-border-neutral">
-                <Button
-                  name="restore-program-revision"
-                  kind="purple"
-                  onClick={() => {
-                    if (
-                      programRevision.result.success &&
-                      confirm("Are you sure you want to restore this version? It'll overwrite your current changes.")
-                    ) {
-                      props.onRestore(programRevision.result.data);
-                    }
-                  }}
-                >
-                  Restore
-                </Button>
-              </div>
-            </>
-          ) : (
-            <div>{programRevision.result.error}</div>
-          )}
-        </div>
+            <div className="p-4 text-center border-t bg-background-subtle border-border-neutral">
+              <Button
+                name="restore-program-revision"
+                kind="purple"
+                onClick={() => {
+                  if (
+                    programRevision.result.success &&
+                    confirm("Are you sure you want to restore this version? It'll overwrite your current changes.")
+                  ) {
+                    props.onRestore(programRevision.result.data);
+                  }
+                }}
+              >
+                Restore
+              </Button>
+            </div>
+          </>
+        ) : (
+          <div>{programRevision.result.error}</div>
+        )}
+      </div>
     </div>
   );
 }

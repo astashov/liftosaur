@@ -102,4 +102,3 @@ export function ModalAffiliateContent(props: IModalAffiliateContentProps): JSX.E
     </div>
   );
 }
-

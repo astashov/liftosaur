@@ -26,7 +26,9 @@ export function NavModalProgramRevisions(): JSX.Element {
   const revisions = (state.revisions || {})[programId] || [];
 
   const plannerDispatch = useMemo(() => {
-    if (!plannerState) return undefined;
+    if (!plannerState) {
+      return undefined;
+    }
     return buildPlannerDispatch(dispatch, lb<IState>().p("editProgramStates").p(programId), plannerState);
   }, [dispatch, programId, plannerState]);
 

@@ -118,6 +118,15 @@ export type IRootStackParamList = {
   editProgressScriptModal: { exerciseStateKey: string; programId: string };
   editUpdateScriptModal: { exerciseStateKey: string; programId: string };
   monthCalendarModal: undefined;
+  accountModal: undefined;
+  subscriptionInfoModal: { type: "platesCalculator" | "graphs" | "notifications" | "weekInsights" };
+  weekInsightsDetailsModal: { selectedFirstDayOfWeek: number };
+  plannerSettingsModal: { context: "programHistory" } | { context: "editProgram"; programId: string };
+  editMuscleGroupsModal: { context: "programHistory" } | { context: "editProgram"; programId: string };
+  weekStatsModal: { programId: string };
+  dayStatsModal: { programId: string };
+  exerciseStatsModal: { programId: string };
+  editExerciseChangeModal: { programId: string };
 };
 
 export type IRootLevelScreenParamList = {

@@ -13,18 +13,12 @@ import { ChooseProgramView } from "../../components/chooseProgram";
 import { ScreenProgramPreview as ScreenProgramPreviewComponent } from "../../components/screenProgramPreview";
 import { Progress_getCurrentProgress } from "../../models/progress";
 import { Thunk_pullScreen } from "../../ducks/thunks";
-import { Account_getFromStorage } from "../../models/account";
-import { useAppContext } from "../../components/appContext";
 
 export function NavScreenFirst(): JSX.Element {
-  const { state, dispatch } = useAppState();
-  const { service } = useAppContext();
-  const userId = state.user?.id;
-  const userEmail = state.user?.email;
-  const account = userId && userEmail ? Account_getFromStorage(userId, userEmail, state.storage) : undefined;
+  const { dispatch } = useAppState();
   return (
     <NavScreenContent>
-      <ScreenFirstComponent account={account} client={service.client} dispatch={dispatch} />
+      <ScreenFirstComponent dispatch={dispatch} />
     </NavScreenContent>
   );
 }

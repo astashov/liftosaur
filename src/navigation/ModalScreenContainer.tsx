@@ -56,7 +56,11 @@ export function ModalScreenContainer(props: IProps): JSX.Element {
           {props.children}
         </div>
         {props.shouldShowClose !== false && (
-          <button onClick={props.onClose} className="absolute p-2 nm-modal-close" style={{ top: "-3px", right: "-3px" }}>
+          <button
+            onClick={props.onClose}
+            className="absolute p-2 nm-modal-close"
+            style={{ top: "-3px", right: "-3px" }}
+          >
             <IconCloseCircleOutline />
           </button>
         )}

@@ -98,75 +98,74 @@ export function TourModalContent(props: ITourModalProps): JSX.Element | null {
 
   return (
     <div className="overflow-hidden rounded-lg">
-        <div className="relative pb-6 bg-background-cardyellow">
-          {activeSteps.length > 1 ? (
-            <div className="flex gap-1.5 pl-4 pt-5 pb-3 pr-12">
-              {activeSteps.map((_, i) => (
-                <div
-                  key={i}
-                  className={`h-2 flex-1 rounded-full ${i <= currentIndex ? "bg-background-yellowdark" : "bg-color-yellow300"}`}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="h-10" />
-          )}
-
-          <button
-            className="absolute z-10 p-1 nm-tour-close"
-            data-cy="tour-close"
-            style={{ top: "8px", right: "8px" }}
-            onClick={handleClose}
-          >
-            <IconCloseCircleOutline size={24} />
-          </button>
-
-          <div className="flex items-center justify-center px-8" style={{ height: "120px" }}>
-            {dinoImage && <img src={dinoImage} alt="" className="h-full" />}
+      <div className="relative pb-6 bg-background-cardyellow">
+        {activeSteps.length > 1 ? (
+          <div className="flex gap-1.5 pl-4 pt-5 pb-3 pr-12">
+            {activeSteps.map((_, i) => (
+              <div
+                key={i}
+                className={`h-2 flex-1 rounded-full ${i <= currentIndex ? "bg-background-yellowdark" : "bg-color-yellow300"}`}
+              />
+            ))}
           </div>
+        ) : (
+          <div className="h-10" />
+        )}
 
-          <svg
-            className="absolute bottom-0 left-0 w-full"
-            viewBox="0 0 340 24"
-            fill="none"
-            preserveAspectRatio="none"
-            style={{ height: "24px" }}
-          >
-            <path d="M0 24 C85 0, 255 0, 340 24 L340 24 L0 24 Z" className="fill-background-default" />
-          </svg>
+        <button
+          className="absolute z-10 p-1 nm-tour-close"
+          data-cy="tour-close"
+          style={{ top: "8px", right: "8px" }}
+          onClick={handleClose}
+        >
+          <IconCloseCircleOutline size={24} />
+        </button>
+
+        <div className="flex items-center justify-center px-8" style={{ height: "120px" }}>
+          {dinoImage && <img src={dinoImage} alt="" className="h-full" />}
         </div>
 
-        <div className="px-6 pb-6 bg-background-default">
-          <h2 className="mb-3 text-xl font-bold text-center text-text-primary">{currentStep.title}</h2>
+        <svg
+          className="absolute bottom-0 left-0 w-full"
+          viewBox="0 0 340 24"
+          fill="none"
+          preserveAspectRatio="none"
+          style={{ height: "24px" }}
+        >
+          <path d="M0 24 C85 0, 255 0, 340 24 L340 24 L0 24 Z" className="fill-background-default" />
+        </svg>
+      </div>
 
-          <div className="mb-5 text-sm leading-relaxed text-text-secondary">{currentStep.content(state)}</div>
+      <div className="px-6 pb-6 bg-background-default">
+        <h2 className="mb-3 text-xl font-bold text-center text-text-primary">{currentStep.title}</h2>
 
-          <div className="flex gap-3">
-            {activeSteps.length > 1 && (
-              <Button
-                name="tour-prev"
-                kind="lightgrayv3"
-                buttonSize="lg2"
-                className="flex-1"
-                onClick={handlePrev}
-                disabled={isFirstStep}
-              >
-                {"\u2190 Back"}
-              </Button>
-            )}
+        <div className="mb-5 text-sm leading-relaxed text-text-secondary">{currentStep.content(state)}</div>
+
+        <div className="flex gap-3">
+          {activeSteps.length > 1 && (
             <Button
-              name="tour-next"
-              kind="orange"
+              name="tour-prev"
+              kind="lightgrayv3"
               buttonSize="lg2"
               className="flex-1"
-              onClick={handleNext}
-              disabled={!canProceed}
+              onClick={handlePrev}
+              disabled={isFirstStep}
             >
-              {isLastStep ? "Done" : "Next \u2192"}
+              {"\u2190 Back"}
             </Button>
-          </div>
+          )}
+          <Button
+            name="tour-next"
+            kind="orange"
+            buttonSize="lg2"
+            className="flex-1"
+            onClick={handleNext}
+            disabled={!canProceed}
+          >
+            {isLastStep ? "Done" : "Next \u2192"}
+          </Button>
         </div>
+      </div>
     </div>
   );
 }
-

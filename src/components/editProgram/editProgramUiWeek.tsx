@@ -19,6 +19,7 @@ import { IEvaluatedProgram, Program_getDayNumber } from "../../models/program";
 import { applyChangesInEditor } from "./editProgramUtils";
 import { IDispatch } from "../../ducks/types";
 import { EditProgramUiHelpers_onDaysChange } from "./editProgramUi/editProgramUiHelpers";
+import { navigationRef } from "../../navigation/navigationRef";
 
 interface IEditProgramViewProps {
   state: IPlannerState;
@@ -26,6 +27,7 @@ interface IEditProgramViewProps {
   evaluatedWeeks: IPlannerEvalResult[][];
   evaluatedProgram: IEvaluatedProgram;
   exerciseFullNames: string[];
+  programId: string;
   dispatch: IDispatch;
   plannerDispatch: ILensDispatch<IPlannerState>;
 }
@@ -76,6 +78,7 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
                   lb<IPlannerState>().pi("ui").p("showWeekStats").record(currentWeekIndex),
                   "Show week stats"
                 );
+                navigationRef.navigate("weekStatsModal", { programId: props.programId });
               }}
             >
               <IconMusclesW size={20} />
@@ -200,6 +203,7 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
               key={plannerDay.id}
               settings={props.settings}
               dispatch={props.dispatch}
+              programId={props.programId}
               evaluatedProgram={props.evaluatedProgram}
               isValidProgram={isValidProgram}
               evaluatedDay={evaluatedDay}
