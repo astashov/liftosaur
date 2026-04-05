@@ -1,7 +1,7 @@
 import { JSX, Fragment } from "react";
 import { IEvaluatedProgram, Program_getSupersetGroups } from "../../models/program";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
-import { BottomSheet } from "../bottomSheet";
+
 import { ISettings } from "../../types";
 import { ObjectUtils_entriesNonnull } from "../../utils/object";
 import { Button } from "../button";
@@ -106,18 +106,3 @@ export function BottomSheetEditProgramExerciseSupersetContent(
   );
 }
 
-export function BottomSheetEditProgramExerciseSuperset(
-  props: IBottomSheetEditProgramExerciseSupersetProps
-): JSX.Element {
-  return (
-    <BottomSheet isHidden={props.isHidden} onClose={props.onClose} shouldShowClose={true}>
-      <BottomSheetEditProgramExerciseSupersetContent
-        onSelect={props.onSelect}
-        onClose={props.onClose}
-        plannerExercise={props.plannerExercise}
-        evaluatedProgram={props.evaluatedProgram}
-        settings={props.settings}
-      />
-    </BottomSheet>
-  );
-}

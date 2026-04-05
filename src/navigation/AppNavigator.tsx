@@ -1,4 +1,4 @@
-import { JSX } from "react";
+import { JSX, createContext, useContext } from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useAppState } from "./StateContext";
@@ -135,8 +135,9 @@ function useStackScreenOptions() {
 
 function OnboardingStackScreen(): JSX.Element {
   const screenOptions = useStackScreenOptions();
+  const initialScreen = useContext(InitialScreenContext) as keyof IOnboardingStackParamList | undefined;
   return (
-    <OnboardingStack.Navigator screenOptions={screenOptions}>
+    <OnboardingStack.Navigator screenOptions={screenOptions} initialRouteName={initialScreen || "first"}>
       <OnboardingStack.Screen name="first" component={NavScreenFirst} />
       <OnboardingStack.Screen name="units" component={NavScreenUnits} />
       <OnboardingStack.Screen name="setupequipment" component={NavScreenSetupEquipment} />
@@ -254,7 +255,9 @@ function MainTabsScreen(): JSX.Element {
   );
 }
 
-const onboardingScreens: IScreen[] = ["first", "units", "setupequipment", "setupplates"];
+const onboardingScreens: IScreen[] = ["first", "units", "setupequipment", "setupplates", "programselect"];
+
+const InitialScreenContext = createContext<IScreen | undefined>(undefined);
 
 export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
   const { initialScreen } = props;
@@ -262,6 +265,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
   const stackScreenOptions = useStackScreenOptions();
   const isOnboarding = initialScreen ? onboardingScreens.includes(initialScreen) : false;
   return (
+    <InitialScreenContext.Provider value={initialScreen}>
     <RootStack.Navigator screenOptions={rootScreenOptions} initialRouteName={isOnboarding ? "onboarding" : "mainTabs"}>
       <RootStack.Screen name="onboarding" component={OnboardingStackScreen} />
       <RootStack.Screen name="mainTabs" component={MainTabsScreen} />
@@ -341,5 +345,6 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
         <RootStack.Screen name="exerciseMusclesPickerModal" component={NavModalExerciseMusclesPicker} />
       </RootStack.Group>
     </RootStack.Navigator>
+    </InitialScreenContext.Provider>
   );
 }

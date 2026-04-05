@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 import { Button } from "./button";
-import { Modal } from "./modal";
+
 import { IProgram, ISettings } from "../types";
 import { Link } from "./link";
 import { IconWatch } from "./icons/iconWatch";
@@ -64,10 +64,3 @@ export function ModalProgramInfoContent(props: IProps): JSX.Element {
   );
 }
 
-export function ModalProgramInfo(props: IProps): JSX.Element {
-  return (
-    <Modal shouldShowClose={true} onClose={props.onClose}>
-      <ModalProgramInfoContent {...props} />
-    </Modal>
-  );
-}

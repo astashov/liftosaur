@@ -7,7 +7,7 @@ import {
 import { ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
-import { BottomSheet } from "../bottomSheet";
+
 import { MenuItemEditable } from "../menuItemEditable";
 import { IEvaluatedProgram } from "../../models/program";
 import { EditProgramUiHelpers_changeCurrentInstance2 } from "../editProgram/editProgramUi/editProgramUiHelpers";
@@ -133,15 +133,3 @@ export function BottomSheetEditProgramExerciseSetContent(props: IBottomSheetEdit
   );
 }
 
-export function BottomSheetEditProgramExerciseSet(props: IBottomSheetEditProgramExerciseSetProps): JSX.Element {
-  const lbUi = lb<IPlannerExerciseState>().pi("ui");
-  return (
-    <BottomSheet
-      isHidden={!props.ui.editSetBottomSheet}
-      onClose={() => props.plannerDispatch(lbUi.p("editSetBottomSheet").record(undefined), "Close edit set sheet")}
-      shouldShowClose={true}
-    >
-      <BottomSheetEditProgramExerciseSetContent {...props} />
-    </BottomSheet>
-  );
-}

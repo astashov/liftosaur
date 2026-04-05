@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { BottomSheet } from "./bottomSheet";
+
 import { BottomSheetItem } from "./bottomSheetItem";
 import { IconLink } from "./icons/iconLink";
 import { IconPicture } from "./icons/iconPicture";
@@ -79,19 +79,3 @@ export function BottomSheetEditProgramV2Content(props: IBottomSheetEditProgramV2
   );
 }
 
-export function BottomSheetEditProgramV2(props: IProps): JSX.Element {
-  return (
-    <BottomSheet isHidden={props.isHidden} onClose={props.onClose}>
-      <BottomSheetEditProgramV2Content
-        isLoggedIn={props.isLoggedIn}
-        isLoadingRevisions={props.isLoadingRevisions}
-        isAffiliateEnabled={props.isAffiliateEnabled}
-        onExportProgramToLink={props.onExportProgramToLink}
-        onShareProgramToLink={props.onShareProgramToLink}
-        onGenerateProgramImage={props.onGenerateProgramImage}
-        onLoadRevisions={props.onLoadRevisions}
-        onClose={props.onClose}
-      />
-    </BottomSheet>
-  );
-}

@@ -169,7 +169,6 @@ export interface ILocalStorage {
 
 export function buildState(args: {
   storage?: IStorage;
-  shouldSkipIntro?: boolean;
   notification?: INotification;
   userId?: string;
   nosync?: boolean;
