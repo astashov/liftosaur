@@ -1,7 +1,7 @@
 import { JSX } from "react";
 import { IconArrowDown2 } from "./icons/iconArrowDown2";
 import { useModalDispatch, useModalResult, Modal_open } from "../navigation/ModalStateContext";
-import { navigationRef } from "../navigation/navigationRef";
+import { getNavigationRef } from "../navigation/navUtils";
 
 interface IInputSelectProps<T extends string> {
   name: string;
@@ -52,7 +52,7 @@ export function InputSelectValue<T extends string>(props: IInputSelectProps<T>):
             selectedValue: props.value,
             placeholder: props.placeholder,
           });
-          navigationRef.navigate("inputSelectModal");
+          getNavigationRef().then(({ navigationRef: ref }) => ref.navigate("inputSelectModal"));
         }
       }}
     >

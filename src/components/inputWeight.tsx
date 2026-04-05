@@ -1,10 +1,10 @@
-import { JSX, useRef, useState } from "react";
+import { JSX, useRef } from "react";
 import { Weight_buildPct, Weight_build, Weight_decrement, Weight_increment } from "../models/weight";
 import { IExerciseType, IPercentage, ISettings, IUnit, IWeight } from "../types";
 import { IconCalculator } from "./icons/iconCalculator";
 import { Input } from "./input";
-import { Modal } from "./modal";
-import { RepMaxCalculator } from "./repMaxCalculator";
+import { useModalDispatch, useModalResult, Modal_open } from "../navigation/ModalStateContext";
+import { getNavigationRef } from "../navigation/navUtils";
 
 interface IInputWeightProps {
   value: IWeight | IPercentage;
@@ -19,7 +19,7 @@ interface IInputWeightProps {
 export function InputWeight(props: IInputWeightProps): JSX.Element {
   const inputRef = useRef<HTMLInputElement>(null);
   const unitRef = useRef<HTMLSelectElement>(null);
-  const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
+  const modalDispatch = useModalDispatch();
 
   function getValue(): IWeight | IPercentage | undefined {
     const inputValue = inputRef.current!.value;
@@ -35,6 +35,12 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
     return undefined;
   }
   const unit = props.value.unit;
+
+  useModalResult("repMaxCalculatorModal", (weightValue) => {
+    if (weightValue != null && unit !== "%") {
+      props.onUpdate(Weight_build(weightValue, unit));
+    }
+  });
 
   return (
     <div className="w-full">
@@ -108,7 +114,8 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
               className="w-10 h-10 p-2 leading-none border rounded-lg bg-background-purpledark border-border-neutral nm-weight-calc"
               data-cy="edit-weight-calculator"
               onClick={() => {
-                setIsCalculatorOpen(true);
+                Modal_open(modalDispatch, "repMaxCalculatorModal", { unit });
+                getNavigationRef().then(({ navigationRef: ref }) => ref.navigate("repMaxCalculatorModal"));
               }}
             >
               <IconCalculator className="inline-block" size={16} />
@@ -136,22 +143,6 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
           </button>
         </div>
       </div>
-      {isCalculatorOpen && unit !== "%" && (
-        <Modal shouldShowClose={true} onClose={() => setIsCalculatorOpen(false)} isFullWidth={true}>
-          <div style={{ minWidth: "80%" }} data-cy="modal-rep-max-calculator">
-            <RepMaxCalculator
-              backLabel="Back"
-              unit={unit}
-              onSelect={(weightValue) => {
-                if (weightValue != null) {
-                  props.onUpdate(Weight_build(weightValue, unit));
-                }
-                setIsCalculatorOpen(false);
-              }}
-            />
-          </div>
-        </Modal>
-      )}
     </div>
   );
 }

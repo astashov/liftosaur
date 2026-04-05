@@ -1,10 +1,10 @@
-import { JSX, useState } from "react";
+import { JSX } from "react";
 import { MenuItemEditable } from "./menuItemEditable";
 import { IExercise, Exercise_onerm } from "../models/exercise";
 import { IExerciseDataValue, ISettings } from "../types";
 import { IconCalculator } from "./icons/iconCalculator";
-import { Modal } from "./modal";
-import { RepMaxCalculator } from "./repMaxCalculator";
+import { useModalDispatch, useModalResult, Modal_open } from "../navigation/ModalStateContext";
+import { getNavigationRef } from "../navigation/navUtils";
 
 interface IExerciseRMProps {
   name: string;
@@ -16,7 +16,13 @@ interface IExerciseRMProps {
 
 export function ExerciseRM(props: IExerciseRMProps): JSX.Element {
   const rm = Exercise_onerm(props.exercise, props.settings);
-  const [showCalculator, setShowCalculator] = useState(false);
+  const modalDispatch = useModalDispatch();
+
+  useModalResult("repMaxCalculatorModal", (weightValue) => {
+    if (weightValue != null) {
+      props.onEditVariable(weightValue);
+    }
+  });
 
   return (
     <section data-cy="exercise-stats-1rm-set" className="px-4 py-1 mt-2 font-bold bg-background-cardpurple rounded-2xl">
@@ -38,7 +44,10 @@ export function ExerciseRM(props: IExerciseRMProps): JSX.Element {
               className="p-2 nm-show-rm-calculator"
               data-cy="onerm-calculator"
               style={{ marginRight: "-0.25rem" }}
-              onClick={() => setShowCalculator(true)}
+              onClick={() => {
+                Modal_open(modalDispatch, "repMaxCalculatorModal", { unit: props.settings.units });
+                getNavigationRef().then(({ navigationRef: ref }) => ref.navigate("repMaxCalculatorModal"));
+              }}
             >
               <IconCalculator size={16} />
             </button>
@@ -48,20 +57,6 @@ export function ExerciseRM(props: IExerciseRMProps): JSX.Element {
       <div className="text-xs italic font-normal text-right">
         Available in Liftoscript as <strong>{props.rmKey}</strong> variable
       </div>
-      {showCalculator && (
-        <Modal shouldShowClose={true} onClose={() => setShowCalculator(false)}>
-          <RepMaxCalculator
-            backLabel="Close"
-            unit={props.settings.units}
-            onSelect={(weightValue) => {
-              if (weightValue != null) {
-                props.onEditVariable(weightValue);
-              }
-              setShowCalculator(false);
-            }}
-          />
-        </Modal>
-      )}
     </section>
   );
 }
