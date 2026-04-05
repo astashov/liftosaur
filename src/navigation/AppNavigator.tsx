@@ -103,6 +103,7 @@ import { NavModalGraphs } from "./modals/NavModalGraphs";
 import { NavModalStatsSettings } from "./modals/NavModalStatsSettings";
 import { NavModalProgramInfo } from "./modals/NavModalProgramInfo";
 import { NavModalChangeNextDay } from "./modals/NavModalChangeNextDay";
+import { NavModalInputSelect } from "./modals/NavModalInputSelect";
 
 const OnboardingStack = createStackNavigator<IOnboardingStackParamList>();
 const HomeStack = createStackNavigator<IHomeStackParamList>();
@@ -319,6 +320,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
         <RootStack.Screen name="statsSettingsModal" component={NavModalStatsSettings} />
         <RootStack.Screen name="programInfoModal" component={NavModalProgramInfo} />
         <RootStack.Screen name="changeNextDayModal" component={NavModalChangeNextDay} />
+        <RootStack.Screen name="inputSelectModal" component={NavModalInputSelect} />
       </RootStack.Group>
     </RootStack.Navigator>
   );

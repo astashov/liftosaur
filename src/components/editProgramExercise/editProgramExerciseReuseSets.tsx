@@ -73,7 +73,7 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
   const isOverriding = props.isOverriding;
   const reusingSetsExercises = Program_getReusingSetsExercises(props.evaluatedProgram, plannerExercise);
   const reuseSetCandidate = reuseKey ? reuseSetsCandidates[reuseKey] : undefined;
-  const reuseSetValues: [string, string | JSX.Element][] = [
+  const reuseSetValues: [string, string][] = [
     ["", "None"],
     ...ObjectUtils_entries(
       ObjectUtils_mapValues<IReuseCandidate, string, typeof reuseSetsCandidates>(
