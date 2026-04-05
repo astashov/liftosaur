@@ -1,5 +1,5 @@
 import type { NavigatorScreenParams } from "@react-navigation/native";
-import type { IDayData, IExerciseType, IProgressUi, IShortDayData, IStatsKey } from "../types";
+import type { IDayData, IExerciseType, IProgressUi, IScreenMuscle, IShortDayData, IStatsKey } from "../types";
 
 export type IHomeStackParamList = {
   main: { historyRecordId?: number } | undefined;
@@ -134,6 +134,13 @@ export type IRootStackParamList = {
   inputSelectModal: undefined;
   textInputModal: undefined;
   repMaxCalculatorModal: undefined;
+  muscleGroupMusclePickerModal: { muscleGroup: IScreenMuscle };
+  exerciseImageSourceModal: { exerciseId: string };
+  exerciseImageLibraryModal: undefined;
+  exerciseCloneLibraryModal: undefined;
+  exerciseTypesPickerModal: undefined;
+  exerciseMusclesPickerModal: undefined;
+  photoPickerModal: undefined;
 };
 
 export type IRootLevelScreenParamList = {

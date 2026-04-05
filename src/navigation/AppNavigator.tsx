@@ -106,6 +106,13 @@ import { NavModalChangeNextDay } from "./modals/NavModalChangeNextDay";
 import { NavModalInputSelect } from "./modals/NavModalInputSelect";
 import { NavModalTextInput } from "./modals/NavModalTextInput";
 import { NavModalRepMaxCalculator } from "./modals/NavModalRepMaxCalculator";
+import { NavModalMuscleGroupMusclePicker } from "./modals/NavModalMuscleGroupMusclePicker";
+import { NavModalPhotoPicker } from "./modals/NavModalPhotoPicker";
+import { NavModalExerciseImageSource } from "./modals/NavModalExerciseImageSource";
+import { NavModalExerciseImageLibrary } from "./modals/NavModalExerciseImageLibrary";
+import { NavModalExerciseCloneLibrary } from "./modals/NavModalExerciseCloneLibrary";
+import { NavModalExerciseTypesPicker } from "./modals/NavModalExerciseTypesPicker";
+import { NavModalExerciseMusclesPicker } from "./modals/NavModalExerciseMusclesPicker";
 
 const OnboardingStack = createStackNavigator<IOnboardingStackParamList>();
 const HomeStack = createStackNavigator<IHomeStackParamList>();
@@ -325,6 +332,13 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
         <RootStack.Screen name="inputSelectModal" component={NavModalInputSelect} />
         <RootStack.Screen name="textInputModal" component={NavModalTextInput} />
         <RootStack.Screen name="repMaxCalculatorModal" component={NavModalRepMaxCalculator} />
+        <RootStack.Screen name="muscleGroupMusclePickerModal" component={NavModalMuscleGroupMusclePicker} />
+        <RootStack.Screen name="photoPickerModal" component={NavModalPhotoPicker} />
+        <RootStack.Screen name="exerciseImageSourceModal" component={NavModalExerciseImageSource} />
+        <RootStack.Screen name="exerciseImageLibraryModal" component={NavModalExerciseImageLibrary} />
+        <RootStack.Screen name="exerciseCloneLibraryModal" component={NavModalExerciseCloneLibrary} />
+        <RootStack.Screen name="exerciseTypesPickerModal" component={NavModalExerciseTypesPicker} />
+        <RootStack.Screen name="exerciseMusclesPickerModal" component={NavModalExerciseMusclesPicker} />
       </RootStack.Group>
     </RootStack.Navigator>
   );

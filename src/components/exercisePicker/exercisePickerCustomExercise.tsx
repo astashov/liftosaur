@@ -11,6 +11,7 @@ import { Exercise_getNotes } from "../../models/exercise";
 interface IExercisePickerCustomExercise2Props {
   settings: ISettings;
   screenStack: IExercisePickerScreen[];
+  useInlineModals?: boolean;
   originalExercise?: ICustomExercise;
   showMuscles: boolean;
   exercise: ICustomExercise;
@@ -70,6 +71,7 @@ export function ExercisePickerCustomExercise(props: IExercisePickerCustomExercis
           <ExercisePickerCustomExerciseContent
             onGoBack={props.onGoBack}
             settings={props.settings}
+            useInlineModals={props.useInlineModals}
             hideNotes={false}
             hideDeleteButton={false}
             notes={notes}

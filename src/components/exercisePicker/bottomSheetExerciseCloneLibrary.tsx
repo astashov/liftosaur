@@ -16,7 +16,9 @@ interface IProps {
   onClose: () => void;
 }
 
-export function BottomSheetExerciseCloneLibrary(props: IProps): JSX.Element {
+export type IExerciseCloneLibraryContentProps = Omit<IProps, "isHidden">;
+
+export function ExerciseCloneLibraryContent(props: IExerciseCloneLibraryContentProps): JSX.Element {
   const [search, setSearch] = useState<string>("");
   const trimmedSearch = search.trim().toLowerCase();
   const exercises = useMemo(() => {
@@ -32,54 +34,65 @@ export function BottomSheetExerciseCloneLibrary(props: IProps): JSX.Element {
   const { visibleItems: visibleExercises, sentinelRef, hasMore } = useProgressiveList(exercises);
 
   return (
-    <BottomSheetOrModal isHidden={props.isHidden} onClose={props.onClose} shouldShowClose={true}>
-      <div className="flex flex-col h-full px-4">
-        <div className="pb-2">
-          <h3 className="pt-1 pb-3 text-base font-semibold text-center">Pick Exercise To Clone From</h3>
-          <div className="flex items-center flex-1 gap-2 p-2 rounded-lg bg-background-neutral">
-            <div>
-              <IconMagnifyingGlass size={18} color={Tailwind_colors().lightgray[600]} />
-            </div>
-            <div className="flex-1">
-              <input
-                type="text"
-                placeholder="Search by name"
-                className="block w-full text-sm bg-transparent border-none outline-none bg-none text-text-secondary placeholder-text-secondarysubtle"
-                data-cy="exercise-filter-by-name"
-                value={search}
-                onInput={(event) => {
-                  const target = event.target as HTMLInputElement;
-                  const value = target.value;
-                  setSearch(value);
-                }}
-              />
-            </div>
+    <div className="flex flex-col h-full px-4">
+      <div className="pb-2">
+        <h3 className="pt-1 pb-3 text-base font-semibold text-center">Pick Exercise To Clone From</h3>
+        <div className="flex items-center flex-1 gap-2 p-2 rounded-lg bg-background-neutral">
+          <div>
+            <IconMagnifyingGlass size={18} color={Tailwind_colors().lightgray[600]} />
           </div>
-        </div>
-        <div className="flex-1 overflow-y-auto">
-          <div className="pb-4">
-            {visibleExercises.map((ex) => {
-              return (
-                <div
-                  key={Exercise_toKey(ex)}
-                  className="block cursor-pointer"
-                  onClick={() => {
-                    props.onSelect(ex);
-                  }}
-                >
-                  <ExercisePickerExerciseItem
-                    isEnabled={true}
-                    showMuscles={true}
-                    settings={props.settings}
-                    exercise={ex}
-                  />
-                </div>
-              );
-            })}
-            {hasMore && <div ref={sentinelRef} style={{ height: 1 }} />}
+          <div className="flex-1">
+            <input
+              type="text"
+              placeholder="Search by name"
+              className="block w-full text-sm bg-transparent border-none outline-none bg-none text-text-secondary placeholder-text-secondarysubtle"
+              data-cy="exercise-filter-by-name"
+              value={search}
+              onInput={(event) => {
+                const target = event.target as HTMLInputElement;
+                const value = target.value;
+                setSearch(value);
+              }}
+            />
           </div>
         </div>
       </div>
+      <div className="flex-1 overflow-y-auto">
+        <div className="pb-4">
+          {visibleExercises.map((ex) => {
+            return (
+              <div
+                key={Exercise_toKey(ex)}
+                className="block cursor-pointer"
+                onClick={() => {
+                  props.onSelect(ex);
+                }}
+              >
+                <ExercisePickerExerciseItem
+                  isEnabled={true}
+                  showMuscles={true}
+                  settings={props.settings}
+                  exercise={ex}
+                />
+              </div>
+            );
+          })}
+          {hasMore && <div ref={sentinelRef} style={{ height: 1 }} />}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function BottomSheetExerciseCloneLibrary(props: IProps): JSX.Element {
+  return (
+    <BottomSheetOrModal isHidden={props.isHidden} onClose={props.onClose} shouldShowClose={true}>
+      <ExerciseCloneLibraryContent
+        showMuscles={props.showMuscles}
+        settings={props.settings}
+        onSelect={props.onSelect}
+        onClose={props.onClose}
+      />
     </BottomSheetOrModal>
   );
 }

@@ -21,9 +21,10 @@ import { getNavigationRef } from "../navigation/navUtils";
 
 interface IProps {
   settings: ISettings;
+  useInlineModals?: boolean;
   onCreate: (name: string) => void;
   onDelete: (muscleGroup: IScreenMuscle) => void;
-  onUpdate: (muscleGroup: IScreenMuscle, muscles: IMuscle[]) => void;
+  onUpdate?: (muscleGroup: IScreenMuscle, muscles: IMuscle[]) => void;
   onRestore: (muscleGroup: IScreenMuscle) => void;
 }
 
@@ -62,7 +63,13 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
                     className="p-2"
                     data-cy={`edit-muscle-group-${muscleGroupSlug}`}
                     onClick={() => {
-                      setShowMusclePicker(muscleGroup);
+                      if (props.useInlineModals) {
+                        setShowMusclePicker(muscleGroup);
+                      } else {
+                        getNavigationRef().then(({ navigationRef: ref }) =>
+                          ref.navigate("muscleGroupMusclePickerModal", { muscleGroup })
+                        );
+                      }
                     }}
                   >
                     <IconEdit2 />
@@ -124,7 +131,7 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
           })}
         </div>
       )}
-      {showMusclePicker && (
+      {props.useInlineModals && showMusclePicker && (
         <BottomSheetMuscleGroupMusclePicker
           settings={props.settings}
           muscleGroup={showMusclePicker}
@@ -134,7 +141,7 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
             const newMuscles = existingMuscles.includes(muscle)
               ? CollectionUtils_remove(existingMuscles, muscle)
               : [...existingMuscles, muscle];
-            props.onUpdate(showMusclePicker, newMuscles);
+            props.onUpdate?.(showMusclePicker, newMuscles);
           }}
         />
       )}

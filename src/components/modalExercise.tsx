@@ -452,6 +452,7 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
         <ExercisePickerCustomExerciseContent
           onGoBack={() => props.setIsCustomExerciseDisplayed(false)}
           settings={props.settings}
+          useInlineModals={true}
           notes={notes}
           setNotes={setNotes}
           hideNotes={true}

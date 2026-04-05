@@ -21,6 +21,7 @@ export function BottomSheetOrModalMuscleGroupsContent(props: IBottomSheetOrModal
     <BottomSheetOrModal shouldShowClose={true} onClose={props.onClose} isHidden={false} zIndex={50}>
       <div className="px-4 py-2">
         <MuscleGroupsContent
+          useInlineModals={true}
           onCreate={(name) => {
             props.onNewSettings(
               lf(props.settings)
