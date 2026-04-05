@@ -79,6 +79,9 @@ import { NavModalWorkoutShare } from "./modals/NavModalWorkoutShare";
 import { NavModalSocialShare } from "./modals/NavModalSocialShare";
 import { NavModalCustomExercise } from "./modals/NavModalCustomExercise";
 import { NavModalMusclesOverride } from "./modals/NavModalMusclesOverride";
+import { NavModalEditProgramExerciseSet } from "./modals/NavModalEditProgramExerciseSet";
+import { NavModalEditProgramExerciseSuperset } from "./modals/NavModalEditProgramExerciseSuperset";
+import { NavModalCreateStateVariable } from "./modals/NavModalCreateStateVariable";
 
 const OnboardingStack = createStackNavigator<IOnboardingStackParamList>();
 const HomeStack = createStackNavigator<IHomeStackParamList>();
@@ -271,6 +274,9 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
         <RootStack.Screen name="socialShareModal" component={NavModalSocialShare} />
         <RootStack.Screen name="customExerciseModal" component={NavModalCustomExercise} />
         <RootStack.Screen name="musclesOverrideModal" component={NavModalMusclesOverride} />
+        <RootStack.Screen name="editProgramExerciseSetModal" component={NavModalEditProgramExerciseSet} />
+        <RootStack.Screen name="editProgramExerciseSupersetModal" component={NavModalEditProgramExerciseSuperset} />
+        <RootStack.Screen name="createStateVariableModal" component={NavModalCreateStateVariable} />
       </RootStack.Group>
     </RootStack.Navigator>
   );

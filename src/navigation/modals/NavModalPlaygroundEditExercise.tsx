@@ -57,12 +57,9 @@ export function NavModalPlaygroundEditExercise(): JSX.Element {
   const editModal = progress?.ui?.editModal;
   const day = daySetup?.day;
 
-  const evaluatedProgram = useMemo(() => {
-    if (!playgroundState) {
-      return undefined;
-    }
-    return Program_evaluate(playgroundState.program, playgroundState.settings);
-  }, [playgroundState?.program, playgroundState?.settings]);
+  const evaluatedProgram = playgroundState
+    ? Program_evaluate(playgroundState.program, playgroundState.settings)
+    : undefined;
 
   const programExercise =
     editModal && evaluatedProgram && day != null

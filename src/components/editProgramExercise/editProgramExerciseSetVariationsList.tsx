@@ -14,6 +14,8 @@ interface IEditProgramExerciseSetVariationsListProps {
   plannerDispatch: ILensDispatch<IPlannerExerciseState>;
   ui: IPlannerExerciseUi;
   settings: ISettings;
+  exerciseStateKey: string;
+  programId: string;
 }
 
 export function EditProgramExerciseSetVariationsList(props: IEditProgramExerciseSetVariationsListProps): JSX.Element {
@@ -103,6 +105,8 @@ export function EditProgramExerciseSetVariationsList(props: IEditProgramExercise
                 plannerExercise={props.plannerExercise}
                 plannerDispatch={props.plannerDispatch}
                 settings={props.settings}
+                exerciseStateKey={props.exerciseStateKey}
+                programId={props.programId}
               />
             </div>
           );

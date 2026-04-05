@@ -12,8 +12,8 @@ import { InputNumber2 } from "../../inputNumber2";
 import { EditProgramUiHelpers_changeFirstInstance } from "../../editProgram/editProgramUi/editProgramUiHelpers";
 import { InputWeight2 } from "../../inputWeight2";
 import { Button } from "../../button";
-import { ModalCreateStateVariable } from "./modalCreateStateVariable";
-import { Weight_buildAny } from "../../../models/weight";
+import { navigationRef } from "../../../navigation/navigationRef";
+
 import { IconTrash } from "../../icons/iconTrash";
 import { ScriptRunner } from "../../../parser";
 import { Tailwind_colors } from "../../../utils/tailwindConfig";
@@ -28,6 +28,8 @@ interface ICustomProgressSettingsProps {
   plannerExercise: IPlannerProgramExercise;
   settings: ISettings;
   plannerDispatch: ILensDispatch<IPlannerExerciseState>;
+  exerciseStateKey: string;
+  programId: string;
 }
 
 export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX.Element {
@@ -161,38 +163,18 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
             kind="lightpurple"
             name="add-state-variable"
             className="w-full text-sm"
-            onClick={() =>
-              props.plannerDispatch(lbUi.p("showAddStateVariableModal").record(true), "Show add state variable modal")
-            }
+            onClick={() => {
+              props.plannerDispatch(lbUi.p("showAddStateVariableModal").record(true), "Show add state variable modal");
+              navigationRef.navigate("createStateVariableModal", {
+                exerciseStateKey: props.exerciseStateKey,
+                programId: props.programId,
+              });
+            }}
           >
             + Add State Variable
           </Button>
         </div>
       </div>
-      {props.ui.showAddStateVariableModal && (
-        <ModalCreateStateVariable
-          onClose={() =>
-            props.plannerDispatch(lbUi.p("showAddStateVariableModal").record(false), "Close add state variable modal")
-          }
-          onCreate={(name, type, isUserPrompted) => {
-            props.plannerDispatch(
-              lbProgram.recordModify((program) => {
-                return EditProgramUiHelpers_changeFirstInstance(program, plannerExercise, props.settings, true, (e) => {
-                  const state = e.progress?.state;
-                  const stateMetadata = e.progress?.stateMetadata;
-                  if (state) {
-                    state[name] = type === "number" ? 0 : Weight_buildAny(0, type);
-                  }
-                  if (stateMetadata && isUserPrompted) {
-                    stateMetadata[name] = { userPrompted: true };
-                  }
-                });
-              }),
-              "Add state variable"
-            );
-          }}
-        />
-      )}
     </div>
   );
 }

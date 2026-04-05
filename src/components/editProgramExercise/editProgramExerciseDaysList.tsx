@@ -14,6 +14,8 @@ interface IEditProgramExerciseDaysListProps {
   ui: IPlannerExerciseUi;
   plannerDispatch: ILensDispatch<IPlannerExerciseState>;
   settings: ISettings;
+  exerciseStateKey: string;
+  programId: string;
 }
 
 export function EditProgramExerciseDaysList(props: IEditProgramExerciseDaysListProps): JSX.Element {
@@ -34,6 +36,8 @@ export function EditProgramExerciseDaysList(props: IEditProgramExerciseDaysListP
               evaluatedProgram={props.evaluatedProgram}
               settings={props.settings}
               plannerDispatch={props.plannerDispatch}
+              exerciseStateKey={props.exerciseStateKey}
+              programId={props.programId}
             />
           </div>
         );

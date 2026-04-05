@@ -17,16 +17,20 @@ interface IBottomSheetEditProgramExerciseSupersetProps {
   onClose: () => void;
 }
 
-export function BottomSheetEditProgramExerciseSuperset(
-  props: IBottomSheetEditProgramExerciseSupersetProps
+export type IBottomSheetEditProgramExerciseSupersetContentProps = Omit<
+  IBottomSheetEditProgramExerciseSupersetProps,
+  "isHidden"
+>;
+
+export function BottomSheetEditProgramExerciseSupersetContent(
+  props: IBottomSheetEditProgramExerciseSupersetContentProps
 ): JSX.Element {
   const supersetGroups = Program_getSupersetGroups(props.evaluatedProgram, props.plannerExercise.dayData);
   const [newGroupModal, setNewGroupModal] = useState(false);
 
   return (
     <>
-      <BottomSheet isHidden={props.isHidden} onClose={props.onClose} shouldShowClose={true}>
-        <div className="flex flex-col h-full" style={{ marginTop: "-0.75rem" }}>
+      <div className="flex flex-col h-full">
           <div className="relative py-2 mt-2">
             <h3 className="text-lg font-semibold text-center">Select Superset Group</h3>
           </div>
@@ -84,7 +88,6 @@ export function BottomSheetEditProgramExerciseSuperset(
             </Button>
           </div>
         </div>
-      </BottomSheet>
       {newGroupModal && (
         <ModalNewSupersetGroup
           onSelect={(name) => {
@@ -94,5 +97,21 @@ export function BottomSheetEditProgramExerciseSuperset(
         />
       )}
     </>
+  );
+}
+
+export function BottomSheetEditProgramExerciseSuperset(
+  props: IBottomSheetEditProgramExerciseSupersetProps
+): JSX.Element {
+  return (
+    <BottomSheet isHidden={props.isHidden} onClose={props.onClose} shouldShowClose={true}>
+      <BottomSheetEditProgramExerciseSupersetContent
+        onSelect={props.onSelect}
+        onClose={props.onClose}
+        plannerExercise={props.plannerExercise}
+        evaluatedProgram={props.evaluatedProgram}
+        settings={props.settings}
+      />
+    </BottomSheet>
   );
 }

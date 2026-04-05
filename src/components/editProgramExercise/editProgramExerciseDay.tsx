@@ -26,6 +26,8 @@ interface IEditProgramExerciseDayProps {
   ui: IPlannerExerciseUi;
   plannerDispatch: ILensDispatch<IPlannerExerciseState>;
   settings: ISettings;
+  exerciseStateKey: string;
+  programId: string;
 }
 
 export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX.Element {
@@ -214,6 +216,8 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
           evaluatedProgram={props.evaluatedProgram}
           plannerDispatch={props.plannerDispatch}
           settings={props.settings}
+          exerciseStateKey={props.exerciseStateKey}
+          programId={props.programId}
         />
       ) : (
         <div className="px-4 text-sm text-text-secondary">
