@@ -1,6 +1,7 @@
-import { JSX, useState } from "react";
-import { BottomSheet } from "./bottomSheet";
+import { JSX } from "react";
 import { IconArrowDown2 } from "./icons/iconArrowDown2";
+import { useModalDispatch, useModalResult, Modal_open } from "../navigation/ModalStateContext";
+import { navigationRef } from "../navigation/navigationRef";
 
 interface IInputSelectProps<T extends string> {
   name: string;
@@ -10,87 +11,57 @@ interface IInputSelectProps<T extends string> {
   hint?: string;
   disabled?: boolean;
   value?: T;
-  values?: [T, string | JSX.Element][];
+  values?: [T, string][];
   onChange?: (v?: T) => void;
 }
 
 export function InputSelect<T extends string>(props: IInputSelectProps<T>): JSX.Element {
-  const [isExpanded, setIsExpanded] = useState<boolean>(false);
-
   if (props.label != null) {
     return (
       <div className="flex items-center gap-4">
-        <label
-          className={`${!props.expandValue ? "flex-1" : ""} text-sm`}
-          onClick={() => {
-            if (!props.disabled) {
-              setIsExpanded(!isExpanded);
-            }
-          }}
-        >
-          {props.label}
-        </label>
+        <label className={`${!props.expandValue ? "flex-1" : ""} text-sm`}>{props.label}</label>
         <div className="flex-1">
-          <InputSelectValue {...props} setIsExpanded={setIsExpanded} isExpanded={isExpanded} />
+          <InputSelectValue {...props} />
         </div>
       </div>
     );
   } else {
-    return <InputSelectValue {...props} setIsExpanded={setIsExpanded} isExpanded={isExpanded} />;
+    return <InputSelectValue {...props} />;
   }
 }
 
-export function InputSelectValue<T extends string>(
-  props: IInputSelectProps<T> & {
-    isExpanded: boolean;
-    setIsExpanded: (v: boolean) => void;
-  }
-): JSX.Element {
-  const { isExpanded, setIsExpanded } = props;
+export function InputSelectValue<T extends string>(props: IInputSelectProps<T>): JSX.Element {
+  const modalDispatch = useModalDispatch();
   const selectedLabel = props.values?.find((v) => v[0] === props.value)?.[1];
 
+  useModalResult("inputSelectModal", (value) => {
+    if (props.onChange) {
+      props.onChange(value as T | undefined);
+    }
+  });
+
   return (
-    <>
-      <button
-        data-cy={`select-${props.name}`}
-        className="flex items-center w-full gap-2 p-2 text-left bg-background-default border rounded border-border-neutral"
-        onClick={() => {
-          if (!props.disabled) {
-            setIsExpanded(!isExpanded);
-          }
-        }}
-      >
-        <div className="flex-1 text-sm">
-          {selectedLabel ?? <span className="text-text-secondary">{props.placeholder}</span>}
-        </div>
-        <div>
-          <IconArrowDown2 />
-        </div>
-      </button>
-      {props.values && props.values.length > 0 && (
-        <BottomSheet shouldShowClose={true} onClose={() => setIsExpanded(false)} isHidden={!isExpanded}>
-          {props.hint && <div className="pt-1 pl-2 pr-8 text-xs text-text-secondary">{props.hint}</div>}
-          <div className="flex flex-col px-2 py-2" data-cy={`select-options-${props.name}`}>
-            {props.values?.map(([key, value], i) => (
-              <button
-                data-cy={`select-option-${key}`}
-                key={key}
-                className={`py-2 px-2 ${i !== 0 && value !== props.value ? "border-t" : ""} cursor-pointer text-left ${
-                  value === props.value ? "bg-background-subtle rounded" : "border-border-neutral"
-                }`}
-                onClick={() => {
-                  if (props.onChange) {
-                    props.onChange(key);
-                  }
-                  setIsExpanded(false);
-                }}
-              >
-                {value}
-              </button>
-            ))}
-          </div>
-        </BottomSheet>
-      )}
-    </>
+    <button
+      data-cy={`select-${props.name}`}
+      className="flex items-center w-full gap-2 p-2 text-left border rounded bg-background-default border-border-neutral"
+      onClick={() => {
+        if (!props.disabled && props.values && props.values.length > 0) {
+          Modal_open(modalDispatch, "inputSelectModal", {
+            values: props.values,
+            hint: props.hint,
+            selectedValue: props.value,
+            placeholder: props.placeholder,
+          });
+          navigationRef.navigate("inputSelectModal");
+        }
+      }}
+    >
+      <div className="flex-1 text-sm">
+        {selectedLabel ?? <span className="text-text-secondary">{props.placeholder}</span>}
+      </div>
+      <div>
+        <IconArrowDown2 />
+      </div>
+    </button>
   );
 }

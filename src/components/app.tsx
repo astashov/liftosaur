@@ -1,4 +1,5 @@
 import { JSX, Fragment, useEffect, useRef, useCallback } from "react";
+import { ModalStateProvider } from "../navigation/ModalStateContext";
 import { reducerWrapper, defaultOnActions, IAction } from "../ducks/reducer";
 import { Program_getProgram } from "../models/program";
 import { useThunkReducer } from "../utils/useThunkReducer";
@@ -431,16 +432,18 @@ export function AppView(props: IProps): JSX.Element | null {
         }}
       />
       <StateContext.Provider value={{ state, dispatch }}>
-        <AppContext.Provider value={{ service, isApp: true }}>
-          <NavigationContainer
-            ref={navigationRef}
-            onStateChange={onNavigationStateChange}
-            documentTitle={{ enabled: false }}
-            theme={{ ...DefaultTheme, colors: { ...DefaultTheme.colors, background: "transparent" } }}
-          >
-            <AppNavigator initialScreen={initialScreen} />
-          </NavigationContainer>
-        </AppContext.Provider>
+        <ModalStateProvider>
+          <AppContext.Provider value={{ service, isApp: true }}>
+            <NavigationContainer
+              ref={navigationRef}
+              onStateChange={onNavigationStateChange}
+              documentTitle={{ enabled: false }}
+              theme={{ ...DefaultTheme, colors: { ...DefaultTheme.colors, background: "transparent" } }}
+            >
+              <AppNavigator initialScreen={initialScreen} />
+            </NavigationContainer>
+          </AppContext.Provider>
+        </ModalStateProvider>
       </StateContext.Provider>
       {progress && currentScreenName && screensWithoutTimer.indexOf(currentScreenName) === -1 && (
         <RestTimer
