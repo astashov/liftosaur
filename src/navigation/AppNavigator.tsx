@@ -99,6 +99,10 @@ import { NavModalWeekStats } from "./modals/NavModalWeekStats";
 import { NavModalDayStats } from "./modals/NavModalDayStats";
 import { NavModalExerciseStats } from "./modals/NavModalExerciseStats";
 import { NavModalEditExerciseChange } from "./modals/NavModalEditExerciseChange";
+import { NavModalGraphs } from "./modals/NavModalGraphs";
+import { NavModalStatsSettings } from "./modals/NavModalStatsSettings";
+import { NavModalProgramInfo } from "./modals/NavModalProgramInfo";
+import { NavModalChangeNextDay } from "./modals/NavModalChangeNextDay";
 
 const OnboardingStack = createStackNavigator<IOnboardingStackParamList>();
 const HomeStack = createStackNavigator<IHomeStackParamList>();
@@ -311,6 +315,10 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
         <RootStack.Screen name="dayStatsModal" component={NavModalDayStats} />
         <RootStack.Screen name="exerciseStatsModal" component={NavModalExerciseStats} />
         <RootStack.Screen name="editExerciseChangeModal" component={NavModalEditExerciseChange} />
+        <RootStack.Screen name="graphsModal" component={NavModalGraphs} />
+        <RootStack.Screen name="statsSettingsModal" component={NavModalStatsSettings} />
+        <RootStack.Screen name="programInfoModal" component={NavModalProgramInfo} />
+        <RootStack.Screen name="changeNextDayModal" component={NavModalChangeNextDay} />
       </RootStack.Group>
     </RootStack.Navigator>
   );

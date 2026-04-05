@@ -14,9 +14,9 @@ interface IModalChangeNextDayProps {
   onClose: () => void;
 }
 
-export function ModalChangeNextDay(props: IModalChangeNextDayProps): JSX.Element {
+export function ModalChangeNextDayContent(props: IModalChangeNextDayProps): JSX.Element {
   return (
-    <Modal noPaddings zIndex={60} shouldShowClose onClose={props.onClose} isFullWidth isFullHeight>
+    <>
       <div className="mt-4 mb-1 text-lg font-semibold text-center">Change Next Workout</div>
       <div className="text-center">
         <LinkButton
@@ -40,6 +40,14 @@ export function ModalChangeNextDay(props: IModalChangeNextDayProps): JSX.Element
           props.onClose();
         }}
       />
+    </>
+  );
+}
+
+export function ModalChangeNextDay(props: IModalChangeNextDayProps): JSX.Element {
+  return (
+    <Modal noPaddings zIndex={60} shouldShowClose onClose={props.onClose} isFullWidth isFullHeight>
+      <ModalChangeNextDayContent {...props} />
     </Modal>
   );
 }

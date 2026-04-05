@@ -1,4 +1,4 @@
-import { JSX, useState } from "react";
+import { JSX } from "react";
 import { IProgram, ISettings, IStats } from "../types";
 import {
   emptyProgramId,
@@ -6,7 +6,6 @@ import {
   Program_getProgramDay,
   Program_nextHistoryRecord,
   Program_isEmpty,
-  Program_selectProgram,
 } from "../models/program";
 import { HistoryRecordView } from "./historyRecord";
 import { IDispatch } from "../ducks/types";
@@ -14,9 +13,8 @@ import { LinkButton } from "./linkButton";
 import { IconSwap } from "./icons/iconSwap";
 import { Tailwind_colors } from "../utils/tailwindConfig";
 import { IconPlus2 } from "./icons/iconPlus2";
-import { EditProgram_setNextDay } from "../models/editProgram";
-import { ModalChangeNextDay } from "./modalChangeNextDay";
 import { Thunk_startProgramDay } from "../ducks/thunks";
+import { navigationRef } from "../navigation/navigationRef";
 
 export interface IBottomSheetNextWorkoutContentProps {
   currentProgram?: IProgram;
@@ -28,7 +26,6 @@ export interface IBottomSheetNextWorkoutContentProps {
 }
 
 export function BottomSheetNextWorkoutContent(props: IBottomSheetNextWorkoutContentProps): JSX.Element {
-  const [showChangeWorkout, setShowChangeWorkout] = useState(false);
   const evaluatedProgram = props.currentProgram ? Program_evaluate(props.currentProgram, props.settings) : undefined;
 
   const programDay = evaluatedProgram ? Program_getProgramDay(evaluatedProgram, evaluatedProgram.nextDay) : undefined;
@@ -66,7 +63,11 @@ export function BottomSheetNextWorkoutContent(props: IBottomSheetNextWorkoutCont
         </div>
         <div className="absolute bottom-0 left-0 flex justify-between w-full px-4 pt-4 pb-6 text-sm bg-background-default">
           <div>
-            <LinkButton name="change-next-day" data-cy="change-next-day" onClick={() => setShowChangeWorkout(true)}>
+            <LinkButton
+              name="change-next-day"
+              data-cy="change-next-day"
+              onClick={() => navigationRef.navigate("changeNextDayModal")}
+            >
               <IconSwap color={Tailwind_colors().blue[400]} className="inline-block pr-1" />
               Change next workout
             </LinkButton>
@@ -85,19 +86,6 @@ export function BottomSheetNextWorkoutContent(props: IBottomSheetNextWorkoutCont
           </div>
         </div>
       </div>
-      {showChangeWorkout && evaluatedProgram && (
-        <ModalChangeNextDay
-          stats={props.stats}
-          onClose={() => setShowChangeWorkout(false)}
-          initialCurrentProgramId={evaluatedProgram.id}
-          onSelect={(programId, day) => {
-            Program_selectProgram(props.dispatch, programId);
-            EditProgram_setNextDay(props.dispatch, programId, day);
-          }}
-          allPrograms={props.allPrograms}
-          settings={props.settings}
-        />
-      )}
     </>
   );
 }

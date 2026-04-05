@@ -48,7 +48,7 @@ interface IModalGraphsProps {
   onClose: (value?: IExerciseId) => void;
 }
 
-export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
+export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
   const graphs = props.graphs;
   const exercises = CollectionUtils_sort(
     props.exerciseTypes
@@ -79,7 +79,7 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
   const hasAvailableStats = statsLengthKeys.length > 0 || statsWeightKeys.length > 0 || statsPercentageKeys.length > 0;
 
   return (
-    <Modal isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose} isFullWidth>
+    <>
       <GroupHeader name="Settings" isExpanded={true}>
         <MenuItemEditable
           type="select"
@@ -287,6 +287,14 @@ export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
           </div>
         )}
       </form>
+    </>
+  );
+}
+
+export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
+  return (
+    <Modal isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose} isFullWidth>
+      <ModalGraphsContent {...props} />
     </Modal>
   );
 }

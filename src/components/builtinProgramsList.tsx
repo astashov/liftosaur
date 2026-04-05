@@ -10,23 +10,16 @@ import {
 import { IProgramFilter, IProgramSort, ProgramFilter_sort, ProgramFilter_filter } from "../utils/programFilter";
 import { SelectLink } from "./selectLink";
 import { ExerciseImageUtils_exists } from "../models/exerciseImage";
-import {
-  IProgramIndexEntry,
-  Program_previewProgram,
-  Program_cloneProgram,
-  Program_exerciseRangeFormat,
-} from "../models/program";
+import { IProgramIndexEntry, Program_exerciseRangeFormat } from "../models/program";
 import { StringUtils_pluralize } from "../utils/string";
 import { Tailwind_colors } from "../utils/tailwindConfig";
 import { ExerciseImage } from "./exerciseImage";
 import { IconCalendarSmall } from "./icons/iconCalendarSmall";
 import { IconKettlebellSmall } from "./icons/iconKettlebellSmall";
 import { IconWatch } from "./icons/iconWatch";
-import { ModalProgramInfo } from "./modalProgramInfo";
-import { Thunk_pushScreen } from "../ducks/thunks";
 import { equipmentName } from "../models/exercise";
 import { Equipment_currentEquipment } from "../models/equipment";
-import { Settings_doesProgramHaveUnset1RMs } from "../models/settings";
+import { navigationRef } from "../navigation/navigationRef";
 import { Markdown } from "./markdown";
 
 interface IProps {
@@ -41,8 +34,6 @@ interface IProps {
 export function BuiltinProgramsList(props: IProps): JSX.Element {
   const [filter, setFilter] = useState<IProgramFilter>({});
   const [sort, setSort] = useState<IProgramSort>(undefined);
-  const [selectedProgram, setSelectedProgram] = useState<IProgram | undefined>(undefined);
-
   const searchLower = (props.search || "").toLowerCase();
   const filtered = ProgramFilter_sort(ProgramFilter_filter(props.programsIndex, filter), sort);
   const entries = searchLower ? filtered.filter((e) => e.name.toLowerCase().includes(searchLower)) : filtered;
@@ -108,10 +99,10 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
                 settings={props.settings}
                 entry={entry}
                 onClick={() => {
-                  const program = props.programs.find((p) => p.id === entry.id);
-                  if (program) {
-                    setSelectedProgram(program);
-                  }
+                  navigationRef.navigate("programInfoModal", {
+                    programId: entry.id,
+                    hasCustomPrograms: props.hasCustomPrograms,
+                  });
                 }}
               />
             );
@@ -122,27 +113,6 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
           </div>
         )}
       </div>
-      {selectedProgram != null && (
-        <ModalProgramInfo
-          settings={props.settings}
-          program={selectedProgram}
-          hasCustomPrograms={props.hasCustomPrograms}
-          onClose={() => setSelectedProgram(undefined)}
-          onPreview={() => {
-            Program_previewProgram(props.dispatch, selectedProgram.id, false);
-            setSelectedProgram(undefined);
-          }}
-          onSelect={() => {
-            Program_cloneProgram(props.dispatch, selectedProgram, props.settings);
-            if (Settings_doesProgramHaveUnset1RMs(selectedProgram, props.settings)) {
-              props.dispatch(Thunk_pushScreen("onerms"));
-            } else {
-              props.dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }));
-            }
-            setSelectedProgram(undefined);
-          }}
-        />
-      )}
     </>
   );
 }
