@@ -1,5 +1,5 @@
 import { JSX, Fragment } from "react";
-import { Modal } from "./modal";
+
 import { equipmentName, Exercise_toKey, Exercise_get, Exercise_fromKey } from "../models/exercise";
 import { StringUtils_capitalize, StringUtils_dashcase } from "../utils/string";
 import { IDispatch } from "../ducks/types";
@@ -291,13 +291,6 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
   );
 }
 
-export function ModalGraphs(props: IModalGraphsProps): JSX.Element {
-  return (
-    <Modal isHidden={props.isHidden} shouldShowClose={true} onClose={props.onClose} isFullWidth>
-      <ModalGraphsContent {...props} />
-    </Modal>
-  );
-}
 
 function ExercisePreview(props: { exerciseKey: string; settings: ISettings }): JSX.Element {
   const e = Exercise_get(Exercise_fromKey(props.exerciseKey), props.settings.exercises);

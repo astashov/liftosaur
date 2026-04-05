@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { Modal } from "./modal";
+
 import { IProgram, ISettings, IStats } from "../types";
 import { NextDayPicker } from "./nextDayPicker";
 import { LinkButton } from "./linkButton";
@@ -44,10 +44,3 @@ export function ModalChangeNextDayContent(props: IModalChangeNextDayProps): JSX.
   );
 }
 
-export function ModalChangeNextDay(props: IModalChangeNextDayProps): JSX.Element {
-  return (
-    <Modal noPaddings zIndex={60} shouldShowClose onClose={props.onClose} isFullWidth isFullHeight>
-      <ModalChangeNextDayContent {...props} />
-    </Modal>
-  );
-}

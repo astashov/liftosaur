@@ -67,7 +67,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
   }, []);
 
   const amrapModal = progress.ui?.amrapModal;
-  const prevAmrapModal = useRef(amrapModal);
+  const prevAmrapModal = useRef<typeof amrapModal>(undefined);
   useEffect(() => {
     if (amrapModal && !prevAmrapModal.current) {
       navigationRef.navigate("amrapModal", { ...amrapModal, context: "workout", progressId: progress.id });
@@ -76,7 +76,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
   }, [amrapModal]);
 
   const exercisePickerState = progress.ui?.exercisePicker?.state;
-  const prevExercisePickerState = useRef(exercisePickerState);
+  const prevExercisePickerState = useRef<typeof exercisePickerState>(undefined);
   useEffect(() => {
     if (exercisePickerState && !prevExercisePickerState.current) {
       navigationRef.navigate("exercisePickerModal", { progressId: progress.id });
@@ -85,7 +85,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
   }, [exercisePickerState]);
 
   const editSetModal = progress.ui?.editSetModal;
-  const prevEditSetModal = useRef(editSetModal);
+  const prevEditSetModal = useRef<typeof editSetModal>(undefined);
   useEffect(() => {
     if (editSetModal && !prevEditSetModal.current) {
       navigationRef.navigate("editSetTargetModal", { context: "workout", progressId: progress.id });

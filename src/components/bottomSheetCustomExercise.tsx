@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 import { ISettings, ICustomExercise } from "../types";
-import { BottomSheet } from "./bottomSheet";
+
 import { ExercisePickerCustomExercise } from "./exercisePicker/exercisePickerCustomExercise";
 import { IDispatch } from "../ducks/types";
 import { useLensReducer } from "../utils/useLensReducer";
@@ -41,17 +41,3 @@ export function BottomSheetCustomExerciseContent(props: IBottomSheetCustomExerci
   );
 }
 
-export function BottomSheetCustomExercise(props: IProps): JSX.Element {
-  return (
-    <BottomSheet isHidden={props.isHidden} onClose={props.onClose}>
-      <BottomSheetCustomExerciseContent
-        settings={props.settings}
-        isLoggedIn={props.isLoggedIn}
-        exercise={props.exercise}
-        dispatch={props.dispatch}
-        onChange={props.onChange}
-        onClose={props.onClose}
-      />
-    </BottomSheet>
-  );
-}

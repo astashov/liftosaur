@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { Modal } from "./modal";
+
 import { IDispatch } from "../ducks/types";
 import { MenuItemEditable } from "./menuItemEditable";
 import { ISettings, IStatsLength, IStatsPercentage, IStatsWeight } from "../types";
@@ -137,10 +137,3 @@ export function ModalStatsContent(props: IModalStatsProps): JSX.Element {
   );
 }
 
-export function ModalStats(props: IModalStatsProps): JSX.Element {
-  return (
-    <Modal isHidden={props.isHidden} isFullWidth={true} shouldShowClose={true} onClose={props.onClose}>
-      <ModalStatsContent {...props} />
-    </Modal>
-  );
-}

@@ -76,10 +76,6 @@ const isLoggingEnabled =
     ? !!UrlUtils_build(window.location.href).searchParams.get("log")
     : false;
 
-const shouldSkipIntro =
-  typeof window !== "undefined" && window?.location
-    ? !!UrlUtils_build(window.location.href).searchParams.get("skipintro")
-    : false;
 
 export async function getIdbKey(userId?: string, isAdmin?: boolean): Promise<string> {
   const currentAccount = await IndexedDBUtils_get("current_account");
@@ -174,7 +170,6 @@ export async function getInitialState(
   }
   const newState = buildState({
     notification,
-    shouldSkipIntro,
     nosync,
     deviceId,
   });

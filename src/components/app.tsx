@@ -410,7 +410,15 @@ export function AppView(props: IProps): JSX.Element | null {
     checkToursRef.current();
   }, []);
 
-  const initialScreen = props.initialState.storage.currentProgramId ? "main" : "first";
+  const shouldSkipIntro =
+    typeof window !== "undefined" && window?.location
+      ? !!UrlUtils_build(window.location.href).searchParams.get("skipintro")
+      : false;
+  const initialScreen = props.initialState.storage.currentProgramId
+    ? "main"
+    : shouldSkipIntro
+      ? "programselect"
+      : "first";
 
   const progress = Progress_getCurrentProgress(state);
   const { lftAndroidSafeInsetTop, lftAndroidSafeInsetBottom } = window;
