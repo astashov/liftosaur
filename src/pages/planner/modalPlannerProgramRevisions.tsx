@@ -26,7 +26,7 @@ type IProgramRevisionState =
       result: IEither<string, string>;
     };
 
-export function ModalPlannerProgramRevisions(props: IModalPlannerProgramRevisionsProps): JSX.Element {
+export function ModalPlannerProgramRevisionsContent(props: IModalPlannerProgramRevisionsProps): JSX.Element {
   const initialCurrentRevision = props.revisions[0];
   const [currentRevision, setCurrentRevision] = useState<string>(initialCurrentRevision);
   const [state, setState] = useState<Partial<Record<string, IProgramRevisionState>>>({});
@@ -57,14 +57,7 @@ export function ModalPlannerProgramRevisions(props: IModalPlannerProgramRevision
   const programRevision = state[currentRevision];
 
   return (
-    <Modal
-      innerClassName="flex flex-col"
-      isFullWidth={true}
-      onClose={props.onClose}
-      shouldShowClose={true}
-      noPaddings={true}
-    >
-      <div className="flex flex-col flex-1 min-h-0 sm:flex-row">
+    <div className="flex flex-col flex-1 min-h-0 sm:flex-row">
         <div
           className="h-40 p-4 overflow-y-auto border-r min-h-40 bg-background-subtle border-border-neutral sm:h-auto sm:min-h-max"
           style={{ borderRadius: "0.5rem 0 0 0.5rem", minWidth: "16rem" }}
@@ -130,7 +123,20 @@ export function ModalPlannerProgramRevisions(props: IModalPlannerProgramRevision
             <div>{programRevision.result.error}</div>
           )}
         </div>
-      </div>
+    </div>
+  );
+}
+
+export function ModalPlannerProgramRevisions(props: IModalPlannerProgramRevisionsProps): JSX.Element {
+  return (
+    <Modal
+      innerClassName="flex flex-col"
+      isFullWidth={true}
+      onClose={props.onClose}
+      shouldShowClose={true}
+      noPaddings={true}
+    >
+      <ModalPlannerProgramRevisionsContent {...props} />
     </Modal>
   );
 }

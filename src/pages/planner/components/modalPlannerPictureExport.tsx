@@ -36,7 +36,7 @@ function getInitialDaysToShow(program: IPlannerProgram): number[] {
   return initialDaysToShow;
 }
 
-export function ModalPlannerPictureExport(props: IModalPlannerPictureExportProps): JSX.Element {
+export function ModalPlannerPictureExportContent(props: IModalPlannerPictureExportProps): JSX.Element {
   const sourceRef = useRef<HTMLDivElement>(null);
   const planner = props.program.planner!;
   const [url, setUrl] = useState(!props.isChanged && props.url ? props.url : undefined);
@@ -62,7 +62,7 @@ export function ModalPlannerPictureExport(props: IModalPlannerPictureExportProps
   }, []);
 
   return (
-    <Modal shouldShowClose={true} onClose={props.onClose} noPaddings={true}>
+    <>
       <div className="relative w-full h-px overflow-hidden">
         <div className="absolute" style={{ top: "9999px", left: "9999px" }}>
           <ProgramShareOutput ref={sourceRef} settings={props.settings} program={planner} options={config} url={url} />
@@ -119,6 +119,14 @@ export function ModalPlannerPictureExport(props: IModalPlannerPictureExportProps
           </div>
         </div>
       </div>
+    </>
+  );
+}
+
+export function ModalPlannerPictureExport(props: IModalPlannerPictureExportProps): JSX.Element {
+  return (
+    <Modal shouldShowClose={true} onClose={props.onClose} noPaddings={true}>
+      <ModalPlannerPictureExportContent {...props} />
     </Modal>
   );
 }

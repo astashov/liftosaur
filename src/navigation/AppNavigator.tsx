@@ -83,6 +83,10 @@ import { NavModalEditProgramExerciseSet } from "./modals/NavModalEditProgramExer
 import { NavModalEditProgramExerciseSuperset } from "./modals/NavModalEditProgramExerciseSuperset";
 import { NavModalCreateStateVariable } from "./modals/NavModalCreateStateVariable";
 import { NavModalTour } from "./modals/NavModalTour";
+import { NavModalEditProgramMenu } from "./modals/NavModalEditProgramMenu";
+import { NavModalProgramNextDay } from "./modals/NavModalProgramNextDay";
+import { NavModalProgramImageExport } from "./modals/NavModalProgramImageExport";
+import { NavModalProgramRevisions } from "./modals/NavModalProgramRevisions";
 
 const OnboardingStack = createStackNavigator<IOnboardingStackParamList>();
 const HomeStack = createStackNavigator<IHomeStackParamList>();
@@ -279,6 +283,10 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
         <RootStack.Screen name="editProgramExerciseSupersetModal" component={NavModalEditProgramExerciseSuperset} />
         <RootStack.Screen name="createStateVariableModal" component={NavModalCreateStateVariable} />
         <RootStack.Screen name="tourModal" component={NavModalTour} />
+        <RootStack.Screen name="editProgramMenuModal" component={NavModalEditProgramMenu} />
+        <RootStack.Screen name="programNextDayModal" component={NavModalProgramNextDay} />
+        <RootStack.Screen name="programImageExportModal" component={NavModalProgramImageExport} />
+        <RootStack.Screen name="programRevisionsModal" component={NavModalProgramRevisions} />
       </RootStack.Group>
     </RootStack.Navigator>
   );

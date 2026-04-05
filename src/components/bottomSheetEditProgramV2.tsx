@@ -18,10 +18,11 @@ interface IProps {
   onClose: () => void;
 }
 
-export function BottomSheetEditProgramV2(props: IProps): JSX.Element {
+export type IBottomSheetEditProgramV2ContentProps = Omit<IProps, "isHidden">;
+
+export function BottomSheetEditProgramV2Content(props: IBottomSheetEditProgramV2ContentProps): JSX.Element {
   return (
-    <BottomSheet isHidden={props.isHidden} onClose={props.onClose}>
-      <div className="p-4">
+    <div className="p-4">
         <BottomSheetItem
           isFirst={true}
           name="copy-link"
@@ -74,7 +75,23 @@ export function BottomSheetEditProgramV2(props: IProps): JSX.Element {
             />
           </>
         )}
-      </div>
+    </div>
+  );
+}
+
+export function BottomSheetEditProgramV2(props: IProps): JSX.Element {
+  return (
+    <BottomSheet isHidden={props.isHidden} onClose={props.onClose}>
+      <BottomSheetEditProgramV2Content
+        isLoggedIn={props.isLoggedIn}
+        isLoadingRevisions={props.isLoadingRevisions}
+        isAffiliateEnabled={props.isAffiliateEnabled}
+        onExportProgramToLink={props.onExportProgramToLink}
+        onShareProgramToLink={props.onShareProgramToLink}
+        onGenerateProgramImage={props.onGenerateProgramImage}
+        onLoadRevisions={props.onLoadRevisions}
+        onClose={props.onClose}
+      />
     </BottomSheet>
   );
 }
