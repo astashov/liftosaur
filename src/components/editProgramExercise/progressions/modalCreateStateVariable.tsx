@@ -13,7 +13,7 @@ interface IModalCreateStateVariableProps {
 
 type IStateVariableType = "number" | IUnit | IPercentageUnit;
 
-export function ModalCreateStateVariable(props: IModalCreateStateVariableProps): JSX.Element {
+export function ModalCreateStateVariableContent(props: IModalCreateStateVariableProps): JSX.Element {
   const textInputRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState<string>("");
   const [type, setType] = useState<IStateVariableType | undefined>(undefined);
@@ -27,8 +27,7 @@ export function ModalCreateStateVariable(props: IModalCreateStateVariableProps):
   const [isUserPrompted, setIsUserPrompted] = useState<boolean>(false);
 
   return (
-    <Modal name="new-state-variable-modal" onClose={props.onClose} shouldShowClose={true}>
-      <form
+    <form
         onSubmit={(e) => {
           e.preventDefault();
           const isValid = textInputRef.current?.checkValidity();
@@ -100,7 +99,14 @@ export function ModalCreateStateVariable(props: IModalCreateStateVariableProps):
             Create
           </Button>
         </div>
-      </form>
+    </form>
+  );
+}
+
+export function ModalCreateStateVariable(props: IModalCreateStateVariableProps): JSX.Element {
+  return (
+    <Modal name="new-state-variable-modal" onClose={props.onClose} shouldShowClose={true}>
+      <ModalCreateStateVariableContent {...props} />
     </Modal>
   );
 }

@@ -24,7 +24,6 @@ import {
   EditProgramUiHelpers_changeAllInstances,
 } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { EditProgramExerciseSets } from "./editProgramExerciseSets";
-import { BottomSheetEditProgramExerciseSet } from "./bottomSheetEditProgramExerciseSet";
 import { EditProgramExerciseNavbar } from "./editProgramExerciseNavbar";
 import { editProgramExerciseTourConfig } from "../tour/editProgramExerciseTourConfig";
 
@@ -245,6 +244,8 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
             plannerExercise={plannerExercise}
             settings={props.settings}
             plannerDispatch={plannerDispatch}
+            exerciseStateKey={props.exerciseStateKey}
+            programId={props.programId}
           />
         )}
       </div>
@@ -266,14 +267,10 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
           plannerExercise={plannerExercise}
           settings={props.settings}
           plannerDispatch={plannerDispatch}
+          exerciseStateKey={props.exerciseStateKey}
+          programId={props.programId}
         />
       </div>
-      <BottomSheetEditProgramExerciseSet
-        evaluatedProgram={evaluatedProgram}
-        ui={plannerState.ui}
-        plannerDispatch={plannerDispatch}
-        settings={props.settings}
-      />
     </>
   );
 }

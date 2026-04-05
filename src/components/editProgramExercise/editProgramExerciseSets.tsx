@@ -14,6 +14,8 @@ interface IEditProgramExerciseSetsProps {
   ui: IPlannerExerciseUi;
   plannerDispatch: ILensDispatch<IPlannerExerciseState>;
   settings: ISettings;
+  exerciseStateKey: string;
+  programId: string;
 }
 
 export function EditProgramExerciseSets(props: IEditProgramExerciseSetsProps): JSX.Element {
@@ -43,6 +45,8 @@ export function EditProgramExerciseSets(props: IEditProgramExerciseSetsProps): J
                 plannerExercise={plannerExercise}
                 plannerDispatch={props.plannerDispatch}
                 settings={props.settings}
+                exerciseStateKey={props.exerciseStateKey}
+                programId={props.programId}
               />
             ),
           },

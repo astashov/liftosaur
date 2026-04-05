@@ -28,6 +28,8 @@ interface IEditProgramExerciseSetVariationProps {
   setVariationIndex: number;
   setVariation: IPlannerProgramExerciseEvaluatedSetVariation;
   settings: ISettings;
+  exerciseStateKey: string;
+  programId: string;
 }
 
 export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVariationProps): JSX.Element {
@@ -155,6 +157,8 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
                 plannerDispatch={props.plannerDispatch}
                 widthAdd={widthAdd}
                 settings={props.settings}
+                exerciseStateKey={props.exerciseStateKey}
+                programId={props.programId}
                 opts={{
                   hasMinReps: hasMinReps,
                   hasWeight: hasWeight,

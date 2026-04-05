@@ -20,11 +20,7 @@ interface IBottomSheetEditProgramExerciseSetProps {
   settings: ISettings;
 }
 
-export function BottomSheetEditProgramExerciseSet(props: IBottomSheetEditProgramExerciseSetProps): JSX.Element {
-  const lbUi = lb<IPlannerExerciseState>().pi("ui");
-  function onClose(): void {
-    props.plannerDispatch(lbUi.p("editSetBottomSheet").record(undefined), "Close edit set sheet");
-  }
+export function BottomSheetEditProgramExerciseSetContent(props: IBottomSheetEditProgramExerciseSetProps): JSX.Element {
   const editSetBottomSheet = props.ui.editSetBottomSheet;
   const weekIndex = props.ui.weekIndex;
   const { setVariationIndex, setIndex, dayInWeekIndex } = editSetBottomSheet ?? {
@@ -58,7 +54,7 @@ export function BottomSheetEditProgramExerciseSet(props: IBottomSheetEditProgram
   }
 
   return (
-    <BottomSheet isHidden={!props.ui.editSetBottomSheet} onClose={onClose} shouldShowClose={true}>
+    <>
       {set && (
         <div>
           <h3 className="px-4 pt-1 text-base font-bold">Edit Set</h3>
@@ -133,6 +129,19 @@ export function BottomSheetEditProgramExerciseSet(props: IBottomSheetEditProgram
           </div>
         </div>
       )}
+    </>
+  );
+}
+
+export function BottomSheetEditProgramExerciseSet(props: IBottomSheetEditProgramExerciseSetProps): JSX.Element {
+  const lbUi = lb<IPlannerExerciseState>().pi("ui");
+  return (
+    <BottomSheet
+      isHidden={!props.ui.editSetBottomSheet}
+      onClose={() => props.plannerDispatch(lbUi.p("editSetBottomSheet").record(undefined), "Close edit set sheet")}
+      shouldShowClose={true}
+    >
+      <BottomSheetEditProgramExerciseSetContent {...props} />
     </BottomSheet>
   );
 }

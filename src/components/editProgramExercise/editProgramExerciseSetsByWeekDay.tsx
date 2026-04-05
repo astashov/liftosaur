@@ -13,6 +13,8 @@ interface IEditProgramExerciseSetsByWeekDayProps {
   plannerExercise: IPlannerProgramExercise;
   plannerDispatch: ILensDispatch<IPlannerExerciseState>;
   settings: ISettings;
+  exerciseStateKey: string;
+  programId: string;
 }
 
 export function EditProgramExerciseSetsByWeekDay(props: IEditProgramExerciseSetsByWeekDayProps): JSX.Element {
@@ -42,6 +44,8 @@ export function EditProgramExerciseSetsByWeekDay(props: IEditProgramExerciseSets
                 weekIndex={weekIndex}
                 plannerDispatch={props.plannerDispatch}
                 settings={props.settings}
+                exerciseStateKey={props.exerciseStateKey}
+                programId={props.programId}
               />
             ),
           };

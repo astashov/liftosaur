@@ -107,6 +107,9 @@ export type IRootStackParamList = {
   socialShareModal: { type: "igstory" | "igfeed" | "tiktok" };
   customExerciseModal: { exerciseId?: string };
   musclesOverrideModal: { exerciseType: IExerciseType };
+  editProgramExerciseSetModal: { exerciseStateKey: string; programId: string };
+  editProgramExerciseSupersetModal: { exerciseStateKey: string; programId: string; exerciseKey: string };
+  createStateVariableModal: { exerciseStateKey: string; programId: string };
 };
 
 export type IRootLevelScreenParamList = {

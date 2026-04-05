@@ -14,6 +14,7 @@ import { InputWeight2 } from "../inputWeight2";
 import { lb } from "lens-shmens";
 import { EditProgramUiHelpers_changeCurrentInstance2 } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { CollectionUtils_removeAt } from "../../utils/collection";
+import { navigationRef } from "../../navigation/navigationRef";
 
 interface IEditProgramExerciseSetProps {
   set: IPlannerProgramExerciseEvaluatedSet;
@@ -26,6 +27,8 @@ interface IEditProgramExerciseSetProps {
   setSetIds: Dispatch<SetStateAction<string[]>>;
   settings: ISettings;
   widthAdd: number;
+  exerciseStateKey: string;
+  programId: string;
   opts: {
     hasMinReps: boolean;
     hasWeight: boolean;
@@ -106,6 +109,10 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                   }),
                   "Open edit set bottom sheet"
                 );
+                navigationRef.navigate("editProgramExerciseSetModal", {
+                  exerciseStateKey: props.exerciseStateKey,
+                  programId: props.programId,
+                });
               }}
               className="flex-1 h-full text-text-alwayswhite bg-background-darkgray nm-workout-exercise-set-edit"
             >

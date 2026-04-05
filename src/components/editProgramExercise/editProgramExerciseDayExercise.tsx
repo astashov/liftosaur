@@ -24,6 +24,8 @@ interface IEditProgramExerciseDayExerciseProps {
   ui: IPlannerExerciseUi;
   plannerDispatch: ILensDispatch<IPlannerExerciseState>;
   settings: ISettings;
+  exerciseStateKey: string;
+  programId: string;
 }
 
 export function EditProgramExerciseDayExercise(props: IEditProgramExerciseDayExerciseProps): JSX.Element {
@@ -90,8 +92,8 @@ export function EditProgramExerciseDayExercise(props: IEditProgramExerciseDayExe
         <EditProgramExerciseSupersets
           plannerExercise={plannerExercise}
           evaluatedProgram={props.evaluatedProgram}
-          plannerDispatch={props.plannerDispatch}
-          settings={props.settings}
+          exerciseStateKey={props.exerciseStateKey}
+          programId={props.programId}
         />
       )}
       {plannerExercise.descriptions.values.length > 0 && (
@@ -137,6 +139,8 @@ export function EditProgramExerciseDayExercise(props: IEditProgramExerciseDayExe
           plannerExercise={plannerExercise}
           settings={props.settings}
           plannerDispatch={props.plannerDispatch}
+          exerciseStateKey={props.exerciseStateKey}
+          programId={props.programId}
         />
       )}
     </div>

@@ -39,6 +39,8 @@ interface IEditProgramExerciseProgressProps {
   plannerExercise: IPlannerProgramExercise;
   plannerDispatch: ILensDispatch<IPlannerExerciseState>;
   settings: ISettings;
+  exerciseStateKey: string;
+  programId: string;
 }
 
 function getProgressReuseCandidates(
@@ -115,6 +117,8 @@ export function EditProgramExerciseProgress(props: IEditProgramExerciseProgressP
             plannerExercise={plannerExercise}
             plannerDispatch={props.plannerDispatch}
             settings={props.settings}
+            exerciseStateKey={props.exerciseStateKey}
+            programId={props.programId}
           />
         )}
       </div>
@@ -170,6 +174,8 @@ interface IProgressContentProps {
   plannerExercise: IPlannerProgramExercise;
   plannerDispatch: ILensDispatch<IPlannerExerciseState>;
   settings: ISettings;
+  exerciseStateKey: string;
+  programId: string;
 }
 
 function ProgressContent(props: IProgressContentProps): JSX.Element {
@@ -365,6 +371,8 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
               settings={props.settings}
               plannerDispatch={props.plannerDispatch}
               program={props.program}
+              exerciseStateKey={props.exerciseStateKey}
+              programId={props.programId}
             />
           </div>
         )}
