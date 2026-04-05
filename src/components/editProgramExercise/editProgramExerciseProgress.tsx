@@ -28,8 +28,8 @@ import { LinearProgressSettings } from "./progressions/linearProgressSettings";
 import { DoubleProgressSettings } from "./progressions/doubleProgressSettings";
 import { SumRepsProgressSettings } from "./progressions/sumRepsProgressSettings";
 import { CustomProgressSettings } from "./progressions/customProgressSettings";
-import { ModalEditProgressScript } from "./progressions/modalEditProgressScript";
 import { CollectionUtils_uniqByExpr } from "../../utils/collection";
+import { navigationRef } from "../../navigation/navigationRef";
 import { EditProgramUiProgress } from "../editProgram/editProgramUiProgress";
 import { ObjectUtils_entries } from "../../utils/object";
 
@@ -66,7 +66,6 @@ export function EditProgramExerciseProgress(props: IEditProgramExerciseProgressP
   const { plannerExercise } = props;
   const ownProgress = plannerExercise.progress;
   const evaluatedProgram = Program_evaluate(props.program, props.settings);
-  const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
   const lbUi = lb<IPlannerExerciseState>().p("ui");
   const [isOverriding, setIsOverriding] = useState(false);
 
@@ -86,6 +85,10 @@ export function EditProgramExerciseProgress(props: IEditProgramExerciseProgressP
                     lbUi.p("showEditProgressScriptModal").record(true),
                     "Show edit progress script modal"
                   );
+                  navigationRef.navigate("editProgressScriptModal", {
+                    exerciseStateKey: props.exerciseStateKey,
+                    programId: props.programId,
+                  });
                 }}
               >
                 Edit Script
@@ -122,34 +125,6 @@ export function EditProgramExerciseProgress(props: IEditProgramExerciseProgressP
           />
         )}
       </div>
-      {props.ui.showEditProgressScriptModal && (
-        <ModalEditProgressScript
-          settings={props.settings}
-          onClose={() => {
-            props.plannerDispatch(
-              lbUi.p("showEditProgressScriptModal").record(false),
-              "Close edit progress script modal"
-            );
-          }}
-          plannerExercise={plannerExercise}
-          onChange={(script) => {
-            props.plannerDispatch(
-              lbProgram.recordModify((program) => {
-                return EditProgramUiHelpers_changeFirstInstance(program, plannerExercise, props.settings, true, (e) => {
-                  e.progress = {
-                    ...e.progress,
-                    type: "custom",
-                    state: e.progress?.state ?? {},
-                    stateMetadata: e.progress?.stateMetadata ?? {},
-                    script: script,
-                  };
-                });
-              }),
-              "Update progress script"
-            );
-          }}
-        />
-      )}
     </>
   );
 }

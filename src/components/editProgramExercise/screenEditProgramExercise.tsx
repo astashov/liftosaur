@@ -257,6 +257,8 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
             plannerExercise={plannerExercise}
             settings={props.settings}
             plannerDispatch={plannerDispatch}
+            exerciseStateKey={props.exerciseStateKey}
+            programId={props.programId}
           />
         )}
       </div>

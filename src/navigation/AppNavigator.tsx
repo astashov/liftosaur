@@ -87,6 +87,8 @@ import { NavModalEditProgramMenu } from "./modals/NavModalEditProgramMenu";
 import { NavModalProgramNextDay } from "./modals/NavModalProgramNextDay";
 import { NavModalProgramImageExport } from "./modals/NavModalProgramImageExport";
 import { NavModalProgramRevisions } from "./modals/NavModalProgramRevisions";
+import { NavModalEditProgressScript } from "./modals/NavModalEditProgressScript";
+import { NavModalEditUpdateScript } from "./modals/NavModalEditUpdateScript";
 
 const OnboardingStack = createStackNavigator<IOnboardingStackParamList>();
 const HomeStack = createStackNavigator<IHomeStackParamList>();
@@ -287,6 +289,8 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
         <RootStack.Screen name="programNextDayModal" component={NavModalProgramNextDay} />
         <RootStack.Screen name="programImageExportModal" component={NavModalProgramImageExport} />
         <RootStack.Screen name="programRevisionsModal" component={NavModalProgramRevisions} />
+        <RootStack.Screen name="editProgressScriptModal" component={NavModalEditProgressScript} />
+        <RootStack.Screen name="editUpdateScriptModal" component={NavModalEditUpdateScript} />
       </RootStack.Group>
     </RootStack.Navigator>
   );

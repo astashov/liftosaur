@@ -115,6 +115,8 @@ export type IRootStackParamList = {
   createStateVariableModal: { exerciseStateKey: string; programId: string };
   programImageExportModal: { programId: string };
   programRevisionsModal: { programId: string };
+  editProgressScriptModal: { exerciseStateKey: string; programId: string };
+  editUpdateScriptModal: { exerciseStateKey: string; programId: string };
 };
 
 export type IRootLevelScreenParamList = {
