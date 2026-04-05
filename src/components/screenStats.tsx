@@ -18,7 +18,7 @@ import { Button } from "./button";
 import { ObjectUtils_keys } from "../utils/object";
 import { Weight_convertTo, Weight_build } from "../models/weight";
 import { Length_convertTo, Length_build } from "../models/length";
-import { ModalStats } from "./modalStats";
+import { navigationRef } from "../navigation/navigationRef";
 import { EditStats_addWeightStats, EditStats_addLengthStats, EditStats_addPercentageStats } from "../models/editStats";
 import { StringUtils_dashcase } from "../utils/string";
 import { INavCommon } from "../models/state";
@@ -80,7 +80,6 @@ export function ScreenStats(props: IProps): JSX.Element {
     }
     return acc;
   }, {});
-  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [syncToAppleHealth, setSyncToAppleHealth] = useState(!!props.settings.appleHealthSyncMeasurements);
   const [syncToGoogleHealth, setSyncToGoogleHealth] = useState(!!props.settings.googleHealthSyncMeasurements);
 
@@ -210,7 +209,7 @@ export function ScreenStats(props: IProps): JSX.Element {
         key="filter"
         className="p-2 ls-modify-stats"
         data-cy="modify-stats"
-        onClick={() => setIsModalVisible(true)}
+        onClick={() => navigationRef.navigate("statsSettingsModal")}
       >
         <IconFilter />
       </button>,
@@ -412,12 +411,6 @@ export function ScreenStats(props: IProps): JSX.Element {
           </Button>
         </div>
       </section>
-      <ModalStats
-        isHidden={!isModalVisible}
-        settings={props.settings}
-        dispatch={props.dispatch}
-        onClose={() => setIsModalVisible(false)}
-      />
     </>
   );
 }

@@ -1,12 +1,7 @@
-import { JSX, useState } from "react";
+import { JSX } from "react";
 import { IDispatch } from "../ducks/types";
 import { GraphExercise } from "./graphExercise";
-import {
-  History_findAllMaxSetsPerId,
-  History_collectMuscleGroups,
-  History_collectProgramChangeTimes,
-} from "../models/history";
-import { ModalGraphs } from "./modalGraphs";
+import { History_collectMuscleGroups, History_collectProgramChangeTimes } from "../models/history";
 import { ObjectUtils_keys } from "../utils/object";
 import { ISettings, IHistoryRecord, IStats, IScreenMuscle } from "../types";
 import { getLengthDataForGraph, getPercentageDataForGraph, getWeightDataForGraph, GraphStats } from "./graphStats";
@@ -18,6 +13,7 @@ import { Collector } from "../utils/collector";
 import { GraphMuscleGroup } from "./graphMuscleGroup";
 import { CollectionUtils_sort } from "../utils/collection";
 import { Exercise_fromKey } from "../models/exercise";
+import { navigationRef } from "../navigation/navigationRef";
 
 interface IProps {
   dispatch: IDispatch;
@@ -30,9 +26,6 @@ interface IProps {
 export function ScreenGraphs(props: IProps): JSX.Element {
   const { settings } = props;
   const { isWithBodyweight, isSameXAxis, isWithOneRm, isWithProgramLines } = settings.graphsSettings;
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const maxSets = History_findAllMaxSetsPerId(props.history);
-  const exerciseTypes = ObjectUtils_keys(maxSets).map(Exercise_fromKey);
   const hasBodyweight = props.settings.graphs.graphs.some((g) => g.id === "weight");
   let bodyweightData: [number, number][] = [];
 
@@ -89,7 +82,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
         key="filter"
         data-cy="graphs-modify"
         className="p-2 nm-graphs-navbar-filter"
-        onClick={() => setIsModalOpen(true)}
+        onClick={() => navigationRef.navigate("graphsModal")}
       >
         <IconFilter />
       </button>,
@@ -187,15 +180,6 @@ export function ScreenGraphs(props: IProps): JSX.Element {
           })}
         </section>
       )}
-      <ModalGraphs
-        settings={props.settings}
-        isHidden={!isModalOpen}
-        exerciseTypes={exerciseTypes}
-        stats={props.stats}
-        graphs={props.settings.graphs.graphs}
-        onClose={() => setIsModalOpen(false)}
-        dispatch={props.dispatch}
-      />
     </>
   );
 }

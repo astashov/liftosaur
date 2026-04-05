@@ -17,12 +17,12 @@ interface IProps {
   onClose: () => void;
 }
 
-export function ModalProgramInfo(props: IProps): JSX.Element {
+export function ModalProgramInfoContent(props: IProps): JSX.Element {
   const evaluatedProgram = Program_evaluate(props.program, props.settings);
   const time = Program_dayAverageTimeMs(evaluatedProgram, props.settings);
   const formattedTime = time > 0 ? TimeUtils_formatHHMM(time) : undefined;
   return (
-    <Modal shouldShowClose={true} onClose={props.onClose}>
+    <>
       <h2 className="pr-6 text-lg font-bold">
         {props.hasCustomPrograms ? "Clone" : "Start"} <Link href={props.program.url}>{props.program.name}</Link>
       </h2>
@@ -60,6 +60,14 @@ export function ModalProgramInfo(props: IProps): JSX.Element {
           {props.hasCustomPrograms ? "Clone" : "Start"}
         </Button>
       </p>
+    </>
+  );
+}
+
+export function ModalProgramInfo(props: IProps): JSX.Element {
+  return (
+    <Modal shouldShowClose={true} onClose={props.onClose}>
+      <ModalProgramInfoContent {...props} />
     </Modal>
   );
 }

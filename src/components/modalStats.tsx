@@ -17,7 +17,7 @@ interface IModalStatsProps {
   onClose: () => void;
 }
 
-export function ModalStats(props: IModalStatsProps): JSX.Element {
+export function ModalStatsContent(props: IModalStatsProps): JSX.Element {
   const statsEnabled = props.settings.statsEnabled;
 
   function saveWeight(name: keyof IStatsWeight): (v?: string) => void {
@@ -39,7 +39,7 @@ export function ModalStats(props: IModalStatsProps): JSX.Element {
   }
 
   return (
-    <Modal isHidden={props.isHidden} isFullWidth={true} shouldShowClose={true} onClose={props.onClose}>
+    <>
       <GroupHeader name="Enabled measurement types" />
       <form data-cy="modal-stats" onSubmit={(e) => e.preventDefault()}>
         <MenuItemEditable
@@ -133,6 +133,14 @@ export function ModalStats(props: IModalStatsProps): JSX.Element {
           value={`${statsEnabled.length.calfRight}`}
         />
       </form>
+    </>
+  );
+}
+
+export function ModalStats(props: IModalStatsProps): JSX.Element {
+  return (
+    <Modal isHidden={props.isHidden} isFullWidth={true} shouldShowClose={true} onClose={props.onClose}>
+      <ModalStatsContent {...props} />
     </Modal>
   );
 }
