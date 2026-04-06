@@ -86,6 +86,16 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
 
   const maxLength = (props.max?.toString().length ?? 5) + (props.allowDot ? 3 : 0) + (props.allowNegative ? 1 : 0);
 
+  function resetKeyboardStyles(): void {
+    document.body.style.paddingBottom = "0px";
+    document.body.classList.remove("show-keyboard");
+    document.querySelectorAll(".bottom-sticked").forEach((el) => {
+      if (el instanceof HTMLElement) {
+        el.style.bottom = "0px";
+      }
+    });
+  }
+
   useEffect(() => {
     valueRef.current = initialValue;
     setValue(initialValue);
@@ -189,16 +199,11 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
         return;
       }
       if (!switchRef.current) {
-        document.body.style.paddingBottom = "0px";
-        document.body.classList.remove("show-keyboard");
-        document.querySelectorAll(".bottom-sticked").forEach((el) => {
-          if (el instanceof HTMLElement) {
-            el.style.bottom = "0px";
-          }
-        });
+        resetKeyboardStyles();
       }
       switchRef.current = false;
     }
+    return () => resetKeyboardStyles();
   }, [isFocused, props.initialValue]);
 
   useEffect(() => {
