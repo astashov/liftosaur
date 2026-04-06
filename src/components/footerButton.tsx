@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View, Pressable } from "react-native";
+import { Text } from "react-native";
 import { IScreen, ITab, Screen_tab } from "../models/screen";
 import { StringUtils_dashcase } from "../utils/string";
 
@@ -16,24 +18,12 @@ export function FooterButton(props: IProps): JSX.Element {
   const isActive = Screen_tab(props.screen) === props.name;
   const dataCy = `footer-${StringUtils_dashcase(props.text)}`;
   return (
-    <button
-      className={`touch-manipulation inline-block px-2 text-center relative nm-${dataCy}`}
-      data-cy={dataCy}
-      onClick={props.onClick}
-    >
-      {props.hasDot && (
-        <div
-          className="w-2 h-2 rounded-full bg-redv2-700"
-          style={{ position: "absolute", top: "0.75rem", right: "0.75rem" }}
-        />
-      )}
-      {props.icon(isActive)}
-      <div
-        style={{ fontSize: "0.625rem" }}
-        className={`pt-1 whitespace-nowrap text-ellipsis ${isActive ? "text-text-purple" : ""}`}
-      >
+    <Pressable className="relative items-center px-2" data-cy={dataCy} testID={dataCy} onPress={props.onClick}>
+      {props.hasDot && <View className="absolute w-2 h-2 rounded-full top-3 right-3 bg-redv2-700" />}
+      <View className="flex-row items-center justify-center w-6 h-6">{props.icon(isActive)}</View>
+      <Text className={`pt-1 text-[0.625rem] ${isActive ? "text-text-purple" : "text-text-secondary"}`}>
         {props.text}
-      </div>
-    </button>
+      </Text>
+    </Pressable>
   );
 }

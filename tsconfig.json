@@ -1,6 +1,7 @@
 {
   "ts-node": {
-    "files": true
+    "files": true,
+    "require": ["./register-rn-web.js"]
   },
   "compilerOptions": {
     "target": "es2015",
