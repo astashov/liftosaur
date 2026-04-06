@@ -11,27 +11,40 @@ export function EditProgressEntry_showEditSetModal(
   settings: ISettings,
   isWarmup: boolean,
   entryIndex: number,
+  progress: IHistoryRecord,
   setIndex?: number,
   programExercise?: IPlannerProgramExercise,
   exerciseType?: IExerciseType,
   set?: ISet
 ): void {
   const isUnilateral = exerciseType ? Exercise_getIsUnilateral(exerciseType, settings) : false;
-  dispatch({
-    type: "UpdateProgress",
-    lensRecordings: [
-      lb<IHistoryRecord>()
-        .pi("ui")
-        .p("editSetModal")
-        .record({
-          programExerciseId: programExercise?.key,
-          set: set ? ObjectUtils_clone(set) : Reps_newSet(isUnilateral, setIndex ?? 0),
-          isWarmup,
-          entryIndex,
-          setIndex,
-          exerciseType,
-        }),
-    ],
-    desc: "show-target-bottomsheet",
-  });
+  const openModal = () => {
+    dispatch({
+      type: "UpdateProgress",
+      lensRecordings: [
+        lb<IHistoryRecord>()
+          .pi("ui")
+          .p("editSetModal")
+          .record({
+            programExerciseId: programExercise?.key,
+            set: set ? ObjectUtils_clone(set) : Reps_newSet(isUnilateral, setIndex ?? 0),
+            isWarmup,
+            entryIndex,
+            setIndex,
+            exerciseType,
+          }),
+      ],
+      desc: "show-target-bottomsheet",
+    });
+  };
+  if (progress.ui?.editSetModal) {
+    dispatch({
+      type: "UpdateProgress",
+      lensRecordings: [lb<IHistoryRecord>().pi("ui").p("editSetModal").record(undefined)],
+      desc: "clear-target-bottomsheet",
+    });
+    setTimeout(openModal, 0);
+  } else {
+    openModal();
+  }
 }

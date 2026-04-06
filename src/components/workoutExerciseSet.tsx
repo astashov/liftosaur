@@ -327,6 +327,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                       props.settings,
                       props.type === "warmup",
                       props.entryIndex,
+                      props.progress,
                       props.setIndex,
                       props.programExercise,
                       props.exerciseType,

@@ -137,12 +137,24 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                 name="exercise-equipment-picker"
                 data-cy="exercise-equipment-picker"
                 onClick={() => {
-                  updateProgress(
-                    props.dispatch,
-                    [lb<IHistoryRecord>().pi("ui").p("equipmentModal").record({ exerciseType: props.entry.exercise })],
-                    "change-equipment"
-                  );
-                  navigationRef.navigate("equipmentModal", { context: "workout", progressId: props.progress.id });
+                  const openEquipmentModal = () => {
+                    updateProgress(
+                      props.dispatch,
+                      [lb<IHistoryRecord>().pi("ui").p("equipmentModal").record({ exerciseType: props.entry.exercise })],
+                      "change-equipment"
+                    );
+                    navigationRef.navigate("equipmentModal", { context: "workout", progressId: props.progress.id });
+                  };
+                  if (props.progress.ui?.equipmentModal) {
+                    updateProgress(
+                      props.dispatch,
+                      [lb<IHistoryRecord>().pi("ui").p("equipmentModal").record(undefined)],
+                      "clear-equipment"
+                    );
+                    setTimeout(openEquipmentModal, 0);
+                  } else {
+                    openEquipmentModal();
+                  }
                 }}
               >
                 {currentEquipmentName || "None"}
@@ -155,12 +167,24 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                   name="exercise-superset-picker"
                   data-cy="exercise-superset-picker"
                   onClick={() => {
-                    updateProgress(
-                      props.dispatch,
-                      [lb<IHistoryRecord>().pi("ui").p("showSupersetPicker").record(props.entry)],
-                      "change-superset"
-                    );
-                    navigationRef.navigate("supersetPickerModal", { progressId: props.progress.id });
+                    const openSupersetPicker = () => {
+                      updateProgress(
+                        props.dispatch,
+                        [lb<IHistoryRecord>().pi("ui").p("showSupersetPicker").record(props.entry)],
+                        "change-superset"
+                      );
+                      navigationRef.navigate("supersetPickerModal", { progressId: props.progress.id });
+                    };
+                    if (props.progress.ui?.showSupersetPicker) {
+                      updateProgress(
+                        props.dispatch,
+                        [lb<IHistoryRecord>().pi("ui").p("showSupersetPicker").record(undefined)],
+                        "clear-superset"
+                      );
+                      setTimeout(openSupersetPicker, 0);
+                    } else {
+                      openSupersetPicker();
+                    }
                   }}
                 >
                   {Exercise_fullName(supersetExercise, props.settings)}
@@ -179,12 +203,24 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                   name="exercise-rm1-picker"
                   data-cy="exercise-rm1-picker"
                   onClick={() => {
-                    updateProgress(
-                      props.dispatch,
-                      [lb<IHistoryRecord>().pi("ui").p("rm1Modal").record({ exerciseType: props.entry.exercise })],
-                      "change-rm1"
-                    );
-                    navigationRef.navigate("rm1Modal", { context: "workout", progressId: props.progress.id });
+                    const openRm1Modal = () => {
+                      updateProgress(
+                        props.dispatch,
+                        [lb<IHistoryRecord>().pi("ui").p("rm1Modal").record({ exerciseType: props.entry.exercise })],
+                        "change-rm1"
+                      );
+                      navigationRef.navigate("rm1Modal", { context: "workout", progressId: props.progress.id });
+                    };
+                    if (props.progress.ui?.rm1Modal) {
+                      updateProgress(
+                        props.dispatch,
+                        [lb<IHistoryRecord>().pi("ui").p("rm1Modal").record(undefined)],
+                        "clear-rm1"
+                      );
+                      setTimeout(openRm1Modal, 0);
+                    } else {
+                      openRm1Modal();
+                    }
                   }}
                 >
                   {Weight_print(onerm)}
@@ -227,26 +263,38 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                   isTop={!programExercise || !programExerciseId}
                   onClick={() => {
                     setIsKebabMenuOpen(false);
-                    updateProgress(
-                      props.dispatch,
-                      [
-                        lb<IHistoryRecord>()
-                          .pi("ui")
-                          .p("exercisePicker")
-                          .record({
-                            state: {
-                              mode: "workout",
-                              screenStack: ["exercisePicker"],
-                              sort: props.settings.workoutSettings.pickerSort ?? "name_asc",
-                              filters: {},
-                              selectedExercises: [],
-                              entryIndex: props.entryIndex,
-                              exerciseType: props.entry.exercise,
-                            },
-                          }),
-                      ],
-                      "kebab-swap-exercise"
-                    );
+                    const openExercisePicker = () => {
+                      updateProgress(
+                        props.dispatch,
+                        [
+                          lb<IHistoryRecord>()
+                            .pi("ui")
+                            .p("exercisePicker")
+                            .record({
+                              state: {
+                                mode: "workout",
+                                screenStack: ["exercisePicker"],
+                                sort: props.settings.workoutSettings.pickerSort ?? "name_asc",
+                                filters: {},
+                                selectedExercises: [],
+                                entryIndex: props.entryIndex,
+                                exerciseType: props.entry.exercise,
+                              },
+                            }),
+                        ],
+                        "kebab-swap-exercise"
+                      );
+                    };
+                    if (props.progress.ui?.exercisePicker) {
+                      updateProgress(
+                        props.dispatch,
+                        [lb<IHistoryRecord>().pi("ui").p("exercisePicker").record(undefined)],
+                        "clear-swap-exercise"
+                      );
+                      setTimeout(openExercisePicker, 0);
+                    } else {
+                      openExercisePicker();
+                    }
                   }}
                 >
                   <div className="flex items-center gap-2">
@@ -260,12 +308,24 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                   data-cy="exercise-superset"
                   onClick={() => {
                     setIsKebabMenuOpen(false);
-                    updateProgress(
-                      props.dispatch,
-                      [lb<IHistoryRecord>().pi("ui").p("showSupersetPicker").record(props.entry)],
-                      "kebab-edit-superset"
-                    );
-                    navigationRef.navigate("supersetPickerModal", { progressId: props.progress.id });
+                    const openSupersetPicker = () => {
+                      updateProgress(
+                        props.dispatch,
+                        [lb<IHistoryRecord>().pi("ui").p("showSupersetPicker").record(props.entry)],
+                        "kebab-edit-superset"
+                      );
+                      navigationRef.navigate("supersetPickerModal", { progressId: props.progress.id });
+                    };
+                    if (props.progress.ui?.showSupersetPicker) {
+                      updateProgress(
+                        props.dispatch,
+                        [lb<IHistoryRecord>().pi("ui").p("showSupersetPicker").record(undefined)],
+                        "clear-kebab-superset"
+                      );
+                      setTimeout(openSupersetPicker, 0);
+                    } else {
+                      openSupersetPicker();
+                    }
                   }}
                 >
                   <div className="flex items-center gap-2">
