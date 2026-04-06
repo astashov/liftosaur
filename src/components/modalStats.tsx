@@ -136,4 +136,3 @@ export function ModalStatsContent(props: IModalStatsProps): JSX.Element {
     </>
   );
 }
-

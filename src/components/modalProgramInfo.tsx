@@ -63,4 +63,3 @@ export function ModalProgramInfoContent(props: IProps): JSX.Element {
     </>
   );
 }
-

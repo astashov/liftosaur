@@ -76,7 +76,6 @@ const isLoggingEnabled =
     ? !!UrlUtils_build(window.location.href).searchParams.get("log")
     : false;
 
-
 export async function getIdbKey(userId?: string, isAdmin?: boolean): Promise<string> {
   const currentAccount = await IndexedDBUtils_get("current_account");
   if (currentAccount) {

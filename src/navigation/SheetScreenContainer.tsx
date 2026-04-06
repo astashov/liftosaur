@@ -35,7 +35,7 @@ export function SheetScreenContainer(props: IProps): JSX.Element {
     }, 200);
   }, []);
 
-  const bottomShift = isVisible ? 0 : sheetRef.current?.clientHeight ?? 800;
+  const bottomShift = isVisible ? 0 : (sheetRef.current?.clientHeight ?? 800);
 
   const element = (
     <div className="fixed inset-0 z-40">

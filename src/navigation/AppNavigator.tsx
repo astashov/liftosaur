@@ -266,85 +266,88 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
   const isOnboarding = initialScreen ? onboardingScreens.includes(initialScreen) : false;
   return (
     <InitialScreenContext.Provider value={initialScreen}>
-    <RootStack.Navigator screenOptions={rootScreenOptions} initialRouteName={isOnboarding ? "onboarding" : "mainTabs"}>
-      <RootStack.Screen name="onboarding" component={OnboardingStackScreen} />
-      <RootStack.Screen name="mainTabs" component={MainTabsScreen} />
-      <RootStack.Screen
-        name="subscription"
-        component={NavScreenSubscription}
-        options={{ ...stackScreenOptions, headerShown: true }}
-      />
-      <RootStack.Group
-        screenOptions={{
-          presentation: "transparentModal",
-          headerShown: false,
-          cardOverlayEnabled: false,
-          cardStyle: { backgroundColor: "transparent" },
-        }}
+      <RootStack.Navigator
+        screenOptions={rootScreenOptions}
+        initialRouteName={isOnboarding ? "onboarding" : "mainTabs"}
       >
-        <RootStack.Screen name="amrapModal" component={NavModalAmrap} />
-        <RootStack.Screen name="exercisePickerModal" component={NavModalExercisePicker} />
-        <RootStack.Screen name="editProgramExercisePickerModal" component={NavModalEditProgramExercisePicker} />
-        <RootStack.Screen name="editSetTargetModal" component={NavModalEditTarget} />
-        <RootStack.Screen name="dateModal" component={NavModalDate} />
-        <RootStack.Screen name="rm1Modal" component={NavModal1RM} />
-        <RootStack.Screen name="equipmentModal" component={NavModalEquipment} />
-        <RootStack.Screen name="supersetPickerModal" component={NavModalWorkoutSuperset} />
-        <RootStack.Screen name="playgroundEditModal" component={NavModalPlaygroundEditExercise} />
-        <RootStack.Screen name="exerciseInfoModal" component={NavModalExerciseInfo} />
-        <RootStack.Screen name="couponModal" component={NavModalCoupon} />
-        <RootStack.Screen name="newGymModal" component={NavModalNewGym} />
-        <RootStack.Screen name="createProgramModal" component={NavModalCreateProgram} />
-        <RootStack.Screen name="importFromLinkModal" component={NavModalImportFromLink} />
-        <RootStack.Screen name="affiliateModal" component={NavModalAffiliate} />
-        <RootStack.Screen name="importFromOtherAppsModal" component={NavModalImportFromOtherApps} />
-        <RootStack.Screen name="dayFromAdhocModal" component={NavModalDayFromAdhoc} />
-        <RootStack.Screen name="nextWorkoutModal" component={NavModalNextWorkout} />
-        <RootStack.Screen name="whatsnewModal" component={NavModalWhatsnew} />
-        <RootStack.Screen name="signupRequestModal" component={NavModalSignupRequest} />
-        <RootStack.Screen name="thanks25Modal" component={NavModalThanks25} />
-        <RootStack.Screen name="corruptedStateModal" component={NavModalCorruptedState} />
-        <RootStack.Screen name="debugModal" component={NavModalDebug} />
-        <RootStack.Screen name="workoutShareModal" component={NavModalWorkoutShare} />
-        <RootStack.Screen name="socialShareModal" component={NavModalSocialShare} />
-        <RootStack.Screen name="customExerciseModal" component={NavModalCustomExercise} />
-        <RootStack.Screen name="musclesOverrideModal" component={NavModalMusclesOverride} />
-        <RootStack.Screen name="editProgramExerciseSetModal" component={NavModalEditProgramExerciseSet} />
-        <RootStack.Screen name="editProgramExerciseSupersetModal" component={NavModalEditProgramExerciseSuperset} />
-        <RootStack.Screen name="createStateVariableModal" component={NavModalCreateStateVariable} />
-        <RootStack.Screen name="tourModal" component={NavModalTour} />
-        <RootStack.Screen name="editProgramMenuModal" component={NavModalEditProgramMenu} />
-        <RootStack.Screen name="programNextDayModal" component={NavModalProgramNextDay} />
-        <RootStack.Screen name="programImageExportModal" component={NavModalProgramImageExport} />
-        <RootStack.Screen name="programRevisionsModal" component={NavModalProgramRevisions} />
-        <RootStack.Screen name="editProgressScriptModal" component={NavModalEditProgressScript} />
-        <RootStack.Screen name="editUpdateScriptModal" component={NavModalEditUpdateScript} />
-        <RootStack.Screen name="monthCalendarModal" component={NavModalMonthCalendar} />
-        <RootStack.Screen name="accountModal" component={NavModalAccount} />
-        <RootStack.Screen name="subscriptionInfoModal" component={NavModalSubscriptionInfo} />
-        <RootStack.Screen name="weekInsightsDetailsModal" component={NavModalWeekInsightsDetails} />
-        <RootStack.Screen name="plannerSettingsModal" component={NavModalPlannerSettings} />
-        <RootStack.Screen name="editMuscleGroupsModal" component={NavModalEditMuscleGroups} />
-        <RootStack.Screen name="weekStatsModal" component={NavModalWeekStats} />
-        <RootStack.Screen name="dayStatsModal" component={NavModalDayStats} />
-        <RootStack.Screen name="exerciseStatsModal" component={NavModalExerciseStats} />
-        <RootStack.Screen name="editExerciseChangeModal" component={NavModalEditExerciseChange} />
-        <RootStack.Screen name="graphsModal" component={NavModalGraphs} />
-        <RootStack.Screen name="statsSettingsModal" component={NavModalStatsSettings} />
-        <RootStack.Screen name="programInfoModal" component={NavModalProgramInfo} />
-        <RootStack.Screen name="changeNextDayModal" component={NavModalChangeNextDay} />
-        <RootStack.Screen name="inputSelectModal" component={NavModalInputSelect} />
-        <RootStack.Screen name="textInputModal" component={NavModalTextInput} />
-        <RootStack.Screen name="repMaxCalculatorModal" component={NavModalRepMaxCalculator} />
-        <RootStack.Screen name="muscleGroupMusclePickerModal" component={NavModalMuscleGroupMusclePicker} />
-        <RootStack.Screen name="photoPickerModal" component={NavModalPhotoPicker} />
-        <RootStack.Screen name="exerciseImageSourceModal" component={NavModalExerciseImageSource} />
-        <RootStack.Screen name="exerciseImageLibraryModal" component={NavModalExerciseImageLibrary} />
-        <RootStack.Screen name="exerciseCloneLibraryModal" component={NavModalExerciseCloneLibrary} />
-        <RootStack.Screen name="exerciseTypesPickerModal" component={NavModalExerciseTypesPicker} />
-        <RootStack.Screen name="exerciseMusclesPickerModal" component={NavModalExerciseMusclesPicker} />
-      </RootStack.Group>
-    </RootStack.Navigator>
+        <RootStack.Screen name="onboarding" component={OnboardingStackScreen} />
+        <RootStack.Screen name="mainTabs" component={MainTabsScreen} />
+        <RootStack.Screen
+          name="subscription"
+          component={NavScreenSubscription}
+          options={{ ...stackScreenOptions, headerShown: true }}
+        />
+        <RootStack.Group
+          screenOptions={{
+            presentation: "transparentModal",
+            headerShown: false,
+            cardOverlayEnabled: false,
+            cardStyle: { backgroundColor: "transparent" },
+          }}
+        >
+          <RootStack.Screen name="amrapModal" component={NavModalAmrap} />
+          <RootStack.Screen name="exercisePickerModal" component={NavModalExercisePicker} />
+          <RootStack.Screen name="editProgramExercisePickerModal" component={NavModalEditProgramExercisePicker} />
+          <RootStack.Screen name="editSetTargetModal" component={NavModalEditTarget} />
+          <RootStack.Screen name="dateModal" component={NavModalDate} />
+          <RootStack.Screen name="rm1Modal" component={NavModal1RM} />
+          <RootStack.Screen name="equipmentModal" component={NavModalEquipment} />
+          <RootStack.Screen name="supersetPickerModal" component={NavModalWorkoutSuperset} />
+          <RootStack.Screen name="playgroundEditModal" component={NavModalPlaygroundEditExercise} />
+          <RootStack.Screen name="exerciseInfoModal" component={NavModalExerciseInfo} />
+          <RootStack.Screen name="couponModal" component={NavModalCoupon} />
+          <RootStack.Screen name="newGymModal" component={NavModalNewGym} />
+          <RootStack.Screen name="createProgramModal" component={NavModalCreateProgram} />
+          <RootStack.Screen name="importFromLinkModal" component={NavModalImportFromLink} />
+          <RootStack.Screen name="affiliateModal" component={NavModalAffiliate} />
+          <RootStack.Screen name="importFromOtherAppsModal" component={NavModalImportFromOtherApps} />
+          <RootStack.Screen name="dayFromAdhocModal" component={NavModalDayFromAdhoc} />
+          <RootStack.Screen name="nextWorkoutModal" component={NavModalNextWorkout} />
+          <RootStack.Screen name="whatsnewModal" component={NavModalWhatsnew} />
+          <RootStack.Screen name="signupRequestModal" component={NavModalSignupRequest} />
+          <RootStack.Screen name="thanks25Modal" component={NavModalThanks25} />
+          <RootStack.Screen name="corruptedStateModal" component={NavModalCorruptedState} />
+          <RootStack.Screen name="debugModal" component={NavModalDebug} />
+          <RootStack.Screen name="workoutShareModal" component={NavModalWorkoutShare} />
+          <RootStack.Screen name="socialShareModal" component={NavModalSocialShare} />
+          <RootStack.Screen name="customExerciseModal" component={NavModalCustomExercise} />
+          <RootStack.Screen name="musclesOverrideModal" component={NavModalMusclesOverride} />
+          <RootStack.Screen name="editProgramExerciseSetModal" component={NavModalEditProgramExerciseSet} />
+          <RootStack.Screen name="editProgramExerciseSupersetModal" component={NavModalEditProgramExerciseSuperset} />
+          <RootStack.Screen name="createStateVariableModal" component={NavModalCreateStateVariable} />
+          <RootStack.Screen name="tourModal" component={NavModalTour} />
+          <RootStack.Screen name="editProgramMenuModal" component={NavModalEditProgramMenu} />
+          <RootStack.Screen name="programNextDayModal" component={NavModalProgramNextDay} />
+          <RootStack.Screen name="programImageExportModal" component={NavModalProgramImageExport} />
+          <RootStack.Screen name="programRevisionsModal" component={NavModalProgramRevisions} />
+          <RootStack.Screen name="editProgressScriptModal" component={NavModalEditProgressScript} />
+          <RootStack.Screen name="editUpdateScriptModal" component={NavModalEditUpdateScript} />
+          <RootStack.Screen name="monthCalendarModal" component={NavModalMonthCalendar} />
+          <RootStack.Screen name="accountModal" component={NavModalAccount} />
+          <RootStack.Screen name="subscriptionInfoModal" component={NavModalSubscriptionInfo} />
+          <RootStack.Screen name="weekInsightsDetailsModal" component={NavModalWeekInsightsDetails} />
+          <RootStack.Screen name="plannerSettingsModal" component={NavModalPlannerSettings} />
+          <RootStack.Screen name="editMuscleGroupsModal" component={NavModalEditMuscleGroups} />
+          <RootStack.Screen name="weekStatsModal" component={NavModalWeekStats} />
+          <RootStack.Screen name="dayStatsModal" component={NavModalDayStats} />
+          <RootStack.Screen name="exerciseStatsModal" component={NavModalExerciseStats} />
+          <RootStack.Screen name="editExerciseChangeModal" component={NavModalEditExerciseChange} />
+          <RootStack.Screen name="graphsModal" component={NavModalGraphs} />
+          <RootStack.Screen name="statsSettingsModal" component={NavModalStatsSettings} />
+          <RootStack.Screen name="programInfoModal" component={NavModalProgramInfo} />
+          <RootStack.Screen name="changeNextDayModal" component={NavModalChangeNextDay} />
+          <RootStack.Screen name="inputSelectModal" component={NavModalInputSelect} />
+          <RootStack.Screen name="textInputModal" component={NavModalTextInput} />
+          <RootStack.Screen name="repMaxCalculatorModal" component={NavModalRepMaxCalculator} />
+          <RootStack.Screen name="muscleGroupMusclePickerModal" component={NavModalMuscleGroupMusclePicker} />
+          <RootStack.Screen name="photoPickerModal" component={NavModalPhotoPicker} />
+          <RootStack.Screen name="exerciseImageSourceModal" component={NavModalExerciseImageSource} />
+          <RootStack.Screen name="exerciseImageLibraryModal" component={NavModalExerciseImageLibrary} />
+          <RootStack.Screen name="exerciseCloneLibraryModal" component={NavModalExerciseCloneLibrary} />
+          <RootStack.Screen name="exerciseTypesPickerModal" component={NavModalExerciseTypesPicker} />
+          <RootStack.Screen name="exerciseMusclesPickerModal" component={NavModalExerciseMusclesPicker} />
+        </RootStack.Group>
+      </RootStack.Navigator>
     </InitialScreenContext.Provider>
   );
 }

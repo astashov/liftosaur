@@ -40,4 +40,3 @@ export function BottomSheetCustomExerciseContent(props: IBottomSheetCustomExerci
     />
   );
 }
-

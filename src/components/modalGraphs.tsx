@@ -291,7 +291,6 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
   );
 }
 
-
 function ExercisePreview(props: { exerciseKey: string; settings: ISettings }): JSX.Element {
   const e = Exercise_get(Exercise_fromKey(props.exerciseKey), props.settings.exercises);
   return (

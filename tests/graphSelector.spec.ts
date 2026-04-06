@@ -16,7 +16,9 @@ test("Graphs", async ({ page }) => {
   await page.getByTestId("clone-program").click();
   await page.getByTestId("footer-graphs").click();
 
-  await expect(page.getByTestId("screen").and(page.locator(":visible"))).toContainText("Select graphs you want to display");
+  await expect(page.getByTestId("screen").and(page.locator(":visible"))).toContainText(
+    "Select graphs you want to display"
+  );
   await page.getByTestId("graphs-modify").click();
   await expect(page.getByTestId("modal-graphs")).toContainText("You haven't tracked any workouts or measurements yet.");
   await page.getByTestId("modal-close").and(page.locator(":visible")).click();
@@ -36,7 +38,9 @@ test("Graphs", async ({ page }) => {
 
   await page.getByTestId("footer-graphs").click();
 
-  await expect(page.getByTestId("screen").and(page.locator(":visible"))).toContainText("Select graphs you want to display");
+  await expect(page.getByTestId("screen").and(page.locator(":visible"))).toContainText(
+    "Select graphs you want to display"
+  );
 
   await page.getByTestId("graphs-modify").click();
 

@@ -43,4 +43,3 @@ export function ModalChangeNextDayContent(props: IModalChangeNextDayProps): JSX.
     </>
   );
 }
-
