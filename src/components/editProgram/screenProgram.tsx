@@ -157,6 +157,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
                   key="preview"
                   ui={ui}
                   program={program}
+                  programId={props.originalProgram.id}
                   settings={props.settings}
                   stats={props.navCommon.stats}
                   dispatch={props.dispatch}
@@ -193,7 +194,6 @@ export function ScreenProgram(props: IProps): JSX.Element {
                     key="playground"
                     scrollableTabsProps={{
                       topPadding: "0.25rem",
-                      offsetY: "3.75rem",
                       className: "gap-2 px-4",
                       type: "squares",
                     }}

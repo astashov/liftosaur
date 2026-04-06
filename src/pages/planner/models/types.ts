@@ -234,6 +234,7 @@ export interface IPlannerUi {
   };
   previewExerciseModal?: {
     plannerExercise: IPlannerProgramExercise;
+    day: number;
   };
   previewOneRepMaxModal?: {
     plannerExercise: IPlannerProgramExercise;

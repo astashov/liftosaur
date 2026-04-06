@@ -354,7 +354,7 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
           {enableReorder ? "Finish Reordering" : "Reorder Exercises"}
         </LinkButton>
       </div>
-      <div className="sticky top-0 left-0 z-30 safe-area-inset-top ">
+      <div className="sticky top-0 left-0 z-30">
         <div className="py-1 border-b bg-background-default border-background-subtle">
           <Scroller>
             <div className="flex items-center gap-1 px-4">

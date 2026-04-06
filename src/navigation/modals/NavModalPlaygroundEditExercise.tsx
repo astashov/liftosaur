@@ -1,4 +1,4 @@
-import { JSX, useEffect, useMemo } from "react";
+import { JSX, useCallback, useEffect, useMemo } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
@@ -21,8 +21,12 @@ import {
   playgroundOnSettingsChange,
 } from "../../components/preview/programPreviewPlayground";
 import { IProgramPreviewPlaygroundState } from "../../components/preview/programPreviewPlaygroundSetup";
+import { IPlannerProgramExercise, IPlannerState } from "../../pages/planner/models/types";
 import { ILensDispatch } from "../../utils/useLensReducer";
+import { buildPlannerDispatch } from "../../utils/plannerDispatch";
+import { ProgramToPlanner } from "../../models/programToPlanner";
 import type { IRootStackParamList } from "../types";
+import { ISettings } from "../../types";
 
 function buildGlobalPlaygroundDispatch(
   globalDispatch: ReturnType<typeof useAppState>["dispatch"]
@@ -41,15 +45,10 @@ function buildGlobalPlaygroundDispatch(
   };
 }
 
-export function NavModalPlaygroundEditExercise(): JSX.Element {
+function NavModalPlaygroundEditExercisePlayground(props: { weekIndex: number; dayIndex: number }): JSX.Element {
   const { state, dispatch } = useAppState();
   const navigation = useNavigation();
-  const route = useRoute<{
-    key: string;
-    name: "playgroundEditModal";
-    params: IRootStackParamList["playgroundEditModal"];
-  }>();
-  const { weekIndex, dayIndex } = route.params;
+  const { weekIndex, dayIndex } = props;
 
   const playgroundState = state.playgroundState;
   const daySetup = playgroundState?.progresses[weekIndex]?.days[dayIndex];
@@ -143,4 +142,114 @@ export function NavModalPlaygroundEditExercise(): JSX.Element {
       />
     </ModalScreenContainer>
   );
+}
+
+function NavModalPlaygroundEditExercisePreview(props: { programId: string }): JSX.Element {
+  const { state, dispatch } = useAppState();
+  const navigation = useNavigation();
+  const { programId } = props;
+  const settings = state.storage.settings;
+
+  const plannerState = state.editProgramStates?.[programId];
+  const plannerDispatch = useCallback(
+    plannerState
+      ? buildPlannerDispatch(dispatch, lb<IState>().p("editProgramStates").p(programId), plannerState)
+      : () => {},
+    [dispatch, programId, plannerState]
+  );
+
+  const previewExerciseModal = plannerState?.ui?.previewExerciseModal;
+  const programExercise = previewExerciseModal?.plannerExercise;
+  const day = previewExerciseModal?.day;
+
+  const evaluatedProgram = plannerState ? Program_evaluate(plannerState.current.program, settings) : undefined;
+
+  const onClose = (): void => {
+    if (plannerState) {
+      plannerDispatch(
+        lb<IPlannerState>().pi("ui").p("previewExerciseModal").record(undefined),
+        "Close preview exercise modal"
+      );
+    }
+    navigation.goBack();
+  };
+
+  const shouldGoBack = !plannerState || !programExercise || !evaluatedProgram || day == null;
+  useEffect(() => {
+    if (shouldGoBack) {
+      navigation.goBack();
+    }
+  }, [shouldGoBack]);
+
+  if (shouldGoBack) {
+    return <></>;
+  }
+
+  return (
+    <NavModalPreviewExerciseEditContent
+      programExercise={programExercise!}
+      settings={settings}
+      evaluatedProgram={evaluatedProgram!}
+      day={day!}
+      plannerDispatch={plannerDispatch}
+      onClose={onClose}
+    />
+  );
+}
+
+function NavModalPreviewExerciseEditContent(props: {
+  programExercise: IPlannerProgramExercise;
+  settings: ISettings;
+  evaluatedProgram: IEvaluatedProgram;
+  day: number;
+  plannerDispatch: ILensDispatch<IPlannerState>;
+  onClose: () => void;
+}): JSX.Element {
+  const { programExercise, settings, evaluatedProgram, day, plannerDispatch, onClose } = props;
+  return (
+    <ModalScreenContainer onClose={onClose}>
+      <ProgramPreviewPlaygroundExerciseEditContent
+        hideVariables={true}
+        programExercise={programExercise}
+        settings={settings}
+        onClose={onClose}
+        onEditStateVariable={(stateKey, newValue) => {
+          const dayData = Program_getDayData(evaluatedProgram, day);
+          const lensRecording = EditProgramLenses_properlyUpdateStateVariable(
+            lb<IEvaluatedProgram>()
+              .p("weeks")
+              .i(dayData.week - 1)
+              .p("days")
+              .i(dayData.dayInWeek - 1)
+              .p("exercises")
+              .find((e) => e.key === programExercise.key),
+            {
+              [stateKey]: Program_stateValue(PlannerProgramExercise_getState(programExercise), stateKey, newValue),
+            }
+          );
+          const newEvaluatedProgram = lensRecording.reduce((acc, lens) => lens.fn(acc), evaluatedProgram);
+          const newPlanner = new ProgramToPlanner(newEvaluatedProgram, settings).convertToPlanner();
+          plannerDispatch(
+            lb<IPlannerState>().p("current").p("program").p("planner").record(newPlanner),
+            "Update state variables from preview exercise modal"
+          );
+        }}
+        onEditVariable={() => {}}
+      />
+    </ModalScreenContainer>
+  );
+}
+
+export function NavModalPlaygroundEditExercise(): JSX.Element {
+  const route = useRoute<{
+    key: string;
+    name: "playgroundEditModal";
+    params: IRootStackParamList["playgroundEditModal"];
+  }>();
+  const params = route.params;
+
+  if (params.context === "preview") {
+    return <NavModalPlaygroundEditExercisePreview programId={params.programId} />;
+  }
+  return <NavModalPlaygroundEditExercisePlayground weekIndex={params.weekIndex} dayIndex={params.dayIndex} />;
 }

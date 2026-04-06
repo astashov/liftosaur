@@ -73,6 +73,7 @@ export function usePlaygroundModalBridges(state: IState): void {
   useEffect(() => {
     if (active?.modal.editModal && !prevEditModal.current) {
       navigationRef.navigate("playgroundEditModal", {
+        context: "playground",
         weekIndex: active.weekIndex,
         dayIndex: active.dayIndex,
       });

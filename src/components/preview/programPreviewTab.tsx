@@ -16,6 +16,7 @@ import { ProgramPreviewTabDay } from "./programPreviewTabDay";
 
 interface IProgramPreviewTabProps {
   program: IProgram;
+  programId: string;
   settings: ISettings;
   ui: IPlannerUi;
   stats: IStats;
@@ -45,13 +46,12 @@ export const ProgramPreviewTab = memo((props: IProgramPreviewTabProps): JSX.Elem
 
   return (
     <ScrollableTabs
-      offsetY="3.75rem"
       shouldNotExpand={true}
       color="purple"
       type="squares"
       topPadding="0.25rem"
       className="gap-2 px-4"
-      nonSticky={true}
+      nonSticky={false}
       tabs={progresses.map((week, weekIndex) => {
         const programWeekDescription = evaluatedProgram.weeks[weekIndex]?.description;
         return {
@@ -71,6 +71,7 @@ export const ProgramPreviewTab = memo((props: IProgramPreviewTabProps): JSX.Elem
                         stats={props.stats}
                         dispatch={props.dispatch}
                         program={evaluatedProgram}
+                        programId={props.programId}
                         weekName={progresses.length > 1 ? week.name : undefined}
                         day={d.day}
                         settings={props.settings}

@@ -3,7 +3,7 @@ import { JSX, useEffect, useRef, useState } from "react";
 import UPlot from "uplot";
 import { CollectionUtils_sort, CollectionUtils_inGroupsOf } from "../utils/collection";
 import { DateUtils_format } from "../utils/date";
-import { equipmentName, Exercise_eq, Exercise_toKey, Exercise_get } from "../models/exercise";
+import { equipmentName, Exercise_eq, Exercise_get } from "../models/exercise";
 import { Weight_convertTo, Weight_build, Weight_getOneRepMax, Weight_isOrPct, Weight_display } from "../models/weight";
 import { IHistoryRecord, IExerciseType, ISettings, IExerciseSelectedType } from "../types";
 import { GraphsPlugins_zoom, GraphsPlugins_programLines } from "../utils/graphsPlugins";
@@ -139,7 +139,6 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
   const graphRef = useRef<HTMLDivElement>(null);
   const legendRef = useRef<HTMLDivElement>(null);
   const selectedHistoryRecordRef = useRef<IHistoryRecord | undefined>(null);
-  const graphGoToHistoryRecordFnName = `graphGoToHistoryRecord${Exercise_toKey(props.exercise)}`;
   const units = props.settings.units;
   useEffect(() => {
     if (!graphRef.current) {
@@ -201,7 +200,7 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
                       text += `, e1RM = <strong>${onerm.toFixed(2)}</strong> ${units}s`;
                     }
                     if (historyRecord != null && dispatch) {
-                      text += ` <button onclick="window.${graphGoToHistoryRecordFnName}()" class="font-bold underline border-none workout-link text-text-link nm-graph-exercise-workout">Workout</button>`;
+                      text += ` <button class="font-bold underline border-none workout-link text-text-link nm-graph-exercise-workout">Workout</button>`;
                     }
                     text += "</span>";
                   } else {
@@ -209,7 +208,7 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
                       date
                     )}, Volume: <strong>${volume} ${units}s</strong>`;
                     if (historyRecord != null && dispatch) {
-                      text += ` <button onclick="window.${graphGoToHistoryRecordFnName}()" class="font-bold underline border-none workout-link text-text-link nm-graph-exercise-workout">Workout</button>`;
+                      text += ` <button class="font-bold underline border-none workout-link text-text-link nm-graph-exercise-workout">Workout</button>`;
                     }
                     text += "</span>";
                   }
@@ -343,13 +342,16 @@ function GraphExerciseContent(props: IGraphProps & { selectedType: IExerciseSele
       underEl.addEventListener("touchstart", handler);
     }
 
-    (window as any)[graphGoToHistoryRecordFnName] = (): void => {
-      if (props.dispatch && selectedHistoryRecordRef.current != null) {
+    const legendEl = legendRef.current;
+    function onLegendClick(e: MouseEvent): void {
+      const target = e.target as HTMLElement;
+      if (target.closest(".workout-link") && props.dispatch && selectedHistoryRecordRef.current != null) {
         props.dispatch(Thunk_editHistoryRecord(selectedHistoryRecordRef.current));
       }
-    };
+    }
+    legendEl?.addEventListener("click", onLegendClick);
     return () => {
-      delete (window as any)[graphGoToHistoryRecordFnName];
+      legendEl?.removeEventListener("click", onLegendClick);
     };
   }, []);
 

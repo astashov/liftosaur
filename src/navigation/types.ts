@@ -88,7 +88,9 @@ export type IRootStackParamList = {
   equipmentModal: { progressId: number };
   rm1Modal: { progressId: number };
   supersetPickerModal: { progressId: number };
-  playgroundEditModal: { weekIndex: number; dayIndex: number };
+  playgroundEditModal:
+    | { context: "playground"; weekIndex: number; dayIndex: number }
+    | { context: "preview"; programId: string };
   exerciseInfoModal: { exerciseType: IExerciseType };
   couponModal: undefined;
   newGymModal: undefined;

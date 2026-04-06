@@ -10,6 +10,7 @@ import { IDispatch } from "../../ducks/types";
 
 interface IProgramPreviewTabDayProps {
   program: IEvaluatedProgram;
+  programId: string;
   stats: IStats;
   weekName?: string;
   day: number;
@@ -48,6 +49,7 @@ export const ProgramPreviewTabDay = memo((props: IProgramPreviewTabDayProps): JS
             ui={props.ui}
             entries={props.progress.entries}
             program={props.program}
+            programId={props.programId}
             day={props.day}
             entry={anEntry}
             programExercise={programExercise}

@@ -6,10 +6,7 @@ import {
   Exercise_nameWithEquipment,
   Exercise_fullName,
 } from "../../models/exercise";
-import {
-  PlannerProgramExercise_currentDescription,
-  PlannerProgramExercise_getState,
-} from "../../pages/planner/models/plannerProgramExercise";
+import { PlannerProgramExercise_currentDescription } from "../../pages/planner/models/plannerProgramExercise";
 import { IPlannerProgramExercise, IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { IHistoryEntry, ISettings, IStats } from "../../types";
 import { StringUtils_dashcase } from "../../utils/string";
@@ -20,11 +17,9 @@ import { IconEditSquare } from "../icons/iconEditSquare";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
-import { ProgramPreviewPlaygroundExerciseEditModal } from "./programPreviewPlaygroundExerciseEditModal";
-import { IEvaluatedProgram, Program_getDayData, Program_stateValue } from "../../models/program";
-import { EditProgramLenses_properlyUpdateStateVariable } from "../../models/editProgramLenses";
-import { ProgramToPlanner } from "../../models/programToPlanner";
+import { IEvaluatedProgram } from "../../models/program";
 import { IDispatch } from "../../ducks/types";
+import { navigationRef } from "../../navigation/navigationRef";
 import { Thunk_pushExerciseStatsScreen } from "../../ducks/thunks";
 import { ProgramExercise_doesUse1RM } from "../../models/programExercise";
 import { Weight_print } from "../../models/weight";
@@ -44,6 +39,7 @@ interface IProgramPreviewTabExerciseProps {
   programExercise: IPlannerProgramExercise;
   entries: IHistoryEntry[];
   program: IEvaluatedProgram;
+  programId: string;
   day: number;
   settings: ISettings;
   index: number;
@@ -75,6 +71,8 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
           index={props.index}
           entry={props.entry}
           programExercise={props.programExercise}
+          programId={props.programId}
+          day={props.day}
           isPlayground={false}
         />
         <div style={{ width: "40px" }}>
@@ -160,41 +158,6 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
           <Markdown value={description} />
         </div>
       )}
-      {props.ui.previewExerciseModal?.plannerExercise.key === programExercise.key && (
-        <ProgramPreviewPlaygroundExerciseEditModal
-          hideVariables={true}
-          programExercise={programExercise}
-          onClose={() => {
-            props.plannerDispatch(
-              lb<IPlannerState>().pi("ui").p("previewExerciseModal").record(undefined),
-              "Close preview exercise modal"
-            );
-          }}
-          settings={props.settings}
-          onEditStateVariable={(stateKey, newValue) => {
-            const dayData = Program_getDayData(props.program, props.day);
-            const lensRecording = EditProgramLenses_properlyUpdateStateVariable(
-              lb<IEvaluatedProgram>()
-                .p("weeks")
-                .i(dayData.week - 1)
-                .p("days")
-                .i(dayData.dayInWeek - 1)
-                .p("exercises")
-                .find((e) => e.key === programExercise.key),
-              {
-                [stateKey]: Program_stateValue(PlannerProgramExercise_getState(programExercise), stateKey, newValue),
-              }
-            );
-            const newEvaluatedProgram = lensRecording.reduce((acc, lens) => lens.fn(acc), props.program);
-            const newPlanner = new ProgramToPlanner(newEvaluatedProgram, props.settings).convertToPlanner();
-            props.plannerDispatch(
-              lb<IPlannerState>().p("current").p("program").p("planner").record(newPlanner),
-              "Update state variables from preview exercise modal"
-            );
-          }}
-          onEditVariable={(varKey, newValue) => {}}
-        />
-      )}
       {props.ui.previewEquipmentModal?.plannerExercise.key === programExercise.key && (
         <ModalEquipment
           stats={props.stats}
@@ -232,6 +195,8 @@ interface IProgramPreviewTabExerciseTopBarProps {
   index: number;
   entry: IHistoryEntry;
   programExercise: IPlannerProgramExercise;
+  programId: string;
+  day: number;
   isPlayground: boolean;
   xOffset?: number;
 }
@@ -248,9 +213,13 @@ function ProgramPreviewTabExerciseTopBar(props: IProgramPreviewTabExerciseTopBar
           data-cy="program-preview-edit-exercise"
           onClick={() => {
             props.plannerDispatch(
-              lb<IPlannerState>().pi("ui").p("previewExerciseModal").record({ plannerExercise: props.programExercise }),
+              lb<IPlannerState>()
+                .pi("ui")
+                .p("previewExerciseModal")
+                .record({ plannerExercise: props.programExercise, day: props.day }),
               "Open preview exercise modal"
             );
+            navigationRef.navigate("playgroundEditModal", { context: "preview", programId: props.programId });
           }}
         >
           <IconEditSquare color={Tailwind_semantic().icon.neutralsubtle} />
