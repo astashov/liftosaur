@@ -85,8 +85,8 @@ export type IRootStackParamList = {
     | { context: "workout"; progressId: number }
     | { context: "playground"; weekIndex: number; dayIndex: number };
   dateModal: { progressId: number };
-  equipmentModal: { progressId: number };
-  rm1Modal: { progressId: number };
+  equipmentModal: { context: "workout"; progressId: number } | { context: "preview"; programId: string };
+  rm1Modal: { context: "workout"; progressId: number } | { context: "preview"; programId: string };
   supersetPickerModal: { progressId: number };
   playgroundEditModal:
     | { context: "playground"; weekIndex: number; dayIndex: number }

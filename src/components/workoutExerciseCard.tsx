@@ -142,7 +142,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                     [lb<IHistoryRecord>().pi("ui").p("equipmentModal").record({ exerciseType: props.entry.exercise })],
                     "change-equipment"
                   );
-                  navigationRef.navigate("equipmentModal", { progressId: props.progress.id });
+                  navigationRef.navigate("equipmentModal", { context: "workout", progressId: props.progress.id });
                 }}
               >
                 {currentEquipmentName || "None"}
@@ -184,7 +184,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                       [lb<IHistoryRecord>().pi("ui").p("rm1Modal").record({ exerciseType: props.entry.exercise })],
                       "change-rm1"
                     );
-                    navigationRef.navigate("rm1Modal", { progressId: props.progress.id });
+                    navigationRef.navigate("rm1Modal", { context: "workout", progressId: props.progress.id });
                   }}
                 >
                   {Weight_print(onerm)}

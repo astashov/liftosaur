@@ -8,6 +8,7 @@ import { lb } from "lens-shmens";
 import { IPlannerState } from "../../pages/planner/models/types";
 import { buildPlannerDispatch } from "../../utils/plannerDispatch";
 import { PlannerProgram_evaluate } from "../../pages/planner/models/plannerProgram";
+import { navigationRef } from "../navigationRef";
 import type { IRootStackParamList } from "../types";
 
 export function NavModalExerciseStats(): JSX.Element {
@@ -61,6 +62,10 @@ export function NavModalExerciseStats(): JSX.Element {
         dayIndex={focusedExercise!.dayIndex}
         exerciseLine={focusedExercise!.exerciseLine}
         hideSwap={true}
+        onEditMuscleGroupsOverride={(exercise) => {
+          onClose();
+          navigationRef.navigate("musclesOverrideModal", { exerciseType: exercise });
+        }}
       />
     </ModalScreenContainer>
   );

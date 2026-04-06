@@ -28,8 +28,6 @@ import {
   Equipment_getEquipmentNameForExerciseType,
   Equipment_getEquipmentDataForExerciseType,
 } from "../../models/equipment";
-import { Modal1RM } from "../modal1RM";
-import { ModalEquipment } from "../modalEquipment";
 import { IconArrowRight } from "../icons/iconArrowRight";
 import { GroupHeader } from "../groupHeader";
 import { Progress_getNextSupersetEntry } from "../../models/progress";
@@ -106,6 +104,7 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
                     .record({ plannerExercise: props.programExercise }),
                   "Open preview equipment modal"
                 );
+                navigationRef.navigate("equipmentModal", { context: "preview", programId: props.programId });
               }}
             >
               {currentEquipmentName || "None"}
@@ -130,6 +129,7 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
                       .record({ plannerExercise: props.programExercise }),
                     "Open preview 1RM modal"
                   );
+                  navigationRef.navigate("rm1Modal", { context: "preview", programId: props.programId });
                 }}
               >
                 {Weight_print(onerm)}
@@ -157,34 +157,6 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
           {exerciseNotes && description && <GroupHeader name="Program Exercise Description" />}
           <Markdown value={description} />
         </div>
-      )}
-      {props.ui.previewEquipmentModal?.plannerExercise.key === programExercise.key && (
-        <ModalEquipment
-          stats={props.stats}
-          settings={props.settings}
-          exercise={exercise}
-          entries={props.entries}
-          onClose={() => {
-            props.plannerDispatch(
-              lb<IPlannerState>().p("ui").p("previewEquipmentModal").record(undefined),
-              "Close equipment modal"
-            );
-          }}
-          dispatch={props.dispatch}
-        />
-      )}
-      {props.ui.previewOneRepMaxModal?.plannerExercise.key === programExercise.key && (
-        <Modal1RM
-          onClose={() => {
-            props.plannerDispatch(
-              lb<IPlannerState>().p("ui").p("previewOneRepMaxModal").record(undefined),
-              "Close 1RM modal"
-            );
-          }}
-          settings={props.settings}
-          exercise={exercise}
-          dispatch={props.dispatch}
-        />
       )}
     </div>
   );

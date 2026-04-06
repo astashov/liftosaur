@@ -36,6 +36,7 @@ interface IPlannerExerciseStatsProps {
   dayIndex: number;
   exerciseLine: number;
   hideSwap?: boolean;
+  onEditMuscleGroupsOverride?: (exerciseType: IExercise) => void;
 }
 
 export function getExerciseForStats(
@@ -169,10 +170,14 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
         <LinkButton
           name="edit-muscle-groups"
           onClick={() => {
-            props.dispatch(
-              [lb<IPlannerState>().pi("ui").p("showMuscleGroupsOverride").record(exercise)],
-              "Edit muscle groups"
-            );
+            if (props.onEditMuscleGroupsOverride) {
+              props.onEditMuscleGroupsOverride(exercise);
+            } else {
+              props.dispatch(
+                [lb<IPlannerState>().pi("ui").p("showMuscleGroupsOverride").record(exercise)],
+                "Edit muscle groups"
+              );
+            }
           }}
         >
           Edit Exercise Muscles
