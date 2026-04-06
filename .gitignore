@@ -29,6 +29,23 @@ localdomain.js
 cdk.out
 cloudflare.*
 
+# React Native - iOS
+ios/Pods/
+ios/build/
+ios/*.xcworkspace/xcuserdata/
+ios/Liftosaur.xcodeproj/xcuserdata/
+ios/Liftosaur.xcodeproj/project.xcworkspace/xcuserdata/
+
+# React Native - Android
+android/.gradle/
+android/app/build/
+android/app/.cxx/
+android/build/
+android/local.properties
+
+# Metro
+.metro-health-check*
+
 # Claude Code local settings (personal overrides)
 .claude/settings.local.json
 
