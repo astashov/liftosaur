@@ -31,5 +31,5 @@ export function Footer2Wrapper(props: BottomTabBarProps): JSX.Element | null {
     return null;
   }
   const navCommon = buildNavCommon(state);
-  return <Footer2View isStatic dispatch={dispatch} navCommon={navCommon} screen={currentScreen} />;
+  return <Footer2View dispatch={dispatch} navCommon={navCommon} screen={currentScreen} />;
 }

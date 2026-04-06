@@ -1,8 +1,21 @@
-const { main: localdomain, api: localapidomain, streamingapi: localstreamingapidomain, port: localport = 8080, apiPort: localapiport = 3000, streamingApiPort: localstreamingapiport = 3001 } = require("./localdomain");
+const {
+  main: localdomain,
+  api: localapidomain,
+  streamingapi: localstreamingapidomain,
+  port: localport = 8080,
+  apiPort: localapiport = 3000,
+  streamingApiPort: localstreamingapiport = 3001,
+} = require("./localdomain");
 
 const path = require("path");
 const fs = require("fs");
-const { DefinePlugin, SourceMapDevToolPlugin, sources, Compilation } = require("webpack");
+const {
+  DefinePlugin,
+  SourceMapDevToolPlugin,
+  sources,
+  Compilation,
+  NormalModuleReplacementPlugin,
+} = require("webpack");
 const CopyPlugin = require("copy-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 let commitHash, fullCommitHash;
@@ -130,13 +143,23 @@ const mainConfig = {
       },
       {
         test: /\.tsx?$/,
-        use: {
-          loader: "esbuild-loader",
-          options: {
-            target: "es2015",
-            jsx: "automatic",
+        use: [
+          {
+            loader: "esbuild-loader",
+            options: {
+              target: "es2015",
+            },
           },
-        },
+          {
+            loader: "babel-loader",
+            options: {
+              presets: [
+                ["@babel/preset-typescript", { isTSX: true, allExtensions: true }],
+                ["@babel/preset-react", { runtime: "automatic", importSource: "nativewind" }],
+              ],
+            },
+          },
+        ],
       },
       {
         test: /\.m?js$/,
@@ -170,6 +193,7 @@ const mainConfig = {
     },
   },
   plugins: [
+    new NormalModuleReplacementPlugin(/react-native-css-interop\/dist\/doctor/, require.resolve("./empty-module.js")),
     {
       apply(compiler) {
         compiler.hooks.compilation.tap("LftMarkerPlugin", (compilation) => {
@@ -178,10 +202,7 @@ const mainConfig = {
             (assets) => {
               for (const [name, source] of Object.entries(assets)) {
                 if (/\.(js|css)$/.test(name) && !name.includes(".map")) {
-                  compilation.updateAsset(
-                    name,
-                    new sources.ConcatSource("/* LFTSTART */\n", source, "\n/* LFTEND */")
-                  );
+                  compilation.updateAsset(name, new sources.ConcatSource("/* LFTSTART */\n", source, "\n/* LFTEND */"));
                 }
               }
             }
