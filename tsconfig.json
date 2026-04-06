@@ -4,7 +4,11 @@
   },
   "compilerOptions": {
     "target": "es2015",
-    "lib": ["esnext", "dom", "WebWorker"],
+    "lib": [
+      "esnext",
+      "dom",
+      "WebWorker"
+    ],
     "module": "commonjs",
     "moduleResolution": "node",
     "esModuleInterop": true,
@@ -22,7 +26,9 @@
     "outDir": "out",
     "resolveJsonModule": true,
     "paths": {
-      "react-native": ["./node_modules/react-native-web"]
+      "react-native": [
+        "./node_modules/react-native-web"
+      ]
     }
   },
   "include": [
@@ -36,6 +42,7 @@
     "aihelpers/**/*",
     "index.native.ts",
     "devserver.ts",
-    "playwright.config.ts"
+    "playwright.config.ts",
+    "nativewind-env.d.ts"
   ]
 }
