@@ -34,6 +34,7 @@
     "test/**/*",
     "tests/**/*",
     "aihelpers/**/*",
+    "index.native.ts",
     "devserver.ts",
     "playwright.config.ts"
   ]
