@@ -67,12 +67,12 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
   }, []);
 
   const amrapModal = progress.ui?.amrapModal;
-  const prevAmrapModal = useRef<typeof amrapModal>(undefined);
+  const prevAmrapNonce = useRef<number | undefined>(undefined);
   useEffect(() => {
-    if (amrapModal && !prevAmrapModal.current) {
+    if (amrapModal && amrapModal.nonce !== prevAmrapNonce.current) {
+      prevAmrapNonce.current = amrapModal.nonce;
       navigationRef.navigate("amrapModal", { ...amrapModal, context: "workout", progressId: progress.id });
     }
-    prevAmrapModal.current = amrapModal;
   }, [amrapModal]);
 
   const exercisePickerState = progress.ui?.exercisePicker?.state;

@@ -734,6 +734,7 @@ export const TProgressUi = t.partial(
         logRpe: t.boolean,
         askWeight: t.boolean,
         userVars: t.boolean,
+        nonce: t.number,
       }),
     ]),
     editModal: t.type({

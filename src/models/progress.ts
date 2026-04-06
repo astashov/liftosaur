@@ -1226,6 +1226,7 @@ export function Progress_completeSet(
       amrapModal: {
         entryIndex,
         setIndex,
+        nonce: Date.now(),
         logRpe: shouldLogRpe,
         userVars: shouldPromptUserVars,
         isAmrap: isAmrap,
