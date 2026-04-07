@@ -874,7 +874,9 @@ export function Thunk_pushScreen<T extends IScreen>(
     }
     const { navigateTo } = await getNavigationService();
     navigateTo(screen, params as IAllScreenParamList[typeof screen], opts);
-    window.scroll(0, 0);
+    if (typeof window !== "undefined" && window.scroll) {
+      window.scroll(0, 0);
+    }
   };
 }
 
@@ -970,7 +972,9 @@ export function Thunk_pullScreen(): IThunk {
       }
     }
     goBack();
-    window.scroll(0, 0);
+    if (typeof window !== "undefined" && window.scroll) {
+      window.scroll(0, 0);
+    }
   };
 }
 

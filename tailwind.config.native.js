@@ -1,3 +1,4 @@
+const path = require("path");
 const baseColors = require("./tailwind.colors.json");
 const semanticGenerated = require("./tailwind.semantic.generated.json");
 const nativewindPreset = require("nativewind/preset");
@@ -20,7 +21,7 @@ function createSemanticColors() {
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./src/**/*.native.tsx", "./src/**/*.tsx"],
+  content: [path.resolve(__dirname, "src/**/*.native.tsx"), path.resolve(__dirname, "src/**/*.tsx")],
   presets: [nativewindPreset],
   darkMode: "class",
   theme: {
