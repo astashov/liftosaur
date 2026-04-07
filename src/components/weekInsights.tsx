@@ -1,4 +1,6 @@
 import { JSX } from "react";
+import { View, Pressable } from "react-native";
+import { Text } from "./primitives/text";
 import { IHistoryRecord, ISettings, ISubscription } from "../types";
 import { WeekInsightsUtils_calculateSetResults } from "../utils/weekInsightsUtils";
 import { IconFire } from "./icons/iconFire";
@@ -38,24 +40,22 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
   const numberOfPrs = History_getNumberOfPersonalRecords(props.thisWeekHistory, props.prs);
   const historyRecord = props.thisWeekHistory[0];
   if (!historyRecord) {
-    return <div />;
+    return <View />;
   }
 
   if (!Subscriptions_hasSubscription(props.subscription)) {
     return (
-      <section
-        className="fixed left-0 z-10 w-full px-3 py-2 border top-16 border-border-cardyellow bg-background-cardyellow rounded-b-xl"
-        onClick={() => props.dispatch(Thunk_pushScreen("subscription"))}
+      <Pressable
+        className="w-full px-3 py-2 border border-border-cardyellow bg-background-cardyellow rounded-b-xl"
+        onPress={() => props.dispatch(Thunk_pushScreen("subscription"))}
       >
-        <div className="flex items-center h-8 gap-1" style={{ marginBottom: "3px" }}>
-          <span>
-            <IconCrown className="inline-block" size={16} color={Tailwind_colors().yellow[600]} />
-          </span>
-          <span className="text-sm font-semibold text-icon-yellow" style={{ marginTop: "3px" }}>
+        <View className="flex-row items-center h-8 gap-1" style={{ marginBottom: 3 }}>
+          <IconCrown size={16} color={Tailwind_colors().yellow[600]} />
+          <Text className="text-sm font-semibold text-icon-yellow" style={{ marginTop: 3 }}>
             See Week Insights
-          </span>
-        </div>
-      </section>
+          </Text>
+        </View>
+      </Pressable>
     );
   }
 
@@ -65,21 +65,19 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
   const formattedRange = DateUtils_formatRange(startTs, endRange);
 
   return (
-    <section className="fixed left-0 z-10 w-full py-2 border top-16 border-border-cardyellow bg-background-cardyellow rounded-b-xl">
-      <div className="px-3">
-        <div className="flex gap-4">
-          <div className="flex items-center gap-1">
-            <span>
-              <IconFire className="inline-block" size={16} color={Tailwind_colors().yellow[600]} />
-            </span>
-            <span className="text-sm font-semibold" style={{ marginTop: "3px" }}>
+    <View className="w-full py-2 border border-border-cardyellow bg-background-cardyellow rounded-b-xl">
+      <View className="px-3">
+        <View className="flex-row gap-4">
+          <View className="flex-row items-center gap-1">
+            <IconFire size={16} color={Tailwind_colors().yellow[600]} />
+            <Text className="text-sm font-semibold" style={{ marginTop: 3 }}>
               {formattedRange}
-            </span>
-          </div>
-          <div className="ml-auto text-sm">
+            </Text>
+          </View>
+          <View className="ml-auto">
             <LinkButton
               name="toggle-week-insights"
-              onClick={() =>
+              onPress={() =>
                 navigationRef.navigate("weekInsightsDetailsModal", {
                   selectedFirstDayOfWeek: props.selectedFirstDayOfWeek,
                 })
@@ -87,9 +85,9 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
             >
               Show More
             </LinkButton>
-          </div>
-        </div>
-        <div className="flex justify-between mt-1" style={{ marginLeft: "2px" }}>
+          </View>
+        </View>
+        <View className="flex-row justify-between mt-1" style={{ marginLeft: 2 }}>
           <WeekInsightsProperty
             value={Math.round(setResults.volume.value)}
             unit={setResults.volume.unit}
@@ -102,14 +100,14 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
             increment={!isCurrentWeek ? setResults.total - lastSetResults.total : undefined}
           />
           <WeekInsightsProperty
-            icon={<span>🏆 </span>}
+            icon={<Text>{"\u{1F3C6}"} </Text>}
             hasPadding={true}
             value={numberOfPrs}
             unit={StringUtils_pluralize("PR", numberOfPrs)}
           />
-        </div>
-      </div>
-    </section>
+        </View>
+      </View>
+    </View>
   );
 }
 
@@ -123,19 +121,19 @@ interface IWeekInsightsPropertyProps {
 
 function WeekInsightsProperty(props: IWeekInsightsPropertyProps): JSX.Element {
   return (
-    <div className="">
+    <Text>
       {props.icon}
-      <span className="text-base font-semibold">{props.value}</span>
+      <Text className="text-base font-semibold">{props.value}</Text>
       {props.unit && (
-        <span className={`text-xs text-text-secondary ${props.hasPadding ? "ml-1" : ""}`}>{props.unit}</span>
+        <Text className={`text-xs text-text-secondary ${props.hasPadding ? "ml-1" : ""}`}>{props.unit}</Text>
       )}
       {props.increment && props.increment !== 0 ? (
-        <span className={`${props.increment > 0 ? `text-text-success` : `text-text-error`} ml-1 text-xs font-semibold`}>
+        <Text className={`${props.increment > 0 ? `text-text-success` : `text-text-error`} ml-1 text-xs font-semibold`}>
           {props.increment > 0 ? "+" : ""}
           {props.increment}
-        </span>
+        </Text>
       ) : null}
-    </div>
+    </Text>
   );
 }
 
@@ -152,88 +150,92 @@ export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Eleme
   const hasPersonalRecords = History_getNumberOfPersonalRecords(props.thisWeekHistory, props.prs) > 0;
 
   return (
-    <div className="pt-2 text-sm" data-cy="week-insights-details">
+    <View className="pt-2" data-cy="week-insights-details" testID="week-insights-details">
       {hasPersonalRecords && (
-        <div className="mb-4">
+        <View className="mb-4">
           <PersonalRecords historyRecords={props.thisWeekHistory} prs={props.prs} settings={props.settings} />
-        </div>
+        </View>
       )}
-      <div className="mb-2">
-        <span className="font-semibold">
-          💪 {setResults.total} {StringUtils_pluralize("Set", setResults.total)}
-        </span>
-      </div>
-      <div>
-        <span className="text-text-secondary">Strength: </span>
-        <span className={colorPctValue(setResults.total, setResults.strength, props.settings.planner.strengthSetsPct)}>
-          {setResults.strength}
-          {setResults.total > 0 ? `, ${Math.round((setResults.strength * 100) / setResults.total)}%` : ""}
-        </span>
-      </div>
-      <div>
-        <span className="text-text-secondary">Hypertrophy: </span>
-        <span
-          className={colorPctValue(setResults.total, setResults.hypertrophy, props.settings.planner.hypertrophySetsPct)}
-        >
-          {setResults.hypertrophy}
-          {setResults.total > 0 ? `, ${Math.round((setResults.hypertrophy * 100) / setResults.total)}%` : ""}
-        </span>
-      </div>
-      <div className="flex mt-2">
-        <div className="flex-1 gap-1">
-          <div>
-            <span className="text-text-secondary">Upper:</span>{" "}
+      <View className="mb-2">
+        <Text className="font-semibold">
+          {"\u{1F4AA}"} {setResults.total} {StringUtils_pluralize("Set", setResults.total)}
+        </Text>
+      </View>
+      <View>
+        <Text>
+          <Text className="text-text-secondary">Strength: </Text>
+          <Text className={colorPctValue(setResults.total, setResults.strength, props.settings.planner.strengthSetsPct)}>
+            {setResults.strength}
+            {setResults.total > 0 ? `, ${Math.round((setResults.strength * 100) / setResults.total)}%` : ""}
+          </Text>
+        </Text>
+      </View>
+      <View>
+        <Text>
+          <Text className="text-text-secondary">Hypertrophy: </Text>
+          <Text
+            className={colorPctValue(setResults.total, setResults.hypertrophy, props.settings.planner.hypertrophySetsPct)}
+          >
+            {setResults.hypertrophy}
+            {setResults.total > 0 ? `, ${Math.round((setResults.hypertrophy * 100) / setResults.total)}%` : ""}
+          </Text>
+        </Text>
+      </View>
+      <View className="flex-row mt-2">
+        <View className="flex-1 gap-1">
+          <Text>
+            <Text className="text-text-secondary">Upper:</Text>{" "}
             <PlannerSetSplit split={setResults.upper} settings={props.settings} shouldIncludeFrequency={true} />
-          </div>
-          <div>
-            <span className="text-text-secondary">Lower:</span>{" "}
+          </Text>
+          <Text>
+            <Text className="text-text-secondary">Lower:</Text>{" "}
             <PlannerSetSplit split={setResults.lower} settings={props.settings} shouldIncludeFrequency={true} />
-          </div>
-          <div>
-            <span className="text-text-secondary">Core:</span>{" "}
+          </Text>
+          <Text>
+            <Text className="text-text-secondary">Core:</Text>{" "}
             <PlannerSetSplit split={setResults.core} settings={props.settings} shouldIncludeFrequency={true} />
-          </div>
-        </div>
-        <div className="flex-1">
-          <div>
-            <span className="text-text-secondary">Push:</span>{" "}
+          </Text>
+        </View>
+        <View className="flex-1">
+          <Text>
+            <Text className="text-text-secondary">Push:</Text>{" "}
             <PlannerSetSplit split={setResults.push} settings={props.settings} shouldIncludeFrequency={true} />
-          </div>
-          <div>
-            <span className="text-text-secondary">Pull:</span>{" "}
+          </Text>
+          <Text>
+            <Text className="text-text-secondary">Pull:</Text>{" "}
             <PlannerSetSplit split={setResults.pull} settings={props.settings} shouldIncludeFrequency={true} />
-          </div>
-          <div>
-            <span className="text-text-secondary">Legs:</span>{" "}
+          </Text>
+          <Text>
+            <Text className="text-text-secondary">Legs:</Text>{" "}
             <PlannerSetSplit split={setResults.legs} settings={props.settings} shouldIncludeFrequency={true} />
-          </div>
-        </div>
-      </div>
-      <div className="flex items-center mt-2">
-        <div className="flex-1">
+          </Text>
+        </View>
+      </View>
+      <View className="flex-row items-center mt-2">
+        <View className="flex-1">
           {ObjectUtils_keys(setResults.muscleGroup).map((muscleGroup) => {
             return (
-              <div key={muscleGroup}>
-                <span className="text-text-secondary">{Muscle_getMuscleGroupName(muscleGroup, props.settings)}:</span>{" "}
+              <Text key={muscleGroup}>
+                <Text className="text-text-secondary">{Muscle_getMuscleGroupName(muscleGroup, props.settings)}:</Text>{" "}
                 <PlannerSetSplit
                   split={setResults.muscleGroup[muscleGroup]}
                   settings={props.settings}
                   shouldIncludeFrequency={true}
                   muscle={muscleGroup}
                 />
-              </div>
+              </Text>
             );
           })}
-        </div>
-        <div className="w-20 mb-2">
+        </View>
+        <View className="w-20 mb-2">
           <PlannerWeekMuscles settings={props.settings} data={setResults.muscleGroup} />
-        </div>
-      </div>
-      <div className="mt-2">
-        <LinkButton name="week-insights-show-planner-settings" onClick={props.onOpenPlannerSettings}>
+        </View>
+      </View>
+      <View className="mt-2">
+        <LinkButton name="week-insights-show-planner-settings" onPress={props.onOpenPlannerSettings}>
           Change Set Range Settings
         </LinkButton>
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }

@@ -1,4 +1,5 @@
 import { JSX, ReactNode, Ref, RefObject, createContext, useContext, useRef } from "react";
+import { ScrollView } from "react-native";
 
 const NavScrollContext = createContext<RefObject<HTMLDivElement | null> | null>(null);
 
@@ -18,9 +19,15 @@ export function NavScreenContent(props: { children: ReactNode; scrollRef?: Ref<H
   };
   return (
     <NavScrollContext.Provider value={fallbackRef}>
-      <div ref={setRef} data-cy="screen" style={{ flex: 1, overflowY: "auto", overscrollBehavior: "contain" }}>
+      <ScrollView
+        ref={setRef as unknown as Ref<ScrollView>}
+        data-cy="screen"
+        testID="screen"
+        contentContainerStyle={{ flexGrow: 1 }}
+        style={{ flex: 1 }}
+      >
         {props.children}
-      </div>
+      </ScrollView>
     </NavScrollContext.Provider>
   );
 }

@@ -1,5 +1,6 @@
 import { JSX } from "react";
-import { View, Pressable, Text, Platform } from "react-native";
+import { View, Pressable, Platform } from "react-native";
+import { Text } from "./primitives/text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Thunk_pushScreen, Thunk_pushToEditProgram, Thunk_startProgramDay } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";

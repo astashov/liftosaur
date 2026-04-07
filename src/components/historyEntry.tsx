@@ -1,4 +1,6 @@
 import { JSX, memo } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
 import { Equipment_getUnitOrDefaultForExerciseType } from "../models/equipment";
 import { Exercise_get, Exercise_nameWithEquipment } from "../models/exercise";
 import { Weight_roundConvertTo } from "../models/weight";
@@ -24,29 +26,30 @@ export const HistoryEntryView = memo((props: IHistoryEntryProps): JSX.Element =>
   const exerciseUnit = Equipment_getUnitOrDefaultForExerciseType(settings, exercise);
   const isPr = ObjectUtils_values(props.prs || {}).some((v) => v);
   return (
-    <div data-cy="history-entry-exercise" className={`flex flex-row items-center flex-1 gap-2`}>
-      <div
+    <View data-cy="history-entry-exercise" testID="history-entry-exercise" className="flex-row items-center flex-1 gap-2">
+      <View
         data-cy="history-entry-exercise-img"
-        className="flex items-center justify-center py-1 my-1 rounded-lg bg-background-image"
-        style={{ minWidth: "2.25rem" }}
+        testID="history-entry-exercise-img"
+        className="items-center justify-center py-1 my-1 rounded-lg bg-background-image"
+        style={{ minWidth: 36 }}
       >
         <ExerciseImage settings={props.settings} className="w-8" exerciseType={exercise} size="small" />
-      </div>
-      <div
+      </View>
+      <View
         className={`flex-1 py-2 ${
           !isLast
             ? `border-b ${isNext ? (isOngoing ? "border-border-cardyellow" : "border-border-cardpurple") : "border-border-neutral"}`
             : ""
         }`}
       >
-        <div className="flex items-center gap-2 min-h-8">
-          <div>
-            <div data-cy="history-entry-exercise-name" className="font-semibold">
+        <View className="flex-row items-center gap-2 min-h-8">
+          <View className="flex-1 flex-shrink">
+            <Text data-cy="history-entry-exercise-name" testID="history-entry-exercise-name" className="font-semibold">
               {Exercise_nameWithEquipment(exercise, props.settings)}
-              {isPr && " 🏆"}
-            </div>
-          </div>
-          <div className="flex-1 text-right">
+              {isPr && " \u{1F3C6}"}
+            </Text>
+          </View>
+          <View>
             <HistoryRecordSetsView
               sets={entry.sets.map((set) => ({
                 ...set,
@@ -59,10 +62,10 @@ export const HistoryEntryView = memo((props: IHistoryEntryProps): JSX.Element =>
               settings={props.settings}
               isNext={isNext}
             />
-          </div>
-        </div>
-        {showNotes && entry.notes && <p className="mt-1 text-sm text-text-secondary">{entry.notes}</p>}
-      </div>
-    </div>
+          </View>
+        </View>
+        {showNotes && entry.notes && <Text className="mt-1 text-sm text-text-secondary">{entry.notes}</Text>}
+      </View>
+    </View>
   );
 });

@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
 import { Exercise_fromKey, Exercise_get } from "../models/exercise";
 import { Weight_display, Weight_build, Weight_getOneRepMax } from "../models/weight";
 import { History_getNumberOfPersonalRecords } from "../models/history";
@@ -22,9 +24,9 @@ interface IPersonalRecordItems {
 export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
   if (History_getNumberOfPersonalRecords(props.historyRecords, props.prs) === 0) {
     return (
-      <section className="px-4 pt-8 pb-4 text-center">
-        <div>No new personal records this time</div>
-      </section>
+      <View className="px-4 pt-8 pb-4 items-center">
+        <Text>No new personal records this time</Text>
+      </View>
     );
   }
 
@@ -52,52 +54,50 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
   );
 
   return (
-    <section>
-      <h3
-        className="pb-1 font-bold text-yellow-600"
-        dangerouslySetInnerHTML={{ __html: "&#x1F3C6 Personal Records" }}
-      />
+    <View>
+      <Text className="pb-1 font-bold text-yellow-600">{"\u{1F3C6}"} Personal Records</Text>
       {ObjectUtils_keys(items.maxWeight).length > 0 && (
         <>
-          <h4 className="my-1 text-xs text-text-secondary">Max Weight</h4>
-          <ul className="pb-2">
+          <Text className="my-1 text-xs text-text-secondary">Max Weight</Text>
+          <View className="pb-2">
             {ObjectUtils_keys(items.maxWeight).map((exerciseKey) => {
               const exerciseType = Exercise_fromKey(exerciseKey);
               const exercise = Exercise_get(exerciseType, props.settings.exercises);
               return (items.maxWeight[exerciseKey] || []).map((item, i) => {
                 return (
-                  <li key={`${exerciseKey}_${i}`}>
-                    <div>
-                      <strong>{exercise.name}</strong>:{" "}
-                      <span className="whitespace-nowrap">
-                        <strong className="text-text-success">
-                          {Weight_display(
-                            item.set.completedWeight ?? item.set.weight ?? Weight_build(0, props.settings.units)
-                          )}
-                        </strong>
+                  <View key={`${exerciseKey}_${i}`} className="mb-1">
+                    <Text>
+                      <Text className="font-bold">{exercise.name}</Text>
+                      <Text>: </Text>
+                      <Text className="font-bold text-text-success">
+                        {Weight_display(
+                          item.set.completedWeight ?? item.set.weight ?? Weight_build(0, props.settings.units)
+                        )}
+                      </Text>
+                      <Text>
                         , {item.set.completedReps || 0} {StringUtils_pluralize("rep", item.set.completedReps || 0)}
-                      </span>
-                    </div>
+                      </Text>
+                    </Text>
                     {item.prev != null && (
-                      <div className="text-xs italic text-text-secondarysubtle">
-                        (was {item.prev.completedReps || 0} ×{" "}
+                      <Text className="text-xs italic text-text-secondarysubtle">
+                        (was {item.prev.completedReps || 0} {"\u00D7"}{" "}
                         {Weight_display(
                           item.prev.completedWeight ?? item.prev.weight ?? Weight_build(0, props.settings.units)
                         )}
                         )
-                      </div>
+                      </Text>
                     )}
-                  </li>
+                  </View>
                 );
               });
             })}
-          </ul>
+          </View>
         </>
       )}
       {ObjectUtils_keys(items.max1RM).length > 0 && (
         <>
-          <h4 className="my-1 text-xs text-text-secondary">Max Estimated One Rep Max</h4>
-          <ul className="pb-2">
+          <Text className="my-1 text-xs text-text-secondary">Max Estimated One Rep Max</Text>
+          <View className="pb-2">
             {ObjectUtils_keys(items.max1RM).map((exerciseKey) => {
               const exerciseType = Exercise_fromKey(exerciseKey);
               const exercise = Exercise_get(exerciseType, props.settings.exercises);
@@ -117,35 +117,36 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
                 const setRpe = item.set.completedRpe ?? item.set.rpe;
                 const prevRpe = item.prev?.completedRpe ?? item.prev?.rpe;
                 return (
-                  <li key={`${exerciseKey}_${i}`}>
-                    <div>
-                      <strong>{exercise.name}</strong>:{" "}
-                      <span className="whitespace-nowrap">
-                        <strong className="text-text-success">{Weight_display(estimated1RM)}</strong> (
-                        {Reps_avgUnilateralCompletedReps(item.set) || 0} ×{" "}
+                  <View key={`${exerciseKey}_${i}`} className="mb-1">
+                    <Text>
+                      <Text className="font-bold">{exercise.name}</Text>
+                      <Text>: </Text>
+                      <Text className="font-bold text-text-success">{Weight_display(estimated1RM)}</Text>
+                      <Text>
+                        {" "}({Reps_avgUnilateralCompletedReps(item.set) || 0} {"\u00D7"}{" "}
                         {Weight_display(
                           item.set.completedWeight ?? item.set.weight ?? Weight_build(0, props.settings.units)
                         )}
                         {setRpe ? ` @${setRpe}` : ""})
-                      </span>
-                    </div>
+                      </Text>
+                    </Text>
                     {item.prev != null && previous1RM && (
-                      <div className="text-xs italic text-text-secondarysubtle">
-                        (was <strong>{Weight_display(previous1RM)}</strong>,{" "}
-                        {Reps_avgUnilateralCompletedReps(item.prev) || 0} ×{" "}
+                      <Text className="text-xs italic text-text-secondarysubtle">
+                        (was <Text className="font-bold">{Weight_display(previous1RM)}</Text>,{" "}
+                        {Reps_avgUnilateralCompletedReps(item.prev) || 0} {"\u00D7"}{" "}
                         {Weight_display(
                           item.prev.completedWeight ?? item.prev.weight ?? Weight_build(0, props.settings.units)
                         )}
                         {prevRpe ? ` @${prevRpe}` : ""})
-                      </div>
+                      </Text>
                     )}
-                  </li>
+                  </View>
                 );
               });
             })}
-          </ul>
+          </View>
         </>
       )}
-    </section>
+    </View>
   );
 }
