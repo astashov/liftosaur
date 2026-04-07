@@ -1,22 +1,22 @@
-import { JSX, RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { JSX, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { View, FlatList } from "react-native";
 import { IDispatch } from "../ducks/types";
 import { IProgram, IHistoryRecord, ISettings, ISubscription } from "../types";
 import { INavCommon, IState, updateState } from "../models/state";
 import { useNavOptions } from "../navigation/useNavOptions";
 import { DateUtils_firstDayOfWeekTimestamp } from "../utils/date";
-import { HistoryRecordsList } from "./historyRecordsList";
 import { History_getHistoryRecordsForTimerange, History_getPersonalRecords } from "../models/history";
 import { WeekInsights } from "./weekInsights";
 import { lb } from "lens-shmens";
 import { WeekCalendar } from "./weekCalendar";
 import { HistoryRecordsNullState } from "./historyRecordsNullState";
 import { CollectionUtils_sort } from "../utils/collection";
-import { ObjectUtils_keys } from "../utils/object";
 import { Progress_isCurrent } from "../models/progress";
-import { useGradualList } from "../utils/useGradualList";
 import { Program_nextHistoryRecord } from "../models/program";
 import { navigationRef } from "../navigation/navigationRef";
 import { useAppState } from "../navigation/StateContext";
+import { HistoryRecordView } from "./historyRecord";
+import { Program_evaluate, Program_getProgramDay } from "../models/program";
 
 interface IProps {
   program: IProgram;
@@ -26,7 +26,7 @@ interface IProps {
   subscription: ISubscription;
   navCommon: INavCommon;
   dispatch: IDispatch;
-  scrollContainerRef?: RefObject<HTMLDivElement | null>;
+  scrollContainerRef?: React.RefObject<any>;
   initialHistoryRecordId?: number;
 }
 
@@ -85,32 +85,15 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
     }
     return history;
   }, [props.history, props.progress, props.program, props.settings]);
-  const surfaceRef = useRef<HTMLElement>(null);
-  const initialHistoryRecordId = props.initialHistoryRecordId;
-  let initialShift =
-    initialHistoryRecordId != null ? sortedHistory.findIndex((record) => record.id === initialHistoryRecordId) : -1;
-  initialShift = Math.max(0, initialShift);
-  const { visibleRecords, loadMoreVisibleRecords } = useGradualList(
-    sortedHistory,
-    initialShift,
-    20,
-    surfaceRef,
-    () => {},
-    props.scrollContainerRef
-  );
-  const visibleHistory = useMemo(() => {
-    return sortedHistory.slice(0, visibleRecords);
-  }, [sortedHistory, visibleRecords]);
+
   const { firstDayOfWeeks, historyRecordDateToFirstDayOfWeek, firstDayOfWeekToHistoryRecord } = getWeeksData(
     sortedHistory,
     props.settings.startWeekFromMonday
   );
   const [selectedFirstDayOfWeek, setSelectedWeekFirstDay] = useState(firstDayOfWeeks[firstDayOfWeeks.length - 1]);
-  const selectedFirstDayOfWeekRef = useRef(selectedFirstDayOfWeek);
   const previousWeekFirstDayDate = new Date(selectedFirstDayOfWeek);
   previousWeekFirstDayDate.setDate(previousWeekFirstDayDate.getDate() - 7);
   const previousWeekFirstDay = previousWeekFirstDayDate.getTime();
-  const historyRecordsListRef = useRef<HTMLDivElement>(null);
   const [selectedWeekCalendarFirstDayOfWeek, setSelectedWeekCalendarFirstDayOfWeek] = useState(selectedFirstDayOfWeek);
 
   const prs = History_getPersonalRecords(props.history);
@@ -120,66 +103,36 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   const loadingKeys = Object.keys(loadingItems).filter((k) => loadingItems[k]?.endTime == null);
   const isLoading = Object.keys(loadingKeys).length > 0;
 
-  useEffect(() => {
-    selectedFirstDayOfWeekRef.current = selectedFirstDayOfWeek;
-  }, [selectedFirstDayOfWeek]);
+  const program = Program_evaluate(props.program, props.settings);
+  const programDay = Program_getProgramDay(program, program.nextDay);
+  const isOngoing = !!(props.progress && Progress_isCurrent(props.progress));
 
-  useEffect(() => {
-    const scrollEl = props.scrollContainerRef?.current;
-    let initialOffset: number | undefined;
-    const scrollPosToFirstDayOfWeek = Array.from(historyRecordsListRef.current!.childNodes).reduce<
-      Partial<Record<number, number>>
-    >((memo, node) => {
-      const element = node as HTMLElement;
-      const recordId = Number(element.id.replace("history-record-", ""));
-      const firstDayOfWeek = historyRecordDateToFirstDayOfWeek[recordId];
-      if (initialOffset == null) {
-        initialOffset = element.offsetTop;
-      }
-      memo[element.offsetTop - initialOffset] = firstDayOfWeek;
-      return memo;
-    }, {});
-    function scrollHandler(e: Event): void {
-      const scrollTop = scrollEl ? scrollEl.scrollTop : window.scrollY;
-      for (const scrollPos of ObjectUtils_keys(scrollPosToFirstDayOfWeek)) {
-        if (scrollPos >= scrollTop) {
-          const firstDayOfWeek = scrollPosToFirstDayOfWeek[scrollPos];
-          if (firstDayOfWeek != null && firstDayOfWeek !== selectedFirstDayOfWeekRef.current) {
-            const weekElement = document.querySelector(`#week-calendar-${firstDayOfWeek}`);
-            if (weekElement) {
-              weekElement.scrollIntoView({
-                behavior: "instant",
-                block: "nearest",
-                inline: "center",
-              });
-            }
-            setSelectedWeekFirstDay(firstDayOfWeek);
-          }
-          break;
+  const flatListRef = useRef<FlatList>(null);
+  const historyRecordDateToFirstDayOfWeekRef = useRef(historyRecordDateToFirstDayOfWeek);
+  historyRecordDateToFirstDayOfWeekRef.current = historyRecordDateToFirstDayOfWeek;
+  const selectedFirstDayOfWeekRef = useRef(selectedFirstDayOfWeek);
+  selectedFirstDayOfWeekRef.current = selectedFirstDayOfWeek;
+
+  const onViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: Array<{ item: IHistoryRecord }> }) => {
+      if (viewableItems.length > 0) {
+        const firstVisibleRecord = viewableItems[0].item;
+        const firstDayOfWeek = historyRecordDateToFirstDayOfWeekRef.current[firstVisibleRecord.id];
+        if (firstDayOfWeek != null && firstDayOfWeek !== selectedFirstDayOfWeekRef.current) {
+          setSelectedWeekFirstDay(firstDayOfWeek);
         }
       }
     }
-    const target = scrollEl || window;
-    target.addEventListener("scroll", scrollHandler);
-    return () => {
-      target.removeEventListener("scroll", scrollHandler);
-    };
-  }, [visibleRecords]);
+  ).current;
 
-  const scrollToElement = useCallback((id: number) => {
-    const element = document.getElementById(`history-record-${id}`);
-    if (element != null) {
-      element.scrollIntoView({
-        behavior: "instant",
-        block: "nearest",
-        inline: "center",
-      });
-    }
-  }, []);
+  const initialHistoryRecordId = props.initialHistoryRecordId;
 
   useEffect(() => {
-    if (initialHistoryRecordId != null) {
-      scrollToElement(initialHistoryRecordId);
+    if (initialHistoryRecordId != null && flatListRef.current) {
+      const index = sortedHistory.findIndex((record) => record.id === initialHistoryRecordId);
+      if (index >= 0) {
+        flatListRef.current.scrollToIndex({ index, animated: false });
+      }
     }
   }, [initialHistoryRecordId]);
 
@@ -189,20 +142,35 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
     if (scrollToRecordId != null) {
       updateState(props.dispatch, [lb<IState>().p("scrollToHistoryRecordId").record(undefined)], "Clear scroll target");
       const index = sortedHistory.findIndex((record) => record.id === scrollToRecordId);
-      if (visibleHistory.length < index) {
-        loadMoreVisibleRecords(index - visibleHistory.length + 20);
-        setTimeout(() => scrollToElement(scrollToRecordId), 100);
-      } else {
-        scrollToElement(scrollToRecordId);
+      if (index >= 0 && flatListRef.current) {
+        flatListRef.current.scrollToIndex({ index, animated: true });
       }
     }
   }, [scrollToRecordId]);
 
   useNavOptions({ navHidden: true });
 
-  return (
-    <section ref={surfaceRef}>
-      <div className="fixed top-0 left-0 z-30 w-full border-b border-border-neutral">
+  const renderItem = useCallback(
+    ({ item }: { item: IHistoryRecord }) => (
+      <HistoryRecordView
+        key={item.id}
+        isOngoing={isOngoing}
+        showTitle={true}
+        programDay={programDay}
+        prs={prs}
+        settings={props.settings}
+        historyRecord={item}
+        dispatch={dispatch}
+      />
+    ),
+    [isOngoing, programDay, prs, props.settings, dispatch]
+  );
+
+  const keyExtractor = useCallback((item: IHistoryRecord) => String(item.id), []);
+
+  const stickyHeader = (
+    <View>
+      <View className="border-b border-border-neutral">
         <WeekCalendar
           startWeekFromMonday={props.settings.startWeekFromMonday}
           selectedWeekCalendarFirstDayOfWeek={selectedWeekCalendarFirstDayOfWeek}
@@ -216,7 +184,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
             setSelectedWeekCalendarFirstDayOfWeek(firstDayOfWeek);
           }}
         />
-      </div>
+      </View>
       <WeekInsights
         dispatch={props.dispatch}
         prs={prs}
@@ -226,24 +194,36 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         settings={props.settings}
         subscription={props.subscription}
       />
-      <div className="flex flex-col h-full">
-        <div className="flex-1 min-h-0 overflow-y-auto pt-36" ref={historyRecordsListRef}>
-          {visibleHistory.length > 0 ? (
-            <HistoryRecordsList
-              history={visibleHistory}
-              firstDayOfWeeks={firstDayOfWeeks}
-              prs={prs}
-              isOngoing={!!(props.progress && Progress_isCurrent(props.progress))}
-              program={props.program}
-              subscription={props.subscription}
-              settings={props.settings}
-              dispatch={dispatch}
-            />
-          ) : (
-            <HistoryRecordsNullState />
-          )}
-        </div>
-      </div>
-    </section>
+    </View>
+  );
+
+  if (sortedHistory.length === 0) {
+    return (
+      <View className="flex-1">
+        {stickyHeader}
+        <HistoryRecordsNullState />
+      </View>
+    );
+  }
+
+  return (
+    <View className="flex-1">
+      {stickyHeader}
+      <FlatList
+        ref={flatListRef}
+        data={sortedHistory}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        initialNumToRender={3}
+      maxToRenderPerBatch={6}
+      windowSize={5}
+      onScrollToIndexFailed={(info) => {
+        setTimeout(() => {
+          flatListRef.current?.scrollToIndex({ index: info.index, animated: false });
+        }, 100);
+      }}
+      onViewableItemsChanged={onViewableItemsChanged}
+    />
+    </View>
   );
 }

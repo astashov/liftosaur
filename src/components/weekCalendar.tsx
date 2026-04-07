@@ -1,4 +1,6 @@
-import { JSX, useCallback, useLayoutEffect, useRef } from "react";
+import { JSX, useCallback, useEffect, useRef, useState } from "react";
+import { View, Pressable, FlatList, LayoutChangeEvent } from "react-native";
+import { Text } from "./primitives/text";
 import { IHistoryRecord } from "../types";
 import { DateUtils_formatYYYYMMDD } from "../utils/date";
 import { History_getDateToHistory } from "../models/history";
@@ -19,112 +21,139 @@ interface IWeekCalendarProps {
 }
 
 export function WeekCalendar(props: IWeekCalendarProps): JSX.Element {
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const flatListRef = useRef<FlatList>(null);
+  const [pageWidth, setPageWidth] = useState(0);
   const dateToHistory = History_getDateToHistory(props.history);
   const selectedIndex = props.firstDayOfWeeks.findIndex((date) => date === props.selectedFirstDayOfWeek);
   const selectedWeekCalendarIndex = props.firstDayOfWeeks.findIndex(
     (date) => date === props.selectedWeekCalendarFirstDayOfWeek
   );
 
-  useLayoutEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTo({
-        left: selectedIndex * scrollRef.current?.clientWidth || 0,
-        behavior: "instant",
-      });
+  useEffect(() => {
+    if (flatListRef.current && pageWidth > 0 && selectedIndex >= 0) {
+      flatListRef.current.scrollToIndex({ index: selectedIndex, animated: false });
+    }
+  }, [pageWidth]);
+
+  useEffect(() => {
+    if (flatListRef.current && pageWidth > 0 && selectedIndex >= 0) {
+      flatListRef.current.scrollToIndex({ index: selectedIndex, animated: false });
+    }
+  }, [selectedIndex]);
+
+  const handleLayout = useCallback((event: LayoutChangeEvent) => {
+    const width = event.nativeEvent.layout.width;
+    if (width > 0) {
+      setPageWidth(width);
     }
   }, []);
 
-  const handleScroll = useCallback(() => {
-    const scrollLeft = scrollRef.current?.scrollLeft ?? 0;
-    const width = scrollRef.current?.clientWidth;
-    const selectedWeekIndex = Math.floor((scrollLeft + (width ?? 0) / 2) / (width ?? 1));
-    const selectedFirstDayOfWeek = props.firstDayOfWeeks[selectedWeekIndex];
-    props.onSelectFirstDayOfWeek(selectedFirstDayOfWeek);
-  }, []);
+  const getItemLayout = useCallback(
+    (_data: unknown, index: number) => ({
+      length: pageWidth,
+      offset: pageWidth * index,
+      index,
+    }),
+    [pageWidth]
+  );
+
+  const onViewableItemsChanged = useRef(
+    ({ viewableItems }: { viewableItems: Array<{ index: number | null }> }) => {
+      if (viewableItems.length > 0 && viewableItems[0].index != null) {
+        const idx = viewableItems[0].index;
+        const firstDayOfWeek = props.firstDayOfWeeks[idx];
+        if (firstDayOfWeek != null) {
+          props.onSelectFirstDayOfWeek(firstDayOfWeek);
+        }
+      }
+    }
+  ).current;
+
+  const scrollToIndex = useCallback(
+    (index: number) => {
+      if (flatListRef.current && pageWidth > 0) {
+        flatListRef.current.scrollToIndex({ index, animated: true });
+      }
+    },
+    [pageWidth]
+  );
+
+  const renderWeekPage = useCallback(
+    ({ item: firstDayOfWeek }: { item: number }) => (
+      <Pressable style={{ width: pageWidth }} onPress={props.onClick}>
+        <View className="flex-row justify-around w-full">
+          {getWeekDays(firstDayOfWeek, dateToHistory, props.startWeekFromMonday).map((day, idx) => (
+            <View key={idx} className="items-center justify-center">
+              <Text className="text-xs text-text-secondary">{day.dayName}</Text>
+              <View
+                className={`items-center justify-center w-8 h-8 rounded-full ${
+                  day.record && !Progress_isCurrent(day.record) ? "bg-background-error" : ""
+                } ${day.isToday ? "border border-button-primarybackground" : ""}`}
+              >
+                <Text
+                  className={`text-sm ${
+                    day.record && !Progress_isCurrent(day.record) ? "text-text-alwayswhite" : "text-text-primary"
+                  } ${day.isToday ? "font-bold" : ""}`}
+                >
+                  {day.dayNumber}
+                </Text>
+              </View>
+            </View>
+          ))}
+        </View>
+      </Pressable>
+    ),
+    [pageWidth, dateToHistory, props.startWeekFromMonday, props.onClick]
+  );
+
+  const keyExtractor = useCallback((item: number) => String(item), []);
 
   return (
-    <div className="relative flex items-center justify-center w-full bg-background-default">
+    <View className="relative flex-row items-center justify-center w-full bg-background-default">
       {props.isLoading ? (
-        <div className="absolute" style={{ left: 8, top: 28 }}>
+        <View className="absolute" style={{ left: 8, top: 28 }}>
           <IconSpinner width={12} height={12} />
-        </div>
+        </View>
       ) : null}
       {selectedWeekCalendarIndex > 0 && (
-        <div className="absolute top-0 left-0">
-          <button
-            className="p-3"
-            onClick={() => {
-              if (scrollRef.current) {
-                scrollRef.current.scrollTo({
-                  left: (selectedWeekCalendarIndex - 1) * (scrollRef.current?.clientWidth || 0),
-                  behavior: "smooth",
-                });
-              }
-            }}
-          >
-            <IconArrowRight className="rotate-180" width={5} height={9} />
-          </button>
-        </div>
+        <View className="absolute top-0 left-0 z-10">
+          <Pressable className="p-3" onPress={() => scrollToIndex(selectedWeekCalendarIndex - 1)}>
+            <View style={{ transform: [{ rotate: "180deg" }] }}>
+              <IconArrowRight width={5} height={9} />
+            </View>
+          </Pressable>
+        </View>
       )}
       {selectedWeekCalendarIndex < props.firstDayOfWeeks.length - 1 && (
-        <div className="absolute top-0 right-0">
-          <button
-            className="p-2"
-            onClick={() => {
-              if (scrollRef.current) {
-                scrollRef.current.scrollTo({
-                  left: (selectedWeekCalendarIndex + 1) * (scrollRef.current?.clientWidth || 0),
-                  behavior: "smooth",
-                });
-              }
-            }}
-          >
+        <View className="absolute top-0 right-0 z-10">
+          <Pressable className="p-2" onPress={() => scrollToIndex(selectedWeekCalendarIndex + 1)}>
             <IconArrowRight width={5} height={9} />
-          </button>
-        </div>
+          </Pressable>
+        </View>
       )}
-      <div
-        ref={scrollRef}
-        className="flex w-full py-2 mx-4 overflow-x-auto will-change-transform"
-        style={{
-          perspective: "1px",
-          WebkitOverflowScrolling: "touch",
-          scrollSnapType: "x mandatory",
-        }}
-        onScroll={handleScroll}
-        onClick={props.onClick}
-      >
-        {props.firstDayOfWeeks.map((firstDayOfWeek, index) => (
-          <div
-            id={`week-calendar-${firstDayOfWeek}`}
-            data-id={firstDayOfWeek}
-            key={index}
-            className="flex-none w-full gap-3"
-            style={{ scrollSnapAlign: "center", scrollSnapStop: "always" }}
-          >
-            <div className="flex flex-row justify-around w-full">
-              {getWeekDays(firstDayOfWeek, dateToHistory, props.startWeekFromMonday).map((day, idx) => {
-                return (
-                  <div key={idx} className="flex flex-col items-center justify-center rounded-full">
-                    <div className="text-xs text-text-secondary">{day.dayName}</div>
-                    <div
-                      className={`flex items-center justify-center text-sm w-8 h-8 rounded-full ${
-                        day.record && !Progress_isCurrent(day.record)
-                          ? "text-text-alwayswhite bg-background-error"
-                          : "text-text-primary"
-                      } ${day.isToday ? "border border-button-primarybackground font-bold" : ""}`}
-                    >
-                      {day.dayNumber}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+      <View className="flex-1">
+        <View className="py-2 mx-4" onLayout={handleLayout}>
+          {pageWidth > 0 && (
+            <FlatList
+              ref={flatListRef}
+              data={props.firstDayOfWeeks}
+              renderItem={renderWeekPage}
+              keyExtractor={keyExtractor}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              getItemLayout={getItemLayout}
+              initialScrollIndex={selectedIndex >= 0 ? selectedIndex : undefined}
+              initialNumToRender={2}
+              windowSize={3}
+              maxToRenderPerBatch={3}
+              onViewableItemsChanged={onViewableItemsChanged}
+              onScrollToIndexFailed={() => {}}
+            />
+          )}
+        </View>
+      </View>
+    </View>
   );
 }
 

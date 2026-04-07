@@ -1,4 +1,6 @@
-import { JSX, ReactNode, useEffect, useRef, useState } from "react";
+import { JSX, ReactNode, useState } from "react";
+import { View, Image } from "react-native";
+import { Text } from "./primitives/text";
 import { IconSpinner } from "./icons/iconSpinner";
 import { IExerciseType, ISettings } from "../types";
 import { IconDefaultExercise } from "./icons/iconDefaultExercise";
@@ -8,6 +10,7 @@ import {
   ExerciseImageUtils_existsCustom,
 } from "../models/exerciseImage";
 import { Exercise_get, Exercise_nameWithEquipment } from "../models/exercise";
+import { HostConfig_resolveUrl } from "../utils/hostConfig";
 
 interface IProps {
   exerciseType: IExerciseType;
@@ -29,92 +32,68 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
     equipment: props.exerciseType.equipment || exercise.defaultEquipment,
   };
 
-  const imgRef = useRef<HTMLImageElement>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isError, setIsError] = useState<boolean>(false);
-  useEffect(() => {
-    if (imgRef.current) {
-      if (imgRef.current.complete) {
-        setIsLoading(false);
-      } else {
-        imgRef.current.addEventListener("load", () => {
-          setIsLoading(false);
-        });
-        imgRef.current.addEventListener("error", () => {
-          setIsError(true);
-        });
-      }
-    }
-  }, []);
-  const src = ExerciseImageUtils_url(exerciseType, size, props.settings);
+  const rawSrc = ExerciseImageUtils_url(exerciseType, size, props.settings);
+  const src = rawSrc ? HostConfig_resolveUrl(rawSrc) : undefined;
   const doesExist =
     ExerciseImageUtils_exists(exerciseType, size) ||
     ExerciseImageUtils_existsCustom(exerciseType, size, !!props.suppressCustom, props.settings);
 
   if (size === "small") {
-    let className = `inline ${props.className} `;
-    const imgAttrs: { width?: number; height?: number } = {};
-    if (props.width) {
-      imgAttrs.width = props.width;
-      imgAttrs.height = Math.round(props.width * 1.5);
-    } else if (isLoading || isError) {
-      className += "invisible h-0";
-    }
+    const w = props.width || 32;
+    const imgStyle = { width: w, height: Math.round(w * 1.5) };
     return (
       <>
         {!isError && doesExist && (
-          <img
+          <Image
             data-cy="exercise-image-small"
-            ref={imgRef}
-            className={className}
-            src={src}
-            alt={Exercise_nameWithEquipment(exercise, props.settings)}
-            {...imgAttrs}
+            testID="exercise-image-small"
+            className={props.className}
+            source={{ uri: src }}
+            style={imgStyle}
+            onLoad={() => setIsLoading(false)}
+            onError={() => setIsError(true)}
+            accessibilityLabel={Exercise_nameWithEquipment(exercise, props.settings)}
           />
         )}
-        {isError ||
-          (!doesExist &&
-            (props.useTextForCustomExercise ? (
-              <div className={`relative ${props.className} ${props.customClassName}`} style={{ paddingBottom: "100%" }}>
-                <div className="absolute inset-0 flex items-center justify-start text-xs text-left bg-background-image text-text-secondarysubtle">
-                  <div
-                    className="flex items-stretch justify-start w-full h-full p-1 leading-3 fade-mask"
-                    style={{ fontSize: "0.7rem" }}
-                  >
-                    {Exercise_nameWithEquipment(exercise, props.settings)}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className={`inline-block ${props.className}`}>
-                <div
-                  className="relative inline-block w-full h-full overflow-hidden align-middle"
-                  style={{ paddingBottom: "100%" }}
-                >
-                  <IconDefaultExercise className={`absolute top-0 left-0 w-full h-full`} />
-                </div>
-              </div>
-            )))}
+        {(isError || !doesExist) &&
+          (props.useTextForCustomExercise ? (
+            <View
+              className={`relative ${props.className} ${props.customClassName}`}
+              style={{ paddingBottom: "100%" as unknown as number }}
+            >
+              <View className="absolute inset-0 items-start justify-center bg-background-image">
+                <Text className="text-xs text-text-secondarysubtle" style={{ fontSize: 11, lineHeight: 13 }}>
+                  {Exercise_nameWithEquipment(exercise, props.settings)}
+                </Text>
+              </View>
+            </View>
+          ) : (
+            <View className={props.className}>
+              <IconDefaultExercise size={props.width || 32} />
+            </View>
+          ))}
       </>
     );
   } else {
-    let className = `inline ${props.className} `;
-    if (isLoading || isError) {
-      className += "invisible h-0";
-    }
     return doesExist ? (
       <>
-        <img
-          ref={imgRef}
+        <Image
           data-cy="exercise-image-large"
-          className={className}
-          src={src}
-          alt={Exercise_nameWithEquipment(exercise, props.settings)}
+          testID="exercise-image-large"
+          className={props.className}
+          source={{ uri: src }}
+          onLoad={() => setIsLoading(false)}
+          onError={() => setIsError(true)}
+          accessibilityLabel={Exercise_nameWithEquipment(exercise, props.settings)}
         />
         <ExerciseImageAuxiliary size={props.size} isError={isError} isLoading={isLoading} />
       </>
     ) : (
-      <ExerciseNoImage size={props.size}>No exercise image</ExerciseNoImage>
+      <ExerciseNoImage size={props.size}>
+        <Text>No exercise image</Text>
+      </ExerciseNoImage>
     );
   }
 }
@@ -127,15 +106,15 @@ function ExerciseImageAuxiliary(props: {
   if (props.isError) {
     return (
       <ExerciseNoImage size={props.size}>
-        <span className="text-red-700">Error fetching the exercise image</span>
+        <Text className="text-red-700">Error fetching the exercise image</Text>
       </ExerciseNoImage>
     );
   } else if (props.isLoading) {
     return (
       <ExerciseNoImage size={props.size}>
-        <div className="w-full text-center">
+        <View className="items-center w-full">
           <IconSpinner width={20} height={20} />
-        </div>
+        </View>
       </ExerciseNoImage>
     );
   } else {
@@ -150,8 +129,8 @@ interface INoImageProps {
 
 function ExerciseNoImage(props: INoImageProps): JSX.Element | null {
   return (
-    <div className="px-4 py-10 my-4 text-xs leading-normal text-center border border-dotted rounded-lg border-border-neutral bg-background-neutral">
-      {props.children}
-    </div>
+    <View className="items-center justify-center px-4 py-10 my-4 border border-dotted rounded-lg border-border-neutral bg-background-neutral">
+      <Text className="text-xs leading-normal text-center">{props.children}</Text>
+    </View>
   );
 }

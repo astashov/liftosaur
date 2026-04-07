@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
 import { IDisplaySet, Reps_group, Reps_setToDisplaySet } from "../models/set";
 import { ISet, ISettings } from "../types";
 import { CollectionUtils_groupBy, CollectionUtils_compact } from "../utils/collection";
@@ -32,7 +34,7 @@ export function HistoryRecordSetsView(props: IHistoryRecordSetsProps): JSX.Eleme
     return g.map((set) => Reps_setToDisplaySet(set, isNext, props.settings));
   });
   return (
-    <div className="text-sm text-right">
+    <View className="text-sm" style={{ alignItems: "flex-end" }}>
       {displayGroups.map((g, i) => (
         <HistoryRecordSet
           key={i}
@@ -43,7 +45,7 @@ export function HistoryRecordSetsView(props: IHistoryRecordSetsProps): JSX.Eleme
           settings={props.settings}
         />
       ))}
-    </div>
+    </View>
   );
 }
 
@@ -60,7 +62,7 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
   const group = props.sets;
   const set = group[0];
   if (set == null) {
-    return <div />;
+    return <View />;
   }
   const prTypes = CollectionUtils_compact(
     ObjectUtils_keys(props.prs || {}).map<"e1RM" | "Weight" | undefined>((k) => {
@@ -88,59 +90,55 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
         : "text-text-error";
   const rpeColor = isNext ? "text-text-secondary" : set.isRpeFailed ? "text-text-error" : "text-text-success";
   const timerColor = isNext ? "text-text-secondary" : "text-text-purple";
+  const dataCy = isNext
+    ? "history-entry-sets-next"
+    : set.isCompleted
+      ? "history-entry-sets-completed"
+      : set.isInRange
+        ? "history-entry-sets-in-range"
+        : "history-entry-sets-incompleted";
   return (
-    <div
-      className="text-sm whitespace-nowrap"
-      data-cy={
-        isNext
-          ? "history-entry-sets-next"
-          : set.isCompleted
-            ? "history-entry-sets-completed"
-            : set.isInRange
-              ? "history-entry-sets-in-range"
-              : "history-entry-sets-incompleted"
-      }
-    >
+    <Text className="text-sm" data-cy={dataCy} testID={dataCy}>
       {props.showPrDetails && isPr && (
-        <span className="mr-2 text-xs font-semibold text-yellow-600">
-          <span>{prTypes.join(", ")}</span> <span>🏆</span>
-        </span>
+        <Text className="mr-2 text-xs font-semibold text-yellow-600">
+          <Text>{prTypes.join(", ")}</Text> <Text>{"\u{1F3C6}"}</Text>
+        </Text>
       )}
-      <span className={`px-1 ${isPr ? "bg-color-yellow150" : ""}`}>
+      <Text className={`px-1 ${isPr ? "bg-color-yellow150" : ""}`}>
         {group.length > 1 && (
           <>
-            <span className="font-semibold text-text-purple" data-cy="history-entry-sets">
+            <Text className="font-semibold text-text-purple" data-cy="history-entry-sets" testID="history-entry-sets">
               {group.length}
-            </span>
-            <span className="text-text-secondary"> × </span>
+            </Text>
+            <Text className="text-text-secondary"> {"\u00D7"} </Text>
           </>
         )}
-        <span className={`font-semibold ${repsColor}`} data-cy="history-entry-reps">
+        <Text className={`font-semibold ${repsColor}`} data-cy="history-entry-reps" testID="history-entry-reps">
           {set.reps}
-        </span>
+        </Text>
         {set.weight && (
           <>
-            <span className="text-text-secondary"> × </span>
-            <span data-cy="history-entry-weight">
-              <span className="font-semibold">{set.weight}</span>
-              <span className="text-xs">{set.askWeight ? "+" : ""}</span>
-              <span className="text-xs text-text-secondary">{set.unit}</span>
-            </span>
+            <Text className="text-text-secondary"> {"\u00D7"} </Text>
+            <Text data-cy="history-entry-weight" testID="history-entry-weight">
+              <Text className="font-semibold">{set.weight}</Text>
+              <Text className="text-xs">{set.askWeight ? "+" : ""}</Text>
+              <Text className="text-xs text-text-secondary">{set.unit}</Text>
+            </Text>
           </>
         )}
         {set.rpe != null && (
-          <span className={rpeColor} data-cy="history-entry-rpe">
-            <span className="text-xs"> @</span>
-            <span>{set.rpe}</span>
-          </span>
+          <Text className={rpeColor} data-cy="history-entry-rpe" testID="history-entry-rpe">
+            <Text className="text-xs"> @</Text>
+            <Text>{set.rpe}</Text>
+          </Text>
         )}
         {set.timer != null && (
-          <span className={timerColor} data-cy="history-entry-timer">
-            <span> {set.timer}</span>
-            <span className="text-xs">s</span>
-          </span>
+          <Text className={timerColor} data-cy="history-entry-timer" testID="history-entry-timer">
+            <Text> {set.timer}</Text>
+            <Text className="text-xs">s</Text>
+          </Text>
         )}
-      </span>
-    </div>
+      </Text>
+    </Text>
   );
 }

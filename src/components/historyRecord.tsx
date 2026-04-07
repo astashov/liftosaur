@@ -1,11 +1,12 @@
-import { JSX, memo, useRef } from "react";
+import { JSX, memo } from "react";
+import { View, Pressable, Platform } from "react-native";
+import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import { DateUtils_format } from "../utils/date";
 import { TimeUtils_formatHOrMin } from "../utils/time";
 import { Progress_isCurrent, Progress_isFullyEmptySet } from "../models/progress";
 import { ComparerUtils_noFns } from "../utils/comparer";
 import { IHistoryRecord, ISettings } from "../types";
-import { HtmlUtils_classInParents } from "../utils/html";
 import {
   IPersonalRecords,
   History_workoutTime,
@@ -17,7 +18,7 @@ import { IconWatch } from "./icons/iconWatch";
 import { HistoryEntryView } from "./historyEntry";
 import { Button } from "./button";
 import { Exercise_toKey } from "../models/exercise";
-import { Markdown } from "./markdown";
+import { SimpleMarkdown } from "./simpleMarkdown";
 import { StringUtils_pluralize } from "../utils/string";
 import { n } from "../utils/math";
 import { IEvaluatedProgramDay } from "../models/program";
@@ -33,64 +34,69 @@ interface IProps {
   dispatch: IDispatch;
 }
 
+function getNativeCardShadow(): Record<string, unknown> {
+  return Platform.select({
+    ios: {
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.1,
+      shadowRadius: 3,
+    },
+    android: { elevation: 2 },
+    default: {},
+  }) as Record<string, unknown>;
+}
+
 export const HistoryRecordView = memo((props: IProps): JSX.Element => {
   const { historyRecord, dispatch } = props;
   const isCurrent = Progress_isCurrent(historyRecord);
   const description = isCurrent ? props.programDay?.description : undefined;
-  const ref = useRef<HTMLDivElement>(null);
 
   const entries = historyRecord.entries;
+
+  const handleCardPress = (): void => {
+    if (Progress_isCurrent(historyRecord)) {
+      dispatch(Thunk_startProgramDay());
+    } else {
+      editHistoryRecord(
+        historyRecord,
+        dispatch,
+        Progress_isCurrent(historyRecord) && Progress_isFullyEmptySet(historyRecord)
+      );
+    }
+  };
+
   return (
-    <div
-      data-cy="history-record"
-      data-id={props.historyRecord.id}
-      id={`history-record-${props.historyRecord.id}`}
-      className="mx-4 mb-6 history-record"
-      ref={ref}
-    >
+    <View data-cy="history-record" testID="history-record" className="pt-2 mx-4 mb-6">
       {props.showTitle && (
-        <div data-cy="history-record-date" className="mx-1 mb-1 font-semibold">
+        <Text data-cy="history-record-date" testID="history-record-date" className="mx-1 mb-1 text-base font-semibold">
           {!isCurrent ? DateUtils_format(historyRecord.date) : props.isOngoing ? "Ongoing workout" : "Next workout"}
-        </div>
+        </Text>
       )}
-      <div
-        className={`rounded-2xl px-4 text-sm ${
+      <Pressable
+        className={`rounded-2xl px-4 ${
           isCurrent
             ? props.isOngoing
-              ? "bg-background-cardyellow border border-border-cardyellow nm-continue-workout"
-              : "border border-border-cardpurple bg-background-cardpurple nm-start-workout"
-            : "bg-background-cardpurple border border-border-cardpurple nm-edit-workout"
+              ? "bg-background-cardyellow border border-border-cardyellow"
+              : "border border-border-cardpurple bg-background-cardpurple"
+            : "bg-background-cardpurple border border-border-cardpurple"
         }`}
-        style={{ boxShadow: "0 3px 3px -3px rgba(0, 0, 0, 0.1)" }}
-        onClick={(event) => {
-          if (!HtmlUtils_classInParents(event.target as Element, "button")) {
-            if (Progress_isCurrent(historyRecord)) {
-              dispatch(Thunk_startProgramDay());
-            } else {
-              editHistoryRecord(
-                historyRecord,
-                dispatch,
-                Progress_isCurrent(historyRecord) && Progress_isFullyEmptySet(historyRecord)
-              );
-            }
-          }
-        }}
+        style={getNativeCardShadow()}
+        onPress={handleCardPress}
       >
-        <div className="py-4">
-          <div className="pb-2">
-            <div className="text-sm" data-cy="history-record-program">
-              <div className="font-semibold">
-                <span>{historyRecord.dayName}</span>
-              </div>
-              <div className="text-xs text-text-secondary">{historyRecord.programName}</div>
-            </div>
-          </div>
+        <View className="py-4">
+          <View className="pb-2">
+            <View data-cy="history-record-program" testID="history-record-program">
+              <Text className="text-sm font-semibold">{historyRecord.dayName}</Text>
+              <Text className="text-xs text-text-secondary">{historyRecord.programName}</Text>
+            </View>
+          </View>
           {description && (
-            <div className="text-sm">
-              <Markdown value={description} />
-            </div>
+            <View className="text-sm">
+              <SimpleMarkdown value={description} />
+            </View>
           )}
-          <div className="flex flex-col" data-cy="history-entry">
+          <View data-cy="history-entry" testID="history-entry">
             {entries.map((entry, i) => {
               const isNext = isCurrent && Progress_isFullyEmptySet(historyRecord);
               const exerciseKey = Exercise_toKey(entry.exercise);
@@ -108,42 +114,44 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
                 />
               );
             })}
-          </div>
+          </View>
           {!isCurrent && <HistoryRecordStats historyRecord={historyRecord} settings={props.settings} />}
           {historyRecord.notes && (
-            <div className="mt-2 text-sm">
-              <span>Note: </span>
-              <span className="text-text-secondary">{historyRecord.notes}</span>
-            </div>
+            <View className="mt-2">
+              <Text className="text-sm">
+                <Text>Note: </Text>
+                <Text className="text-text-secondary">{historyRecord.notes}</Text>
+              </Text>
+            </View>
           )}
           {isCurrent && (
-            <div className="mt-2 font-bold">
+            <View className="mt-2">
               {!props.isOngoing ? (
                 <Button
                   name="start-workout-button"
                   data-cy="start-workout"
                   kind="purple"
                   className="w-full"
-                  onClick={() => undefined}
+                  onPress={() => undefined}
                 >
                   Start
                 </Button>
               ) : (
                 <Button
                   name="continue-workout-button"
-                  className="w-full"
                   data-cy="start-workout"
                   kind="purple"
-                  onClick={() => undefined}
+                  className="w-full"
+                  onPress={() => undefined}
                 >
                   Continue
                 </Button>
               )}
-            </div>
+            </View>
           )}
-        </div>
-      </div>
-    </div>
+        </View>
+      </Pressable>
+    </View>
   );
 }, ComparerUtils_noFns);
 
@@ -162,9 +170,13 @@ function HistoryRecordStats(props: IHistoryRecordStats): JSX.Element {
   const repsUnit = StringUtils_pluralize("rep", totalReps);
 
   return (
-    <div className="flex justify-between mt-4">
+    <View className="flex-row justify-between mt-4">
       <HistoryRecordProperty
-        icon={<IconWatch className="mb-1 mr-1" />}
+        icon={
+          <View className="mb-1 mr-1">
+            <IconWatch />
+          </View>
+        }
         value={time}
         hasPadding={true}
         unit={timeUnit}
@@ -172,7 +184,7 @@ function HistoryRecordStats(props: IHistoryRecordStats): JSX.Element {
       <HistoryRecordProperty value={n(totalWeight.value)} unit={totalWeight.unit} />
       <HistoryRecordProperty value={totalSets} hasPadding={true} unit={setsUnit} />
       <HistoryRecordProperty value={totalReps} hasPadding={true} unit={repsUnit} />
-    </div>
+    </View>
   );
 }
 
@@ -185,13 +197,13 @@ interface IHistoryRecordPropertyProps {
 
 function HistoryRecordProperty(props: IHistoryRecordPropertyProps): JSX.Element {
   return (
-    <div className="">
+    <View className="flex-row items-center">
       {props.icon}
-      <span className="text-base font-semibold">{props.value}</span>
+      <Text className="text-base font-semibold">{props.value}</Text>
       {props.unit && (
-        <span className={`text-sm text-text-secondary ${props.hasPadding ? "ml-1" : ""}`}>{props.unit}</span>
+        <Text className={`text-sm text-text-secondary ${props.hasPadding ? "ml-1" : ""}`}>{props.unit}</Text>
       )}
-    </div>
+    </View>
   );
 }
 
