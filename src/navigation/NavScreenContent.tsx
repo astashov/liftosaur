@@ -1,9 +1,10 @@
-import { JSX, ReactNode, Ref } from "react";
+import { JSX, ReactNode } from "react";
+import { ScrollView } from "react-native";
 
-export function NavScreenContent(props: { children: ReactNode; scrollRef?: Ref<HTMLDivElement> }): JSX.Element {
+export function NavScreenContent(props: { children: ReactNode }): JSX.Element {
   return (
-    <div ref={props.scrollRef} data-cy="screen" style={{ flex: 1, overflowY: "auto", overscrollBehavior: "contain" }}>
+    <ScrollView data-cy="screen" testID="screen" contentContainerStyle={{ flexGrow: 1 }} style={{ flex: 1 }}>
       {props.children}
-    </div>
+    </ScrollView>
   );
 }

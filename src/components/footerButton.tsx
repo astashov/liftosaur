@@ -1,6 +1,6 @@
 import type { JSX } from "react";
 import { View, Pressable } from "react-native";
-import { Text } from "react-native";
+import { Text } from "./primitives/text";
 import { IScreen, ITab, Screen_tab } from "../models/screen";
 import { StringUtils_dashcase } from "../utils/string";
 

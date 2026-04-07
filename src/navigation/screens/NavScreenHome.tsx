@@ -1,8 +1,9 @@
-import { JSX, useRef } from "react";
+import { JSX } from "react";
+import { View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRoute } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { buildNavCommon } from "../utils";
-import { NavScreenContent } from "../NavScreenContent";
 import { ProgramHistoryView } from "../../components/programHistory";
 import { ChooseProgramView } from "../../components/chooseProgram";
 import { Program_getProgram } from "../../models/program";
@@ -10,15 +11,15 @@ import { Program_getProgram } from "../../models/program";
 export function NavScreenMain(): JSX.Element {
   const { state, dispatch } = useAppState();
   const navCommon = buildNavCommon(state);
-  const scrollRef = useRef<HTMLDivElement>(null);
   const route = useRoute<{ key: string; name: "main"; params?: { historyRecordId?: number } }>();
   const ongoingProgress = state.storage.progress?.[0];
   const currentProgram =
     state.storage.currentProgramId != null ? Program_getProgram(state, state.storage.currentProgramId) : undefined;
+  const insets = useSafeAreaInsets();
 
   if (currentProgram == null) {
     return (
-      <NavScreenContent>
+      <View className="flex-1 bg-background-default" style={{ paddingTop: insets.top }}>
         <ChooseProgramView
           navCommon={navCommon}
           settings={state.storage.settings}
@@ -29,14 +30,13 @@ export function NavScreenMain(): JSX.Element {
           customPrograms={state.storage.programs || []}
           editProgramId={ongoingProgress?.programId}
         />
-      </NavScreenContent>
+      </View>
     );
   }
 
   return (
-    <NavScreenContent scrollRef={scrollRef}>
+    <View className="flex-1 bg-background-default" style={{ paddingTop: insets.top }}>
       <ProgramHistoryView
-        scrollContainerRef={scrollRef}
         progress={ongoingProgress}
         navCommon={navCommon}
         program={currentProgram}
@@ -46,6 +46,6 @@ export function NavScreenMain(): JSX.Element {
         dispatch={dispatch}
         initialHistoryRecordId={route.params?.historyRecordId}
       />
-    </NavScreenContent>
+    </View>
   );
 }

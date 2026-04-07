@@ -57,6 +57,11 @@ html.liftosaur-app #app {
 body {
   background: var(--color-white);
   color: var(--color-blackv2);
+  font-family: Poppins, sans-serif !important;
+}
+
+* {
+  font-family: inherit !important;
 }
 
 .safe-area-inset-top {
