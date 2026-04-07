@@ -1,6 +1,8 @@
+import { createMMKV } from "react-native-mmkv";
 import RNFS from "react-native-fs";
 
-const storageDir = `${RNFS.DocumentDirectoryPath}/LiftosaurStorage`;
+const mmkv = createMMKV();
+const legacyStorageDir = `${RNFS.DocumentDirectoryPath}/LiftosaurStorage`;
 
 function sanitizeKey(key: string): string {
   return key
@@ -15,25 +17,36 @@ function sanitizeKey(key: string): string {
     .replace(/\|/g, "_");
 }
 
-function filePath(key: string): string {
-  return `${storageDir}/${sanitizeKey(key)}.json`;
-}
-
-async function ensureDir(): Promise<void> {
-  const exists = await RNFS.exists(storageDir);
-  if (!exists) {
-    await RNFS.mkdir(storageDir);
+async function migrateFromLegacy(key: string): Promise<string | undefined> {
+  try {
+    const path = `${legacyStorageDir}/${sanitizeKey(key)}.json`;
+    const exists = await RNFS.exists(path);
+    if (!exists) {
+      return undefined;
+    }
+    const content = await RNFS.readFile(path, "utf8");
+    mmkv.set(key, content);
+    return content;
+  } catch {
+    return undefined;
   }
 }
 
 export function IndexedDBUtils_initializeForSafari(): Promise<void> {
-  return ensureDir();
+  return Promise.resolve();
 }
 
 export async function IndexedDBUtils_getAllKeys(): Promise<string[]> {
-  await ensureDir();
+  const keys = mmkv.getAllKeys();
+  if (keys.length > 0) {
+    return keys;
+  }
   try {
-    const files = await RNFS.readDir(storageDir);
+    const exists = await RNFS.exists(legacyStorageDir);
+    if (!exists) {
+      return [];
+    }
+    const files = await RNFS.readDir(legacyStorageDir);
     return files
       .filter((f) => f.isFile() && f.name.endsWith(".json"))
       .map((f) => f.name.replace(/\.json$/, ""));
@@ -43,40 +56,21 @@ export async function IndexedDBUtils_getAllKeys(): Promise<string[]> {
 }
 
 export async function IndexedDBUtils_get(key: string): Promise<unknown> {
-  try {
-    const path = filePath(key);
-    const exists = await RNFS.exists(path);
-    if (!exists) {
-      return undefined;
-    }
-    const content = await RNFS.readFile(path, "utf8");
-    return content;
-  } catch {
-    return undefined;
+  const value = mmkv.getString(key);
+  if (value != null) {
+    return value;
   }
+  return migrateFromLegacy(key);
 }
 
 export async function IndexedDBUtils_remove(key: string): Promise<void> {
-  try {
-    const path = filePath(key);
-    const exists = await RNFS.exists(path);
-    if (exists) {
-      await RNFS.unlink(path);
-    }
-  } catch {
-    // noop
-  }
+  mmkv.remove(key);
 }
 
 export async function IndexedDBUtils_set(key: string, value?: string): Promise<void> {
-  await ensureDir();
-  try {
-    if (value != null) {
-      await RNFS.writeFile(filePath(key), value, "utf8");
-    } else {
-      await IndexedDBUtils_remove(key);
-    }
-  } catch (e) {
-    console.error("IndexedDBUtils_set error:", e);
+  if (value != null) {
+    mmkv.set(key, value);
+  } else {
+    mmkv.remove(key);
   }
 }
