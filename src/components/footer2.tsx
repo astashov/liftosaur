@@ -60,7 +60,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
       className="items-center w-full bg-background-default footer-shadow"
       style={[nativeShadow, { paddingBottom: insets.bottom }]}
     >
-      <View className="flex-row w-full px-2 py-3">
+      <View className={`flex-row w-full px-2 pt-3 ${Platform.OS !== "web" ? "" : "pb-3"}`}>
         <View className="flex-row justify-around flex-1">
           <FooterButton
             name="home"

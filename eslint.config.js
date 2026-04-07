@@ -207,5 +207,6 @@ module.exports = defineConfig([
     "**/node_modules",
     "**/worktrees",
     "codemods",
+    "nativewind-env.d.ts",
   ]),
 ]);
