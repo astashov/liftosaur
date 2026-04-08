@@ -17,6 +17,7 @@ import { navigationRef } from "../navigation/navigationRef";
 import { useAppState } from "../navigation/StateContext";
 import { HistoryRecordView } from "./historyRecord";
 import { Program_evaluate, Program_getProgramDay } from "../models/program";
+import { Reps_group } from "../models/set";
 
 interface IProps {
   program: IProgram;
@@ -113,17 +114,15 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   const selectedFirstDayOfWeekRef = useRef(selectedFirstDayOfWeek);
   selectedFirstDayOfWeekRef.current = selectedFirstDayOfWeek;
 
-  const onViewableItemsChanged = useRef(
-    ({ viewableItems }: { viewableItems: Array<{ item: IHistoryRecord }> }) => {
-      if (viewableItems.length > 0) {
-        const firstVisibleRecord = viewableItems[0].item;
-        const firstDayOfWeek = historyRecordDateToFirstDayOfWeekRef.current[firstVisibleRecord.id];
-        if (firstDayOfWeek != null && firstDayOfWeek !== selectedFirstDayOfWeekRef.current) {
-          setSelectedWeekFirstDay(firstDayOfWeek);
-        }
+  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: Array<{ item: IHistoryRecord }> }) => {
+    if (viewableItems.length > 0) {
+      const firstVisibleRecord = viewableItems[0].item;
+      const firstDayOfWeek = historyRecordDateToFirstDayOfWeekRef.current[firstVisibleRecord.id];
+      if (firstDayOfWeek != null && firstDayOfWeek !== selectedFirstDayOfWeekRef.current) {
+        setSelectedWeekFirstDay(firstDayOfWeek);
       }
     }
-  ).current;
+  }).current;
 
   const initialHistoryRecordId = props.initialHistoryRecordId;
 
@@ -143,12 +142,26 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
       updateState(props.dispatch, [lb<IState>().p("scrollToHistoryRecordId").record(undefined)], "Clear scroll target");
       const index = sortedHistory.findIndex((record) => record.id === scrollToRecordId);
       if (index >= 0 && flatListRef.current) {
-        flatListRef.current.scrollToIndex({ index, animated: true });
+        flatListRef.current.scrollToIndex({ index, animated: false });
+        setTimeout(() => {
+          flatListRef.current?.scrollToIndex({ index, animated: false });
+        }, 200);
       }
     }
   }, [scrollToRecordId]);
 
   useNavOptions({ navHidden: true });
+
+  const itemLayouts = useMemo(() => {
+    const layouts: { length: number; offset: number }[] = [];
+    let offset = 0;
+    for (const record of sortedHistory) {
+      const length = estimateRecordHeight(record);
+      layouts.push({ length, offset });
+      offset += length;
+    }
+    return layouts;
+  }, [sortedHistory]);
 
   const renderItem = useCallback(
     ({ item }: { item: IHistoryRecord }) => (
@@ -215,15 +228,31 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         initialNumToRender={3}
-      maxToRenderPerBatch={6}
-      windowSize={5}
-      onScrollToIndexFailed={(info) => {
-        setTimeout(() => {
-          flatListRef.current?.scrollToIndex({ index: info.index, animated: false });
-        }, 100);
-      }}
-      onViewableItemsChanged={onViewableItemsChanged}
-    />
+        maxToRenderPerBatch={6}
+        windowSize={5}
+        getItemLayout={(_: unknown, index: number) => ({ ...itemLayouts[index], index })}
+        onViewableItemsChanged={onViewableItemsChanged}
+      />
     </View>
   );
+}
+
+function estimateRecordHeight(record: IHistoryRecord): number {
+  const isCurrent = Progress_isCurrent(record);
+  // pt-2(8) + title(26) + mb-6(24) = 58
+  const outerHeight = 58;
+  // py-4(32) + program name section pb-2(42) + border(2) = 76
+  const cardBase = 76;
+  // Stats row or Start/Continue button
+  const bottomSection = isCurrent ? 52 : 44;
+
+  let entriesHeight = 0;
+  for (const entry of record.entries) {
+    const setGroups = Reps_group(entry.sets, isCurrent).length;
+    // py-2(16) + max(image 36, content). Content = set groups stacked at ~18px each, min 32px
+    const contentHeight = Math.max(36, setGroups * 18);
+    entriesHeight += 16 + contentHeight;
+  }
+
+  return outerHeight + cardBase + entriesHeight + bottomSection;
 }

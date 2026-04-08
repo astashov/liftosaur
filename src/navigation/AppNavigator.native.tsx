@@ -48,6 +48,7 @@ import {
   NavScreenApiKeys,
 } from "./screens/NavScreenMe";
 import { Footer2Wrapper } from "./screens/NavScreenFooter2";
+import { NavModalMonthCalendar } from "./modals/NavModalMonthCalendar";
 
 const OnboardingStack = createNativeStackNavigator<IOnboardingStackParamList>();
 const HomeStack = createNativeStackNavigator<IHomeStackParamList>();
@@ -169,6 +170,15 @@ export function AppNavigator(): JSX.Element {
       <RootStack.Screen name="onboarding" component={OnboardingStackScreen} />
       <RootStack.Screen name="mainTabs" component={MainTabsScreen} />
       <RootStack.Screen name="subscription" component={NavScreenSubscription} options={{ headerShown: true }} />
+      <RootStack.Group
+        screenOptions={{
+          presentation: "transparentModal",
+          headerShown: false,
+          animation: "none",
+        }}
+      >
+        <RootStack.Screen name="monthCalendarModal" component={NavModalMonthCalendar} />
+      </RootStack.Group>
     </RootStack.Navigator>
   );
 }

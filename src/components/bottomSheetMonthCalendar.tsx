@@ -1,5 +1,7 @@
-import type { JSX } from "react";
-import { MonthCalendar } from "./monthCalendar";
+import { JSX, useRef } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
+import { MonthCalendar, IMonthCalendarRef } from "./monthCalendar";
 import { LinkButton } from "./linkButton";
 import { IHistoryRecord } from "../types";
 import { IPersonalRecords } from "../models/history";
@@ -15,43 +17,37 @@ export interface IBottomSheetMonthCalendarContentProps {
 }
 
 export function BottomSheetMonthCalendarContent(props: IBottomSheetMonthCalendarContentProps): JSX.Element {
-  const monthNames = props.startWeekFromMonday
+  const monthCalendarRef = useRef<IMonthCalendarRef>(null);
+  const dayNames = props.startWeekFromMonday
     ? ["M", "T", "W", "T", "F", "S", "S"]
     : ["S", "M", "T", "W", "T", "F", "S"];
   const selectedIndex = props.firstDayOfWeeks.findIndex((date) => date === props.selectedFirstDayOfWeek);
   return (
     <>
-      <div className="px-3">
-        <LinkButton
-          name="this-week"
-          onClick={() => {
-            const element = document.querySelector(`[data-first-day-of-week='${props.selectedFirstDayOfWeek}']`);
-            if (element) {
-              element.scrollIntoView({ block: "center", behavior: "smooth" });
-            }
-          }}
-        >
-          This week
-        </LinkButton>
-      </div>
-      <div className="flex flex-row justify-around py-2 mx-3 border-b border-background-subtle">
-        {monthNames.map((day, i) => (
-          <div key={i} className="text-gray-500 font-medium p-2 w-10 h-10 text-center">
-            {day}
-          </div>
-        ))}
-      </div>
-      <div className="relative flex flex-col flex-1 min-h-0">
-        <MonthCalendar
-          visibleRecords={props.visibleRecords}
-          selectedFirstDayOfWeekIndex={selectedIndex}
-          startWeekFromMonday={props.startWeekFromMonday}
-          prs={props.prs}
-          firstDayOfWeeks={props.firstDayOfWeeks}
-          history={props.history}
-          onClick={props.onClick}
-        />
-      </div>
+      <View collapsable={false}>
+        <View className="px-3 pt-4">
+          <LinkButton name="this-week" onPress={() => monthCalendarRef.current?.scrollToSelected()}>
+            This week
+          </LinkButton>
+        </View>
+        <View className="flex-row justify-around py-2 mx-3 border-b border-background-subtle">
+          {dayNames.map((day, i) => (
+            <View key={i} className="items-center justify-center" style={{ width: 40, height: 40 }}>
+              <Text className="font-medium text-text-secondary">{day}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+      <MonthCalendar
+        ref={monthCalendarRef}
+        visibleRecords={props.visibleRecords}
+        selectedFirstDayOfWeekIndex={selectedIndex}
+        startWeekFromMonday={props.startWeekFromMonday}
+        prs={props.prs}
+        firstDayOfWeeks={props.firstDayOfWeeks}
+        history={props.history}
+        onClick={props.onClick}
+      />
     </>
   );
 }

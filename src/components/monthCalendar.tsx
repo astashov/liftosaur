@@ -1,14 +1,11 @@
-import { JSX, memo, useLayoutEffect, useRef } from "react";
-import {
-  DateUtils_formatYYYYMMDD,
-  DateUtils_lastDayOfWeekTimestamp,
-  DateUtils_firstDayOfWeekTimestamp,
-} from "../utils/date";
+import { JSX, memo, useCallback, useMemo, useRef, forwardRef, useImperativeHandle } from "react";
+import { View, Pressable, FlatList } from "react-native";
+import { Text } from "./primitives/text";
+import { DateUtils_formatYYYYMMDD, DateUtils_firstDayOfWeekTimestamp } from "../utils/date";
 import { IHistoryRecord } from "../types";
 import { StringUtils_pluralize } from "../utils/string";
 import { IPersonalRecords, History_getNumberOfPersonalRecords } from "../models/history";
 import { CollectionUtils_compact } from "../utils/collection";
-import { ComparerUtils_noFns } from "../utils/comparer";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { Progress_isCurrent } from "../models/progress";
 
@@ -22,133 +19,203 @@ interface IMonthCalendarProps {
   onClick: (historyRecord: IHistoryRecord) => void;
 }
 
-export const MonthCalendar = memo((props: IMonthCalendarProps): JSX.Element => {
-  useLayoutEffect(() => {
-    const selectedFirstDayOfWeekTs = props.firstDayOfWeeks[props.selectedFirstDayOfWeekIndex];
-    if (selectedFirstDayOfWeekTs != null) {
-      const selectedFirstDayOfWeek = new Date(selectedFirstDayOfWeekTs);
-      const date = new Date(selectedFirstDayOfWeek.getFullYear(), selectedFirstDayOfWeek.getMonth(), 1);
-      const yyyymmdd = DateUtils_formatYYYYMMDD(date);
-      const element = document.getElementById(`month-calendar-${yyyymmdd}`);
-      if (element) {
-        element.scrollIntoView({ block: "center" });
-      }
-    }
-  }, [props.firstDayOfWeeks, props.selectedFirstDayOfWeekIndex]);
+export interface IMonthCalendarRef {
+  scrollToSelected: () => void;
+}
 
-  const start = new Date(Math.max(props.firstDayOfWeeks[0], new Date(2015, 1, 1).getTime()));
-  start.setDate(1);
-  const end = new Date(
-    DateUtils_lastDayOfWeekTimestamp(props.firstDayOfWeeks[props.firstDayOfWeeks.length - 1], props.startWeekFromMonday)
-  );
-  end.setDate(1);
-  const months: Date[] = [];
-  const current = new Date(start);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  while (current <= end) {
-    months.push(new Date(current));
-    current.setMonth(current.getMonth() + 1);
+interface IMonthData {
+  month: Date;
+  key: string;
+  dayToHistoryRecords: Partial<Record<number, IHistoryRecord[]>>;
+  numberOfWorkouts: number;
+  numberOfPersonalRecords: number;
+}
+
+export const MonthCalendar = memo(
+  forwardRef<IMonthCalendarRef, IMonthCalendarProps>((props, ref) => {
+    const flatListRef = useRef<FlatList>(null);
+
+    const { months, selectedMonthIndex } = useMemo(() => {
+      const start = new Date(Math.max(props.firstDayOfWeeks[0], new Date(2015, 1, 1).getTime()));
+      start.setDate(1);
+      const end = new Date(props.firstDayOfWeeks[props.firstDayOfWeeks.length - 1]);
+      end.setDate(1);
+
+      const monthToHistoryRecords = props.history.reduce<
+        Partial<Record<string, Partial<Record<number, IHistoryRecord[]>>>>
+      >((acc, record) => {
+        const d = new Date(Date.parse(record.date));
+        d.setDate(1);
+        const monthKey = DateUtils_formatYYYYMMDD(d);
+        acc[monthKey] = acc[monthKey] || {};
+        const day = new Date(Date.parse(record.date)).getDate();
+        acc[monthKey]![day] = acc[monthKey]![day] || [];
+        acc[monthKey]![day]!.push(record);
+        return acc;
+      }, {});
+
+      const result: IMonthData[] = [];
+      const current = new Date(start);
+      while (current <= end) {
+        const key = DateUtils_formatYYYYMMDD(new Date(current));
+        const dayToHistoryRecords = monthToHistoryRecords[key] || {};
+        const historyRecords = CollectionUtils_compact(Object.values(dayToHistoryRecords).flat()).filter(
+          (hr) => !Progress_isCurrent(hr)
+        );
+        result.push({
+          month: new Date(current),
+          key,
+          dayToHistoryRecords,
+          numberOfWorkouts: historyRecords.length,
+          numberOfPersonalRecords: History_getNumberOfPersonalRecords(historyRecords, props.prs),
+        });
+        current.setMonth(current.getMonth() + 1);
+      }
+
+      result.reverse();
+
+      let selectedIdx = 0;
+      const selectedFirstDayOfWeekTs = props.firstDayOfWeeks[props.selectedFirstDayOfWeekIndex];
+      if (selectedFirstDayOfWeekTs != null) {
+        const selectedDate = new Date(selectedFirstDayOfWeekTs);
+        const selectedMonthKey = DateUtils_formatYYYYMMDD(
+          new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1)
+        );
+        const idx = result.findIndex((m) => m.key === selectedMonthKey);
+        if (idx >= 0) {
+          selectedIdx = idx;
+        }
+      }
+
+      return { months: result, selectedMonthIndex: selectedIdx };
+    }, [props.firstDayOfWeeks, props.selectedFirstDayOfWeekIndex, props.startWeekFromMonday, props.history, props.prs]);
+
+    useImperativeHandle(
+      ref,
+      () => ({
+        scrollToSelected: () => {
+          if (flatListRef.current && selectedMonthIndex >= 0) {
+            flatListRef.current.scrollToIndex({ index: selectedMonthIndex, animated: true, viewPosition: 0.5 });
+          }
+        },
+      }),
+      [selectedMonthIndex]
+    );
+
+    const today = DateUtils_formatYYYYMMDD(new Date());
+    const selectedFirstDayOfWeek = props.firstDayOfWeeks[props.selectedFirstDayOfWeekIndex];
+
+    const renderMonth = useCallback(
+      ({ item }: { item: IMonthData }) => (
+        <MonthItem
+          item={item}
+          startWeekFromMonday={props.startWeekFromMonday}
+          selectedFirstDayOfWeek={selectedFirstDayOfWeek}
+          today={today}
+          onClick={props.onClick}
+        />
+      ),
+      [props.startWeekFromMonday, props.onClick, selectedFirstDayOfWeek, today]
+    );
+
+    const keyExtractor = useCallback((item: IMonthData) => item.key, []);
+
+    return (
+      <FlatList
+        ref={flatListRef}
+        data={months}
+        renderItem={renderMonth}
+        keyExtractor={keyExtractor}
+        inverted
+        initialNumToRender={3}
+        maxToRenderPerBatch={3}
+        windowSize={2}
+      />
+    );
+  })
+);
+
+interface IMonthItemProps {
+  item: IMonthData;
+  startWeekFromMonday?: boolean;
+  selectedFirstDayOfWeek: number;
+  today: string;
+  onClick: (historyRecord: IHistoryRecord) => void;
+}
+
+const MonthItem = memo(function MonthItem(props: IMonthItemProps): JSX.Element {
+  const { item, startWeekFromMonday, selectedFirstDayOfWeek, today, onClick } = props;
+  const { month, dayToHistoryRecords, numberOfWorkouts, numberOfPersonalRecords } = item;
+  const year = month.getFullYear();
+  const monthIndex = month.getMonth();
+  const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+  let firstDayOfWeek = month.getDay();
+  if (startWeekFromMonday) {
+    firstDayOfWeek = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
   }
-  const today = DateUtils_formatYYYYMMDD(new Date());
-  const monthToHistoryRecords = props.history.reduce<
-    Partial<Record<string, Partial<Record<string, IHistoryRecord[]>>>>
-  >((acc, record) => {
-    const d = new Date(Date.parse(record.date));
-    d.setDate(1);
-    const month = DateUtils_formatYYYYMMDD(d);
-    acc[month] = acc[month] || {};
-    const day = new Date(Date.parse(record.date)).getDate();
-    acc[month][day] = acc[month][day] || [];
-    acc[month][day].push(record);
-    return acc;
-  }, {});
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto" ref={scrollRef}>
-      <div className="p-3">
-        {months.map((month) => {
-          const year = month.getFullYear();
-          const monthIndex = month.getMonth();
-          const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
-          let firstDayOfWeek = month.getDay();
-          if (props.startWeekFromMonday) {
-            firstDayOfWeek = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
-          }
-
-          const days: number[] = Array.from({ length: daysInMonth }, (_, i) => i + 1);
-          const dayToHistoryRecords = monthToHistoryRecords[DateUtils_formatYYYYMMDD(month)] || {};
-          const historyRecords = CollectionUtils_compact(Object.values(dayToHistoryRecords).flat()).filter(
-            (hr) => !Progress_isCurrent(hr)
-          );
-          const numberOfWorkouts = historyRecords.length;
-          const numberOfPersonalRecords = History_getNumberOfPersonalRecords(historyRecords, props.prs);
+    <View className="px-3 mb-8">
+      <Text className="text-lg font-semibold">
+        {month.toLocaleString("default", { month: "long", year: "numeric" })}
+      </Text>
+      <Text className="text-sm">
+        <Text>
+          {numberOfWorkouts} {StringUtils_pluralize("workout", numberOfWorkouts)}
+        </Text>
+        <Text> {"\u00B7"} </Text>
+        <Text>
+          {"\u{1F3C6}"} {numberOfPersonalRecords} {StringUtils_pluralize("PR", numberOfPersonalRecords)}
+        </Text>
+      </Text>
+      <View className="flex-row flex-wrap mt-2">
+        {Array(firstDayOfWeek)
+          .fill(null)
+          .map((_, i) => (
+            <View key={`empty-${i}`} style={{ width: "14.285%" }} className="items-center justify-center p-2">
+              <View className="w-8 h-8" />
+            </View>
+          ))}
+        {days.map((day) => {
+          const date = new Date(year, monthIndex, day);
+          const yyyymmdd = DateUtils_formatYYYYMMDD(date);
+          const historyRecord = dayToHistoryRecords[day]?.[0];
+          const isWorkout = !!historyRecord && !Progress_isCurrent(historyRecord);
+          const thisFirstDayOfWeek = DateUtils_firstDayOfWeekTimestamp(date, startWeekFromMonday);
+          const isSelectedWeek = selectedFirstDayOfWeek === thisFirstDayOfWeek;
 
           return (
-            <div
-              id={`month-calendar-${DateUtils_formatYYYYMMDD(month)}`}
-              key={DateUtils_formatYYYYMMDD(month)}
-              className="mb-8"
+            <Pressable
+              key={yyyymmdd}
+              style={{
+                width: "14.285%",
+                backgroundColor: isSelectedWeek ? Tailwind_semantic().background.subtle : "transparent",
+              }}
+              className="items-center justify-center p-2"
+              onPress={() => {
+                if (historyRecord != null) {
+                  onClick(historyRecord);
+                }
+              }}
             >
-              <h2 className="text-lg font-semibold">
-                {month.toLocaleString("default", { month: "long", year: "numeric" })}
-              </h2>
-              <div className="text-sm">
-                <span>
-                  {numberOfWorkouts} {StringUtils_pluralize("workout", numberOfWorkouts)}
-                </span>
-                {" · "}
-                <span>
-                  🏆 {numberOfPersonalRecords} {StringUtils_pluralize("PR", numberOfPersonalRecords)}
-                </span>
-              </div>
-              <div className="grid grid-cols-7 mt-2 text-center">
-                {Array(firstDayOfWeek)
-                  .fill(null)
-                  .map((_, i) => (
-                    <div key={`empty-${i}`} className="text-transparent">
-                      .
-                    </div>
-                  ))}
-                {days.map((day) => {
-                  const date = new Date(year, monthIndex, day);
-                  const yyyymmdd = DateUtils_formatYYYYMMDD(date);
-                  const historyRecord = dayToHistoryRecords[day]?.[0];
-                  const isWorkout = !!historyRecord && !Progress_isCurrent(historyRecord);
-                  const selectedFirstDayOfWeek = props.firstDayOfWeeks[props.selectedFirstDayOfWeekIndex];
-                  const thisFirstDayOfWeek = DateUtils_firstDayOfWeekTimestamp(date, props.startWeekFromMonday);
-                  const isSelectedWeek = selectedFirstDayOfWeek === thisFirstDayOfWeek;
-
-                  return (
-                    <div
-                      key={yyyymmdd}
-                      data-first-day-of-week={thisFirstDayOfWeek}
-                      className="flex items-center justify-center text-text-primary p-2"
-                      style={{ background: isSelectedWeek ? Tailwind_semantic().background.subtle : "transparent" }}
-                      onClick={() => {
-                        if (historyRecord != null) {
-                          props.onClick(historyRecord);
-                        }
-                      }}
-                    >
-                      <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          isWorkout
-                            ? "text-text-alwayswhite bg-background-error cursor-pointer"
-                            : date > new Date()
-                              ? "text-text-disabled"
-                              : "text-text-primary cursor-pointer "
-                        } ${yyyymmdd === today ? "border border-button-primarybackground font-bold" : ""}`}
-                      >
-                        {day}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+              <View
+                className={`w-8 h-8 rounded-full items-center justify-center ${
+                  isWorkout ? "bg-background-error" : ""
+                } ${yyyymmdd === today ? "border border-button-primarybackground" : ""}`}
+              >
+                <Text
+                  className={`${
+                    isWorkout ? "text-text-alwayswhite" : date > new Date() ? "text-text-disabled" : "text-text-primary"
+                  } ${yyyymmdd === today ? "font-bold" : ""}`}
+                >
+                  {day}
+                </Text>
+              </View>
+            </Pressable>
           );
         })}
-      </div>
-    </div>
+      </View>
+    </View>
   );
-}, ComparerUtils_noFns);
+});
