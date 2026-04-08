@@ -183,6 +183,12 @@ function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
                   alert("Apple Sign In is not available");
                   return;
                 }
+                window.AppleID.auth.init({
+                  clientId: "com.liftosaur.www.signinapple",
+                  scope: "email",
+                  redirectURI: `${__HOST__}/appleauthcallback.html`,
+                  usePopup: true,
+                });
                 const response = await window.AppleID.auth.signIn();
                 const { id_token, code } = response.authorization;
                 if (id_token != null && code != null) {
