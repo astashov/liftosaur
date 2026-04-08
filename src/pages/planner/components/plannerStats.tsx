@@ -1,4 +1,6 @@
-import { JSX, useState } from "react";
+import { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "../../../components/primitives/text";
 import { IPlannerState, IPlannerUiFocusedExercise, ISetResults, ISetSplit } from "../models/types";
 import { ObjectUtils_keys } from "../../../utils/object";
 import { PlannerWeekMuscles } from "./plannerWeekMuscles";
@@ -6,7 +8,6 @@ import { IExerciseKind } from "../../../models/exercise";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { LinkButton } from "../../../components/linkButton";
 import { lb } from "lens-shmens";
-import { CollectionUtils_sort } from "../../../utils/collection";
 import { IScreenMuscle, ISettings } from "../../../types";
 import { n } from "../../../utils/math";
 import { Muscle_getMuscleGroupName } from "../../../models/muscle";
@@ -25,24 +26,24 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
   const { setResults, settings, frequency, dispatch, focusedExercise, onEditSettings } = props;
   const showLink = !frequency;
   return (
-    <div className="mb-2 text-sm" data-cy="planner-stats">
-      <div>
-        <span className="text-text-secondary">Total Sets:</span> {setResults.total}
-      </div>
-      <div>
-        <span className="text-text-secondary">Strength Sets: </span>
-        <span
+    <View className="mb-2 text-sm" data-cy="planner-stats">
+      <Text>
+        <Text className="text-text-secondary">Total Sets:</Text> {setResults.total}
+      </Text>
+      <Text>
+        <Text className="text-text-secondary">Strength Sets: </Text>
+        <Text
           className={
             props.colorize ? colorPctValue(setResults.total, setResults.strength, settings.planner.strengthSetsPct) : ""
           }
         >
           {setResults.strength}
           {setResults.total > 0 ? `, ${Math.round((setResults.strength * 100) / setResults.total)}%` : ""}
-        </span>
-      </div>
-      <div className="mb-2">
-        <span className="text-text-secondary">Hypertrophy Sets: </span>
-        <span
+        </Text>
+      </Text>
+      <Text className="mb-2">
+        <Text className="text-text-secondary">Hypertrophy Sets: </Text>
+        <Text
           className={
             props.colorize
               ? colorPctValue(setResults.total, setResults.hypertrophy, settings.planner.hypertrophySetsPct)
@@ -51,48 +52,48 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
         >
           {setResults.hypertrophy}
           {setResults.total > 0 ? `, ${Math.round((setResults.hypertrophy * 100) / setResults.total)}%` : ""}
-        </span>
-      </div>
-      <div>
+        </Text>
+      </Text>
+      <Text>
         {labelSet("Upper Sets", showLink, ["upper"], [], dispatch, focusedExercise)}{" "}
         <PlannerSetSplit split={setResults.upper} settings={settings} shouldIncludeFrequency={frequency} />
-      </div>
-      <div>
+      </Text>
+      <Text>
         {labelSet("Lower Sets", showLink, ["lower"], [], dispatch, focusedExercise)}{" "}
         <PlannerSetSplit split={setResults.lower} settings={settings} shouldIncludeFrequency={frequency} />
-      </div>
-      <div>
+      </Text>
+      <Text>
         {labelSet("Core Sets", showLink, ["core"], [], dispatch, focusedExercise)}{" "}
         <PlannerSetSplit split={setResults.core} settings={settings} shouldIncludeFrequency={frequency} />
-      </div>
-      <div>
+      </Text>
+      <Text>
         {labelSet("Push Sets", showLink, ["push"], [], dispatch, focusedExercise)}{" "}
         <PlannerSetSplit split={setResults.push} settings={settings} shouldIncludeFrequency={frequency} />
-      </div>
-      <div>
+      </Text>
+      <Text>
         {labelSet("Pull Sets", showLink, ["pull"], [], dispatch, focusedExercise)}{" "}
         <PlannerSetSplit split={setResults.pull} settings={settings} shouldIncludeFrequency={frequency} />
-      </div>
-      <div className="mb-4">
+      </Text>
+      <Text className="mb-4">
         {labelSet("Legs Sets", showLink, ["legs"], [], dispatch, focusedExercise)}{" "}
         <PlannerSetSplit split={setResults.legs} settings={settings} shouldIncludeFrequency={frequency} />
-      </div>
+      </Text>
 
-      <div className="w-32 mb-2">
+      <View className="w-32 mb-2">
         <PlannerWeekMuscles settings={props.settings} data={setResults.muscleGroup} />
-      </div>
+      </View>
 
       {onEditSettings && (
-        <div className="py-2 text-xs">
+        <View className="py-2 text-xs">
           <LinkButton name="planner-stats-edit-settings" onClick={() => onEditSettings()}>
             Edit Weekly Muscle Range Settings
           </LinkButton>
-        </div>
+        </View>
       )}
 
       {ObjectUtils_keys(setResults.muscleGroup).map((muscleGroup) => {
         return (
-          <div key={muscleGroup}>
+          <Text key={muscleGroup}>
             {labelSet(
               Muscle_getMuscleGroupName(muscleGroup, props.settings),
               showLink,
@@ -107,10 +108,10 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
               shouldIncludeFrequency={frequency}
               muscle={props.colorize ? muscleGroup : undefined}
             />
-          </div>
+          </Text>
         );
       })}
-    </div>
+    </View>
   );
 }
 
@@ -142,7 +143,7 @@ export function labelSet(
       </LinkButton>
     );
   } else {
-    return <span className="text-text-secondary">{label}:</span>;
+    return <Text className="text-text-secondary">{label}:</Text>;
   }
 }
 
@@ -153,7 +154,6 @@ export function PlannerSetSplit(props: {
   muscle?: IScreenMuscle;
 }): JSX.Element {
   const { split, settings, shouldIncludeFrequency, muscle } = props;
-  const [showTooltip, setShowTooltip] = useState(false);
   const total = split.strength + split.hypertrophy;
   const frequency = Object.keys(split.frequency).length;
   const setColor = muscle
@@ -173,32 +173,24 @@ export function PlannerSetSplit(props: {
   const frequencyColor = muscle ? colorThresholdValue(frequency, settings.planner.weeklyFrequency[muscle] ?? 0) : "";
 
   return (
-    <span
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-      onClick={() => setShowTooltip(!showTooltip)}
-    >
-      <span className={`cursor-auto relative ${setColor}`}>
+    <Text>
+      <Text className={setColor}>
         {n(total, 0)}
         {setDirection}
-        {showTooltip && <PlannerStatsTooltip split={split} />}
-      </span>{" "}
+      </Text>{" "}
       {total > 0 && (
-        <>
-          ({split.strength > 0 && <abbr title="Strength Sets Number">{n(split.strength, 0)}s</abbr>}
+        <Text>
+          ({split.strength > 0 && <Text>{n(split.strength, 0)}s</Text>}
           {split.strength > 0 && split.hypertrophy > 0 && ", "}
-          {split.hypertrophy > 0 && <abbr title="Hypertrophy Sets Number">{n(split.hypertrophy, 0)}h</abbr>})
-        </>
+          {split.hypertrophy > 0 && <Text>{n(split.hypertrophy, 0)}h</Text>})
+        </Text>
       )}
       {shouldIncludeFrequency && frequency > 0 && (
-        <>
-          ,{" "}
-          <abbr className={frequencyColor} title="Frequency, days">
-            {Object.keys(split.frequency).length}d
-          </abbr>
-        </>
+        <Text className={frequencyColor}>
+          , {Object.keys(split.frequency).length}d
+        </Text>
       )}
-    </span>
+    </Text>
   );
 }
 
@@ -243,36 +235,3 @@ function colorThresholdValue(value: number, threshold: number): string {
   }
 }
 
-function PlannerStatsTooltip(props: { split: ISetSplit }): JSX.Element | null {
-  const split = props.split;
-  const exercises = CollectionUtils_sort(split.exercises, (a, b) => {
-    if ((a.isSynergist && b.isSynergist) || (!a.isSynergist && !b.isSynergist)) {
-      return a.exerciseName.localeCompare(b.exerciseName);
-    } else if (a.isSynergist) {
-      return 1;
-    } else {
-      return -1;
-    }
-  });
-  if (exercises.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className="absolute z-10 px-3 py-2 text-xs border bg-background-default border-grayv2-400 rounded-xl text-text-primary planner-stats-tooltip">
-      <ul style={{ minWidth: "14rem" }}>
-        {exercises.map((exercise) => {
-          const totalSets = exercise.strengthSets + exercise.hypertrophySets;
-          return (
-            <li
-              key={exercise.exerciseName}
-              className={`font-bold ${exercise.isSynergist ? "text-text-secondary" : "text-text-primary"}`}
-            >
-              {exercise.exerciseName}: {n(totalSets)} ({n(exercise.strengthSets)}s, {n(exercise.hypertrophySets)}h)
-            </li>
-          );
-        })}
-      </ul>
-    </div>
-  );
-}

@@ -1,4 +1,5 @@
 import { JSX } from "react";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import type {
@@ -49,6 +50,7 @@ import {
 } from "./screens/NavScreenMe";
 import { Footer2Wrapper } from "./screens/NavScreenFooter2";
 import { NavModalMonthCalendar } from "./modals/NavModalMonthCalendar";
+import { NavModalWeekInsightsDetails } from "./modals/NavModalWeekInsightsDetails";
 
 const OnboardingStack = createNativeStackNavigator<IOnboardingStackParamList>();
 const HomeStack = createNativeStackNavigator<IHomeStackParamList>();
@@ -178,6 +180,17 @@ export function AppNavigator(): JSX.Element {
         }}
       >
         <RootStack.Screen name="monthCalendarModal" component={NavModalMonthCalendar} />
+      </RootStack.Group>
+      <RootStack.Group
+        screenOptions={{
+          presentation: "formSheet",
+          headerShown: false,
+          animation: "default",
+          sheetAllowedDetents: "fitToContents",
+          contentStyle: { backgroundColor: Tailwind_semantic().background.default },
+        }}
+      >
+        <RootStack.Screen name="weekInsightsDetailsModal" component={NavModalWeekInsightsDetails} />
       </RootStack.Group>
     </RootStack.Navigator>
   );
