@@ -3,16 +3,24 @@ import { IState, updateState } from "../models/state";
 import { IDispatch } from "../ducks/types";
 import { ILensDispatch } from "./useLensReducer";
 import { IUndoRedoState, undoRedoMiddleware } from "../pages/builder/utils/undoredo";
+import { IScreen } from "../models/screen";
 
 export function buildPlannerDispatch<T, S extends IUndoRedoState<T>, O = never>(
   dispatch: IDispatch,
   lensBuilder: LensBuilder<IState, S, {}, O>,
-  plannerState: S
+  plannerState: S,
+  screenName?: IScreen
 ): ILensDispatch<S> {
   const plannerDispatch = (
     lensRecording: ILensRecordingPayload<S> | ILensRecordingPayload<S>[],
     desc: string
   ): void => {
+    if (screenName && window.reducerLastState) {
+      const screenStack = (window.reducerLastState as IState).screenStack;
+      if (!screenStack.some((s) => s.name === screenName)) {
+        return;
+      }
+    }
     const lensRecordings = Array.isArray(lensRecording) ? lensRecording : [lensRecording];
     updateState(
       dispatch,
