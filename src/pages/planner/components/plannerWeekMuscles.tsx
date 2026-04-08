@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { View } from "react-native";
 import { ObjectUtils_keys } from "../../../utils/object";
 import { BackMusclesSvg, IMuscleStyle } from "../../../components/muscles/images/backMusclesSvg";
 import { FrontMusclesSvg } from "../../../components/muscles/images/frontMusclesSvg";
@@ -21,15 +22,13 @@ export function PlannerWeekMuscles(props: IPlannerMusclesProps): JSX.Element {
   }, {});
 
   return (
-    <section className="planner-muscles">
-      <section className="flex">
-        <div className="relative flex-1">
-          <BackMusclesSvg defaultOpacity={0} muscles={muscleData} contour={{ fill: Tailwind_semantic().text.link }} />
-        </div>
-        <div className="relative flex-1">
-          <FrontMusclesSvg defaultOpacity={0} muscles={muscleData} contour={{ fill: Tailwind_semantic().text.link }} />
-        </div>
-      </section>
-    </section>
+    <View className="flex-row">
+      <View className="relative flex-1">
+        <BackMusclesSvg defaultOpacity={0} muscles={muscleData} contour={{ fill: Tailwind_semantic().text.link }} />
+      </View>
+      <View className="relative flex-1">
+        <FrontMusclesSvg defaultOpacity={0} muscles={muscleData} contour={{ fill: Tailwind_semantic().text.link }} />
+      </View>
+    </View>
   );
 }

@@ -180,6 +180,78 @@ const baseHost = "https://local.liftosaur.com:8080";
 // const baseHost = "https://www.liftosaur.com";
 ```
 
+## Modals / Bottom Sheets
+
+### formSheet Has Scroll Glitches
+
+`presentation: "formSheet"` uses iOS `UISheetPresentationController`, which has a gesture recognizer that **conflicts with FlatList/ScrollView scrolling**. Symptoms: first ~30px of scroll is glitchy after the modal opens. The glitch scales with the number of Views in FlatList items (7 day-cells = fine, 14+ = glitch). This is a react-native-screens issue.
+
+**Solution**: Use `presentation: "transparentModal"` with a custom `SheetScreenContainer.native.tsx` that builds the sheet UI manually:
+- `Animated.View` for slide-up/down animation
+- `PanResponder` on the grabber for drag-to-dismiss
+- Semi-transparent overlay with tap-to-dismiss
+- Control height via `useWindowDimensions`
+
+The web version (`SheetScreenContainer.tsx`) uses `createPortal` — incompatible with native. The `.native.tsx` version replaces it entirely.
+
+### CSS Grid Replacement
+
+CSS `grid grid-cols-7` doesn't exist in RN. Use `flexDirection: 'row', flexWrap: 'wrap'` with `width: "14.285%"` per cell:
+
+```tsx
+<View className="flex-row flex-wrap">
+  {days.map((day) => (
+    <View key={day} style={{ width: "14.285%" }} className="items-center justify-center p-2">
+      ...
+    </View>
+  ))}
+</View>
+```
+
+## FlatList scrollToIndex for Distant Items
+
+`scrollToIndex` fails when the target item hasn't been rendered yet. Two approaches:
+
+### Option A: getItemLayout (estimated heights)
+
+Pre-compute estimated heights so FlatList knows every item's position upfront. Then `scrollToIndex` works for any index instantly. Follow with a second `scrollToIndex` after ~200ms to correct to the actual measured position:
+
+```tsx
+const itemLayouts = useMemo(() => {
+  const layouts = [];
+  let offset = 0;
+  for (const item of data) {
+    const length = estimateItemHeight(item);
+    layouts.push({ length, offset });
+    offset += length;
+  }
+  return layouts;
+}, [data]);
+
+// On FlatList:
+getItemLayout={(_, index) => ({ ...itemLayouts[index], index })}
+
+// When scrolling:
+flatListRef.current.scrollToIndex({ index, animated: false });
+setTimeout(() => {
+  flatListRef.current?.scrollToIndex({ index, animated: false });
+}, 200);
+```
+
+### Option B: No getItemLayout
+
+Without `getItemLayout`, `scrollToOffset` is clamped to rendered content size. The `onScrollToIndexFailed` + retry pattern creates loops. Avoid this for long lists.
+
+## Inverted FlatList for Chronological Data
+
+For lists that should show newest-first but display in ascending visual order (oldest at top, newest at bottom), use descending data + `inverted={true}`:
+
+```tsx
+<FlatList data={descendingData} inverted />
+```
+
+This starts the scroll at the bottom (newest item) without needing `initialScrollIndex` or `scrollToEnd`.
+
 ## Turbo Modules (RN 0.84+)
 
 Must use ObjC++ with codegen, not Swift or legacy bridge. See memory `feedback_turbo_modules.md` for details.
