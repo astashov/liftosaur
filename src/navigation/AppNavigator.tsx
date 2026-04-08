@@ -93,6 +93,7 @@ import { NavModalMonthCalendar } from "./modals/NavModalMonthCalendar";
 import { NavModalAccount } from "./modals/NavModalAccount";
 import { NavModalSubscriptionInfo } from "./modals/NavModalSubscriptionInfo";
 import { NavModalWeekInsightsDetails } from "./modals/NavModalWeekInsightsDetails";
+import { NavModalSetSplit } from "./modals/NavModalSetSplit";
 import { NavModalPlannerSettings } from "./modals/NavModalPlannerSettings";
 import { NavModalEditMuscleGroups } from "./modals/NavModalEditMuscleGroups";
 import { NavModalWeekStats } from "./modals/NavModalWeekStats";
@@ -326,6 +327,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="accountModal" component={NavModalAccount} />
           <RootStack.Screen name="subscriptionInfoModal" component={NavModalSubscriptionInfo} />
           <RootStack.Screen name="weekInsightsDetailsModal" component={NavModalWeekInsightsDetails} />
+          <RootStack.Screen name="setSplitModal" component={NavModalSetSplit} />
           <RootStack.Screen name="plannerSettingsModal" component={NavModalPlannerSettings} />
           <RootStack.Screen name="editMuscleGroupsModal" component={NavModalEditMuscleGroups} />
           <RootStack.Screen name="weekStatsModal" component={NavModalWeekStats} />
