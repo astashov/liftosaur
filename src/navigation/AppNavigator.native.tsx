@@ -51,6 +51,7 @@ import {
 import { Footer2Wrapper } from "./screens/NavScreenFooter2";
 import { NavModalMonthCalendar } from "./modals/NavModalMonthCalendar";
 import { NavModalWeekInsightsDetails } from "./modals/NavModalWeekInsightsDetails";
+import { NavModalSetSplit } from "./modals/NavModalSetSplit";
 
 const OnboardingStack = createNativeStackNavigator<IOnboardingStackParamList>();
 const HomeStack = createNativeStackNavigator<IHomeStackParamList>();
@@ -191,6 +192,7 @@ export function AppNavigator(): JSX.Element {
         }}
       >
         <RootStack.Screen name="weekInsightsDetailsModal" component={NavModalWeekInsightsDetails} />
+        <RootStack.Screen name="setSplitModal" component={NavModalSetSplit} />
       </RootStack.Group>
     </RootStack.Navigator>
   );

@@ -11,6 +11,7 @@ import { lb } from "lens-shmens";
 import { IScreenMuscle, ISettings } from "../../../types";
 import { n } from "../../../utils/math";
 import { Muscle_getMuscleGroupName } from "../../../models/muscle";
+import { navigationRef } from "../../../navigation/navigationRef";
 
 interface IPlannerWeekStatsProps {
   setResults: ISetResults;
@@ -172,8 +173,13 @@ export function PlannerSetSplit(props: {
     : "";
   const frequencyColor = muscle ? colorThresholdValue(frequency, settings.planner.weeklyFrequency[muscle] ?? 0) : "";
 
+  const handlePress =
+    split.exercises.length > 0
+      ? () => navigationRef.navigate("setSplitModal", { exercises: split.exercises })
+      : undefined;
+
   return (
-    <Text>
+    <Text onPress={handlePress}>
       <Text className={setColor}>
         {n(total, 0)}
         {setDirection}
