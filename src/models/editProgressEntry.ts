@@ -23,7 +23,7 @@ export function EditProgressEntry_showEditSetModal(
       type: "UpdateProgress",
       lensRecordings: [
         lb<IHistoryRecord>()
-          .pi("ui")
+          .pi("ui", {})
           .p("editSetModal")
           .record({
             programExerciseId: programExercise?.key,
@@ -40,7 +40,7 @@ export function EditProgressEntry_showEditSetModal(
   if (progress.ui?.editSetModal) {
     dispatch({
       type: "UpdateProgress",
-      lensRecordings: [lb<IHistoryRecord>().pi("ui").p("editSetModal").record(undefined)],
+      lensRecordings: [lb<IHistoryRecord>().pi("ui", {}).p("editSetModal").record(undefined)],
       desc: "clear-target-bottomsheet",
     });
     setTimeout(openModal, 0);

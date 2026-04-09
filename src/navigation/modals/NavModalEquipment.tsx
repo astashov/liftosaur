@@ -21,7 +21,7 @@ function NavModalEquipmentWorkout(props: { progressId: number }): JSX.Element {
   const onClose = (): void => {
     updateState(
       dispatch,
-      [Progress_lbProgress(progressId).pi("ui").p("equipmentModal").record(undefined)],
+      [Progress_lbProgress(progressId).pi("ui", {}).p("equipmentModal").record(undefined)],
       "Close equipment modal"
     );
     navigation.goBack();

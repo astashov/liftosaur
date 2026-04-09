@@ -57,7 +57,7 @@ export function WebWorkoutModals(props: IWebWorkoutModalsProps): JSX.Element {
         onClose={() => {
           props.dispatch({
             type: "UpdateProgress",
-            lensRecordings: [lb<IHistoryRecord>().pi("ui").p("editSetModal").record(undefined)],
+            lensRecordings: [lb<IHistoryRecord>().pi("ui", {}).p("editSetModal").record(undefined)],
             desc: "close-bottomsheet-target",
           });
         }}
@@ -67,7 +67,7 @@ export function WebWorkoutModals(props: IWebWorkoutModalsProps): JSX.Element {
           onClose={() =>
             props.dispatch({
               type: "UpdateProgress",
-              lensRecordings: [lb<IHistoryRecord>().pi("ui").p("editModal").record(undefined)],
+              lensRecordings: [lb<IHistoryRecord>().pi("ui", {}).p("editModal").record(undefined)],
               desc: "close-playground-exercise-edit-modal",
             })
           }

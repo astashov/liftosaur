@@ -55,13 +55,13 @@ export function NavModalExercisePicker(): JSX.Element {
 
   const pickerDispatch = buildCustomDispatch(
     dispatch,
-    Progress_lbProgress(progressId).pi("ui").pi("exercisePicker").pi("state")
+    Progress_lbProgress(progressId).pi("ui", {}).pi("exercisePicker").pi("state")
   );
 
   const onClose = (): void => {
     updateState(
       dispatch,
-      [Progress_lbProgress(progressId).pi("ui").p("exercisePicker").record(undefined)],
+      [Progress_lbProgress(progressId).pi("ui", {}).p("exercisePicker").record(undefined)],
       "Close exercise picker"
     );
     navigation.goBack();
@@ -150,7 +150,7 @@ export function NavModalExercisePicker(): JSX.Element {
           }
           updateState(
             dispatch,
-            [Progress_lbProgress(progressId).pi("ui").p("exercisePicker").record(undefined)],
+            [Progress_lbProgress(progressId).pi("ui", {}).p("exercisePicker").record(undefined)],
             "Close exercise picker"
           );
           setTimeout(() => {

@@ -140,7 +140,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                   const openEquipmentModal = () => {
                     updateProgress(
                       props.dispatch,
-                      [lb<IHistoryRecord>().pi("ui").p("equipmentModal").record({ exerciseType: props.entry.exercise })],
+                      [lb<IHistoryRecord>().pi("ui", {}).p("equipmentModal").record({ exerciseType: props.entry.exercise })],
                       "change-equipment"
                     );
                     navigationRef.navigate("equipmentModal", { context: "workout", progressId: props.progress.id });
@@ -148,7 +148,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                   if (props.progress.ui?.equipmentModal) {
                     updateProgress(
                       props.dispatch,
-                      [lb<IHistoryRecord>().pi("ui").p("equipmentModal").record(undefined)],
+                      [lb<IHistoryRecord>().pi("ui", {}).p("equipmentModal").record(undefined)],
                       "clear-equipment"
                     );
                     setTimeout(openEquipmentModal, 0);
@@ -170,7 +170,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                     const openSupersetPicker = () => {
                       updateProgress(
                         props.dispatch,
-                        [lb<IHistoryRecord>().pi("ui").p("showSupersetPicker").record(props.entry)],
+                        [lb<IHistoryRecord>().pi("ui", {}).p("showSupersetPicker").record(props.entry)],
                         "change-superset"
                       );
                       navigationRef.navigate("supersetPickerModal", { progressId: props.progress.id });
@@ -178,7 +178,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                     if (props.progress.ui?.showSupersetPicker) {
                       updateProgress(
                         props.dispatch,
-                        [lb<IHistoryRecord>().pi("ui").p("showSupersetPicker").record(undefined)],
+                        [lb<IHistoryRecord>().pi("ui", {}).p("showSupersetPicker").record(undefined)],
                         "clear-superset"
                       );
                       setTimeout(openSupersetPicker, 0);
@@ -206,7 +206,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                     const openRm1Modal = () => {
                       updateProgress(
                         props.dispatch,
-                        [lb<IHistoryRecord>().pi("ui").p("rm1Modal").record({ exerciseType: props.entry.exercise })],
+                        [lb<IHistoryRecord>().pi("ui", {}).p("rm1Modal").record({ exerciseType: props.entry.exercise })],
                         "change-rm1"
                       );
                       navigationRef.navigate("rm1Modal", { context: "workout", progressId: props.progress.id });
@@ -214,7 +214,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                     if (props.progress.ui?.rm1Modal) {
                       updateProgress(
                         props.dispatch,
-                        [lb<IHistoryRecord>().pi("ui").p("rm1Modal").record(undefined)],
+                        [lb<IHistoryRecord>().pi("ui", {}).p("rm1Modal").record(undefined)],
                         "clear-rm1"
                       );
                       setTimeout(openRm1Modal, 0);
@@ -268,7 +268,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                         props.dispatch,
                         [
                           lb<IHistoryRecord>()
-                            .pi("ui")
+                            .pi("ui", {})
                             .p("exercisePicker")
                             .record({
                               state: {
@@ -288,7 +288,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                     if (props.progress.ui?.exercisePicker) {
                       updateProgress(
                         props.dispatch,
-                        [lb<IHistoryRecord>().pi("ui").p("exercisePicker").record(undefined)],
+                        [lb<IHistoryRecord>().pi("ui", {}).p("exercisePicker").record(undefined)],
                         "clear-swap-exercise"
                       );
                       setTimeout(openExercisePicker, 0);
@@ -311,7 +311,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                     const openSupersetPicker = () => {
                       updateProgress(
                         props.dispatch,
-                        [lb<IHistoryRecord>().pi("ui").p("showSupersetPicker").record(props.entry)],
+                        [lb<IHistoryRecord>().pi("ui", {}).p("showSupersetPicker").record(props.entry)],
                         "kebab-edit-superset"
                       );
                       navigationRef.navigate("supersetPickerModal", { progressId: props.progress.id });
@@ -319,7 +319,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                     if (props.progress.ui?.showSupersetPicker) {
                       updateProgress(
                         props.dispatch,
-                        [lb<IHistoryRecord>().pi("ui").p("showSupersetPicker").record(undefined)],
+                        [lb<IHistoryRecord>().pi("ui", {}).p("showSupersetPicker").record(undefined)],
                         "clear-kebab-superset"
                       );
                       setTimeout(openSupersetPicker, 0);
@@ -359,7 +359,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                             }
                           }),
                         lb<IHistoryRecord>()
-                          .pi("ui")
+                          .pi("ui", {})
                           .p("currentEntryIndex")
                           .recordModify((index) => {
                             return Math.max(0, (index ?? 0) - 1);

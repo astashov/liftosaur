@@ -312,7 +312,7 @@ export function AppView(props: IProps): JSX.Element | null {
           SendMessage_print(`Main app: Marking native notification as scheduled`);
           updateState(
             dispatch,
-            [Progress_lbProgress().pi("ui").p("nativeNotificationScheduled").record(true)],
+            [Progress_lbProgress().pi("ui", {}).p("nativeNotificationScheduled").record(true)],
             "Set native notification scheduled"
           );
         }

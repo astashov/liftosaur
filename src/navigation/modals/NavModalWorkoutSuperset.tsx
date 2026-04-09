@@ -24,7 +24,7 @@ export function NavModalWorkoutSuperset(): JSX.Element {
   const onClose = (): void => {
     updateProgress(
       dispatch,
-      [lb<IHistoryRecord>().pi("ui").p("showSupersetPicker").record(undefined)],
+      [lb<IHistoryRecord>().pi("ui", {}).p("showSupersetPicker").record(undefined)],
       "Close superset picker"
     );
     navigation.goBack();

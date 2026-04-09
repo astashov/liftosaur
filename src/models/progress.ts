@@ -1688,7 +1688,7 @@ export function Progress_forceUpdateEntryIndex(dispatch: IDispatch): void {
     dispatch,
     [
       lb<IHistoryRecord>()
-        .pi("ui")
+        .pi("ui", {})
         .p("forceUpdateEntryIndex")
         .recordModify((v) => !v),
     ],

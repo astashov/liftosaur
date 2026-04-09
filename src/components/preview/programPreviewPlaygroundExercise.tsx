@@ -262,7 +262,7 @@ function PlaygroundExerciseTopBar(props: IPlaygroundExerciseTopBarProps): JSX.El
               type: "UpdateProgress",
               lensRecordings: [
                 lb<IHistoryRecord>()
-                  .pi("ui")
+                  .pi("ui", {})
                   .p("editModal")
                   .record({ programExerciseId: props.programExercise.key, entryIndex: props.index }),
               ],

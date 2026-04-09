@@ -48,7 +48,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
         props.dispatch,
         [
           Progress_lbProgress(progress.id)
-            .pi("ui")
+            .pi("ui", {})
             .p("exercisePicker")
             .record({
               state: {

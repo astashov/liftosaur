@@ -30,7 +30,7 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
   const set = props.editSetModal.set;
   const [enableRpe, setEnableRpe] = useState(set.rpe != null);
   const [enableTimer, setEnableTimer] = useState(set.timer != null);
-  const lbSet = lb<IHistoryRecord>().pi("ui").pi("editSetModal").pi("set");
+  const lbSet = lb<IHistoryRecord>().pi("ui", {}).pi("editSetModal").pi("set");
   const savedRef = useRef(false);
 
   return (
@@ -336,7 +336,7 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
                   .p("sets")
                   .i(props.editSetModal.setIndex ?? 0)
                   .record(newSet),
-                lb<IHistoryRecord>().pi("ui").p("editSetModal").record(undefined),
+                lb<IHistoryRecord>().pi("ui", {}).p("editSetModal").record(undefined),
               ],
               "save-target"
             );

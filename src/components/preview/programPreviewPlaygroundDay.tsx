@@ -123,7 +123,7 @@ function PreviewListOfExercises(props: IPreviewListOfExercisesProps): JSX.Elemen
               onClick={() => {
                 updateProgress(
                   props.dispatch,
-                  [lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(entryIndex)],
+                  [lb<IHistoryRecord>().pi("ui", {}).p("currentEntryIndex").record(entryIndex)],
                   "click-exercise-tab"
                 );
               }}

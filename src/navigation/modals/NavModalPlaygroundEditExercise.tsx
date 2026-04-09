@@ -78,7 +78,7 @@ function NavModalPlaygroundEditExercisePlayground(props: { weekIndex: number; da
           .p("days")
           .pi(dayIndex)
           .p("progress")
-          .pi("ui")
+          .pi("ui", {})
           .p("editModal")
           .record(undefined),
       ],

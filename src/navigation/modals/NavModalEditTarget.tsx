@@ -42,7 +42,7 @@ export function NavModalEditTarget(): JSX.Element {
     if (params.context === "workout") {
       dispatch({
         type: "UpdateProgress",
-        lensRecordings: [lb<IHistoryRecord>().pi("ui").p("editSetModal").record(undefined)],
+        lensRecordings: [lb<IHistoryRecord>().pi("ui", {}).p("editSetModal").record(undefined)],
         desc: "Close edit set modal",
       });
     } else {
@@ -56,7 +56,7 @@ export function NavModalEditTarget(): JSX.Element {
             .p("days")
             .pi(params.dayIndex)
             .p("progress")
-            .pi("ui")
+            .pi("ui", {})
             .p("editSetModal")
             .record(undefined),
         ],

@@ -64,7 +64,7 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
     if (props.program && Program_isEmpty(props.program) && props.progress.entries.length === 0) {
       updateState(
         props.dispatch,
-        [Progress_lbProgress(props.progress.id).pi("ui").p("exercisePicker").record({})],
+        [Progress_lbProgress(props.progress.id).pi("ui", {}).p("exercisePicker").record({})],
         "Open exercise picker on empty program"
       );
     }
@@ -99,9 +99,9 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
           updateProgress(
             props.dispatch,
             [
-              lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(entryIndex),
+              lb<IHistoryRecord>().pi("ui", {}).p("currentEntryIndex").record(entryIndex),
               lb<IHistoryRecord>()
-                .pi("ui")
+                .pi("ui", {})
                 .p("forceUpdateEntryIndex")
                 .recordModify((v) => !v),
             ],
@@ -122,16 +122,16 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
                 if (!props.progress.ui?.isExternal) {
                   updateProgress(
                     props.dispatch,
-                    lb<IHistoryRecord>().pi("ui").p("currentEntryIndex").record(selectedIndex),
+                    lb<IHistoryRecord>().pi("ui", {}).p("currentEntryIndex").record(selectedIndex),
                     "scroll-exercise-tab"
                   );
                 } else {
                   updateProgress(
                     props.dispatch,
                     [
-                      lb<IHistoryRecord>().pi("ui").p("isExternal").record(false),
+                      lb<IHistoryRecord>().pi("ui", {}).p("isExternal").record(false),
                       lb<IHistoryRecord>()
-                        .pi("ui")
+                        .pi("ui", {})
                         .p("forceUpdateEntryIndex")
                         .recordModify((v) => !v),
                     ],
@@ -418,7 +418,7 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
                     props.dispatch,
                     [
                       Progress_lbProgress(props.progress.id)
-                        .pi("ui")
+                        .pi("ui", {})
                         .p("exercisePicker")
                         .record({
                           state: {

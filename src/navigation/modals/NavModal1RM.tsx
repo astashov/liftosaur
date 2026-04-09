@@ -23,7 +23,7 @@ function NavModal1RMWorkout(props: { progressId: number }): JSX.Element {
   const onClose = (): void => {
     updateState(
       dispatch,
-      [Progress_lbProgress(progressId).pi("ui").p("rm1Modal").record(undefined)],
+      [Progress_lbProgress(progressId).pi("ui", {}).p("rm1Modal").record(undefined)],
       "Close 1RM modal"
     );
     navigation.goBack();
