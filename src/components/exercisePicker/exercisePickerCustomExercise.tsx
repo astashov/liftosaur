@@ -55,8 +55,7 @@ export function ExercisePickerCustomExercise(props: IExercisePickerCustomExercis
               name="navbar-save-custom-exercise"
               className="p-2 nm-save-custom-exercise"
               data-cy="custom-exercise-create"
-              onClick={(e) => {
-                e.preventDefault();
+              onClick={() => {
                 props.onChange("upsert", props.exercise, notes);
                 props.onGoBack("Save custom exercise");
               }}

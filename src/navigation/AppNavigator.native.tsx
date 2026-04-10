@@ -52,6 +52,7 @@ import { Footer2Wrapper } from "./screens/NavScreenFooter2";
 import { NavModalMonthCalendar } from "./modals/NavModalMonthCalendar";
 import { NavModalWeekInsightsDetails } from "./modals/NavModalWeekInsightsDetails";
 import { NavModalSetSplit } from "./modals/NavModalSetSplit";
+import { NavModalPlannerSettings } from "./modals/NavModalPlannerSettings";
 
 const OnboardingStack = createNativeStackNavigator<IOnboardingStackParamList>();
 const HomeStack = createNativeStackNavigator<IHomeStackParamList>();
@@ -62,7 +63,7 @@ const MeStack = createNativeStackNavigator<IMeStackParamList>();
 const Tab = createBottomTabNavigator<IRootTabParamList>();
 const RootStack = createNativeStackNavigator<IRootStackParamList>();
 
-const stackScreenOptions = { headerShown: false, animation: "none" as const };
+const stackScreenOptions = { headerShown: false, animation: "none" as const, freezeOnBlur: true };
 
 function OnboardingStackScreen(): JSX.Element {
   return (
@@ -169,7 +170,10 @@ function MainTabsScreen(): JSX.Element {
 
 export function AppNavigator(): JSX.Element {
   return (
-    <RootStack.Navigator screenOptions={{ headerShown: false, animation: "none" }} initialRouteName="mainTabs">
+    <RootStack.Navigator
+      screenOptions={{ headerShown: false, animation: "none", freezeOnBlur: true }}
+      initialRouteName="mainTabs"
+    >
       <RootStack.Screen name="onboarding" component={OnboardingStackScreen} />
       <RootStack.Screen name="mainTabs" component={MainTabsScreen} />
       <RootStack.Screen name="subscription" component={NavScreenSubscription} options={{ headerShown: true }} />
@@ -193,6 +197,7 @@ export function AppNavigator(): JSX.Element {
       >
         <RootStack.Screen name="weekInsightsDetailsModal" component={NavModalWeekInsightsDetails} />
         <RootStack.Screen name="setSplitModal" component={NavModalSetSplit} />
+        <RootStack.Screen name="plannerSettingsModal" component={NavModalPlannerSettings} />
       </RootStack.Group>
     </RootStack.Navigator>
   );

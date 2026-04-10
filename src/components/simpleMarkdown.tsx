@@ -13,11 +13,7 @@ interface IProps {
 
 export function SimpleMarkdown(props: IProps): JSX.Element {
   const tokens = useMemo(() => md.parse(props.value, {}), [props.value]);
-  return (
-    <View className={props.className}>
-      {renderTokens(tokens)}
-    </View>
-  );
+  return <View className={props.className}>{renderTokens(tokens)}</View>;
 }
 
 function renderTokens(tokens: Token[]): JSX.Element[] {
@@ -45,46 +41,42 @@ function renderTokens(tokens: Token[]): JSX.Element[] {
       i += 3;
     } else if (token.type === "bullet_list_open" || token.type === "ordered_list_open") {
       const listItems: JSX.Element[] = [];
-      let ordered = token.type === "ordered_list_open";
+      const ordered = token.type === "ordered_list_open";
       let orderIndex = 1;
-      i++;
+      i += 1;
       while (i < tokens.length && tokens[i].type !== "bullet_list_close" && tokens[i].type !== "ordered_list_close") {
         if (tokens[i].type === "list_item_open") {
-          i++;
+          i += 1;
           if (i < tokens.length && tokens[i].type === "paragraph_open") {
             const inline = tokens[i + 1];
             const bullet = ordered ? `${orderIndex}. ` : "\u2022 ";
             listItems.push(
               <View key={i} className="flex-row pl-2 mb-1">
                 <Text className="text-sm">{bullet}</Text>
-                <Text className="text-sm flex-1">
-                  {inline?.children ? renderInline(inline.children) : null}
-                </Text>
+                <Text className="text-sm flex-1">{inline?.children ? renderInline(inline.children) : null}</Text>
               </View>
             );
-            orderIndex++;
+            orderIndex += 1;
             i += 3;
           }
         } else {
-          i++;
+          i += 1;
         }
       }
       elements.push(<View key={`list-${i}`}>{listItems}</View>);
-      i++;
+      i += 1;
     } else if (token.type === "fence" || token.type === "code_block") {
       elements.push(
         <View key={i} className="bg-background-subtle rounded p-2 mb-2">
           <Text className="text-xs font-mono">{token.content}</Text>
         </View>
       );
-      i++;
+      i += 1;
     } else if (token.type === "hr") {
-      elements.push(
-        <View key={i} className="border-b border-border-neutral my-2" />
-      );
-      i++;
+      elements.push(<View key={i} className="border-b border-border-neutral my-2" />);
+      i += 1;
     } else {
-      i++;
+      i += 1;
     }
   }
   return elements;
@@ -97,20 +89,20 @@ function renderInline(tokens: Token[]): (JSX.Element | string)[] {
     const token = tokens[i];
     if (token.type === "text") {
       elements.push(token.content);
-      i++;
+      i += 1;
     } else if (token.type === "softbreak") {
       elements.push("\n");
-      i++;
+      i += 1;
     } else if (token.type === "hardbreak") {
       elements.push("\n");
-      i++;
+      i += 1;
     } else if (token.type === "code_inline") {
       elements.push(
         <Text key={i} className="bg-background-subtle rounded px-1 text-xs font-mono">
           {token.content}
         </Text>
       );
-      i++;
+      i += 1;
     } else if (token.type === "strong_open") {
       const content = collectInlineUntil(tokens, i + 1, "strong_close");
       elements.push(
@@ -149,7 +141,7 @@ function renderInline(tokens: Token[]): (JSX.Element | string)[] {
       );
       i = content.endIndex + 1;
     } else {
-      i++;
+      i += 1;
     }
   }
   return elements;
@@ -164,7 +156,7 @@ function collectInlineUntil(
   let i = startIndex;
   while (i < tokens.length && tokens[i].type !== closeType) {
     collected.push(tokens[i]);
-    i++;
+    i += 1;
   }
   return { tokens: collected, endIndex: i };
 }

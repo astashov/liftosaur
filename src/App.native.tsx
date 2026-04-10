@@ -1,5 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
+
+if (__DEV__) {
+  const formatTime = (): string => {
+    const now = new Date();
+    const hh = String(now.getHours()).padStart(2, "0");
+    const mm = String(now.getMinutes()).padStart(2, "0");
+    const ss = String(now.getSeconds()).padStart(2, "0");
+    const ms = String(now.getMilliseconds()).padStart(3, "0");
+    return `${hh}:${mm}:${ss}.${ms}`;
+  };
+  const wrap = (orig: (...args: unknown[]) => void) => {
+    return (...args: unknown[]): void => orig(`[${formatTime()}]`, ...args);
+  };
+
+  console.log = wrap(console.log.bind(console));
+
+  console.warn = wrap(console.warn.bind(console));
+
+  console.error = wrap(console.error.bind(console));
+
+  console.info = wrap(console.info.bind(console));
+}
 import { NavigationContainer } from "@react-navigation/native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { reducerWrapper, defaultOnActions, getInitialState, getIdbKey, IAction } from "./ducks/reducer";

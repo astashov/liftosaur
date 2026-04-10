@@ -27,7 +27,6 @@ interface IProps {
   subscription: ISubscription;
   navCommon: INavCommon;
   dispatch: IDispatch;
-  scrollContainerRef?: React.RefObject<any>;
   initialHistoryRecordId?: number;
 }
 

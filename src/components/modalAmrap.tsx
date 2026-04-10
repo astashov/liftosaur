@@ -210,8 +210,7 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
           type="button"
           kind="grayv2"
           className="mr-3"
-          onClick={(e) => {
-            e.preventDefault();
+          onClick={() => {
             onDone();
           }}
         >
@@ -223,8 +222,7 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
           type="submit"
           data-cy="modal-amrap-submit"
           className="ls-modal-set-amrap"
-          onClick={(e) => {
-            e.preventDefault();
+          onClick={() => {
             const amrapValue = isAmrap ? (repsInputValue ?? 0) : undefined;
             const amrapLeftValue = isAmrap && isUnilateral ? (repsLeftInputValue ?? 0) : undefined;
             const rpeValue = logRpe ? rpeInputValue : undefined;

@@ -4,11 +4,12 @@ import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
 import { ModalPlannerSettingsContent } from "../../pages/planner/components/modalPlannerSettings";
 import { IState, updateState } from "../../models/state";
-import { lb } from "lens-shmens";
+import { lb, ILensRecordingPayload } from "lens-shmens";
 import { IPlannerState } from "../../pages/planner/models/types";
 import { buildPlannerDispatch } from "../../utils/plannerDispatch";
 import { navigationRef } from "../navigationRef";
 import type { IRootStackParamList } from "../types";
+import { ISettings } from "../../types";
 
 export function NavModalPlannerSettings(): JSX.Element {
   const { state, dispatch } = useAppState();
@@ -21,9 +22,11 @@ export function NavModalPlannerSettings(): JSX.Element {
   const params = route.params;
   const settings = state.storage.settings;
 
-  const onNewSettings = useCallback(
-    (newSettings: typeof settings) => {
-      updateState(dispatch, [lb<IState>().p("storage").p("settings").record(newSettings)], "Update planner settings");
+  const settingsDispatch = useCallback(
+    (recording: ILensRecordingPayload<ISettings> | ILensRecordingPayload<ISettings>[], desc: string): void => {
+      const recordings = Array.isArray(recording) ? recording : [recording];
+      const stateRecordings = recordings.map((r) => r.prepend(lb<IState>().p("storage").p("settings").get()));
+      updateState(dispatch, stateRecordings, desc);
     },
     [dispatch]
   );
@@ -59,7 +62,7 @@ export function NavModalPlannerSettings(): JSX.Element {
       <ModalPlannerSettingsContent
         inApp={true}
         settings={settings}
-        onNewSettings={onNewSettings}
+        dispatch={settingsDispatch}
         onShowEditMuscleGroups={() => {
           navigationRef.navigate("editMuscleGroupsModal", params);
         }}

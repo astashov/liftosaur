@@ -333,8 +333,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps, _ref): JSX.Element
             <LinkButton
               name="custom-exercise-create"
               data-cy="custom-exercise-create"
-              onClick={(event) => {
-                event.preventDefault();
+              onClick={() => {
                 props.setEditingExercise(undefined);
                 props.setIsCustomExerciseDisplayed(true);
               }}
@@ -466,14 +465,13 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
           onDelete={() => {}}
         />
       </div>
-      <div className="py-4 flex">
+      <div className="flex py-4">
         <div className="flex-1">
           <Button
             name="custom-exercise-cancel"
             kind="grayv2"
             data-cy="custom-exercise-cancel"
-            onClick={(e) => {
-              e.preventDefault();
+            onClick={() => {
               props.setIsCustomExerciseDisplayed(false);
             }}
           >
@@ -485,8 +483,7 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
             name="custom-exercise-create"
             kind="purple"
             data-cy="custom-exercise-create"
-            onClick={(e) => {
-              e.preventDefault();
+            onClick={() => {
               props.onCreateOrUpdate(
                 true,
                 state.name,
