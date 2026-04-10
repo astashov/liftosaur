@@ -609,7 +609,10 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       {state.ui.showSettingsModal && (
         <ModalPlannerSettings
           inApp={false}
-          onNewSettings={(newSettings) => setSettings(newSettings)}
+          dispatch={(recording, _desc) => {
+            const recordings = Array.isArray(recording) ? recording : [recording];
+            setSettings((prev) => recordings.reduce((acc, r) => r.fn(acc), prev));
+          }}
           settings={settings}
           onShowEditMuscleGroups={() => {
             dispatch(lb<IPlannerState>().p("ui").p("showEditMuscleGroups").record(true), "Show muscle groups");

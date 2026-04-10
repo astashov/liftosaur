@@ -47,9 +47,7 @@ export async function IndexedDBUtils_getAllKeys(): Promise<string[]> {
       return [];
     }
     const files = await RNFS.readDir(legacyStorageDir);
-    return files
-      .filter((f) => f.isFile() && f.name.endsWith(".json"))
-      .map((f) => f.name.replace(/\.json$/, ""));
+    return files.filter((f) => f.isFile() && f.name.endsWith(".json")).map((f) => f.name.replace(/\.json$/, ""));
   } catch {
     return [];
   }

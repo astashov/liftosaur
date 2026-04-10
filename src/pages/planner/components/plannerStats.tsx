@@ -11,7 +11,7 @@ import { lb } from "lens-shmens";
 import { IScreenMuscle, ISettings } from "../../../types";
 import { n } from "../../../utils/math";
 import { Muscle_getMuscleGroupName } from "../../../models/muscle";
-import { navigationRef } from "../../../navigation/navigationRef";
+import { getNavigationRef } from "../../../navigation/navUtils";
 
 interface IPlannerWeekStatsProps {
   setResults: ISetResults;
@@ -175,7 +175,10 @@ export function PlannerSetSplit(props: {
 
   const handlePress =
     split.exercises.length > 0
-      ? () => navigationRef.navigate("setSplitModal", { exercises: split.exercises })
+      ? () =>
+          getNavigationRef().then(({ navigationRef }) =>
+            navigationRef.navigate("setSplitModal", { exercises: split.exercises })
+          )
       : undefined;
 
   return (
@@ -192,9 +195,7 @@ export function PlannerSetSplit(props: {
         </Text>
       )}
       {shouldIncludeFrequency && frequency > 0 && (
-        <Text className={frequencyColor}>
-          , {Object.keys(split.frequency).length}d
-        </Text>
+        <Text className={frequencyColor}>, {Object.keys(split.frequency).length}d</Text>
       )}
     </Text>
   );
@@ -240,4 +241,3 @@ function colorThresholdValue(value: number, threshold: number): string {
     return "text-text-error";
   }
 }
-

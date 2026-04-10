@@ -57,17 +57,15 @@ export function WeekCalendar(props: IWeekCalendarProps): JSX.Element {
     [pageWidth]
   );
 
-  const onViewableItemsChanged = useRef(
-    ({ viewableItems }: { viewableItems: Array<{ index: number | null }> }) => {
-      if (viewableItems.length > 0 && viewableItems[0].index != null) {
-        const idx = viewableItems[0].index;
-        const firstDayOfWeek = props.firstDayOfWeeks[idx];
-        if (firstDayOfWeek != null) {
-          props.onSelectFirstDayOfWeek(firstDayOfWeek);
-        }
+  const onViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: Array<{ index: number | null }> }) => {
+    if (viewableItems.length > 0 && viewableItems[0].index != null) {
+      const idx = viewableItems[0].index;
+      const firstDayOfWeek = props.firstDayOfWeeks[idx];
+      if (firstDayOfWeek != null) {
+        props.onSelectFirstDayOfWeek(firstDayOfWeek);
       }
     }
-  ).current;
+  }).current;
 
   const scrollToIndex = useCallback(
     (index: number) => {

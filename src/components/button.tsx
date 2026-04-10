@@ -1,13 +1,13 @@
 import { JSX, ReactNode } from "react";
-import { Pressable } from "react-native";
+import { GestureResponderEvent, Pressable } from "react-native";
 import { Text } from "./primitives/text";
 
 interface IProps {
   buttonSize?: "xs" | "sm" | "md" | "lg" | "lg2";
   kind: "orange" | "purple" | "grayv2" | "red" | "transparent-purple" | "lightpurple" | "lightgrayv3";
   name: string;
-  onPress?: () => void;
-  onClick?: (...args: any[]) => void;
+  onPress?: (e: GestureResponderEvent) => void;
+  onClick?: (e: GestureResponderEvent) => void;
   disabled?: boolean;
   className?: string;
   children?: ReactNode;
@@ -91,11 +91,7 @@ export function Button(props: IProps): JSX.Element {
       testID={testID}
       data-cy={testID}
     >
-      {typeof children === "string" ? (
-        <Text className={textCn}>{children}</Text>
-      ) : (
-        children
-      )}
+      {typeof children === "string" ? <Text className={textCn}>{children}</Text> : children}
     </Pressable>
   );
 }

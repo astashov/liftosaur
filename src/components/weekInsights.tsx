@@ -164,7 +164,9 @@ export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Eleme
       <View>
         <Text>
           <Text className="text-text-secondary">Strength: </Text>
-          <Text className={colorPctValue(setResults.total, setResults.strength, props.settings.planner.strengthSetsPct)}>
+          <Text
+            className={colorPctValue(setResults.total, setResults.strength, props.settings.planner.strengthSetsPct)}
+          >
             {setResults.strength}
             {setResults.total > 0 ? `, ${Math.round((setResults.strength * 100) / setResults.total)}%` : ""}
           </Text>
@@ -174,7 +176,11 @@ export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Eleme
         <Text>
           <Text className="text-text-secondary">Hypertrophy: </Text>
           <Text
-            className={colorPctValue(setResults.total, setResults.hypertrophy, props.settings.planner.hypertrophySetsPct)}
+            className={colorPctValue(
+              setResults.total,
+              setResults.hypertrophy,
+              props.settings.planner.hypertrophySetsPct
+            )}
           >
             {setResults.hypertrophy}
             {setResults.total > 0 ? `, ${Math.round((setResults.hypertrophy * 100) / setResults.total)}%` : ""}

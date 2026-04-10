@@ -123,7 +123,9 @@ export type IRootStackParamList = {
   accountModal: undefined;
   subscriptionInfoModal: { type: "platesCalculator" | "graphs" | "notifications" | "weekInsights" };
   weekInsightsDetailsModal: { selectedFirstDayOfWeek: number };
-  setSplitModal: { exercises: { exerciseName: string; isSynergist: boolean; strengthSets: number; hypertrophySets: number }[] };
+  setSplitModal: {
+    exercises: { exerciseName: string; isSynergist: boolean; strengthSets: number; hypertrophySets: number }[];
+  };
   plannerSettingsModal: { context: "programHistory" } | { context: "editProgram"; programId: string };
   editMuscleGroupsModal: { context: "programHistory" } | { context: "editProgram"; programId: string };
   weekStatsModal: { programId: string };
