@@ -5,7 +5,7 @@ import JWT from "jsonwebtoken";
 import { ISecretsUtil } from "./secrets";
 import { ILimitedUserDao } from "../dao/userDao";
 import { CollectionUtils_sort, CollectionUtils_compact } from "../../src/utils/collection";
-import { ISubscriptionDetailsDao } from "../dao/subscriptionDetailsDao";
+import { ISubscriptionDetailsDao, SubscriptionDetailsDao } from "../dao/subscriptionDetailsDao";
 import { ISubscription } from "../../src/types";
 import { FreeUserDao } from "../dao/freeUserDao";
 import { IDI } from "./di";
@@ -190,6 +190,17 @@ export class Subscriptions {
         }
       }
     }
+    // Fallback: paid users can end up with an empty storage.subscription if the
+    // mobile app hasn't pushed the receipt to the server yet. lftSubscriptionDetails
+    // is written by /api/verifyapplereceipt, so it's the authoritative server-side
+    // record of whether a subscription was ever verified. We trust `expires` but
+    // not `isActive` — the Google monthly/yearly writer in getGoogleVerificationInfo
+    // computes isActive with inverted logic, so `expires > now` is the safe check.
+    const details = (await new SubscriptionDetailsDao(di).getAll([userId]))[0];
+    if (details && details.expires > Date.now()) {
+      this.log.log(`hasSubscription: storage check failed, using lftSubscriptionDetails fallback for ${userId}`);
+      return true;
+    }
     return false;
   }
 
@@ -373,7 +384,7 @@ export class Subscriptions {
           isTrial: json.paymentState === 2,
           isPromo: json.promotionType === 0 || json.promotionType === 1,
           promoCode: json.promotionCode,
-          isActive: json.cancelReason !== null || Number(json.expiryTimeMillis || "0") < Date.now(),
+          isActive: json.cancelReason == null && Number(json.expiryTimeMillis || "0") > Date.now(),
           originalTransactionId: json.linkedPurchaseToken || token,
         };
       }
