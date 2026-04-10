@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { Svg, Path } from "../primitives/svg";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
@@ -10,22 +11,14 @@ interface IProps {
 export function IconArrowUp(props: IProps): JSX.Element {
   const color = props.color || Tailwind_semantic().icon.neutral;
   return (
-    <svg
-      style={props.style}
-      className={props.className}
-      width="13"
-      height="8"
-      viewBox="0 0 13 8"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
+    <Svg style={props.style} width={13} height={8} viewBox="0 0 13 8" fill="none">
+      <Path
         d="M1.5 6.5L6.5 1.5L11.5 6.5"
         stroke={color}
-        strokeWidth="1.5"
+        strokeWidth={1.5}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-    </svg>
+    </Svg>
   );
 }

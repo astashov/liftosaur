@@ -16,8 +16,7 @@ export function ModalImportFromLinkContent(props: { onSubmit: (value?: string) =
             type="button"
             kind="grayv2"
             className="mr-3"
-            onClick={(e) => {
-              e.preventDefault();
+            onClick={() => {
               props.onSubmit(undefined);
             }}
           >
@@ -28,8 +27,7 @@ export function ModalImportFromLinkContent(props: { onSubmit: (value?: string) =
             kind="purple"
             type="submit"
             className="ls-submit-link"
-            onClick={(e) => {
-              e.preventDefault();
+            onClick={() => {
               props.onSubmit(textInput.current?.value);
             }}
           >

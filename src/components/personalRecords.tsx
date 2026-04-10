@@ -123,7 +123,8 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
                       <Text>: </Text>
                       <Text className="font-bold text-text-success">{Weight_display(estimated1RM)}</Text>
                       <Text>
-                        {" "}({Reps_avgUnilateralCompletedReps(item.set) || 0} {"\u00D7"}{" "}
+                        {" "}
+                        ({Reps_avgUnilateralCompletedReps(item.set) || 0} {"\u00D7"}{" "}
                         {Weight_display(
                           item.set.completedWeight ?? item.set.weight ?? Weight_build(0, props.settings.units)
                         )}

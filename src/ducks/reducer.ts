@@ -23,7 +23,6 @@ import {
   Storage_getHistoryRecord,
   Storage_isChanged,
   Storage_updateVersions,
-  Storage_validateAndReportStorage,
 } from "../models/storage";
 import { IScreen, IScreenParams } from "../models/screen";
 import { ILensRecordingPayload, lb } from "lens-shmens";
@@ -552,12 +551,12 @@ export const reducerWrapper =
       newState = { ...newState, storage: { ...newState.storage, _versions: versions } };
     }
 
-    if (!newState.reportedCorruptedStorage && newState.storage !== state.storage) {
-      const validateResult = Storage_validateAndReportStorage(newState.storage);
-      if (!validateResult.success) {
-        newState.reportedCorruptedStorage = true;
-      }
-    }
+    // if (!newState.reportedCorruptedStorage && newState.storage !== state.storage) {
+    //   const validateResult = Storage_validateAndReportStorage(newState.storage);
+    //   if (!validateResult.success) {
+    //     newState.reportedCorruptedStorage = true;
+    //   }
+    // }
 
     if (SendMessage_isIos()) {
       newStorageApproach(state, newState, isStorageChanged);

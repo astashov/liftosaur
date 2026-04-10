@@ -1,126 +1,273 @@
-import type { JSX } from "react";
-import { lf } from "lens-shmens";
+import { memo, useCallback, type JSX } from "react";
+import { View } from "react-native";
+import { Text } from "../../../components/primitives/text";
+import { lb } from "lens-shmens";
 import { GroupHeader } from "../../../components/groupHeader";
-import { Input } from "../../../components/input";
+import { Input, IValidationError } from "../../../components/input";
 import { MenuItemValue } from "../../../components/menuItemEditable";
 import { Modal } from "../../../components/modal";
-import { ISettings, IUnit } from "../../../types";
+import { ISettings, IUnit, IScreenMuscle } from "../../../types";
 import { ObjectUtils_keys, ObjectUtils_fromArray } from "../../../utils/object";
 import { Muscle_getAvailableMuscleGroups, Muscle_getMuscleGroupName } from "../../../models/muscle";
 import { LinkButton } from "../../../components/linkButton";
+import { ILensDispatch } from "../../../utils/useLensReducer";
+import { IEither } from "../../../utils/types";
 
 interface IModalPlannerSettingsProps {
   settings: ISettings;
   inApp: boolean;
   onShowEditMuscleGroups: () => void;
-  onNewSettings: (settings: ISettings) => void;
+  dispatch: ILensDispatch<ISettings>;
   onClose: () => void;
 }
 
+function parseAndClamp(
+  e: IEither<string, Set<IValidationError>>,
+  min?: number,
+  max?: number,
+  isInt: boolean = true
+): number | undefined {
+  if (!e.success) {
+    return undefined;
+  }
+  const value = isInt ? parseInt(e.data, 10) : parseFloat(e.data);
+  if (isNaN(value)) {
+    return undefined;
+  }
+  let clamped = value;
+  if (min != null) {
+    clamped = Math.max(min, clamped);
+  }
+  if (max != null) {
+    clamped = Math.min(max, clamped);
+  }
+  return clamped;
+}
+
 export function ModalPlannerSettingsContent(props: IModalPlannerSettingsProps): JSX.Element {
+  const { dispatch, settings } = props;
+  const availableMuscleGroups = Muscle_getAvailableMuscleGroups(settings);
+
   let allWeeklySetsMin: number | undefined;
   if (
-    ObjectUtils_keys(props.settings.planner.weeklyRangeSets).every(
-      (k) => props.settings.planner.weeklyRangeSets[k]?.[0] === props.settings.planner.weeklyRangeSets.abs?.[0]
+    ObjectUtils_keys(settings.planner.weeklyRangeSets).every(
+      (k) => settings.planner.weeklyRangeSets[k]?.[0] === settings.planner.weeklyRangeSets.abs?.[0]
     )
   ) {
-    allWeeklySetsMin = props.settings.planner.weeklyRangeSets.abs?.[0];
-  } else {
-    allWeeklySetsMin = undefined;
+    allWeeklySetsMin = settings.planner.weeklyRangeSets.abs?.[0];
   }
 
   let allWeeklySetsMax: number | undefined;
   if (
-    ObjectUtils_keys(props.settings.planner.weeklyRangeSets).every(
-      (k) => props.settings.planner.weeklyRangeSets[k]?.[1] === props.settings.planner.weeklyRangeSets.abs?.[1]
+    ObjectUtils_keys(settings.planner.weeklyRangeSets).every(
+      (k) => settings.planner.weeklyRangeSets[k]?.[1] === settings.planner.weeklyRangeSets.abs?.[1]
     )
   ) {
-    allWeeklySetsMax = props.settings.planner.weeklyRangeSets.abs?.[1];
-  } else {
-    allWeeklySetsMax = undefined;
+    allWeeklySetsMax = settings.planner.weeklyRangeSets.abs?.[1];
   }
 
   let allWeeklyFrequency: number | undefined;
   if (
-    ObjectUtils_keys(props.settings.planner.weeklyFrequency).every(
-      (k) => props.settings.planner.weeklyFrequency[k] === props.settings.planner.weeklyFrequency.abs
+    ObjectUtils_keys(settings.planner.weeklyFrequency).every(
+      (k) => settings.planner.weeklyFrequency[k] === settings.planner.weeklyFrequency.abs
     )
   ) {
-    allWeeklyFrequency = props.settings.planner.weeklyFrequency.abs;
-  } else {
-    allWeeklyFrequency = undefined;
+    allWeeklyFrequency = settings.planner.weeklyFrequency.abs;
   }
-  const availableMuscleGroups = Muscle_getAvailableMuscleGroups(props.settings);
+
+  const onUnits = useCallback(
+    (newValue?: string) => {
+      dispatch(
+        lb<ISettings>()
+          .p("units")
+          .record(newValue as IUnit),
+        "Update units"
+      );
+    },
+    [dispatch]
+  );
+
+  const onSynergistMultiplier = useCallback(
+    (e: IEither<string, Set<IValidationError>>) => {
+      const v = parseAndClamp(e, 0, undefined, false);
+      if (v != null) {
+        dispatch(lb<ISettings>().p("planner").p("synergistMultiplier").record(v), "Update synergist");
+      }
+    },
+    [dispatch]
+  );
+
+  const onRestTimer = useCallback(
+    (e: IEither<string, Set<IValidationError>>) => {
+      const v = parseAndClamp(e, 0);
+      if (v != null) {
+        dispatch(lb<ISettings>().p("timers").p("workout").record(v), "Update rest timer");
+      }
+    },
+    [dispatch]
+  );
+
+  const onSetsSplitPreset = useCallback(
+    (newValue?: string) => {
+      if (newValue === "strength") {
+        dispatch(
+          [
+            lb<ISettings>().p("planner").p("strengthSetsPct").record(70),
+            lb<ISettings>().p("planner").p("hypertrophySetsPct").record(30),
+          ],
+          "Strength preset"
+        );
+      } else if (newValue === "hypertrophy") {
+        dispatch(
+          [
+            lb<ISettings>().p("planner").p("strengthSetsPct").record(30),
+            lb<ISettings>().p("planner").p("hypertrophySetsPct").record(70),
+          ],
+          "Hypertrophy preset"
+        );
+      }
+    },
+    [dispatch]
+  );
+
+  const onStrengthPct = useCallback(
+    (e: IEither<string, Set<IValidationError>>) => {
+      const v = parseAndClamp(e, 0, 100);
+      if (v != null) {
+        dispatch(lb<ISettings>().p("planner").p("strengthSetsPct").record(v), "Update strength %");
+      }
+    },
+    [dispatch]
+  );
+
+  const onHypertrophyPct = useCallback(
+    (e: IEither<string, Set<IValidationError>>) => {
+      const v = parseAndClamp(e, 0, 100);
+      if (v != null) {
+        dispatch(lb<ISettings>().p("planner").p("hypertrophySetsPct").record(v), "Update hypertrophy %");
+      }
+    },
+    [dispatch]
+  );
+
+  const onMuscleGroupsPreset = useCallback(
+    (newValue?: string) => {
+      const presets: Record<string, [[number, number], number]> = {
+        novice: [[10, 12], 2],
+        intermediate: [[13, 15], 3],
+        advanced: [[16, 20], 4],
+      };
+      const preset = newValue && presets[newValue];
+      if (preset) {
+        const [range, freq] = preset;
+        dispatch(
+          [
+            lb<ISettings>()
+              .p("planner")
+              .p("weeklyRangeSets")
+              .record(ObjectUtils_fromArray(availableMuscleGroups.map((e) => [e, range]))),
+            lb<ISettings>()
+              .p("planner")
+              .p("weeklyFrequency")
+              .record(ObjectUtils_fromArray(availableMuscleGroups.map((e) => [e, freq]))),
+          ],
+          `${newValue} preset`
+        );
+      }
+    },
+    [dispatch, availableMuscleGroups]
+  );
+
+  const onChangeAllMin = useCallback(
+    (e: IEither<string, Set<IValidationError>>) => {
+      const v = parseAndClamp(e, 0);
+      if (v != null) {
+        const newValues = ObjectUtils_fromArray(
+          availableMuscleGroups.map((mg) => [
+            mg,
+            [v, settings.planner.weeklyRangeSets[mg]?.[1] ?? 0] as [number, number],
+          ])
+        );
+        dispatch(lb<ISettings>().p("planner").p("weeklyRangeSets").record(newValues), "Change all min");
+      }
+    },
+    [dispatch, availableMuscleGroups, settings.planner.weeklyRangeSets]
+  );
+
+  const onChangeAllMax = useCallback(
+    (e: IEither<string, Set<IValidationError>>) => {
+      const v = parseAndClamp(e, 0);
+      if (v != null) {
+        const newValues = ObjectUtils_fromArray(
+          availableMuscleGroups.map((mg) => [
+            mg,
+            [settings.planner.weeklyRangeSets[mg]?.[0] ?? 0, v] as [number, number],
+          ])
+        );
+        dispatch(lb<ISettings>().p("planner").p("weeklyRangeSets").record(newValues), "Change all max");
+      }
+    },
+    [dispatch, availableMuscleGroups, settings.planner.weeklyRangeSets]
+  );
+
+  const onChangeAllFreq = useCallback(
+    (e: IEither<string, Set<IValidationError>>) => {
+      const v = parseAndClamp(e, 0);
+      if (v != null) {
+        const newValues = ObjectUtils_fromArray(availableMuscleGroups.map((mg) => [mg, v]));
+        dispatch(lb<ISettings>().p("planner").p("weeklyFrequency").record(newValues), "Change all freq");
+      }
+    },
+    [dispatch, availableMuscleGroups]
+  );
 
   return (
-    <>
+    <View className="pt-4 pb-6">
       <GroupHeader size="large" name="Muscle Settings" />
-      <form className="mt-2" style={{ minWidth: props.inApp ? "auto" : "32rem" }}>
+      <View className="mt-2" style={!props.inApp ? { minWidth: 512 } : undefined}>
         {!props.inApp && (
-          <div className="mb-1">
-            <label>
-              <span className="mr-2">Units:</span>
+          <View className="mb-1">
+            <View className="flex-row items-center">
+              <Text className="mr-2">Units:</Text>
               <MenuItemValue
                 name="Sets split preset"
                 setPatternError={() => undefined}
                 type="desktop-select"
-                value={props.settings.units}
+                value={settings.units}
                 values={[
                   ["lb", "lb"],
                   ["kg", "kg"],
                 ]}
-                onChange={(newValue) => {
-                  props.onNewSettings(
-                    lf(props.settings)
-                      .p("units")
-                      .set(newValue as IUnit)
-                  );
-                }}
+                onChange={onUnits}
               />
-            </label>
-          </div>
+            </View>
+          </View>
         )}
-        <div className="flex mb-2" style={{ gap: "1rem" }}>
+        <View className="flex-row mb-2" style={{ gap: props.inApp ? 4 : 16 }}>
           {!props.inApp && (
-            <div className="flex-1">
+            <View className="flex-1">
               <Input
                 label="Rest Timer"
                 min={0}
                 type="number"
-                value={props.settings.timers.workout ?? 180}
-                changeHandler={(e) => {
-                  if (e.success) {
-                    const value = parseInt(e.data, 10);
-                    if (!isNaN(value)) {
-                      const clampedValue = Math.max(0, value);
-                      props.onNewSettings(lf(props.settings).p("timers").p("workout").set(clampedValue));
-                    }
-                  }
-                }}
+                value={settings.timers.workout ?? 180}
+                changeHandler={onRestTimer}
               />
-            </div>
+            </View>
           )}
-          <div className="flex-1 min-w-0">
+          <View className="flex-1">
             <Input
               label="Synergist multiplier"
               min={0}
               type="number"
-              value={props.settings.planner.synergistMultiplier}
-              changeHandler={(e) => {
-                if (e.success) {
-                  const value = parseFloat(e.data);
-                  if (!isNaN(value)) {
-                    const clampedValue = Math.max(0, value);
-                    props.onNewSettings(lf(props.settings).p("planner").p("synergistMultiplier").set(clampedValue));
-                  }
-                }
-              }}
+              value={settings.planner.synergistMultiplier}
+              changeHandler={onSynergistMultiplier}
             />
-          </div>
-        </div>
-        <div className="mt-4 mb-1">
-          <label>
-            <span className="mr-2">Sets split preset:</span>
+          </View>
+        </View>
+        <View className="mt-4 mb-1">
+          <View className="flex-row items-center">
+            <Text className="mr-2">Sets split preset:</Text>
             <MenuItemValue
               name="Sets split preset"
               setPatternError={() => undefined}
@@ -131,80 +278,41 @@ export function ModalPlannerSettingsContent(props: IModalPlannerSettingsProps): 
                 ["strength", "Strength"],
                 ["hypertrophy", "Hypertrophy"],
               ]}
-              onChange={(newValue) => {
-                if (newValue === "strength") {
-                  props.onNewSettings(
-                    lf(lf(props.settings).p("planner").p("strengthSetsPct").set(70))
-                      .p("planner")
-                      .p("hypertrophySetsPct")
-                      .set(30)
-                  );
-                } else if (newValue === "hypertrophy") {
-                  props.onNewSettings(
-                    lf(lf(props.settings).p("planner").p("strengthSetsPct").set(30))
-                      .p("planner")
-                      .p("hypertrophySetsPct")
-                      .set(70)
-                  );
-                }
-              }}
+              onChange={onSetsSplitPreset}
             />
-          </label>
-        </div>
-        <div className="flex flex-col mb-2 sm:flex-row" style={{ gap: props.inApp ? "0.25rem" : "1rem" }}>
-          <div className="flex-1">
+          </View>
+        </View>
+        <View className="flex-row mb-2" style={{ gap: props.inApp ? 4 : 16 }}>
+          <View className="flex-1">
             <Input
               label="Strength sets %"
               min={0}
               max={100}
               type="number"
-              value={props.settings.planner.strengthSetsPct}
-              changeHandler={(e) => {
-                if (e.success) {
-                  const value = parseInt(e.data, 10);
-                  if (!isNaN(value)) {
-                    const clampedValue = Math.min(100, Math.max(0, value));
-                    props.onNewSettings(lf(props.settings).p("planner").p("strengthSetsPct").set(clampedValue));
-                  }
-                }
-              }}
+              value={settings.planner.strengthSetsPct}
+              changeHandler={onStrengthPct}
             />
-          </div>
-          <div className="flex-1">
+          </View>
+          <View className="flex-1">
             <Input
               label="Hypertrophy sets %"
               min={0}
               max={100}
               type="number"
-              value={props.settings.planner.hypertrophySetsPct}
-              changeHandler={(e) => {
-                if (e.success) {
-                  const value = parseInt(e.data, 10);
-                  if (!isNaN(value)) {
-                    const clampedValue = Math.min(100, Math.max(0, value));
-                    props.onNewSettings(lf(props.settings).p("planner").p("hypertrophySetsPct").set(clampedValue));
-                  }
-                }
-              }}
+              value={settings.planner.hypertrophySetsPct}
+              changeHandler={onHypertrophyPct}
             />
-          </div>
-        </div>
-        <div className="mt-8 text-base font-bold">Weekly Sets Per Muscle Group</div>
-        <div className="mb-2 leading-none">
-          <LinkButton
-            className="text-xs"
-            name="planner-settings-muscle-groups"
-            onClick={(e) => {
-              e.preventDefault();
-              props.onShowEditMuscleGroups();
-            }}
-          >
+          </View>
+        </View>
+        <Text className="mt-8 text-base font-bold">Weekly Sets Per Muscle Group</Text>
+        <View className="mb-2">
+          <LinkButton className="text-xs" name="planner-settings-muscle-groups" onPress={props.onShowEditMuscleGroups}>
             Edit Muscle Groups
           </LinkButton>
-        </div>
-        <div className="mb-1">
-          <label>
-            <span className="mr-2">Muscle Groups sets preset:</span>
+        </View>
+        <View className="mb-1">
+          <View className="flex-row items-center">
+            <Text className="mr-2">Muscle Groups sets preset:</Text>
             <MenuItemValue
               name="Sets split preset"
               setPatternError={() => undefined}
@@ -216,194 +324,135 @@ export function ModalPlannerSettingsContent(props: IModalPlannerSettingsProps): 
                 ["intermediate", "Intermediate"],
                 ["advanced", "Advanced"],
               ]}
-              onChange={(newValue) => {
-                if (newValue === "novice") {
-                  let newSettings = lf(props.settings)
-                    .p("planner")
-                    .p("weeklyRangeSets")
-                    .set(ObjectUtils_fromArray(availableMuscleGroups.map((e) => [e, [10, 12]])));
-                  newSettings = lf(newSettings)
-                    .p("planner")
-                    .p("weeklyFrequency")
-                    .set(ObjectUtils_fromArray(availableMuscleGroups.map((e) => [e, 2])));
-                  props.onNewSettings(newSettings);
-                } else if (newValue === "intermediate") {
-                  let newSettings = lf(props.settings)
-                    .p("planner")
-                    .p("weeklyRangeSets")
-                    .set(ObjectUtils_fromArray(availableMuscleGroups.map((e) => [e, [13, 15]])));
-                  newSettings = lf(newSettings)
-                    .p("planner")
-                    .p("weeklyFrequency")
-                    .set(ObjectUtils_fromArray(availableMuscleGroups.map((e) => [e, 3])));
-                  props.onNewSettings(newSettings);
-                } else if (newValue === "advanced") {
-                  let newSettings = lf(props.settings)
-                    .p("planner")
-                    .p("weeklyRangeSets")
-                    .set(ObjectUtils_fromArray(availableMuscleGroups.map((e) => [e, [16, 20]])));
-                  newSettings = lf(newSettings)
-                    .p("planner")
-                    .p("weeklyFrequency")
-                    .set(ObjectUtils_fromArray(availableMuscleGroups.map((e) => [e, 4])));
-                  props.onNewSettings(newSettings);
-                }
-              }}
+              onChange={onMuscleGroupsPreset}
             />
-          </label>
-        </div>
-        <ul>
-          <li className={`${!props.inApp ? "flex" : ""} flex-col items-start mb-2 sm:items-center sm:flex-row`}>
-            <div className="w-32 text-sm font-bold text-redv2-700 sm:text-base">Change All</div>
-            <div className="flex flex-1" style={{ gap: "0.5rem" }}>
-              <div className="min-w-0" style={{ flex: 2 }}>
+          </View>
+        </View>
+        <View>
+          <View className={`${!props.inApp ? "flex-row" : ""} items-start mb-2`}>
+            <Text className="w-32 text-sm font-bold text-text-error">Change All</Text>
+            <View className="flex-row flex-1" style={{ gap: 8 }}>
+              <View className="flex-1">
                 <Input
                   label="Min"
                   min={0}
                   labelSize="xs"
                   type="number"
                   value={allWeeklySetsMin}
-                  changeHandler={(e) => {
-                    if (e.success) {
-                      const value = parseInt(e.data, 10);
-                      if (!isNaN(value)) {
-                        const clampedValue = Math.max(0, value);
-                        const newValues = ObjectUtils_fromArray(
-                          availableMuscleGroups.map((v) => [
-                            v,
-                            [clampedValue, props.settings.planner.weeklyRangeSets[v]?.[1] ?? 0] as [number, number],
-                          ])
-                        );
-                        props.onNewSettings(lf(props.settings).p("planner").p("weeklyRangeSets").set(newValues));
-                      }
-                    }
-                  }}
+                  changeHandler={onChangeAllMin}
                 />
-              </div>
-              <div className="min-w-0" style={{ flex: 2 }}>
+              </View>
+              <View className="flex-1">
                 <Input
                   label="Max"
                   min={0}
                   labelSize="xs"
                   type="number"
                   value={allWeeklySetsMax}
-                  changeHandler={(e) => {
-                    if (e.success) {
-                      const value = parseInt(e.data, 10);
-                      if (!isNaN(value)) {
-                        const clampedValue = Math.max(0, value);
-                        const newValues = ObjectUtils_fromArray(
-                          availableMuscleGroups.map((v) => [
-                            v,
-                            [props.settings.planner.weeklyRangeSets[v]?.[0] ?? 0, clampedValue] as [number, number],
-                          ])
-                        );
-                        props.onNewSettings(lf(props.settings).p("planner").p("weeklyRangeSets").set(newValues));
-                      }
-                    }
-                  }}
+                  changeHandler={onChangeAllMax}
                 />
-              </div>
-              <div className="min-w-0" style={{ flex: 3 }}>
+              </View>
+              <View style={{ flex: 1.5 }}>
                 <Input
                   label="Freq, days"
                   labelSize="xs"
                   min={0}
                   type="number"
                   value={allWeeklyFrequency}
-                  changeHandler={(e) => {
-                    if (e.success) {
-                      const value = parseInt(e.data, 10);
-                      if (!isNaN(value)) {
-                        const clampedValue = Math.max(0, value);
-                        const newValues = ObjectUtils_fromArray(availableMuscleGroups.map((v) => [v, clampedValue]));
-                        props.onNewSettings(lf(props.settings).p("planner").p("weeklyFrequency").set(newValues));
-                      }
-                    }
-                  }}
+                  changeHandler={onChangeAllFreq}
                 />
-              </div>
-            </div>
-          </li>
+              </View>
+            </View>
+          </View>
           {availableMuscleGroups.map((muscleGroup) => {
             return (
-              <li
+              <MuscleGroupRow
                 key={muscleGroup}
-                className={`${!props.inApp ? "flex" : ""} flex-col items-start mb-2 sm:items-center sm:flex-row`}
-              >
-                <div className="w-32 text-xs font-bold sm:text-sm">
-                  {Muscle_getMuscleGroupName(muscleGroup, props.settings)}
-                </div>
-                <div className="flex flex-1" style={{ gap: "0.5rem" }}>
-                  <div className="min-w-0" style={{ flex: 2 }}>
-                    <Input
-                      label="Min"
-                      min={0}
-                      type="number"
-                      labelSize="xs"
-                      value={props.settings.planner.weeklyRangeSets[muscleGroup]?.[0]}
-                      changeHandler={(e) => {
-                        if (e.success) {
-                          const value = parseInt(e.data, 10);
-                          if (!isNaN(value)) {
-                            const clampedValue = Math.max(0, value);
-                            props.onNewSettings(
-                              lf(props.settings).p("planner").p("weeklyRangeSets").p(muscleGroup).i(0).set(clampedValue)
-                            );
-                          }
-                        }
-                      }}
-                    />
-                  </div>
-                  <div className="min-w-0" style={{ flex: 2 }}>
-                    <Input
-                      label="Max"
-                      labelSize="xs"
-                      min={0}
-                      type="number"
-                      value={props.settings.planner.weeklyRangeSets[muscleGroup]?.[1]}
-                      changeHandler={(e) => {
-                        if (e.success) {
-                          const value = parseInt(e.data, 10);
-                          if (!isNaN(value)) {
-                            const clampedValue = Math.max(0, value);
-                            props.onNewSettings(
-                              lf(props.settings).p("planner").p("weeklyRangeSets").p(muscleGroup).i(1).set(clampedValue)
-                            );
-                          }
-                        }
-                      }}
-                    />
-                  </div>
-                  <div className="min-w-0" style={{ flex: 3 }}>
-                    <Input
-                      label="Freq, days"
-                      min={0}
-                      labelSize="xs"
-                      type="number"
-                      value={props.settings.planner.weeklyFrequency[muscleGroup]}
-                      changeHandler={(e) => {
-                        if (e.success) {
-                          const value = parseInt(e.data, 10);
-                          if (!isNaN(value)) {
-                            const clampedValue = Math.max(0, value);
-                            props.onNewSettings(
-                              lf(props.settings).p("planner").p("weeklyFrequency").p(muscleGroup).set(clampedValue)
-                            );
-                          }
-                        }
-                      }}
-                    />
-                  </div>
-                </div>
-              </li>
+                muscleGroup={muscleGroup}
+                muscleGroupName={Muscle_getMuscleGroupName(muscleGroup, settings)}
+                min={settings.planner.weeklyRangeSets[muscleGroup]?.[0]}
+                max={settings.planner.weeklyRangeSets[muscleGroup]?.[1]}
+                freq={settings.planner.weeklyFrequency[muscleGroup]}
+                inApp={props.inApp}
+                dispatch={dispatch}
+              />
             );
           })}
-        </ul>
-      </form>
-    </>
+        </View>
+      </View>
+    </View>
   );
 }
+
+interface IMuscleGroupRowProps {
+  muscleGroup: IScreenMuscle;
+  muscleGroupName: string;
+  min: number | undefined;
+  max: number | undefined;
+  freq: number | undefined;
+  inApp: boolean;
+  dispatch: ILensDispatch<ISettings>;
+}
+
+const MuscleGroupRow = memo(function MuscleGroupRow(props: IMuscleGroupRowProps): JSX.Element {
+  const { muscleGroup, dispatch } = props;
+
+  const onMin = useCallback(
+    (e: IEither<string, Set<IValidationError>>) => {
+      const v = parseAndClamp(e, 0);
+      if (v != null) {
+        dispatch(
+          lb<ISettings>().p("planner").p("weeklyRangeSets").p(muscleGroup).i(0).record(v),
+          `Update ${muscleGroup} min`
+        );
+      }
+    },
+    [dispatch, muscleGroup]
+  );
+
+  const onMax = useCallback(
+    (e: IEither<string, Set<IValidationError>>) => {
+      const v = parseAndClamp(e, 0);
+      if (v != null) {
+        dispatch(
+          lb<ISettings>().p("planner").p("weeklyRangeSets").p(muscleGroup).i(1).record(v),
+          `Update ${muscleGroup} max`
+        );
+      }
+    },
+    [dispatch, muscleGroup]
+  );
+
+  const onFreq = useCallback(
+    (e: IEither<string, Set<IValidationError>>) => {
+      const v = parseAndClamp(e, 0);
+      if (v != null) {
+        dispatch(
+          lb<ISettings>().p("planner").p("weeklyFrequency").p(muscleGroup).record(v),
+          `Update ${muscleGroup} freq`
+        );
+      }
+    },
+    [dispatch, muscleGroup]
+  );
+
+  return (
+    <View className={`${!props.inApp ? "flex-row" : ""} items-start mb-2`}>
+      <Text className="w-32 text-xs font-bold">{props.muscleGroupName}</Text>
+      <View className="flex-row flex-1" style={{ gap: 8 }}>
+        <View className="flex-1">
+          <Input label="Min" min={0} type="number" labelSize="xs" value={props.min} changeHandler={onMin} />
+        </View>
+        <View className="flex-1">
+          <Input label="Max" labelSize="xs" min={0} type="number" value={props.max} changeHandler={onMax} />
+        </View>
+        <View style={{ flex: 1.5 }}>
+          <Input label="Freq, days" min={0} labelSize="xs" type="number" value={props.freq} changeHandler={onFreq} />
+        </View>
+      </View>
+    </View>
+  );
+});
 
 export function ModalPlannerSettings(props: IModalPlannerSettingsProps): JSX.Element {
   return (
