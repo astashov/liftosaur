@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { View } from "react-native";
 import { IDispatch } from "../ducks/types";
 import { Lens, lb } from "lens-shmens";
 import { MenuItemEditable } from "./menuItemEditable";
@@ -32,44 +33,42 @@ export function ScreenTimers(props: IProps): JSX.Element {
   useNavOptions({ navTitle: "Rest Timers", navHelpContent: <HelpTimers /> });
 
   return (
-    <>
-      <section className="px-4">
-        <GroupHeader name="Rest Timers between sets" />
-        <MenuItemEditable
-          name="Warmup"
-          type="number"
-          value={props.timers.warmup?.toString() || undefined}
-          valueUnits="sec"
-          onChange={onChange("warmup")}
-        />
-        <MenuItemEditable
-          name="Workout"
-          type="number"
-          value={props.timers.workout?.toString() || undefined}
-          valueUnits="sec"
-          onChange={onChange("workout")}
-        />
-        <MenuItemEditable
-          name="Superset"
-          type="number"
-          value={props.timers.superset?.toString()}
-          valueUnits="sec"
-          onChange={onChange("superset")}
-        />
-        {((SendMessage_isIos() && SendMessage_iosVersion() >= 10) ||
-          (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 19)) && (
-          <>
-            <GroupHeader name="Reminders" topPadding={true} />
-            <MenuItemEditable
-              name="About ongoing workout"
-              type="number"
-              value={props.timers.reminder?.toString() || undefined}
-              valueUnits="sec"
-              onChange={onChange("reminder")}
-            />
-          </>
-        )}
-      </section>
-    </>
+    <View className="px-4">
+      <GroupHeader name="Rest Timers between sets" />
+      <MenuItemEditable
+        name="Warmup"
+        type="number"
+        value={props.timers.warmup?.toString() || undefined}
+        valueUnits="sec"
+        onChange={onChange("warmup")}
+      />
+      <MenuItemEditable
+        name="Workout"
+        type="number"
+        value={props.timers.workout?.toString() || undefined}
+        valueUnits="sec"
+        onChange={onChange("workout")}
+      />
+      <MenuItemEditable
+        name="Superset"
+        type="number"
+        value={props.timers.superset?.toString()}
+        valueUnits="sec"
+        onChange={onChange("superset")}
+      />
+      {((SendMessage_isIos() && SendMessage_iosVersion() >= 10) ||
+        (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 19)) && (
+        <>
+          <GroupHeader name="Reminders" topPadding={true} />
+          <MenuItemEditable
+            name="About ongoing workout"
+            type="number"
+            value={props.timers.reminder?.toString() || undefined}
+            valueUnits="sec"
+            onChange={onChange("reminder")}
+          />
+        </>
+      )}
+    </View>
   );
 }
