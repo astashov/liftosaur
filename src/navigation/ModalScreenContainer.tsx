@@ -48,12 +48,6 @@ export function ModalScreenContainer(props: IProps): JSX.Element {
             props.overflowHidden ? "overflow-hidden" : "overflow-auto"
           } ${props.innerClassName ?? ""}`}
         >
-          <div
-            className="absolute top-1 left-1 px-1 text-xs font-bold rounded bg-purple-500 text-white opacity-50"
-            style={{ fontSize: "8px", zIndex: 100 }}
-          >
-            NAV
-          </div>
           {props.children}
         </div>
         {props.shouldShowClose !== false && (
