@@ -1,6 +1,7 @@
-import { JSX, Dispatch, ReactNode, SetStateAction } from "react";
-import { Pressable, ActionSheetIOS } from "react-native";
+import { JSX, Dispatch, ReactNode, SetStateAction, useRef, useEffect } from "react";
+import { View, Pressable, ActionSheetIOS, Switch, TextInput } from "react-native";
 import { Text } from "./primitives/text";
+import { MenuItemWrapper } from "./menuItem";
 
 type IMenuItemType = "text" | "number" | "select" | "boolean" | "desktop-select" | "select2";
 
@@ -31,21 +32,45 @@ interface IMenuItemEditableProps extends IMenuItemEditableValueProps {
 
 export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
   return (
-    <MenuItemValue
-      name={props.name}
-      type={props.type}
-      value={props.value}
-      values={props.values}
-      onChange={props.onChange}
-      setPatternError={() => undefined}
-    />
+    <MenuItemWrapper name={props.name} isBorderless={props.isBorderless}>
+      <View className="flex-row items-center py-3">
+        {props.prefix}
+        <View className="flex-1 pr-2">
+          <Text
+            className={`${props.size === "sm" ? "text-sm" : "text-base"} ${
+              props.isNameBold ? "font-bold" : ""
+            } text-text-primary`}
+          >
+            {props.name}
+          </Text>
+          {props.underName}
+        </View>
+        <View className="items-end">
+          <MenuItemValue
+            name={props.name}
+            maxLength={props.maxLength}
+            type={props.type}
+            value={props.value}
+            values={props.values}
+            setPatternError={() => undefined}
+            onChange={props.onChange}
+          />
+        </View>
+        {props.value != null && props.valueUnits && (
+          <Text className="text-text-secondary ml-1">{props.valueUnits}</Text>
+        )}
+        {props.after}
+      </View>
+      {props.errorMessage && <Text className="text-xs text-right text-red-500">{props.errorMessage}</Text>}
+      {props.nextLine}
+    </MenuItemWrapper>
   );
 }
 
 export function MenuItemValue(
   props: { setPatternError: Dispatch<SetStateAction<boolean>> } & IMenuItemEditableValueProps
 ): JSX.Element | null {
-  if (props.type === "desktop-select") {
+  if (props.type === "desktop-select" || props.type === "select" || props.type === "select2") {
     const currentLabel = (props.values || []).find(([k]) => k === props.value)?.[1] ?? "";
 
     const showPicker = (): void => {
@@ -67,5 +92,54 @@ export function MenuItemValue(
     );
   }
 
+  if (props.type === "boolean") {
+    return <Switch value={props.value === "true"} onValueChange={(v) => props.onChange?.(v ? "true" : "false")} />;
+  }
+
+  if (props.type === "text" || props.type === "number") {
+    return (
+      <NativeTextValue
+        value={props.value}
+        onChange={props.onChange}
+        keyboardType={props.type === "number" ? "numeric" : "default"}
+        maxLength={props.maxLength}
+      />
+    );
+  }
+
   return null;
+}
+
+function NativeTextValue(props: {
+  value: string | null | undefined;
+  onChange?: (v?: string) => void;
+  keyboardType: "numeric" | "default";
+  maxLength?: number;
+}): JSX.Element {
+  const inputRef = useRef<TextInput>(null);
+  const currentValueRef = useRef(props.value ?? "");
+
+  useEffect(() => {
+    const newStr = props.value ?? "";
+    if (currentValueRef.current !== newStr) {
+      currentValueRef.current = newStr;
+      inputRef.current?.setNativeProps({ text: newStr });
+    }
+  }, [props.value]);
+
+  return (
+    <TextInput
+      ref={inputRef}
+      className="text-right text-text-link py-2"
+      style={{ minWidth: 80 }}
+      defaultValue={currentValueRef.current}
+      onChangeText={(text) => {
+        currentValueRef.current = text;
+      }}
+      onBlur={() => props.onChange?.(currentValueRef.current)}
+      keyboardType={props.keyboardType}
+      maxLength={props.maxLength}
+      selectTextOnFocus
+    />
+  );
 }
