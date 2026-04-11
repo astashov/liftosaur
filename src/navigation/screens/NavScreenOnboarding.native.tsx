@@ -1,19 +1,27 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View } from "react-native";
+import { Text } from "../../components/primitives/text";
+import { useAppState } from "../StateContext";
+import { NavScreenContent } from "../NavScreenContent";
+import { ScreenFirst as ScreenFirstComponent } from "../../components/screenFirst";
+import { ScreenUnitSelector } from "../../components/screenUnitSelector";
+import { ScreenProgramSelect as ScreenProgramSelectComponent } from "../../components/screenProgramSelect";
 
 export function NavScreenFirst(): React.JSX.Element {
+  const { dispatch } = useAppState();
   return (
-    <View className="flex-1 justify-center items-center bg-background-default">
-      <Text className="text-2xl font-bold text-icon-neutral">Welcome to Liftosaur</Text>
-    </View>
+    <NavScreenContent>
+      <ScreenFirstComponent dispatch={dispatch} />
+    </NavScreenContent>
   );
 }
 
 export function NavScreenUnits(): React.JSX.Element {
+  const { state, dispatch } = useAppState();
   return (
-    <View className="flex-1 justify-center items-center bg-background-default">
-      <Text className="text-2xl font-bold text-icon-neutral">Choose Units</Text>
-    </View>
+    <NavScreenContent>
+      <ScreenUnitSelector settings={state.storage.settings} dispatch={dispatch} />
+    </NavScreenContent>
   );
 }
 
@@ -34,10 +42,11 @@ export function NavScreenSetupPlates(): React.JSX.Element {
 }
 
 export function NavScreenProgramSelectOnboarding(): React.JSX.Element {
+  const { state, dispatch } = useAppState();
   return (
-    <View className="flex-1 justify-center items-center bg-background-default">
-      <Text className="text-2xl font-bold text-icon-neutral">Select Program</Text>
-    </View>
+    <NavScreenContent>
+      <ScreenProgramSelectComponent dispatch={dispatch} settings={state.storage.settings} />
+    </NavScreenContent>
   );
 }
 
