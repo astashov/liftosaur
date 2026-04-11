@@ -1,4 +1,6 @@
 import { JSX, useEffect, useState } from "react";
+import { View, Pressable, Linking } from "react-native";
+import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import { MenuItem, MenuItemWrapper } from "./menuItem";
 import {
@@ -39,6 +41,7 @@ import { Weight_print } from "../models/weight";
 import { ImagePreloader_preload, ImagePreloader_dynoflex } from "../utils/imagePreloader";
 import { Settings_getTheme, Settings_applyTheme } from "../models/settings";
 import { Features_isEnabled } from "../utils/features";
+import { Slider } from "./primitives/slider";
 
 interface IProps {
   dispatch: IDispatch;
@@ -49,6 +52,10 @@ interface IProps {
   currentProgramName?: string;
   settings: ISettings;
   navCommon: INavCommon;
+}
+
+function openExternal(url: string): void {
+  Linking.openURL(url).catch(() => undefined);
 }
 
 export function ScreenSettings(props: IProps): JSX.Element {
@@ -62,488 +69,463 @@ export function ScreenSettings(props: IProps): JSX.Element {
     }
   }, []);
 
-  useNavOptions({ navTitle: "Settings", navHelpContent: <HelpSettings /> });
+  useNavOptions({ navTitle: "Me", navHelpContent: <HelpSettings /> });
 
   return (
-    <>
-      <section className="px-4">
-        <MenuItem
-          shouldShowRightArrow={true}
-          name="Program"
-          value={props.currentProgramName}
-          onClick={() => {
-            props.dispatch(Thunk_pushScreen("programs"));
-          }}
-        />
-        <GroupHeader name="Account" topPadding={true} />
-        <MenuItem
-          name="Account"
-          value={
-            props.user?.email == null ? (
-              <span className="text-text-error">Not signed in</span>
-            ) : props.user?.email === "noemail@example.com" ? (
-              "Signed In"
-            ) : (
-              StringUtils_truncate(props.user?.email || "", 30)
-            )
-          }
-          shouldShowRightArrow={true}
-          onClick={() => props.dispatch(Thunk_pushScreen("account"))}
-        />
+    <View className="px-4">
+      <MenuItem
+        shouldShowRightArrow={true}
+        name="Program"
+        value={props.currentProgramName}
+        onClick={() => {
+          props.dispatch(Thunk_pushScreen("programs"));
+        }}
+      />
+      <GroupHeader name="Account" topPadding={true} />
+      <MenuItem
+        name="Account"
+        value={
+          props.user?.email == null ? (
+            <Text className="text-text-error">Not signed in</Text>
+          ) : props.user?.email === "noemail@example.com" ? (
+            "Signed In"
+          ) : (
+            StringUtils_truncate(props.user?.email || "", 30)
+          )
+        }
+        shouldShowRightArrow={true}
+        onClick={() => props.dispatch(Thunk_pushScreen("account"))}
+      />
+      <MenuItemEditable
+        type="text"
+        name="Nickname"
+        value={props.settings.nickname || ""}
+        nextLine={
+          <View className="pb-1" style={{ marginTop: -8 }}>
+            <Text className="text-xs text-text-secondary">Used for profile page if you have an account</Text>
+          </View>
+        }
+        onChange={(newValue) => {
+          props.dispatch({
+            type: "UpdateSettings",
+            lensRecording: lb<ISettings>()
+              .p("nickname")
+              .record(newValue ? newValue : undefined),
+            desc: "Update nickname",
+          });
+        }}
+      />
+      {props.user && (
         <MenuItemEditable
-          type="text"
-          name="Nickname"
-          value={props.settings.nickname || ""}
+          type="boolean"
+          name="Is Profile Page Public?"
+          value={props.settings.isPublicProfile ? "true" : "false"}
           nextLine={
-            <div style={{ marginTop: "-0.5rem" }} className="pb-1 text-xs text-text-secondary">
-              Used for profile page if you have an account
-            </div>
-          }
-          onChange={(newValue) => {
-            props.dispatch({
-              type: "UpdateSettings",
-              lensRecording: lb<ISettings>()
-                .p("nickname")
-                .record(newValue ? newValue : undefined),
-              desc: "Update nickname",
-            });
-          }}
-        />
-        {props.user && (
-          <MenuItemEditable
-            type="boolean"
-            name="Is Profile Page Public?"
-            value={props.settings.isPublicProfile ? "true" : "false"}
-            nextLine={
-              props.user?.id && props.settings.isPublicProfile ? (
-                <div style={{ marginTop: "-0.5rem" }} className="pb-1">
-                  <div className="flex">
-                    <button
-                      className="mr-auto text-xs text-left underline text-text-link nm-copy-profile-link-to-clipboard"
-                      onClick={() => {
-                        const text = Share_generateProfileLink(props.user!.id);
-                        if (text != null) {
-                          ClipboardUtils_copy(text);
-                          setIsCopied(true);
-                        }
-                      }}
-                    >
-                      Copy Link To Clipboard
-                    </button>
+            props.user?.id && props.settings.isPublicProfile ? (
+              <View className="pb-1" style={{ marginTop: -8 }}>
+                <View className="flex-row">
+                  <Pressable
+                    className="mr-auto"
+                    onPress={() => {
+                      const text = Share_generateProfileLink(props.user!.id);
+                      if (text != null) {
+                        ClipboardUtils_copy(text);
+                        setIsCopied(true);
+                      }
+                    }}
+                  >
+                    <Text className="text-xs underline text-text-link">Copy Link To Clipboard</Text>
+                  </Pressable>
+                  <View className="ml-4">
                     <InternalLink
                       name="public-profile-page"
                       href={`/profile/${props.user.id}`}
-                      className="ml-4 text-xs text-right underline text-text-link"
+                      className="text-xs underline text-text-link"
                     >
                       Open Public Profile Page
                     </InternalLink>
-                  </div>
-                  {isCopied && <div className="text-xs italic text-green-600">Copied!</div>}
-                </div>
-              ) : undefined
-            }
-            onChange={(newValue) => {
-              if (props.user != null) {
-                props.dispatch({
-                  type: "UpdateSettings",
-                  lensRecording: lb<ISettings>()
-                    .p("isPublicProfile")
-                    .record(newValue === "true"),
-                  desc: "Toggle public profile",
-                });
-              } else {
-                alert("You should be logged in to enable public profile");
-              }
-            }}
-          />
-        )}
-
-        <MenuItem
-          name="API Keys"
-          shouldShowRightArrow={true}
-          onClick={() => props.dispatch(Thunk_pushScreen("apiKeys"))}
-        />
-
-        <GroupHeader name="My Measurements" topPadding={true} />
-        {currentBodyweight && (
-          <MenuItem
-            name="Bodyweight"
-            value={Weight_print(currentBodyweight)}
-            shouldShowRightArrow={true}
-            onClick={() => props.dispatch(Thunk_pushScreen("measurements", { key: "weight" }))}
-          />
-        )}
-        {currentBodyfat && (
-          <MenuItem
-            name="Bodyfat"
-            value={Weight_print(currentBodyfat)}
-            shouldShowRightArrow={true}
-            onClick={() => props.dispatch(Thunk_pushScreen("measurements", { key: "bodyfat" }))}
-          />
-        )}
-        <MenuItem
-          name="Measurements"
-          shouldShowRightArrow={true}
-          onClick={() => props.dispatch(Thunk_pushScreen("measurements"))}
-        />
-
-        <GroupHeader name="Workout" topPadding={true} />
-        <MenuItem
-          name="Exercises"
-          onClick={() => props.dispatch(Thunk_pushScreen("exercises"))}
-          shouldShowRightArrow={true}
-        />
-        <MenuItem
-          name="Muscle Groups"
-          onClick={() => props.dispatch(Thunk_pushScreen("muscleGroups"))}
-          shouldShowRightArrow={true}
-        />
-        <MenuItem
-          name="Timers"
-          onClick={() => props.dispatch(Thunk_pushScreen("timers"))}
-          shouldShowRightArrow={true}
-        />
-        {props.settings.gyms.length > 1 && (
-          <MenuItemEditable
-            type="select"
-            name="Current Gym"
-            value={props.settings.currentGymId ?? props.settings.gyms[0].id}
-            values={props.settings.gyms.map((g) => [g.id, g.name])}
-            onChange={(newValue) => {
-              if (newValue != null) {
-                props.dispatch({
-                  type: "UpdateSettings",
-                  lensRecording: lb<ISettings>().p("currentGymId").record(newValue),
-                  desc: "Change current gym",
-                });
-              }
-            }}
-          />
-        )}
-        <MenuItem
-          shouldShowRightArrow={true}
-          name="Available Equipment"
-          onClick={() => {
-            if (props.settings.gyms.length > 1) {
-              props.dispatch(Thunk_pushScreen("gyms"));
-            } else {
-              props.dispatch(Thunk_pushScreen("plates"));
+                  </View>
+                </View>
+                {isCopied && <Text className="text-xs italic text-text-success">Copied!</Text>}
+              </View>
+            ) : undefined
+          }
+          onChange={(newValue) => {
+            if (props.user != null) {
+              props.dispatch({
+                type: "UpdateSettings",
+                lensRecording: lb<ISettings>()
+                  .p("isPublicProfile")
+                  .record(newValue === "true"),
+                desc: "Toggle public profile",
+              });
             }
           }}
         />
+      )}
+
+      <MenuItem
+        name="API Keys"
+        shouldShowRightArrow={true}
+        onClick={() => props.dispatch(Thunk_pushScreen("apiKeys"))}
+      />
+
+      <GroupHeader name="My Measurements" topPadding={true} />
+      {currentBodyweight && (
+        <MenuItem
+          name="Bodyweight"
+          value={Weight_print(currentBodyweight)}
+          shouldShowRightArrow={true}
+          onClick={() => props.dispatch(Thunk_pushScreen("measurements", { key: "weight" }))}
+        />
+      )}
+      {currentBodyfat && (
+        <MenuItem
+          name="Bodyfat"
+          value={Weight_print(currentBodyfat)}
+          shouldShowRightArrow={true}
+          onClick={() => props.dispatch(Thunk_pushScreen("measurements", { key: "bodyfat" }))}
+        />
+      )}
+      <MenuItem
+        name="Measurements"
+        shouldShowRightArrow={true}
+        onClick={() => props.dispatch(Thunk_pushScreen("measurements"))}
+      />
+
+      <GroupHeader name="Workout" topPadding={true} />
+      <MenuItem
+        name="Exercises"
+        onClick={() => props.dispatch(Thunk_pushScreen("exercises"))}
+        shouldShowRightArrow={true}
+      />
+      <MenuItem
+        name="Muscle Groups"
+        onClick={() => props.dispatch(Thunk_pushScreen("muscleGroups"))}
+        shouldShowRightArrow={true}
+      />
+      <MenuItem name="Timers" onClick={() => props.dispatch(Thunk_pushScreen("timers"))} shouldShowRightArrow={true} />
+      {props.settings.gyms.length > 1 && (
         <MenuItemEditable
           type="select"
-          name="Weight Units"
-          value={props.settings.units}
-          values={[
-            ["kg", "kg"],
-            ["lb", "lb"],
-          ]}
+          name="Current Gym"
+          value={props.settings.currentGymId ?? props.settings.gyms[0].id}
+          values={props.settings.gyms.map((g) => [g.id, g.name])}
           onChange={(newValue) => {
-            props.dispatch({
-              type: "UpdateSettings",
-              lensRecording: lb<ISettings>()
-                .p("units")
-                .record(newValue as IUnit),
-              desc: "Change weight units",
-            });
+            if (newValue != null) {
+              props.dispatch({
+                type: "UpdateSettings",
+                lensRecording: lb<ISettings>().p("currentGymId").record(newValue),
+                desc: "Change current gym",
+              });
+            }
           }}
         />
+      )}
+      <MenuItem
+        shouldShowRightArrow={true}
+        name="Available Equipment"
+        onClick={() => {
+          if (props.settings.gyms.length > 1) {
+            props.dispatch(Thunk_pushScreen("gyms"));
+          } else {
+            props.dispatch(Thunk_pushScreen("plates"));
+          }
+        }}
+      />
+      <MenuItemEditable
+        type="select"
+        name="Weight Units"
+        value={props.settings.units}
+        values={[
+          ["kg", "kg"],
+          ["lb", "lb"],
+        ]}
+        onChange={(newValue) => {
+          props.dispatch({
+            type: "UpdateSettings",
+            lensRecording: lb<ISettings>()
+              .p("units")
+              .record(newValue as IUnit),
+            desc: "Change weight units",
+          });
+        }}
+      />
+      <MenuItemEditable
+        type="select"
+        name="Length Units"
+        value={props.settings.lengthUnits}
+        values={[
+          ["cm", "cm"],
+          ["in", "in"],
+        ]}
+        onChange={(newValue) => {
+          props.dispatch({
+            type: "UpdateSettings",
+            lensRecording: lb<ISettings>()
+              .p("lengthUnits")
+              .record(newValue as ILengthUnit),
+            desc: "Change length units",
+          });
+        }}
+      />
+      <MenuItemEditable
+        type="select"
+        name="Week starts from:"
+        value={props.settings.startWeekFromMonday ? "true" : "false"}
+        values={[
+          ["false", "Sunday"],
+          ["true", "Monday"],
+        ]}
+        onChange={(newValue) => {
+          props.dispatch({
+            type: "UpdateSettings",
+            lensRecording: lb<ISettings>()
+              .p("startWeekFromMonday")
+              .record(newValue === "true"),
+            desc: "Toggle week start day",
+          });
+        }}
+      />
+      {((SendMessage_isIos() && SendMessage_iosAppVersion() >= 6) ||
+        (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 13)) && (
         <MenuItemEditable
-          type="select"
-          name="Length Units"
-          value={props.settings.lengthUnits}
-          values={[
-            ["cm", "cm"],
-            ["in", "in"],
-          ]}
+          type="boolean"
+          name="Always On Display"
+          value={props.settings.alwaysOnDisplay ? "true" : "false"}
           onChange={(newValue) => {
             props.dispatch({
               type: "UpdateSettings",
               lensRecording: lb<ISettings>()
-                .p("lengthUnits")
-                .record(newValue as ILengthUnit),
-              desc: "Change length units",
-            });
-          }}
-        />
-        <MenuItemEditable
-          type="select"
-          name="Week starts from:"
-          value={props.settings.startWeekFromMonday ? "true" : "false"}
-          values={[
-            ["false", "Sunday"],
-            ["true", "Monday"],
-          ]}
-          onChange={(newValue) => {
-            props.dispatch({
-              type: "UpdateSettings",
-              lensRecording: lb<ISettings>()
-                .p("startWeekFromMonday")
+                .p("alwaysOnDisplay")
                 .record(newValue === "true"),
-              desc: "Toggle week start day",
+              desc: "Toggle always-on display",
             });
           }}
         />
-        {((SendMessage_isIos() && SendMessage_iosAppVersion() >= 6) ||
-          (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 13)) && (
+      )}
+      {((SendMessage_isIos() && SendMessage_iosAppVersion() >= 7) ||
+        (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 14)) && (
+        <View>
+          <GroupHeader name="Sound" topPadding={true} />
           <MenuItemEditable
             type="boolean"
-            name="Always On Display"
-            value={props.settings.alwaysOnDisplay ? "true" : "false"}
+            name="Vibration"
+            value={props.settings.vibration ? "true" : "false"}
             onChange={(newValue) => {
               props.dispatch({
                 type: "UpdateSettings",
                 lensRecording: lb<ISettings>()
-                  .p("alwaysOnDisplay")
+                  .p("vibration")
                   .record(newValue === "true"),
-                desc: "Toggle always-on display",
+                desc: "Toggle vibration",
               });
             }}
           />
-        )}
-        {((SendMessage_isIos() && SendMessage_iosAppVersion() >= 7) ||
-          (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 14)) && (
-          <div>
-            <GroupHeader name="Sound" topPadding={true} />
-            <MenuItemEditable
-              type="boolean"
-              name="Vibration"
-              value={props.settings.vibration ? "true" : "false"}
-              onChange={(newValue) => {
-                props.dispatch({
-                  type: "UpdateSettings",
-                  lensRecording: lb<ISettings>()
-                    .p("vibration")
-                    .record(newValue === "true"),
-                  desc: "Toggle vibration",
-                });
-              }}
-            />
-            <MenuItemWrapper name="volume">
-              <div className="flex items-center py-2">
-                <div className="mr-2">
-                  <IconSpeaker />
-                </div>
-                <div className="flex flex-1 leading-none">
-                  <input
-                    type="range"
-                    className="w-full"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    value={props.settings.volume}
-                    onChange={(e) => {
-                      const valueStr = e.currentTarget.value;
-                      const value = valueStr != null ? parseFloat(valueStr) : undefined;
-                      if (value != null && !isNaN(value)) {
-                        props.dispatch({
-                          type: "UpdateSettings",
-                          lensRecording: lb<ISettings>().p("volume").record(value),
-                          desc: "Change volume",
-                        });
-                      }
-                    }}
-                  />
-                </div>
-              </div>
-            </MenuItemWrapper>
-            {Subscriptions_hasSubscription(props.subscription) &&
-              SendMessage_isAndroid() &&
-              SendMessage_androidAppVersion() >= 17 && (
-                <MenuItemEditable
-                  type="boolean"
-                  name="Ignore Do Not Disturb"
-                  value={props.settings.ignoreDoNotDisturb ? "true" : "false"}
-                  nextLine={
-                    <div className="mb-2 text-xs text-text-secondary" style={{ marginTop: "-0.5rem" }}>
-                      Push notification will make a sound even in Silent or Do Not Disturb mode
-                    </div>
-                  }
-                  onChange={(newValue) => {
+          <MenuItemWrapper name="volume">
+            <View className="flex-row items-center py-2">
+              <View className="mr-2">
+                <IconSpeaker />
+              </View>
+              <View className="flex-1 flex-row">
+                <Slider
+                  value={props.settings.volume}
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  onChange={(value) => {
                     props.dispatch({
                       type: "UpdateSettings",
-                      lensRecording: lb<ISettings>()
-                        .p("ignoreDoNotDisturb")
-                        .record(newValue === "true"),
-                      desc: "Toggle ignore DND",
+                      lensRecording: lb<ISettings>().p("volume").record(value),
+                      desc: "Change volume",
                     });
                   }}
                 />
-              )}
-          </div>
-        )}
-        {(HealthSync_eligibleForAppleHealth() || HealthSync_eligibleForGoogleHealth()) && (
-          <>
-            <GroupHeader name="Sync" topPadding={true} />
-            {HealthSync_eligibleForGoogleHealth() && (
-              <MenuItem
-                shouldShowRightArrow={true}
-                name="Google Health Connect"
-                onClick={() => props.dispatch(Thunk_pushScreen("googleHealth"))}
-              />
-            )}
-            {HealthSync_eligibleForAppleHealth() && (
-              <MenuItem
-                shouldShowRightArrow={true}
-                name="Apple Health"
-                onClick={() => props.dispatch(Thunk_pushScreen("appleHealth"))}
-              />
-            )}
-          </>
-        )}
-        <GroupHeader name="Appearance" topPadding={true} />
-        <MenuItemWrapper name="text-size">
-          <div className="flex items-center py-2">
-            <div className="mr-2">
-              <span className="text-xs">A</span>
-              <span className="text-lg">A</span>
-            </div>
-            <div className="flex flex-1 leading-none">
-              <input
-                type="range"
-                className="w-full"
-                min="12"
-                max="20"
-                step="2"
-                value={props.settings.textSize ?? "16"}
-                onChange={(e) => {
-                  const valueStr = e.currentTarget.value;
-                  const value = valueStr != null ? parseInt(valueStr, 10) : undefined;
-                  if (value != null && !isNaN(value)) {
-                    props.dispatch({
-                      type: "UpdateSettings",
-                      lensRecording: lb<ISettings>().p("textSize").record(value),
-                      desc: "Change text size",
-                    });
-                  }
+              </View>
+            </View>
+          </MenuItemWrapper>
+          {Subscriptions_hasSubscription(props.subscription) &&
+            SendMessage_isAndroid() &&
+            SendMessage_androidAppVersion() >= 17 && (
+              <MenuItemEditable
+                type="boolean"
+                name="Ignore Do Not Disturb"
+                value={props.settings.ignoreDoNotDisturb ? "true" : "false"}
+                nextLine={
+                  <View className="mb-2" style={{ marginTop: -8 }}>
+                    <Text className="text-xs text-text-secondary">
+                      Push notification will make a sound even in Silent or Do Not Disturb mode
+                    </Text>
+                  </View>
+                }
+                onChange={(newValue) => {
+                  props.dispatch({
+                    type: "UpdateSettings",
+                    lensRecording: lb<ISettings>()
+                      .p("ignoreDoNotDisturb")
+                      .record(newValue === "true"),
+                    desc: "Toggle ignore DND",
+                  });
                 }}
               />
-            </div>
-          </div>
-        </MenuItemWrapper>
-        <MenuItemEditable
-          type="boolean"
-          name="Dark mode"
-          value={Settings_getTheme(props.settings) === "dark" ? "true" : "false"}
-          onChange={(newValue) => {
-            const newTheme = newValue === "true" ? "dark" : "light";
-            Settings_applyTheme(newTheme);
-            props.dispatch({
-              type: "UpdateSettings",
-              lensRecording: lb<ISettings>().p("theme").record(newTheme),
-              desc: "Toggle dark mode",
-            });
-          }}
-        />
-        {Features_isEnabled("affiliates", props.user?.id ?? props.tempUserId) && (
-          <>
-            <GroupHeader name="Earn money with Liftosaur" topPadding={true} />
+            )}
+        </View>
+      )}
+      {(HealthSync_eligibleForAppleHealth() || HealthSync_eligibleForGoogleHealth()) && (
+        <>
+          <GroupHeader name="Sync" topPadding={true} />
+          {HealthSync_eligibleForGoogleHealth() && (
             <MenuItem
-              expandName={true}
-              name="Affiliate Program"
-              onClick={() => navigationRef.navigate("affiliateModal")}
-              value={props.settings.affiliateEnabled ? "On" : "Off"}
               shouldShowRightArrow={true}
+              name="Google Health Connect"
+              onClick={() => props.dispatch(Thunk_pushScreen("googleHealth"))}
             />
-          </>
-        )}
-        <GroupHeader name="Import / Export" topPadding={true} />
-        <div className="ls-export-data">
-          <MenuItemWrapper name="Export data to JSON file" onClick={() => props.dispatch(Thunk_exportStorage())}>
-            <button className="py-3 nm-export-data-to-json-file">Export data to JSON file</button>
-          </MenuItemWrapper>
-        </div>
-        <div className="ls-export-history">
-          <MenuItemWrapper name="Export history to CSV file" onClick={() => props.dispatch(Thunk_exportHistoryToCSV())}>
-            <button className="py-3 nm-export-history-to-csv-file">Export history to CSV file</button>
-          </MenuItemWrapper>
-        </div>
-        <div className="ls-export-programs-to-text">
-          <MenuItemWrapper
-            name="Export all programs to text file"
-            onClick={() => props.dispatch(Thunk_exportProgramsToText())}
-          >
-            <button className="py-3 nm-export-programs-to-text-file">Export all programs to text file</button>
-          </MenuItemWrapper>
-        </div>
-        <div className="ls-import-csv-data">
-          <ImporterLiftosaurCsv dispatch={props.dispatch} />
-        </div>
-        <div className="ls-import-data">
-          <ImporterStorage dispatch={props.dispatch} />
-        </div>
-        <div className="ls-import-program">
-          <ImporterProgram dispatch={props.dispatch} />
-        </div>
-        <div className="ls-import-other-apps">
-          <MenuItemWrapper
-            name="Import history from other apps"
-            onClick={() => navigationRef.navigate("importFromOtherAppsModal")}
-          >
-            <button className="py-3 nm-import-history-from-other-apps">Import history from other apps</button>
-          </MenuItemWrapper>
-        </div>
+          )}
+          {HealthSync_eligibleForAppleHealth() && (
+            <MenuItem
+              shouldShowRightArrow={true}
+              name="Apple Health"
+              onClick={() => props.dispatch(Thunk_pushScreen("appleHealth"))}
+            />
+          )}
+        </>
+      )}
+      <GroupHeader name="Appearance" topPadding={true} />
+      <MenuItemWrapper name="text-size">
+        <View className="flex-row items-center py-2">
+          <View className="flex-row items-baseline mr-2">
+            <Text className="text-xs">A</Text>
+            <Text className="text-lg">A</Text>
+          </View>
+          <View className="flex-1 flex-row">
+            <Slider
+              value={props.settings.textSize ?? 16}
+              min={12}
+              max={20}
+              step={2}
+              onChange={(value) => {
+                props.dispatch({
+                  type: "UpdateSettings",
+                  lensRecording: lb<ISettings>().p("textSize").record(value),
+                  desc: "Change text size",
+                });
+              }}
+            />
+          </View>
+        </View>
+      </MenuItemWrapper>
+      <MenuItemEditable
+        type="boolean"
+        name="Dark mode"
+        value={Settings_getTheme(props.settings) === "dark" ? "true" : "false"}
+        onChange={(newValue) => {
+          const newTheme = newValue === "true" ? "dark" : "light";
+          Settings_applyTheme(newTheme);
+          props.dispatch({
+            type: "UpdateSettings",
+            lensRecording: lb<ISettings>().p("theme").record(newTheme),
+            desc: "Toggle dark mode",
+          });
+        }}
+      />
+      {Features_isEnabled("affiliates", props.user?.id ?? props.tempUserId) && (
+        <>
+          <GroupHeader name="Earn money with Liftosaur" topPadding={true} />
+          <MenuItem
+            expandName={true}
+            name="Affiliate Program"
+            onClick={() => navigationRef.navigate("affiliateModal")}
+            value={props.settings.affiliateEnabled ? "On" : "Off"}
+            shouldShowRightArrow={true}
+          />
+        </>
+      )}
+      <GroupHeader name="Import / Export" topPadding={true} />
+      <MenuItemWrapper name="Export data to JSON file" onClick={() => props.dispatch(Thunk_exportStorage())}>
+        <View className="py-3">
+          <Text className="text-base text-text-primary">Export data to JSON file</Text>
+        </View>
+      </MenuItemWrapper>
+      <MenuItemWrapper name="Export history to CSV file" onClick={() => props.dispatch(Thunk_exportHistoryToCSV())}>
+        <View className="py-3">
+          <Text className="text-base text-text-primary">Export history to CSV file</Text>
+        </View>
+      </MenuItemWrapper>
+      <MenuItemWrapper
+        name="Export all programs to text file"
+        onClick={() => props.dispatch(Thunk_exportProgramsToText())}
+      >
+        <View className="py-3">
+          <Text className="text-base text-text-primary">Export all programs to text file</Text>
+        </View>
+      </MenuItemWrapper>
+      <ImporterLiftosaurCsv dispatch={props.dispatch} />
+      <ImporterStorage dispatch={props.dispatch} />
+      <ImporterProgram dispatch={props.dispatch} />
+      <MenuItemWrapper
+        name="Import history from other apps"
+        onClick={() => navigationRef.navigate("importFromOtherAppsModal")}
+      >
+        <View className="py-3">
+          <Text className="text-base text-text-primary">Import history from other apps</Text>
+        </View>
+      </MenuItemWrapper>
 
-        <GroupHeader name="Miscellaneous" topPadding={true} />
-        <div className="ls-changelog">
-          <MenuItem name="Changelog" onClick={() => WhatsNew_showWhatsNew(props.dispatch)} />
-        </div>
-        <InternalLink
-          name="contact-us"
-          href="mailto:info@liftosaur.com"
-          className="block py-3 text-base text-left border-b border-border-neutral"
-        >
-          Contact Us
-        </InternalLink>
-        <a
-          href="https://discord.com/invite/AAh3cvdBRs"
-          target="_blank"
-          className="block py-3 text-base text-left border-b border-border-neutral"
-        >
-          <IconDiscord className="inline-block mr-1" /> Discord Server
-        </a>
-        <InternalLink
-          name="privacy-policy"
-          href="/privacy.html"
-          className="block py-3 text-base text-left border-b border-border-neutral"
-        >
-          Privacy Policy
-        </InternalLink>
-        <InternalLink
-          name="terms"
-          href="/terms.html"
-          className="block py-3 text-base text-left border-b border-border-neutral"
-        >
-          Terms &amp; Conditions
-        </InternalLink>
-        <InternalLink
-          name="licenses"
-          href="/licenses.html"
-          className="block py-3 text-base text-left border-b border-border-neutral"
-        >
-          Licenses
-        </InternalLink>
-        <InternalLink
-          name="documentation"
-          href="/doc"
-          className="block py-3 text-base text-left border-b border-border-neutral"
-        >
-          Documentation
-        </InternalLink>
-        <a
-          href="https://github.com/astashov/liftosaur"
-          className="block py-3 text-base text-left border-b border-border-neutral"
-        >
-          Source Code on Github
-        </a>
-        <a
-          href="https://github.com/astashov/liftosaur/discussions"
-          className="block py-3 text-base text-left border-b border-border-neutral"
-        >
-          📍 Roadmap
-        </a>
-      </section>
-    </>
+      <GroupHeader name="Miscellaneous" topPadding={true} />
+      <MenuItem name="Changelog" onClick={() => WhatsNew_showWhatsNew(props.dispatch)} />
+      <Pressable
+        className="py-3 border-b border-border-neutral"
+        onPress={() => openExternal("mailto:info@liftosaur.com")}
+      >
+        <Text className="text-base text-text-primary">Contact Us</Text>
+      </Pressable>
+      <Pressable
+        className="py-3 border-b border-border-neutral"
+        onPress={() => openExternal("https://discord.com/invite/AAh3cvdBRs")}
+      >
+        <View className="flex-row items-center">
+          <View className="mr-1">
+            <IconDiscord />
+          </View>
+          <Text className="text-base text-text-primary">Discord Server</Text>
+        </View>
+      </Pressable>
+      <Pressable
+        className="py-3 border-b border-border-neutral"
+        onPress={() => openExternal("https://www.liftosaur.com/privacy.html")}
+      >
+        <Text className="text-base text-text-primary">Privacy Policy</Text>
+      </Pressable>
+      <Pressable
+        className="py-3 border-b border-border-neutral"
+        onPress={() => openExternal("https://www.liftosaur.com/terms.html")}
+      >
+        <Text className="text-base text-text-primary">Terms & Conditions</Text>
+      </Pressable>
+      <Pressable
+        className="py-3 border-b border-border-neutral"
+        onPress={() => openExternal("https://www.liftosaur.com/licenses.html")}
+      >
+        <Text className="text-base text-text-primary">Licenses</Text>
+      </Pressable>
+      <Pressable
+        className="py-3 border-b border-border-neutral"
+        onPress={() => openExternal("https://www.liftosaur.com/doc")}
+      >
+        <Text className="text-base text-text-primary">Documentation</Text>
+      </Pressable>
+      <Pressable
+        className="py-3 border-b border-border-neutral"
+        onPress={() => openExternal("https://github.com/astashov/liftosaur")}
+      >
+        <Text className="text-base text-text-primary">Source Code on Github</Text>
+      </Pressable>
+      <Pressable
+        className="py-3 border-b border-border-neutral"
+        onPress={() => openExternal("https://github.com/astashov/liftosaur/discussions")}
+      >
+        <Text className="text-base text-text-primary">📍 Roadmap</Text>
+      </Pressable>
+    </View>
   );
 }

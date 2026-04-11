@@ -53,6 +53,7 @@ import { NavModalMonthCalendar } from "./modals/NavModalMonthCalendar";
 import { NavModalWeekInsightsDetails } from "./modals/NavModalWeekInsightsDetails";
 import { NavModalSetSplit } from "./modals/NavModalSetSplit";
 import { NavModalPlannerSettings } from "./modals/NavModalPlannerSettings";
+import { NavHeader } from "./NavHeader";
 
 const OnboardingStack = createNativeStackNavigator<IOnboardingStackParamList>();
 const HomeStack = createNativeStackNavigator<IHomeStackParamList>();
@@ -64,6 +65,12 @@ const Tab = createBottomTabNavigator<IRootTabParamList>();
 const RootStack = createNativeStackNavigator<IRootStackParamList>();
 
 const stackScreenOptions = { headerShown: false, animation: "none" as const, freezeOnBlur: true };
+const navHeaderScreenOptions = {
+  headerShown: true,
+  animation: "none" as const,
+  freezeOnBlur: true,
+  header: NavHeader,
+};
 
 function OnboardingStackScreen(): JSX.Element {
   return (
@@ -134,7 +141,7 @@ function GraphsStackScreen(): JSX.Element {
 
 function MeStackScreen(): JSX.Element {
   return (
-    <MeStack.Navigator screenOptions={stackScreenOptions}>
+    <MeStack.Navigator screenOptions={navHeaderScreenOptions}>
       <MeStack.Screen name="settings" component={NavScreenSettings} />
       <MeStack.Screen name="account" component={NavScreenAccount} />
       <MeStack.Screen name="timers" component={NavScreenTimers} />

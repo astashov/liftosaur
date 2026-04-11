@@ -1,11 +1,28 @@
 import React from "react";
 import { View, Text } from "react-native";
+import { useAppState } from "../StateContext";
+import { buildNavCommon } from "../utils";
+import { NavScreenContent } from "../NavScreenContent";
+import { ScreenSettings as ScreenSettingsComponent } from "../../components/screenSettings";
+import { Program_getProgram } from "../../models/program";
 
 export function NavScreenSettings(): React.JSX.Element {
+  const { state, dispatch } = useAppState();
+  const navCommon = buildNavCommon(state);
   return (
-    <View className="flex-1 justify-center items-center bg-background-default">
-      <Text className="text-2xl font-bold text-icon-neutral">Settings</Text>
-      <Text className="text-sm text-icon-neutralsubtle mt-1">App settings and account</Text>
+    <View className="flex-1 bg-background-default">
+      <NavScreenContent>
+        <ScreenSettingsComponent
+          stats={state.storage.stats}
+          tempUserId={state.storage.tempUserId}
+          navCommon={navCommon}
+          subscription={state.storage.subscription}
+          dispatch={dispatch}
+          user={state.user}
+          currentProgramName={Program_getProgram(state, state.storage.currentProgramId)?.name || ""}
+          settings={state.storage.settings}
+        />
+      </NavScreenContent>
     </View>
   );
 }

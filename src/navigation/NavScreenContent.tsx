@@ -1,5 +1,6 @@
-import { JSX, ReactNode, Ref, RefObject, createContext, useContext, useRef } from "react";
-import { ScrollView } from "react-native";
+import { JSX, ReactNode, Ref, RefObject, createContext, useCallback, useContext, useRef } from "react";
+import { ScrollView, NativeSyntheticEvent, NativeScrollEvent } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
 const NavScrollContext = createContext<RefObject<HTMLDivElement | null> | null>(null);
 
@@ -8,7 +9,10 @@ export function useNavScrollRef(): RefObject<HTMLDivElement | null> | null {
 }
 
 export function NavScreenContent(props: { children: ReactNode; scrollRef?: Ref<HTMLDivElement> }): JSX.Element {
+  const navigation = useNavigation();
   const fallbackRef = useRef<HTMLDivElement>(null);
+  const isScrolledRef = useRef(false);
+
   const setRef = (node: HTMLDivElement | null) => {
     fallbackRef.current = node;
     if (typeof props.scrollRef === "function") {
@@ -17,6 +21,18 @@ export function NavScreenContent(props: { children: ReactNode; scrollRef?: Ref<H
       (props.scrollRef as { current: HTMLDivElement | null }).current = node;
     }
   };
+
+  const onScroll = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const isScrolled = e.nativeEvent.contentOffset.y > 0;
+      if (isScrolled !== isScrolledRef.current) {
+        isScrolledRef.current = isScrolled;
+        navigation.setOptions({ navIsScrolled: isScrolled });
+      }
+    },
+    [navigation]
+  );
+
   return (
     <NavScrollContext.Provider value={fallbackRef}>
       <ScrollView
@@ -25,6 +41,8 @@ export function NavScreenContent(props: { children: ReactNode; scrollRef?: Ref<H
         testID="screen"
         contentContainerStyle={{ flexGrow: 1 }}
         style={{ flex: 1 }}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
       >
         {props.children}
       </ScrollView>
