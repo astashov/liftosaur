@@ -36,6 +36,8 @@ import { AppNavigator } from "./navigation/AppNavigator";
 import { navigationRef } from "./navigation/navigationRef";
 import { getCurrentScreenData } from "./navigation/navigationService";
 import { IndexedDBUtils_initializeForSafari, IndexedDBUtils_get } from "./utils/indexeddb";
+import { Settings_applyTheme, Settings_getTheme } from "./models/settings";
+import { TextSize_apply } from "./utils/textSize";
 
 function AppInner(props: { initialState: IState }): React.JSX.Element {
   const client = fetch;
@@ -71,6 +73,8 @@ export function App(): React.JSX.Element {
       const rawStorage = await IndexedDBUtils_get(key);
       const url = new URL("https://www.liftosaur.com/app/");
       const state = await getInitialState(fetch, { rawStorage: rawStorage as string | undefined, url });
+      Settings_applyTheme(Settings_getTheme(state.storage.settings));
+      TextSize_apply(state.storage.settings.textSize ?? 16);
       setInitialState(state);
     }
     load();

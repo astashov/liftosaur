@@ -21,6 +21,7 @@ module.exports = plugin(function({ addBase }) {
   
   addBase({
     ':root': lightVars,
-    '.dark': darkVars
+    '.dark': darkVars,
+    '.dark:root': darkVars
   });
 });

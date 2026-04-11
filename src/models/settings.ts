@@ -20,6 +20,7 @@ import { CollectionUtils_uniqByExpr, CollectionUtils_sort } from "../utils/colle
 import { ProgramExercise_doesUse1RM } from "./programExercise";
 import { IExercisePickerSettings } from "../components/exercisePicker/exercisePickerSettings";
 import { SendMessage_toIosAndAndroid } from "../utils/sendMessage";
+import { Theme_apply } from "../utils/theme";
 
 export function Settings_programContentBuild(): Pick<ISettings, "timers" | "units" | "planner"> {
   return {
@@ -436,11 +437,7 @@ export function Settings_getTheme(settings: ISettings): "dark" | "light" {
 }
 
 export function Settings_applyTheme(theme?: "dark" | "light"): void {
-  if (theme === "dark") {
-    document.body.classList.add("dark");
-    SendMessage_toIosAndAndroid({ type: "theme", value: "dark" });
-  } else {
-    document.body.classList.remove("dark");
-    SendMessage_toIosAndAndroid({ type: "theme", value: "light" });
-  }
+  const resolved = theme === "dark" ? "dark" : "light";
+  Theme_apply(resolved);
+  SendMessage_toIosAndAndroid({ type: "theme", value: resolved });
 }
