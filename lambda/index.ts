@@ -719,6 +719,18 @@ const saveDebugHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof sav
   return ResponseUtils_json(200, event, { data: "ok" });
 };
 
+const postWatchCrashReportEndpoint = Endpoint.build("/api/watchcrashreport");
+const postWatchCrashReportHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postWatchCrashReportEndpoint> =
+  async ({ payload }) => {
+    const { event, di } = payload;
+    const body = getBodyJson(event);
+    di.log.log(
+      `WATCH_CRASH_REPORT: device=${body.deviceIdentifier} type=${body.crashType} breadcrumb=${body.lastBreadcrumb} model=${body.deviceModel} os=${body.watchOSVersion} build=${body.bundleVersion}`
+    );
+    di.log.log(`WATCH_CRASH_LOGS: ${body.lastLogs}`);
+    return ResponseUtils_json(200, event, { data: "ok" });
+  };
+
 const debugLogsEndpoint = Endpoint.build("/api/debuglogs");
 const debugLogsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof debugLogsEndpoint> = async ({
   payload,
@@ -3002,6 +3014,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .post(postClaimCouponEndpoint, postClaimCouponHandler)
       .post(saveDebugEndpoint, saveDebugHandler)
       .post(debugLogsEndpoint, debugLogsHandler)
+      .post(postWatchCrashReportEndpoint, postWatchCrashReportHandler)
       .delete(deleteAccountEndpoint, deleteAccountHandler)
       .delete(deleteProgramEndpoint, deleteProgramHandler)
       .get(getExerciseEndpoint, getExerciseHandler)
