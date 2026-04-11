@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { View } from "react-native";
 import { ISettings } from "../types";
 import { IDispatch } from "../ducks/types";
 import { INavCommon, updateSettings } from "../models/state";
@@ -22,56 +23,54 @@ export function ScreenMuscleGroups(props: IProps): JSX.Element {
   useNavOptions({ navTitle: "Muscle Groups" });
 
   return (
-    <>
-      <div className="px-4">
-        <MuscleGroupsContent
-          onCreate={(name) => {
-            updateSettings(
-              props.dispatch,
-              lb<ISettings>()
-                .p("muscleGroups")
-                .recordModify((muscleGroups) => {
-                  return Muscle_createMuscleGroup(muscleGroups, name);
-                }),
-              "Create Muscle Group"
-            );
-          }}
-          onDelete={(muscleGroup) => {
-            updateSettings(
-              props.dispatch,
-              lb<ISettings>()
-                .p("muscleGroups")
-                .recordModify((muscleGroups) => {
-                  return Muscle_deleteMuscleGroup(muscleGroups, muscleGroup);
-                }),
-              "Toggle Muscle Group"
-            );
-          }}
-          onUpdate={(muscleGroup, muscles) => {
-            updateSettings(
-              props.dispatch,
-              lb<ISettings>()
-                .p("muscleGroups")
-                .recordModify((muscleGroups) => {
-                  return Muscle_updateMuscleGroup(muscleGroups, muscleGroup, muscles);
-                }),
-              "Update Muscle Group"
-            );
-          }}
-          onRestore={(muscleGroup) => {
-            updateSettings(
-              props.dispatch,
-              lb<ISettings>()
-                .p("muscleGroups")
-                .recordModify((muscleGroups) => {
-                  return Muscle_restoreMuscleGroup(muscleGroups, muscleGroup);
-                }),
-              "Restore Muscle Group"
-            );
-          }}
-          settings={props.settings}
-        />
-      </div>
-    </>
+    <View className="px-4">
+      <MuscleGroupsContent
+        onCreate={(name) => {
+          updateSettings(
+            props.dispatch,
+            lb<ISettings>()
+              .p("muscleGroups")
+              .recordModify((muscleGroups) => {
+                return Muscle_createMuscleGroup(muscleGroups, name);
+              }),
+            "Create Muscle Group"
+          );
+        }}
+        onDelete={(muscleGroup) => {
+          updateSettings(
+            props.dispatch,
+            lb<ISettings>()
+              .p("muscleGroups")
+              .recordModify((muscleGroups) => {
+                return Muscle_deleteMuscleGroup(muscleGroups, muscleGroup);
+              }),
+            "Toggle Muscle Group"
+          );
+        }}
+        onUpdate={(muscleGroup, muscles) => {
+          updateSettings(
+            props.dispatch,
+            lb<ISettings>()
+              .p("muscleGroups")
+              .recordModify((muscleGroups) => {
+                return Muscle_updateMuscleGroup(muscleGroups, muscleGroup, muscles);
+              }),
+            "Update Muscle Group"
+          );
+        }}
+        onRestore={(muscleGroup) => {
+          updateSettings(
+            props.dispatch,
+            lb<ISettings>()
+              .p("muscleGroups")
+              .recordModify((muscleGroups) => {
+                return Muscle_restoreMuscleGroup(muscleGroups, muscleGroup);
+              }),
+            "Restore Muscle Group"
+          );
+        }}
+        settings={props.settings}
+      />
+    </View>
   );
 }

@@ -1,5 +1,8 @@
-import { JSX } from "react";
+import { JSX, ReactNode, useLayoutEffect } from "react";
+import { View, ScrollView, Platform, useWindowDimensions } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
+import { useHeaderHeight } from "@react-navigation/elements";
+import { Text } from "../../components/primitives/text";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
 import { ExercisePickerOptionsMuscles } from "../../components/exercisePicker/exercisePickerOptionsMuscles";
@@ -11,9 +14,14 @@ import { Muscle_getMusclesFromScreenMuscle, Muscle_updateMuscleGroup } from "../
 import { CollectionUtils_remove } from "../../utils/collection";
 import type { IRootStackParamList } from "../types";
 
+const isWeb = Platform.OS === "web";
+const SHEET_DETENT = 0.9;
+
 export function NavModalMuscleGroupMusclePicker(): JSX.Element {
   const { state, dispatch } = useAppState();
   const navigation = useNavigation();
+  const { height: windowHeight } = useWindowDimensions();
+  const headerHeight = useHeaderHeight();
   const route = useRoute<{
     key: string;
     name: "muscleGroupMusclePickerModal";
@@ -27,53 +35,85 @@ export function NavModalMuscleGroupMusclePicker(): JSX.Element {
     navigation.goBack();
   };
 
+  useLayoutEffect(() => {
+    if (isWeb) {
+      return;
+    }
+    navigation.setOptions({
+      unstable_headerRightItems: () => [
+        {
+          type: "custom",
+          hidesSharedBackground: true,
+          element: (
+            <Button
+              kind="purple"
+              buttonSize="md"
+              name="done-selecting-muscles"
+              data-cy="done-selecting-muscles"
+              onClick={onClose}
+            >
+              Done
+            </Button>
+          ),
+        },
+      ],
+    });
+  }, [navigation]);
+
+  const list = (
+    <ExercisePickerOptionsMuscles
+      dontGroup={true}
+      settings={settings}
+      selectedValues={muscles}
+      onSelect={(muscle) => {
+        const existingMuscles = Muscle_getMusclesFromScreenMuscle(muscleGroup, state.storage.settings);
+        const newMuscles = existingMuscles.includes(muscle)
+          ? CollectionUtils_remove(existingMuscles, muscle)
+          : [...existingMuscles, muscle];
+        updateState(
+          dispatch,
+          [
+            lb<IState>()
+              .p("storage")
+              .p("settings")
+              .p("muscleGroups")
+              .record(
+                lf(state.storage.settings)
+                  .p("muscleGroups")
+                  .modify((mg) => Muscle_updateMuscleGroup(mg, muscleGroup, newMuscles)).muscleGroups
+              ),
+          ],
+          "Update muscle group muscles"
+        );
+      }}
+    />
+  );
+
+  if (isWeb) {
+    return (
+      <WebSheet onClose={onClose}>
+        <View className="px-4 py-2">
+          <Text className="pt-2 pb-3 text-base font-semibold text-center">Choose Muscles</Text>
+          {list}
+        </View>
+      </WebSheet>
+    );
+  }
+
+  const contentHeight = windowHeight * SHEET_DETENT - headerHeight;
   return (
-    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
-      <div className="flex flex-col h-full px-4 py-2" style={{ marginTop: "-0.5rem" }}>
-        <h3 className="pt-2 pb-3 text-base font-semibold text-center">Choose Muscles</h3>
-        <div className="flex-1 overflow-y-auto">
-          <div className="pb-4">
-            <ExercisePickerOptionsMuscles
-              dontGroup={true}
-              settings={settings}
-              selectedValues={muscles}
-              onSelect={(muscle) => {
-                const existingMuscles = Muscle_getMusclesFromScreenMuscle(muscleGroup, state.storage.settings);
-                const newMuscles = existingMuscles.includes(muscle)
-                  ? CollectionUtils_remove(existingMuscles, muscle)
-                  : [...existingMuscles, muscle];
-                updateState(
-                  dispatch,
-                  [
-                    lb<IState>()
-                      .p("storage")
-                      .p("settings")
-                      .p("muscleGroups")
-                      .record(
-                        lf(state.storage.settings)
-                          .p("muscleGroups")
-                          .modify((mg) => Muscle_updateMuscleGroup(mg, muscleGroup, newMuscles)).muscleGroups
-                      ),
-                  ],
-                  "Update muscle group muscles"
-                );
-              }}
-            />
-          </div>
-        </div>
-        <div className="py-2 bg-background-default">
-          <Button
-            kind="purple"
-            data-cy="done-selecting-muscles"
-            name="done-selecting-muscles"
-            className="w-full"
-            buttonSize="md"
-            onClick={onClose}
-          >
-            Done
-          </Button>
-        </div>
-      </div>
+    <View style={{ height: contentHeight }}>
+      <ScrollView className="flex-1 pb-4">
+        <View className="px-4 pt-2 pb-8">{list}</View>
+      </ScrollView>
+    </View>
+  );
+}
+
+function WebSheet(props: { onClose: () => void; children: ReactNode }): JSX.Element {
+  return (
+    <SheetScreenContainer onClose={props.onClose} shouldShowClose={true}>
+      {props.children}
     </SheetScreenContainer>
   );
 }

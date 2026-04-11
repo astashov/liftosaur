@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View, Pressable } from "react-native";
+import { Text } from "../primitives/text";
 import { availableMuscles, IMuscle, IScreenMuscle, ISettings } from "../../types";
 import { Muscle_getScreenMusclesFromMuscle, Muscle_getMuscleGroupName } from "../../models/muscle";
 import { ObjectUtils_keys } from "../../utils/object";
@@ -37,14 +39,16 @@ export function ExercisePickerOptionsMuscles(props: IProps): JSX.Element {
   const sortedGroupedMuscles = ObjectUtils_keys(groupedMuscles).sort(([a], [b]) => a.localeCompare(b));
 
   return (
-    <div>
+    <View>
       {sortedGroupedMuscles.map((group) => {
         const muscles = groupedMuscles[group];
         const sortedMuscles = ObjectUtils_keys(muscles).sort(([a], [b]) => a.localeCompare(b));
         return (
-          <div key={group} className="mb-4">
-            <h3 className="mb-2 font-semibold">{Muscle_getMuscleGroupName(group, props.settings)}</h3>
-            <div className="grid grid-cols-2 gap-4 mt-2">
+          <View key={group} className="mb-4">
+            {!props.dontGroup && (
+              <Text className="mb-2 font-semibold">{Muscle_getMuscleGroupName(group, props.settings)}</Text>
+            )}
+            <View className="flex-row flex-wrap mt-2">
               {sortedMuscles.map((key) => {
                 const value = muscles[key];
                 const words = value.label.split(" ");
@@ -57,24 +61,28 @@ export function ExercisePickerOptionsMuscles(props: IProps): JSX.Element {
                       ? "text-sm"
                       : "text-base";
                 return (
-                  <button
-                    key={key}
-                    data-cy={`select-muscle-${StringUtils_dashcase(value.label)}`}
-                    className={`bg-background-subtle ${fontSize} flex gap-2 h-12 leading-none overflow-hidden bg-no-repeat items-center rounded-lg border text-left ${value.isSelected ? "border-text-purple text-text-purple" : "border-border-neutral"}`}
-                    style={{ borderWidth: value.isSelected ? "2px" : "1px" }}
-                    onClick={() => props.onSelect(key)}
-                  >
-                    <div>
-                      <MuscleImage muscle={key} size={61} />
-                    </div>
-                    <div className="flex-1">{value.label}</div>
-                  </button>
+                  <View key={key} style={{ width: "50%" }} className="p-1">
+                    <Pressable
+                      testID={`select-muscle-${StringUtils_dashcase(value.label)}`}
+                      data-cy={`select-muscle-${StringUtils_dashcase(value.label)}`}
+                      className={`bg-background-subtle flex-row items-center min-h-14 rounded-lg border ${value.isSelected ? "border-text-purple" : "border-border-neutral"}`}
+                      style={{ borderWidth: value.isSelected ? 2 : 1 }}
+                      onPress={() => props.onSelect(key)}
+                    >
+                      <View>
+                        <MuscleImage muscle={key} size={48} />
+                      </View>
+                      <Text className={`flex-1 pr-2 ${fontSize} ${value.isSelected ? "text-text-purple" : ""}`}>
+                        {value.label}
+                      </Text>
+                    </Pressable>
+                  </View>
                 );
               })}
-            </div>
-          </div>
+            </View>
+          </View>
         );
       })}
-    </div>
+    </View>
   );
 }
