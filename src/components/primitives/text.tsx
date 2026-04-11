@@ -11,8 +11,13 @@ const textSizePattern = /\btext-(xs|sm|base|lg|xl|\dxl|\[)/;
 
 export function Text({ style, className, ...props }: TextProps & { className?: string }): JSX.Element {
   const defaults: string[] = [];
-  if (className == null || !textColorPattern.test(className)) defaults.push("text-text-primary");
-  if (className == null || !textSizePattern.test(className)) defaults.push("text-base");
-  const effectiveClassName = defaults.length > 0 ? (className ? `${defaults.join(" ")} ${className}` : defaults.join(" ")) : className;
+  if (className == null || !textColorPattern.test(className)) {
+    defaults.push("text-text-primary");
+  }
+  if (className == null || !textSizePattern.test(className)) {
+    defaults.push("text-base");
+  }
+  const effectiveClassName =
+    defaults.length > 0 ? (className ? `${defaults.join(" ")} ${className}` : defaults.join(" ")) : className;
   return <RNText className={effectiveClassName} style={[defaultStyle.text, style]} {...props} />;
 }
