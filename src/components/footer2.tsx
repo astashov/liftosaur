@@ -135,8 +135,8 @@ export function Footer2View(props: IFooterProps): JSX.Element {
 function CreateButton(props: { isActive: boolean }): JSX.Element {
   return (
     <View
-      className="items-center justify-center rounded-full bg-button-primarybackground border-background-default footer-shadow"
-      style={[{ width: 53, height: 53, borderWidth: 3 }, getNativeShadowStyle(Tailwind_semantic())]}
+      className="items-center justify-center rounded-full w-14 h-14 bg-button-primarybackground border-background-default footer-shadow"
+      style={[{ borderWidth: 3 }, getNativeShadowStyle(Tailwind_semantic())]}
     >
       <IconBarbell2 isSelected={props.isActive} />
     </View>

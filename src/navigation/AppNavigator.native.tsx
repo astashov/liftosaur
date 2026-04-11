@@ -67,7 +67,7 @@ const RootStack = createNativeStackNavigator<IRootStackParamList>();
 const stackScreenOptions = { headerShown: false, animation: "none" as const, freezeOnBlur: true };
 const navHeaderScreenOptions = {
   headerShown: true,
-  animation: "none" as const,
+  animation: "slide_from_right" as const,
   freezeOnBlur: true,
   header: NavHeader,
 };

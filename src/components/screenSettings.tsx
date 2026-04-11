@@ -40,6 +40,7 @@ import { Stats_getCurrentBodyweight, Stats_getCurrentBodyfat, Stats_isEmpty } fr
 import { Weight_print } from "../models/weight";
 import { ImagePreloader_preload, ImagePreloader_dynoflex } from "../utils/imagePreloader";
 import { Settings_getTheme, Settings_applyTheme } from "../models/settings";
+import { TextSize_apply } from "../utils/textSize";
 import { Features_isEnabled } from "../utils/features";
 import { Slider } from "./primitives/slider";
 
@@ -404,6 +405,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
               max={20}
               step={2}
               onChange={(value) => {
+                TextSize_apply(value);
                 props.dispatch({
                   type: "UpdateSettings",
                   lensRecording: lb<ISettings>().p("textSize").record(value),
