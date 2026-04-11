@@ -1,4 +1,7 @@
-import { JSX } from "react";
+import { JSX, ReactNode } from "react";
+import { View, Pressable, Image, Platform } from "react-native";
+import { Text } from "./primitives/text";
+import { Svg, Path } from "./primitives/svg";
 import { IDispatch } from "../ducks/types";
 import { ISettings } from "../types";
 import { useNavOptions } from "../navigation/useNavOptions";
@@ -9,16 +12,28 @@ import { IconEditSquare } from "./icons/iconEditSquare";
 import { IconLink } from "./icons/iconLink";
 import { emptyProgramId, Program_selectProgram } from "../models/program";
 import { IconEquipmentKettlebell } from "./icons/iconEquipmentKettlebell";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
+import { HostConfig_resolveUrl } from "../utils/hostConfig";
 
 interface IScreenProgramSelectProps {
   dispatch: IDispatch;
   settings: ISettings;
 }
 
+interface IOption {
+  key: string;
+  icon: ReactNode;
+  title: string;
+  description: string;
+  onClick: () => void;
+}
+
+const isWeb = Platform.OS === "web";
+
 export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Element {
   useNavOptions({ navHidden: true });
 
-  const options = [
+  const options: IOption[] = [
     {
       key: "builtin",
       icon: <IconDoc width={24} height={24} />,
@@ -31,14 +46,22 @@ export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Eleme
       icon: <IconEditSquare />,
       title: "Create a program",
       description: "Build your own custom routine from scratch",
-      onClick: () => navigationRef.navigate("createProgramModal"),
+      onClick: () => {
+        if (isWeb) {
+          navigationRef.navigate("createProgramModal");
+        }
+      },
     },
     {
       key: "import",
       icon: <IconLink size={24} />,
       title: "Import from link",
       description: "Paste a link from the program web editor",
-      onClick: () => navigationRef.navigate("importFromLinkModal"),
+      onClick: () => {
+        if (isWeb) {
+          navigationRef.navigate("importFromLinkModal");
+        }
+      },
     },
     {
       key: "adhoc",
@@ -50,48 +73,51 @@ export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Eleme
   ];
 
   return (
-    <section className="flex flex-col h-screen text-text-primary bg-background-default">
-      <div className="flex-1 px-4 pt-8 pb-4 overflow-y-auto">
-        <div className="p-4 text-center">
-          <img
-            src="/images/dinoprogramselect.png"
-            className="inline-block object-cover h-52"
-            alt="Dino selecting a program"
+    <View className="flex flex-col flex-1 bg-background-default">
+      <View className="flex-1 px-4 pt-8 pb-4">
+        <View className="items-center p-4">
+          <Image
+            source={{ uri: HostConfig_resolveUrl("/images/dinoprogramselect.png") }}
+            style={{ width: 208, height: 208 }}
+            resizeMode="cover"
           />
-        </div>
-        <div className="px-2 -mt-1">
-          <h2 className="mb-2 text-xl font-bold text-center text-text-primary">Choose your program</h2>
-          <p className="mb-6 text-sm text-center text-text-secondary">How would you like to set up your training?</p>
+        </View>
+        <View className="px-2 -mt-1">
+          <Text className="mb-2 text-xl font-bold text-center text-text-primary">Choose your program</Text>
+          <Text className="mb-6 text-sm text-center text-text-secondary">
+            How would you like to set up your training?
+          </Text>
 
-          <div className="space-y-3">
+          <View className="gap-3">
             {options.map((opt) => (
-              <button
+              <Pressable
                 key={opt.key}
-                className="flex items-center w-full gap-3 px-4 py-4 text-left border rounded-xl bg-background-subtlecardpurple border-border-cardpurple nm-program-select"
+                className="flex-row items-center w-full gap-3 px-4 py-4 border rounded-xl bg-background-subtlecardpurple border-border-cardpurple nm-program-select"
                 data-cy={`program-select-${opt.key}`}
-                onClick={opt.onClick}
+                testID={`program-select-${opt.key}`}
+                onPress={opt.onClick}
               >
-                <div className="text-text-secondary">{opt.icon}</div>
-                <div className="flex-1">
-                  <div className="text-sm font-semibold">{opt.title}</div>
-                  <div className="text-xs text-text-secondary">{opt.description}</div>
-                </div>
-                <div className="text-text-secondary">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path
+                <View>{opt.icon}</View>
+                <View className="flex-1">
+                  <Text className="text-sm font-semibold">{opt.title}</Text>
+                  <Text className="text-xs text-text-secondary">{opt.description}</Text>
+                </View>
+                <View>
+                  <Svg width={16} height={16} viewBox="0 0 16 16" fill="none">
+                    <Path
                       d="M6 4l4 4-4 4"
-                      stroke="currentColor"
+                      stroke={Tailwind_semantic().icon.neutral}
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     />
-                  </svg>
-                </div>
-              </button>
+                  </Svg>
+                </View>
+              </Pressable>
             ))}
-          </div>
-        </div>
-      </div>
-    </section>
+          </View>
+        </View>
+      </View>
+    </View>
   );
 }

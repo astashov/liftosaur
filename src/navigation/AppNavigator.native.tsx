@@ -1,4 +1,4 @@
-import { JSX } from "react";
+import { createContext, JSX, useContext } from "react";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -12,6 +12,7 @@ import type {
   IRootTabParamList,
   IRootStackParamList,
 } from "./types";
+import type { IScreen } from "../models/screen";
 import { NavScreenMain } from "./screens/NavScreenHome";
 import {
   NavScreenPrograms,
@@ -65,7 +66,7 @@ const MeStack = createNativeStackNavigator<IMeStackParamList>();
 const Tab = createBottomTabNavigator<IRootTabParamList>();
 const RootStack = createNativeStackNavigator<IRootStackParamList>();
 
-const stackScreenOptions = { headerShown: false, animation: "none" as const, freezeOnBlur: true };
+const stackScreenOptions = { headerShown: false, animation: "slide_from_right" as const, freezeOnBlur: true };
 const navHeaderScreenOptions = {
   headerShown: true,
   animation: "slide_from_right" as const,
@@ -74,8 +75,9 @@ const navHeaderScreenOptions = {
 };
 
 function OnboardingStackScreen(): JSX.Element {
+  const initialScreen = useContext(InitialScreenContext) as keyof IOnboardingStackParamList | undefined;
   return (
-    <OnboardingStack.Navigator screenOptions={stackScreenOptions}>
+    <OnboardingStack.Navigator screenOptions={stackScreenOptions} initialRouteName={initialScreen || "first"}>
       <OnboardingStack.Screen name="first" component={NavScreenFirst} />
       <OnboardingStack.Screen name="units" component={NavScreenUnits} />
       <OnboardingStack.Screen name="setupequipment" component={NavScreenSetupEquipment} />
@@ -176,12 +178,19 @@ function MainTabsScreen(): JSX.Element {
   );
 }
 
-export function AppNavigator(): JSX.Element {
+const onboardingScreens: IScreen[] = ["first", "units", "setupequipment", "setupplates", "programselect"];
+
+const InitialScreenContext = createContext<IScreen | undefined>(undefined);
+
+export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
+  const { initialScreen } = props;
+  const isOnboarding = initialScreen ? onboardingScreens.includes(initialScreen) : false;
   return (
-    <RootStack.Navigator
-      screenOptions={{ headerShown: false, animation: "none", freezeOnBlur: true }}
-      initialRouteName="mainTabs"
-    >
+    <InitialScreenContext.Provider value={initialScreen}>
+      <RootStack.Navigator
+        screenOptions={{ headerShown: false, animation: "none", freezeOnBlur: true }}
+        initialRouteName={isOnboarding ? "onboarding" : "mainTabs"}
+      >
       <RootStack.Screen name="onboarding" component={OnboardingStackScreen} />
       <RootStack.Screen name="mainTabs" component={MainTabsScreen} />
       <RootStack.Screen name="subscription" component={NavScreenSubscription} options={{ headerShown: true }} />
@@ -216,6 +225,7 @@ export function AppNavigator(): JSX.Element {
           }}
         />
       </RootStack.Group>
-    </RootStack.Navigator>
+      </RootStack.Navigator>
+    </InitialScreenContext.Provider>
   );
 }

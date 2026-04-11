@@ -53,12 +53,14 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
     defaultOnActions(env)
   );
 
+  const initialScreen = props.initialState.storage.currentProgramId ? "main" : "first";
+
   return (
     <AppContext.Provider value={{ service, isApp: true }}>
       <StateContext.Provider value={{ state, dispatch }}>
         <ModalStateProvider>
           <NavigationContainer ref={navigationRef}>
-            <AppNavigator />
+            <AppNavigator initialScreen={initialScreen} />
           </NavigationContainer>
         </ModalStateProvider>
       </StateContext.Provider>
