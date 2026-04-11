@@ -928,6 +928,13 @@ export class LiftosaurCdkStack extends cdk.Stack {
             },
           ],
         },
+        "/appleauthcallback-mobile.html": {
+          origin: apiOrigin,
+          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        },
         "*.js": s3CachedBehavior,
         "*.css": s3CachedBehavior,
         "*.map": s3CachedBehavior,

@@ -18,7 +18,7 @@ export function EditProgressEntry_showEditSetModal(
   set?: ISet
 ): void {
   const isUnilateral = exerciseType ? Exercise_getIsUnilateral(exerciseType, settings) : false;
-  const openModal = () => {
+  const openModal = (): void => {
     dispatch({
       type: "UpdateProgress",
       lensRecordings: [

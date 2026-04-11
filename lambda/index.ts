@@ -720,16 +720,19 @@ const saveDebugHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof sav
 };
 
 const postWatchCrashReportEndpoint = Endpoint.build("/api/watchcrashreport");
-const postWatchCrashReportHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postWatchCrashReportEndpoint> =
-  async ({ payload }) => {
-    const { event, di } = payload;
-    const body = getBodyJson(event);
-    di.log.log(
-      `WATCH_CRASH_REPORT: device=${body.deviceIdentifier} type=${body.crashType} breadcrumb=${body.lastBreadcrumb} model=${body.deviceModel} os=${body.watchOSVersion} build=${body.bundleVersion}`
-    );
-    di.log.log(`WATCH_CRASH_LOGS: ${body.lastLogs}`);
-    return ResponseUtils_json(200, event, { data: "ok" });
-  };
+const postWatchCrashReportHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postWatchCrashReportEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  const body = getBodyJson(event);
+  di.log.log(
+    `WATCH_CRASH_REPORT: device=${body.deviceIdentifier} type=${body.crashType} breadcrumb=${body.lastBreadcrumb} model=${body.deviceModel} os=${body.watchOSVersion} build=${body.bundleVersion}`
+  );
+  di.log.log(`WATCH_CRASH_LOGS: ${body.lastLogs}`);
+  return ResponseUtils_json(200, event, { data: "ok" });
+};
 
 const debugLogsEndpoint = Endpoint.build("/api/debuglogs");
 const debugLogsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof debugLogsEndpoint> = async ({
@@ -838,6 +841,46 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
   }
 
   return ResponseUtils_json(403, event, { error: "invalid_token" });
+};
+
+const appleCallbackMobileEndpoint = Endpoint.build("/appleauthcallback-mobile.html");
+const appleCallbackMobileHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof appleCallbackMobileEndpoint
+> = async ({ payload }) => {
+  const { event } = payload;
+  const rawBody = event.isBase64Encoded ? Buffer.from(event.body || "", "base64").toString("utf8") : event.body || "";
+  const form = new URLSearchParams(rawBody);
+  const code = form.get("code") || "";
+  const idToken = form.get("id_token") || "";
+  const state = form.get("state") || "";
+  if (!code || !idToken) {
+    return {
+      statusCode: 400,
+      headers: { "content-type": "text/plain" },
+      body: "Missing code or id_token",
+    };
+  }
+  const deepLinkParams = [
+    `code=${encodeURIComponent(code)}`,
+    `id_token=${encodeURIComponent(idToken)}`,
+    state ? `state=${encodeURIComponent(state)}` : "",
+  ]
+    .filter((x) => x)
+    .join("&");
+  const deepLink = `com.liftosaur.www://apple-callback?${deepLinkParams}`;
+  const safeDeepLinkForScript = JSON.stringify(deepLink).replace(/<\//g, "<\\/");
+  const safeDeepLinkForHref = deepLink.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+  return {
+    statusCode: 200,
+    headers: { "content-type": "text/html" },
+    body:
+      `<!doctype html><html><head><meta charset="utf-8"><title>Signing in…</title></head><body>` +
+      `<script>window.location.replace(${safeDeepLinkForScript});</script>` +
+      `<p>Signing in… If not redirected, <a href="${safeDeepLinkForHref}">tap here</a>.</p>` +
+      `</body></html>`,
+  };
 };
 
 const googleLoginEndpoint = Endpoint.build("/api/signin/google");
@@ -2993,6 +3036,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .post(postGoogleWebhookEndpoint, postGoogleWebhookHandler)
       .post(googleLoginEndpoint, googleLoginHandler)
       .post(appleLoginEndpoint, appleLoginHandler)
+      .post(appleCallbackMobileEndpoint, appleCallbackMobileHandler)
       .post(signoutEndpoint, signoutHandler)
       .get(getProgramsEndpoint, getProgramsHandler)
       .get(getHistoryRecordEndpoint, getHistoryRecordHandler)

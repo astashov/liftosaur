@@ -206,5 +206,6 @@ module.exports = defineConfig([
     "test-results",
     "**/node_modules",
     "**/worktrees",
+    "codemods",
   ]),
 ]);

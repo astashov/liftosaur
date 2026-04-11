@@ -137,10 +137,15 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                 name="exercise-equipment-picker"
                 data-cy="exercise-equipment-picker"
                 onClick={() => {
-                  const openEquipmentModal = () => {
+                  const openEquipmentModal = (): void => {
                     updateProgress(
                       props.dispatch,
-                      [lb<IHistoryRecord>().pi("ui", {}).p("equipmentModal").record({ exerciseType: props.entry.exercise })],
+                      [
+                        lb<IHistoryRecord>()
+                          .pi("ui", {})
+                          .p("equipmentModal")
+                          .record({ exerciseType: props.entry.exercise }),
+                      ],
                       "change-equipment"
                     );
                     navigationRef.navigate("equipmentModal", { context: "workout", progressId: props.progress.id });
@@ -167,7 +172,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                   name="exercise-superset-picker"
                   data-cy="exercise-superset-picker"
                   onClick={() => {
-                    const openSupersetPicker = () => {
+                    const openSupersetPicker = (): void => {
                       updateProgress(
                         props.dispatch,
                         [lb<IHistoryRecord>().pi("ui", {}).p("showSupersetPicker").record(props.entry)],
@@ -203,10 +208,15 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                   name="exercise-rm1-picker"
                   data-cy="exercise-rm1-picker"
                   onClick={() => {
-                    const openRm1Modal = () => {
+                    const openRm1Modal = (): void => {
                       updateProgress(
                         props.dispatch,
-                        [lb<IHistoryRecord>().pi("ui", {}).p("rm1Modal").record({ exerciseType: props.entry.exercise })],
+                        [
+                          lb<IHistoryRecord>()
+                            .pi("ui", {})
+                            .p("rm1Modal")
+                            .record({ exerciseType: props.entry.exercise }),
+                        ],
                         "change-rm1"
                       );
                       navigationRef.navigate("rm1Modal", { context: "workout", progressId: props.progress.id });
@@ -263,7 +273,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                   isTop={!programExercise || !programExerciseId}
                   onClick={() => {
                     setIsKebabMenuOpen(false);
-                    const openExercisePicker = () => {
+                    const openExercisePicker = (): void => {
                       updateProgress(
                         props.dispatch,
                         [
@@ -308,7 +318,7 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
                   data-cy="exercise-superset"
                   onClick={() => {
                     setIsKebabMenuOpen(false);
-                    const openSupersetPicker = () => {
+                    const openSupersetPicker = (): void => {
                       updateProgress(
                         props.dispatch,
                         [lb<IHistoryRecord>().pi("ui", {}).p("showSupersetPicker").record(props.entry)],
