@@ -74,7 +74,7 @@ export function MenuItem(props: IMenuItemProps): JSX.Element {
         {dragHandle}
         {props.prefix != null && <View className="flex-row items-center justify-center">{props.prefix}</View>}
         <View className={props.expandValue ? undefined : "flex-1"}>
-          <View className="flex-row items-center pt-3 pb-3">
+          <View className="flex-row items-center py-3">
             <Text className="text-base text-text-primary">{props.name}</Text>
           </View>
           {props.addons != null && <View className="pb-2">{props.addons}</View>}

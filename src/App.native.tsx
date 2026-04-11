@@ -38,6 +38,7 @@ import { getCurrentScreenData } from "./navigation/navigationService";
 import { IndexedDBUtils_initializeForSafari, IndexedDBUtils_get } from "./utils/indexeddb";
 import { Settings_applyTheme, Settings_getTheme } from "./models/settings";
 import { TextSize_apply } from "./utils/textSize";
+import { AppContext } from "./components/appContext";
 
 function AppInner(props: { initialState: IState }): React.JSX.Element {
   const client = fetch;
@@ -53,13 +54,15 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
   );
 
   return (
-    <StateContext.Provider value={{ state, dispatch }}>
-      <ModalStateProvider>
-        <NavigationContainer ref={navigationRef}>
-          <AppNavigator />
-        </NavigationContainer>
-      </ModalStateProvider>
-    </StateContext.Provider>
+    <AppContext.Provider value={{ service, isApp: true }}>
+      <StateContext.Provider value={{ state, dispatch }}>
+        <ModalStateProvider>
+          <NavigationContainer ref={navigationRef}>
+            <AppNavigator />
+          </NavigationContainer>
+        </ModalStateProvider>
+      </StateContext.Provider>
+    </AppContext.Provider>
   );
 }
 

@@ -1,4 +1,6 @@
 import { JSX, Fragment, useState } from "react";
+import { View, Pressable, Platform } from "react-native";
+import { Text } from "./primitives/text";
 import {
   Muscle_getAvailableMuscleGroups,
   Muscle_getHiddenMuscleGroups,
@@ -18,6 +20,7 @@ import { BottomSheetMuscleGroupMusclePicker } from "./bottomSheetMuscleGroupMusc
 import { StringUtils_dashcase } from "../utils/string";
 import { useModal } from "../navigation/ModalStateContext";
 import { getNavigationRef } from "../navigation/navUtils";
+import { Dialog_prompt } from "../utils/dialog";
 
 interface IProps {
   settings: ISettings;
@@ -36,90 +39,99 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
   const openTextInput = useModal("textInputModal", (name) => {
     props.onCreate(name);
   });
+
+  const handleAddMuscleGroup = async (): Promise<void> => {
+    if (Platform.OS === "web") {
+      openTextInput({
+        title: "Enter new group name",
+        inputLabel: "Name",
+        placeholder: "My Group Name",
+        submitLabel: "Add",
+        dataCyPrefix: "modal-new-muscle-group",
+      });
+    } else {
+      const name = await Dialog_prompt("Enter new group name");
+      if (name && name.trim()) {
+        props.onCreate(name.trim());
+      }
+    }
+  };
+
   return (
-    <div>
+    <View>
       {visibleMuscleGroups.map((muscleGroup) => {
         const muscleGroupName = Muscle_getMuscleGroupName(muscleGroup, props.settings);
         const muscleGroupSlug = StringUtils_dashcase(muscleGroupName);
         const isBuiltin = Muscle_isBuiltInMuscleGroup(muscleGroup);
         return (
           <MenuItemWrapper key={muscleGroup} name={`muscle-group-${muscleGroup}`}>
-            <div className="flex items-center gap-4">
-              <div className="w-12">
+            <View className="flex-row items-center gap-4">
+              <View className="w-12">
                 <MuscleGroupImage muscleGroup={muscleGroup} size={48} />
-              </div>
-              <div className="flex-1 py-2">
-                <div className="text-base font-bold">{muscleGroupName}</div>
-                <div className="text-xs text-text-secondary">
+              </View>
+              <View className="flex-1 py-2">
+                <Text className="text-base font-bold">{muscleGroupName}</Text>
+                <Text className="text-xs text-text-secondary">
                   {CollectionUtils_sort(Muscle_getMusclesFromScreenMuscle(muscleGroup, props.settings), (a, b) =>
                     a.localeCompare(b)
                   ).join(", ")}
-                </div>
-              </div>
-              <div className="flex">
-                <div>
-                  <button
-                    className="p-2"
-                    data-cy={`edit-muscle-group-${muscleGroupSlug}`}
-                    onClick={() => {
-                      if (props.useInlineModals) {
-                        setShowMusclePicker(muscleGroup);
-                      } else {
-                        getNavigationRef().then(({ navigationRef: ref }) =>
-                          ref.navigate("muscleGroupMusclePickerModal", { muscleGroup })
-                        );
-                      }
-                    }}
-                  >
-                    <IconEdit2 />
-                  </button>
-                </div>
-                <div>
-                  <button
-                    className="p-2"
-                    data-cy={`delete-muscle-group-${muscleGroupSlug}`}
-                    onClick={() => {
-                      props.onDelete(muscleGroup);
-                    }}
-                  >
-                    {isBuiltin ? <IconEyeClosed /> : <IconTrash />}
-                  </button>
-                </div>
-              </div>
-            </div>
+                </Text>
+              </View>
+              <View className="flex-row">
+                <Pressable
+                  className="p-2"
+                  testID={`edit-muscle-group-${muscleGroupSlug}`}
+                  data-cy={`edit-muscle-group-${muscleGroupSlug}`}
+                  onPress={() => {
+                    if (props.useInlineModals) {
+                      setShowMusclePicker(muscleGroup);
+                    } else {
+                      getNavigationRef().then(({ navigationRef: ref }) =>
+                        ref.navigate("muscleGroupMusclePickerModal", { muscleGroup })
+                      );
+                    }
+                  }}
+                >
+                  <IconEdit2 />
+                </Pressable>
+                <Pressable
+                  className="p-2"
+                  testID={`delete-muscle-group-${muscleGroupSlug}`}
+                  data-cy={`delete-muscle-group-${muscleGroupSlug}`}
+                  onPress={() => {
+                    props.onDelete(muscleGroup);
+                  }}
+                >
+                  {isBuiltin ? <IconEyeClosed /> : <IconTrash />}
+                </Pressable>
+              </View>
+            </View>
           </MenuItemWrapper>
         );
       })}
-      <div className="pb-4">
+      <View className="pb-4">
         <LinkButton
           name="add-muscle-group"
           data-cy="add-muscle-group"
           className="text-sm"
-          onClick={() => {
-            openTextInput({
-              title: "Enter new group name",
-              inputLabel: "Name",
-              placeholder: "My Group Name",
-              submitLabel: "Add",
-              dataCyPrefix: "modal-new-muscle-group",
-            });
-          }}
+          onClick={handleAddMuscleGroup}
         >
           Add custom muscle group
         </LinkButton>
-      </div>
+      </View>
       {hiddenMuscleGroups.length > 0 && (
-        <div className="pb-6 text-xs text-text-secondary">
-          <span>Unhide muscle groups: </span>
+        <View className="flex-row flex-wrap pb-6">
+          <Text className="text-xs text-text-secondary">Unhide muscle groups: </Text>
           {hiddenMuscleGroups.map((muscleGroup, i) => {
             const muscleGroupName = Muscle_getMuscleGroupName(muscleGroup, props.settings);
             const muscleGroupSlug = StringUtils_dashcase(muscleGroupName);
             return (
               <Fragment key={muscleGroup}>
-                {i !== 0 ? ", " : ""}
+                {i !== 0 ? <Text className="text-xs text-text-secondary">, </Text> : null}
                 <LinkButton
                   data-cy={`unhide-muscle-group-${muscleGroupSlug}`}
                   name="unhide-muscle-group"
+                  className="text-xs"
                   onClick={() => props.onRestore(muscleGroup)}
                 >
                   {muscleGroupName}
@@ -127,9 +139,9 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
               </Fragment>
             );
           })}
-        </div>
+        </View>
       )}
-      {props.useInlineModals && showMusclePicker && (
+      {props.useInlineModals && showMusclePicker && Platform.OS === "web" && (
         <BottomSheetMuscleGroupMusclePicker
           settings={props.settings}
           muscleGroup={showMusclePicker}
@@ -143,6 +155,6 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
           }}
         />
       )}
-    </div>
+    </View>
   );
 }

@@ -53,6 +53,7 @@ import { NavModalMonthCalendar } from "./modals/NavModalMonthCalendar";
 import { NavModalWeekInsightsDetails } from "./modals/NavModalWeekInsightsDetails";
 import { NavModalSetSplit } from "./modals/NavModalSetSplit";
 import { NavModalPlannerSettings } from "./modals/NavModalPlannerSettings";
+import { NavModalMuscleGroupMusclePicker } from "./modals/NavModalMuscleGroupMusclePicker";
 import { NavHeader } from "./NavHeader";
 
 const OnboardingStack = createNativeStackNavigator<IOnboardingStackParamList>();
@@ -205,6 +206,15 @@ export function AppNavigator(): JSX.Element {
         <RootStack.Screen name="weekInsightsDetailsModal" component={NavModalWeekInsightsDetails} />
         <RootStack.Screen name="setSplitModal" component={NavModalSetSplit} />
         <RootStack.Screen name="plannerSettingsModal" component={NavModalPlannerSettings} />
+        <RootStack.Screen
+          name="muscleGroupMusclePickerModal"
+          component={NavModalMuscleGroupMusclePicker}
+          options={{
+            sheetAllowedDetents: [0.9],
+            headerShown: true,
+            title: "Choose Muscles",
+          }}
+        />
       </RootStack.Group>
     </RootStack.Navigator>
   );
