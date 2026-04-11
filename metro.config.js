@@ -7,5 +7,5 @@ const config = mergeConfig(getDefaultConfig(__dirname), {});
 module.exports = withNativeWind(config, {
   input: path.resolve(__dirname, "global.css"),
   configPath: path.resolve(__dirname, "tailwind.config.native.js"),
-  inlineRem: 16,
+  inlineRem: false,
 });

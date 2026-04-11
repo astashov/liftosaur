@@ -41,6 +41,7 @@ import RB from "rollbar";
 import { exceptionIgnores } from "../utils/rollbar";
 import { ImagePreloader_preload, ImagePreloader_dynocoach } from "../utils/imagePreloader";
 import { Settings_applyTheme } from "../models/settings";
+import { TextSize_apply } from "../utils/textSize";
 import { AppContext } from "./appContext";
 import { TourConfigs_findTourId } from "./tour/tourConfigs";
 import { NavigationContainer, DefaultTheme, type NavigationState } from "@react-navigation/native";
@@ -114,7 +115,7 @@ export function AppView(props: IProps): JSX.Element | null {
   }, [state.storage.settings.alwaysOnDisplay]);
 
   useEffect(() => {
-    document.documentElement.style.fontSize = `${state.storage.settings.textSize ?? 16}px`;
+    TextSize_apply(state.storage.settings.textSize ?? 16);
   }, [state.storage.settings.textSize]);
 
   useLoopCatcher();

@@ -24,6 +24,7 @@ module.exports = {
   content: [path.resolve(__dirname, "src/**/*.native.tsx"), path.resolve(__dirname, "src/**/*.tsx")],
   presets: [nativewindPreset],
   darkMode: "class",
+  safelist: ["dark"],
   theme: {
     extend: {
       colors: {
