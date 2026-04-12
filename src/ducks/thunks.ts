@@ -21,7 +21,8 @@ import {
 } from "../models/program";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
 import { SignIn_google, SignIn_apple } from "../utils/signIn";
-import { Platform } from "react-native";
+import { Platform, Alert } from "react-native";
+import { Dialog_confirm, Dialog_alert } from "../utils/dialog";
 import { IEnv, IState, updateProgress, updateState } from "../models/state";
 import { IProgram, IStorage, IExerciseType, ISettings, IDayData, IHistoryRecord } from "../types";
 import {
@@ -1223,7 +1224,11 @@ export function Thunk_importFromLink(link: string): IThunk {
       }
       dispatch(Thunk_importProgram(data.data));
     } else {
-      alert(data.error.join("\n"));
+      if (Platform.OS === "web") {
+        alert(data.error.join("\n"));
+      } else {
+        Alert.alert("Import Error", data.error.join("\n"));
+      }
     }
   };
 }
@@ -1277,17 +1282,20 @@ export function Thunk_importProgram(importLinkData: IImportLinkData): IThunk {
         program.authorid = userid;
       }
       const newProgram: IProgram = { ...ObjectUtils_clone(program), clonedAt: Date.now() };
-      if (!confirm(`Do you want to import program ${newProgram.name}?`)) {
+      if (!(await Dialog_confirm(`Do you want to import program ${newProgram.name}?`))) {
         return;
       }
       const hasExistingProgram = getState().storage.programs.some((p) => p.id === newProgram.id);
-      if (hasExistingProgram && !confirm("Program with the same id already exists, do you want to overwrite it?")) {
+      if (
+        hasExistingProgram &&
+        !(await Dialog_confirm("Program with the same id already exists, do you want to overwrite it?"))
+      ) {
         return;
       }
       if (newProgram.planner && PlannerProgram_hasNonSelectedWeightUnit(newProgram.planner, state.storage.settings)) {
         const fromUnit = Weight_oppositeUnit(state.storage.settings.units);
         const toUnit = state.storage.settings.units;
-        if (confirm(`The program has weights in ${fromUnit}, do you want to convert them to ${toUnit}?`)) {
+        if (await Dialog_confirm(`The program has weights in ${fromUnit}, do you want to convert them to ${toUnit}?`)) {
           newProgram.planner = PlannerProgram_switchToUnit(newProgram.planner, state.storage.settings);
         }
       }
@@ -1310,12 +1318,15 @@ export function Thunk_importProgram(importLinkData: IImportLinkData): IThunk {
                 return [...programs, newProgram];
               }
             }),
+          lb<IState>().p("storage").p("currentProgramId").record(newProgram.id),
         ],
         "Importing Program"
       );
-      alert("Successfully imported");
+      Dialog_alert("Successfully imported");
+      const { navigateTo } = await getNavigationService();
+      navigateTo("main", undefined, { tab: "home" });
     } else {
-      alert(result.error.join("\n"));
+      Dialog_alert(result.error.join("\n"));
     }
   };
 }

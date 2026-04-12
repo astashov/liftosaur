@@ -1,4 +1,4 @@
-import { JSX, Dispatch, ReactNode, SetStateAction, useRef, useEffect } from "react";
+import { JSX, Dispatch, ReactNode, SetStateAction, useRef, useEffect, RefObject } from "react";
 import { View, Pressable, ActionSheetIOS, Switch, TextInput } from "react-native";
 import { Text } from "./primitives/text";
 import { MenuItemWrapper } from "./menuItem";
@@ -31,9 +31,19 @@ interface IMenuItemEditableProps extends IMenuItemEditableValueProps {
 }
 
 export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
+  const inputRef = useRef<TextInput>(null);
+  const isTextInput = props.type === "text" || props.type === "number";
+
   return (
     <MenuItemWrapper name={props.name} isBorderless={props.isBorderless}>
-      <View className="flex-row items-center py-3">
+      <Pressable
+        className="flex-row items-center py-3"
+        onPress={() => {
+          if (isTextInput) {
+            inputRef.current?.focus();
+          }
+        }}
+      >
         {props.prefix}
         <View className="flex-1 pr-2">
           <Text
@@ -54,13 +64,14 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
             values={props.values}
             setPatternError={() => undefined}
             onChange={props.onChange}
+            inputRef={isTextInput ? inputRef : undefined}
           />
         </View>
         {props.value != null && props.valueUnits && (
           <Text className="text-text-secondary ml-1">{props.valueUnits}</Text>
         )}
         {props.after}
-      </View>
+      </Pressable>
       {props.errorMessage && <Text className="text-xs text-right text-red-500">{props.errorMessage}</Text>}
       {props.nextLine}
     </MenuItemWrapper>
@@ -68,7 +79,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
 }
 
 export function MenuItemValue(
-  props: { setPatternError: Dispatch<SetStateAction<boolean>> } & IMenuItemEditableValueProps
+  props: { setPatternError: Dispatch<SetStateAction<boolean>>; inputRef?: RefObject<TextInput | null> } & IMenuItemEditableValueProps
 ): JSX.Element | null {
   if (props.type === "desktop-select" || props.type === "select" || props.type === "select2") {
     const currentLabel = (props.values || []).find(([k]) => k === props.value)?.[1] ?? "";
@@ -103,6 +114,7 @@ export function MenuItemValue(
         onChange={props.onChange}
         keyboardType={props.type === "number" ? "numeric" : "default"}
         maxLength={props.maxLength}
+        inputRef={props.inputRef}
       />
     );
   }
@@ -115,23 +127,25 @@ function NativeTextValue(props: {
   onChange?: (v?: string) => void;
   keyboardType: "numeric" | "default";
   maxLength?: number;
+  inputRef?: RefObject<TextInput | null>;
 }): JSX.Element {
-  const inputRef = useRef<TextInput>(null);
+  const localRef = useRef<TextInput>(null);
+  const ref = props.inputRef ?? localRef;
   const currentValueRef = useRef(props.value ?? "");
 
   useEffect(() => {
     const newStr = props.value ?? "";
     if (currentValueRef.current !== newStr) {
       currentValueRef.current = newStr;
-      inputRef.current?.setNativeProps({ text: newStr });
+      ref.current?.setNativeProps({ text: newStr });
     }
   }, [props.value]);
 
   return (
     <TextInput
-      ref={inputRef}
-      className="text-right text-text-link py-2"
-      style={{ minWidth: 80 }}
+      ref={ref}
+      className="text-right text-base text-text-link py-2"
+      style={{ minWidth: 80, fontFamily: "Poppins" }}
       defaultValue={currentValueRef.current}
       onChangeText={(text) => {
         currentValueRef.current = text;

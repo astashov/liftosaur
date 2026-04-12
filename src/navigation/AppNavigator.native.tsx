@@ -56,6 +56,8 @@ import { NavModalSetSplit } from "./modals/NavModalSetSplit";
 import { NavModalPlannerSettings } from "./modals/NavModalPlannerSettings";
 import { NavModalMuscleGroupMusclePicker } from "./modals/NavModalMuscleGroupMusclePicker";
 import { NavModalAccount } from "./modals/NavModalAccount";
+import { NavModalCreateProgram } from "./modals/NavModalCreateProgram";
+import { NavModalImportFromLink } from "./modals/NavModalImportFromLink";
 import { NavHeader } from "./NavHeader";
 
 const OnboardingStack = createNativeStackNavigator<IOnboardingStackParamList>();
@@ -226,6 +228,8 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
             }}
           />
           <RootStack.Screen name="accountModal" component={NavModalAccount} />
+          <RootStack.Screen name="createProgramModal" component={NavModalCreateProgram} />
+          <RootStack.Screen name="importFromLinkModal" component={NavModalImportFromLink} />
         </RootStack.Group>
       </RootStack.Navigator>
     </InitialScreenContext.Provider>

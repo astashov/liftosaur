@@ -1,4 +1,3 @@
-Westside for Skinny Bastards |-| 390 - 2/5
 Super Squats / 20 Rep Squat |-| 710 - 2/5
 Candito Linear Program |-| 140 - 1/5
 5/3/1 FSL |-| 170 - 2/5
