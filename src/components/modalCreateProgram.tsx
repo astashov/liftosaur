@@ -1,7 +1,8 @@
-import { JSX, useRef } from "react";
+import { JSX, useState } from "react";
+import { View, TextInput } from "react-native";
+import { Text } from "./primitives/text";
 import { Button } from "./button";
 import { Modal } from "./modal";
-import { Input } from "./input";
 import { IconSpinner } from "./icons/iconSpinner";
 
 interface IProps {
@@ -12,47 +13,40 @@ interface IProps {
 }
 
 export function ModalCreateProgramContent(props: Omit<IProps, "isHidden">): JSX.Element {
-  const textInput = useRef<HTMLInputElement>(null);
+  const [name, setName] = useState("");
   return (
-    <>
-      <h3 className="pb-2 text-xl font-bold text-center">Create Program</h3>
-      <Input
-        label="Program Name"
+    <View>
+      <Text className="py-2 text-xl font-bold text-center">Create Program</Text>
+      <Text className="mb-1 text-sm text-text-secondary">Program Name</Text>
+      <TextInput
+        testID="modal-create-program-input"
         data-cy="modal-create-program-input"
-        ref={textInput}
-        type="text"
+        autoFocus
         placeholder="My Awesome Routine"
-        required={true}
-        requiredMessage="Please enter a name for your program"
+        placeholderTextColor="#9ca3af"
+        value={name}
+        onChangeText={setName}
+        className="w-full px-4 py-2 text-base border rounded-lg border-border-prominent bg-background-default"
+        style={{ fontFamily: "Poppins" }}
       />
-      <p className="mt-4 text-center">
-        <Button
-          name="modal-create-program-cancel"
-          data-cy="modal-create-program-cancel"
-          type="button"
-          kind="grayv2"
-          className="mr-3"
-          onClick={props.onClose}
-        >
+      <View className="flex-row justify-center mt-4" style={{ gap: 12 }}>
+        <Button name="modal-create-program-cancel" kind="grayv2" onClick={props.onClose}>
           Cancel
         </Button>
         <Button
-          data-cy="modal-create-experimental-program-submit"
           name="modal-create-program-submit"
-          type="button"
-          disabled={props.isLoading}
           kind="purple"
-          className="ls-modal-create-program"
+          disabled={props.isLoading}
           onClick={() => {
-            if (!props.isLoading && textInput.current?.value) {
-              props.onSelect(textInput.current.value);
+            if (!props.isLoading && name) {
+              props.onSelect(name);
             }
           }}
         >
           {props.isLoading ? <IconSpinner color="white" width={18} height={18} /> : "Create"}
         </Button>
-      </p>
-    </>
+      </View>
+    </View>
   );
 }
 

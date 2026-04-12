@@ -1,4 +1,7 @@
 import type { JSX } from "react";
+import { View, Image, ScrollView, Switch, Pressable, Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import { ISettings, IStats } from "../types";
 import { INavCommon, IState } from "../models/state";
@@ -10,6 +13,8 @@ import { Equipment_getCurrentGym, Equipment_getEquipmentData, Equipment_getEquip
 import { equipmentName } from "../models/exercise";
 import { lb } from "lens-shmens";
 import { ObjectUtils_keys } from "../utils/object";
+import { HostConfig_resolveUrl } from "../utils/hostConfig";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
 
 interface IScreenSetupEquipmentProps {
   dispatch: IDispatch;
@@ -22,49 +27,69 @@ interface IScreenSetupEquipmentProps {
 export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Element {
   const currentGym = Equipment_getCurrentGym(props.settings);
   const allEquipment = Equipment_getEquipmentOfGym(props.settings, props.selectedGymId);
+  const insets = useSafeAreaInsets();
 
   useNavOptions({ navHidden: true });
 
   return (
-    <section className="flex flex-col h-screen text-text-primary bg-background-default">
-      <div className="flex-1 px-4 pt-8 pb-4 overflow-y-auto">
-        <div className="p-4 text-center">
-          <img
-            src="/images/dinoequipment.png"
-            className="inline-block object-cover h-60"
-            alt="Dino with gym equipment"
+    <View className="flex flex-col flex-1 h-screen bg-background-default" style={{ paddingTop: insets.top }}>
+      <ScrollView className="flex-1 px-4 pt-8 pb-4">
+        <View className="items-center p-4">
+          <Image
+            source={{ uri: HostConfig_resolveUrl("/images/dinoequipment.png") }}
+            className="h-60"
+            style={{ width: 240, height: 240 }}
+            resizeMode="contain"
           />
-        </div>
-        <div className="px-2 -mt-1">
-          <h2 className="mb-2 text-xl font-bold text-center text-text-primary">What equipment do you have?</h2>
-          <p className="mb-4 text-sm text-center text-text-secondary">
+        </View>
+        <View className="px-2 -mt-1">
+          <Text className="mb-2 text-xl font-bold text-center text-text-primary">What equipment do you have?</Text>
+          <Text className="mb-4 text-sm text-center text-text-secondary">
             Toggle on the equipment available at your gym. This helps the app round weights to what you can actually
             load.
-          </p>
+          </Text>
 
-          <div className="space-y-2">
+          <View style={{ gap: 8 }}>
             {ObjectUtils_keys(allEquipment).map((eqid) => {
               const equipmentData = Equipment_getEquipmentData(props.settings, eqid);
               const isEnabled = equipmentData && !equipmentData.isDeleted;
               const name = equipmentName(eqid, allEquipment);
               const icon = equipmentToIcon[eqid] ? equipmentToIcon[eqid]() : null;
               return (
-                <label
+                <Pressable
                   key={eqid}
-                  className={`flex items-center gap-3 px-4 py-3 border rounded-xl cursor-pointer ${
+                  testID={`equipment-toggle-${eqid}`}
+                  data-cy={`equipment-toggle-${eqid}`}
+                  className={`flex-row items-center px-4 py-3 border rounded-xl ${
                     isEnabled
                       ? "bg-background-subtlecardpurple border-border-cardpurple"
                       : "bg-background-default border-border-neutral"
                   }`}
+                  style={{ gap: 12 }}
+                  onPress={() => {
+                    props.dispatch({
+                      type: "UpdateState",
+                      lensRecording: [
+                        lb<IState>()
+                          .p("storage")
+                          .p("settings")
+                          .p("gyms")
+                          .findBy("id", currentGym.id)
+                          .p("equipment")
+                          .pi(eqid)
+                          .p("isDeleted")
+                          .record(!isEnabled ? false : true),
+                      ],
+                      desc: `Toggle equipment ${eqid}`,
+                    });
+                  }}
                 >
-                  {icon && <div>{icon}</div>}
-                  <span className="flex-1 text-sm font-medium">{name}</span>
-                  <input
-                    type="checkbox"
-                    checked={isEnabled}
-                    className="block checkbox text-text-link"
-                    data-cy={`equipment-toggle-${eqid}`}
-                    onChange={() => {
+                  {icon && <View>{icon}</View>}
+                  <Text className="flex-1 text-sm font-semibold">{name}</Text>
+                  <Switch
+                    value={!!isEnabled}
+                    trackColor={{ false: "#d1d5db", true: Tailwind_semantic().icon.purple }}
+                    onValueChange={() => {
                       props.dispatch({
                         type: "UpdateState",
                         lensRecording: [
@@ -82,14 +107,24 @@ export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Ele
                       });
                     }}
                   />
-                </label>
+                </Pressable>
               );
             })}
-          </div>
-        </div>
-      </div>
-      <div className="safe-area-inset-bottom" style={{ boxShadow: "0 0 4px 0 rgba(0, 0, 0, 0.2)" }}>
-        <div className="flex gap-2 px-4 pt-2 pb-2">
+          </View>
+        </View>
+      </ScrollView>
+      <View
+        className="bg-background-default"
+        style={[
+          { paddingBottom: insets.bottom || 8 },
+          Platform.select({
+            ios: { shadowColor: "#000", shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.1, shadowRadius: 4 },
+            android: { elevation: 4 },
+            default: { boxShadow: "0 0 4px 0 rgba(0, 0, 0, 0.2)" },
+          }),
+        ]}
+      >
+        <View className="flex-row px-4 pt-2 pb-2" style={{ gap: 8 }}>
           <Button
             className="flex-1"
             name="setup-equipment-skip"
@@ -110,9 +145,9 @@ export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Ele
           >
             Set up plates
           </Button>
-        </div>
-      </div>
-    </section>
+        </View>
+      </View>
+    </View>
   );
 }
 
@@ -125,22 +160,28 @@ interface IScreenSetupPlatesProps {
 
 export function ScreenSetupPlates(props: IScreenSetupPlatesProps): JSX.Element {
   const currentGym = Equipment_getCurrentGym(props.settings);
+  const insets = useSafeAreaInsets();
 
   useNavOptions({ navTitle: "Set Up Plates" });
 
   return (
-    <>
-      <section className="pb-16">
-        <div className="p-4 text-center">
-          <img src="/images/dinoplates.png" className="inline-block object-cover h-52" alt="Dino with plates" />
-        </div>
-        <div className="px-4 pb-4">
-          <h2 className="mb-2 text-xl font-bold text-center text-text-primary">Set up your plates</h2>
-          <p className="text-sm text-center text-text-secondary">
-            Configure the <strong>bar weight</strong> and <strong>plates</strong> you have for each equipment type. The
+    <View className="flex flex-col flex-1 bg-background-default" style={{ paddingTop: insets.top }}>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 80 + insets.bottom }} automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="never" keyboardDismissMode="interactive">
+        <View className="items-center p-4">
+          <Image
+            source={{ uri: HostConfig_resolveUrl("/images/dinoplates.png") }}
+            style={{ width: 220, height: 208 }}
+            resizeMode="contain"
+          />
+        </View>
+        <View className="px-4 pb-4">
+          <Text className="mb-2 text-xl font-bold text-center text-text-primary">Set up your plates</Text>
+          <Text className="text-sm text-center text-text-secondary">
+            Configure the <Text className="text-sm font-bold text-text-secondary">bar weight</Text> and{" "}
+            <Text className="text-sm font-bold text-text-secondary">plates</Text> you have for each equipment type. The
             app uses this to round program weights to what you can actually load.
-          </p>
-        </div>
+          </Text>
+        </View>
         <EquipmentSettings
           stats={props.stats}
           lensPrefix={lb<IState>()
@@ -154,39 +195,29 @@ export function ScreenSetupPlates(props: IScreenSetupPlatesProps): JSX.Element {
           allEquipment={currentGym.equipment}
           settings={props.settings}
         />
-      </section>
-      <div
-        className="fixed bottom-0 left-0 z-10 items-center w-full text-center pointer-events-none"
-        style={{ marginBottom: "-2px" }}
+      </ScrollView>
+      <View
+        className="absolute bottom-0 left-0 right-0 px-4 pt-4 bg-background-default"
+        style={[
+          { paddingBottom: insets.bottom || 16 },
+          Platform.select({
+            ios: { shadowColor: "#000", shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.1, shadowRadius: 4 },
+            android: { elevation: 4 },
+            default: { boxShadow: "0 0 4px 0 rgba(0, 0, 0, 0.2)" },
+          }),
+        ]}
       >
-        <div
-          className="box-content absolute flex bg-background-default safe-area-inset-bottom"
-          style={{
-            width: "4000px",
-            marginLeft: "-2000px",
-            left: "50%",
-            height: "4.25rem",
-            bottom: "0",
-            boxShadow: "0 0 4px 0 rgba(0, 0, 0, 0.2)",
-          }}
-        />
-        <div className="safe-area-inset-bottom">
-          <div className="box-content relative z-10 flex px-2 py-4 pointer-events-auto">
-            <div className="flex-1 w-full">
-              <Button
-                className="w-full"
-                name="setup-plates-continue"
-                kind="purple"
-                buttonSize="lg"
-                onClick={() => props.dispatch(Thunk_pushScreen("programselect"))}
-                data-cy="setup-plates-continue"
-              >
-                Continue
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
+        <Button
+          className="w-full"
+          name="setup-plates-continue"
+          kind="purple"
+          buttonSize="lg"
+          onClick={() => props.dispatch(Thunk_pushScreen("programselect"))}
+          data-cy="setup-plates-continue"
+        >
+          Continue
+        </Button>
+      </View>
+    </View>
   );
 }

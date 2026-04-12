@@ -3,9 +3,14 @@ import { View } from "react-native";
 import { Text } from "../../components/primitives/text";
 import { useAppState } from "../StateContext";
 import { NavScreenContent } from "../NavScreenContent";
+import { buildNavCommon } from "../utils";
 import { ScreenFirst as ScreenFirstComponent } from "../../components/screenFirst";
 import { ScreenUnitSelector } from "../../components/screenUnitSelector";
 import { ScreenProgramSelect as ScreenProgramSelectComponent } from "../../components/screenProgramSelect";
+import {
+  ScreenSetupEquipment as ScreenSetupEquipmentComponent,
+  ScreenSetupPlates as ScreenSetupPlatesComponent,
+} from "../../components/screenSetupEquipment";
 
 export function NavScreenFirst(): React.JSX.Element {
   const { dispatch } = useAppState();
@@ -26,18 +31,28 @@ export function NavScreenUnits(): React.JSX.Element {
 }
 
 export function NavScreenSetupEquipment(): React.JSX.Element {
+  const { state, dispatch } = useAppState();
+  const navCommon = buildNavCommon(state);
   return (
-    <View className="flex-1 justify-center items-center bg-background-default">
-      <Text className="text-2xl font-bold text-icon-neutral">Setup Equipment</Text>
-    </View>
+    <ScreenSetupEquipmentComponent
+      stats={state.storage.stats}
+      navCommon={navCommon}
+      dispatch={dispatch}
+      settings={state.storage.settings}
+    />
   );
 }
 
 export function NavScreenSetupPlates(): React.JSX.Element {
+  const { state, dispatch } = useAppState();
+  const navCommon = buildNavCommon(state);
   return (
-    <View className="flex-1 justify-center items-center bg-background-default">
-      <Text className="text-2xl font-bold text-icon-neutral">Setup Plates</Text>
-    </View>
+    <ScreenSetupPlatesComponent
+      stats={state.storage.stats}
+      navCommon={navCommon}
+      dispatch={dispatch}
+      settings={state.storage.settings}
+    />
   );
 }
 

@@ -1,4 +1,6 @@
 import { JSX, Fragment, useState } from "react";
+import { View, Pressable, Alert, Platform, LayoutAnimation, UIManager } from "react-native";
+import { Text } from "./primitives/text";
 import { ILensRecordingPayload, lb, Lens } from "lens-shmens";
 import { Weight_build, Weight_eqeq, Weight_compare, Weight_display, Weight_print } from "../models/weight";
 import { ISettings, IEquipmentData, IEquipment, IAllEquipment, IUnit, IStats } from "../types";
@@ -71,14 +73,14 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
     return !eq?.name && eq?.isDeleted;
   });
   return (
-    <div>
+    <View>
       {ObjectUtils_keys(props.allEquipment)
         .filter((e) => !props.allEquipment[e]?.isDeleted)
         .map((bar, i) => {
           const equipmentData = props.allEquipment[bar];
           if (equipmentData) {
             return (
-              <div key={bar} id={bar} className={`${i !== 0 ? "mt-6" : ""}`}>
+              <View key={bar} className={`${i !== 0 ? "mt-6" : ""}`}>
                 <EquipmentSettingsContent
                   lensPrefix={props.lensPrefix}
                   stats={props.stats}
@@ -90,18 +92,18 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
                   equipmentData={equipmentData}
                   settings={props.settings}
                 />
-              </div>
+              </View>
             );
           } else {
             return undefined;
           }
         })}
       {hiddenEquipment.length > 0 && (
-        <div className="mx-4 my-2 leading-4">
-          <span className="text-xs">Hidden Equipment: </span>
+        <View className="flex-row flex-wrap mx-4 my-2">
+          <Text className="text-xs">Hidden Equipment: </Text>
           {hiddenEquipment.map((e, i) => (
             <Fragment key={e}>
-              {i !== 0 && <span>, </span>}
+              {i !== 0 && <Text className="text-xs">, </Text>}
               <LinkButton
                 className="text-xs"
                 name={`show-equipment-${e}`}
@@ -116,13 +118,13 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
               </LinkButton>
             </Fragment>
           ))}
-        </div>
+        </View>
       )}
-      <div className="m-4">
+      <View className="m-4">
         <LinkButton className="text-sm" name="add-new-equipment" onClick={() => setModalNewEquipment(true)}>
           Add New Equipment Type
         </LinkButton>
-      </div>
+      </View>
       <ModalNewEquipment
         isHidden={!modalNewEquipment}
         onInput={(name) => {
@@ -139,7 +141,7 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
           setModalNewEquipment(false);
         }}
       />
-    </div>
+    </View>
   );
 }
 
@@ -165,14 +167,14 @@ function EquipmentSummary(props: { equipmentData: IEquipmentData; settings: ISet
       (a, b) => Weight_compare(a, b)
     );
     if (fixedWeights.length === 0) {
-      return <>Fixed weights</>;
+      return <Text className="text-xs text-text-secondary">Fixed weights</Text>;
     }
     const display = fixedWeights.slice(0, 10).map((w) => Weight_print(w));
     return (
-      <>
+      <Text className="text-xs text-text-secondary">
         {display.join(", ")}
         {fixedWeights.length > 10 ? `, and ${fixedWeights.length - 10} more` : ""}
-      </>
+      </Text>
     );
   }
 
@@ -192,9 +194,31 @@ function EquipmentSummary(props: { equipmentData: IEquipmentData; settings: ISet
   }
 
   if (parts.length === 0) {
-    return <>No plates configured</>;
+    return <Text className="text-xs text-text-secondary">No plates configured</Text>;
   }
-  return <>{parts.join(" · ")}</>;
+  return <Text className="text-xs text-text-secondary">{parts.join(" · ")}</Text>;
+}
+
+function confirmDelete(onConfirm: () => void): void {
+  if (Platform.OS === "web") {
+    if (confirm("Are you sure?")) {
+      onConfirm();
+    }
+  } else {
+    Alert.alert("Confirm", "Are you sure?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Delete", style: "destructive", onPress: onConfirm },
+    ]);
+  }
+}
+
+if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+function toggleWithAnimation(setter: (fn: (prev: boolean) => boolean) => void): void {
+  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+  setter((prev) => !prev);
 }
 
 export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProps<T>): JSX.Element {
@@ -203,56 +227,50 @@ export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProp
   const icon = equipmentToIcon[props.equipment] ? equipmentToIcon[props.equipment]() : undefined;
 
   return (
-    <div>
-      <div className="px-2 my-1 border bg-background-default rounded-xl border-border-neutral">
-        <div
-          className="sticky left-0 z-10 flex items-center gap-1 py-2 border-b bg-background-default border-background-subtle rounded-t-2xl rounded-w-2xl"
-          style={{ top: "3.7rem" }}
-        >
-          <div className="flex items-center">
-            <button
+    <View>
+      <View className="px-2 my-1 border bg-background-default rounded-xl border-border-neutral">
+        <View className="flex-row items-center py-2 border-b bg-background-default border-background-subtle" style={{ gap: 4 }}>
+          <View className="flex-row items-center">
+            <Pressable
               className="px-2"
+              testID={`group-header-${StringUtils_dashcase(name)}`}
               data-cy={`group-header-${StringUtils_dashcase(name)}`}
-              onClick={() => {
-                setIsExpanded(!isExpanded);
-              }}
+              onPress={() => toggleWithAnimation(setIsExpanded)}
             >
               {isExpanded ? <IconArrowUp /> : <IconArrowDown2 />}
-            </button>
-          </div>
-          {icon && <div className="mr-1">{icon}</div>}
-          <div
-            className="flex-1"
-            onClick={() => {
-              setIsExpanded(!isExpanded);
-            }}
-          >
-            <div className="font-semibold">{equipmentName(props.equipment, props.allEquipment)}</div>
-            {!isExpanded && (
-              <div className="text-xs text-text-secondary">
-                <EquipmentSummary equipmentData={props.equipmentData} settings={props.settings} />
-              </div>
-            )}
-          </div>
-          <div className="flex items-center">
-            <button
+            </Pressable>
+          </View>
+          {icon && <View className="mr-1">{icon}</View>}
+          <Pressable className="flex-1" onPress={() => toggleWithAnimation(setIsExpanded)}>
+            <Text className="font-semibold">{equipmentName(props.equipment, props.allEquipment)}</Text>
+            {!isExpanded && <EquipmentSummary equipmentData={props.equipmentData} settings={props.settings} />}
+          </Pressable>
+          <View className="flex-row items-center">
+            <Pressable
               className="p-2"
+              testID={`delete-equipment-${StringUtils_dashcase(name)}`}
               data-cy={`delete-equipment-${StringUtils_dashcase(name)}`}
-              onClick={() => {
-                if (!props.equipmentData.name || confirm("Are you sure?")) {
+              onPress={() => {
+                const doDelete = (): void => {
+                  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
                   const lensRecording = props.lensPrefix
                     .then(lb<IAllEquipment>().pi(props.equipment).p("isDeleted").get())
                     .record(true);
                   props.lensDispatch(lensRecording, "Delete equipment");
+                };
+                if (!props.equipmentData.name) {
+                  doDelete();
+                } else {
+                  confirmDelete(doDelete);
                 }
               }}
             >
               {props.equipmentData.name ? <IconTrash /> : <IconEyeClosed />}
-            </button>
-          </div>
-        </div>
+            </Pressable>
+          </View>
+        </View>
         {isExpanded && (
-          <div className="px-2">
+          <View className="px-2">
             {props.equipmentData.name && (
               <MenuItemEditable
                 name="Name"
@@ -278,10 +296,10 @@ export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProp
               lensDispatch={props.lensDispatch}
               equipmentData={props.equipmentData}
             />
-          </div>
+          </View>
         )}
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }
 
@@ -426,7 +444,7 @@ function EquipmentSettingsFixed<T>(props: IEquipmentSettingsFixedProps<T>): JSX.
     (a, b) => Weight_compare(b, a)
   );
   return (
-    <div className="mb-4">
+    <View className="mb-4">
       <GroupHeader
         topPadding={true}
         name={`Available fixed weight for ${equipmentName(props.name, props.allEquipment)}`}
@@ -437,9 +455,10 @@ function EquipmentSettingsFixed<T>(props: IEquipmentSettingsFixedProps<T>): JSX.
             key={i}
             name={Weight_display(weight)}
             value={
-              <button
-                className="nm-remove-fixed-weight"
-                onClick={() => {
+              <Pressable
+                testID="nm-remove-fixed-weight"
+                data-cy="nm-remove-fixed-weight"
+                onPress={() => {
                   const newFixedWeights = equipmentData.fixed.filter((p) => !Weight_eqeq(p, weight));
                   const lensRecording = props.lensPrefix
                     .then(lb<IAllEquipment>().pi(props.name).p("fixed").get())
@@ -448,7 +467,7 @@ function EquipmentSettingsFixed<T>(props: IEquipmentSettingsFixedProps<T>): JSX.
                 }}
               >
                 <IconTrash />
-              </button>
+              </Pressable>
             }
           />
         );
@@ -460,7 +479,7 @@ function EquipmentSettingsFixed<T>(props: IEquipmentSettingsFixedProps<T>): JSX.
       >
         Add New Fixed Weight
       </LinkButton>
-    </div>
+    </View>
   );
 }
 
@@ -487,11 +506,11 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
     ? Stats_getCurrentMovingAverageBodyweight(props.stats, props.settings)
     : undefined;
   return (
-    <div className="mb-4">
+    <View className="mb-4">
       {equipmentData.useBodyweightForBar ? (
-        <div className="opacity-50">
+        <View className="opacity-50">
           <MenuItem name="Bar" value={currentBodyweight != null ? Weight_print(currentBodyweight) : "None"} />
-        </div>
+        </View>
       ) : (
         <MenuItemEditable
           name="Bar"
@@ -523,9 +542,9 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
       <MenuItemEditable
         name="Is assisting?"
         underName={
-          <span className="text-xs text-text-secondary">
+          <Text className="text-xs text-text-secondary">
             If it should reduce total weight, e.g. for assisted pullups
-          </span>
+          </Text>
         }
         type="boolean"
         value={equipmentData.isAssisting ? "true" : "false"}
@@ -564,7 +583,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
         }}
       />
       <GroupHeader topPadding={true} name="Notes" />
-      <div style={{ marginLeft: "-0.25rem", marginRight: "-0.25rem" }}>
+      <View style={{ marginLeft: -4, marginRight: -4 }}>
         <MarkdownEditorBorderless
           debounceMs={500}
           value={equipmentData.notes}
@@ -574,7 +593,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
             props.dispatch(lensRecording, "Update plate");
           }}
         />
-      </div>
+      </View>
       <GroupHeader
         topPadding={true}
         name={`Number of ${equipmentName(props.name, props.allEquipment)} plates available`}
@@ -616,6 +635,6 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
       >
         Add New Plate Weight
       </LinkButton>
-    </div>
+    </View>
   );
 }
