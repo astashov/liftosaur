@@ -1,6 +1,7 @@
-import { JSX, useEffect, useState } from "react";
+import { JSX } from "react";
+import { ActionSheetIOS, Platform } from "react-native";
+import { Text } from "./primitives/text";
 import { ObjectUtils_keys } from "../utils/object";
-import { DropdownMenu, DropdownMenuItem } from "./dropdownMenu";
 import { useModal } from "../navigation/ModalStateContext";
 
 interface ISelectLinkProps<T extends string | number> {
@@ -13,81 +14,54 @@ interface ISelectLinkProps<T extends string | number> {
 }
 
 export function SelectLink<T extends string | number>(props: ISelectLinkProps<T>): JSX.Element {
-  const [showOptions, setShowOptions] = useState(false);
   const selectedOption = props.value ? props.values[props.value] : undefined;
   const keys = ObjectUtils_keys(props.values);
-  const [isDesktop, setIsDesktop] = useState(typeof window !== "undefined" && window.innerWidth >= 768);
-
-  useEffect(() => {
-    const check = (): void => setIsDesktop(window.innerWidth >= 768);
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
 
   const openModal = useModal("inputSelectModal", (value) => {
     props.onChange(value === "" ? undefined : (value as T));
   });
 
-  return (
-    <span className="relative inline-block">
-      <button
-        className={`border-b border-dotted text-text-purple border-text-purple hover:opacity-70 transition-opacity ${props.className} nm-${props.name}`}
-        onClick={() => {
-          if (isDesktop) {
-            setShowOptions(!showOptions);
-          } else {
-            const values: [string, string][] = keys.map((key) => [String(key), props.values[key]]);
-            openModal({
-              name: props.name,
-              values,
-              selectedValue: props.value != null ? String(props.value) : undefined,
-              emptyLabel: props.emptyLabel,
-            });
+  const onPress = (): void => {
+    if (Platform.OS === "ios") {
+      const labels: string[] = [];
+      const keyMap: (T | undefined)[] = [];
+      if (props.emptyLabel != null) {
+        labels.push(props.emptyLabel);
+        keyMap.push(undefined);
+      }
+      for (const key of keys) {
+        labels.push(props.values[key]);
+        keyMap.push(key);
+      }
+      labels.push("Cancel");
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options: labels, cancelButtonIndex: labels.length - 1 },
+        (buttonIndex) => {
+          if (buttonIndex < keyMap.length) {
+            props.onChange(keyMap[buttonIndex]);
           }
-        }}
-      >
-        {selectedOption ?? props.emptyLabel}
-      </button>
-      {isDesktop && showOptions && (
-        <DropdownMenu
-          leftOffset="0"
-          topOffset="calc(100% + 8px)"
-          maxWidth="16rem"
-          bgColor="white"
-          tipClassName="add-tip-up"
-          textAlign="left"
-          onClose={() => setShowOptions(false)}
-        >
-          {props.emptyLabel != null && (
-            <DropdownMenuItem
-              isTop={true}
-              className={`text-left hover:bg-background-subtle ${props.value == null ? "font-bold text-text-purple" : ""}`}
-              onClick={() => {
-                props.onChange(undefined);
-                setShowOptions(false);
-              }}
-            >
-              {props.emptyLabel}
-            </DropdownMenuItem>
-          )}
-          {keys.map((key, i) => {
-            const value = props.values[key];
-            return (
-              <DropdownMenuItem
-                key={key}
-                isTop={i === 0 && props.emptyLabel == null}
-                className={`text-left hover:bg-background-subtle ${props.value === key ? "font-bold text-text-purple" : ""}`}
-                onClick={() => {
-                  props.onChange(key);
-                  setShowOptions(false);
-                }}
-              >
-                {value}
-              </DropdownMenuItem>
-            );
-          })}
-        </DropdownMenu>
-      )}
-    </span>
+        }
+      );
+    } else {
+      const values: [string, string][] = keys.map((key) => [String(key), props.values[key]]);
+      openModal({
+        name: props.name,
+        values,
+        selectedValue: props.value != null ? String(props.value) : undefined,
+        emptyLabel: props.emptyLabel,
+      });
+    }
+  };
+
+  return (
+    <Text
+      onPress={onPress}
+      data-cy={props.name}
+      testID={props.name}
+      className={`text-text-purple ${props.className || ""}`}
+      style={{ textDecorationLine: "underline", textDecorationStyle: "dotted" }}
+    >
+      {selectedOption ?? props.emptyLabel}
+    </Text>
   );
 }

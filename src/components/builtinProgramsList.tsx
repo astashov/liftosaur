@@ -1,4 +1,6 @@
-import { JSX, useState } from "react";
+import { JSX, useState, useCallback, useMemo } from "react";
+import { View, Pressable, FlatList } from "react-native";
+import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import { IProgram, ISettings } from "../types";
 import {
@@ -20,7 +22,7 @@ import { IconWatch } from "./icons/iconWatch";
 import { equipmentName } from "../models/exercise";
 import { Equipment_currentEquipment } from "../models/equipment";
 import { navigationRef } from "../navigation/navigationRef";
-import { Markdown } from "./markdown";
+import { SimpleMarkdown } from "./simpleMarkdown";
 
 interface IProps {
   programs: IProgram[];
@@ -36,84 +38,102 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
   const [sort, setSort] = useState<IProgramSort>(undefined);
   const searchLower = (props.search || "").toLowerCase();
   const filtered = ProgramFilter_sort(ProgramFilter_filter(props.programsIndex, filter), sort);
-  const entries = searchLower ? filtered.filter((e) => e.name.toLowerCase().includes(searchLower)) : filtered;
+  const entries = useMemo(
+    () => (searchLower ? filtered.filter((e) => e.name.toLowerCase().includes(searchLower)) : filtered),
+    [filtered, searchLower]
+  );
+
+  const renderItem = useCallback(
+    ({ item }: { item: IProgramIndexEntry }) => (
+      <BuiltInProgram
+        entry={item}
+        settings={props.settings}
+        onClick={() => {
+          navigationRef.navigate("programInfoModal", {
+            programId: item.id,
+            hasCustomPrograms: props.hasCustomPrograms,
+          });
+        }}
+      />
+    ),
+    [props.settings, props.hasCustomPrograms]
+  );
+
+  const keyExtractor = useCallback((item: IProgramIndexEntry) => item.id, []);
+
+  const listHeader = (
+    <View className="px-4">
+      <Text className="pb-4">
+        I've been lifting for{" "}
+        <SelectLink
+          name="builtin-filter-age"
+          className="font-semibold"
+          values={builtinProgramAges}
+          onChange={(age) => setFilter({ ...filter, age })}
+          emptyLabel="any time"
+          value={filter.age}
+        />
+        . I can work out{" "}
+        <SelectLink
+          name="builtin-filter-frequency"
+          className="font-semibold"
+          values={builtinProgramFrequencies}
+          onChange={(frequency) => setFilter({ ...filter, frequency })}
+          emptyLabel="any number days a week"
+          value={filter.frequency}
+        />{" "}
+        for{" "}
+        <SelectLink
+          name="builtin-filter-duration"
+          className="font-semibold"
+          values={builtinProgramDurations}
+          onChange={(duration) => setFilter({ ...filter, duration })}
+          emptyLabel="any time"
+          value={filter.duration}
+        />
+        . My goal is{" "}
+        <SelectLink
+          name="builtin-filter-goal"
+          className="font-semibold"
+          values={builtinProgramGoals}
+          onChange={(goal) => setFilter({ ...filter, goal })}
+          emptyLabel="strength or hypertrophy"
+          value={filter.goal}
+        />
+        .
+      </Text>
+      <Text className="pb-4">
+        Sort ascending by:{" "}
+        <SelectLink
+          name="builtin-sort"
+          className="font-semibold"
+          values={{ age: "Age", frequency: "Frequency", duration: "Duration" }}
+          onChange={(v) => setSort(v)}
+          emptyLabel="None"
+          value={sort}
+        />
+      </Text>
+    </View>
+  );
+
+  const listEmpty = (
+    <View className="px-6 py-8">
+      <Text className="text-lg text-center text-text-secondarysubtle">No programs found with selected filters</Text>
+    </View>
+  );
 
   return (
-    <>
-      <div className="px-4">
-        <div className="pb-4">
-          <span>I've been lifting for </span>
-          <SelectLink
-            name="builtin-filter-age"
-            className="font-semibold"
-            values={builtinProgramAges}
-            onChange={(age) => setFilter({ ...filter, age })}
-            emptyLabel="any time"
-            value={filter.age}
-          />
-          <span>. I can work out </span>
-          <SelectLink
-            name="builtin-filter-frequency"
-            className="font-semibold"
-            values={builtinProgramFrequencies}
-            onChange={(frequency) => setFilter({ ...filter, frequency })}
-            emptyLabel="any number days a week"
-            value={filter.frequency}
-          />
-          <span> for </span>
-          <SelectLink
-            name="builtin-filter-duration"
-            className="font-semibold"
-            values={builtinProgramDurations}
-            onChange={(duration) => setFilter({ ...filter, duration })}
-            emptyLabel="any time"
-            value={filter.duration}
-          />
-          <span>. My goal is </span>
-          <SelectLink
-            name="builtin-filter-goal"
-            className="font-semibold"
-            values={builtinProgramGoals}
-            onChange={(goal) => setFilter({ ...filter, goal })}
-            emptyLabel="strength or hypertrophy"
-            value={filter.goal}
-          />
-          <span>.</span>
-        </div>
-        <div className="pb-4">
-          Sort ascending by:{" "}
-          <SelectLink
-            name="builtin-sort"
-            className="font-semibold"
-            values={{ age: "Age", frequency: "Frequency", duration: "Duration" }}
-            onChange={(v) => setSort(v)}
-            emptyLabel="None"
-            value={sort}
-          />
-        </div>
-        {entries.length > 0 ? (
-          entries.map((entry) => {
-            return (
-              <BuiltInProgram
-                key={entry.id}
-                settings={props.settings}
-                entry={entry}
-                onClick={() => {
-                  navigationRef.navigate("programInfoModal", {
-                    programId: entry.id,
-                    hasCustomPrograms: props.hasCustomPrograms,
-                  });
-                }}
-              />
-            );
-          })
-        ) : (
-          <div className="px-6 py-8 text-lg text-center text-text-secondarysubtle">
-            No programs found with selected filters
-          </div>
-        )}
-      </div>
-    </>
+    <FlatList
+      data={entries}
+      renderItem={renderItem}
+      keyExtractor={keyExtractor}
+      ListHeaderComponent={listHeader}
+      ListEmptyComponent={listEmpty}
+      contentContainerStyle={{ paddingHorizontal: 16 }}
+      initialNumToRender={4}
+      maxToRenderPerBatch={6}
+      windowSize={5}
+    />
   );
 }
 
@@ -132,22 +152,26 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
   const numberOfWeeks = entry.weeksCount ?? 0;
 
   return (
-    <button
-      className="relative flex items-center w-full p-3 mb-4 text-left border rounded-lg bg-background-cardpurple border-border-cardpurple nm-program-list-choose-program"
-      onClick={props.onClick}
+    <Pressable
+      className="flex-row items-center w-full p-3 mb-4 border rounded-lg bg-background-cardpurple border-border-cardpurple"
+      onPress={props.onClick}
+      data-cy="program-list-choose-program"
+      testID="program-list-choose-program"
     >
-      <div className="flex-1">
-        <div className="flex items-center">
-          <h3 className="flex-1 mr-2 text-base font-bold">{entry.name}</h3>
+      <View className="flex-1">
+        <View className="flex-row items-center">
+          <Text className="flex-1 mr-2 text-base font-bold">{entry.name}</Text>
           {entry.duration && (
-            <div className="text-sm">
-              <IconWatch className="mb-1 align-middle" />
-              <span className="pl-1 align-middle">{entry.duration} mins</span>
-            </div>
+            <View className="flex-row items-center">
+              <IconWatch />
+              <Text className="pl-1 text-sm">{entry.duration} mins</Text>
+            </View>
           )}
-        </div>
-        {entry.shortDescription && <Markdown value={entry.shortDescription} className="text-sm text-text-secondary" />}
-        <div className="py-3">
+        </View>
+        {entry.shortDescription && (
+          <SimpleMarkdown value={entry.shortDescription} className="text-sm text-text-secondary" />
+        )}
+        <View className="flex-row flex-wrap py-3">
           {exercises
             .filter((e) => ExerciseImageUtils_exists(e, "small"))
             .map((e) => (
@@ -159,20 +183,20 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
                 className="w-6 mr-1"
               />
             ))}
-        </div>
-        <div className="flex mb-1 text-text-secondary">
-          <IconCalendarSmall color={Tailwind_colors().lightgray[600]} className="block mr-1" />{" "}
-          <div className="text-xs">
+        </View>
+        <View className="flex-row items-center mb-1">
+          <IconCalendarSmall color={Tailwind_colors().lightgray[600]} className="mr-1" />
+          <Text className="text-xs text-text-secondary">
             {numberOfWeeks > 1 && `${numberOfWeeks} ${StringUtils_pluralize("week", numberOfWeeks)}, `}
             {entry.frequency ? `${entry.frequency}x/week, ` : ""}
             {exercisesRange ? Program_exerciseRangeFormat(exercisesRange[0], exercisesRange[1]) : ""}
-          </div>
-        </div>
-        <div className="flex text-text-secondary">
-          <IconKettlebellSmall color={Tailwind_colors().lightgray[600]} className="block mr-1" />{" "}
-          <div className="text-xs">{equipment.join(", ")}</div>
-        </div>
-      </div>
-    </button>
+          </Text>
+        </View>
+        <View className="flex-row items-center">
+          <IconKettlebellSmall color={Tailwind_colors().lightgray[600]} className="mr-1" />
+          <Text className="text-xs text-text-secondary">{equipment.join(", ")}</Text>
+        </View>
+      </View>
+    </Pressable>
   );
 }

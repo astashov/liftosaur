@@ -1,11 +1,12 @@
-import { JSX, useRef, useState } from "react";
+import { JSX, useState } from "react";
+import { View, Pressable, TextInput } from "react-native";
+import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, IProgram, ISettings } from "../types";
 import { INavCommon } from "../models/state";
 import { useNavOptions } from "../navigation/useNavOptions";
 import { BuiltinProgramsList } from "./builtinProgramsList";
 import { CustomProgramsList } from "./customProgramsList";
-import { ScrollableTabs } from "./scrollableTabs";
 import { emptyProgramId, IProgramIndexEntry, Program_selectProgram } from "../models/program";
 import { IconMagnifyingGlass } from "./icons/iconMagnifyingGlass";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
@@ -25,28 +26,8 @@ interface IProps {
 
 export function ChooseProgramView(props: IProps): JSX.Element {
   const [search, setSearch] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [selectedTab, setSelectedTab] = useState(0);
   const hasCustomPrograms = props.customPrograms.length > 0;
-
-  const builtinPrograms = (): JSX.Element => (
-    <BuiltinProgramsList
-      hasCustomPrograms={props.customPrograms.length > 0}
-      programs={props.programs}
-      programsIndex={props.programsIndex}
-      settings={props.settings}
-      dispatch={props.dispatch}
-      search={search}
-    />
-  );
-  const customPrograms = (): JSX.Element => (
-    <CustomProgramsList
-      progress={props.progress}
-      programs={props.customPrograms}
-      settings={props.settings}
-      dispatch={props.dispatch}
-      search={search}
-    />
-  );
 
   useNavOptions({
     navTitle: "Choose a program",
@@ -65,56 +46,83 @@ export function ChooseProgramView(props: IProps): JSX.Element {
   });
 
   return (
-    <>
-      <div className="px-4 pt-2 pb-2">
-        <div className="relative">
-          <IconMagnifyingGlass
-            color={Tailwind_semantic().icon.neutralsubtle}
-            size={16}
-            className="absolute transform -translate-y-1/2 left-3 top-1/2"
-          />
-          <input
-            ref={inputRef}
-            className="w-full py-2 pr-4 text-sm border rounded-lg pl-9 border-border-neutral bg-background-default focus:outline-none focus:ring-1 focus:ring-button-primarybackground"
-            style={{ fontSize: "15px" }}
-            type="text"
-            value={search}
+    <View className="flex-1 bg-background-default">
+      <View className="px-4 pt-2 pb-2">
+        <View className="relative justify-center">
+          <View className="absolute z-10 left-3">
+            <IconMagnifyingGlass color={Tailwind_semantic().icon.neutralsubtle} size={16} />
+          </View>
+          <TextInput
+            className="w-full py-2 pr-4 text-sm border rounded-lg pl-9 border-border-neutral bg-background-default"
+            style={{ fontSize: 15 }}
             placeholder="Search by name"
+            defaultValue=""
+            onChangeText={(text) => setSearch(text)}
             data-cy="program-search"
-            onInput={() => {
-              if (inputRef.current) {
-                setSearch(inputRef.current.value);
-              }
+            testID="program-search"
+          />
+        </View>
+      </View>
+      {hasCustomPrograms ? (
+        <>
+          <View className="flex-row border-b border-border-neutral">
+            {["Yours", "Built-in"].map((label, index) => (
+              <Pressable
+                key={label}
+                className="items-center flex-1 pb-2"
+                onPress={() => setSelectedTab(index)}
+                data-cy={`tab-${label.toLowerCase()}`}
+                testID={`tab-${label.toLowerCase()}`}
+              >
+                <Text
+                  className={`text-base ${selectedTab === index ? "text-icon-yellow" : ""}`}
+                  style={
+                    selectedTab === index
+                      ? { borderBottomWidth: 2, borderBottomColor: Tailwind_semantic().icon.yellow }
+                      : undefined
+                  }
+                >
+                  {label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+          {selectedTab === 0 ? (
+            <CustomProgramsList
+              progress={props.progress}
+              programs={props.customPrograms}
+              settings={props.settings}
+              dispatch={props.dispatch}
+              search={search}
+            />
+          ) : (
+            <BuiltinProgramsList
+              hasCustomPrograms={hasCustomPrograms}
+              programs={props.programs}
+              programsIndex={props.programsIndex}
+              settings={props.settings}
+              dispatch={props.dispatch}
+              search={search}
+            />
+          )}
+          <Footer
+            onCreate={() => navigationRef.navigate("createProgramModal")}
+            onEmpty={() => {
+              Program_selectProgram(props.dispatch, emptyProgramId);
             }}
           />
-        </div>
-      </div>
-      {hasCustomPrograms ? (
-        <ScrollableTabs
-          offsetY="3.5rem"
-          nonSticky={true}
-          topPadding="0"
-          defaultIndex={0}
-          tabs={[
-            { label: "Yours", children: customPrograms },
-            {
-              label: "Built-in",
-              children: builtinPrograms,
-            },
-          ]}
-        />
+        </>
       ) : (
-        builtinPrograms()
-      )}
-      {hasCustomPrograms ? (
-        <Footer
-          onCreate={() => navigationRef.navigate("createProgramModal")}
-          onEmpty={() => {
-            Program_selectProgram(props.dispatch, emptyProgramId);
-          }}
+        <BuiltinProgramsList
+          hasCustomPrograms={false}
+          programs={props.programs}
+          programsIndex={props.programsIndex}
+          settings={props.settings}
+          dispatch={props.dispatch}
+          search={search}
         />
-      ) : null}
-    </>
+      )}
+    </View>
   );
 }
 
@@ -125,38 +133,25 @@ interface IFooterProps {
 
 function Footer(props: IFooterProps): JSX.Element {
   return (
-    <div
-      className="fixed bottom-0 left-0 z-10 items-center w-full text-center pointer-events-none"
-      style={{ marginBottom: "-2px" }}
-    >
-      <div
-        className="box-content absolute flex footer-shadow bg-background-default safe-area-inset-bottom"
-        style={{
-          width: "4000px",
-          marginLeft: "-2000px",
-          left: "50%",
-          height: "84px",
-          bottom: "0",
-        }}
-      />
-      <div className="safe-area-inset-bottom">
-        <div className="box-content relative z-10 flex px-2 py-4 pointer-events-auto">
-          <div className="flex items-stretch justify-around flex-1 gap-2">
-            <button
-              data-cy="create-program"
-              className="flex items-center justify-center flex-1 text-sm font-semibold nm-create-program text-text-link"
-              onClick={props.onCreate}
-            >
-              <div>Create New Program</div>
-            </button>
-            <div style={{ width: "1px" }} className="h-full bg-background-subtle" />
-            <button className="flex-1 text-sm nm-empty-program" data-cy="empty-program" onClick={props.onEmpty}>
-              <div className="font-semibold text-text-link">Go Without Program</div>
-              <div className="text-xs text-gray-500">and build your program along the way</div>
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <View className="flex-row items-stretch justify-around px-2 py-4 border-t border-border-neutral bg-background-default">
+      <Pressable
+        className="items-center justify-center flex-1"
+        data-cy="create-program"
+        testID="create-program"
+        onPress={props.onCreate}
+      >
+        <Text className="text-sm font-semibold text-text-link">Create New Program</Text>
+      </Pressable>
+      <View style={{ width: 1 }} className="bg-background-subtle" />
+      <Pressable
+        className="items-center justify-center flex-1"
+        data-cy="empty-program"
+        testID="empty-program"
+        onPress={props.onEmpty}
+      >
+        <Text className="text-sm font-semibold text-text-link">Go Without Program</Text>
+        <Text className="text-xs text-gray-500">and build your program along the way</Text>
+      </Pressable>
+    </View>
   );
 }

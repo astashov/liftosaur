@@ -58,6 +58,8 @@ import { NavModalMuscleGroupMusclePicker } from "./modals/NavModalMuscleGroupMus
 import { NavModalAccount } from "./modals/NavModalAccount";
 import { NavModalCreateProgram } from "./modals/NavModalCreateProgram";
 import { NavModalImportFromLink } from "./modals/NavModalImportFromLink";
+import { NavModalProgramInfo } from "./modals/NavModalProgramInfo";
+import { NavModalInputSelect } from "./modals/NavModalInputSelect";
 import { NavHeader } from "./NavHeader";
 
 const OnboardingStack = createNativeStackNavigator<IOnboardingStackParamList>();
@@ -86,7 +88,7 @@ function OnboardingStackScreen(): JSX.Element {
       <OnboardingStack.Screen name="setupequipment" component={NavScreenSetupEquipment} />
       <OnboardingStack.Screen name="setupplates" component={NavScreenSetupPlates} />
       <OnboardingStack.Screen name="programselect" component={NavScreenProgramSelectOnboarding} />
-      <OnboardingStack.Screen name="programs" component={NavScreenProgramsOnboarding} />
+      <OnboardingStack.Screen name="programs" component={NavScreenProgramsOnboarding} options={{ headerShown: true, header: NavHeader }} />
       <OnboardingStack.Screen name="programPreview" component={NavScreenProgramPreviewOnboarding} />
       <OnboardingStack.Screen name="onerms" component={NavScreenOnerms} />
     </OnboardingStack.Navigator>
@@ -105,7 +107,7 @@ function HomeStackScreen(): JSX.Element {
 function ProgramStackScreen(): JSX.Element {
   return (
     <ProgramStack.Navigator screenOptions={stackScreenOptions}>
-      <ProgramStack.Screen name="programs" component={NavScreenPrograms} />
+      <ProgramStack.Screen name="programs" component={NavScreenPrograms} options={{ headerShown: true, header: NavHeader }} />
       <ProgramStack.Screen name="editProgram" component={NavScreenEditProgram} />
       <ProgramStack.Screen name="editProgramExercise" component={NavScreenEditProgramExercise} />
       <ProgramStack.Screen name="onerms" component={NavScreenOnerms} />
@@ -230,6 +232,8 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="accountModal" component={NavModalAccount} />
           <RootStack.Screen name="createProgramModal" component={NavModalCreateProgram} />
           <RootStack.Screen name="importFromLinkModal" component={NavModalImportFromLink} />
+          <RootStack.Screen name="programInfoModal" component={NavModalProgramInfo} />
+          <RootStack.Screen name="inputSelectModal" component={NavModalInputSelect} />
         </RootStack.Group>
       </RootStack.Navigator>
     </InitialScreenContext.Provider>
