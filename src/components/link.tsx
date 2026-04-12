@@ -1,12 +1,24 @@
-import React, { JSX } from "react";
+import { JSX, ReactNode } from "react";
+import { Linking } from "react-native";
+import { Text } from "./primitives/text";
 
-type IProps = React.AnchorHTMLAttributes<HTMLAnchorElement>;
+interface IProps {
+  href?: string;
+  className?: string;
+  children?: ReactNode;
+}
 
 export function Link(props: IProps): JSX.Element {
-  const { className, children, ...otherProps } = props;
   return (
-    <a target="_blank" className={`text-text-link font-bold underline ${className}`} {...otherProps}>
-      {children}
-    </a>
+    <Text
+      className={`text-text-link font-bold underline ${props.className || ""}`}
+      onPress={() => {
+        if (props.href) {
+          Linking.openURL(props.href);
+        }
+      }}
+    >
+      {props.children}
+    </Text>
   );
 }

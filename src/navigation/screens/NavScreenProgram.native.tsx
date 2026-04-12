@@ -1,12 +1,25 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View } from "react-native";
+import { Text } from "../../components/primitives/text";
+import { useAppState } from "../StateContext";
+import { buildNavCommon } from "../utils";
+import { ChooseProgramView } from "../../components/chooseProgram";
+import { Progress_getCurrentProgress } from "../../models/progress";
 
 export function NavScreenPrograms(): React.JSX.Element {
+  const { state, dispatch } = useAppState();
+  const navCommon = buildNavCommon(state);
   return (
-    <View className="flex-1 justify-center items-center bg-background-default">
-      <Text className="text-2xl font-bold text-icon-neutral">Programs</Text>
-      <Text className="text-sm text-icon-neutralsubtle mt-1">Your training programs</Text>
-    </View>
+    <ChooseProgramView
+      navCommon={navCommon}
+      settings={state.storage.settings}
+      dispatch={dispatch}
+      progress={Progress_getCurrentProgress(state)}
+      programs={state.programs || []}
+      programsIndex={state.programsIndex || []}
+      customPrograms={state.storage.programs || []}
+      editProgramId={Progress_getCurrentProgress(state)?.programId}
+    />
   );
 }
 

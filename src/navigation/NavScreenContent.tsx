@@ -21,6 +21,7 @@ export function NavScreenContent(props: { children: ReactNode }): JSX.Element {
     <ScrollView
       data-cy="screen"
       testID="screen"
+      className="bg-background-default"
       contentContainerStyle={{ flexGrow: 1 }}
       style={{ flex: 1 }}
       onScroll={onScroll}

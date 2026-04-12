@@ -7,6 +7,8 @@ import { buildNavCommon } from "../utils";
 import { ScreenFirst as ScreenFirstComponent } from "../../components/screenFirst";
 import { ScreenUnitSelector } from "../../components/screenUnitSelector";
 import { ScreenProgramSelect as ScreenProgramSelectComponent } from "../../components/screenProgramSelect";
+import { ChooseProgramView } from "../../components/chooseProgram";
+import { Progress_getCurrentProgress } from "../../models/progress";
 import {
   ScreenSetupEquipment as ScreenSetupEquipmentComponent,
   ScreenSetupPlates as ScreenSetupPlatesComponent,
@@ -66,10 +68,19 @@ export function NavScreenProgramSelectOnboarding(): React.JSX.Element {
 }
 
 export function NavScreenProgramsOnboarding(): React.JSX.Element {
+  const { state, dispatch } = useAppState();
+  const navCommon = buildNavCommon(state);
   return (
-    <View className="flex-1 justify-center items-center bg-background-default">
-      <Text className="text-2xl font-bold text-icon-neutral">Programs</Text>
-    </View>
+    <ChooseProgramView
+      navCommon={navCommon}
+      settings={state.storage.settings}
+      dispatch={dispatch}
+      progress={Progress_getCurrentProgress(state)}
+      programs={state.programs || []}
+      programsIndex={state.programsIndex || []}
+      customPrograms={state.storage.programs || []}
+      editProgramId={Progress_getCurrentProgress(state)?.programId}
+    />
   );
 }
 

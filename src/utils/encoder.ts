@@ -1,4 +1,4 @@
-import { gzip, gunzip, gunzipSync } from "fflate";
+import { gzip, gzipSync, gunzip, gunzipSync } from "fflate";
 import { Platform } from "react-native";
 import { UrlUtils_build } from "./url";
 
@@ -17,9 +17,22 @@ export async function Encoder_encodeIntoUrl(str: string, base: string): Promise<
 }
 
 export function Encoder_encode(str: string): Promise<string> {
+  const textEncoder = new TextEncoder();
+  const input = textEncoder.encode(str);
+
+  if (Platform.OS !== "web") {
+    const result = gzipSync(input);
+    let binary = "";
+    for (let i = 0; i < result.length; i++) {
+      binary += String.fromCharCode(result[i]);
+    }
+    const b64 = btoa(binary);
+    const dataUrl = `data:application/octet-stream;base64,${b64}`;
+    return Promise.resolve(btoa(dataUrl));
+  }
+
   return new Promise((resolve, reject) => {
-    const textEncoder = new TextEncoder();
-    gzip(textEncoder.encode(str), (err, result) => {
+    gzip(input, (err, result) => {
       if (err) {
         reject(err);
         return;
