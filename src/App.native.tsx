@@ -105,6 +105,7 @@ import { IndexedDBUtils_initializeForSafari, IndexedDBUtils_get } from "./utils/
 import { Settings_applyTheme, Settings_getTheme } from "./models/settings";
 import { TextSize_apply } from "./utils/textSize";
 import { AppContext } from "./components/appContext";
+import { Thunk_fetchInitial, Thunk_sync2 } from "./ducks/thunks";
 
 GoogleSignin.configure({
   webClientId: "944666871420-p8kv124sgte8o0p6ev2ah6npudsl7e4f.apps.googleusercontent.com",
@@ -124,6 +125,11 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
     env,
     defaultOnActions(env)
   );
+
+  useEffect(() => {
+    dispatch(Thunk_sync2({ force: true }));
+    dispatch(Thunk_fetchInitial());
+  }, []);
 
   const initialScreen = props.initialState.storage.currentProgramId ? "main" : "first";
 

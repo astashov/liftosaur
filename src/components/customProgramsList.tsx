@@ -1,4 +1,6 @@
-import type { JSX } from "react";
+import { JSX, useCallback, useMemo } from "react";
+import { View, Pressable, Alert, FlatList } from "react-native";
+import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import { IEquipment, IHistoryRecord, IProgram, ISettings } from "../types";
 import { IExercise, Exercise_find, Exercise_toKey } from "../models/exercise";
@@ -35,25 +37,36 @@ interface IProps {
 
 export function CustomProgramsList(props: IProps): JSX.Element {
   const searchLower = (props.search || "").toLowerCase();
-  const sorted = CollectionUtils_sort(props.programs, (a, b) => a.name.localeCompare(b.name));
-  const programs = searchLower ? sorted.filter((p) => p.name.toLowerCase().includes(searchLower)) : sorted;
+  const programs = useMemo(() => {
+    const sorted = CollectionUtils_sort(props.programs, (a, b) => a.name.localeCompare(b.name));
+    return searchLower ? sorted.filter((p) => p.name.toLowerCase().includes(searchLower)) : sorted;
+  }, [props.programs, searchLower]);
+
+  const renderItem = useCallback(
+    ({ item }: { item: IProgram }) => (
+      <CustomProgram
+        programs={programs}
+        settings={props.settings}
+        progress={props.progress}
+        program={item}
+        dispatch={props.dispatch}
+      />
+    ),
+    [programs, props.settings, props.progress, props.dispatch]
+  );
+
+  const keyExtractor = useCallback((item: IProgram) => item.id, []);
+
   return (
-    <>
-      <div className="px-4">
-        {programs.map((program) => {
-          return (
-            <CustomProgram
-              key={program.id}
-              programs={programs}
-              settings={props.settings}
-              progress={props.progress}
-              program={program}
-              dispatch={props.dispatch}
-            />
-          );
-        })}
-      </div>
-    </>
+    <FlatList
+      data={programs}
+      renderItem={renderItem}
+      keyExtractor={keyExtractor}
+      contentContainerStyle={{ paddingHorizontal: 16 }}
+      initialNumToRender={4}
+      maxToRenderPerBatch={6}
+      windowSize={5}
+    />
   );
 }
 
@@ -86,61 +99,70 @@ function CustomProgram(props: ICustomProgramProps): JSX.Element {
   const formattedTime = time > 0 ? TimeUtils_formatHHMM(time) : undefined;
 
   return (
-    <div className="relative">
-      <div
-        className="absolute z-10 flex items-center gap-1 px-2 py-1 leading-none border rounded-full bg-background-subtle border-border-neutral"
-        style={{ right: "-0.75rem", top: "-1.5rem" }}
+    <View className="relative">
+      <View
+        className="absolute z-10 flex-row items-center gap-1 px-2 py-1 border rounded-full bg-background-subtle border-border-neutral"
+        style={{ right: -12, top: -24 }}
       >
-        <button
-          className="block px-2 py-1 nm-custom-program-edit"
+        <Pressable
+          className="px-2 py-1"
           data-cy="custom-program-edit"
-          onClick={() => {
+          testID="custom-program-edit"
+          onPress={() => {
             if (props.editProgramId == null || props.editProgramId !== props.program.id) {
               Program_editAction(props.dispatch, props.program);
             } else {
-              alert("You cannot edit the program while that program's workout is in progress");
+              Alert.alert("Cannot Edit", "You cannot edit the program while that program's workout is in progress");
             }
           }}
         >
           <IconEditSquare />
-        </button>
-        <button
-          className="block px-2 py-1 nm-custom-program-delete"
+        </Pressable>
+        <Pressable
+          className="px-2 py-1"
           data-cy="custom-program-delete"
-          onClick={() => {
+          testID="custom-program-delete"
+          onPress={() => {
             if (props.progress == null || props.progress.programId !== props.program.id) {
-              if (confirm("Are you sure?")) {
-                EditProgram_deleteProgram(props.dispatch, props.program, props.programs);
-              }
+              Alert.alert("Delete Program", "Are you sure?", [
+                { text: "Cancel", style: "cancel" },
+                {
+                  text: "Delete",
+                  style: "destructive",
+                  onPress: () => EditProgram_deleteProgram(props.dispatch, props.program, props.programs),
+                },
+              ]);
             } else {
-              alert("You cannot delete the program while that program's workout is in progress");
+              Alert.alert("Cannot Delete", "You cannot delete the program while that program's workout is in progress");
             }
           }}
         >
           <IconTrash />
-        </button>
-      </div>
-      <button
-        className="relative flex items-center w-full p-3 mt-8 mb-4 text-left border rounded-lg bg-background-cardyellow border-border-cardyellow nm-program-list-choose-program"
-        onClick={() => {
+        </Pressable>
+      </View>
+      <Pressable
+        className="flex-row items-center w-full p-3 mt-8 mb-4 border rounded-lg bg-background-cardyellow border-border-cardyellow"
+        data-cy="program-list-choose-program"
+        testID="program-list-choose-program"
+        onPress={() => {
           if (props.program.planner == null) {
-            alert("Old-style programs are not supported anymore");
+            Alert.alert("Not Supported", "Old-style programs are not supported anymore");
           } else {
             Program_selectProgram(props.dispatch, props.program.id);
           }
         }}
       >
-        <div className="flex-1">
-          <div className="flex items-center">
-            <h3 className="flex-1 mr-2 text-base font-bold">{props.program.name}</h3>
+        <View className="flex-1">
+          <View className="flex-row items-center">
+            <Text className="flex-1 mr-2 text-base font-bold">{props.program.name}</Text>
             {formattedTime && (
-              <div className="text-sm">
-                <IconWatch className="mb-1 align-middle" />
-                <span className="pl-1 align-middle">{formattedTime}h</span>
-              </div>
+              <View className="flex-row items-center">
+                <IconWatch />
+                <Text className="pl-1 text-sm">{formattedTime}h</Text>
+              </View>
             )}
-          </div>
-          <div className="py-3">
+          </View>
+          <View className="flex-row flex-wrap py-3">
             {exercises
               .filter((e) => ExerciseImageUtils_exists(e, "small"))
               .map((e) => (
@@ -152,21 +174,21 @@ function CustomProgram(props: ICustomProgramProps): JSX.Element {
                   className="w-6 mr-1"
                 />
               ))}
-          </div>
-          <div className="flex mb-1 text-text-secondary">
-            <IconCalendarSmall color={Tailwind_colors().lightgray[600]} className="block mr-1" />{" "}
-            <div className="text-xs">
+          </View>
+          <View className="flex-row mb-1 items-center">
+            <IconCalendarSmall color={Tailwind_colors().lightgray[600]} className="mr-1" />
+            <Text className="text-xs text-text-secondary">
               {evaluatedProgram.weeks.length > 1 &&
                 `${evaluatedProgram.weeks.length} ${StringUtils_pluralize("week", evaluatedProgram.weeks.length)}, `}
               {Program_daysRange(evaluatedProgram)}, {Program_exerciseRange(evaluatedProgram)}
-            </div>
-          </div>
-          <div className="flex text-text-secondary">
-            <IconKettlebellSmall color={Tailwind_colors().lightgray[600]} className="block mr-1" />{" "}
-            <div className="text-xs">{equipment.join(", ")}</div>
-          </div>
-        </div>
-      </button>
-    </div>
+            </Text>
+          </View>
+          <View className="flex-row items-center">
+            <IconKettlebellSmall color={Tailwind_colors().lightgray[600]} className="mr-1" />
+            <Text className="text-xs text-text-secondary">{equipment.join(", ")}</Text>
+          </View>
+        </View>
+      </Pressable>
+    </View>
   );
 }

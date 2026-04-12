@@ -39,6 +39,7 @@ export function NavScreenContent(props: { children: ReactNode; scrollRef?: Ref<H
         ref={setRef as unknown as Ref<ScrollView>}
         data-cy="screen"
         testID="screen"
+        className="bg-background-default"
         contentContainerStyle={{ flexGrow: 1 }}
         style={{ flex: 1 }}
         onScroll={onScroll}
