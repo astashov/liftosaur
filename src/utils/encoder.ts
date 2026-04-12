@@ -1,4 +1,5 @@
-import { gzip, gunzip } from "fflate";
+import { gzip, gunzip, gunzipSync } from "fflate";
+import { Platform } from "react-native";
 import { UrlUtils_build } from "./url";
 
 export async function Encoder_encodeIntoUrlAndSetUrl(str: string): Promise<void> {
@@ -49,12 +50,30 @@ export function Encoder_decode(str: string): Promise<string> {
   return new Promise(async (resolve, reject) => {
     try {
       const dataUrl = atob(str);
-      const response = await fetch(dataUrl);
-      const blob = await response.blob();
-      const uintarray = await blob.arrayBuffer();
-      const result = await gunzipPromise(new Uint8Array(uintarray));
-      const textDecoder = new TextDecoder("utf-8");
-      resolve(textDecoder.decode(result));
+      let uintarray: Uint8Array;
+      if (Platform.OS === "web") {
+        const response = await fetch(dataUrl);
+        const blob = await response.blob();
+        uintarray = new Uint8Array(await blob.arrayBuffer());
+      } else {
+        // RN: fetch doesn't support data: URLs, decode base64 directly
+        const b64 = dataUrl.replace(/^data:[^;]+;base64,/, "");
+        const binary = atob(b64);
+        uintarray = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+          uintarray[i] = binary.charCodeAt(i);
+        }
+      }
+      const result = Platform.OS === "web" ? await gunzipPromise(uintarray) : gunzipSync(uintarray);
+      if (typeof TextDecoder !== "undefined") {
+        resolve(new TextDecoder("utf-8").decode(result));
+      } else {
+        let str2 = "";
+        for (let i = 0; i < result.length; i++) {
+          str2 += String.fromCharCode(result[i]);
+        }
+        resolve(decodeURIComponent(escape(str2)));
+      }
     } catch (e) {
       reject(e);
     }

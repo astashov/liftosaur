@@ -1,5 +1,6 @@
 import { JSX, ReactNode } from "react";
-import { View, Pressable, Image, Platform } from "react-native";
+import { View, Pressable, Image } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "./primitives/text";
 import { Svg, Path } from "./primitives/svg";
 import { IDispatch } from "../ducks/types";
@@ -28,10 +29,9 @@ interface IOption {
   onClick: () => void;
 }
 
-const isWeb = Platform.OS === "web";
-
 export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Element {
   useNavOptions({ navHidden: true });
+  const insets = useSafeAreaInsets();
 
   const options: IOption[] = [
     {
@@ -46,22 +46,14 @@ export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Eleme
       icon: <IconEditSquare />,
       title: "Create a program",
       description: "Build your own custom routine from scratch",
-      onClick: () => {
-        if (isWeb) {
-          navigationRef.navigate("createProgramModal");
-        }
-      },
+      onClick: () => navigationRef.navigate("createProgramModal"),
     },
     {
       key: "import",
       icon: <IconLink size={24} />,
       title: "Import from link",
       description: "Paste a link from the program web editor",
-      onClick: () => {
-        if (isWeb) {
-          navigationRef.navigate("importFromLinkModal");
-        }
-      },
+      onClick: () => navigationRef.navigate("importFromLinkModal"),
     },
     {
       key: "adhoc",
@@ -73,7 +65,7 @@ export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Eleme
   ];
 
   return (
-    <View className="flex flex-col flex-1 bg-background-default">
+    <View className="flex flex-col flex-1 bg-background-default" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
       <View className="flex-1 px-4 pt-8 pb-4">
         <View className="items-center p-4">
           <Image

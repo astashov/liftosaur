@@ -1,5 +1,5 @@
 import { JSX, ReactNode, useEffect, useRef } from "react";
-import { View, Image, Animated, Easing } from "react-native";
+import { View, Image, Platform, Animated, Easing } from "react-native";
 import { SvgUri } from "react-native-svg";
 import { Text } from "./primitives/text";
 import { Thunk_pushScreen } from "../ducks/thunks";
@@ -38,7 +38,7 @@ export function ScreenFirst(props: IProps): JSX.Element {
   }, []);
 
   return (
-    <View className="flex flex-col flex-1 bg-background-default">
+    <View className="flex flex-col flex-1 h-screen bg-background-default">
       <View className="flex-1 px-4 pt-16 pb-4">
         <StorySlider
           slides={[
@@ -96,7 +96,7 @@ export function ScreenFirst(props: IProps): JSX.Element {
               image="slide-5-image"
             />,
           ]}
-          duration={5000}
+          duration={500000}
         />
       </View>
       <View className="pb-6 mx-4">
@@ -180,12 +180,21 @@ function FirstSlide(): JSX.Element {
         Build any weightlifting program using a simple scripting language and track your progress.
       </Text>
       <View className="flex-1 w-full overflow-hidden">
-        <SvgUri
-          uri={HostConfig_resolveUrl("/images/logo.svg")}
-          width="100%"
-          height="100%"
-          preserveAspectRatio="xMidYMax meet"
-        />
+        {Platform.OS === "web" ? (
+          <Image
+            source={{ uri: "/images/logo.svg" }}
+            className="w-full h-full"
+            resizeMode="contain"
+            style={{ alignSelf: "flex-end" }}
+          />
+        ) : (
+          <SvgUri
+            uri={HostConfig_resolveUrl("/images/logo.svg")}
+            width="100%"
+            height="100%"
+            preserveAspectRatio="xMidYMax meet"
+          />
+        )}
       </View>
     </View>
   );
