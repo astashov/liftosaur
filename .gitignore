@@ -42,6 +42,8 @@ android/app/build/
 android/app/.cxx/
 android/build/
 android/local.properties
+android/keystore.properties
+android/app/*.keystore
 
 # Metro
 .metro-health-check*

@@ -84,11 +84,15 @@ export async function getIdbKey(userId?: string, isAdmin?: boolean): Promise<str
   }
 }
 
+declare let __HOST__: string;
+
 export async function getInitialState(
   client: Window["fetch"],
   args?: { url?: URL; rawStorage?: string; storage?: IStorage; deviceId?: string }
 ): Promise<IState> {
-  const url = args?.url || UrlUtils_build(document.location.href);
+  const url =
+    args?.url ||
+    (typeof document !== "undefined" ? UrlUtils_build(document.location.href) : UrlUtils_build(`${__HOST__}/app/`));
   const messageerror = url.searchParams.get("messageerror") || undefined;
   const messagesuccess = url.searchParams.get("messagesuccess") || undefined;
   const nosync = url.searchParams.get("nosync") === "true";
