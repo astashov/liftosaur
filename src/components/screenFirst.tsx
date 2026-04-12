@@ -1,5 +1,5 @@
 import { JSX, ReactNode, useEffect, useRef } from "react";
-import { View, Image, Platform, Animated, Easing } from "react-native";
+import { View, Image, Animated, Easing } from "react-native";
 import { SvgUri } from "react-native-svg";
 import { Text } from "./primitives/text";
 import { Thunk_pushScreen } from "../ducks/thunks";
@@ -27,8 +27,6 @@ const onboardingImages = [
   "/images/dinoplates.png",
   "/images/dinoprogramselect.png",
 ];
-
-const isWeb = Platform.OS === "web";
 
 export function ScreenFirst(props: IProps): JSX.Element {
   useNavOptions({ navHidden: true });
@@ -118,11 +116,7 @@ export function ScreenFirst(props: IProps): JSX.Element {
             className="w-full"
             name="see-how-it-works"
             kind="transparent-purple"
-            onClick={() => {
-              if (isWeb) {
-                navigationRef.navigate("accountModal");
-              }
-            }}
+            onClick={() => navigationRef.navigate("accountModal")}
           >
             I have an account
           </Button>

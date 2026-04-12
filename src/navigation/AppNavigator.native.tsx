@@ -55,6 +55,7 @@ import { NavModalWeekInsightsDetails } from "./modals/NavModalWeekInsightsDetail
 import { NavModalSetSplit } from "./modals/NavModalSetSplit";
 import { NavModalPlannerSettings } from "./modals/NavModalPlannerSettings";
 import { NavModalMuscleGroupMusclePicker } from "./modals/NavModalMuscleGroupMusclePicker";
+import { NavModalAccount } from "./modals/NavModalAccount";
 import { NavHeader } from "./NavHeader";
 
 const OnboardingStack = createNativeStackNavigator<IOnboardingStackParamList>();
@@ -191,40 +192,41 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
         screenOptions={{ headerShown: false, animation: "none", freezeOnBlur: true }}
         initialRouteName={isOnboarding ? "onboarding" : "mainTabs"}
       >
-      <RootStack.Screen name="onboarding" component={OnboardingStackScreen} />
-      <RootStack.Screen name="mainTabs" component={MainTabsScreen} />
-      <RootStack.Screen name="subscription" component={NavScreenSubscription} options={{ headerShown: true }} />
-      <RootStack.Group
-        screenOptions={{
-          presentation: "transparentModal",
-          headerShown: false,
-          animation: "none",
-        }}
-      >
-        <RootStack.Screen name="monthCalendarModal" component={NavModalMonthCalendar} />
-      </RootStack.Group>
-      <RootStack.Group
-        screenOptions={{
-          presentation: "formSheet",
-          headerShown: false,
-          animation: "default",
-          sheetAllowedDetents: "fitToContents",
-          contentStyle: { backgroundColor: Tailwind_semantic().background.default },
-        }}
-      >
-        <RootStack.Screen name="weekInsightsDetailsModal" component={NavModalWeekInsightsDetails} />
-        <RootStack.Screen name="setSplitModal" component={NavModalSetSplit} />
-        <RootStack.Screen name="plannerSettingsModal" component={NavModalPlannerSettings} />
-        <RootStack.Screen
-          name="muscleGroupMusclePickerModal"
-          component={NavModalMuscleGroupMusclePicker}
-          options={{
-            sheetAllowedDetents: [0.9],
-            headerShown: true,
-            title: "Choose Muscles",
+        <RootStack.Screen name="onboarding" component={OnboardingStackScreen} />
+        <RootStack.Screen name="mainTabs" component={MainTabsScreen} />
+        <RootStack.Screen name="subscription" component={NavScreenSubscription} options={{ headerShown: true }} />
+        <RootStack.Group
+          screenOptions={{
+            presentation: "transparentModal",
+            headerShown: false,
+            animation: "none",
           }}
-        />
-      </RootStack.Group>
+        >
+          <RootStack.Screen name="monthCalendarModal" component={NavModalMonthCalendar} />
+        </RootStack.Group>
+        <RootStack.Group
+          screenOptions={{
+            presentation: "formSheet",
+            headerShown: false,
+            animation: "default",
+            sheetAllowedDetents: "fitToContents",
+            contentStyle: { backgroundColor: Tailwind_semantic().background.default },
+          }}
+        >
+          <RootStack.Screen name="weekInsightsDetailsModal" component={NavModalWeekInsightsDetails} />
+          <RootStack.Screen name="setSplitModal" component={NavModalSetSplit} />
+          <RootStack.Screen name="plannerSettingsModal" component={NavModalPlannerSettings} />
+          <RootStack.Screen
+            name="muscleGroupMusclePickerModal"
+            component={NavModalMuscleGroupMusclePicker}
+            options={{
+              sheetAllowedDetents: [0.9],
+              headerShown: true,
+              title: "Choose Muscles",
+            }}
+          />
+          <RootStack.Screen name="accountModal" component={NavModalAccount} />
+        </RootStack.Group>
       </RootStack.Navigator>
     </InitialScreenContext.Provider>
   );
