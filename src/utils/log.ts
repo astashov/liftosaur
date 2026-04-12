@@ -1,4 +1,5 @@
 import RB from "rollbar";
+import { Platform } from "react-native";
 import { UrlUtils_build } from "./url";
 import { IAffiliateData } from "../types";
 
@@ -14,20 +15,15 @@ export async function LogUtils_log(
   key?: string,
   referrer?: string
 ): Promise<void> {
-  let enforce = false;
-  if (typeof window !== "undefined") {
-    const currentUrl = UrlUtils_build(window.location.href);
-    enforce = !!currentUrl.searchParams.get("enforce");
-  }
   const platform = {
-    name: window.lftAndroidVersion ? "android" : window.lftIosVersion ? "ios" : "web",
-    version: window.lftAndroidAppVersion || window.lftIosAppVersion,
+    name: Platform.OS,
+    version: "RN",
   };
   const url = UrlUtils_build(`${__API_HOST__}/api/log`);
   try {
     fetch(url.toString(), {
       method: "POST",
-      body: JSON.stringify({ user, action, affiliates, platform, subscriptions, key, enforce, referrer }),
+      body: JSON.stringify({ user, action, affiliates, platform, subscriptions, key, referrer }),
       credentials: "include",
     })
       .then((res) => res.json())

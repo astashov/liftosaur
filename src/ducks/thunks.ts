@@ -20,6 +20,8 @@ import {
   Program_exportProgramToLink,
 } from "../models/program";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
+import { SignIn_google, SignIn_apple } from "../utils/signIn";
+import { Platform } from "react-native";
 import { IEnv, IState, updateProgress, updateState } from "../models/state";
 import { IProgram, IStorage, IExerciseType, ISettings, IDayData, IHistoryRecord } from "../types";
 import {
@@ -95,6 +97,29 @@ export class NoRetryError extends Error {
 
 export function Thunk_googleSignIn(cb?: (state: IState) => void): IThunk {
   return async (dispatch, getState, env) => {
+    if (Platform.OS !== "web") {
+      const result = await SignIn_google();
+      if (result?.idToken == null && result?.accessToken == null) {
+        if (cb) {
+          cb(getState());
+        }
+        return;
+      }
+      const token = result.idToken || result.accessToken!;
+      const state = getState();
+      const userId = state.user?.id || state.storage.tempUserId;
+      const loginResult = await load(dispatch, "Logging in", async () => {
+        return env.service.googleSignIn(token, userId, {});
+      });
+      await load(dispatch, "Signing in", () => {
+        return handleLogin(dispatch, loginResult, env.service.client, userId);
+      });
+      if (cb) {
+        cb(getState());
+      }
+      dispatch(Thunk_sync2());
+      return;
+    }
     const url = UrlUtils_build(window.location.href);
     const forcedUserEmail = url.searchParams.get("forceuseremail");
     if (forcedUserEmail == null) {
@@ -135,9 +160,19 @@ export function Thunk_postevent(action: string, extra?: Record<string, string | 
 export function Thunk_appleSignIn(cb?: (state: IState) => void): IThunk {
   return async (dispatch, getState, env) => {
     dispatch(Thunk_postevent("apple-sign-in"));
-    let id_token: string;
-    let code: string;
-    if (SendMessage_isIos()) {
+    let id_token: string | undefined;
+    let code: string | undefined;
+    if (Platform.OS !== "web") {
+      const signInResult = await SignIn_apple();
+      if (signInResult == null) {
+        if (cb) {
+          cb(getState());
+        }
+        return;
+      }
+      id_token = signInResult.idToken;
+      code = signInResult.code ?? "";
+    } else if (SendMessage_isIos()) {
       const result = await SendMessage_toIosWithResult<{ id_token: string; code: string } | { error: string }>({
         type: "signInWithApple",
       });
@@ -161,10 +196,12 @@ export function Thunk_appleSignIn(cb?: (state: IState) => void): IThunk {
       const response = await window.AppleID.auth.signIn();
       ({ id_token, code } = response.authorization);
     }
-    if (id_token != null && code != null) {
+    if (id_token != null) {
       const state = getState();
       const userId = state.user?.id || state.storage.tempUserId;
-      const result = await load(dispatch, "Logging in", async () => env.service.appleSignIn(code, id_token, userId));
+      const result = await load(dispatch, "Logging in", async () =>
+        env.service.appleSignIn(code ?? "", id_token!, userId)
+      );
       await load(dispatch, "Signing in", () => handleLogin(dispatch, result, env.service.client, userId));
       if (cb) {
         cb(getState());
