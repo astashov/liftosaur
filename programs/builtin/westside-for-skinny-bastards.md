@@ -1,5 +1,5 @@
 ---
-id: ws4sb
+id: westside-for-skinny-bastards
 name: "Westside for Skinny Bastards"
 author: Joe DeFranco
 url: "https://www.defrancostraining.com/westside-for-skinny-bastards-part3/"
