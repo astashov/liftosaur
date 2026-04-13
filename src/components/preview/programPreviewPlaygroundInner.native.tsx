@@ -4,9 +4,7 @@ import type { IProgramPreviewPlaygroundInnerRendererProps } from "./programPrevi
 
 export { type IProgramPreviewPlaygroundInnerRendererProps } from "./programPreviewPlaygroundInner";
 
-export function ProgramPreviewPlaygroundInnerRenderer(
-  props: IProgramPreviewPlaygroundInnerRendererProps
-): JSX.Element {
+export function ProgramPreviewPlaygroundInnerRenderer(props: IProgramPreviewPlaygroundInnerRendererProps): JSX.Element {
   return (
     <CollapsiblePreview
       headerContent={props.headerContent}

@@ -1,4 +1,6 @@
-import React, { JSX, useRef } from "react";
+import { JSX } from "react";
+import { View, Pressable } from "react-native";
+import { Text } from "./primitives/text";
 import { Exercise_get } from "../models/exercise";
 import { Reps_setsStatus } from "../models/set";
 import { IHistoryEntry, IHistoryRecord, ISettings } from "../types";
@@ -13,7 +15,8 @@ import { Tailwind_colors, Tailwind_semantic } from "../utils/tailwindConfig";
 import { ObjectUtils_entries } from "../utils/object";
 
 interface IWorkoutExerciseThumbnailProps {
-  handleTouchStart?: (e: React.MouseEvent | React.TouchEvent) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  handleTouchStart?: (...args: any[]) => void;
   onClick?: () => void;
   selectedIndex: number;
   colorToSupersetGroup: Partial<Record<string, IHistoryEntry[]>>;
@@ -38,30 +41,27 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
   const isCurrentSuperset = currentSuperset != null && currentSuperset === entry.superset;
   const borderColor = isCurrent ? "border-purple-600" : WorkoutExerciseUtils_setsStatusToBorderColor(setsStatus);
   const exercise = Exercise_get(entry.exercise, props.settings.exercises);
-  const ref = useRef<HTMLButtonElement>(null);
   const totalSetsCount = entry.sets.length;
   const completedSetsCount = entry.sets.filter((set) => set.isCompleted).length;
 
   return (
-    <div>
-      <button
-        ref={ref}
-        onTouchStart={props.handleTouchStart}
-        onMouseDown={props.handleTouchStart}
-        onClick={props.onClick}
+    <View>
+      <Pressable
+        onPress={props.onClick}
         data-name={`workout-exercise-tab-${entryIndex}`}
-        className="align-middle bg-background-default"
-        style={{ padding: "0 0.125rem" }}
+        testID={`workout-tab-${StringUtils_dashcase(exercise.name)}`}
+        data-cy={`workout-tab-${StringUtils_dashcase(exercise.name)}`}
+        className="bg-background-default"
+        style={{ paddingHorizontal: 2 }}
       >
-        <div
-          className={`cursor-pointer border ${borderColor} bg-background-image rounded-lg w-12 h-12 relative box-content overflow-hidden text-ellipsis`}
+        <View
+          className={`border ${borderColor} bg-background-image rounded-lg overflow-hidden`}
           style={{
-            borderWidth: isCurrent ? "2px" : "1px",
-            margin: !isCurrent ? "0 1px" : "0",
-            flex: "0 0 auto",
+            width: 48,
+            height: 48,
+            borderWidth: isCurrent ? 2 : 1,
+            marginHorizontal: !isCurrent ? 1 : 0,
           }}
-          data-is-selected={isCurrent}
-          data-cy={`workout-tab-${StringUtils_dashcase(exercise.name)}`}
         >
           <ExerciseImage
             useTextForCustomExercise={true}
@@ -72,46 +72,47 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
           />
           {setsStatus === "not-finished" ? (
             props.shouldShowProgress && (
-              <div
-                className="absolute bottom-0 right-0 text-xs text-black"
-                style={{ bottom: "0px", right: "0px", padding: "1px 3px" }}
+              <View
+                style={{ position: "absolute", bottom: 0, right: 0, padding: 2 }}
               >
-                <div className="absolute inset-0 rounded-md opacity-75 bg-lightgray-50" />
-                <div className="relative z-10">
-                  <strong className="font-semibold">{completedSetsCount}</strong>/
-                  <strong className="font-semibold">{totalSetsCount}</strong>
-                </div>
-              </div>
+                <View className="absolute inset-0 rounded-md bg-lightgray-50" style={{ opacity: 0.75 }} />
+                <View style={{ position: "relative", zIndex: 10 }}>
+                  <Text className="text-xs">
+                    <Text className="font-semibold">{completedSetsCount}</Text>/
+                    <Text className="font-semibold">{totalSetsCount}</Text>
+                  </Text>
+                </View>
+              </View>
             )
           ) : (
-            <div className="absolute bottom-0 right-0" style={{ bottom: "2px", right: "2px" }}>
+            <View style={{ position: "absolute", bottom: 2, right: 2 }}>
               <IconCheckCircle
                 isChecked={true}
                 size={14}
                 color={WorkoutExerciseUtils_setsStatusToColor(setsStatus)}
                 checkColor={Tailwind_colors().white}
               />
-            </div>
+            </View>
           )}
-        </div>
-      </button>
+        </View>
+      </Pressable>
       {supersetColor ? (
-        <div className="mx-1">
-          <div
+        <View className="mx-1">
+          <View
             className="w-full"
             style={{
               backgroundColor: isCurrentSuperset ? supersetColor : Tailwind_semantic().background.neutral,
-              height: "2px",
-              marginTop: isCurrent ? "3px" : "5px",
+              height: 2,
+              marginTop: isCurrent ? 3 : 5,
             }}
           />
-        </div>
+        </View>
       ) : hasSupersets ? (
-        <div
+        <View
           className="w-full"
-          style={{ backgroundColor: "transparent", height: "2px", marginTop: isCurrent ? "3px" : "5px" }}
+          style={{ backgroundColor: "transparent", height: 2, marginTop: isCurrent ? 3 : 5 }}
         />
       ) : null}
-    </div>
+    </View>
   );
 }

@@ -1,10 +1,10 @@
 import { JSX, ReactNode, useState } from "react";
-import { View, Platform } from "react-native";
+import { View, Platform, Switch } from "react-native";
 import { Text } from "./primitives/text";
 import { ProgramPreviewPlayground } from "./preview/programPreviewPlayground";
 import { IProgram, ISettings, IStats, IUnit } from "../types";
 import { IconEditSquare } from "./icons/iconEditSquare";
-import { MenuItemEditable, MenuItemValue } from "./menuItemEditable";
+import { MenuItemValue } from "./menuItemEditable";
 import { IScrollableTabsProps } from "./scrollableTabs";
 
 interface IProgramPreviewOrPlaygroundProps {
@@ -26,15 +26,13 @@ export function ProgramPreviewOrPlayground(props: IProgramPreviewOrPlaygroundPro
   const playgroundHeader = (
     <View pointerEvents="box-none">
       {props.headerContent}
-      {isWeb && (
+      {isWeb ? (
         <View className="mx-4 mt-2">
           {props.isMobile ? (
-            <MenuItemEditable
-              type="boolean"
-              name="Enable Playground"
-              value={isPlayground ? "true" : "false"}
-              onChange={(newValue) => setIsPlayground(newValue === "true")}
-            />
+            <View className="flex-row items-center py-3">
+              <Text className="flex-1 text-base text-text-primary">Enable Playground</Text>
+              <Switch value={isPlayground} onValueChange={setIsPlayground} />
+            </View>
           ) : (
             <View className="flex-row items-center">
               <Text className="mr-2">Enable Playground:</Text>
@@ -70,9 +68,16 @@ export function ProgramPreviewOrPlayground(props: IProgramPreviewOrPlaygroundPro
             </View>
           )}
         </View>
+      ) : (
+        <View className="flex-row items-center py-3 mx-4 mt-2" pointerEvents="box-none">
+          <Text className="flex-1 text-base text-text-primary" pointerEvents="none">
+            Enable Playground
+          </Text>
+          <Switch value={isPlayground} onValueChange={setIsPlayground} />
+        </View>
       )}
       {isPlayground && (
-        <View className="py-2 mx-4">
+        <Text className="py-2 mx-4" pointerEvents="none">
           <Text className="text-sm">
             Playground mode emulates the workout, you can complete sets by tapping on squares below, and see how the
             program logic works. Some programs may do nothing, some may update the weights, some may switch to different
@@ -80,7 +85,7 @@ export function ProgramPreviewOrPlayground(props: IProgramPreviewOrPlaygroundPro
           </Text>
           <IconEditSquare />
           <Text className="text-sm"> icon.</Text>
-        </View>
+        </Text>
       )}
     </View>
   );

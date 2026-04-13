@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View, Pressable } from "react-native";
+import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import { ISettings, ISet, IExerciseType, ISubscription, IProgramState, IHistoryRecord, IHistoryEntry } from "../types";
 import { IconCheckCircle } from "./icons/iconCheckCircle";
@@ -15,7 +17,6 @@ import {
 } from "../utils/workoutExerciseUtils";
 import { SwipeableRow } from "./swipeableRow";
 import { CollectionUtils_removeAt } from "../utils/collection";
-import { Mobile_isMobileFromWindow, Mobile_isPlaywrightFromWindow } from "../../lambda/utils/mobile";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { EditProgressEntry_showEditSetModal } from "../models/editProgressEntry";
@@ -30,6 +31,25 @@ import {
   Weight_getOneRepMax,
 } from "../models/weight";
 import { Exercise_getIsUnilateral, Exercise_onerm } from "../models/exercise";
+
+export interface ISetColumnWidths {
+  set: number;
+  reps: number;
+  separator: number;
+  weight: number;
+  check: number;
+}
+
+export function computeSetColumnWidths(remValue: number, isUnilateral: boolean): ISetColumnWidths {
+  const labelW = isUnilateral ? remValue : 0;
+  return {
+    set: Math.round(2.5 * remValue),
+    reps: Math.round(3.5 * remValue) + labelW,
+    separator: Math.round(1.5 * remValue),
+    weight: Math.round(4 * remValue),
+    check: Math.round(3.5 * remValue),
+  };
+}
 
 interface IWorkoutExerciseSet {
   exerciseType: IExerciseType;
@@ -51,6 +71,7 @@ interface IWorkoutExerciseSet {
   programExercise?: IPlannerProgramExercise;
   otherStates?: IByExercise<IProgramState>;
   setIndex: number;
+  columnWidths: ISetColumnWidths;
   settings: ISettings;
   dispatch: IDispatch;
 }
@@ -60,12 +81,13 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
   const placeholderReps = `${set.minReps != null ? `${n(set.minReps)}-` : ""}${set.reps != null ? n(set.reps) : ""}${set.reps != null && set.isAmrap ? "+" : ""}`;
   const placeholderWeight = set.weight?.value != null ? `${n(set.weight.value)}${set.askWeight ? "+" : ""}` : undefined;
   const completedRpeValue = set.logRpe && set.completedRpe != null ? set.completedRpe : undefined;
-  const isMobile = Mobile_isMobileFromWindow();
-  const isPlaywright = Mobile_isPlaywrightFromWindow();
-  const shouldUseTouch = isMobile && !isPlaywright;
-  const borderClass = ` border-b ${WorkoutExerciseUtils_getBorderColor100([props.set], false)}`;
+  const borderColor = WorkoutExerciseUtils_getBorderColor100([props.set], false);
   const hasEdit = props.type === "workout";
   const isUnilateral = Exercise_getIsUnilateral(props.exerciseType, props.settings);
+  const remValue = props.settings.textSize ?? 16;
+  const labelW = isUnilateral ? remValue : 0;
+  const repsInputWidth = (props.columnWidths.reps - labelW) / remValue;
+  const weightInputWidth = props.columnWidths.weight / remValue;
 
   return (
     <SwipeableRow
@@ -76,67 +98,99 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
       initiateTreshold={15}
       onPointerDown={props.onStopShowingHint}
     >
-      {({ onPointerDown, onPointerUp, style, close, moveRef }) => (
-        <div
-          ref={moveRef}
-          className={`will-change-transform relative table-row ${WorkoutExerciseUtils_getBgColor50([set], props.type === "warmup")}`}
+      {({ style, close, moveRef }) => (
+        <View
+          ref={moveRef as unknown as React.RefObject<View>}
+          className={`${WorkoutExerciseUtils_getBgColor50([set], props.type === "warmup")}`}
+          style={style as object}
           data-cy={getDataCy(set)}
-          style={style}
-          onTouchStart={shouldUseTouch ? onPointerDown : undefined}
-          onTouchEnd={shouldUseTouch ? onPointerUp : undefined}
-          onPointerDown={!shouldUseTouch ? onPointerDown : undefined}
-          onPointerUp={!shouldUseTouch ? onPointerUp : undefined}
+          testID={getDataCy(set)}
         >
-          <div className={`table-cell px-2 py-1 text-sm align-middle ${borderClass}`}>
-            <div
-              className={`w-6 h-6 flex items-center justify-center rounded-full${
-                props.isNext ? " bg-button-primarybackground text-text-alwayswhite font-bold" : ""
-              }`}
-            >
-              <div>{props.type === "warmup" ? <span className="text-xs">W</span> : props.setIndex + 1}</div>
-            </div>
-          </div>
-          <div data-cy="workout-set-target" className={`${borderClass} table-cell w-full align-middle`}>
-            <WorkoutExerciseSetTargetField
-              set={set}
-              lastSet={props.lastSet}
-              setType={
-                props.type === "warmup"
-                  ? "warmup"
-                  : props.isCurrentProgress && props.programExercise == null
-                    ? "adhoc"
-                    : "program"
-              }
-              settings={props.settings}
-              exerciseType={props.exerciseType}
-            />
-          </div>
-          <div className={`${borderClass} table-cell py-2 align-middle`}>
-            {isUnilateral && (
-              <div className="flex items-center justify-center mb-1 text-center">
-                <div className="w-4 text-xs text-text-secondary">L:</div>
+          <View className={`flex-row items-center border-b ${borderColor}`}>
+            <View className="items-center justify-center py-1" style={{ width: props.columnWidths.set }}>
+              <View
+                className={`w-6 h-6 items-center justify-center rounded-full${
+                  props.isNext ? " bg-button-primarybackground" : ""
+                }`}
+              >
+                {props.type === "warmup" ? (
+                  <Text className={`text-xs ${props.isNext ? "text-text-alwayswhite font-bold" : ""}`}>W</Text>
+                ) : (
+                  <Text className={props.isNext ? "text-text-alwayswhite font-bold" : ""}>{props.setIndex + 1}</Text>
+                )}
+              </View>
+            </View>
+
+            <View className="flex-1" data-cy="workout-set-target" testID="workout-set-target">
+              <WorkoutExerciseSetTargetField
+                set={set}
+                lastSet={props.lastSet}
+                setType={
+                  props.type === "warmup"
+                    ? "warmup"
+                    : props.isCurrentProgress && props.programExercise == null
+                      ? "adhoc"
+                      : "program"
+                }
+                settings={props.settings}
+                exerciseType={props.exerciseType}
+              />
+            </View>
+
+            <View className="items-center justify-center py-2" style={{ width: props.columnWidths.reps }}>
+              {isUnilateral && (
+                <View className="flex-row items-center justify-center mb-1">
+                  <Text className="text-xs text-text-secondary" style={{ width: labelW }}>
+                    L:
+                  </Text>
+                  <InputNumber2
+                    width={repsInputWidth}
+                    name="set-left-reps"
+                    onInput={(value) => {
+                      if (value != null && !isNaN(value) && value >= 0) {
+                        updateProgress(
+                          props.dispatch,
+                          [props.lbSet.recordModify((s) => ({ ...s, completedRepsLeft: Math.round(value) }))],
+                          "input-left-reps"
+                        );
+                      }
+                    }}
+                    onBlur={(value) => {
+                      updateProgress(
+                        props.dispatch,
+                        [props.lbSet.recordModify((s) => ({ ...s, completedRepsLeft: value }))],
+                        "blur-left-reps"
+                      );
+                    }}
+                    placeholder={placeholderReps}
+                    initialValue={set.reps}
+                    value={set.completedRepsLeft != null ? set.completedRepsLeft : undefined}
+                    min={0}
+                    max={9999}
+                    step={1}
+                  />
+                </View>
+              )}
+              <View className="flex-row items-center justify-center">
+                {isUnilateral && (
+                  <Text className="text-xs text-text-secondary" style={{ width: labelW }}>
+                    R:
+                  </Text>
+                )}
                 <InputNumber2
-                  tabIndex={
-                    props.day * 10000 +
-                    props.entryIndex * 100 +
-                    props.setIndex * 4 +
-                    1 +
-                    (props.type === "warmup" ? 0 : 100)
-                  }
-                  width={3.5}
-                  data-cy="left-reps-value"
-                  name="set-left-reps"
+                  width={repsInputWidth}
+                  name="set-reps"
                   onInput={(value) => {
                     if (value != null && !isNaN(value) && value >= 0) {
                       updateProgress(
                         props.dispatch,
                         [
                           props.lbSet.recordModify((s) => {
-                            const newSet = { ...s, completedRepsLeft: Math.round(value) };
-                            return newSet;
+                            const newSet = { ...s, completedReps: Math.round(value) };
+                            return Reps_enforceCompletedSet(newSet);
                           }),
                         ],
-                        "input-left-reps"
+                        "input-reps"
                       );
                     }
                   }}
@@ -145,153 +199,95 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                       props.dispatch,
                       [
                         props.lbSet.recordModify((s) => {
-                          const newSet = { ...s, completedRepsLeft: value };
-                          return newSet;
+                          const newSet = { ...s, completedReps: value };
+                          return Reps_enforceCompletedSet(newSet);
                         }),
                       ],
-                      "blur-left-reps"
+                      "blur-reps"
                     );
                   }}
                   placeholder={placeholderReps}
                   initialValue={set.reps}
-                  value={set.completedRepsLeft != null ? set.completedRepsLeft : undefined}
+                  value={set.completedReps != null ? set.completedReps : undefined}
                   min={0}
                   max={9999}
                   step={1}
                 />
-              </div>
-            )}
-            <div className="flex items-center justify-center text-center">
-              {isUnilateral && <div className="w-4 text-xs text-text-secondary">R:</div>}
-              <InputNumber2
-                tabIndex={
-                  props.day * 10000 +
-                  props.entryIndex * 100 +
-                  props.setIndex * 4 +
-                  1 +
-                  (props.type === "warmup" ? 0 : 100)
-                }
-                width={3.5}
-                data-cy="reps-value"
-                name="set-reps"
-                onInput={(value) => {
-                  if (value != null && !isNaN(value) && value >= 0) {
-                    updateProgress(
-                      props.dispatch,
-                      [
-                        props.lbSet.recordModify((s) => {
-                          const newSet = { ...s, completedReps: Math.round(value) };
-                          return Reps_enforceCompletedSet(newSet);
-                        }),
-                      ],
-                      "input-reps"
-                    );
+              </View>
+            </View>
+
+            <View className="items-center justify-center py-2" style={{ width: props.columnWidths.separator }}>
+              <Text className="text-text-secondary">×</Text>
+            </View>
+
+            <View className="items-start justify-center py-2" style={{ width: props.columnWidths.weight }}>
+              <View className="flex-row items-center">
+                <InputWeight2
+                  width={weightInputWidth}
+                  name="set-weight"
+                  exerciseType={props.exerciseType}
+                  onBlur={(value) => {
+                    if (value == null || value.unit !== "%") {
+                      updateProgress(
+                        props.dispatch,
+                        [
+                          props.lbSet.recordModify((s) => {
+                            const newSet = { ...s, completedWeight: value };
+                            return Reps_enforceCompletedSet(newSet);
+                          }),
+                        ],
+                        "blur-weight"
+                      );
+                    }
+                  }}
+                  onInput={(value) => {
+                    if (value != null && value.unit !== "%") {
+                      updateProgress(
+                        props.dispatch,
+                        [
+                          props.lbSet.recordModify((s) => {
+                            const newSet = { ...s, completedWeight: value };
+                            return Reps_enforceCompletedSet(newSet);
+                          }),
+                        ],
+                        "input-weight"
+                      );
+                    }
+                  }}
+                  addOn={
+                    set.rpe != null && set.reps != null
+                      ? () => (
+                          <RpeWeightHint
+                            reps={set.completedReps ?? set.reps ?? 0}
+                            rpe={set.completedRpe ?? set.rpe!}
+                            settings={props.settings}
+                            exerciseType={props.exerciseType}
+                          />
+                        )
+                      : undefined
                   }
-                }}
-                onBlur={(value) => {
-                  updateProgress(
-                    props.dispatch,
-                    [
-                      props.lbSet.recordModify((s) => {
-                        const newSet = { ...s, completedReps: value };
-                        return Reps_enforceCompletedSet(newSet);
-                      }),
-                    ],
-                    "blur-reps"
-                  );
-                }}
-                placeholder={placeholderReps}
-                initialValue={set.reps}
-                value={set.completedReps != null ? set.completedReps : undefined}
-                min={0}
-                max={9999}
-                step={1}
-              />
-            </div>
-          </div>
-          <div className={`${borderClass} table-cell py-2 text-center px-1 align-middle`}>×</div>
-          <div className={`${borderClass} table-cell py-2 align-middle`}>
-            <div className="flex items-center justify-start text-center">
-              <InputWeight2
-                tabIndex={
-                  props.day * 10000 +
-                  props.entryIndex * 100 +
-                  props.setIndex * 4 +
-                  2 +
-                  (props.type === "warmup" ? 0 : 100)
-                }
-                name="set-weight"
-                exerciseType={props.exerciseType}
-                data-cy="weight-value"
-                onBlur={(value) => {
-                  if (value == null || value.unit !== "%") {
-                    updateProgress(
-                      props.dispatch,
-                      [
-                        props.lbSet.recordModify((s) => {
-                          const newSet = { ...s, completedWeight: value };
-                          return Reps_enforceCompletedSet(newSet);
-                        }),
-                      ],
-                      "blur-weight"
-                    );
-                  }
-                }}
-                onInput={(value) => {
-                  if (value != null && value.unit !== "%") {
-                    updateProgress(
-                      props.dispatch,
-                      [
-                        props.lbSet.recordModify((s) => {
-                          const newSet = { ...s, completedWeight: value };
-                          return Reps_enforceCompletedSet(newSet);
-                        }),
-                      ],
-                      "input-weight"
-                    );
-                  }
-                }}
-                addOn={
-                  set.rpe != null && set.reps != null
-                    ? () => (
-                        <RpeWeightHint
-                          reps={set.completedReps ?? set.reps ?? 0}
-                          rpe={set.completedRpe ?? set.rpe!}
-                          settings={props.settings}
-                          exerciseType={props.exerciseType}
-                        />
-                      )
-                    : undefined
-                }
-                subscription={props.subscription}
-                placeholder={placeholderWeight}
-                initialValue={set.weight}
-                value={set.completedWeight || undefined}
-                max={9999}
-                min={-9999}
-                settings={props.settings}
-              />
-              {completedRpeValue != null ? (
-                <div data-cy="rpe-value" className="ml-1 text-xs font-semibold text-text-success">
-                  @{n(completedRpeValue)}
-                </div>
-              ) : null}
-            </div>
-          </div>
-          <div className={`${borderClass} relative table-cell pr-4 pl-1 text-right align-middle`}>
-            <div className="flex items-center justify-end">
-              <button
-                tabIndex={
-                  props.day * 10000 +
-                  props.entryIndex * 100 +
-                  props.setIndex * 4 +
-                  3 +
-                  (props.type === "warmup" ? 0 : 100)
-                }
-                className="px-4 py-3 nm-workout-exercise-set-complete"
+                  subscription={props.subscription}
+                  placeholder={placeholderWeight}
+                  initialValue={set.weight}
+                  value={set.completedWeight || undefined}
+                  max={9999}
+                  min={-9999}
+                  settings={props.settings}
+                />
+                {completedRpeValue != null ? (
+                  <Text data-cy="rpe-value" testID="rpe-value" className="ml-1 text-xs font-semibold text-text-success">
+                    @{n(completedRpeValue)}
+                  </Text>
+                ) : null}
+              </View>
+            </View>
+
+            <View className="items-end justify-center" style={{ width: props.columnWidths.check }}>
+              <Pressable
+                className="px-4 py-3"
                 data-cy="complete-set"
-                style={{ marginRight: "-0.5rem" }}
-                onClick={() => {
+                testID="complete-set"
+                onPress={() => {
                   props.dispatch({
                     type: "CompleteSetAction",
                     setIndex: props.setIndex,
@@ -304,68 +300,78 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                     isExternal: false,
                   });
                 }}
+                style={{ marginRight: -8 }}
               >
                 <IconCheckCircle
                   size={24}
                   isChecked={true}
                   color={WorkoutExerciseUtils_getIconColor([set], props.type === "warmup")}
                 />
-              </button>
-            </div>
-            <div
-              className={`absolute top-0 bottom-0 flex ${hasEdit ? "w-32" : "w-16"} will-change-transform left-full`}
-              style={{ marginLeft: "1px" }}
-            >
-              {hasEdit && (
-                <button
-                  tabIndex={-1}
-                  data-cy="edit-set-target"
-                  onClick={() => {
-                    close();
-                    EditProgressEntry_showEditSetModal(
-                      props.dispatch,
-                      props.settings,
-                      props.type === "warmup",
-                      props.entryIndex,
-                      props.progress,
-                      props.setIndex,
-                      props.programExercise,
-                      props.exerciseType,
-                      set
-                    );
-                  }}
-                  className="flex-1 h-full text-text-alwayswhite bg-background-darkgray nm-workout-exercise-set-edit"
-                >
-                  Edit
-                </button>
-              )}
-              <button
-                data-cy="delete-set"
-                tabIndex={-1}
-                onClick={() => {
+              </Pressable>
+            </View>
+          </View>
+
+          <View
+            style={{
+              position: "absolute",
+              top: 0,
+              bottom: 0,
+              left: "100%",
+              flexDirection: "row",
+              width: hasEdit ? 128 : 64,
+              marginLeft: 1,
+            }}
+          >
+            {hasEdit && (
+              <Pressable
+                data-cy="edit-set-target"
+                testID="edit-set-target"
+                onPress={() => {
                   close();
-                  updateProgress(
+                  EditProgressEntry_showEditSetModal(
                     props.dispatch,
-                    [
-                      props.lbSets.recordModify((s) => {
-                        const newSets = CollectionUtils_removeAt(s, props.setIndex);
-                        for (let setIndex = 0; setIndex < newSets.length; setIndex += 1) {
-                          const newSet = newSets[setIndex];
-                          newSet.index = setIndex;
-                        }
-                        return newSets;
-                      }),
-                    ],
-                    "delete-set"
+                    props.settings,
+                    props.type === "warmup",
+                    props.entryIndex,
+                    props.progress,
+                    props.setIndex,
+                    props.programExercise,
+                    props.exerciseType,
+                    set
                   );
                 }}
-                className="flex-1 h-full text-text-alwayswhite bg-background-darkred nm-workout-exercise-set-delete"
+                style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+                className="bg-background-darkgray"
               >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
+                <Text className="text-text-alwayswhite">Edit</Text>
+              </Pressable>
+            )}
+            <Pressable
+              data-cy="delete-set"
+              testID="delete-set"
+              onPress={() => {
+                close();
+                updateProgress(
+                  props.dispatch,
+                  [
+                    props.lbSets.recordModify((s) => {
+                      const newSets = CollectionUtils_removeAt(s, props.setIndex);
+                      for (let setIndex = 0; setIndex < newSets.length; setIndex += 1) {
+                        newSets[setIndex].index = setIndex;
+                      }
+                      return newSets;
+                    }),
+                  ],
+                  "delete-set"
+                );
+              }}
+              style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+              className="bg-background-darkred"
+            >
+              <Text className="text-text-alwayswhite">Delete</Text>
+            </Pressable>
+          </View>
+        </View>
       )}
     </SwipeableRow>
   );
@@ -381,22 +387,19 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
     case "warmup":
       const set = props.set;
       return (
-        <span className="inline-block text-xs break-all text-text-secondary">
-          <div className="inline-block text-sm align-middle">
-            <div className="text-xs text-text-secondary">Warmup</div>
-            <div>
-              {set.reps != null && <span className="font-semibold">{n(Math.max(0, set.reps))}</span>}
-              {set.reps != null && set.weight != null && <span className="text-text-secondary"> × </span>}
-              {set.weight != null && (
-                <span>
-                  <span> </span>
-                  <span className="font-semibold">{n(set.weight.value)}</span>
-                  <span className="text-xs">{set.weight.unit}</span>
-                </span>
-              )}
-            </div>
-          </div>
-        </span>
+        <View>
+          <Text className="text-xs text-text-secondary">Warmup</Text>
+          <View className="flex-row items-center">
+            {set.reps != null && <Text className="text-sm font-semibold">{n(Math.max(0, set.reps))}</Text>}
+            {set.reps != null && set.weight != null && <Text className="text-sm text-text-secondary"> × </Text>}
+            {set.weight != null && (
+              <Text className="text-sm">
+                <Text className="font-semibold">{n(set.weight.value)}</Text>
+                <Text className="text-xs">{set.weight.unit}</Text>
+              </Text>
+            )}
+          </View>
+        </View>
       );
     case "adhoc":
     case "program": {
@@ -404,56 +407,52 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
       const isDiffWeight = aSet.weight && aSet.originalWeight && !Weight_eq(aSet.weight, aSet.originalWeight);
       const hasTarget = aSet.reps != null || aSet.weight != null;
       return (
-        <div className="inline-block text-sm align-middle">
-          {aSet.label ? <div className="text-xs text-text-secondary">{aSet.label}</div> : null}
-          {props.setType === "adhoc" && <div className="text-xs text-text-secondary">Ad-hoc</div>}
+        <View>
+          {aSet.label ? <Text className="text-xs text-text-secondary">{aSet.label}</Text> : null}
+          {props.setType === "adhoc" && <Text className="text-xs text-text-secondary">Ad-hoc</Text>}
           {hasTarget ? (
-            <div>
+            <View className="flex-row flex-wrap items-center">
               {aSet.reps != null && (
-                <span className="font-semibold text-syntax-reps">
+                <Text className="text-sm font-semibold text-syntax-reps">
                   {aSet.minReps != null ? `${n(Math.max(0, aSet.minReps))}-` : null}
                   {n(Math.max(0, aSet.reps))}
                   {aSet.isAmrap ? "+" : ""}
-                </span>
+                </Text>
               )}
-              {aSet.reps != null && aSet.weight != null && <span className="text-text-secondary"> × </span>}
-              <span>
-                {aSet.originalWeight && aSet.weight && (
-                  <span
-                    className={isDiffWeight ? "line-through text-text-secondary" : "font-semibold text-syntax-weight"}
-                  >
-                    <span>{n(aSet.originalWeight.value)}</span>
-                    <span className="text-xs font-normal">{aSet.originalWeight.unit}</span>
-                  </span>
-                )}
-                {aSet.weight && isDiffWeight && (
-                  <span className="text-syntax-weight">
-                    <span> </span>
-                    <span className="font-semibold">{n(aSet.weight.value)}</span>
-                    <span className="text-xs">{aSet.weight.unit}</span>
-                  </span>
-                )}
-              </span>
-              <span className="font-semibold text-syntax-rpe">
+              {aSet.reps != null && aSet.weight != null && <Text className="text-sm text-text-secondary"> × </Text>}
+              {aSet.originalWeight && aSet.weight && (
+                <Text
+                  className={`text-sm ${isDiffWeight ? "line-through text-text-secondary" : "font-semibold text-syntax-weight"}`}
+                >
+                  {n(aSet.originalWeight.value)}
+                  <Text className="text-xs font-normal">{aSet.originalWeight.unit}</Text>
+                </Text>
+              )}
+              {aSet.weight && isDiffWeight && (
+                <Text className="text-sm text-syntax-weight">
+                  {" "}
+                  <Text className="font-semibold">{n(aSet.weight.value)}</Text>
+                  <Text className="text-xs">{aSet.weight.unit}</Text>
+                </Text>
+              )}
+              <Text className="text-sm font-semibold text-syntax-rpe">
                 {aSet.originalWeight == null && aSet.askWeight ? " ?" : ""}
                 {aSet.askWeight ? "+" : ""}
                 {aSet.rpe ? ` @${n(Math.max(0, aSet.rpe))}` : null}
                 {aSet.rpe && aSet.logRpe ? "+" : ""}
-              </span>
+              </Text>
               {aSet.timer != null ? (
-                <span>
-                  <span> </span>
-                  <span className="text-syntax-timer">
-                    <span>{n(aSet.timer)}</span>
-                    <span className="text-xs">s</span>
-                  </span>
-                </span>
+                <Text className="text-sm text-syntax-timer">
+                  {" "}
+                  {n(aSet.timer)}
+                  <Text className="text-xs">s</Text>
+                </Text>
               ) : null}
-            </div>
+            </View>
           ) : (
-            <div>None</div>
+            <Text className="text-sm">None</Text>
           )}
-        </div>
+        </View>
       );
     }
   }
@@ -466,32 +465,30 @@ interface IWorkoutExerciseLastSetProps {
 function WorkoutExerciseLastSet(props: IWorkoutExerciseLastSetProps): JSX.Element {
   const set = props.set;
   if (set == null) {
-    return <span className="text-xs text-text-secondary">No last set</span>;
+    return <Text className="text-xs text-text-secondary">No last set</Text>;
   }
   const setStatus = Reps_setsStatus([set]);
   return (
-    <div className="inline-block text-sm align-middle">
-      {set.label ? <div className="text-xs text-text-secondary">{set.label}</div> : null}
-      <div>
-        <span className={`font-semibold ${WorkoutExerciseUtils_setsStatusToTextColor(setStatus)}`}>
+    <View>
+      {set.label ? <Text className="text-xs text-text-secondary">{set.label}</Text> : null}
+      <View className="flex-row items-center">
+        <Text className={`text-sm font-semibold ${WorkoutExerciseUtils_setsStatusToTextColor(setStatus)}`}>
           {set.completedReps != null ? n(set.completedReps) : "-"}
-        </span>
-        <span className="text-text-secondary"> × </span>
-        <span>
-          <span className={`font-semibold ${WorkoutExerciseUtils_setsStatusToTextColor(setStatus)}`}>
-            {set.completedWeight ? <span>{set.completedWeight.value}</span> : "-"}
-            <span className="text-xs font-normal">{set.completedWeight?.unit}</span>
-          </span>
-        </span>
-        <span className={`font-semibold ${WorkoutExerciseUtils_setsStatusToTextColor(setStatus)}`}>
+        </Text>
+        <Text className="text-sm text-text-secondary"> × </Text>
+        <Text className={`text-sm font-semibold ${WorkoutExerciseUtils_setsStatusToTextColor(setStatus)}`}>
+          {set.completedWeight ? set.completedWeight.value.toString() : "-"}
+          <Text className="text-xs font-normal">{set.completedWeight?.unit}</Text>
+        </Text>
+        <Text className={`text-sm font-semibold ${WorkoutExerciseUtils_setsStatusToTextColor(setStatus)}`}>
           {set.completedRpe != null
             ? ` @${n(Math.max(0, set.completedRpe))}+`
             : set.rpe != null
               ? ` @${n(Math.max(0, set.rpe))}`
               : ""}
-        </span>
-      </div>
-    </div>
+        </Text>
+      </View>
+    </View>
   );
 }
 
@@ -507,18 +504,20 @@ function RpeWeightHint(props: IRpeWeightHintProps): JSX.Element {
   const onerm = Exercise_onerm(props.exerciseType, props.settings);
   const weight = Weight_multiply(onerm, multiplier);
   return (
-    <div className="text-xs text-text-secondary">
-      <span className="font-bold" style={{ color: "#940" }}>
-        {props.reps}
-      </span>{" "}
-      ×{" "}
-      <span className="font-bold" style={{ color: "#164" }}>
-        @{props.rpe}
-      </span>{" "}
-      - <span className="font-bold text-text-primary">{n(multiplier * 100, 0)}%</span> of 1RM -{" "}
-      <span className="font-bold text-text-primary">{n(weight.value)}</span>
-      <span>{weight.unit}</span>
-    </div>
+    <View>
+      <Text className="text-xs text-text-secondary">
+        <Text className="font-bold" style={{ color: "#940" }}>
+          {props.reps}
+        </Text>{" "}
+        ×{" "}
+        <Text className="font-bold" style={{ color: "#164" }}>
+          @{props.rpe}
+        </Text>{" "}
+        - <Text className="font-bold text-text-primary">{n(multiplier * 100, 0)}%</Text> of 1RM -{" "}
+        <Text className="font-bold text-text-primary">{n(weight.value)}</Text>
+        <Text>{weight.unit}</Text>
+      </Text>
+    </View>
   );
 }
 
@@ -573,7 +572,7 @@ function WorkoutExerciseSetTargetField(props: IWorkoutExerciseSetTargetFieldProp
       return <WorkoutExerciseE1RMSet set={props.set} settings={props.settings} />;
     }
   }
-  return <div />;
+  return <View />;
 }
 
 interface IWorkoutExercisePlatesCalculatorProps {
@@ -586,9 +585,9 @@ function WorkoutExercisePlatesCalculator(props: IWorkoutExercisePlatesCalculator
   const setWeight = props.set.weight;
   if (setWeight == null) {
     return (
-      <span className="text-sm font-semibold break-all">
-        <span data-cy="plates-list">None</span>
-      </span>
+      <Text className="text-sm font-semibold" data-cy="plates-list" testID="plates-list">
+        None
+      </Text>
     );
   }
 
@@ -600,14 +599,13 @@ function WorkoutExercisePlatesCalculator(props: IWorkoutExercisePlatesCalculator
   );
   const formattedPlates = plates.length > 0 ? Weight_formatOneSide(props.settings, plates, props.exerciseType) : "None";
   return (
-    <span className="text-sm font-semibold break-all">
-      <span
-        className={Weight_eq(weight, props.set.completedWeight ?? setWeight) ? "text-text-primary" : "text-text-error"}
-        data-cy="plates-list"
-      >
-        {formattedPlates}
-      </span>
-    </span>
+    <Text
+      className={`text-sm font-semibold ${Weight_eq(weight, props.set.completedWeight ?? setWeight) ? "text-text-primary" : "text-text-error"}`}
+      data-cy="plates-list"
+      testID="plates-list"
+    >
+      {formattedPlates}
+    </Text>
   );
 }
 
@@ -623,13 +621,13 @@ function WorkoutExerciseE1RMSet(props: IWorkoutExerciseE1RMSetProps): JSX.Elemen
   const reps = Reps_avgUnilateralCompletedReps(set) ?? set.reps;
   const rpe = set.completedRpe ?? set.rpe ?? 10;
   if (weight == null || Weight_isPct(weight) || reps == null) {
-    return <span className="text-sm break-all">Unknown</span>;
+    return <Text className="text-sm">Unknown</Text>;
   }
   const e1RM = Weight_getOneRepMax(weight, reps, rpe);
   return (
-    <span className={`text-sm break-all ${isCompleted ? "" : "opacity-40"}`}>
-      <span className="font-semibold">{n(e1RM.value)}</span>
-      <span className="text-xs">{e1RM.unit}</span>
-    </span>
+    <Text className={`text-sm ${isCompleted ? "" : "opacity-40"}`}>
+      <Text className="font-semibold">{n(e1RM.value)}</Text>
+      <Text className="text-xs">{e1RM.unit}</Text>
+    </Text>
   );
 }
