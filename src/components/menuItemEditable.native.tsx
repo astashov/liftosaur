@@ -13,6 +13,7 @@ interface IMenuItemEditableValueProps {
   valueUnits?: string;
   values?: [string, string][];
   onChange?: (v?: string) => void;
+  onInput?: (v: string) => void;
   pattern?: string;
   patternMessage?: string;
   maxLength?: number;
@@ -64,6 +65,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
             values={props.values}
             setPatternError={() => undefined}
             onChange={props.onChange}
+            onInput={props.onInput}
             inputRef={isTextInput ? inputRef : undefined}
           />
         </View>
@@ -79,7 +81,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
 }
 
 export function MenuItemValue(
-  props: { setPatternError: Dispatch<SetStateAction<boolean>>; inputRef?: RefObject<TextInput | null> } & IMenuItemEditableValueProps
+  props: { setPatternError: Dispatch<SetStateAction<boolean>>; inputRef?: RefObject<TextInput | null>; onInput?: (v: string) => void } & IMenuItemEditableValueProps
 ): JSX.Element | null {
   if (props.type === "desktop-select" || props.type === "select" || props.type === "select2") {
     const currentLabel = (props.values || []).find(([k]) => k === props.value)?.[1] ?? "";
@@ -112,6 +114,7 @@ export function MenuItemValue(
       <NativeTextValue
         value={props.value}
         onChange={props.onChange}
+        onInput={props.onInput}
         keyboardType={props.type === "number" ? "numeric" : "default"}
         maxLength={props.maxLength}
         inputRef={props.inputRef}
@@ -125,6 +128,7 @@ export function MenuItemValue(
 function NativeTextValue(props: {
   value: string | null | undefined;
   onChange?: (v?: string) => void;
+  onInput?: (v: string) => void;
   keyboardType: "numeric" | "default";
   maxLength?: number;
   inputRef?: RefObject<TextInput | null>;
@@ -149,6 +153,7 @@ function NativeTextValue(props: {
       defaultValue={currentValueRef.current}
       onChangeText={(text) => {
         currentValueRef.current = text;
+        props.onInput?.(text);
       }}
       onBlur={() => props.onChange?.(currentValueRef.current)}
       keyboardType={props.keyboardType}

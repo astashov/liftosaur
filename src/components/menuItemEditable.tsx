@@ -16,6 +16,7 @@ interface IMenuItemEditableValueProps {
   valueUnits?: string;
   values?: [string, string][];
   onChange?: (v?: string, e?: React.SyntheticEvent) => void;
+  onInput?: (v: string) => void;
   pattern?: string;
   patternMessage?: string;
   maxLength?: number;

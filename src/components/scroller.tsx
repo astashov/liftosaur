@@ -1,4 +1,5 @@
-import { JSX, ReactNode, useEffect, useRef, useState } from "react";
+import { JSX, ReactNode, useRef } from "react";
+import { View, ScrollView, Platform } from "react-native";
 
 interface IProps {
   children: ReactNode;
@@ -7,83 +8,27 @@ interface IProps {
 }
 
 export function Scroller(props: IProps): JSX.Element {
-  const [atLeft, setAtLeft] = useState<boolean>(true);
-  const [atRight, setAtRight] = useState<boolean>(false);
-  const tabsRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<ScrollView>(null);
+  const isWeb = Platform.OS === "web";
 
-  const previousOffset = useRef<number | undefined>(undefined);
-
-  useEffect(() => {
-    if (!tabsRef.current || tabsRef.current.clientWidth >= tabsRef.current.scrollWidth) {
-      setAtLeft(true);
-      setAtRight(true);
-    } else {
-      setAtLeft(tabsRef.current?.scrollLeft === 0);
-      const diff = Math.abs(
-        tabsRef.current?.scrollLeft - (tabsRef.current?.scrollWidth - tabsRef.current?.clientWidth)
-      );
-      setAtRight(diff < 3);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (props.scrollOffset !== previousOffset.current) {
-      tabsRef.current?.scrollTo({ left: props.scrollOffset, behavior: "smooth" });
-    }
-    previousOffset.current = props.scrollOffset;
-  }, [props.scrollOffset]);
+  if (!isWeb) {
+    return (
+      <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false}>
+        {props.children}
+      </ScrollView>
+    );
+  }
 
   return (
-    <div className="relative flex-1 min-w-0">
-      {!atLeft && (
-        <button
-          className="absolute left-0 z-20 flex items-center justify-center w-8 h-8 px-4 ml-auto bg-background-default rounded-full outline-none focus:outline-none nm-scroller-left"
-          style={{
-            boxShadow: "0 0 1px 2px rgba(0,0,0,0.05)",
-            top: "50%",
-            transform: `translateY(${-50 + (props.arrowYOffsetPct || 0)}%)`,
-          }}
-          onClick={() => {
-            tabsRef.current?.scrollTo({ left: 0, behavior: "smooth" });
-          }}
-        >
-          {"<"}
-        </button>
-      )}
-      {!atRight && (
-        <button
-          className="absolute right-0 z-20 flex items-center justify-center w-8 h-8 px-4 ml-auto bg-background-default rounded-full outline-none focus:outline-none nm-scroller-right"
-          style={{
-            boxShadow: "0 0 1px 2px rgba(0,0,0,0.05)",
-            top: "50%",
-            transform: `translateY(${-50 + (props.arrowYOffsetPct || 0)}%)`,
-          }}
-          onClick={() => {
-            const scrollLeft = tabsRef.current?.scrollLeft;
-            const clientWidth = tabsRef.current?.clientWidth;
-            if (scrollLeft != null && clientWidth != null) {
-              tabsRef.current?.scrollTo({ left: scrollLeft + clientWidth, behavior: "smooth" });
-            }
-          }}
-        >
-          {">"}
-        </button>
-      )}
-
-      <div
-        className="overflow-x-auto scrollbar-hide"
-        ref={tabsRef}
-        onScroll={() => {
-          setAtLeft(tabsRef.current?.scrollLeft === 0);
-          const scrollLeft = tabsRef.current?.scrollLeft ?? 0;
-          const scrollWidth = tabsRef.current?.scrollWidth ?? 0;
-          const clientWidth = tabsRef.current?.clientWidth ?? 0;
-          const diff = Math.abs(scrollLeft - (scrollWidth - clientWidth));
-          setAtRight(diff < 3);
-        }}
+    <View className="relative flex-1 min-w-0">
+      <ScrollView
+        ref={scrollRef}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        className="scrollbar-hide"
       >
         {props.children}
-      </div>
-    </div>
+      </ScrollView>
+    </View>
   );
 }

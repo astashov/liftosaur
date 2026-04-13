@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "../primitives/text";
 import {
   Exercise_fromKey,
   Exercise_toKey,
@@ -69,16 +71,16 @@ export function MusclesTypeView(props: IMusclesTypeViewProps): JSX.Element {
   }, {});
   const exercises = ObjectUtils_keys(props.points.exercisePoints[type]).map((k) => Exercise_fromKey(k));
   return (
-    <section>
-      <section className="flex p-4">
-        <div className="relative flex-1">
+    <View>
+      <View className="flex-row p-4">
+        <View className="relative flex-1">
           <BackMusclesSvg muscles={muscleData} contour={{ fill: "#28839F" }} />
-        </div>
-        <div className="relative flex-1">
+        </View>
+        <View className="relative flex-1">
           <FrontMusclesSvg muscles={muscleData} contour={{ fill: "#28839F" }} />
-        </div>
-      </section>
-      <section className="px-4">
+        </View>
+      </View>
+      <View className="px-4">
         <GroupHeader name="Muscles used, relatively to each other" />
         {CollectionUtils_sort(
           ObjectUtils_keys(muscleData),
@@ -97,14 +99,14 @@ export function MusclesTypeView(props: IMusclesTypeViewProps): JSX.Element {
               <MenuItem
                 key={muscleName}
                 name={StringUtils_capitalize(muscleName)}
-                value={<div className={color}>{(value || 0).toFixed(0)}%</div>}
+                value={<Text className={color}>{(value || 0).toFixed(0)}%</Text>}
               />
             );
           })}
         {!props.hideListOfExercises && (
-          <div>
+          <View>
             <GroupHeader name={`List Of Exercises (${type})`} topPadding={true} />
-            <section className="py-4">
+            <View className="py-4">
               {exercises
                 .filter((e) => props.points.exercisePoints[type][Exercise_toKey(e)] != null)
                 .map((e) => {
@@ -138,33 +140,33 @@ export function MusclesTypeView(props: IMusclesTypeViewProps): JSX.Element {
                   ]);
                   synergistScreenMusclesWithPercentage.sort((a, b) => b[1] - a[1]);
                   return (
-                    <div key={exerciseKey} className="pb-2">
-                      <div className="text-base font-bold">{Exercise_get(e, props.settings.exercises).name}</div>
-                      <div className="flex">
-                        <div data-cy="target-muscles-list" className="flex-1">
-                          <div className="text-sm text-text-secondary">Target</div>
+                    <View key={exerciseKey} className="pb-2">
+                      <Text className="text-base font-bold">{Exercise_get(e, props.settings.exercises).name}</Text>
+                      <View className="flex-row">
+                        <View data-cy="target-muscles-list" testID="target-muscles-list" className="flex-1">
+                          <Text className="text-sm text-text-secondary">Target</Text>
                           {targetScreenMusclesWithPercentage.map(([m, val]) => (
-                            <div key={m}>
-                              <span>{m}</span>: <span>{val.toFixed(1)}%</span>
-                            </div>
+                            <Text key={m}>
+                              {m}: {val.toFixed(1)}%
+                            </Text>
                           ))}
-                        </div>
-                        <div data-cy="synergist-muscles-list" className="flex-1">
-                          <span className="text-sm text-text-secondary">Synergist</span>
+                        </View>
+                        <View data-cy="synergist-muscles-list" testID="synergist-muscles-list" className="flex-1">
+                          <Text className="text-sm text-text-secondary">Synergist</Text>
                           {synergistScreenMusclesWithPercentage.map(([m, val]) => (
-                            <div key={m}>
-                              <span>{m}</span>: <span>{val.toFixed(1)}%</span>
-                            </div>
+                            <Text key={m}>
+                              {m}: {val.toFixed(1)}%
+                            </Text>
                           ))}
-                        </div>
-                      </div>
-                    </div>
+                        </View>
+                      </View>
+                    </View>
                   );
                 })}
-            </section>
-          </div>
+            </View>
+          </View>
         )}
-      </section>
-    </section>
+      </View>
+    </View>
   );
 }

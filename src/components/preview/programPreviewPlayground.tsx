@@ -1,4 +1,5 @@
-import { JSX, memo, useEffect, useMemo } from "react";
+import { JSX, memo, ReactNode, useEffect, useMemo } from "react";
+import { View } from "react-native";
 import { IHistoryRecord, IProgram, ISettings, IStats } from "../../types";
 import { IDispatch } from "../../ducks/types";
 import { buildCardsReducer, ICardsAction } from "../../ducks/reducer";
@@ -14,13 +15,14 @@ import { ProgramPreviewPlaygroundDay } from "./programPreviewPlaygroundDay";
 import { ILensDispatch, useLensReducer } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
 import { Progress_applyProgramDay, Progress_runInitialUpdateScripts } from "../../models/progress";
-import { IScrollableTabsProps, ScrollableTabs } from "../scrollableTabs";
+import { ProgramPreviewPlaygroundInnerRenderer } from "./programPreviewPlaygroundInner";
+import type { IScrollableTabsProps } from "../scrollableTabs";
 import {
   IProgramPreviewPlaygroundDaySetupWithProgress,
   IProgramPreviewPlaygroundState,
 } from "./programPreviewPlaygroundSetup";
 import deepmerge from "deepmerge";
-import { Markdown } from "../markdown";
+import { SimpleMarkdown } from "../simpleMarkdown";
 import { ObjectUtils_filter } from "../../utils/object";
 import { ProgramToPlanner } from "../../models/programToPlanner";
 import { WebWorkoutModals } from "./webWorkoutModals";
@@ -52,6 +54,8 @@ interface IProgramPreviewPlaygroundProps {
   onEngage?: () => void;
   scrollTabZIndex?: number;
   useNavModals?: boolean;
+  headerContent?: ReactNode;
+  onContentScroll?: (e: import("react-native").NativeSyntheticEvent<import("react-native").NativeScrollEvent>) => void;
 }
 
 function onProgressChange(
@@ -226,6 +230,60 @@ interface IProgramPreviewPlaygroundInnerProps {
   evaluatedProgram: IEvaluatedProgram;
 }
 
+function renderWeekContent(
+  week: { name: string; days: IProgramPreviewPlaygroundDaySetupWithProgress[] },
+  weekIndex: number,
+  state: IProgramPreviewPlaygroundState,
+  props: IProgramPreviewPlaygroundProps,
+  dispatch: ILensDispatch<IProgramPreviewPlaygroundState>,
+  evaluatedProgram: IEvaluatedProgram
+): JSX.Element {
+  const programWeekDescription = evaluatedProgram.weeks[weekIndex]?.description;
+  return (
+    <View>
+      {programWeekDescription && (
+        <View className="mx-4">
+          <SimpleMarkdown value={programWeekDescription} className="text-sm" />
+        </View>
+      )}
+      <View className="flex-row flex-wrap justify-center mt-4" style={{ gap: 24 }}>
+        {week.days.map((d: IProgramPreviewPlaygroundDaySetupWithProgress, i) => {
+          return (
+            <View key={i} style={{ maxWidth: 384, minWidth: 288 }} className="flex-1">
+              <ProgramPreviewPlaygroundDay
+                weekName={state.progresses.length > 1 ? week.name : undefined}
+                day={d.day}
+                program={evaluatedProgram}
+                progress={d.progress}
+                settings={state.settings}
+                isPlayground={state.isPlayground}
+                stats={props.stats}
+                onProgressChange={(newProgress) => onProgressChange(dispatch, weekIndex, i, newProgress)}
+                onFinish={() => onFinish(dispatch, props, state, d)}
+              />
+              {!props.useNavModals && (
+                <WebWorkoutModals
+                  progress={d.progress}
+                  dispatch={buildDayDispatch(dispatch, weekIndex, i, d.progress, props.settings, props.stats)}
+                  settings={state.settings}
+                  program={evaluatedProgram}
+                  day={d.day}
+                  onProgramChange={(newEvaluatedProgram) =>
+                    playgroundOnProgramChange(dispatch, newEvaluatedProgram, props.stats, state)
+                  }
+                  onSettingsChange={(newSettings) =>
+                    playgroundOnSettingsChange(dispatch, newSettings, props.stats, evaluatedProgram)
+                  }
+                />
+              )}
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 function ProgramPreviewPlaygroundInner(p: IProgramPreviewPlaygroundInnerProps): JSX.Element {
   const { props, state, dispatch, evaluatedProgram } = p;
 
@@ -234,64 +292,16 @@ function ProgramPreviewPlaygroundInner(p: IProgramPreviewPlaygroundInnerProps): 
   }
 
   return (
-    <ScrollableTabs
-      offsetY={props.scrollableTabsProps?.offsetY ?? (props.hasNavbar ? "3rem" : undefined)}
-      zIndex={props.scrollTabZIndex}
-      shouldNotExpand={true}
-      color="purple"
-      type={props.scrollableTabsProps?.type}
-      topPadding={props.scrollableTabsProps?.topPadding}
-      className={props.scrollableTabsProps?.className}
-      nonSticky={props.scrollableTabsProps?.nonSticky}
-      tabs={state.progresses.map((week, weekIndex) => {
-        const programWeekDescription = evaluatedProgram.weeks[weekIndex]?.description;
-        return {
-          label: week.name,
-          children: () => (
-            <div>
-              {programWeekDescription && (
-                <div className="mx-4 text-sm">
-                  <Markdown value={programWeekDescription} />
-                </div>
-              )}
-              <div className="flex flex-wrap justify-center mt-4" style={{ gap: "1.5rem" }}>
-                {week.days.map((d: IProgramPreviewPlaygroundDaySetupWithProgress, i) => {
-                  return (
-                    <div key={i} style={{ maxWidth: "24rem", minWidth: "18rem" }} className="flex-1">
-                      <ProgramPreviewPlaygroundDay
-                        weekName={state.progresses.length > 1 ? week.name : undefined}
-                        day={d.day}
-                        program={evaluatedProgram}
-                        progress={d.progress}
-                        settings={state.settings}
-                        isPlayground={state.isPlayground}
-                        stats={props.stats}
-                        onProgressChange={(newProgress) => onProgressChange(dispatch, weekIndex, i, newProgress)}
-                        onFinish={() => onFinish(dispatch, props, state, d)}
-                      />
-                      {!props.useNavModals && (
-                        <WebWorkoutModals
-                          progress={d.progress}
-                          dispatch={buildDayDispatch(dispatch, weekIndex, i, d.progress, props.settings, props.stats)}
-                          settings={state.settings}
-                          program={evaluatedProgram}
-                          day={d.day}
-                          onProgramChange={(newEvaluatedProgram) =>
-                            playgroundOnProgramChange(dispatch, newEvaluatedProgram, props.stats, state)
-                          }
-                          onSettingsChange={(newSettings) =>
-                            playgroundOnSettingsChange(dispatch, newSettings, props.stats, evaluatedProgram)
-                          }
-                        />
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ),
-        };
-      })}
+    <ProgramPreviewPlaygroundInnerRenderer
+      headerContent={props.headerContent}
+      weekNames={state.progresses.map((w) => w.name)}
+      singleWeek={state.progresses.length <= 1}
+      renderWeekContent={(weekIndex) =>
+        renderWeekContent(state.progresses[weekIndex], weekIndex, state, props, dispatch, evaluatedProgram)
+      }
+      scrollableTabsProps={props.scrollableTabsProps}
+      hasNavbar={props.hasNavbar}
+      scrollTabZIndex={props.scrollTabZIndex}
     />
   );
 }
@@ -434,7 +444,7 @@ function ProgramPreviewAllWeeks(props: IProgramPreviewAllWeeksProps): JSX.Elemen
                 <h3 className="mb-1 text-lg font-bold">{week.name}</h3>
                 {programWeekDescription && (
                   <div className="text-sm">
-                    <Markdown value={programWeekDescription} />
+                    <SimpleMarkdown value={programWeekDescription} />
                   </div>
                 )}
               </div>

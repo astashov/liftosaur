@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { View } from "react-native";
 import { IDispatch } from "../ducks/types";
 import { IProgram, ISettings, ISubscription } from "../types";
 import { INavCommon, IState, updateState } from "../models/state";
@@ -21,37 +22,38 @@ export function ScreenProgramPreview(props: IProps): JSX.Element {
 
   useNavOptions({ navTitle: "Program Preview" });
 
-  return (
-    <div>
-      <section className="px-4">
-        <MenuItemEditable
-          type="select"
-          name="Program"
-          value={props.selectedProgramId}
-          values={props.programs.map((p) => [p.id, p.name])}
-          onChange={(value) => {
-            if (value != null) {
-              updateState(
-                props.dispatch,
-                [lb<IState>().pi("previewProgram").p("id").record(value)],
-                "Select preview program"
-              );
-            }
-          }}
-        />
+  const topHeader = (
+    <View className="px-4" pointerEvents="box-none">
+      <MenuItemEditable
+        type="select"
+        name="Program"
+        value={props.selectedProgramId}
+        values={props.programs.map((p) => [p.id, p.name])}
+        onChange={(value) => {
+          if (value != null) {
+            updateState(
+              props.dispatch,
+              [lb<IState>().pi("previewProgram").p("id").record(value)],
+              "Select preview program"
+            );
+          }
+        }}
+      />
+    </View>
+  );
 
-        <ProgramPreview
-          hasNavbar={false}
-          key={props.selectedProgramId}
-          isMobile={true}
-          dispatch={props.dispatch}
-          settings={props.settings}
-          program={program}
-          subscription={props.subscription}
-          stats={props.navCommon.stats}
-          useNavModals={true}
-        />
-      </section>
-    </div>
+  return (
+    <ProgramPreview
+      headerContent={topHeader}
+      hasNavbar={false}
+      key={props.selectedProgramId}
+      isMobile={true}
+      dispatch={props.dispatch}
+      settings={props.settings}
+      program={program}
+      subscription={props.subscription}
+      stats={props.navCommon.stats}
+      useNavModals={true}
+    />
   );
 }

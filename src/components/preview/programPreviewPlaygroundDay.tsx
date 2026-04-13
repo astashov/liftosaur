@@ -1,4 +1,6 @@
 import { JSX, memo, useCallback } from "react";
+import { View } from "react-native";
+import { Text } from "../primitives/text";
 import { buildCardsReducer, ICardsAction } from "../../ducks/reducer";
 import { IHistoryRecord, ISettings, IStats } from "../../types";
 import { IDispatch } from "../../ducks/types";
@@ -7,7 +9,7 @@ import { lb } from "lens-shmens";
 import { Button } from "../button";
 import { IEvaluatedProgram, Program_getProgramDay, Program_getProgramDayUsedExercises } from "../../models/program";
 import { StringUtils_dashcase } from "../../utils/string";
-import { Markdown } from "../markdown";
+import { SimpleMarkdown } from "../simpleMarkdown";
 import { Scroller } from "../scroller";
 import { WorkoutExerciseThumbnail } from "../workoutExerciseThumbnail";
 import { updateProgress } from "../../models/state";
@@ -47,25 +49,28 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
     : dayExercises;
 
   return (
-    <div data-cy={`preview-day-${StringUtils_dashcase(programDay.name)}`}>
-      <h3 className="mx-4 mb-1 text-lg font-bold" data-cy="preview-day-name">
+    <View
+      data-cy={`preview-day-${StringUtils_dashcase(programDay.name)}`}
+      testID={`preview-day-${StringUtils_dashcase(programDay.name)}`}
+    >
+      <Text className="mx-4 mb-1 text-lg font-bold" data-cy="preview-day-name" testID="preview-day-name">
         {props.weekName ? `${props.weekName} - ` : ""}
         {programDay.name}
-      </h3>
+      </Text>
       {programDay.description && (
-        <div className="mx-4 text-sm">
-          <Markdown value={programDay.description} />
-        </div>
+        <View className="mx-4">
+          <SimpleMarkdown value={programDay.description} className="text-sm" />
+        </View>
       )}
       {props.isPlayground && (
-        <div className="mb-2">
+        <View className="mb-2">
           <PreviewListOfExercises
             isPlayground={props.isPlayground}
             progress={props.progress}
             settings={props.settings}
             dispatch={dispatch}
           />
-        </div>
+        </View>
       )}
       {(programExercises ?? []).map((programExercise, i) => {
         const anEntry = props.progress.entries.find((e) => e.programExerciseId === programExercise.key);
@@ -89,7 +94,7 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
         );
       })}
       {props.isPlayground && (
-        <div className="text-center">
+        <View className="items-center">
           <Button
             name="finish-day-details-playground"
             kind="purple"
@@ -98,9 +103,9 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
           >
             Finish this day
           </Button>
-        </div>
+        </View>
       )}
-    </div>
+    </View>
   );
 });
 
@@ -115,7 +120,7 @@ function PreviewListOfExercises(props: IPreviewListOfExercisesProps): JSX.Elemen
   const colorToSupersetGroup = Progress_getColorToSupersetGroup(props.progress);
   return (
     <Scroller>
-      <div className="flex items-center gap-1 px-4">
+      <View className="flex-row items-center gap-1 px-4">
         {props.progress.entries.map((entry, entryIndex) => {
           return (
             <WorkoutExerciseThumbnail
@@ -137,7 +142,7 @@ function PreviewListOfExercises(props: IPreviewListOfExercisesProps): JSX.Elemen
             />
           );
         })}
-      </div>
+      </View>
     </Scroller>
   );
 }

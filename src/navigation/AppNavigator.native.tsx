@@ -60,6 +60,8 @@ import { NavModalCreateProgram } from "./modals/NavModalCreateProgram";
 import { NavModalImportFromLink } from "./modals/NavModalImportFromLink";
 import { NavModalProgramInfo } from "./modals/NavModalProgramInfo";
 import { NavModalInputSelect } from "./modals/NavModalInputSelect";
+import { NavModalPlaygroundEditExercise } from "./modals/NavModalPlaygroundEditExercise";
+import { NavModalProgramPreviewMuscles } from "./modals/NavModalProgramPreviewMuscles";
 import { NavHeader } from "./NavHeader";
 
 const OnboardingStack = createNativeStackNavigator<IOnboardingStackParamList>();
@@ -89,7 +91,7 @@ function OnboardingStackScreen(): JSX.Element {
       <OnboardingStack.Screen name="setupplates" component={NavScreenSetupPlates} />
       <OnboardingStack.Screen name="programselect" component={NavScreenProgramSelectOnboarding} />
       <OnboardingStack.Screen name="programs" component={NavScreenProgramsOnboarding} options={{ headerShown: true, header: NavHeader }} />
-      <OnboardingStack.Screen name="programPreview" component={NavScreenProgramPreviewOnboarding} />
+      <OnboardingStack.Screen name="programPreview" component={NavScreenProgramPreviewOnboarding} options={{ headerShown: true, header: NavHeader }} />
       <OnboardingStack.Screen name="onerms" component={NavScreenOnerms} />
     </OnboardingStack.Navigator>
   );
@@ -112,7 +114,7 @@ function ProgramStackScreen(): JSX.Element {
       <ProgramStack.Screen name="editProgramExercise" component={NavScreenEditProgramExercise} />
       <ProgramStack.Screen name="onerms" component={NavScreenOnerms} />
       <ProgramStack.Screen name="programselect" component={NavScreenProgramSelect} />
-      <ProgramStack.Screen name="programPreview" component={NavScreenProgramPreview} />
+      <ProgramStack.Screen name="programPreview" component={NavScreenProgramPreview} options={{ headerShown: true, header: NavHeader }} />
       <ProgramStack.Screen name="exerciseStats" component={NavScreenExerciseStats} />
     </ProgramStack.Navigator>
   );
@@ -234,6 +236,12 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="importFromLinkModal" component={NavModalImportFromLink} />
           <RootStack.Screen name="programInfoModal" component={NavModalProgramInfo} />
           <RootStack.Screen name="inputSelectModal" component={NavModalInputSelect} />
+          <RootStack.Screen name="playgroundEditModal" component={NavModalPlaygroundEditExercise} />
+          <RootStack.Screen
+            name="programPreviewMusclesModal"
+            component={NavModalProgramPreviewMuscles}
+            options={{ sheetAllowedDetents: [0.85] }}
+          />
         </RootStack.Group>
       </RootStack.Navigator>
     </InitialScreenContext.Provider>
