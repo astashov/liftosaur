@@ -1500,6 +1500,29 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - react-native-pager-view (8.0.1):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - SwiftUIIntrospect (~> 1.0)
+    - Yoga
   - react-native-safe-area-context (5.7.0):
     - hermes-engine
     - RCTRequired
@@ -2276,6 +2299,7 @@ PODS:
     - RollbarNotifier (= 3.3.3)
   - RollbarReport (3.3.3):
     - RollbarCrash (~> 3.3.3)
+  - SwiftUIIntrospect (1.3.0)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -2321,6 +2345,7 @@ DEPENDENCIES:
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
   - "react-native-document-picker (from `../node_modules/@react-native-documents/picker`)"
+  - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
@@ -2382,6 +2407,7 @@ SPEC REPOS:
     - RollbarCrash
     - RollbarNotifier
     - RollbarReport
+    - SwiftUIIntrospect
 
 EXTERNAL SOURCES:
   FBLazyVector:
@@ -2467,6 +2493,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
   react-native-document-picker:
     :path: "../node_modules/@react-native-documents/picker"
+  react-native-pager-view:
+    :path: "../node_modules/react-native-pager-view"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-slider:
@@ -2610,6 +2638,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 0db00b587a6a6f0f6813e9fb2655e337261f513e
   React-microtasksnativemodule: 7ccd4c74006eec09a2df88ca31ba8b0c22c50a4d
   react-native-document-picker: 5b20fbc3ac7aaa8402bc86958c0a859758754a33
+  react-native-pager-view: 2eba46825ca8752b6eab14c31533e65c0dc96225
   react-native-safe-area-context: 90476586077446d5eab1d41ac3e767b016ac41d6
   react-native-slider: 18a19901b3bda943d7dc74e79abe6acdd979c101
   React-NativeModulesApple: 5ba0903927f6b8d335a091700e9fda143980f819
@@ -2659,8 +2688,9 @@ SPEC CHECKSUMS:
   RollbarNotifier: 8f57eb355f0fe8a6832d8dff615f2118d78047be
   RollbarReactNative: 763cf9e5084af2f1c2f6710e1cb40b51d85a6c64
   RollbarReport: 0e57a3ac73c66dd6d5add5e999a967210753c4c3
+  SwiftUIIntrospect: fee9aa07293ee280373a591e1824e8ddc869ba5d
   Yoga: 846fbe6f595136be802ad81d05688ff748839764
 
 PODFILE CHECKSUM: 875ee0d7de046a6a95929b224ef032a3838c09bf
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2

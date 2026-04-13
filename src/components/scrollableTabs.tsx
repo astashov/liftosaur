@@ -1,6 +1,9 @@
-import { JSX, ReactNode, useEffect, useRef, useState } from "react";
+import { JSX, ReactNode, useState } from "react";
+import { View, ScrollView, Pressable, Platform } from "react-native";
+import { Text } from "./primitives/text";
 import { StringUtils_dashcase } from "../utils/string";
 import { Scroller } from "./scroller";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
 
 export interface IScrollableTabsProps {
   tabs: {
@@ -18,85 +21,113 @@ export interface IScrollableTabsProps {
   nonSticky?: boolean;
   zIndex?: number;
   onChange?: (index: number) => void;
+  headerContent?: ReactNode;
 }
 
 export function ScrollableTabs(props: IScrollableTabsProps): JSX.Element {
   const { tabs } = props;
   const [selectedIndex, setSelectedIndex] = useState<number>(props.defaultIndex || 0);
   const color = props.color || "orange";
-  const tabsRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (tabsRef.current) {
-      const tabElement = tabsRef.current.querySelector(".selected-tab-button") as HTMLButtonElement | null;
-      if (tabElement && tabElement.offsetLeft + tabElement.clientWidth > window.innerWidth) {
-        tabElement.scrollIntoView({ behavior: "instant", block: "nearest", inline: "start" });
-      }
-    }
-  }, []);
+  const tabBar =
+    tabs.length > 1 ? (
+      <View className="bg-background-default">
+        <Scroller>
+          <View
+            className={`flex-row w-full ${props.topPadding == null ? "pt-6" : ""} pb-2 ${props.className || ""}`}
+            style={props.topPadding != null ? { paddingTop: parseFloat(props.topPadding) || 0 } : undefined}
+          >
+            {tabs.map(({ label, isInvalid }, index) => {
+              const nameClass = `tab-${StringUtils_dashcase(label.toLowerCase())}`;
+
+              if (props.type === "squares") {
+                const isSelected = selectedIndex === index;
+                return (
+                  <Pressable
+                    key={label}
+                    className={`px-3 py-2 rounded mr-2 ${
+                      isSelected
+                        ? "bg-background-default border border-button-primarybackground"
+                        : "bg-background-subtle border border-background-default"
+                    }`}
+                    data-cy={nameClass}
+                    testID={nameClass}
+                    onPress={() => {
+                      props.onChange?.(index);
+                      setSelectedIndex(index);
+                    }}
+                  >
+                    <Text className={`text-sm ${isSelected ? "text-text-purple" : "text-text-secondary"}`}>
+                      {label}
+                    </Text>
+                  </Pressable>
+                );
+              }
+
+              const isSelected = selectedIndex === index;
+              const activeColor =
+                color === "orange"
+                  ? Tailwind_semantic().icon.yellow
+                  : Tailwind_semantic().button.secondarystroke;
+              const activeTextColor = color === "orange" ? "text-icon-yellow" : "text-text-purple";
+
+              return (
+                <View key={label} className="flex-1 items-center border-b border-border-neutral">
+                  <Pressable
+                    className="px-4 pb-1"
+                    style={isSelected ? { borderBottomWidth: 2, borderBottomColor: activeColor } : undefined}
+                    data-cy={nameClass}
+                    testID={nameClass}
+                    onPress={() => {
+                      props.onChange?.(index);
+                      setSelectedIndex(index);
+                    }}
+                  >
+                    <Text
+                      className={`text-base ${isSelected ? activeTextColor : ""} ${isInvalid ? "text-text-error" : ""}`}
+                    >
+                      {isInvalid ? "⚠️" : ""}
+                      {label}
+                    </Text>
+                  </Pressable>
+                </View>
+              );
+            })}
+          </View>
+        </Scroller>
+      </View>
+    ) : null;
+
+  const content = <View>{tabs[selectedIndex]?.children() || tabs[0]?.children()}</View>;
+
+  if (props.headerContent != null) {
+    return (
+      <ScrollView
+        stickyHeaderIndices={tabBar ? [1] : undefined}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1 }}
+        className="bg-background-default"
+      >
+        <View>{props.headerContent}</View>
+        {tabBar || <View />}
+        {content}
+      </ScrollView>
+    );
+  }
+
+  const stickyStyle =
+    !props.nonSticky && Platform.OS === "web"
+      ? ({ position: "sticky", top: props.offsetY || 0, zIndex: props.zIndex ?? 10 } as Record<string, unknown>)
+      : undefined;
 
   return (
-    <div className="relative">
-      {tabs.length > 1 && (
-        <div
-          className={`${props.nonSticky ? "" : "sticky"} left-0 ${props.zIndex == null ? "z-10" : ""} bg-background-default`}
-          style={{
-            top: props.offsetY || "0",
-            marginLeft: props.shouldNotExpand ? undefined : "-1rem",
-            marginRight: props.shouldNotExpand ? undefined : "-1rem",
-            zIndex: props.zIndex,
-          }}
-        >
-          <Scroller arrowYOffsetPct={0}>
-            <div
-              className={`flex w-full ${props.topPadding == null ? "pt-6" : ""} pb-2 ${props.className}`}
-              style={{ paddingTop: props.topPadding }}
-              ref={tabsRef}
-            >
-              {tabs.map(({ label, isInvalid }, index) => {
-                const nameClass = `tab-${StringUtils_dashcase(label.toLowerCase())}`;
-
-                const containerClassName =
-                  props.type === "squares" ? "" : `flex-1 text-center border-b whitespace-nowrap border-border-neutral`;
-                const selectedWeekButtonStyles =
-                  "bg-background-default border border-button-primarybackground text-text-purple selected-tab-button";
-                const unselectedWeekButtonStyles =
-                  "bg-background-subtle border border-background-default text-text-secondary";
-                const buttonClassName =
-                  props.type === "squares"
-                    ? `whitespace-nowrap px-3 py-2 text-sm rounded ${selectedIndex === index ? selectedWeekButtonStyles : unselectedWeekButtonStyles}`
-                    : `ls-${nameClass} inline-block text-base px-4 pb-1 outline-none focus:outline-none ${
-                        selectedIndex === index
-                          ? color === "orange"
-                            ? "text-icon-yellow border-b border-icon-yellow selected-tab-button"
-                            : "text-text-purple border-b border-button-secondarystroke selected-tab-button"
-                          : ""
-                      } ${isInvalid ? " text-text-error" : ""} nm-tab-${nameClass}`;
-
-                return (
-                  <div key={label} className={containerClassName}>
-                    <button
-                      className={buttonClassName}
-                      style={selectedIndex === index && props.type !== "squares" ? { borderBottomWidth: "2px" } : {}}
-                      data-cy={nameClass}
-                      onClick={() => {
-                        if (props.onChange) {
-                          props.onChange(index);
-                        }
-                        setSelectedIndex(index);
-                      }}
-                    >
-                      {isInvalid ? " ⚠️" : ""}
-                      {label}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </Scroller>
-        </div>
+    <View>
+      {tabBar && (
+        <View style={stickyStyle} className="bg-background-default">
+          {tabBar}
+        </View>
       )}
-      {tabs[selectedIndex]?.children() || tabs[0]?.children()}
-    </div>
+      {content}
+    </View>
   );
 }
