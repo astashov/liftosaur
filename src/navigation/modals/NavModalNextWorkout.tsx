@@ -1,7 +1,7 @@
 import { JSX } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
-import { SheetScreenContainer } from "../SheetScreenContainer";
+import { ModalScreenContainer } from "../ModalScreenContainer";
 import { BottomSheetNextWorkoutContent } from "../../components/bottomSheetNextWorkout";
 import { Program_getProgram } from "../../models/program";
 
@@ -17,7 +17,7 @@ export function NavModalNextWorkout(): JSX.Element {
   };
 
   return (
-    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
+    <ModalScreenContainer onClose={onClose} shouldShowClose={true} noPaddings={true}>
       <BottomSheetNextWorkoutContent
         currentProgram={currentProgram}
         allPrograms={state.storage.programs}
@@ -26,6 +26,6 @@ export function NavModalNextWorkout(): JSX.Element {
         dispatch={dispatch}
         onClose={onClose}
       />
-    </SheetScreenContainer>
+    </ModalScreenContainer>
   );
 }

@@ -63,6 +63,7 @@ import { NavModalInputSelect } from "./modals/NavModalInputSelect";
 import { NavModalPlaygroundEditExercise } from "./modals/NavModalPlaygroundEditExercise";
 import { NavModalProgramPreviewMuscles } from "./modals/NavModalProgramPreviewMuscles";
 import { NavModalAmrap } from "./modals/NavModalAmrap";
+import { NavModalNextWorkout } from "./modals/NavModalNextWorkout";
 import { NavModalEditTarget } from "./modals/NavModalEditTarget";
 import { NavHeader } from "./NavHeader";
 
@@ -246,6 +247,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
             component={NavModalProgramPreviewMuscles}
             options={{ sheetAllowedDetents: [0.85] }}
           />
+          <RootStack.Screen name="nextWorkoutModal" component={NavModalNextWorkout} />
         </RootStack.Group>
       </RootStack.Navigator>
     </InitialScreenContext.Provider>

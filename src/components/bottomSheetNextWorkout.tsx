@@ -1,4 +1,6 @@
 import { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
 import { IProgram, ISettings, IStats } from "../types";
 import {
   emptyProgramId,
@@ -39,53 +41,49 @@ export function BottomSheetNextWorkoutContent(props: IBottomSheetNextWorkoutCont
       nextHistoryRecord.day !== props.currentProgram.nextDay);
 
   return (
-    <>
-      <h3 className="pt-3 pb-4 text-lg font-semibold text-center">New Workout</h3>
+    <View>
+      <Text className="pt-3 pb-4 text-lg font-semibold text-center">New Workout</Text>
       {doesProgressNotMatchProgram && (
-        <div className="mx-4 mb-1 text-xs text-center text-text-secondary">
+        <Text className="mx-4 mb-1 text-xs text-center text-text-secondary">
           You currently have ongoing workout. Finish it first to see newly chosen program or a different day.
-        </div>
+        </Text>
       )}
       {Program_isEmpty(props.currentProgram) && (
-        <div className="mx-4 mb-1 text-xs text-center text-text-secondary">No program currently selected.</div>
+        <Text className="mx-4 mb-1 text-xs text-center text-text-secondary">No program currently selected.</Text>
       )}
-      <div className="relative flex flex-col flex-1 min-h-0">
-        <div className="flex-1 min-h-0 pb-10 overflow-y-auto">
-          {programDay && nextHistoryRecord && (
-            <HistoryRecordView
-              historyRecord={nextHistoryRecord}
-              programDay={programDay}
-              isOngoing={false}
-              settings={props.settings}
-              dispatch={props.dispatch}
-            />
-          )}
-        </div>
-        <div className="absolute bottom-0 left-0 flex justify-between w-full px-4 pt-4 pb-6 text-sm bg-background-default">
-          <div>
-            <LinkButton
-              name="change-next-day"
-              data-cy="change-next-day"
-              onClick={() => navigationRef.navigate("changeNextDayModal")}
-            >
-              <IconSwap color={Tailwind_colors().blue[400]} className="inline-block pr-1" />
-              Change next workout
-            </LinkButton>
-          </div>
-          <div>
-            <LinkButton
-              name="start-empty-workout"
-              data-cy="start-empty-workout"
-              onClick={() => {
-                props.dispatch(Thunk_startProgramDay(emptyProgramId));
-              }}
-            >
-              <IconPlus2 color={Tailwind_colors().blue[400]} className="inline-block pr-1" />
-              Ad-Hoc Workout
-            </LinkButton>
-          </div>
-        </div>
-      </div>
-    </>
+      {programDay && nextHistoryRecord && (
+        <HistoryRecordView
+          historyRecord={nextHistoryRecord}
+          programDay={programDay}
+          isOngoing={false}
+          settings={props.settings}
+          dispatch={props.dispatch}
+        />
+      )}
+      <View className="flex-row justify-between px-4 pb-4 bg-background-default">
+        <LinkButton
+          name="change-next-day"
+          data-cy="change-next-day"
+          onClick={() => navigationRef.navigate("changeNextDayModal")}
+        >
+          <View className="flex-row items-center">
+            <IconSwap color={Tailwind_colors().blue[400]} size={16} />
+            <Text className="pl-1 text-sm font-bold underline text-text-link">Change next workout</Text>
+          </View>
+        </LinkButton>
+        <LinkButton
+          name="start-empty-workout"
+          data-cy="start-empty-workout"
+          onClick={() => {
+            props.dispatch(Thunk_startProgramDay(emptyProgramId));
+          }}
+        >
+          <View className="flex-row items-center">
+            <IconPlus2 color={Tailwind_colors().blue[400]} size={16} />
+            <Text className="pl-1 text-sm font-bold underline text-text-link">Ad-Hoc Workout</Text>
+          </View>
+        </LinkButton>
+      </View>
+    </View>
   );
 }
