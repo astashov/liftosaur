@@ -1,4 +1,6 @@
 import { JSX, useRef, useState } from "react";
+import { View, Pressable, Switch } from "react-native";
+import { Text } from "./primitives/text";
 import { BottomSheet } from "./bottomSheet";
 import { IHistoryRecord, IProgressUi, ISettings, ISubscription } from "../types";
 import { MenuItemWrapper } from "./menuItem";
@@ -34,14 +36,16 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
   const savedRef = useRef(false);
 
   return (
-    <div className="px-4 pb-4">
-      <h3 className="py-2 text-base font-semibold text-center">Edit Set Target</h3>
+    <View className="px-4 pb-4">
+      <Text className="py-2 text-base font-semibold text-center">Edit Set Target</Text>
       <MenuItemWrapper name="edit-set-target-reps">
-        <div className="flex items-center py-2">
-          <div className="mr-auto text-sm font-semibold">Reps</div>
-          <div className="flex items-center gap-2">
-            <div className="text-xs text-text-secondary">Min</div>
-            <div className="mr-2">
+        <View className="flex-row items-center py-2">
+          <View className="flex-1">
+            <Text className="text-sm font-semibold">Reps</Text>
+          </View>
+          <View className="flex-row items-center gap-2">
+            <Text className="text-xs text-text-secondary">Min</Text>
+            <View className="mr-2">
               <InputNumber2
                 width={2.5}
                 name="target-minreps"
@@ -64,9 +68,9 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
                 max={9999}
                 step={1}
               />
-            </div>
-            <div className="text-xs text-text-secondary">Max</div>
-            <div className="mr-3">
+            </View>
+            <Text className="text-xs text-text-secondary">Max</Text>
+            <View className="mr-3">
               <InputNumber2
                 width={2.5}
                 name="target-maxreps"
@@ -89,29 +93,28 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
                 max={9999}
                 step={1}
               />
-            </div>
-            <div>
-              <label className="leading-none">
-                <span className="text-xs">AMRAP? </span>
-                <input
-                  checked={set.isAmrap}
-                  data-cy="edit-target-amrap"
-                  className="block align-middle checkbox text-text-link"
-                  type="checkbox"
-                  onChange={(e) => {
-                    updateProgress(props.dispatch, [lbSet.p("isAmrap").record(!set.isAmrap)], "amrap-checkbox");
-                  }}
-                />
-              </label>
-            </div>
-          </div>
-        </div>
+            </View>
+            <View className="flex-row items-center">
+              <Text className="mr-1 text-xs">AMRAP?</Text>
+              <Switch
+                value={set.isAmrap}
+                testID="edit-target-amrap"
+                data-cy="edit-target-amrap"
+                onValueChange={() => {
+                  updateProgress(props.dispatch, [lbSet.p("isAmrap").record(!set.isAmrap)], "amrap-checkbox");
+                }}
+              />
+            </View>
+          </View>
+        </View>
       </MenuItemWrapper>
-      <MenuItemWrapper name="edit-set-target-reps">
-        <div className="flex items-center py-2">
-          <div className="mr-auto text-sm font-semibold">Weight</div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center mr-3">
+      <MenuItemWrapper name="edit-set-target-weight">
+        <View className="flex-row items-center py-2">
+          <View className="flex-1">
+            <Text className="text-sm font-semibold">Weight</Text>
+          </View>
+          <View className="flex-row items-center gap-2">
+            <View className="flex-row items-center mr-3">
               <InputWeight2
                 name="target-weight"
                 subscription={props.subscription}
@@ -144,48 +147,48 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
                 min={-9999}
                 settings={props.settings}
               />
-              <span className="ml-1 text-xs text-text-secondary">
+              <Text className="ml-1 text-xs text-text-secondary">
                 {set.originalWeight?.unit ?? props.settings.units}
-              </span>
-            </div>
-            <div>
-              <label className="leading-none">
-                <span className="text-xs">Ask? </span>
-                <input
-                  checked={set.askWeight}
-                  data-cy="edit-target-ask-weight"
-                  className="block align-middle checkbox text-text-link"
-                  type="checkbox"
-                  onChange={(e) => {
-                    updateProgress(
-                      props.dispatch,
-                      [lbSet.p("askWeight").record(!set.askWeight)],
-                      "ask-weight-checkbox"
-                    );
-                  }}
-                />
-              </label>
-            </div>
-          </div>
-        </div>
+              </Text>
+            </View>
+            <View className="flex-row items-center">
+              <Text className="mr-1 text-xs">Ask?</Text>
+              <Switch
+                value={set.askWeight}
+                testID="edit-target-ask-weight"
+                data-cy="edit-target-ask-weight"
+                onValueChange={() => {
+                  updateProgress(
+                    props.dispatch,
+                    [lbSet.p("askWeight").record(!set.askWeight)],
+                    "ask-weight-checkbox"
+                  );
+                }}
+              />
+            </View>
+          </View>
+        </View>
       </MenuItemWrapper>
-      <div className="font-semibold" style={{ display: !enableRpe ? "block" : "none" }}>
-        <MenuItemEditable
-          size="sm"
-          type="boolean"
-          name="Enable RPE?"
-          value={set.rpe != null ? "true" : "false"}
-          onChange={(value) => {
-            setEnableRpe(true);
-          }}
-        />
-      </div>
-      <div style={{ display: enableRpe ? "block" : "none" }}>
+      {!enableRpe ? (
+        <View className="font-semibold">
+          <MenuItemEditable
+            size="sm"
+            type="boolean"
+            name="Enable RPE?"
+            value={set.rpe != null ? "true" : "false"}
+            onChange={() => {
+              setEnableRpe(true);
+            }}
+          />
+        </View>
+      ) : (
         <MenuItemWrapper name="edit-set-target-rpe">
-          <div className="flex items-center py-1">
-            <div className="mr-auto text-sm font-semibold">RPE</div>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center mr-3">
+          <View className="flex-row items-center py-1">
+            <View className="flex-1">
+              <Text className="text-sm font-semibold">RPE</Text>
+            </View>
+            <View className="flex-row items-center gap-2">
+              <View className="flex-row items-center mr-3">
                 <InputNumber2
                   allowDot={true}
                   width={2.5}
@@ -209,58 +212,56 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
                   max={10}
                   step={0.5}
                 />
-              </div>
-              <div>
-                <label className="leading-none">
-                  <span className="text-xs">Log? </span>
-                  <input
-                    checked={set.logRpe}
-                    data-cy="edit-target-log-rpe"
-                    className="block align-middle checkbox text-text-link"
-                    type="checkbox"
-                    onChange={(e) => {
-                      updateProgress(props.dispatch, [lbSet.p("logRpe").record(!set.logRpe)], "log-rpe-checkbox");
-                    }}
-                  />
-                </label>
-              </div>
-              <div>
-                <button
-                  className="p-2"
-                  onClick={() => {
-                    setEnableRpe(false);
-                    updateProgress(
-                      props.dispatch,
-                      [lbSet.p("logRpe").record(false), lbSet.p("rpe").record(undefined)],
-                      "clear-rpe"
-                    );
+              </View>
+              <View className="flex-row items-center">
+                <Text className="mr-1 text-xs">Log?</Text>
+                <Switch
+                  value={set.logRpe}
+                  testID="edit-target-log-rpe"
+                  data-cy="edit-target-log-rpe"
+                  onValueChange={() => {
+                    updateProgress(props.dispatch, [lbSet.p("logRpe").record(!set.logRpe)], "log-rpe-checkbox");
                   }}
-                  style={{ marginRight: "-0.5rem" }}
-                >
-                  <IconTrash width={15} height={20} />
-                </button>
-              </div>
-            </div>
-          </div>
+                />
+              </View>
+              <Pressable
+                className="p-2"
+                style={{ marginRight: -8 }}
+                onPress={() => {
+                  setEnableRpe(false);
+                  updateProgress(
+                    props.dispatch,
+                    [lbSet.p("logRpe").record(false), lbSet.p("rpe").record(undefined)],
+                    "clear-rpe"
+                  );
+                }}
+              >
+                <IconTrash width={15} height={20} />
+              </Pressable>
+            </View>
+          </View>
         </MenuItemWrapper>
-      </div>
-      <div className="font-semibold" style={{ display: !enableTimer ? "block" : "none" }}>
-        <MenuItemEditable
-          size="sm"
-          type="boolean"
-          name="Enable Custom Timer?"
-          value={set.timer ? "true" : "false"}
-          onChange={(value) => {
-            setEnableTimer(true);
-          }}
-        />
-      </div>
-      <div style={{ display: enableTimer ? "block" : "none" }}>
+      )}
+      {!enableTimer ? (
+        <View className="font-semibold">
+          <MenuItemEditable
+            size="sm"
+            type="boolean"
+            name="Enable Custom Timer?"
+            value={set.timer ? "true" : "false"}
+            onChange={() => {
+              setEnableTimer(true);
+            }}
+          />
+        </View>
+      ) : (
         <MenuItemWrapper name="edit-set-target-timer">
-          <div className="flex items-center py-1">
-            <div className="mr-auto text-sm font-semibold">Timer</div>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center mr-3">
+          <View className="flex-row items-center py-1">
+            <View className="flex-1">
+              <Text className="text-sm font-semibold">Timer</Text>
+            </View>
+            <View className="flex-row items-center gap-2">
+              <View className="flex-row items-center mr-3">
                 <InputNumber2
                   width={2.5}
                   name="target-timer"
@@ -283,25 +284,23 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
                   max={600}
                   step={5}
                 />
-                <span className="ml-1 text-xs text-text-secondary">s</span>
-              </div>
-              <div>
-                <button
-                  className="p-2"
-                  onClick={() => {
-                    setEnableTimer(false);
-                    updateProgress(props.dispatch, [lbSet.p("timer").record(undefined)], "target-clear-timer");
-                  }}
-                  style={{ marginRight: "-0.5rem" }}
-                >
-                  <IconTrash width={15} height={20} />
-                </button>
-              </div>
-            </div>
-          </div>
+                <Text className="ml-1 text-xs text-text-secondary">s</Text>
+              </View>
+              <Pressable
+                className="p-2"
+                style={{ marginRight: -8 }}
+                onPress={() => {
+                  setEnableTimer(false);
+                  updateProgress(props.dispatch, [lbSet.p("timer").record(undefined)], "target-clear-timer");
+                }}
+              >
+                <IconTrash width={15} height={20} />
+              </Pressable>
+            </View>
+          </View>
         </MenuItemWrapper>
-      </div>
-      <div className="my-4">
+      )}
+      <View className="my-4">
         <Button
           kind="purple"
           name="edit-set-target-save"
@@ -344,8 +343,8 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
         >
           Save
         </Button>
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }
 

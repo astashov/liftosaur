@@ -62,6 +62,8 @@ import { NavModalProgramInfo } from "./modals/NavModalProgramInfo";
 import { NavModalInputSelect } from "./modals/NavModalInputSelect";
 import { NavModalPlaygroundEditExercise } from "./modals/NavModalPlaygroundEditExercise";
 import { NavModalProgramPreviewMuscles } from "./modals/NavModalProgramPreviewMuscles";
+import { NavModalAmrap } from "./modals/NavModalAmrap";
+import { NavModalEditTarget } from "./modals/NavModalEditTarget";
 import { NavHeader } from "./NavHeader";
 
 const OnboardingStack = createNativeStackNavigator<IOnboardingStackParamList>();
@@ -237,6 +239,8 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="programInfoModal" component={NavModalProgramInfo} />
           <RootStack.Screen name="inputSelectModal" component={NavModalInputSelect} />
           <RootStack.Screen name="playgroundEditModal" component={NavModalPlaygroundEditExercise} />
+          <RootStack.Screen name="amrapModal" component={NavModalAmrap} />
+          <RootStack.Screen name="editSetTargetModal" component={NavModalEditTarget} />
           <RootStack.Screen
             name="programPreviewMusclesModal"
             component={NavModalProgramPreviewMuscles}

@@ -1,4 +1,5 @@
 import { JSX, useState } from "react";
+import { View } from "react-native";
 import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
 import { Modal } from "./modal";
@@ -123,11 +124,11 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
   }
 
   return (
-    <form className="mx-1 my-4" onSubmit={(e) => e.preventDefault()}>
+    <View className="mx-1 my-4">
       {isAmrap && (
-        <div>
+        <View>
           {isUnilateral && (
-            <div className="mb-2">
+            <View className="mb-2">
               <InputNumber
                 label="Completed reps (left)"
                 value={repsLeftInputValue ?? 0}
@@ -139,9 +140,9 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
                   setRepsLeftInputValue(newValue);
                 }}
               />
-            </div>
+            </View>
           )}
-          <div className="mb-2">
+          <View className="mb-2">
             <InputNumber
               label={isUnilateral ? "Completed reps (right)" : "Completed reps"}
               value={repsInputValue ?? 0}
@@ -153,11 +154,11 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
                 setRepsInputValue(newValue);
               }}
             />
-          </div>
-        </div>
+          </View>
+        </View>
       )}
       {askWeight && (
-        <div className="mb-2">
+        <View className="mb-2">
           <InputWeight
             exerciseType={entry?.exercise || props.programExercise?.exerciseType}
             label="Weight"
@@ -169,10 +170,10 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
               setWeightInputValue(newValue);
             }}
           />
-        </div>
+        </View>
       )}
       {logRpe && (
-        <div className="mb-2">
+        <View className="mb-2">
           <InputNumber
             label="Completed RPE"
             value={rpeInputValue ?? 0}
@@ -185,7 +186,7 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
               setRpeInputValue(newValue);
             }}
           />
-        </div>
+        </View>
       )}
       {props.programExercise && userVars && (
         <UserPromptedStateVars
@@ -203,13 +204,11 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
           }}
         />
       )}
-      <div className="mt-4 text-right">
+      <View className="flex-row justify-end gap-3 mt-4">
         <Button
           name="modal-amrap-clear"
           data-cy="modal-amrap-clear"
-          type="button"
           kind="grayv2"
-          className="mr-3"
           onClick={() => {
             onDone();
           }}
@@ -219,7 +218,6 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
         <Button
           name="modal-amrap-submit"
           kind="purple"
-          type="submit"
           data-cy="modal-amrap-submit"
           className="ls-modal-set-amrap"
           onClick={() => {
@@ -239,8 +237,8 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
         >
           Done
         </Button>
-      </div>
-    </form>
+      </View>
+    </View>
   );
 }
 
@@ -280,7 +278,7 @@ export function UserPromptedStateVar(props: IUserPromptedStateVarProps): JSX.Ele
   const num = Weight_is(value) || Weight_isPct(value) ? value.value : value;
   const label = Weight_is(value) ? `${key}, ${value.unit}` : key;
   return (
-    <div className={props.index !== 0 ? "mt-2" : ""}>
+    <View className={props.index !== 0 ? "mt-2" : ""}>
       <InputNumber
         data-cy={`modal-state-vars-user-prompt-input-${key}`}
         label={label}
@@ -289,6 +287,6 @@ export function UserPromptedStateVar(props: IUserPromptedStateVarProps): JSX.Ele
         step={1}
         onUpdate={props.onUpdate}
       />
-    </div>
+    </View>
   );
 }

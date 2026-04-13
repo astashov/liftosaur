@@ -1,90 +1,84 @@
-import React, { JSX, useRef } from "react";
+import { JSX, useEffect, useState } from "react";
+import { View, Pressable, TextInput } from "react-native";
+import { Text } from "./primitives/text";
 import { MathUtils_clamp } from "../utils/math";
 import { StringUtils_dashcase } from "../utils/string";
-import { Input } from "./input";
 
-interface IInputNumberProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement> & React.TextareaHTMLAttributes<HTMLTextAreaElement>, "ref"> {
+interface IInputNumberProps {
   value?: number;
   label?: string;
   step?: number;
   min?: number;
   max?: number;
+  type?: string;
+  className?: string;
   onUpdate: (value: number) => void;
+  "data-cy"?: string;
+  "data-name"?: string;
 }
 
 export function InputNumber(props: IInputNumberProps): JSX.Element {
-  const { value, label, step, min, max, onUpdate, ...rest } = props;
-  const inputRef = useRef<HTMLInputElement>(null);
-  const actualStep = step ?? 1;
+  const { value = 0, label, step = 1, min, max, onUpdate } = props;
+  const [text, setText] = useState(String(value));
+  const testId = `input-${StringUtils_dashcase(label || "")}`;
 
-  function getValue(): number | undefined {
-    if (!inputRef.current) {
-      return undefined;
-    }
-    const inputValue = inputRef.current.value || min;
-    const v = inputValue != null ? Number(inputValue) : undefined;
-    if (v != null && !isNaN(v)) {
-      return MathUtils_clamp(v, min, max);
-    }
-    return undefined;
+  useEffect(() => {
+    setText(String(value));
+  }, [value]);
+
+  function getNumericValue(t: string): number {
+    const v = Number(t);
+    return !isNaN(v) ? MathUtils_clamp(v, min, max) : (min ?? 0);
   }
 
   return (
-    <div className="w-full">
-      <div className="flex items-center gap-2">
-        <div>
-          <button
-            className="w-10 h-10 p-2 text-xl font-bold leading-none border rounded-lg bg-background-purpledark border-border-neutral nm-weight-minus"
-            data-cy={`input-${StringUtils_dashcase(props.label || "")}-minus`}
-            style={{ userSelect: "none", touchAction: "manipulation" }}
-            onClick={() => {
-              const v = getValue();
-              if (v != null) {
-                onUpdate(MathUtils_clamp(v - actualStep, min, max));
-              }
+    <View className="w-full">
+      {label && <Text className="mb-1 text-xs text-text-secondary">{label}</Text>}
+      <View className="flex-row items-center gap-2">
+        <Pressable
+          className="items-center justify-center w-10 h-10 border rounded-lg bg-background-purpledark border-border-neutral"
+          data-cy={`${testId}-minus`}
+          testID={`${testId}-minus`}
+          onPress={() => {
+            const v = getNumericValue(text);
+            const newValue = MathUtils_clamp(v - step, min, max);
+            setText(String(newValue));
+            onUpdate(newValue);
+          }}
+        >
+          <Text className="text-xl font-bold leading-none">-</Text>
+        </Pressable>
+        <View className="flex-1">
+          <TextInput
+            className="w-full px-4 py-2 text-base border rounded-lg bg-background-default border-border-prominent"
+            style={{ textAlignVertical: "center" }}
+            keyboardType="numeric"
+            value={text}
+            testID={`${testId}-field`}
+            data-cy={props["data-cy"] || `${testId}-field`}
+            onChangeText={setText}
+            onBlur={() => {
+              const v = getNumericValue(text);
+              setText(String(v));
+              onUpdate(v);
             }}
-          >
-            -
-          </button>
-        </div>
-        <div className="flex items-center flex-1 gap-2">
-          <div className="flex-1">
-            <Input
-              label={label}
-              labelSize="xs"
-              inputSize="sm"
-              ref={inputRef}
-              step="0.01"
-              type="number"
-              value={value}
-              data-cy={`input-${StringUtils_dashcase(props.label || "")}-field`}
-              onBlur={() => {
-                const v = getValue();
-                if (v != null) {
-                  onUpdate(v);
-                }
-              }}
-              {...rest}
-            />
-          </div>
-        </div>
-        <div>
-          <button
-            className="w-10 h-10 p-2 text-xl font-bold leading-none border rounded-lg bg-background-purpledark border-border-neutral nm-weight-plus"
-            data-cy={`input-${StringUtils_dashcase(props.label || "")}-plus`}
-            style={{ userSelect: "none", touchAction: "manipulation" }}
-            onClick={() => {
-              const v = getValue();
-              if (v != null) {
-                onUpdate(MathUtils_clamp(v + actualStep, min, max));
-              }
-            }}
-          >
-            +
-          </button>
-        </div>
-      </div>
-    </div>
+            selectTextOnFocus
+          />
+        </View>
+        <Pressable
+          className="items-center justify-center w-10 h-10 border rounded-lg bg-background-purpledark border-border-neutral"
+          data-cy={`${testId}-plus`}
+          testID={`${testId}-plus`}
+          onPress={() => {
+            const v = getNumericValue(text);
+            const newValue = MathUtils_clamp(v + step, min, max);
+            setText(String(newValue));
+            onUpdate(newValue);
+          }}
+        >
+          <Text className="text-xl font-bold leading-none">+</Text>
+        </Pressable>
+      </View>
+    </View>
   );
 }

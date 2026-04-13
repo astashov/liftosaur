@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View, Pressable } from "react-native";
+import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import {
   ISettings,
@@ -14,7 +16,7 @@ import {
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { updateProgress } from "../models/state";
 import { lb, LensBuilder } from "lens-shmens";
-import { WorkoutExerciseSet } from "./workoutExerciseSet";
+import { WorkoutExerciseSet, computeSetColumnWidths } from "./workoutExerciseSet";
 import { Reps_isFinishedSet, Reps_addSet } from "../models/set";
 import { IconPlus2 } from "./icons/iconPlus2";
 import { Tailwind_colors } from "../utils/tailwindConfig";
@@ -25,6 +27,7 @@ import { IconSwapSmall } from "./icons/iconSwapSmall";
 import { ProgressStateChanges } from "./progressStateChanges";
 import { IEvaluatedProgram } from "../models/program";
 import { Exercise_getIsUnilateral } from "../models/exercise";
+import { useMemo } from "react";
 
 interface IWorkoutExerciseAllSets {
   day: number;
@@ -76,85 +79,88 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
     Equipment_getUnitOrDefaultForExerciseType(props.settings, props.exerciseType);
   const targetLabel = getTargetColumnLabel(props.settings.workoutSettings.targetType);
   const lbEntry = lb<IHistoryRecord>().p("entries").i(props.entryIndex);
+  const isUnilateral = Exercise_getIsUnilateral(props.exerciseType, props.settings);
+  const remValue = props.settings.textSize ?? 16;
+  const columnWidths = useMemo(() => computeSetColumnWidths(remValue, isUnilateral), [remValue, isUnilateral]);
 
   return (
-    <div>
-      <div className="table w-full overflow-hidden">
-        <div className="table-row-group">
-          <div className="table-row text-xs border-b text-text-secondary border-border-subtle">
-            <div className="table-cell px-2 pb-1 font-normal text-center border-b border-border-neutral">Set</div>
-            <div className="table-cell pb-1 font-normal text-left border-b border-border-neutral">
-              <button onClick={props.onTargetClick} className="inline-block w-full text-left">
-                {targetLabel ? <span className="mr-1">{targetLabel}</span> : <></>}
-                {props.onTargetClick && (
-                  <IconSwapSmall className="inline-block" size={12} color={Tailwind_colors().lightgray[600]} />
-                )}
-              </button>
-            </div>
-            <div className="table-cell pb-1 font-normal text-center border-b border-border-neutral">Reps</div>
-            <div className="table-cell pb-1 border-b border-border-neutral"></div>
-            <div className="table-cell pb-1 font-normal text-center border-b border-border-neutral">{exerciseUnit}</div>
-            <div className="table-cell pb-1 pr-4 border-b border-border-neutral"></div>
-          </div>
-        </div>
-        <div className="table-row-group">
-          {warmupSets.map((set, i) => {
-            return (
-              <WorkoutExerciseSet
-                isCurrentProgress={props.isCurrentProgress}
-                isPlayground={props.isPlayground}
-                type="warmup"
-                key={`warmup-${set.id}-${i}`}
-                day={props.day}
-                entry={props.entry}
-                progress={props.progress}
-                exerciseType={props.exerciseType}
-                programExercise={props.programExercise}
-                otherStates={props.otherStates}
-                subscription={props.subscription}
-                lbSets={props.lbWarmupSets}
-                lbSet={props.lbWarmupSets.i(i)}
-                set={set}
-                entryIndex={props.entryIndex}
-                isNext={nextSetIndex === i}
-                setIndex={i}
-                settings={props.settings}
-                dispatch={props.dispatch}
-              />
-            );
-          })}
-          {sets.map((set, i) => {
-            return (
-              <WorkoutExerciseSet
-                isPlayground={props.isPlayground}
-                isCurrentProgress={props.isCurrentProgress}
-                type="workout"
-                key={`workout-${set.id}-${i}`}
-                onStopShowingHint={props.onStopShowingHint}
-                progress={props.progress}
-                entry={props.entry}
-                helps={props.helps}
-                isNext={nextSetIndex - warmupSets.length === i}
-                programExercise={props.programExercise}
-                day={props.day}
-                otherStates={props.otherStates}
-                exerciseType={props.exerciseType}
-                lastSet={props.lastSets?.[i]}
-                subscription={props.subscription}
-                lbSets={props.lbSets}
-                lbSet={props.lbSets.i(i)}
-                set={set}
-                entryIndex={props.entryIndex}
-                setIndex={i}
-                settings={props.settings}
-                dispatch={props.dispatch}
-              />
-            );
-          })}
-        </div>
-      </div>
+    <View>
+      <View className="flex-row items-center pb-1 border-b border-border-neutral">
+        <View className="items-center" style={{ width: columnWidths.set }}>
+          <Text className="text-xs text-text-secondary">Set</Text>
+        </View>
+        <View className="flex-1">
+          <Pressable onPress={props.onTargetClick} className="flex-row items-center">
+            {targetLabel ? <Text className="mr-1 text-xs text-text-secondary">{targetLabel}</Text> : null}
+            {props.onTargetClick && <IconSwapSmall size={12} color={Tailwind_colors().lightgray[600]} />}
+          </Pressable>
+        </View>
+        <View className="items-center" style={{ width: columnWidths.reps }}>
+          <Text className="text-xs text-text-secondary">Reps</Text>
+        </View>
+        <View style={{ width: columnWidths.separator }} />
+        <View className="items-center" style={{ width: columnWidths.weight }}>
+          <Text className="text-xs text-text-secondary">{exerciseUnit}</Text>
+        </View>
+        <View style={{ width: columnWidths.check }} />
+      </View>
+
+      <View>
+        {warmupSets.map((set, i) => (
+          <WorkoutExerciseSet
+            isCurrentProgress={props.isCurrentProgress}
+            isPlayground={props.isPlayground}
+            type="warmup"
+            key={`warmup-${set.id}-${i}`}
+            day={props.day}
+            entry={props.entry}
+            progress={props.progress}
+            exerciseType={props.exerciseType}
+            programExercise={props.programExercise}
+            otherStates={props.otherStates}
+            subscription={props.subscription}
+            lbSets={props.lbWarmupSets}
+            lbSet={props.lbWarmupSets.i(i)}
+            set={set}
+            entryIndex={props.entryIndex}
+            isNext={nextSetIndex === i}
+            setIndex={i}
+            columnWidths={columnWidths}
+            settings={props.settings}
+            dispatch={props.dispatch}
+          />
+        ))}
+        {sets.map((set, i) => (
+          <WorkoutExerciseSet
+            isPlayground={props.isPlayground}
+            isCurrentProgress={props.isCurrentProgress}
+            type="workout"
+            key={`workout-${set.id}-${i}`}
+            onStopShowingHint={props.onStopShowingHint}
+            progress={props.progress}
+            entry={props.entry}
+            helps={props.helps}
+            isNext={nextSetIndex - warmupSets.length === i}
+            programExercise={props.programExercise}
+            day={props.day}
+            otherStates={props.otherStates}
+            exerciseType={props.exerciseType}
+            lastSet={props.lastSets?.[i]}
+            subscription={props.subscription}
+            lbSets={props.lbSets}
+            lbSet={props.lbSets.i(i)}
+            set={set}
+            entryIndex={props.entryIndex}
+            setIndex={i}
+            columnWidths={columnWidths}
+            settings={props.settings}
+            dispatch={props.dispatch}
+          />
+        ))}
+      </View>
+
       {props.programExercise && props.program && (
-        <div className="mx-4 mt-2 mb-1">
+        <View className="mx-4 mt-2 mb-1">
           <ProgressStateChanges
             entry={props.entry}
             settings={props.settings}
@@ -171,14 +177,16 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
               );
             }}
           />
-        </div>
+        </View>
       )}
-      <div className="flex gap-2 px-4 my-2">
-        <div className="flex-1">
-          <button
-            className={`${buttonBgColor} w-full py-2 text-xs font-semibold text-center rounded-md text-text-link`}
+
+      <View className="flex-row gap-2 px-4 my-2">
+        <View className="flex-1">
+          <Pressable
+            className={`${buttonBgColor} w-full py-2 rounded-md flex-row items-center justify-center`}
             data-cy="add-warmup-set"
-            onClick={() => {
+            testID="add-warmup-set"
+            onPress={() => {
               const isUnilateral = Exercise_getIsUnilateral(props.exerciseType, props.settings);
               updateProgress(
                 props.dispatch,
@@ -187,17 +195,16 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
               );
             }}
           >
-            <span>
-              <IconPlus2 size={10} className="inline-block" color={Tailwind_colors().blue[400]} />
-            </span>
-            <span className="ml-2">Add Warmup Set</span>
-          </button>
-        </div>
-        <div className="flex-1">
-          <button
-            className={`${buttonBgColor} w-full py-2 text-xs font-semibold text-center rounded-md text-text-link`}
+            <IconPlus2 size={10} color={Tailwind_colors().blue[400]} />
+            <Text className="ml-2 text-xs font-semibold text-text-link">Add Warmup Set</Text>
+          </Pressable>
+        </View>
+        <View className="flex-1">
+          <Pressable
+            className={`${buttonBgColor} w-full py-2 rounded-md flex-row items-center justify-center`}
             data-cy="add-workout-set"
-            onClick={() => {
+            testID="add-workout-set"
+            onPress={() => {
               const isUnilateral = Exercise_getIsUnilateral(props.exerciseType, props.settings);
               updateProgress(
                 props.dispatch,
@@ -210,13 +217,11 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
               );
             }}
           >
-            <span>
-              <IconPlus2 size={10} className="inline-block" color={Tailwind_colors().blue[400]} />
-            </span>
-            <span className="ml-2">Add Set</span>
-          </button>
-        </div>
-      </div>
-    </div>
+            <IconPlus2 size={10} color={Tailwind_colors().blue[400]} />
+            <Text className="ml-2 text-xs font-semibold text-text-link">Add Set</Text>
+          </Pressable>
+        </View>
+      </View>
+    </View>
   );
 }

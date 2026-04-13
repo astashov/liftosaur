@@ -21,7 +21,7 @@ function createSemanticColors() {
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [path.resolve(__dirname, "src/**/*.native.tsx"), path.resolve(__dirname, "src/**/*.tsx")],
+  content: [path.resolve(__dirname, "src/**/*.native.tsx"), path.resolve(__dirname, "src/**/*.tsx"), path.resolve(__dirname, "src/**/*.ts")],
   presets: [nativewindPreset],
   darkMode: "class",
   safelist: ["dark"],

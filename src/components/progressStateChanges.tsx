@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
 import {
   IEvaluatedProgram,
   Program_getDiffState,
@@ -58,27 +60,26 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
       updatePrints.length > 0
     ) {
       return (
-        <div
-          className="text-xs"
+        <View
           data-help-id="progress-state-changes"
           data-help="This shows how state variables of the exercise are going to change after finishing this workout day. It usually indicates progression or deload, so next time you'd do more/less reps, or lift more/less weight."
         >
-          <div>
+          <View>
             {showEndOfDay && ObjectUtils_isNotEmpty(diffVars) && (
-              <div className={props.entry.isSuppressed ? "line-through" : ""}>
+              <View className={props.entry.isSuppressed ? "line-through" : ""}>
                 <ExerciseChanges diffVars={diffVars} />
-              </div>
+              </View>
             )}
             {showEndOfDay && ObjectUtils_isNotEmpty(diffState) && (
-              <div className={props.entry.isSuppressed ? "line-through" : ""}>
+              <View className={props.entry.isSuppressed ? "line-through" : ""}>
                 <StateVariablesChanges diffState={diffState} />
-              </div>
+              </View>
             )}
             {showEndOfDay && prints.length > 0 && <Prints title="Progress Prints" prints={prints} />}
             {updatePrints.length > 0 && <Prints title="Update Prints" prints={updatePrints} />}
-          </div>
+          </View>
           {onSuppressProgress && (
-            <div>
+            <View>
               <LinkButton
                 name="supress-progress"
                 className="text-xs"
@@ -89,9 +90,9 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
               >
                 {props.entry.isSuppressed ? "Enable" : "Suppress"}
               </LinkButton>
-            </div>
+            </View>
           )}
-        </div>
+        </View>
       );
     }
   }
@@ -101,17 +102,21 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
 function ExerciseChanges({ diffVars }: { diffVars: Record<string, string | undefined> }): JSX.Element | null {
   if (ObjectUtils_isNotEmpty(diffVars)) {
     return (
-      <>
-        <header className="font-bold">Exercise Changes</header>
-        <ul data-cy="variable-changes">
+      <View>
+        <Text className="text-xs font-bold">Exercise Changes</Text>
+        <View data-cy="variable-changes" testID="variable-changes">
           {ObjectUtils_keys(diffVars).map((key) => (
-            <li key={key} data-cy={`variable-changes-key-${StringUtils_dashcase(key)}`}>
-              <span className="italic">{key}</span>:{" "}
-              <strong data-cy={`variable-changes-value-${StringUtils_dashcase(key)}`}>{diffVars[key]}</strong>
-            </li>
+            <View key={key} data-cy={`variable-changes-key-${StringUtils_dashcase(key)}`} testID={`variable-changes-key-${StringUtils_dashcase(key)}`}>
+              <Text className="text-xs">
+                <Text className="italic">{key}</Text>:{" "}
+                <Text className="font-bold" data-cy={`variable-changes-value-${StringUtils_dashcase(key)}`} testID={`variable-changes-value-${StringUtils_dashcase(key)}`}>
+                  {diffVars[key]}
+                </Text>
+              </Text>
+            </View>
           ))}
-        </ul>
-      </>
+        </View>
+      </View>
     );
   }
   return null;
@@ -120,17 +125,21 @@ function ExerciseChanges({ diffVars }: { diffVars: Record<string, string | undef
 function StateVariablesChanges({ diffState }: { diffState: Record<string, string | undefined> }): JSX.Element | null {
   if (ObjectUtils_isNotEmpty(diffState)) {
     return (
-      <>
-        <header className="font-bold">State Variables changes</header>
-        <ul data-cy="state-changes">
+      <View>
+        <Text className="text-xs font-bold">State Variables changes</Text>
+        <View data-cy="state-changes" testID="state-changes">
           {ObjectUtils_keys(diffState).map((key) => (
-            <li key={key} data-cy={`state-changes-key-${StringUtils_dashcase(key)}`}>
-              <span className="italic">{key}</span>:{" "}
-              <strong data-cy={`state-changes-value-${StringUtils_dashcase(key)}`}>{diffState[key]}</strong>
-            </li>
+            <View key={key} data-cy={`state-changes-key-${StringUtils_dashcase(key)}`} testID={`state-changes-key-${StringUtils_dashcase(key)}`}>
+              <Text className="text-xs">
+                <Text className="italic">{key}</Text>:{" "}
+                <Text className="font-bold" data-cy={`state-changes-value-${StringUtils_dashcase(key)}`} testID={`state-changes-value-${StringUtils_dashcase(key)}`}>
+                  {diffState[key]}
+                </Text>
+              </Text>
+            </View>
           ))}
-        </ul>
-      </>
+        </View>
+      </View>
     );
   }
   return null;
@@ -145,23 +154,23 @@ function Prints({
 }): JSX.Element | null {
   if (prints.length > 0) {
     return (
-      <>
-        <header className="font-bold">{title}</header>
-        <ul>
+      <View>
+        <Text className="text-xs font-bold">{title}</Text>
+        <View>
           {prints.map((print) => (
-            <li key={JSON.stringify(print)}>
-              {print.map((p, i) => {
-                return (
-                  <>
-                    {i > 0 ? <span>, </span> : <></>}
-                    <span>{Weight_print(p)}</span>
-                  </>
-                );
-              })}
-            </li>
+            <View key={JSON.stringify(print)}>
+              <Text className="text-xs">
+                {print.map((p, i) => (
+                  <Text key={i}>
+                    {i > 0 ? ", " : ""}
+                    {Weight_print(p)}
+                  </Text>
+                ))}
+              </Text>
+            </View>
           ))}
-        </ul>
-      </>
+        </View>
+      </View>
     );
   }
   return null;

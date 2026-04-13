@@ -122,6 +122,20 @@ export function ProgramPreview(props: IProps): JSX.Element {
     </View>
   );
 
+  if (!isWeb) {
+    return (
+      <ProgramPreviewOrPlayground
+        headerContent={previewHeader}
+        program={program}
+        settings={props.settings}
+        isMobile={props.isMobile}
+        hasNavbar={props.hasNavbar}
+        stats={props.stats}
+        useNavModals={props.useNavModals}
+      />
+    );
+  }
+
   return (
     <View style={{ flex: 1 }}>
       <ProgramPreviewOrPlayground
@@ -133,7 +147,7 @@ export function ProgramPreview(props: IProps): JSX.Element {
         stats={props.stats}
         useNavModals={props.useNavModals}
       />
-      {musclesModal && isWeb && (
+      {musclesModal && (
         <ProgramPreviewMusclesModal
           muscles={musclesModal}
           onClose={() => setMusclesModal(undefined)}

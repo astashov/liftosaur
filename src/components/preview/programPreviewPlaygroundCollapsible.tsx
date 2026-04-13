@@ -1,31 +1,101 @@
-import { JSX, ReactNode, useCallback, useState } from "react";
-import { View, Pressable, LayoutChangeEvent } from "react-native";
+import { JSX, ReactNode, useCallback, useRef, useState } from "react";
+import { View, ScrollView, Pressable, LayoutChangeEvent, useWindowDimensions } from "react-native";
+import PagerView from "react-native-pager-view";
 import Animated, {
-  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
-  scrollTo,
   useAnimatedRef,
+  scrollTo,
+  useAnimatedReaction,
   type SharedValue,
 } from "react-native-reanimated";
-import { Tabs } from "react-native-collapsible-tab-view";
-import type { TabBarProps } from "react-native-collapsible-tab-view";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
-
-// --- Custom tab bar ---
 
 const VISIBLE_TABS_HINT = 3.5;
 
-interface ICollapsibleTabBarProps {
+interface ICollapsiblePreviewProps {
+  headerContent: ReactNode;
+  weekNames: string[];
+  singleWeek: boolean;
+  renderWeekContent: (weekIndex: number) => JSX.Element;
+}
+
+export function CollapsiblePreview(props: ICollapsiblePreviewProps): JSX.Element {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [contentHeights, setContentHeights] = useState<Record<number, number>>({});
+  const indexDecimal = useSharedValue(0);
+  const pagerRef = useRef<PagerView>(null);
+  const { height: windowHeight } = useWindowDimensions();
+
+  const pagerHeight = contentHeights[activeIndex] ?? windowHeight;
+  const semantic = Tailwind_semantic();
+
+  const onPageLayout = useCallback((weekIndex: number, height: number) => {
+    setContentHeights((prev) => {
+      if (prev[weekIndex] === height) return prev;
+      return { ...prev, [weekIndex]: height };
+    });
+  }, []);
+
+  return (
+    <ScrollView
+      style={{ flex: 1 }}
+      className="bg-background-default"
+      stickyHeaderIndices={props.singleWeek ? undefined : [1]}
+      contentContainerStyle={{ paddingBottom: 40 }}
+    >
+      <View>{props.headerContent}</View>
+
+      {!props.singleWeek && (
+        <PagerTabBar
+          tabNames={props.weekNames}
+          indexDecimal={indexDecimal}
+          activeColor={semantic.text.purple}
+          inactiveColor={semantic.text.secondary}
+          borderColor={semantic.border.neutral}
+          onTabPress={(index) => {
+            pagerRef.current?.setPage(index);
+          }}
+        />
+      )}
+
+      {props.singleWeek ? (
+        <View>{props.renderWeekContent(0)}</View>
+      ) : (
+        <PagerView
+          ref={pagerRef}
+          style={{ height: pagerHeight }}
+          initialPage={0}
+          onPageScroll={(e) => {
+            indexDecimal.value = e.nativeEvent.position + e.nativeEvent.offset;
+          }}
+          onPageSelected={(e) => {
+            setActiveIndex(e.nativeEvent.position);
+          }}
+        >
+          {props.weekNames.map((weekName, weekIndex) => (
+            <View key={weekName} collapsable={false}>
+              <View onLayout={(e: LayoutChangeEvent) => onPageLayout(weekIndex, e.nativeEvent.layout.height)}>
+                {props.renderWeekContent(weekIndex)}
+              </View>
+            </View>
+          ))}
+        </PagerView>
+      )}
+    </ScrollView>
+  );
+}
+
+interface IPagerTabBarProps {
   tabNames: string[];
   indexDecimal: SharedValue<number>;
-  onTabPress: (name: string) => void;
   activeColor: string;
   inactiveColor: string;
   borderColor: string;
+  onTabPress: (index: number) => void;
 }
 
-function CollapsibleTabBar(props: ICollapsibleTabBarProps): JSX.Element {
+function PagerTabBar(props: IPagerTabBarProps): JSX.Element {
   const tabCount = props.tabNames.length;
   const fitsInScreen = tabCount <= 4;
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
@@ -61,16 +131,20 @@ function CollapsibleTabBar(props: ICollapsibleTabBarProps): JSX.Element {
   );
 
   const tabItems = props.tabNames.map((name, i) => (
-    <CollapsibleTabItem
+    <Pressable
       key={name}
-      name={name}
-      index={i}
-      indexDecimal={props.indexDecimal}
-      onPress={() => props.onTabPress(name)}
-      activeColor={props.activeColor}
-      inactiveColor={props.inactiveColor}
-      fixedWidth={fitsInScreen ? undefined : measuredTabWidth}
-    />
+      className="items-center py-3"
+      style={fitsInScreen ? { flex: 1 } : { width: measuredTabWidth }}
+      onPress={() => props.onTabPress(i)}
+    >
+      <PagerTabItemText
+        name={name}
+        index={i}
+        indexDecimal={props.indexDecimal}
+        activeColor={props.activeColor}
+        inactiveColor={props.inactiveColor}
+      />
+    </Pressable>
   ));
 
   const indicator = (
@@ -102,104 +176,15 @@ function CollapsibleTabBar(props: ICollapsibleTabBarProps): JSX.Element {
   );
 }
 
-interface ICollapsibleTabItemProps {
+function PagerTabItemText(props: {
   name: string;
   index: number;
   indexDecimal: SharedValue<number>;
-  onPress: () => void;
   activeColor: string;
   inactiveColor: string;
-  fixedWidth?: number;
-}
-
-function CollapsibleTabItem(props: ICollapsibleTabItemProps): JSX.Element {
+}): JSX.Element {
   const textStyle = useAnimatedStyle(() => ({
     color: Math.abs(props.index - props.indexDecimal.value) < 0.5 ? props.activeColor : props.inactiveColor,
   }));
-
-  return (
-    <Pressable
-      className="items-center py-3"
-      style={props.fixedWidth ? { width: props.fixedWidth } : { flex: 1 }}
-      onPress={props.onPress}
-    >
-      <Animated.Text style={[{ fontFamily: "Poppins", fontSize: 16 }, textStyle]}>{props.name}</Animated.Text>
-    </Pressable>
-  );
-}
-
-// --- Collapsible preview container ---
-
-interface ICollapsiblePreviewProps {
-  headerContent: ReactNode;
-  weekNames: string[];
-  singleWeek: boolean;
-  renderWeekContent: (weekIndex: number) => JSX.Element;
-}
-
-export function CollapsiblePreview(props: ICollapsiblePreviewProps): JSX.Element {
-  const [containerReady, setContainerReady] = useState(false);
-  const purpleColor = Tailwind_semantic().text.purple;
-  const inactiveColor = Tailwind_semantic().text.secondary;
-  const borderColor = Tailwind_semantic().border.neutral;
-
-  const renderHeader = useCallback(
-    () => (
-      <View className="bg-background-default" pointerEvents="box-none">
-        {props.headerContent}
-      </View>
-    ),
-    [props.headerContent]
-  );
-
-  const renderTabBar = useCallback(
-    (tabBarProps: TabBarProps) =>
-      props.singleWeek ? (
-        <View />
-      ) : (
-        <CollapsibleTabBar
-          tabNames={tabBarProps.tabNames}
-          indexDecimal={tabBarProps.indexDecimal}
-          onTabPress={tabBarProps.onTabPress}
-          activeColor={purpleColor}
-          inactiveColor={inactiveColor}
-          borderColor={borderColor}
-        />
-      ),
-    [purpleColor, inactiveColor, borderColor, props.singleWeek]
-  );
-
-  return (
-    <View
-      style={{ flex: 1 }}
-      className="bg-background-default"
-      onLayout={() => {
-        if (!containerReady) {
-          setContainerReady(true);
-        }
-      }}
-    >
-      {containerReady && (
-        <Tabs.Container
-          renderHeader={renderHeader}
-          renderTabBar={renderTabBar}
-          headerContainerStyle={{ shadowOpacity: 0, elevation: 0 }}
-          allowHeaderOverscroll
-          lazy={false}
-          cancelLazyFadeIn
-        >
-          {props.weekNames.map((weekName, weekIndex) => (
-            <Tabs.Tab key={weekName} name={weekName} label={weekName}>
-              <Tabs.ScrollView
-                style={{ backgroundColor: Tailwind_semantic().background.default }}
-                contentContainerStyle={{ paddingBottom: 40 }}
-              >
-                {props.renderWeekContent(weekIndex)}
-              </Tabs.ScrollView>
-            </Tabs.Tab>
-          ))}
-        </Tabs.Container>
-      )}
-    </View>
-  );
+  return <Animated.Text style={[{ fontFamily: "Poppins", fontSize: 16 }, textStyle]}>{props.name}</Animated.Text>;
 }
