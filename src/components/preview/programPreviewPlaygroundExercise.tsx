@@ -1,6 +1,8 @@
 import { JSX, memo } from "react";
+import { View, Pressable } from "react-native";
+import { Text } from "../primitives/text";
 import { ExerciseImage } from "../exerciseImage";
-import { Markdown } from "../markdown";
+import { SimpleMarkdown } from "../simpleMarkdown";
 import {
   equipmentName,
   Exercise_get,
@@ -107,11 +109,12 @@ function ProgramPreviewHistoryRecordSets(props: IProgramPreviewHistoryRecordSets
   const description = PlannerProgramExercise_currentDescription(programExercise);
 
   return (
-    <div
+    <View
       className={`py-2 px-2 mx-4 mb-3 rounded-lg ${getBgColor100(props.entry)} relative`}
       data-cy={StringUtils_dashcase(exercise.name)}
+      testID={StringUtils_dashcase(exercise.name)}
     >
-      <div className="flex items-center gap-2">
+      <View className="flex-row items-center gap-2">
         <PlaygroundExerciseTopBar
           dispatch={props.dispatch}
           index={props.index}
@@ -119,27 +122,27 @@ function ProgramPreviewHistoryRecordSets(props: IProgramPreviewHistoryRecordSets
           programExercise={props.programExercise}
           isPlayground={false}
         />
-        <div style={{ width: "40px" }}>
-          <div className="p-1 rounded-lg bg-background-image">
+        <View style={{ width: 40 }}>
+          <View className="p-1 rounded-lg bg-background-image">
             <ExerciseImage settings={props.settings} className="w-full" exerciseType={exercise} size="small" />
-          </div>
-        </div>
-        <div className="flex-1 ml-auto text-sm" style={{ minWidth: "4rem" }}>
-          <div className="flex items-center">
-            <div className="flex-1 mr-1 font-bold">{exercise.name}</div>
-          </div>
-          {equipment && <div className="text-sm text-text-secondary">{equipmentName(equipment)}</div>}
-        </div>
-        <section className="mt-1 ml-1">
+          </View>
+        </View>
+        <View className="flex-1 ml-auto" style={{ minWidth: 64 }}>
+          <View className="flex-row items-center">
+            <Text className="flex-1 mr-1 text-sm font-bold">{exercise.name}</Text>
+          </View>
+          {equipment && <Text className="text-sm text-text-secondary">{equipmentName(equipment)}</Text>}
+        </View>
+        <View className="mt-1 ml-1">
           <HistoryRecordSetsView sets={props.entry.sets} settings={props.settings} isNext={true} />
-        </section>
-      </div>
+        </View>
+      </View>
       {description && (
-        <div className="mt-1 text-sm">
-          <Markdown value={description} />
-        </div>
+        <View className="mt-1">
+          <SimpleMarkdown value={description} className="text-sm" />
+        </View>
       )}
-    </div>
+    </View>
   );
 }
 
@@ -167,11 +170,12 @@ function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.El
   const supersetExercise = supersetEntry ? Exercise_get(supersetEntry.exercise, props.settings.exercises) : undefined;
 
   return (
-    <div
+    <View
       className={`pt-2 pb-2 mb-6 rounded-lg ${WorkoutExerciseUtils_getBgColor50(props.entry.sets, false)} relative`}
       data-cy={`entry-${StringUtils_dashcase(exercise.name)}`}
+      testID={`entry-${StringUtils_dashcase(exercise.name)}`}
     >
-      <div>
+      <View>
         <PlaygroundExerciseTopBar
           dispatch={props.dispatch}
           index={props.index}
@@ -180,39 +184,39 @@ function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.El
           isPlayground={true}
           xOffset={20}
         />
-        <div className="flex items-center mx-4">
-          <div style={{ width: "40px" }} className="mr-1">
-            <div className="p-1 rounded-lg bg-background-image">
+        <View className="flex-row items-center mx-4">
+          <View style={{ width: 40 }} className="mr-1">
+            <View className="p-1 rounded-lg bg-background-image">
               <ExerciseImage settings={props.settings} className="w-full" exerciseType={exercise} size="small" />
-            </div>
-          </div>
-          <div className="flex-1 ml-auto" style={{ minWidth: "4rem" }}>
-            <div className="flex items-center">
-              <div className="flex-1 mr-1 font-bold">{Exercise_nameWithEquipment(exercise, props.settings)}</div>
-            </div>
-            <div data-cy="exercise-equipment" className="text-xs text-text-secondary">
-              Equipment: <strong>{currentEquipmentName || "None"}</strong>
-            </div>
+            </View>
+          </View>
+          <View className="flex-1 ml-auto" style={{ minWidth: 64 }}>
+            <View className="flex-row items-center">
+              <Text className="flex-1 mr-1 font-bold">{Exercise_nameWithEquipment(exercise, props.settings)}</Text>
+            </View>
+            <Text data-cy="exercise-equipment" testID="exercise-equipment" className="text-xs text-text-secondary">
+              Equipment: <Text className="font-bold">{currentEquipmentName || "None"}</Text>
+            </Text>
             {supersetExercise && (
-              <div data-cy="exercise-superset" className="text-xs text-text-secondary">
-                Supersets with: <strong>{Exercise_fullName(supersetExercise, props.settings)}</strong>
-              </div>
+              <Text data-cy="exercise-superset" testID="exercise-superset" className="text-xs text-text-secondary">
+                Supersets with: <Text className="font-bold">{Exercise_fullName(supersetExercise, props.settings)}</Text>
+              </Text>
             )}
-          </div>
-        </div>
+          </View>
+        </View>
         {exerciseNotes && (
-          <div className="mt-1 text-sm">
+          <View className="mt-1">
             {exerciseNotes && description && <GroupHeader name="Exercise Notes" />}
-            <Markdown value={exerciseNotes} />
-          </div>
+            <SimpleMarkdown value={exerciseNotes} className="text-sm" />
+          </View>
         )}
         {description && (
-          <div className="mt-1 text-sm">
+          <View className="mt-1">
             {exerciseNotes && description && <GroupHeader name="Program Exercise Description" />}
-            <Markdown value={description} />
-          </div>
+            <SimpleMarkdown value={description} className="text-sm" />
+          </View>
         )}
-        <section className="mt-1">
+        <View className="mt-1">
           <WorkoutExerciseAllSets
             isPlayground={true}
             day={dayData.day}
@@ -232,9 +236,9 @@ function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.El
             dispatch={props.dispatch}
             subscription={undefined}
           />
-        </section>
-      </div>
-    </div>
+        </View>
+      </View>
+    </View>
   );
 }
 
@@ -249,34 +253,41 @@ interface IPlaygroundExerciseTopBarProps {
 
 function PlaygroundExerciseTopBar(props: IPlaygroundExerciseTopBarProps): JSX.Element {
   return (
-    <div
-      className="absolute z-0 px-2 py-1 leading-none rounded-full bg-background-neutral"
+    <View
+      className="absolute z-0 px-2 py-1 rounded-full bg-background-neutral"
       style={{ right: -12 + (props.xOffset ?? 0), top: -18 }}
     >
-      <div className="flex items-center gap-2">
-        <button
-          className="inline-block nm-program-details-playground-edit"
+      <View className="flex-row items-center gap-2">
+        <Pressable
           data-cy="program-preview-edit-exercise"
-          onClick={() => {
+          testID="program-preview-edit-exercise"
+          onPress={() => {
             props.dispatch({
               type: "UpdateProgress",
-              lensRecordings: [
-                lb<IHistoryRecord>()
-                  .pi("ui", {})
-                  .p("editModal")
-                  .record({ programExerciseId: props.programExercise.key, entryIndex: props.index }),
-              ],
-              desc: "open-edit-exercise-modal",
+              lensRecordings: [lb<IHistoryRecord>().pi("ui", {}).p("editModal").record(undefined)],
+              desc: "clear-edit-modal",
             });
+            setTimeout(() => {
+              props.dispatch({
+                type: "UpdateProgress",
+                lensRecordings: [
+                  lb<IHistoryRecord>()
+                    .pi("ui", {})
+                    .p("editModal")
+                    .record({ programExerciseId: props.programExercise.key, entryIndex: props.index }),
+                ],
+                desc: "open-edit-exercise-modal",
+              });
+            }, 0);
           }}
         >
           <IconEditSquare color={Tailwind_semantic().icon.neutralsubtle} />
-        </button>
+        </Pressable>
         {props.isPlayground && (
-          <button
-            className="inline-block nm-program-details-playground-complete"
+          <Pressable
             data-cy="program-preview-complete-exercise"
-            onClick={() => {
+            testID="program-preview-complete-exercise"
+            onPress={() => {
               props.dispatch({
                 type: "UpdateProgress",
                 lensRecordings: [
@@ -310,9 +321,9 @@ function PlaygroundExerciseTopBar(props: IPlaygroundExerciseTopBarProps): JSX.El
             }}
           >
             <IconCheckCircle isChecked={true} color={Reps_isCompleted(props.entry.sets) ? "#38A169" : "#BAC4CD"} />
-          </button>
+          </Pressable>
         )}
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }

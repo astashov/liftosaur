@@ -4,7 +4,10 @@ import { Text } from "../../components/primitives/text";
 import { useAppState } from "../StateContext";
 import { buildNavCommon } from "../utils";
 import { ChooseProgramView } from "../../components/chooseProgram";
+import { ScreenProgramPreview as ScreenProgramPreviewComponent } from "../../components/screenProgramPreview";
 import { Progress_getCurrentProgress } from "../../models/progress";
+import { Thunk_pullScreen } from "../../ducks/thunks";
+import { usePlaygroundModalBridges } from "../usePlaygroundModalBridges";
 
 export function NavScreenPrograms(): React.JSX.Element {
   const { state, dispatch } = useAppState();
@@ -64,9 +67,23 @@ export function NavScreenProgramSelect(): React.JSX.Element {
 }
 
 export function NavScreenProgramPreview(): React.JSX.Element {
+  const { state, dispatch } = useAppState();
+  const navCommon = buildNavCommon(state);
+
+  usePlaygroundModalBridges(state);
+
+  if (state.previewProgram?.id == null) {
+    setTimeout(() => dispatch(Thunk_pullScreen()), 0);
+    return <View className="flex-1 bg-background-default" />;
+  }
   return (
-    <View className="flex-1 justify-center items-center bg-background-default">
-      <Text className="text-2xl font-bold text-icon-neutral">Program Preview</Text>
-    </View>
+    <ScreenProgramPreviewComponent
+      navCommon={navCommon}
+      dispatch={dispatch}
+      settings={state.storage.settings}
+      selectedProgramId={state.previewProgram.id}
+      programs={state.previewProgram.showCustomPrograms ? state.storage.programs : state.programs}
+      subscription={state.storage.subscription}
+    />
   );
 }

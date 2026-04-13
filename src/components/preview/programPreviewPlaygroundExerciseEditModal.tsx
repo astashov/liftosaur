@@ -1,4 +1,6 @@
-import type { JSX } from "react";
+import { JSX, useRef } from "react";
+import { View } from "react-native";
+import { Text } from "../primitives/text";
 import { Button } from "../button";
 import { MenuItemEditable } from "../menuItemEditable";
 import { Modal } from "../modal";
@@ -29,51 +31,66 @@ export function ProgramPreviewPlaygroundExerciseEditContent(
   const state = PlannerProgramExercise_getState(props.programExercise);
   const stateMetadata = PlannerProgramExercise_getStateMetadata(props.programExercise);
   const hasStateVariables = ObjectUtils_keys(state).length > 0;
+  const pendingStateVarsRef = useRef<Record<string, string>>({});
+  const pendingRmRef = useRef<string | undefined>(undefined);
   if (!programExercise.exerciseType) {
     return null;
   }
   const exercise = Exercise_get(programExercise.exerciseType, props.settings.exercises);
   return (
-    <div style={{ minWidth: "15rem" }}>
+    <View style={{ minWidth: 240 }}>
       {!props.hideVariables && (
-        <>
-          <ExerciseRM
-            name="1 Rep Max"
-            rmKey="rm1"
-            exercise={exercise}
-            settings={props.settings}
-            onEditVariable={(value) => {
-              props.onEditVariable("rm1", value);
-            }}
-          />
-        </>
+        <ExerciseRM
+          name="1 Rep Max"
+          rmKey="rm1"
+          exercise={exercise}
+          settings={props.settings}
+          onEditVariable={() => {}}
+          onInput={(v) => {
+            pendingRmRef.current = v;
+          }}
+        />
       )}
       {(hasStateVariables || props.hideVariables) && (
         <>
-          <h2 className="mb-2 text-lg text-center">Edit state variables</h2>
+          <Text className="mb-2 text-lg font-bold text-center">Edit state variables</Text>
           {hasStateVariables ? (
             <ProgramStateVariables
               settings={props.settings}
               state={state}
               stateMetadata={stateMetadata}
               onEditStateVariable={props.onEditStateVariable}
+              pendingRef={pendingStateVarsRef}
             />
           ) : (
-            <div className="px-4 py-2 text-sm italic text-center text-text-secondary">No state variables</div>
+            <View className="px-4 py-2">
+              <Text className="text-sm italic text-center text-text-secondary">No state variables</Text>
+            </View>
           )}
         </>
       )}
-      <div className="mt-4 text-center">
+      <View className="items-center mt-4">
         <Button
           name="details-workout-playground-save-statvars"
           kind="purple"
-          onClick={props.onClose}
+          onClick={() => {
+            if (pendingRmRef.current != null) {
+              const num = parseFloat(pendingRmRef.current);
+              if (!isNaN(num)) {
+                props.onEditVariable("rm1", num);
+              }
+            }
+            for (const [key, value] of Object.entries(pendingStateVarsRef.current)) {
+              props.onEditStateVariable(key, value);
+            }
+            props.onClose();
+          }}
           data-cy="modal-edit-mode-save-statvars"
         >
           Done
         </Button>
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }
 
@@ -92,11 +109,12 @@ interface IStateProps {
   stateMetadata?: IProgramStateMetadata;
   onEditStateVariable: (stateKey: string, newValue: string) => void;
   settings: ISettings;
+  pendingRef?: React.RefObject<Record<string, string>>;
 }
 
 function ProgramStateVariables(props: IStateProps): JSX.Element {
   return (
-    <section className="px-4 py-2 bg-background-cardpurple rounded-2xl">
+    <View className="px-4 py-2 bg-background-cardpurple rounded-2xl">
       {ObjectUtils_keys(props.state).map((stateKey, i) => {
         const value = props.state[stateKey];
         const displayValue = Weight_is(value) || Weight_isPct(value) ? value.value : value;
@@ -108,9 +126,9 @@ function ProgramStateVariables(props: IStateProps): JSX.Element {
             isBorderless={i === Object.keys(props.state).length - 1}
             nextLine={
               props.stateMetadata?.[stateKey]?.userPrompted ? (
-                <div style={{ marginTop: "-0.75rem" }} className="mb-1 text-xs text-text-secondary">
-                  User Prompted
-                </div>
+                <View style={{ marginTop: -12 }} className="mb-1">
+                  <Text className="text-xs text-text-secondary">User Prompted</Text>
+                </View>
               ) : undefined
             }
             isNameBold={true}
@@ -118,14 +136,15 @@ function ProgramStateVariables(props: IStateProps): JSX.Element {
             value={displayValue.toString()}
             valueUnits={Weight_is(value) || Weight_isPct(value) ? value.unit : undefined}
             hasClear={false}
-            onChange={(newValue) => {
-              if (newValue) {
-                props.onEditStateVariable(stateKey, newValue);
+            onChange={() => {}}
+            onInput={(v) => {
+              if (props.pendingRef) {
+                props.pendingRef.current[stateKey] = v;
               }
             }}
           />
         );
       })}
-    </section>
+    </View>
   );
 }

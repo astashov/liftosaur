@@ -67,7 +67,7 @@ function NavModalPlaygroundEditExercisePlayground(props: { weekIndex: number; da
 
   const playgroundDispatch = useMemo(() => buildGlobalPlaygroundDispatch(dispatch), [dispatch]);
 
-  const onClose = (): void => {
+  const clearEditModal = useCallback(() => {
     updateState(
       dispatch,
       [
@@ -84,6 +84,14 @@ function NavModalPlaygroundEditExercisePlayground(props: { weekIndex: number; da
       ],
       "Close playground edit modal"
     );
+  }, [dispatch, weekIndex, dayIndex]);
+
+  useEffect(() => {
+    return () => clearEditModal();
+  }, [clearEditModal]);
+
+  const onClose = (): void => {
+    clearEditModal();
     navigation.goBack();
   };
 
