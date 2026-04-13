@@ -43,8 +43,10 @@ export function NavModalProgramInfo(): JSX.Element {
         settings={settings}
         onClose={onClose}
         onPreview={() => {
-          Program_previewProgram(dispatch, program!.id, false);
           onClose();
+          setTimeout(() => {
+            Program_previewProgram(dispatch, program!.id, false);
+          }, 50);
         }}
         onSelect={() => {
           Program_cloneProgram(dispatch, program!, settings);

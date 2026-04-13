@@ -1,4 +1,6 @@
 import { JSX, useEffect, useRef, useState } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
 import { IExerciseType, IPercentage, IPercentageUnit, ISettings, ISubscription, IUnit, IWeight } from "../types";
 import { InputNumber2 } from "./inputNumber2";
 import {
@@ -56,7 +58,7 @@ export function InputWeight2(props: IInputWeight2Props): JSX.Element {
       : undefined;
 
   return (
-    <div>
+    <View>
       <InputNumber2
         width={props.width}
         tabIndex={props.tabIndex}
@@ -69,7 +71,7 @@ export function InputWeight2(props: IInputWeight2Props): JSX.Element {
         max={props.max}
         keyboardAddon={
           (props.subscription && Subscriptions_hasSubscription(props.subscription)) || props.addOn ? (
-            <div className="py-2">
+            <View className="py-2">
               {props.subscription &&
                 props.exerciseType &&
                 Subscriptions_hasSubscription(props.subscription) &&
@@ -81,8 +83,8 @@ export function InputWeight2(props: IInputWeight2Props): JSX.Element {
                     exerciseType={props.exerciseType}
                   />
                 )}
-              {props.addOn ? <div>{props.addOn()}</div> : undefined}
-            </div>
+              {props.addOn ? <View>{props.addOn()}</View> : undefined}
+            </View>
           ) : undefined
         }
         onNext={(current) => {
@@ -132,7 +134,7 @@ export function InputWeight2(props: IInputWeight2Props): JSX.Element {
           }
         }}
       />
-    </div>
+    </View>
   );
 }
 
@@ -150,21 +152,22 @@ function PlatesCalculator(props: IPlatesCalculatorProps): JSX.Element {
     props.exerciseType
   );
   return (
-    <div className="flex items-center w-full gap-1 text-xs text-text-secondary">
-      <div>
+    <View className="flex-row items-center w-full gap-1">
+      <View>
         <IconBarbellSide size={13} color={Tailwind_colors().blue[400]} />
-      </div>
-      <div>
-        <span>Plates: </span>
-        <span className="break-all">
-          <span
+      </View>
+      <View>
+        <Text className="text-xs text-text-secondary">
+          Plates:{" "}
+          <Text
             className={`font-semibold ${Weight_eq(weight, props.weight) ? "text-text-primary" : "text-text-error"}`}
             data-cy="plates-list"
+            testID="plates-list"
           >
             {plates.length > 0 ? Weight_formatOneSide(props.settings, plates, props.exerciseType) : "None"}
-          </span>
-        </span>
-      </div>
-    </div>
+          </Text>
+        </Text>
+      </View>
+    </View>
   );
 }

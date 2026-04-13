@@ -11,9 +11,7 @@ export interface IProgramPreviewPlaygroundInnerRendererProps {
   scrollTabZIndex?: number;
 }
 
-export function ProgramPreviewPlaygroundInnerRenderer(
-  props: IProgramPreviewPlaygroundInnerRendererProps
-): JSX.Element {
+export function ProgramPreviewPlaygroundInnerRenderer(props: IProgramPreviewPlaygroundInnerRendererProps): JSX.Element {
   return (
     <ScrollableTabs
       headerContent={props.headerContent}

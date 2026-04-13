@@ -2,7 +2,7 @@ import { Text as RNText, TextProps, Platform } from "react-native";
 import { JSX } from "react";
 
 const textColorPattern =
-  /\btext-(text|red|green|blue|yellow|purple|gray|slate|zinc|stone|neutral|orange|amber|lime|emerald|teal|cyan|sky|indigo|violet|fuchsia|pink|rose|white|black|transparent|inherit|current)\b/;
+  /\btext-(text|syntax|red|green|blue|yellow|purple|gray|slate|zinc|stone|neutral|orange|amber|lime|emerald|teal|cyan|sky|indigo|violet|fuchsia|pink|rose|white|black|transparent|inherit|current)\b/;
 const textSizePattern = /\btext-(xs|sm|base|lg|xl|\dxl|\[)/;
 
 function resolveFontFamily(className: string | undefined): string {
