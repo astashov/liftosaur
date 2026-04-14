@@ -1,4 +1,4 @@
-import { JSX, useEffect, useRef, useState } from "react";
+import { JSX, memo, useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
 import { IExerciseType, IPercentage, IPercentageUnit, ISettings, ISubscription, IUnit, IWeight } from "../types";
@@ -40,7 +40,7 @@ interface IInputWeight2Props {
   tabIndex?: number;
 }
 
-export function InputWeight2(props: IInputWeight2Props): JSX.Element {
+function InputWeight2Inner(props: IInputWeight2Props): JSX.Element {
   const [unit, setUnit] = useState<IUnit | IPercentageUnit>(
     props.value?.unit ??
       props.initialValue?.unit ??
@@ -137,6 +137,8 @@ export function InputWeight2(props: IInputWeight2Props): JSX.Element {
     </View>
   );
 }
+
+export const InputWeight2 = memo(InputWeight2Inner);
 
 interface IPlatesCalculatorProps {
   weight: IWeight;

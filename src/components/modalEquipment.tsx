@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { View } from "react-native";
 import { IDispatch } from "../ducks/types";
 import { Modal } from "./modal";
 import { MenuItemEditable } from "./menuItemEditable";
@@ -43,7 +44,7 @@ export function ModalEquipmentContent(props: IModalEquipmentContentProps): JSX.E
 
   const currentGymId = props.settings.currentGymId ?? props.settings.gyms[0].id;
   return (
-    <div data-cy="modal-equipment">
+    <View data-cy="modal-equipment">
       <MenuItemEditable
         type="select"
         name="Equipment"
@@ -65,7 +66,7 @@ export function ModalEquipmentContent(props: IModalEquipmentContentProps): JSX.E
           );
         }}
       />
-      <div className="mt-2">
+      <View className="mt-2">
         {currentEquipment == null ? (
           <InputNumber
             type="number"
@@ -79,7 +80,7 @@ export function ModalEquipmentContent(props: IModalEquipmentContentProps): JSX.E
             }}
           />
         ) : (
-          <div>
+          <View>
             <GroupHeader name="Equipment Settings" topPadding={true} />
             <EquipmentSettingsValues
               lensDispatch={buildDispatch(props.dispatch)}
@@ -97,10 +98,10 @@ export function ModalEquipmentContent(props: IModalEquipmentContentProps): JSX.E
               equipment={currentEquipment}
               equipmentData={availableEquipment[currentEquipment]!}
             />
-          </div>
+          </View>
         )}
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }
 

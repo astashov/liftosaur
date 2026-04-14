@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import { JSX, memo } from "react";
 import { View, Platform } from "react-native";
 import { Text } from "./primitives/text";
 import { Button } from "./button";
@@ -14,7 +14,7 @@ interface IProps {
   blur: number;
 }
 
-export function Locker(props: IProps): JSX.Element {
+function LockerInner(props: IProps): JSX.Element {
   const isSubscribed = Subscriptions_hasSubscription(props.subscription);
 
   if (isSubscribed) {
@@ -42,3 +42,5 @@ export function Locker(props: IProps): JSX.Element {
     </View>
   );
 }
+
+export const Locker = memo(LockerInner);

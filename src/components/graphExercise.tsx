@@ -1,4 +1,4 @@
-import { JSX, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { JSX, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
 import { Select } from "./primitives/select";
@@ -117,7 +117,7 @@ function getData(
   return { data, changeProgramTimes, historyRecords };
 }
 
-export function GraphExercise(props: IGraphProps): JSX.Element {
+function GraphExerciseInner(props: IGraphProps): JSX.Element {
   const [selectedType, setSelectedType] = useState<IExerciseSelectedType>(props.initialType || "weight");
   const eqName = equipmentName(props.exercise.equipment);
   const units = props.settings.units;
@@ -266,6 +266,8 @@ export function GraphExercise(props: IGraphProps): JSX.Element {
     </View>
   );
 }
+
+export const GraphExercise = memo(GraphExerciseInner);
 
 interface IGraphExerciseLegendProps {
   cursorIdx: number | null;

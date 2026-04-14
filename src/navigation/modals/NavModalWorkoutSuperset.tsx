@@ -1,7 +1,7 @@
 import { JSX, useEffect } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
-import { SheetScreenContainer } from "../SheetScreenContainer";
+import { ModalScreenContainer } from "../ModalScreenContainer";
 import { BottomSheetWorkoutSupersetContent } from "../../components/bottomSheetWorkoutSuperset";
 import { IHistoryRecord } from "../../types";
 import { updateProgress } from "../../models/state";
@@ -42,7 +42,7 @@ export function NavModalWorkoutSuperset(): JSX.Element {
   }
 
   return (
-    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
+    <ModalScreenContainer onClose={onClose} shouldShowClose={true}>
       <BottomSheetWorkoutSupersetContent
         progress={progress}
         entry={exerciseSuperset}
@@ -56,6 +56,6 @@ export function NavModalWorkoutSuperset(): JSX.Element {
         }}
         onClose={onClose}
       />
-    </SheetScreenContainer>
+    </ModalScreenContainer>
   );
 }

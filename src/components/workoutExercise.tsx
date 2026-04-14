@@ -1,4 +1,5 @@
-import { JSX, useMemo, useRef } from "react";
+import { JSX, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { View } from "react-native";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, ISettings, ISubscription, IHistoryEntry, IProgramState, IStats } from "../types";
 import { updateSettings } from "../models/state";
@@ -20,6 +21,7 @@ import { GraphExercise } from "./graphExercise";
 import { ExerciseAllTimePRs } from "./exerciseAllTimePRs";
 import { ExerciseHistory } from "./exerciseHistory";
 import { Reps_setsStatus } from "../models/set";
+import { Progress_isCurrent } from "../models/progress";
 import { WorkoutExerciseCard } from "./workoutExerciseCard";
 
 interface IWorkoutExerciseProps {
@@ -40,7 +42,7 @@ interface IWorkoutExerciseProps {
   hidePlatesCalculator?: boolean;
 }
 
-export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
+function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
   const exerciseType = props.entry.exercise;
 
   const historyCollector = Collector.build(props.history)
@@ -63,10 +65,27 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
   }, [props.history, exerciseType, props.settings]);
   const showPrs = maxWeight.value > 0 || max1RM.value > 0;
   const status = Reps_setsStatus(props.entry.sets);
-  const surfaceRef = useRef<HTMLDivElement>(null);
+  const isCurrentProgress = Progress_isCurrent(props.progress);
+  const surfaceRef = useRef<{ clientHeight?: number } | null>(null);
+
+  const [isHeavyContentReady, setIsHeavyContentReady] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setIsHeavyContentReady(true), 150);
+    return () => clearTimeout(t);
+  }, []);
+
+  const dispatch = props.dispatch;
+  const shouldHideGraphs = props.settings.workoutSettings.shouldHideGraphs;
+  const onToggleGraphs = useCallback(() => {
+    updateSettings(
+      dispatch,
+      lb<ISettings>().p("workoutSettings").p("shouldHideGraphs").record(!shouldHideGraphs),
+      "Toggle graphs visibility"
+    );
+  }, [dispatch, shouldHideGraphs]);
 
   return (
-    <div data-cy={`exercise-progress-${status}`} ref={surfaceRef}>
+    <View data-cy={`exercise-progress-${status}`}>
       <WorkoutExerciseCard
         day={props.day}
         stats={props.stats}
@@ -78,35 +97,27 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
         program={props.program}
         programDay={props.programDay}
         otherStates={props.otherStates}
-        progress={props.progress}
+        progressId={props.progress.id}
+        progressStartTime={props.progress.startTime}
+        progressEntries={props.progress.entries}
+        progressUserPromptedStateVars={props.progress.userPromptedStateVars}
+        isCurrentProgress={isCurrentProgress}
         showHelp={props.showHelp}
         helps={props.helps}
         subscription={props.subscription}
         hidePlatesCalculator={props.hidePlatesCalculator}
       />
       {(history.length > 1 || showPrs) && (
-        <div className="mt-2 text-xs text-center">
-          <LinkButton
-            name="toggle-workout-graphs"
-            onClick={() => {
-              updateSettings(
-                props.dispatch,
-                lb<ISettings>()
-                  .p("workoutSettings")
-                  .p("shouldHideGraphs")
-                  .record(!props.settings.workoutSettings.shouldHideGraphs),
-                "Toggle graphs visibility"
-              );
-            }}
-          >
+        <View className="items-center mt-2">
+          <LinkButton name="toggle-workout-graphs" onClick={onToggleGraphs}>
             {props.settings.workoutSettings.shouldHideGraphs ? "Show Graphs and PRs" : "Hide Graphs and PRs"}
           </LinkButton>
-        </div>
+        </View>
       )}
       {!props.settings.workoutSettings.shouldHideGraphs && (
         <>
-          {history.length > 1 && (
-            <div data-cy="workout-stats-graph" className="relative mt-2">
+          {history.length > 1 && isHeavyContentReady && (
+            <View data-cy="workout-stats-graph" className="relative mt-2">
               <Locker topic="Graphs" dispatch={props.dispatch} blur={8} subscription={props.subscription} />
               <GraphExercise
                 isSameXAxis={false}
@@ -121,22 +132,22 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
                 initialType={props.settings.graphsSettings.defaultType}
                 dispatch={props.dispatch}
               />
-            </div>
+            </View>
           )}
           {showPrs && (
-            <div className="mx-4 mt-2">
+            <View className="mx-4 mt-2">
               <ExerciseAllTimePRs
                 maxWeight={maxWeight ? { weight: maxWeight, historyRecord: maxWeightHistoryRecord } : undefined}
                 max1RM={max1RM ? { weight: max1RM, historyRecord: max1RMHistoryRecord, set: max1RMSet } : undefined}
                 settings={props.settings}
                 dispatch={props.dispatch}
               />
-            </div>
+            </View>
           )}
         </>
       )}
-      {history.length > 0 && (
-        <div className="mx-4 mt-2">
+      {history.length > 0 && isHeavyContentReady && (
+        <View className="mx-4 mt-2">
           <ExerciseHistory
             surfaceRef={surfaceRef}
             exerciseType={exerciseType}
@@ -144,8 +155,10 @@ export function WorkoutExercise(props: IWorkoutExerciseProps): JSX.Element {
             dispatch={props.dispatch}
             history={history}
           />
-        </div>
+        </View>
       )}
-    </div>
+    </View>
   );
 }
+
+export const WorkoutExercise = memo(WorkoutExerciseInner);

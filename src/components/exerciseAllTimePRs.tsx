@@ -1,4 +1,6 @@
-import type { JSX } from "react";
+import { JSX, memo } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, ISet, ISettings, IWeight } from "../types";
 import { Weight_display, Weight_convertTo, Weight_build } from "../models/weight";
@@ -14,11 +16,11 @@ interface IExerciseAllTimePRsProps {
   max1RM?: { weight: IWeight; set?: ISet; historyRecord?: IHistoryRecord };
 }
 
-export function ExerciseAllTimePRs(props: IExerciseAllTimePRsProps): JSX.Element {
+function ExerciseAllTimePRsInner(props: IExerciseAllTimePRsProps): JSX.Element {
   const { maxWeight, max1RM } = props;
 
   return (
-    <section data-cy="exercise-stats-pr" className="px-4 py-2 bg-background-cardpurple rounded-2xl">
+    <View data-cy="exercise-stats-pr" className="px-4 py-2 bg-background-cardpurple rounded-2xl">
       <GroupHeader topPadding={false} name="🏆 Personal Records" />
       {maxWeight && (
         <MenuItem
@@ -26,14 +28,16 @@ export function ExerciseAllTimePRs(props: IExerciseAllTimePRsProps): JSX.Element
           expandName={true}
           onClick={() => maxWeight.historyRecord && props.dispatch(Thunk_editHistoryRecord(maxWeight.historyRecord))}
           value={
-            <div className="text-text-primary">
-              <div data-cy="max-weight-value">
+            <View>
+              <Text className="text-text-primary text-right" data-cy="max-weight-value">
                 {Weight_display(Weight_convertTo(maxWeight.weight, props.settings.units))}
-              </div>
+              </Text>
               {maxWeight.historyRecord && (
-                <div className="text-xs text-text-secondary">{DateUtils_format(maxWeight.historyRecord.startTime)}</div>
+                <Text className="text-xs text-text-secondary text-right">
+                  {DateUtils_format(maxWeight.historyRecord.startTime)}
+                </Text>
               )}
-            </div>
+            </View>
           }
           shouldShowRightArrow={true}
         />
@@ -45,21 +49,25 @@ export function ExerciseAllTimePRs(props: IExerciseAllTimePRsProps): JSX.Element
           onClick={() => max1RM.historyRecord && props.dispatch(Thunk_editHistoryRecord(max1RM.historyRecord))}
           name="Max 1RM"
           value={
-            <div className="text-text-primary">
-              <div data-cy="one-rm-value">
+            <View>
+              <Text className="text-text-primary text-right" data-cy="one-rm-value">
                 {Weight_display(Weight_convertTo(max1RM.weight, props.settings.units))}
                 {max1RM.set
                   ? ` (${max1RM.set.completedReps} x ${Weight_display(max1RM.set.completedWeight ?? max1RM.set.weight ?? Weight_build(0, props.settings.units))})`
                   : ""}
-              </div>
+              </Text>
               {max1RM.historyRecord && (
-                <div className="text-xs text-text-secondary">{DateUtils_format(max1RM.historyRecord.startTime)}</div>
+                <Text className="text-xs text-text-secondary text-right">
+                  {DateUtils_format(max1RM.historyRecord.startTime)}
+                </Text>
               )}
-            </div>
+            </View>
           }
           shouldShowRightArrow={true}
         />
       )}
-    </section>
+    </View>
   );
 }
+
+export const ExerciseAllTimePRs = memo(ExerciseAllTimePRsInner);

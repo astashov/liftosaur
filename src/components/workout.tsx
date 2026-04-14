@@ -1,4 +1,13 @@
 import { JSX, useEffect, useRef, useState } from "react";
+import {
+  View,
+  ScrollView,
+  Pressable,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+  useWindowDimensions,
+} from "react-native";
+import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, IProgram, ISettings, IStats, ISubscription } from "../types";
 import { IState, updateProgress, updateState } from "../models/state";
@@ -29,7 +38,7 @@ import { Scroller } from "./scroller";
 import { WorkoutExerciseThumbnail } from "./workoutExerciseThumbnail";
 import { IconShare } from "./icons/iconShare";
 import { Markdown } from "./markdown";
-import { DraggableList } from "./draggableList";
+import { DraggableList2 } from "./draggableList2";
 import { LinkButton } from "./linkButton";
 import { Button } from "./button";
 import { ImagePreloader_preload, ImagePreloader_dynohappy } from "../utils/imagePreloader";
@@ -37,6 +46,7 @@ import { navigationRef } from "../navigation/navigationRef";
 import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
 import { History_calories, History_pauseWorkout } from "../models/history";
 import { SendMessage_toIosAndAndroid, SendMessage_isIos } from "../utils/sendMessage";
+import { Dialog_confirm } from "../utils/dialog";
 
 interface IWorkoutViewProps {
   history: IHistoryRecord[];
@@ -56,8 +66,30 @@ interface IWorkoutViewProps {
 export function Workout(props: IWorkoutViewProps): JSX.Element {
   const selectedEntry = props.progress.entries[props.progress.ui?.currentEntryIndex ?? 0];
   const description = props.programDay?.description;
-  const screensRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<ScrollView>(null);
   const forceUpdateEntryIndex = !!props.progress.ui?.forceUpdateEntryIndex;
+  const { width: windowWidth } = useWindowDimensions();
+  const currentEntryIndex = props.progress.ui?.currentEntryIndex ?? 0;
+
+  const [renderedIndices, setRenderedIndices] = useState<ReadonlySet<number>>(() => {
+    const s = new Set<number>();
+    for (let i = Math.max(0, currentEntryIndex - 1); i <= currentEntryIndex + 1; i++) {
+      s.add(i);
+    }
+    return s;
+  });
+  useEffect(() => {
+    setRenderedIndices((prev) => {
+      if (prev.has(currentEntryIndex - 1) && prev.has(currentEntryIndex) && prev.has(currentEntryIndex + 1)) {
+        return prev;
+      }
+      const next = new Set(prev);
+      for (let i = Math.max(0, currentEntryIndex - 1); i <= currentEntryIndex + 1; i++) {
+        next.add(i);
+      }
+      return next;
+    });
+  }, [currentEntryIndex]);
 
   useEffect(() => {
     ImagePreloader_preload(ImagePreloader_dynohappy);
@@ -71,14 +103,41 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
   }, []);
 
   useEffect(() => {
-    screensRef.current?.scrollTo({
-      left: (props.progress.ui?.currentEntryIndex ?? 0) * window.innerWidth,
-      behavior: "instant",
-    });
-  }, [forceUpdateEntryIndex]);
+    scrollRef.current?.scrollTo({ x: currentEntryIndex * windowWidth, animated: false });
+  }, [forceUpdateEntryIndex, windowWidth]);
+
+  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>): void => {
+    if (windowWidth <= 0) {
+      return;
+    }
+    const scrollLeft = e.nativeEvent.contentOffset.x;
+    const selectedIndex = Math.floor((scrollLeft + windowWidth / 2) / windowWidth);
+    if (selectedIndex === currentEntryIndex) {
+      return;
+    }
+    if (!props.progress.ui?.isExternal) {
+      updateProgress(
+        props.dispatch,
+        lb<IHistoryRecord>().pi("ui", {}).p("currentEntryIndex").record(selectedIndex),
+        "scroll-exercise-tab"
+      );
+    } else {
+      updateProgress(
+        props.dispatch,
+        [
+          lb<IHistoryRecord>().pi("ui", {}).p("isExternal").record(false),
+          lb<IHistoryRecord>()
+            .pi("ui", {})
+            .p("forceUpdateEntryIndex")
+            .recordModify((v) => !v),
+        ],
+        "scroll-exercise-tab-external"
+      );
+    }
+  };
 
   return (
-    <section className="pb-8">
+    <View className="pb-8">
       <WorkoutHeader
         description={description}
         progress={props.progress}
@@ -110,71 +169,44 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
         }}
       />
       {selectedEntry != null && (
-        <div className="mt-2">
-          <div
-            className="flex overflow-x-scroll overflow-y-hidden parent-scroller"
-            ref={screensRef}
-            onScroll={() => {
-              const scrollLeft = screensRef.current?.scrollLeft ?? 0;
-              const windowWidth = window.innerWidth;
-              const selectedIndex = Math.floor((scrollLeft + windowWidth / 2) / windowWidth);
-              if (selectedIndex !== (props.progress.ui?.currentEntryIndex ?? 0)) {
-                if (!props.progress.ui?.isExternal) {
-                  updateProgress(
-                    props.dispatch,
-                    lb<IHistoryRecord>().pi("ui", {}).p("currentEntryIndex").record(selectedIndex),
-                    "scroll-exercise-tab"
-                  );
-                } else {
-                  updateProgress(
-                    props.dispatch,
-                    [
-                      lb<IHistoryRecord>().pi("ui", {}).p("isExternal").record(false),
-                      lb<IHistoryRecord>()
-                        .pi("ui", {})
-                        .p("forceUpdateEntryIndex")
-                        .recordModify((v) => !v),
-                    ],
-                    "scroll-exercise-tab-external"
-                  );
-                }
-              }
-            }}
-            style={{
-              WebkitOverflowScrolling: "touch",
-              scrollSnapType: "x mandatory",
-            }}
+        <View className="mt-2">
+          <ScrollView
+            ref={scrollRef}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            onScroll={onScroll}
+            scrollEventThrottle={16}
           >
             {props.progress.entries.map((entry, entryIndex) => {
+              const shouldRender = renderedIndices.has(entryIndex);
               return (
-                <div
-                  key={entryIndex}
-                  style={{ minWidth: "100vw", scrollSnapAlign: "center", scrollSnapStop: "always" }}
-                >
-                  <WorkoutExercise
-                    day={props.progress.day}
-                    key={entry.id}
-                    stats={props.stats}
-                    history={props.history}
-                    otherStates={props.program?.states}
-                    entryIndex={entryIndex}
-                    program={props.program}
-                    programDay={props.programDay}
-                    progress={props.progress}
-                    showHelp={true}
-                    helps={props.helps}
-                    entry={entry}
-                    subscription={props.subscription}
-                    settings={props.settings}
-                    dispatch={props.dispatch}
-                  />
-                </div>
+                <View key={entry.id} style={{ width: windowWidth }}>
+                  {shouldRender ? (
+                    <WorkoutExercise
+                      day={props.progress.day}
+                      stats={props.stats}
+                      history={props.history}
+                      otherStates={props.program?.states}
+                      entryIndex={entryIndex}
+                      program={props.program}
+                      programDay={props.programDay}
+                      progress={props.progress}
+                      showHelp={true}
+                      helps={props.helps}
+                      entry={entry}
+                      subscription={props.subscription}
+                      settings={props.settings}
+                      dispatch={props.dispatch}
+                    />
+                  ) : null}
+                </View>
               );
             })}
-          </div>
-        </div>
+          </ScrollView>
+        </View>
       )}
-    </section>
+    </View>
   );
 }
 
@@ -194,127 +226,115 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
   const currentProgram = props.allPrograms.find((p) => p.id === props.program?.id);
   const isEligibleForProgramDay =
     !Progress_isCurrent(props.progress) && props.allPrograms.every((p) => p.id !== props.progress.programId);
+
+  const onFinish = async (): Promise<void> => {
+    const isFullyFinished = Progress_isCurrent(props.progress) && Progress_isFullyFinishedSet(props.progress);
+    if (!isFullyFinished) {
+      const confirmed = await Dialog_confirm(
+        Progress_isCurrent(props.progress)
+          ? "Are you sure you want to FINISH this workout? Some sets are not marked as completed."
+          : "Are you sure you want to SAVE this PAST workout?"
+      );
+      if (!confirmed) {
+        return;
+      }
+    }
+    SendMessage_toIosAndAndroid({ type: "pauseWorkout" });
+    props.dispatch(Thunk_finishProgramDay());
+    if (Progress_isCurrent(props.progress)) {
+      props.dispatch(Thunk_postevent("finish-workout", { workout: JSON.stringify(props.progress) }));
+      const healthName = SendMessage_isIos() ? "Apple Health" : "Google Health";
+      const isHealthEligible =
+        (HealthSync_eligibleForAppleHealth() && props.settings.appleHealthSyncWorkout) ||
+        (HealthSync_eligibleForGoogleHealth() && props.settings.googleHealthSyncWorkout);
+      const shouldSyncToHealth =
+        isHealthEligible &&
+        (!props.settings.healthConfirmation ||
+          (await Dialog_confirm(`Do you want to sync this workout to ${healthName}?`)));
+      SendMessage_toIosAndAndroid({
+        type: "finishWorkout",
+        healthSync: shouldSyncToHealth ? "true" : "false",
+        calories: `${History_calories(props.progress)}`,
+        intervals: JSON.stringify(History_pauseWorkout(props.progress.intervals)),
+      });
+    }
+  };
+
   return (
-    <div className="px-4">
-      <div className="flex gap-4">
-        <div className="flex-1 mr-2 align-middle">
-          <div className="text-sm font-semibold">{props.progress?.dayName}</div>
-          <div data-cy="day-name" className="text-sm text-text-secondary">
+    <View className="px-4">
+      <View className="flex-row gap-4">
+        <View className="flex-1 mr-2">
+          <Text className="text-sm font-semibold">{props.progress?.dayName}</Text>
+          <Text data-cy="day-name" className="text-sm text-text-secondary">
             {props.progress?.programName}
-          </div>
-        </div>
-        <div className="flex gap-2 align-middle">
+          </Text>
+        </View>
+        <View className="flex-row items-center gap-2">
           {isEligibleForProgramDay && (
-            <div>
-              <Button
-                kind="purple"
-                buttonSize="md"
-                data-cy="save-to-program"
-                name="save-to-program"
-                onClick={() => {
-                  if (props.onConvertToProgram != null) {
-                    props.onConvertToProgram();
-                  }
-                }}
-              >
-                Create Program Day
-              </Button>
-            </div>
-          )}
-          {!Progress_isCurrent(props.progress) && (
-            <div>
-              <ButtonIcon
-                name="past-workout-share"
-                className="ls-past-workout-share"
-                onClick={() => {
-                  props.onShare?.();
-                }}
-              >
-                <IconShare />
-              </ButtonIcon>
-            </div>
-          )}
-          {program && !Program_isEmpty(program) && (
-            <div>
-              <ButtonIcon
-                onClick={() => {
-                  updateState(
-                    props.dispatch,
-                    [
-                      lb<IState>()
-                        .p("muscleView")
-                        .record({ type: "day", programId: program.id, day: props.progress.day }),
-                    ],
-                    "Show muscle view"
-                  );
-                  props.dispatch(Thunk_pushScreen("muscles"));
-                }}
-                name="workout-day-muscles"
-              >
-                <IconMuscles2 />
-              </ButtonIcon>
-            </div>
-          )}
-          {program && currentProgram && !Program_isEmpty(currentProgram) && (
-            <div>
-              <ButtonIcon
-                name="workout-edit-day"
-                onClick={() => {
-                  const dayData = Program_getDayData(program, props.progress.day);
-                  Program_editAction(props.dispatch, currentProgram, dayData, undefined, { tab: "program" });
-                }}
-              >
-                <IconEdit2 />
-              </ButtonIcon>
-            </div>
-          )}
-          <div>
             <Button
-              name={Progress_isCurrent(props.progress) ? "finish-workout" : "save-history-record"}
               kind="purple"
               buttonSize="md"
-              data-cy="finish-workout"
-              className={Progress_isCurrent(props.progress) ? "ls-finish-workout" : "ls-save-history-record"}
+              data-cy="save-to-program"
+              name="save-to-program"
+              onClick={() => props.onConvertToProgram?.()}
+            >
+              Create Program Day
+            </Button>
+          )}
+          {!Progress_isCurrent(props.progress) && (
+            <ButtonIcon name="past-workout-share" onClick={() => props.onShare?.()}>
+              <IconShare />
+            </ButtonIcon>
+          )}
+          {program && !Program_isEmpty(program) && (
+            <ButtonIcon
+              name="workout-day-muscles"
               onClick={() => {
-                if (
-                  (Progress_isCurrent(props.progress) && Progress_isFullyFinishedSet(props.progress)) ||
-                  confirm(
-                    Progress_isCurrent(props.progress)
-                      ? "Are you sure you want to FINISH this workout? Some sets are not marked as completed."
-                      : "Are you sure you want to SAVE this PAST workout?"
-                  )
-                ) {
-                  SendMessage_toIosAndAndroid({ type: "pauseWorkout" });
-                  props.dispatch(Thunk_finishProgramDay());
-                  if (Progress_isCurrent(props.progress)) {
-                    props.dispatch(Thunk_postevent("finish-workout", { workout: JSON.stringify(props.progress) }));
-                    const healthName = SendMessage_isIos() ? "Apple Health" : "Google Health";
-                    const shouldSyncToHealth =
-                      ((HealthSync_eligibleForAppleHealth() && props.settings.appleHealthSyncWorkout) ||
-                        (HealthSync_eligibleForGoogleHealth() && props.settings.googleHealthSyncWorkout)) &&
-                      (!props.settings.healthConfirmation ||
-                        confirm(`Do you want to sync this workout to ${healthName}?`));
-                    SendMessage_toIosAndAndroid({
-                      type: "finishWorkout",
-                      healthSync: shouldSyncToHealth ? "true" : "false",
-                      calories: `${History_calories(props.progress)}`,
-                      intervals: JSON.stringify(History_pauseWorkout(props.progress.intervals)),
-                    });
-                  }
-                }
+                updateState(
+                  props.dispatch,
+                  [
+                    lb<IState>()
+                      .p("muscleView")
+                      .record({ type: "day", programId: program.id, day: props.progress.day }),
+                  ],
+                  "Show muscle view"
+                );
+                props.dispatch(Thunk_pushScreen("muscles"));
               }}
             >
-              {Progress_isCurrent(props.progress) ? "Finish" : "Save"}
-            </Button>
-          </div>
-        </div>
-      </div>
+              <IconMuscles2 />
+            </ButtonIcon>
+          )}
+          {program && currentProgram && !Program_isEmpty(currentProgram) && (
+            <ButtonIcon
+              name="workout-edit-day"
+              onClick={() => {
+                const dayData = Program_getDayData(program, props.progress.day);
+                Program_editAction(props.dispatch, currentProgram, dayData, undefined, { tab: "program" });
+              }}
+            >
+              <IconEdit2 />
+            </ButtonIcon>
+          )}
+          <Button
+            name={Progress_isCurrent(props.progress) ? "finish-workout" : "save-history-record"}
+            kind="purple"
+            buttonSize="md"
+            data-cy="finish-workout"
+            onClick={() => {
+              onFinish().catch(() => undefined);
+            }}
+          >
+            {Progress_isCurrent(props.progress) ? "Finish" : "Save"}
+          </Button>
+        </View>
+      </View>
       {props.description && (
-        <div className={`mt-1 text-sm ${props.progress.notes ? "border-b border-background-subtle mb-1 pb-1" : ""}`}>
+        <View className={`mt-1 ${props.progress.notes ? "border-b border-background-subtle mb-1 pb-1" : ""}`}>
           <Markdown value={props.description} />
-        </div>
+        </View>
       )}
-      <div className="">
+      <View>
         <TextareaAutogrow
           data-cy="workout-notes-input"
           id="workout-notes"
@@ -328,8 +348,8 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
           }}
           className="mt-1"
         />
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }
 
@@ -343,9 +363,11 @@ interface IWorkoutListOfExercisesProps {
 function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Element {
   const [enableReorder, setEnableReorder] = useState(false);
   const colorToSupersetGroup = Progress_getColorToSupersetGroup(props.progress);
+  const currentEntryIndex = props.progress.ui?.currentEntryIndex ?? 0;
+  const currentSuperset = props.progress.entries[currentEntryIndex]?.superset;
   return (
     <>
-      <div className="mr-2 leading-none text-right safe-area-inset-top-compensate">
+      <View className="items-end mr-2">
         <LinkButton
           className="px-2 py-1 text-xs"
           name="reorder-workout-exercises"
@@ -353,93 +375,87 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
         >
           {enableReorder ? "Finish Reordering" : "Reorder Exercises"}
         </LinkButton>
-      </div>
-      <div className="sticky top-0 left-0 z-30">
-        <div className="py-1 border-b bg-background-default border-background-subtle">
-          <Scroller>
-            <div className="flex items-center gap-1 px-4">
-              <DraggableList
-                isDisabled={!enableReorder}
-                hideBorders={true}
-                mode="horizontal"
-                onClick={props.onClick}
-                items={props.progress.entries}
-                element={(entry, entryIndex, handleTouchStart, onClick) => {
-                  return (
-                    <WorkoutExerciseThumbnail
-                      colorToSupersetGroup={colorToSupersetGroup}
-                      onClick={() => {
-                        if (!enableReorder) {
-                          props.onClick(entryIndex);
-                        }
-                      }}
-                      handleTouchStart={handleTouchStart}
-                      shouldShowProgress={true}
-                      selectedIndex={props.progress.ui?.currentEntryIndex ?? 0}
-                      key={entryIndex}
-                      progress={props.progress}
-                      settings={props.settings}
-                      entry={entry}
-                      entryIndex={entryIndex}
-                    />
-                  );
-                }}
-                onDragEnd={(startIndex, endIndex) => {
-                  updateProgress(
-                    props.dispatch,
-                    [
-                      lb<IHistoryRecord>()
-                        .p("changes")
-                        .recordModify((changes) => {
-                          return Array.from(new Set([...(changes || []), "order"]));
-                        }),
-                      lb<IHistoryRecord>()
-                        .p("entries")
-                        .recordModify((entries) => {
-                          const newEntries = [...entries];
-                          const [entriesToMove] = newEntries.splice(startIndex, 1);
-                          newEntries.splice(endIndex, 0, entriesToMove);
-                          return newEntries.map((e, i) => ({ ...e, index: i }));
-                        }),
-                    ],
-                    "drag-exercise-tab"
-                  );
-                  setTimeout(() => {
-                    props.onClick(endIndex);
-                  }, 0);
-                }}
-              />
-              <button
-                name="add-exercise-to-workout"
-                data-cy="add-exercise-button"
-                className="p-2 nm-add-exercise-to-workout"
-                onClick={() => {
-                  updateState(
-                    props.dispatch,
-                    [
-                      Progress_lbProgress(props.progress.id)
-                        .pi("ui", {})
-                        .p("exercisePicker")
-                        .record({
-                          state: {
-                            mode: "workout",
-                            screenStack: ["exercisePicker"],
-                            sort: "name_asc",
-                            filters: {},
-                            selectedExercises: [],
-                          },
-                        }),
-                    ],
-                    "Open exercise picker"
-                  );
-                }}
-              >
-                <IconPlus2 size={15} color={Tailwind_colors().lightgray[600]} />
-              </button>
-            </div>
-          </Scroller>
-        </div>
-      </div>
+      </View>
+      <View className="py-1 border-b bg-background-default border-background-subtle">
+        <Scroller>
+          <View className="flex-row items-center gap-1 px-4">
+            <DraggableList2
+              isDisabled={!enableReorder}
+              mode="horizontal"
+              items={props.progress.entries}
+              element={(entry, entryIndex, dragHandle) => {
+                const thumbnail = (
+                  <WorkoutExerciseThumbnail
+                    colorToSupersetGroup={colorToSupersetGroup}
+                    onClick={() => {
+                      if (!enableReorder) {
+                        props.onClick(entryIndex);
+                      }
+                    }}
+                    shouldShowProgress={true}
+                    selectedIndex={currentEntryIndex}
+                    isCurrent={entryIndex === currentEntryIndex}
+                    currentSuperset={currentSuperset}
+                    settings={props.settings}
+                    entry={entry}
+                    entryIndex={entryIndex}
+                  />
+                );
+                return enableReorder ? dragHandle(thumbnail) : thumbnail;
+              }}
+              onDragEnd={(startIndex, endIndex) => {
+                updateProgress(
+                  props.dispatch,
+                  [
+                    lb<IHistoryRecord>()
+                      .p("changes")
+                      .recordModify((changes) => Array.from(new Set([...(changes || []), "order"]))),
+                    lb<IHistoryRecord>()
+                      .p("entries")
+                      .recordModify((entries) => {
+                        const newEntries = [...entries];
+                        const [entriesToMove] = newEntries.splice(startIndex, 1);
+                        newEntries.splice(endIndex, 0, entriesToMove);
+                        return newEntries.map((e, i) => ({ ...e, index: i }));
+                      }),
+                  ],
+                  "drag-exercise-tab"
+                );
+                setTimeout(() => {
+                  props.onClick(endIndex);
+                }, 0);
+              }}
+            />
+            <Pressable
+              testID="add-exercise-button"
+              data-cy="add-exercise-button"
+              className="p-2"
+              onPress={() => {
+                updateState(
+                  props.dispatch,
+                  [
+                    Progress_lbProgress(props.progress.id)
+                      .pi("ui", {})
+                      .p("exercisePicker")
+                      .record({
+                        state: {
+                          mode: "workout",
+                          screenStack: ["exercisePicker"],
+                          sort: "name_asc",
+                          filters: {},
+                          selectedExercises: [],
+                        },
+                      }),
+                  ],
+                  "Open exercise picker"
+                );
+              }}
+            >
+              <IconPlus2 size={15} color={Tailwind_colors().lightgray[600]} />
+            </Pressable>
+          </View>
+        </Scroller>
+      </View>
     </>
   );
 }

@@ -542,3 +542,198 @@ Use `step` for discrete snapping. The component takes a simple `{ value, min, ma
 ## Turbo Modules (RN 0.84+)
 
 Must use ObjC++ with codegen, not Swift or legacy bridge. See memory `feedback_turbo_modules.md` for details.
+
+## Gesture Handler (RNGH v2)
+
+### Callbacks are worklets — wrap JS calls with `runOnJS`
+
+`Gesture.Pan().onStart / .onUpdate / .onEnd` run on the UI thread as worklets. Calling a regular JS function (including `setState`) directly from them throws *"Tried to synchronously call a non-worklet function on the UI thread."* Wrap every JS call with `runOnJS`:
+
+```tsx
+import { runOnJS } from "react-native-reanimated";
+
+const updateCursor = useCallback((x: number) => setCursorIdx(findIdx(x)), [findIdx]);
+
+const pan = Gesture.Pan()
+  .onStart((e) => { runOnJS(updateCursor)(e.x); })
+  .onUpdate((e) => { runOnJS(updateCursor)(e.x); });
+```
+
+Reading/writing shared values (`sharedValue.value`) inside the worklet is fine — only plain JS calls need `runOnJS`.
+
+### Coordinating Pan with ScrollView
+
+A child `Gesture.Pan()` inside a ScrollView competes with the native scroll recognizer. Two key patterns:
+
+- **`.activateAfterLongPress(150)`** — Pan only activates after a 150ms hold. Quick vertical swipes scroll the ScrollView normally; long-press engages the child Pan.
+- **`.minPointers(2).maxPointers(2)`** — two-finger gestures (pan/pinch for zoom) activate immediately without conflicting with scroll, since scroll uses single-finger drag.
+
+### `scrollEnabled={false}` ≠ layout-shift protection
+
+Disabling ScrollView scroll prevents scroll *gestures* but does NOT prevent `contentOffset` clamping when `contentSize` shrinks (e.g. dynamic content below the viewport getting smaller). The visible viewport can still jump up. For full stability, either keep `contentSize` constant (absolute-positioned overlays) or reserve large enough buffer below.
+
+### Tooltip / Overlay Pattern (Avoiding Layout Shifts)
+
+When content height varies during interaction (chart legend, popover, etc.), inline layout flow causes visible reflow. Render the variable content as an **absolutely-positioned overlay** on top of the stable content — zero layout impact, no reflow, no scroll jumps.
+
+For exclusive activation (only one overlay visible at a time across siblings), use a small context:
+
+```tsx
+// activeGraphContext.ts
+export const ActiveGraphContext = createContext<{ activeId: string | null; setActive: (id: string | null) => void }>({
+  activeId: null,
+  setActive: () => undefined,
+});
+```
+
+Each interactive child reads `activeId === myId` and clears its own state via a `useEffect` when it stops being active. Starting interaction on another graph calls `setActive(otherId)`, which switches exclusivity automatically.
+
+## High-Frequency State Updates Cause Text to Lose Styling
+
+Rapid `setState` in a parent (e.g. cursor tracking at user-drag rate) re-renders the whole subtree. NativeWind's CssInterop runs ~1ms per `className`'d View per render; at high update rates it can't keep up and unrelated `<Text>`s may render with stale/no styles — they look "removed" mid-interaction even though they never unmount.
+
+**Fix: isolate the frequently-updating state into the smallest possible subcomponent.** Siblings (title, Select, etc.) then stay stable across updates.
+
+```tsx
+function GraphExercise(props) {
+  const [selectedType, setSelectedType] = useState(...);
+  // Title + Select here — never re-render from cursor
+  return (
+    <View>
+      <TitleAndSelect ... />
+      <ChartAndLegend selectedType={selectedType} ... />  // cursorIdx lives inside
+    </View>
+  );
+}
+```
+
+## Text Layout Pitfalls
+
+### `flex-*` classes on `<Text>` break layout
+
+React Native `Text` does NOT lay its children out with flex — children flow as inline text runs. Putting `flex-row flex-wrap items-center` on `<Text>` is ignored by layout but still processed by NativeWind; this can produce layout instability, especially when the container's height changes dynamically (e.g. content crossing `minHeight`), and has been observed to cause text rendering glitches.
+
+Use `<View flex-row flex-wrap>` for flex layout; keep `<Text>` for pure text.
+
+### `<Pressable>` inside `<Text>` is fragile
+
+Don't nest a `Pressable` inside a `Text`. Put both inside a `<View flex-row flex-wrap>` so the Pressable is a sibling of the Text, not a child.
+
+### `box-content` is a no-op
+
+Tailwind's `box-content` sets `box-sizing: content-box`. RN doesn't honor CSS box-sizing — remove the class.
+
+## Imperative API on Components (forwardRef + useImperativeHandle)
+
+When the parent needs to trigger an action on a child (clear cursor, scroll to item), expose a handle:
+
+```tsx
+export interface ILineChartHandle { clearCursor: () => void }
+
+export const LineChart = forwardRef<ILineChartHandle, IProps>(function LineChart(props, ref) {
+  const [cursorIdx, setCursorIdx] = useState<number | null>(null);
+  useImperativeHandle(ref, () => ({ clearCursor: () => setCursorIdx(null) }), []);
+  ...
+});
+
+// Parent:
+const ref = useRef<ILineChartHandle>(null);
+<LineChart ref={ref} ... />
+// Later: ref.current?.clearCursor();
+```
+
+## Expand/Collapse Animation with LayoutAnimation
+
+For simple dynamic-size animations (e.g. GroupHeader toggling its content), `LayoutAnimation` works cross-platform (including react-native-web) without reanimated:
+
+```tsx
+import { LayoutAnimation, Platform, UIManager } from "react-native";
+
+function onToggle() {
+  if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
+  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+  setExpanded((v) => !v);
+}
+```
+
+## Cross-Platform SVG Charts
+
+`react-native-svg` has web support; use via `./primitives/svg` (`svg.tsx` uses raw DOM `createElement("svg"|"path"|...)`, `svg.native.tsx` re-exports from `react-native-svg`). Chart props (`stroke`, `strokeWidth`, `fill`, `strokeDasharray`, `transform="rotate(90, x, y)"`, etc.) work identically on both.
+
+Attribute naming: use camelCase on SVG elements (`strokeWidth`, not `stroke-width`). `<circle>` `transform="matrix(-1 0 0 1 x y)"` mirror transforms can be simplified to direct `cx`/`cy` since mirroring a circle is visually a no-op.
+
+For interactive charts, combine SVG rendering with `GestureDetector`. Keep cursor and viewport as React state (not reanimated shared values) — adequate performance for typical chart sizes (≤500 points) and simpler code. Expose imperative API (e.g. `clearCursor`) via `forwardRef` for parent-driven resets.
+
+## Cross-Platform Draggable List (gesture-handler + reanimated)
+
+Both libraries work on RN Web, so drag-and-drop reorder can be a single `.tsx`. Pattern used in `DraggableList2`:
+
+- `Gesture.Pan().activateAfterLongPress(150)` — doesn't fight scroll
+- Per-item `translateY` shared value for the dragged item
+- Per-item `shiftY` shared value for other items making space (animated via `withTiming` during drag, instant reset on drop)
+- **`useLayoutEffect` (not `useEffect`)** to reset shared values synchronously after React commits the reorder — `useEffect` runs after paint and produces a visible flash
+- **Don't reset `translateY` in the worklet `onEnd`** — the UI-thread reset fires *before* React re-renders with the new item order, causing a "snap back to initial position" flash. Let `useLayoutEffect` handle it after the reorder.
+
+When introducing a new cross-platform version (e.g. `DraggableList2`), keep the legacy DOM-based one alongside so existing consumers aren't forced to migrate in one go.
+
+## SSR / Lambda Stubs for RN-Only Libraries
+
+`register-rn-web.js` aliases `react-native` → `react-native-web` for ts-node SSR. But `react-native-gesture-handler` and `react-native-reanimated` use `TurboModuleRegistry.getEnforcing` at import time, which crashes in Node:
+
+```
+TypeError: Cannot read properties of undefined (reading 'getEnforcing')
+  at .../react-native-gesture-handler/src/specs/NativeRNGestureHandlerModule.ts
+```
+
+Any cross-platform component using these libraries will be pulled into lambda SSR (e.g. `user.tsx` / `record.tsx` → `UserHtml` → `GraphExercise` → `LineChart` → RNGH).
+
+Fix: add Node-safe stub modules and alias them in `register-rn-web.js`:
+
+- `src/utils/rnStubs/gestureHandler.js` — chainable no-op `Gesture.Pan()`/`Pinch()`/... builders (each method returns the builder), pass-through `GestureDetector` and `GestureHandlerRootView` that render their children
+- `src/utils/rnStubs/reanimated.js` — `useSharedValue(v) → { value: v }`, `useAnimatedStyle() → {}`, `runOnJS(fn) → fn`, `withTiming(v) → v`, pass-through `Animated.View`, etc.
+
+In `register-rn-web.js`:
+
+```js
+const gestureHandlerStub = path.join(__dirname, "src/utils/rnStubs/gestureHandler.js");
+const reanimatedStub = path.join(__dirname, "src/utils/rnStubs/reanimated.js");
+
+Module._resolveFilename = function (request, parent, isMain, options) {
+  if (request === "react-native" || request.startsWith("react-native/")) {
+    return origResolve.call(this, "react-native-web", parent, isMain, options);
+  }
+  if (request === "react-native-gesture-handler" || request.startsWith("react-native-gesture-handler/")) {
+    return gestureHandlerStub;
+  }
+  if (request === "react-native-reanimated" || request.startsWith("react-native-reanimated/")) {
+    return reanimatedStub;
+  }
+  return origResolve.call(this, request, parent, isMain, options);
+};
+```
+
+The lambda now renders SVG charts statically (no interactivity) without touching native-only modules.
+
+## Select Primitive (Dropdown)
+
+`src/components/primitives/select.tsx` + `.native.tsx` pair:
+
+- **Web**: `React.createElement("select", { value, onChange }, options.map(o => createElement("option", ...)))`
+- **Native**: `Pressable` that shows label + opens `ActionSheetIOS.showActionSheetWithOptions`
+
+Simple `{ value, options: Array<{ value, label }>, onChange, className }` API — consumers don't deal with HTML events vs. native pickers.
+
+## Alpha / Semi-Transparent Colors
+
+NativeWind's slash-opacity syntax `bg-color-name/50` does not work reliably on RN for custom theme colors (in some setups it renders as fully transparent). Use `Colors_hexToRgba(hex, alpha)` from `src/utils/colors.ts` with the resolved theme color:
+
+```tsx
+import { Colors_hexToRgba } from "../utils/colors";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
+
+style={{ backgroundColor: Colors_hexToRgba(Tailwind_semantic().background.subtlecardpurple, 0.5) }}
+```
+
+This produces `rgba(r, g, b, 0.5)` that RN accepts directly.

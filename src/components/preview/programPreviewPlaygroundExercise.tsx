@@ -221,7 +221,6 @@ function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.El
             isPlayground={true}
             day={dayData.day}
             isCurrentProgress={true}
-            progress={props.progress}
             program={props.program}
             programExercise={props.programExercise}
             stats={props.stats}

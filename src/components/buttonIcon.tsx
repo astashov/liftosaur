@@ -1,17 +1,24 @@
-import React, { JSX } from "react";
+import { JSX, ReactNode } from "react";
+import { GestureResponderEvent, Pressable } from "react-native";
 
-interface IButtonIconProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface IButtonIconProps {
   name: string;
+  onClick?: (e: GestureResponderEvent) => void;
+  onPress?: (e: GestureResponderEvent) => void;
+  className?: string;
+  children?: ReactNode;
+  "data-cy"?: string;
 }
 
 export function ButtonIcon(props: IButtonIconProps): JSX.Element {
-  const { name, children, className, ...rest } = props;
   return (
-    <button
-      className={`${className || ""} cursor-pointer min-h-8 leading-6 w-8 h-8 flex items-center justify-center bg-background-cardpurple border-border-cardpurple border rounded-lg nm-${name}`}
-      {...rest}
+    <Pressable
+      testID={props["data-cy"] ?? `nm-${props.name}`}
+      data-cy={props["data-cy"]}
+      className={`${props.className || ""} min-h-8 w-8 h-8 items-center justify-center bg-background-cardpurple border-border-cardpurple border rounded-lg`}
+      onPress={props.onPress ?? props.onClick}
     >
-      {children}
-    </button>
+      {props.children}
+    </Pressable>
   );
 }

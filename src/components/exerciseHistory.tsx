@@ -1,4 +1,7 @@
-import { JSX, Fragment, RefObject, memo, useState } from "react";
+import { JSX, Fragment, RefObject, memo, useEffect, useState } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
+import { Pressable } from "react-native";
 import { IDispatch } from "../ducks/types";
 import { IExerciseType, IHistoryRecord, ISettings } from "../types";
 import { Weight_print, Weight_is, Weight_isPct, Weight_display } from "../models/weight";
@@ -20,7 +23,7 @@ import { ComparerUtils_noFns } from "../utils/comparer";
 import { Thunk_editHistoryRecord } from "../ducks/thunks";
 
 interface IExerciseHistoryProps {
-  surfaceRef: RefObject<HTMLElement | null>;
+  surfaceRef: RefObject<{ clientHeight?: number } | null>;
   exerciseType: IExerciseType;
   settings: ISettings;
   dispatch: IDispatch;
@@ -28,7 +31,14 @@ interface IExerciseHistoryProps {
 }
 
 export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element => {
-  const { visibleRecords } = useGradualList(props.history, 0, 20, props.surfaceRef, () => {});
+  const { visibleRecords, loadMoreVisibleRecords } = useGradualList(props.history, 0, 5, props.surfaceRef, () => {});
+  useEffect(() => {
+    if (props.history.length > 5) {
+      const t = setTimeout(() => loadMoreVisibleRecords(15), 300);
+      return () => clearTimeout(t);
+    }
+    return undefined;
+  }, [props.history.length, loadMoreVisibleRecords]);
   const fullExercise = Exercise_get(props.exerciseType, props.settings.exercises);
   const allPrs = History_getPersonalRecords(props.history);
   const [showFilters, setShowFilters] = useState(false);
@@ -50,23 +60,24 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
   }
 
   return (
-    <section data-cy="exercise-stats-history">
+    <View data-cy="exercise-stats-history">
       <GroupHeader
         topPadding={true}
         name={`${Exercise_fullName(fullExercise, props.settings)} History`}
         rightAddOn={
-          <button
-            className="p-2 nm-exercise-stats-navbar-filter"
+          <Pressable
+            className="p-2"
             data-cy="exercise-stats-history-filter"
-            style={{ marginRight: "-0.5rem", marginTop: "-0.5rem" }}
-            onClick={() => setShowFilters(!showFilters)}
+            testID="exercise-stats-history-filter"
+            style={{ marginRight: -8, marginTop: -8 }}
+            onPress={() => setShowFilters(!showFilters)}
           >
             <IconFilter />
-          </button>
+          </Pressable>
         }
       />
       {showFilters && (
-        <section>
+        <View>
           <MenuItemEditable
             type="boolean"
             name="Ascending sort by date"
@@ -112,7 +123,7 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
               );
             }}
           />
-        </section>
+        </View>
       )}
       {history.slice(0, visibleRecords).map((historyRecord) => {
         const exerciseEntries = historyRecord.entries.filter((e) => Exercise_eq(e.exercise, fullExercise));
@@ -125,16 +136,18 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
             }}
             name={`${historyRecord.startTime}`}
           >
-            <div className="py-2">
-              <div className="flex text-xs text-text-secondary">
-                <div className="mr-2 font-bold">{DateUtils_format(historyRecord.date)}</div>
-                <div className="flex-1 text-right">
+            <View className="py-2">
+              <View className="flex-row">
+                <Text className="mr-2 text-xs font-bold text-text-secondary">
+                  {DateUtils_format(historyRecord.date)}
+                </Text>
+                <Text className="flex-1 text-xs text-right text-text-secondary">
                   {historyRecord.programName}, {historyRecord.dayName}
-                </div>
-              </div>
-              <div className="flex">
-                <div className="flex-1">
-                  <div>
+                </Text>
+              </View>
+              <View className="flex-row">
+                <View className="flex-1">
+                  <View>
                     {exerciseEntries.map((entry, ei) => {
                       const prs = allPrs[historyRecord.id]?.[Exercise_toKey(entry.exercise)];
                       const state = { ...entry.state };
@@ -145,8 +158,8 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
                       }
                       const volume = Reps_volume(entry.sets, props.settings.units);
                       return (
-                        <div key={ei} className="pt-1">
-                          <div className="text-right">
+                        <View key={ei} className="pt-1">
+                          <View className="items-end">
                             <HistoryRecordSetsView
                               showPrDetails={true}
                               prs={prs}
@@ -154,14 +167,14 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
                               settings={props.settings}
                               isNext={false}
                             />
-                          </div>
+                          </View>
                           {volume.value > 0 && (
-                            <div className="mb-1 text-xs leading-none text-left text-text-secondary">
-                              Volume: <strong>{Weight_print(volume)}</strong>
-                            </div>
+                            <Text className="mb-1 text-xs text-text-secondary">
+                              Volume: <Text className="font-bold">{Weight_print(volume)}</Text>
+                            </Text>
                           )}
                           {Object.keys(state).length > 0 && (
-                            <div className="text-xs text-text-secondary">
+                            <Text className="text-xs text-text-secondary">
                               {ObjectUtils_keys(state).map((stateKey, i) => {
                                 const value = state[stateKey];
                                 const displayValue =
@@ -169,42 +182,42 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
                                 return (
                                   <Fragment key={stateKey}>
                                     {i !== 0 && ", "}
-                                    <span>
-                                      {stateKey} - <strong>{displayValue}</strong>
-                                    </span>
+                                    <Text>
+                                      {stateKey} - <Text className="font-bold">{displayValue}</Text>
+                                    </Text>
                                   </Fragment>
                                 );
                               })}
-                            </div>
+                            </Text>
                           )}
-                        </div>
+                        </View>
                       );
                     })}
-                  </div>
+                  </View>
                   {exerciseNotes.length > 0 && (
-                    <ul>
+                    <View>
                       {exerciseNotes.map((n, ni) => (
-                        <li key={ni} className="text-sm text-text-secondary">
+                        <Text key={ni} className="text-sm text-text-secondary">
                           {n}
-                        </li>
+                        </Text>
                       ))}
-                    </ul>
+                    </View>
                   )}
                   {historyRecord.notes && (
-                    <p className="text-sm text-text-secondary">
-                      <span className="font-bold">Workout: </span>
-                      <span>{historyRecord.notes}</span>
-                    </p>
+                    <Text className="text-sm text-text-secondary">
+                      <Text className="font-bold">Workout: </Text>
+                      <Text>{historyRecord.notes}</Text>
+                    </Text>
                   )}
-                </div>
-                <div className="flex items-center py-2 pl-2">
-                  <IconArrowRight style={{ color: "#a0aec0" }} />
-                </div>
-              </div>
-            </div>
+                </View>
+                <View className="flex-row items-center py-2 pl-2">
+                  <IconArrowRight color="#a0aec0" />
+                </View>
+              </View>
+            </View>
           </MenuItemWrapper>
         );
       })}
-    </section>
+    </View>
   );
 }, ComparerUtils_noFns);
