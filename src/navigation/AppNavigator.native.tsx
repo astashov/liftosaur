@@ -65,6 +65,7 @@ import { NavModalProgramPreviewMuscles } from "./modals/NavModalProgramPreviewMu
 import { NavModalAmrap } from "./modals/NavModalAmrap";
 import { NavModalNextWorkout } from "./modals/NavModalNextWorkout";
 import { NavModalEditTarget } from "./modals/NavModalEditTarget";
+import { NavModalGraphs } from "./modals/NavModalGraphs";
 import { NavHeader } from "./NavHeader";
 
 const OnboardingStack = createNativeStackNavigator<IOnboardingStackParamList>();
@@ -142,7 +143,7 @@ function WorkoutStackScreen(): JSX.Element {
 function GraphsStackScreen(): JSX.Element {
   return (
     <GraphsStack.Navigator screenOptions={stackScreenOptions}>
-      <GraphsStack.Screen name="graphs" component={NavScreenGraphs} />
+      <GraphsStack.Screen name="graphs" component={NavScreenGraphs} options={{ headerShown: true, header: NavHeader }} />
       <GraphsStack.Screen
         name="progress"
         component={NavScreenProgress}
@@ -248,6 +249,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
             options={{ sheetAllowedDetents: [0.85] }}
           />
           <RootStack.Screen name="nextWorkoutModal" component={NavModalNextWorkout} />
+          <RootStack.Screen name="graphsModal" component={NavModalGraphs} options={{ sheetAllowedDetents: [0.9] }} />
         </RootStack.Group>
       </RootStack.Navigator>
     </InitialScreenContext.Provider>
