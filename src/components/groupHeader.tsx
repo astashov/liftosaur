@@ -1,5 +1,5 @@
 import { JSX, Fragment, ReactNode, useState } from "react";
-import { View, Pressable } from "react-native";
+import { View, Pressable, LayoutAnimation, Platform, UIManager } from "react-native";
 import { Text } from "./primitives/text";
 import { StringUtils_dashcase } from "../utils/string";
 import { IconArrowDown2 } from "./icons/iconArrowDown2";
@@ -30,6 +30,10 @@ export function GroupHeader(props: IProps): JSX.Element {
 
   function onClick(): void {
     if (props.children) {
+      if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+        UIManager.setLayoutAnimationEnabledExperimental(true);
+      }
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setIsExpanded(!isExpanded);
     }
   }

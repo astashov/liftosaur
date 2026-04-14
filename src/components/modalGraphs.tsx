@@ -1,10 +1,12 @@
 import { JSX, Fragment } from "react";
+import { View, Pressable } from "react-native";
+import { Text } from "./primitives/text";
 
 import { equipmentName, Exercise_toKey, Exercise_get, Exercise_fromKey } from "../models/exercise";
 import { StringUtils_capitalize, StringUtils_dashcase } from "../utils/string";
 import { IDispatch } from "../ducks/types";
 import { GroupHeader } from "./groupHeader";
-import { DraggableList } from "./draggableList";
+import { DraggableList2 } from "./draggableList2";
 import { IconHandle } from "./icons/iconHandle";
 import {
   EditGraphs_removeGraph,
@@ -79,7 +81,7 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
   const hasAvailableStats = statsLengthKeys.length > 0 || statsWeightKeys.length > 0 || statsPercentageKeys.length > 0;
 
   return (
-    <>
+    <View className="py-4">
       <GroupHeader name="Settings" isExpanded={true}>
         <MenuItemEditable
           type="select"
@@ -180,23 +182,25 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
           }
         />
       </GroupHeader>
-      <form className="relative" data-cy="modal-graphs" onSubmit={(e) => e.preventDefault()}>
+      <View className="relative" data-cy="modal-graphs" testID="modal-graphs">
         {graphs.length > 0 && <GroupHeader topPadding={true} name="Selected Graphs" />}
-        <DraggableList
+        <DraggableList2
           items={graphs}
-          mode="vertical"
-          element={(graph, i, handleTouchStart) => {
+          element={(graph, i, handle) => {
             return (
-              <section
+              <View
                 data-cy={`item-graph-${graph.type}-${StringUtils_dashcase(graph.id)}`}
-                className="w-full px-2 py-1 text-left border-b border-border-neutral"
+                testID={`item-graph-${graph.type}-${StringUtils_dashcase(graph.id)}`}
+                className="w-full px-2 py-1 border-b border-border-neutral"
               >
-                <section className="flex items-center">
-                  <div className="p-2 cursor-move" style={{ marginLeft: "-16px", touchAction: "none" }}>
-                    <span onMouseDown={handleTouchStart} onTouchStart={handleTouchStart}>
-                      <IconHandle />
-                    </span>
-                  </div>
+                <View className="flex-row items-center">
+                  <View style={{ marginLeft: -16 }}>
+                    {handle(
+                      <View className="p-2">
+                        <IconHandle />
+                      </View>
+                    )}
+                  </View>
                   {graph.type === "exercise" ? (
                     <ExercisePreview exerciseKey={graph.id} settings={props.settings} />
                   ) : graph.type === "muscleGroup" ? (
@@ -204,34 +208,38 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
                   ) : (
                     <StatsPreview stats={graph.id} />
                   )}
-                  <div>
-                    <button
-                      data-cy="remove-graph"
-                      className="align-middle nm-remove-graph"
-                      onClick={() => EditGraphs_removeGraph(props.dispatch, graph)}
-                    >
-                      <IconCloseCircle />
-                    </button>
-                  </div>
-                </section>
-              </section>
+                  <Pressable
+                    data-cy="remove-graph"
+                    testID="remove-graph"
+                    className="p-1 nm-remove-graph"
+                    onPress={() => EditGraphs_removeGraph(props.dispatch, graph)}
+                  >
+                    <IconCloseCircle />
+                  </Pressable>
+                </View>
+              </View>
             );
           }}
-          onDragEnd={(startIndex, endIndex) => EditGraphs_reorderGraphs(props.dispatch, startIndex, endIndex)}
+          onDragEnd={(startIndex, endIndex) => {
+            if (startIndex !== endIndex) {
+              EditGraphs_reorderGraphs(props.dispatch, startIndex, endIndex);
+            }
+          }}
         />
         {exercises.length > 0 && (
           <>
             <GroupHeader topPadding={true} name="Available Exercise Graphs" />
             {exercises.map((e) => {
               return (
-                <section
+                <Pressable
                   key={Exercise_toKey(e)}
                   data-cy={`item-graph-${StringUtils_dashcase(e.name)}`}
-                  className="flex w-full px-2 py-1 text-left border-b border-border-neutral"
-                  onClick={() => EditGraphs_addExerciseGraph(props.dispatch, e)}
+                  testID={`item-graph-${StringUtils_dashcase(e.name)}`}
+                  className="flex-row w-full px-2 py-1 border-b border-border-neutral"
+                  onPress={() => EditGraphs_addExerciseGraph(props.dispatch, e)}
                 >
                   <ExercisePreview exerciseKey={Exercise_toKey(e)} settings={props.settings} />
-                </section>
+                </Pressable>
               );
             })}
           </>
@@ -241,14 +249,15 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
             <GroupHeader name="Available Muscle Groups Graphs" topPadding={true} />
             {availableMuscleGroups.map((muscleGroup) => {
               return (
-                <section
+                <Pressable
                   key={muscleGroup}
                   data-cy={`item-graph-${muscleGroup}`}
-                  className="flex w-full px-2 py-1 text-left border-b border-border-neutral"
-                  onClick={() => EditGraphs_addMuscleGroupGraph(props.dispatch, muscleGroup)}
+                  testID={`item-graph-${muscleGroup}`}
+                  className="flex-row w-full px-2 py-1 border-b border-border-neutral"
+                  onPress={() => EditGraphs_addMuscleGroupGraph(props.dispatch, muscleGroup)}
                 >
                   <MuscleGroupPreview muscleGroup={muscleGroup} settings={props.settings} />
-                </section>
+                </Pressable>
               );
             })}
           </>
@@ -282,12 +291,12 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
           );
         })}
         {!hasAvailableStats && exercises.length === 0 && graphs.length === 0 && (
-          <div className="mt-3 text-base italic text-text-secondary">
+          <Text className="mt-3 text-base italic text-text-secondary">
             You haven't tracked any workouts or measurements yet.
-          </div>
+          </Text>
         )}
-      </form>
-    </>
+      </View>
+    </View>
   );
 }
 
@@ -295,33 +304,29 @@ function ExercisePreview(props: { exerciseKey: string; settings: ISettings }): J
   const e = Exercise_get(Exercise_fromKey(props.exerciseKey), props.settings.exercises);
   return (
     <Fragment>
-      <div className="w-12 pr-4" style={{ minHeight: "2rem" }}>
+      <View className="pr-4" style={{ width: 48, minHeight: 32 }}>
         <ExerciseImage settings={props.settings} className="w-full" exerciseType={e} size="small" />
-      </div>
-      <div className="flex items-center flex-1 py-2 text-left">
-        <div>
-          <div>{e.name}</div>
-          <div className="text-xs text-text-secondary">{equipmentName(e.equipment)}</div>
-        </div>
-      </div>
+      </View>
+      <View className="flex-1 py-2">
+        <Text className="text-text-primary">{e.name}</Text>
+        <Text className="text-xs text-text-secondary">{equipmentName(e.equipment)}</Text>
+      </View>
     </Fragment>
   );
 }
 
 function StatsPreview(props: { stats: IStatsKey }): JSX.Element {
   return (
-    <Fragment>
-      <div className="flex items-center flex-1 py-3 text-sm text-left">{Stats_name(props.stats)}</div>
-    </Fragment>
+    <View className="flex-1 py-3">
+      <Text className="text-sm">{Stats_name(props.stats)}</Text>
+    </View>
   );
 }
 
 function MuscleGroupPreview(props: { muscleGroup: string; settings: ISettings }): JSX.Element {
   return (
-    <Fragment>
-      <div className="flex items-center flex-1 py-3 text-sm text-left">
-        {Muscle_getMuscleGroupName(props.muscleGroup, props.settings)} Weekly Volume
-      </div>
-    </Fragment>
+    <View className="flex-1 py-3">
+      <Text className="text-sm">{Muscle_getMuscleGroupName(props.muscleGroup, props.settings)} Weekly Volume</Text>
+    </View>
   );
 }

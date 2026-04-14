@@ -1,14 +1,16 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { JSX, useEffect, useRef, useState } from "react";
-import UPlot from "uplot";
+import { JSX, useMemo, useState } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
+import { Select } from "./primitives/select";
 import { ISettings, IVolumeSelectedType } from "../types";
-import { GraphsPlugins_zoom, GraphsPlugins_programLines } from "../utils/graphsPlugins";
 import { StringUtils_capitalize } from "../utils/string";
 import { DateUtils_format } from "../utils/date";
-import { Tailwind_colors, Tailwind_semantic } from "../utils/tailwindConfig";
+import { Tailwind_colors } from "../utils/tailwindConfig";
 import { Muscle_getMuscleGroupName } from "../models/muscle";
+import { LineChart, ILineChartSeries } from "./lineChart";
 
 interface IGraphMuscleGroupProps {
+  id?: string;
   data: [number[], number[], number[]];
   programChangeTimes?: [number, string][];
   muscleGroup: string;
@@ -18,150 +20,85 @@ interface IGraphMuscleGroupProps {
 
 export function GraphMuscleGroup(props: IGraphMuscleGroupProps): JSX.Element {
   const [selectedType, setSelectedType] = useState<IVolumeSelectedType>(props.initialType || "volume");
+  const [cursorIdx, setCursorIdx] = useState<number | null>(null);
 
-  return (
-    <div className="relative mx-1">
-      <div className="absolute z-10 text-xs" style={{ top: "0.25rem", right: "0.75rem" }}>
-        <select
-          className="p-2 text-right bg-background-default"
-          value={selectedType}
-          onChange={(e) => setSelectedType(e.currentTarget.value as any)}
-        >
-          <option value="volume">Volume</option>
-          <option value="sets">Sets</option>
-        </select>
-      </div>
-      <GraphMuscleGroupContent key={selectedType} {...{ ...props, selectedType }} />
-    </div>
+  const series: ILineChartSeries[] = useMemo(
+    () => [
+      {
+        label: "Volume",
+        show: selectedType === "volume",
+        color: Tailwind_colors().red[500],
+        width: 1.5,
+      },
+      {
+        label: "Sets",
+        show: selectedType === "sets",
+        color: Tailwind_colors().red[500],
+        width: 1.5,
+      },
+    ],
+    [selectedType]
   );
-}
 
-function GraphMuscleGroupContent(props: IGraphMuscleGroupProps & { selectedType: IVolumeSelectedType }): JSX.Element {
-  const graphRef = useRef<HTMLDivElement>(null);
-  const legendRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!graphRef.current) {
-      return;
+  const yAxisFormatter = useMemo(() => {
+    if (selectedType === "volume") {
+      return (v: number) => `${Math.round(v / 1000)}k`;
     }
-    const rect = graphRef.current.getBoundingClientRect();
-    const data = props.data;
-    const dataMaxX = data[0]?.[data[0].length - 1] || new Date(0).getTime() / 1000;
-    const dataMinX = Math.max(data[0]?.[0] || 0, dataMaxX - 365 * 24 * 60 * 60);
-    const opts: UPlot.Options = {
-      title: `${Muscle_getMuscleGroupName(props.muscleGroup, props.settings)} Weekly ${StringUtils_capitalize(props.selectedType)}`,
-      class: "graph-muscle-group",
-      width: rect.width,
-      height: rect.height,
-      cursor: {
-        y: false,
-        lock: true,
-      },
-      scales: { x: { min: dataMinX, max: dataMaxX } },
-      plugins: [
-        GraphsPlugins_zoom(),
-        ...(props.programChangeTimes ? [GraphsPlugins_programLines(props.programChangeTimes)] : []),
-        {
-          hooks: {
-            setCursor: [
-              (self: UPlot): void => {
-                const idx = self.cursor.idx!;
-                const timestamp = data[0][idx];
-                const date = new Date(timestamp * 1000);
-                const volume = data[1][idx];
-                const sets = data[2][idx];
-                let text = "";
-                if (props.selectedType === "volume" && volume != null) {
-                  text = `<div class="text-center">${DateUtils_format(date)}, Volume: <strong>${volume} ${
-                    props.settings.units
-                  }s</strong>`;
-                  text += "</div>";
-                } else if (props.selectedType === "sets" && sets != null) {
-                  text = `<div class="text-center">${DateUtils_format(date)}, Sets: <strong>${sets}</strong>`;
-                  text += "</div>";
-                }
-                if (legendRef.current != null) {
-                  legendRef.current.innerHTML = text;
-                }
-              },
-            ],
-          },
-        },
-      ],
-      legend: {
-        show: false,
-      },
-      series: [
-        {},
-        {
-          label: "Volume",
-          show: props.selectedType === "volume",
-          value: (self, rawValue) => `${rawValue} ${props.settings.units}`,
-          stroke: Tailwind_colors().red[500],
-          width: 1,
-          spanGaps: true,
-        },
-        {
-          label: "Sets",
-          show: props.selectedType === "sets",
-          value: (self, rawValue) => `${rawValue}`,
-          stroke: Tailwind_colors().red[500],
-          width: 1,
-          spanGaps: true,
-        },
-      ],
-      axes: [
-        {},
-        {
-          show: props.selectedType === "volume",
-          values: (self, ticks) => {
-            return ticks.map((rawValue) => `${Math.round(rawValue / 1000)}k ${props.settings.units}`);
-          },
-          stroke: Tailwind_semantic().text.primary,
-          ticks: { stroke: Tailwind_semantic().border.neutral },
-          grid: { stroke: Tailwind_semantic().border.neutral },
-        },
-        {
-          show: props.selectedType === "sets",
-          values: (self, ticks) => {
-            return ticks.map((rawValue) => rawValue);
-          },
-          stroke: Tailwind_semantic().text.primary,
-          ticks: { stroke: Tailwind_semantic().border.neutral },
-          grid: { stroke: Tailwind_semantic().border.neutral },
-        },
-      ],
-    };
+    return (v: number) => `${Math.round(v)}`;
+  }, [selectedType]);
 
-    const uplot = new UPlot(opts, data, graphRef.current!);
+  const title = `${Muscle_getMuscleGroupName(props.muscleGroup, props.settings)} Weekly ${StringUtils_capitalize(
+    selectedType
+  )}`;
 
-    const underEl = graphRef.current!.querySelector(".over");
-    const underRect = underEl?.getBoundingClientRect();
-
-    function handler(): void {
-      function onMove(event: TouchEvent): void {
-        const offset = window.pageYOffset;
-        const touch = event.touches[0];
-        uplot.setCursor({ left: touch.clientX - underRect!.left, top: touch.clientY - underRect!.top + offset });
-      }
-
-      function onEnd(): void {
-        window.removeEventListener("touchmove", onMove);
-        window.removeEventListener("touchend", onEnd);
-      }
-
-      window.addEventListener("touchmove", onMove);
-      window.addEventListener("touchend", onEnd);
-    }
-
-    if (underEl != null) {
-      underEl.addEventListener("touchstart", handler);
-    }
-  }, []);
+  const timestamp = cursorIdx != null ? props.data[0][cursorIdx] : null;
+  const volume = cursorIdx != null ? props.data[1][cursorIdx] : null;
+  const sets = cursorIdx != null ? props.data[2][cursorIdx] : null;
+  const units = props.settings.units;
 
   return (
-    <div className="relative z-0 pt-2" data-cy="graph">
-      <div className="w-full" data-cy="graph-data" style={{ height: "20em" }} ref={graphRef}></div>
-      <div data-cy="graph-legend" className="box-content px-8 pt-8 pb-2 text-sm" ref={legendRef}></div>
-    </div>
+    <View className="relative">
+      <View className="flex-row items-center mb-1">
+        <View className="flex-1">
+          <Text className="text-lg font-semibold leading-6">{title}</Text>
+        </View>
+        <View>
+          <Select
+            value={selectedType}
+            onChange={(v) => setSelectedType(v as IVolumeSelectedType)}
+            options={[
+              { value: "volume", label: "Volume" },
+              { value: "sets", label: "Sets" },
+            ]}
+            className="p-2 text-right bg-background-default"
+          />
+        </View>
+      </View>
+      <View className="relative">
+        <LineChart
+          data={props.data}
+          series={series}
+          height={320}
+          programLines={props.programChangeTimes}
+          onCursorChange={setCursorIdx}
+          yAxisFormatter={yAxisFormatter}
+        />
+        <View className="box-content px-8 pt-8 pb-2 items-center" style={{ minHeight: 40 }}>
+          {timestamp != null && selectedType === "volume" && volume != null && (
+            <Text className="text-sm">
+              {DateUtils_format(new Date(timestamp * 1000))}, Volume:{" "}
+              <Text className="font-bold text-sm">
+                {volume} {units}s
+              </Text>
+            </Text>
+          )}
+          {timestamp != null && selectedType === "sets" && sets != null && (
+            <Text className="text-sm">
+              {DateUtils_format(new Date(timestamp * 1000))}, Sets: <Text className="font-bold text-sm">{sets}</Text>
+            </Text>
+          )}
+        </View>
+      </View>
+    </View>
   );
 }
