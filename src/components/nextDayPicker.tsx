@@ -1,4 +1,6 @@
 import { JSX, useState } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
 import { Exercise_find } from "../models/exercise";
 import { Muscle_normalizeUnifiedPoints, Muscle_getUnifiedPointsForDay } from "../models/muscle";
 import {
@@ -32,14 +34,18 @@ export function NextDayPicker(props: INextDayPickerProps): JSX.Element {
     (currentProgramId ? CollectionUtils_findBy(props.allPrograms, "id", currentProgramId) : undefined) ??
     props.allPrograms[0];
   if (!currentProgram) {
-    return <div className="mx-4">No Programs</div>;
+    return (
+      <View className="mx-4">
+        <Text>No Programs</Text>
+      </View>
+    );
   }
   const evaluatedProgram = Program_evaluate(currentProgram, props.settings);
   const days = Program_getListOfDays(evaluatedProgram);
 
   return (
-    <div>
-      <div className="mx-4">
+    <View>
+      <View className="mx-4">
         {props.allPrograms.length > 1 && (
           <MenuItemEditable
             type="select"
@@ -74,19 +80,19 @@ export function NextDayPicker(props: INextDayPickerProps): JSX.Element {
             return memo;
           }, {});
           return (
-            <div className="px-2" key={dayId}>
+            <View className="px-2" key={dayId}>
               <MenuItemWrapper
                 name={`next-day-picker-${dayIndex + 1}`}
                 onClick={() => {
                   props.onSelect(evaluatedProgram.id, dayIndex + 1);
                 }}
               >
-                <div
-                  className={`flex px-2 py-2 ${dayIndex + 1 === currentProgram.nextDay ? "bg-background-purpledark" : ""}`}
+                <View
+                  className={`flex-row px-2 py-2 ${dayIndex + 1 === currentProgram.nextDay ? "bg-background-purpledark" : ""}`}
                 >
-                  <div className="flex-1">
-                    <div>{dayName}</div>
-                    <div>
+                  <View className="flex-1">
+                    <Text>{dayName}</Text>
+                    <View className="flex-row flex-wrap">
                       {exerciseTypes.map((e) => (
                         <ExerciseImage
                           key={e.id}
@@ -96,25 +102,25 @@ export function NextDayPicker(props: INextDayPickerProps): JSX.Element {
                           className="w-6 mr-1"
                         />
                       ))}
-                    </div>
-                  </div>
-                  <div className="flex items-center w-12">
-                    <div className="relative flex-1">
+                    </View>
+                  </View>
+                  <View className="flex-row items-center" style={{ width: 48 }}>
+                    <View className="relative flex-1">
                       <BackMusclesSvg muscles={muscleData} contour={{ fill: "#28839F" }} />
-                    </div>
-                    <div className="relative flex-1">
+                    </View>
+                    <View className="relative flex-1">
                       <FrontMusclesSvg muscles={muscleData} contour={{ fill: "#28839F" }} />
-                    </div>
-                  </div>
-                  <div className="flex items-center py-2 pl-2">
-                    <IconArrowRight style={{ color: "#a0aec0" }} />
-                  </div>
-                </div>
+                    </View>
+                  </View>
+                  <View className="flex-row items-center py-2 pl-2">
+                    <IconArrowRight color="#a0aec0" />
+                  </View>
+                </View>
               </MenuItemWrapper>
-            </div>
+            </View>
           );
         })}
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }

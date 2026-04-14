@@ -27,7 +27,7 @@ import { IconSwapSmall } from "./icons/iconSwapSmall";
 import { ProgressStateChanges } from "./progressStateChanges";
 import { IEvaluatedProgram } from "../models/program";
 import { Exercise_getIsUnilateral } from "../models/exercise";
-import { useMemo } from "react";
+import { memo, useCallback, useMemo } from "react";
 
 interface IWorkoutExerciseAllSets {
   day: number;
@@ -36,7 +36,6 @@ interface IWorkoutExerciseAllSets {
   exerciseType: IExerciseType;
   lbWarmupSets: LensBuilder<IHistoryRecord, ISet[], {}>;
   lbSets: LensBuilder<IHistoryRecord, ISet[], {}>;
-  progress: IHistoryRecord;
   entry: IHistoryEntry;
   entryIndex: number;
   lastSets?: ISet[];
@@ -66,7 +65,7 @@ function getTargetColumnLabel(targetType: ITargetType): string {
   }
 }
 
-export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Element {
+function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Element {
   const warmupSets = props.entry.warmupSets;
   const sets = props.entry.sets;
   const buttonBgColor = WorkoutExerciseUtils_getBgColor100(sets, false);
@@ -78,10 +77,39 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
     warmupSets[0]?.weight?.unit ??
     Equipment_getUnitOrDefaultForExerciseType(props.settings, props.exerciseType);
   const targetLabel = getTargetColumnLabel(props.settings.workoutSettings.targetType);
-  const lbEntry = lb<IHistoryRecord>().p("entries").i(props.entryIndex);
+  const lbEntry = useMemo(() => lb<IHistoryRecord>().p("entries").i(props.entryIndex), [props.entryIndex]);
   const isUnilateral = Exercise_getIsUnilateral(props.exerciseType, props.settings);
   const remValue = props.settings.textSize ?? 16;
   const columnWidths = useMemo(() => computeSetColumnWidths(remValue, isUnilateral), [remValue, isUnilateral]);
+
+  const { dispatch, lbWarmupSets, lbSets, lastSets, exerciseType, settings } = props;
+  const onAddWarmupSet = useCallback(() => {
+    const unilateral = Exercise_getIsUnilateral(exerciseType, settings);
+    updateProgress(
+      dispatch,
+      [lbWarmupSets.recordModify((s) => Reps_addSet(s, unilateral, undefined, true))],
+      "add-warmupset"
+    );
+  }, [dispatch, exerciseType, lbWarmupSets, settings]);
+  const onAddSet = useCallback(() => {
+    const unilateral = Exercise_getIsUnilateral(exerciseType, settings);
+    updateProgress(
+      dispatch,
+      [lbSets.recordModify((s) => Reps_addSet(s, unilateral, lastSets ? lastSets[lastSets.length - 1] : undefined))],
+      "add-set"
+    );
+  }, [dispatch, exerciseType, lbSets, lastSets, settings]);
+
+  const onSuppressProgress = useCallback(
+    (isSuppressed: boolean) => {
+      updateProgress(
+        dispatch,
+        lbEntry.recordModify((e) => ({ ...e, isSuppressed })),
+        "suppress"
+      );
+    },
+    [dispatch, lbEntry]
+  );
 
   return (
     <View>
@@ -114,7 +142,6 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
             key={`warmup-${set.id}-${i}`}
             day={props.day}
             entry={props.entry}
-            progress={props.progress}
             exerciseType={props.exerciseType}
             programExercise={props.programExercise}
             otherStates={props.otherStates}
@@ -137,7 +164,6 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
             type="workout"
             key={`workout-${set.id}-${i}`}
             onStopShowingHint={props.onStopShowingHint}
-            progress={props.progress}
             entry={props.entry}
             helps={props.helps}
             isNext={nextSetIndex - warmupSets.length === i}
@@ -169,13 +195,7 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
             stats={props.stats}
             program={props.program}
             userPromptedStateVars={props.userPromptedStateVars}
-            onSuppressProgress={(isSuppressed) => {
-              updateProgress(
-                props.dispatch,
-                lbEntry.recordModify((entry) => ({ ...entry, isSuppressed })),
-                "suppress"
-              );
-            }}
+            onSuppressProgress={onSuppressProgress}
           />
         </View>
       )}
@@ -186,14 +206,7 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
             className={`${buttonBgColor} w-full py-2 rounded-md flex-row items-center justify-center`}
             data-cy="add-warmup-set"
             testID="add-warmup-set"
-            onPress={() => {
-              const isUnilateral = Exercise_getIsUnilateral(props.exerciseType, props.settings);
-              updateProgress(
-                props.dispatch,
-                [props.lbWarmupSets.recordModify((s) => Reps_addSet(s, isUnilateral, undefined, true))],
-                "add-warmupset"
-              );
-            }}
+            onPress={onAddWarmupSet}
           >
             <IconPlus2 size={10} color={Tailwind_colors().blue[400]} />
             <Text className="ml-2 text-xs font-semibold text-text-link">Add Warmup Set</Text>
@@ -204,18 +217,7 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
             className={`${buttonBgColor} w-full py-2 rounded-md flex-row items-center justify-center`}
             data-cy="add-workout-set"
             testID="add-workout-set"
-            onPress={() => {
-              const isUnilateral = Exercise_getIsUnilateral(props.exerciseType, props.settings);
-              updateProgress(
-                props.dispatch,
-                [
-                  props.lbSets.recordModify((s) =>
-                    Reps_addSet(s, isUnilateral, props.lastSets ? props.lastSets[props.lastSets.length - 1] : undefined)
-                  ),
-                ],
-                "add-set"
-              );
-            }}
+            onPress={onAddSet}
           >
             <IconPlus2 size={10} color={Tailwind_colors().blue[400]} />
             <Text className="ml-2 text-xs font-semibold text-text-link">Add Set</Text>
@@ -225,3 +227,5 @@ export function WorkoutExerciseAllSets(props: IWorkoutExerciseAllSets): JSX.Elem
     </View>
   );
 }
+
+export const WorkoutExerciseAllSets = memo(WorkoutExerciseAllSetsInner);

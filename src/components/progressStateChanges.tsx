@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import { JSX, memo } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
 import {
@@ -28,7 +28,7 @@ interface IProps {
   forceShow?: boolean;
 }
 
-export function ProgressStateChanges(props: IProps): JSX.Element | null {
+function ProgressStateChangesInner(props: IProps): JSX.Element | null {
   const state = PlannerProgramExercise_getState(props.programExercise);
   const { entry, settings, dayData } = props;
   const { units } = settings;
@@ -98,6 +98,8 @@ export function ProgressStateChanges(props: IProps): JSX.Element | null {
   }
   return null;
 }
+
+export const ProgressStateChanges = memo(ProgressStateChangesInner);
 
 function ExerciseChanges({ diffVars }: { diffVars: Record<string, string | undefined> }): JSX.Element | null {
   if (ObjectUtils_isNotEmpty(diffVars)) {

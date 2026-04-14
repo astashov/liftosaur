@@ -66,6 +66,11 @@ import { NavModalAmrap } from "./modals/NavModalAmrap";
 import { NavModalNextWorkout } from "./modals/NavModalNextWorkout";
 import { NavModalEditTarget } from "./modals/NavModalEditTarget";
 import { NavModalGraphs } from "./modals/NavModalGraphs";
+import { NavModal1RM } from "./modals/NavModal1RM";
+import { NavModalDayFromAdhoc } from "./modals/NavModalDayFromAdhoc";
+import { NavModalEquipment } from "./modals/NavModalEquipment";
+import { NavModalDate } from "./modals/NavModalDate";
+import { NavModalWorkoutSuperset } from "./modals/NavModalWorkoutSuperset";
 import { NavHeader } from "./NavHeader";
 
 const OnboardingStack = createNativeStackNavigator<IOnboardingStackParamList>();
@@ -94,8 +99,16 @@ function OnboardingStackScreen(): JSX.Element {
       <OnboardingStack.Screen name="setupequipment" component={NavScreenSetupEquipment} />
       <OnboardingStack.Screen name="setupplates" component={NavScreenSetupPlates} />
       <OnboardingStack.Screen name="programselect" component={NavScreenProgramSelectOnboarding} />
-      <OnboardingStack.Screen name="programs" component={NavScreenProgramsOnboarding} options={{ headerShown: true, header: NavHeader }} />
-      <OnboardingStack.Screen name="programPreview" component={NavScreenProgramPreviewOnboarding} options={{ headerShown: true, header: NavHeader }} />
+      <OnboardingStack.Screen
+        name="programs"
+        component={NavScreenProgramsOnboarding}
+        options={{ headerShown: true, header: NavHeader }}
+      />
+      <OnboardingStack.Screen
+        name="programPreview"
+        component={NavScreenProgramPreviewOnboarding}
+        options={{ headerShown: true, header: NavHeader }}
+      />
       <OnboardingStack.Screen name="onerms" component={NavScreenOnerms} />
     </OnboardingStack.Navigator>
   );
@@ -113,12 +126,20 @@ function HomeStackScreen(): JSX.Element {
 function ProgramStackScreen(): JSX.Element {
   return (
     <ProgramStack.Navigator screenOptions={stackScreenOptions}>
-      <ProgramStack.Screen name="programs" component={NavScreenPrograms} options={{ headerShown: true, header: NavHeader }} />
+      <ProgramStack.Screen
+        name="programs"
+        component={NavScreenPrograms}
+        options={{ headerShown: true, header: NavHeader }}
+      />
       <ProgramStack.Screen name="editProgram" component={NavScreenEditProgram} />
       <ProgramStack.Screen name="editProgramExercise" component={NavScreenEditProgramExercise} />
       <ProgramStack.Screen name="onerms" component={NavScreenOnerms} />
       <ProgramStack.Screen name="programselect" component={NavScreenProgramSelect} />
-      <ProgramStack.Screen name="programPreview" component={NavScreenProgramPreview} options={{ headerShown: true, header: NavHeader }} />
+      <ProgramStack.Screen
+        name="programPreview"
+        component={NavScreenProgramPreview}
+        options={{ headerShown: true, header: NavHeader }}
+      />
       <ProgramStack.Screen name="exerciseStats" component={NavScreenExerciseStats} />
     </ProgramStack.Navigator>
   );
@@ -131,6 +152,7 @@ function WorkoutStackScreen(): JSX.Element {
         name="progress"
         component={NavScreenProgress}
         getId={({ params }) => String(params?.id ?? 0)}
+        options={{ headerShown: true, header: NavHeader }}
       />
       <WorkoutStack.Screen name="finishDay" component={NavScreenFinishDay} />
       <WorkoutStack.Screen name="editProgramExercise" component={NavScreenEditProgramExercise} />
@@ -143,11 +165,16 @@ function WorkoutStackScreen(): JSX.Element {
 function GraphsStackScreen(): JSX.Element {
   return (
     <GraphsStack.Navigator screenOptions={stackScreenOptions}>
-      <GraphsStack.Screen name="graphs" component={NavScreenGraphs} options={{ headerShown: true, header: NavHeader }} />
+      <GraphsStack.Screen
+        name="graphs"
+        component={NavScreenGraphs}
+        options={{ headerShown: true, header: NavHeader }}
+      />
       <GraphsStack.Screen
         name="progress"
         component={NavScreenProgress}
         getId={({ params }) => String(params?.id ?? 0)}
+        options={{ headerShown: true, header: NavHeader }}
       />
     </GraphsStack.Navigator>
   );
@@ -250,6 +277,11 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           />
           <RootStack.Screen name="nextWorkoutModal" component={NavModalNextWorkout} />
           <RootStack.Screen name="graphsModal" component={NavModalGraphs} options={{ sheetAllowedDetents: [0.9] }} />
+          <RootStack.Screen name="rm1Modal" component={NavModal1RM} />
+          <RootStack.Screen name="dayFromAdhocModal" component={NavModalDayFromAdhoc} />
+          <RootStack.Screen name="equipmentModal" component={NavModalEquipment} />
+          <RootStack.Screen name="dateModal" component={NavModalDate} />
+          <RootStack.Screen name="supersetPickerModal" component={NavModalWorkoutSuperset} />
         </RootStack.Group>
       </RootStack.Navigator>
     </InitialScreenContext.Provider>

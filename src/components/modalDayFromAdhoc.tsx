@@ -1,4 +1,6 @@
 import { JSX, useState } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
 import { Modal } from "./modal";
 import { IHistoryRecord, IProgram, ISettings, IStats } from "../types";
 import { NextDayPicker } from "./nextDayPicker";
@@ -10,6 +12,7 @@ import { EditProgram_updateProgram } from "../models/editProgram";
 import { Program_addDayFromHistoryRecord, Program_createFromHistoryRecord } from "../models/program";
 import { updateState, IState } from "../models/state";
 import { CollectionUtils_findBy } from "../utils/collection";
+import { Dialog_alert } from "../utils/dialog";
 
 interface IModalChangeNextDayProps {
   initialCurrentProgramId?: string;
@@ -26,8 +29,8 @@ export function ModalDayFromAdhocContent(props: IModalChangeNextDayProps): JSX.E
 
   return (
     <>
-      <div className="mt-4 mb-3 text-lg font-semibold text-center">Program day from Adhoc workout</div>
-      <div className="mx-4 mb-2 text-sm">
+      <Text className="mt-4 mb-3 text-lg font-semibold text-center">Program day from Adhoc workout</Text>
+      <View className="mx-4 mb-2">
         <LinkButton
           name="create-program-from-adhoc"
           data-cy="create-program-from-adhoc"
@@ -37,8 +40,8 @@ export function ModalDayFromAdhocContent(props: IModalChangeNextDayProps): JSX.E
         >
           Create a new program with this workout
         </LinkButton>
-      </div>
-      <div className="mx-4 mb-1 text-sm">or select day to add after in the existing program:</div>
+      </View>
+      <Text className="mx-4 mb-1 text-sm">or select day to add after in the existing program:</Text>
       <NextDayPicker
         initialCurrentProgramId={props.initialCurrentProgramId}
         stats={props.stats}
@@ -60,9 +63,9 @@ export function ModalDayFromAdhocContent(props: IModalChangeNextDayProps): JSX.E
                   ? `${newProgram.planner?.weeks[dayData.week - 1].name}, `
                   : "";
               position += newProgram.planner?.weeks[dayData.week - 1]?.days[dayData.dayInWeek - 1]?.name;
-              alert(`Added to program '${newProgram.name}', at ${position}`);
+              Dialog_alert(`Added to program '${newProgram.name}', at ${position}`);
             } catch (e) {
-              alert(`Error adding day to program: ${e instanceof Error ? e.message : e}`);
+              Dialog_alert(`Error adding day to program: ${e instanceof Error ? e.message : e}`);
             }
           }
           props.onClose();
@@ -85,7 +88,7 @@ export function ModalDayFromAdhocContent(props: IModalChangeNextDayProps): JSX.E
               ],
               "Create program from adhoc"
             );
-            alert(`Created new program '${program.name}' with this workout`);
+            Dialog_alert(`Created new program '${program.name}' with this workout`);
             props.onClose();
           }}
         />

@@ -9,6 +9,7 @@
   "scripts": {
     "ios": "USE_FRAMEWORKS=static react-native run-ios --simulator='iPhone 17'",
     "ios-device": "USE_FRAMEWORKS=static react-native run-ios --device='Anton iPhone Air'",
+    "ios-device-release": "USE_FRAMEWORKS=static react-native run-ios --mode Release --device='Anton iPhone Air'",
     "android": "react-native run-android",
     "rn:start": "react-native start",
     "build": "npm run ensure:localdomain && npm run build:prepare && npm run upload-source-maps",

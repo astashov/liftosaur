@@ -122,6 +122,7 @@ function PreviewListOfExercises(props: IPreviewListOfExercisesProps): JSX.Elemen
     <Scroller>
       <View className="flex-row items-center gap-1 px-4">
         {props.progress.entries.map((entry, entryIndex) => {
+          const currentIdx = props.progress.ui?.currentEntryIndex ?? 0;
           return (
             <WorkoutExerciseThumbnail
               colorToSupersetGroup={colorToSupersetGroup}
@@ -133,9 +134,10 @@ function PreviewListOfExercises(props: IPreviewListOfExercisesProps): JSX.Elemen
                 );
               }}
               shouldShowProgress={props.isPlayground}
-              selectedIndex={props.progress.ui?.currentEntryIndex ?? 0}
+              selectedIndex={currentIdx}
+              isCurrent={entryIndex === currentIdx}
+              currentSuperset={props.progress.entries[currentIdx]?.superset}
               key={entryIndex}
-              progress={props.progress}
               settings={props.settings}
               entry={entry}
               entryIndex={entryIndex}

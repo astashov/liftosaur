@@ -1,8 +1,19 @@
 import type { JSX } from "react";
+import { memo, useCallback } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
-import { ISettings, ISet, IExerciseType, ISubscription, IProgramState, IHistoryRecord, IHistoryEntry } from "../types";
+import {
+  ISettings,
+  ISet,
+  IExerciseType,
+  ISubscription,
+  IProgramState,
+  IHistoryRecord,
+  IHistoryEntry,
+  IWeight,
+  IPercentage,
+} from "../types";
 import { IconCheckCircle } from "./icons/iconCheckCircle";
 import { n } from "../utils/math";
 import { InputNumber2 } from "./inputNumber2";
@@ -65,7 +76,6 @@ interface IWorkoutExerciseSet {
   isNext?: boolean;
   subscription?: ISubscription;
   isPlayground: boolean;
-  progress: IHistoryRecord;
   entry: IHistoryEntry;
   entryIndex: number;
   programExercise?: IPlannerProgramExercise;
@@ -76,7 +86,7 @@ interface IWorkoutExerciseSet {
   dispatch: IDispatch;
 }
 
-export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
+function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
   const set = props.set;
   const placeholderReps = `${set.minReps != null ? `${n(set.minReps)}-` : ""}${set.reps != null ? n(set.reps) : ""}${set.reps != null && set.isAmrap ? "+" : ""}`;
   const placeholderWeight = set.weight?.value != null ? `${n(set.weight.value)}${set.askWeight ? "+" : ""}` : undefined;
@@ -88,6 +98,106 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
   const labelW = isUnilateral ? remValue : 0;
   const repsInputWidth = (props.columnWidths.reps - labelW) / remValue;
   const weightInputWidth = props.columnWidths.weight / remValue;
+
+  const { dispatch, lbSet, setIndex, entryIndex, programExercise, otherStates, isPlayground, type } = props;
+
+  const onInputLeftReps = useCallback(
+    (value: number | undefined) => {
+      if (value != null && !isNaN(value) && value >= 0) {
+        updateProgress(
+          dispatch,
+          [lbSet.recordModify((s) => ({ ...s, completedRepsLeft: Math.round(value) }))],
+          "input-left-reps"
+        );
+      }
+    },
+    [dispatch, lbSet]
+  );
+  const onBlurLeftReps = useCallback(
+    (value: number | undefined) => {
+      updateProgress(dispatch, [lbSet.recordModify((s) => ({ ...s, completedRepsLeft: value }))], "blur-left-reps");
+    },
+    [dispatch, lbSet]
+  );
+  const onInputReps = useCallback(
+    (value: number | undefined) => {
+      if (value != null && !isNaN(value) && value >= 0) {
+        updateProgress(
+          dispatch,
+          [
+            lbSet.recordModify((s) => {
+              const newSet = { ...s, completedReps: Math.round(value) };
+              return Reps_enforceCompletedSet(newSet);
+            }),
+          ],
+          "input-reps"
+        );
+      }
+    },
+    [dispatch, lbSet]
+  );
+  const onBlurReps = useCallback(
+    (value: number | undefined) => {
+      updateProgress(
+        dispatch,
+        [
+          lbSet.recordModify((s) => {
+            const newSet = { ...s, completedReps: value };
+            return Reps_enforceCompletedSet(newSet);
+          }),
+        ],
+        "blur-reps"
+      );
+    },
+    [dispatch, lbSet]
+  );
+  const onBlurWeight = useCallback(
+    (value: IWeight | IPercentage | undefined) => {
+      if (value == null || value.unit !== "%") {
+        updateProgress(
+          dispatch,
+          [
+            lbSet.recordModify((s) => {
+              const newSet = { ...s, completedWeight: value };
+              return Reps_enforceCompletedSet(newSet);
+            }),
+          ],
+          "blur-weight"
+        );
+      }
+    },
+    [dispatch, lbSet]
+  );
+  const onInputWeight = useCallback(
+    (value: IWeight | IPercentage | undefined) => {
+      if (value != null && value.unit !== "%") {
+        updateProgress(
+          dispatch,
+          [
+            lbSet.recordModify((s) => {
+              const newSet = { ...s, completedWeight: value };
+              return Reps_enforceCompletedSet(newSet);
+            }),
+          ],
+          "input-weight"
+        );
+      }
+    },
+    [dispatch, lbSet]
+  );
+  const onCompleteSet = useCallback(() => {
+    dispatch({
+      type: "CompleteSetAction",
+      setIndex,
+      entryIndex,
+      programExercise,
+      otherStates,
+      isPlayground,
+      mode: type,
+      forceUpdateEntryIndex: type === "workout" && !set.isCompleted,
+      isExternal: false,
+    });
+  }, [dispatch, setIndex, entryIndex, programExercise, otherStates, isPlayground, type, set.isCompleted]);
 
   return (
     <SwipeableRow
@@ -146,22 +256,8 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                   <InputNumber2
                     width={repsInputWidth}
                     name="set-left-reps"
-                    onInput={(value) => {
-                      if (value != null && !isNaN(value) && value >= 0) {
-                        updateProgress(
-                          props.dispatch,
-                          [props.lbSet.recordModify((s) => ({ ...s, completedRepsLeft: Math.round(value) }))],
-                          "input-left-reps"
-                        );
-                      }
-                    }}
-                    onBlur={(value) => {
-                      updateProgress(
-                        props.dispatch,
-                        [props.lbSet.recordModify((s) => ({ ...s, completedRepsLeft: value }))],
-                        "blur-left-reps"
-                      );
-                    }}
+                    onInput={onInputLeftReps}
+                    onBlur={onBlurLeftReps}
                     placeholder={placeholderReps}
                     initialValue={set.reps}
                     value={set.completedRepsLeft != null ? set.completedRepsLeft : undefined}
@@ -180,32 +276,8 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                 <InputNumber2
                   width={repsInputWidth}
                   name="set-reps"
-                  onInput={(value) => {
-                    if (value != null && !isNaN(value) && value >= 0) {
-                      updateProgress(
-                        props.dispatch,
-                        [
-                          props.lbSet.recordModify((s) => {
-                            const newSet = { ...s, completedReps: Math.round(value) };
-                            return Reps_enforceCompletedSet(newSet);
-                          }),
-                        ],
-                        "input-reps"
-                      );
-                    }
-                  }}
-                  onBlur={(value) => {
-                    updateProgress(
-                      props.dispatch,
-                      [
-                        props.lbSet.recordModify((s) => {
-                          const newSet = { ...s, completedReps: value };
-                          return Reps_enforceCompletedSet(newSet);
-                        }),
-                      ],
-                      "blur-reps"
-                    );
-                  }}
+                  onInput={onInputReps}
+                  onBlur={onBlurReps}
                   placeholder={placeholderReps}
                   initialValue={set.reps}
                   value={set.completedReps != null ? set.completedReps : undefined}
@@ -226,34 +298,8 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                   width={weightInputWidth}
                   name="set-weight"
                   exerciseType={props.exerciseType}
-                  onBlur={(value) => {
-                    if (value == null || value.unit !== "%") {
-                      updateProgress(
-                        props.dispatch,
-                        [
-                          props.lbSet.recordModify((s) => {
-                            const newSet = { ...s, completedWeight: value };
-                            return Reps_enforceCompletedSet(newSet);
-                          }),
-                        ],
-                        "blur-weight"
-                      );
-                    }
-                  }}
-                  onInput={(value) => {
-                    if (value != null && value.unit !== "%") {
-                      updateProgress(
-                        props.dispatch,
-                        [
-                          props.lbSet.recordModify((s) => {
-                            const newSet = { ...s, completedWeight: value };
-                            return Reps_enforceCompletedSet(newSet);
-                          }),
-                        ],
-                        "input-weight"
-                      );
-                    }
-                  }}
+                  onBlur={onBlurWeight}
+                  onInput={onInputWeight}
                   addOn={
                     set.rpe != null && set.reps != null
                       ? () => (
@@ -287,19 +333,7 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                 className="px-4 py-3"
                 data-cy="complete-set"
                 testID="complete-set"
-                onPress={() => {
-                  props.dispatch({
-                    type: "CompleteSetAction",
-                    setIndex: props.setIndex,
-                    entryIndex: props.entryIndex,
-                    programExercise: props.programExercise,
-                    otherStates: props.otherStates,
-                    isPlayground: props.isPlayground,
-                    mode: props.type,
-                    forceUpdateEntryIndex: props.type === "workout" && !props.set.isCompleted,
-                    isExternal: false,
-                  });
-                }}
+                onPress={onCompleteSet}
                 style={{ marginRight: -8 }}
               >
                 <IconCheckCircle
@@ -333,7 +367,6 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
                     props.settings,
                     props.type === "warmup",
                     props.entryIndex,
-                    props.progress,
                     props.setIndex,
                     props.programExercise,
                     props.exerciseType,
@@ -376,6 +409,8 @@ export function WorkoutExerciseSet(props: IWorkoutExerciseSet): JSX.Element {
     </SwipeableRow>
   );
 }
+
+export const WorkoutExerciseSet = memo(WorkoutExerciseSetInner);
 
 interface IWorkoutExerciseSetTargetProps {
   setType: "program" | "warmup" | "adhoc";
