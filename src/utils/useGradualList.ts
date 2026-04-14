@@ -1,20 +1,22 @@
 import { RefObject, useCallback, useEffect, useRef, useState } from "react";
-import { useNavScrollRef } from "../navigation/NavScreenContent";
+import { Platform } from "react-native";
 
 export function useGradualList<T>(
   collection: T[],
   initialShift: number,
   pageLength: number,
-  containerRef: RefObject<HTMLElement | null>,
+  containerRef: RefObject<{ clientHeight?: number } | null>,
   callback: (visibleRecords: number, nextVisibleRecords: number) => void,
   scrollContainerRef?: RefObject<HTMLElement | null>
 ): { visibleRecords: number; loadMoreVisibleRecords: (cnt: number) => void } {
   const [visibleRecords, setVisibleRecords] = useState<number>(initialShift + pageLength);
   const visibleRecordsRef = useRef<number>(visibleRecords);
-  const navScrollRef = useNavScrollRef();
 
   useEffect(() => {
-    const scrollEl = scrollContainerRef?.current ?? navScrollRef?.current ?? null;
+    if (Platform.OS !== "web") {
+      return;
+    }
+    const scrollEl = scrollContainerRef?.current;
     function scrollHandler(): void {
       const scrollTop = scrollEl ? scrollEl.scrollTop : window.pageYOffset;
       const viewportHeight = scrollEl ? scrollEl.clientHeight : window.innerHeight;

@@ -1,4 +1,6 @@
 import { JSX, Fragment } from "react";
+import { View, Pressable } from "react-native";
+import { Text } from "./primitives/text";
 import { Progress_getSupersetGroups } from "../models/progress";
 import { IHistoryRecord, IHistoryEntry, ISettings } from "../types";
 import { ObjectUtils_entriesNonnull } from "../utils/object";
@@ -24,76 +26,75 @@ export function BottomSheetWorkoutSupersetContent(props: IBottomSheetWorkoutSupe
   });
 
   return (
-    <>
-      <div className="flex flex-col h-full">
-        <div className="relative py-2 mt-2">
-          <h3 className="text-lg font-semibold text-center">Select Superset Group</h3>
-        </div>
-        <div className="flex-1 pb-4 overflow-y-auto">
-          <button
-            key="none"
-            data-cy={`superset-group-none`}
-            className={`font-bold text-left block w-full items-center ${props.entry.superset == null ? "bg-background-cardpurple" : ""} gap-2 px-4 py-1 border-b border-border-neutral min-h-12`}
-            onClick={() => {
-              props.onSelect(undefined);
-              props.onClose();
-            }}
-          >
-            None
-          </button>
-          {ObjectUtils_entriesNonnull(supersetGroups).map(([name, entries]) => {
-            const isSelected = props.entry.superset === name;
-            return (
-              <button
-                key={name}
-                data-cy={`superset-group-${StringUtils_dashcase(name)}`}
-                className={`text-left block w-full items-center ${isSelected ? "bg-background-cardpurple" : ""} gap-2 px-4 py-1 border-b border-border-neutral min-h-12`}
-                onClick={() => {
-                  props.onSelect(name);
-                  props.onClose();
-                }}
-              >
-                <div>
-                  <div className="text-base font-bold">{name}</div>
-                  {entries.length > 0 && (
-                    <div className="text-xs text-text-secondary">
-                      {entries.map((e, i) => {
-                        const exercise = Exercise_get(e.exercise, props.settings.exercises);
-                        return (
-                          <Fragment key={`${e.exercise.id}_${e.exercise.equipment}`}>
-                            {i !== 0 ? ", " : ""}
-                            <strong>{Exercise_fullName(exercise, props.settings)}</strong>
-                          </Fragment>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-        <div className="w-full px-4 pt-2 pb-2" style={{ boxShadow: "0 -4px 4px 0 rgba(0, 0, 0, 0.05)" }}>
-          <Button
-            className="w-full"
-            name="superset-create-group"
-            kind="purple"
-            buttonSize="lg"
-            onClick={() => {
-              openTextInput({
-                title: "Enter new group name",
-                inputLabel: "Name",
-                placeholder: "My Group Name",
-                submitLabel: "Add",
-                dataCyPrefix: "modal-new-superset",
-              });
-            }}
-            data-cy="superset-create-group"
-          >
-            Create New Group
-          </Button>
-        </div>
-      </div>
-    </>
+    <View>
+      <View className="py-2 mt-2">
+        <Text className="text-lg font-semibold text-center">Select Superset Group</Text>
+      </View>
+      <View className="pb-4">
+        <Pressable
+          data-cy="superset-group-none"
+          testID="superset-group-none"
+          className={`${props.entry.superset == null ? "bg-background-cardpurple" : ""} px-4 py-1 border-b border-border-neutral`}
+          style={{ minHeight: 48, justifyContent: "center" }}
+          onPress={() => {
+            props.onSelect(undefined);
+            props.onClose();
+          }}
+        >
+          <Text className="font-bold">None</Text>
+        </Pressable>
+        {ObjectUtils_entriesNonnull(supersetGroups).map(([name, entries]) => {
+          const isSelected = props.entry.superset === name;
+          return (
+            <Pressable
+              key={name}
+              data-cy={`superset-group-${StringUtils_dashcase(name)}`}
+              testID={`superset-group-${StringUtils_dashcase(name)}`}
+              className={`${isSelected ? "bg-background-cardpurple" : ""} px-4 py-1 border-b border-border-neutral`}
+              style={{ minHeight: 48, justifyContent: "center" }}
+              onPress={() => {
+                props.onSelect(name);
+                props.onClose();
+              }}
+            >
+              <Text className="text-base font-bold">{name}</Text>
+              {entries.length > 0 && (
+                <Text className="text-xs text-text-secondary">
+                  {entries.map((e, i) => {
+                    const exercise = Exercise_get(e.exercise, props.settings.exercises);
+                    return (
+                      <Fragment key={`${e.exercise.id}_${e.exercise.equipment}`}>
+                        {i !== 0 ? ", " : ""}
+                        <Text className="font-bold">{Exercise_fullName(exercise, props.settings)}</Text>
+                      </Fragment>
+                    );
+                  })}
+                </Text>
+              )}
+            </Pressable>
+          );
+        })}
+      </View>
+      <View className="w-full px-4 pt-2 pb-2">
+        <Button
+          className="w-full"
+          name="superset-create-group"
+          kind="purple"
+          buttonSize="lg"
+          onClick={() => {
+            openTextInput({
+              title: "Enter new group name",
+              inputLabel: "Name",
+              placeholder: "My Group Name",
+              submitLabel: "Add",
+              dataCyPrefix: "modal-new-superset",
+            });
+          }}
+          data-cy="superset-create-group"
+        >
+          Create New Group
+        </Button>
+      </View>
+    </View>
   );
 }

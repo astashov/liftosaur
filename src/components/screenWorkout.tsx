@@ -1,4 +1,5 @@
 import { JSX, useEffect, useRef } from "react";
+import { Pressable } from "react-native";
 import { IHistoryRecord, IProgram, ISettings, IStats, ISubscription } from "../types";
 import { IDispatch } from "../ducks/types";
 import { Program_evaluate, Program_getProgramDay } from "../models/program";
@@ -21,6 +22,7 @@ import { Reps_findNextSetIndex } from "../models/set";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { workoutTourConfig } from "./tour/workoutTourConfig";
 import { navigationRef } from "../navigation/navigationRef";
+import { Dialog_confirm } from "../utils/dialog";
 
 interface IScreenWorkoutProps {
   progress: IHistoryRecord;
@@ -93,6 +95,15 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
     prevEditSetModal.current = editSetModal;
   }, [editSetModal]);
 
+  const onDeletePress = async (): Promise<void> => {
+    const confirmed = await Dialog_confirm(
+      `Are you sure you want to delete this ${Progress_isCurrent(props.progress) ? "ONGOING" : "PAST"} workout?`
+    );
+    if (confirmed) {
+      props.dispatch(Thunk_deleteProgress());
+    }
+  };
+
   useNavOptions({
     navHelpTourId: workoutTourConfig.id,
     navTitle: Progress_isCurrent(progress) ? "Ongoing workout" : `${DateUtils_format(progress.date)}`,
@@ -133,46 +144,40 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
         />
       ),
     navRightButtons: [
-      <button
+      <Pressable
         key="delete"
-        className="p-2 nm-delete-progress ls-delete-progress"
-        onClick={() => {
-          if (
-            confirm(
-              `Are you sure you want to delete this ${Progress_isCurrent(props.progress) ? "ONGOING" : "PAST"} workout?`
-            )
-          ) {
-            props.dispatch(Thunk_deleteProgress());
-          }
+        data-cy="delete-progress"
+        testID="delete-progress"
+        className="p-2"
+        onPress={() => {
+          onDeletePress().catch(() => undefined);
         }}
       >
         <IconTrash />
-      </button>,
+      </Pressable>,
     ],
   });
 
   if (progress != null) {
     return (
-      <>
-        <Workout
-          onShare={() => {
-            if (!Progress_isCurrent(progress)) {
-              navigationRef.navigate("workoutShareModal", { progressId: progress.id });
-            }
-          }}
-          stats={props.navCommon.stats}
-          allPrograms={props.allPrograms}
-          subscription={props.subscription}
-          history={props.history}
-          helps={props.helps}
-          settings={props.settings}
-          program={evaluatedProgram}
-          isTimerShown={true}
-          programDay={programDay}
-          progress={progress}
-          dispatch={props.dispatch}
-        />
-      </>
+      <Workout
+        onShare={() => {
+          if (!Progress_isCurrent(progress)) {
+            navigationRef.navigate("workoutShareModal", { progressId: progress.id });
+          }
+        }}
+        stats={props.navCommon.stats}
+        allPrograms={props.allPrograms}
+        subscription={props.subscription}
+        history={props.history}
+        helps={props.helps}
+        settings={props.settings}
+        program={evaluatedProgram}
+        isTimerShown={true}
+        programDay={programDay}
+        progress={progress}
+        dispatch={props.dispatch}
+      />
     );
   } else {
     return null;

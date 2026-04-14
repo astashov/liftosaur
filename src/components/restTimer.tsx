@@ -1,4 +1,7 @@
 import { JSX, useEffect, useRef, useState } from "react";
+import { View, Pressable, Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Text } from "./primitives/text";
 import { TimeUtils_formatMMSS } from "../utils/time";
 import { IDispatch } from "../ducks/types";
 import { Thunk_playAudioNotification, Thunk_updateTimer } from "../ducks/thunks";
@@ -15,28 +18,33 @@ interface IProps {
   settings: ISettings;
 }
 
+const shadowStyle = Platform.select({
+  ios: { shadowColor: "#000", shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.25, shadowRadius: 8 },
+  android: { elevation: 8 },
+  default: { boxShadow: "0px 0px 8px rgb(0 0 0 / 25%)" },
+});
+
 export function RestTimer(props: IProps): JSX.Element | null {
   const prevProps = useRef<IProps>(props);
   const sentNotification = useRef<boolean>(false);
-  const intervalId = useRef<number | undefined>(undefined);
-  const [tick, setTick] = useState<number>(0);
+  const intervalId = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  const [, setTick] = useState<number>(0);
   const [isExpanded, setIsExpanded] = useState(false);
+  const insets = useSafeAreaInsets();
   const { progress } = props;
   const { timer, timerSince } = progress;
 
   useEffect(() => {
     if (timerSince != null) {
-      if (intervalId != null) {
-        window.clearInterval(intervalId.current);
+      if (intervalId.current != null) {
+        clearInterval(intervalId.current);
       }
-      intervalId.current = window.setInterval(() => {
-        setTick(tick + 1);
+      intervalId.current = setInterval(() => {
+        setTick((t) => t + 1);
       }, 1000);
       const timeDifference = Date.now() - timerSince;
       const timerMs = timer != null ? timer * 1000 : 0;
-      // Only play notification if within 5 seconds of timer completion
-      // This prevents repeated notifications when syncing from another device
-      // where the timer may already be well past the threshold
+      // Only play notification within 5s of completion; avoids repeat plays when syncing from another device past the threshold
       const maxNotificationWindowMs = 5000;
       if (
         timer != null &&
@@ -52,7 +60,6 @@ export function RestTimer(props: IProps): JSX.Element | null {
         }
         sentNotification.current = true;
       } else if (timer != null && timeDifference > timerMs + maxNotificationWindowMs) {
-        // Timer is past the window, mark as sent to prevent future plays
         sentNotification.current = true;
       }
       if (prevProps.current.progress.timerSince !== props.progress.timerSince) {
@@ -61,103 +68,114 @@ export function RestTimer(props: IProps): JSX.Element | null {
     }
     prevProps.current = props;
     return () => {
-      if (intervalId != null) {
-        window.clearInterval(intervalId.current);
+      if (intervalId.current != null) {
+        clearInterval(intervalId.current);
       }
     };
   });
 
-  if (timer != null && timerSince != null) {
-    const timeDifference = Date.now() - timerSince;
-    const isTimeOut = timeDifference > timer * 1000;
-    const className = isTimeOut ? "bg-background-darkred" : "bg-background-darkgray";
-    const totalColor = isTimeOut ? "text-white" : "text-gray-300";
-    const nextEntryAndSetIndex =
-      progress.timerEntryIndex != null && progress.timerMode != null
-        ? Reps_findNextEntryAndSetIndex(progress, progress.timerEntryIndex, progress.timerMode)
-        : undefined;
-    return isExpanded ? (
-      <div className="fixed z-30 safe-area-inset-bottom " style={{ left: "1rem", right: "1rem", bottom: "5rem" }}>
-        <div
-          className={`flex w-full ${className} text-center rounded-lg shadow-xl text-text-alwayswhite`}
-          style={{ boxShadow: "0px 0px 8px rgb(0 0 0 / 25%)" }}
-        >
-          <button
+  if (timer == null || timerSince == null) {
+    return null;
+  }
+
+  const timeDifference = Date.now() - timerSince;
+  const isTimeOut = timeDifference > timer * 1000;
+  const bgClass = isTimeOut ? "bg-background-darkred" : "bg-background-darkgray";
+  const totalColorClass = isTimeOut ? "text-white" : "text-gray-300";
+  const nextEntryAndSetIndex =
+    progress.timerEntryIndex != null && progress.timerMode != null
+      ? Reps_findNextEntryAndSetIndex(progress, progress.timerEntryIndex, progress.timerMode)
+      : undefined;
+  const bottom = insets.bottom + 80;
+
+  if (isExpanded) {
+    return (
+      <View style={[{ position: "absolute", left: 16, right: 16, bottom, zIndex: 30 }]} pointerEvents="box-none">
+        <View className={`flex-row ${bgClass} rounded-lg`} style={shadowStyle}>
+          <Pressable
             data-cy="rest-timer-minus"
-            className="relative w-10 m-2 text-center nm-rest-timer-minus"
-            style={{ minHeight: "2.5rem", userSelect: "none", touchAction: "manipulation" }}
-            onClick={() =>
+            testID="rest-timer-minus"
+            className="relative items-center justify-center m-2"
+            style={{ width: 40, minHeight: 40 }}
+            onPress={() =>
               props.dispatch(
                 Thunk_updateTimer(timer - 15, nextEntryAndSetIndex?.entryIndex, nextEntryAndSetIndex?.setIndex, false)
               )
             }
           >
-            <div className="absolute inset-0 rounded-lg bg-background-default" style={{ opacity: 0.2 }} />
-            <span className="font-bold">-15s</span>
-          </button>
-          <button
+            <View className="absolute inset-0 rounded-lg bg-background-default" style={{ opacity: 0.2 }} />
+            <Text className="font-bold text-text-alwayswhite">-15s</Text>
+          </Pressable>
+          <Pressable
             data-cy="rest-timer-cancel"
-            className="relative w-10 my-2 text-center nm-rest-timer-cancel"
-            style={{ minHeight: "2.5rem", userSelect: "none", touchAction: "manipulation" }}
-            onClick={() => props.dispatch({ type: "StopTimer" })}
+            testID="rest-timer-cancel"
+            className="relative items-center justify-center my-2"
+            style={{ width: 40, minHeight: 40 }}
+            onPress={() => props.dispatch({ type: "StopTimer" })}
           >
-            <div className="absolute inset-0 rounded-lg bg-background-default" style={{ opacity: 0.2 }} />
-            <IconTrash color="white" style={{ display: "inline-block" }} />
-          </button>
-          <button
+            <View className="absolute inset-0 rounded-lg bg-background-default" style={{ opacity: 0.2 }} />
+            <IconTrash color="white" />
+          </Pressable>
+          <Pressable
             data-cy="rest-timer-expanded"
-            className="flex-1 nm-rest-timer-time"
-            onClick={() => setIsExpanded(false)}
+            testID="rest-timer-expanded"
+            className="flex-1 items-center justify-center"
+            onPress={() => setIsExpanded(false)}
           >
-            <span data-cy="rest-timer-current" className="font-bold text-text-alwayswhite">
+            <Text data-cy="rest-timer-current" className="font-bold text-text-alwayswhite">
               {TimeUtils_formatMMSS(timeDifference)}
-            </span>
-            <span data-cy="rest-timer-total" className={`block text-xs ${totalColor}`}>
+            </Text>
+            <Text data-cy="rest-timer-total" className={`text-xs ${totalColorClass}`}>
               {TimeUtils_formatMMSS(timer * 1000)}
-            </span>
-          </button>
-          <button
+            </Text>
+          </Pressable>
+          <Pressable
             data-cy="rest-timer-back"
-            className="relative w-10 my-2 text-center nm-rest-timer-back"
-            style={{ minHeight: "2.5rem", userSelect: "none", touchAction: "manipulation" }}
-            onClick={() => setIsExpanded(false)}
+            testID="rest-timer-back"
+            className="relative items-center justify-center my-2"
+            style={{ width: 40, minHeight: 40 }}
+            onPress={() => setIsExpanded(false)}
           >
-            <div className="absolute inset-0 rounded-lg bg-background-default" style={{ opacity: 0.2 }} />
-            <IconBack color="white" style={{ transform: "rotate(180deg)", display: "inline-block" }} />
-          </button>
-          <button
+            <View className="absolute inset-0 rounded-lg bg-background-default" style={{ opacity: 0.2 }} />
+            <View style={{ transform: [{ rotate: "180deg" }] }}>
+              <IconBack color="white" />
+            </View>
+          </Pressable>
+          <Pressable
             data-cy="rest-timer-plus"
-            className="relative w-10 m-2 text-center nm-rest-timer-plus"
-            style={{ minHeight: "2.5rem", userSelect: "none", touchAction: "manipulation" }}
-            onClick={() =>
+            testID="rest-timer-plus"
+            className="relative items-center justify-center m-2"
+            style={{ width: 40, minHeight: 40 }}
+            onPress={() =>
               props.dispatch(
                 Thunk_updateTimer(timer + 15, nextEntryAndSetIndex?.entryIndex, nextEntryAndSetIndex?.setIndex, false)
               )
             }
           >
-            <div className="absolute inset-0 rounded-lg bg-background-default" style={{ opacity: 0.2 }} />
-            <span className="font-bold">+15s</span>
-          </button>
-        </div>
-      </div>
-    ) : (
-      <div className="fixed z-30 safe-area-inset-bottom " style={{ right: "1rem", bottom: "5rem" }}>
-        <button
-          data-cy="rest-timer-collapsed"
-          onClick={() => setIsExpanded(true)}
-          className={`${className} w-16 text-center px-2 py-2 rounded-lg shadow-xl`}
-          style={{ boxShadow: "0px 0px 8px rgb(0 0 0 / 25%)" }}
-        >
-          <span data-cy="rest-timer-current" className="font-bold text-text-alwayswhite ">
-            {TimeUtils_formatMMSS(timeDifference)}
-          </span>
-          <span data-cy="rest-timer-total" className={`block text-xs ${totalColor}`}>
-            {TimeUtils_formatMMSS(timer * 1000)}
-          </span>
-        </button>
-      </div>
+            <View className="absolute inset-0 rounded-lg bg-background-default" style={{ opacity: 0.2 }} />
+            <Text className="font-bold text-text-alwayswhite">+15s</Text>
+          </Pressable>
+        </View>
+      </View>
     );
-  } else {
-    return null;
   }
+
+  return (
+    <View style={[{ position: "absolute", right: 16, bottom, zIndex: 30 }]} pointerEvents="box-none">
+      <Pressable
+        data-cy="rest-timer-collapsed"
+        testID="rest-timer-collapsed"
+        onPress={() => setIsExpanded(true)}
+        className={`${bgClass} items-center px-2 py-2 rounded-lg`}
+        style={[{ width: 64 }, shadowStyle]}
+      >
+        <Text data-cy="rest-timer-current" className="font-bold text-text-alwayswhite">
+          {TimeUtils_formatMMSS(timeDifference)}
+        </Text>
+        <Text data-cy="rest-timer-total" className={`text-xs ${totalColorClass}`}>
+          {TimeUtils_formatMMSS(timer * 1000)}
+        </Text>
+      </Pressable>
+    </View>
+  );
 }

@@ -1,9 +1,9 @@
-import { JSX } from "react";
+import { JSX, memo } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
 import { Exercise_get } from "../models/exercise";
 import { Reps_setsStatus } from "../models/set";
-import { IHistoryEntry, IHistoryRecord, ISettings } from "../types";
+import { IHistoryEntry, ISettings } from "../types";
 import {
   WorkoutExerciseUtils_setsStatusToBorderColor,
   WorkoutExerciseUtils_setsStatusToColor,
@@ -20,24 +20,22 @@ interface IWorkoutExerciseThumbnailProps {
   onClick?: () => void;
   selectedIndex: number;
   colorToSupersetGroup: Partial<Record<string, IHistoryEntry[]>>;
-  progress: IHistoryRecord;
+  isCurrent: boolean;
+  currentSuperset?: string;
   shouldShowProgress?: boolean;
   entry: IHistoryEntry;
   entryIndex: number;
   settings: ISettings;
 }
 
-export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps): JSX.Element {
-  const { entry, entryIndex } = props;
+function WorkoutExerciseThumbnailInner(props: IWorkoutExerciseThumbnailProps): JSX.Element {
+  const { entry, entryIndex, isCurrent, currentSuperset } = props;
   const hasSupersets = Object.keys(props.colorToSupersetGroup).length > 0;
   const colorAndSupersetGroup = ObjectUtils_entries(props.colorToSupersetGroup).find(([_, entries]) => {
     return entries && entries.some((e) => e.id === entry.id);
   });
   const supersetColor = colorAndSupersetGroup ? colorAndSupersetGroup[0] : undefined;
   const setsStatus = Reps_setsStatus(entry.sets);
-  const isCurrent = (props.progress.ui?.currentEntryIndex ?? 0) === entryIndex;
-  const currentEntry = props.progress.entries[props.progress.ui?.currentEntryIndex ?? 0];
-  const currentSuperset = currentEntry?.superset;
   const isCurrentSuperset = currentSuperset != null && currentSuperset === entry.superset;
   const borderColor = isCurrent ? "border-purple-600" : WorkoutExerciseUtils_setsStatusToBorderColor(setsStatus);
   const exercise = Exercise_get(entry.exercise, props.settings.exercises);
@@ -72,9 +70,7 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
           />
           {setsStatus === "not-finished" ? (
             props.shouldShowProgress && (
-              <View
-                style={{ position: "absolute", bottom: 0, right: 0, padding: 2 }}
-              >
+              <View style={{ position: "absolute", bottom: 0, right: 0, padding: 2 }}>
                 <View className="absolute inset-0 rounded-md bg-lightgray-50" style={{ opacity: 0.75 }} />
                 <View style={{ position: "relative", zIndex: 10 }}>
                   <Text className="text-xs">
@@ -108,11 +104,10 @@ export function WorkoutExerciseThumbnail(props: IWorkoutExerciseThumbnailProps):
           />
         </View>
       ) : hasSupersets ? (
-        <View
-          className="w-full"
-          style={{ backgroundColor: "transparent", height: 2, marginTop: isCurrent ? 3 : 5 }}
-        />
+        <View className="w-full" style={{ backgroundColor: "transparent", height: 2, marginTop: isCurrent ? 3 : 5 }} />
       ) : null}
     </View>
   );
 }
+
+export const WorkoutExerciseThumbnail = memo(WorkoutExerciseThumbnailInner);

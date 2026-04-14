@@ -1,4 +1,4 @@
-import { JSX, useCallback, useEffect, useRef, useState } from "react";
+import { JSX, memo, useCallback, useEffect, useRef, useState } from "react";
 import { View, Pressable, Modal, Animated } from "react-native";
 import { Text } from "./primitives/text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -49,7 +49,7 @@ function clamp(value: string | number, min?: number, max?: number): number | und
   return num;
 }
 
-export function InputNumber2(props: IInputNumber2Props): JSX.Element {
+function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
   const initialValue = props.value != null ? n(props.value) : "";
   const [value, setValue] = useState(initialValue);
   const [isFocused, setIsFocused] = useState(false);
@@ -260,6 +260,8 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
     </>
   );
 }
+
+export const InputNumber2 = memo(InputNumber2Inner);
 
 interface INativeCustomKeyboardProps {
   onInput: (value: string) => void;

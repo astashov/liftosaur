@@ -1,5 +1,7 @@
-import { JSX, useMemo, useState } from "react";
-import { IHistoryEntry, IHistoryRecord, IProgramState, ISettings, IStats, ISubscription, IWeight } from "../types";
+import { JSX, memo, useCallback, useMemo, useState } from "react";
+import { View, Pressable, Platform, ActionSheetIOS } from "react-native";
+import { Text } from "./primitives/text";
+import { IHistoryEntry, IHistoryRecord, IProgramState, ISettings, IStats, ISubscription } from "../types";
 import { IState, updateProgress, updateSettings, updateState } from "../models/state";
 import { lb } from "lens-shmens";
 import { ExerciseImage } from "./exerciseImage";
@@ -13,29 +15,24 @@ import {
 import { IconArrowRight } from "./icons/iconArrowRight";
 import { LinkButton } from "./linkButton";
 import { ProgramExercise_doesUse1RM } from "../models/programExercise";
-import { Weight_print, Weight_build, Weight_calculatePlates, Weight_eq, Weight_formatOneSide } from "../models/weight";
+import { Weight_print, Weight_build } from "../models/weight";
+import { WorkoutPlatesCalculator } from "./workoutPlatesCalculator";
 import { Markdown } from "./markdown";
 import { CollectionUtils_removeAt } from "../utils/collection";
 import { IconKebab } from "./icons/iconKebab";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
-import { Thunk_pushExerciseStatsScreen, Thunk_pushToEditProgramExercise, Thunk_pushScreen } from "../ducks/thunks";
+import { Thunk_pushExerciseStatsScreen, Thunk_pushToEditProgramExercise } from "../ducks/thunks";
 import { WorkoutExerciseAllSets } from "./workoutExerciseAllSets";
 import {
   WorkoutExerciseUtils_getBgColor50,
   WorkoutExerciseUtils_getBorderColor100,
-  WorkoutExerciseUtils_getBgColor100,
 } from "../utils/workoutExerciseUtils";
 import { DropdownMenu, DropdownMenuItem } from "./dropdownMenu";
 import { IconSwap } from "./icons/iconSwap";
 import { IconTrash } from "./icons/iconTrash";
 import { IconEdit2 } from "./icons/iconEdit2";
 import { TextareaAutogrow } from "./textareaAutogrow";
-import {
-  Progress_getNextSupersetEntry,
-  Progress_doesUse1RM,
-  Progress_editExerciseNotes,
-  Progress_isCurrent,
-} from "../models/progress";
+import { Progress_getNextSupersetEntry, Progress_doesUse1RM, Progress_editExerciseNotes } from "../models/progress";
 import { StringUtils_dashcase } from "../utils/string";
 import { GroupHeader } from "./groupHeader";
 import { Settings_getNextTargetType } from "../models/settings";
@@ -52,6 +49,7 @@ import { Collector } from "../utils/collector";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { IconReorder } from "./icons/iconReorder";
 import { navigationRef } from "../navigation/navigationRef";
+import { Dialog_confirm } from "../utils/dialog";
 
 interface IWorkoutExerciseCardProps {
   entry: IHistoryEntry;
@@ -60,7 +58,11 @@ interface IWorkoutExerciseCardProps {
   programDay?: IEvaluatedProgramDay;
   day: number;
   history: IHistoryRecord[];
-  progress: IHistoryRecord;
+  progressId: number;
+  progressStartTime: number;
+  progressEntries: IHistoryEntry[];
+  progressUserPromptedStateVars?: Partial<Record<string, IProgramState>>;
+  isCurrentProgress: boolean;
   stats: IStats;
   settings: ISettings;
   dispatch: IDispatch;
@@ -71,7 +73,9 @@ interface IWorkoutExerciseCardProps {
   otherStates?: IByExercise<IProgramState>;
 }
 
-export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Element {
+type IKebabAction = "edit" | "swap" | "superset" | "remove";
+
+function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element {
   const programExercise =
     props.program && props.entry.programExerciseId
       ? Program_getProgramExerciseForKeyAndDay(props.program, props.day, props.entry.programExerciseId)
@@ -83,14 +87,20 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
   const exerciseNotes = Exercise_getNotes(exerciseType, props.settings);
   const description = programExercise ? PlannerProgramExercise_currentDescription(programExercise) : undefined;
   const onerm = Exercise_onerm(exercise, props.settings);
-  const nextSet = [...props.entry.warmupSets, ...props.entry.sets].filter((s) => !s.isCompleted)[0];
-  const lbSets = lb<IHistoryRecord>().p("entries").i(props.entryIndex).p("sets");
-  const lbWarmupSets = lb<IHistoryRecord>().p("entries").i(props.entryIndex).p("warmupSets");
+  const nextSet = useMemo(
+    () => [...props.entry.warmupSets, ...props.entry.sets].filter((s) => !s.isCompleted)[0],
+    [props.entry.warmupSets, props.entry.sets]
+  );
+  const lbSets = useMemo(() => lb<IHistoryRecord>().p("entries").i(props.entryIndex).p("sets"), [props.entryIndex]);
+  const lbWarmupSets = useMemo(
+    () => lb<IHistoryRecord>().p("entries").i(props.entryIndex).p("warmupSets"),
+    [props.entryIndex]
+  );
   const programExerciseId = props.entry.programExerciseId;
 
   const historyCollector = Collector.build(props.history)
-    .addFn(History_collectLastEntry(props.progress.startTime, exerciseType))
-    .addFn(History_collectLastNote(props.progress.startTime, exerciseType));
+    .addFn(History_collectLastEntry(props.progressStartTime, exerciseType))
+    .addFn(History_collectLastNote(props.progressStartTime, exerciseType));
 
   const [{ lastHistoryEntry }, { lastNote, timestamp }] = useMemo(
     () => historyCollector.run(),
@@ -98,319 +108,318 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
   );
 
   const [isKebabMenuOpen, setIsKebabMenuOpen] = useState(false);
-  const supersetEntry = Progress_getNextSupersetEntry(props.progress.entries, props.entry);
+  const supersetEntry = Progress_getNextSupersetEntry(props.progressEntries, props.entry);
   const supersetExercise = supersetEntry ? Exercise_get(supersetEntry.exercise, props.settings.exercises) : undefined;
 
+  const { dispatch, entry, entryIndex, progressId, settings } = props;
+  const entryExercise = entry.exercise;
+  const entryId = entry.id;
+  const pickerSort = settings.workoutSettings.pickerSort;
+
+  const openEquipmentModal = useCallback((): void => {
+    updateProgress(
+      dispatch,
+      [lb<IHistoryRecord>().pi("ui", {}).p("equipmentModal").record({ exerciseType: entryExercise })],
+      "change-equipment"
+    );
+    navigationRef.navigate("equipmentModal", { context: "workout", progressId });
+  }, [dispatch, entryExercise, progressId]);
+
+  const openSupersetPicker = useCallback((): void => {
+    updateProgress(
+      dispatch,
+      [lb<IHistoryRecord>().pi("ui", {}).p("showSupersetPicker").record(entry)],
+      "change-superset"
+    );
+    navigationRef.navigate("supersetPickerModal", { progressId });
+  }, [dispatch, entry, progressId]);
+
+  const openRm1Modal = useCallback((): void => {
+    updateProgress(
+      dispatch,
+      [lb<IHistoryRecord>().pi("ui", {}).p("rm1Modal").record({ exerciseType: entryExercise })],
+      "change-rm1"
+    );
+    navigationRef.navigate("rm1Modal", { context: "workout", progressId });
+  }, [dispatch, entryExercise, progressId]);
+
+  const swapExercise = useCallback((): void => {
+    updateProgress(
+      dispatch,
+      [
+        lb<IHistoryRecord>()
+          .pi("ui", {})
+          .p("exercisePicker")
+          .record({
+            state: {
+              mode: "workout",
+              screenStack: ["exercisePicker"],
+              sort: pickerSort ?? "name_asc",
+              filters: {},
+              selectedExercises: [],
+              entryIndex,
+              exerciseType: entryExercise,
+            },
+          }),
+      ],
+      "kebab-swap-exercise"
+    );
+  }, [dispatch, entryExercise, entryIndex, pickerSort]);
+
+  const editSuperset = useCallback((): void => {
+    updateProgress(
+      dispatch,
+      [lb<IHistoryRecord>().pi("ui", {}).p("showSupersetPicker").record(entry)],
+      "kebab-edit-superset"
+    );
+    navigationRef.navigate("supersetPickerModal", { progressId });
+  }, [dispatch, entry, progressId]);
+
+  const removeExercise = useCallback(async (): Promise<void> => {
+    if (!(await Dialog_confirm("Do you want to remove this exercise in this workout only?"))) {
+      return;
+    }
+    updateProgress(
+      dispatch,
+      [
+        lb<IHistoryRecord>()
+          .p("entries")
+          .recordModify((entries) => {
+            const newEntries = CollectionUtils_removeAt(entries, entryIndex);
+            for (const e of newEntries) {
+              if (e.superset && e.superset === entryId) {
+                e.superset = undefined;
+              }
+            }
+            return newEntries;
+          }),
+        lb<IHistoryRecord>()
+          .pi("ui", {})
+          .p("currentEntryIndex")
+          .recordModify((index) => Math.max(0, (index ?? 0) - 1)),
+      ],
+      "kebab-delete-exercise"
+    );
+  }, [dispatch, entryIndex, entryId]);
+
+  const editProgramExercise = useCallback((): void => {
+    if (programExercise) {
+      dispatch(Thunk_pushToEditProgramExercise(programExercise.key, programExercise.dayData, true));
+    }
+  }, [dispatch, programExercise]);
+
+  const runKebabAction = useCallback(
+    (action: IKebabAction): void => {
+      setIsKebabMenuOpen(false);
+      if (action === "edit") {
+        editProgramExercise();
+      } else if (action === "swap") {
+        swapExercise();
+      } else if (action === "superset") {
+        editSuperset();
+      } else if (action === "remove") {
+        removeExercise().catch(() => undefined);
+      }
+    },
+    [editProgramExercise, swapExercise, editSuperset, removeExercise]
+  );
+
+  const kebabActions = useMemo<Array<{ action: IKebabAction; label: string }>>(() => {
+    const actions: Array<{ action: IKebabAction; label: string }> = [];
+    if (programExercise && programExerciseId) {
+      actions.push({ action: "edit", label: "Edit Program Exercise" });
+    }
+    actions.push({ action: "swap", label: "Swap Exercise" });
+    actions.push({ action: "superset", label: "Edit Superset" });
+    actions.push({ action: "remove", label: "Remove Exercise" });
+    return actions;
+  }, [programExercise, programExerciseId]);
+
+  const helps = props.helps;
+  const onStopShowingHint = useCallback((): void => {
+    if (!helps.includes("swipeable-set")) {
+      updateState(
+        dispatch,
+        [
+          lb<IState>()
+            .p("storage")
+            .p("helps")
+            .recordModify((hs) => Array.from(new Set([...hs, "swipeable-set"]))),
+        ],
+        "Stop showing swipe hint"
+      );
+    }
+  }, [dispatch, helps]);
+
+  const subscription = props.subscription;
+  const onTargetClick = useCallback((): void => {
+    updateSettings(
+      dispatch,
+      lb<ISettings>()
+        .p("workoutSettings")
+        .p("targetType")
+        .recordModify((type) =>
+          Settings_getNextTargetType(type, !Subscriptions_hasSubscription(subscription) || !currentEquipmentName)
+        ),
+      "Change target type"
+    );
+  }, [dispatch, subscription, currentEquipmentName]);
+
+  const onKebabPress = useCallback((): void => {
+    if (Platform.OS === "web") {
+      setIsKebabMenuOpen(true);
+      return;
+    }
+    const labels = kebabActions.map((a) => a.label).concat("Cancel");
+    ActionSheetIOS.showActionSheetWithOptions(
+      {
+        options: labels,
+        cancelButtonIndex: labels.length - 1,
+        destructiveButtonIndex: kebabActions.findIndex((a) => a.action === "remove"),
+      },
+      (buttonIndex) => {
+        if (buttonIndex != null && buttonIndex < kebabActions.length) {
+          runKebabAction(kebabActions[buttonIndex].action);
+        }
+      }
+    );
+  }, [kebabActions, runKebabAction]);
+
   return (
-    <section
+    <View
       data-cy={`entry-${StringUtils_dashcase(exercise.name)}`}
       className={`py-1 border rounded-xl ${WorkoutExerciseUtils_getBgColor50(
         props.entry.sets,
         false
       )} ${WorkoutExerciseUtils_getBorderColor100(props.entry.sets, false)}`}
     >
-      <div className="px-4">
-        <header className="flex">
-          <div className="w-16">
-            <button
-              onClick={() => props.dispatch(Thunk_pushExerciseStatsScreen(props.entry.exercise))}
-              className="w-full h-full px-2 rounded-lg bg-background-image nm-workout-exercise-image"
-              style={{ marginLeft: "-0.5rem" }}
+      <View className="px-4">
+        <View className="flex-row">
+          <Pressable
+            onPress={() => props.dispatch(Thunk_pushExerciseStatsScreen(props.entry.exercise))}
+            className="px-2 rounded-lg bg-background-image"
+            style={{ width: 64, marginLeft: -8 }}
+            data-cy="workout-exercise-image"
+            testID="workout-exercise-image"
+          >
+            <ExerciseImage settings={props.settings} className="w-full" exerciseType={exerciseType} size="small" />
+          </Pressable>
+          <View className="flex-1 min-w-0 mt-2 ml-2">
+            <Pressable
+              className="flex-row items-center"
+              data-cy="exercise-name"
+              testID="exercise-name"
+              onPress={() => props.dispatch(Thunk_pushExerciseStatsScreen(props.entry.exercise))}
             >
-              <ExerciseImage settings={props.settings} className="w-full" exerciseType={exerciseType} size="small" />
-            </button>
-          </div>
-          <div className="flex-1 min-w-0 mt-2 ml-auto">
-            <div>
-              <button
-                className="text-left nm-workout-exercise-name"
-                data-cy="exercise-name"
-                onClick={() => props.dispatch(Thunk_pushExerciseStatsScreen(props.entry.exercise))}
-              >
-                <span className="pr-1 text-lg font-bold">{Exercise_nameWithEquipment(exercise, props.settings)}</span>{" "}
-                <IconArrowRight style={{ marginBottom: "2px" }} className="inline-block" />
-              </button>
-            </div>
-            <div data-cy="exercise-equipment" className="text-sm text-text-secondary">
-              Equipment:{" "}
+              <Text className="pr-1 text-lg font-bold">{Exercise_nameWithEquipment(exercise, props.settings)}</Text>
+              <IconArrowRight />
+            </Pressable>
+            <View data-cy="exercise-equipment" className="flex-row flex-wrap">
+              <Text className="text-sm text-text-secondary">Equipment: </Text>
               <LinkButton
                 name="exercise-equipment-picker"
                 data-cy="exercise-equipment-picker"
-                onClick={() => {
-                  const openEquipmentModal = (): void => {
-                    updateProgress(
-                      props.dispatch,
-                      [
-                        lb<IHistoryRecord>()
-                          .pi("ui", {})
-                          .p("equipmentModal")
-                          .record({ exerciseType: props.entry.exercise }),
-                      ],
-                      "change-equipment"
-                    );
-                    navigationRef.navigate("equipmentModal", { context: "workout", progressId: props.progress.id });
-                  };
-                  if (props.progress.ui?.equipmentModal) {
-                    updateProgress(
-                      props.dispatch,
-                      [lb<IHistoryRecord>().pi("ui", {}).p("equipmentModal").record(undefined)],
-                      "clear-equipment"
-                    );
-                    setTimeout(openEquipmentModal, 0);
-                  } else {
-                    openEquipmentModal();
-                  }
-                }}
+                onClick={openEquipmentModal}
               >
                 {currentEquipmentName || "None"}
               </LinkButton>
-            </div>
+            </View>
             {supersetExercise && (
-              <div data-cy="exercise-superset" className="text-sm text-text-secondary">
-                Supersets with:{" "}
+              <View data-cy="exercise-superset" className="flex-row flex-wrap">
+                <Text className="text-sm text-text-secondary">Supersets with: </Text>
                 <LinkButton
                   name="exercise-superset-picker"
                   data-cy="exercise-superset-picker"
-                  onClick={() => {
-                    const openSupersetPicker = (): void => {
-                      updateProgress(
-                        props.dispatch,
-                        [lb<IHistoryRecord>().pi("ui", {}).p("showSupersetPicker").record(props.entry)],
-                        "change-superset"
-                      );
-                      navigationRef.navigate("supersetPickerModal", { progressId: props.progress.id });
-                    };
-                    if (props.progress.ui?.showSupersetPicker) {
-                      updateProgress(
-                        props.dispatch,
-                        [lb<IHistoryRecord>().pi("ui", {}).p("showSupersetPicker").record(undefined)],
-                        "clear-superset"
-                      );
-                      setTimeout(openSupersetPicker, 0);
-                    } else {
-                      openSupersetPicker();
-                    }
-                  }}
+                  onClick={openSupersetPicker}
                 >
                   {Exercise_fullName(supersetExercise, props.settings)}
                 </LinkButton>
-              </div>
+              </View>
             )}
             {currentEquipmentNotes && (
-              <div className="text-xs">
+              <View className="mt-1">
                 <Markdown value={currentEquipmentNotes} />
-              </div>
+              </View>
             )}
             {((programExercise && ProgramExercise_doesUse1RM(programExercise)) || Progress_doesUse1RM(props.entry)) && (
-              <div data-cy="exercise-rm1" className="text-sm text-text-secondary">
-                1RM:{" "}
-                <LinkButton
-                  name="exercise-rm1-picker"
-                  data-cy="exercise-rm1-picker"
-                  onClick={() => {
-                    const openRm1Modal = (): void => {
-                      updateProgress(
-                        props.dispatch,
-                        [
-                          lb<IHistoryRecord>()
-                            .pi("ui", {})
-                            .p("rm1Modal")
-                            .record({ exerciseType: props.entry.exercise }),
-                        ],
-                        "change-rm1"
-                      );
-                      navigationRef.navigate("rm1Modal", { context: "workout", progressId: props.progress.id });
-                    };
-                    if (props.progress.ui?.rm1Modal) {
-                      updateProgress(
-                        props.dispatch,
-                        [lb<IHistoryRecord>().pi("ui", {}).p("rm1Modal").record(undefined)],
-                        "clear-rm1"
-                      );
-                      setTimeout(openRm1Modal, 0);
-                    } else {
-                      openRm1Modal();
-                    }
-                  }}
-                >
+              <View data-cy="exercise-rm1" className="flex-row flex-wrap">
+                <Text className="text-sm text-text-secondary">1RM: </Text>
+                <LinkButton name="exercise-rm1-picker" data-cy="exercise-rm1-picker" onClick={openRm1Modal}>
                   {Weight_print(onerm)}
                 </LinkButton>
-              </div>
+              </View>
             )}
-          </div>
-          <div className="relative">
-            <button
+          </View>
+          <View className="relative">
+            <Pressable
               data-cy="exercise-options"
-              className="px-4 py-2 nm-exercise-options"
-              style={{ marginRight: "-0.75rem" }}
-              onClick={() => setIsKebabMenuOpen(true)}
+              testID="exercise-options"
+              className="px-4 py-2"
+              style={{ marginRight: -12 }}
+              onPress={onKebabPress}
             >
               <IconKebab />
-            </button>
-            {isKebabMenuOpen && (
+            </Pressable>
+            {Platform.OS === "web" && isKebabMenuOpen && (
               <DropdownMenu rightOffset="2rem" onClose={() => setIsKebabMenuOpen(false)} maxWidth="20rem">
                 {programExercise && programExerciseId && (
-                  <DropdownMenuItem
-                    isTop={true}
-                    data-cy="exercise-edit-mode"
-                    onClick={() => {
-                      setIsKebabMenuOpen(false);
-                      props.dispatch(
-                        Thunk_pushToEditProgramExercise(programExercise.key, programExercise.dayData, true)
-                      );
-                    }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div>
-                        <IconEdit2 size={22} />
-                      </div>
-                      <div>Edit Program Exercise</div>
-                    </div>
+                  <DropdownMenuItem isTop={true} data-cy="exercise-edit-mode" onClick={() => runKebabAction("edit")}>
+                    <View className="flex-row items-center" style={{ gap: 8 }}>
+                      <IconEdit2 size={22} />
+                      <Text>Edit Program Exercise</Text>
+                    </View>
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem
                   data-cy="exercise-swap"
                   isTop={!programExercise || !programExerciseId}
-                  onClick={() => {
-                    setIsKebabMenuOpen(false);
-                    const openExercisePicker = (): void => {
-                      updateProgress(
-                        props.dispatch,
-                        [
-                          lb<IHistoryRecord>()
-                            .pi("ui", {})
-                            .p("exercisePicker")
-                            .record({
-                              state: {
-                                mode: "workout",
-                                screenStack: ["exercisePicker"],
-                                sort: props.settings.workoutSettings.pickerSort ?? "name_asc",
-                                filters: {},
-                                selectedExercises: [],
-                                entryIndex: props.entryIndex,
-                                exerciseType: props.entry.exercise,
-                              },
-                            }),
-                        ],
-                        "kebab-swap-exercise"
-                      );
-                    };
-                    if (props.progress.ui?.exercisePicker) {
-                      updateProgress(
-                        props.dispatch,
-                        [lb<IHistoryRecord>().pi("ui", {}).p("exercisePicker").record(undefined)],
-                        "clear-swap-exercise"
-                      );
-                      setTimeout(openExercisePicker, 0);
-                    } else {
-                      openExercisePicker();
-                    }
-                  }}
+                  onClick={() => runKebabAction("swap")}
                 >
-                  <div className="flex items-center gap-2">
-                    <div>
-                      <IconSwap size={18} />
-                    </div>
-                    <div>Swap Exercise</div>
-                  </div>
+                  <View className="flex-row items-center" style={{ gap: 8 }}>
+                    <IconSwap size={18} />
+                    <Text>Swap Exercise</Text>
+                  </View>
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  data-cy="exercise-superset"
-                  onClick={() => {
-                    setIsKebabMenuOpen(false);
-                    const openSupersetPicker = (): void => {
-                      updateProgress(
-                        props.dispatch,
-                        [lb<IHistoryRecord>().pi("ui", {}).p("showSupersetPicker").record(props.entry)],
-                        "kebab-edit-superset"
-                      );
-                      navigationRef.navigate("supersetPickerModal", { progressId: props.progress.id });
-                    };
-                    if (props.progress.ui?.showSupersetPicker) {
-                      updateProgress(
-                        props.dispatch,
-                        [lb<IHistoryRecord>().pi("ui", {}).p("showSupersetPicker").record(undefined)],
-                        "clear-kebab-superset"
-                      );
-                      setTimeout(openSupersetPicker, 0);
-                    } else {
-                      openSupersetPicker();
-                    }
-                  }}
-                >
-                  <div className="flex items-center gap-2">
-                    <div>
-                      <IconReorder size={18} />
-                    </div>
-                    <div>Edit Superset</div>
-                  </div>
+                <DropdownMenuItem data-cy="exercise-superset" onClick={() => runKebabAction("superset")}>
+                  <View className="flex-row items-center" style={{ gap: 8 }}>
+                    <IconReorder size={18} />
+                    <Text>Edit Superset</Text>
+                  </View>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   data-cy="edit-exercise-kebab-remove-exercise"
-                  onClick={() => {
-                    updateProgress(
-                      props.dispatch,
-                      [
-                        lb<IHistoryRecord>()
-                          .p("entries")
-                          .recordModify((entries) => {
-                            setIsKebabMenuOpen(false);
-                            if (confirm("Do you want to remove this exercise in this workout only?")) {
-                              const entryIdToDelete = props.entry.id;
-                              const newEntries = CollectionUtils_removeAt(entries, props.entryIndex);
-                              for (const entry of newEntries) {
-                                if (entry.superset && entry.superset === entryIdToDelete) {
-                                  entry.superset = undefined;
-                                }
-                              }
-                              return newEntries;
-                            } else {
-                              return entries;
-                            }
-                          }),
-                        lb<IHistoryRecord>()
-                          .pi("ui", {})
-                          .p("currentEntryIndex")
-                          .recordModify((index) => {
-                            return Math.max(0, (index ?? 0) - 1);
-                          }),
-                      ],
-                      "kebab-delete-exercise"
-                    );
-                  }}
+                  onClick={() => runKebabAction("remove")}
                 >
-                  <div className="flex items-center gap-2">
-                    <div>
-                      <IconTrash width={15} height={18} />
-                    </div>
-                    <div>Remove Exercise</div>
-                  </div>
+                  <View className="flex-row items-center" style={{ gap: 8 }}>
+                    <IconTrash width={15} height={18} />
+                    <Text>Remove Exercise</Text>
+                  </View>
                 </DropdownMenuItem>
               </DropdownMenu>
             )}
-          </div>
-        </header>
+          </View>
+        </View>
         {exerciseNotes && (
-          <div className="mt-1 text-sm">
+          <View className="mt-1">
             {exerciseNotes && description && <GroupHeader name="Exercise Notes" />}
             <Markdown value={exerciseNotes} />
-          </div>
+          </View>
         )}
         {description && (
-          <div className="mt-1 text-sm">
+          <View className="mt-1">
             {exerciseNotes && description && <GroupHeader name="Program Exercise Description" />}
             <Markdown value={description} />
-          </div>
+          </View>
         )}
         {lastNote && timestamp && (
-          <div>
+          <View>
             <GroupHeader name={`Previous Note (from ${DateUtils_format(timestamp)})`} />
-            <div className="pl-1 mb-1 text-sm border-purplev3-300" style={{ borderWidth: "0 0 0 4px" }}>
-              {lastNote}
-            </div>
-          </div>
+            <View className="pl-1 mb-1 border-purplev3-300" style={{ borderLeftWidth: 4 }}>
+              <Text className="text-sm">{lastNote}</Text>
+            </View>
+          </View>
         )}
-        <div className="">
+        <View>
           <TextareaAutogrow
             debounceMs={1000}
             data-cy="exercise-notes-input"
@@ -424,13 +433,13 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
             }}
             className="mt-1"
           />
-        </div>
-      </div>
+        </View>
+      </View>
       {!props.hidePlatesCalculator &&
         nextSet &&
         currentEquipmentName &&
         (nextSet.completedWeight || nextSet.weight) && (
-          <div className="mx-4">
+          <View className="mx-4">
             <WorkoutPlatesCalculator
               entry={props.entry}
               weight={nextSet.completedWeight ?? nextSet.weight ?? Weight_build(0, props.settings.units)}
@@ -438,51 +447,23 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
               settings={props.settings}
               dispatch={props.dispatch}
             />
-          </div>
+          </View>
         )}
-      <div className="mt-1">
+      <View className="mt-1">
         <WorkoutExerciseAllSets
           stats={props.stats}
           isPlayground={false}
           helps={props.helps}
-          progress={props.progress}
-          onStopShowingHint={() => {
-            if (!props.helps.includes("swipeable-set")) {
-              updateState(
-                props.dispatch,
-                [
-                  lb<IState>()
-                    .p("storage")
-                    .p("helps")
-                    .recordModify((helps) => Array.from(new Set([...helps, "swipeable-set"]))),
-                ],
-                "Stop showing swipe hint"
-              );
-            }
-          }}
-          isCurrentProgress={Progress_isCurrent(props.progress)}
+          onStopShowingHint={onStopShowingHint}
+          isCurrentProgress={props.isCurrentProgress}
           day={props.day}
           program={props.program}
           userPromptedStateVars={
-            programExercise ? props.progress.userPromptedStateVars?.[programExercise.key] : undefined
+            programExercise ? props.progressUserPromptedStateVars?.[programExercise.key] : undefined
           }
           programExercise={programExercise}
           entryIndex={props.entryIndex}
-          onTargetClick={() => {
-            updateSettings(
-              props.dispatch,
-              lb<ISettings>()
-                .p("workoutSettings")
-                .p("targetType")
-                .recordModify((type) => {
-                  return Settings_getNextTargetType(
-                    type,
-                    !Subscriptions_hasSubscription(props.subscription) || !currentEquipmentName
-                  );
-                }),
-              "Change target type"
-            );
-          }}
+          onTargetClick={onTargetClick}
           otherStates={props.otherStates}
           lastSets={lastHistoryEntry?.sets}
           lbSets={lbSets}
@@ -493,60 +474,9 @@ export function WorkoutExerciseCard(props: IWorkoutExerciseCardProps): JSX.Eleme
           dispatch={props.dispatch}
           subscription={props.subscription}
         />
-      </div>
-    </section>
+      </View>
+    </View>
   );
 }
 
-interface IWorkoutPlatesCalculatorProps {
-  entry: IHistoryEntry;
-  weight: IWeight;
-  subscription: ISubscription;
-  settings: ISettings;
-  dispatch: IDispatch;
-}
-
-function WorkoutPlatesCalculator(props: IWorkoutPlatesCalculatorProps): JSX.Element {
-  const isSubscribed = Subscriptions_hasSubscription(props.subscription);
-  const { plates, totalWeight: weight } = Weight_calculatePlates(
-    props.weight,
-    props.settings,
-    props.weight.unit,
-    props.entry.exercise
-  );
-  return (
-    <div className="my-1">
-      <div
-        className={`p-1 inline-block ${WorkoutExerciseUtils_getBgColor100(props.entry.sets, false)} rounded-lg`}
-        style={{
-          backgroundImage: "url(/images/icon-barbell.svg)",
-          backgroundPosition: "10px center",
-          backgroundRepeat: "no-repeat",
-        }}
-      >
-        <div className="py-1 pl-8 pr-4 text-xs text-text-secondary">
-          {isSubscribed ? (
-            <span>
-              <span>Plates: </span>
-              <span className="font-semibold break-all">
-                <span
-                  className={Weight_eq(weight, props.weight) ? "text-text-primary" : "text-text-error"}
-                  data-cy="plates-list"
-                >
-                  {plates.length > 0 ? Weight_formatOneSide(props.settings, plates, props.entry.exercise) : "None"}
-                </span>
-              </span>
-            </span>
-          ) : (
-            <LinkButton
-              name="see-plates-for-each-side"
-              onClick={() => props.dispatch(Thunk_pushScreen("subscription"))}
-            >
-              See plates for each side
-            </LinkButton>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
+export const WorkoutExerciseCard = memo(WorkoutExerciseCardInner);
