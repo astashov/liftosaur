@@ -1,4 +1,6 @@
-import { JSX, Fragment, useRef } from "react";
+import { JSX, Fragment } from "react";
+import { View, Pressable, Platform } from "react-native";
+import { Text } from "../primitives/text";
 import { IconMuscles2 } from "../icons/iconMuscles2";
 import { IconStar } from "../icons/iconStar";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
@@ -18,6 +20,8 @@ import { Input, IValidationError } from "../input";
 import { IEither } from "../../utils/types";
 import { ExercisePickerTemplate } from "./exercisePickerTemplate";
 import { IconFilter } from "../icons/iconFilter";
+import { SheetDragHandle } from "../../navigation/SheetScreenContainer";
+import { getNavigationRef } from "../../navigation/navUtils";
 
 interface IProps {
   isHidden: boolean;
@@ -77,32 +81,29 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
       children: () => <ExercisePickerTemplate dispatch={props.dispatch} templateName={props.state.templateName} />,
     });
   }
-  const labelRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div className="flex flex-col h-full" style={{ marginTop: "-0.75rem" }}>
-      <div className="relative py-4 mt-2">
-        <div className="absolute flex top-4 left-4">
-          <button
-            className="px-2"
-            onClick={() => {
-              props.dispatch(
-                lb<IExercisePickerState>()
-                  .p("screenStack")
-                  .recordModify((stack) => [...stack, "settings"]),
-                "Navigate to settings picker screen"
-              );
-            }}
-          >
-            <IconFilter />
-          </button>
-        </div>
-        <h3 className="px-4 font-bold text-center">{title}</h3>
-        <div className="absolute flex top-4 right-4">
-          <div>
-            <button
+    <View className="flex-1" style={{ marginTop: -12 }}>
+      <SheetDragHandle>
+        <View className="relative pt-4 mt-2">
+          <Text className="px-4 font-bold text-center">{title}</Text>
+          <View className="absolute flex-row top-4 left-4">
+            <Pressable
               className="px-2"
-              onClick={() => {
+              onPress={async () => {
+                const { navigationRef } = await getNavigationRef();
+                console.log("Navigate to exercise picker settings modal");
+                navigationRef.navigate("exercisePickerSettingsModal");
+              }}
+            >
+              <IconFilter />
+            </Pressable>
+          </View>
+          <View className="absolute flex-row top-4 right-4">
+            <Pressable
+              className="px-2"
+              onPress={() => {
+                console.log("Show muacles");
                 props.dispatch(
                   lb<IExercisePickerState>().p("showMuscles").record(!props.state.showMuscles),
                   `Toggle show muscles to ${!props.state.showMuscles}`
@@ -110,12 +111,11 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
               }}
             >
               <IconMuscles2 color={Tailwind_semantic().icon.purple} isSelected={props.state.showMuscles} />
-            </button>
-          </div>
-          <div>
-            <button
+            </Pressable>
+            <Pressable
               className="px-2"
-              onClick={() => {
+              onPress={() => {
+                console.log("Show starred");
                 props.dispatch(
                   lb<IExercisePickerState>().p("filters").p("isStarred").record(!props.state.filters.isStarred),
                   `Toggle starred exercises to ${!props.state.filters.isStarred}`
@@ -123,58 +123,60 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
               }}
             >
               <IconStar isSelected={isStarred} color={Tailwind_semantic().icon.purple} />
-            </button>
-          </div>
-        </div>
-      </div>
-      <div className="flex-1 overflow-y-auto">
-        {props.state.mode === "program" && (
-          <div className="px-4 pb-1">
-            <Input
-              label="Label"
-              ref={labelRef}
-              defaultValue={props.state.label}
-              isLabelOutside={true}
-              changeType={"oninput"}
-              inputSize="sm"
-              pattern="^[^\/\{\}\(\)\t\n\r#\[\]]+$"
-              patternMessage="Label cannot contain special characters: '/{}()#[]'"
-              labelSize="xs"
-              changeHandler={(e: IEither<string, Set<IValidationError>>) => {
-                if (e.success) {
-                  props.dispatch(
-                    [
-                      lb<IExercisePickerState>().p("label").record(e.data),
-                      lb<IExercisePickerState>()
-                        .p("selectedExercises")
-                        .recordModify((exercises) => {
-                          return exercises.map((ex) => {
-                            if (ex.type === "adhoc" || ex.type === "template") {
-                              return { ...ex, label: e.data };
-                            } else {
-                              return ex;
-                            }
-                          });
-                        }),
-                    ],
-                    `Set label to ${e.data}`
-                  );
-                }
-              }}
-            />
-          </div>
-        )}
-        {props.state.exerciseType && (
-          <ExercisePickerCurrentExercise
-            state={props.state}
-            exerciseType={props.state.exerciseType}
-            settings={props.settings}
-          />
-        )}
+            </Pressable>
+          </View>
+          {props.state.mode === "program" && (
+            <View className="px-4 pb-1">
+              <Input
+                label="Label"
+                defaultValue={props.state.label}
+                isLabelOutside={true}
+                changeType={"oninput"}
+                inputSize="sm"
+                pattern="^[^\/\{\}\(\)\t\n\r#\[\]]+$"
+                patternMessage="Label cannot contain special characters: '/{}()#[]'"
+                labelSize="xs"
+                changeHandler={(e: IEither<string, Set<IValidationError>>) => {
+                  if (e.success) {
+                    props.dispatch(
+                      [
+                        lb<IExercisePickerState>().p("label").record(e.data),
+                        lb<IExercisePickerState>()
+                          .p("selectedExercises")
+                          .recordModify((exercises) => {
+                            return exercises.map((ex) => {
+                              if (ex.type === "adhoc" || ex.type === "template") {
+                                return { ...ex, label: e.data };
+                              } else {
+                                return ex;
+                              }
+                            });
+                          }),
+                      ],
+                      `Set label to ${e.data}`
+                    );
+                  }
+                }}
+              />
+            </View>
+          )}
+          {props.state.exerciseType && (
+            <View className="pt-2">
+              <ExercisePickerCurrentExercise
+                state={props.state}
+                exerciseType={props.state.exerciseType}
+                settings={props.settings}
+              />
+            </View>
+          )}
+        </View>
+      </SheetDragHandle>
+      <View className="flex-1">
         {tabs.length > 1 ? (
           <ScrollableTabs
             topPadding="0rem"
             shouldNotExpand={true}
+            fillHeight={true}
             defaultIndex={props.state.selectedTab ?? 0}
             nonSticky={true}
             onChange={(tab) => {
@@ -187,10 +189,17 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
             tabs={tabs}
           />
         ) : (
-          tabs[0].children()
+          <View className="flex-1">{tabs[0].children()}</View>
         )}
-      </div>
-      <div className="w-full px-4 pt-2 pb-2" style={{ boxShadow: "0 -4px 4px 0 rgba(0, 0, 0, 0.05)" }}>
+      </View>
+      <View
+        className="w-full px-4 pt-2 pb-2"
+        style={Platform.select({
+          ios: { shadowColor: "#000", shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.05, shadowRadius: 4 },
+          android: { elevation: 4 },
+          default: { boxShadow: "0 -4px 4px 0 rgba(0, 0, 0, 0.05)" },
+        })}
+      >
         <BottomButton
           state={props.state}
           evaluatedProgram={evaluatedProgram}
@@ -210,8 +219,8 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
           }}
           settings={props.settings}
         />
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }
 
@@ -238,43 +247,37 @@ function BottomButton(props: IBottomButtonProps): JSX.Element {
     })
   );
   return (
-    <div>
-      <div>
-        <Button
-          className="w-full"
-          name="pick-exercises"
-          kind="purple"
-          buttonSize="lg"
-          onClick={props.onClick}
-          data-cy="exercise-picker-confirm"
-        >
-          {props.state.mode === "workout" ? (
-            props.state.exerciseType ? (
-              <>Swap Exercise</>
-            ) : selectedExercises.length > 0 ? (
-              <>Add to this workout{selectedExercises.length > 0 ? ` (${selectedExercises.length})` : ""}</>
-            ) : (
-              <>Close</>
-            )
-          ) : props.state.exerciseType || props.state.templateName ? (
-            <>Save {props.state.selectedTab === 1 ? "Template" : "Exercise"}</>
-          ) : selectedExercises.length > 0 ? (
-            <>Add {props.state.selectedTab === 1 ? "Template" : "Exercise"}</>
-          ) : (
-            <>Close</>
-          )}
-        </Button>
-      </div>
-      {!(props.state.mode === "program" && props.state.selectedTab === 1) && (
-        <div className="text-xs text-text-secondary">
+    <View>
+      <Button
+        className="w-full"
+        name="pick-exercises"
+        kind="purple"
+        buttonSize="lg"
+        onPress={props.onClick}
+        data-cy="exercise-picker-confirm"
+      >
+        {props.state.mode === "workout"
+          ? props.state.exerciseType
+            ? "Swap Exercise"
+            : selectedExercises.length > 0
+              ? `Add to this workout${selectedExercises.length > 0 ? ` (${selectedExercises.length})` : ""}`
+              : "Close"
+          : props.state.exerciseType || props.state.templateName
+            ? `Save ${props.state.selectedTab === 1 ? "Template" : "Exercise"}`
+            : selectedExercises.length > 0
+              ? `Add ${props.state.selectedTab === 1 ? "Template" : "Exercise"}`
+              : "Close"}
+      </Button>
+      {!(props.state.mode === "program" && props.state.selectedTab === 1) && selectedExercises.length > 0 && (
+        <Text className="text-xs text-text-secondary">
           {selectedExercises.map((e, i) => (
             <Fragment key={i}>
               {i > 0 ? "; " : ""}
-              <strong>{e}</strong>
+              <Text className="text-xs font-bold text-text-secondary">{e}</Text>
             </Fragment>
           ))}
-        </div>
+        </Text>
       )}
-    </div>
+    </View>
   );
 }

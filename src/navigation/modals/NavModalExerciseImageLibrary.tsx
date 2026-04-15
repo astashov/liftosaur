@@ -12,7 +12,7 @@ export function NavModalExerciseImageLibrary(): JSX.Element {
   const navigation = useNavigation();
   const modalDispatch = useModalDispatch();
   const appContext = useContext(AppContext);
-  const service = appContext.service ?? new Service(window.fetch.bind(window));
+  const service = appContext.service ?? new Service(fetch);
 
   const onClose = (): void => {
     Modal_clear(modalDispatch, "exerciseImageLibraryModal");
@@ -20,7 +20,7 @@ export function NavModalExerciseImageLibrary(): JSX.Element {
   };
 
   return (
-    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
+    <SheetScreenContainer onClose={onClose}>
       <ExerciseImageLibraryContent
         settings={state.storage.settings}
         isLoggedIn={!!state.user?.id}

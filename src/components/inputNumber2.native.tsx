@@ -426,8 +426,7 @@ function NativeCustomKeyboard(props: INativeCustomKeyboardProps): JSX.Element {
                     aspectRatio: 1,
                     borderWidth: 1,
                     borderRadius: 4,
-                    borderColor:
-                      unit === props.selectedUnit ? semantic.border.prominent : semantic.border.cardpurple,
+                    borderColor: unit === props.selectedUnit ? semantic.border.prominent : semantic.border.cardpurple,
                     backgroundColor:
                       unit === props.selectedUnit
                         ? semantic.background.cardpurpleselected

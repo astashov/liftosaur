@@ -1,7 +1,8 @@
 import { JSX, useState } from "react";
+import { View, ScrollView } from "react-native";
+import { Text } from "../../components/primitives/text";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
-import { SheetScreenContainer } from "../SheetScreenContainer";
 import { Button } from "../../components/button";
 import { ExercisePickerOptionsMuscles } from "../../components/exercisePicker/exercisePickerOptionsMuscles";
 import { IMuscle } from "../../types";
@@ -25,41 +26,38 @@ export function NavModalExerciseMusclesPicker(): JSX.Element {
   }
 
   return (
-    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
-      <div className="flex flex-col h-full px-4" style={{ marginTop: "-0.75rem" }}>
-        <h3 className="pt-6 pb-3 text-base font-semibold text-center">{data.title}</h3>
-        <div className="flex-1 overflow-y-auto">
-          <div className="pb-4">
-            <ExercisePickerOptionsMuscles
-              selectedValues={selectedMuscles}
-              onSelect={(muscle) => {
-                setSelectedMuscles((prev) => {
-                  const current = new Set(prev);
-                  if (current.has(muscle)) {
-                    current.delete(muscle);
-                  } else {
-                    current.add(muscle);
-                  }
-                  return Array.from(current).sort();
-                });
-              }}
-              settings={state.storage.settings}
-            />
-          </div>
-        </div>
-        <div className="py-2 bg-background-default">
+    <>
+      <View collapsable={false} className="flex-row items-center px-4 my-6">
+        <Text className="flex-1 text-base font-semibold leading-6 text-center">{data.title}</Text>
+        <View className="absolute right-4">
           <Button
             kind="purple"
             data-cy="done-selecting-muscles"
             name="done-selecting-muscles"
-            className="w-full"
             buttonSize="md"
-            onClick={onClose}
+            onPress={onClose}
           >
             Done
           </Button>
-        </div>
-      </div>
-    </SheetScreenContainer>
+        </View>
+      </View>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}>
+        <ExercisePickerOptionsMuscles
+          selectedValues={selectedMuscles}
+          onSelect={(muscle) => {
+            setSelectedMuscles((prev) => {
+              const current = new Set(prev);
+              if (current.has(muscle)) {
+                current.delete(muscle);
+              } else {
+                current.add(muscle);
+              }
+              return Array.from(current).sort();
+            });
+          }}
+          settings={state.storage.settings}
+        />
+      </ScrollView>
+    </>
   );
 }

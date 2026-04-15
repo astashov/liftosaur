@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View, Pressable, ScrollView } from "react-native";
+import { Text } from "../primitives/text";
 import { IEvaluatedProgram, IEvaluatedProgramWeek } from "../../models/program";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { ObjectUtils_keys } from "../../utils/object";
@@ -13,6 +15,7 @@ import { ILensDispatch } from "../../utils/useLensReducer";
 import { Exercise_eq } from "../../models/exercise";
 import { ExercisePickerUtils_getIsMultiselect, ExercisePickerUtils_chooseProgramExercise } from "./exercisePickerUtils";
 import { StringUtils_dashcase } from "../../utils/string";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
   evaluatedProgram: IEvaluatedProgram;
@@ -36,7 +39,7 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
   }, {});
 
   return (
-    <div>
+    <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 16 }}>
       {ObjectUtils_keys(exercisesToDays).map((exerciseKey) => {
         const exercises = exercisesToDays[exerciseKey];
         const exerciseType = exercises[0].exerciseType;
@@ -64,19 +67,21 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
           return isMultiselect ? isUsedForDay || (isDisabled && !isSelected) : isUsedForDay;
         });
         return (
-          <div
+          <View
             key={exerciseKey}
-            className={`flex gap-2 px-2 pb-2 mb-4 border-b border-background-subtle ${isAllDisabled ? "opacity-40" : ""}`}
+            className={`flex-row gap-2 px-2 pb-2 mb-4 border-b border-background-subtle ${
+              isAllDisabled ? "opacity-40" : ""
+            }`}
           >
-            <div className="pl-1">
-              <div className="p-1 rounded-lg bg-background-image">
+            <View className="pl-1">
+              <View className="p-1 rounded-lg bg-background-image">
                 <ExerciseImage settings={props.settings} exerciseType={exerciseType} size="small" className="w-10" />
-              </div>
-            </div>
-            <div className="flex-1 pt-1">
-              <h3 className="text-base font-semibold">{exercises[0].name}</h3>
-            </div>
-            <ul>
+              </View>
+            </View>
+            <View className="flex-1 pt-1">
+              <Text className="text-base font-semibold">{exercises[0].name}</Text>
+            </View>
+            <View>
               {exercises.map((exercise) => {
                 const anExerciseType = exercise.exerciseType;
                 if (anExerciseType == null) {
@@ -101,74 +106,73 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
                   props.settings
                 );
                 const isItemDisabled = isMultiselect ? isUsedForDay || (isDisabled && !isSelected) : isUsedForDay;
+                const testId = `exercise-picker-program-${StringUtils_dashcase(exercise.name)}-${exercise.dayData.week}-${exercise.dayData.dayInWeek}`;
                 return (
-                  <li
+                  <Pressable
                     key={`${exercise.key}_${exercise.dayData.week}_${exercise.dayData.dayInWeek}`}
-                    className={`pb-1 ${isItemDisabled && !isAllDisabled ? "opacity-40" : ""}`}
+                    className={`flex-row pb-1 ${isItemDisabled && !isAllDisabled ? "opacity-40" : ""}`}
+                    disabled={isItemDisabled}
+                    data-cy={testId}
+                    testID={testId}
+                    onPress={() => {
+                      ExercisePickerUtils_chooseProgramExercise(
+                        props.dispatch,
+                        anExerciseType,
+                        exercise.dayData.week,
+                        exercise.dayData.dayInWeek,
+                        props.state
+                      );
+                    }}
                   >
-                    <label className="flex w-full text-right tap-2">
-                      <div>
-                        <div className="px-1 pb-1 text-xs text-text-secondary">Day {exercise.dayData.dayInWeek}</div>
-                        {displayGroups.map((g, gi) => (
-                          <HistoryRecordSet key={gi} sets={g} isNext={true} settings={props.settings} />
-                        ))}
-                      </div>
-                      <div>
-                        <span className="px-2 pb-2 radio">
-                          {!isMultiselect ? (
-                            <span className="px-2 pb-2 radio">
-                              <input
-                                type="radio"
-                                disabled={isUsedForDay}
-                                name={`picker-program-exercise-${exercise.dayData.week}`}
-                                data-cy={`exercise-picker-program-${StringUtils_dashcase(exercise.name)}-${exercise.dayData.week}-${exercise.dayData.dayInWeek}`}
-                                value={JSON.stringify({
-                                  key: exercise.key,
-                                  week: exercise.dayData.week,
-                                  dayInWeek: exercise.dayData.dayInWeek,
-                                })}
-                                checked={isSelected}
-                                onChange={() => {
-                                  ExercisePickerUtils_chooseProgramExercise(
-                                    props.dispatch,
-                                    anExerciseType,
-                                    exercise.dayData.week,
-                                    exercise.dayData.dayInWeek,
-                                    props.state
-                                  );
-                                }}
-                              />
-                            </span>
-                          ) : (
-                            <label className="block p-2">
-                              <input
-                                checked={isSelected}
-                                disabled={isUsedForDay || (isDisabled && !isSelected)}
-                                className="checkbox checkbox-purple text-text-purple"
-                                data-cy={`exercise-picker-program-${StringUtils_dashcase(exercise.name)}-${exercise.dayData.week}-${exercise.dayData.dayInWeek}`}
-                                type="checkbox"
-                                onChange={() => {
-                                  ExercisePickerUtils_chooseProgramExercise(
-                                    props.dispatch,
-                                    anExerciseType,
-                                    exercise.dayData.week,
-                                    exercise.dayData.dayInWeek,
-                                    props.state
-                                  );
-                                }}
-                              />
-                            </label>
-                          )}
-                        </span>
-                      </div>
-                    </label>
-                  </li>
+                    <View>
+                      <Text className="px-1 pb-1 text-xs text-text-secondary">Day {exercise.dayData.dayInWeek}</Text>
+                      {displayGroups.map((g, gi) => (
+                        <HistoryRecordSet key={gi} sets={g} isNext={true} settings={props.settings} />
+                      ))}
+                    </View>
+                    <View className="items-center justify-center p-2">
+                      {isMultiselect ? (
+                        <CheckboxIndicator checked={isSelected} />
+                      ) : (
+                        <RadioIndicator checked={isSelected} />
+                      )}
+                    </View>
+                  </Pressable>
                 );
               })}
-            </ul>
-          </div>
+            </View>
+          </View>
         );
       })}
-    </div>
+    </ScrollView>
+  );
+}
+
+function RadioIndicator(props: { checked: boolean }): JSX.Element {
+  const color = Tailwind_semantic().icon.purple;
+  return (
+    <View
+      className="items-center justify-center rounded-full border-2"
+      style={{ width: 20, height: 20, borderColor: props.checked ? color : Tailwind_semantic().border.prominent }}
+    >
+      {props.checked && <View className="rounded-full" style={{ width: 10, height: 10, backgroundColor: color }} />}
+    </View>
+  );
+}
+
+function CheckboxIndicator(props: { checked: boolean }): JSX.Element {
+  const color = Tailwind_semantic().icon.purple;
+  return (
+    <View
+      className="items-center justify-center rounded border-2"
+      style={{
+        width: 20,
+        height: 20,
+        borderColor: props.checked ? color : Tailwind_semantic().border.prominent,
+        backgroundColor: props.checked ? color : "transparent",
+      }}
+    >
+      {props.checked && <Text className="text-xs font-bold text-text-alwayswhite">✓</Text>}
+    </View>
   );
 }

@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View, Pressable } from "react-native";
+import { Text } from "../primitives/text";
 import { IExercisePickerState, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
@@ -18,33 +20,30 @@ interface IProps {
 
 export function ExercisePickerSettings(props: IProps): JSX.Element {
   return (
-    <div className="flex flex-col h-full pb-4">
-      <div className="relative py-4 mt-2">
-        <div className="absolute flex top-2 left-4">
-          <div>
-            <button
-              className="p-2 nm-back"
-              data-cy="navbar-back"
-              onClick={() => {
-                props.dispatch(
-                  lb<IExercisePickerState>()
-                    .p("screenStack")
-                    .recordModify((stack) => stack.slice(0, -1)),
-                  "Pop screen in exercise picker screen stack"
-                );
-              }}
-            >
-              <IconBack />
-            </button>
-          </div>
-        </div>
-        <h3 className="px-4 font-bold text-center">Settings</h3>
-      </div>
-      <div className="px-4">
+    <View className="flex-1 pb-4">
+      <View className="flex-row items-center py-4 mt-2">
+        <Pressable
+          className="px-4 py-2"
+          hitSlop={12}
+          data-cy="navbar-back"
+          testID="navbar-back"
+          onPress={() => {
+            props.dispatch(
+              lb<IExercisePickerState>()
+                .p("screenStack")
+                .recordModify((stack) => stack.slice(0, -1)),
+              "Pop screen in exercise picker screen stack"
+            );
+          }}
+        >
+          <IconBack />
+        </Pressable>
+        <Text className="flex-1 pr-12 font-bold text-center">Settings</Text>
+      </View>
+      <View className="px-4">
         <MenuItemEditable
           type="boolean"
-          isNameHtml={true}
-          name='<span class="break-normal">Keep existing program exercise logic when pick adhoc exercise</span>'
+          name="Keep existing program exercise logic when pick adhoc exercise"
           value={props.settings.workoutSettings.shouldKeepProgramExerciseId ? "true" : "false"}
           onChange={(v) => {
             props.onChange({
@@ -52,7 +51,7 @@ export function ExercisePickerSettings(props: IProps): JSX.Element {
             });
           }}
         />
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }

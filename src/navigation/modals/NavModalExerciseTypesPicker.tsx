@@ -1,6 +1,7 @@
 import { JSX, useState } from "react";
+import { View, ScrollView } from "react-native";
+import { Text } from "../../components/primitives/text";
 import { useNavigation } from "@react-navigation/native";
-import { SheetScreenContainer } from "../SheetScreenContainer";
 import { Button } from "../../components/button";
 import { ExercisePickerOptions, IFilterValue } from "../../components/exercisePicker/exercisePickerOptions";
 import { exerciseKinds, IExerciseKind } from "../../types";
@@ -39,32 +40,30 @@ export function NavModalExerciseTypesPicker(): JSX.Element {
   }
 
   return (
-    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
-      <div className="flex flex-col h-full px-4" style={{ marginTop: "-0.75rem" }}>
-        <h3 className="pt-6 pb-3 text-base font-semibold text-center">Types</h3>
-        <div className="flex-1 overflow-y-auto">
-          <div className="pb-4">
-            <ExercisePickerOptions
-              values={typeValues}
-              onSelect={(key) => {
-                setTypeValues(
-                  ObjectUtils_mapValues(typeValues, (type: IFilterValue, k: IExerciseKind) => {
-                    if (k === key) {
-                      return { ...type, isSelected: !type.isSelected };
-                    }
-                    return type;
-                  })
-                );
-              }}
-            />
-          </div>
-        </div>
-        <div className="py-2 bg-background-default">
-          <Button kind="purple" name="done-selecting-types" className="w-full" buttonSize="md" onClick={onClose}>
+    <>
+      <View collapsable={false} className="flex-row items-center px-4 my-6">
+        <Text className="flex-1 text-base font-semibold leading-6 text-center">Types</Text>
+        <View className="absolute right-4">
+          <Button kind="purple" name="done-selecting-types" buttonSize="md" onPress={onClose}>
             Done
           </Button>
-        </div>
-      </div>
-    </SheetScreenContainer>
+        </View>
+      </View>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}>
+        <ExercisePickerOptions
+          values={typeValues}
+          onSelect={(key) => {
+            setTypeValues(
+              ObjectUtils_mapValues(typeValues, (type: IFilterValue, k: IExerciseKind) => {
+                if (k === key) {
+                  return { ...type, isSelected: !type.isSelected };
+                }
+                return type;
+              })
+            );
+          }}
+        />
+      </ScrollView>
+    </>
   );
 }

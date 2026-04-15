@@ -54,10 +54,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
 
   return (
     <>
-      <View
-        testID="navbar"
-        className="z-30 w-full flex-row items-center justify-center px-2 bg-background-default"
-      >
+      <View testID="navbar" className="z-30 w-full flex-row items-center justify-center px-2 bg-background-default">
         <View className="flex-row items-center justify-start" style={{ minWidth: numberOfButtons * 40 }}>
           {showBackButton ? (
             <Pressable
@@ -177,9 +174,15 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
 export function NavbarCenterView(props: INavbarCenterProps): JSX.Element {
   if (props.subtitle != null) {
     return (
-      <Pressable className="flex-1" onPress={props.onTitleClick}>
-        <Text className="pt-2 text-sm font-semibold text-text-primary">{props.title}</Text>
-        <Text className="pb-2 text-sm font-semibold text-icon-yellow">{props.subtitle}</Text>
+      <Pressable className="flex-1 items-center" onPress={props.onTitleClick}>
+        <Text className="pt-2 text-sm font-semibold text-center text-text-primary">{props.title}</Text>
+        <View className="pb-2">
+          {typeof props.subtitle === "string" ? (
+            <Text className="text-sm font-semibold text-center text-icon-yellow">{props.subtitle}</Text>
+          ) : (
+            props.subtitle
+          )}
+        </View>
       </Pressable>
     );
   } else {

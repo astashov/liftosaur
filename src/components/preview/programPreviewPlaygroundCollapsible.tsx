@@ -32,7 +32,9 @@ export function CollapsiblePreview(props: ICollapsiblePreviewProps): JSX.Element
 
   const onPageLayout = useCallback((weekIndex: number, height: number) => {
     setContentHeights((prev) => {
-      if (prev[weekIndex] === height) return prev;
+      if (prev[weekIndex] === height) {
+        return prev;
+      }
       return { ...prev, [weekIndex]: height };
     });
   }, []);

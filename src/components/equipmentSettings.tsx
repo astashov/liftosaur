@@ -229,7 +229,10 @@ export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProp
   return (
     <View>
       <View className="px-2 my-1 border bg-background-default rounded-xl border-border-neutral">
-        <View className="flex-row items-center py-2 border-b bg-background-default border-background-subtle" style={{ gap: 4 }}>
+        <View
+          className="flex-row items-center py-2 border-b bg-background-default border-background-subtle"
+          style={{ gap: 4 }}
+        >
           <View className="flex-row items-center">
             <Pressable
               className="px-2"

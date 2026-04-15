@@ -1,12 +1,14 @@
-import { JSX, useState, useMemo } from "react";
+import { JSX, useState, useMemo, useCallback } from "react";
+import { View, TextInput, Pressable, FlatList, ListRenderItem } from "react-native";
+import { Text } from "../primitives/text";
 import { ISettings } from "../../types";
 import { IExercise, Exercise_allExpanded, Exercise_toKey } from "../../models/exercise";
-import { Tailwind_colors } from "../../utils/tailwindConfig";
+import { Tailwind_colors, Tailwind_semantic } from "../../utils/tailwindConfig";
 import { IconMagnifyingGlass } from "../icons/iconMagnifyingGlass";
 import { StringUtils_fuzzySearch } from "../../utils/string";
 import { ExercisePickerExerciseItem } from "./exercisePickerExerciseItem";
 import { BottomSheetOrModal } from "../bottomSheetOrModal";
-import { useProgressiveList } from "../../utils/useProgressiveList";
+import { SheetDragHandle } from "../../navigation/SheetScreenContainer";
 
 interface IProps {
   isHidden: boolean;
@@ -16,7 +18,7 @@ interface IProps {
   onClose: () => void;
 }
 
-export type IExerciseCloneLibraryContentProps = Omit<IProps, "isHidden">;
+export type IExerciseCloneLibraryContentProps = Omit<IProps, "isHidden"> & { bare?: boolean };
 
 export function ExerciseCloneLibraryContent(props: IExerciseCloneLibraryContentProps): JSX.Element {
   const [search, setSearch] = useState<string>("");
@@ -31,56 +33,61 @@ export function ExerciseCloneLibraryContent(props: IExerciseCloneLibraryContentP
     return result;
   }, [trimmedSearch, props.settings.exercises]);
 
-  const { visibleItems: visibleExercises, sentinelRef, hasMore } = useProgressiveList(exercises);
+  const keyExtractor = useCallback((e: IExercise) => Exercise_toKey(e), []);
+  const renderItem: ListRenderItem<IExercise> = useCallback(
+    ({ item: ex }) => (
+      <Pressable onPress={() => props.onSelect(ex)}>
+        <ExercisePickerExerciseItem isEnabled={true} showMuscles={true} settings={props.settings} exercise={ex} />
+      </Pressable>
+    ),
+    [props.onSelect, props.settings]
+  );
 
+  const header = (
+    <SheetDragHandle>
+      <View collapsable={false} className="px-4 pb-2">
+        <Text className="pt-1 pb-3 text-base font-semibold text-center">Pick Exercise To Clone From</Text>
+        <View className="flex-row items-center gap-2 p-2 rounded-lg bg-background-neutral">
+          <IconMagnifyingGlass size={18} color={Tailwind_colors().lightgray[600]} />
+          <TextInput
+            placeholder="Search by name"
+            placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
+            className="flex-1 text-sm text-text-secondary"
+            data-cy="exercise-filter-by-name"
+            testID="exercise-filter-by-name"
+            defaultValue={search}
+            onChangeText={setSearch}
+          />
+        </View>
+      </View>
+    </SheetDragHandle>
+  );
+  const list = (
+    <FlatList
+      data={exercises}
+      keyExtractor={keyExtractor}
+      renderItem={renderItem}
+      contentContainerStyle={{ paddingHorizontal: 16 }}
+      initialNumToRender={8}
+      maxToRenderPerBatch={10}
+      windowSize={5}
+      removeClippedSubviews
+      keyboardShouldPersistTaps="handled"
+    />
+  );
+  if (props.bare) {
+    return (
+      <>
+        {header}
+        {list}
+      </>
+    );
+  }
   return (
-    <div className="flex flex-col h-full px-4">
-      <div className="pb-2">
-        <h3 className="pt-1 pb-3 text-base font-semibold text-center">Pick Exercise To Clone From</h3>
-        <div className="flex items-center flex-1 gap-2 p-2 rounded-lg bg-background-neutral">
-          <div>
-            <IconMagnifyingGlass size={18} color={Tailwind_colors().lightgray[600]} />
-          </div>
-          <div className="flex-1">
-            <input
-              type="text"
-              placeholder="Search by name"
-              className="block w-full text-sm bg-transparent border-none outline-none bg-none text-text-secondary placeholder-text-secondarysubtle"
-              data-cy="exercise-filter-by-name"
-              value={search}
-              onInput={(event) => {
-                const target = event.target as HTMLInputElement;
-                const value = target.value;
-                setSearch(value);
-              }}
-            />
-          </div>
-        </div>
-      </div>
-      <div className="flex-1 overflow-y-auto">
-        <div className="pb-4">
-          {visibleExercises.map((ex) => {
-            return (
-              <div
-                key={Exercise_toKey(ex)}
-                className="block cursor-pointer"
-                onClick={() => {
-                  props.onSelect(ex);
-                }}
-              >
-                <ExercisePickerExerciseItem
-                  isEnabled={true}
-                  showMuscles={true}
-                  settings={props.settings}
-                  exercise={ex}
-                />
-              </div>
-            );
-          })}
-          {hasMore && <div ref={sentinelRef} style={{ height: 1 }} />}
-        </div>
-      </div>
-    </div>
+    <View className="flex-1">
+      {header}
+      {list}
+    </View>
   );
 }
 
