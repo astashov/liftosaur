@@ -1,6 +1,18 @@
-import { JSX, ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import React, { JSX, ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { IconCloseCircleOutline } from "../components/icons/iconCloseCircleOutline";
+
+export function SheetDragHandle(props: {
+  children: ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+}): JSX.Element {
+  return (
+    <div className={props.className} style={props.style}>
+      {props.children}
+    </div>
+  );
+}
 
 interface IProps {
   children: ReactNode;

@@ -12,11 +12,21 @@ function resolveFontFamily(className: string | undefined): string {
   const isBold = className != null && /\bfont-bold\b/.test(className);
   const isSemiBold = className != null && /\bfont-semibold\b/.test(className);
   const isItalic = className != null && /\bitalic\b/.test(className);
-  if (isBold && isItalic) return "Poppins-BoldItalic";
-  if (isBold) return "Poppins-Bold";
-  if (isSemiBold && isItalic) return "Poppins-SemiBoldItalic";
-  if (isSemiBold) return "Poppins-SemiBold";
-  if (isItalic) return "Poppins-Italic";
+  if (isBold && isItalic) {
+    return "Poppins-BoldItalic";
+  }
+  if (isBold) {
+    return "Poppins-Bold";
+  }
+  if (isSemiBold && isItalic) {
+    return "Poppins-SemiBoldItalic";
+  }
+  if (isSemiBold) {
+    return "Poppins-SemiBold";
+  }
+  if (isItalic) {
+    return "Poppins-Italic";
+  }
   return "Poppins-Regular";
 }
 

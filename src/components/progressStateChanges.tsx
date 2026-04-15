@@ -108,10 +108,18 @@ function ExerciseChanges({ diffVars }: { diffVars: Record<string, string | undef
         <Text className="text-xs font-bold">Exercise Changes</Text>
         <View data-cy="variable-changes" testID="variable-changes">
           {ObjectUtils_keys(diffVars).map((key) => (
-            <View key={key} data-cy={`variable-changes-key-${StringUtils_dashcase(key)}`} testID={`variable-changes-key-${StringUtils_dashcase(key)}`}>
+            <View
+              key={key}
+              data-cy={`variable-changes-key-${StringUtils_dashcase(key)}`}
+              testID={`variable-changes-key-${StringUtils_dashcase(key)}`}
+            >
               <Text className="text-xs">
                 <Text className="italic">{key}</Text>:{" "}
-                <Text className="font-bold" data-cy={`variable-changes-value-${StringUtils_dashcase(key)}`} testID={`variable-changes-value-${StringUtils_dashcase(key)}`}>
+                <Text
+                  className="font-bold"
+                  data-cy={`variable-changes-value-${StringUtils_dashcase(key)}`}
+                  testID={`variable-changes-value-${StringUtils_dashcase(key)}`}
+                >
                   {diffVars[key]}
                 </Text>
               </Text>
@@ -131,10 +139,18 @@ function StateVariablesChanges({ diffState }: { diffState: Record<string, string
         <Text className="text-xs font-bold">State Variables changes</Text>
         <View data-cy="state-changes" testID="state-changes">
           {ObjectUtils_keys(diffState).map((key) => (
-            <View key={key} data-cy={`state-changes-key-${StringUtils_dashcase(key)}`} testID={`state-changes-key-${StringUtils_dashcase(key)}`}>
+            <View
+              key={key}
+              data-cy={`state-changes-key-${StringUtils_dashcase(key)}`}
+              testID={`state-changes-key-${StringUtils_dashcase(key)}`}
+            >
               <Text className="text-xs">
                 <Text className="italic">{key}</Text>:{" "}
-                <Text className="font-bold" data-cy={`state-changes-value-${StringUtils_dashcase(key)}`} testID={`state-changes-value-${StringUtils_dashcase(key)}`}>
+                <Text
+                  className="font-bold"
+                  data-cy={`state-changes-value-${StringUtils_dashcase(key)}`}
+                  testID={`state-changes-value-${StringUtils_dashcase(key)}`}
+                >
                   {diffState[key]}
                 </Text>
               </Text>

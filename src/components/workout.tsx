@@ -34,7 +34,7 @@ import {
 } from "../models/progress";
 import { IconPlus2 } from "./icons/iconPlus2";
 import { WorkoutExercise } from "./workoutExercise";
-import { Scroller } from "./scroller";
+import { Scroller, IScrollerHandle } from "./scroller";
 import { WorkoutExerciseThumbnail } from "./workoutExerciseThumbnail";
 import { IconShare } from "./icons/iconShare";
 import { Markdown } from "./markdown";
@@ -365,6 +365,16 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
   const colorToSupersetGroup = Progress_getColorToSupersetGroup(props.progress);
   const currentEntryIndex = props.progress.ui?.currentEntryIndex ?? 0;
   const currentSuperset = props.progress.entries[currentEntryIndex]?.superset;
+  const thumbScrollerRef = useRef<IScrollerHandle>(null);
+  const prevEntriesLengthRef = useRef(props.progress.entries.length);
+  useEffect(() => {
+    const prev = prevEntriesLengthRef.current;
+    const curr = props.progress.entries.length;
+    if (curr > prev) {
+      thumbScrollerRef.current?.scrollToEnd();
+    }
+    prevEntriesLengthRef.current = curr;
+  }, [props.progress.entries.length]);
   return (
     <>
       <View className="items-end mr-2">
@@ -377,7 +387,7 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
         </LinkButton>
       </View>
       <View className="py-1 border-b bg-background-default border-background-subtle">
-        <Scroller>
+        <Scroller ref={thumbScrollerRef}>
           <View className="flex-row items-center gap-1 px-4">
             <DraggableList2
               isDisabled={!enableReorder}

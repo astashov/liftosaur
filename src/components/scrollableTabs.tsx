@@ -20,6 +20,7 @@ export interface IScrollableTabsProps {
   topPadding?: string;
   nonSticky?: boolean;
   zIndex?: number;
+  fillHeight?: boolean;
   onChange?: (index: number) => void;
   headerContent?: ReactNode;
 }
@@ -29,76 +30,75 @@ export function ScrollableTabs(props: IScrollableTabsProps): JSX.Element {
   const [selectedIndex, setSelectedIndex] = useState<number>(props.defaultIndex || 0);
   const color = props.color || "orange";
 
-  const tabBar =
+  const useScroller = props.type === "squares";
+  const tabsRow =
     tabs.length > 1 ? (
-      <View className="bg-background-default">
-        <Scroller>
-          <View
-            className={`flex-row w-full ${props.topPadding == null ? "pt-6" : ""} pb-2 ${props.className || ""}`}
-            style={props.topPadding != null ? { paddingTop: parseFloat(props.topPadding) || 0 } : undefined}
-          >
-            {tabs.map(({ label, isInvalid }, index) => {
-              const nameClass = `tab-${StringUtils_dashcase(label.toLowerCase())}`;
+      <View
+        className={`flex-row w-full ${props.topPadding == null ? "pt-6" : ""} pb-2 ${props.className || ""}`}
+        style={props.topPadding != null ? { paddingTop: parseFloat(props.topPadding) || 0 } : undefined}
+      >
+        {tabs.map(({ label, isInvalid }, index) => {
+          const nameClass = `tab-${StringUtils_dashcase(label.toLowerCase())}`;
 
-              if (props.type === "squares") {
-                const isSelected = selectedIndex === index;
-                return (
-                  <Pressable
-                    key={label}
-                    className={`px-3 py-2 rounded mr-2 ${
-                      isSelected
-                        ? "bg-background-default border border-button-primarybackground"
-                        : "bg-background-subtle border border-background-default"
-                    }`}
-                    data-cy={nameClass}
-                    testID={nameClass}
-                    onPress={() => {
-                      props.onChange?.(index);
-                      setSelectedIndex(index);
-                    }}
-                  >
-                    <Text className={`text-sm ${isSelected ? "text-text-purple" : "text-text-secondary"}`}>
-                      {label}
-                    </Text>
-                  </Pressable>
-                );
-              }
+          if (props.type === "squares") {
+            const isSelected = selectedIndex === index;
+            return (
+              <Pressable
+                key={label}
+                className={`px-3 py-2 rounded mr-2 ${
+                  isSelected
+                    ? "bg-background-default border border-button-primarybackground"
+                    : "bg-background-subtle border border-background-default"
+                }`}
+                data-cy={nameClass}
+                testID={nameClass}
+                onPress={() => {
+                  props.onChange?.(index);
+                  setSelectedIndex(index);
+                }}
+              >
+                <Text className={`text-sm ${isSelected ? "text-text-purple" : "text-text-secondary"}`}>{label}</Text>
+              </Pressable>
+            );
+          }
 
-              const isSelected = selectedIndex === index;
-              const activeColor =
-                color === "orange"
-                  ? Tailwind_semantic().icon.yellow
-                  : Tailwind_semantic().button.secondarystroke;
-              const activeTextColor = color === "orange" ? "text-icon-yellow" : "text-text-purple";
+          const isSelected = selectedIndex === index;
+          const activeColor =
+            color === "orange" ? Tailwind_semantic().icon.yellow : Tailwind_semantic().button.secondarystroke;
+          const activeTextColor = color === "orange" ? "text-icon-yellow" : "text-text-purple";
 
-              return (
-                <View key={label} className="flex-1 items-center border-b border-border-neutral">
-                  <Pressable
-                    className="px-4 pb-1"
-                    style={isSelected ? { borderBottomWidth: 2, borderBottomColor: activeColor } : undefined}
-                    data-cy={nameClass}
-                    testID={nameClass}
-                    onPress={() => {
-                      props.onChange?.(index);
-                      setSelectedIndex(index);
-                    }}
-                  >
-                    <Text
-                      className={`text-base ${isSelected ? activeTextColor : ""} ${isInvalid ? "text-text-error" : ""}`}
-                    >
-                      {isInvalid ? "⚠️" : ""}
-                      {label}
-                    </Text>
-                  </Pressable>
-                </View>
-              );
-            })}
-          </View>
-        </Scroller>
+          return (
+            <View key={label} className="items-center flex-1 border-b border-border-neutral">
+              <Pressable
+                className="px-4 pb-1"
+                style={isSelected ? { borderBottomWidth: 2, borderBottomColor: activeColor } : undefined}
+                data-cy={nameClass}
+                testID={nameClass}
+                onPress={() => {
+                  props.onChange?.(index);
+                  setSelectedIndex(index);
+                }}
+              >
+                <Text
+                  className={`text-base ${isSelected ? activeTextColor : ""} ${isInvalid ? "text-text-error" : ""}`}
+                >
+                  {isInvalid ? "⚠️" : ""}
+                  {label}
+                </Text>
+              </Pressable>
+            </View>
+          );
+        })}
       </View>
     ) : null;
+  const tabBar =
+    tabsRow != null ? (
+      <View className="bg-background-default">{useScroller ? <Scroller>{tabsRow}</Scroller> : tabsRow}</View>
+    ) : null;
 
-  const content = <View>{tabs[selectedIndex]?.children() || tabs[0]?.children()}</View>;
+  const content = (
+    <View className={props.fillHeight ? "flex-1" : ""}>{tabs[selectedIndex]?.children() || tabs[0]?.children()}</View>
+  );
 
   if (props.headerContent != null) {
     return (
@@ -121,7 +121,7 @@ export function ScrollableTabs(props: IScrollableTabsProps): JSX.Element {
       : undefined;
 
   return (
-    <View>
+    <View className={props.fillHeight ? "flex-1" : ""}>
       {tabBar && (
         <View style={stickyStyle} className="bg-background-default">
           {tabBar}

@@ -126,7 +126,9 @@ function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (!isWeb) return;
+    if (!isWeb) {
+      return;
+    }
     if (typeof window !== "undefined" && window.AppleID?.auth) {
       window.AppleID.auth.init({
         clientId: "com.liftosaur.www.signinapple",

@@ -166,7 +166,13 @@ export function ScreenSetupPlates(props: IScreenSetupPlatesProps): JSX.Element {
 
   return (
     <View className="flex flex-col flex-1 bg-background-default" style={{ paddingTop: insets.top }}>
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 80 + insets.bottom }} automaticallyAdjustKeyboardInsets keyboardShouldPersistTaps="never" keyboardDismissMode="interactive">
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ paddingBottom: 80 + insets.bottom }}
+        automaticallyAdjustKeyboardInsets
+        keyboardShouldPersistTaps="never"
+        keyboardDismissMode="interactive"
+      >
         <View className="items-center p-4">
           <Image
             source={{ uri: HostConfig_resolveUrl("/images/dinoplates.png") }}

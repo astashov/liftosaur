@@ -12,13 +12,7 @@ export function IconCalculator(props: IProps): JSX.Element {
   const color = props.color || Tailwind_semantic().icon.neutral;
   const size = props.size ?? 20;
   return (
-    <Svg
-      className={props.className}
-      width={size}
-      height={Math.ceil(size * 1.3)}
-      viewBox="0 0 40 52"
-      fill="none"
-    >
+    <Svg className={props.className} width={size} height={Math.ceil(size * 1.3)} viewBox="0 0 40 52" fill="none">
       <Path
         fillRule="evenodd"
         clipRule="evenodd"

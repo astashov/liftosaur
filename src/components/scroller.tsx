@@ -1,4 +1,4 @@
-import { JSX, ReactNode, useRef } from "react";
+import { JSX, ReactNode, Ref, forwardRef, useImperativeHandle, useRef } from "react";
 import { View, ScrollView, Platform } from "react-native";
 
 interface IProps {
@@ -7,9 +7,23 @@ interface IProps {
   scrollOffset?: number;
 }
 
-export function Scroller(props: IProps): JSX.Element {
+export interface IScrollerHandle {
+  scrollToEnd: () => void;
+  scrollTo: (x: number) => void;
+}
+
+export const Scroller = forwardRef(function Scroller(props: IProps, ref: Ref<IScrollerHandle>): JSX.Element {
   const scrollRef = useRef<ScrollView>(null);
   const isWeb = Platform.OS === "web";
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      scrollToEnd: () => scrollRef.current?.scrollToEnd({ animated: true }),
+      scrollTo: (x: number) => scrollRef.current?.scrollTo({ x, animated: true }),
+    }),
+    []
+  );
 
   if (!isWeb) {
     return (
@@ -21,14 +35,9 @@ export function Scroller(props: IProps): JSX.Element {
 
   return (
     <View className="relative flex-1 min-w-0">
-      <ScrollView
-        ref={scrollRef}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        className="scrollbar-hide"
-      >
+      <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false} className="scrollbar-hide">
         {props.children}
       </ScrollView>
     </View>
   );
-}
+});

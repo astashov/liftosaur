@@ -20,7 +20,7 @@ export function NavModalExerciseCloneLibrary(): JSX.Element {
   };
 
   return (
-    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
+    <SheetScreenContainer onClose={onClose}>
       <ExerciseCloneLibraryContent
         showMuscles={true}
         settings={settings}

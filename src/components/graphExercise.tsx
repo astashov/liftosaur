@@ -53,7 +53,7 @@ function getData(
   const historyRecords: { [key: number]: IHistoryRecord } = {};
   const normalizedData = CollectionUtils_sort(history, (a, b) => a.startTime - b.startTime).reduce<
     [number, number | null, number | null, number | null, number | null, number | null][]
-  >((memo, i) => {
+  >((acc, i) => {
     if (!currentProgram || currentProgram !== i.programName) {
       currentProgram = i.programName;
       changeProgramTimes.push([new Date(Date.parse(i.date)).getTime() / 1000, currentProgram]);
@@ -79,7 +79,7 @@ function getData(
         }
         const timestamp = new Date(Date.parse(i.date)).getTime() / 1000;
         historyRecords[timestamp] = i;
-        memo.push([
+        acc.push([
           timestamp,
           Weight_convertTo(convertedWeight, settings.units).value,
           maxSet.completedReps!,
@@ -89,7 +89,7 @@ function getData(
         ]);
       }
     }
-    return memo;
+    return acc;
   }, []);
   const normalizedBodyweightData = (bodyweightData || []).map<
     [number, number | null, number | null, number | null, number | null, number | null]
@@ -103,14 +103,14 @@ function getData(
   const data = sorted.reduce<
     [number[], (number | null)[], (number | null)[], (number | null)[], (number | null)[], (number | null)[]]
   >(
-    (memo, i) => {
-      memo[0].push(i[0]);
-      memo[1].push(i[1]);
-      memo[2].push(i[2]);
-      memo[3].push(i[3]);
-      memo[4].push(i[4]);
-      memo[5].push(i[5]);
-      return memo;
+    (acc, i) => {
+      acc[0].push(i[0]);
+      acc[1].push(i[1]);
+      acc[2].push(i[2]);
+      acc[3].push(i[3]);
+      acc[4].push(i[4]);
+      acc[5].push(i[5]);
+      return acc;
     },
     [[], [], [], [], [], []]
   );

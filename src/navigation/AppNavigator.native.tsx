@@ -51,6 +51,13 @@ import {
 } from "./screens/NavScreenMe";
 import { Footer2Wrapper } from "./screens/NavScreenFooter2";
 import { NavModalMonthCalendar } from "./modals/NavModalMonthCalendar";
+import { NavModalExercisePicker } from "./modals/NavModalExercisePicker";
+import { NavModalExerciseImageSource } from "./modals/NavModalExerciseImageSource";
+import { NavModalExerciseImageLibrary } from "./modals/NavModalExerciseImageLibrary";
+import { NavModalExerciseCloneLibrary } from "./modals/NavModalExerciseCloneLibrary";
+import { NavModalExerciseTypesPicker } from "./modals/NavModalExerciseTypesPicker";
+import { NavModalExerciseMusclesPicker } from "./modals/NavModalExerciseMusclesPicker";
+import { NavModalExercisePickerSettings } from "./modals/NavModalExercisePickerSettings";
 import { NavModalWeekInsightsDetails } from "./modals/NavModalWeekInsightsDetails";
 import { NavModalSetSplit } from "./modals/NavModalSetSplit";
 import { NavModalPlannerSettings } from "./modals/NavModalPlannerSettings";
@@ -240,6 +247,9 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           }}
         >
           <RootStack.Screen name="monthCalendarModal" component={NavModalMonthCalendar} />
+          <RootStack.Screen name="exercisePickerModal" component={NavModalExercisePicker} />
+          <RootStack.Screen name="exerciseImageLibraryModal" component={NavModalExerciseImageLibrary} />
+          <RootStack.Screen name="exerciseCloneLibraryModal" component={NavModalExerciseCloneLibrary} />
         </RootStack.Group>
         <RootStack.Group
           screenOptions={{
@@ -282,6 +292,14 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="equipmentModal" component={NavModalEquipment} />
           <RootStack.Screen name="dateModal" component={NavModalDate} />
           <RootStack.Screen name="supersetPickerModal" component={NavModalWorkoutSuperset} />
+          <RootStack.Screen name="exerciseImageSourceModal" component={NavModalExerciseImageSource} />
+          <RootStack.Screen name="exercisePickerSettingsModal" component={NavModalExercisePickerSettings} />
+          <RootStack.Screen name="exerciseTypesPickerModal" component={NavModalExerciseTypesPicker} />
+          <RootStack.Screen
+            name="exerciseMusclesPickerModal"
+            component={NavModalExerciseMusclesPicker}
+            options={{ sheetAllowedDetents: [0.9] }}
+          />
         </RootStack.Group>
       </RootStack.Navigator>
     </InitialScreenContext.Provider>

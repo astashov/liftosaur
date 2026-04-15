@@ -155,10 +155,6 @@ export function NavModalExercisePicker(): JSX.Element {
           );
           setTimeout(() => {
             Progress_forceUpdateEntryIndex(dispatch);
-            document.querySelector(`[data-name=workout-exercise-tab-${progress.entries.length}]`)?.scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-            });
           }, 0);
           navigation.goBack();
         }}

@@ -39,7 +39,7 @@ export function ExercisePickerOptionsMuscles(props: IProps): JSX.Element {
   const sortedGroupedMuscles = ObjectUtils_keys(groupedMuscles).sort(([a], [b]) => a.localeCompare(b));
 
   return (
-    <View>
+    <>
       {sortedGroupedMuscles.map((group) => {
         const muscles = groupedMuscles[group];
         const sortedMuscles = ObjectUtils_keys(muscles).sort(([a], [b]) => a.localeCompare(b));
@@ -83,6 +83,6 @@ export function ExercisePickerOptionsMuscles(props: IProps): JSX.Element {
           </View>
         );
       })}
-    </View>
+    </>
   );
 }
