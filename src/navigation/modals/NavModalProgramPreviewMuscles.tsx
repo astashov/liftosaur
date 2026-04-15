@@ -7,10 +7,7 @@ import { ModalScreenContainer } from "../ModalScreenContainer";
 import { MusclesView } from "../../components/muscles/musclesView";
 import { Locker } from "../../components/locker";
 import { Subscriptions_hasSubscription } from "../../utils/subscriptions";
-import {
-  Program_evaluate,
-  Program_getProgramDay,
-} from "../../models/program";
+import { Program_evaluate, Program_getProgramDay } from "../../models/program";
 import {
   IPoints,
   Muscle_normalizePoints,

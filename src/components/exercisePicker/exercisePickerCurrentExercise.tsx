@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { View } from "react-native";
 import { ISettings, IExerciseType, IExercisePickerState } from "../../types";
 import { GroupHeader } from "../groupHeader";
 import { ExercisePickerExerciseItem } from "./exercisePickerExerciseItem";
@@ -13,16 +14,16 @@ interface IExercisePickerCurrentExerciseProps {
 export function ExercisePickerCurrentExercise(props: IExercisePickerCurrentExerciseProps): JSX.Element {
   const exercise = Exercise_get(props.exerciseType, props.settings.exercises);
   return (
-    <div className="mx-4 mb-3">
+    <View className="mx-4 mb-3">
       <GroupHeader name="Current Exercise" />
-      <div className="px-2 border bg-background-cardpurple border-border-cardpurple rounded-2xl">
+      <View className="px-2 border bg-background-cardpurple border-border-cardpurple rounded-2xl">
         <ExercisePickerExerciseItem
           exercise={exercise}
           settings={props.settings}
           showMuscles={props.state.showMuscles}
           isEnabled={true}
         />
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }

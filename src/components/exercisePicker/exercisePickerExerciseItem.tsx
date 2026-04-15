@@ -1,5 +1,7 @@
 import { memo } from "react";
 import type { JSX } from "react";
+import { View, Pressable } from "react-native";
+import { Text } from "../primitives/text";
 import {
   IExercise,
   equipmentName,
@@ -42,9 +44,9 @@ export const ExercisePickerExerciseItem = memo(function ExercisePickerExerciseIt
   const isDisabled = !props.isEnabled && !props.isSelected;
 
   return (
-    <section className={`flex gap-2 ${isDisabled ? "opacity-40" : ""}`}>
-      <div className="self-center w-12" style={{ minHeight: "2.5rem" }}>
-        <div className="p-1 rounded-lg bg-background-image">
+    <View className={`flex-row gap-2 ${isDisabled ? "opacity-40" : ""}`}>
+      <View className="self-center w-12" style={{ minHeight: 40 }}>
+        <View className="p-1 rounded-lg bg-background-image">
           <ExerciseImage
             useTextForCustomExercise={true}
             customClassName="border border-border-neutral rounded-lg overflow-hidden"
@@ -53,38 +55,38 @@ export const ExercisePickerExerciseItem = memo(function ExercisePickerExerciseIt
             exerciseType={exerciseType}
             size="small"
           />
-        </div>
-      </div>
-      <div className="flex-1 py-2 text-sm text-left">
-        <button
-          className="flex items-center gap-1"
-          onClick={() => {
+        </View>
+      </View>
+      <View className="flex-1 py-2">
+        <Pressable
+          className="flex-row items-center gap-1"
+          onPress={() => {
             if (props.onStar) {
               props.onStar(key);
             }
           }}
         >
           {props.onStar && (
-            <div>
+            <View>
               <IconStar
                 size={20}
                 isSelected={isStarred}
                 color={isStarred ? Tailwind_semantic().icon.purple : Tailwind_semantic().icon.neutral}
               />
-            </div>
+            </View>
           )}
-          <div className="text-left">
-            <span className="font-semibold">{e.name}</span>
-            {exerciseType.equipment && (
-              <>
-                , <span className="text-text-secondary">{equipmentName(exerciseType.equipment)}</span>
-              </>
-            )}
-          </div>
-        </button>
-        <div
+          <Text className="text-sm">
+            <Text className="text-sm font-semibold">{e.name}</Text>
+            {exerciseType.equipment ? (
+              <Text className="text-sm text-text-secondary">{`, ${equipmentName(exerciseType.equipment)}`}</Text>
+            ) : null}
+          </Text>
+        </Pressable>
+        <Pressable
           data-cy={`custom-exercise-${StringUtils_dashcase(e.name)}`}
-          onClick={() => {
+          testID={`custom-exercise-${StringUtils_dashcase(e.name)}`}
+          disabled={isDisabled || !props.onChoose}
+          onPress={() => {
             if (!isDisabled && props.onChoose) {
               props.onChoose(key);
             }
@@ -95,49 +97,67 @@ export const ExercisePickerExerciseItem = memo(function ExercisePickerExerciseIt
           ) : (
             <MuscleGroupsView currentExerciseType={props.currentExerciseType} exercise={e} settings={props.settings} />
           )}
-        </div>
-      </div>
-      <div className="flex items-center">
+        </Pressable>
+      </View>
+      <View className="flex-row items-center">
         {onEdit && (
-          <div>
-            <button
-              onClick={onEdit}
-              className="px-2 pb-2"
-              data-cy={`custom-exercise-edit-${StringUtils_dashcase(e.name)}`}
-            >
-              <IconEdit2 />
-            </button>
-          </div>
+          <Pressable
+            onPress={onEdit}
+            className="px-2 pb-2"
+            data-cy={`custom-exercise-edit-${StringUtils_dashcase(e.name)}`}
+            testID={`custom-exercise-edit-${StringUtils_dashcase(e.name)}`}
+          >
+            <IconEdit2 />
+          </Pressable>
         )}
-        {onChoose &&
-          (!props.isMultiselect ? (
-            <span className="flex px-2 pb-2 radio">
-              <input
-                data-cy={`menu-item-${StringUtils_dashcase(e.name)}`}
-                type="radio"
-                disabled={isDisabled}
-                name="picker-exercise"
-                value={Exercise_toKey(e)}
-                onChange={() => onChoose(Exercise_toKey(e))}
-                checked={props.isSelected}
-              />
-            </span>
-          ) : (
-            <label className="block p-2">
-              <input
-                data-cy={`menu-item-${StringUtils_dashcase(e.name)}`}
-                checked={props.isSelected}
-                disabled={isDisabled}
-                className="checkbox checkbox-purple text-text-purple"
-                type="checkbox"
-                onChange={() => onChoose(Exercise_toKey(e))}
-              />
-            </label>
-          ))}
-      </div>
-    </section>
+        {onChoose && (
+          <Pressable
+            className="p-2"
+            disabled={isDisabled}
+            data-cy={`menu-item-${StringUtils_dashcase(e.name)}`}
+            testID={`menu-item-${StringUtils_dashcase(e.name)}`}
+            onPress={() => onChoose(Exercise_toKey(e))}
+          >
+            {props.isMultiselect ? (
+              <CheckboxIndicator checked={!!props.isSelected} />
+            ) : (
+              <RadioIndicator checked={!!props.isSelected} />
+            )}
+          </Pressable>
+        )}
+      </View>
+    </View>
   );
 });
+
+function RadioIndicator(props: { checked: boolean }): JSX.Element {
+  const color = Tailwind_semantic().icon.purple;
+  return (
+    <View
+      className="items-center justify-center rounded-full border-2"
+      style={{ width: 20, height: 20, borderColor: props.checked ? color : Tailwind_semantic().border.prominent }}
+    >
+      {props.checked && <View className="rounded-full" style={{ width: 10, height: 10, backgroundColor: color }} />}
+    </View>
+  );
+}
+
+function CheckboxIndicator(props: { checked: boolean }): JSX.Element {
+  const color = Tailwind_semantic().icon.purple;
+  return (
+    <View
+      className="items-center justify-center rounded border-2"
+      style={{
+        width: 20,
+        height: 20,
+        borderColor: props.checked ? color : Tailwind_semantic().border.prominent,
+        backgroundColor: props.checked ? color : "transparent",
+      }}
+    >
+      {props.checked && <Text className="text-xs font-bold text-text-alwayswhite">✓</Text>}
+    </View>
+  );
+}
 
 function MuscleView(props: {
   currentExerciseType?: IExerciseType;
@@ -153,52 +173,50 @@ function MuscleView(props: {
   const types = exercise.types.map((t) => StringUtils_capitalize(t));
 
   return (
-    <div className="text-xs" style={{ lineHeight: "1.5" }}>
+    <View>
       {types.length > 0 && (
-        <div>
-          <span className="text-text-secondary">Type: </span>
-          <span className="font-semibold">{types.join(", ")}</span>
-        </div>
+        <Text className="text-xs">
+          <Text className="text-xs text-text-secondary">Type: </Text>
+          <Text className="text-xs font-semibold">{types.join(", ")}</Text>
+        </Text>
       )}
       {targetMuscles.length > 0 && (
-        <div>
-          <span className="text-text-secondary">Target: </span>
-          <span className="font-semibold">
-            {targetMuscles.map((m, i) => {
-              return (
-                <span key={m}>
-                  <span
-                    className={tms.length === 0 ? "" : tms.indexOf(m) !== -1 ? "text-text-success" : "text-text-error"}
-                  >
-                    {m}
-                  </span>
-                  {i !== targetMuscles.length - 1 ? ", " : ""}
-                </span>
-              );
-            })}
-          </span>
-        </div>
+        <Text className="text-xs">
+          <Text className="text-xs text-text-secondary">Target: </Text>
+          <Text className="text-xs font-semibold">
+            {targetMuscles.map((m, i) => (
+              <Text
+                key={m}
+                className={`text-xs font-semibold ${
+                  tms.length === 0 ? "" : tms.indexOf(m) !== -1 ? "text-text-success" : "text-text-error"
+                }`}
+              >
+                {m}
+                {i !== targetMuscles.length - 1 ? ", " : ""}
+              </Text>
+            ))}
+          </Text>
+        </Text>
       )}
       {synergistMuscles.length > 0 && (
-        <div>
-          <span className="text-text-secondary">Synergist: </span>
-          <span className="font-semibold">
-            {synergistMuscles.map((m, i) => {
-              return (
-                <span key={m}>
-                  <span
-                    className={sms.length === 0 ? "" : sms.indexOf(m) !== -1 ? "text-text-success" : "text-text-error"}
-                  >
-                    {m}
-                  </span>
-                  {i !== synergistMuscles.length - 1 ? ", " : ""}
-                </span>
-              );
-            })}
-          </span>
-        </div>
+        <Text className="text-xs">
+          <Text className="text-xs text-text-secondary">Synergist: </Text>
+          <Text className="text-xs font-semibold">
+            {synergistMuscles.map((m, i) => (
+              <Text
+                key={m}
+                className={`text-xs font-semibold ${
+                  sms.length === 0 ? "" : sms.indexOf(m) !== -1 ? "text-text-success" : "text-text-error"
+                }`}
+              >
+                {m}
+                {i !== synergistMuscles.length - 1 ? ", " : ""}
+              </Text>
+            ))}
+          </Text>
+        </Text>
       )}
-    </div>
+    </View>
   );
 }
 
@@ -218,55 +236,57 @@ export function MuscleGroupsView(props: {
   const types = exercise.types.map((t) => StringUtils_capitalize(t));
 
   return (
-    <div className="text-xs">
+    <View>
       {types.length > 0 && (
-        <div>
-          <span className="text-text-secondary">Type: </span>
-          <span className="font-semibold">{types.join(", ")}</span>
-        </div>
+        <Text className="text-xs">
+          <Text className="text-xs text-text-secondary">Type: </Text>
+          <Text className="text-xs font-semibold">{types.join(", ")}</Text>
+        </Text>
       )}
       {targetMuscleGroups.length > 0 && (
-        <div>
-          <span className="text-text-secondary">Target: </span>
-          <span className="font-semibold">
+        <Text className="text-xs">
+          <Text className="text-xs text-text-secondary">Target: </Text>
+          <Text className="text-xs font-semibold">
             {targetMuscleGroups.map((m, i) => {
               const muscles = Muscle_getMusclesFromScreenMuscle(m, props.settings);
               const doesContain = muscles.some((muscle) => tms.includes(muscle));
               return (
-                <span key={m}>
-                  <span
-                    className={!props.currentExerciseType ? "" : doesContain ? "text-text-success" : "text-text-error"}
-                  >
-                    {Muscle_getMuscleGroupName(m, props.settings)}
-                  </span>
+                <Text
+                  key={m}
+                  className={`text-xs font-semibold ${
+                    !props.currentExerciseType ? "" : doesContain ? "text-text-success" : "text-text-error"
+                  }`}
+                >
+                  {Muscle_getMuscleGroupName(m, props.settings)}
                   {i !== targetMuscleGroups.length - 1 ? ", " : ""}
-                </span>
+                </Text>
               );
             })}
-          </span>
-        </div>
+          </Text>
+        </Text>
       )}
       {synergistMuscleGroups.length > 0 && (
-        <div>
-          <span className="text-text-secondary">Synergist: </span>
-          <span className="font-semibold">
+        <Text className="text-xs">
+          <Text className="text-xs text-text-secondary">Synergist: </Text>
+          <Text className="text-xs font-semibold">
             {synergistMuscleGroups.map((m, i) => {
               const muscles = Muscle_getMusclesFromScreenMuscle(m, props.settings);
               const doesContain = props.currentExerciseType && muscles.some((muscle) => sms.includes(muscle));
               return (
-                <span key={m}>
-                  <span
-                    className={!props.currentExerciseType ? "" : doesContain ? "text-text-success" : "text-text-error"}
-                  >
-                    {Muscle_getMuscleGroupName(m, props.settings)}
-                  </span>
+                <Text
+                  key={m}
+                  className={`text-xs font-semibold ${
+                    !props.currentExerciseType ? "" : doesContain ? "text-text-success" : "text-text-error"
+                  }`}
+                >
+                  {Muscle_getMuscleGroupName(m, props.settings)}
                   {i !== synergistMuscleGroups.length - 1 ? ", " : ""}
-                </span>
+                </Text>
               );
             })}
-          </span>
-        </div>
+          </Text>
+        </Text>
       )}
-    </div>
+    </View>
   );
 }

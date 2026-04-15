@@ -34,7 +34,9 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
 
   function getValue(): IWeight | IPercentage | undefined {
     const v = Number(text);
-    if (isNaN(v)) return undefined;
+    if (isNaN(v)) {
+      return undefined;
+    }
     return buildWeight(v, unit);
   }
 

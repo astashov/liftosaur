@@ -146,6 +146,7 @@ export type IRootStackParamList = {
   exerciseCloneLibraryModal: undefined;
   exerciseTypesPickerModal: undefined;
   exerciseMusclesPickerModal: undefined;
+  exercisePickerSettingsModal: undefined;
   photoPickerModal: undefined;
 };
 

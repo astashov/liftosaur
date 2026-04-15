@@ -389,8 +389,8 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
                   [
                     props.lbSets.recordModify((s) => {
                       const newSets = CollectionUtils_removeAt(s, props.setIndex);
-                      for (let setIndex = 0; setIndex < newSets.length; setIndex += 1) {
-                        newSets[setIndex].index = setIndex;
+                      for (let i = 0; i < newSets.length; i += 1) {
+                        newSets[i].index = i;
                       }
                       return newSets;
                     }),

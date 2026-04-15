@@ -23,7 +23,11 @@ export function Tabs2(props: IProps): JSX.Element {
             <View key={name} className="flex-1 items-center border-b border-border-neutral">
               <Pressable
                 className="px-4 pb-1"
-                style={selectedIndex === index ? { borderBottomWidth: 2, borderBottomColor: Tailwind_semantic().icon.yellow } : undefined}
+                style={
+                  selectedIndex === index
+                    ? { borderBottomWidth: 2, borderBottomColor: Tailwind_semantic().icon.yellow }
+                    : undefined
+                }
                 data-cy={nameClass}
                 testID={nameClass}
                 onPress={() => {
@@ -33,9 +37,7 @@ export function Tabs2(props: IProps): JSX.Element {
                   setSelectedIndex(index);
                 }}
               >
-                <Text className={`text-base ${selectedIndex === index ? "text-icon-yellow" : ""}`}>
-                  {name}
-                </Text>
+                <Text className={`text-base ${selectedIndex === index ? "text-icon-yellow" : ""}`}>{name}</Text>
               </Pressable>
             </View>
           );

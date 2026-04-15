@@ -90,7 +90,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
               if (!!props.navCommon.progress) {
                 props.dispatch(Thunk_startProgramDay());
               } else {
-                navigationRef.navigate("nextWorkoutModal" as never);
+                navigationRef.navigate("nextWorkoutModal");
               }
             }}
           >

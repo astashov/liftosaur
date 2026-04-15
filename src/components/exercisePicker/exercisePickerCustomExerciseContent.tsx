@@ -1,10 +1,11 @@
 import { JSX, useContext, useState } from "react";
+import { View, Pressable, Image, Alert, TextInput, Platform } from "react-native";
+import { Text } from "../primitives/text";
 import { ISettings, ICustomExercise, IMuscle, exerciseKinds, IExerciseKind } from "../../types";
 import { Button } from "../button";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
-import { Input2 } from "../input2";
 import { IconAi } from "../icons/iconAi";
 import { ExercisePickerOptionsMuscles } from "./exercisePickerOptionsMuscles";
 import { IconArrowDown2 } from "../icons/iconArrowDown2";
@@ -16,11 +17,6 @@ import { AppContext } from "../appContext";
 import { Service } from "../../api/service";
 import { IconSpinner } from "../icons/iconSpinner";
 import { BottomSheetItem } from "../bottomSheetItem";
-import {
-  SendMessage_toIosAndAndroidWithResult,
-  SendMessage_isIos,
-  SendMessage_isAndroid,
-} from "../../utils/sendMessage";
 import { IconCamera } from "../icons/iconCamera";
 import { ImageUploader } from "../../utils/imageUploader";
 import { IconPicture } from "../icons/iconPicture";
@@ -32,6 +28,7 @@ import { BottomSheetExerciseCloneLibrary } from "./bottomSheetExerciseCloneLibra
 import { ExerciseImageUtils_url } from "../../models/exerciseImage";
 import { BottomSheetOrModal } from "../bottomSheetOrModal";
 import { useModal } from "../../navigation/ModalStateContext";
+import { ImagePicker_pick } from "../../utils/imagePicker";
 
 interface IExercisePickerCustomExerciseContentProps {
   settings: ISettings;
@@ -56,25 +53,34 @@ async function uploadAndUpdateImage(
   service: Service,
   dispatch: ILensDispatch<ICustomExercise>
 ): Promise<void> {
-  const result = await SendMessage_toIosAndAndroidWithResult<{ data: string }>({
-    type: "pickphoto",
-    source,
-  });
-  if (!result?.data) {
-    alert(source === "camera" ? "Couldn't get image from camera" : "Couldn't get image from photo library");
+  const data = await ImagePicker_pick(source);
+  if (!data) {
+    Alert.alert(source === "camera" ? "Couldn't get image from camera" : "Couldn't get image from photo library");
     return;
   }
   const imageUploader = new ImageUploader(service);
-  const url = await imageUploader.uploadBase64Image(result.data, exerciseId);
+  const url = await imageUploader.uploadBase64Image(data, exerciseId);
   dispatch(
     [lb<ICustomExercise>().p("smallImageUrl").record(url), lb<ICustomExercise>().p("largeImageUrl").record(undefined)],
     "Set custom exercise image URL"
   );
 }
 
+async function confirmAsync(message: string): Promise<boolean> {
+  if (Platform.OS === "web") {
+    return Promise.resolve(typeof window !== "undefined" && window.confirm(message));
+  }
+  return new Promise((resolve) => {
+    Alert.alert("Confirm", message, [
+      { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
+      { text: "OK", onPress: () => resolve(true) },
+    ]);
+  });
+}
+
 export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustomExerciseContentProps): JSX.Element {
   const appContext = useContext(AppContext);
-  const service = appContext.service ?? new Service(window.fetch.bind(window));
+  const service = appContext.service ?? new Service(fetch);
   const editCustomExercise = props.exercise;
   const { notes, setNotes } = props;
   const isValid = editCustomExercise.name.trim().length ?? 0 > 0;
@@ -136,69 +142,64 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
   };
 
   return (
-    <div>
-      <div>
-        <div className="pb-2 text-center">
-          <LinkButton className="text-xs" name="clone-builtin-exercise" onClick={openCloneLibrary}>
+    <View>
+      <View>
+        <View className="items-center pb-2">
+          <LinkButton className="text-xs" name="clone-builtin-exercise" onPress={openCloneLibrary}>
             Clone from another exercise
           </LinkButton>
-        </div>
-        <div>
-          <Input2
-            identifier="custom-exercise-name"
-            label="Name"
-            value={editCustomExercise.name}
+        </View>
+        <View>
+          <Text className="pb-1 text-sm">
+            Name<Text className="text-text-error"> *</Text>
+          </Text>
+          <TextInput
+            data-cy="custom-exercise-name"
+            testID="custom-exercise-name"
+            defaultValue={editCustomExercise.name}
             placeholder="Super Squat"
-            required
-            requiredMessage="Name cannot be empty"
-            onInput={(v) => {
-              const target = v.target;
-              if (target instanceof HTMLInputElement) {
-                props.dispatch(lb<ICustomExercise>().p("name").record(target.value), "Update custom exercise name");
-              }
+            className="px-4 py-2 text-base border rounded-lg bg-background-default border-border-prominent text-text-primary"
+            onChangeText={(text) => {
+              props.dispatch(lb<ICustomExercise>().p("name").record(text), "Update custom exercise name");
             }}
           />
-        </div>
-        <div className="mt-4">
+          {!isValid && <Text className="mt-1 text-xs text-text-error">Name cannot be empty</Text>}
+        </View>
+        <View className="mt-4">
           {editCustomExercise.largeImageUrl || editCustomExercise.smallImageUrl ? (
-            <div className="text-center">
-              <div className="text-center">
-                <img
-                  onClick={openImageSourceAction}
-                  src={editCustomExercise.largeImageUrl ?? editCustomExercise.smallImageUrl}
-                  alt="Exercise"
-                  className="inline-block object-contain h-48"
+            <View className="items-center">
+              <Pressable onPress={openImageSourceAction}>
+                <Image
+                  source={{ uri: editCustomExercise.largeImageUrl ?? editCustomExercise.smallImageUrl }}
+                  resizeMode="contain"
+                  style={{ height: 192, width: 192 }}
                 />
-              </div>
-              <div>
-                <LinkButton name="custom-exercise-change-image" className="text-xs" onClick={openImageSourceAction}>
-                  Change Image
-                </LinkButton>
-              </div>
-            </div>
+              </Pressable>
+              <LinkButton name="custom-exercise-change-image" className="text-xs" onPress={openImageSourceAction}>
+                Change Image
+              </LinkButton>
+            </View>
           ) : (
-            <div>
-              <Button
-                name="custom-exercise-add-image"
-                kind="purple"
-                className="w-full"
-                buttonSize="md"
-                onClick={openImageSourceAction}
-              >
-                Add image
-              </Button>
-            </div>
+            <Button
+              name="custom-exercise-add-image"
+              kind="purple"
+              className="w-full"
+              buttonSize="md"
+              onPress={openImageSourceAction}
+            >
+              Add image
+            </Button>
           )}
-        </div>
-        <div className="mt-4">
+        </View>
+        <View className="mt-4">
           <Button
             buttonSize="sm"
             kind="lightgrayv3"
             name="autofill-muscles"
-            className="flex items-center justify-center w-full"
-            onClick={async () => {
+            className="w-full"
+            onPress={async () => {
               if (!isValid) {
-                alert("Please enter a name");
+                Alert.alert("Please enter a name");
                 return;
               }
               setIsAutofilling(true);
@@ -215,38 +216,32 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
                   "Autofill custom exercise muscles and types"
                 );
               } else {
-                alert("Could't autofill the muscles for this exercise. Try a different name!");
+                Alert.alert("Couldn't autofill the muscles for this exercise. Try a different name!");
               }
             }}
           >
-            <div className="flex items-center">
+            <View className="flex-row items-center">
               {isAutofilling ? (
-                <div className="flex items-center min-h-6">
+                <View className="flex-row items-center" style={{ minHeight: 24 }}>
                   <IconSpinner width={18} height={18} />
-                </div>
+                </View>
               ) : (
                 <>
-                  <div>
-                    <IconAi color={Tailwind_semantic().icon.blue} />
-                  </div>
-                  <div className="ml-1">Autofill Muscles and Types</div>
+                  <IconAi color={Tailwind_semantic().icon.blue} />
+                  <Text className="ml-1">Autofill Muscles and Types</Text>
                 </>
               )}
-            </div>
+            </View>
           </Button>
-        </div>
-        <div className="pt-2">
+        </View>
+        <View className="pt-2">
           <ExercisePickerCustomExerciseMuscles
             settings={props.settings}
             useInlineModals={props.useInlineModals}
             name="target-muscles"
             bottomSheetTitle="Target Muscles"
             muscleKey="targetMuscles"
-            label={
-              <>
-                <span>Target Muscles</span> <span className="text-xs text-text-secondary">(optional)</span>
-              </>
-            }
+            label="Target Muscles"
             selectedMuscles={editCustomExercise.meta.targetMuscles}
             onSelect={(muscle) => {
               const current = new Set(editCustomExercise.meta.targetMuscles);
@@ -267,19 +262,15 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
               );
             }}
           />
-        </div>
-        <div className="pt-2">
+        </View>
+        <View className="pt-2">
           <ExercisePickerCustomExerciseMuscles
             settings={props.settings}
             useInlineModals={props.useInlineModals}
             name="synergist-muscles"
             bottomSheetTitle="Synergist Muscles"
             muscleKey="synergistMuscles"
-            label={
-              <>
-                <span>Synergist Muscles</span> <span className="text-xs text-text-secondary">(optional)</span>
-              </>
-            }
+            label="Synergist Muscles"
             selectedMuscles={editCustomExercise.meta.synergistMuscles}
             onSelect={(muscle) => {
               const current = new Set(editCustomExercise.meta.synergistMuscles);
@@ -300,8 +291,8 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
               );
             }}
           />
-        </div>
-        <div className="pt-2">
+        </View>
+        <View className="pt-2">
           <ExercisePickerCustomExerciseTypes
             useInlineModals={props.useInlineModals}
             types={typeValues}
@@ -314,33 +305,35 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
               props.dispatch(lb<ICustomExercise>().p("types").record(types), "Update custom exercise types");
             }}
           />
-        </div>
+        </View>
         {!props.hideNotes && (
-          <div className="pt-2 pb-4">
-            <label className={`leading-none text-sm text-text-primary pb-1`}>
-              <span>Exercise Notes</span> <span className="text-xs text-text-secondary">(optional)</span>
-            </label>
-            <div className="text-xs">
-              <MarkdownEditor
-                value={notes ?? ""}
-                onChange={(v) => {
-                  setNotes(v);
-                }}
-              />
-            </div>
-          </div>
+          <View className="pt-2 pb-4">
+            <Text className="pb-1 text-sm text-text-primary">
+              <Text className="text-sm">Exercise Notes</Text>
+              <Text className="text-xs text-text-secondary"> (optional)</Text>
+            </Text>
+            <MarkdownEditor
+              value={notes ?? ""}
+              onChange={(v) => {
+                setNotes(v);
+              }}
+            />
+          </View>
         )}
-      </div>
+      </View>
       {props.originalExercise && !props.hideDeleteButton && (
-        <div className="px-4 pb-4">
+        <View className="px-4 pb-4">
           <Button
             name="delete-custom-exercise"
             kind="red"
             data-cy="custom-exercise-delete"
             buttonSize="md"
             className="w-full mt-4"
-            onClick={() => {
-              if (confirm("Are you sure you want to delete this exercise? This action cannot be undone.")) {
+            onPress={async () => {
+              const ok = await confirmAsync(
+                "Are you sure you want to delete this exercise? This action cannot be undone."
+              );
+              if (ok) {
                 props.onDelete();
               }
               props.onGoBack("Delete custom exercise");
@@ -348,7 +341,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
           >
             Delete Exercise
           </Button>
-        </div>
+        </View>
       )}
       {props.useInlineModals && showImageBottomSheet && (
         <BottomSheetOrModal
@@ -356,25 +349,23 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
           onClose={() => setShowImageBottomSheet(false)}
           isHidden={!showImageBottomSheet}
         >
-          <div className="p-4">
-            <div className="text-xs text-center text-text-secondary">Prefer 2:3 aspect ratio</div>
+          <View className="p-4">
+            <Text className="text-xs text-center text-text-secondary">Prefer 2:3 aspect ratio</Text>
             <BottomSheetItem
               name="from-image-library"
-              className="ls-custom-exercise-image-library"
               title="From Image Library"
               onClick={() => {
                 setShowImageBottomSheet(false);
                 setShowImageLibrary(true);
               }}
             />
-            {SendMessage_isIos() || SendMessage_isAndroid() ? (
+            {Platform.OS !== "web" ? (
               <BottomSheetItem
                 name="upload-image"
-                className="ls-custom-exercise-upload-image"
                 title="Upload Image"
                 onClick={() => {
                   if (!props.isLoggedIn) {
-                    alert("You need to be logged in to upload custom exercise images");
+                    Alert.alert("You need to be logged in to upload custom exercise images");
                     return;
                   }
                   setShowImageBottomSheet(false);
@@ -385,7 +376,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
               <Importer
                 onRawFile={async (file) => {
                   const imageUploader = new ImageUploader(service);
-                  const url = await imageUploader.uploadImage(file, editCustomExercise.id);
+                  const url = await imageUploader.uploadImage(file as File, editCustomExercise.id);
                   setIsUploading(true);
                   props.dispatch(
                     [
@@ -398,26 +389,23 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
                   setShowImageBottomSheet(false);
                 }}
               >
-                {(onClick) => {
-                  return (
-                    <BottomSheetItem
-                      name="upload-image"
-                      icon={isUploading ? <IconSpinner width={18} height={18} /> : undefined}
-                      className="ls-custom-exercise-upload-image"
-                      title="Upload Image"
-                      onClick={() => {
-                        if (!props.isLoggedIn) {
-                          alert("You need to be logged in to upload custom exercise images");
-                        } else {
-                          onClick();
-                        }
-                      }}
-                    />
-                  );
-                }}
+                {(onClick) => (
+                  <BottomSheetItem
+                    name="upload-image"
+                    icon={isUploading ? <IconSpinner width={18} height={18} /> : undefined}
+                    title="Upload Image"
+                    onClick={() => {
+                      if (!props.isLoggedIn) {
+                        Alert.alert("You need to be logged in to upload custom exercise images");
+                      } else {
+                        onClick();
+                      }
+                    }}
+                  />
+                )}
               </Importer>
             )}
-          </div>
+          </View>
         </BottomSheetOrModal>
       )}
       {props.useInlineModals && showPicturePickerBottomSheet && (
@@ -426,7 +414,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
           onClose={() => setShowPicturePickerBottomSheet(false)}
           isHidden={!showPicturePickerBottomSheet}
         >
-          <div className="p-4">
+          <View className="p-4">
             <BottomSheetItem
               title="From Camera"
               name="from-camera"
@@ -452,7 +440,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
                 setShowPicturePickerBottomSheet(false);
               }}
             />
-          </div>
+          </View>
         </BottomSheetOrModal>
       )}
       {props.useInlineModals && showImageLibrary && (
@@ -505,7 +493,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
           }}
         />
       )}
-    </div>
+    </View>
   );
 }
 
@@ -534,13 +522,14 @@ function ExercisePickerCustomExerciseTypes(props: IExercisePickerCustomExerciseT
   };
 
   return (
-    <div className="w-full">
-      <label className="pb-1 text-sm leading-none text-text-primary">
-        <span>Types</span> <span className="text-xs text-text-secondary">(optional)</span>
-      </label>
-      <div onClick={openPicker}>
+    <View className="w-full">
+      <Text className="pb-1 text-sm text-text-primary">
+        <Text className="text-sm">Types</Text>
+        <Text className="text-xs text-text-secondary"> (optional)</Text>
+      </Text>
+      <Pressable onPress={openPicker}>
         <ExercisePickerCustomExercise2SelectInput selectedValues={selectedValues} />
-      </div>
+      </Pressable>
       {props.useInlineModals && isOpened && (
         <BottomSheetOrModal
           shouldShowClose={true}
@@ -549,46 +538,44 @@ function ExercisePickerCustomExerciseTypes(props: IExercisePickerCustomExerciseT
           }}
           isHidden={!isOpened}
         >
-          <div className="flex flex-col h-full px-4" style={{ marginTop: "-0.75rem" }}>
-            <h3 className="pt-6 pb-3 text-base font-semibold text-center">Types</h3>
-            <div className="flex-1 overflow-y-auto">
-              <div className="pb-4">
-                <ExercisePickerOptions
-                  values={props.types}
-                  onSelect={(key) => {
-                    const newTypes = ObjectUtils_mapValues(props.types, (type: IFilterValue, k: IExerciseKind) => {
-                      if (k === key) {
-                        return { ...type, isSelected: !type.isSelected };
-                      }
-                      return type;
-                    });
-                    props.onNewTypes(newTypes);
-                  }}
-                />
-              </div>
-            </div>
-            <div className="py-2 bg-background-default">
+          <View className="flex-1 px-4" style={{ marginTop: -12 }}>
+            <Text className="pt-6 pb-3 text-base font-semibold text-center">Types</Text>
+            <View className="flex-1 pb-4">
+              <ExercisePickerOptions
+                values={props.types}
+                onSelect={(key) => {
+                  const newTypes = ObjectUtils_mapValues(props.types, (type: IFilterValue, k: IExerciseKind) => {
+                    if (k === key) {
+                      return { ...type, isSelected: !type.isSelected };
+                    }
+                    return type;
+                  });
+                  props.onNewTypes(newTypes);
+                }}
+              />
+            </View>
+            <View className="py-2 bg-background-default">
               <Button
                 kind="purple"
                 name="done-selecting-types"
                 className="w-full"
                 buttonSize="md"
-                onClick={() => {
+                onPress={() => {
                   setIsOpened(false);
                 }}
               >
                 Done
               </Button>
-            </div>
-          </div>
+            </View>
+          </View>
         </BottomSheetOrModal>
       )}
-    </div>
+    </View>
   );
 }
 
 interface IExercisePickerCustomExerciseMusclesProps {
-  label: JSX.Element;
+  label: string;
   name: string;
   bottomSheetTitle: string;
   muscleKey: "targetMuscles" | "synergistMuscles";
@@ -619,11 +606,14 @@ function ExercisePickerCustomExerciseMuscles(props: IExercisePickerCustomExercis
   };
 
   return (
-    <div className="flex flex-col w-full h-full">
-      <label className="pb-1 text-sm leading-none text-text-primary">{props.label}</label>
-      <div onClick={openPicker} data-cy={`select-${props.name}`}>
+    <View className="w-full">
+      <Text className="pb-1 text-sm text-text-primary">
+        <Text className="text-sm">{props.label}</Text>
+        <Text className="text-xs text-text-secondary"> (optional)</Text>
+      </Text>
+      <Pressable onPress={openPicker} data-cy={`select-${props.name}`} testID={`select-${props.name}`}>
         <ExercisePickerCustomExercise2SelectInput selectedValues={props.selectedMuscles} />
-      </div>
+      </Pressable>
       {props.useInlineModals && isOpened && (
         <BottomSheetOrModal
           shouldShowClose={true}
@@ -632,35 +622,33 @@ function ExercisePickerCustomExerciseMuscles(props: IExercisePickerCustomExercis
           }}
           isHidden={!isOpened}
         >
-          <div className="flex flex-col h-full px-4" style={{ marginTop: "-0.75rem" }}>
-            <h3 className="pt-6 pb-3 text-base font-semibold text-center">{props.bottomSheetTitle}</h3>
-            <div className="flex-1 overflow-y-auto">
-              <div className="pb-4">
-                <ExercisePickerOptionsMuscles
-                  selectedValues={props.selectedMuscles}
-                  onSelect={props.onSelect}
-                  settings={props.settings}
-                />
-              </div>
-            </div>
-            <div className="py-2 bg-background-default">
+          <View className="flex-1 px-4" style={{ marginTop: -12 }}>
+            <Text className="pt-6 pb-3 text-base font-semibold text-center">{props.bottomSheetTitle}</Text>
+            <View className="flex-1 pb-4">
+              <ExercisePickerOptionsMuscles
+                selectedValues={props.selectedMuscles}
+                onSelect={props.onSelect}
+                settings={props.settings}
+              />
+            </View>
+            <View className="py-2 bg-background-default">
               <Button
                 kind="purple"
                 data-cy="done-selecting-muscles"
                 name="done-selecting-muscles"
                 className="w-full"
                 buttonSize="md"
-                onClick={() => {
+                onPress={() => {
                   setIsOpened(false);
                 }}
               >
                 Done
               </Button>
-            </div>
-          </div>
+            </View>
+          </View>
         </BottomSheetOrModal>
       )}
-    </div>
+    </View>
   );
 }
 
@@ -670,22 +658,18 @@ interface IExercisePickerCustomExercise2SelectInputProps {
 
 function ExercisePickerCustomExercise2SelectInput(props: IExercisePickerCustomExercise2SelectInputProps): JSX.Element {
   return (
-    <div className="relative flex">
-      <div className="flex items-center flex-1 p-2 text-sm border rounded-md bg-form-inputbg border-form-inputstroke min-h-8">
-        <div className="flex-1">
-          {props.selectedValues.map((m) => (
-            <span
-              key={m}
-              className="inline-block px-2 py-1 mr-1 text-xs rounded-full bg-background-subtle text-text-secondary"
-            >
-              {m}
-            </span>
-          ))}
-        </div>
-        <div>
-          <IconArrowDown2 />
-        </div>
-      </div>
-    </div>
+    <View
+      className="flex-row items-center p-2 border rounded-md bg-background-default border-border-prominent"
+      style={{ minHeight: 32 }}
+    >
+      <View className="flex-row flex-wrap flex-1" style={{ gap: 4 }}>
+        {props.selectedValues.map((m) => (
+          <View key={m} className="px-2 py-1 rounded-full bg-background-subtle">
+            <Text className="text-xs text-text-secondary">{m}</Text>
+          </View>
+        ))}
+      </View>
+      <IconArrowDown2 />
+    </View>
   );
 }

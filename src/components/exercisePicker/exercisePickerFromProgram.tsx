@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "../primitives/text";
 import { IEvaluatedProgram } from "../../models/program";
 import { ScrollableTabs } from "../scrollableTabs";
 import { ExercisePickerAllProgramExercises } from "./exercisePickerAllProgramExercises";
@@ -22,6 +24,7 @@ export function ExercisePickerFromProgram(props: IProps): JSX.Element {
         className="gap-2 px-4"
         nonSticky={true}
         shouldNotExpand={true}
+        fillHeight={true}
         type="squares"
         tabs={weeks.map((week, weekIndex) => {
           return {
@@ -54,6 +57,10 @@ export function ExercisePickerFromProgram(props: IProps): JSX.Element {
       />
     );
   } else {
-    return <div>No weeks available in the program.</div>;
+    return (
+      <View>
+        <Text>No weeks available in the program.</Text>
+      </View>
+    );
   }
 }

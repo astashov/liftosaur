@@ -81,7 +81,11 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
 }
 
 export function MenuItemValue(
-  props: { setPatternError: Dispatch<SetStateAction<boolean>>; inputRef?: RefObject<TextInput | null>; onInput?: (v: string) => void } & IMenuItemEditableValueProps
+  props: {
+    setPatternError: Dispatch<SetStateAction<boolean>>;
+    inputRef?: RefObject<TextInput | null>;
+    onInput?: (v: string) => void;
+  } & IMenuItemEditableValueProps
 ): JSX.Element | null {
   if (props.type === "desktop-select" || props.type === "select" || props.type === "select2") {
     const currentLabel = (props.values || []).find(([k]) => k === props.value)?.[1] ?? "";

@@ -158,11 +158,7 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
                 testID="edit-target-ask-weight"
                 data-cy="edit-target-ask-weight"
                 onValueChange={() => {
-                  updateProgress(
-                    props.dispatch,
-                    [lbSet.p("askWeight").record(!set.askWeight)],
-                    "ask-weight-checkbox"
-                  );
+                  updateProgress(props.dispatch, [lbSet.p("askWeight").record(!set.askWeight)], "ask-weight-checkbox");
                 }}
               />
             </View>

@@ -123,7 +123,7 @@ export function AppView(props: IProps): JSX.Element | null {
   const prevShouldShowWhatsNew = useRef(false);
   useEffect(() => {
     if (shouldShowWhatsNew && state.storage.whatsNew != null && !prevShouldShowWhatsNew.current) {
-      navigationRef.navigate("whatsnewModal" as never);
+      navigationRef.navigate("whatsnewModal");
     }
     prevShouldShowWhatsNew.current = !!(shouldShowWhatsNew && state.storage.whatsNew != null);
   }, [shouldShowWhatsNew, state.storage.whatsNew]);
@@ -132,7 +132,7 @@ export function AppView(props: IProps): JSX.Element | null {
   const prevShowThanks25 = useRef(false);
   useEffect(() => {
     if (showThanks25 && !prevShowThanks25.current) {
-      navigationRef.navigate("thanks25Modal" as never);
+      navigationRef.navigate("thanks25Modal");
     }
     prevShowThanks25.current = showThanks25;
   }, [showThanks25]);
@@ -141,7 +141,7 @@ export function AppView(props: IProps): JSX.Element | null {
   const prevShowCorruptedState = useRef(false);
   useEffect(() => {
     if (showCorruptedState && !prevShowCorruptedState.current) {
-      navigationRef.navigate("corruptedStateModal" as never);
+      navigationRef.navigate("corruptedStateModal");
     }
     prevShowCorruptedState.current = showCorruptedState;
   }, [showCorruptedState]);
@@ -149,7 +149,7 @@ export function AppView(props: IProps): JSX.Element | null {
   const prevShowSignupRequest = useRef(false);
   useEffect(() => {
     if (state.showSignupRequest && !prevShowSignupRequest.current) {
-      navigationRef.navigate("signupRequestModal" as never);
+      navigationRef.navigate("signupRequestModal");
     }
     prevShowSignupRequest.current = !!state.showSignupRequest;
   }, [state.showSignupRequest]);
@@ -157,7 +157,7 @@ export function AppView(props: IProps): JSX.Element | null {
   const prevTour = useRef(false);
   useEffect(() => {
     if (state.tour && !prevTour.current) {
-      navigationRef.navigate("tourModal" as never);
+      navigationRef.navigate("tourModal");
     }
     prevTour.current = !!state.tour;
   }, [state.tour]);

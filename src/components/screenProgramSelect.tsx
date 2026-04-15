@@ -65,7 +65,10 @@ export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Eleme
   ];
 
   return (
-    <View className="flex flex-col flex-1 bg-background-default" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
+    <View
+      className="flex flex-col flex-1 bg-background-default"
+      style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
+    >
       <View className="flex-1 px-4 pt-8 pb-4">
         <View className="items-center p-4">
           <Image

@@ -31,7 +31,8 @@ function LockerInner(props: IProps): JSX.Element {
     >
       <View className="mx-auto text-center" style={{ maxWidth: 192 }}>
         <Text>
-          Get <Text className="font-bold text-icon-yellow">Premium</Text> to unlock <Text className="font-bold">{props.topic}</Text>
+          Get <Text className="font-bold text-icon-yellow">Premium</Text> to unlock{" "}
+          <Text className="font-bold">{props.topic}</Text>
         </Text>
       </View>
       <View className="pt-1 items-center">
