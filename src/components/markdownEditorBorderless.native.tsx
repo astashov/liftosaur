@@ -211,7 +211,7 @@ export function MarkdownEditorBorderless(props: IProps): JSX.Element {
   );
 
   return (
-    <View className="px-1" style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.highlight}>
         {text ? (
           <HighlightedText text={text} />

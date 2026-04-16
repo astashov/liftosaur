@@ -1,61 +1,50 @@
-import { JSX, useRef } from "react";
+import { JSX, useState } from "react";
+import { View, TextInput } from "react-native";
+import { Text } from "./primitives/text";
 import { Button } from "./button";
-import { Modal } from "./modal";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { IUnit } from "../types";
-import { GroupHeader } from "./groupHeader";
-import { SendMessage_isIos } from "../utils/sendMessage";
 
 interface IProps {
   units: IUnit;
-  onInput: (value?: number) => void;
-  isHidden: boolean;
+  onSelect: (value: number) => void;
+  onClose: () => void;
 }
 
-export function ModalPlates(props: IProps): JSX.Element {
-  const textInput = useRef<HTMLInputElement>(null);
+export function ModalPlatesContent(props: IProps): JSX.Element {
+  const [value, setValue] = useState("");
+
   return (
-    <Modal
-      isHidden={props.isHidden}
-      autofocusInputRef={textInput}
-      shouldShowClose={true}
-      onClose={() => props.onInput(undefined)}
-    >
-      <GroupHeader size="large" name="Enter new plate weight" />
-      <form onSubmit={(e) => e.preventDefault()}>
-        <input
-          ref={textInput}
-          data-cy="plate-input"
-          className="block w-full px-4 py-2 text-base leading-normal border border-gray-300 rounded-lg appearance-none bg-background-default focus:outline-none focus:shadow-outline"
-          type={SendMessage_isIos() ? "number" : "tel"}
-          min="0"
-          placeholder={`Plate weight in ${props.units}`}
-        />
-        <div className="mt-4 text-right">
-          <Button
-            name="modal-new-plate-weight-cancel"
-            type="button"
-            kind="grayv2"
-            className="mr-3"
-            onClick={() => props.onInput(undefined)}
-          >
-            Cancel
-          </Button>
-          <Button
-            kind="purple"
-            name="modal-new-plate-weight-submit"
-            type="submit"
-            data-cy="add-plate"
-            className="ls-add-plate"
-            onClick={() => {
-              const value = textInput.current?.value;
-              const numValue = value != null ? parseFloat(value) : undefined;
-              props.onInput(numValue != null && !isNaN(numValue) ? Math.abs(numValue) : undefined);
-            }}
-          >
-            Add
-          </Button>
-        </div>
-      </form>
-    </Modal>
+    <View>
+      <Text className="mb-4 text-lg font-bold">Enter new plate weight</Text>
+      <TextInput
+        autoFocus
+        keyboardType="numeric"
+        placeholder={`Plate weight in ${props.units}`}
+        placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
+        value={value}
+        onChangeText={setValue}
+        className="px-4 py-3 text-base border rounded-lg border-border-neutral bg-background-default"
+        style={{ fontFamily: "Poppins" }}
+      />
+      <View className="flex-row justify-end gap-3 mt-4">
+        <Button name="modal-new-plate-weight-cancel" kind="grayv2" onClick={props.onClose}>
+          Cancel
+        </Button>
+        <Button
+          name="modal-new-plate-weight-submit"
+          kind="purple"
+          data-cy="add-plate"
+          onClick={() => {
+            const numValue = value !== "" ? parseFloat(value) : undefined;
+            if (numValue != null && !isNaN(numValue)) {
+              props.onSelect(Math.abs(numValue));
+            }
+          }}
+        >
+          Add
+        </Button>
+      </View>
+    </View>
   );
 }

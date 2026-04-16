@@ -72,17 +72,15 @@ export function NavScreenPlates(): JSX.Element {
   const navCommon = buildNavCommon(state);
   const allEquipment = Equipment_getEquipmentOfGym(state.storage.settings, state.selectedGymId);
   return (
-    <NavScreenContent>
-      <ScreenEquipment
-        stats={state.storage.stats}
-        navCommon={navCommon}
-        allEquipment={allEquipment}
-        expandedEquipment={state.defaultEquipmentExpanded}
-        selectedGymId={state.selectedGymId}
-        dispatch={dispatch}
-        settings={state.storage.settings}
-      />
-    </NavScreenContent>
+    <ScreenEquipment
+      stats={state.storage.stats}
+      navCommon={navCommon}
+      allEquipment={allEquipment}
+      expandedEquipment={state.defaultEquipmentExpanded}
+      selectedGymId={state.selectedGymId}
+      dispatch={dispatch}
+      settings={state.storage.settings}
+    />
   );
 }
 
