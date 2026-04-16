@@ -46,7 +46,13 @@ export function NavScreenAccount(): JSX.Element {
   const navCommon = buildNavCommon(state);
   return (
     <NavScreenContent>
-      <ScreenAccountComponent navCommon={navCommon} dispatch={dispatch} email={state.user?.email} />
+      <ScreenAccountComponent
+        navCommon={navCommon}
+        dispatch={dispatch}
+        email={state.user?.email}
+        userId={state.user?.id}
+        storage={state.storage}
+      />
     </NavScreenContent>
   );
 }
