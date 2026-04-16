@@ -1,4 +1,5 @@
 import { JSX, ReactNode } from "react";
+import { View, Pressable } from "react-native";
 import { lb } from "lens-shmens";
 import { IDispatch } from "../ducks/types";
 import { IState, updateState } from "../models/state";
@@ -20,21 +21,21 @@ export function Nux(props: IProps): JSX.Element | null {
   }
   const { dispatch } = props;
   return (
-    <div
-      className={`${props.className} flex py-2 pl-4 text-xs bg-background-default border border-border-cardpurple rounded-2xl`}
+    <View
+      className={`${props.className ?? ""} flex-row py-2 pl-2 bg-background-default border border-border-cardpurple rounded-2xl`}
     >
-      <div>
-        <div className="inline-block mr-1 align-middle">
+      <View className="flex-row items-start flex-1">
+        <View className="mr-2">
           <IconHelp color={Tailwind_colors().purple[500]} size={16} />
-        </div>
-        {props.children}
-      </div>
+        </View>
+        <View className="flex-1">{props.children}</View>
+      </View>
       {dispatch && (
-        <div>
-          <button
-            className="p-2 nm-nux-close"
-            style={{ marginTop: "-0.5rem" }}
-            onClick={() => {
+        <View>
+          <Pressable
+            className="px-2 nm-nux-close"
+            hitSlop={12}
+            onPress={() => {
               updateState(
                 dispatch,
                 [
@@ -48,9 +49,9 @@ export function Nux(props: IProps): JSX.Element | null {
             }}
           >
             <IconClose2 size={12} />
-          </button>
-        </div>
+          </Pressable>
+        </View>
       )}
-    </div>
+    </View>
   );
 }

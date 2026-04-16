@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
 import { lb } from "lens-shmens";
 import { IDispatch } from "../ducks/types";
 import {
@@ -34,7 +36,7 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
   const fullExercise = props.fullExercise;
 
   return (
-    <section className="my-2">
+    <View className="my-2">
       <InputNumber
         type="number"
         label="Default Rounding"
@@ -46,11 +48,11 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
           EditEquipment_setDefaultRoundingForExercise(props.dispatch, fullExercise, value);
         }}
       />
-      <div className="text-xs text-right text-text-secondary">Used when Equipment is not set</div>
+      <Text className="text-xs text-right text-text-secondary">Used when Equipment is not set</Text>
       {props.settings.gyms.length > 1 && (
-        <div className="mt-2">
+        <View className="mt-2">
           <GroupHeader name="Equipments for each Gym" />
-        </div>
+        </View>
       )}
       {props.settings.gyms.map((gym, i) => {
         const equipment = Equipment_getEquipmentIdForExerciseType(props.settings, props.fullExercise, gym.id);
@@ -67,7 +69,7 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
             name={props.settings.gyms.length > 1 ? gym.name : "Equipment"}
             underName={
               props.settings.gyms.length > 1 && props.settings.currentGymId === gym.id ? (
-                <div className="text-xs leading-none text-text-secondary">current</div>
+                <Text className="text-xs leading-none text-text-secondary">current</Text>
               ) : undefined
             }
             value={equipment ?? ""}
@@ -127,6 +129,6 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
           }}
         />
       )}
-    </section>
+    </View>
   );
 }

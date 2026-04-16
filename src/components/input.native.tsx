@@ -104,7 +104,7 @@ export const Input = memo(
         )}
         <TextInput
           ref={inputRef}
-          className="px-2 pb-2 text-base text-text-primary"
+          className="px-2 pb-2 text-base leading-5 text-text-primary"
           style={{ height: size === "md" ? 28 : 22 }}
           defaultValue={currentValueRef.current}
           onChangeText={(text) => {
