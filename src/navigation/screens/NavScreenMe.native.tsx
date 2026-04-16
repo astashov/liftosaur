@@ -14,6 +14,7 @@ import { ScreenApiKeys as ScreenApiKeysComponent } from "../../components/screen
 import { ScreenAccount as ScreenAccountComponent } from "../../components/screenAccount";
 import { ScreenMeasurements as ScreenMeasurementsComponent } from "../../components/screenMeasurements";
 import { ScreenStats as ScreenStatsComponent } from "../../components/screenStats";
+import { ScreenExercises as ScreenExercisesComponent } from "../../components/screenExercises";
 import { Program_getProgram } from "../../models/program";
 import { useAppContext } from "../../components/appContext";
 import type { IStatsKey } from "../../types";
@@ -95,9 +96,24 @@ export function NavScreenGyms(): React.JSX.Element {
 }
 
 export function NavScreenExercises(): React.JSX.Element {
+  const { state, dispatch } = useAppState();
+  const navCommon = buildNavCommon(state);
+  const currentProgram =
+    state.storage.currentProgramId != null ? Program_getProgram(state, state.storage.currentProgramId) : undefined;
+  if (currentProgram == null) {
+    throw new Error("Opened 'exercises' screen, but 'currentProgram' is null");
+  }
   return (
-    <View className="flex-1 justify-center items-center bg-background-default">
-      <Text className="text-2xl font-bold text-icon-neutral">Exercises</Text>
+    <View className="flex-1 bg-background-default">
+      <NavScreenContent>
+        <ScreenExercisesComponent
+          navCommon={navCommon}
+          settings={state.storage.settings}
+          dispatch={dispatch}
+          program={currentProgram}
+          history={state.storage.history}
+        />
+      </NavScreenContent>
     </View>
   );
 }
