@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text } from "react-native";
+import { useRoute } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { buildNavCommon } from "../utils";
 import { NavScreenContent } from "../NavScreenContent";
@@ -11,8 +12,11 @@ import { ScreenGoogleHealthSettings as ScreenGoogleHealthSettingsComponent } fro
 import { ScreenMuscleGroups as ScreenMuscleGroupsComponent } from "../../components/screenMuscleGroups";
 import { ScreenApiKeys as ScreenApiKeysComponent } from "../../components/screenApiKeys";
 import { ScreenAccount as ScreenAccountComponent } from "../../components/screenAccount";
+import { ScreenMeasurements as ScreenMeasurementsComponent } from "../../components/screenMeasurements";
+import { ScreenStats as ScreenStatsComponent } from "../../components/screenStats";
 import { Program_getProgram } from "../../models/program";
 import { useAppContext } from "../../components/appContext";
+import type { IStatsKey } from "../../types";
 
 export function NavScreenSettings(): React.JSX.Element {
   const { state, dispatch } = useAppState();
@@ -143,17 +147,38 @@ export function NavScreenMuscleGroups(): React.JSX.Element {
 }
 
 export function NavScreenStats(): React.JSX.Element {
+  const { state, dispatch } = useAppState();
+  const navCommon = buildNavCommon(state);
   return (
-    <View className="flex-1 justify-center items-center bg-background-default">
-      <Text className="text-2xl font-bold text-icon-neutral">Stats</Text>
+    <View className="flex-1 bg-background-default">
+      <NavScreenContent>
+        <ScreenStatsComponent
+          navCommon={navCommon}
+          dispatch={dispatch}
+          settings={state.storage.settings}
+          stats={state.storage.stats}
+        />
+      </NavScreenContent>
     </View>
   );
 }
 
 export function NavScreenMeasurements(): React.JSX.Element {
+  const { state, dispatch } = useAppState();
+  const navCommon = buildNavCommon(state);
+  const route = useRoute<{ key: string; name: "measurements"; params?: { key?: IStatsKey } }>();
   return (
-    <View className="flex-1 justify-center items-center bg-background-default">
-      <Text className="text-2xl font-bold text-icon-neutral">Measurements</Text>
+    <View className="flex-1 bg-background-default">
+      <NavScreenContent>
+        <ScreenMeasurementsComponent
+          navCommon={navCommon}
+          subscription={state.storage.subscription}
+          dispatch={dispatch}
+          settings={state.storage.settings}
+          stats={state.storage.stats}
+          initialKey={route.params?.key}
+        />
+      </NavScreenContent>
     </View>
   );
 }

@@ -155,6 +155,7 @@
     "@invertase/react-native-apple-authentication": "^2.5.1",
     "@lezer/highlight": "^1.1.6",
     "@lezer/lr": "^1.3.7",
+    "@react-native-community/datetimepicker": "^9.1.0",
     "@react-native-community/slider": "^5.2.0",
     "@react-native-documents/picker": "^12.0.1",
     "@react-native-google-signin/google-signin": "^16.1.2",

@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { View } from "react-native";
 
 import { IDispatch } from "../ducks/types";
 import { MenuItemEditable } from "./menuItemEditable";
@@ -39,9 +40,9 @@ export function ModalStatsContent(props: IModalStatsProps): JSX.Element {
   }
 
   return (
-    <>
+    <View className="py-4">
       <GroupHeader name="Enabled measurement types" />
-      <form data-cy="modal-stats" onSubmit={(e) => e.preventDefault()}>
+      <View data-cy="modal-stats">
         <MenuItemEditable
           onChange={saveWeight("weight")}
           name="Weight"
@@ -132,7 +133,7 @@ export function ModalStatsContent(props: IModalStatsProps): JSX.Element {
           type="boolean"
           value={`${statsEnabled.length.calfRight}`}
         />
-      </form>
-    </>
+      </View>
+    </View>
   );
 }
