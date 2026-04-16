@@ -30,5 +30,19 @@ target 'Liftosaur' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # Xcode 26 / iOS 26 SDK treats netinet6/in6.h as a private framework header.
+    # RollbarNotifier 3.3.3 imports it redundantly (netinet/in.h already covers it).
+    rollbar_file = File.join(__dir__, 'Pods', 'RollbarNotifier', 'RollbarNotifier',
+                             'Sources', 'RollbarNotifier', 'RollbarReachability.m')
+    if File.exist?(rollbar_file)
+      text = File.read(rollbar_file)
+      patched = text.gsub(/^#import <netinet6\/in6\.h>\n/, '')
+      if text != patched
+        File.chmod(0644, rollbar_file)
+        File.write(rollbar_file, patched)
+        Pod::UI.puts "Patched RollbarReachability.m for iOS 26 SDK compatibility".yellow
+      end
+    end
   end
 end

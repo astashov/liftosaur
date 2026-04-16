@@ -10,6 +10,7 @@ import { ScreenAppleHealthSettings as ScreenAppleHealthSettingsComponent } from 
 import { ScreenGoogleHealthSettings as ScreenGoogleHealthSettingsComponent } from "../../components/screenGoogleHealthSettings";
 import { ScreenMuscleGroups as ScreenMuscleGroupsComponent } from "../../components/screenMuscleGroups";
 import { ScreenApiKeys as ScreenApiKeysComponent } from "../../components/screenApiKeys";
+import { ScreenAccount as ScreenAccountComponent } from "../../components/screenAccount";
 import { Program_getProgram } from "../../models/program";
 import { useAppContext } from "../../components/appContext";
 
@@ -35,9 +36,19 @@ export function NavScreenSettings(): React.JSX.Element {
 }
 
 export function NavScreenAccount(): React.JSX.Element {
+  const { state, dispatch } = useAppState();
+  const navCommon = buildNavCommon(state);
   return (
-    <View className="flex-1 justify-center items-center bg-background-default">
-      <Text className="text-2xl font-bold text-icon-neutral">Account</Text>
+    <View className="flex-1 bg-background-default">
+      <NavScreenContent>
+        <ScreenAccountComponent
+          navCommon={navCommon}
+          dispatch={dispatch}
+          email={state.user?.email}
+          userId={state.user?.id}
+          storage={state.storage}
+        />
+      </NavScreenContent>
     </View>
   );
 }
