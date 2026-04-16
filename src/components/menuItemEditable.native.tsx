@@ -2,6 +2,8 @@ import { JSX, Dispatch, ReactNode, SetStateAction, useRef, useEffect, RefObject 
 import { View, Pressable, ActionSheetIOS, Switch, TextInput } from "react-native";
 import { Text } from "./primitives/text";
 import { MenuItemWrapper } from "./menuItem";
+import { IconTrash } from "./icons/iconTrash";
+import { StringUtils_dashcase } from "../utils/string";
 
 type IMenuItemType = "text" | "number" | "select" | "boolean" | "desktop-select" | "select2";
 
@@ -38,7 +40,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
   return (
     <MenuItemWrapper name={props.name} isBorderless={props.isBorderless}>
       <Pressable
-        className="flex-row items-center py-3"
+        className="flex-row items-center py-2"
         onPress={() => {
           if (isTextInput) {
             inputRef.current?.focus();
@@ -70,7 +72,17 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
           />
         </View>
         {props.value != null && props.valueUnits && (
-          <Text className="text-text-secondary ml-1">{props.valueUnits}</Text>
+          <Text className="ml-1 text-text-secondary">{props.valueUnits}</Text>
+        )}
+        {props.value != null && props.hasClear && (
+          <Pressable
+            className="p-2"
+            testID={`menu-item-delete-${StringUtils_dashcase(props.name)}`}
+            data-cy={`menu-item-delete-${StringUtils_dashcase(props.name)}`}
+            onPress={() => props.onChange?.(undefined)}
+          >
+            <IconTrash />
+          </Pressable>
         )}
         {props.after}
       </Pressable>
@@ -103,14 +115,20 @@ export function MenuItemValue(
     };
 
     return (
-      <Pressable onPress={showPicker} className="border rounded border-border-neutral bg-background-default px-2 py-1">
+      <Pressable onPress={showPicker} className="px-2 py-1 border rounded border-border-neutral bg-background-default">
         <Text className="text-text-primary">{currentLabel || "Select..."}</Text>
       </Pressable>
     );
   }
 
   if (props.type === "boolean") {
-    return <Switch value={props.value === "true"} onValueChange={(v) => props.onChange?.(v ? "true" : "false")} />;
+    return (
+      <Switch
+        className="py-1"
+        value={props.value === "true"}
+        onValueChange={(v) => props.onChange?.(v ? "true" : "false")}
+      />
+    );
   }
 
   if (props.type === "text" || props.type === "number") {
@@ -152,7 +170,7 @@ function NativeTextValue(props: {
   return (
     <TextInput
       ref={ref}
-      className="text-right text-base text-text-link py-2"
+      className="py-2 text-base text-right text-text-link"
       style={{ minWidth: 80, fontFamily: "Poppins" }}
       defaultValue={currentValueRef.current}
       onChangeText={(text) => {

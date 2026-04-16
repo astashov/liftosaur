@@ -64,6 +64,9 @@ import { NavModalPlaygroundEditExercise } from "./modals/NavModalPlaygroundEditE
 import { NavModalExerciseInfo } from "./modals/NavModalExerciseInfo";
 import { NavModalCoupon } from "./modals/NavModalCoupon";
 import { NavModalNewGym } from "./modals/NavModalNewGym";
+import { NavModalNewEquipment } from "./modals/NavModalNewEquipment";
+import { NavModalPlates } from "./modals/NavModalPlates";
+import { NavModalNewFixedWeight } from "./modals/NavModalNewFixedWeight";
 import { NavModalCreateProgram } from "./modals/NavModalCreateProgram";
 import { NavModalImportFromLink } from "./modals/NavModalImportFromLink";
 import { NavModalAffiliate } from "./modals/NavModalAffiliate";
@@ -298,6 +301,9 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="exerciseInfoModal" component={NavModalExerciseInfo} />
           <RootStack.Screen name="couponModal" component={NavModalCoupon} />
           <RootStack.Screen name="newGymModal" component={NavModalNewGym} />
+          <RootStack.Screen name="newEquipmentModal" component={NavModalNewEquipment} />
+          <RootStack.Screen name="newPlateModal" component={NavModalPlates} />
+          <RootStack.Screen name="newFixedWeightModal" component={NavModalNewFixedWeight} />
           <RootStack.Screen name="createProgramModal" component={NavModalCreateProgram} />
           <RootStack.Screen name="importFromLinkModal" component={NavModalImportFromLink} />
           <RootStack.Screen name="affiliateModal" component={NavModalAffiliate} />

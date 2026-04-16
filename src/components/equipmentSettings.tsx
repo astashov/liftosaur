@@ -1,4 +1,4 @@
-import { JSX, Fragment, useState } from "react";
+import { JSX, Fragment, Ref, useState } from "react";
 import { View, Pressable, Alert, Platform, LayoutAnimation, UIManager } from "react-native";
 import { Text } from "./primitives/text";
 import { ILensRecordingPayload, lb, Lens } from "lens-shmens";
@@ -9,15 +9,11 @@ import { MenuItem } from "./menuItem";
 import { MenuItemEditable } from "./menuItemEditable";
 import { CollectionUtils_sort } from "../utils/collection";
 import { ObjectUtils_keys } from "../utils/object";
-import { ModalPlates } from "./modalPlates";
-import { ModalNewFixedWeight } from "./modalNewFixedWeight";
 import { ILensDispatch } from "../utils/useLensReducer";
 import { LinkButton } from "./linkButton";
 import { IconTrash } from "./icons/iconTrash";
 import { equipmentName } from "../models/exercise";
-import { ModalNewEquipment } from "./modalNewEquipment";
-import { UidFactory_generateUid } from "../utils/generator";
-import { Equipment_build } from "../models/equipment";
+import { navigationRef } from "../navigation/navigationRef";
 import { IDispatch } from "../ducks/types";
 import { IState } from "../models/state";
 import { IconArrowUp } from "./icons/iconArrowUp";
@@ -39,6 +35,7 @@ interface IProps<T> {
   dispatch: IDispatch;
   lensPrefix: Lens<IState, IAllEquipment>;
   expandedEquipment?: IEquipment;
+  expandedItemRef?: Ref<View>;
   allEquipment: IAllEquipment;
   settings: ISettings;
   stats: IStats;
@@ -66,7 +63,6 @@ function buildLensDispatch(originalDispatch: IDispatch): ILensDispatch<IState> {
 }
 
 export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
-  const [modalNewEquipment, setModalNewEquipment] = useState(false);
   const lensDispatch = buildLensDispatch(props.dispatch);
   const hiddenEquipment = ObjectUtils_keys(props.allEquipment).filter((e) => {
     const eq = props.allEquipment[e];
@@ -80,7 +76,11 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
           const equipmentData = props.allEquipment[bar];
           if (equipmentData) {
             return (
-              <View key={bar} className={`${i !== 0 ? "mt-6" : ""}`}>
+              <View
+                key={bar}
+                ref={props.expandedEquipment === bar ? props.expandedItemRef : undefined}
+                className={`${i !== 0 ? "mt-6" : ""}`}
+              >
                 <EquipmentSettingsContent
                   lensPrefix={props.lensPrefix}
                   stats={props.stats}
@@ -121,26 +121,14 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
         </View>
       )}
       <View className="m-4">
-        <LinkButton className="text-sm" name="add-new-equipment" onClick={() => setModalNewEquipment(true)}>
+        <LinkButton
+          className="text-sm"
+          name="add-new-equipment"
+          onClick={() => navigationRef.navigate("newEquipmentModal")}
+        >
           Add New Equipment Type
         </LinkButton>
       </View>
-      <ModalNewEquipment
-        isHidden={!modalNewEquipment}
-        onInput={(name) => {
-          if (name) {
-            const lensRecording = props.lensPrefix.then(lb<IAllEquipment>().get()).recordModify((oldEquipment) => {
-              const id = `equipment-${UidFactory_generateUid(8)}`;
-              return {
-                ...oldEquipment,
-                [id]: Equipment_build(name),
-              };
-            });
-            lensDispatch(lensRecording, "Add new equipment");
-          }
-          setModalNewEquipment(false);
-        }}
-      />
     </View>
   );
 }
@@ -155,6 +143,123 @@ interface IEquipmentSettingsContentProps<T> {
   isExpanded?: boolean;
   equipmentData: IEquipmentData;
   settings: ISettings;
+}
+
+interface IEquipmentRowHeaderProps<T> {
+  lensPrefix: Lens<T, IAllEquipment>;
+  lensDispatch: ILensDispatch<T>;
+  equipment: IEquipment;
+  equipmentData: IEquipmentData;
+  allEquipment: IAllEquipment;
+  settings: ISettings;
+  isExpanded: boolean;
+  onToggle: () => void;
+  headerRef?: Ref<View>;
+}
+
+export function EquipmentRowHeader<T>(props: IEquipmentRowHeaderProps<T>): JSX.Element {
+  const name = equipmentName(props.equipment, props.allEquipment);
+  const icon = equipmentToIcon[props.equipment] ? equipmentToIcon[props.equipment]() : undefined;
+
+  return (
+    <View
+      ref={props.headerRef}
+      className={`px-2 border bg-background-default border-border-neutral ${
+        props.isExpanded ? "rounded-t-xl" : "rounded-xl"
+      }`}
+    >
+      <View
+        className={`flex-row items-center py-2 bg-background-default ${
+          props.isExpanded ? "border-b border-background-subtle" : ""
+        }`}
+        style={{ gap: 4 }}
+      >
+        <View className="flex-row items-center">
+          <Pressable
+            className="px-2"
+            testID={`group-header-${StringUtils_dashcase(name)}`}
+            data-cy={`group-header-${StringUtils_dashcase(name)}`}
+            onPress={props.onToggle}
+          >
+            {props.isExpanded ? <IconArrowUp /> : <IconArrowDown2 />}
+          </Pressable>
+        </View>
+        {icon && <View className="mr-1">{icon}</View>}
+        <Pressable className="flex-1" onPress={props.onToggle}>
+          <Text className="font-semibold">{name}</Text>
+          {!props.isExpanded && <EquipmentSummary equipmentData={props.equipmentData} settings={props.settings} />}
+        </Pressable>
+        <View className="flex-row items-center">
+          <Pressable
+            className="p-2"
+            testID={`delete-equipment-${StringUtils_dashcase(name)}`}
+            data-cy={`delete-equipment-${StringUtils_dashcase(name)}`}
+            onPress={() => {
+              const doDelete = (): void => {
+                LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                const lensRecording = props.lensPrefix
+                  .then(lb<IAllEquipment>().pi(props.equipment).p("isDeleted").get())
+                  .record(true);
+                props.lensDispatch(lensRecording, "Delete equipment");
+              };
+              if (!props.equipmentData.name) {
+                doDelete();
+              } else {
+                confirmDelete(doDelete);
+              }
+            }}
+          >
+            {props.equipmentData.name ? <IconTrash /> : <IconEyeClosed />}
+          </Pressable>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+interface IEquipmentRowBodyProps<T> {
+  dispatch: IDispatch;
+  lensDispatch: ILensDispatch<T>;
+  lensPrefix: Lens<T, IAllEquipment>;
+  equipment: IEquipment;
+  equipmentData: IEquipmentData;
+  allEquipment: IAllEquipment;
+  settings: ISettings;
+  stats: IStats;
+}
+
+export function EquipmentRowBody<T>(props: IEquipmentRowBodyProps<T>): JSX.Element {
+  return (
+    <View className="px-2 border border-t-0 bg-background-default rounded-b-xl border-border-neutral">
+      <View className="px-2">
+        {props.equipmentData.name && (
+          <MenuItemEditable
+            name="Name"
+            type="text"
+            value={props.equipmentData.name}
+            onChange={(newValue?: string) => {
+              if (newValue) {
+                const lensRecording = props.lensPrefix
+                  .then(lb<IAllEquipment>().pi(props.equipment).p("name").get())
+                  .record(newValue || undefined);
+                props.lensDispatch(lensRecording, "Change equipment name");
+              }
+            }}
+          />
+        )}
+        <EquipmentSettingsValues
+          lensPrefix={props.lensPrefix}
+          equipment={props.equipment}
+          allEquipment={props.allEquipment}
+          stats={props.stats}
+          settings={props.settings}
+          dispatch={props.dispatch}
+          lensDispatch={props.lensDispatch}
+          equipmentData={props.equipmentData}
+        />
+      </View>
+    </View>
+  );
 }
 
 function EquipmentSummary(props: { equipmentData: IEquipmentData; settings: ISettings }): JSX.Element {
@@ -223,85 +328,30 @@ function toggleWithAnimation(setter: (fn: (prev: boolean) => boolean) => void): 
 
 export function EquipmentSettingsContent<T>(props: IEquipmentSettingsContentProps<T>): JSX.Element {
   const [isExpanded, setIsExpanded] = useState<boolean>(props.isExpanded ?? false);
-  const name = equipmentName(props.equipment, props.allEquipment);
-  const icon = equipmentToIcon[props.equipment] ? equipmentToIcon[props.equipment]() : undefined;
-
   return (
     <View>
-      <View className="px-2 my-1 border bg-background-default rounded-xl border-border-neutral">
-        <View
-          className="flex-row items-center py-2 border-b bg-background-default border-background-subtle"
-          style={{ gap: 4 }}
-        >
-          <View className="flex-row items-center">
-            <Pressable
-              className="px-2"
-              testID={`group-header-${StringUtils_dashcase(name)}`}
-              data-cy={`group-header-${StringUtils_dashcase(name)}`}
-              onPress={() => toggleWithAnimation(setIsExpanded)}
-            >
-              {isExpanded ? <IconArrowUp /> : <IconArrowDown2 />}
-            </Pressable>
-          </View>
-          {icon && <View className="mr-1">{icon}</View>}
-          <Pressable className="flex-1" onPress={() => toggleWithAnimation(setIsExpanded)}>
-            <Text className="font-semibold">{equipmentName(props.equipment, props.allEquipment)}</Text>
-            {!isExpanded && <EquipmentSummary equipmentData={props.equipmentData} settings={props.settings} />}
-          </Pressable>
-          <View className="flex-row items-center">
-            <Pressable
-              className="p-2"
-              testID={`delete-equipment-${StringUtils_dashcase(name)}`}
-              data-cy={`delete-equipment-${StringUtils_dashcase(name)}`}
-              onPress={() => {
-                const doDelete = (): void => {
-                  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-                  const lensRecording = props.lensPrefix
-                    .then(lb<IAllEquipment>().pi(props.equipment).p("isDeleted").get())
-                    .record(true);
-                  props.lensDispatch(lensRecording, "Delete equipment");
-                };
-                if (!props.equipmentData.name) {
-                  doDelete();
-                } else {
-                  confirmDelete(doDelete);
-                }
-              }}
-            >
-              {props.equipmentData.name ? <IconTrash /> : <IconEyeClosed />}
-            </Pressable>
-          </View>
-        </View>
-        {isExpanded && (
-          <View className="px-2">
-            {props.equipmentData.name && (
-              <MenuItemEditable
-                name="Name"
-                type="text"
-                value={props.equipmentData.name}
-                onChange={(newValue?: string) => {
-                  if (newValue) {
-                    const lensRecording = props.lensPrefix
-                      .then(lb<IAllEquipment>().pi(props.equipment).p("name").get())
-                      .record(newValue || undefined);
-                    props.lensDispatch(lensRecording, "Change equipment name");
-                  }
-                }}
-              />
-            )}
-            <EquipmentSettingsValues
-              lensPrefix={props.lensPrefix}
-              equipment={props.equipment}
-              allEquipment={props.allEquipment}
-              stats={props.stats}
-              settings={props.settings}
-              dispatch={props.dispatch}
-              lensDispatch={props.lensDispatch}
-              equipmentData={props.equipmentData}
-            />
-          </View>
-        )}
-      </View>
+      <EquipmentRowHeader
+        lensPrefix={props.lensPrefix}
+        lensDispatch={props.lensDispatch}
+        equipment={props.equipment}
+        equipmentData={props.equipmentData}
+        allEquipment={props.allEquipment}
+        settings={props.settings}
+        isExpanded={isExpanded}
+        onToggle={() => toggleWithAnimation(setIsExpanded)}
+      />
+      {isExpanded && (
+        <EquipmentRowBody
+          lensPrefix={props.lensPrefix}
+          lensDispatch={props.lensDispatch}
+          dispatch={props.dispatch}
+          equipment={props.equipment}
+          equipmentData={props.equipmentData}
+          allEquipment={props.allEquipment}
+          settings={props.settings}
+          stats={props.stats}
+        />
+      )}
     </View>
   );
 }
@@ -318,10 +368,6 @@ interface IEquipmentSettingsValuesProps<T> {
 }
 
 export function EquipmentSettingsValues<T>(props: IEquipmentSettingsValuesProps<T>): JSX.Element {
-  const [modalNewPlateEquipmentToShow, setModalNewPlateEquipmentToShow] = useState<IEquipment | undefined>(undefined);
-  const [modalNewFixedWeightEquipmentToShow, setModalNewFixedWeightEquipmentToShow] = useState<IEquipment | undefined>(
-    undefined
-  );
   return (
     <>
       <MenuItemEditable
@@ -366,7 +412,6 @@ export function EquipmentSettingsValues<T>(props: IEquipmentSettingsValuesProps<
           allEquipment={props.allEquipment}
           name={props.equipment}
           settings={props.settings}
-          setModalNewFixedWeightEquipmentToShow={setModalNewFixedWeightEquipmentToShow}
           dispatch={props.lensDispatch}
         />
       ) : (
@@ -375,54 +420,9 @@ export function EquipmentSettingsValues<T>(props: IEquipmentSettingsValuesProps<
           stats={props.stats}
           equipmentData={props.equipmentData}
           allEquipment={props.allEquipment}
-          setModalNewPlateEquipmentToShow={setModalNewPlateEquipmentToShow}
           name={props.equipment}
           settings={props.settings}
           dispatch={props.lensDispatch}
-        />
-      )}
-      {modalNewPlateEquipmentToShow != null && (
-        <ModalPlates
-          isHidden={false}
-          units={props.allEquipment[modalNewPlateEquipmentToShow]?.unit ?? props.settings.units}
-          onInput={(weight) => {
-            setModalNewPlateEquipmentToShow(undefined);
-            if (weight != null) {
-              const units = props.allEquipment[modalNewPlateEquipmentToShow]?.unit ?? props.settings.units;
-              const newWeight = Weight_build(weight, units);
-              const plates =
-                props.allEquipment[modalNewPlateEquipmentToShow]?.plates.filter((p) => p.weight.unit === units) || [];
-              if (plates.every((p) => !Weight_eqeq(p.weight, newWeight))) {
-                const lensRecording = props.lensPrefix
-                  .then(lb<IAllEquipment>().pi(modalNewPlateEquipmentToShow).p("plates").get())
-                  .recordModify((p) => [...(p || []), { weight: newWeight, num: 2 }]);
-                props.lensDispatch(lensRecording, "Add plate");
-              }
-            }
-          }}
-        />
-      )}
-      {modalNewFixedWeightEquipmentToShow != null && (
-        <ModalNewFixedWeight
-          allEquipment={props.allEquipment}
-          isHidden={false}
-          equipment={modalNewFixedWeightEquipmentToShow}
-          units={props.allEquipment[modalNewFixedWeightEquipmentToShow]?.unit ?? props.settings.units}
-          onInput={(weight) => {
-            setModalNewFixedWeightEquipmentToShow(undefined);
-            if (weight != null) {
-              const units = props.allEquipment[modalNewFixedWeightEquipmentToShow]?.unit ?? props.settings.units;
-              const newWeight = Weight_build(weight, units);
-              const fixedWeights =
-                props.allEquipment[modalNewFixedWeightEquipmentToShow]?.fixed.filter((p) => p.unit === units) || [];
-              if (fixedWeights.every((p) => !Weight_eqeq(p, newWeight))) {
-                const lensRecording = props.lensPrefix
-                  .then(lb<IAllEquipment>().pi(modalNewFixedWeightEquipmentToShow).p("fixed").get())
-                  .recordModify((p) => [...(p || []), newWeight]);
-                props.lensDispatch(lensRecording, "Add fixed weight");
-              }
-            }
-          }}
         />
       )}
     </>
@@ -434,7 +434,6 @@ interface IEquipmentSettingsFixedProps<T> {
   lensPrefix: Lens<T, IAllEquipment>;
   allEquipment: IAllEquipment;
   name: IEquipment;
-  setModalNewFixedWeightEquipmentToShow: (equipment: IEquipment) => void;
   settings: ISettings;
   equipmentData: IEquipmentData;
 }
@@ -478,7 +477,7 @@ function EquipmentSettingsFixed<T>(props: IEquipmentSettingsFixedProps<T>): JSX.
       <LinkButton
         className="text-xs"
         name="add-new-fixed-weight"
-        onClick={() => props.setModalNewFixedWeightEquipmentToShow(props.name)}
+        onClick={() => navigationRef.navigate("newFixedWeightModal", { equipment: props.name })}
       >
         Add New Fixed Weight
       </LinkButton>
@@ -493,7 +492,6 @@ interface IEquipmentSettingsPlatesProps<T> {
   settings: ISettings;
   stats: IStats;
   name: IEquipment;
-  setModalNewPlateEquipmentToShow: (equipment: IEquipment) => void;
   equipmentData: IEquipmentData;
 }
 
@@ -634,7 +632,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
       <LinkButton
         className="text-sm"
         name="add-new-plate-weight"
-        onClick={() => props.setModalNewPlateEquipmentToShow(props.name)}
+        onClick={() => navigationRef.navigate("newPlateModal", { equipment: props.name })}
       >
         Add New Plate Weight
       </LinkButton>

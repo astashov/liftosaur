@@ -1,5 +1,13 @@
 import type { NavigatorScreenParams } from "@react-navigation/native";
-import type { IDayData, IExerciseType, IProgressUi, IScreenMuscle, IShortDayData, IStatsKey } from "../types";
+import type {
+  IDayData,
+  IEquipment,
+  IExerciseType,
+  IProgressUi,
+  IScreenMuscle,
+  IShortDayData,
+  IStatsKey,
+} from "../types";
 
 export type IHomeStackParamList = {
   main: { historyRecordId?: number } | undefined;
@@ -94,6 +102,9 @@ export type IRootStackParamList = {
   exerciseInfoModal: { exerciseType: IExerciseType };
   couponModal: undefined;
   newGymModal: undefined;
+  newEquipmentModal: undefined;
+  newPlateModal: { equipment: IEquipment };
+  newFixedWeightModal: { equipment: IEquipment };
   createProgramModal: undefined;
   importFromLinkModal: undefined;
   affiliateModal: undefined;

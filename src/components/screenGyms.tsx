@@ -1,4 +1,4 @@
-import { JSX, Fragment } from "react";
+import { JSX } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
@@ -45,7 +45,7 @@ export function ScreenGyms(props: IProps): JSX.Element {
               ) : undefined
             }
             value={
-              <Fragment>
+              <View className="flex-row">
                 <Pressable
                   testID="edit-gym"
                   data-cy="edit-gym"
@@ -120,7 +120,7 @@ export function ScreenGyms(props: IProps): JSX.Element {
                     <IconTrash />
                   </Pressable>
                 )}
-              </Fragment>
+              </View>
             }
           />
         );
