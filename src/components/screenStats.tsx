@@ -1,4 +1,6 @@
-import { JSX, ReactNode, Ref, forwardRef, memo, useRef, useState } from "react";
+import { JSX, ReactNode, useRef, useState } from "react";
+import { View, Pressable } from "react-native";
+import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import { Thunk_pullScreen } from "../ducks/thunks";
 import {
@@ -13,6 +15,7 @@ import {
   IStatsPercentage,
   IPercentage,
   IPercentageUnit,
+  IStatsKey,
 } from "../types";
 import { Button } from "./button";
 import { ObjectUtils_keys } from "../utils/object";
@@ -49,6 +52,8 @@ interface IHealthUpdates {
   waist?: string;
 }
 
+type IValuesRef = React.MutableRefObject<Partial<Record<IStatsKey, string>>>;
+
 export function ScreenStats(props: IProps): JSX.Element {
   const { statsEnabled, lengthUnits, units } = props.settings;
   const lastWeightStats = ObjectUtils_keys(props.stats.weight).reduce<Partial<Record<keyof IStatsWeight, IWeight>>>(
@@ -82,31 +87,16 @@ export function ScreenStats(props: IProps): JSX.Element {
   }, {});
   const [syncToAppleHealth, setSyncToAppleHealth] = useState(!!props.settings.appleHealthSyncMeasurements);
   const [syncToGoogleHealth, setSyncToGoogleHealth] = useState(!!props.settings.googleHealthSyncMeasurements);
+  const [clearKey, setClearKey] = useState(0);
 
-  const refs = {
-    weight: useRef<HTMLInputElement>(null),
-    bodyfat: useRef<HTMLInputElement>(null),
-    neck: useRef<HTMLInputElement>(null),
-    shoulders: useRef<HTMLInputElement>(null),
-    bicepLeft: useRef<HTMLInputElement>(null),
-    bicepRight: useRef<HTMLInputElement>(null),
-    forearmLeft: useRef<HTMLInputElement>(null),
-    forearmRight: useRef<HTMLInputElement>(null),
-    chest: useRef<HTMLInputElement>(null),
-    waist: useRef<HTMLInputElement>(null),
-    hips: useRef<HTMLInputElement>(null),
-    thighLeft: useRef<HTMLInputElement>(null),
-    thighRight: useRef<HTMLInputElement>(null),
-    calfLeft: useRef<HTMLInputElement>(null),
-    calfRight: useRef<HTMLInputElement>(null),
-  };
+  const valuesRef: IValuesRef = useRef<Partial<Record<IStatsKey, string>>>({});
 
   function saveWeight(): Partial<Record<keyof IStatsWeight, IWeight>> {
     const payload = ObjectUtils_keys(statsEnabled.weight).reduce<Partial<Record<keyof IStatsWeight, IWeight>>>(
       (acc, key) => {
         const isEnabled = statsEnabled.weight[key];
         if (isEnabled) {
-          const stringValue = refs[key]?.current?.value;
+          const stringValue = valuesRef.current[key];
           if (stringValue) {
             const value = parseFloat(stringValue);
             if (!isNaN(value)) {
@@ -127,7 +117,7 @@ export function ScreenStats(props: IProps): JSX.Element {
       (acc, key) => {
         const isEnabled = statsEnabled.length[key];
         if (isEnabled) {
-          const stringValue = refs[key]?.current?.value;
+          const stringValue = valuesRef.current[key];
           if (stringValue) {
             const value = parseFloat(stringValue);
             if (!isNaN(value)) {
@@ -149,7 +139,7 @@ export function ScreenStats(props: IProps): JSX.Element {
     >((acc, key) => {
       const isEnabled = statsEnabled.percentage[key];
       if (isEnabled) {
-        const stringValue = refs[key]?.current?.value;
+        const stringValue = valuesRef.current[key];
         if (stringValue) {
           const value = parseFloat(stringValue);
           if (!isNaN(value)) {
@@ -182,20 +172,11 @@ export function ScreenStats(props: IProps): JSX.Element {
     const timestamp = Date.now();
     ObjectUtils_keys(updates).forEach((key) => {
       if (key === "weight") {
-        healthSyncUpdates[key] = JSON.stringify({
-          value: updates[key],
-          timestamp,
-        });
+        healthSyncUpdates[key] = JSON.stringify({ value: updates[key], timestamp });
       } else if (key === "bodyfat") {
-        healthSyncUpdates[key] = JSON.stringify({
-          value: updates[key],
-          timestamp,
-        });
+        healthSyncUpdates[key] = JSON.stringify({ value: updates[key], timestamp });
       } else if (key === "waist") {
-        healthSyncUpdates[key] = JSON.stringify({
-          value: updates[key],
-          timestamp,
-        });
+        healthSyncUpdates[key] = JSON.stringify({ value: updates[key], timestamp });
       }
     });
     return healthSyncUpdates;
@@ -205,220 +186,272 @@ export function ScreenStats(props: IProps): JSX.Element {
     navTitle: "Add Measurements",
     navHelpContent: <HelpStats />,
     navRightButtons: [
-      <button
+      <Pressable
         key="filter"
-        className="p-2 ls-modify-stats"
+        className="p-2 nm-modify-stats"
         data-cy="modify-stats"
-        onClick={() => navigationRef.navigate("statsSettingsModal")}
+        testID="modify-stats"
+        onPress={() => navigationRef.navigate("statsSettingsModal")}
       >
         <IconFilter />
-      </button>,
+      </Pressable>,
     ],
   });
 
   return (
-    <>
-      <section className="px-4">
-        <p className="py-2 text-sm text-text-secondary">
-          All fields are optional, input only the fields you want this time. Empty fields won't be added.
-        </p>
-        <div className="text-center">
-          <Button
-            data-cy="clear-stats-fields"
-            name="clear-stats-fields"
-            kind="grayv2"
-            onClick={() => {
-              for (const key of ObjectUtils_keys(refs)) {
-                if (refs[key]?.current) {
-                  refs[key].current.value = "";
-                }
-              }
+    <View className="px-4">
+      <Text className="py-2 text-sm text-text-secondary">
+        All fields are optional, input only the fields you want this time. Empty fields won't be added.
+      </Text>
+      <View className="items-center">
+        <Button
+          data-cy="clear-stats-fields"
+          name="clear-stats-fields"
+          kind="grayv2"
+          onClick={() => {
+            valuesRef.current = {};
+            setClearKey((k) => k + 1);
+          }}
+        >
+          Clear All Fields
+        </Button>
+      </View>
+      {statsEnabled.length.neck && (
+        <SingleLine>
+          <StatInput
+            name="neck"
+            label="Neck"
+            defaultValue={lastLengthStats.neck?.value}
+            unit={lengthUnits}
+            clearKey={clearKey}
+            valuesRef={valuesRef}
+          />
+        </SingleLine>
+      )}
+      {statsEnabled.weight && (
+        <SingleLine>
+          <StatInput
+            name="weight"
+            label="Bodyweight"
+            defaultValue={lastWeightStats.weight?.value}
+            unit={units}
+            clearKey={clearKey}
+            valuesRef={valuesRef}
+          />
+        </SingleLine>
+      )}
+      {statsEnabled.percentage.bodyfat && (
+        <SingleLine>
+          <StatInput
+            name="bodyfat"
+            label="Bodyfat"
+            defaultValue={lastPercentageStats.bodyfat?.value}
+            unit="%"
+            clearKey={clearKey}
+            valuesRef={valuesRef}
+          />
+        </SingleLine>
+      )}
+      {statsEnabled.length.shoulders && (
+        <SingleLine>
+          <StatInput
+            name="shoulders"
+            label="Shoulders"
+            defaultValue={lastLengthStats.shoulders?.value}
+            unit={lengthUnits}
+            clearKey={clearKey}
+            valuesRef={valuesRef}
+          />
+        </SingleLine>
+      )}
+      {(statsEnabled.length.bicepLeft || statsEnabled.length.bicepRight) && (
+        <DoubleLine
+          first={
+            statsEnabled.length.bicepLeft && (
+              <StatInput
+                name="bicepLeft"
+                label="Bicep Left"
+                defaultValue={lastLengthStats.bicepLeft?.value}
+                unit={lengthUnits}
+                clearKey={clearKey}
+                valuesRef={valuesRef}
+              />
+            )
+          }
+          second={
+            statsEnabled.length.bicepRight && (
+              <StatInput
+                name="bicepRight"
+                label="Bicep Right"
+                defaultValue={lastLengthStats.bicepRight?.value}
+                unit={lengthUnits}
+                clearKey={clearKey}
+                valuesRef={valuesRef}
+              />
+            )
+          }
+        />
+      )}
+      {(statsEnabled.length.forearmLeft || statsEnabled.length.forearmRight) && (
+        <DoubleLine
+          first={
+            statsEnabled.length.forearmLeft && (
+              <StatInput
+                name="forearmLeft"
+                label="Forearm Left"
+                defaultValue={lastLengthStats.forearmLeft?.value}
+                unit={lengthUnits}
+                clearKey={clearKey}
+                valuesRef={valuesRef}
+              />
+            )
+          }
+          second={
+            statsEnabled.length.forearmRight && (
+              <StatInput
+                name="forearmRight"
+                label="Forearm Right"
+                defaultValue={lastLengthStats.forearmRight?.value}
+                unit={lengthUnits}
+                clearKey={clearKey}
+                valuesRef={valuesRef}
+              />
+            )
+          }
+        />
+      )}
+      {statsEnabled.length.chest && (
+        <SingleLine>
+          <StatInput
+            name="chest"
+            label="Chest"
+            defaultValue={lastLengthStats.chest?.value}
+            unit={lengthUnits}
+            clearKey={clearKey}
+            valuesRef={valuesRef}
+          />
+        </SingleLine>
+      )}
+      {statsEnabled.length.waist && (
+        <SingleLine>
+          <StatInput
+            name="waist"
+            label="Waist"
+            defaultValue={lastLengthStats.waist?.value}
+            unit={lengthUnits}
+            clearKey={clearKey}
+            valuesRef={valuesRef}
+          />
+        </SingleLine>
+      )}
+      {statsEnabled.length.hips && (
+        <SingleLine>
+          <StatInput
+            name="hips"
+            label="Hips"
+            defaultValue={lastLengthStats.hips?.value}
+            unit={lengthUnits}
+            clearKey={clearKey}
+            valuesRef={valuesRef}
+          />
+        </SingleLine>
+      )}
+      {(statsEnabled.length.thighLeft || statsEnabled.length.thighRight) && (
+        <DoubleLine
+          first={
+            statsEnabled.length.thighLeft && (
+              <StatInput
+                name="thighLeft"
+                label="Thigh Left"
+                defaultValue={lastLengthStats.thighLeft?.value}
+                unit={lengthUnits}
+                clearKey={clearKey}
+                valuesRef={valuesRef}
+              />
+            )
+          }
+          second={
+            statsEnabled.length.thighRight && (
+              <StatInput
+                name="thighRight"
+                label="Thigh Right"
+                defaultValue={lastLengthStats.thighRight?.value}
+                unit={lengthUnits}
+                clearKey={clearKey}
+                valuesRef={valuesRef}
+              />
+            )
+          }
+        />
+      )}
+      {(statsEnabled.length.calfLeft || statsEnabled.length.calfRight) && (
+        <DoubleLine
+          first={
+            statsEnabled.length.calfLeft && (
+              <StatInput
+                name="calfLeft"
+                label="Calf Left"
+                defaultValue={lastLengthStats.calfLeft?.value}
+                unit={lengthUnits}
+                clearKey={clearKey}
+                valuesRef={valuesRef}
+              />
+            )
+          }
+          second={
+            statsEnabled.length.calfRight && (
+              <StatInput
+                name="calfRight"
+                label="Calf Right"
+                defaultValue={lastLengthStats.calfRight?.value}
+                unit={lengthUnits}
+                clearKey={clearKey}
+                valuesRef={valuesRef}
+              />
+            )
+          }
+        />
+      )}
+      {HealthSync_eligibleForAppleHealth() && (
+        <View>
+          <MenuItemEditable
+            name="Sync to Apple Health"
+            type="boolean"
+            value={syncToAppleHealth ? "true" : "false"}
+            onChange={(newValue?: string) => {
+              setSyncToAppleHealth(newValue === "true");
             }}
-          >
-            Clear All Fields
-          </Button>
-        </div>
-        {statsEnabled.length.neck && (
-          <SingleLine>
-            <StatInput ref={refs.neck} label="Neck" value={lastLengthStats.neck?.value} unit={lengthUnits} />
-          </SingleLine>
-        )}
-        {statsEnabled.weight && (
-          <SingleLine>
-            <StatInput ref={refs.weight} label="Bodyweight" value={lastWeightStats.weight?.value} unit={units} />
-          </SingleLine>
-        )}
-        {statsEnabled.percentage.bodyfat && (
-          <SingleLine>
-            <StatInput ref={refs.bodyfat} label="Bodyfat" value={lastPercentageStats.bodyfat?.value} unit="%" />
-          </SingleLine>
-        )}
-        {statsEnabled.length.shoulders && (
-          <SingleLine>
-            <StatInput
-              ref={refs.shoulders}
-              label="Shoulders"
-              value={lastLengthStats.shoulders?.value}
-              unit={lengthUnits}
-            />
-          </SingleLine>
-        )}
-        {(statsEnabled.length.bicepLeft || statsEnabled.length.bicepRight) && (
-          <DoubleLine
-            first={
-              statsEnabled.length.bicepLeft && (
-                <StatInput
-                  ref={refs.bicepLeft}
-                  label="Bicep Left"
-                  value={lastLengthStats.bicepLeft?.value}
-                  unit={lengthUnits}
-                />
-              )
-            }
-            second={
-              statsEnabled.length.bicepRight && (
-                <StatInput
-                  ref={refs.bicepRight}
-                  label="Bicep Right"
-                  value={lastLengthStats.bicepRight?.value}
-                  unit={lengthUnits}
-                />
-              )
-            }
           />
-        )}
-        {(statsEnabled.length.forearmLeft || statsEnabled.length.forearmRight) && (
-          <DoubleLine
-            first={
-              statsEnabled.length.forearmLeft && (
-                <StatInput
-                  ref={refs.forearmLeft}
-                  label="Forearm Left"
-                  value={lastLengthStats.forearmLeft?.value}
-                  unit={lengthUnits}
-                />
-              )
-            }
-            second={
-              statsEnabled.length.forearmRight && (
-                <StatInput
-                  ref={refs.forearmRight}
-                  label="Forearm Right"
-                  value={lastLengthStats.forearmRight?.value}
-                  unit={lengthUnits}
-                />
-              )
-            }
+        </View>
+      )}
+      {HealthSync_eligibleForGoogleHealth() && (
+        <View>
+          <MenuItemEditable
+            name="Sync to Google Health Connect"
+            type="boolean"
+            value={syncToGoogleHealth ? "true" : "false"}
+            onChange={(newValue?: string) => {
+              setSyncToGoogleHealth(newValue === "true");
+            }}
           />
-        )}
-        {statsEnabled.length.chest && (
-          <SingleLine>
-            <StatInput label="Chest" ref={refs.chest} value={lastLengthStats.chest?.value} unit={lengthUnits} />
-          </SingleLine>
-        )}
-        {statsEnabled.length.waist && (
-          <SingleLine>
-            <StatInput ref={refs.waist} label="Waist" value={lastLengthStats.waist?.value} unit={lengthUnits} />
-          </SingleLine>
-        )}
-        {statsEnabled.length.hips && (
-          <SingleLine>
-            <StatInput ref={refs.hips} label="Hips" value={lastLengthStats.hips?.value} unit={lengthUnits} />
-          </SingleLine>
-        )}
-        {(statsEnabled.length.thighLeft || statsEnabled.length.thighRight) && (
-          <DoubleLine
-            first={
-              statsEnabled.length.thighLeft && (
-                <StatInput
-                  ref={refs.thighLeft}
-                  label="Thigh Left"
-                  value={lastLengthStats.thighLeft?.value}
-                  unit={lengthUnits}
-                />
-              )
-            }
-            second={
-              statsEnabled.length.thighRight && (
-                <StatInput
-                  ref={refs.thighRight}
-                  label="Thigh Right"
-                  value={lastLengthStats.thighRight?.value}
-                  unit={lengthUnits}
-                />
-              )
-            }
-          />
-        )}
-        {(statsEnabled.length.calfLeft || statsEnabled.length.calfRight) && (
-          <DoubleLine
-            first={
-              statsEnabled.length.calfLeft && (
-                <StatInput
-                  ref={refs.calfLeft}
-                  label="Calf Left"
-                  value={lastLengthStats.calfLeft?.value}
-                  unit={lengthUnits}
-                />
-              )
-            }
-            second={
-              statsEnabled.length.calfRight && (
-                <StatInput
-                  ref={refs.calfRight}
-                  label="Calf Right"
-                  value={lastLengthStats.calfRight?.value}
-                  unit={lengthUnits}
-                />
-              )
-            }
-          />
-        )}
-        {HealthSync_eligibleForAppleHealth() && (
-          <div>
-            <MenuItemEditable
-              name="Sync to Apple Health"
-              type="boolean"
-              value={syncToAppleHealth ? "true" : "false"}
-              onChange={(newValue?: string) => {
-                setSyncToAppleHealth(newValue === "true");
-              }}
-            />
-          </div>
-        )}
-        {HealthSync_eligibleForGoogleHealth() && (
-          <div>
-            <MenuItemEditable
-              name="Sync to Google Health Connect"
-              type="boolean"
-              value={syncToGoogleHealth ? "true" : "false"}
-              onChange={(newValue?: string) => {
-                setSyncToGoogleHealth(newValue === "true");
-              }}
-            />
-          </div>
-        )}
-        <div className="py-4 mb-2 text-center">
-          <Button
-            name="add-stats"
-            tabIndex={1}
-            className="ls-add-stats"
-            data-cy="add-stats"
-            kind="purple"
-            onClick={save}
-          >
-            Done
-          </Button>
-        </div>
-      </section>
-    </>
+        </View>
+      )}
+      <View className="items-center py-4 mb-2">
+        <Button name="add-stats" tabIndex={1} className="ls-add-stats" data-cy="add-stats" kind="purple" onClick={save}>
+          Done
+        </Button>
+      </View>
+    </View>
   );
 }
 
-interface IInputProps {
+interface IStatInputProps {
+  name: IStatsKey;
   label: string;
-  value?: number | string;
+  defaultValue?: number | string;
   unit: IUnit | ILengthUnit | IPercentageUnit;
+  clearKey: number;
+  valuesRef: IValuesRef;
 }
 
 interface ISingleLineProps {
@@ -427,9 +460,9 @@ interface ISingleLineProps {
 
 function SingleLine(props: ISingleLineProps): JSX.Element {
   return (
-    <div className="my-2">
-      <div className="w-48 mx-auto text-center">{props.children}</div>
-    </div>
+    <View className="my-2">
+      <View className="w-48 mx-auto">{props.children}</View>
+    </View>
   );
 }
 
@@ -440,29 +473,31 @@ interface IDoubleLineProps {
 
 function DoubleLine(props: IDoubleLineProps): JSX.Element {
   return (
-    <div className="flex my-2 text-center">
-      <div className="flex-1 mr-1 text-center">{props.first}</div>
-      <div className="flex-1 ml-1 text-center">{props.second}</div>
-    </div>
+    <View className="flex-row my-2">
+      <View className="flex-1 mr-1">{props.first}</View>
+      <View className="flex-1 ml-1">{props.second}</View>
+    </View>
   );
 }
 
-const StatInput = memo(
-  forwardRef((props: IInputProps, ref: Ref<HTMLInputElement>): JSX.Element => {
-    const name = StringUtils_dashcase(props.label.toLowerCase());
-    return (
-      <Input
-        label={`${props.label} (${props.unit})`}
-        labelSize="xs"
-        defaultValue={props.value}
-        ref={ref}
-        type={SendMessage_isIos() ? "number" : "tel"}
-        placeholder="e.g. 10"
-        min="0"
-        step="0.01"
-        tabIndex={1}
-        data-cy={`input-stats-${name}`}
-      />
-    );
-  })
-);
+function StatInput(props: IStatInputProps): JSX.Element {
+  const testName = StringUtils_dashcase(props.label.toLowerCase());
+  return (
+    <Input
+      key={`${props.name}-${props.clearKey}`}
+      label={`${props.label} (${props.unit})`}
+      labelSize="xs"
+      defaultValue={props.defaultValue}
+      type={"number"}
+      placeholder="e.g. 10"
+      min={0}
+      step="0.01"
+      tabIndex={1}
+      data-cy={`input-stats-${testName}`}
+      identifier={`input-stats-${testName}`}
+      changeHandler={(e) => {
+        props.valuesRef.current[props.name] = e.success ? e.data : "";
+      }}
+    />
+  );
+}
