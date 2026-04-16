@@ -1,4 +1,6 @@
 import { JSX, useEffect, useState } from "react";
+import { View, Pressable, Platform } from "react-native";
+import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import {
   Thunk_logOut,
@@ -14,6 +16,7 @@ import { useNavOptions } from "../navigation/useNavOptions";
 import { Button } from "./button";
 import { HelpAccount } from "./help/helpAccount";
 import { IAccount, Account_getAll } from "../models/account";
+import { IPartialStorage } from "../types";
 import { GroupHeader } from "./groupHeader";
 import { MenuItem } from "./menuItem";
 import { IconDoc } from "./icons/iconDoc";
@@ -22,276 +25,273 @@ import { IconGoogle } from "./icons/iconGoogle";
 import { LinkButton } from "./linkButton";
 import { IconTrash } from "./icons/iconTrash";
 import { IconApple } from "./icons/iconApple";
+import { Dialog_confirm, Dialog_prompt, Dialog_alert } from "../utils/dialog";
 
 declare let __HOST__: string;
 
 interface IProps {
   email?: string;
+  userId?: string;
+  storage: IPartialStorage;
   navCommon: INavCommon;
   dispatch: IDispatch;
 }
 
 export function ScreenAccount(props: IProps): JSX.Element {
-  const [currentAccount, setCurrentAccount] = useState<IAccount | undefined>(undefined);
   const [otherAccounts, setOtherAccounts] = useState<IAccount[]>([]);
   const [isOtherAccountsEditMode, setIsOtherAccountsEditMode] = useState<boolean>(false);
 
+  const currentAccountId = props.userId || props.storage.tempUserId;
+  const currentAccount: IAccount = {
+    id: currentAccountId,
+    email: props.email,
+    name: props.storage.settings.nickname,
+    numberOfPrograms: props.storage.programs?.length ?? 0,
+    numberOfWorkouts: props.storage.history?.length ?? 0,
+    affiliateEnabled: props.storage.settings.affiliateEnabled,
+    isCurrent: true,
+  };
+
   function refetchAccounts(): void {
     Account_getAll().then((accounts) => {
-      const theCurrentAccount = accounts.filter((account) => account.isCurrent)[0];
-      const theOtherAccounts = accounts.filter((account) => !account.isCurrent);
-      setCurrentAccount(theCurrentAccount);
-      setOtherAccounts(theOtherAccounts);
+      setOtherAccounts(accounts.filter((a) => a.id !== currentAccountId));
     });
   }
 
   useEffect(() => {
     refetchAccounts();
-    window.AppleID?.auth.init({
-      clientId: "com.liftosaur.www.signinapple", // This is the service ID we created.
-      scope: "email", // To tell apple we want the user name and emails fields in the response it sends us.
-      redirectURI: `${__HOST__}/appleauthcallback.html`, // As registered along with our service ID
-      usePopup: true, // Important if we want to capture the data apple sends on the client side.
-    });
+  }, [currentAccountId]);
+
+  useEffect(() => {
+    if (Platform.OS === "web" && typeof window !== "undefined" && window.AppleID?.auth) {
+      window.AppleID.auth.init({
+        clientId: "com.liftosaur.www.signinapple",
+        scope: "email",
+        redirectURI: `${__HOST__}/appleauthcallback.html`,
+        usePopup: true,
+      });
+    }
   }, []);
 
   useNavOptions({ navTitle: "Account", navHelpContent: <HelpAccount /> });
 
+  const googleShadow = Platform.select({
+    ios: { shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 4 },
+    android: { elevation: 2 },
+    default: { boxShadow: "0 1px 4px 0 rgba(0,0,0,0.1)" },
+  });
+
   return (
-    <>
-      <section className="px-4">
-        <GroupHeader name="Current Account" />
-        {currentAccount && (
-          <>
-            <MenuItem
-              isBorderless={true}
-              name={currentAccount.name ? currentAccount.name : `id: ${currentAccount.id}`}
-              value={
-                <div className="text-text-primary">
-                  <span className="pr-2 align-middle">{currentAccount.numberOfPrograms}</span>
-                  <span className="pr-4 align-middle">
-                    <IconDoc width={12} height={16} />
-                  </span>
-                  <span className="pr-2 align-middle">{currentAccount.numberOfWorkouts}</span>
-                  <span className="align-middle">
-                    <IconDumbbell width={28} height={19} />
-                  </span>
-                </div>
-              }
-              addons={
-                <div className="text-xs text-text-secondary">
-                  {currentAccount.name ? (
-                    <div style={{ marginTop: "-0.25rem" }}>{`id: ${currentAccount.id}`}</div>
-                  ) : (
-                    <></>
-                  )}
-                  {props.email ? (
-                    props.email === "noemail@example.com" ? (
-                      <></>
-                    ) : (
-                      <>
-                        Signed in as <span className="font-bold">{props.email}</span>
-                      </>
-                    )
-                  ) : (
-                    <span className="text-text-error">Not signed in to cloud</span>
-                  )}
-                </div>
-              }
-            />
+    <View className="px-4">
+      <GroupHeader name="Current Account" />
+      <MenuItem
+        isBorderless={true}
+        expandName={true}
+        name={currentAccount.name ? currentAccount.name : `id: ${currentAccount.id}`}
+        value={
+          <View className="flex-row items-center">
+            <Text className="pr-2 text-text-primary">{currentAccount.numberOfPrograms}</Text>
+            <View className="pr-4">
+              <IconDoc width={12} height={16} />
+            </View>
+            <Text className="pr-2 text-text-primary">{currentAccount.numberOfWorkouts}</Text>
+            <View>
+              <IconDumbbell width={28} height={19} />
+            </View>
+          </View>
+        }
+        addons={
+          <View>
+            {currentAccount.name ? (
+              <Text className="-mt-1 text-xs text-text-secondary">{`id: ${currentAccount.id}`}</Text>
+            ) : null}
             {props.email ? (
-              <div className="text-center">
-                <Button
-                  name="account-sign-out"
-                  kind="purple"
-                  data-cy="menu-item-logout"
-                  className="ls-logout"
-                  onClick={() => props.dispatch(Thunk_logOut())}
-                >
-                  Sign Out
-                </Button>
-              </div>
-            ) : (
-              <div>
-                <div>
-                  <button
-                    className="flex items-center w-full px-4 py-2 mt-2 rounded-lg nm-sign-in-with-google"
-                    style={{ boxShadow: "0 1px 4px 0 rgba(0,0,0,0.1)" }}
-                    data-cy="menu-item-login"
-                    onClick={() => props.dispatch(Thunk_googleSignIn())}
-                  >
-                    <span className="">
-                      <IconGoogle />
-                    </span>
-                    <span className="flex-1">Sign in with Google</span>
-                  </button>
-                </div>
-                <div>
-                  <button
-                    className="flex items-center w-full px-4 py-3 mt-2 bg-black rounded-lg text-text-alwayswhite nm-sign-in-with-apple"
-                    onClick={async () => {
-                      props.dispatch(Thunk_appleSignIn());
-                    }}
-                  >
-                    <span style={{ marginTop: "-3px" }}>
-                      <IconApple />
-                    </span>
-                    <span className="flex-1">Sign in with Apple</span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-        <GroupHeader
-          name="Other local accounts"
-          topPadding={true}
-          rightAddOn={
-            otherAccounts.length > 0 ? (
-              <LinkButton
-                name="account-edit"
-                onClick={() => {
-                  setIsOtherAccountsEditMode(!isOtherAccountsEditMode);
-                }}
-              >
-                {isOtherAccountsEditMode ? "Finish Editing" : "Edit"}
-              </LinkButton>
-            ) : undefined
-          }
-        />
-        {otherAccounts.map((account) => (
-          <MenuItem
-            key={account.id}
-            shouldShowRightArrow={!isOtherAccountsEditMode}
-            name={account.name ? account.name : `id: ${account.id}`}
-            onClick={() => {
-              if (
-                !isOtherAccountsEditMode &&
-                confirm(
-                  "Want to switch to this account? You WILL NOT lose your current account, you'll be able to switch back to it later."
-                )
-              ) {
-                props.dispatch(Thunk_switchAccount(account.id));
-              }
-            }}
-            value={
-              <div className="text-text-primary">
-                {isOtherAccountsEditMode ? (
-                  <>
-                    <button
-                      className="p-2 align-middle button nm-account-delete-account"
-                      onClick={() => {
-                        if (
-                          prompt(
-                            "Are you sure? All the local data for this account will be lost, and you won't be able to restore it unless you have a cloud account. Type 'delete' to confirm."
-                          )?.toLocaleLowerCase() === "delete"
-                        ) {
-                          props.dispatch(Thunk_deleteAccount(account.id, () => refetchAccounts()));
-                        }
-                      }}
-                    >
-                      <IconTrash />
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <span className="pr-2 align-middle">{account.numberOfPrograms}</span>
-                    <span className="pr-4 align-middle">
-                      <IconDoc width={12} height={16} />
-                    </span>
-                    <span className="pr-2 align-middle">{account.numberOfWorkouts}</span>
-                    <span className="align-middle">
-                      <IconDumbbell width={28} height={19} />
-                    </span>
-                  </>
-                )}
-              </div>
-            }
-            addons={
-              <div className="text-xs text-text-secondary">
-                {account.name ? <div style={{ marginTop: "-0.25rem" }}>{`id: ${account.id}`}</div> : <></>}
-                {account.email && account.email !== "noemail@example.com" && (
-                  <>
-                    Was logged in as <span className="font-bold">{account.email}</span>
-                  </>
-                )}
-              </div>
-            }
-          />
-        ))}
-        <LinkButton
-          name="local-account-create"
-          onClick={() => {
-            if (
-              confirm(
-                "Want to create a new local account? You WILL NOT lose your current account, you'll be able to switch back to it later."
+              props.email === "noemail@example.com" ? null : (
+                <Text className="text-xs text-text-secondary">
+                  Signed in as <Text className="text-sm font-bold text-text-secondary">{props.email}</Text>
+                </Text>
               )
+            ) : (
+              <Text className="text-xs text-text-error">Not signed in to cloud</Text>
+            )}
+          </View>
+        }
+      />
+      {props.email ? (
+        <View className="items-center">
+          <Button
+            name="account-sign-out"
+            kind="purple"
+            data-cy="menu-item-logout"
+            className="ls-logout"
+            onClick={() => props.dispatch(Thunk_logOut())}
+          >
+            Sign Out
+          </Button>
+        </View>
+      ) : (
+        <View>
+          <Pressable
+            className="flex-row items-center w-full px-4 py-2 mt-2 rounded-lg nm-sign-in-with-google bg-background-default"
+            style={googleShadow}
+            data-cy="menu-item-login"
+            testID="menu-item-login"
+            onPress={() => props.dispatch(Thunk_googleSignIn())}
+          >
+            <View>
+              <IconGoogle />
+            </View>
+            <Text className="flex-1 ml-2 text-base">Sign in with Google</Text>
+          </Pressable>
+          <Pressable
+            className="flex-row items-center w-full px-4 py-3 mt-2 bg-black rounded-lg nm-sign-in-with-apple"
+            onPress={() => props.dispatch(Thunk_appleSignIn())}
+          >
+            <View style={{ marginTop: -3 }}>
+              <IconApple />
+            </View>
+            <Text className="flex-1 ml-2 text-base text-text-alwayswhite">Sign in with Apple</Text>
+          </Pressable>
+        </View>
+      )}
+      <GroupHeader
+        name="Other local accounts"
+        topPadding={true}
+        rightAddOn={
+          otherAccounts.length > 0 ? (
+            <LinkButton
+              name="account-edit"
+              onClick={() => {
+                setIsOtherAccountsEditMode(!isOtherAccountsEditMode);
+              }}
+            >
+              {isOtherAccountsEditMode ? "Finish Editing" : "Edit"}
+            </LinkButton>
+          ) : undefined
+        }
+      />
+      {otherAccounts.map((account) => (
+        <MenuItem
+          key={account.id}
+          shouldShowRightArrow={!isOtherAccountsEditMode}
+          name={account.name ? account.name : `id: ${account.id}`}
+          onClick={async () => {
+            if (
+              !isOtherAccountsEditMode &&
+              (await Dialog_confirm(
+                "Want to switch to this account? You WILL NOT lose your current account, you'll be able to switch back to it later."
+              ))
             ) {
-              props.dispatch(Thunk_createAccount());
+              props.dispatch(Thunk_switchAccount(account.id));
             }
           }}
-        >
-          Create New Local Account
-        </LinkButton>
-        {currentAccount && (
-          <>
-            <GroupHeader name="Delete current account" topPadding={true} />
-            <div>
-              <Button
-                name="account-delete"
-                kind="red"
-                className="mt-4 ls-delete-account"
-                onClick={() => {
-                  if (
-                    prompt(
-                      "Are you sure? All the local data for this account will be lost, and you won't be able to restore it unless you have a cloud account. Type 'delete' to confirm."
-                    )?.toLocaleLowerCase() === "delete"
-                  ) {
-                    props.dispatch(
-                      Thunk_logOut(() => {
-                        props.dispatch(Thunk_deleteAccount(currentAccount.id));
-                        props.dispatch(Thunk_createAccount());
-                      })
-                    );
+          value={
+            isOtherAccountsEditMode ? (
+              <Pressable
+                className="p-2 nm-account-delete-account"
+                onPress={async () => {
+                  const answer = await Dialog_prompt(
+                    "Are you sure? All the local data for this account will be lost, and you won't be able to restore it unless you have a cloud account. Type 'delete' to confirm."
+                  );
+                  if (answer?.toLocaleLowerCase() === "delete") {
+                    props.dispatch(Thunk_deleteAccount(account.id, () => refetchAccounts()));
                   }
                 }}
               >
-                Delete Current Local Account
-              </Button>
-            </div>
-            {props.email && (
-              <div>
-                <Button
-                  name="account-delete-remote"
-                  kind="red"
-                  className="mt-4 ls-delete-account-remote"
-                  onClick={() => {
-                    if (
-                      prompt(
-                        "Are you sure? All the data for this account will be deleted from the cloud, and you won't be able to restore it unless you resignup and sync your data again. Type 'delete' to confirm."
-                      )?.toLocaleLowerCase() === "delete"
-                    ) {
-                      props.dispatch(
-                        Thunk_deleteAccountRemote((result) => {
-                          if (result) {
-                            alert("Account deleted from cloud.");
-                          } else {
-                            alert(
-                              "Couldn't delete the account from the cloud - error happened. Please send an email to info@liftosaur.com to delete it."
-                            );
-                          }
-                        })
+                <IconTrash />
+              </Pressable>
+            ) : (
+              <View className="flex-row items-center">
+                <Text className="pr-2 text-text-primary">{account.numberOfPrograms}</Text>
+                <View className="pr-4">
+                  <IconDoc width={12} height={16} />
+                </View>
+                <Text className="pr-2 text-text-primary">{account.numberOfWorkouts}</Text>
+                <View>
+                  <IconDumbbell width={28} height={19} />
+                </View>
+              </View>
+            )
+          }
+          expandName={true}
+          addons={
+            <View>
+              {account.name ? <Text className="-mt-1 text-xs text-text-secondary">{`id: ${account.id}`}</Text> : null}
+              {account.email && account.email !== "noemail@example.com" && (
+                <Text className="text-xs text-text-secondary">
+                  Was logged in as <Text className="text-sm font-bold text-text-secondary">{account.email}</Text>
+                </Text>
+              )}
+            </View>
+          }
+        />
+      ))}
+      <LinkButton
+        name="local-account-create"
+        onClick={async () => {
+          if (
+            await Dialog_confirm(
+              "Want to create a new local account? You WILL NOT lose your current account, you'll be able to switch back to it later."
+            )
+          ) {
+            props.dispatch(Thunk_createAccount());
+          }
+        }}
+      >
+        Create New Local Account
+      </LinkButton>
+      <GroupHeader name="Delete current account" topPadding={true} />
+      <View>
+        <Button
+          name="account-delete"
+          kind="red"
+          className="mt-4 ls-delete-account"
+          onClick={async () => {
+            const answer = await Dialog_prompt(
+              "Are you sure? All the local data for this account will be lost, and you won't be able to restore it unless you have a cloud account. Type 'delete' to confirm."
+            );
+            if (answer?.toLocaleLowerCase() === "delete") {
+              props.dispatch(
+                Thunk_logOut(() => {
+                  props.dispatch(Thunk_deleteAccount(currentAccount.id));
+                  props.dispatch(Thunk_createAccount());
+                })
+              );
+            }
+          }}
+        >
+          Delete Current Local Account
+        </Button>
+      </View>
+      {props.email && (
+        <View>
+          <Button
+            name="account-delete-remote"
+            kind="red"
+            className="mt-4 ls-delete-account-remote"
+            onClick={async () => {
+              const answer = await Dialog_prompt(
+                "Are you sure? All the data for this account will be deleted from the cloud, and you won't be able to restore it unless you resignup and sync your data again. Type 'delete' to confirm."
+              );
+              if (answer?.toLocaleLowerCase() === "delete") {
+                props.dispatch(
+                  Thunk_deleteAccountRemote((result) => {
+                    if (result) {
+                      Dialog_alert("Account deleted from cloud.");
+                    } else {
+                      Dialog_alert(
+                        "Couldn't delete the account from the cloud - error happened. Please send an email to info@liftosaur.com to delete it."
                       );
                     }
-                  }}
-                >
-                  Delete Current Cloud Account
-                </Button>
-              </div>
-            )}
-          </>
-        )}
-      </section>
-    </>
+                  })
+                );
+              }
+            }}
+          >
+            Delete Current Cloud Account
+          </Button>
+        </View>
+      )}
+    </View>
   );
 }
