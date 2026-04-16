@@ -29,7 +29,7 @@ import { useNavOptions } from "../navigation/useNavOptions";
 import { Input } from "./input";
 import { IconFilter } from "./icons/iconFilter";
 import { HelpStats } from "./help/helpStats";
-import { SendMessage_toIosAndAndroid, SendMessage_isIos } from "../utils/sendMessage";
+import { SendMessage_toIosAndAndroid } from "../utils/sendMessage";
 import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
 import { MenuItemEditable } from "./menuItemEditable";
 

@@ -1,4 +1,6 @@
-import { JSX, useRef, useState } from "react";
+import { JSX, useState } from "react";
+import { View, TextInput } from "react-native";
+import { Text } from "./primitives/text";
 import { Thunk_pushExerciseStatsScreen } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
 import { Equipment_getEquipmentNameForExerciseType } from "../models/equipment";
@@ -60,7 +62,6 @@ function buildExercises(exerciseTypes: IExerciseType[], settings: ISettings): IE
 
 export function ExercisesList(props: IExercisesListProps): JSX.Element {
   const evaluatedProgram = Program_evaluate(props.program, props.settings);
-  const textInput = useRef<HTMLInputElement>(null);
   const [filter, setFilter] = useState<string>("");
   const [filterTypes, setFilterTypes] = useState<string[]>([]);
 
@@ -104,28 +105,20 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
     customExercises = Exercise_filterExercisesByType(customExercises, filterTypes, props.settings);
   }
 
-  programExercises.sort((a, b) => {
-    return a.name.localeCompare(b.name);
-  });
-  historyExercises.sort((a, b) => {
-    return a.name.localeCompare(b.name);
-  });
-  customExercises.sort((a, b) => {
-    return a.name.localeCompare(b.name);
-  });
+  programExercises.sort((a, b) => a.name.localeCompare(b.name));
+  historyExercises.sort((a, b) => a.name.localeCompare(b.name));
+  customExercises.sort((a, b) => a.name.localeCompare(b.name));
 
   return (
-    <div className="pb-8">
-      <form data-cy="exercises-list" onSubmit={(e) => e.preventDefault()}>
-        <input
-          ref={textInput}
-          className="block w-full px-4 py-2 mb-2 text-base leading-normal border rounded-lg appearance-none bg-background-default border-border-neutral focus:outline-none focus:shadow-outline"
-          type="text"
+    <View className="pb-8">
+      <View data-cy="exercises-list">
+        <TextInput
+          data-cy="exercises-list-filter"
+          testID="exercises-list-filter"
+          className="px-4 py-2 mb-2 text-base border rounded-lg bg-background-default border-border-neutral"
           value={filter}
           placeholder="Filter by name"
-          onInput={() => {
-            setFilter(textInput.current!.value.toLowerCase());
-          }}
+          onChangeText={(t) => setFilter(t.toLowerCase())}
         />
         <Multiselect
           id="filtertypes"
@@ -135,48 +128,42 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
           initialSelectedValues={new Set()}
           onChange={(ft) => setFilterTypes(Array.from(ft))}
         />
-      </form>
-      <div className="text-sm text-right">
+      </View>
+      <View className="items-end">
         <LinkButton name="create-custom-exercise" onClick={() => navigationRef.navigate("customExerciseModal", {})}>
           Create custom exercise
         </LinkButton>
-      </div>
+      </View>
 
       {customExercises.length > 0 && <GroupHeader name="Custom Exercises" topPadding={true} />}
-      {customExercises.map((exercise) => {
-        return (
-          <ExerciseItem
-            key={Exercise_toKey(exercise)}
-            dispatch={props.dispatch}
-            settings={props.settings}
-            exercise={exercise}
-          />
-        );
-      })}
+      {customExercises.map((exercise) => (
+        <ExerciseItem
+          key={Exercise_toKey(exercise)}
+          dispatch={props.dispatch}
+          settings={props.settings}
+          exercise={exercise}
+        />
+      ))}
 
       {programExercises.length > 0 && <GroupHeader name="Current program exercises" topPadding={true} />}
-      {programExercises.map((exercise) => {
-        return (
-          <ExerciseItem
-            key={Exercise_toKey(exercise)}
-            dispatch={props.dispatch}
-            settings={props.settings}
-            exercise={exercise}
-          />
-        );
-      })}
+      {programExercises.map((exercise) => (
+        <ExerciseItem
+          key={Exercise_toKey(exercise)}
+          dispatch={props.dispatch}
+          settings={props.settings}
+          exercise={exercise}
+        />
+      ))}
       {historyExercises.length > 0 && <GroupHeader name="Exercises from history" topPadding={true} />}
-      {historyExercises.map((exercise) => {
-        return (
-          <ExerciseItem
-            key={Exercise_toKey(exercise)}
-            dispatch={props.dispatch}
-            settings={props.settings}
-            exercise={exercise}
-          />
-        );
-      })}
-    </div>
+      {historyExercises.map((exercise) => (
+        <ExerciseItem
+          key={Exercise_toKey(exercise)}
+          dispatch={props.dispatch}
+          settings={props.settings}
+          exercise={exercise}
+        />
+      ))}
+    </View>
   );
 }
 
@@ -194,41 +181,40 @@ function ExerciseItem(props: IExerciseItemProps): JSX.Element {
         props.dispatch(Thunk_pushExerciseStatsScreen(props.exercise));
       }}
     >
-      <div className="flex items-center gap-2">
-        <div className="flex items-center justify-center">
-          <div style={{ marginTop: "-1px" }}>
-            <div className="p-1 my-1 rounded-lg bg-background-image">
-              <ExerciseImage
-                useTextForCustomExercise={true}
-                settings={props.settings}
-                className="w-8"
-                exerciseType={props.exercise}
-                size="small"
-              />
-            </div>
-          </div>
-        </div>
-        <div className="flex-1 pt-3 pb-1 text-left">
-          <div>{props.exercise.name}</div>
-          <div className="flex text-xs text-text-secondary">
-            <div className="mr-2">
-              <strong>1RM:</strong> {Weight_print(props.exercise.rm1)},
-            </div>
+      <View className="flex-row items-center gap-2">
+        <View className="items-center justify-center">
+          <View className="p-1 my-1 rounded-lg bg-background-image">
+            <ExerciseImage
+              useTextForCustomExercise={true}
+              settings={props.settings}
+              className="w-8"
+              exerciseType={props.exercise}
+              size="small"
+            />
+          </View>
+        </View>
+        <View className="flex-1 py-2">
+          <Text className="text-base text-text-primary">{props.exercise.name}</Text>
+          <View className="flex-row text-xs text-text-secondary">
+            <Text className="mr-2 text-xs text-text-secondary">
+              <Text className="text-xs font-bold text-text-secondary">1RM:</Text> {Weight_print(props.exercise.rm1)},
+            </Text>
             {props.exercise.equipmentName ? (
-              <div>
-                <strong>Equipment:</strong> {props.exercise.equipmentName}
-              </div>
+              <Text className="text-xs text-text-secondary">
+                <Text className="text-xs font-bold text-text-secondary">Equipment:</Text> {props.exercise.equipmentName}
+              </Text>
             ) : (
-              <div>
-                <strong>Default rounding:</strong> {props.exercise.defaultRounding}
-              </div>
+              <Text className="text-xs text-text-secondary">
+                <Text className="text-xs font-bold text-text-secondary">Default rounding:</Text>{" "}
+                {props.exercise.defaultRounding}
+              </Text>
             )}
-          </div>
-        </div>
-        <div className="flex items-center py-2 pl-2">
+          </View>
+        </View>
+        <View className="items-center py-2 pl-2">
           <IconArrowRight style={{ color: "#a0aec0" }} />
-        </div>
-      </div>
+        </View>
+      </View>
     </MenuItemWrapper>
   );
 }
