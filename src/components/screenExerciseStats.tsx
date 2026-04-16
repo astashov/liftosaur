@@ -1,4 +1,6 @@
 import { JSX, useRef, useState } from "react";
+import { View, Pressable } from "react-native";
+import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import { IExerciseType, IHistoryRecord, IProgram, ISettings, ISubscription } from "../types";
 import { INavCommon, updateSettings } from "../models/state";
@@ -40,6 +42,7 @@ import { GroupHeader } from "./groupHeader";
 import { StringUtils_capitalize } from "../utils/string";
 import { Muscle_getMuscleGroupName } from "../models/muscle";
 import { navigationRef } from "../navigation/navigationRef";
+import { Dialog_confirm } from "../utils/dialog";
 
 interface IProps {
   exerciseType: IExerciseType;
@@ -77,138 +80,136 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
     return props.settings.exerciseStatsSettings.ascendingSort ? a.startTime - b.startTime : b.startTime - a.startTime;
   });
 
-  const containerRef = useRef<HTMLElement>(null);
+  const containerRef = useRef<{ clientHeight?: number }>(null);
   const showPrs = maxWeight.value > 0 || max1RM.value > 0;
 
   useNavOptions({ navTitle: "Exercise Stats", navHelpContent: <HelpExerciseStats /> });
 
   return (
-    <>
-      <section ref={containerRef} className="px-4">
-        <h1 className="text-xl font-bold">{Exercise_fullName(fullExercise, props.settings)}</h1>
-        <div className="text-xs text-text-secondary" style={{ marginTop: "-0.25rem" }}>
-          {Exercise_isCustom(fullExercise.id, props.settings.exercises) ? "Custom exercise" : "Built-in exercise"}
-        </div>
-        <div className="py-2">
-          <MuscleGroupsView
-            exercise={fullExercise}
-            settings={props.settings}
-            onOverride={() => navigationRef.navigate("musclesOverrideModal", { exerciseType })}
-          />
-        </div>
-        {Exercise_isCustom(fullExercise.id, props.settings.exercises) && (
-          <div className="flex mb-2">
-            <div className="mr-auto">
-              <LinkButton
-                className="text-sm"
-                name="edit-custom-exercise-stats"
-                onClick={() => navigationRef.navigate("customExerciseModal", { exerciseId: exerciseType.id })}
-              >
-                Edit
-              </LinkButton>
-            </div>
-            <div>
-              <LinkButton
-                name="edit-custom-exercise-stats"
-                className="text-sm text-text-error"
-                onClick={() => {
-                  if (confirm("Are you sure you want to delete this exercise?")) {
-                    updateSettings(
-                      props.dispatch,
-                      lb<ISettings>()
-                        .p("exercises")
-                        .recordModify((exercises) => {
-                          const exercise = exercises[fullExercise.id];
-                          return exercise != null
-                            ? { ...exercises, [fullExercise.id]: { ...exercise, isDeleted: true } }
-                            : exercises;
-                        }),
-                      "Delete custom exercise"
-                    );
-                    props.dispatch(Thunk_pullScreen());
-                  }
-                }}
-              >
-                Delete Exercise
-              </LinkButton>
-            </div>
-          </div>
-        )}
-
-        <GroupHeader name="Notes" />
-        <div style={{ marginLeft: "-0.25rem", marginRight: "-0.25rem" }}>
-          <MarkdownEditorBorderless
-            debounceMs={500}
-            value={Exercise_getNotes(exerciseType, props.settings)}
-            placeholder={`Exercise notes in Markdown...`}
-            onChange={(v) => {
-              updateSettings(
-                props.dispatch,
-                lb<ISettings>()
-                  .p("exerciseData")
-                  .recordModify((data) => {
-                    const key = Exercise_toKey(exerciseType);
-                    return { ...data, [key]: { ...data[key], notes: v } };
-                  }),
-                "Update exercise notes"
-              );
-            }}
-          />
-        </div>
-
-        <ExerciseDataSettings
-          fullExercise={fullExercise}
-          programExerciseIds={programExerciseIds}
+    <View className="px-4">
+      <Text className="text-xl font-bold">{Exercise_fullName(fullExercise, props.settings)}</Text>
+      <Text className="text-xs text-text-secondary">
+        {Exercise_isCustom(fullExercise.id, props.settings.exercises) ? "Custom exercise" : "Built-in exercise"}
+      </Text>
+      <View className="py-2">
+        <MuscleGroupsView
+          exercise={fullExercise}
           settings={props.settings}
-          dispatch={props.dispatch}
-          show1RM={true}
+          onOverride={() => navigationRef.navigate("musclesOverrideModal", { exerciseType })}
         />
+      </View>
+      {Exercise_isCustom(fullExercise.id, props.settings.exercises) && (
+        <View className="flex-row mb-2">
+          <View className="flex-1">
+            <LinkButton
+              className="text-sm"
+              name="edit-custom-exercise-stats"
+              onClick={() => navigationRef.navigate("customExerciseModal", { exerciseId: exerciseType.id })}
+            >
+              Edit
+            </LinkButton>
+          </View>
+          <View>
+            <LinkButton
+              name="edit-custom-exercise-stats"
+              className="text-sm text-text-error"
+              onClick={async () => {
+                if (await Dialog_confirm("Are you sure you want to delete this exercise?")) {
+                  updateSettings(
+                    props.dispatch,
+                    lb<ISettings>()
+                      .p("exercises")
+                      .recordModify((exercises) => {
+                        const exercise = exercises[fullExercise.id];
+                        return exercise != null
+                          ? { ...exercises, [fullExercise.id]: { ...exercise, isDeleted: true } }
+                          : exercises;
+                      }),
+                    "Delete custom exercise"
+                  );
+                  props.dispatch(Thunk_pullScreen());
+                }
+              }}
+            >
+              Delete Exercise
+            </LinkButton>
+          </View>
+        </View>
+      )}
 
-        <div data-cy="exercise-stats-image">
-          <ExerciseImage
-            settings={props.settings}
-            key={Exercise_toKey(exerciseType)}
-            exerciseType={exerciseType}
-            size="large"
-          />
-        </div>
-        {history.length > 1 && (
-          <div data-cy="exercise-stats-graph" className="relative">
-            <Locker topic="Graphs" dispatch={props.dispatch} blur={8} subscription={props.subscription} />
-            <GraphExercise
-              isSameXAxis={false}
-              minX={Math.round(minX / 1000)}
-              maxX={Math.round(maxX / 1000)}
-              isWithOneRm={true}
-              key={Exercise_toKey(exerciseType)}
-              settings={props.settings}
-              isWithProgramLines={true}
-              history={props.history}
-              exercise={exerciseType}
-              initialType={props.settings.graphsSettings.defaultType}
-              dispatch={props.dispatch}
-            />
-          </div>
-        )}
-        {showPrs && (
-          <div className="mt-8">
-            <ExerciseAllTimePRs
-              maxWeight={maxWeight ? { weight: maxWeight, historyRecord: maxWeightHistoryRecord } : undefined}
-              max1RM={max1RM ? { weight: max1RM, historyRecord: max1RMHistoryRecord, set: max1RMSet } : undefined}
-              settings={props.settings}
-              dispatch={props.dispatch}
-            />
-          </div>
-        )}
-        <ExerciseHistory
-          surfaceRef={containerRef}
+      <GroupHeader name="Notes" />
+      <View style={{ marginHorizontal: -4 }}>
+        <MarkdownEditorBorderless
+          debounceMs={500}
+          value={Exercise_getNotes(exerciseType, props.settings)}
+          placeholder={`Exercise notes in Markdown...`}
+          onChange={(v) => {
+            updateSettings(
+              props.dispatch,
+              lb<ISettings>()
+                .p("exerciseData")
+                .recordModify((data) => {
+                  const key = Exercise_toKey(exerciseType);
+                  return { ...data, [key]: { ...data[key], notes: v } };
+                }),
+              "Update exercise notes"
+            );
+          }}
+        />
+      </View>
+
+      <ExerciseDataSettings
+        fullExercise={fullExercise}
+        programExerciseIds={programExerciseIds}
+        settings={props.settings}
+        dispatch={props.dispatch}
+        show1RM={true}
+      />
+
+      <View data-cy="exercise-stats-image">
+        <ExerciseImage
+          settings={props.settings}
+          key={Exercise_toKey(exerciseType)}
           exerciseType={exerciseType}
-          settings={props.settings}
-          dispatch={props.dispatch}
-          history={history}
+          size="large"
         />
-      </section>
-    </>
+      </View>
+      {history.length > 1 && (
+        <View data-cy="exercise-stats-graph" className="relative">
+          <Locker topic="Graphs" dispatch={props.dispatch} blur={8} subscription={props.subscription} />
+          <GraphExercise
+            isSameXAxis={false}
+            minX={Math.round(minX / 1000)}
+            maxX={Math.round(maxX / 1000)}
+            isWithOneRm={true}
+            key={Exercise_toKey(exerciseType)}
+            settings={props.settings}
+            isWithProgramLines={true}
+            history={props.history}
+            exercise={exerciseType}
+            initialType={props.settings.graphsSettings.defaultType}
+            dispatch={props.dispatch}
+          />
+        </View>
+      )}
+      {showPrs && (
+        <View className="mt-8">
+          <ExerciseAllTimePRs
+            maxWeight={maxWeight ? { weight: maxWeight, historyRecord: maxWeightHistoryRecord } : undefined}
+            max1RM={max1RM ? { weight: max1RM, historyRecord: max1RMHistoryRecord, set: max1RMSet } : undefined}
+            settings={props.settings}
+            dispatch={props.dispatch}
+          />
+        </View>
+      )}
+      <ExerciseHistory
+        surfaceRef={containerRef}
+        exerciseType={exerciseType}
+        settings={props.settings}
+        dispatch={props.dispatch}
+        history={history}
+      />
+    </View>
   );
 }
 
@@ -233,38 +234,47 @@ export function MuscleGroupsView(props: {
   const types = exercise.types.map((t) => StringUtils_capitalize(t));
 
   return (
-    <div>
-      <div className="text-xs">
+    <View>
+      <View>
         <LinkButton
           data-cy="override-exercise-muscles"
           name="override-exercise-muscles"
+          className="text-xs"
           onClick={() => props.onOverride()}
         >
           Override Muscles
         </LinkButton>
-      </div>
-      <div className="text-xs" onClick={() => setShowMuscles(!showMuscles)}>
+      </View>
+      <Pressable onPress={() => setShowMuscles(!showMuscles)}>
         {types.length > 0 && (
-          <div>
-            <span className="text-text-secondary">Type: </span>
-            <span className="font-bold">{types.join(", ")}</span>
-          </div>
+          <View>
+            <Text className="text-xs">
+              <Text className="text-xs text-text-secondary">Type: </Text>
+              <Text className="text-xs font-bold">{types.join(", ")}</Text>
+            </Text>
+          </View>
         )}
         {targetMuscleGroups.length > 0 && (
-          <div>
-            <span className="text-text-secondary">Target: </span>
-            <span className="font-bold">{showMuscles ? targetMuscles.join(", ") : targetMuscleGroups.join(", ")}</span>
-          </div>
+          <View>
+            <Text className="text-xs">
+              <Text className="text-xs text-text-secondary">Target: </Text>
+              <Text className="text-xs font-bold">
+                {showMuscles ? targetMuscles.join(", ") : targetMuscleGroups.join(", ")}
+              </Text>
+            </Text>
+          </View>
         )}
         {synergistMuscleGroups.length > 0 && (
-          <div>
-            <span className="text-text-secondary">Synergist: </span>
-            <span className="font-bold">
-              {showMuscles ? synergistMuscles.join(", ") : synergistMuscleGroups.join(", ")}
-            </span>
-          </div>
+          <View>
+            <Text className="text-xs">
+              <Text className="text-xs text-text-secondary">Synergist: </Text>
+              <Text className="text-xs font-bold">
+                {showMuscles ? synergistMuscles.join(", ") : synergistMuscleGroups.join(", ")}
+              </Text>
+            </Text>
+          </View>
         )}
-      </div>
-    </div>
+      </Pressable>
+    </View>
   );
 }

@@ -15,7 +15,10 @@ import { ScreenAccount as ScreenAccountComponent } from "../../components/screen
 import { ScreenMeasurements as ScreenMeasurementsComponent } from "../../components/screenMeasurements";
 import { ScreenStats as ScreenStatsComponent } from "../../components/screenStats";
 import { ScreenExercises as ScreenExercisesComponent } from "../../components/screenExercises";
+import { ScreenExerciseStats as ScreenExerciseStatsComponent } from "../../components/screenExerciseStats";
 import { Program_getProgram } from "../../models/program";
+import { Exercise_find, Exercise_toKey } from "../../models/exercise";
+import { Thunk_pullScreen } from "../../ducks/thunks";
 import { useAppContext } from "../../components/appContext";
 import type { IStatsKey } from "../../types";
 
@@ -200,9 +203,37 @@ export function NavScreenMeasurements(): React.JSX.Element {
 }
 
 export function NavScreenExerciseStats(): React.JSX.Element {
+  const { state, dispatch } = useAppState();
+  const navCommon = buildNavCommon(state);
+  const currentProgram =
+    state.storage.currentProgramId != null ? Program_getProgram(state, state.storage.currentProgramId) : undefined;
+  const exercise = state.viewExerciseType
+    ? Exercise_find(state.viewExerciseType, state.storage.settings.exercises)
+    : undefined;
+  if (exercise == null) {
+    setTimeout(() => dispatch(Thunk_pullScreen()), 0);
+    return (
+      <View className="flex-1 bg-background-default">
+        <NavScreenContent>
+          <View />
+        </NavScreenContent>
+      </View>
+    );
+  }
   return (
-    <View className="flex-1 justify-center items-center bg-background-default">
-      <Text className="text-2xl font-bold text-icon-neutral">Exercise Stats</Text>
+    <View className="flex-1 bg-background-default">
+      <NavScreenContent>
+        <ScreenExerciseStatsComponent
+          navCommon={navCommon}
+          currentProgram={currentProgram}
+          key={Exercise_toKey(exercise)}
+          history={state.storage.history}
+          dispatch={dispatch}
+          exerciseType={exercise}
+          settings={state.storage.settings}
+          subscription={state.storage.subscription}
+        />
+      </NavScreenContent>
     </View>
   );
 }

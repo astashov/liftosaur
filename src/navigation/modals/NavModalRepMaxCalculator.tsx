@@ -1,4 +1,5 @@
 import { JSX } from "react";
+import { View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { ModalScreenContainer } from "../ModalScreenContainer";
 import { useModalData, useModalDispatch, Modal_setResult, Modal_clear } from "../ModalStateContext";
@@ -20,7 +21,7 @@ export function NavModalRepMaxCalculator(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose} shouldShowClose={true} isFullWidth={true}>
-      <div style={{ minWidth: "80%" }} data-cy="modal-rep-max-calculator">
+      <View data-cy="modal-rep-max-calculator">
         <RepMaxCalculator
           backLabel="Back"
           unit={data.unit}
@@ -32,7 +33,7 @@ export function NavModalRepMaxCalculator(): JSX.Element {
             navigation.goBack();
           }}
         />
-      </div>
+      </View>
     </ModalScreenContainer>
   );
 }
