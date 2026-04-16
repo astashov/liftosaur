@@ -5,6 +5,7 @@ import { MonthCalendar, IMonthCalendarRef } from "./monthCalendar";
 import { LinkButton } from "./linkButton";
 import { IHistoryRecord } from "../types";
 import { IPersonalRecords } from "../models/history";
+import { SheetDragHandle } from "../navigation/SheetScreenContainer";
 
 export interface IBottomSheetMonthCalendarContentProps {
   firstDayOfWeeks: number[];
@@ -24,20 +25,22 @@ export function BottomSheetMonthCalendarContent(props: IBottomSheetMonthCalendar
   const selectedIndex = props.firstDayOfWeeks.findIndex((date) => date === props.selectedFirstDayOfWeek);
   return (
     <>
-      <View collapsable={false}>
-        <View className="px-3 pt-4">
-          <LinkButton name="this-week" onPress={() => monthCalendarRef.current?.scrollToSelected()}>
-            This week
-          </LinkButton>
+      <SheetDragHandle>
+        <View collapsable={false}>
+          <View className="px-3 pt-4">
+            <LinkButton name="this-week" onPress={() => monthCalendarRef.current?.scrollToSelected()}>
+              This week
+            </LinkButton>
+          </View>
+          <View className="flex-row justify-around py-2 mx-3 border-b border-background-subtle">
+            {dayNames.map((day, i) => (
+              <View key={i} className="items-center justify-center" style={{ width: 40, height: 40 }}>
+                <Text className="font-medium text-text-secondary">{day}</Text>
+              </View>
+            ))}
+          </View>
         </View>
-        <View className="flex-row justify-around py-2 mx-3 border-b border-background-subtle">
-          {dayNames.map((day, i) => (
-            <View key={i} className="items-center justify-center" style={{ width: 40, height: 40 }}>
-              <Text className="font-medium text-text-secondary">{day}</Text>
-            </View>
-          ))}
-        </View>
-      </View>
+      </SheetDragHandle>
       <MonthCalendar
         ref={monthCalendarRef}
         visibleRecords={props.visibleRecords}
