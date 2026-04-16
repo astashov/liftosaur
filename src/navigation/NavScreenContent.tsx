@@ -1,26 +1,13 @@
-import { JSX, ReactNode, Ref, RefObject, createContext, useCallback, useContext, useRef } from "react";
+import { createContext, JSX, ReactNode, RefObject, useCallback, useRef } from "react";
 import { ScrollView, NativeSyntheticEvent, NativeScrollEvent } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 
-const NavScrollContext = createContext<RefObject<HTMLDivElement | null> | null>(null);
+export const NavScreenScrollContext = createContext<RefObject<ScrollView | null> | null>(null);
 
-export function useNavScrollRef(): RefObject<HTMLDivElement | null> | null {
-  return useContext(NavScrollContext);
-}
-
-export function NavScreenContent(props: { children: ReactNode; scrollRef?: Ref<HTMLDivElement> }): JSX.Element {
+export function NavScreenContent(props: { children: ReactNode; stickyHeaderIndices?: number[] }): JSX.Element {
   const navigation = useNavigation();
-  const fallbackRef = useRef<HTMLDivElement>(null);
   const isScrolledRef = useRef(false);
-
-  const setRef = (node: HTMLDivElement | null) => {
-    fallbackRef.current = node;
-    if (typeof props.scrollRef === "function") {
-      props.scrollRef(node);
-    } else if (props.scrollRef && "current" in props.scrollRef) {
-      (props.scrollRef as { current: HTMLDivElement | null }).current = node;
-    }
-  };
+  const scrollRef = useRef<ScrollView>(null);
 
   const onScroll = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -34,9 +21,9 @@ export function NavScreenContent(props: { children: ReactNode; scrollRef?: Ref<H
   );
 
   return (
-    <NavScrollContext.Provider value={fallbackRef}>
+    <NavScreenScrollContext.Provider value={scrollRef}>
       <ScrollView
-        ref={setRef as unknown as Ref<ScrollView>}
+        ref={scrollRef}
         data-cy="screen"
         testID="screen"
         className="bg-background-default"
@@ -44,9 +31,10 @@ export function NavScreenContent(props: { children: ReactNode; scrollRef?: Ref<H
         style={{ flex: 1 }}
         onScroll={onScroll}
         scrollEventThrottle={16}
+        stickyHeaderIndices={props.stickyHeaderIndices}
       >
         {props.children}
       </ScrollView>
-    </NavScrollContext.Provider>
+    </NavScreenScrollContext.Provider>
   );
 }

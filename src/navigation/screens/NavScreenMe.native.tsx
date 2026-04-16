@@ -1,11 +1,12 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { buildNavCommon } from "../utils";
 import { NavScreenContent } from "../NavScreenContent";
 import { ScreenSettings as ScreenSettingsComponent } from "../../components/screenSettings";
 import { ScreenTimers as ScreenTimersComponent } from "../../components/screenTimers";
+import { ScreenEquipment } from "../../components/screenEquipment";
 import { ScreenGyms as ScreenGymsComponent } from "../../components/screenGyms";
 import { ScreenAppleHealthSettings as ScreenAppleHealthSettingsComponent } from "../../components/screenAppleHealthSettings";
 import { ScreenGoogleHealthSettings as ScreenGoogleHealthSettingsComponent } from "../../components/screenGoogleHealthSettings";
@@ -18,6 +19,7 @@ import { ScreenExercises as ScreenExercisesComponent } from "../../components/sc
 import { ScreenExerciseStats as ScreenExerciseStatsComponent } from "../../components/screenExerciseStats";
 import { Program_getProgram } from "../../models/program";
 import { Exercise_find, Exercise_toKey } from "../../models/exercise";
+import { Equipment_getEquipmentOfGym } from "../../models/equipment";
 import { Thunk_pullScreen } from "../../ducks/thunks";
 import { useAppContext } from "../../components/appContext";
 import type { IStatsKey } from "../../types";
@@ -74,9 +76,20 @@ export function NavScreenTimers(): React.JSX.Element {
 }
 
 export function NavScreenPlates(): React.JSX.Element {
+  const { state, dispatch } = useAppState();
+  const navCommon = buildNavCommon(state);
+  const allEquipment = Equipment_getEquipmentOfGym(state.storage.settings, state.selectedGymId);
   return (
-    <View className="flex-1 justify-center items-center bg-background-default">
-      <Text className="text-2xl font-bold text-icon-neutral">Plates</Text>
+    <View className="flex-1 bg-background-default">
+      <ScreenEquipment
+        stats={state.storage.stats}
+        navCommon={navCommon}
+        allEquipment={allEquipment}
+        expandedEquipment={state.defaultEquipmentExpanded}
+        selectedGymId={state.selectedGymId}
+        dispatch={dispatch}
+        settings={state.storage.settings}
+      />
     </View>
   );
 }

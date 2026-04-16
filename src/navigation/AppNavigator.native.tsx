@@ -82,6 +82,10 @@ import { NavModalDayFromAdhoc } from "./modals/NavModalDayFromAdhoc";
 import { NavModalEquipment } from "./modals/NavModalEquipment";
 import { NavModalDate } from "./modals/NavModalDate";
 import { NavModalWorkoutSuperset } from "./modals/NavModalWorkoutSuperset";
+import { NavModalNewGym } from "./modals/NavModalNewGym";
+import { NavModalNewEquipment } from "./modals/NavModalNewEquipment";
+import { NavModalPlates } from "./modals/NavModalPlates";
+import { NavModalNewFixedWeight } from "./modals/NavModalNewFixedWeight";
 import { NavHeader } from "./NavHeader";
 
 const OnboardingStack = createNativeStackNavigator<IOnboardingStackParamList>();
@@ -303,6 +307,10 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="exerciseImageSourceModal" component={NavModalExerciseImageSource} />
           <RootStack.Screen name="exercisePickerSettingsModal" component={NavModalExercisePickerSettings} />
           <RootStack.Screen name="exerciseTypesPickerModal" component={NavModalExerciseTypesPicker} />
+          <RootStack.Screen name="newGymModal" component={NavModalNewGym} />
+          <RootStack.Screen name="newEquipmentModal" component={NavModalNewEquipment} />
+          <RootStack.Screen name="newPlateModal" component={NavModalPlates} />
+          <RootStack.Screen name="newFixedWeightModal" component={NavModalNewFixedWeight} />
           <RootStack.Screen
             name="exerciseMusclesPickerModal"
             component={NavModalExerciseMusclesPicker}

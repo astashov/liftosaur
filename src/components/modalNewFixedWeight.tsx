@@ -1,63 +1,50 @@
-import { JSX, useRef } from "react";
+import { JSX, useState } from "react";
+import { View, TextInput } from "react-native";
+import { Text } from "./primitives/text";
 import { Button } from "./button";
-import { Modal } from "./modal";
-import { IAllEquipment, IEquipment, IUnit } from "../types";
-import { GroupHeader } from "./groupHeader";
-import { SendMessage_isIos } from "../utils/sendMessage";
-import { equipmentName } from "../models/exercise";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
+import { IUnit } from "../types";
 
 interface IProps {
   units: IUnit;
-  equipment: IEquipment;
-  onInput: (value?: number) => void;
-  isHidden: boolean;
-  allEquipment: IAllEquipment;
+  name: string;
+  onSelect: (value: number) => void;
+  onClose: () => void;
 }
 
-export function ModalNewFixedWeight(props: IProps): JSX.Element {
-  const textInput = useRef<HTMLInputElement>(null);
-  const name = equipmentName(props.equipment, props.allEquipment);
+export function ModalNewFixedWeightContent(props: IProps): JSX.Element {
+  const [value, setValue] = useState("");
+
   return (
-    <Modal
-      isHidden={props.isHidden}
-      autofocusInputRef={textInput}
-      shouldShowClose={true}
-      onClose={() => props.onInput(undefined)}
-    >
-      <GroupHeader size="large" name={`Enter new ${name} fixed weight`} />
-      <form onSubmit={(e) => e.preventDefault()}>
-        <input
-          ref={textInput}
-          className="block w-full px-4 py-2 text-base leading-normal border border-gray-300 rounded-lg appearance-none bg-background-default focus:outline-none focus:shadow-outline"
-          type={SendMessage_isIos() ? "number" : "tel"}
-          min="0"
-          placeholder={`${name} weight in ${props.units}`}
-        />
-        <div className="mt-4 text-right">
-          <Button
-            name="modal-new-fixed-weight-cancel"
-            type="button"
-            kind="grayv2"
-            className="mr-3"
-            onClick={() => props.onInput(undefined)}
-          >
-            Cancel
-          </Button>
-          <Button
-            kind="purple"
-            type="submit"
-            className="ls-add-plate"
-            name="modal-new-fixed-weight-submit"
-            onClick={() => {
-              const value = textInput.current?.value;
-              const numValue = value != null ? parseFloat(value) : undefined;
-              props.onInput(numValue != null && !isNaN(numValue) ? numValue : undefined);
-            }}
-          >
-            Add
-          </Button>
-        </div>
-      </form>
-    </Modal>
+    <View>
+      <Text className="mb-4 text-lg font-bold">{`Enter new ${props.name} fixed weight`}</Text>
+      <TextInput
+        autoFocus
+        keyboardType="numeric"
+        placeholder={`${props.name} weight in ${props.units}`}
+        placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
+        value={value}
+        onChangeText={setValue}
+        className="px-4 py-3 text-base border rounded-lg border-border-neutral bg-background-default"
+        style={{ fontFamily: "Poppins" }}
+      />
+      <View className="flex-row justify-end gap-3 mt-4">
+        <Button name="modal-new-fixed-weight-cancel" kind="grayv2" onClick={props.onClose}>
+          Cancel
+        </Button>
+        <Button
+          name="modal-new-fixed-weight-submit"
+          kind="purple"
+          onClick={() => {
+            const numValue = value !== "" ? parseFloat(value) : undefined;
+            if (numValue != null && !isNaN(numValue)) {
+              props.onSelect(numValue);
+            }
+          }}
+        >
+          Add
+        </Button>
+      </View>
+    </View>
   );
 }

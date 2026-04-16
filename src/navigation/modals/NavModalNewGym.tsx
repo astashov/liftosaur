@@ -19,23 +19,22 @@ export function NavModalNewGym(): JSX.Element {
   return (
     <ModalScreenContainer onClose={onClose}>
       <ModalNewGymContent
-        onInput={(name) => {
-          if (name) {
-            updateState(
-              dispatch,
-              [
-                lb<IState>()
-                  .p("storage")
-                  .p("settings")
-                  .p("gyms")
-                  .recordModify((oldGyms) => {
-                    const id = `gym-${UidFactory_generateUid(8)}`;
-                    return [...oldGyms, { vtype: "gym" as const, id, name, equipment: Settings_defaultEquipment() }];
-                  }),
-              ],
-              "Add new gym"
-            );
-          }
+        onClose={onClose}
+        onSelect={(name) => {
+          updateState(
+            dispatch,
+            [
+              lb<IState>()
+                .p("storage")
+                .p("settings")
+                .p("gyms")
+                .recordModify((oldGyms) => {
+                  const id = `gym-${UidFactory_generateUid(8)}`;
+                  return [...oldGyms, { vtype: "gym" as const, id, name, equipment: Settings_defaultEquipment() }];
+                }),
+            ],
+            "Add new gym"
+          );
           onClose();
         }}
       />
