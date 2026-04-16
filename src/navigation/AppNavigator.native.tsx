@@ -56,6 +56,7 @@ import { NavModalExerciseImageSource } from "./modals/NavModalExerciseImageSourc
 import { NavModalExerciseImageLibrary } from "./modals/NavModalExerciseImageLibrary";
 import { NavModalExerciseCloneLibrary } from "./modals/NavModalExerciseCloneLibrary";
 import { NavModalCustomExercise } from "./modals/NavModalCustomExercise";
+import { NavModalMusclesOverride } from "./modals/NavModalMusclesOverride";
 import { NavModalExerciseTypesPicker } from "./modals/NavModalExerciseTypesPicker";
 import { NavModalExerciseMusclesPicker } from "./modals/NavModalExerciseMusclesPicker";
 import { NavModalExercisePickerSettings } from "./modals/NavModalExercisePickerSettings";
@@ -76,6 +77,7 @@ import { NavModalEditTarget } from "./modals/NavModalEditTarget";
 import { NavModalGraphs } from "./modals/NavModalGraphs";
 import { NavModalStatsSettings } from "./modals/NavModalStatsSettings";
 import { NavModal1RM } from "./modals/NavModal1RM";
+import { NavModalRepMaxCalculator } from "./modals/NavModalRepMaxCalculator";
 import { NavModalDayFromAdhoc } from "./modals/NavModalDayFromAdhoc";
 import { NavModalEquipment } from "./modals/NavModalEquipment";
 import { NavModalDate } from "./modals/NavModalDate";
@@ -253,6 +255,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="exerciseImageLibraryModal" component={NavModalExerciseImageLibrary} />
           <RootStack.Screen name="exerciseCloneLibraryModal" component={NavModalExerciseCloneLibrary} />
           <RootStack.Screen name="customExerciseModal" component={NavModalCustomExercise} />
+          <RootStack.Screen name="musclesOverrideModal" component={NavModalMusclesOverride} />
         </RootStack.Group>
         <RootStack.Group
           screenOptions={{
@@ -292,6 +295,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="graphsModal" component={NavModalGraphs} options={{ sheetAllowedDetents: [0.9] }} />
           <RootStack.Screen name="statsSettingsModal" component={NavModalStatsSettings} />
           <RootStack.Screen name="rm1Modal" component={NavModal1RM} />
+          <RootStack.Screen name="repMaxCalculatorModal" component={NavModalRepMaxCalculator} />
           <RootStack.Screen name="dayFromAdhocModal" component={NavModalDayFromAdhoc} />
           <RootStack.Screen name="equipmentModal" component={NavModalEquipment} />
           <RootStack.Screen name="dateModal" component={NavModalDate} />

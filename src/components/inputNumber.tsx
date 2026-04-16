@@ -46,12 +46,11 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
             onUpdate(newValue);
           }}
         >
-          <Text className="text-xl font-bold leading-none">-</Text>
+          <Text className="text-xl font-bold leading-8">-</Text>
         </Pressable>
-        <View className="flex-1">
+        <View className="flex-row items-center flex-1">
           <TextInput
-            className="w-full px-4 py-2 text-base border rounded-lg bg-background-default border-border-prominent"
-            style={{ textAlignVertical: "center" }}
+            className="w-full h-10 px-4 text-base leading-5 border rounded-lg bg-background-default border-border-prominent"
             keyboardType="numeric"
             value={text}
             testID={`${testId}-field`}
@@ -76,7 +75,7 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
             onUpdate(newValue);
           }}
         >
-          <Text className="text-xl font-bold leading-none">+</Text>
+          <Text className="text-xl font-bold leading-8">+</Text>
         </Pressable>
       </View>
     </View>

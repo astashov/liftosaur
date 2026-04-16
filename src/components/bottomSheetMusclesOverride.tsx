@@ -1,4 +1,6 @@
 import { JSX, useState } from "react";
+import { View, Pressable, ScrollView, TextInput } from "react-native";
+import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import {
   IExercise,
@@ -15,13 +17,14 @@ import { MenuItemWrapper } from "./menuItem";
 import { StringUtils_dashcase } from "../utils/string";
 import { MuscleImage } from "./muscleImage";
 import { IconTrash } from "./icons/iconTrash";
+import { IconClose2 } from "./icons/iconClose2";
 import { MathUtils_clamp, MathUtils_roundTo005 } from "../utils/math";
-import { ExercisePickerOptionsMuscles } from "./exercisePicker/exercisePickerOptionsMuscles";
 import { LinkButton } from "./linkButton";
+import { useModal } from "../navigation/ModalStateContext";
 import { Muscle_getScreenMusclesFromMuscle, Muscle_getMuscleGroupName } from "../models/muscle";
-import { Input2 } from "./input2";
 import { ObjectUtils_keys, ObjectUtils_clone, ObjectUtils_isEqual } from "../utils/object";
 import { BottomSheetOrModal } from "./bottomSheetOrModal";
+import { SheetDragHandle } from "../navigation/SheetScreenContainer";
 
 interface IBottomSheetMusclesOverrideProps {
   exerciseType: IExerciseType;
@@ -86,172 +89,185 @@ export function BottomSheetMusclesOverrideContent(props: IBottomSheetMusclesOver
   const [musclesAndMultipliers, setMusclesAndMultipliers] = useState(
     getInitialMusclesAndMultipliers(exercise, props.settings)
   );
-  const [showAddMuscle, setShowAddMuscle] = useState(false);
+
+  const openMusclePicker = useModal("exerciseMusclesPickerModal", (selectedMuscles) => {
+    setMusclesAndMultipliers((mms) => {
+      const existing = new Map(mms.map((mm) => [mm.muscle, mm]));
+      const next = selectedMuscles.map((muscle) => existing.get(muscle) ?? { muscle, multiplier: 1 });
+      return CollectionUtils_sort(next, (a, b) => a.muscle.localeCompare(b.muscle));
+    });
+  });
+
+  const handleSave = (): void => {
+    const muscleMultipliers: Partial<Record<string, number>> = {};
+    for (const mm of musclesAndMultipliers) {
+      muscleMultipliers[mm.muscle] = getMultiplierValue(mm.multiplier);
+    }
+    const exerciseData = props.settings.exerciseData;
+    const newExerciseData = ObjectUtils_clone(exerciseData);
+    if (ObjectUtils_isEqual(muscleMultipliers, getDefaultMusclesAndMultipliersAsObject(exercise, props.settings))) {
+      delete newExerciseData[Exercise_toKey(exercise)];
+    } else {
+      const ed = newExerciseData[Exercise_toKey(exercise)] || {};
+      ed.muscleMultipliers = muscleMultipliers;
+      newExerciseData[Exercise_toKey(exercise)] = ed;
+    }
+    props.onNewExerciseData(newExerciseData);
+    props.onClose();
+  };
 
   return (
-    <>
-      <div className="flex flex-col h-full px-4 py-2">
-        <div className="py-2">
-          <h3 className="text-base font-semibold leading-none text-center">Override Muscles</h3>
-          <div className="leading-none text-center">
-            <LinkButton
-              data-cy="toggle-muscle-overrides"
-              name="toggle-muscle-overrides"
-              className="text-xs"
-              onClick={() => setShowAddMuscle(true)}
-            >
-              + Add Muscles
-            </LinkButton>
-          </div>
-        </div>
-        <div className="flex-1 overflow-y-auto">
-          <div className="pb-4">
-            <div style={{ maxWidth: "40rem" }}>
-              <Nux id="muscle-override-help" helps={props.helps} dispatch={props.dispatch}>
-                <>
-                  <span>
-                    Here you can override the muscles for this exercise. This affects how the volume / number of sets is
-                    calculated for this exercise.
-                  </span>
-                  <div>
-                    For each muscle, you can set a multiplier - from <strong>0</strong> to <strong>1</strong>. If it's 1
-                    - it's a <strong>target muscle</strong>, and we count each set as a full one when we calculate the
-                    volume. If it's less 1 - it's a <strong>synergist</strong> muscle, and we apply the specified
-                    multiplier to the number of sets.
-                  </div>
-                  <div>These multipliers takes precedence over the default target/synergist multiplier.</div>
-                </>
-              </Nux>
-            </div>
-            {musclesAndMultipliers.map((mm) => {
-              const muscleGroup = Muscle_getScreenMusclesFromMuscle(mm.muscle, props.settings)[0];
-              if (muscleGroup == null) {
-                return null;
-              }
-              return (
-                <MenuItemWrapper key={mm.muscle} name={`muscle-override-${StringUtils_dashcase(mm.muscle)}`}>
-                  <div className="py-2">
-                    <div className="flex items-center gap-2">
-                      <div>
-                        <MuscleImage muscle={mm.muscle} size={61} />
-                      </div>
-                      <div className="flex-1">
-                        <div>{mm.muscle}</div>
-                        <div className="text-xs text-text-secondary">
-                          {Muscle_getMuscleGroupName(muscleGroup, props.settings)}
-                        </div>
-                      </div>
-                      <div className="w-12">
-                        <Input2
-                          identifier={`muscle-multiplier-${StringUtils_dashcase(mm.muscle)}`}
-                          className="text-center"
-                          value={mm.multiplier}
-                          onBlur={(event) => {
-                            const value = (event.target as HTMLInputElement).value;
-                            const finalValue = getMultiplierValue(value);
-                            setMusclesAndMultipliers((mms) =>
-                              mms.map((x) => (x.muscle === mm.muscle ? { ...x, multiplier: finalValue } : x))
-                            );
-                          }}
-                          onInput={(event) => {
-                            const value = (event.target as HTMLInputElement).value;
-                            setMusclesAndMultipliers((mms) =>
-                              mms.map((x) => (x.muscle === mm.muscle ? { ...x, multiplier: value } : x))
-                            );
-                          }}
-                        />
-                      </div>
-                      <div className="ml-4">
-                        <button
-                          data-cy={`remove-muscle-override-${StringUtils_dashcase(mm.muscle)}`}
-                          onClick={() => {
-                            setMusclesAndMultipliers((mms) => mms.filter((x) => x.muscle !== mm.muscle));
-                          }}
-                        >
-                          <IconTrash />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </MenuItemWrapper>
-              );
-            })}
-          </div>
-        </div>
-        <div className="py-2 bg-background-default">
-          <Button
-            kind="purple"
-            data-cy="save-muscle-overrides"
-            name="save-muscle-overrides"
-            className="w-full"
-            buttonSize="md"
-            onClick={() => {
-              const muscleMultipliers: Partial<Record<string, number>> = {};
-              for (const mm of musclesAndMultipliers) {
-                muscleMultipliers[mm.muscle] = getMultiplierValue(mm.multiplier);
-              }
-              const exerciseData = props.settings.exerciseData;
-              const newExerciseData = ObjectUtils_clone(exerciseData);
-              if (
-                ObjectUtils_isEqual(
-                  muscleMultipliers,
-                  getDefaultMusclesAndMultipliersAsObject(exercise, props.settings)
-                )
-              ) {
-                delete newExerciseData[Exercise_toKey(exercise)];
-              } else {
-                const ed = newExerciseData[Exercise_toKey(exercise)] || {};
-                ed.muscleMultipliers = muscleMultipliers;
-                newExerciseData[Exercise_toKey(exercise)] = ed;
-              }
-              props.onNewExerciseData(newExerciseData);
-              props.onClose();
-            }}
+    <View className="flex-1" style={{ marginTop: -12 }}>
+      <SheetDragHandle>
+        <View className="flex-row items-center pt-0 pb-4 mt-2">
+          <Pressable
+            className="px-4 py-2"
+            hitSlop={12}
+            data-cy="muscle-overrides-close"
+            testID="muscle-overrides-close"
+            onPress={props.onClose}
           >
-            Save
-          </Button>
-        </div>
-      </div>
-      {showAddMuscle && (
-        <BottomSheetOrModal shouldShowClose={true} onClose={() => setShowAddMuscle(false)} isHidden={!showAddMuscle}>
-          <div className="flex flex-col h-full px-4 py-2" style={{ marginTop: "-0.5rem" }}>
-            <h3 className="pt-2 pb-3 text-base font-semibold text-center">Toggle Muscles</h3>
-            <div className="flex-1 overflow-y-auto">
-              <div className="pb-4">
-                <ExercisePickerOptionsMuscles
-                  settings={props.settings}
-                  selectedValues={musclesAndMultipliers.map((mm) => mm.muscle)}
-                  onSelect={(muscle) => {
-                    setMusclesAndMultipliers((mms) => {
-                      if (mms.some((x) => x.muscle === muscle)) {
-                        return mms.filter((x) => x.muscle !== muscle);
-                      } else {
-                        return CollectionUtils_sort([...mms, { muscle, multiplier: 1 }], (a, b) =>
-                          a.muscle.localeCompare(b.muscle)
-                        );
-                      }
-                    });
-                  }}
-                />
-              </div>
-            </div>
-            <div className="py-2 bg-background-default">
-              <Button
-                kind="purple"
-                data-cy="done-selecting-muscles"
-                name="done-selecting-muscles"
-                className="w-full"
-                buttonSize="md"
-                onClick={() => {
-                  setShowAddMuscle(false);
-                }}
-              >
-                Done
-              </Button>
-            </div>
-          </div>
-        </BottomSheetOrModal>
-      )}
+            <IconClose2 size={22} />
+          </Pressable>
+          <View className="flex-1" />
+          <View className="px-4">
+            <Button
+              kind="purple"
+              buttonSize="md"
+              name="save-muscle-overrides"
+              data-cy="save-muscle-overrides"
+              onClick={handleSave}
+            >
+              Save
+            </Button>
+          </View>
+          <View className="absolute top-0 left-0 right-0 items-center" pointerEvents="box-none">
+            <View>
+              <Text className="font-semibold">Override Muscles</Text>
+              <View className="items-center">
+                <LinkButton
+                  data-cy="toggle-muscle-overrides"
+                  name="toggle-muscle-overrides"
+                  className="text-xs"
+                  onClick={() =>
+                    openMusclePicker({
+                      title: "Toggle Muscles",
+                      name: "muscle-override-picker",
+                      selectedMuscles: musclesAndMultipliers.map((mm) => mm.muscle),
+                    })
+                  }
+                >
+                  + Add Muscles
+                </LinkButton>
+              </View>
+            </View>
+          </View>
+        </View>
+      </SheetDragHandle>
+      <ScrollView
+        className="flex-1 pb-4"
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
+        automaticallyAdjustKeyboardInsets
+      >
+        <View className="px-4">
+          <MusclesOverrideList
+            musclesAndMultipliers={musclesAndMultipliers}
+            setMusclesAndMultipliers={setMusclesAndMultipliers}
+            helps={props.helps}
+            settings={props.settings}
+            dispatch={props.dispatch}
+          />
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+
+function MusclesOverrideList(props: {
+  musclesAndMultipliers: IMuscleAndMultiplierOpt[];
+  setMusclesAndMultipliers: React.Dispatch<React.SetStateAction<IMuscleAndMultiplierOpt[]>>;
+  helps: string[];
+  settings: ISettings;
+  dispatch?: IDispatch;
+}): JSX.Element {
+  const { musclesAndMultipliers, setMusclesAndMultipliers } = props;
+  return (
+    <>
+      <View style={{ maxWidth: 640 }}>
+        <Nux id="muscle-override-help" helps={props.helps} dispatch={props.dispatch}>
+          <View>
+            <Text className="text-xs">
+              Here you can override the muscles for this exercise. This affects how the volume / number of sets is
+              calculated for this exercise.
+            </Text>
+            <Text className="text-xs">
+              For each muscle, you can set a multiplier - from <Text className="text-xs font-bold">0</Text> to{" "}
+              <Text className="text-xs font-bold">1</Text>. If it's 1 - it's a{" "}
+              <Text className="text-xs font-bold">target muscle</Text>, and we count each set as a full one when we
+              calculate the volume. If it's less 1 - it's a <Text className="text-xs font-bold">synergist</Text> muscle,
+              and we apply the specified multiplier to the number of sets.
+            </Text>
+            <Text className="text-xs">
+              These multipliers takes precedence over the default target/synergist multiplier.
+            </Text>
+          </View>
+        </Nux>
+      </View>
+      {musclesAndMultipliers.map((mm) => {
+        const muscleGroup = Muscle_getScreenMusclesFromMuscle(mm.muscle, props.settings)[0];
+        if (muscleGroup == null) {
+          return null;
+        }
+        return (
+          <MenuItemWrapper key={mm.muscle} name={`muscle-override-${StringUtils_dashcase(mm.muscle)}`}>
+            <View className="py-2">
+              <View className="flex-row items-center gap-2">
+                <View>
+                  <MuscleImage muscle={mm.muscle} size={61} />
+                </View>
+                <View className="flex-1">
+                  <Text className="leading-5">{mm.muscle}</Text>
+                  <Text className="text-xs text-text-secondary">
+                    {Muscle_getMuscleGroupName(muscleGroup, props.settings)}
+                  </Text>
+                </View>
+                <View className="w-12">
+                  <TextInput
+                    testID={`muscle-multiplier-${StringUtils_dashcase(mm.muscle)}`}
+                    data-cy={`muscle-multiplier-${StringUtils_dashcase(mm.muscle)}-input`}
+                    className="px-2 py-2 text-base leading-5 text-center border rounded-md bg-background-default border-border-prominent"
+                    keyboardType="decimal-pad"
+                    value={mm.multiplier != null ? String(mm.multiplier) : ""}
+                    onChangeText={(text) => {
+                      setMusclesAndMultipliers((mms) =>
+                        mms.map((x) => (x.muscle === mm.muscle ? { ...x, multiplier: text } : x))
+                      );
+                    }}
+                    onBlur={() => {
+                      const finalValue = getMultiplierValue(mm.multiplier);
+                      setMusclesAndMultipliers((mms) =>
+                        mms.map((x) => (x.muscle === mm.muscle ? { ...x, multiplier: finalValue } : x))
+                      );
+                    }}
+                  />
+                </View>
+                <View className="ml-4">
+                  <Pressable
+                    data-cy={`remove-muscle-override-${StringUtils_dashcase(mm.muscle)}`}
+                    testID={`remove-muscle-override-${StringUtils_dashcase(mm.muscle)}`}
+                    onPress={() => {
+                      setMusclesAndMultipliers((mms) => mms.filter((x) => x.muscle !== mm.muscle));
+                    }}
+                  >
+                    <IconTrash />
+                  </Pressable>
+                </View>
+              </View>
+            </View>
+          </MenuItemWrapper>
+        );
+      })}
     </>
   );
 }
