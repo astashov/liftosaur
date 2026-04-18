@@ -224,6 +224,7 @@ function MeStackScreen(): JSX.Element {
       <MeStack.Screen name="exerciseStats" component={NavScreenExerciseStats} />
       <MeStack.Screen name="apiKeys" component={NavScreenApiKeys} />
       <MeStack.Screen name="programs" component={NavScreenPrograms} />
+      <MeStack.Screen name="programPreview" component={NavScreenProgramPreview} />
       <MeStack.Screen name="progress" component={NavScreenProgress} getId={({ params }) => String(params?.id ?? 0)} />
     </MeStack.Navigator>
   );

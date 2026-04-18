@@ -55,6 +55,7 @@ export type IMeStackParamList = {
   exerciseStats: undefined;
   apiKeys: undefined;
   programs: undefined;
+  programPreview: undefined;
   progress: { id?: number } | undefined;
 };
 
