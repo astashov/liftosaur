@@ -51,6 +51,7 @@ import {
 } from "./screens/NavScreenMe";
 import { Footer2Wrapper } from "./screens/NavScreenFooter2";
 import { NavModalMonthCalendar } from "./modals/NavModalMonthCalendar";
+import { NavModalChangeNextDay } from "./modals/NavModalChangeNextDay";
 import { NavModalExercisePicker } from "./modals/NavModalExercisePicker";
 import { NavModalExerciseImageSource } from "./modals/NavModalExerciseImageSource";
 import { NavModalExerciseImageLibrary } from "./modals/NavModalExerciseImageLibrary";
@@ -255,6 +256,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           }}
         >
           <RootStack.Screen name="monthCalendarModal" component={NavModalMonthCalendar} />
+          <RootStack.Screen name="changeNextDayModal" component={NavModalChangeNextDay} />
           <RootStack.Screen name="exercisePickerModal" component={NavModalExercisePicker} />
           <RootStack.Screen name="exerciseImageLibraryModal" component={NavModalExerciseImageLibrary} />
           <RootStack.Screen name="exerciseCloneLibraryModal" component={NavModalExerciseCloneLibrary} />
