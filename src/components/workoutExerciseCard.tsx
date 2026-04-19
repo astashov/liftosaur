@@ -298,11 +298,10 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
           <Pressable
             onPress={() => props.dispatch(Thunk_pushExerciseStatsScreen(props.entry.exercise))}
             className="px-2 rounded-lg bg-background-image"
-            style={{ width: 64, marginLeft: -8 }}
             data-cy="workout-exercise-image"
             testID="workout-exercise-image"
           >
-            <ExerciseImage settings={props.settings} className="w-full" exerciseType={exerciseType} size="small" />
+            <ExerciseImage settings={props.settings} width={48} exerciseType={exerciseType} size="small" />
           </Pressable>
           <View className="flex-1 min-w-0 mt-2 ml-2">
             <Pressable
@@ -314,7 +313,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
               <Text className="pr-1 text-lg font-bold">{Exercise_nameWithEquipment(exercise, props.settings)}</Text>
               <IconArrowRight />
             </Pressable>
-            <View data-cy="exercise-equipment" className="flex-row flex-wrap">
+            <View data-cy="exercise-equipment" className="flex-row flex-wrap items-center">
               <Text className="text-sm text-text-secondary">Equipment: </Text>
               <LinkButton
                 name="exercise-equipment-picker"
