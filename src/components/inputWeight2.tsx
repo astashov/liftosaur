@@ -162,7 +162,7 @@ function PlatesCalculator(props: IPlatesCalculatorProps): JSX.Element {
         <Text className="text-xs text-text-secondary">
           Plates:{" "}
           <Text
-            className={`font-semibold ${Weight_eq(weight, props.weight) ? "text-text-primary" : "text-text-error"}`}
+            className={`text-xs font-semibold ${Weight_eq(weight, props.weight) ? "text-text-primary" : "text-text-error"}`}
             data-cy="plates-list"
             testID="plates-list"
           >

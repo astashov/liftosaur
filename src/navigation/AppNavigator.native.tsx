@@ -50,6 +50,7 @@ import {
   NavScreenApiKeys,
 } from "./screens/NavScreenMe";
 import { Footer2Wrapper } from "./screens/NavScreenFooter2";
+import { CustomKeyboardProvider } from "./CustomKeyboardContext";
 import { NavModalMonthCalendar } from "./modals/NavModalMonthCalendar";
 import { NavModalChangeNextDay } from "./modals/NavModalChangeNextDay";
 import { NavModalExercisePicker } from "./modals/NavModalExercisePicker";
@@ -249,85 +250,87 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
   const isOnboarding = initialScreen ? onboardingScreens.includes(initialScreen) : false;
   return (
     <InitialScreenContext.Provider value={initialScreen}>
-      <RootStack.Navigator
-        screenOptions={{ headerShown: false, animation: "none", freezeOnBlur: true }}
-        initialRouteName={isOnboarding ? "onboarding" : "mainTabs"}
-      >
-        <RootStack.Screen name="onboarding" component={OnboardingStackScreen} />
-        <RootStack.Screen name="mainTabs" component={MainTabsScreen} />
-        <RootStack.Screen name="subscription" component={NavScreenSubscription} options={{ headerShown: true }} />
-        <RootStack.Group
-          screenOptions={{
-            presentation: "transparentModal",
-            headerShown: false,
-            animation: "none",
-          }}
+      <CustomKeyboardProvider>
+        <RootStack.Navigator
+          screenOptions={{ headerShown: false, animation: "none", freezeOnBlur: true }}
+          initialRouteName={isOnboarding ? "onboarding" : "mainTabs"}
         >
-          <RootStack.Screen name="monthCalendarModal" component={NavModalMonthCalendar} />
-          <RootStack.Screen name="changeNextDayModal" component={NavModalChangeNextDay} />
-          <RootStack.Screen name="exercisePickerModal" component={NavModalExercisePicker} />
-          <RootStack.Screen name="exerciseImageLibraryModal" component={NavModalExerciseImageLibrary} />
-          <RootStack.Screen name="exerciseCloneLibraryModal" component={NavModalExerciseCloneLibrary} />
-          <RootStack.Screen name="customExerciseModal" component={NavModalCustomExercise} />
-          <RootStack.Screen name="musclesOverrideModal" component={NavModalMusclesOverride} />
-        </RootStack.Group>
-        <RootStack.Group
-          screenOptions={{
-            presentation: "formSheet",
-            headerShown: false,
-            animation: "default",
-            sheetAllowedDetents: "fitToContents",
-            contentStyle: { backgroundColor: Tailwind_semantic().background.default },
-          }}
-        >
-          <RootStack.Screen name="weekInsightsDetailsModal" component={NavModalWeekInsightsDetails} />
-          <RootStack.Screen name="setSplitModal" component={NavModalSetSplit} />
-          <RootStack.Screen name="plannerSettingsModal" component={NavModalPlannerSettings} />
-          <RootStack.Screen
-            name="muscleGroupMusclePickerModal"
-            component={NavModalMuscleGroupMusclePicker}
-            options={{
-              sheetAllowedDetents: [0.9],
-              headerShown: true,
-              title: "Choose Muscles",
+          <RootStack.Screen name="onboarding" component={OnboardingStackScreen} />
+          <RootStack.Screen name="mainTabs" component={MainTabsScreen} />
+          <RootStack.Screen name="subscription" component={NavScreenSubscription} options={{ headerShown: true }} />
+          <RootStack.Group
+            screenOptions={{
+              presentation: "transparentModal",
+              headerShown: false,
+              animation: "none",
             }}
-          />
-          <RootStack.Screen name="accountModal" component={NavModalAccount} />
-          <RootStack.Screen name="createProgramModal" component={NavModalCreateProgram} />
-          <RootStack.Screen name="importFromLinkModal" component={NavModalImportFromLink} />
-          <RootStack.Screen name="programInfoModal" component={NavModalProgramInfo} />
-          <RootStack.Screen name="inputSelectModal" component={NavModalInputSelect} />
-          <RootStack.Screen name="playgroundEditModal" component={NavModalPlaygroundEditExercise} />
-          <RootStack.Screen name="amrapModal" component={NavModalAmrap} />
-          <RootStack.Screen name="editSetTargetModal" component={NavModalEditTarget} />
-          <RootStack.Screen
-            name="programPreviewMusclesModal"
-            component={NavModalProgramPreviewMuscles}
-            options={{ sheetAllowedDetents: [0.85] }}
-          />
-          <RootStack.Screen name="nextWorkoutModal" component={NavModalNextWorkout} />
-          <RootStack.Screen name="graphsModal" component={NavModalGraphs} options={{ sheetAllowedDetents: [0.9] }} />
-          <RootStack.Screen name="statsSettingsModal" component={NavModalStatsSettings} />
-          <RootStack.Screen name="rm1Modal" component={NavModal1RM} />
-          <RootStack.Screen name="repMaxCalculatorModal" component={NavModalRepMaxCalculator} />
-          <RootStack.Screen name="dayFromAdhocModal" component={NavModalDayFromAdhoc} />
-          <RootStack.Screen name="equipmentModal" component={NavModalEquipment} />
-          <RootStack.Screen name="dateModal" component={NavModalDate} />
-          <RootStack.Screen name="supersetPickerModal" component={NavModalWorkoutSuperset} />
-          <RootStack.Screen name="exerciseImageSourceModal" component={NavModalExerciseImageSource} />
-          <RootStack.Screen name="exercisePickerSettingsModal" component={NavModalExercisePickerSettings} />
-          <RootStack.Screen name="exerciseTypesPickerModal" component={NavModalExerciseTypesPicker} />
-          <RootStack.Screen name="newGymModal" component={NavModalNewGym} />
-          <RootStack.Screen name="newEquipmentModal" component={NavModalNewEquipment} />
-          <RootStack.Screen name="newPlateModal" component={NavModalPlates} />
-          <RootStack.Screen name="newFixedWeightModal" component={NavModalNewFixedWeight} />
-          <RootStack.Screen
-            name="exerciseMusclesPickerModal"
-            component={NavModalExerciseMusclesPicker}
-            options={{ sheetAllowedDetents: [0.9] }}
-          />
-        </RootStack.Group>
-      </RootStack.Navigator>
+          >
+            <RootStack.Screen name="monthCalendarModal" component={NavModalMonthCalendar} />
+            <RootStack.Screen name="changeNextDayModal" component={NavModalChangeNextDay} />
+            <RootStack.Screen name="exercisePickerModal" component={NavModalExercisePicker} />
+            <RootStack.Screen name="exerciseImageLibraryModal" component={NavModalExerciseImageLibrary} />
+            <RootStack.Screen name="exerciseCloneLibraryModal" component={NavModalExerciseCloneLibrary} />
+            <RootStack.Screen name="customExerciseModal" component={NavModalCustomExercise} />
+            <RootStack.Screen name="musclesOverrideModal" component={NavModalMusclesOverride} />
+          </RootStack.Group>
+          <RootStack.Group
+            screenOptions={{
+              presentation: "formSheet",
+              headerShown: false,
+              animation: "default",
+              sheetAllowedDetents: "fitToContents",
+              contentStyle: { backgroundColor: Tailwind_semantic().background.default },
+            }}
+          >
+            <RootStack.Screen name="weekInsightsDetailsModal" component={NavModalWeekInsightsDetails} />
+            <RootStack.Screen name="setSplitModal" component={NavModalSetSplit} />
+            <RootStack.Screen name="plannerSettingsModal" component={NavModalPlannerSettings} />
+            <RootStack.Screen
+              name="muscleGroupMusclePickerModal"
+              component={NavModalMuscleGroupMusclePicker}
+              options={{
+                sheetAllowedDetents: [0.9],
+                headerShown: true,
+                title: "Choose Muscles",
+              }}
+            />
+            <RootStack.Screen name="accountModal" component={NavModalAccount} />
+            <RootStack.Screen name="createProgramModal" component={NavModalCreateProgram} />
+            <RootStack.Screen name="importFromLinkModal" component={NavModalImportFromLink} />
+            <RootStack.Screen name="programInfoModal" component={NavModalProgramInfo} />
+            <RootStack.Screen name="inputSelectModal" component={NavModalInputSelect} />
+            <RootStack.Screen name="playgroundEditModal" component={NavModalPlaygroundEditExercise} />
+            <RootStack.Screen name="amrapModal" component={NavModalAmrap} />
+            <RootStack.Screen name="editSetTargetModal" component={NavModalEditTarget} />
+            <RootStack.Screen
+              name="programPreviewMusclesModal"
+              component={NavModalProgramPreviewMuscles}
+              options={{ sheetAllowedDetents: [0.85] }}
+            />
+            <RootStack.Screen name="nextWorkoutModal" component={NavModalNextWorkout} />
+            <RootStack.Screen name="graphsModal" component={NavModalGraphs} options={{ sheetAllowedDetents: [0.9] }} />
+            <RootStack.Screen name="statsSettingsModal" component={NavModalStatsSettings} />
+            <RootStack.Screen name="rm1Modal" component={NavModal1RM} />
+            <RootStack.Screen name="repMaxCalculatorModal" component={NavModalRepMaxCalculator} />
+            <RootStack.Screen name="dayFromAdhocModal" component={NavModalDayFromAdhoc} />
+            <RootStack.Screen name="equipmentModal" component={NavModalEquipment} />
+            <RootStack.Screen name="dateModal" component={NavModalDate} />
+            <RootStack.Screen name="supersetPickerModal" component={NavModalWorkoutSuperset} />
+            <RootStack.Screen name="exerciseImageSourceModal" component={NavModalExerciseImageSource} />
+            <RootStack.Screen name="exercisePickerSettingsModal" component={NavModalExercisePickerSettings} />
+            <RootStack.Screen name="exerciseTypesPickerModal" component={NavModalExerciseTypesPicker} />
+            <RootStack.Screen name="newGymModal" component={NavModalNewGym} />
+            <RootStack.Screen name="newEquipmentModal" component={NavModalNewEquipment} />
+            <RootStack.Screen name="newPlateModal" component={NavModalPlates} />
+            <RootStack.Screen name="newFixedWeightModal" component={NavModalNewFixedWeight} />
+            <RootStack.Screen
+              name="exerciseMusclesPickerModal"
+              component={NavModalExerciseMusclesPicker}
+              options={{ sheetAllowedDetents: [0.9] }}
+            />
+          </RootStack.Group>
+        </RootStack.Navigator>
+      </CustomKeyboardProvider>
     </InitialScreenContext.Provider>
   );
 }

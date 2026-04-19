@@ -38,7 +38,8 @@ function buildLensDispatch(originalDispatch: IDispatch): ILensDispatch<IState> {
 }
 
 export function ScreenEquipment(props: IProps): JSX.Element {
-  const scrollRef = useContext(NavScreenScrollContext);
+  const scrollCtx = useContext(NavScreenScrollContext);
+  const scrollRef = scrollCtx?.scrollRef;
   const expandedItemRef = useRef<View>(null);
 
   const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>(() =>

@@ -117,7 +117,7 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
       {!props.settings.workoutSettings.shouldHideGraphs && (
         <>
           {history.length > 1 && isHeavyContentReady && (
-            <View data-cy="workout-stats-graph" className="relative mt-2">
+            <View data-cy="workout-stats-graph" className="relative mx-4 mt-2">
               <Locker topic="Graphs" dispatch={props.dispatch} blur={8} subscription={props.subscription} />
               <GraphExercise
                 isSameXAxis={false}

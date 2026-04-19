@@ -1,7 +1,8 @@
-import React, { JSX, useCallback, useRef } from "react";
+import React, { JSX, useCallback, useContext, useRef } from "react";
 import { View } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, runOnJS } from "react-native-reanimated";
+import { WorkoutScrollGestureContext } from "./workoutScrollGestureContext";
 
 interface ISwipeableRowProps {
   children: (props: {
@@ -25,6 +26,7 @@ export function SwipeableRow(props: ISwipeableRowProps): JSX.Element {
   const translateX = useSharedValue(0);
   const isOpen = useSharedValue(false);
   const moveRef = useRef<View>(null);
+  const scrollGesture = useContext(WorkoutScrollGestureContext);
 
   const springConfig = { damping: 25, stiffness: 300, overshootClamping: true };
 
@@ -37,7 +39,7 @@ export function SwipeableRow(props: ISwipeableRowProps): JSX.Element {
     props.onPointerDown?.();
   }, [props.onPointerDown]);
 
-  const pan = Gesture.Pan()
+  let pan = Gesture.Pan()
     .activeOffsetX([-props.initiateTreshold, props.initiateTreshold])
     .failOffsetY([-props.scrollThreshold, props.scrollThreshold])
     .onStart(() => {
@@ -61,6 +63,10 @@ export function SwipeableRow(props: ISwipeableRowProps): JSX.Element {
         translateX.value = withSpring(target, springConfig);
       }
     });
+
+  if (scrollGesture) {
+    pan = pan.blocksExternalGesture(scrollGesture as never);
+  }
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
