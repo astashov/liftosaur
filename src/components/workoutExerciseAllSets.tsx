@@ -186,7 +186,7 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
       </View>
 
       {props.programExercise && props.program && (
-        <View className="mx-4 mt-2 mb-1">
+        <View className="mx-4 mt-2">
           <ProgressStateChanges
             entry={props.entry}
             settings={props.settings}
@@ -200,7 +200,7 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
         </View>
       )}
 
-      <View className="flex-row gap-2 px-4 my-2">
+      <View className="flex-row gap-2 px-4 mt-1 mb-2">
         <View className="flex-1">
           <Pressable
             className={`${buttonBgColor} w-full py-2 rounded-md flex-row items-center justify-center`}

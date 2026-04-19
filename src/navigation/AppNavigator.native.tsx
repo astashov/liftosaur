@@ -172,8 +172,16 @@ function WorkoutStackScreen(): JSX.Element {
       />
       <WorkoutStack.Screen name="finishDay" component={NavScreenFinishDay} />
       <WorkoutStack.Screen name="editProgramExercise" component={NavScreenEditProgramExercise} />
-      <WorkoutStack.Screen name="muscles" component={NavScreenMuscles} />
-      <WorkoutStack.Screen name="exerciseStats" component={NavScreenExerciseStats} />
+      <WorkoutStack.Screen
+        name="muscles"
+        component={NavScreenMuscles}
+        options={{ headerShown: true, header: NavHeader }}
+      />
+      <WorkoutStack.Screen
+        name="exerciseStats"
+        component={NavScreenExerciseStats}
+        options={{ headerShown: true, header: NavHeader }}
+      />
     </WorkoutStack.Navigator>
   );
 }
