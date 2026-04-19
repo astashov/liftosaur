@@ -53,10 +53,8 @@ function WorkoutExerciseThumbnailInner(props: IWorkoutExerciseThumbnailProps): J
         style={{ paddingHorizontal: 2 }}
       >
         <View
-          className={`border ${borderColor} bg-background-image rounded-lg overflow-hidden`}
+          className={`items-center flex-row justify-center w-14 h-14 border ${borderColor} bg-background-image rounded-lg overflow-hidden`}
           style={{
-            width: 48,
-            height: 48,
             borderWidth: isCurrent ? 2 : 1,
             marginHorizontal: !isCurrent ? 1 : 0,
           }}
@@ -73,9 +71,9 @@ function WorkoutExerciseThumbnailInner(props: IWorkoutExerciseThumbnailProps): J
               <View style={{ position: "absolute", bottom: 0, right: 0, padding: 2 }}>
                 <View className="absolute inset-0 rounded-md bg-lightgray-50" style={{ opacity: 0.75 }} />
                 <View style={{ position: "relative", zIndex: 10 }}>
-                  <Text className="text-xs">
-                    <Text className="font-semibold">{completedSetsCount}</Text>/
-                    <Text className="font-semibold">{totalSetsCount}</Text>
+                  <Text>
+                    <Text className="text-xs font-semibold">{completedSetsCount}</Text>/
+                    <Text className="text-xs font-semibold">{totalSetsCount}</Text>
                   </Text>
                 </View>
               </View>

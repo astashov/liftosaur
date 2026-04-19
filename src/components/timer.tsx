@@ -54,7 +54,7 @@ export function Timer(props: IProps): JSX.Element {
       <Pressable className="px-1" onPress={props.onPauseResume}>
         {isPaused ? <IconPlay color="#607284" size={16} /> : <IconPause color="#607284" size={16} />}
       </Pressable>
-      <Text className={isPaused ? "text-text-error" : "text-text-success"}>
+      <Text className={`text-sm font-semibold ${isPaused ? "text-text-error" : "text-text-success"}`}>
         {TimeUtils_formatHH(workoutTime)}
         <Animated.Text style={{ opacity: blinkOpacity }}>:</Animated.Text>
         {TimeUtils_formatMM(workoutTime)} h

@@ -41,7 +41,7 @@ function WorkoutPlatesCalculatorInner(props: IWorkoutPlatesCalculatorProps): JSX
   );
   const isPlatesMatch = Weight_eq(weight, props.weight);
   return (
-    <View className="my-1 self-start">
+    <View className="self-start my-1">
       <View
         className={`p-1 flex-row items-center ${WorkoutExerciseUtils_getBgColor100(props.entry.sets, false)} rounded-lg`}
       >
@@ -50,10 +50,10 @@ function WorkoutPlatesCalculatorInner(props: IWorkoutPlatesCalculatorProps): JSX
         </View>
         <View className="py-1 pr-4">
           {isSubscribed ? (
-            <Text className="text-xs text-text-secondary">
-              <Text>Plates: </Text>
+            <Text>
+              <Text className="text-sm text-text-secondary">Plates: </Text>
               <Text
-                className={`font-semibold ${isPlatesMatch ? "text-text-primary" : "text-text-error"}`}
+                className={`text-sm font-semibold ${isPlatesMatch ? "text-text-primary" : "text-text-error"}`}
                 data-cy="plates-list"
               >
                 {plates.length > 0 ? Weight_formatOneSide(props.settings, plates, props.entry.exercise) : "None"}
