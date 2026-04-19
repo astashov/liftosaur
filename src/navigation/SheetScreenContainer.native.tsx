@@ -10,6 +10,7 @@ import {
   StyleProp,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useCustomKeyboardHeight } from "./CustomKeyboardContext";
 
 interface IProps {
   children: ReactNode;
@@ -35,6 +36,7 @@ export function SheetDragHandle(props: {
 export function SheetScreenContainer(props: IProps): JSX.Element {
   const { height: screenHeight } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const keyboardHeight = useCustomKeyboardHeight();
   const sheetHeight = Math.round(screenHeight * 0.85);
   const translateY = useRef(new Animated.Value(sheetHeight)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
@@ -83,8 +85,8 @@ export function SheetScreenContainer(props: IProps): JSX.Element {
         <Animated.View
           className="overflow-hidden bg-background-default"
           style={{
-            height: sheetHeight + insets.bottom,
-            paddingBottom: insets.bottom,
+            height: sheetHeight + insets.bottom + keyboardHeight,
+            paddingBottom: insets.bottom + keyboardHeight,
             borderTopLeftRadius: 16,
             borderTopRightRadius: 16,
             transform: [{ translateY }],

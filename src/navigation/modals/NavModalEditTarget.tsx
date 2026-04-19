@@ -1,13 +1,14 @@
 import { JSX, useEffect } from "react";
+import { View, Animated } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
-import { SheetScreenContainer } from "../SheetScreenContainer";
 import { BottomSheetEditTargetContent } from "../../components/bottomSheetEditTarget";
 import { lb } from "lens-shmens";
 import { IHistoryRecord } from "../../types";
 import { IState, updateState } from "../../models/state";
 import { buildPlaygroundDispatch, getPlaygroundProgress } from "./navModalPlaygroundUtils";
 import type { IRootStackParamList } from "../types";
+import { CustomKeyboardProvider, useCustomKeyboardAnimatedHeight } from "../CustomKeyboardContext";
 
 export function NavModalEditTarget(): JSX.Element {
   const { state, dispatch } = useAppState();
@@ -38,31 +39,38 @@ export function NavModalEditTarget(): JSX.Element {
 
   const editSetModal = progress?.ui?.editSetModal;
 
+  useEffect(() => {
+    const clearEditSetModal = (): void => {
+      if (params.context === "workout") {
+        dispatch({
+          type: "UpdateProgress",
+          lensRecordings: [lb<IHistoryRecord>().pi("ui", {}).p("editSetModal").record(undefined)],
+          desc: "Close edit set modal",
+        });
+      } else {
+        updateState(
+          dispatch,
+          [
+            lb<IState>()
+              .pi("playgroundState")
+              .pi("progresses")
+              .pi(params.weekIndex)
+              .p("days")
+              .pi(params.dayIndex)
+              .p("progress")
+              .pi("ui", {})
+              .p("editSetModal")
+              .record(undefined),
+          ],
+          "Close edit set modal"
+        );
+      }
+    };
+    const unsubscribe = navigation.addListener("beforeRemove", clearEditSetModal);
+    return unsubscribe;
+  }, [navigation, dispatch, params]);
+
   const onClose = (): void => {
-    if (params.context === "workout") {
-      dispatch({
-        type: "UpdateProgress",
-        lensRecordings: [lb<IHistoryRecord>().pi("ui", {}).p("editSetModal").record(undefined)],
-        desc: "Close edit set modal",
-      });
-    } else {
-      updateState(
-        dispatch,
-        [
-          lb<IState>()
-            .pi("playgroundState")
-            .pi("progresses")
-            .pi(params.weekIndex)
-            .p("days")
-            .pi(params.dayIndex)
-            .p("progress")
-            .pi("ui", {})
-            .p("editSetModal")
-            .record(undefined),
-        ],
-        "Close edit set modal"
-      );
-    }
     navigation.goBack();
   };
 
@@ -78,15 +86,23 @@ export function NavModalEditTarget(): JSX.Element {
   }
 
   return (
-    <SheetScreenContainer onClose={onClose}>
-      <BottomSheetEditTargetContent
-        editSetModal={editSetModal}
-        subscription={state.storage.subscription}
-        settings={state.storage.settings}
-        progress={progress}
-        dispatch={modalDispatch}
-        onClose={onClose}
-      />
-    </SheetScreenContainer>
+    <CustomKeyboardProvider applySafeAreaBottom={false}>
+      <View className="bg-background-default">
+        <BottomSheetEditTargetContent
+          editSetModal={editSetModal}
+          subscription={state.storage.subscription}
+          settings={state.storage.settings}
+          progress={progress}
+          dispatch={modalDispatch}
+          onClose={onClose}
+        />
+        <KeyboardSpacer />
+      </View>
+    </CustomKeyboardProvider>
   );
+}
+
+function KeyboardSpacer(): JSX.Element {
+  const animatedHeight = useCustomKeyboardAnimatedHeight();
+  return <Animated.View style={{ height: animatedHeight }} />;
 }

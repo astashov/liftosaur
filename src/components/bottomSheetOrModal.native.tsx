@@ -1,6 +1,7 @@
 import type { JSX, ReactNode } from "react";
 import { View, Pressable, Animated, useWindowDimensions } from "react-native";
 import { useEffect, useRef, useCallback } from "react";
+import { useCustomKeyboardHeight } from "../navigation/CustomKeyboardContext";
 
 interface IProps {
   isHidden: boolean;
@@ -12,6 +13,7 @@ interface IProps {
 
 export function BottomSheetOrModal(props: IProps): JSX.Element | null {
   const { height } = useWindowDimensions();
+  const keyboardHeight = useCustomKeyboardHeight();
   const translateY = useRef(new Animated.Value(height)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
 
@@ -45,6 +47,7 @@ export function BottomSheetOrModal(props: IProps): JSX.Element | null {
         className="bg-background-default"
         style={{
           maxHeight: height * 0.85,
+          paddingBottom: keyboardHeight,
           borderTopLeftRadius: 16,
           borderTopRightRadius: 16,
           transform: [{ translateY }],

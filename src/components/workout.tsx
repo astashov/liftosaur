@@ -1,12 +1,7 @@
 import { JSX, useEffect, useRef, useState } from "react";
-import {
-  View,
-  ScrollView,
-  Pressable,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
-  useWindowDimensions,
-} from "react-native";
+import { View, Pressable, NativeSyntheticEvent, NativeScrollEvent, useWindowDimensions } from "react-native";
+import { ScrollView, Gesture, GestureDetector } from "react-native-gesture-handler";
+import { WorkoutScrollGestureContext } from "./workoutScrollGestureContext";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, IProgram, ISettings, IStats, ISubscription } from "../types";
@@ -67,6 +62,7 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
   const selectedEntry = props.progress.entries[props.progress.ui?.currentEntryIndex ?? 0];
   const description = props.programDay?.description;
   const scrollRef = useRef<ScrollView>(null);
+  const scrollGesture = useRef(Gesture.Native()).current;
   const forceUpdateEntryIndex = !!props.progress.ui?.forceUpdateEntryIndex;
   const { width: windowWidth } = useWindowDimensions();
   const currentEntryIndex = props.progress.ui?.currentEntryIndex ?? 0;
@@ -169,42 +165,46 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
         }}
       />
       {selectedEntry != null && (
-        <View className="mt-2">
-          <ScrollView
-            ref={scrollRef}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onScroll={onScroll}
-            scrollEventThrottle={16}
-          >
-            {props.progress.entries.map((entry, entryIndex) => {
-              const shouldRender = renderedIndices.has(entryIndex);
-              return (
-                <View key={entry.id} style={{ width: windowWidth }}>
-                  {shouldRender ? (
-                    <WorkoutExercise
-                      day={props.progress.day}
-                      stats={props.stats}
-                      history={props.history}
-                      otherStates={props.program?.states}
-                      entryIndex={entryIndex}
-                      program={props.program}
-                      programDay={props.programDay}
-                      progress={props.progress}
-                      showHelp={true}
-                      helps={props.helps}
-                      entry={entry}
-                      subscription={props.subscription}
-                      settings={props.settings}
-                      dispatch={props.dispatch}
-                    />
-                  ) : null}
-                </View>
-              );
-            })}
-          </ScrollView>
-        </View>
+        <WorkoutScrollGestureContext.Provider value={scrollGesture}>
+          <View className="mt-2">
+            <GestureDetector gesture={scrollGesture}>
+              <ScrollView
+                ref={scrollRef}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                onScroll={onScroll}
+                scrollEventThrottle={16}
+              >
+                {props.progress.entries.map((entry, entryIndex) => {
+                  const shouldRender = renderedIndices.has(entryIndex);
+                  return (
+                    <View key={entry.id} style={{ width: windowWidth }}>
+                      {shouldRender ? (
+                        <WorkoutExercise
+                          day={props.progress.day}
+                          stats={props.stats}
+                          history={props.history}
+                          otherStates={props.program?.states}
+                          entryIndex={entryIndex}
+                          program={props.program}
+                          programDay={props.programDay}
+                          progress={props.progress}
+                          showHelp={true}
+                          helps={props.helps}
+                          entry={entry}
+                          subscription={props.subscription}
+                          settings={props.settings}
+                          dispatch={props.dispatch}
+                        />
+                      ) : null}
+                    </View>
+                  );
+                })}
+              </ScrollView>
+            </GestureDetector>
+          </View>
+        </WorkoutScrollGestureContext.Provider>
       )}
     </View>
   );
