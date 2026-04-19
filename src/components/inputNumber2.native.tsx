@@ -1,16 +1,19 @@
-import { JSX, memo, useCallback, useEffect, useRef, useState } from "react";
-import { View, Pressable, Modal, Animated } from "react-native";
+import { JSX, memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { View, Pressable, Animated, ScrollView, useWindowDimensions, Vibration } from "react-native";
 import { Text } from "./primitives/text";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StringUtils_dashcase } from "../utils/string";
-import { IconKeyboardClose } from "./icons/iconKeyboardClose";
-import { IconBackspace } from "./icons/iconBackspace";
-import { IconCalculator } from "./icons/iconCalculator";
 import { n, MathUtils_clamp } from "../utils/math";
 import { IPercentageUnit, IUnit } from "../types";
 import { useModal } from "../navigation/ModalStateContext";
-import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { rem } from "nativewind";
+import { NavScreenScrollContext } from "../navigation/NavScreenContent";
+import {
+  IKeyboardConfig,
+  useCloseCustomKeyboard,
+  useCustomKeyboardActiveId,
+  useMeasuredKeyboardHeightRef,
+  useOpenCustomKeyboard,
+} from "../navigation/CustomKeyboardContext";
 
 interface IInputNumber2Props {
   name: string;
@@ -49,24 +52,44 @@ function clamp(value: string | number, min?: number, max?: number): number | und
   return num;
 }
 
+let nextInputId = 1;
+
 function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
   const initialValue = props.value != null ? n(props.value) : "";
   const [value, setValue] = useState(initialValue);
-  const [isFocused, setIsFocused] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+
+  const myIdRef = useRef<string | null>(null);
+  if (!myIdRef.current) {
+    nextInputId += 1;
+    myIdRef.current = `input-${nextInputId}`;
+  }
+  const myId = myIdRef.current;
 
   const valueRef = useRef(value);
   const isTypingRef = useRef(isTyping);
   const onBlurRef = useRef(props.onBlur);
   const onInputRef = useRef(props.onInput);
+  const onNextRef = useRef(props.onNext);
+  const onPrevRef = useRef(props.onPrev);
   const allowDotRef = useRef(!!props.allowDot);
   const allowNegativeRef = useRef(!!props.allowNegative);
+  const minRef = useRef(props.min);
+  const maxRef = useRef(props.max);
+  const stepRef = useRef(props.step);
+  const initialValueRef = useRef(props.initialValue);
   const cursorOpacity = useRef(new Animated.Value(1)).current;
-
-  const maxLength = (props.max?.toString().length ?? 5) + (props.allowDot ? 3 : 0) + (props.allowNegative ? 1 : 0);
+  const pressableRef = useRef<View>(null);
+  const scrollCtx = useContext(NavScreenScrollContext);
+  const measuredKeyboardHeightRef = useMeasuredKeyboardHeightRef();
+  const openKeyboard = useOpenCustomKeyboard();
+  const closeKeyboard = useCloseCustomKeyboard();
+  const activeId = useCustomKeyboardActiveId();
+  const isFocused = activeId === myId;
+  const { height: windowHeight } = useWindowDimensions();
 
   const openCalculator = useModal("repMaxCalculatorModal", (weightValue) => {
-    const newValue = clamp(weightValue, props.min, props.max);
+    const newValue = clamp(weightValue, minRef.current, maxRef.current);
     valueRef.current = newValue?.toString() ?? "";
     setValue(newValue?.toString() ?? "");
     if (onBlurRef.current) {
@@ -77,12 +100,18 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
   useEffect(() => {
     onBlurRef.current = props.onBlur;
     onInputRef.current = props.onInput;
-  }, [props.onBlur, props.onInput]);
+    onNextRef.current = props.onNext;
+    onPrevRef.current = props.onPrev;
+  }, [props.onBlur, props.onInput, props.onNext, props.onPrev]);
 
   useEffect(() => {
     allowDotRef.current = !!props.allowDot;
     allowNegativeRef.current = !!props.allowNegative;
-  }, [props.allowDot, props.allowNegative]);
+    minRef.current = props.min;
+    maxRef.current = props.max;
+    stepRef.current = props.step;
+    initialValueRef.current = props.initialValue;
+  }, [props.allowDot, props.allowNegative, props.min, props.max, props.step, props.initialValue]);
 
   useEffect(() => {
     valueRef.current = initialValue;
@@ -91,10 +120,6 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
 
   useEffect(() => {
     if (isFocused) {
-      if (props.value == null && props.initialValue != null) {
-        valueRef.current = props.initialValue.toString();
-        setValue(props.initialValue.toString());
-      }
       const animation = Animated.loop(
         Animated.sequence([
           Animated.timing(cursorOpacity, { toValue: 0, duration: 500, useNativeDriver: true }),
@@ -106,383 +131,190 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
     }
     cursorOpacity.setValue(1);
     return undefined;
-  }, [isFocused, props.initialValue]);
+  }, [isFocused, cursorOpacity]);
 
-  const handleInput = useCallback(
-    (key: string) => {
-      let newValue = valueRef.current;
-      if (!isTypingRef.current) {
-        newValue = "";
+  const prevFocusedRef = useRef(isFocused);
+  useEffect(() => {
+    if (prevFocusedRef.current && !isFocused) {
+      setIsTyping(false);
+      isTypingRef.current = false;
+      const newValueNum = clamp(valueRef.current, minRef.current, maxRef.current);
+      valueRef.current = newValueNum != null ? newValueNum.toString() : "";
+      setValue(newValueNum != null ? newValueNum.toString() : "");
+      if (onBlurRef.current) {
+        onBlurRef.current(newValueNum);
       }
-      if (key === "⌫") {
-        newValue = newValue.slice(0, -1);
-      } else if (key === "-") {
-        if (allowNegativeRef.current) {
-          if (newValue[0] === "-") {
-            newValue = newValue.slice(1);
-          } else if (!newValue.includes("-")) {
-            newValue = `-${newValue}`;
-          }
+    }
+    prevFocusedRef.current = isFocused;
+  }, [isFocused]);
+
+  const scrollIntoView = useCallback(() => {
+    const scrollNode = scrollCtx?.scrollRef.current as ScrollView | null;
+    const scrollYRef = scrollCtx?.scrollYRef;
+    const pressableNode = pressableRef.current;
+    if (!scrollNode || !scrollYRef || !pressableNode) {
+      return;
+    }
+    const keyboardHeight = measuredKeyboardHeightRef.current > 0 ? measuredKeyboardHeightRef.current : 260;
+    const visibleBottom = windowHeight - keyboardHeight - 16;
+    pressableNode.measure((_fx, _fy, _w, pressH, _pageX, pressPageY) => {
+      const pressBottom = pressPageY + pressH;
+      if (pressBottom <= visibleBottom) {
+        return;
+      }
+      const delta = pressBottom - visibleBottom;
+      scrollNode.scrollTo({ y: Math.max(0, scrollYRef.current + delta), animated: true });
+    });
+  }, [scrollCtx, windowHeight, measuredKeyboardHeightRef]);
+
+  const handleInput = useCallback((key: string) => {
+    Vibration.vibrate(10);
+    let newValue = valueRef.current;
+    if (!isTypingRef.current) {
+      newValue = "";
+    }
+    const max = maxRef.current;
+    const dynMaxLength =
+      (max?.toString().length ?? 5) + (allowDotRef.current ? 3 : 0) + (allowNegativeRef.current ? 1 : 0);
+    if (key === "⌫") {
+      newValue = newValue.slice(0, -1);
+    } else if (key === "-") {
+      if (allowNegativeRef.current) {
+        if (newValue[0] === "-") {
+          newValue = newValue.slice(1);
+        } else if (!newValue.includes("-")) {
+          newValue = `-${newValue}`;
         }
-      } else if (key === ".") {
-        if (allowDotRef.current && !newValue.includes(".")) {
-          newValue += key;
-        }
-      } else if (newValue.length < maxLength) {
+      }
+    } else if (key === ".") {
+      if (allowDotRef.current && !newValue.includes(".")) {
         newValue += key;
       }
-      setIsTyping(true);
-      isTypingRef.current = true;
-      valueRef.current = newValue;
-      setValue(newValue);
-      if (onInputRef.current && !newValue.endsWith(".")) {
-        const newValueNum = clamp(newValue, props.min, props.max);
-        onInputRef.current(newValueNum);
-      }
-    },
-    [maxLength, props.min, props.max]
-  );
-
-  const blur = useCallback(() => {
-    setIsFocused(false);
-    setIsTyping(false);
-    isTypingRef.current = false;
-    const newValueNum = clamp(valueRef.current, props.min, props.max);
-    valueRef.current = newValueNum != null ? newValueNum.toString() : "";
-    setValue(newValueNum != null ? newValueNum.toString() : "");
-    if (onBlurRef.current) {
-      onBlurRef.current(newValueNum);
+    } else if (newValue.length < dynMaxLength) {
+      newValue += key;
     }
-  }, [props.min, props.max]);
+    setIsTyping(true);
+    isTypingRef.current = true;
+    valueRef.current = newValue;
+    setValue(newValue);
+    if (onInputRef.current && !newValue.endsWith(".")) {
+      const newValueNum = clamp(newValue, minRef.current, maxRef.current);
+      onInputRef.current(newValueNum);
+    }
+  }, []);
 
   const handlePlus = useCallback(() => {
-    const nextValue = props.onNext ? props.onNext(Number(value)) : Number(value) + (props.step ?? 1);
-    const newValue = clamp(nextValue, props.min, props.max);
+    Vibration.vibrate(10);
+    const currentNum = valueRef.current === "" ? (initialValueRef.current ?? 0) : Number(valueRef.current);
+    const nextValue = onNextRef.current ? onNextRef.current(currentNum) : currentNum + (stepRef.current ?? 1);
+    const newValue = clamp(nextValue, minRef.current, maxRef.current);
     valueRef.current = newValue != null ? newValue.toString() : "";
     setValue(newValue != null ? newValue.toString() : "");
     if (onInputRef.current) {
       onInputRef.current(newValue);
     }
-  }, [value, props.onNext, props.step, props.min, props.max]);
+  }, []);
 
   const handleMinus = useCallback(() => {
-    const prevValue = props.onPrev ? props.onPrev(Number(value)) : Number(value) - (props.step ?? 1);
-    const newValue = clamp(prevValue, props.min, props.max);
+    Vibration.vibrate(10);
+    const currentNum = valueRef.current === "" ? (initialValueRef.current ?? 0) : Number(valueRef.current);
+    const prevValue = onPrevRef.current ? onPrevRef.current(currentNum) : currentNum - (stepRef.current ?? 1);
+    const newValue = clamp(prevValue, minRef.current, maxRef.current);
     valueRef.current = newValue != null ? newValue.toString() : "";
     setValue(newValue != null ? newValue.toString() : "");
     if (onInputRef.current) {
       onInputRef.current(newValue);
     }
-  }, [value, props.onPrev, props.step, props.min, props.max]);
+  }, []);
 
-  const semantic = Tailwind_semantic();
+  const focusSelf = useCallback(() => {
+    scrollIntoView();
+    const config: IKeyboardConfig = {
+      id: myId,
+      onInput: handleInput,
+      onBlur: closeKeyboard,
+      onPlus: handlePlus,
+      onMinus: handleMinus,
+      onShowCalculator: () => {
+        closeKeyboard();
+        if (props.selectedUnit && props.selectedUnit !== "%") {
+          openCalculator({ unit: props.selectedUnit as "kg" | "lb" });
+        }
+      },
+      onChangeUnits: props.onChangeUnits,
+      allowDot: props.allowDot,
+      allowNegative: props.allowNegative,
+      isNegative: typeof valueRef.current === "string" && valueRef.current[0] === "-",
+      withDot: typeof valueRef.current === "string" && valueRef.current.includes("."),
+      keyboardAddon: props.keyboardAddon,
+      enableCalculator: props.enableCalculator,
+      enableUnits: props.enableUnits,
+      selectedUnit: props.selectedUnit,
+    };
+    openKeyboard(config);
+  }, [
+    myId,
+    scrollIntoView,
+    handleInput,
+    handlePlus,
+    handleMinus,
+    closeKeyboard,
+    openKeyboard,
+    openCalculator,
+    props.allowDot,
+    props.allowNegative,
+    props.keyboardAddon,
+    props.enableCalculator,
+    props.enableUnits,
+    props.selectedUnit,
+    props.onChangeUnits,
+  ]);
+
+  useEffect(() => {
+    return () => {
+      if (prevFocusedRef.current) {
+        closeKeyboard();
+      }
+    };
+  }, [closeKeyboard]);
+
   const remValue = rem.get();
   const fieldWidth = (props.width ?? 4) * remValue;
 
+  const fieldClassName = useMemo(
+    () =>
+      `h-6 border rounded border-border-prominent bg-background-default flex-row justify-center items-center ${
+        props.autowidth ? "px-2" : ""
+      }`,
+    [props.autowidth]
+  );
+
   return (
-    <>
+    <View ref={pressableRef} collapsable={false}>
       <Pressable
-        onPress={() => setIsFocused(true)}
+        onPress={focusSelf}
         testID={`input-${StringUtils_dashcase(props.name)}-field`}
         data-cy={`input-${StringUtils_dashcase(props.name)}-field`}
-        style={[
-          {
-            height: 24,
-            borderWidth: 1,
-            borderRadius: 4,
-            borderColor: semantic.border.prominent,
-            backgroundColor: semantic.background.default,
-            justifyContent: "center",
-            alignItems: "center",
-            flexDirection: "row",
-          },
-          props.autowidth ? { paddingHorizontal: 8 } : { width: fieldWidth },
-        ]}
+        className={fieldClassName}
+        style={props.autowidth ? undefined : { width: fieldWidth }}
       >
         {!value && !isFocused && props.placeholder ? (
-          <Text style={{ fontSize: 14, color: semantic.text.secondarysubtle }} numberOfLines={1}>
+          <Text className="text-sm text-text-secondarysubtle" numberOfLines={1}>
             {props.placeholder}
           </Text>
         ) : (
-          <Text
-            style={[
-              { fontSize: 14 },
-              isFocused && !isTypingRef.current
-                ? { backgroundColor: semantic.background.cardpurpleselected }
-                : undefined,
-            ]}
-          >
+          <Text className={`text-sm ${isFocused && !isTypingRef.current ? "bg-background-cardpurpleselected" : ""}`}>
             {value}
           </Text>
         )}
-        {isFocused && (
-          <Animated.View
-            style={{
-              width: 1,
-              height: 12,
-              backgroundColor: semantic.background.darkgray,
-              opacity: cursorOpacity,
-            }}
-          />
-        )}
+        {isFocused && <Animated.View className="w-px h-3 bg-background-darkgray" style={{ opacity: cursorOpacity }} />}
         {props.showUnitInside && props.selectedUnit && props.value != null && (
-          <Text style={{ fontSize: 12, color: semantic.text.secondary }}> {props.selectedUnit}</Text>
+          <Text className="text-xs text-text-secondary"> {props.selectedUnit}</Text>
         )}
         {props.after && props.after()}
       </Pressable>
-
-      <Modal transparent visible={isFocused} animationType="none" statusBarTranslucent>
-        <View style={{ flex: 1, justifyContent: "flex-end" }}>
-          <Pressable style={{ flex: 1 }} onPress={blur} />
-          <NativeCustomKeyboard
-            onInput={handleInput}
-            onBlur={blur}
-            onPlus={handlePlus}
-            onMinus={handleMinus}
-            allowDot={props.allowDot}
-            allowNegative={props.allowNegative}
-            isNegative={typeof value === "string" && value[0] === "-"}
-            withDot={typeof value === "string" && value.includes(".")}
-            keyboardAddon={props.keyboardAddon}
-            enableCalculator={props.enableCalculator}
-            onShowCalculator={() => {
-              blur();
-              if (props.selectedUnit && props.selectedUnit !== "%") {
-                openCalculator({ unit: props.selectedUnit as "kg" | "lb" });
-              }
-            }}
-            enableUnits={props.enableUnits}
-            onChangeUnits={props.onChangeUnits}
-            selectedUnit={props.selectedUnit}
-          />
-        </View>
-      </Modal>
-    </>
-  );
-}
-
-export const InputNumber2 = memo(InputNumber2Inner);
-
-interface INativeCustomKeyboardProps {
-  onInput: (value: string) => void;
-  onBlur: () => void;
-  onPlus: () => void;
-  onMinus: () => void;
-  allowDot?: boolean;
-  allowNegative?: boolean;
-  isNegative: boolean;
-  withDot: boolean;
-  keyboardAddon?: JSX.Element;
-  enableCalculator?: boolean;
-  onShowCalculator?: () => void;
-  enableUnits?: (IUnit | IPercentageUnit)[];
-  onChangeUnits?: (unit: IUnit | IPercentageUnit) => void;
-  selectedUnit?: IUnit | IPercentageUnit;
-}
-
-const KEY_ROWS = [
-  ["1", "2", "3"],
-  ["4", "5", "6"],
-  ["7", "8", "9"],
-];
-
-function NativeCustomKeyboard(props: INativeCustomKeyboardProps): JSX.Element {
-  const insets = useSafeAreaInsets();
-  const semantic = Tailwind_semantic();
-
-  const lastRow = [props.allowNegative ? "-" : "", "0", props.allowDot ? "." : ""];
-
-  return (
-    <View style={{ backgroundColor: semantic.background.default, paddingBottom: insets.bottom }}>
-      {(props.keyboardAddon || props.enableCalculator) && (
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 8,
-            paddingHorizontal: 16,
-            backgroundColor: semantic.background.subtle,
-          }}
-        >
-          <View style={{ flex: 1 }}>{props.keyboardAddon}</View>
-          {props.enableCalculator && (
-            <Pressable
-              testID="keyboard-rm-calculator"
-              data-cy="keyboard-rm-calculator"
-              onPress={props.onShowCalculator}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                width: 96,
-                paddingHorizontal: 8,
-                paddingVertical: 4,
-                borderWidth: 1,
-                borderRadius: 4,
-                borderColor: semantic.border.cardpurple,
-                backgroundColor: semantic.background.cardpurple,
-                marginVertical: 8,
-              }}
-            >
-              <Text style={{ marginRight: 8 }}>RM</Text>
-              <IconCalculator size={14} />
-            </Pressable>
-          )}
-        </View>
-      )}
-
-      <View style={{ flexDirection: "row", gap: 16, padding: 16 }}>
-        <View style={{ flex: 1, gap: 8 }}>
-          {KEY_ROWS.map((row, rowIndex) => (
-            <View key={rowIndex} style={{ flexDirection: "row", gap: 8 }}>
-              {row.map((key) => (
-                <KeyButton key={key} label={key} onPress={() => props.onInput(key)} />
-              ))}
-            </View>
-          ))}
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            {lastRow.map((key, i) =>
-              key ? (
-                <KeyButton key={key} label={key} onPress={() => props.onInput(key)} />
-              ) : (
-                <View key={`empty-${i}`} style={{ flex: 1 }} />
-              )
-            )}
-          </View>
-        </View>
-
-        <View style={{ width: 96, marginTop: 8 }}>
-          <Pressable
-            testID="keyboard-close"
-            data-cy="keyboard-close"
-            onPress={props.onBlur}
-            style={{
-              width: "100%",
-              paddingTop: 8,
-              paddingBottom: 4,
-              borderWidth: 1,
-              borderRadius: 4,
-              borderColor: semantic.border.cardpurple,
-              backgroundColor: semantic.background.cardpurple,
-              alignItems: "center",
-              justifyContent: "center",
-              marginBottom: 16,
-            }}
-          >
-            <IconKeyboardClose />
-          </Pressable>
-
-          <View style={{ flexDirection: "row", gap: 4 }}>
-            <Pressable
-              testID="keyboard-minus"
-              data-cy="keyboard-minus"
-              onPress={props.onMinus}
-              style={{
-                flex: 1,
-                padding: 8,
-                borderWidth: 1,
-                borderRadius: 4,
-                borderTopRightRadius: 0,
-                borderBottomRightRadius: 0,
-                borderColor: semantic.border.cardpurple,
-                backgroundColor: semantic.background.cardpurple,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Text style={{ color: semantic.icon.neutral }}>-</Text>
-            </Pressable>
-            <Pressable
-              testID="keyboard-plus"
-              data-cy="keyboard-plus"
-              onPress={props.onPlus}
-              style={{
-                flex: 1,
-                padding: 8,
-                borderWidth: 1,
-                borderRadius: 4,
-                borderTopLeftRadius: 0,
-                borderBottomLeftRadius: 0,
-                borderColor: semantic.border.cardpurple,
-                backgroundColor: semantic.background.cardpurple,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Text style={{ color: semantic.icon.neutral }}>+</Text>
-            </Pressable>
-          </View>
-
-          {props.enableUnits && props.selectedUnit ? (
-            <View style={{ flexDirection: "row", alignItems: "center", height: 40, gap: 8, marginTop: 16 }}>
-              {props.enableUnits.map((unit) => (
-                <Pressable
-                  key={unit}
-                  testID={`keyboard-unit-${unit}`}
-                  data-cy={`keyboard-unit-${unit}`}
-                  onPress={() => props.onChangeUnits?.(unit)}
-                  style={{
-                    flex: 1,
-                    aspectRatio: 1,
-                    borderWidth: 1,
-                    borderRadius: 4,
-                    borderColor: unit === props.selectedUnit ? semantic.border.prominent : semantic.border.cardpurple,
-                    backgroundColor:
-                      unit === props.selectedUnit
-                        ? semantic.background.cardpurpleselected
-                        : semantic.background.cardpurple,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Text style={{ color: semantic.icon.neutral }}>{unit}</Text>
-                </Pressable>
-              ))}
-            </View>
-          ) : (
-            <View style={{ height: 40, marginTop: 16 }} />
-          )}
-
-          <Pressable
-            testID="keyboard-backspace"
-            data-cy="keyboard-backspace"
-            onPress={() => props.onInput("⌫")}
-            style={{
-              width: "100%",
-              height: 40,
-              marginTop: 16,
-              borderWidth: 1,
-              borderRadius: 4,
-              borderColor: semantic.border.cardpurple,
-              backgroundColor: semantic.background.cardpurple,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <IconBackspace />
-          </Pressable>
-        </View>
-      </View>
     </View>
   );
 }
 
-function KeyButton(props: { label: string; onPress: () => void }): JSX.Element {
-  const semantic = Tailwind_semantic();
-  return (
-    <Pressable
-      testID={`keyboard-button-${props.label}`}
-      data-cy={`keyboard-button-${props.label}`}
-      onPress={props.onPress}
-      style={({ pressed }) => ({
-        flex: 1,
-        padding: 8,
-        alignItems: "center" as const,
-        borderRadius: 4,
-        backgroundColor: pressed ? semantic.background.neutral : semantic.background.default,
-      })}
-    >
-      <Text style={{ fontSize: 24, color: semantic.text.primary }}>{props.label}</Text>
-    </Pressable>
-  );
-}
+export const InputNumber2 = memo(InputNumber2Inner);

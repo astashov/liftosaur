@@ -21,6 +21,7 @@ import { IconFilter } from "./icons/iconFilter";
 import { MenuItemEditable } from "./menuItemEditable";
 import { ComparerUtils_noFns } from "../utils/comparer";
 import { Thunk_editHistoryRecord } from "../ducks/thunks";
+import { Tailwind_colors, Tailwind_semantic } from "../utils/tailwindConfig";
 
 interface IExerciseHistoryProps {
   surfaceRef: RefObject<{ clientHeight?: number } | null>;
@@ -170,7 +171,7 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
                           </View>
                           {volume.value > 0 && (
                             <Text className="mb-1 text-xs text-text-secondary">
-                              Volume: <Text className="font-bold">{Weight_print(volume)}</Text>
+                              Volume: <Text className="text-xs font-bold">{Weight_print(volume)}</Text>
                             </Text>
                           )}
                           {Object.keys(state).length > 0 && (
@@ -182,8 +183,8 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
                                 return (
                                   <Fragment key={stateKey}>
                                     {i !== 0 && ", "}
-                                    <Text>
-                                      {stateKey} - <Text className="font-bold">{displayValue}</Text>
+                                    <Text className="text-xs">
+                                      {stateKey} - <Text className="text-xs font-bold">{displayValue}</Text>
                                     </Text>
                                   </Fragment>
                                 );
@@ -205,13 +206,13 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
                   )}
                   {historyRecord.notes && (
                     <Text className="text-sm text-text-secondary">
-                      <Text className="font-bold">Workout: </Text>
-                      <Text>{historyRecord.notes}</Text>
+                      <Text className="text-sm font-bold">Workout: </Text>
+                      <Text className="text-sm">{historyRecord.notes}</Text>
                     </Text>
                   )}
                 </View>
                 <View className="flex-row items-center py-2 pl-2">
-                  <IconArrowRight color="#a0aec0" />
+                  <IconArrowRight color={Tailwind_semantic().icon.neutral} />
                 </View>
               </View>
             </View>

@@ -1,17 +1,27 @@
-import { createContext, JSX, ReactNode, RefObject, useCallback, useRef } from "react";
-import { ScrollView, NativeSyntheticEvent, NativeScrollEvent } from "react-native";
+import { createContext, JSX, ReactNode, RefObject, useCallback, useMemo, useRef } from "react";
+import { ScrollView, NativeSyntheticEvent, NativeScrollEvent, Animated } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { useCustomKeyboardAnimatedHeight } from "./CustomKeyboardContext";
 
-export const NavScreenScrollContext = createContext<RefObject<ScrollView | null> | null>(null);
+export interface INavScreenScrollContextValue {
+  scrollRef: RefObject<ScrollView | null>;
+  scrollYRef: RefObject<number>;
+}
+
+export const NavScreenScrollContext = createContext<INavScreenScrollContextValue | null>(null);
 
 export function NavScreenContent(props: { children: ReactNode; stickyHeaderIndices?: number[] }): JSX.Element {
   const navigation = useNavigation();
   const isScrolledRef = useRef(false);
   const scrollRef = useRef<ScrollView>(null);
+  const scrollYRef = useRef(0);
+  const animatedKeyboardHeight = useCustomKeyboardAnimatedHeight();
 
   const onScroll = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const isScrolled = e.nativeEvent.contentOffset.y > 0;
+      const y = e.nativeEvent.contentOffset.y;
+      scrollYRef.current = y;
+      const isScrolled = y > 0;
       if (isScrolled !== isScrolledRef.current) {
         isScrolledRef.current = isScrolled;
         navigation.setOptions({ navIsScrolled: isScrolled });
@@ -20,8 +30,10 @@ export function NavScreenContent(props: { children: ReactNode; stickyHeaderIndic
     [navigation]
   );
 
+  const contextValue = useMemo(() => ({ scrollRef, scrollYRef }), []);
+
   return (
-    <NavScreenScrollContext.Provider value={scrollRef}>
+    <NavScreenScrollContext.Provider value={contextValue}>
       <ScrollView
         ref={scrollRef}
         data-cy="screen"
@@ -34,6 +46,7 @@ export function NavScreenContent(props: { children: ReactNode; stickyHeaderIndic
         stickyHeaderIndices={props.stickyHeaderIndices}
       >
         {props.children}
+        <Animated.View style={{ height: animatedKeyboardHeight }} />
       </ScrollView>
     </NavScreenScrollContext.Provider>
   );

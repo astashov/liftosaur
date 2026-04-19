@@ -1,5 +1,6 @@
 import { JSX, ReactNode } from "react";
-import { ScrollView } from "react-native";
+import { ScrollView, Animated } from "react-native";
+import { useCustomKeyboardAnimatedHeight } from "./CustomKeyboardContext";
 
 interface IProps {
   children: ReactNode;
@@ -14,6 +15,7 @@ interface IProps {
 }
 
 export function ModalScreenContainer(props: IProps): JSX.Element {
+  const animatedKeyboardHeight = useCustomKeyboardAnimatedHeight();
   return (
     <ScrollView
       className={`bg-background-default ${props.noPaddings ? "" : "px-4 pt-2 pb-6"}`}
@@ -22,6 +24,7 @@ export function ModalScreenContainer(props: IProps): JSX.Element {
       automaticallyAdjustKeyboardInsets
     >
       {props.children}
+      <Animated.View style={{ height: animatedKeyboardHeight }} />
     </ScrollView>
   );
 }

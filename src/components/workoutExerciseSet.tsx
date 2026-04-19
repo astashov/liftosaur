@@ -205,7 +205,7 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
       openThreshold={hasEdit ? 30 : 15}
       closeThreshold={hasEdit ? 110 : 55}
       scrollThreshold={7}
-      initiateTreshold={15}
+      initiateTreshold={8}
       onPointerDown={props.onStopShowingHint}
     >
       {({ style, close, moveRef }) => (

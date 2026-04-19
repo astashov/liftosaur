@@ -98,31 +98,36 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
         ? "history-entry-sets-in-range"
         : "history-entry-sets-incompleted";
   return (
-    <Text className="text-sm" data-cy={dataCy} testID={dataCy}>
+    <Text data-cy={dataCy} testID={dataCy}>
       {props.showPrDetails && isPr && (
-        <Text className="mr-2 text-xs font-semibold text-yellow-600">
-          <Text>{prTypes.join(", ")}</Text> <Text>{"\u{1F3C6}"}</Text>
+        <Text className="mr-2">
+          <Text className="text-xs font-semibold text-yellow-600">{prTypes.join(", ")}</Text>{" "}
+          <Text className="text-xs leading-8">{"\u{1F3C6}"}</Text>
         </Text>
       )}
-      <Text className={`px-1 ${isPr ? "bg-color-yellow150" : ""}`}>
+      <Text className={`px-1 ${isPr ? "bg-color-yellow150 " : ""}`}>
         {group.length > 1 && (
           <>
-            <Text className="font-semibold text-text-purple" data-cy="history-entry-sets" testID="history-entry-sets">
+            <Text
+              className="text-sm font-semibold text-text-purple"
+              data-cy="history-entry-sets"
+              testID="history-entry-sets"
+            >
               {group.length}
             </Text>
-            <Text className="text-text-secondary"> {"\u00D7"} </Text>
+            <Text className="text-sm text-text-secondary"> {"\u00D7"} </Text>
           </>
         )}
-        <Text className={`font-semibold ${repsColor}`} data-cy="history-entry-reps" testID="history-entry-reps">
+        <Text className={`font-semibold ${repsColor} text-sm`} data-cy="history-entry-reps" testID="history-entry-reps">
           {set.reps}
         </Text>
         {set.weight && (
           <>
-            <Text className="text-text-secondary"> {"\u00D7"} </Text>
+            <Text className="text-sm text-text-secondary"> {"\u00D7"} </Text>
             <Text data-cy="history-entry-weight" testID="history-entry-weight">
-              <Text className="font-semibold">{set.weight}</Text>
-              <Text className="text-xs">{set.askWeight ? "+" : ""}</Text>
-              <Text className="text-xs text-text-secondary">{set.unit}</Text>
+              <Text className="text-sm font-semibold">{set.weight}</Text>
+              <Text className="text-sm">{set.askWeight ? "+" : ""}</Text>
+              <Text className="text-sm text-text-secondary">{set.unit}</Text>
             </Text>
           </>
         )}
