@@ -1,5 +1,6 @@
 import { JSX, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
+import { ActiveGraphContext, IActiveGraphContext } from "./activeGraphContext";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, ISettings, ISubscription, IHistoryEntry, IProgramState, IStats } from "../types";
 import { updateSettings } from "../models/state";
@@ -74,6 +75,12 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
     return () => clearTimeout(t);
   }, []);
 
+  const [activeGraphId, setActiveGraphId] = useState<string | null>(null);
+  const activeGraphValue = useMemo<IActiveGraphContext>(
+    () => ({ activeId: activeGraphId, setActive: setActiveGraphId }),
+    [activeGraphId]
+  );
+
   const dispatch = props.dispatch;
   const shouldHideGraphs = props.settings.workoutSettings.shouldHideGraphs;
   const onToggleGraphs = useCallback(() => {
@@ -119,19 +126,22 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
           {history.length > 1 && isHeavyContentReady && (
             <View data-cy="workout-stats-graph" className="relative mx-4 mt-2">
               <Locker topic="Graphs" dispatch={props.dispatch} blur={8} subscription={props.subscription} />
-              <GraphExercise
-                isSameXAxis={false}
-                minX={Math.round(minX / 1000)}
-                maxX={Math.round(maxX / 1000)}
-                isWithOneRm={true}
-                key={`${Exercise_toKey(exerciseType)}_${props.settings.theme}`}
-                settings={props.settings}
-                isWithProgramLines={true}
-                history={props.history}
-                exercise={exerciseType}
-                initialType={props.settings.graphsSettings.defaultType}
-                dispatch={props.dispatch}
-              />
+              <ActiveGraphContext.Provider value={activeGraphValue}>
+                <GraphExercise
+                  id={`workout-graph-${Exercise_toKey(exerciseType)}`}
+                  isSameXAxis={false}
+                  minX={Math.round(minX / 1000)}
+                  maxX={Math.round(maxX / 1000)}
+                  isWithOneRm={true}
+                  key={`${Exercise_toKey(exerciseType)}_${props.settings.theme}`}
+                  settings={props.settings}
+                  isWithProgramLines={true}
+                  history={props.history}
+                  exercise={exerciseType}
+                  initialType={props.settings.graphsSettings.defaultType}
+                  dispatch={props.dispatch}
+                />
+              </ActiveGraphContext.Provider>
             </View>
           )}
           {showPrs && (

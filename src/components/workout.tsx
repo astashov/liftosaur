@@ -1,5 +1,12 @@
-import { JSX, useEffect, useRef, useState } from "react";
-import { View, Pressable, NativeSyntheticEvent, NativeScrollEvent, useWindowDimensions } from "react-native";
+import { JSX, useCallback, useEffect, useRef, useState } from "react";
+import {
+  View,
+  Pressable,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+  LayoutChangeEvent,
+  useWindowDimensions,
+} from "react-native";
 import { ScrollView, Gesture, GestureDetector } from "react-native-gesture-handler";
 import { WorkoutScrollGestureContext } from "./workoutScrollGestureContext";
 import { Text } from "./primitives/text";
@@ -74,6 +81,16 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
     }
     return s;
   });
+  const [pageHeights, setPageHeights] = useState<Record<number, number>>({});
+  const onPageLayout = useCallback((entryIndex: number, height: number) => {
+    setPageHeights((prev) => {
+      if (prev[entryIndex] === height) {
+        return prev;
+      }
+      return { ...prev, [entryIndex]: height };
+    });
+  }, []);
+  const pagerHeight = pageHeights[currentEntryIndex];
   useEffect(() => {
     setRenderedIndices((prev) => {
       if (prev.has(currentEntryIndex - 1) && prev.has(currentEntryIndex) && prev.has(currentEntryIndex + 1)) {
@@ -175,29 +192,32 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
                 showsHorizontalScrollIndicator={false}
                 onScroll={onScroll}
                 scrollEventThrottle={16}
+                style={pagerHeight != null ? { height: pagerHeight } : undefined}
               >
                 {props.progress.entries.map((entry, entryIndex) => {
                   const shouldRender = renderedIndices.has(entryIndex);
                   return (
                     <View key={entry.id} style={{ width: windowWidth }}>
-                      {shouldRender ? (
-                        <WorkoutExercise
-                          day={props.progress.day}
-                          stats={props.stats}
-                          history={props.history}
-                          otherStates={props.program?.states}
-                          entryIndex={entryIndex}
-                          program={props.program}
-                          programDay={props.programDay}
-                          progress={props.progress}
-                          showHelp={true}
-                          helps={props.helps}
-                          entry={entry}
-                          subscription={props.subscription}
-                          settings={props.settings}
-                          dispatch={props.dispatch}
-                        />
-                      ) : null}
+                      <View onLayout={(e: LayoutChangeEvent) => onPageLayout(entryIndex, e.nativeEvent.layout.height)}>
+                        {shouldRender ? (
+                          <WorkoutExercise
+                            day={props.progress.day}
+                            stats={props.stats}
+                            history={props.history}
+                            otherStates={props.program?.states}
+                            entryIndex={entryIndex}
+                            program={props.program}
+                            programDay={props.programDay}
+                            progress={props.progress}
+                            showHelp={true}
+                            helps={props.helps}
+                            entry={entry}
+                            subscription={props.subscription}
+                            settings={props.settings}
+                            dispatch={props.dispatch}
+                          />
+                        ) : null}
+                      </View>
                     </View>
                   );
                 })}
