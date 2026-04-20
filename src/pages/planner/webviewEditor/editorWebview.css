@@ -1,0 +1,186 @@
+html,
+body,
+#editor {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: transparent;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  color: var(--fg, #171718);
+  background: var(--bg, #ffffff);
+}
+
+body.dark {
+  color: var(--fg-dark, #e7e7e7);
+  background: var(--bg-dark, #0e0f10);
+}
+
+#editor,
+.planner-editor-view {
+  height: 100%;
+}
+
+.planner-editor-view {
+  font-family: "Iosevka Web", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.planner-editor-view .cm-editor {
+  height: 100%;
+  font-size: 0.95rem;
+}
+
+.planner-editor-view .cm-scroller {
+  min-height: 6rem;
+}
+
+.planner-editor-view .cm-line {
+  line-height: 1.35rem;
+}
+
+.planner-editor-view .cm-errorLineGutter {
+  background-color: #e53e3e;
+  color: white;
+}
+
+.planner-editor-view .cm-tooltip {
+  border: 1px solid #bac4cd;
+  background: white;
+  border-radius: 0 8px 8px 8px;
+  overflow: hidden;
+}
+
+body.dark .planner-editor-view .cm-tooltip {
+  background: #1c1d1f;
+  border-color: #3a3d42;
+  color: #e7e7e7;
+}
+
+.planner-editor-view .cm-tooltip-autocomplete ul {
+  border: none;
+  color: inherit;
+  max-height: 20rem;
+}
+
+.planner-editor-view .cm-tooltip-autocomplete ul li {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.planner-editor-view .cm-tooltip-autocomplete ul li[aria-selected] {
+  background: #e9ecef;
+  color: #171718;
+}
+
+body.dark .planner-editor-view .cm-tooltip-autocomplete ul li[aria-selected] {
+  background: #2a2d31;
+  color: #e7e7e7;
+}
+
+.planner-editor-view .cm-tooltip-autocomplete img {
+  display: inline-block;
+  width: 2rem;
+  margin: 0 0.5rem;
+  object-fit: contain;
+}
+
+.planner-editor-view .cm-tooltip-autocomplete .cm-completionIcon,
+.planner-editor-view .cm-tooltip-autocomplete .cm-completionLabel {
+  display: none;
+}
+
+.planner-editor-view .cm-tooltip-autocomplete .cm-completionIcon.cm-completionIcon-liftoscript {
+  padding-left: 0.25rem;
+}
+
+.planner-editor-view .cm-tooltip-autocomplete .cm-completionIcon.cm-completionIcon-liftoscript,
+.planner-editor-view .cm-tooltip-autocomplete .cm-completionIcon-liftoscript + .cm-completionLabel {
+  display: inherit;
+}
+
+.exercise-completion-title {
+  font-size: 1rem;
+}
+
+.exercise-completion-description-info {
+  font-size: 0.75rem;
+}
+
+.exercise-completion-description-info-label {
+  color: #607284;
+}
+
+.exercise-completion-description-info-data {
+  font-weight: bold;
+}
+
+.exercise-default-image {
+  width: 2rem;
+  height: 2rem;
+  margin: 0 0.5rem;
+}
+
+.property-completion {
+  max-width: 20rem;
+  padding: 0 0.5rem;
+}
+
+.property-completion-title {
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.property-completion-description {
+  padding-top: 0.25rem;
+  font-size: 0.75rem;
+  white-space: initial;
+}
+
+.function-completion {
+  max-width: 25rem;
+  padding: 0 0.5rem;
+}
+
+.function-completion-title {
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.function-completion-description {
+  font-size: 0.75rem;
+  padding-top: 0.25rem;
+  white-space: initial;
+}
+
+.function-completion-description ul {
+  list-style: disc;
+  padding-left: 1rem;
+  padding-top: 0.25rem;
+}
+
+.function-completion-description ul li {
+  display: list-item;
+  padding: 0;
+}
+
+.function-completion-description p {
+  padding-top: 0.25rem;
+}
+
+.function-completion-description code {
+  font-family: "Iosevka Web", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+}
+
+.equipment-completion {
+  padding-left: 1rem;
+}
+
+.equipment-completion-title {
+  font-size: 1rem;
+}

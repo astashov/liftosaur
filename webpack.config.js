@@ -18,6 +18,8 @@ const {
 } = require("webpack");
 const CopyPlugin = require("copy-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const HtmlInlineScriptPlugin = require("html-inline-script-webpack-plugin");
 let commitHash, fullCommitHash;
 try {
   commitHash = require("child_process").execSync("git rev-parse --short HEAD").toString().trim();
@@ -589,4 +591,124 @@ const mainConfig = {
   },
 };
 
-module.exports = [mainConfig, watchConfig];
+const editorWebviewConfig = {
+  name: "editorWebview",
+  entry: "./src/pages/planner/webviewEditor/editorWebviewEntry.ts",
+  target: ["web", "es2017"],
+  output: {
+    filename: "editor-webview-bundle.js",
+    path: path.resolve(__dirname, "assets/editorWebview"),
+    clean: true,
+  },
+  devtool: false,
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        use: [
+          { loader: "style-loader", options: { injectType: "styleTag" } },
+          { loader: "css-loader", options: { importLoaders: 0 } },
+        ],
+      },
+      {
+        test: /\.tsx?$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "esbuild-loader",
+          options: {
+            target: "es2017",
+            tsconfigRaw: {
+              compilerOptions: {
+                target: "es2017",
+                module: "esnext",
+                moduleResolution: "node",
+                jsx: "preserve",
+                importsNotUsedAsValues: "remove",
+              },
+            },
+          },
+        },
+      },
+      {
+        test: /\.m?js$/,
+        include: /node_modules/,
+        type: "javascript/auto",
+        resolve: {
+          fullySpecified: false,
+        },
+      },
+    ],
+  },
+  resolve: {
+    extensions: [".webview.ts", ".webview.tsx", ".ts", ".tsx", ".js"],
+    mainFields: ["module", "browser", "main"],
+    alias: {
+      react: false,
+      "react-dom": false,
+      "react-native": false,
+      "react-native-web": false,
+      "@react-navigation/native": false,
+      "@react-navigation/native-stack": false,
+      nativewind: false,
+      "react-native-reanimated": false,
+      "react-native-gesture-handler": false,
+      "react-native-mmkv": false,
+      "react-native-webview": false,
+    },
+  },
+  optimization: {
+    minimize: process.env.NODE_ENV === "production",
+    usedExports: true,
+    sideEffects: true,
+    providedExports: true,
+    innerGraph: true,
+    concatenateModules: true,
+    splitChunks: false,
+  },
+  performance: {
+    hints: false,
+  },
+  plugins: [
+    new DefinePlugin({
+      __COMMIT_HASH__: JSON.stringify(commitHash),
+      __FULL_COMMIT_HASH__: JSON.stringify(fullCommitHash),
+      __ENV__: JSON.stringify(process.env.NODE_ENV === "production" ? "production" : "development"),
+      __HOST__: JSON.stringify(
+        process.env.NODE_ENV === "production"
+          ? process.env.STAGE
+            ? "https://stage.liftosaur.com"
+            : "https://www.liftosaur.com"
+          : local
+      ),
+      __API_HOST__: JSON.stringify(
+        process.env.NODE_ENV === "production"
+          ? process.env.STAGE
+            ? "https://api3-dev.liftosaur.com"
+            : "https://api3.liftosaur.com"
+          : `https://${localapidomain}.liftosaur.com:${localapiport}`
+      ),
+      __STREAMING_API_HOST__: JSON.stringify(
+        process.env.NODE_ENV === "production"
+          ? process.env.STAGE
+            ? "https://streaming-api-dev.liftosaur.com"
+            : "https://streaming-api.liftosaur.com"
+          : `https://${localstreamingapidomain}.liftosaur.com:${localstreamingapiport}`
+      ),
+      __BUNDLE_VERSION_IOS__: bundleVersionIos,
+      __BUNDLE_VERSION_ANDROID__: bundleVersionAndroid,
+    }),
+    new HtmlWebpackPlugin({
+      template: "./src/pages/planner/webviewEditor/editorWebview.html",
+      filename: "editor.html",
+      inject: "body",
+      minify:
+        process.env.NODE_ENV === "production"
+          ? { collapseWhitespace: true, removeComments: true, minifyJS: false, minifyCSS: false }
+          : false,
+    }),
+    new HtmlInlineScriptPlugin(),
+  ],
+  mode: process.env.NODE_ENV === "production" ? "production" : "development",
+};
+
+module.exports = [mainConfig, watchConfig, editorWebviewConfig];
