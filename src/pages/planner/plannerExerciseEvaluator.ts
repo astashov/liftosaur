@@ -32,8 +32,8 @@ import { PlannerNodeName } from "./plannerExerciseStyles";
 import { ScriptRunner } from "../../parser";
 import { Progress_createEmptyScriptBindings, Progress_createScriptFunctions } from "../../models/progress";
 import { LiftoscriptSyntaxError, LiftoscriptEvaluator } from "../../liftoscriptEvaluator";
-import { Weight_parse, Weight_buildPct, Weight_print, Weight_smartConvert } from "../../models/weight";
-import { MathUtils_roundFloat } from "../../utils/math";
+import { Weight_print, Weight_smartConvert } from "../../models/weight";
+import { PlannerStateVars_fromArgs } from "./models/plannerStateVars";
 import { PlannerKey_fromFullName } from "./plannerKey";
 import { UidFactory_generateUid } from "../../utils/generator";
 import { ObjectUtils_pick, ObjectUtils_isEqual } from "../../utils/object";
@@ -303,36 +303,7 @@ export class PlannerExerciseEvaluator {
     state: IProgramState;
     stateMetadata: IProgramStateMetadata;
   } {
-    const state: IProgramState = {};
-    const stateMetadata: IProgramStateMetadata = {};
-    for (const value of fnArgs) {
-      // eslint-disable-next-line prefer-const
-      let [fnArgKey, fnArgValStr] = value.split(":").map((v) => v.trim());
-      if (onError && (!fnArgKey || !fnArgValStr)) {
-        onError(`Invalid argument ${value}`);
-      }
-      if (fnArgKey.endsWith("+")) {
-        fnArgKey = fnArgKey.replace("+", "");
-        stateMetadata[fnArgKey] = { userPrompted: true };
-      } else {
-        stateMetadata[fnArgKey] = { userPrompted: false };
-      }
-      try {
-        const fnArgVal = fnArgValStr.match(/(lb|kg)/)
-          ? Weight_parse(fnArgValStr)
-          : fnArgValStr.match(/%/)
-            ? Weight_buildPct(parseFloat(fnArgValStr))
-            : MathUtils_roundFloat(parseFloat(fnArgValStr), 2);
-        state[fnArgKey] = fnArgVal ?? 0;
-      } catch (e) {
-        if (onError) {
-          onError(`Invalid argument ${value}`);
-        } else {
-          throw e;
-        }
-      }
-    }
-    return { state, stateMetadata };
+    return PlannerStateVars_fromArgs(fnArgs, onError);
   }
 
   private evaluateSet(expr: SyntaxNode): IPlannerProgramExerciseSet {

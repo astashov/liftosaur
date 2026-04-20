@@ -19,6 +19,7 @@ localdomain.js
 /liftosaur-cdk/*.d.ts
 /dist-lambda
 /dist-plannerhighlighter
+/assets/editorWebview
 /lambda/node_modules
 /template.yaml
 /playwright-report
