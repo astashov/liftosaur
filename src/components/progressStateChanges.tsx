@@ -113,10 +113,10 @@ function ExerciseChanges({ diffVars }: { diffVars: Record<string, string | undef
               data-cy={`variable-changes-key-${StringUtils_dashcase(key)}`}
               testID={`variable-changes-key-${StringUtils_dashcase(key)}`}
             >
-              <Text className="text-xs">
-                <Text className="italic">{key}</Text>:{" "}
+              <Text>
+                <Text className="text-xs italic">{key}</Text>:{" "}
                 <Text
-                  className="font-bold"
+                  className="text-xs font-bold"
                   data-cy={`variable-changes-value-${StringUtils_dashcase(key)}`}
                   testID={`variable-changes-value-${StringUtils_dashcase(key)}`}
                 >
