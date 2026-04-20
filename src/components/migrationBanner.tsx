@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
 import { IProgram, ISettings } from "../types";
 
 interface IMigrationBannerProps {
@@ -7,12 +9,12 @@ interface IMigrationBannerProps {
   settings: ISettings;
 }
 
-export function MigrationBanner(props: IMigrationBannerProps): JSX.Element {
+export function MigrationBanner(_props: IMigrationBannerProps): JSX.Element {
   return (
-    <div className="flex flex-col items-center px-8 py-4 mx-4 mb-4 bg-red-100 border border-red-400 rounded-lg sm:flex-row">
-      <div>
-        <div>This is an old-style program, that doesn't work anymore!</div>
-      </div>
-    </div>
+    <View className="flex-col items-center px-8 py-4 mx-4 mb-4 bg-background-lighterror rounded-lg">
+      <View>
+        <Text className="text-text-error">This is an old-style program, that doesn't work anymore!</Text>
+      </View>
+    </View>
   );
 }

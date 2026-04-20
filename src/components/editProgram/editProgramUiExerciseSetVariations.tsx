@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { View } from "react-native";
 import {
   PlannerProgramExercise_setVariations,
   PlannerProgramExercise_sets,
@@ -29,35 +30,39 @@ export function EditProgramUiExerciseSetVariations(props: IEditProgramUiExercise
         let currentIndex = setVariations.findIndex((v) => v.isCurrent);
         currentIndex = currentIndex === -1 ? 0 : currentIndex;
         return (
-          <div key={i} className={`${i > 0 ? "mt-2 pt-2 border-t border-border-neutral" : ""}`}>
-            <div>
+          <View key={i} className={`${i > 0 ? "mt-2 pt-2 border-t border-border-neutral" : ""}`}>
+            <View>
               {setVariations.length > 1 && (
                 <GroupHeader
                   highlighted={true}
                   name={`Set Variation ${i + 1}`}
                   nameAddOn={
                     props.isCurrentIndicatorNearby && currentIndex === i ? (
-                      <IconArrowDown3 size={14} className="ml-2" style={{ transform: "rotate(90deg)" }} />
+                      <View className="ml-2" style={{ transform: [{ rotate: "90deg" }] }}>
+                        <IconArrowDown3 size={14} />
+                      </View>
                     ) : undefined
                   }
                   rightAddOn={
                     !props.isCurrentIndicatorNearby && currentIndex === i ? (
-                      <IconArrowDown3 size={14} className="ml-2" style={{ transform: "rotate(90deg)" }} />
+                      <View className="ml-2" style={{ transform: [{ rotate: "90deg" }] }}>
+                        <IconArrowDown3 size={14} />
+                      </View>
                     ) : undefined
                   }
                 />
               )}
-            </div>
-            <div className="text-right">
-              <div className="flex">
-                <div>
+            </View>
+            <View className="items-end">
+              <View className="flex-row">
+                <View>
                   {displayGroups.map((g, gi) => (
                     <HistoryRecordSet key={gi} sets={g} isNext={true} settings={props.settings} />
                   ))}
-                </div>
-              </div>
-            </div>
-          </div>
+                </View>
+              </View>
+            </View>
+          </View>
         );
       })}
     </>

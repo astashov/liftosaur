@@ -56,6 +56,7 @@ import { IReducerOnAction } from "./types";
 import { Thunk_sync2 } from "./thunks";
 import { CollectionUtils_uniqBy, CollectionUtils_compact } from "../utils/collection";
 import { Subscriptions_cleanupOutdatedGooglePurchaseTokens } from "../utils/subscriptions";
+import { UndoingFlag_set } from "../utils/undoingFlag";
 import { Exercise_toKey } from "../models/exercise";
 import { SendMessage_isIos, SendMessage_toIosAndAndroid } from "../utils/sendMessage";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
@@ -484,7 +485,7 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
     (dispatch, action, oldState, newState) => {
       if ("type" in action && action.type === "UpdateState" && action.desc === "stop-is-undoing") {
         setTimeout(() => {
-          window.isUndoing = false;
+          UndoingFlag_set(false);
         }, 200);
       }
     },

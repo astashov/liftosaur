@@ -106,7 +106,7 @@ function ExerciseImageAuxiliary(props: {
   if (props.isError) {
     return (
       <ExerciseNoImage size={props.size}>
-        <Text className="text-red-700">Error fetching the exercise image</Text>
+        <Text className="text-xs leading-normal text-center text-red-700">Error fetching the exercise image</Text>
       </ExerciseNoImage>
     );
   } else if (props.isLoading) {
@@ -130,7 +130,7 @@ interface INoImageProps {
 function ExerciseNoImage(props: INoImageProps): JSX.Element | null {
   return (
     <View className="items-center justify-center px-4 py-10 my-4 border border-dotted rounded-lg border-border-neutral bg-background-neutral">
-      <Text className="text-xs leading-normal text-center">{props.children}</Text>
+      {props.children}
     </View>
   );
 }

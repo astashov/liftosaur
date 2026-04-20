@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View, Pressable } from "react-native";
+import { Text } from "../primitives/text";
 import {
   Exercise_get,
   Exercise_getNotes,
@@ -59,11 +61,11 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
   const supersetExercise = supersetEntry ? Exercise_get(supersetEntry.exercise, props.settings.exercises) : undefined;
 
   return (
-    <div
-      className={`py-2 px-2 mx-4 mb-3 rounded-lg bg-background-cardpurple relative`}
+    <View
+      className="py-2 px-2 mx-4 mb-3 rounded-lg bg-background-cardpurple relative"
       data-cy={StringUtils_dashcase(exercise.name)}
     >
-      <div className="flex items-center gap-2">
+      <View className="flex-row items-center gap-2">
         <ProgramPreviewTabExerciseTopBar
           plannerDispatch={props.plannerDispatch}
           index={props.index}
@@ -73,29 +75,32 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
           day={props.day}
           isPlayground={false}
         />
-        <div style={{ width: "40px" }}>
-          <div
+        <View style={{ width: 40 }}>
+          <Pressable
             className="p-1 rounded-lg bg-background-image"
-            onClick={() => props.dispatch(Thunk_pushExerciseStatsScreen(props.entry.exercise))}
+            onPress={() => props.dispatch(Thunk_pushExerciseStatsScreen(props.entry.exercise))}
           >
             <ExerciseImage settings={props.settings} className="w-full" exerciseType={exercise} size="small" />
-          </div>
-        </div>
-        <div className="flex-1 ml-auto text-sm" style={{ minWidth: "4rem" }}>
-          <div>
-            <button
-              className="flex items-center"
-              onClick={() => props.dispatch(Thunk_pushExerciseStatsScreen(props.entry.exercise))}
+          </Pressable>
+        </View>
+        <View className="flex-1 ml-auto" style={{ minWidth: 64 }}>
+          <View>
+            <Pressable
+              className="flex-row items-center"
+              onPress={() => props.dispatch(Thunk_pushExerciseStatsScreen(props.entry.exercise))}
             >
-              <span className="pr-1 font-bold text-left">{Exercise_nameWithEquipment(exercise, props.settings)}</span>{" "}
-              <IconArrowRight width={5} height={10} style={{ marginBottom: "1px" }} className="inline-block" />
-            </button>
-          </div>
-          <div data-cy="exercise-equipment" className="text-xs text-text-secondary">
-            Equipment:{" "}
+              <Text className="pr-1 text-sm font-bold text-left">
+                {Exercise_nameWithEquipment(exercise, props.settings)}
+              </Text>
+              <IconArrowRight width={5} height={10} style={{ marginBottom: 1 }} />
+            </Pressable>
+          </View>
+          <View data-cy="exercise-equipment" className="flex-row flex-wrap items-center">
+            <Text className="text-xs text-text-secondary">Equipment: </Text>
             <LinkButton
               name="exercise-equipment-picker"
               data-cy="exercise-equipment-picker"
+              className="text-xs font-normal"
               onClick={() => {
                 props.plannerDispatch(
                   lb<IPlannerState>()
@@ -109,18 +114,19 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
             >
               {currentEquipmentName || "None"}
             </LinkButton>
-          </div>
+          </View>
           {currentEquipmentNotes && (
-            <div className="text-xs">
-              <Markdown value={currentEquipmentNotes} />
-            </div>
+            <View>
+              <Markdown className="text-xs" value={currentEquipmentNotes} />
+            </View>
           )}
           {programExercise && ProgramExercise_doesUse1RM(programExercise) && (
-            <div data-cy="exercise-rm1" className="text-xs text-text-secondary">
-              1RM:{" "}
+            <View data-cy="exercise-rm1" className="flex-row flex-wrap items-center">
+              <Text className="text-xs text-text-secondary">1RM: </Text>
               <LinkButton
                 name="exercise-rm1-picker"
                 data-cy="exercise-rm1-picker"
+                className="text-xs font-normal"
                 onClick={() => {
                   props.plannerDispatch(
                     lb<IPlannerState>()
@@ -134,31 +140,33 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
               >
                 {Weight_print(onerm)}
               </LinkButton>
-            </div>
+            </View>
           )}
           {supersetExercise && (
-            <div data-cy="exercise-superset" className="text-xs text-text-secondary">
-              Supersets with: <strong>{Exercise_fullName(supersetExercise, props.settings)}</strong>
-            </div>
+            <View data-cy="exercise-superset">
+              <Text className="text-xs text-text-secondary">
+                Supersets with: <Text className="font-bold">{Exercise_fullName(supersetExercise, props.settings)}</Text>
+              </Text>
+            </View>
           )}
-        </div>
-        <section className="mt-1 ml-1">
+        </View>
+        <View className="mt-1 ml-1">
           <HistoryRecordSetsView sets={props.entry.sets} settings={props.settings} isNext={true} />
-        </section>
-      </div>
+        </View>
+      </View>
       {exerciseNotes && (
-        <div className="mt-1 text-sm">
+        <View className="mt-1">
           {exerciseNotes && description && <GroupHeader name="Exercise Notes" />}
-          <Markdown value={exerciseNotes} />
-        </div>
+          <Markdown className="text-sm" value={exerciseNotes} />
+        </View>
       )}
       {description && (
-        <div className="mt-1 text-sm">
+        <View className="mt-1">
           {exerciseNotes && description && <GroupHeader name="Program Exercise Description" />}
-          <Markdown value={description} />
-        </div>
+          <Markdown className="text-sm" value={description} />
+        </View>
       )}
-    </div>
+    </View>
   );
 }
 
@@ -175,15 +183,16 @@ interface IProgramPreviewTabExerciseTopBarProps {
 
 function ProgramPreviewTabExerciseTopBar(props: IProgramPreviewTabExerciseTopBarProps): JSX.Element {
   return (
-    <div
-      className="absolute z-0 px-2 py-1 leading-none rounded-full bg-background-neutral border-border-neutral"
+    <View
+      className="absolute z-0 px-2 py-1 rounded-full bg-background-neutral border-border-neutral"
       style={{ right: -12 + (props.xOffset ?? 0), top: -18 }}
     >
-      <div className="flex items-center gap-2">
-        <button
-          className="inline-block nm-program-details-playground-edit"
+      <View className="flex-row items-center gap-2">
+        <Pressable
+          className="nm-program-details-playground-edit"
           data-cy="program-preview-edit-exercise"
-          onClick={() => {
+          testID="program-preview-edit-exercise"
+          onPress={() => {
             props.plannerDispatch(
               lb<IPlannerState>()
                 .pi("ui")
@@ -195,8 +204,8 @@ function ProgramPreviewTabExerciseTopBar(props: IProgramPreviewTabExerciseTopBar
           }}
         >
           <IconEditSquare color={Tailwind_semantic().icon.neutralsubtle} />
-        </button>
-      </div>
-    </div>
+        </Pressable>
+      </View>
+    </View>
   );
 }

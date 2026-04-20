@@ -1,19 +1,22 @@
-import React, { useState } from "react";
-import { ScrollView, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import React from "react";
+import { View } from "react-native";
+import { useRoute, useNavigation } from "@react-navigation/native";
+import type { IDayData } from "../../types";
 import { Text } from "../../components/primitives/text";
 import { useAppState } from "../StateContext";
 import { buildNavCommon } from "../utils";
 import { NavScreenContent } from "../NavScreenContent";
 import { ChooseProgramView } from "../../components/chooseProgram";
+import { ScreenEditProgram as ScreenEditProgramComponent } from "../../components/screenEditProgram";
 import { ScreenMusclesProgram } from "../../components/muscles/screenMusclesProgram";
 import { ScreenMusclesDay } from "../../components/muscles/screenMusclesDay";
 import { ScreenProgramPreview as ScreenProgramPreviewComponent } from "../../components/screenProgramPreview";
 import { Program_getProgram, Program_fullProgram } from "../../models/program";
 import { Progress_getCurrentProgress } from "../../models/progress";
+import { FallbackScreen } from "../../components/fallbackScreen";
 import { Thunk_pullScreen } from "../../ducks/thunks";
+import { useAppContext } from "../../components/appContext";
 import { usePlaygroundModalBridges } from "../usePlaygroundModalBridges";
-import { PlannerEditorView } from "../../pages/planner/components/plannerEditorView";
 
 export function NavScreenPrograms(): React.JSX.Element {
   const { state, dispatch } = useAppState();
@@ -32,54 +35,57 @@ export function NavScreenPrograms(): React.JSX.Element {
   );
 }
 
-const SAMPLE_PLANNER = `# Week 1
-## Day 1
-Squat / 3x5 100lb
-Bench Press, Barbell / 3x5 80lb
-Deadlift / 1x5 120lb
-
-## Day 2
-Overhead Press / 3x5 50lb
-Row, Barbell / 3x8 60lb
-`;
-
 export function NavScreenEditProgram(): React.JSX.Element {
-  const [value, setValue] = useState(SAMPLE_PLANNER);
-  const [line, setLine] = useState(0);
-  const insets = useSafeAreaInsets();
+  const { state, dispatch } = useAppState();
+  const { service } = useAppContext();
+  usePlaygroundModalBridges(state);
+  const navCommon = buildNavCommon(state);
+  const route = useRoute<{ key: string; name: "editProgram"; params: { programId: string } }>();
+  const programId = route.params.programId;
+  const plannerState = state.editProgramStates[programId];
+  const editProgram = Program_getProgram(
+    state,
+    plannerState ? plannerState.current.program.id : Progress_getCurrentProgress(state)?.programId
+  );
   return (
-    <ScrollView
-      className="flex-1 bg-background-default"
-      contentContainerStyle={{
-        paddingTop: insets.top + 16,
-        paddingBottom: insets.bottom + 16,
-        paddingLeft: insets.left + 16,
-        paddingRight: insets.right + 16,
-      }}
-    >
-      <Text className="text-xl font-bold mb-2">WebviewEditor test (planner mode)</Text>
-      <Text className="text-sm text-text-secondary mb-3">Current line: {line}</Text>
-      <PlannerEditorView
-        name="test"
-        value={value}
-        onChange={setValue}
-        onLineChange={setLine}
-        customExercises={{}}
-        exerciseFullNames={[]}
-        lineNumbers={true}
-        height={360}
-      />
-      <Text className="text-sm font-bold mt-4 mb-1">Value (from onChange):</Text>
-      <View className="border border-border-neutral rounded-lg p-2">
-        <Text className="text-xs" style={{ fontFamily: "Courier" }}>
-          {value}
-        </Text>
-      </View>
-    </ScrollView>
+    <NavScreenContent>
+      <FallbackScreen state={{ plannerState, editProgram }} dispatch={dispatch}>
+        {({ plannerState: plannerState2, editProgram: editProgram2 }) => (
+          <ScreenEditProgramComponent
+            client={service.client}
+            helps={state.storage.helps}
+            navCommon={navCommon}
+            subscription={state.storage.subscription}
+            settings={state.storage.settings}
+            dispatch={dispatch}
+            originalProgram={editProgram2}
+            plannerState={plannerState2}
+            revisions={(state.revisions || {})[editProgram2.id] || []}
+            isLoggedIn={state.user != null}
+          />
+        )}
+      </FallbackScreen>
+    </NavScreenContent>
   );
 }
 
 export function NavScreenEditProgramExercise(): React.JSX.Element {
+  const navigation = useNavigation();
+  const route = useRoute<{
+    key: string;
+    name: "editProgramExercise";
+    params: { programId: string; key: string; dayData: Required<IDayData> };
+  }>();
+  const { programId, key: exerciseKey } = route.params;
+  const exerciseStateKey = `${programId}_${exerciseKey}`;
+  const { state } = useAppState();
+  const plannerState = state.editProgramExerciseStates[exerciseStateKey];
+  const pendingNewKey = plannerState?.ui.pendingNewKey;
+  React.useEffect(() => {
+    if (pendingNewKey) {
+      navigation.setParams({ key: pendingNewKey } as never);
+    }
+  }, [pendingNewKey]);
   return (
     <View className="flex-1 justify-center items-center bg-background-default">
       <Text className="text-2xl font-bold text-icon-neutral">Edit Exercise</Text>

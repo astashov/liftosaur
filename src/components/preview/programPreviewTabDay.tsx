@@ -1,4 +1,6 @@
 import { JSX, memo } from "react";
+import { View } from "react-native";
+import { Text } from "../primitives/text";
 import { IHistoryRecord, ISettings, IStats } from "../../types";
 import { IEvaluatedProgram, Program_getProgramDay, Program_getProgramDayUsedExercises } from "../../models/program";
 import { StringUtils_dashcase } from "../../utils/string";
@@ -27,17 +29,17 @@ export const ProgramPreviewTabDay = memo((props: IProgramPreviewTabDayProps): JS
   const programExercises = programDay ? Program_getProgramDayUsedExercises(programDay) : [];
 
   return (
-    <div data-cy={`preview-day-${StringUtils_dashcase(programDay.name)}`}>
-      <h3 className="mx-4 mb-1 text-lg font-bold" data-cy="preview-day-name">
+    <View data-cy={`preview-day-${StringUtils_dashcase(programDay.name)}`}>
+      <Text className="mx-4 mb-1 text-lg font-bold" data-cy="preview-day-name">
         {props.weekName ? `${props.weekName} - ` : ""}
         {programDay.name}
-      </h3>
+      </Text>
       {programDay.description && (
-        <div className="mx-4 text-sm">
-          <Markdown value={programDay.description} />
-        </div>
+        <View className="mx-4">
+          <Markdown className="text-sm" value={programDay.description} />
+        </View>
       )}
-      {(programExercises ?? []).map((programExercise, i) => {
+      {(programExercises ?? []).map((programExercise) => {
         const anEntry = props.progress.entries.find((e) => e.programExerciseId === programExercise.key);
         if (!anEntry) {
           return null;
@@ -60,6 +62,6 @@ export const ProgramPreviewTabDay = memo((props: IProgramPreviewTabDayProps): JS
           />
         );
       })}
-    </div>
+    </View>
   );
 });

@@ -1,4 +1,7 @@
-import React, { JSX, Fragment } from "react";
+import type { ReactNode } from "react";
+import { JSX, Fragment } from "react";
+import { View, Pressable } from "react-native";
+import { Text } from "../primitives/text";
 import { IPlannerProgramExercise, IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { ISettings } from "../../types";
@@ -47,7 +50,7 @@ interface IEditProgramUiExerciseViewProps {
   programId: string;
   dispatch: IDispatch;
   plannerDispatch: ILensDispatch<IPlannerState>;
-  handleTouchStart?: (e: React.MouseEvent | React.TouchEvent) => void;
+  dragHandle?: (children: ReactNode) => JSX.Element;
 }
 
 export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps): JSX.Element {
@@ -62,45 +65,47 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
   const orderAndRepeat = [order, repeatStr].filter((s) => s).join(", ");
 
   return (
-    <div
-      id={`edit-program-ui-exercise-${props.plannerExercise.dayData.week}-${props.plannerExercise.dayData.dayInWeek}-${props.plannerExercise.key}`}
+    <View
       data-cy={`exercise-${props.plannerExercise.key}`}
       className="my-1 overflow-hidden border bg-background-cardpurple rounded-xl border-border-cardpurple"
     >
-      <div className="flex items-center">
-        {props.handleTouchStart ? (
+      <View className="flex-row items-center">
+        {props.dragHandle ? (
           <>
-            <div className="p-2 cursor-move" style={{ touchAction: "none" }}>
-              <span onMouseDown={props.handleTouchStart} onTouchStart={props.handleTouchStart}>
+            {props.dragHandle(
+              <View className="p-2">
                 <IconHandle />
-              </span>
-            </div>
-            <div className="mr-2">
+              </View>
+            )}
+            <View className="mr-2">
               <SetNumber size="sm" setIndex={props.exerciseIndex} />
-            </div>
+            </View>
           </>
         ) : (
-          <div className="w-16" />
+          <View className="w-16" />
         )}
-        <div className="flex items-center flex-1 text-base font-bold" data-cy="planner-ui-exercise-name">
-          <div>
-            {props.plannerExercise.label ? `${props.plannerExercise.label}: ` : ""}
-            {props.plannerExercise.name}
-            {props.plannerExercise.equipment != null &&
-              props.plannerExercise.equipment !== exercise?.defaultEquipment && (
-                <span className="">, {equipmentName(props.plannerExercise.equipment)}</span>
-              )}
-            {orderAndRepeat ? <span className="text-sm font-normal text-text-primary"> [{orderAndRepeat}]</span> : ""}
-          </div>
+        <View className="flex-row items-center flex-1" data-cy="planner-ui-exercise-name">
+          <View className="flex-1">
+            <Text className="text-base font-bold">
+              {props.plannerExercise.label ? `${props.plannerExercise.label}: ` : ""}
+              {props.plannerExercise.name}
+              {props.plannerExercise.equipment != null &&
+                props.plannerExercise.equipment !== exercise?.defaultEquipment && (
+                  <Text className="text-base font-bold">, {equipmentName(props.plannerExercise.equipment)}</Text>
+                )}
+              {orderAndRepeat ? <Text className="text-sm font-normal text-text-primary"> [{orderAndRepeat}]</Text> : ""}
+            </Text>
+          </View>
           {props.plannerExercise.notused && (
-            <div className="px-1 ml-3 text-xs font-bold rounded text-text-alwayswhite bg-background-darkgray">
-              UNUSED
-            </div>
+            <View className="px-1 ml-3 rounded bg-background-darkgray">
+              <Text className="text-xs font-bold text-text-alwayswhite">UNUSED</Text>
+            </View>
           )}
-          <button
+          <Pressable
             className="p-2"
             data-cy="edit-exercise-swap"
-            onClick={() => {
+            testID="edit-exercise-swap"
+            onPress={() => {
               const numberOfExerciseInstances = Program_getNumberOfExerciseInstances(
                 props.evaluatedProgram,
                 props.plannerExercise.key
@@ -133,13 +138,14 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
             }}
           >
             <IconSwap size={12} />
-          </button>
-        </div>
-        <div>
-          <button
+          </Pressable>
+        </View>
+        <View>
+          <Pressable
             className="p-2"
             data-cy="show-exercise-stats"
-            onClick={() => {
+            testID="show-exercise-stats"
+            onPress={() => {
               props.plannerDispatch(
                 [
                   lb<IPlannerState>().p("ui").p("focusedExercise").record({
@@ -155,12 +161,12 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
             }}
           >
             <IconGraphsE width={16} height={19} />
-          </button>
-        </div>
-        <div className="py-2 border-l bg-background-default border-border-cardpurple">
-          <button
-            className="w-10 px-2 text-center nm-edit-exercise-expand-collapse"
-            onClick={() => {
+          </Pressable>
+        </View>
+        <View className="py-2 border-l bg-background-default border-border-cardpurple">
+          <Pressable
+            className="w-10 px-2 items-center nm-edit-exercise-expand-collapse"
+            onPress={() => {
               props.plannerDispatch(
                 lb<IPlannerState>()
                   .p("ui")
@@ -180,10 +186,10 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
               );
             }}
           >
-            {isCollapsed ? <IconArrowRight className="inline-block" /> : <IconArrowDown2 className="inline-block" />}
-          </button>
-        </div>
-      </div>
+            {isCollapsed ? <IconArrowRight /> : <IconArrowDown2 />}
+          </Pressable>
+        </View>
+      </View>
       {!isCollapsed && (
         <EditProgramUiExerciseContentView
           weekIndex={weekIndex}
@@ -197,7 +203,7 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
           plannerDispatch={props.plannerDispatch}
         />
       )}
-    </div>
+    </View>
   );
 }
 
@@ -227,87 +233,90 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
   const supersetExercises = Program_getSupersetExercises(props.evaluatedProgram, props.plannerExercise);
 
   return (
-    <div>
-      <div className="flex border-t border-border-cardpurple">
-        <div className="flex-1">
+    <View>
+      <View className="flex-row border-t border-border-cardpurple">
+        <View className="flex-1">
           {plannerExercise.descriptions.values.length > 0 && (
-            <div className="flex border-b border-border-cardpurple">
-              <div className="flex-1 px-3 py-1">
+            <View className="flex-row border-b border-border-cardpurple">
+              <View className="flex-1 px-3 py-1">
                 <EditProgramUiExerciseDescriptions plannerExercise={plannerExercise} settings={props.settings} />
-              </div>
-            </div>
+              </View>
+            </View>
           )}
-          <div className="flex">
+          <View className="flex-row">
             {exerciseType ? (
-              <div className="p-1">
-                <div className="p-1 m-1 rounded-lg bg-background-image">
+              <View className="p-1">
+                <View className="p-1 m-1 rounded-lg bg-background-image">
                   <ExerciseImage settings={props.settings} className="w-10" exerciseType={exerciseType} size="small" />
-                </div>
-              </div>
+                </View>
+              </View>
             ) : (
-              <div className="w-2" />
+              <View className="w-2" />
             )}
-            <div className="flex-1">
-              <div>
-                <div className="flex items-start my-2">
+            <View className="flex-1">
+              <View>
+                <View className="flex-row items-start my-2">
                   {displayWarmupSets.flat().length > 0 && (
                     <>
-                      <div data-cy="ui-warmups-sets">
-                        <div className="pb-1 text-xs text-left text-text-secondary">Warmups</div>
-                        <div>
-                          <div>
+                      <View data-cy="ui-warmups-sets">
+                        <Text className="pb-1 text-xs text-left text-text-secondary">Warmups</Text>
+                        <View>
+                          <View>
                             {displayWarmupSets.map((g, gi) => (
                               <HistoryRecordSet key={gi} sets={g} isNext={true} settings={props.settings} />
                             ))}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="self-stretch ml-4 mr-4 bg-border-neutral" style={{ width: "1px" }} />
+                          </View>
+                        </View>
+                      </View>
+                      <View className="self-stretch ml-4 mr-4 bg-border-neutral" style={{ width: 1 }} />
                     </>
                   )}
-                  <div data-cy="ui-workout-sets">
-                    <div className="pb-1 text-xs text-left text-text-secondary">Workout</div>
-                    {reusingSets && <div className="pb-1 text-xs text-text-secondary">Reusing {reusingSets}</div>}
+                  <View data-cy="ui-workout-sets">
+                    <Text className="pb-1 text-xs text-left text-text-secondary">Workout</Text>
+                    {reusingSets && <Text className="pb-1 text-xs text-text-secondary">Reusing {reusingSets}</Text>}
                     <EditProgramUiExerciseSetVariations plannerExercise={plannerExercise} settings={props.settings} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </View>
           {supersetGroup && (
-            <div className="px-3 pb-2 text-xs">
-              Superset Group: <strong>{supersetGroup}</strong>
-              {supersetExercises.length > 0 && (
-                <span className="text-text-secondary">
-                  <span> (</span>
-                  {supersetExercises.map((ex, i) => {
-                    return (
-                      <Fragment key={i}>
-                        {i > 0 ? ", " : ""}
-                        <strong>{ex.name}</strong>
-                      </Fragment>
-                    );
-                  })}
-                  <span>)</span>
-                </span>
-              )}
-            </div>
+            <View className="px-3 pb-2">
+              <Text className="text-xs">
+                Superset Group: <Text className="font-bold">{supersetGroup}</Text>
+                {supersetExercises.length > 0 && (
+                  <Text className="text-text-secondary">
+                    <Text> (</Text>
+                    {supersetExercises.map((ex, i) => {
+                      return (
+                        <Fragment key={i}>
+                          {i > 0 ? ", " : ""}
+                          <Text className="font-bold">{ex.name}</Text>
+                        </Fragment>
+                      );
+                    })}
+                    <Text>)</Text>
+                  </Text>
+                )}
+              </Text>
+            </View>
           )}
-          <div className="px-3 pb-2 text-xs">
+          <View className="px-3 pb-2">
             <EditProgramUiProgress evaluatedProgram={props.evaluatedProgram} exercise={props.plannerExercise} />
-          </div>
+          </View>
           {props.plannerExercise.update && (
-            <div className="px-3 pb-2 text-xs">
+            <View className="px-3 pb-2">
               <EditProgramUiUpdate evaluatedProgram={props.evaluatedProgram} exercise={props.plannerExercise} />
-            </div>
+            </View>
           )}
-        </div>
-        <div className="border-l bg-background-default border-border-cardpurple">
-          <div className="text-center">
-            <button
+        </View>
+        <View className="border-l bg-background-default border-border-cardpurple">
+          <View className="items-center">
+            <Pressable
               className="p-2"
               data-cy="edit-exercise"
-              onClick={() => {
+              testID="edit-exercise"
+              onPress={() => {
                 props.plannerDispatch(
                   lb<IPlannerState>()
                     .p("ui")
@@ -324,12 +333,12 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
               }}
             >
               <IconEdit2 />
-            </button>
-          </div>
-          <div className="text-center">
-            <button
+            </Pressable>
+          </View>
+          <View className="items-center">
+            <Pressable
               className="p-2"
-              onClick={() => {
+              onPress={() => {
                 props.plannerDispatch(
                   lb<IPlannerState>()
                     .p("ui")
@@ -345,12 +354,12 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
               }}
             >
               <IconDuplicate2 />
-            </button>
-          </div>
-          <div className="text-center">
-            <button
+            </Pressable>
+          </View>
+          <View className="items-center">
+            <Pressable
               className="p-2"
-              onClick={() => {
+              onPress={() => {
                 props.plannerDispatch(
                   lbProgram.recordModify((program) => {
                     return EditProgramUiHelpers_deleteCurrentInstance(
@@ -367,10 +376,10 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
               }}
             >
               <IconTrash />
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    </View>
   );
 }

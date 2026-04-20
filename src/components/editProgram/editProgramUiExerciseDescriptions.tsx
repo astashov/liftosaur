@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { View } from "react-native";
 import { PlannerProgramExercise_currentDescriptionIndex } from "../../pages/planner/models/plannerProgramExercise";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { GroupHeader } from "../groupHeader";
@@ -24,32 +25,34 @@ export function EditProgramUiExerciseDescriptions(props: IEditProgramUiExerciseD
     <>
       {descriptions.map((_, i) => {
         return (
-          <div key={i} className={`${i > 0 ? "mt-2 pt-2" : ""}`}>
-            <div>
+          <View key={i} className={`${i > 0 ? "mt-2 pt-2" : ""}`}>
+            <View>
               {descriptions.length > 1 && (
                 <GroupHeader
                   highlighted={true}
                   name={`Description ${i + 1}`}
                   nameAddOn={
                     currentIndex === i ? (
-                      <IconArrowDown3 size={14} className="ml-2" style={{ transform: "rotate(90deg)" }} />
+                      <View className="ml-2" style={{ transform: [{ rotate: "90deg" }] }}>
+                        <IconArrowDown3 size={14} />
+                      </View>
                     ) : undefined
                   }
                 />
               )}
-            </div>
-            <div>
-              <div className="flex">
-                <div>
+            </View>
+            <View>
+              <View className="flex-row">
+                <View>
                   <Markdown
                     className="text-xs markdown"
                     truncate={2}
                     value={plannerExercise.descriptions.values[i].value}
                   />
-                </div>
-              </div>
-            </div>
-          </div>
+                </View>
+              </View>
+            </View>
+          </View>
         );
       })}
     </>

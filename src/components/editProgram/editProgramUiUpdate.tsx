@@ -1,4 +1,6 @@
 import { JSX, Fragment } from "react";
+import { View } from "react-native";
+import { Text } from "../primitives/text";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { IEvaluatedProgram, Program_getReusingUpdateExercises } from "../../models/program";
 import { CollectionUtils_uniqBy } from "../../utils/collection";
@@ -16,9 +18,9 @@ export function EditProgramUiUpdate(props: IEditProgramUiUpdateProps): JSX.Eleme
   if (exercise.update?.reuse) {
     progressExercise = exercise.update.reuse.exercise;
     reusingString = (
-      <>
-        Reusing update of '<strong>{exercise.update.reuse?.fullName}</strong>'
-      </>
+      <Text className="text-xs">
+        Reusing update of '<Text className="font-bold">{exercise.update.reuse?.fullName}</Text>'
+      </Text>
     );
   } else if (exercise.update) {
     progressExercise = exercise;
@@ -28,16 +30,16 @@ export function EditProgramUiUpdate(props: IEditProgramUiUpdateProps): JSX.Eleme
     );
     if (reusingUpdateExercises.length > 0) {
       reusedByString = (
-        <>
+        <Text className="text-xs">
           This update reused by:{" "}
           {reusingUpdateExercises.map((e, i) => (
             <Fragment key={i}>
               {i !== 0 ? ", " : ""}
-              <strong>{e.fullName}</strong>
+              <Text className="font-bold">{e.fullName}</Text>
             </Fragment>
           ))}
           .
-        </>
+        </Text>
       );
     }
   }
@@ -46,12 +48,12 @@ export function EditProgramUiUpdate(props: IEditProgramUiUpdateProps): JSX.Eleme
     return null;
   }
   return (
-    <div className="text-xs">
-      <div>{reusingString}</div>
-      <div>
-        <strong>Custom Update</strong>
-      </div>
-      <div>{reusedByString}</div>
-    </div>
+    <View>
+      <View>{reusingString}</View>
+      <View>
+        <Text className="text-xs font-bold">Custom Update</Text>
+      </View>
+      <View>{reusedByString}</View>
+    </View>
   );
 }

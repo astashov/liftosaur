@@ -1,4 +1,5 @@
 import { JSX, useLayoutEffect } from "react";
+import { View } from "react-native";
 import { IDispatch } from "../ducks/types";
 import { Thunk_pushScreen } from "../ducks/thunks";
 
@@ -21,7 +22,7 @@ export function FallbackScreen<T extends Record<string, unknown>>(props: IProps<
   }, [hasAnyNulls]);
 
   if (hasAnyNulls) {
-    return <div />;
+    return <View />;
   }
 
   return props.children(props.state as INonNullableValues<T>);

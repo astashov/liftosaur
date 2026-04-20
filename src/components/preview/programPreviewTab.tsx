@@ -1,4 +1,5 @@
 import { JSX, memo } from "react";
+import { View } from "react-native";
 import { IProgram, ISettings, IStats } from "../../types";
 import {
   Program_evaluate,
@@ -36,7 +37,7 @@ export const ProgramPreviewTab = memo((props: IProgramPreviewTabProps): JSX.Elem
         const programDay = Program_getProgramDay(evaluatedProgram, dayNumber);
         const dayExercises = programDay ? Program_getProgramDayUsedExercises(programDay) : [];
         const exerciseTags = new Set(dayExercises.map((e) => e.tags).flat());
-        const states = ObjectUtils_filter(evaluatedProgram.states, (key, state) => {
+        const states = ObjectUtils_filter(evaluatedProgram.states, (key) => {
           return exerciseTags.has(key);
         });
         return { day: dayNumber, states, progress };
@@ -57,16 +58,16 @@ export const ProgramPreviewTab = memo((props: IProgramPreviewTabProps): JSX.Elem
         return {
           label: week.name,
           children: () => (
-            <div>
+            <View>
               {programWeekDescription && (
-                <div className="mx-4 text-sm">
-                  <Markdown value={programWeekDescription} />
-                </div>
+                <View className="mx-4">
+                  <Markdown className="text-sm" value={programWeekDescription} />
+                </View>
               )}
-              <div className="flex flex-wrap justify-center mt-4" style={{ gap: "1.5rem" }}>
+              <View className="flex-row flex-wrap justify-center mt-4" style={{ gap: 24 }}>
                 {week.days.map((d, i) => {
                   return (
-                    <div key={i} style={{ maxWidth: "24rem", minWidth: "18rem" }} className="flex-1">
+                    <View key={i} style={{ maxWidth: 384, minWidth: 288 }} className="flex-1">
                       <ProgramPreviewTabDay
                         stats={props.stats}
                         dispatch={props.dispatch}
@@ -79,11 +80,11 @@ export const ProgramPreviewTab = memo((props: IProgramPreviewTabProps): JSX.Elem
                         ui={props.ui}
                         plannerDispatch={props.plannerDispatch}
                       />
-                    </div>
+                    </View>
                   );
                 })}
-              </div>
-            </div>
+              </View>
+            </View>
           ),
         };
       })}

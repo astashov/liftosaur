@@ -1,4 +1,5 @@
-import React, { JSX, ReactNode } from "react";
+import type React from "react";
+import type { JSX, ReactNode } from "react";
 import { View, Pressable, Platform } from "react-native";
 import { Text } from "./primitives/text";
 import { IconArrowRight } from "./icons/iconArrowRight";
@@ -50,23 +51,15 @@ export function MenuItem(props: IMenuItemProps): JSX.Element {
     typeof props.value === "string" ? <Text className="text-right text-text-link">{props.value}</Text> : props.value;
 
   const dragHandle =
-    props.handleTouchStart && Platform.OS === "web"
-      ? React.createElement(
-          "div",
-          {
-            className: "p-2 cursor-move",
-            style: { marginLeft: "-16px", touchAction: "none" },
-          },
-          React.createElement(
-            "span",
-            {
-              onMouseDown: props.handleTouchStart,
-              onTouchStart: props.handleTouchStart,
-            },
-            React.createElement(IconHandle)
-          )
-        )
-      : null;
+    props.handleTouchStart && Platform.OS === "web" ? (
+      <Pressable
+        className="p-2"
+        style={{ marginLeft: -16, cursor: "move", touchAction: "none" } as Record<string, unknown>}
+        onPressIn={(e) => props.handleTouchStart?.(e as unknown as React.TouchEvent)}
+      >
+        <IconHandle />
+      </Pressable>
+    ) : null;
 
   return (
     <MenuItemWrapper name={props.name} onClick={props.onClick} isBorderless={props.isBorderless}>

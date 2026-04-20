@@ -156,10 +156,12 @@ function DraggableItem<T>(props: IDraggableItemProps<T>): JSX.Element {
     })
     .onEnd((e) => {
       const t = isHorizontal ? e.translationX : e.translationY;
+      isDragging.value = false;
       runOnJS(props.onDragEnd)(t);
     })
     .onFinalize(() => {
       if (isDragging.value) {
+        isDragging.value = false;
         runOnJS(props.onDragEnd)(0);
       }
     });

@@ -62,12 +62,13 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
           disabled={!canRedo(props.state)}
           onClick={() => redo(props.plannerDispatch, props.state)}
         >
-          <IconUndo
-            width={20}
-            height={20}
-            style={{ transform: "scale(-1,  1)" }}
-            color={!canRedo(props.state) ? Tailwind_semantic().icon.light : Tailwind_semantic().icon.neutral}
-          />
+          <div style={{ transform: "scale(-1, 1)" }}>
+            <IconUndo
+              width={20}
+              height={20}
+              color={!canRedo(props.state) ? Tailwind_semantic().icon.light : Tailwind_semantic().icon.neutral}
+            />
+          </div>
         </button>
       </div>
       <div className="flex items-center flex-1 gap-2">

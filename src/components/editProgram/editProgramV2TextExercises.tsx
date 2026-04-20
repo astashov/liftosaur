@@ -1,5 +1,7 @@
 import type { JSX } from "react";
+import { View, ScrollView } from "react-native";
 import { LensBuilder, lb } from "lens-shmens";
+import { Text } from "../primitives/text";
 import { PlannerCodeBlock } from "../../pages/planner/components/plannerCodeBlock";
 import { PlannerEditorView } from "../../pages/planner/components/plannerEditorView";
 import { PlannerStatsUtils_dayApproxTimeMs } from "../../pages/planner/models/plannerStatsUtils";
@@ -36,7 +38,7 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
     );
   }
   return (
-    <div className="flex-1 w-0">
+    <View className="flex-1 w-0 min-w-0">
       <PlannerEditorView
         name="Exercises"
         exerciseFullNames={props.exerciseFullNames}
@@ -57,7 +59,7 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
             "Update exercise text"
           );
         }}
-        onBlur={(e, text) => {}}
+        onBlur={(_e, _text) => {}}
         onLineChange={(line) => {
           const exerciseIndex =
             dayIndex !== -1 && evaluatedDay.success
@@ -82,20 +84,23 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
         }}
       />
       {repeats.length > 0 && (
-        <ul className="pl-1 ml-8 overflow-x-auto list-disc">
+        <View className="pl-1 ml-8">
           {repeats.map((e, i) => (
-            <li key={i}>
-              <PlannerCodeBlock script={e.text} />
-            </li>
+            <View key={i} className="flex-row">
+              <Text className="mr-1">{"\u2022"}</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-1">
+                <PlannerCodeBlock script={e.text} />
+              </ScrollView>
+            </View>
           ))}
-        </ul>
+        </View>
       )}
       {approxDayTime && (
-        <div className="text-xs text-right text-text-secondary">
-          <IconWatch className="mb-1 align-middle" />
-          <span className="pl-1 align-middle">{approxDayTime}</span>
-        </div>
+        <View className="flex-row justify-end items-center">
+          <IconWatch className="mb-1" />
+          <Text className="pl-1 text-xs text-text-secondary">{approxDayTime}</Text>
+        </View>
       )}
-    </div>
+    </View>
   );
 }

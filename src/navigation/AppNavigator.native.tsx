@@ -142,21 +142,13 @@ function HomeStackScreen(): JSX.Element {
 
 function ProgramStackScreen(): JSX.Element {
   return (
-    <ProgramStack.Navigator screenOptions={stackScreenOptions}>
-      <ProgramStack.Screen
-        name="programs"
-        component={NavScreenPrograms}
-        options={{ headerShown: true, header: NavHeader }}
-      />
+    <ProgramStack.Navigator screenOptions={navHeaderScreenOptions}>
+      <ProgramStack.Screen name="programs" component={NavScreenPrograms} />
       <ProgramStack.Screen name="editProgram" component={NavScreenEditProgram} />
       <ProgramStack.Screen name="editProgramExercise" component={NavScreenEditProgramExercise} />
       <ProgramStack.Screen name="onerms" component={NavScreenOnerms} />
       <ProgramStack.Screen name="programselect" component={NavScreenProgramSelect} />
-      <ProgramStack.Screen
-        name="programPreview"
-        component={NavScreenProgramPreview}
-        options={{ headerShown: true, header: NavHeader }}
-      />
+      <ProgramStack.Screen name="programPreview" component={NavScreenProgramPreview} />
       <ProgramStack.Screen name="exerciseStats" component={NavScreenExerciseStats} />
     </ProgramStack.Navigator>
   );

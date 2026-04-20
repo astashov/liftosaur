@@ -1,4 +1,6 @@
-import React, { JSX } from "react";
+import type { JSX, ReactNode } from "react";
+import { View, Pressable } from "react-native";
+import { Text } from "../primitives/text";
 import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb, LensBuilder } from "lens-shmens";
@@ -14,7 +16,7 @@ import { StringUtils_nextName, StringUtils_pluralize } from "../../utils/string"
 import { IconTimerSmall } from "../icons/iconTimerSmall";
 import { TimeUtils_formatHOrMin } from "../../utils/time";
 import { PlannerStatsUtils_dayApproxTimeMs } from "../../pages/planner/models/plannerStatsUtils";
-import { DraggableList } from "../draggableList";
+import { DraggableList2 } from "../draggableList2";
 import { EditProgramUiExerciseView } from "./editProgramUiExercise";
 import { applyChangesInEditor, pickerStateFromPlannerExercise } from "./editProgramUtils";
 import { CollectionUtils_removeAt } from "../../utils/collection";
@@ -49,7 +51,7 @@ interface IEditProgramDayViewProps {
   programId: string;
   dispatch: IDispatch;
   plannerDispatch: ILensDispatch<IPlannerState>;
-  handleTouchStart?: (e: React.MouseEvent | React.TouchEvent) => void;
+  dragHandle?: (children: ReactNode) => JSX.Element;
 }
 
 export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Element {
@@ -60,19 +62,26 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
   const days = props.state.current.program.planner!.weeks[props.weekIndex].days;
 
   return (
-    <div
+    <View
       key={props.day.id}
       className="p-1 my-1 border bg-background-default rounded-2xl border-border-neutral"
       data-cy={`edit-day-${props.weekIndex + 1}-${props.dayInWeekIndex + 1}`}
     >
-      <div className="flex items-center">
-        <div className="p-2 cursor-move" style={{ touchAction: "none" }}>
-          <span onMouseDown={props.handleTouchStart} onTouchStart={props.handleTouchStart}>
+      <View className="flex-row items-center">
+        {props.dragHandle ? (
+          props.dragHandle(
+            <View className="p-2">
+              <IconHandle />
+            </View>
+          )
+        ) : (
+          <View className="p-2">
             <IconHandle />
-          </span>
-        </div>
-        <h3 className="flex-1 text-base font-bold">
+          </View>
+        )}
+        <View className="flex-1">
           <ContentGrowingTextarea
+            className="text-base font-bold"
             value={props.day.name}
             onInput={(newValue) => {
               if (newValue) {
@@ -80,13 +89,14 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
               }
             }}
           />
-        </h3>
-        <div className="flex items-center">
-          <div>
-            <button
+        </View>
+        <View className="flex-row items-center">
+          <View>
+            <Pressable
               data-cy="edit-day-muscles-d"
-              className="px-2 align-middle ls-edit-day button nm-day-muscles-d"
-              onClick={() => {
+              testID="edit-day-muscles-d"
+              className="px-2 nm-day-muscles-d"
+              onPress={() => {
                 props.plannerDispatch(
                   lb<IPlannerState>().p("ui").p("showDayStats").record(props.dayInWeekIndex),
                   "Show day stats"
@@ -95,13 +105,14 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
               }}
             >
               <IconMusclesD size={20} />
-            </button>
-          </div>
-          <div>
-            <button
+            </Pressable>
+          </View>
+          <View>
+            <Pressable
               data-cy="edit-day-clone"
-              className="px-2 align-middle ls-clone-day button nm-clone-day"
-              onClick={() => {
+              testID="edit-day-clone"
+              className="px-2 nm-clone-day"
+              onPress={() => {
                 const newName = StringUtils_nextName(props.day.name);
                 const newDay = { name: newName, exerciseText: props.day.exerciseText, id: UidFactory_generateUid(8) };
                 applyChangesInEditor(props.plannerDispatch, () => {
@@ -133,14 +144,15 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
               }}
             >
               <IconDuplicate2 />
-            </button>
-          </div>
+            </Pressable>
+          </View>
           {props.showDelete && (
-            <div>
-              <button
+            <View>
+              <Pressable
                 data-cy="edit-day-delete"
-                className="px-2 align-middle ls-delete-day button nm-delete-day"
-                onClick={() => {
+                testID="edit-day-delete"
+                className="px-2 nm-delete-day"
+                onPress={() => {
                   applyChangesInEditor(props.plannerDispatch, () => {
                     EditProgramUiHelpers_onDaysChange(
                       props.plannerDispatch,
@@ -165,13 +177,13 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
                 }}
               >
                 <IconTrash />
-              </button>
-            </div>
+              </Pressable>
+            </View>
           )}
-          <div>
-            <button
-              className="w-8 pl-1 pr-2 text-center nm-edit-day-expand-collapse-day"
-              onClick={() => {
+          <View>
+            <Pressable
+              className="w-8 pl-1 pr-2 items-center nm-edit-day-expand-collapse-day"
+              onPress={() => {
                 props.plannerDispatch(
                   lb<IPlannerState>()
                     .p("ui")
@@ -191,11 +203,11 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
                 );
               }}
             >
-              {isCollapsed ? <IconArrowRight className="inline-block" /> : <IconArrowDown2 className="inline-block" />}
-            </button>
-          </div>
-        </div>
-      </div>
+              {isCollapsed ? <IconArrowRight /> : <IconArrowDown2 />}
+            </Pressable>
+          </View>
+        </View>
+      </View>
       {!isCollapsed && (
         <EditProgramUiDayContentView
           evaluatedProgram={props.evaluatedProgram}
@@ -214,7 +226,7 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
           dayIndex={props.dayInWeekIndex}
         />
       )}
-    </div>
+    </View>
   );
 }
 
@@ -250,8 +262,8 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
   const usedExercises = evaluatedDay.success ? evaluatedDay.data.filter((d) => !d.notused) : [];
   const notUsedExercises = evaluatedDay.success ? evaluatedDay.data.filter((d) => d.notused) : [];
   return (
-    <div className="px-1">
-      <div className="px-1">
+    <View className="px-1">
+      <View className="px-1">
         <MarkdownEditorBorderless
           value={props.day.description}
           placeholder={`Day description in Markdown...`}
@@ -260,23 +272,27 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
             props.plannerDispatch(props.lbPlannerDay.p("description").record(v), "Update day description");
           }}
         />
-      </div>
-      <div className="flex items-center gap-2 pt-1 pl-2 text-xs">
+      </View>
+      <View className="flex-row items-center gap-2 pt-1 pl-2">
         {evaluatedDay.success && (
-          <div>
-            {evaluatedDay.data.length} {StringUtils_pluralize("exercise", evaluatedDay.data.length)}
-          </div>
+          <View>
+            <Text className="text-xs">
+              {evaluatedDay.data.length} {StringUtils_pluralize("exercise", evaluatedDay.data.length)}
+            </Text>
+          </View>
         )}
-        <div className="flex items-center py-1">
-          <div>
+        <View className="flex-row items-center py-1">
+          <View>
             <IconTimerSmall />
-          </div>
-          <div>
-            {duration.value} {duration.unit}
-          </div>
-        </div>
+          </View>
+          <View>
+            <Text className="text-xs">
+              {duration.value} {duration.unit}
+            </Text>
+          </View>
+        </View>
         {props.ui.mode === "ui" && evaluatedDay.success && (
-          <div className="ml-auto mr-2">
+          <View className="ml-auto mr-2">
             <LinkButton
               name="collapse-all-exercises"
               className="text-xs font-normal"
@@ -305,13 +321,13 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
             >
               {allExercisesCollapsed ? "Expand" : "Collapse"} all exercises
             </LinkButton>
-          </div>
+          </View>
         )}
-      </div>
-      <div className="pt-2">
+      </View>
+      <View className="pt-2">
         {props.ui.mode === "ui" && props.isValidProgram && evaluatedDay.success ? (
-          <div>
-            <DraggableList
+          <View>
+            <DraggableList2
               items={usedExercises}
               mode="vertical"
               onDragEnd={(startIndex, endIndex) => {
@@ -330,7 +346,7 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
                   "Reorder exercise"
                 );
               }}
-              element={(exercise, exerciseIndex, handleTouchStart) => {
+              element={(exercise, exerciseIndex, dragHandle) => {
                 return (
                   <EditProgramUiExerciseView
                     ui={props.ui}
@@ -343,7 +359,7 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
                     dayIndex={props.dayIndex}
                     exerciseIndex={exerciseIndex}
                     settings={props.settings}
-                    handleTouchStart={handleTouchStart}
+                    dragHandle={dragHandle}
                   />
                 );
               }}
@@ -363,13 +379,13 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
                 settings={props.settings}
               />
             ))}
-            <div className="py-1">
+            <View className="py-1">
               <Button
                 kind="lightgrayv3"
                 buttonSize="md"
                 data-cy="add-exercise"
                 name="add-exercise"
-                className="flex items-center justify-center w-full text-sm text-center"
+                className="flex-row items-center justify-center w-full"
                 onClick={() => {
                   props.plannerDispatch(
                     lb<IPlannerState>()
@@ -388,12 +404,12 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
                 }}
               >
                 <IconPlus2 size={12} />
-                <span className="ml-2">Add Exercise</span>
+                <Text className="ml-2 text-sm text-text-link font-semibold">Add Exercise</Text>
               </Button>
-            </div>
-          </div>
+            </View>
+          </View>
         ) : (
-          <div className="flex">
+          <View className="flex-row">
             <EditProgramV2TextExercises
               weekIndex={weekIndex}
               dayIndex={dayIndex}
@@ -405,9 +421,9 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
               settings={props.settings}
               ui={props.ui}
             />
-          </div>
+          </View>
         )}
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }
