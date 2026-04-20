@@ -2,6 +2,16 @@ import { JSX, ReactNode } from "react";
 import { GestureResponderEvent, Pressable } from "react-native";
 import { Text } from "./primitives/text";
 
+function containsString(children: ReactNode): boolean {
+  if (typeof children === "string" || typeof children === "number") {
+    return true;
+  }
+  if (Array.isArray(children)) {
+    return children.some((c) => typeof c === "string" || typeof c === "number");
+  }
+  return false;
+}
+
 interface IProps {
   buttonSize?: "xs" | "sm" | "md" | "lg" | "lg2";
   kind: "orange" | "purple" | "grayv2" | "red" | "transparent-purple" | "lightpurple" | "lightgrayv3";
@@ -91,7 +101,7 @@ export function Button(props: IProps): JSX.Element {
       testID={testID}
       data-cy={testID}
     >
-      {typeof children === "string" ? <Text className={textCn}>{children}</Text> : children}
+      {containsString(children) ? <Text className={textCn}>{children}</Text> : children}
     </Pressable>
   );
 }

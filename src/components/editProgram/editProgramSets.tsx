@@ -1,13 +1,14 @@
 import type { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "../primitives/text";
 
 export function SetNumber(props: { setIndex: number; size?: "md" | "sm" }): JSX.Element {
+  const isSmall = props.size === "sm";
   return (
-    <div
-      className={`flex items-center justify-center ${
-        props.size === "sm" ? "w-5 h-5 font-bold text-xs" : "w-6 h-6 font-bold"
-      } border rounded-full border-border-prominent text-text-secondary`}
+    <View
+      className={`items-center justify-center ${isSmall ? "w-5 h-5" : "w-6 h-6"} border rounded-full border-border-prominent`}
     >
-      {props.setIndex + 1}
-    </div>
+      <Text className={`font-bold text-text-secondary ${isSmall ? "text-xs" : ""}`}>{props.setIndex + 1}</Text>
+    </View>
   );
 }

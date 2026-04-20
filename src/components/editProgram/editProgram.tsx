@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { View, Pressable } from "react-native";
 import { IconUndo } from "../icons/iconUndo";
 import { undo, canUndo, canRedo, redo } from "../../pages/builder/utils/undoredo";
 import { IPlannerState } from "../../pages/planner/models/types";
@@ -42,7 +43,7 @@ export function EditProgramView(props: IEditProgramViewProps): JSX.Element {
   const { evaluatedWeeks, exerciseFullNames } = props;
 
   return (
-    <div className="pb-6">
+    <View className="pb-6">
       <EditProgramNavbar
         dispatch={props.dispatch}
         originalProgram={props.originalProgram}
@@ -94,7 +95,7 @@ export function EditProgramView(props: IEditProgramViewProps): JSX.Element {
           })}
         />
       )}
-    </div>
+    </View>
   );
 }
 
@@ -114,42 +115,37 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
   const isValid = isValidFull && isValidPerDay;
 
   return (
-    <div
-      className="sticky top-0 left-0 flex flex-row items-center justify-between gap-2 py-2 pl-2 pr-4 border-b bg-background-default border-background-subtle"
-      style={{
-        zIndex: 25,
-      }}
+    <View
+      className="flex-row items-center justify-between gap-2 py-2 pl-2 pr-4 border-b bg-background-default border-background-subtle"
+      style={{ zIndex: 25 }}
     >
-      <div className="flex items-center">
-        <button
-          style={{ cursor: canUndo(props.state) ? "pointer" : "default" }}
-          title="Undo"
+      <View className="flex-row items-center">
+        <Pressable
           className="p-2 nm-program-undo"
           disabled={!canUndo(props.state)}
-          onClick={() => undo(props.plannerDispatch, props.state)}
+          onPress={() => undo(props.plannerDispatch, props.state)}
         >
           <IconUndo
             width={20}
             height={20}
             color={!canUndo(props.state) ? Tailwind_semantic().icon.light : Tailwind_semantic().icon.neutral}
           />
-        </button>
-        <button
-          style={{ cursor: canRedo(props.state) ? "pointer" : "default" }}
-          title="Redo"
+        </Pressable>
+        <Pressable
           className="p-2 nm-program-redo"
           disabled={!canRedo(props.state)}
-          onClick={() => redo(props.plannerDispatch, props.state)}
+          onPress={() => redo(props.plannerDispatch, props.state)}
         >
-          <IconUndo
-            width={20}
-            height={20}
-            style={{ transform: "scale(-1,  1)" }}
-            color={!canRedo(props.state) ? Tailwind_semantic().icon.light : Tailwind_semantic().icon.neutral}
-          />
-        </button>
-      </div>
-      <div className="flex items-center">
+          <View style={{ transform: [{ scaleX: -1 }] }}>
+            <IconUndo
+              width={20}
+              height={20}
+              color={!canRedo(props.state) ? Tailwind_semantic().icon.light : Tailwind_semantic().icon.neutral}
+            />
+          </View>
+        </Pressable>
+      </View>
+      <View className="flex-row items-center">
         <EditProgramModeSwitchButton
           isSelected={props.state.ui.mode === "reorder"}
           disabled={!isValid}
@@ -188,8 +184,8 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
         >
           {(color) => <IconFullTextMode color={color} />}
         </EditProgramModeSwitchButton>
-      </div>
-      <div className="flex items-center">
+      </View>
+      <View className="flex-row items-center">
         <Button
           disabled={!isValid}
           name="save-program"
@@ -215,8 +211,8 @@ function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
         >
           Save
         </Button>
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }
 
@@ -231,17 +227,18 @@ interface IEditProgramModeSwitchButtonProps {
 function EditProgramModeSwitchButton(props: IEditProgramModeSwitchButtonProps): JSX.Element {
   const isSelected = props.isSelected;
   return (
-    <button
+    <Pressable
       data-cy={props.name}
+      testID={props.name}
       className={`p-2 ${isSelected ? "bg-purplev3-200" : ""} rounded nm-${props.name}`}
       style={{ opacity: props.disabled && !isSelected ? 0.5 : 1 }}
-      onClick={() => {
+      onPress={() => {
         if (!props.disabled && !isSelected) {
           props.onClick();
         }
       }}
     >
       {props.children(isSelected ? Tailwind_semantic().icon.purple : Tailwind_semantic().icon.neutral)}
-    </button>
+    </Pressable>
   );
 }

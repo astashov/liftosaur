@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View, Pressable } from "react-native";
+import { Text } from "../primitives/text";
 import { IPlannerState } from "../../pages/planner/models/types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
@@ -8,7 +10,7 @@ import { IconMusclesW } from "../icons/iconMusclesW";
 import { IconTrash } from "../icons/iconTrash";
 import { CollectionUtils_removeAt } from "../../utils/collection";
 import { EditProgramUiDayView } from "./editProgramUiDay";
-import { DraggableList } from "../draggableList";
+import { DraggableList2 } from "../draggableList2";
 import { ISettings } from "../../types";
 import { LinkButton } from "../linkButton";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
@@ -41,7 +43,7 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
 
   const currentWeek = planner.weeks[currentWeekIndex];
   if (!currentWeek) {
-    return <div></div>;
+    return <View />;
   }
 
   const lbPlanner = lb<IPlannerState>().p("current").p("program").pi("planner");
@@ -56,10 +58,11 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
   });
 
   return (
-    <div>
-      <div className="flex items-center px-4 pt-2 text-base font-bold">
-        <div className="mr-auto">
+    <View>
+      <View className="flex-row items-center px-4 pt-2">
+        <View className="mr-auto">
           <ContentGrowingTextarea
+            className="text-base font-bold"
             value={currentWeek.name}
             onInput={(newValue) => {
               if (newValue) {
@@ -67,13 +70,14 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
               }
             }}
           />
-        </div>
-        <div className="flex items-center">
-          <div>
-            <button
+        </View>
+        <View className="flex-row items-center">
+          <View>
+            <Pressable
               data-cy="editor-v2-week-muscles"
+              testID="editor-v2-week-muscles"
               className="px-2"
-              onClick={() => {
+              onPress={() => {
                 props.plannerDispatch(
                   lb<IPlannerState>().pi("ui").p("showWeekStats").record(currentWeekIndex),
                   "Show week stats"
@@ -82,13 +86,13 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
               }}
             >
               <IconMusclesW size={20} />
-            </button>
-          </div>
+            </Pressable>
+          </View>
           {props.evaluatedWeeks.length > 1 && (
-            <div>
-              <button
+            <View>
+              <Pressable
                 className="px-2"
-                onClick={() => {
+                onPress={() => {
                   props.plannerDispatch(
                     [
                       lbPlanner.p("weeks").recordModify((weeks) => {
@@ -103,12 +107,12 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
                 }}
               >
                 <IconTrash />
-              </button>
-            </div>
+              </Pressable>
+            </View>
           )}
-        </div>
-      </div>
-      <div className="px-3 py-1">
+        </View>
+      </View>
+      <View className="px-3 py-1">
         <MarkdownEditorBorderless
           value={currentWeek.description}
           debounceMs={500}
@@ -120,12 +124,14 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
             );
           }}
         />
-      </div>
-      <div className="flex items-center px-4">
-        <div className="mr-auto text-xs">
-          {currentWeek.days.length} {StringUtils_pluralize("day", currentWeek.days.length)}
-        </div>
-        <div>
+      </View>
+      <View className="flex-row items-center px-4">
+        <View className="mr-auto">
+          <Text className="text-xs">
+            {currentWeek.days.length} {StringUtils_pluralize("day", currentWeek.days.length)}
+          </Text>
+        </View>
+        <View>
           <LinkButton
             name="collapse-all-days"
             className="text-xs font-normal"
@@ -157,9 +163,9 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
           >
             {allDaysCollapsed ? "Expand" : "Collapse"} all days
           </LinkButton>
-        </div>
-      </div>
-      <DraggableList
+        </View>
+      </View>
+      <DraggableList2
         items={currentWeek.days}
         mode="vertical"
         onDragEnd={(startIndex, endIndex) => {
@@ -191,7 +197,7 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
             );
           });
         }}
-        element={(plannerDay, dayInWeekIndex, handleTouchStart) => {
+        element={(plannerDay, dayInWeekIndex, dragHandle) => {
           const evaluatedDay = evaluatedCurrentWeek[dayInWeekIndex];
           const dayData = {
             week: currentWeekIndex + 1,
@@ -216,18 +222,18 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
               dayInWeekIndex={dayInWeekIndex}
               plannerDispatch={props.plannerDispatch}
               state={props.state}
-              handleTouchStart={handleTouchStart}
+              dragHandle={dragHandle}
             />
           );
         }}
       />
-      <div className="py-1 mx-2">
+      <View className="py-1 mx-2">
         <Button
           kind="lightgrayv3"
           buttonSize="md"
           name="add-day"
           data-cy="add-day"
-          className="flex items-center justify-center w-full text-sm text-center"
+          className="flex-row items-center justify-center w-full"
           onClick={() => {
             props.plannerDispatch(
               lbPlanner
@@ -246,9 +252,9 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
           }}
         >
           <IconPlus2 size={12} />
-          <span className="ml-2">Add Day</span>
+          <Text className="ml-2 text-sm text-text-link font-semibold">Add Day</Text>
         </Button>
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }

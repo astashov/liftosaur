@@ -1,4 +1,6 @@
 import { JSX, Fragment } from "react";
+import { View } from "react-native";
+import { Text } from "../primitives/text";
 import { Weight_print } from "../../models/weight";
 import {
   PlannerProgramExercise_progressionType,
@@ -20,25 +22,25 @@ export function EditProgramUiProgress(props: IEditProgramUiProgressProps): JSX.E
   if (exercise.progress?.reuse) {
     progressExercise = exercise.progress.reuse.exercise ?? exercise.reuse?.exercise;
     reusingString = (
-      <>
-        Reusing progress of '<strong>{exercise.progress.reuse?.fullName}</strong>'
-      </>
+      <Text className="text-xs">
+        Reusing progress of '<Text className="font-bold">{exercise.progress.reuse?.fullName}</Text>'
+      </Text>
     );
   } else if (exercise.progress) {
     progressExercise = exercise;
     const reusingProgressExercises = Program_getReusingProgressExercises(evaluatedProgram, exercise);
     if (reusingProgressExercises.length > 0) {
       reusedByString = (
-        <>
+        <Text className="text-xs">
           This progress reused by:{" "}
           {reusingProgressExercises.map((e, i) => (
             <Fragment key={i}>
               {i !== 0 ? ", " : ""}
-              <strong>{e.fullName}</strong>
+              <Text className="font-bold">{e.fullName}</Text>
             </Fragment>
           ))}
           .
-        </>
+        </Text>
       );
     }
   }
@@ -47,11 +49,11 @@ export function EditProgramUiProgress(props: IEditProgramUiProgressProps): JSX.E
     return null;
   }
   return (
-    <div className="text-xs">
-      <div>{reusingString}</div>
+    <View>
+      <View>{reusingString}</View>
       <Progression progressExercise={progressExercise} originalExercise={props.exercise} />
-      <div>{reusedByString}</div>
-    </div>
+      <View>{reusedByString}</View>
+    </View>
   );
 }
 
@@ -63,70 +65,80 @@ interface IProgressionProps {
 function Progression(props: IProgressionProps): JSX.Element {
   const type = props.progressExercise ? PlannerProgramExercise_progressionType(props.progressExercise) : undefined;
   if (type == null) {
-    return <div />;
+    return <View />;
   }
   switch (type.type) {
     case "linear":
       return (
-        <div>
-          <strong>Linear Progression:</strong>{" "}
-          <span className="font-bold text-text-success">+{Weight_print(type.increase)}</span>
-          {(type.successesRequired || 0 > 1) && (
-            <span>
-              {" "}
-              after <span className="font-bold text-text-success">{type.successesRequired}</span> successes
-            </span>
-          )}
-          {type.decrease != null && type.decrease.value > 0 && (
-            <span>
-              , <span className="font-bold text-text-error">{Weight_print(type.decrease)}</span>
-            </span>
-          )}
-          {type.decrease != null && type.decrease.value > 0 && (
-            <span>
-              {" "}
-              after <span className="font-bold text-text-error">{type.failuresRequired}</span> failures
-            </span>
-          )}
-          .
-        </div>
+        <View>
+          <Text className="text-xs">
+            <Text className="font-bold">Linear Progression:</Text>{" "}
+            <Text className="font-bold text-text-success">+{Weight_print(type.increase)}</Text>
+            {(type.successesRequired || 0 > 1) && (
+              <Text>
+                {" "}
+                after <Text className="font-bold text-text-success">{type.successesRequired}</Text> successes
+              </Text>
+            )}
+            {type.decrease != null && type.decrease.value > 0 && (
+              <Text>
+                , <Text className="font-bold text-text-error">{Weight_print(type.decrease)}</Text>
+              </Text>
+            )}
+            {type.decrease != null && type.decrease.value > 0 && (
+              <Text>
+                {" "}
+                after <Text className="font-bold text-text-error">{type.failuresRequired}</Text> failures
+              </Text>
+            )}
+            .
+          </Text>
+        </View>
       );
     case "double":
       return (
-        <div>
-          <strong>Double Progression</strong>:{" "}
-          <span className="font-bold text-text-success">+{Weight_print(type.increase)}</span> within{" "}
-          <span className="font-bold">{type.minReps}</span>-<span className="font-bold">{type.maxReps}</span> rep range.
-        </div>
+        <View>
+          <Text className="text-xs">
+            <Text className="font-bold">Double Progression</Text>:{" "}
+            <Text className="font-bold text-text-success">+{Weight_print(type.increase)}</Text> within{" "}
+            <Text className="font-bold">{type.minReps}</Text>-<Text className="font-bold">{type.maxReps}</Text> rep
+            range.
+          </Text>
+        </View>
       );
     case "sumreps":
       return (
-        <div>
-          <strong>Sum Reps Progression</strong>:{" "}
-          <span className="font-bold text-text-success">+{Weight_print(type.increase)}</span> if sum of all reps is at
-          least <span className="font-bold">{type.reps}</span>.
-        </div>
+        <View>
+          <Text className="text-xs">
+            <Text className="font-bold">Sum Reps Progression</Text>:{" "}
+            <Text className="font-bold text-text-success">+{Weight_print(type.increase)}</Text> if sum of all reps is at
+            least <Text className="font-bold">{type.reps}</Text>.
+          </Text>
+        </View>
       );
-    case "custom":
+    case "custom": {
       const state = PlannerProgramExercise_getState(props.originalExercise);
       return (
-        <div>
-          <strong>Custom Progression</strong>
+        <View>
+          <Text className="text-xs font-bold">Custom Progression</Text>
           {Object.keys(state).length > 0 && (
-            <div>
-              <div className="text-xs text-text-secondary">State variables:</div>
-              <ul>
+            <View>
+              <Text className="text-xs text-text-secondary">State variables:</Text>
+              <View className="ml-4">
                 {Object.entries(state).map(([name, value]) => {
                   return (
-                    <li key={name} className="ml-4 text-xs list-disc">
-                      <span className="text-text-secondary">{name}</span>: <strong>{Weight_print(value)}</strong>
-                    </li>
+                    <Text key={name} className="text-xs">
+                      <Text>{"\u2022  "}</Text>
+                      <Text className="text-text-secondary">{name}</Text>:{" "}
+                      <Text className="font-bold">{Weight_print(value)}</Text>
+                    </Text>
                   );
                 })}
-              </ul>
-            </div>
+              </View>
+            </View>
           )}
-        </div>
+        </View>
       );
+    }
   }
 }
