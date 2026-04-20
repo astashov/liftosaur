@@ -21,6 +21,7 @@ import {
   EditProgramUiHelpers_getChangedKeys,
 } from "./editProgramUi/editProgramUiHelpers";
 import { ObjectUtils_clone } from "../../utils/object";
+import { UndoingFlag_set } from "../../utils/undoingFlag";
 
 function onChange(
   planner: IPlannerProgram,
@@ -39,7 +40,7 @@ function onChange(
   }
   const newExerciseType = selectedExercise.type === "template" ? selectedExercise.name : selectedExercise.exerciseType;
   const newLabel = "label" in selectedExercise ? selectedExercise.label : undefined;
-  window.isUndoing = true;
+  UndoingFlag_set(true);
   if (plannerExercise) {
     if (change === "one") {
       const newPlanner = PlannerProgram_replaceExercise(

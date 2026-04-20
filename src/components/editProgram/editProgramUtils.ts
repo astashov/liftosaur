@@ -2,9 +2,10 @@ import { lb } from "lens-shmens";
 import { IPlannerProgramExercise, IPlannerState } from "../../pages/planner/models/types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IExercisePickerState, ISettings } from "../../types";
+import { UndoingFlag_set } from "../../utils/undoingFlag";
 
 export function applyChangesInEditor(plannerDispatch: ILensDispatch<IPlannerState>, cb: () => void): void {
-  window.isUndoing = true;
+  UndoingFlag_set(true);
   cb();
   plannerDispatch(
     [

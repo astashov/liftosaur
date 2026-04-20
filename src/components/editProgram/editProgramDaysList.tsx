@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { View } from "react-native";
 import { IDispatch } from "../../ducks/types";
 import { INavCommon } from "../../models/state";
 import { IProgram, ISettings } from "../../types";
@@ -18,9 +19,16 @@ interface IProps {
 export function EditProgramDaysList(props: IProps): JSX.Element {
   useNavOptions({ navTitle: "Edit Program" });
 
+  const fetchFn =
+    typeof window !== "undefined"
+      ? window.fetch.bind(window)
+      : ((): Window["fetch"] => {
+          return (input: RequestInfo | URL, init?: RequestInit) => fetch(input as RequestInfo, init);
+        })();
+
   return (
-    <section className="px-4">
-      <MigrationBanner program={props.editProgram} settings={props.settings} client={window.fetch.bind(window)} />
+    <View className="px-4">
+      <MigrationBanner program={props.editProgram} settings={props.settings} client={fetchFn} />
       <GroupHeader name="Current Program" />
       <MenuItem
         name="Program"
@@ -29,6 +37,6 @@ export function EditProgramDaysList(props: IProps): JSX.Element {
         shouldShowRightArrow={true}
         onClick={() => props.dispatch(Thunk_pushScreen("programs"))}
       />
-    </section>
+    </View>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { lb, lbu } from "lens-shmens";
 import { ILensDispatch } from "../../../utils/useLensReducer";
+import { UndoingFlag_set } from "../../../utils/undoingFlag";
 
 export interface IUndoRedoState<T> {
   history: {
@@ -46,7 +47,7 @@ export function undo<T, S extends IUndoRedoState<T>>(dispatch: ILensDispatch<S>,
         lb<S>()
           .p("history")
           .recordModify((history) => {
-            window.isUndoing = true;
+            UndoingFlag_set(true);
             return {
               past: state.history.past.slice(0, state.history.past.length - 1),
               future: [state.current, ...history.future],
@@ -67,7 +68,7 @@ export function redo<T, S extends IUndoRedoState<T>>(dispatch: ILensDispatch<S>,
         lb<S>()
           .p("history")
           .recordModify((history) => {
-            window.isUndoing = true;
+            UndoingFlag_set(true);
             return {
               past: [...history.past, state.current],
               future: state.history.future.slice(1, state.history.future.length),
@@ -87,6 +88,10 @@ export function useUndoRedo<T, S extends IUndoRedoState<T>>(
   shouldEnable?: () => boolean
 ): void {
   useEffect(() => {
+    UndoingFlag_set(false);
+    if (typeof window === "undefined" || typeof window.addEventListener !== "function") {
+      return;
+    }
     function onKeyPress(event: KeyboardEvent): void {
       if (
         !(event.target instanceof HTMLTextAreaElement) &&
@@ -105,7 +110,6 @@ export function useUndoRedo<T, S extends IUndoRedoState<T>>(
       }
     }
     window.addEventListener("keydown", onKeyPress);
-    window.isUndoing = false;
     return () => window.removeEventListener("keydown", onKeyPress);
   }, [state, ...additionalDeps]);
 }

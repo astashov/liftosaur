@@ -1,4 +1,5 @@
 import { JSX, useEffect, useMemo, useRef } from "react";
+import { View } from "react-native";
 import { IPlannerProgram, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
@@ -41,9 +42,9 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
   }, [props.settings]);
 
   return (
-    <div className="relative">
-      <div className="flex flex-col px-4 pt-4 md:flex-row">
-        <div className="flex-1 min-w-0">
+    <View className="relative">
+      <View className="flex-col px-4 pt-4">
+        <View className="flex-1">
           <PlannerEditorView
             name="Program"
             customExercises={props.settings.exercises}
@@ -75,11 +76,11 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
               );
             }}
             lineNumbers={true}
-            onBlur={(e, text) => {}}
-            onLineChange={(line) => {}}
+            onBlur={(_e, _text) => {}}
+            onLineChange={(_line) => {}}
           />
-        </div>
-      </div>
-    </div>
+        </View>
+      </View>
+    </View>
   );
 }

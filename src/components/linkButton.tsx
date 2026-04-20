@@ -13,6 +13,16 @@ interface IProps {
   disabled?: boolean;
 }
 
+function containsString(children: ReactNode): boolean {
+  if (typeof children === "string" || typeof children === "number") {
+    return true;
+  }
+  if (Array.isArray(children)) {
+    return children.some((c) => typeof c === "string" || typeof c === "number");
+  }
+  return false;
+}
+
 export function LinkButton(props: IProps): JSX.Element {
   const { className, children } = props;
   const testID = props.testID || props["data-cy"] || props.name;
@@ -21,7 +31,7 @@ export function LinkButton(props: IProps): JSX.Element {
   const textCn = `text-text-link ${!isFontNormal ? "font-bold" : ""} ${!isNoUnderline ? "underline" : ""} ${className || ""}`;
   return (
     <Pressable onPress={props.onPress || props.onClick} testID={testID} data-cy={testID} disabled={props.disabled}>
-      {typeof children === "string" ? <Text className={textCn}>{children}</Text> : children}
+      {containsString(children) ? <Text className={textCn}>{children}</Text> : children}
     </Pressable>
   );
 }
