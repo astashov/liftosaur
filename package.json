@@ -206,6 +206,7 @@
     "react-native-screens": "^4.24.0",
     "react-native-svg": "^15.15.4",
     "react-native-web": "^0.21.2",
+    "react-native-webview": "^13.16.1",
     "react-native-worklets": "^0.8.1",
     "rollbar": "^2.26.2",
     "rollbar-react-native": "^1.0.1",
