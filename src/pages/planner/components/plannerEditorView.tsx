@@ -14,6 +14,7 @@ interface IProps {
   customExercises: IAllCustomExercises;
   exerciseFullNames: string[];
   value?: string;
+  height?: number;
 }
 
 export function PlannerEditorView(props: IProps): JSX.Element {

@@ -1,5 +1,6 @@
-import React from "react";
-import { View } from "react-native";
+import React, { useState } from "react";
+import { ScrollView, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "../../components/primitives/text";
 import { useAppState } from "../StateContext";
 import { buildNavCommon } from "../utils";
@@ -12,6 +13,7 @@ import { Program_getProgram, Program_fullProgram } from "../../models/program";
 import { Progress_getCurrentProgress } from "../../models/progress";
 import { Thunk_pullScreen } from "../../ducks/thunks";
 import { usePlaygroundModalBridges } from "../usePlaygroundModalBridges";
+import { PlannerEditorView } from "../../pages/planner/components/plannerEditorView";
 
 export function NavScreenPrograms(): React.JSX.Element {
   const { state, dispatch } = useAppState();
@@ -30,11 +32,50 @@ export function NavScreenPrograms(): React.JSX.Element {
   );
 }
 
+const SAMPLE_PLANNER = `# Week 1
+## Day 1
+Squat / 3x5 100lb
+Bench Press, Barbell / 3x5 80lb
+Deadlift / 1x5 120lb
+
+## Day 2
+Overhead Press / 3x5 50lb
+Row, Barbell / 3x8 60lb
+`;
+
 export function NavScreenEditProgram(): React.JSX.Element {
+  const [value, setValue] = useState(SAMPLE_PLANNER);
+  const [line, setLine] = useState(0);
+  const insets = useSafeAreaInsets();
   return (
-    <View className="flex-1 justify-center items-center bg-background-default">
-      <Text className="text-2xl font-bold text-icon-neutral">Edit Program</Text>
-    </View>
+    <ScrollView
+      className="flex-1 bg-background-default"
+      contentContainerStyle={{
+        paddingTop: insets.top + 16,
+        paddingBottom: insets.bottom + 16,
+        paddingLeft: insets.left + 16,
+        paddingRight: insets.right + 16,
+      }}
+    >
+      <Text className="text-xl font-bold mb-2">WebviewEditor test (planner mode)</Text>
+      <Text className="text-sm text-text-secondary mb-3">Current line: {line}</Text>
+      <PlannerEditorView
+        name="test"
+        value={value}
+        onChange={setValue}
+        onLineChange={setLine}
+        customExercises={{}}
+        exerciseFullNames={[]}
+        lineNumbers={true}
+        height={360}
+      />
+      <Text className="text-sm font-bold mt-4 mb-1">Value (from onChange):</Text>
+      <View className="border border-border-neutral rounded-lg p-2">
+        <Text className="text-xs" style={{ fontFamily: "Courier" }}>
+          {value}
+        </Text>
+      </View>
+    </ScrollView>
   );
 }
 
