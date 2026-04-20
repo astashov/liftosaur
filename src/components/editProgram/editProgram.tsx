@@ -36,21 +36,26 @@ interface IEditProgramViewProps {
   settings: ISettings;
 }
 
-export function EditProgramView(props: IEditProgramViewProps): JSX.Element {
+export function EditProgramView(
+  props: IEditProgramViewProps & { hideNavbar?: boolean; hideWeekTabBar?: boolean }
+): JSX.Element {
   const ui = props.state.ui;
   const program = props.state.current.program;
   const planner = program.planner!;
   const { evaluatedWeeks, exerciseFullNames } = props;
+  const weekIndex = ui.weekIndex ?? 0;
 
   return (
     <View className="pb-6">
-      <EditProgramNavbar
-        dispatch={props.dispatch}
-        originalProgram={props.originalProgram}
-        settings={props.settings}
-        state={props.state}
-        plannerDispatch={props.plannerDispatch}
-      />
+      {!props.hideNavbar && (
+        <EditProgramNavbar
+          dispatch={props.dispatch}
+          originalProgram={props.originalProgram}
+          settings={props.settings}
+          state={props.state}
+          plannerDispatch={props.plannerDispatch}
+        />
+      )}
       {ui.mode === "reorder" ? (
         <EditProgramV2Weeks state={props.state} settings={props.settings} plannerDispatch={props.plannerDispatch} />
       ) : ui.mode === "full" ? (
@@ -61,6 +66,20 @@ export function EditProgramView(props: IEditProgramViewProps): JSX.Element {
           settings={props.settings}
           plannerDispatch={props.plannerDispatch}
         />
+      ) : props.hideWeekTabBar ? (
+        <View className="pt-2">
+          <EditProgramUiWeekView
+            key={weekIndex}
+            evaluatedProgram={props.evaluatedProgram}
+            dispatch={props.dispatch}
+            programId={props.programId}
+            state={props.state}
+            exerciseFullNames={exerciseFullNames}
+            evaluatedWeeks={evaluatedWeeks}
+            plannerDispatch={props.plannerDispatch}
+            settings={props.settings}
+          />
+        </View>
       ) : (
         <ScrollableTabs
           topPadding="0.5rem"
@@ -69,16 +88,16 @@ export function EditProgramView(props: IEditProgramViewProps): JSX.Element {
           shouldNotExpand={true}
           defaultIndex={ui.weekIndex ?? 0}
           type="squares"
-          onChange={(weekIndex) =>
+          onChange={(newWeekIndex) =>
             props.plannerDispatch(
-              lb<IPlannerState>().p("ui").p("weekIndex").record(weekIndex),
-              `Change week index to ${weekIndex}`
+              lb<IPlannerState>().p("ui").p("weekIndex").record(newWeekIndex),
+              `Change week index to ${newWeekIndex}`
             )
           }
-          tabs={planner.weeks.map((week, weekIndex) => {
+          tabs={planner.weeks.map((week, wi) => {
             return {
               label: week.name,
-              isInvalid: evaluatedWeeks[weekIndex].some((day) => !day.success),
+              isInvalid: evaluatedWeeks[wi].some((day) => !day.success),
               children: () => (
                 <EditProgramUiWeekView
                   evaluatedProgram={props.evaluatedProgram}
@@ -107,7 +126,7 @@ interface IEditProgramNavbarProps {
   plannerDispatch: ILensDispatch<IPlannerState>;
 }
 
-function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
+export function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
   const isValidFull = !props.state.ui.fullTextError;
   const planner = props.state.current.program.planner!;
   const evaluatedWeeks = PlannerProgram_evaluate(planner, props.settings).evaluatedWeeks;

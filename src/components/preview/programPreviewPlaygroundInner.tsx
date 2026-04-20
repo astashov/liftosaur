@@ -9,9 +9,14 @@ export interface IProgramPreviewPlaygroundInnerRendererProps {
   scrollableTabsProps?: Partial<IScrollableTabsProps>;
   hasNavbar?: boolean;
   scrollTabZIndex?: number;
+  externalWeekIndex?: number;
+  hideWeekTabBar?: boolean;
 }
 
 export function ProgramPreviewPlaygroundInnerRenderer(props: IProgramPreviewPlaygroundInnerRendererProps): JSX.Element {
+  if (props.hideWeekTabBar) {
+    return props.renderWeekContent(props.externalWeekIndex ?? 0);
+  }
   return (
     <ScrollableTabs
       headerContent={props.headerContent}

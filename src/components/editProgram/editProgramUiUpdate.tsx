@@ -19,7 +19,7 @@ export function EditProgramUiUpdate(props: IEditProgramUiUpdateProps): JSX.Eleme
     progressExercise = exercise.update.reuse.exercise;
     reusingString = (
       <Text className="text-xs">
-        Reusing update of '<Text className="font-bold">{exercise.update.reuse?.fullName}</Text>'
+        Reusing update of '<Text className="text-xs font-bold">{exercise.update.reuse?.fullName}</Text>'
       </Text>
     );
   } else if (exercise.update) {
@@ -35,7 +35,7 @@ export function EditProgramUiUpdate(props: IEditProgramUiUpdateProps): JSX.Eleme
           {reusingUpdateExercises.map((e, i) => (
             <Fragment key={i}>
               {i !== 0 ? ", " : ""}
-              <Text className="font-bold">{e.fullName}</Text>
+              <Text className="text-xs font-bold">{e.fullName}</Text>
             </Fragment>
           ))}
           .
