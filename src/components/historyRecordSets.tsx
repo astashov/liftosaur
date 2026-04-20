@@ -98,14 +98,14 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
         ? "history-entry-sets-in-range"
         : "history-entry-sets-incompleted";
   return (
-    <Text data-cy={dataCy} testID={dataCy}>
+    <View className="flex-row items-center" data-cy={dataCy} testID={dataCy}>
       {props.showPrDetails && isPr && (
-        <Text className="mr-2">
-          <Text className="text-xs font-semibold text-yellow-600">{prTypes.join(", ")}</Text>{" "}
-          <Text className="text-xs leading-8">{"\u{1F3C6}"}</Text>
-        </Text>
+        <View className="flex-row items-center mr-2">
+          <Text className="text-xs font-semibold leading-6 text-yellow-600">{prTypes.join(", ")}</Text>
+          <Text className="ml-1 text-sm leading-6">{"\u{1F3C6}"}</Text>
+        </View>
       )}
-      <Text className={`px-1 ${isPr ? "bg-color-yellow150 " : ""}`}>
+      <Text className={`px-1 text-sm leading-6 ${isPr ? "bg-color-yellow150 " : ""}`}>
         {group.length > 1 && (
           <>
             <Text
@@ -134,16 +134,16 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
         {set.rpe != null && (
           <Text className={rpeColor} data-cy="history-entry-rpe" testID="history-entry-rpe">
             <Text className="text-xs"> @</Text>
-            <Text>{set.rpe}</Text>
+            <Text className="text-sm">{set.rpe}</Text>
           </Text>
         )}
         {set.timer != null && (
           <Text className={timerColor} data-cy="history-entry-timer" testID="history-entry-timer">
-            <Text> {set.timer}</Text>
+            <Text className="text-sm"> {set.timer}</Text>
             <Text className="text-xs">s</Text>
           </Text>
         )}
       </Text>
-    </Text>
+    </View>
   );
 }

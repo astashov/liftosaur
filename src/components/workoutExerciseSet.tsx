@@ -430,7 +430,7 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
             {set.weight != null && (
               <Text className="text-sm">
                 <Text className="font-semibold">{n(set.weight.value)}</Text>
-                <Text className="text-xs">{set.weight.unit}</Text>
+                <Text className="text-xs text-text-primary">{set.weight.unit}</Text>
               </Text>
             )}
           </View>
@@ -460,14 +460,18 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
                   className={`text-sm ${isDiffWeight ? "line-through text-text-secondary" : "font-semibold text-syntax-weight"}`}
                 >
                   {n(aSet.originalWeight.value)}
-                  <Text className="text-xs font-normal">{aSet.originalWeight.unit}</Text>
+                  <Text
+                    className={`text-xs font-normal ${isDiffWeight ? "text-text-secondary" : "text-syntax-weight"}`}
+                  >
+                    {aSet.originalWeight.unit}
+                  </Text>
                 </Text>
               )}
               {aSet.weight && isDiffWeight && (
-                <Text className="text-sm text-syntax-weight">
+                <Text className="text-sm">
                   {" "}
-                  <Text className="font-semibold">{n(aSet.weight.value)}</Text>
-                  <Text className="text-xs">{aSet.weight.unit}</Text>
+                  <Text className="font-semibold text-syntax-weight">{n(aSet.weight.value)}</Text>
+                  <Text className="text-xs text-syntax-weight">{aSet.weight.unit}</Text>
                 </Text>
               )}
               <Text className="text-sm font-semibold text-syntax-rpe">
@@ -480,7 +484,7 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
                 <Text className="text-sm text-syntax-timer">
                   {" "}
                   {n(aSet.timer)}
-                  <Text className="text-xs">s</Text>
+                  <Text className="text-xs text-syntax-timer">s</Text>
                 </Text>
               ) : null}
             </View>
@@ -513,7 +517,9 @@ function WorkoutExerciseLastSet(props: IWorkoutExerciseLastSetProps): JSX.Elemen
         <Text className="text-sm text-text-secondary"> × </Text>
         <Text className={`text-sm font-semibold ${WorkoutExerciseUtils_setsStatusToTextColor(setStatus)}`}>
           {set.completedWeight ? set.completedWeight.value.toString() : "-"}
-          <Text className="text-xs font-normal">{set.completedWeight?.unit}</Text>
+          <Text className={`text-xs font-normal ${WorkoutExerciseUtils_setsStatusToTextColor(setStatus)}`}>
+            {set.completedWeight?.unit}
+          </Text>
         </Text>
         <Text className={`text-sm font-semibold ${WorkoutExerciseUtils_setsStatusToTextColor(setStatus)}`}>
           {set.completedRpe != null
@@ -550,7 +556,7 @@ function RpeWeightHint(props: IRpeWeightHintProps): JSX.Element {
         </Text>{" "}
         - <Text className="font-bold text-text-primary">{n(multiplier * 100, 0)}%</Text> of 1RM -{" "}
         <Text className="font-bold text-text-primary">{n(weight.value)}</Text>
-        <Text>{weight.unit}</Text>
+        <Text className="text-text-secondary">{weight.unit}</Text>
       </Text>
     </View>
   );
@@ -661,8 +667,8 @@ function WorkoutExerciseE1RMSet(props: IWorkoutExerciseE1RMSetProps): JSX.Elemen
   const e1RM = Weight_getOneRepMax(weight, reps, rpe);
   return (
     <Text className={`text-sm ${isCompleted ? "" : "opacity-40"}`}>
-      <Text className="font-semibold">{n(e1RM.value)}</Text>
-      <Text className="text-xs">{e1RM.unit}</Text>
+      <Text className="font-semibold text-text-primary">{n(e1RM.value)}</Text>
+      <Text className="text-xs text-text-primary">{e1RM.unit}</Text>
     </Text>
   );
 }
