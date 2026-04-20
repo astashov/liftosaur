@@ -48,24 +48,22 @@ export function NavScreenEditProgram(): React.JSX.Element {
     plannerState ? plannerState.current.program.id : Progress_getCurrentProgress(state)?.programId
   );
   return (
-    <NavScreenContent>
-      <FallbackScreen state={{ plannerState, editProgram }} dispatch={dispatch}>
-        {({ plannerState: plannerState2, editProgram: editProgram2 }) => (
-          <ScreenEditProgramComponent
-            client={service.client}
-            helps={state.storage.helps}
-            navCommon={navCommon}
-            subscription={state.storage.subscription}
-            settings={state.storage.settings}
-            dispatch={dispatch}
-            originalProgram={editProgram2}
-            plannerState={plannerState2}
-            revisions={(state.revisions || {})[editProgram2.id] || []}
-            isLoggedIn={state.user != null}
-          />
-        )}
-      </FallbackScreen>
-    </NavScreenContent>
+    <FallbackScreen state={{ plannerState, editProgram }} dispatch={dispatch}>
+      {({ plannerState: plannerState2, editProgram: editProgram2 }) => (
+        <ScreenEditProgramComponent
+          client={service.client}
+          helps={state.storage.helps}
+          navCommon={navCommon}
+          subscription={state.storage.subscription}
+          settings={state.storage.settings}
+          dispatch={dispatch}
+          originalProgram={editProgram2}
+          plannerState={plannerState2}
+          revisions={(state.revisions || {})[editProgram2.id] || []}
+          isLoggedIn={state.user != null}
+        />
+      )}
+    </FallbackScreen>
   );
 }
 

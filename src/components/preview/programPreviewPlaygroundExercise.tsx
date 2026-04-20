@@ -195,11 +195,15 @@ function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.El
               <Text className="flex-1 mr-1 font-bold">{Exercise_nameWithEquipment(exercise, props.settings)}</Text>
             </View>
             <Text data-cy="exercise-equipment" testID="exercise-equipment" className="text-xs text-text-secondary">
-              Equipment: <Text className="font-bold">{currentEquipmentName || "None"}</Text>
+              Equipment:{" "}
+              <Text className="text-xs font-bold text-text-secondary">{currentEquipmentName || "None"}</Text>
             </Text>
             {supersetExercise && (
               <Text data-cy="exercise-superset" testID="exercise-superset" className="text-xs text-text-secondary">
-                Supersets with: <Text className="font-bold">{Exercise_fullName(supersetExercise, props.settings)}</Text>
+                Supersets with:{" "}
+                <Text className="text-xs font-bold text-text-secondary">
+                  {Exercise_fullName(supersetExercise, props.settings)}
+                </Text>
               </Text>
             )}
           </View>

@@ -23,7 +23,7 @@ export function EditProgramUiProgress(props: IEditProgramUiProgressProps): JSX.E
     progressExercise = exercise.progress.reuse.exercise ?? exercise.reuse?.exercise;
     reusingString = (
       <Text className="text-xs">
-        Reusing progress of '<Text className="font-bold">{exercise.progress.reuse?.fullName}</Text>'
+        Reusing progress of '<Text className="text-xs font-bold">{exercise.progress.reuse?.fullName}</Text>'
       </Text>
     );
   } else if (exercise.progress) {
@@ -36,7 +36,7 @@ export function EditProgramUiProgress(props: IEditProgramUiProgressProps): JSX.E
           {reusingProgressExercises.map((e, i) => (
             <Fragment key={i}>
               {i !== 0 ? ", " : ""}
-              <Text className="font-bold">{e.fullName}</Text>
+              <Text className="text-xs font-bold">{e.fullName}</Text>
             </Fragment>
           ))}
           .
@@ -72,23 +72,23 @@ function Progression(props: IProgressionProps): JSX.Element {
       return (
         <View>
           <Text className="text-xs">
-            <Text className="font-bold">Linear Progression:</Text>{" "}
-            <Text className="font-bold text-text-success">+{Weight_print(type.increase)}</Text>
+            <Text className="text-xs font-bold">Linear Progression:</Text>{" "}
+            <Text className="text-xs font-bold text-text-success">+{Weight_print(type.increase)}</Text>
             {(type.successesRequired || 0 > 1) && (
-              <Text>
+              <Text className="text-xs">
                 {" "}
-                after <Text className="font-bold text-text-success">{type.successesRequired}</Text> successes
+                after <Text className="text-xs font-bold text-text-success">{type.successesRequired}</Text> successes
               </Text>
             )}
             {type.decrease != null && type.decrease.value > 0 && (
-              <Text>
-                , <Text className="font-bold text-text-error">{Weight_print(type.decrease)}</Text>
+              <Text className="text-xs">
+                , <Text className="text-xs font-bold text-text-error">{Weight_print(type.decrease)}</Text>
               </Text>
             )}
             {type.decrease != null && type.decrease.value > 0 && (
-              <Text>
+              <Text className="text-xs">
                 {" "}
-                after <Text className="font-bold text-text-error">{type.failuresRequired}</Text> failures
+                after <Text className="text-xs font-bold text-text-error">{type.failuresRequired}</Text> failures
               </Text>
             )}
             .
@@ -99,10 +99,10 @@ function Progression(props: IProgressionProps): JSX.Element {
       return (
         <View>
           <Text className="text-xs">
-            <Text className="font-bold">Double Progression</Text>:{" "}
-            <Text className="font-bold text-text-success">+{Weight_print(type.increase)}</Text> within{" "}
-            <Text className="font-bold">{type.minReps}</Text>-<Text className="font-bold">{type.maxReps}</Text> rep
-            range.
+            <Text className="text-xs font-bold">Double Progression</Text>:{" "}
+            <Text className="text-xs font-bold text-text-success">+{Weight_print(type.increase)}</Text> within{" "}
+            <Text className="text-xs font-bold">{type.minReps}</Text>-
+            <Text className="text-xs font-bold">{type.maxReps}</Text> rep range.
           </Text>
         </View>
       );
@@ -110,9 +110,9 @@ function Progression(props: IProgressionProps): JSX.Element {
       return (
         <View>
           <Text className="text-xs">
-            <Text className="font-bold">Sum Reps Progression</Text>:{" "}
-            <Text className="font-bold text-text-success">+{Weight_print(type.increase)}</Text> if sum of all reps is at
-            least <Text className="font-bold">{type.reps}</Text>.
+            <Text className="text-xs font-bold">Sum Reps Progression</Text>:{" "}
+            <Text className="text-xs font-bold text-text-success">+{Weight_print(type.increase)}</Text> if sum of all
+            reps is at least <Text className="text-xs font-bold">{type.reps}</Text>.
           </Text>
         </View>
       );
@@ -128,9 +128,9 @@ function Progression(props: IProgressionProps): JSX.Element {
                 {Object.entries(state).map(([name, value]) => {
                   return (
                     <Text key={name} className="text-xs">
-                      <Text>{"\u2022  "}</Text>
-                      <Text className="text-text-secondary">{name}</Text>:{" "}
-                      <Text className="font-bold">{Weight_print(value)}</Text>
+                      <Text className="text-xs">{"\u2022  "}</Text>
+                      <Text className="text-xs text-text-secondary">{name}</Text>:{" "}
+                      <Text className="text-xs font-bold">{Weight_print(value)}</Text>
                     </Text>
                   );
                 })}

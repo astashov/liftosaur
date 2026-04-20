@@ -145,7 +145,10 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
           {supersetExercise && (
             <View data-cy="exercise-superset">
               <Text className="text-xs text-text-secondary">
-                Supersets with: <Text className="font-bold">{Exercise_fullName(supersetExercise, props.settings)}</Text>
+                Supersets with:{" "}
+                <Text className="text-xs font-bold text-text-secondary">
+                  {Exercise_fullName(supersetExercise, props.settings)}
+                </Text>
               </Text>
             </View>
           )}

@@ -163,9 +163,9 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
             <IconGraphsE width={16} height={19} />
           </Pressable>
         </View>
-        <View className="py-2 border-l bg-background-default border-border-cardpurple">
+        <View className="py-4 border-l bg-background-default border-border-cardpurple">
           <Pressable
-            className="w-10 px-2 items-center nm-edit-exercise-expand-collapse"
+            className="items-center w-10 px-2 nm-edit-exercise-expand-collapse"
             onPress={() => {
               props.plannerDispatch(
                 lb<IPlannerState>()
@@ -283,19 +283,19 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
           {supersetGroup && (
             <View className="px-3 pb-2">
               <Text className="text-xs">
-                Superset Group: <Text className="font-bold">{supersetGroup}</Text>
+                Superset Group: <Text className="text-xs font-bold">{supersetGroup}</Text>
                 {supersetExercises.length > 0 && (
-                  <Text className="text-text-secondary">
-                    <Text> (</Text>
+                  <Text className="text-xs text-text-secondary">
+                    <Text className="text-xs text-text-secondary"> (</Text>
                     {supersetExercises.map((ex, i) => {
                       return (
                         <Fragment key={i}>
                           {i > 0 ? ", " : ""}
-                          <Text className="font-bold">{ex.name}</Text>
+                          <Text className="text-xs font-bold text-text-secondary">{ex.name}</Text>
                         </Fragment>
                       );
                     })}
-                    <Text>)</Text>
+                    <Text className="text-xs text-text-secondary">)</Text>
                   </Text>
                 )}
               </Text>
