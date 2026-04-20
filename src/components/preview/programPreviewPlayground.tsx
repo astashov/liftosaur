@@ -55,6 +55,8 @@ interface IProgramPreviewPlaygroundProps {
   scrollTabZIndex?: number;
   useNavModals?: boolean;
   headerContent?: ReactNode;
+  externalWeekIndex?: number;
+  hideWeekTabBar?: boolean;
   onContentScroll?: (e: import("react-native").NativeSyntheticEvent<import("react-native").NativeScrollEvent>) => void;
 }
 
@@ -302,6 +304,8 @@ function ProgramPreviewPlaygroundInner(p: IProgramPreviewPlaygroundInnerProps): 
       scrollableTabsProps={props.scrollableTabsProps}
       hasNavbar={props.hasNavbar}
       scrollTabZIndex={props.scrollTabZIndex}
+      externalWeekIndex={props.externalWeekIndex}
+      hideWeekTabBar={props.hideWeekTabBar}
     />
   );
 }

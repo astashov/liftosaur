@@ -5,6 +5,9 @@ import type { IProgramPreviewPlaygroundInnerRendererProps } from "./programPrevi
 export { type IProgramPreviewPlaygroundInnerRendererProps } from "./programPreviewPlaygroundInner";
 
 export function ProgramPreviewPlaygroundInnerRenderer(props: IProgramPreviewPlaygroundInnerRendererProps): JSX.Element {
+  if (props.hideWeekTabBar) {
+    return props.renderWeekContent(props.externalWeekIndex ?? 0);
+  }
   return (
     <CollapsiblePreview
       headerContent={props.headerContent}
