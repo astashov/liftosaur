@@ -496,33 +496,31 @@ export class ProgramToPlanner {
                 }
 
                 const update = evalExercise.update;
-                if (
-                  !addedUpdateMap[key] &&
-                  update &&
-                  (update.reuse || update.script) &&
-                  (!evalExercise.reuse || dereuseDecisions.includes("update"))
-                ) {
-                  const updateStr = ProgramToPlanner.getUpdate(evalExercise, this.settings);
-                  if (updateStr) {
-                    plannerExercise += ` / ${updateStr}`;
+                if (!addedUpdateMap[key] && update && (update.reuse || update.script)) {
+                  if (!evalExercise.reuse || dereuseDecisions.includes("update")) {
+                    const updateStr = ProgramToPlanner.getUpdate(evalExercise, this.settings);
+                    if (updateStr) {
+                      plannerExercise += ` / ${updateStr}`;
+                    }
+                    addedUpdateMap[key] = true;
+                  } else if (update.reuse?.fullName === evalExercise.reuse.fullName) {
+                    addedUpdateMap[key] = true;
                   }
-                  addedUpdateMap[key] = true;
                 }
 
                 const progress = evalExercise.progress;
                 if (progress && progress.type === "none") {
                   plannerExercise += ` / progress: none`;
-                } else if (
-                  !addedProgressMap[key] &&
-                  progress &&
-                  (progress.reuse || progress.script) &&
-                  (!evalExercise.reuse || dereuseDecisions.includes("progress"))
-                ) {
-                  const progressStr = ProgramToPlanner.getProgress(evalExercise, this.settings, false);
-                  if (progressStr) {
-                    plannerExercise += ` / ${progressStr}`;
+                } else if (!addedProgressMap[key] && progress && (progress.reuse || progress.script)) {
+                  if (!evalExercise.reuse || dereuseDecisions.includes("progress")) {
+                    const progressStr = ProgramToPlanner.getProgress(evalExercise, this.settings, false);
+                    if (progressStr) {
+                      plannerExercise += ` / ${progressStr}`;
+                    }
+                    addedProgressMap[key] = true;
+                  } else if (progress.reuse?.fullName === evalExercise.reuse.fullName) {
+                    addedProgressMap[key] = true;
                   }
-                  addedProgressMap[key] = true;
                 }
                 exerciseTextArr.push(plannerExercise);
                 break;

@@ -10,6 +10,7 @@ import {
 import {
   IPlannerProgramExercise,
   IPlannerProgramExerciseWarmupSet,
+  IPlannerProgramReuse,
   IProgramExerciseProgress,
   IProgramExerciseUpdate,
   IProgramExerciseDescriptions,
@@ -362,7 +363,8 @@ export function PlannerEvaluator_fillSetReuses(
   exercise: IPlannerProgramExercise,
   evaluatedWeeks: IPlannerEvalResult[][],
   weekIndex: number,
-  settings: ISettings
+  settings: ISettings,
+  metadata: IPlannerEvalMetadata
 ): void {
   if (exercise.reuse && exercise.points.reuseSetPoint) {
     const reuse = exercise.reuse;
@@ -420,21 +422,56 @@ export function PlannerEvaluator_fillSetReuses(
       );
     }
     if (originalExercise.exercise.progress != null && exercise.progress == null) {
-      exercise.progress = {
-        type: originalExercise.exercise.progress.type,
-        state: ObjectUtils_clone(originalExercise.exercise.progress.state),
-        stateMetadata: ObjectUtils_clone(originalExercise.exercise.progress.stateMetadata),
-        reuse: { fullName: originalExercise.exercise.fullName, source: "overall" },
+      const sharedProgressReuse: IPlannerProgramReuse = {
+        fullName: originalExercise.exercise.fullName,
+        source: "overall",
       };
+      const originalProgress = originalExercise.exercise.progress;
+      PlannerEvaluator_forEachSiblingInstance(exercise, metadata, (other) => {
+        if (other.progress == null) {
+          other.progress = {
+            type: originalProgress.type,
+            state: ObjectUtils_clone(originalProgress.state),
+            stateMetadata: ObjectUtils_clone(originalProgress.stateMetadata),
+            reuse: sharedProgressReuse,
+          };
+        }
+      });
     }
     if (originalExercise.exercise.update != null && exercise.update == null) {
-      exercise.update = {
-        type: originalExercise.exercise.update.type,
-        reuse: { fullName: originalExercise.exercise.fullName, source: "overall" },
+      const sharedUpdateReuse: IPlannerProgramReuse = {
+        fullName: originalExercise.exercise.fullName,
+        source: "overall",
       };
+      const originalUpdate = originalExercise.exercise.update;
+      PlannerEvaluator_forEachSiblingInstance(exercise, metadata, (other) => {
+        if (other.update == null) {
+          other.update = {
+            type: originalUpdate.type,
+            reuse: sharedUpdateReuse,
+          };
+        }
+      });
     }
 
     exercise.reuse.exercise = originalExercise.exercise;
+  }
+}
+
+function PlannerEvaluator_forEachSiblingInstance(
+  exercise: IPlannerProgramExercise,
+  metadata: IPlannerEvalMetadata,
+  cb: (other: IPlannerProgramExercise) => void
+): void {
+  const byKey = metadata.byExerciseWeekDay[exercise.key];
+  if (byKey == null) {
+    return;
+  }
+  for (const weekKey of ObjectUtils_keys(byKey)) {
+    const weekEntry = byKey[weekKey as unknown as number];
+    for (const dayKey of ObjectUtils_keys(weekEntry)) {
+      cb(weekEntry[dayKey as unknown as number]);
+    }
   }
 }
 
@@ -704,7 +741,7 @@ export function PlannerEvaluator_postProcess(
   PlannerEvaluator_iterateOverExercises(
     evaluatedWeeks,
     (weekIndex, dayInWeekIndex, dayIndex, exerciseIndex, exercise) => {
-      PlannerEvaluator_fillSetReuses(exercise, evaluatedWeeks, weekIndex, settings);
+      PlannerEvaluator_fillSetReuses(exercise, evaluatedWeeks, weekIndex, settings, metadata);
       PlannerEvaluator_fillDescriptionReuses(exercise, weekIndex, metadata.byExerciseWeekDay, settings);
       PlannerEvaluator_fillProgressReuses(evaluatedWeeks, exercise, settings, metadata);
       PlannerEvaluator_fillUpdateReuses(evaluatedWeeks, exercise, settings, metadata);

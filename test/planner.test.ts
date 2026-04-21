@@ -50,6 +50,43 @@ Squat / 1x5 / 105lb / progress: lp(5lb)
 `);
   });
 
+  it("keeps reusing the progress if reused in previous instance", () => {
+    const programText = `# Week 1
+## Day 1
+main / used: none / 1x5 / 100lb /  progress: custom(increment: 5lb) {~
+  weights += 5lb
+~}
+
+Squat / ...main
+
+## Day 2
+Squat / 1x5 / 100lb`;
+    const { program } = PlannerTestUtils_finish(
+      programText,
+      {
+        completedReps: [[5]],
+        completedWeights: [[Weight_build(100, "lb")]],
+      },
+      Settings_build(),
+      Stats_getEmpty(),
+      2
+    );
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+main / used: none / 1x5 / 100lb / progress: custom(increment: 5lb) {~
+  weights += 5lb
+~}
+
+Squat / ...main / 105lb
+
+## Day 2
+Squat / 1x5 / 105lb
+
+
+`);
+  });
+
   it("switches toe program from lb to kg", () => {
     const programText = `# Week 1
 ## Day 1
