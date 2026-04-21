@@ -92,6 +92,9 @@ export function ScreenGraphs(props: IProps): JSX.Element {
     ],
   });
 
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const activeGraphValue = useMemo<IActiveGraphContext>(() => ({ activeId, setActive: setActiveId }), [activeId]);
+
   if (props.settings.graphs.graphs.length === 0) {
     return (
       <View className="p-8">
@@ -102,12 +105,9 @@ export function ScreenGraphs(props: IProps): JSX.Element {
     );
   }
 
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const activeGraphValue = useMemo<IActiveGraphContext>(() => ({ activeId, setActive: setActiveId }), [activeId]);
-
   return (
     <ActiveGraphContext.Provider value={activeGraphValue}>
-      <View className="pb-4">
+      <View className="pt-4 pb-4">
         {props.settings.graphs.graphs.map((graph, i) => {
           const id = `${graph.type}-${graph.id}-${i}`;
           if (graph.type === "exercise") {

@@ -1,4 +1,5 @@
 import { JSX, useEffect, useMemo } from "react";
+import { View, Platform } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
@@ -62,35 +63,43 @@ export function NavModalEditProgressScript(): JSX.Element {
     return <></>;
   }
 
-  return (
-    <ModalScreenContainer onClose={onClose} isFullWidth isFullHeight>
-      <ModalEditProgressScriptContent
-        settings={state.storage.settings}
-        plannerExercise={plannerExercise!}
-        onClose={onClose}
-        onChange={(script) => {
-          plannerDispatch!(
-            lbProgram.recordModify((program) => {
-              return EditProgramUiHelpers_changeFirstInstance(
-                program,
-                plannerExercise!,
-                state.storage.settings,
-                true,
-                (e) => {
-                  e.progress = {
-                    ...e.progress,
-                    type: "custom",
-                    state: e.progress?.state ?? {},
-                    stateMetadata: e.progress?.stateMetadata ?? {},
-                    script: script,
-                  };
-                }
-              );
-            }),
-            "Update progress script"
-          );
-        }}
-      />
-    </ModalScreenContainer>
+  const content = (
+    <ModalEditProgressScriptContent
+      settings={state.storage.settings}
+      plannerExercise={plannerExercise!}
+      onClose={onClose}
+      onChange={(script) => {
+        plannerDispatch!(
+          lbProgram.recordModify((program) => {
+            return EditProgramUiHelpers_changeFirstInstance(
+              program,
+              plannerExercise!,
+              state.storage.settings,
+              true,
+              (e) => {
+                e.progress = {
+                  ...e.progress,
+                  type: "custom",
+                  state: e.progress?.state ?? {},
+                  stateMetadata: e.progress?.stateMetadata ?? {},
+                  script: script,
+                };
+              }
+            );
+          }),
+          "Update progress script"
+        );
+      }}
+    />
   );
+
+  if (Platform.OS === "web") {
+    return (
+      <ModalScreenContainer onClose={onClose} isFullWidth isFullHeight>
+        {content}
+      </ModalScreenContainer>
+    );
+  }
+
+  return <View className="bg-background-default flex-1 px-4 py-4">{content}</View>;
 }

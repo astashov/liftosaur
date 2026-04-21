@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "../primitives/text";
 import {
   IPlannerExerciseState,
   IPlannerExerciseUi,
@@ -56,9 +58,9 @@ export function BottomSheetEditProgramExerciseSetContent(props: IBottomSheetEdit
   return (
     <>
       {set && (
-        <div>
-          <h3 className="px-4 pt-1 text-base font-bold">Edit Set</h3>
-          <div className="px-4 py-2">
+        <View>
+          <Text className="px-4 pt-1 text-base font-bold">Edit Set</Text>
+          <View className="px-4 py-2">
             <MenuItemEditable
               type="text"
               name="Label"
@@ -126,8 +128,8 @@ export function BottomSheetEditProgramExerciseSetContent(props: IBottomSheetEdit
                 });
               }}
             />
-          </div>
-        </div>
+          </View>
+        </View>
       )}
     </>
   );

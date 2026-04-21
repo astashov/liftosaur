@@ -1,4 +1,6 @@
 import { JSX, Fragment } from "react";
+import { View, Pressable } from "react-native";
+import { Text } from "../primitives/text";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { IEvaluatedProgram, Program_getSupersetExercises } from "../../models/program";
 import { LinkButton } from "../linkButton";
@@ -15,11 +17,12 @@ export function EditProgramExerciseSupersets(props: IEditProgramExerciseSuperset
   const superset = props.plannerExercise.superset;
   const supersetExercises = Program_getSupersetExercises(props.evaluatedProgram, props.plannerExercise);
   return (
-    <div>
-      <div
-        className="flex items-center gap-2 mx-4 mb-2 text-sm border-b cursor-pointer border-border-neutral min-h-12"
+    <View>
+      <Pressable
+        className="flex-row flex-wrap items-center gap-2 mx-4 mb-2 border-b border-border-neutral min-h-12"
         data-cy="edit-exercise-select-superset"
-        onClick={() => {
+        testID="edit-exercise-select-superset"
+        onPress={() => {
           navigationRef.navigate("editProgramExerciseSupersetModal", {
             exerciseStateKey: props.exerciseStateKey,
             programId: props.programId,
@@ -27,23 +30,23 @@ export function EditProgramExerciseSupersets(props: IEditProgramExerciseSuperset
           });
         }}
       >
-        <span>Superset group:</span>
+        <Text className="text-sm">Superset group:</Text>
         <LinkButton name="superset-group">{superset == null ? "None" : superset.name}</LinkButton>
         {supersetExercises.length > 0 && (
-          <span className="text-xs text-text-secondary" data-cy="edit-exercise-superset-exercises">
-            (
+          <View className="flex-row flex-wrap" data-cy="edit-exercise-superset-exercises">
+            <Text className="text-xs text-text-secondary">(</Text>
             {supersetExercises.map((e, i) => {
               return (
                 <Fragment key={e.fullName}>
-                  {i !== 0 ? ", " : ""}
-                  <strong>{e.fullName}</strong>
+                  {i !== 0 ? <Text className="text-xs text-text-secondary">, </Text> : null}
+                  <Text className="text-xs font-bold text-text-secondary">{e.fullName}</Text>
                 </Fragment>
               );
             })}
-            )
-          </span>
+            <Text className="text-xs text-text-secondary">)</Text>
+          </View>
         )}
-      </div>
-    </div>
+      </Pressable>
+    </View>
   );
 }

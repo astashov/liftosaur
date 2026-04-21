@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "../primitives/text";
 import {
   IPlannerExerciseState,
   IPlannerExerciseUi,
@@ -129,7 +131,7 @@ export function EditProgramExerciseAcrossAllWeeks(props: IEditProgramExerciseAcr
   });
 
   return (
-    <div>
+    <View>
       <ScrollableTabs
         topPadding="1rem"
         defaultIndex={props.ui.acrossWeeksTabIndex}
@@ -144,7 +146,7 @@ export function EditProgramExerciseAcrossAllWeeks(props: IEditProgramExerciseAcr
         color="purple"
         tabs={tabs}
       />
-    </div>
+    </View>
   );
 }
 
@@ -159,7 +161,7 @@ interface ITabProps {
 
 function Tab(props: ITabProps): JSX.Element {
   const groups: Record<string, IDaySetData[]> = {};
-  PP_iterate2(props.evaluatedProgram.weeks, (exercise, weekIndex, dayInWeekIndex, dayIndex) => {
+  PP_iterate2(props.evaluatedProgram.weeks, (exercise, weekIndex, dayInWeekIndex) => {
     if (exercise.key !== props.plannerExercise.key) {
       return;
     }
@@ -202,21 +204,25 @@ function Tab(props: ITabProps): JSX.Element {
   const allDaysEqual = SetUtils_areAllEqual(allDays);
 
   return (
-    <div className="px-4">
+    <View className="px-4">
       {Object.entries(groups).map(([key, group]) => {
         const first = group[0];
         const day = props.evaluatedProgram.weeks[first.week - 1].days[first.dayInWeek - 1];
         const exercise = Program_getProgramExerciseFromDay(day, props.plannerExercise.key);
         if (!exercise) {
-          return <div key={key}>Exercise not found for key: {props.plannerExercise.key}</div>;
+          return (
+            <View key={key}>
+              <Text>Exercise not found for key: {props.plannerExercise.key}</Text>
+            </View>
+          );
         }
         const set = exercise.evaluatedSetVariations[first.setVariation - 1].sets[first.set - 1];
         return (
-          <div
+          <View
             key={key}
-            className="flex items-center gap-4 p-2 mb-4 border rounded-lg bg-background-cardpurple border-border-cardpurple"
+            className="flex-row items-center gap-4 p-2 mb-4 border rounded-lg bg-background-cardpurple border-border-cardpurple"
           >
-            <div className="text-sm">
+            <View className="flex-1">
               <GroupLabel
                 group={group}
                 allWeeksEqual={allWeeksEqual}
@@ -224,12 +230,12 @@ function Tab(props: ITabProps): JSX.Element {
                 setVariationsPerWeekDay={setVariationsPerWeekDay}
                 setsPerWeekDaySetVariation={setsPerWeekDaySetVariation}
               />
-            </div>
-            <div className="flex items-center gap-2 ml-auto">{props.getRightSide(group, set)}</div>
-          </div>
+            </View>
+            <View className="flex-row items-center gap-2">{props.getRightSide(group, set)}</View>
+          </View>
         );
       })}
-    </div>
+    </View>
   );
 }
 
@@ -264,7 +270,6 @@ function GroupLabel(props: IGroupLabelProps): JSX.Element {
     ) {
       return false;
     }
-    // Also check that all sets within each set variation are equal
     for (const setVariation of setVariations) {
       const setKey = `${key}-${setVariation}`;
       const groupSets = groupSetsPerWeekDaySetVariation[setKey];
@@ -282,7 +287,7 @@ function GroupLabel(props: IGroupLabelProps): JSX.Element {
   });
 
   if (props.allWeeksEqual && props.allDaysEqual && allSetVariationsEqual && allSetsEqual) {
-    return <div className="">All Sets</div>;
+    return <Text className="text-sm">All Sets</Text>;
   }
 
   const parts = props.group.map<[string, number][]>((setData) => {
@@ -304,15 +309,15 @@ function GroupLabel(props: IGroupLabelProps): JSX.Element {
   );
 
   return (
-    <ul>
+    <View>
       {uniqueParts.map((part, index) => {
         return (
-          <li key={index} className="text-sm">
+          <Text key={index} className="text-sm">
             {part}
-          </li>
+          </Text>
         );
       })}
-    </ul>
+    </View>
   );
 }
 
@@ -327,12 +332,12 @@ interface IValueProps {
 function RepsValue(props: IValueProps): JSX.Element {
   const { group, set, change } = props;
   return (
-    <div className="flex items-center gap-1">
+    <View className="flex-row items-center gap-1">
       {set.minrep != null && (
         <>
-          <div className="text-center">
-            <div className="text-xs text-text-secondary">Min Reps</div>
-            <div>
+          <View className="items-center">
+            <Text className="text-xs text-text-secondary">Min Reps</Text>
+            <View>
               <InputNumber2
                 width={3.5}
                 data-cy="min-reps-value"
@@ -347,27 +352,25 @@ function RepsValue(props: IValueProps): JSX.Element {
                 max={999}
                 step={1}
               />
-            </div>
-          </div>
-          <div>
-            <div className="text-xs text-text-secondary">&nbsp;</div>
-            <div>-</div>
-          </div>
+            </View>
+          </View>
+          <View>
+            <Text className="text-xs text-text-secondary">&nbsp;</Text>
+            <Text>-</Text>
+          </View>
         </>
       )}
-      <div className="text-center">
-        <div className="text-xs text-text-secondary">{set.minrep != null ? "Max Reps" : "Reps"}</div>
-        <div>
+      <View className="items-center">
+        <Text className="text-xs text-text-secondary">{set.minrep != null ? "Max Reps" : "Reps"}</Text>
+        <View>
           <InputNumber2
             width={3.5}
             data-cy="reps-value"
             name="set-reps"
             onBlur={(value) => change(group, (s) => (s.maxrep = value))}
-            after={() => {
-              return set.isAmrap ? <span className="text-xs text-text-secondary">+</span> : undefined;
-            }}
+            after={() => (set.isAmrap ? <Text className="text-xs text-text-secondary">+</Text> : undefined)}
             keyboardAddon={
-              <div className="py-2">
+              <View className="py-2">
                 <InputNumberAddOn
                   label="Is AMRAP?"
                   value={set.isAmrap}
@@ -375,25 +378,25 @@ function RepsValue(props: IValueProps): JSX.Element {
                     change(group, (s) => (s.isAmrap = value));
                   }}
                 />
-              </div>
+              </View>
             }
             value={set.maxrep}
             min={0}
             max={999}
             step={1}
           />
-        </div>
-      </div>
-    </div>
+        </View>
+      </View>
+    </View>
   );
 }
 
 function WeightsValue(props: IValueProps): JSX.Element {
   const { group, set, change } = props;
   return (
-    <div className="text-center">
-      <div className="text-xs text-text-secondary">Weight</div>
-      <div>
+    <View className="items-center">
+      <Text className="text-xs text-text-secondary">Weight</Text>
+      <View>
         <InputWeight2
           name="set-weight"
           width={4}
@@ -404,45 +407,39 @@ function WeightsValue(props: IValueProps): JSX.Element {
           showUnitInside={true}
           subscription={undefined}
           value={set.weight}
-          after={() => {
-            return set.askWeight ? <span className="text-xs text-text-secondary">+</span> : undefined;
-          }}
+          after={() => (set.askWeight ? <Text className="text-xs text-text-secondary">+</Text> : undefined)}
           max={9999}
           min={-9999}
           settings={props.settings}
-          addOn={() => {
-            return (
-              <InputNumberAddOn
-                label="Ask Weight?"
-                value={set.askWeight}
-                onChange={(value) => {
-                  change(group, (s) => (s.askWeight = value));
-                }}
-              />
-            );
-          }}
+          addOn={() => (
+            <InputNumberAddOn
+              label="Ask Weight?"
+              value={set.askWeight}
+              onChange={(value) => {
+                change(group, (s) => (s.askWeight = value));
+              }}
+            />
+          )}
         />
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }
 
 function RpeValue(props: IValueProps): JSX.Element {
   const { group, set, change } = props;
   return (
-    <div className="text-center">
-      <div className="text-xs text-text-secondary">RPE</div>
-      <div>
+    <View className="items-center">
+      <Text className="text-xs text-text-secondary">RPE</Text>
+      <View>
         <InputNumber2
           width={3}
           data-cy="rpe-value"
           allowDot={true}
           name="set-rpe"
-          after={() => {
-            return set.logRpe ? <span className="text-xs text-text-secondary">+</span> : undefined;
-          }}
+          after={() => (set.logRpe ? <Text className="text-xs text-text-secondary">+</Text> : undefined)}
           keyboardAddon={
-            <div className="py-2">
+            <View className="py-2">
               <InputNumberAddOn
                 label="Log RPE?"
                 value={set.isAmrap}
@@ -450,7 +447,7 @@ function RpeValue(props: IValueProps): JSX.Element {
                   change(group, (s) => (s.logRpe = value));
                 }}
               />
-            </div>
+            </View>
           }
           onBlur={(value) => change(group, (s) => (s.rpe = value))}
           value={set.rpe}
@@ -458,17 +455,17 @@ function RpeValue(props: IValueProps): JSX.Element {
           max={10}
           step={0.5}
         />
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }
 
 function TimerValue(props: IValueProps): JSX.Element {
   const { group, set, change } = props;
   return (
-    <div className="text-center">
-      <div className="text-xs text-text-secondary">Timer</div>
-      <div>
+    <View className="items-center">
+      <Text className="text-xs text-text-secondary">Timer</Text>
+      <View>
         <InputNumber2
           width={3.5}
           data-cy="set-timer"
@@ -479,8 +476,8 @@ function TimerValue(props: IValueProps): JSX.Element {
           max={9999}
           step={15}
         />
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }
 
@@ -534,7 +531,6 @@ function buildCollapsedGroup(group: [string, number][][]): [string, string][] {
   const lastEntry = group[group.length - 1];
 
   if (firstEntry.length === 1) {
-    // e.g., [["Week", 3]], [["Week", 4]]
     const key = firstEntry[0][0];
     const start = firstEntry[0][1];
     const end = lastEntry[0][1];

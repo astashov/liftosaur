@@ -1,4 +1,6 @@
 import { JSX, useState } from "react";
+import { View } from "react-native";
+import { Text } from "../../primitives/text";
 import { Modal } from "../../modal";
 import { Button } from "../../button";
 import { IPlannerProgramExercise } from "../../../pages/planner/models/types";
@@ -41,10 +43,10 @@ export function ModalEditProgressScriptContent(props: IModalEditProgressScriptPr
 
   return (
     <>
-      <h2 className="mb-1 text-lg font-bold text-center">Progress Script</h2>
-      <p className="mb-2 text-xs text-text-secondary">
+      <Text className="mb-1 text-lg font-bold text-center">Progress Script</Text>
+      <Text className="mb-2 text-xs text-text-secondary">
         It's executed when you finish a workout, and it can modify the program text.
-      </p>
+      </Text>
       <ScriptEditorView
         name="modal-edit-progress-script-editor"
         state={ownState}
@@ -54,10 +56,10 @@ export function ModalEditProgressScriptContent(props: IModalEditProgressScriptPr
         onChange={(e) => {
           setScript(e);
         }}
-        onBlur={(e, text) => {}}
-        onLineChange={(line) => {}}
+        onBlur={() => {}}
+        onLineChange={() => {}}
       />
-      <div className="mt-4 text-center">
+      <View className="items-center mt-4">
         <Button
           kind="purple"
           name="modal-create-state-variable-submit"
@@ -70,7 +72,7 @@ export function ModalEditProgressScriptContent(props: IModalEditProgressScriptPr
         >
           Save
         </Button>
-      </div>
+      </View>
     </>
   );
 }

@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View, Pressable, Switch } from "react-native";
+import { Text } from "../primitives/text";
 import {
   IPlannerExerciseState,
   IPlannerProgramExercise,
@@ -26,36 +28,34 @@ export function EditProgramExerciseDescription(props: IEditProgramExerciseDescri
   const currentIndex = PlannerProgramExercise_currentDescriptionIndex(props.plannerExercise);
 
   return (
-    <div className="border rounded-lg bg-background-cardpurple border-border-purple">
+    <View className="border rounded-lg bg-background-cardpurple border-border-purple">
       {props.isMultiple && (
-        <div className="flex items-center gap-4 pt-2 pb-1 pl-4 pr-2">
-          <div className="flex-1 font-semibold">Description {props.descriptionIndex + 1}</div>
-          <div className="flex items-center gap-2">
-            <div>
-              <label className="leading-none">
-                <span className="mr-2 text-xs">Is Current?</span>
-                <input
-                  checked={currentIndex === props.descriptionIndex}
-                  className="block align-middle checkbox text-text-link"
-                  type="checkbox"
-                  onChange={(e) => {
-                    EditProgramUiHelpers_changeCurrentInstanceExercise(
-                      props.plannerDispatch,
-                      props.plannerExercise,
-                      props.settings,
-                      (ex) => {
-                        for (let i = 0; i < ex.descriptions.values.length; i++) {
-                          ex.descriptions.values[i].isCurrent = i === props.descriptionIndex;
-                        }
+        <View className="flex-row items-center gap-4 pt-2 pb-1 pl-4 pr-2">
+          <View className="flex-1">
+            <Text className="font-semibold">Description {props.descriptionIndex + 1}</Text>
+          </View>
+          <View className="flex-row items-center gap-2">
+            <View className="flex-row items-center">
+              <Text className="mr-2 text-xs">Is Current?</Text>
+              <Switch
+                value={currentIndex === props.descriptionIndex}
+                onValueChange={() => {
+                  EditProgramUiHelpers_changeCurrentInstanceExercise(
+                    props.plannerDispatch,
+                    props.plannerExercise,
+                    props.settings,
+                    (ex) => {
+                      for (let i = 0; i < ex.descriptions.values.length; i++) {
+                        ex.descriptions.values[i].isCurrent = i === props.descriptionIndex;
                       }
-                    );
-                  }}
-                />
-              </label>
-            </div>
-            <button
+                    }
+                  );
+                }}
+              />
+            </View>
+            <Pressable
               className="p-2"
-              onClick={() => {
+              onPress={() => {
                 EditProgramUiHelpers_changeCurrentInstanceExercise(
                   props.plannerDispatch,
                   props.plannerExercise,
@@ -67,11 +67,11 @@ export function EditProgramExerciseDescription(props: IEditProgramExerciseDescri
               }}
             >
               <IconTrash />
-            </button>
-          </div>
-        </div>
+            </Pressable>
+          </View>
+        </View>
       )}
-      <div className="p-2">
+      <View className="p-2">
         <MarkdownEditorBorderless
           value={description.value}
           isTransparent={true}
@@ -88,7 +88,7 @@ export function EditProgramExerciseDescription(props: IEditProgramExerciseDescri
             );
           }}
         />
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }

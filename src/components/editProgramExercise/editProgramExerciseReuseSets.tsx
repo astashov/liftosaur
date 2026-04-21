@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View, Pressable, Alert } from "react-native";
+import { Text } from "../primitives/text";
 import {
   IPlannerProgramExercise,
   IPlannerExerciseState,
@@ -88,27 +90,31 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
   }
 
   return (
-    <div>
+    <View>
       {reusingSetsExercises.length > 0 && (
-        <div className="px-4 text-xs">
-          <div>Reused by:</div>
-          <ul>
-            {reusingSetsExercises.map((e, i) => {
+        <View className="px-4">
+          <Text className="text-xs">Reused by:</Text>
+          <View>
+            {reusingSetsExercises.map((e) => {
               return (
-                <li className="ml-4 font-semibold list-disc" key={`${e.key}-${e.dayData.week}-${e.dayData.dayInWeek}`}>
-                  {e.fullName}[{e.dayData.week}:{e.dayData.dayInWeek}]
-                </li>
+                <View className="flex-row items-start ml-4" key={`${e.key}-${e.dayData.week}-${e.dayData.dayInWeek}`}>
+                  <Text className="text-xs">• </Text>
+                  <Text className="text-xs font-semibold">
+                    {e.fullName}[{e.dayData.week}:{e.dayData.dayInWeek}]
+                  </Text>
+                </View>
               );
             })}
-          </ul>
-        </div>
+          </View>
+        </View>
       )}
-      <div
-        className="flex-1 px-4 mb-2 text-sm"
+      <Pressable
+        className="flex-1 px-4 mb-2"
         data-cy="edit-exercise-reuse-sets"
-        onClick={() => {
+        testID="edit-exercise-reuse-sets"
+        onPress={() => {
           if (reusingSetsExercises.length > 0) {
-            alert("You cannot reuse sets from this exercise because it is already reused by other exercises.");
+            Alert.alert("You cannot reuse sets from this exercise because it is already reused by other exercises.");
           }
         }}
       >
@@ -167,10 +173,10 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
             );
           }}
         />
-      </div>
+      </Pressable>
       {reuseSetCandidate && reuse && (
-        <div className="flex gap-4 px-4 mb-2">
-          <div className="flex-1">
+        <View className="flex-row gap-4 px-4 mb-2">
+          <View className="flex-1">
             <EditProgramExerciseReuseAtWeekDay
               plannerExercise={plannerExercise}
               settings={props.settings}
@@ -213,7 +219,7 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
                 }
               }}
             />
-          </div>
+          </View>
           {reuse &&
             (isOverriding ? (
               <LinkButton
@@ -262,8 +268,8 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
                 Override Sets
               </LinkButton>
             ))}
-        </div>
+        </View>
       )}
-    </div>
+    </View>
   );
 }

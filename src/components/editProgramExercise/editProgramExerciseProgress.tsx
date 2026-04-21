@@ -1,4 +1,6 @@
 import { JSX, useState } from "react";
+import { View, Alert } from "react-native";
+import { Text } from "../primitives/text";
 import {
   IPlannerProgramExercise,
   IPlannerExerciseState,
@@ -70,62 +72,62 @@ export function EditProgramExerciseProgress(props: IEditProgramExerciseProgressP
   const [isOverriding, setIsOverriding] = useState(false);
 
   return (
-    <>
-      <div className="px-4 pt-2 pb-2 bg-background-default">
-        <div className="flex gap-4 pb-2">
-          <div className="text-base font-bold">Edit Progress</div>
-          {ownProgress?.type === "custom" && !ownProgress.reuse && (
-            <div className="ml-auto">
-              <LinkButton
-                className="text-sm"
-                data-cy="edit-exercise-progress-edit-script"
-                name="edit-exercise-progress-edit-script"
-                onClick={() => {
-                  props.plannerDispatch(
-                    lbUi.p("showEditProgressScriptModal").record(true),
-                    "Show edit progress script modal"
-                  );
-                  navigationRef.navigate("editProgressScriptModal", {
-                    exerciseStateKey: props.exerciseStateKey,
-                    programId: props.programId,
-                  });
-                }}
-              >
-                Edit Script
-              </LinkButton>
-            </div>
-          )}
-          {ownProgress?.reuse?.source === "overall" && (
-            <div className="ml-auto">
-              <LinkButton
-                className="text-sm"
-                data-cy="edit-exercise-progress-override"
-                name="edit-exercise-progress-override"
-                onClick={() => {
-                  setIsOverriding(true);
-                }}
-              >
-                Override
-              </LinkButton>
-            </div>
-          )}
-        </div>
-        {ownProgress?.reuse?.source === "overall" && !isOverriding ? (
-          <SetReuse evaluatedProgram={evaluatedProgram} exercise={plannerExercise} />
-        ) : (
-          <ProgressContent
-            program={props.program}
-            ui={props.ui}
-            evaluatedProgram={evaluatedProgram}
-            plannerExercise={plannerExercise}
-            plannerDispatch={props.plannerDispatch}
-            settings={props.settings}
-            exerciseStateKey={props.exerciseStateKey}
-            programId={props.programId}
-          />
+    <View className="px-4 py-2 bg-background-default">
+      <View className="flex-row gap-4 pb-2">
+        <View className="flex-1">
+          <Text className="text-base font-bold">Edit Progress</Text>
+        </View>
+        {ownProgress?.type === "custom" && !ownProgress.reuse && (
+          <View>
+            <LinkButton
+              className="text-sm"
+              data-cy="edit-exercise-progress-edit-script"
+              name="edit-exercise-progress-edit-script"
+              onClick={() => {
+                props.plannerDispatch(
+                  lbUi.p("showEditProgressScriptModal").record(true),
+                  "Show edit progress script modal"
+                );
+                navigationRef.navigate("editProgressScriptModal", {
+                  exerciseStateKey: props.exerciseStateKey,
+                  programId: props.programId,
+                });
+              }}
+            >
+              Edit Script
+            </LinkButton>
+          </View>
         )}
-      </div>
-    </>
+        {ownProgress?.reuse?.source === "overall" && (
+          <View>
+            <LinkButton
+              className="text-sm"
+              data-cy="edit-exercise-progress-override"
+              name="edit-exercise-progress-override"
+              onClick={() => {
+                setIsOverriding(true);
+              }}
+            >
+              Override
+            </LinkButton>
+          </View>
+        )}
+      </View>
+      {ownProgress?.reuse?.source === "overall" && !isOverriding ? (
+        <SetReuse evaluatedProgram={evaluatedProgram} exercise={plannerExercise} />
+      ) : (
+        <ProgressContent
+          program={props.program}
+          ui={props.ui}
+          evaluatedProgram={evaluatedProgram}
+          plannerExercise={plannerExercise}
+          plannerDispatch={props.plannerDispatch}
+          settings={props.settings}
+          exerciseStateKey={props.exerciseStateKey}
+          programId={props.programId}
+        />
+      )}
+    </View>
   );
 }
 
@@ -136,9 +138,9 @@ interface ISetReuseProps {
 
 function SetReuse(props: ISetReuseProps): JSX.Element {
   return (
-    <div>
+    <View>
       <EditProgramUiProgress evaluatedProgram={props.evaluatedProgram} exercise={props.exercise} />
-    </div>
+    </View>
   );
 }
 
@@ -185,33 +187,36 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
   return (
     <>
       {reusingProgressExercises.length > 0 && (
-        <div>
+        <View>
           <MenuItemWrapper name="program-exercise-progress-reusing">
-            <div className="mb-1 text-xs">
-              <div>Custom progress of this exercise is reused by:</div>
-              <ul>
+            <View className="mb-1">
+              <Text className="text-xs">Custom progress of this exercise is reused by:</Text>
+              <View>
                 {reusingProgressExercises.map((exercise) => (
-                  <li key={exercise.fullName} className="ml-4 text-xs font-semibold list-disc">
-                    {exercise.fullName}
-                  </li>
+                  <View key={exercise.fullName} className="flex-row items-start ml-4">
+                    <Text className="text-xs">• </Text>
+                    <Text className="text-xs font-semibold">{exercise.fullName}</Text>
+                  </View>
                 ))}
-              </ul>
-            </div>
+              </View>
+            </View>
           </MenuItemWrapper>
-        </div>
+        </View>
       )}
-      <div>
+      <View>
         <MenuItemWrapper
           name="program-exercise-progress-type"
           onClick={() => {
             if (reusingCustomProgressExercises.length > 0) {
-              alert("You cannot use other progress types if this custom progress is reused by other exercises.");
+              Alert.alert("You cannot use other progress types if this custom progress is reused by other exercises.");
             }
           }}
         >
-          <div className="flex items-center py-1">
-            <div className="flex-1 text-sm">Progress:</div>
-            <div className="flex-1 text-sm">
+          <View className="flex-row items-center py-1">
+            <View className="flex-1">
+              <Text className="text-sm">Progress:</Text>
+            </View>
+            <View className="flex-1">
               <InputSelect
                 name="program-exercise-progress-type-select"
                 values={progressTypes}
@@ -240,7 +245,7 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
                               if (result.success) {
                                 e.progress = result.data;
                               } else {
-                                alert(result.error);
+                                Alert.alert(result.error);
                               }
                             }
                           }
@@ -258,22 +263,24 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
                   );
                 }}
               />
-            </div>
-          </div>
+            </View>
+          </View>
         </MenuItemWrapper>
         {ownProgress?.type === "custom" && reuseCandidates.length > 0 && (
-          <div>
+          <View>
             <MenuItemWrapper
               name="program-exercise-progress-reuse"
               onClick={() => {
                 if (cannotReuseOtherProgress) {
-                  alert("You cannot reuse progress if this custom progress is reused by other USED exercises.");
+                  Alert.alert("You cannot reuse progress if this custom progress is reused by other USED exercises.");
                 }
               }}
             >
-              <div className="flex items-center py-1">
-                <div className="flex-1 text-sm">Reuse progress from:</div>
-                <div className="flex-1">
+              <View className="flex-row items-center py-1">
+                <View className="flex-1">
+                  <Text className="text-sm">Reuse progress from:</Text>
+                </View>
+                <View className="flex-1">
                   <InputSelect
                     hint="You can only reuse progress of exercises that don't reuse other exercises"
                     name="program-exercise-progress-reuse-select"
@@ -303,43 +310,43 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
                       );
                     }}
                   />
-                </div>
-              </div>
+                </View>
+              </View>
             </MenuItemWrapper>
-          </div>
+          </View>
         )}
         {ownProgress?.type === "lp" && (
-          <div className="py-2">
+          <View className="py-2">
             <LinearProgressSettings
               plannerExercise={plannerExercise}
               settings={props.settings}
               plannerDispatch={props.plannerDispatch}
               program={props.program}
             />
-          </div>
+          </View>
         )}
         {ownProgress?.type === "dp" && (
-          <div className="py-2">
+          <View className="py-2">
             <DoubleProgressSettings
               plannerExercise={plannerExercise}
               settings={props.settings}
               plannerDispatch={props.plannerDispatch}
               program={props.program}
             />
-          </div>
+          </View>
         )}
         {ownProgress?.type === "sum" && (
-          <div className="py-2">
+          <View className="py-2">
             <SumRepsProgressSettings
               plannerExercise={plannerExercise}
               settings={props.settings}
               plannerDispatch={props.plannerDispatch}
               program={props.program}
             />
-          </div>
+          </View>
         )}
         {ownProgress?.type === "custom" && (
-          <div className="py-2">
+          <View className="py-2">
             <CustomProgressSettings
               ui={props.ui}
               plannerExercise={plannerExercise}
@@ -349,9 +356,9 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
               exerciseStateKey={props.exerciseStateKey}
               programId={props.programId}
             />
-          </div>
+          </View>
         )}
-      </div>
+      </View>
     </>
   );
 }

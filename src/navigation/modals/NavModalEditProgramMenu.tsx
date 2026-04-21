@@ -1,7 +1,7 @@
 import { JSX } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
-import { SheetScreenContainer } from "../SheetScreenContainer";
+import { ModalScreenContainer } from "../ModalScreenContainer";
 import { BottomSheetEditProgramV2Content } from "../../components/bottomSheetEditProgramV2";
 import { Program_getProgram } from "../../models/program";
 import { Thunk_generateAndCopyLink, Thunk_fetchRevisions } from "../../ducks/thunks";
@@ -29,7 +29,7 @@ export function NavModalEditProgramMenu(): JSX.Element {
   };
 
   return (
-    <SheetScreenContainer onClose={onClose}>
+    <ModalScreenContainer onClose={onClose} noPaddings>
       <BottomSheetEditProgramV2Content
         isAffiliateEnabled={!!state.storage.settings.affiliateEnabled}
         isLoadingRevisions={false}
@@ -64,6 +64,6 @@ export function NavModalEditProgramMenu(): JSX.Element {
         }}
         onClose={onClose}
       />
-    </SheetScreenContainer>
+    </ModalScreenContainer>
   );
 }

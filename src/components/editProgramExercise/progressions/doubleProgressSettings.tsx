@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "../../primitives/text";
 import { lb } from "lens-shmens";
 import { PlannerProgramExercise_progressionType } from "../../../pages/planner/models/plannerProgramExercise";
 import { IPlannerProgramExercise, IPlannerExerciseState } from "../../../pages/planner/models/types";
@@ -19,14 +21,14 @@ export function DoubleProgressSettings(props: IDoubleProgressSettingsProps): JSX
   const { plannerExercise, settings } = props;
   const progression = PlannerProgramExercise_progressionType(plannerExercise);
   if (progression?.type !== "double") {
-    return <div />;
+    return <View />;
   }
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
   return (
-    <div>
-      <div className="flex flex-wrap text-sm">
-        <div>Increase weight by&nbsp;</div>
-        <div>
+    <View>
+      <View className="flex-row flex-wrap items-center">
+        <Text className="text-sm">Increase weight by&nbsp;</Text>
+        <View>
           <InputWeight2
             name="double-progress-increase"
             value={progression.increase}
@@ -54,72 +56,70 @@ export function DoubleProgressSettings(props: IDoubleProgressSettingsProps): JSX
               );
             }}
           />
-        </div>
-      </div>
-      <div>
-        <div className="flex flex-wrap pt-1 text-sm">
-          <div>Reps range:&nbsp;</div>
-          <div>
-            <InputNumber2
-              name="double-progress-min-reps"
-              value={progression.minReps}
-              autowidth={true}
-              min={1}
-              step={1}
-              max={999}
-              onInput={(value) => {
-                props.plannerDispatch(
-                  lbProgram.recordModify((program) => {
-                    return EditProgramUiHelpers_changeFirstInstance(
-                      program,
-                      plannerExercise,
-                      props.settings,
-                      true,
-                      (e) => {
-                        const state = e.progress?.state;
-                        if (state && value != null && value > 0) {
-                          state.minReps = value;
-                        }
+        </View>
+      </View>
+      <View className="flex-row flex-wrap items-center pt-1">
+        <Text className="text-sm">Reps range:&nbsp;</Text>
+        <View>
+          <InputNumber2
+            name="double-progress-min-reps"
+            value={progression.minReps}
+            autowidth={true}
+            min={1}
+            step={1}
+            max={999}
+            onInput={(value) => {
+              props.plannerDispatch(
+                lbProgram.recordModify((program) => {
+                  return EditProgramUiHelpers_changeFirstInstance(
+                    program,
+                    plannerExercise,
+                    props.settings,
+                    true,
+                    (e) => {
+                      const state = e.progress?.state;
+                      if (state && value != null && value > 0) {
+                        state.minReps = value;
                       }
-                    );
-                  }),
-                  "Update min reps"
-                );
-              }}
-            />
-          </div>
-          <div>&nbsp;-&nbsp;</div>
-          <div>
-            <InputNumber2
-              name="double-progress-max-reps"
-              value={progression.maxReps}
-              autowidth={true}
-              min={1}
-              step={1}
-              max={999}
-              onInput={(value) => {
-                props.plannerDispatch(
-                  lbProgram.recordModify((program) => {
-                    return EditProgramUiHelpers_changeFirstInstance(
-                      program,
-                      plannerExercise,
-                      props.settings,
-                      true,
-                      (e) => {
-                        const state = e.progress?.state;
-                        if (state && value != null && value > 0) {
-                          state.maxReps = value;
-                        }
+                    }
+                  );
+                }),
+                "Update min reps"
+              );
+            }}
+          />
+        </View>
+        <Text className="text-sm">&nbsp;-&nbsp;</Text>
+        <View>
+          <InputNumber2
+            name="double-progress-max-reps"
+            value={progression.maxReps}
+            autowidth={true}
+            min={1}
+            step={1}
+            max={999}
+            onInput={(value) => {
+              props.plannerDispatch(
+                lbProgram.recordModify((program) => {
+                  return EditProgramUiHelpers_changeFirstInstance(
+                    program,
+                    plannerExercise,
+                    props.settings,
+                    true,
+                    (e) => {
+                      const state = e.progress?.state;
+                      if (state && value != null && value > 0) {
+                        state.maxReps = value;
                       }
-                    );
-                  }),
-                  "Update max reps"
-                );
-              }}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
+                    }
+                  );
+                }),
+                "Update max reps"
+              );
+            }}
+          />
+        </View>
+      </View>
+    </View>
   );
 }

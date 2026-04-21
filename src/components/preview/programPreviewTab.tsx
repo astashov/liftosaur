@@ -21,7 +21,11 @@ interface IProgramPreviewWeek {
   days: { day: number; states: Record<string, unknown>; progress: ReturnType<typeof Program_nextHistoryRecord> }[];
 }
 
-export function ProgramPreview_buildWeeks(program: IProgram, settings: ISettings, stats: IStats): IProgramPreviewWeek[] {
+export function ProgramPreview_buildWeeks(
+  program: IProgram,
+  settings: ISettings,
+  stats: IStats
+): IProgramPreviewWeek[] {
   const evaluatedProgram = Program_evaluate(program, settings);
   let dayNumber = 0;
   return evaluatedProgram.weeks.map((week, weekIndex) => ({

@@ -877,7 +877,7 @@ export function Thunk_pushScreen<T extends IScreen>(
       const currentScreen = env.getCurrentScreenData?.();
       const confirmation = currentScreen ? Screen_shouldConfirmNavigation(getState(), currentScreen) : undefined;
       if (confirmation) {
-        if (confirm(confirmation)) {
+        if (await Dialog_confirm(confirmation)) {
           const progressId = currentScreen?.name === "progress" ? (currentScreen.params?.id ?? 0) : 0;
           cleanup(dispatch, getState(), progressId);
         } else {
@@ -996,7 +996,7 @@ export function Thunk_pullScreen(): IThunk {
     if (currentScreen) {
       const confirmation = Screen_shouldConfirmNavigation(getState(), currentScreen);
       if (confirmation) {
-        if (confirm(confirmation)) {
+        if (await Dialog_confirm(confirmation)) {
           const progressId = currentScreen.name === "progress" ? (currentScreen.params?.id ?? 0) : 0;
           cleanup(dispatch, getState(), progressId);
         } else {

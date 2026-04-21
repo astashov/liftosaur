@@ -1,4 +1,7 @@
 import type { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "../primitives/text";
+import { Select } from "../primitives/select";
 import {
   IReuseCandidate,
   IPlannerProgramExercise,
@@ -32,60 +35,54 @@ export function EditProgramExerciseReuseAtWeekDay(props: IEditProgramExerciseReu
       ? Array.from(reuseCandidate.weekAndDays[week ?? plannerExercise.dayData.week])[0]
       : undefined);
 
+  const weekOptions = [...(currentWeek ? [""] : []), ...ObjectUtils_keys(reuseCandidateWeeksAndDays || {})].map(
+    (w) => ({
+      value: String(w),
+      label: w === "" ? "Same" : String(w),
+    })
+  );
+
+  const dayOptions = Array.from(reuseCandidateWeeksAndDays[week ?? reuse.exercise?.dayData.week ?? 1]).map((d) => ({
+    value: String(d),
+    label: String(d),
+  }));
+
   return (
-    <div className="text-sm">
-      <span>At week</span>
-      <select
-        className="mx-1 border border-border-neutral bg-background-default"
-        value={week || ""}
-        data-cy="edit-exercise-reuse-sets-week"
-        onChange={(event) => {
-          const target = event.target as HTMLSelectElement | undefined;
-          const valueStr = target?.value;
-          EditProgramUiHelpers_changeCurrentInstanceExercise(
-            props.plannerDispatch,
-            plannerExercise,
-            props.settings,
-            (ex) => {
-              props.onChangeWeek(ex, valueStr);
-            }
-          );
-        }}
-      >
-        {[...(currentWeek ? [""] : []), ...ObjectUtils_keys(reuseCandidateWeeksAndDays || {})].map((w) => {
-          return (
-            <option key={w} value={w}>
-              {w === "" ? "Same" : w}
-            </option>
-          );
-        })}
-      </select>
-      <span className="ml-2">day</span>
-      <select
-        className="mx-1 border border-border-neutral bg-background-default"
-        value={day || ""}
-        data-cy="edit-exercise-reuse-sets-day"
-        onChange={(event) => {
-          const target = event.target as HTMLSelectElement | undefined;
-          const valueStr = target?.value;
-          EditProgramUiHelpers_changeCurrentInstanceExercise(
-            props.plannerDispatch,
-            plannerExercise,
-            props.settings,
-            (ex) => {
-              props.onChangeDay(ex, valueStr);
-            }
-          );
-        }}
-      >
-        {Array.from(reuseCandidateWeeksAndDays[week ?? reuse.exercise?.dayData.week ?? 1]).map((d) => {
-          return (
-            <option key={d} value={d}>
-              {d}
-            </option>
-          );
-        })}
-      </select>
-    </div>
+    <View className="flex-row flex-wrap items-center">
+      <Text className="text-sm">At week</Text>
+      <View className="mx-1">
+        <Select
+          value={week != null ? String(week) : ""}
+          options={weekOptions}
+          onChange={(valueStr) => {
+            EditProgramUiHelpers_changeCurrentInstanceExercise(
+              props.plannerDispatch,
+              plannerExercise,
+              props.settings,
+              (ex) => {
+                props.onChangeWeek(ex, valueStr === "" ? undefined : valueStr);
+              }
+            );
+          }}
+        />
+      </View>
+      <Text className="ml-2 text-sm">day</Text>
+      <View className="mx-1">
+        <Select
+          value={day != null ? String(day) : ""}
+          options={dayOptions}
+          onChange={(valueStr) => {
+            EditProgramUiHelpers_changeCurrentInstanceExercise(
+              props.plannerDispatch,
+              plannerExercise,
+              props.settings,
+              (ex) => {
+                props.onChangeDay(ex, valueStr === "" ? undefined : valueStr);
+              }
+            );
+          }}
+        />
+      </View>
+    </View>
   );
 }

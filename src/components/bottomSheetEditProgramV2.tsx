@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
 
 import { BottomSheetItem } from "./bottomSheetItem";
 import { IconLink } from "./icons/iconLink";
@@ -22,7 +24,7 @@ export type IBottomSheetEditProgramV2ContentProps = Omit<IProps, "isHidden">;
 
 export function BottomSheetEditProgramV2Content(props: IBottomSheetEditProgramV2ContentProps): JSX.Element {
   return (
-    <div className="p-4">
+    <View className="p-4">
       <BottomSheetItem
         isFirst={true}
         name="copy-link"
@@ -30,20 +32,18 @@ export function BottomSheetEditProgramV2Content(props: IBottomSheetEditProgramV2
         title="Copy Shareable Link to Program"
         icon={<IconLink />}
         description={
-          <span>
+          <Text>
             To share it with somebody
             {props.isAffiliateEnabled ? (
               <>
                 ,{" "}
-                <span className="inline-block px-1 rounded-md border-border-cardyellow bg-background-yellowdark text-text-purple">
+                <Text className="px-1 rounded-md border-border-cardyellow bg-background-yellowdark text-text-purple">
                   as an affiliate link
-                </span>
+                </Text>
               </>
-            ) : (
-              <></>
-            )}
+            ) : null}
             .
-          </span>
+          </Text>
         }
         onClick={props.onShareProgramToLink}
       />
@@ -75,6 +75,6 @@ export function BottomSheetEditProgramV2Content(props: IBottomSheetEditProgramV2
           />
         </>
       )}
-    </div>
+    </View>
   );
 }

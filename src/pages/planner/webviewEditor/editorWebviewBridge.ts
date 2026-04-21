@@ -16,6 +16,7 @@ export interface IEditorInitArgs {
   customExercises?: IAllCustomExercises;
   exerciseFullNames?: string[];
   state?: IProgramState;
+  autoHeight?: boolean;
 }
 
 export type IHostToWebview =

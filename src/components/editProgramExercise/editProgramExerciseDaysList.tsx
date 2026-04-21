@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { View } from "react-native";
 import { IPlannerExerciseState, IPlannerExerciseUi } from "../../pages/planner/models/types";
 import { IExerciseType, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -22,10 +23,10 @@ export function EditProgramExerciseDaysList(props: IEditProgramExerciseDaysListP
   const days = props.evaluatedProgram.weeks[props.weekIndex].days;
 
   return (
-    <div>
+    <View>
       {days.map((day, dayInWeekIndex) => {
         return (
-          <div className="mb-4" key={`${props.weekIndex}-${dayInWeekIndex}-${props.exerciseKey}`}>
+          <View className="mb-4" key={`${props.weekIndex}-${dayInWeekIndex}-${props.exerciseKey}`}>
             <EditProgramExerciseDay
               exerciseKey={props.exerciseKey}
               weekIndex={props.weekIndex}
@@ -39,9 +40,9 @@ export function EditProgramExerciseDaysList(props: IEditProgramExerciseDaysListP
               exerciseStateKey={props.exerciseStateKey}
               programId={props.programId}
             />
-          </div>
+          </View>
         );
       })}
-    </div>
+    </View>
   );
 }

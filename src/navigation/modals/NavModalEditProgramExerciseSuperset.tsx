@@ -1,4 +1,5 @@
 import { JSX, useEffect, useMemo } from "react";
+import { View, Platform } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
@@ -55,25 +56,33 @@ export function NavModalEditProgramExerciseSuperset(): JSX.Element {
     return <></>;
   }
 
-  return (
-    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
-      <BottomSheetEditProgramExerciseSupersetContent
-        plannerExercise={plannerExercise!}
-        evaluatedProgram={evaluatedProgram!}
-        settings={state.storage.settings}
-        onSelect={(group) => {
-          EditProgramUiHelpers_changeCurrentInstanceExercise(
-            plannerDispatch!,
-            plannerExercise!,
-            state.storage.settings,
-            (ex) => {
-              ex.superset = group ? { name: group } : undefined;
-            }
-          );
-          onClose();
-        }}
-        onClose={onClose}
-      />
-    </SheetScreenContainer>
+  const content = (
+    <BottomSheetEditProgramExerciseSupersetContent
+      plannerExercise={plannerExercise!}
+      evaluatedProgram={evaluatedProgram!}
+      settings={state.storage.settings}
+      onSelect={(group) => {
+        EditProgramUiHelpers_changeCurrentInstanceExercise(
+          plannerDispatch!,
+          plannerExercise!,
+          state.storage.settings,
+          (ex) => {
+            ex.superset = group ? { name: group } : undefined;
+          }
+        );
+        onClose();
+      }}
+      onClose={onClose}
+    />
   );
+
+  if (Platform.OS === "web") {
+    return (
+      <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
+        {content}
+      </SheetScreenContainer>
+    );
+  }
+
+  return <View className="bg-background-default flex-1">{content}</View>;
 }

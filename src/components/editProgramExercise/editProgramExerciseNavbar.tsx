@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View, Pressable } from "react-native";
+import { Text } from "../primitives/text";
 import { IPlannerExerciseState, IPlannerProgramExercise, IPlannerState } from "../../pages/planner/models/types";
 import { IconUndo } from "../icons/iconUndo";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -34,63 +36,63 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
   const stateRef = ReactUtils_usePropToRef(props.state);
   const editProgramStateRef = ReactUtils_usePropToRef(props.editProgramState);
 
+  const undoEnabled = canUndo(props.state);
+  const redoEnabled = canRedo(props.state);
+
   return (
-    <div
-      className="sticky top-0 left-0 flex flex-row items-center justify-between gap-2 py-1 pl-2 pr-4 border-b bg-background-default border-background-subtle"
-      style={{
-        zIndex: 25,
-      }}
-    >
-      <div className="flex items-center">
-        <button
-          style={{ cursor: canUndo(props.state) ? "pointer" : "default" }}
-          title="Undo"
-          className="p-2 nm-program-undo"
-          disabled={!canUndo(props.state)}
-          onClick={() => undo(props.plannerDispatch, props.state)}
+    <View className="flex-row items-center justify-between gap-2 py-1 pl-2 pr-4 border-b bg-background-default border-background-subtle">
+      <View className="flex-row items-center">
+        <Pressable
+          data-cy="nm-program-undo"
+          testID="nm-program-undo"
+          className="p-2"
+          disabled={!undoEnabled}
+          onPress={() => undo(props.plannerDispatch, props.state)}
         >
           <IconUndo
             width={20}
             height={20}
-            color={!canUndo(props.state) ? Tailwind_semantic().icon.light : Tailwind_semantic().icon.neutral}
+            color={!undoEnabled ? Tailwind_semantic().icon.light : Tailwind_semantic().icon.neutral}
           />
-        </button>
-        <button
-          style={{ cursor: canRedo(props.state) ? "pointer" : "default" }}
-          title="Redo"
-          className="p-2 nm-program-redo"
-          disabled={!canRedo(props.state)}
-          onClick={() => redo(props.plannerDispatch, props.state)}
+        </Pressable>
+        <Pressable
+          data-cy="nm-program-redo"
+          testID="nm-program-redo"
+          className="p-2"
+          disabled={!redoEnabled}
+          onPress={() => redo(props.plannerDispatch, props.state)}
         >
-          <div style={{ transform: "scale(-1, 1)" }}>
+          <View style={{ transform: [{ scaleX: -1 }] }}>
             <IconUndo
               width={20}
               height={20}
-              color={!canRedo(props.state) ? Tailwind_semantic().icon.light : Tailwind_semantic().icon.neutral}
+              color={!redoEnabled ? Tailwind_semantic().icon.light : Tailwind_semantic().icon.neutral}
             />
-          </div>
-        </button>
-      </div>
-      <div className="flex items-center flex-1 gap-2">
+          </View>
+        </Pressable>
+      </View>
+      <View className="flex-row items-center flex-1 gap-2">
         {exerciseType && (
-          <div>
+          <View>
             <ExerciseImage settings={props.settings} className="w-6" exerciseType={exerciseType} size="small" />
-          </div>
+          </View>
         )}
-        <div className="flex items-center flex-1 gap-1 text-xs">
-          <div>
-            {props.plannerExercise.label ? `${props.plannerExercise.label}: ` : ""}
-            {props.plannerExercise.name}
-            {props.plannerExercise.equipment != null &&
-              props.plannerExercise.equipment !== exercise?.defaultEquipment && (
-                <div className="">, {equipmentName(props.plannerExercise.equipment)}</div>
-              )}
-          </div>
-          <div>
-            <button
+        <View className="flex-row items-center flex-1 gap-1">
+          <View className="flex-1">
+            <Text className="text-xs">
+              {props.plannerExercise.label ? `${props.plannerExercise.label}: ` : ""}
+              {props.plannerExercise.name}
+              {props.plannerExercise.equipment != null && props.plannerExercise.equipment !== exercise?.defaultEquipment
+                ? `, ${equipmentName(props.plannerExercise.equipment)}`
+                : ""}
+            </Text>
+          </View>
+          <View>
+            <Pressable
               className="p-2"
               data-cy="edit-program-exercise-change"
-              onClick={() => {
+              testID="edit-program-exercise-change"
+              onPress={() => {
                 props.plannerDispatch(
                   lb<IPlannerExerciseState>()
                     .p("ui")
@@ -101,11 +103,11 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
               }}
             >
               <IconSwap size={12} />
-            </button>
-          </div>
-        </div>
-      </div>
-      <div className="flex items-center">
+            </Pressable>
+          </View>
+        </View>
+      </View>
+      <View className="flex-row items-center">
         <Button
           name="save-program-exercise"
           kind="purple"
@@ -153,7 +155,7 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
         >
           Save
         </Button>
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }

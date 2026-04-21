@@ -120,10 +120,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
   const [playgroundWeekIndex, setPlaygroundWeekIndex] = useState(0);
   const editWeekIndex = ui.weekIndex ?? 0;
   const setEditWeekIndex = (newIndex: number): void => {
-    plannerDispatch(
-      lb<IPlannerState>().p("ui").p("weekIndex").record(newIndex),
-      `Change week index to ${newIndex}`
-    );
+    plannerDispatch(lb<IPlannerState>().p("ui").p("weekIndex").record(newIndex), `Change week index to ${newIndex}`);
   };
 
   const previewWeeks = ProgramPreview_buildWeeks(program, props.settings, props.navCommon.stats);

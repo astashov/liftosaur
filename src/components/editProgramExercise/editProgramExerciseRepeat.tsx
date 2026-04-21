@@ -1,4 +1,7 @@
 import type { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "../primitives/text";
+import { Select } from "../primitives/select";
 import { IPlannerProgramExercise, IPlannerExerciseState } from "../../pages/planner/models/types";
 import { ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -22,29 +25,30 @@ export function EditProgramExerciseRepeat(props: IEditProgramExerciseRepeatProps
 
   if (plannerExercise.isRepeat) {
     return (
-      <div className="mb-2 text-sm">
-        <span>
+      <View className="flex-row flex-wrap items-center mb-2">
+        <Text className="text-sm">
           Repeating weeks {repeatFrom} - {repeatTo}
-        </span>
-        <span className="ml-2">
+        </Text>
+        <View className="ml-2">
           <LinkButton name="edit-exercise-repeat-remove-override" onClick={props.onRemoveOverride}>
             Remove Override
           </LinkButton>
-        </span>
-      </div>
+        </View>
+      </View>
     );
   }
 
   return (
-    <label className="flex items-center pb-2 border-b border-border-neutral">
-      <span className="mr-2 text-sm">Repeat from week {repeatFrom} to week: </span>
-      <select
-        value={repeatTo}
+    <View className="flex-row items-center pb-2 border-b border-border-neutral">
+      <Text className="mr-2 text-sm">Repeat from week {repeatFrom} to week: </Text>
+      <Select
+        value={String(repeatTo)}
         className="mx-1 border border-border-neutral bg-background-default"
-        data-cy="edit-exercise-repeat"
-        onChange={(event) => {
-          const target = event.target as HTMLSelectElement;
-          const value = target.value;
+        options={Array.from({ length: props.numberOfWeeks }, (_, i) => i + 1).map((w) => ({
+          value: String(w),
+          label: String(w),
+        }))}
+        onChange={(value) => {
           const numValue = Number(value);
           if (!isNaN(numValue)) {
             props.plannerDispatch(
@@ -62,15 +66,7 @@ export function EditProgramExerciseRepeat(props: IEditProgramExerciseRepeatProps
             );
           }
         }}
-      >
-        {Array.from({ length: props.numberOfWeeks }, (_, i) => i + 1).map((w) => {
-          return (
-            <option key={w} value={w}>
-              {w}
-            </option>
-          );
-        })}
-      </select>
-    </label>
+      />
+    </View>
   );
 }

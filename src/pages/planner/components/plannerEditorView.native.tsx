@@ -15,6 +15,9 @@ interface IProps {
   exerciseFullNames: string[];
   value?: string;
   height?: number;
+  autoHeight?: boolean;
+  minHeight?: number;
+  maxHeight?: number;
 }
 
 export function PlannerEditorView(props: IProps): React.JSX.Element {
@@ -31,6 +34,9 @@ export function PlannerEditorView(props: IProps): React.JSX.Element {
       exerciseFullNames={props.exerciseFullNames}
       onCustomErrorCta={props.onCustomErrorCta}
       height={props.height}
+      autoHeight={props.autoHeight}
+      minHeight={props.minHeight}
+      maxHeight={props.maxHeight}
     />
   );
 }
