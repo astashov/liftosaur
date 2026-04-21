@@ -1,4 +1,6 @@
 import { JSX, Fragment } from "react";
+import { View, Pressable, Platform } from "react-native";
+import { Text } from "../primitives/text";
 import { IEvaluatedProgram, Program_getSupersetGroups } from "../../models/program";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 
@@ -31,74 +33,80 @@ export function BottomSheetEditProgramExerciseSupersetContent(
     props.onSelect(name);
   });
 
+  const footerShadowStyle = Platform.select({
+    ios: { shadowColor: "#000", shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.05, shadowRadius: 4 },
+    android: { elevation: 4 },
+    default: { boxShadow: "0 -4px 4px 0 rgba(0, 0, 0, 0.05)" as unknown as undefined },
+  });
+
   return (
-    <>
-      <div className="flex flex-col h-full">
-        <div className="relative py-2 mt-2">
-          <h3 className="text-lg font-semibold text-center">Select Superset Group</h3>
-        </div>
-        <div className="flex-1 pb-4 overflow-y-auto">
-          <button
-            key="none"
-            data-cy={`superset-group-none`}
-            className={`text-left block w-full font-bold ${props.plannerExercise.superset == null ? "bg-background-cardpurple" : ""} gap-2 px-4 py-1 border-b border-border-neutral min-h-12`}
-            onClick={() => {
-              props.onSelect(undefined);
-            }}
-          >
-            None
-          </button>
-          {ObjectUtils_entriesNonnull(supersetGroups).map(([name, plannerExercises]) => {
-            const isSelected = props.plannerExercise.superset?.name === name;
-            return (
-              <button
-                key={name}
-                data-cy={`superset-group-${StringUtils_dashcase(name)}`}
-                className={`text-left block w-full items-center ${isSelected ? "bg-background-cardpurple" : ""} gap-2 px-4 py-1 border-b border-border-neutral min-h-12`}
-                onClick={() => {
-                  props.onSelect(name);
-                }}
-              >
-                <div>
-                  <div className="text-base font-bold">{name}</div>
-                  {plannerExercises.length > 0 && (
-                    <div className="text-xs text-text-secondary">
-                      {plannerExercises.map((e, i) => {
-                        return (
-                          <Fragment key={e.fullName}>
-                            {i !== 0 ? ", " : ""}
-                            <strong>{e.fullName}</strong>
-                          </Fragment>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-        <div className="w-full px-4 pt-2 pb-2" style={{ boxShadow: "0 -4px 4px 0 rgba(0, 0, 0, 0.05)" }}>
-          <Button
-            className="w-full"
-            name="superset-create-group"
-            kind="purple"
-            buttonSize="lg"
-            onClick={() => {
-              openTextInput({
-                title: "Enter new group name",
-                inputLabel: "Name",
-                placeholder: "My Group Name",
-                submitLabel: "Add",
-                dataCyPrefix: "modal-new-superset",
-              });
-            }}
-            data-cy="superset-create-group"
-          >
-            Create New Group
-          </Button>
-        </div>
-      </div>
-    </>
+    <View className="flex-1">
+      <View className="relative py-2 mt-2">
+        <Text className="text-lg font-semibold text-center">Select Superset Group</Text>
+      </View>
+      <View className="flex-1 pb-4">
+        <Pressable
+          key="none"
+          data-cy="superset-group-none"
+          testID="superset-group-none"
+          className={`${props.plannerExercise.superset == null ? "bg-background-cardpurple" : ""} px-4 py-1 border-b border-border-neutral min-h-12 justify-center`}
+          onPress={() => {
+            props.onSelect(undefined);
+          }}
+        >
+          <Text className="font-bold">None</Text>
+        </Pressable>
+        {ObjectUtils_entriesNonnull(supersetGroups).map(([name, plannerExercises]) => {
+          const isSelected = props.plannerExercise.superset?.name === name;
+          return (
+            <Pressable
+              key={name}
+              data-cy={`superset-group-${StringUtils_dashcase(name)}`}
+              testID={`superset-group-${StringUtils_dashcase(name)}`}
+              className={`${isSelected ? "bg-background-cardpurple" : ""} px-4 py-1 border-b border-border-neutral min-h-12 justify-center`}
+              onPress={() => {
+                props.onSelect(name);
+              }}
+            >
+              <View>
+                <Text className="text-base font-bold">{name}</Text>
+                {plannerExercises.length > 0 && (
+                  <View className="flex-row flex-wrap">
+                    {plannerExercises.map((e, i) => {
+                      return (
+                        <Fragment key={e.fullName}>
+                          {i !== 0 ? <Text className="text-xs text-text-secondary">, </Text> : null}
+                          <Text className="text-xs font-bold text-text-secondary">{e.fullName}</Text>
+                        </Fragment>
+                      );
+                    })}
+                  </View>
+                )}
+              </View>
+            </Pressable>
+          );
+        })}
+      </View>
+      <View className="w-full px-4 py-2" style={footerShadowStyle}>
+        <Button
+          className="w-full"
+          name="superset-create-group"
+          kind="purple"
+          buttonSize="lg"
+          onClick={() => {
+            openTextInput({
+              title: "Enter new group name",
+              inputLabel: "Name",
+              placeholder: "My Group Name",
+              submitLabel: "Add",
+              dataCyPrefix: "modal-new-superset",
+            });
+          }}
+          data-cy="superset-create-group"
+        >
+          Create New Group
+        </Button>
+      </View>
+    </View>
   );
 }

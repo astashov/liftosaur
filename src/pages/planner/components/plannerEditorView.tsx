@@ -15,6 +15,9 @@ interface IProps {
   exerciseFullNames: string[];
   value?: string;
   height?: number;
+  autoHeight?: boolean;
+  minHeight?: number;
+  maxHeight?: number;
 }
 
 export function PlannerEditorView(props: IProps): JSX.Element {

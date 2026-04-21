@@ -18,6 +18,7 @@ import { IPlannerExerciseState, IPlannerState } from "../../pages/planner/models
 import { PlannerProgram_replaceExercise } from "../../pages/planner/models/plannerProgram";
 import { Exercise_get, Exercise_fullName } from "../../models/exercise";
 import { ObjectUtils_clone } from "../../utils/object";
+import { UndoingFlag_set } from "../../utils/undoingFlag";
 import {
   EditProgramUiHelpers_duplicateCurrentInstance,
   EditProgramUiHelpers_getChangedKeys,
@@ -44,7 +45,7 @@ function onChangeExercise(
   }
   const newExerciseType = selectedExercise.type === "template" ? selectedExercise.name : selectedExercise.exerciseType;
   const newLabel = "label" in selectedExercise ? selectedExercise.label : undefined;
-  window.isUndoing = true;
+  UndoingFlag_set(true);
   if (plannerExercise) {
     if (change === "one") {
       const newPlanner = PlannerProgram_replaceExercise(

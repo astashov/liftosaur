@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View, Pressable, Alert } from "react-native";
+import { Text } from "../../primitives/text";
 import { lb } from "lens-shmens";
 import {
   IPlannerProgramExercise,
@@ -38,29 +40,31 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
   const lbUi = lb<IPlannerExerciseState>().p("ui");
   const progress = plannerExercise.progress;
   if (!progress || progress.type !== "custom") {
-    return <div />;
+    return <View />;
   }
   const ownState = PlannerProgramExercise_getState(plannerExercise);
   const onlyChangedState = PlannerProgramExercise_getOnlyChangedState(plannerExercise);
 
   return (
-    <div>
-      <div className="border rounded-lg bg-background-cardpurple border-border-cardpurple">
-        <div className="p-2 text-sm font-semibold border-b border-border-cardpurple">Progress State Variables</div>
-        <ul>
+    <View>
+      <View className="border rounded-lg bg-background-cardpurple border-border-cardpurple">
+        <View className="p-2 border-b border-border-cardpurple">
+          <Text className="text-sm font-semibold">Progress State Variables</Text>
+        </View>
+        <View>
           {ObjectUtils_entries(ownState).map(([key, value]) => {
             const isUsedVariable = ScriptRunner.hasStateVariable(progress.script ?? "", key);
             const metadata = progress.stateMetadata?.[key];
             const isReused = onlyChangedState[key] == null;
             return (
-              <li key={key} className="p-2 text-base border-b border-border-cardpurple">
-                <div className="flex items-center gap-4">
-                  <div className="flex-1">
-                    <div className="leading-none">{key}</div>
-                    {metadata?.userPrompted && <div className="text-xs text-text-secondary">User prompted</div>}
-                    {isReused && <div className="text-xs text-text-secondary">Reused</div>}
-                  </div>
-                  <div>
+              <View key={key} className="p-2 border-b border-border-cardpurple">
+                <View className="flex-row items-center gap-4">
+                  <View className="flex-1">
+                    <Text className="leading-none">{key}</Text>
+                    {metadata?.userPrompted && <Text className="text-xs text-text-secondary">User prompted</Text>}
+                    {isReused && <Text className="text-xs text-text-secondary">Reused</Text>}
+                  </View>
+                  <View>
                     {typeof value === "number" ? (
                       <InputNumber2
                         name={key}
@@ -116,15 +120,15 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
                         }}
                       />
                     )}
-                  </div>
-                  <div>
-                    <button
+                  </View>
+                  <View>
+                    <Pressable
                       className="py-1 pl-1 pr-2"
-                      onClick={() => {
+                      onPress={() => {
                         if (isUsedVariable) {
-                          alert("You cannot delete it, because this state variable is used in the script.");
+                          Alert.alert("You cannot delete it, because this state variable is used in the script.");
                         } else if (isReused) {
-                          alert("You cannot delete reused state variable.");
+                          Alert.alert("You cannot delete reused state variable.");
                         } else {
                           props.plannerDispatch(
                             lbProgram.recordModify((program) => {
@@ -151,14 +155,14 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
                         width={14}
                         height={18}
                       />
-                    </button>
-                  </div>
-                </div>
-              </li>
+                    </Pressable>
+                  </View>
+                </View>
+              </View>
             );
           })}
-        </ul>
-        <div className="p-2">
+        </View>
+        <View className="p-2">
           <Button
             kind="lightpurple"
             name="add-state-variable"
@@ -173,8 +177,8 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
           >
             + Add State Variable
           </Button>
-        </div>
-      </div>
-    </div>
+        </View>
+      </View>
+    </View>
   );
 }

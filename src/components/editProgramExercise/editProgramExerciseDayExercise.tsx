@@ -1,4 +1,6 @@
 import { JSX, useState } from "react";
+import { View } from "react-native";
+import { Text } from "../primitives/text";
 import { IPlannerProgramExercise, IPlannerExerciseState, IPlannerExerciseUi } from "../../pages/planner/models/types";
 import { ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -43,10 +45,12 @@ export function EditProgramExerciseDayExercise(props: IEditProgramExerciseDayExe
 
   if (showRepeating) {
     return (
-      <div className="px-4 pb-4">
-        <div className="flex gap-4">
-          <div className="text-sm">Repeating from week {plannerExercise.repeating[0]}</div>
-          <div className="ml-auto text-sm">
+      <View className="px-4 pb-4">
+        <View className="flex-row gap-4">
+          <View className="flex-1">
+            <Text className="text-sm">Repeating from week {plannerExercise.repeating[0]}</Text>
+          </View>
+          <View>
             <LinkButton
               name="override-repeating"
               onClick={() => {
@@ -55,21 +59,21 @@ export function EditProgramExerciseDayExercise(props: IEditProgramExerciseDayExe
             >
               Override
             </LinkButton>
-          </div>
-        </div>
+          </View>
+        </View>
         <EditProgramUiExerciseSetVariations
           plannerExercise={plannerExercise}
           settings={props.settings}
           isCurrentIndicatorNearby={true}
         />
-      </div>
+      </View>
     );
   }
 
   return (
-    <div>
+    <View>
       {props.showRepeat && (
-        <div className="px-4">
+        <View className="px-4">
           <EditProgramExerciseRepeat
             plannerExercise={plannerExercise}
             numberOfWeeks={props.evaluatedProgram.weeks.length}
@@ -77,16 +81,16 @@ export function EditProgramExerciseDayExercise(props: IEditProgramExerciseDayExe
             onRemoveOverride={() => setShowRepeating(true)}
             plannerDispatch={props.plannerDispatch}
           />
-        </div>
+        </View>
       )}
       {props.showOrder && (
-        <div className="px-4">
+        <View className="px-4">
           <EditProgramExerciseOrder
             plannerExercise={plannerExercise}
             settings={props.settings}
             plannerDispatch={props.plannerDispatch}
           />
-        </div>
+        </View>
       )}
       {props.showSupersets && (
         <EditProgramExerciseSupersets
@@ -106,9 +110,9 @@ export function EditProgramExerciseDayExercise(props: IEditProgramExerciseDayExe
       )}
       {plannerExercise.descriptions.values.length > 0 &&
         (plannerExercise.descriptions.reuse ? (
-          <div className="px-4 pb-4">
+          <View className="px-4 pb-4">
             <EditProgramUiExerciseDescriptions plannerExercise={plannerExercise} settings={props.settings} />
-          </div>
+          </View>
         ) : (
           <EditProgramExerciseDescriptionsList
             plannerExercise={plannerExercise}
@@ -126,13 +130,13 @@ export function EditProgramExerciseDayExercise(props: IEditProgramExerciseDayExe
         evaluatedProgram={props.evaluatedProgram}
       />
       {reuse && !isOverriding ? (
-        <div className="px-4">
+        <View className="px-4">
           <EditProgramUiExerciseSetVariations
             plannerExercise={plannerExercise}
             settings={props.settings}
             isCurrentIndicatorNearby={true}
           />
-        </div>
+        </View>
       ) : (
         <EditProgramExerciseSetVariationsList
           ui={props.ui}
@@ -143,6 +147,6 @@ export function EditProgramExerciseDayExercise(props: IEditProgramExerciseDayExe
           programId={props.programId}
         />
       )}
-    </div>
+    </View>
   );
 }

@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { Linking, Pressable, View } from "react-native";
+import { Text } from "../../../components/primitives/text";
 import { ExerciseImage } from "../../../components/exerciseImage";
 import {
   IExercise,
@@ -99,24 +101,29 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
   const volumeKey = JSON.stringify(volumeGraphData);
 
   return (
-    <div className="text-xs">
-      <div className="flex mb-2">
-        <div className="w-12 mr-4">
+    <View>
+      <View className="flex-row mb-2">
+        <View className="w-12 mr-4">
           <ExerciseImage exerciseType={exercise} size="small" />
-        </div>
-        <div className="flex-1">
-          <h3 className="mb-2 text-lg font-bold">
-            {ExerciseImageUtils_exists(exercise, "small") ? (
-              <a href={Exercise_toExternalUrl(exercise)} target="_blank">
-                <span className="font-bold underline text-text-link">{evaluatedExercise.name}</span>{" "}
-                <IconExternalLink className="inline-block mb-1 ml-1" size={16} color="#607284" />
-              </a>
-            ) : (
-              <span className="font-bold">{evaluatedExercise.name}</span>
-            )}
-          </h3>
+        </View>
+        <View className="flex-1">
+          {ExerciseImageUtils_exists(exercise, "small") ? (
+            <Pressable
+              className="mb-2 flex-row items-center"
+              onPress={() => {
+                Linking.openURL(Exercise_toExternalUrl(exercise)).catch(() => undefined);
+              }}
+            >
+              <Text className="text-lg font-bold underline text-text-link">{evaluatedExercise.name}</Text>
+              <View className="mb-1 ml-1">
+                <IconExternalLink size={16} color="#607284" />
+              </View>
+            </Pressable>
+          ) : (
+            <Text className="mb-2 text-lg font-bold">{evaluatedExercise.name}</Text>
+          )}
           {!props.hideSwap && (
-            <div>
+            <View>
               <LinkButton
                 name="planner-swap-exercise"
                 data-cy="planner-swap-exercise"
@@ -146,27 +153,27 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
               >
                 Swap Exercise
               </LinkButton>
-            </div>
+            </View>
           )}
-          <div>
-            <span className="text-text-secondary">Sets this day: </span>
-            <span>{PlannerProgramExercise_numberOfSets(evaluatedExercise)}</span>
-          </div>
-          <div>
-            <span className="text-text-secondary">Sets this week: </span>
-            <span>{PlannerProgramExercise_numberOfSetsThisWeek(evaluatedExercise.name, evaluatedWeek)}</span>
-          </div>
-        </div>
-      </div>
-      <div className="mt-1">
-        <span className="text-text-secondary">Target Muscles: </span>
-        <span className="font-bold">{targetMuscles.join(", ")}</span>
-      </div>
-      <div>
-        <span className="text-text-secondary">Synergist Muscles: </span>
-        <span className="font-bold">{synergeticMuscles.join(", ")}</span>
-      </div>
-      <div>
+          <Text className="text-xs">
+            <Text className="text-text-secondary">Sets this day: </Text>
+            <Text>{PlannerProgramExercise_numberOfSets(evaluatedExercise)}</Text>
+          </Text>
+          <Text className="text-xs">
+            <Text className="text-text-secondary">Sets this week: </Text>
+            <Text>{PlannerProgramExercise_numberOfSetsThisWeek(evaluatedExercise.name, evaluatedWeek)}</Text>
+          </Text>
+        </View>
+      </View>
+      <Text className="mt-1 text-xs">
+        <Text className="text-text-secondary">Target Muscles: </Text>
+        <Text className="font-bold">{targetMuscles.join(", ")}</Text>
+      </Text>
+      <Text className="text-xs">
+        <Text className="text-text-secondary">Synergist Muscles: </Text>
+        <Text className="font-bold">{synergeticMuscles.join(", ")}</Text>
+      </Text>
+      <View>
         <LinkButton
           name="edit-muscle-groups"
           onClick={() => {
@@ -182,16 +189,16 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
         >
           Edit Exercise Muscles
         </LinkButton>
-      </div>
-      <div className="mt-1">
-        <span className="text-text-secondary">Target Muscles Groups: </span>
-        <span className="font-bold">{targetMuscleGroups.join(", ")}</span>
-      </div>
-      <div>
-        <span className="text-text-secondary">Synergist Muscle Groups: </span>
-        <span className="font-bold">{synergeticMuscleGroups.join(", ")}</span>
-      </div>
-      <div>
+      </View>
+      <Text className="mt-1 text-xs">
+        <Text className="text-text-secondary">Target Muscles Groups: </Text>
+        <Text className="font-bold">{targetMuscleGroups.join(", ")}</Text>
+      </Text>
+      <Text className="text-xs">
+        <Text className="text-text-secondary">Synergist Muscle Groups: </Text>
+        <Text className="font-bold">{synergeticMuscleGroups.join(", ")}</Text>
+      </Text>
+      <View>
         <LinkButton
           name="edit-muscle-groups"
           onClick={() => {
@@ -200,9 +207,9 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
         >
           Edit Muscle Groups
         </LinkButton>
-      </div>
+      </View>
       {intensityGraphData[0].length > 1 && (
-        <div style={{ marginTop: "-14px" }}>
+        <View style={{ marginTop: -14 }}>
           <PlannerGraph
             key={intensityKey}
             title="Intensity w/w"
@@ -210,14 +217,14 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
             yAxisLabel="Intensity"
             data={intensityGraphData}
           />
-        </div>
+        </View>
       )}
       {volumeGraphData[0].length > 1 && (
-        <div style={{ marginTop: "-14px" }}>
+        <View style={{ marginTop: -14 }}>
           <PlannerGraph key={volumeKey} title="Volume w/w" color="orange" yAxisLabel="Volume" data={volumeGraphData} />
-        </div>
+        </View>
       )}
-    </div>
+    </View>
   );
 }
 

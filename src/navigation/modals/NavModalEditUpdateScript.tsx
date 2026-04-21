@@ -1,4 +1,5 @@
 import { JSX, useEffect, useMemo } from "react";
+import { View, Platform } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
@@ -62,33 +63,41 @@ export function NavModalEditUpdateScript(): JSX.Element {
     return <></>;
   }
 
-  return (
-    <ModalScreenContainer onClose={onClose} isFullWidth isFullHeight>
-      <ModalEditUpdateScriptContent
-        settings={state.storage.settings}
-        plannerExercise={plannerExercise!}
-        onClose={onClose}
-        onChange={(script) => {
-          plannerDispatch!(
-            lbProgram.recordModify((program) => {
-              return EditProgramUiHelpers_changeFirstInstance(
-                program,
-                plannerExercise!,
-                state.storage.settings,
-                true,
-                (e) => {
-                  e.update = {
-                    ...e.update,
-                    type: "custom",
-                    script: script,
-                  };
-                }
-              );
-            }),
-            "Update script"
-          );
-        }}
-      />
-    </ModalScreenContainer>
+  const content = (
+    <ModalEditUpdateScriptContent
+      settings={state.storage.settings}
+      plannerExercise={plannerExercise!}
+      onClose={onClose}
+      onChange={(script) => {
+        plannerDispatch!(
+          lbProgram.recordModify((program) => {
+            return EditProgramUiHelpers_changeFirstInstance(
+              program,
+              plannerExercise!,
+              state.storage.settings,
+              true,
+              (e) => {
+                e.update = {
+                  ...e.update,
+                  type: "custom",
+                  script: script,
+                };
+              }
+            );
+          }),
+          "Update script"
+        );
+      }}
+    />
   );
+
+  if (Platform.OS === "web") {
+    return (
+      <ModalScreenContainer onClose={onClose} isFullWidth isFullHeight>
+        {content}
+      </ModalScreenContainer>
+    );
+  }
+
+  return <View className="bg-background-default flex-1 px-4 py-4">{content}</View>;
 }

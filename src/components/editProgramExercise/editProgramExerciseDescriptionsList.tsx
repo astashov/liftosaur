@@ -1,4 +1,6 @@
 import { JSX, useRef } from "react";
+import { View, Pressable, ScrollView, useWindowDimensions } from "react-native";
+import { Text } from "../primitives/text";
 import { IPlannerExerciseState, IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -16,19 +18,22 @@ interface IEditProgramExerciseDescriptionsListProps {
 
 export function EditProgramExerciseDescriptionsList(props: IEditProgramExerciseDescriptionsListProps): JSX.Element {
   const descriptions = props.plannerExercise.descriptions;
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<ScrollView>(null);
+  const scrollXRef = useRef(0);
+  const { width: windowWidth } = useWindowDimensions();
   const isMultiple = descriptions.values.length > 1;
+  const pageWidth = Math.max(1, windowWidth - 4);
 
   return (
-    <div>
-      <div className="flex items-center gap-4 pt-3 mx-4 mt-1 mb-2 border-t border-border-neutral">
-        <div className="flex-1">
-          {descriptions.values.length === 1 ? "Description" : `${descriptions.values.length} Descriptions`}
-        </div>
-        <div className="flex items-center gap-1">
-          <button
+    <View>
+      <View className="flex-row items-center gap-4 pt-3 mx-4 mt-1 mb-2 border-t border-border-neutral">
+        <View className="flex-1">
+          <Text>{descriptions.values.length === 1 ? "Description" : `${descriptions.values.length} Descriptions`}</Text>
+        </View>
+        <View className="flex-row items-center gap-1">
+          <Pressable
             className="p-1 border rounded-full border-border-neutral"
-            onClick={() => {
+            onPress={() => {
               return EditProgramUiHelpers_changeCurrentInstanceExercise(
                 props.plannerDispatch,
                 props.plannerExercise,
@@ -40,56 +45,53 @@ export function EditProgramExerciseDescriptionsList(props: IEditProgramExerciseD
             }}
           >
             <IconPlus2 color={Tailwind_colors().lightgray[600]} size={14} />
-          </button>
+          </Pressable>
           {isMultiple && (
             <>
-              <button
+              <Pressable
                 className="p-1 ml-4 border rounded-full border-border-neutral"
-                onClick={() => {
+                onPress={() => {
                   if (!scrollRef.current) {
                     return;
                   }
-                  scrollRef.current.scrollTo({
-                    left: scrollRef.current.scrollLeft - scrollRef.current.clientWidth,
-                    behavior: "smooth",
-                  });
+                  scrollRef.current.scrollTo({ x: Math.max(0, scrollXRef.current - pageWidth), animated: true });
                 }}
               >
-                <IconArrowDown3 className="rotate-90" color={Tailwind_colors().lightgray[600]} size={14} />
-              </button>
-              <button
+                <View style={{ transform: [{ rotate: "90deg" }] }}>
+                  <IconArrowDown3 color={Tailwind_colors().lightgray[600]} size={14} />
+                </View>
+              </Pressable>
+              <Pressable
                 className="p-1 border rounded-full border-border-neutral"
-                onClick={() => {
+                onPress={() => {
                   if (!scrollRef.current) {
                     return;
                   }
-                  scrollRef.current.scrollTo({
-                    left: scrollRef.current.scrollLeft + scrollRef.current.clientWidth,
-                    behavior: "smooth",
-                  });
+                  scrollRef.current.scrollTo({ x: scrollXRef.current + pageWidth, animated: true });
                 }}
               >
-                <IconArrowDown3 className="-rotate-90" color={Tailwind_colors().lightgray[600]} size={14} />
-              </button>
+                <View style={{ transform: [{ rotate: "-90deg" }] }}>
+                  <IconArrowDown3 color={Tailwind_colors().lightgray[600]} size={14} />
+                </View>
+              </Pressable>
             </>
           )}
-        </div>
-      </div>
-      <div
-        className="flex mb-6 overflow-x-scroll overflow-y-hidden parent-scroller"
-        onScroll={() => {}}
+        </View>
+      </View>
+      <ScrollView
         ref={scrollRef}
-        style={{
-          WebkitOverflowScrolling: "touch",
-          scrollSnapType: "x mandatory",
+        className="mb-6"
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onScroll={(e) => {
+          scrollXRef.current = e.nativeEvent.contentOffset.x;
         }}
+        scrollEventThrottle={16}
       >
         {descriptions.values.map((description, index) => {
           return (
-            <div
-              key={index}
-              style={{ minWidth: "calc(-4px + 100vw)", scrollSnapAlign: "center", scrollSnapStop: "always" }}
-            >
+            <View key={index} style={{ width: pageWidth }}>
               <EditProgramExerciseDescription
                 isMultiple={isMultiple}
                 description={description}
@@ -98,10 +100,10 @@ export function EditProgramExerciseDescriptionsList(props: IEditProgramExerciseD
                 plannerDispatch={props.plannerDispatch}
                 settings={props.settings}
               />
-            </div>
+            </View>
           );
         })}
-      </div>
-    </div>
+      </ScrollView>
+    </View>
   );
 }

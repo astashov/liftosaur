@@ -1,7 +1,9 @@
 import { JSX, useCallback, useEffect } from "react";
+import { View } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { Text } from "../../components/primitives/text";
 import { Button } from "../../components/button";
 import { IState } from "../../models/state";
 import { lb } from "lens-shmens";
@@ -52,12 +54,13 @@ export function NavModalEditExerciseChange(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose} shouldShowClose={true}>
-      <h3 className="mb-2 text-lg font-semibold text-center">Change Exercise</h3>
-      <div className="flex gap-4">
-        <div>
+      <Text className="mb-2 text-lg font-semibold text-center">Change Exercise</Text>
+      <View className="flex-row" style={{ gap: 16 }}>
+        <View>
           <Button
             name="edit-exercise-change-one"
             data-cy="edit-exercise-change-one"
+            testID="edit-exercise-change-one"
             kind="purple"
             onClick={() => {
               plannerDispatch(
@@ -77,11 +80,12 @@ export function NavModalEditExerciseChange(): JSX.Element {
           >
             Change only for this week/day
           </Button>
-        </div>
-        <div>
+        </View>
+        <View>
           <Button
             name="edit-exercise-change-all"
             data-cy="edit-exercise-change-all"
+            testID="edit-exercise-change-all"
             kind="purple"
             onClick={() => {
               plannerDispatch(
@@ -101,8 +105,8 @@ export function NavModalEditExerciseChange(): JSX.Element {
           >
             Change across whole program
           </Button>
-        </div>
-      </div>
+        </View>
+      </View>
     </ModalScreenContainer>
   );
 }

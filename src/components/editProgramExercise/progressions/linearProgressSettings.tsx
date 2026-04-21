@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "../../primitives/text";
 import { lb } from "lens-shmens";
 import { Weight_build } from "../../../models/weight";
 import { PlannerProgramExercise_progressionType } from "../../../pages/planner/models/plannerProgramExercise";
@@ -21,14 +23,14 @@ export function LinearProgressSettings(props: ILinearProgressSettingsProps): JSX
   const { plannerExercise, settings } = props;
   const progression = PlannerProgramExercise_progressionType(plannerExercise);
   if (progression?.type !== "linear") {
-    return <div />;
+    return <View />;
   }
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
   return (
-    <div>
-      <div className="flex flex-wrap text-sm" style={{ columnGap: "0.25rem" }}>
-        <div>Increase weight by</div>
-        <div>
+    <View>
+      <View className="flex-row flex-wrap items-center gap-1">
+        <Text className="text-sm">Increase weight by</Text>
+        <View>
           <InputWeight2
             name="linear-progress-increase"
             value={progression.increase}
@@ -56,9 +58,9 @@ export function LinearProgressSettings(props: ILinearProgressSettingsProps): JSX
               );
             }}
           />
-        </div>
-        <div>after every</div>
-        <div>
+        </View>
+        <Text className="text-sm">after every</Text>
+        <View>
           <InputNumber2
             name="linear-progress-attempts"
             value={progression.successesRequired}
@@ -86,12 +88,12 @@ export function LinearProgressSettings(props: ILinearProgressSettingsProps): JSX
               );
             }}
           />
-        </div>
-        <div>successful attempts</div>
+        </View>
+        <Text className="text-sm">successful attempts</Text>
         {(progression.successesRequired || 0) > 1 && (
           <>
-            <div>(current success counter -</div>
-            <div>
+            <Text className="text-sm">(current success counter -</Text>
+            <View>
               <InputNumber2
                 name="linear-progress-successes-counter"
                 value={progression.successesCounter}
@@ -119,16 +121,16 @@ export function LinearProgressSettings(props: ILinearProgressSettingsProps): JSX
                   );
                 }}
               />
-            </div>
-            <div>)</div>
+            </View>
+            <Text className="text-sm">)</Text>
           </>
         )}
-      </div>
+      </View>
       {(progression.decrease?.value || 0) > 0 && (
-        <div>
-          <div className="flex flex-wrap gap-1 pt-1 text-sm">
-            <div>Decrease weight by</div>
-            <div>
+        <View>
+          <View className="flex-row flex-wrap items-center gap-1 pt-1">
+            <Text className="text-sm">Decrease weight by</Text>
+            <View>
               <InputWeight2
                 name="linear-progress-decrease"
                 value={progression.decrease}
@@ -156,9 +158,9 @@ export function LinearProgressSettings(props: ILinearProgressSettingsProps): JSX
                   );
                 }}
               />
-            </div>
-            <div>after every</div>
-            <div>
+            </View>
+            <Text className="text-sm">after every</Text>
+            <View>
               <InputNumber2
                 name="linear-progress-failures"
                 value={progression.failuresRequired}
@@ -186,12 +188,12 @@ export function LinearProgressSettings(props: ILinearProgressSettingsProps): JSX
                   );
                 }}
               />
-            </div>
-            <div>failed attempts</div>
+            </View>
+            <Text className="text-sm">failed attempts</Text>
             {(progression.failuresRequired || 0) > 1 && (
               <>
-                <div>(current failure counter -</div>
-                <div>
+                <Text className="text-sm">(current failure counter -</Text>
+                <View>
                   <InputNumber2
                     name="linear-progress-failures-counter"
                     value={progression.failuresCounter}
@@ -219,14 +221,14 @@ export function LinearProgressSettings(props: ILinearProgressSettingsProps): JSX
                       );
                     }}
                   />
-                </div>
-                <div>)</div>
+                </View>
+                <Text className="text-sm">)</Text>
               </>
             )}
-          </div>
-        </div>
+          </View>
+        </View>
       )}
-      <div className="flex mt-1 text-sm">
+      <View className="flex-row mt-1">
         <LinkButton
           name="enable-linear-progress-failures"
           onClick={() => {
@@ -249,7 +251,7 @@ export function LinearProgressSettings(props: ILinearProgressSettingsProps): JSX
         >
           {(progression.failuresRequired || 0) > 0 ? "Disable" : "Enable"} descreasing weight
         </LinkButton>
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }

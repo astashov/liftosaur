@@ -1,5 +1,5 @@
 import { JSX } from "react";
-import { View, Pressable } from "react-native";
+import { View, Pressable, Platform } from "react-native";
 import { Text } from "../../components/primitives/text";
 import { useNavigation } from "@react-navigation/native";
 import { SheetScreenContainer } from "../SheetScreenContainer";
@@ -19,15 +19,15 @@ export function NavModalInputSelect(): JSX.Element {
     return <></>;
   }
 
-  return (
-    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
+  const content = (
+    <>
       {data.hint && (
-        <View className="pt-1 pl-2 pr-8">
+        <View className="pt-4 pl-2 pr-8">
           <Text className="text-xs text-text-secondary">{data.hint}</Text>
         </View>
       )}
       <View
-        className="flex flex-col px-2 py-2"
+        className="flex-col px-2 py-2"
         data-cy={data.name ? `select-options-${data.name}` : undefined}
         testID={data.name ? `select-options-${data.name}` : undefined}
       >
@@ -63,6 +63,16 @@ export function NavModalInputSelect(): JSX.Element {
           </Pressable>
         ))}
       </View>
-    </SheetScreenContainer>
+    </>
   );
+
+  if (Platform.OS === "web") {
+    return (
+      <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
+        {content}
+      </SheetScreenContainer>
+    );
+  }
+
+  return <View className="bg-background-default">{content}</View>;
 }

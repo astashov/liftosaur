@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { View } from "react-native";
 import { IPlannerProgramExercise, IPlannerExerciseState, IPlannerExerciseUi } from "../../pages/planner/models/types";
 import { ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -22,7 +23,7 @@ export function EditProgramExerciseSetsByWeekDay(props: IEditProgramExerciseSets
   const lbUi = lb<IPlannerExerciseState>().pi("ui");
 
   return (
-    <div>
+    <View>
       <ScrollableTabs
         topPadding="0.5rem"
         className="gap-2 px-4"
@@ -51,6 +52,6 @@ export function EditProgramExerciseSetsByWeekDay(props: IEditProgramExerciseSets
           };
         })}
       />
-    </div>
+    </View>
   );
 }

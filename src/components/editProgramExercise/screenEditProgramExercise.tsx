@@ -1,4 +1,6 @@
-import { JSX, useCallback, useEffect, useRef, useState } from "react";
+import { JSX, useCallback, useEffect, useRef } from "react";
+import { View, Pressable, Alert } from "react-native";
+import { Text } from "../primitives/text";
 import { IPlannerExerciseState, IPlannerState } from "../../pages/planner/models/types";
 import { IDispatch } from "../../ducks/types";
 import { IDayData, ISettings } from "../../types";
@@ -16,7 +18,7 @@ import {
 import { EditProgramExerciseWarmups } from "./editProgramExerciseWarmups";
 import { buildPlannerDispatch } from "../../utils/plannerDispatch";
 import { IconKebab } from "../icons/iconKebab";
-import { DropdownMenu, DropdownMenuItem } from "../dropdownMenu";
+import { ActionMenu, IActionMenuAction } from "../actionMenu";
 import { EditProgramExerciseProgress } from "./editProgramExerciseProgress";
 import { EditProgramExerciseUpdate } from "./editProgramExerciseUpdate";
 import {
@@ -63,7 +65,6 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
 
   const editProgramState = props.editProgramState;
   const ui = plannerState.ui;
-  const [isKebabMenuOpen, setIsKebabMenuOpen] = useState(false);
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
 
   const exercisePickerState = props.plannerState.ui.exercisePickerState;
@@ -82,140 +83,130 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
     prevExercisePickerState.current = exercisePickerState;
   }, [exercisePickerState]);
 
+  const toggleProgress = useCallback(() => {
+    if (!plannerExercise) {
+      return;
+    }
+    plannerDispatch(
+      [
+        lb<IPlannerExerciseState>().p("ui").p("isProgressEnabled").record(!plannerState.ui.isProgressEnabled),
+        lbProgram.recordModify((program) => {
+          return EditProgramUiHelpers_changeFirstInstance(program, plannerExercise!, props.settings, true, (e) => {
+            if (plannerState.ui.isProgressEnabled) {
+              e.progress = undefined;
+            } else {
+              const result = PlannerProgramExercise_buildProgress(
+                "lp",
+                PlannerProgramExercise_getProgressDefaultArgs("lp")
+              );
+              if (result.success) {
+                e.progress = result.data;
+              } else {
+                Alert.alert(result.error);
+              }
+            }
+          });
+        }),
+      ],
+      "Toggle progress"
+    );
+  }, [plannerDispatch, plannerExercise, plannerState.ui.isProgressEnabled, props.settings, lbProgram]);
+
+  const toggleUpdate = useCallback(() => {
+    if (!plannerExercise) {
+      return;
+    }
+    plannerDispatch(
+      [
+        lb<IPlannerExerciseState>().p("ui").p("isUpdateEnabled").record(!plannerState.ui.isUpdateEnabled),
+        lbProgram.recordModify((program) => {
+          return EditProgramUiHelpers_changeFirstInstance(program, plannerExercise!, props.settings, true, (e) => {
+            if (plannerState.ui.isUpdateEnabled) {
+              e.update = undefined;
+            } else {
+              e.update = { type: "custom", script: `{~~}` };
+            }
+          });
+        }),
+      ],
+      "Toggle update"
+    );
+  }, [plannerDispatch, plannerExercise, plannerState.ui.isUpdateEnabled, props.settings, lbProgram]);
+
+  const toggleUsed = useCallback(() => {
+    if (!plannerExercise) {
+      return;
+    }
+    plannerDispatch(
+      [
+        lbProgram.recordModify((program) => {
+          const notused = plannerExercise!.notused;
+          return EditProgramUiHelpers_changeAllInstances(
+            program,
+            plannerExercise!.fullName,
+            props.settings,
+            true,
+            (e) => {
+              e.notused = !notused;
+            }
+          );
+        }),
+      ],
+      "Toggle used status"
+    );
+  }, [plannerDispatch, plannerExercise, props.settings, lbProgram]);
+
+  const kebabActions: IActionMenuAction[] = plannerExercise
+    ? [
+        {
+          label: `${ui.isProgressEnabled ? "Disable" : "Enable"} Progress`,
+          onPress: toggleProgress,
+          "data-cy": "program-exercise-toggle-progress",
+        },
+        {
+          label: `${ui.isUpdateEnabled ? "Disable" : "Enable"} Update`,
+          onPress: toggleUpdate,
+          "data-cy": "program-exercise-toggle-update",
+        },
+        {
+          label: `Make ${plannerExercise.notused ? "Used" : "Unused"}`,
+          onPress: toggleUsed,
+          "data-cy": "program-exercise-toggle-used",
+        },
+      ]
+    : [];
+
   useNavOptions({
     navTitle: "Edit Program Exercise",
     navHelpTourId: editProgramExerciseTourConfig.id,
     navSubtitle: plannerExercise?.notused ? (
-      <div className="pb-1">
-        <div className="inline-block px-1 ml-3 text-xs font-bold rounded text-text-alwayswhite bg-background-darkgray">
-          UNUSED
-        </div>
-      </div>
+      <View className="pb-1">
+        <View className="self-start px-1 ml-3 rounded bg-background-darkgray">
+          <Text className="text-xs font-bold text-text-alwayswhite">UNUSED</Text>
+        </View>
+      </View>
     ) : undefined,
     navRightButtons: [
-      <div key="kebab" className="flex items-center gap-4">
-        <div className="relative flex items-center">
-          <button
-            data-cy="program-exercise-navbar-kebab"
-            className="p-2"
-            onClick={() => {
-              setIsKebabMenuOpen(!isKebabMenuOpen);
-            }}
-          >
-            <IconKebab />
-          </button>
-          {isKebabMenuOpen && plannerExercise && (
-            <DropdownMenu rightOffset="3rem" onClose={() => setIsKebabMenuOpen(false)}>
-              <DropdownMenuItem
-                isTop={true}
-                data-cy="program-exercise-toggle-progress"
-                onClick={() => {
-                  setIsKebabMenuOpen(false);
-                  plannerDispatch(
-                    [
-                      lb<IPlannerExerciseState>()
-                        .p("ui")
-                        .p("isProgressEnabled")
-                        .record(!plannerState.ui.isProgressEnabled),
-                      lbProgram.recordModify((program) => {
-                        return EditProgramUiHelpers_changeFirstInstance(
-                          program,
-                          plannerExercise,
-                          props.settings,
-                          true,
-                          (e) => {
-                            if (plannerState.ui.isProgressEnabled) {
-                              e.progress = undefined;
-                            } else {
-                              const result = PlannerProgramExercise_buildProgress(
-                                "lp",
-                                PlannerProgramExercise_getProgressDefaultArgs("lp")
-                              );
-                              if (result.success) {
-                                e.progress = result.data;
-                              } else {
-                                alert(result.error);
-                              }
-                            }
-                          }
-                        );
-                      }),
-                    ],
-                    "Toggle progress"
-                  );
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <div>{ui.isProgressEnabled ? "Disable" : "Enable"} Progress</div>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                data-cy="program-exercise-toggle-update"
-                onClick={() => {
-                  setIsKebabMenuOpen(false);
-                  plannerDispatch(
-                    [
-                      lb<IPlannerExerciseState>().p("ui").p("isUpdateEnabled").record(!plannerState.ui.isUpdateEnabled),
-                      lbProgram.recordModify((program) => {
-                        return EditProgramUiHelpers_changeFirstInstance(
-                          program,
-                          plannerExercise,
-                          props.settings,
-                          true,
-                          (e) => {
-                            if (plannerState.ui.isUpdateEnabled) {
-                              e.update = undefined;
-                            } else {
-                              e.update = { type: "custom", script: `{~~}` };
-                            }
-                          }
-                        );
-                      }),
-                    ],
-                    "Toggle update"
-                  );
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <div>{ui.isUpdateEnabled ? "Disable" : "Enable"} Update</div>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                data-cy="program-exercise-toggle-used"
-                onClick={() => {
-                  setIsKebabMenuOpen(false);
-                  plannerDispatch(
-                    [
-                      lbProgram.recordModify((program) => {
-                        const notused = plannerExercise.notused;
-                        return EditProgramUiHelpers_changeAllInstances(
-                          program,
-                          plannerExercise.fullName,
-                          props.settings,
-                          true,
-                          (e) => {
-                            e.notused = !notused;
-                          }
-                        );
-                      }),
-                    ],
-                    "Toggle used status"
-                  );
-                }}
-              >
-                <div className="flex items-center gap-2">
-                  <div>Make {plannerExercise.notused ? "Used" : "Unused"}</div>
-                </div>
-              </DropdownMenuItem>
-            </DropdownMenu>
+      <View key="kebab" className="flex-row items-center">
+        <ActionMenu
+          actions={kebabActions}
+          renderTrigger={(open) => (
+            <Pressable
+              data-cy="program-exercise-navbar-kebab"
+              testID="program-exercise-navbar-kebab"
+              className="p-2"
+              onPress={open}
+            >
+              <IconKebab />
+            </Pressable>
           )}
-        </div>
-      </div>,
+        />
+      </View>,
     ],
   });
 
   if (!plannerExercise) {
-    return <>No such exercise</>;
+    return <Text>No such exercise</Text>;
   }
 
   return (
@@ -229,14 +220,14 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
         settings={props.settings}
         plannerExercise={plannerExercise}
       />
-      <div className="mb-4">
+      <View className="mb-4">
         <EditProgramExerciseWarmups
           plannerExercise={plannerExercise}
           settings={props.settings}
           plannerDispatch={plannerDispatch}
         />
-      </div>
-      <div className="mb-4">
+      </View>
+      <View className="mb-4">
         {ui.isProgressEnabled && (
           <EditProgramExerciseProgress
             ui={plannerState.ui}
@@ -248,8 +239,8 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
             programId={props.programId}
           />
         )}
-      </div>
-      <div className="mb-4">
+      </View>
+      <View className="mb-4">
         {ui.isUpdateEnabled && (
           <EditProgramExerciseUpdate
             ui={plannerState.ui}
@@ -261,8 +252,8 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
             programId={props.programId}
           />
         )}
-      </div>
-      <div className="mb-8">
+      </View>
+      <View className="mb-8">
         <EditProgramExerciseSets
           ui={plannerState.ui}
           evaluatedProgram={evaluatedProgram}
@@ -272,7 +263,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
           exerciseStateKey={props.exerciseStateKey}
           programId={props.programId}
         />
-      </div>
+      </View>
     </>
   );
 }

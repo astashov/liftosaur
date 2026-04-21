@@ -47,6 +47,8 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
         <View className="flex-1">
           <PlannerEditorView
             name="Program"
+            autoHeight={true}
+            minHeight={200}
             customExercises={props.settings.exercises}
             exerciseFullNames={exerciseFullNames}
             error={

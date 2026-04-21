@@ -1,4 +1,5 @@
 import { JSX, useEffect, useMemo } from "react";
+import { View, Platform } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
@@ -64,34 +65,38 @@ export function NavModalCreateStateVariable(): JSX.Element {
     return <></>;
   }
 
-  return (
-    <ModalScreenContainer onClose={onClose}>
-      <ModalCreateStateVariableContent
-        onClose={onClose}
-        onCreate={(name, type, isUserPrompted) => {
-          plannerDispatch!(
-            lbProgram.recordModify((program) => {
-              return EditProgramUiHelpers_changeFirstInstance(
-                program,
-                plannerExercise!,
-                state.storage.settings,
-                true,
-                (e) => {
-                  const st = e.progress?.state;
-                  const stateMetadata = e.progress?.stateMetadata;
-                  if (st) {
-                    st[name] = type === "number" ? 0 : Weight_buildAny(0, type);
-                  }
-                  if (stateMetadata && isUserPrompted) {
-                    stateMetadata[name] = { userPrompted: true };
-                  }
+  const content = (
+    <ModalCreateStateVariableContent
+      onClose={onClose}
+      onCreate={(name, type, isUserPrompted) => {
+        plannerDispatch!(
+          lbProgram.recordModify((program) => {
+            return EditProgramUiHelpers_changeFirstInstance(
+              program,
+              plannerExercise!,
+              state.storage.settings,
+              true,
+              (e) => {
+                const st = e.progress?.state;
+                const stateMetadata = e.progress?.stateMetadata;
+                if (st) {
+                  st[name] = type === "number" ? 0 : Weight_buildAny(0, type);
                 }
-              );
-            }),
-            "Add state variable"
-          );
-        }}
-      />
-    </ModalScreenContainer>
+                if (stateMetadata && isUserPrompted) {
+                  stateMetadata[name] = { userPrompted: true };
+                }
+              }
+            );
+          }),
+          "Add state variable"
+        );
+      }}
+    />
   );
+
+  if (Platform.OS === "web") {
+    return <ModalScreenContainer onClose={onClose}>{content}</ModalScreenContainer>;
+  }
+
+  return <View className="bg-background-default px-4 py-4">{content}</View>;
 }

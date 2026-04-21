@@ -195,8 +195,7 @@ function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.El
               <Text className="flex-1 mr-1 font-bold">{Exercise_nameWithEquipment(exercise, props.settings)}</Text>
             </View>
             <Text data-cy="exercise-equipment" testID="exercise-equipment" className="text-xs text-text-secondary">
-              Equipment:{" "}
-              <Text className="text-xs font-bold text-text-secondary">{currentEquipmentName || "None"}</Text>
+              Equipment: <Text className="text-xs font-bold text-text-secondary">{currentEquipmentName || "None"}</Text>
             </Text>
             {supersetExercise && (
               <Text data-cy="exercise-superset" testID="exercise-superset" className="text-xs text-text-secondary">
