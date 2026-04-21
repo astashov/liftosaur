@@ -1,4 +1,6 @@
 import { JSX, useState } from "react";
+import { View, Pressable, Switch } from "react-native";
+import { Text } from "../primitives/text";
 import {
   IPlannerExerciseState,
   IPlannerExerciseUi,
@@ -9,7 +11,7 @@ import { ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IconPlus2 } from "../icons/iconPlus2";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
-import { EditProgramExerciseSet } from "./editProgramExerciseSet";
+import { EditProgramExerciseSet, computeEditSetColumnWidths } from "./editProgramExerciseSet";
 import { EditProgramUiHelpers_changeCurrentInstanceExercise } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { UidFactory_generateUid } from "../../utils/generator";
 import { IconTrash } from "../icons/iconTrash";
@@ -38,45 +40,40 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
   const hasWeight = props.setVariation.sets.some((set) => set.weight != null);
   const hasMinReps = props.setVariation.sets.some((set) => set.minrep != null);
   const hasTimer = props.setVariation.sets.some((set) => set.timer != null);
-  const [setIds, setSetIds] = useState<string[]>(setVariation.sets.map((set) => UidFactory_generateUid(4)));
+  const [setIds, setSetIds] = useState<string[]>(setVariation.sets.map(() => UidFactory_generateUid(4)));
   const currentIndex = PlannerProgramExercise_currentEvaluatedSetVariationIndex(props.plannerExercise);
-  const additionalFields = [hasMinReps ? 1 : 0, hasWeight ? 1 : 0, hasRpe ? 1 : 0, hasTimer ? 1 : 0].reduce(
-    (a, b) => a + b,
-    0
-  );
-  const widthAdd = (4 - additionalFields) * 0.5;
+  const remValue = props.settings.textSize ?? 16;
+  const columnWidths = computeEditSetColumnWidths(remValue, { hasMinReps, hasWeight, hasRpe, hasTimer });
 
   return (
-    <div className="border rounded-lg bg-background-subtlecardpurple border-border-cardpurple">
-      <div className="flex items-center gap-4 pt-2 pb-1 pl-4 pr-2">
-        <div className="flex-1 font-semibold">{props.name}</div>
+    <View className="border rounded-lg bg-background-subtlecardpurple border-border-cardpurple">
+      <View className="flex-row items-center gap-4 pt-2 pb-1 pl-4 pr-2">
+        <View className="flex-1">
+          <Text className="font-semibold">{props.name}</Text>
+        </View>
         {props.areSetVariationsEnabled && (
-          <div className="flex items-center gap-2">
-            <div>
-              <label className="leading-none">
-                <span className="mr-2 text-xs">Is Current?</span>
-                <input
-                  checked={currentIndex === props.setVariationIndex}
-                  className="block align-middle checkbox text-text-link"
-                  type="checkbox"
-                  onChange={(e) => {
-                    EditProgramUiHelpers_changeCurrentInstanceExercise(
-                      props.plannerDispatch,
-                      props.plannerExercise,
-                      props.settings,
-                      (ex) => {
-                        for (let i = 0; i < ex.evaluatedSetVariations.length; i++) {
-                          ex.evaluatedSetVariations[i].isCurrent = i === props.setVariationIndex;
-                        }
+          <View className="flex-row items-center gap-2">
+            <View className="flex-row items-center">
+              <Text className="mr-2 text-xs">Is Current?</Text>
+              <Switch
+                value={currentIndex === props.setVariationIndex}
+                onValueChange={() => {
+                  EditProgramUiHelpers_changeCurrentInstanceExercise(
+                    props.plannerDispatch,
+                    props.plannerExercise,
+                    props.settings,
+                    (ex) => {
+                      for (let i = 0; i < ex.evaluatedSetVariations.length; i++) {
+                        ex.evaluatedSetVariations[i].isCurrent = i === props.setVariationIndex;
                       }
-                    );
-                  }}
-                />
-              </label>
-            </div>
-            <button
+                    }
+                  );
+                }}
+              />
+            </View>
+            <Pressable
               className="p-2"
-              onClick={() => {
+              onPress={() => {
                 EditProgramUiHelpers_changeCurrentInstanceExercise(
                   props.plannerDispatch,
                   props.plannerExercise,
@@ -91,58 +88,46 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
               }}
             >
               <IconTrash />
-            </button>
-          </div>
+            </Pressable>
+          </View>
         )}
-      </div>
-      <div className="table w-full overflow-hidden">
-        <div className="table-row-group pt-1">
-          <div className="table-row text-xs border-b text-text-secondary">
-            <div className="table-cell px-2 py-1 font-normal text-left align-bottom border-b border-border-cardpurple">
-              Set
-            </div>
-            {hasMinReps && (
-              <>
-                <div className="table-cell py-1 font-normal text-center align-bottom border-b border-border-cardpurple">
-                  Min
-                  <br />
-                  Reps
-                </div>
-                <div className="table-cell py-1 text-center border-b border-border-cardpurple"></div>
-              </>
-            )}
-            <div className="table-cell py-1 font-normal text-center align-bottom border-b border-border-cardpurple">
-              {hasMinReps ? (
-                <>
-                  Max
-                  <br />
-                  Reps
-                </>
-              ) : (
-                <>Reps</>
-              )}
-            </div>
-            {hasWeight && (
-              <>
-                <div className="table-cell py-1 text-center border-b border-border-cardpurple"></div>
-                <div className="table-cell py-1 font-normal text-center align-bottom border-b border-border-cardpurple">
-                  Weight
-                </div>
-              </>
-            )}
-            {hasRpe && (
-              <div className="table-cell py-1 font-normal text-center align-bottom border-b border-border-cardpurple">
-                RPE
-              </div>
-            )}
-            {hasTimer && (
-              <div className="table-cell py-1 font-normal text-center align-bottom border-b border-border-cardpurple">
-                Timer
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="table-row-group">
+      </View>
+      <View className="w-full">
+        <View className="flex-row border-b border-border-cardpurple">
+          <View style={columnWidths.set} className="items-center justify-end py-1">
+            <Text className="text-xs text-text-secondary">Set</Text>
+          </View>
+          {hasMinReps && (
+            <>
+              <View style={columnWidths.minReps} className="items-center justify-end py-1">
+                <Text className="text-xs text-center text-text-secondary">{"Min\nReps"}</Text>
+              </View>
+              <View style={columnWidths.dash} />
+            </>
+          )}
+          <View style={columnWidths.reps} className="items-center justify-end py-1">
+            <Text className="text-xs text-center text-text-secondary">{hasMinReps ? "Max\nReps" : "Reps"}</Text>
+          </View>
+          {hasWeight && (
+            <>
+              <View style={columnWidths.x} />
+              <View style={columnWidths.weight} className="items-center justify-end py-1">
+                <Text className="text-xs text-text-secondary">Weight</Text>
+              </View>
+            </>
+          )}
+          {hasRpe && (
+            <View style={columnWidths.rpe} className="items-center justify-end py-1">
+              <Text className="text-xs text-text-secondary">RPE</Text>
+            </View>
+          )}
+          {hasTimer && (
+            <View style={columnWidths.timer} className="items-center justify-end py-1">
+              <Text className="text-xs text-text-secondary">Timer</Text>
+            </View>
+          )}
+        </View>
+        <View>
           {setVariation.sets.map((set, setIndex) => {
             return (
               <EditProgramExerciseSet
@@ -155,26 +140,22 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
                 setVariationIndex={props.setVariationIndex}
                 plannerExercise={props.plannerExercise}
                 plannerDispatch={props.plannerDispatch}
-                widthAdd={widthAdd}
+                columnWidths={columnWidths}
                 settings={props.settings}
                 exerciseStateKey={props.exerciseStateKey}
                 programId={props.programId}
-                opts={{
-                  hasMinReps: hasMinReps,
-                  hasWeight: hasWeight,
-                  hasRpe: hasRpe,
-                  hasTimer: hasTimer,
-                }}
+                opts={{ hasMinReps, hasWeight, hasRpe, hasTimer }}
               />
             );
           })}
-        </div>
-      </div>
-      <div className="flex">
-        <button
-          className="flex-1 py-2 m-2 text-xs font-semibold text-center rounded-md bg-background-purpledark text-text-link"
+        </View>
+      </View>
+      <View className="flex-row">
+        <Pressable
+          className="flex-row items-center justify-center flex-1 py-2 m-2 rounded-md bg-background-purpledark"
           data-cy="add-set"
-          onClick={() => {
+          testID="add-set"
+          onPress={() => {
             EditProgramUiHelpers_changeCurrentInstanceExercise(
               props.plannerDispatch,
               props.plannerExercise,
@@ -186,12 +167,10 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
             setSetIds((prev) => [...prev, UidFactory_generateUid(4)]);
           }}
         >
-          <span>
-            <IconPlus2 size={10} className="inline-block" color={Tailwind_semantic().text.link} />
-          </span>
-          <span className="ml-2">Add Set</span>
-        </button>
-      </div>
-    </div>
+          <IconPlus2 size={10} color={Tailwind_semantic().text.link} />
+          <Text className="ml-2 text-xs font-semibold text-text-link">Add Set</Text>
+        </Pressable>
+      </View>
+    </View>
   );
 }

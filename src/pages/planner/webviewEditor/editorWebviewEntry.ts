@@ -1,9 +1,5 @@
 import "./editorWebview.css";
-import type {
-  IEditorInitArgs,
-  IHostToWebview,
-  IWebviewToHost,
-} from "./editorWebviewBridge";
+import type { IEditorInitArgs, IHostToWebview, IWebviewToHost } from "./editorWebviewBridge";
 import { PlannerEditor } from "../plannerEditor";
 import { ScriptEditor } from "../../../components/editProgramExercise/progressions/scriptEditor";
 
@@ -81,19 +77,25 @@ function init(args: IEditorInitArgs): void {
     postToHost({ kind: "error", payload: { message: "missing #editor container" } });
     return;
   }
-  container.className = "planner-editor-view";
+  container.className = args.autoHeight ? "planner-editor-view auto-height" : "planner-editor-view";
+  if (args.autoHeight) {
+    document.documentElement.classList.add("auto-height");
+    document.body.classList.add("auto-height");
+  }
   applyTheme(args.theme);
   mode = args.mode;
   editor = args.mode === "planner" ? buildPlannerEditor(args) : buildScriptEditor(args);
   editor.attach(container);
-  observeHeight(container);
+  observeHeight(args.autoHeight ? document.documentElement : container);
 }
 
 function recv(msg: IHostToWebview): void {
   try {
     switch (msg.kind) {
       case "init":
-        if (!editor) init(msg.payload);
+        if (!editor) {
+          init(msg.payload);
+        }
         return;
       case "setValue":
         editor?.setValue(msg.payload.value);

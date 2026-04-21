@@ -1,4 +1,6 @@
 import { JSX } from "react";
+import { View, Pressable } from "react-native";
+import { Text } from "./primitives/text";
 import { IconArrowDown2 } from "./icons/iconArrowDown2";
 import { useModal } from "../navigation/ModalStateContext";
 
@@ -17,12 +19,14 @@ interface IInputSelectProps<T extends string> {
 export function InputSelect<T extends string>(props: IInputSelectProps<T>): JSX.Element {
   if (props.label != null) {
     return (
-      <div className="flex items-center gap-4">
-        <label className={`${!props.expandValue ? "flex-1" : ""} text-sm`}>{props.label}</label>
-        <div className="flex-1">
+      <View className="flex-row items-center gap-4">
+        <View className={!props.expandValue ? "flex-1" : ""}>
+          <Text className="text-sm">{props.label}</Text>
+        </View>
+        <View className="flex-1">
           <InputSelectValue {...props} />
-        </div>
-      </div>
+        </View>
+      </View>
     );
   } else {
     return <InputSelectValue {...props} />;
@@ -39,10 +43,11 @@ export function InputSelectValue<T extends string>(props: IInputSelectProps<T>):
   });
 
   return (
-    <button
+    <Pressable
       data-cy={`select-${props.name}`}
-      className="flex items-center w-full gap-2 p-2 text-left border rounded bg-background-default border-border-neutral"
-      onClick={() => {
+      testID={`select-${props.name}`}
+      className="flex-row items-center w-full gap-2 p-2 border rounded bg-background-default border-border-neutral"
+      onPress={() => {
         if (!props.disabled && props.values && props.values.length > 0) {
           openModal({
             name: props.name,
@@ -54,12 +59,16 @@ export function InputSelectValue<T extends string>(props: IInputSelectProps<T>):
         }
       }}
     >
-      <div className="flex-1 text-sm">
-        {selectedLabel ?? <span className="text-text-secondary">{props.placeholder}</span>}
-      </div>
-      <div>
+      <View className="flex-1">
+        {selectedLabel != null ? (
+          <Text className="text-sm">{selectedLabel}</Text>
+        ) : (
+          <Text className="text-sm text-text-secondary">{props.placeholder}</Text>
+        )}
+      </View>
+      <View>
         <IconArrowDown2 />
-      </div>
-    </button>
+      </View>
+    </Pressable>
   );
 }

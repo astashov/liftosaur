@@ -1,5 +1,6 @@
-import { JSX, useRef, useState } from "react";
-import { Input } from "../../input";
+import { JSX, useState } from "react";
+import { View } from "react-native";
+import { Text } from "../../primitives/text";
 import { Modal } from "../../modal";
 import { IPercentageUnit, IUnit } from "../../../types";
 import { Button } from "../../button";
@@ -14,10 +15,10 @@ interface IModalCreateStateVariableProps {
 type IStateVariableType = "number" | IUnit | IPercentageUnit;
 
 export function ModalCreateStateVariableContent(props: IModalCreateStateVariableProps): JSX.Element {
-  const textInputRef = useRef<HTMLInputElement>(null);
   const [name, setName] = useState<string>("");
   const [type, setType] = useState<IStateVariableType | undefined>(undefined);
   const [showTypeError, setShowTypeError] = useState<boolean>(false);
+  const [showNameError, setShowNameError] = useState<boolean>(false);
   const typeValues: [IStateVariableType, string][] = [
     ["number", "Number"],
     ["kg", "Weight (kg)"],
@@ -25,43 +26,33 @@ export function ModalCreateStateVariableContent(props: IModalCreateStateVariable
     ["%", "Percentage"],
   ];
   const [isUserPrompted, setIsUserPrompted] = useState<boolean>(false);
+  const nameIsValid = /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name);
 
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        const isValid = textInputRef.current?.checkValidity();
-        if (!type) {
-          setShowTypeError(true);
-          return;
-        }
-        if (name && isValid) {
-          props.onCreate(name, type, isUserPrompted);
-          props.onClose();
-        }
-      }}
-      className="flex flex-col items-center"
-    >
-      <h2 className="mb-1 text-lg font-bold text-center">Add New State Variable</h2>
-      <p className="mb-2 text-xs text-text-secondary">
+    <View className="items-center">
+      <Text className="mb-1 text-lg font-bold text-center">Add New State Variable</Text>
+      <Text className="mb-2 text-xs text-text-secondary">
         You can use state variables to store values between workouts, or parameterize your progress scripts. Use them
-        via <strong>state.yourVariable</strong> in the script.
-      </p>
-      <Input
-        label="Variable name"
-        type="text"
-        placeholder="MyVariable"
-        ref={textInputRef}
-        pattern="^[a-zA-Z_][a-zA-Z0-9_]*$"
-        patternMessage="Variable names must start with a letter or underscore, and can only contain letters, numbers, and underscores."
-        value={name}
-        required={true}
-        requiredMessage="Please enter a name for the variable"
-        onInput={(e) => {
-          setName((e.target as HTMLInputElement).value);
-        }}
-      />
-      <div className="w-full pt-2">
+        via <Text className="font-bold">state.yourVariable</Text> in the script.
+      </Text>
+      <View className="w-full">
+        <MenuItemEditable
+          name="Variable name"
+          type="text"
+          value={name}
+          onChange={(v) => {
+            setName(v ?? "");
+            setShowNameError(false);
+          }}
+        />
+        {showNameError && !nameIsValid && (
+          <Text className="text-xs text-text-error">
+            Variable names must start with a letter or underscore, and can only contain letters, numbers, and
+            underscores.
+          </Text>
+        )}
+      </View>
+      <View className="w-full pt-2">
         <InputSelect
           name="create-state-variable-type"
           label="Type"
@@ -79,27 +70,42 @@ export function ModalCreateStateVariableContent(props: IModalCreateStateVariable
             }
           }}
         />
-        {showTypeError && <div className="text-xs text-text-error">Please select a type for the variable.</div>}
-      </div>
+        {showTypeError && <Text className="text-xs text-text-error">Please select a type for the variable.</Text>}
+      </View>
       <MenuItemEditable
         name="User Prompted?"
         type="boolean"
         nextLine={
-          <div className="pb-2 text-xs text-text-secondary" style={{ marginTop: "-0.5rem" }}>
-            Will be asked for value at the end of workout
-          </div>
+          <View className="pb-2" style={{ marginTop: -8 }}>
+            <Text className="text-xs text-text-secondary">Will be asked for value at the end of workout</Text>
+          </View>
         }
         value={isUserPrompted ? "true" : "false"}
         onChange={(v) => {
           setIsUserPrompted(v === "true");
         }}
       />
-      <div className="mt-4 text-center">
-        <Button kind="purple" name="modal-create-state-variable-submit">
+      <View className="items-center mt-4">
+        <Button
+          kind="purple"
+          name="modal-create-state-variable-submit"
+          onClick={() => {
+            if (!type) {
+              setShowTypeError(true);
+              return;
+            }
+            if (!nameIsValid) {
+              setShowNameError(true);
+              return;
+            }
+            props.onCreate(name, type, isUserPrompted);
+            props.onClose();
+          }}
+        >
           Create
         </Button>
-      </div>
-    </form>
+      </View>
+    </View>
   );
 }
 

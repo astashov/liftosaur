@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import { Modal } from "./modal";
+import { Text } from "./primitives/text";
 import { IProgram, ISettings, IStats } from "../types";
 import { NextDayPicker } from "./nextDayPicker";
 
@@ -15,7 +16,7 @@ interface IModalProgramNextDayProps {
 export function ModalProgramNextDayContent(props: IModalProgramNextDayProps): JSX.Element {
   return (
     <>
-      <div className="mt-4 mb-1 text-lg font-semibold text-center">Change Next Day</div>
+      <Text className="mt-4 mb-1 text-lg font-semibold text-center">Change Next Day</Text>
       <NextDayPicker
         stats={props.stats}
         initialCurrentProgramId={props.initialCurrentProgramId}

@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View, Pressable } from "react-native";
+import { Text } from "../primitives/text";
 import { IPlannerProgramExercise, IPlannerExerciseState } from "../../pages/planner/models/types";
 import { IPercentage, IPlannerProgram, ISettings, IWeight } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -17,7 +19,6 @@ import {
 } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { ObjectUtils_clone } from "../../utils/object";
 import { SwipeableRow } from "../swipeableRow";
-import { Mobile_isMobileFromWindow, Mobile_isPlaywrightFromWindow } from "../../../lambda/utils/mobile";
 import { InputNumber2 } from "../inputNumber2";
 import { InputWeight2 } from "../inputWeight2";
 import { IconPlus2 } from "../icons/iconPlus2";
@@ -80,15 +81,19 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
   const displayWarmupSets = PlannerProgramExercise_warmupSetsToDisplaySets(
     ownWarmups || reuseWarmups || defaultWarmups
   );
-  const isMobile = Mobile_isMobileFromWindow();
-  const isPlaywright = Mobile_isPlaywrightFromWindow();
-  const shouldUseTouch = isMobile && !isPlaywright;
+  const remValue = props.settings.textSize ?? 16;
+  const setCol = Math.round(2 * remValue);
+  const repsCol = Math.round(3 * remValue);
+  const xCol = Math.round(0.75 * remValue);
+  const weightCol = Math.round(6 * remValue);
 
   return (
-    <div className="px-4 pt-2 pb-2 bg-background-default">
-      <div className="flex gap-4 pb-2">
-        <div className="text-base font-bold">Edit Warmups</div>
-        <div className="ml-auto">
+    <View className="px-4 py-2 bg-background-default">
+      <View className="flex-row gap-4 pb-2">
+        <View className="flex-1">
+          <Text className="text-base font-bold">Edit Warmups</Text>
+        </View>
+        <View>
           <LinkButton
             className="text-sm"
             data-cy="edit-exercise-warmups-customize"
@@ -130,33 +135,39 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                 ? "Switch to default"
                 : "Customize"}
           </LinkButton>
-        </div>
-      </div>
+        </View>
+      </View>
       {ownWarmups == null ? (
-        <div className="flex gap-2 py-2 pl-3 pr-2 border rounded-lg bg-background-subtlecardpurple border-border-cardpurple">
-          <div className="flex-1 text-sm">
-            {reuseWarmups ? <div>Reused from</div> : <div className="font-semibold">Default warmups</div>}
-          </div>
-          <div className="">
+        <View className="flex-row gap-2 py-2 pl-3 pr-2 border rounded-lg bg-background-subtlecardpurple border-border-cardpurple">
+          <View className="flex-1">
+            {reuseWarmups ? (
+              <Text className="text-sm">Reused from</Text>
+            ) : (
+              <Text className="text-sm font-semibold">Default warmups</Text>
+            )}
+          </View>
+          <View>
             {displayWarmupSets.map((g, i) => (
               <HistoryRecordSet key={i} sets={g} isNext={true} settings={props.settings} />
             ))}
-          </div>
-        </div>
+          </View>
+        </View>
       ) : (
-        <div className="border rounded-lg bg-background-subtlecardpurple border-border-cardpurple">
-          <div className="table w-full overflow-hidden">
-            <div className="table-row-group pt-1">
-              <div className="table-row text-xs border-b text-text-secondary border-border-neutral">
-                <div className="table-cell px-2 py-1 font-normal text-left border-b border-border-neutral">Set</div>
-                <div className="table-cell py-1 font-normal text-center border-b border-border-neutral">Reps</div>
-                <div className="table-cell py-1 text-center border-b border-border-neutral"></div>
-                <div className="table-cell py-1 pr-4 font-normal text-center border-b border-border-neutral">
-                  Weight
-                </div>
-              </div>
-            </div>
-            <div className="table-row-group">
+        <View className="border rounded-lg bg-background-subtlecardpurple border-border-cardpurple">
+          <View className="w-full">
+            <View className="flex-row border-b border-border-neutral">
+              <View style={{ width: setCol }} className="px-2 py-1">
+                <Text className="text-xs text-text-secondary">Set</Text>
+              </View>
+              <View style={{ width: repsCol }} className="items-center py-1">
+                <Text className="text-xs text-text-secondary">Reps</Text>
+              </View>
+              <View style={{ width: xCol }} />
+              <View style={{ width: weightCol }} className="items-center py-1 pr-4">
+                <Text className="text-xs text-text-secondary">Weight</Text>
+              </View>
+            </View>
+            <View>
               {ownWarmups.map((set, setIndex) => {
                 return (
                   <SwipeableRow
@@ -165,29 +176,25 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                     openThreshold={15}
                     closeThreshold={55}
                     scrollThreshold={7}
-                    initiateTreshold={15}
+                    initiateTreshold={8}
                   >
-                    {({ onPointerDown, onPointerUp, style, close, moveRef }) => (
-                      <div
-                        ref={moveRef}
-                        className={`will-change-transform relative table-row`}
+                    {({ style, close, moveRef }) => (
+                      <View
+                        ref={moveRef as unknown as React.RefObject<View>}
                         data-cy="warmup-set"
-                        style={style}
-                        onTouchStart={shouldUseTouch ? onPointerDown : undefined}
-                        onTouchEnd={shouldUseTouch ? onPointerUp : undefined}
-                        onPointerDown={!shouldUseTouch ? onPointerDown : undefined}
-                        onPointerUp={!shouldUseTouch ? onPointerUp : undefined}
+                        testID="warmup-set"
+                        style={style as object}
                       >
-                        <div
-                          className="table-cell px-2 py-1 text-sm align-middle border-b border-border-neutral"
-                          data-cy="warmup-set-number"
-                        >
-                          <div className={`w-6 h-6 flex items-center justify-start rounded-full`}>
-                            <div>{setIndex + 1}</div>
-                          </div>
-                        </div>
-                        <div className="table-cell py-2 align-middle border-b border-border-neutral">
-                          <div className="flex justify-center text-center">
+                        <View className="flex-row items-center border-b border-border-neutral">
+                          <View
+                            style={{ width: setCol }}
+                            className="px-2 py-1"
+                            data-cy="warmup-set-number"
+                            testID="warmup-set-number"
+                          >
+                            <Text className="text-sm">{setIndex + 1}</Text>
+                          </View>
+                          <View style={{ width: repsCol }} className="items-center justify-center py-2">
                             <InputNumber2
                               width={3.5}
                               data-cy="reps-value"
@@ -217,96 +224,107 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                               max={9999}
                               step={1}
                             />
-                          </div>
-                        </div>
-                        <div
-                          className="table-cell px-1 py-2 text-center align-middle border-b border-border-neutral"
-                          data-cy="warmup-set-x"
-                        >
-                          ×
-                        </div>
-                        <div className="relative table-cell py-2 align-middle border-b border-border-neutral">
-                          <div className="flex items-center justify-center text-center">
-                            <InputWeight2
-                              name="set-weight"
-                              exerciseType={plannerExercise.exerciseType}
-                              data-cy="weight-value"
-                              units={["lb", "kg", "%"] as const}
-                              onBlur={(value) => {
-                                if (value != null) {
-                                  props.plannerDispatch(
-                                    lbProgram.recordModify((program) => {
-                                      return changeWeight(program, props.settings, plannerExercise, setIndex, value);
-                                    }),
-                                    "Change warmup weight"
-                                  );
-                                }
-                              }}
-                              onInput={(value) => {
-                                if (value != null) {
-                                  props.plannerDispatch(
-                                    lbProgram.recordModify((program) => {
-                                      return changeWeight(program, props.settings, plannerExercise, setIndex, value);
-                                    }),
-                                    "Change warmup weight"
-                                  );
-                                }
-                              }}
-                              subscription={undefined}
-                              value={
-                                set.weight ? set.weight : set.percentage ? Weight_buildPct(set.percentage) : undefined
-                              }
-                              max={9999}
-                              min={-9999}
-                              settings={props.settings}
-                            />
-                            <div className="ml-1 text-xs">
-                              {set.weight ? set.weight.unit : set.percentage != null ? "%" : ""}
-                            </div>
-                          </div>
-                          <div
-                            className={`absolute top-0 bottom-0 flex w-16 will-change-transform left-full`}
-                            style={{ marginLeft: "1px" }}
+                          </View>
+                          <View
+                            style={{ width: xCol }}
+                            className="items-center justify-center py-2"
+                            data-cy="warmup-set-x"
+                            testID="warmup-set-x"
                           >
-                            <button
-                              data-cy="delete-warmup-set"
-                              tabIndex={-1}
-                              onClick={() => {
-                                close();
-                                props.plannerDispatch(
-                                  lbProgram.recordModify((program) => {
-                                    return EditProgramUiHelpers_changeFirstInstance(
-                                      program,
-                                      plannerExercise,
-                                      props.settings,
-                                      true,
-                                      (e) => {
-                                        e.warmupSets = PlannerProgramExercise_degroupWarmupSets(e.warmupSets || []);
-                                        e.warmupSets = CollectionUtils_removeAt(e.warmupSets, setIndex);
-                                      }
+                            <Text>×</Text>
+                          </View>
+                          <View style={{ width: weightCol }} className="items-center justify-center py-2">
+                            <View className="flex-row items-center">
+                              <InputWeight2
+                                name="set-weight"
+                                exerciseType={plannerExercise.exerciseType}
+                                data-cy="weight-value"
+                                units={["lb", "kg", "%"] as const}
+                                onBlur={(value) => {
+                                  if (value != null) {
+                                    props.plannerDispatch(
+                                      lbProgram.recordModify((program) => {
+                                        return changeWeight(program, props.settings, plannerExercise, setIndex, value);
+                                      }),
+                                      "Change warmup weight"
                                     );
-                                  }),
-                                  "Delete warmup set"
-                                );
-                              }}
-                              className="flex-1 h-full text-text-alwayswhite bg-background-darkred nm-workout-exercise-set-delete"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </div>
-                      </div>
+                                  }
+                                }}
+                                onInput={(value) => {
+                                  if (value != null) {
+                                    props.plannerDispatch(
+                                      lbProgram.recordModify((program) => {
+                                        return changeWeight(program, props.settings, plannerExercise, setIndex, value);
+                                      }),
+                                      "Change warmup weight"
+                                    );
+                                  }
+                                }}
+                                subscription={undefined}
+                                value={
+                                  set.weight ? set.weight : set.percentage ? Weight_buildPct(set.percentage) : undefined
+                                }
+                                max={9999}
+                                min={-9999}
+                                settings={props.settings}
+                              />
+                              <Text className="ml-1 text-xs">
+                                {set.weight ? set.weight.unit : set.percentage != null ? "%" : ""}
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+                        <View
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            bottom: 0,
+                            left: "100%",
+                            flexDirection: "row",
+                            width: 64,
+                            marginLeft: 1,
+                          }}
+                        >
+                          <Pressable
+                            data-cy="delete-warmup-set"
+                            testID="delete-warmup-set"
+                            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+                            className="bg-background-darkred"
+                            onPress={() => {
+                              close();
+                              props.plannerDispatch(
+                                lbProgram.recordModify((program) => {
+                                  return EditProgramUiHelpers_changeFirstInstance(
+                                    program,
+                                    plannerExercise,
+                                    props.settings,
+                                    true,
+                                    (e) => {
+                                      e.warmupSets = PlannerProgramExercise_degroupWarmupSets(e.warmupSets || []);
+                                      e.warmupSets = CollectionUtils_removeAt(e.warmupSets, setIndex);
+                                    }
+                                  );
+                                }),
+                                "Delete warmup set"
+                              );
+                            }}
+                          >
+                            <Text className="text-text-alwayswhite">Delete</Text>
+                          </Pressable>
+                        </View>
+                      </View>
                     )}
                   </SwipeableRow>
                 );
               })}
-            </div>
-          </div>
-          <div className="flex">
-            <button
-              className="flex-1 py-2 m-2 text-xs font-semibold text-center rounded-md bg-background-purpledark text-text-link"
+            </View>
+          </View>
+          <View className="flex-row">
+            <Pressable
+              className="flex-row items-center justify-center flex-1 py-2 m-2 rounded-md bg-background-purpledark"
               data-cy="add-warmup-set"
-              onClick={() => {
+              testID="add-warmup-set"
+              onPress={() => {
                 props.plannerDispatch(
                   lbProgram.recordModify((program) => {
                     return EditProgramUiHelpers_changeFirstInstance(
@@ -338,14 +356,12 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                 );
               }}
             >
-              <span>
-                <IconPlus2 size={10} className="inline-block" color={Tailwind_colors().blue[400]} />
-              </span>
-              <span className="ml-2">Add Warmup Set</span>
-            </button>
-          </div>
-        </div>
+              <IconPlus2 size={10} color={Tailwind_colors().blue[400]} />
+              <Text className="ml-2 text-xs font-semibold text-text-link">Add Warmup Set</Text>
+            </Pressable>
+          </View>
+        </View>
       )}
-    </div>
+    </View>
   );
 }

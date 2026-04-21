@@ -16,6 +16,9 @@ export interface IWebviewEditorProps {
   onCustomErrorCta?: (error: string) => React.ReactNode;
   height?: number;
   theme?: IEditorTheme;
+  autoHeight?: boolean;
+  minHeight?: number;
+  maxHeight?: number;
 }
 
 export function WebviewEditor(_props: IWebviewEditorProps): React.JSX.Element {

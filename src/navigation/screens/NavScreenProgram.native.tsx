@@ -8,6 +8,7 @@ import { buildNavCommon } from "../utils";
 import { NavScreenContent } from "../NavScreenContent";
 import { ChooseProgramView } from "../../components/chooseProgram";
 import { ScreenEditProgram as ScreenEditProgramComponent } from "../../components/screenEditProgram";
+import { ScreenEditProgramExercise as ScreenEditProgramExerciseComponent } from "../../components/editProgramExercise/screenEditProgramExercise";
 import { ScreenMusclesProgram } from "../../components/muscles/screenMusclesProgram";
 import { ScreenMusclesDay } from "../../components/muscles/screenMusclesDay";
 import { ScreenProgramPreview as ScreenProgramPreviewComponent } from "../../components/screenProgramPreview";
@@ -68,16 +69,18 @@ export function NavScreenEditProgram(): React.JSX.Element {
 }
 
 export function NavScreenEditProgramExercise(): React.JSX.Element {
+  const { state, dispatch } = useAppState();
   const navigation = useNavigation();
+  const navCommon = buildNavCommon(state);
   const route = useRoute<{
     key: string;
     name: "editProgramExercise";
     params: { programId: string; key: string; dayData: Required<IDayData> };
   }>();
-  const { programId, key: exerciseKey } = route.params;
+  const { programId, key: exerciseKey, dayData } = route.params;
   const exerciseStateKey = `${programId}_${exerciseKey}`;
-  const { state } = useAppState();
   const plannerState = state.editProgramExerciseStates[exerciseStateKey];
+  const editProgramState = state.editProgramStates[programId];
   const pendingNewKey = plannerState?.ui.pendingNewKey;
   React.useEffect(() => {
     if (pendingNewKey) {
@@ -85,9 +88,23 @@ export function NavScreenEditProgramExercise(): React.JSX.Element {
     }
   }, [pendingNewKey]);
   return (
-    <View className="flex-1 justify-center items-center bg-background-default">
-      <Text className="text-2xl font-bold text-icon-neutral">Edit Exercise</Text>
-    </View>
+    <NavScreenContent>
+      <FallbackScreen state={{ plannerState, exerciseKey, dayData }} dispatch={dispatch}>
+        {({ plannerState: plannerState2, exerciseKey: exerciseKey2, dayData: dayData2 }) => (
+          <ScreenEditProgramExerciseComponent
+            plannerState={plannerState2}
+            exerciseKey={exerciseKey2}
+            exerciseStateKey={exerciseStateKey}
+            programId={programId}
+            dayData={dayData2}
+            dispatch={dispatch}
+            settings={state.storage.settings}
+            navCommon={navCommon}
+            editProgramState={editProgramState}
+          />
+        )}
+      </FallbackScreen>
+    </NavScreenContent>
   );
 }
 

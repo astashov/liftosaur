@@ -39,6 +39,22 @@ body.dark {
   min-height: 6rem;
 }
 
+html.auto-height,
+html.auto-height body,
+html.auto-height #editor,
+.planner-editor-view.auto-height {
+  height: auto;
+}
+
+.planner-editor-view.auto-height .cm-editor {
+  height: auto;
+}
+
+.planner-editor-view.auto-height .cm-scroller {
+  min-height: 0;
+  overflow: visible;
+}
+
 .planner-editor-view .cm-line {
   line-height: 1.35rem;
 }

@@ -88,6 +88,18 @@ import { NavModalNewGym } from "./modals/NavModalNewGym";
 import { NavModalNewEquipment } from "./modals/NavModalNewEquipment";
 import { NavModalPlates } from "./modals/NavModalPlates";
 import { NavModalNewFixedWeight } from "./modals/NavModalNewFixedWeight";
+import { NavModalEditProgramMenu } from "./modals/NavModalEditProgramMenu";
+import { NavModalEditProgramExercisePicker } from "./modals/NavModalEditProgramExercisePicker";
+import { NavModalProgramNextDay } from "./modals/NavModalProgramNextDay";
+import { NavModalWeekStats } from "./modals/NavModalWeekStats";
+import { NavModalDayStats } from "./modals/NavModalDayStats";
+import { NavModalExerciseStats } from "./modals/NavModalExerciseStats";
+import { NavModalEditExerciseChange } from "./modals/NavModalEditExerciseChange";
+import { NavModalEditProgramExerciseSet } from "./modals/NavModalEditProgramExerciseSet";
+import { NavModalEditProgramExerciseSuperset } from "./modals/NavModalEditProgramExerciseSuperset";
+import { NavModalCreateStateVariable } from "./modals/NavModalCreateStateVariable";
+import { NavModalEditProgressScript } from "./modals/NavModalEditProgressScript";
+import { NavModalEditUpdateScript } from "./modals/NavModalEditUpdateScript";
 import { NavHeader } from "./NavHeader";
 
 const OnboardingStack = createNativeStackNavigator<IOnboardingStackParamList>();
@@ -164,7 +176,11 @@ function WorkoutStackScreen(): JSX.Element {
         options={{ headerShown: true, header: NavHeader }}
       />
       <WorkoutStack.Screen name="finishDay" component={NavScreenFinishDay} />
-      <WorkoutStack.Screen name="editProgramExercise" component={NavScreenEditProgramExercise} />
+      <WorkoutStack.Screen
+        name="editProgramExercise"
+        component={NavScreenEditProgramExercise}
+        options={{ headerShown: true, header: NavHeader }}
+      />
       <WorkoutStack.Screen
         name="muscles"
         component={NavScreenMuscles}
@@ -264,6 +280,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
             <RootStack.Screen name="exerciseCloneLibraryModal" component={NavModalExerciseCloneLibrary} />
             <RootStack.Screen name="customExerciseModal" component={NavModalCustomExercise} />
             <RootStack.Screen name="musclesOverrideModal" component={NavModalMusclesOverride} />
+            <RootStack.Screen name="editProgramExercisePickerModal" component={NavModalEditProgramExercisePicker} />
           </RootStack.Group>
           <RootStack.Group
             screenOptions={{
@@ -318,6 +335,33 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
             <RootStack.Screen
               name="exerciseMusclesPickerModal"
               component={NavModalExerciseMusclesPicker}
+              options={{ sheetAllowedDetents: [0.9] }}
+            />
+            <RootStack.Screen name="editProgramMenuModal" component={NavModalEditProgramMenu} />
+            <RootStack.Screen name="programNextDayModal" component={NavModalProgramNextDay} />
+            <RootStack.Screen name="weekStatsModal" component={NavModalWeekStats} />
+            <RootStack.Screen name="dayStatsModal" component={NavModalDayStats} />
+            <RootStack.Screen
+              name="exerciseStatsModal"
+              component={NavModalExerciseStats}
+              options={{ sheetAllowedDetents: [0.9] }}
+            />
+            <RootStack.Screen name="editExerciseChangeModal" component={NavModalEditExerciseChange} />
+            <RootStack.Screen name="editProgramExerciseSetModal" component={NavModalEditProgramExerciseSet} />
+            <RootStack.Screen
+              name="editProgramExerciseSupersetModal"
+              component={NavModalEditProgramExerciseSuperset}
+              options={{ sheetAllowedDetents: [0.6] }}
+            />
+            <RootStack.Screen name="createStateVariableModal" component={NavModalCreateStateVariable} />
+            <RootStack.Screen
+              name="editProgressScriptModal"
+              component={NavModalEditProgressScript}
+              options={{ sheetAllowedDetents: [0.9] }}
+            />
+            <RootStack.Screen
+              name="editUpdateScriptModal"
+              component={NavModalEditUpdateScript}
               options={{ sheetAllowedDetents: [0.9] }}
             />
           </RootStack.Group>

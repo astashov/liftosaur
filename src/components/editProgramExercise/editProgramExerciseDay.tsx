@@ -1,4 +1,6 @@
 import { JSX, useState } from "react";
+import { View, Pressable } from "react-native";
+import { Text } from "../primitives/text";
 import { IPlannerExerciseState, IPlannerExerciseUi } from "../../pages/planner/models/types";
 import { IExerciseType, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -6,7 +8,7 @@ import { IEvaluatedProgram, Program_getDayNumber } from "../../models/program";
 import { EditProgramExerciseDayExercise } from "./editProgramExerciseDayExercise";
 import { Button } from "../button";
 import { IconKebab } from "../icons/iconKebab";
-import { DropdownMenu, DropdownMenuItem } from "../dropdownMenu";
+import { ActionMenu, IActionMenuAction } from "../actionMenu";
 import {
   EditProgramUiHelpers_changeCurrentInstanceExercise,
   EditProgramUiHelpers_deleteCurrentInstance,
@@ -33,7 +35,6 @@ interface IEditProgramExerciseDayProps {
 export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX.Element {
   const day = props.evaluatedProgram.weeks[props.weekIndex].days[props.dayInWeekIndex];
   const plannerExercise = day?.exercises.find((exercise) => exercise.key === props.exerciseKey);
-  const [isKebabMenuOpen, setIsKebabMenuOpen] = useState(false);
   const hasSetVariations = (plannerExercise?.evaluatedSetVariations.length ?? 0) > 1;
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
   const areDescriptionsEnabled =
@@ -42,170 +43,155 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
   const [showOrder, setShowOrder] = useState((plannerExercise?.order ?? 0) !== 0);
   const [showSupersets, setShowSupersets] = useState(plannerExercise?.superset != null);
 
+  const dayKebabActions: IActionMenuAction[] = plannerExercise
+    ? (() => {
+        const actions: IActionMenuAction[] = [
+          {
+            label: `${areDescriptionsEnabled ? "Disable" : "Enable"} Descriptions`,
+            "data-cy": "program-exercise-toggle-descriptions",
+            onPress: () => {
+              EditProgramUiHelpers_changeCurrentInstanceExercise(
+                props.plannerDispatch,
+                plannerExercise,
+                props.settings,
+                (ex) => {
+                  if (areDescriptionsEnabled) {
+                    ex.descriptions = { values: [] };
+                  } else {
+                    ex.descriptions = { values: [{ isCurrent: true, value: "" }] };
+                  }
+                }
+              );
+            },
+          },
+        ];
+        if (!hasSetVariations) {
+          actions.push({
+            label: "Enable Set Variations",
+            "data-cy": "program-exercise-toggle-set-variations",
+            onPress: () => {
+              EditProgramUiHelpers_changeCurrentInstanceExercise(
+                props.plannerDispatch,
+                plannerExercise,
+                props.settings,
+                (ex) => {
+                  const lastSetVariation = ObjectUtils_clone(ex.evaluatedSetVariations[0]);
+                  ex.evaluatedSetVariations.push(lastSetVariation);
+                }
+              );
+            },
+          });
+        }
+        actions.push({
+          label: "Delete At This Day",
+          "data-cy": "program-exercise-delete-at-this-day",
+          destructive: true,
+          onPress: () => {
+            const dayData = {
+              week: props.weekIndex + 1,
+              dayInWeek: props.dayInWeekIndex + 1,
+              day: Program_getDayNumber(props.evaluatedProgram, props.weekIndex, props.dayInWeekIndex),
+            };
+            props.plannerDispatch(
+              lbProgram.recordModify((program) => {
+                return EditProgramUiHelpers_deleteCurrentInstance(
+                  program,
+                  dayData,
+                  props.fullName,
+                  props.settings,
+                  true,
+                  false
+                );
+              }),
+              "Delete exercise from day"
+            );
+          },
+        });
+        if (props.evaluatedProgram.weeks.length > 1) {
+          actions.push({
+            label: `${showRepeat ? "Disable" : "Enable"} Repeating`,
+            "data-cy": "program-exercise-toggle-repeating",
+            onPress: () => {
+              if (showRepeat) {
+                props.plannerDispatch(
+                  lbProgram.recordModify((program) => {
+                    return EditProgramUiHelpers_changeRepeating(
+                      program,
+                      plannerExercise.dayData,
+                      plannerExercise.dayData.week,
+                      plannerExercise.fullName,
+                      props.settings,
+                      true
+                    );
+                  }),
+                  "Disable repeating"
+                );
+              }
+              setShowRepeat(!showRepeat);
+            },
+          });
+        }
+        actions.push({
+          label: `${plannerExercise.order !== 0 ? "Disable" : "Enable"} Forced Order`,
+          "data-cy": "edit-menu-exercise-toggle-order",
+          onPress: () => {
+            if (showOrder) {
+              EditProgramUiHelpers_changeCurrentInstanceExercise(
+                props.plannerDispatch,
+                plannerExercise,
+                props.settings,
+                (ex) => {
+                  ex.order = 0;
+                }
+              );
+            }
+            setShowOrder(!showOrder);
+          },
+        });
+        actions.push({
+          label: `${plannerExercise.superset != null ? "Disable" : "Enable"} Superset`,
+          "data-cy": "edit-menu-exercise-toggle-supersets",
+          onPress: () => {
+            if (showSupersets) {
+              EditProgramUiHelpers_changeCurrentInstanceExercise(
+                props.plannerDispatch,
+                plannerExercise,
+                props.settings,
+                (ex) => {
+                  ex.superset = undefined;
+                }
+              );
+            }
+            setShowSupersets(!showSupersets);
+          },
+        });
+        return actions;
+      })()
+    : [];
+
   return (
-    <div
+    <View
       className="py-3 border bg-background-default rounded-2xl border-border-neutral"
       data-cy={`edit-day-${props.weekIndex + 1}-${props.dayInWeekIndex + 1}`}
+      testID={`edit-day-${props.weekIndex + 1}-${props.dayInWeekIndex + 1}`}
     >
-      <div className="flex items-center gap-4 px-4 pb-2">
-        <div className="mr-auto text-base font-bold">{day?.name}</div>
+      <View className="flex-row items-center gap-4 px-4 pb-2">
+        <View className="flex-1">
+          <Text className="text-base font-bold">{day?.name}</Text>
+        </View>
         {plannerExercise && !plannerExercise.isRepeat && (
-          <div className="relative flex items-center">
-            <button
-              data-cy="day-kebab-menu"
-              className="p-2"
-              onClick={() => {
-                setIsKebabMenuOpen(!isKebabMenuOpen);
-              }}
-            >
-              <IconKebab />
-            </button>
-            {isKebabMenuOpen && (
-              <DropdownMenu rightOffset="3rem" onClose={() => setIsKebabMenuOpen(false)}>
-                <DropdownMenuItem
-                  data-cy="program-exercise-toggle-descriptions"
-                  isTop={true}
-                  onClick={() => {
-                    setIsKebabMenuOpen(false);
-                    EditProgramUiHelpers_changeCurrentInstanceExercise(
-                      props.plannerDispatch,
-                      plannerExercise,
-                      props.settings,
-                      (ex) => {
-                        if (areDescriptionsEnabled) {
-                          ex.descriptions = { values: [] };
-                        } else {
-                          ex.descriptions = { values: [{ isCurrent: true, value: "" }] };
-                        }
-                      }
-                    );
-                  }}
-                >
-                  <div className="flex items-center gap-2">
-                    <div>{areDescriptionsEnabled ? "Disable" : "Enable"} Descriptions</div>
-                  </div>
-                </DropdownMenuItem>
-                {!hasSetVariations && (
-                  <DropdownMenuItem
-                    data-cy="program-exercise-toggle-set-variations"
-                    onClick={() => {
-                      setIsKebabMenuOpen(false);
-                      EditProgramUiHelpers_changeCurrentInstanceExercise(
-                        props.plannerDispatch,
-                        plannerExercise,
-                        props.settings,
-                        (ex) => {
-                          const lastSetVariation = ObjectUtils_clone(ex.evaluatedSetVariations[0]);
-                          ex.evaluatedSetVariations.push(lastSetVariation);
-                        }
-                      );
-                    }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div>Enable Set Variations</div>
-                    </div>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem
-                  data-cy="program-exercise-delete-at-this-day"
-                  onClick={() => {
-                    const dayData = {
-                      week: props.weekIndex + 1,
-                      dayInWeek: props.dayInWeekIndex + 1,
-                      day: Program_getDayNumber(props.evaluatedProgram, props.weekIndex, props.dayInWeekIndex),
-                    };
-                    props.plannerDispatch(
-                      lbProgram.recordModify((program) => {
-                        return EditProgramUiHelpers_deleteCurrentInstance(
-                          program,
-                          dayData,
-                          props.fullName,
-                          props.settings,
-                          true,
-                          false
-                        );
-                      }),
-                      "Delete exercise from day"
-                    );
-                  }}
-                >
-                  <div className="flex items-center gap-2">
-                    <div>Delete At This Day</div>
-                  </div>
-                </DropdownMenuItem>
-                {props.evaluatedProgram.weeks.length > 1 && (
-                  <DropdownMenuItem
-                    data-cy="program-exercise-toggle-repeating"
-                    onClick={() => {
-                      setIsKebabMenuOpen(false);
-                      if (showRepeat) {
-                        props.plannerDispatch(
-                          lbProgram.recordModify((program) => {
-                            return EditProgramUiHelpers_changeRepeating(
-                              program,
-                              plannerExercise.dayData,
-                              plannerExercise.dayData.week,
-                              plannerExercise.fullName,
-                              props.settings,
-                              true
-                            );
-                          }),
-                          "Disable repeating"
-                        );
-                      }
-                      setShowRepeat(!showRepeat);
-                    }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <div>{showRepeat ? "Disable" : "Enable"} Repeating</div>
-                    </div>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem
-                  data-cy="edit-menu-exercise-toggle-order"
-                  onClick={() => {
-                    if (showOrder) {
-                      EditProgramUiHelpers_changeCurrentInstanceExercise(
-                        props.plannerDispatch,
-                        plannerExercise,
-                        props.settings,
-                        (ex) => {
-                          ex.order = 0;
-                        }
-                      );
-                    }
-                    setShowOrder(!showOrder);
-                    setIsKebabMenuOpen(false);
-                  }}
-                >
-                  {plannerExercise.order !== 0 ? "Disable" : "Enable"} Forced Order
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  data-cy="edit-menu-exercise-toggle-supersets"
-                  onClick={() => {
-                    if (showSupersets) {
-                      EditProgramUiHelpers_changeCurrentInstanceExercise(
-                        props.plannerDispatch,
-                        plannerExercise,
-                        props.settings,
-                        (ex) => {
-                          ex.superset = undefined;
-                        }
-                      );
-                    }
-                    setShowSupersets(!showSupersets);
-                    setIsKebabMenuOpen(false);
-                  }}
-                >
-                  <div className="flex items-center gap-2">
-                    {plannerExercise.superset != null ? "Disable" : "Enable"} Superset
-                  </div>
-                </DropdownMenuItem>
-              </DropdownMenu>
-            )}
-          </div>
+          <View className="relative flex-row items-center">
+            <ActionMenu
+              actions={dayKebabActions}
+              renderTrigger={(open) => (
+                <Pressable data-cy="day-kebab-menu" testID="day-kebab-menu" className="p-2" onPress={open}>
+                  <IconKebab />
+                </Pressable>
+              )}
+            />
+          </View>
         )}
-      </div>
+      </View>
       {plannerExercise ? (
         <EditProgramExerciseDayExercise
           ui={props.ui}
@@ -220,7 +206,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
           programId={props.programId}
         />
       ) : (
-        <div className="px-4 text-sm text-text-secondary">
+        <View className="px-4">
           <Button
             kind="lightgrayv3"
             className="w-full text-sm"
@@ -247,8 +233,8 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
           >
             + Add exercise
           </Button>
-        </div>
+        </View>
       )}
-    </div>
+    </View>
   );
 }

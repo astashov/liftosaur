@@ -1,4 +1,6 @@
 import { JSX, useState } from "react";
+import { View } from "react-native";
+import { Text } from "../../primitives/text";
 import { Modal } from "../../modal";
 import { Button } from "../../button";
 import { IPlannerProgramExercise } from "../../../pages/planner/models/types";
@@ -42,10 +44,11 @@ export function ModalEditUpdateScriptContent(props: IModalEditUpdateScriptProps)
 
   return (
     <>
-      <h2 className="mb-1 text-lg font-bold text-center">Update Script</h2>
-      <p className="mb-2 text-xs text-text-secondary">
-        It's executed after each set completion. Use <strong>setIndex</strong> variable to distinguish between sets.
-      </p>
+      <Text className="mb-1 text-lg font-bold text-center">Update Script</Text>
+      <Text className="mb-2 text-xs text-text-secondary">
+        It's executed after each set completion. Use <Text className="font-bold">setIndex</Text> variable to distinguish
+        between sets.
+      </Text>
       <ScriptEditorView
         name="modal-edit-update-script-editor"
         state={ownState}
@@ -55,10 +58,10 @@ export function ModalEditUpdateScriptContent(props: IModalEditUpdateScriptProps)
         onChange={(e) => {
           setScript(e);
         }}
-        onBlur={(e, text) => {}}
-        onLineChange={(line) => {}}
+        onBlur={() => {}}
+        onLineChange={() => {}}
       />
-      <div className="mt-4 text-center">
+      <View className="items-center mt-4">
         <Button
           kind="purple"
           name="modal-update-script-submit"
@@ -71,7 +74,7 @@ export function ModalEditUpdateScriptContent(props: IModalEditUpdateScriptProps)
         >
           Save
         </Button>
-      </div>
+      </View>
     </>
   );
 }

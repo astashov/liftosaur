@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "../primitives/text";
 import { IPlannerProgramExercise, IPlannerExerciseState, IPlannerExerciseUi } from "../../pages/planner/models/types";
 import { ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -22,10 +24,10 @@ export function EditProgramExerciseSets(props: IEditProgramExerciseSetsProps): J
   const { plannerExercise } = props;
 
   return (
-    <div className="pt-2 pb-2 bg-background-default">
-      <div className="flex gap-4 px-4 pb-2">
-        <div className="text-base font-bold">Edit Sets</div>
-      </div>
+    <View className="py-2 bg-background-default">
+      <View className="flex-row gap-4 px-4 pb-2">
+        <Text className="text-base font-bold">Edit Sets</Text>
+      </View>
       <ScrollableTabs
         topPadding="0rem"
         shouldNotExpand={true}
@@ -64,6 +66,6 @@ export function EditProgramExerciseSets(props: IEditProgramExerciseSetsProps): J
           },
         ]}
       />
-    </div>
+    </View>
   );
 }

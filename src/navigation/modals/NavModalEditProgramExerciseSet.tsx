@@ -1,4 +1,5 @@
 import { JSX, useEffect, useMemo } from "react";
+import { View, Platform } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
@@ -56,14 +57,22 @@ export function NavModalEditProgramExerciseSet(): JSX.Element {
     return <></>;
   }
 
-  return (
-    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
-      <BottomSheetEditProgramExerciseSetContent
-        ui={plannerState!.ui}
-        evaluatedProgram={evaluatedProgram!}
-        plannerDispatch={plannerDispatch!}
-        settings={state.storage.settings}
-      />
-    </SheetScreenContainer>
+  const content = (
+    <BottomSheetEditProgramExerciseSetContent
+      ui={plannerState!.ui}
+      evaluatedProgram={evaluatedProgram!}
+      plannerDispatch={plannerDispatch!}
+      settings={state.storage.settings}
+    />
   );
+
+  if (Platform.OS === "web") {
+    return (
+      <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
+        {content}
+      </SheetScreenContainer>
+    );
+  }
+
+  return <View className="bg-background-default pb-4">{content}</View>;
 }

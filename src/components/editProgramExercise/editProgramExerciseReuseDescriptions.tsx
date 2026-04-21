@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View, Pressable, Alert } from "react-native";
+import { Text } from "../primitives/text";
 import { IPlannerProgramExercise, IPlannerExerciseState, IReuseCandidate } from "../../pages/planner/models/types";
 import { IDayData, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -71,26 +73,31 @@ export function EditProgramExerciseReuseDescriptions(props: IEditProgramExercise
   ];
 
   return (
-    <div>
+    <View>
       {reusingDescriptionsExercises.length > 0 && (
-        <div className="px-4 text-xs">
-          <div>Reused by:</div>
-          <ul>
-            {reusingDescriptionsExercises.map((e, i) => {
+        <View className="px-4">
+          <Text className="text-xs">Reused by:</Text>
+          <View>
+            {reusingDescriptionsExercises.map((e) => {
               return (
-                <li className="ml-4 font-semibold list-disc" key={`${e.key}-${e.dayData.week}-${e.dayData.dayInWeek}`}>
-                  {e.fullName}[{e.dayData.week}:{e.dayData.dayInWeek}]
-                </li>
+                <View className="flex-row items-start ml-4" key={`${e.key}-${e.dayData.week}-${e.dayData.dayInWeek}`}>
+                  <Text className="text-xs">• </Text>
+                  <Text className="text-xs font-semibold">
+                    {e.fullName}[{e.dayData.week}:{e.dayData.dayInWeek}]
+                  </Text>
+                </View>
               );
             })}
-          </ul>
-        </div>
+          </View>
+        </View>
       )}
-      <div
-        className="flex-1 px-4 mb-2 text-sm"
-        onClick={() => {
+      <Pressable
+        className="flex-1 px-4 mb-2"
+        onPress={() => {
           if (reusingDescriptionsExercises.length > 0) {
-            alert("You cannot reuse descriptions from this exercise because it is already reused by other exercises.");
+            Alert.alert(
+              "You cannot reuse descriptions from this exercise because it is already reused by other exercises."
+            );
           }
         }}
       >
@@ -134,10 +141,10 @@ export function EditProgramExerciseReuseDescriptions(props: IEditProgramExercise
             );
           }}
         />
-      </div>
+      </Pressable>
       {reuseDescriptionCandidate && reuseDescriptionKey && plannerExercise.descriptions.reuse && (
-        <div className="flex gap-4 px-4 mb-2">
-          <div className="flex-1">
+        <View className="flex-row gap-4 px-4 mb-2">
+          <View className="flex-1">
             <EditProgramExerciseReuseAtWeekDay
               plannerExercise={plannerExercise}
               settings={props.settings}
@@ -180,7 +187,7 @@ export function EditProgramExerciseReuseDescriptions(props: IEditProgramExercise
                 }
               }}
             />
-          </div>
+          </View>
           {reuseDescriptionKey && (
             <LinkButton
               className="text-sm"
@@ -202,8 +209,8 @@ export function EditProgramExerciseReuseDescriptions(props: IEditProgramExercise
               Override
             </LinkButton>
           )}
-        </div>
+        </View>
       )}
-    </div>
+    </View>
   );
 }

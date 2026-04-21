@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "../../../components/primitives/text";
 import { IPlannerState } from "../models/types";
 import { PlannerStats } from "./plannerStats";
 import { PlannerStatsUtils_calculateSetResults } from "../models/plannerStatsUtils";
@@ -21,8 +23,8 @@ export function PlannerWeekStats(props: IPlannerWeekStatsProps): JSX.Element {
   const setResults = PlannerStatsUtils_calculateSetResults(evaluatedDays, settings);
 
   return (
-    <div>
-      {!props.hideTitle && <h3 className="mb-2 text-xl font-bold">Week Stats</h3>}
+    <View>
+      {!props.hideTitle && <Text className="mb-2 text-xl font-bold">Week Stats</Text>}
       <PlannerStats
         dispatch={props.dispatch}
         onEditSettings={props.onEditSettings}
@@ -31,6 +33,6 @@ export function PlannerWeekStats(props: IPlannerWeekStatsProps): JSX.Element {
         colorize={true}
         frequency={true}
       />
-    </div>
+    </View>
   );
 }

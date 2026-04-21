@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Platform, View } from "react-native";
 import { WebView, WebViewMessageEvent } from "react-native-webview";
 import { Text } from "./text";
@@ -27,9 +27,13 @@ export interface IWebviewEditorProps {
   onCustomErrorCta?: (error: string) => React.ReactNode;
   height?: number;
   theme?: IEditorTheme;
+  autoHeight?: boolean;
+  minHeight?: number;
+  maxHeight?: number;
 }
 
 const DEFAULT_HEIGHT = 300;
+const DEFAULT_MIN_HEIGHT = 120;
 
 export function WebviewEditor(props: IWebviewEditorProps): React.JSX.Element {
   const webviewRef = useRef<WebView>(null);
@@ -37,6 +41,7 @@ export function WebviewEditor(props: IWebviewEditorProps): React.JSX.Element {
   const pendingRef = useRef<IHostToWebview[]>([]);
   const lastSentValueRef = useRef<string | undefined>(undefined);
   const lastReceivedValueRef = useRef<string | undefined>(undefined);
+  const [contentHeight, setContentHeight] = useState<number | undefined>(undefined);
 
   const send = useCallback((msg: IHostToWebview): void => {
     if (!readyRef.current) {
@@ -67,6 +72,7 @@ export function WebviewEditor(props: IWebviewEditorProps): React.JSX.Element {
             customExercises: props.customExercises,
             exerciseFullNames: props.exerciseFullNames,
             state: props.state,
+            autoHeight: props.autoHeight,
           };
           lastSentValueRef.current = init.value;
           send({ kind: "init", payload: init });
@@ -95,6 +101,10 @@ export function WebviewEditor(props: IWebviewEditorProps): React.JSX.Element {
           }
           return;
         case "heightChange":
+          if (props.autoHeight) {
+            setContentHeight(msg.payload.height);
+          }
+          return;
         case "error":
           return;
       }
@@ -148,7 +158,15 @@ export function WebviewEditor(props: IWebviewEditorProps): React.JSX.Element {
   }, [props.theme, send]);
 
   const customCta = props.error != null && props.onCustomErrorCta ? props.onCustomErrorCta(props.error.message) : null;
-  const height = props.height ?? DEFAULT_HEIGHT;
+  let height: number;
+  if (props.autoHeight) {
+    const measured = contentHeight ?? props.minHeight ?? DEFAULT_MIN_HEIGHT;
+    const min = props.minHeight ?? DEFAULT_MIN_HEIGHT;
+    const max = props.maxHeight;
+    height = Math.max(min, max != null ? Math.min(measured, max) : measured);
+  } else {
+    height = props.height ?? DEFAULT_HEIGHT;
+  }
   const borderClass =
     props.error != null ? "border border-red-500 rounded-lg" : "border border-border-neutral rounded-lg";
   const bannerClass = props.lineNumbers ? "bg-background-darkred px-2 py-1" : "px-2 py-1";

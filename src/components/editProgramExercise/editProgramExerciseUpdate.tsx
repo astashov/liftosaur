@@ -1,4 +1,6 @@
 import { JSX, useState } from "react";
+import { View, Pressable, Alert } from "react-native";
+import { Text } from "../primitives/text";
 import { IPlannerProgramExercise, IPlannerExerciseState, IPlannerExerciseUi } from "../../pages/planner/models/types";
 import { IProgram, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -51,60 +53,60 @@ export function EditProgramExerciseUpdate(props: IEditProgramExerciseUpdateProps
   const [isOverriding, setIsOverriding] = useState(false);
 
   return (
-    <>
-      <div className="px-4 pt-2 pb-2 bg-background-default">
-        <div className="flex gap-4 pb-2">
-          <div className="text-base font-bold">Edit Update</div>
-          {ownUpdate?.type === "custom" && !ownUpdate.reuse && (
-            <div className="ml-auto">
-              <LinkButton
-                className="text-sm"
-                data-cy="edit-exercise-update-edit-script"
-                name="edit-exercise-update-edit-script"
-                onClick={() => {
-                  props.plannerDispatch(
-                    lbUi.p("showEditUpdateScriptModal").record(true),
-                    "Show edit update script modal"
-                  );
-                  navigationRef.navigate("editUpdateScriptModal", {
-                    exerciseStateKey: props.exerciseStateKey,
-                    programId: props.programId,
-                  });
-                }}
-              >
-                Edit Script
-              </LinkButton>
-            </div>
-          )}
-          {ownUpdate?.reuse?.source === "overall" && !isOverriding && (
-            <div className="ml-auto">
-              <LinkButton
-                className="text-sm"
-                data-cy="edit-exercise-update-override"
-                name="edit-exercise-update-override"
-                onClick={() => {
-                  setIsOverriding(true);
-                }}
-              >
-                Override
-              </LinkButton>
-            </div>
-          )}
-        </div>
-        {ownUpdate?.reuse?.source === "overall" && !isOverriding ? (
-          <SetReuse evaluatedProgram={evaluatedProgram} exercise={plannerExercise} />
-        ) : (
-          <UpdateContent
-            program={props.program}
-            ui={props.ui}
-            evaluatedProgram={evaluatedProgram}
-            plannerExercise={plannerExercise}
-            plannerDispatch={props.plannerDispatch}
-            settings={props.settings}
-          />
+    <View className="px-4 py-2 bg-background-default">
+      <View className="flex-row gap-4 pb-2">
+        <View className="flex-1">
+          <Text className="text-base font-bold">Edit Update</Text>
+        </View>
+        {ownUpdate?.type === "custom" && !ownUpdate.reuse && (
+          <View>
+            <LinkButton
+              className="text-sm"
+              data-cy="edit-exercise-update-edit-script"
+              name="edit-exercise-update-edit-script"
+              onClick={() => {
+                props.plannerDispatch(
+                  lbUi.p("showEditUpdateScriptModal").record(true),
+                  "Show edit update script modal"
+                );
+                navigationRef.navigate("editUpdateScriptModal", {
+                  exerciseStateKey: props.exerciseStateKey,
+                  programId: props.programId,
+                });
+              }}
+            >
+              Edit Script
+            </LinkButton>
+          </View>
         )}
-      </div>
-    </>
+        {ownUpdate?.reuse?.source === "overall" && !isOverriding && (
+          <View>
+            <LinkButton
+              className="text-sm"
+              data-cy="edit-exercise-update-override"
+              name="edit-exercise-update-override"
+              onClick={() => {
+                setIsOverriding(true);
+              }}
+            >
+              Override
+            </LinkButton>
+          </View>
+        )}
+      </View>
+      {ownUpdate?.reuse?.source === "overall" && !isOverriding ? (
+        <SetReuse evaluatedProgram={evaluatedProgram} exercise={plannerExercise} />
+      ) : (
+        <UpdateContent
+          program={props.program}
+          ui={props.ui}
+          evaluatedProgram={evaluatedProgram}
+          plannerExercise={plannerExercise}
+          plannerDispatch={props.plannerDispatch}
+          settings={props.settings}
+        />
+      )}
+    </View>
   );
 }
 
@@ -115,9 +117,9 @@ interface ISetReuseProps {
 
 function SetReuse(props: ISetReuseProps): JSX.Element {
   return (
-    <div>
+    <View>
       <EditProgramUiUpdate evaluatedProgram={props.evaluatedProgram} exercise={props.exercise} />
-    </div>
+    </View>
   );
 }
 
@@ -146,36 +148,46 @@ function UpdateContent(props: IUpdateContentProps): JSX.Element {
   return (
     <>
       {reusingUpdateExercises.length > 0 && (
-        <div>
+        <View>
           <MenuItemWrapper isBorderless name="program-exercise-update-reusing">
-            <div className="mb-1 text-xs">
-              <div>Custom update of this exercise is reused by:</div>
-              <ul>
+            <View className="mb-1">
+              <Text className="text-xs">Custom update of this exercise is reused by:</Text>
+              <View>
                 {reusingUpdateExercises.map((exercise) => (
-                  <li key={exercise.fullName} className="ml-4 text-xs font-semibold list-disc">
-                    {exercise.fullName}
-                  </li>
+                  <View key={exercise.fullName} className="flex-row items-start ml-4">
+                    <Text className="text-xs">• </Text>
+                    <Text className="text-xs font-semibold">{exercise.fullName}</Text>
+                  </View>
                 ))}
-              </ul>
-            </div>
+              </View>
+            </View>
           </MenuItemWrapper>
-        </div>
+        </View>
       )}
-      <div>
+      <View>
         {ownUpdate?.type === "custom" && reuseCandidates.length > 0 && (
-          <div>
+          <View>
             <MenuItemWrapper
               isBorderless
               name="program-exercise-update-reuse"
               onClick={() => {
                 if (cannotReuseOtherUpdates) {
-                  alert("You cannot reuse update if this custom update is reused by other USED exercises.");
+                  Alert.alert("You cannot reuse update if this custom update is reused by other USED exercises.");
                 }
               }}
             >
-              <div className="flex items-center py-1">
-                <div className="flex-1 text-sm">Reuse update from:</div>
-                <div className="flex-1">
+              <Pressable
+                className="flex-row items-center py-1"
+                onPress={() => {
+                  if (cannotReuseOtherUpdates) {
+                    Alert.alert("You cannot reuse update if this custom update is reused by other USED exercises.");
+                  }
+                }}
+              >
+                <View className="flex-1">
+                  <Text className="text-sm">Reuse update from:</Text>
+                </View>
+                <View className="flex-1">
                   <InputSelect
                     hint="You can only reuse update of exercises that don't reuse other exercises"
                     name="program-exercise-update-reuse-select"
@@ -211,12 +223,12 @@ function UpdateContent(props: IUpdateContentProps): JSX.Element {
                       );
                     }}
                   />
-                </div>
-              </div>
+                </View>
+              </Pressable>
             </MenuItemWrapper>
-          </div>
+          </View>
         )}
-      </div>
+      </View>
     </>
   );
 }

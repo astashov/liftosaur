@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "../../primitives/text";
 import { lb } from "lens-shmens";
 import { PlannerProgramExercise_progressionType } from "../../../pages/planner/models/plannerProgramExercise";
 import { IPlannerProgramExercise, IPlannerExerciseState } from "../../../pages/planner/models/types";
@@ -19,14 +21,14 @@ export function SumRepsProgressSettings(props: ISumRepsProgressSettingsProps): J
   const { plannerExercise, settings } = props;
   const progression = PlannerProgramExercise_progressionType(plannerExercise);
   if (progression?.type !== "sumreps") {
-    return <div />;
+    return <View />;
   }
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
   return (
-    <div>
-      <div className="flex flex-wrap text-sm">
-        <div>Increase weight by&nbsp;</div>
-        <div>
+    <View>
+      <View className="flex-row flex-wrap items-center">
+        <Text className="text-sm">Increase weight by&nbsp;</Text>
+        <View>
           <InputWeight2
             name="sum-reps-progress-increase"
             value={progression.increase}
@@ -54,9 +56,9 @@ export function SumRepsProgressSettings(props: ISumRepsProgressSettingsProps): J
               );
             }}
           />
-        </div>
-        <div>&nbsp;if sum of all reps &gt;=&nbsp;</div>
-        <div>
+        </View>
+        <Text className="text-sm">&nbsp;if sum of all reps &gt;=&nbsp;</Text>
+        <View>
           <InputNumber2
             name="sum-reps-progress-reps"
             value={progression.reps}
@@ -84,8 +86,8 @@ export function SumRepsProgressSettings(props: ISumRepsProgressSettingsProps): J
               );
             }}
           />
-        </div>
-      </div>
-    </div>
+        </View>
+      </View>
+    </View>
   );
 }

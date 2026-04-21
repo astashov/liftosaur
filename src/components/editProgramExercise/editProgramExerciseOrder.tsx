@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "../primitives/text";
 import { IPlannerProgramExercise, IPlannerExerciseState } from "../../pages/planner/models/types";
 import { ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -13,8 +15,8 @@ interface IEditProgramExerciseOrderProps {
 
 export function EditProgramExerciseOrder(props: IEditProgramExerciseOrderProps): JSX.Element {
   return (
-    <div className="flex items-center pb-2 border-b border-border-neutral">
-      <span className="mr-2 text-sm">Forced order: </span>
+    <View className="flex-row items-center pb-2 border-b border-border-neutral">
+      <Text className="mr-2 text-sm">Forced order: </Text>
       <InputNumber2
         name="edit-exercise-order"
         value={props.plannerExercise.order}
@@ -46,6 +48,6 @@ export function EditProgramExerciseOrder(props: IEditProgramExerciseOrderProps):
           }
         }}
       />
-    </div>
+    </View>
   );
 }

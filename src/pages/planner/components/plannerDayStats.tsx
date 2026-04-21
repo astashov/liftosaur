@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View } from "react-native";
+import { Text } from "../../../components/primitives/text";
 import { IPlannerState, IPlannerUiFocusedExercise } from "../models/types";
 import { PlannerStats } from "./plannerStats";
 import { PlannerStatsUtils_calculateSetResults } from "../models/plannerStatsUtils";
@@ -23,8 +25,8 @@ export function PlannerDayStats(props: IPlannerDayStatsProps): JSX.Element {
   const setResults = PlannerStatsUtils_calculateSetResults([evaluatedDay], settings);
 
   return (
-    <div>
-      <h3 className="mb-2 text-xl font-bold">Day Stats</h3>
+    <View>
+      <Text className="mb-2 text-xl font-bold">Day Stats</Text>
       <PlannerStats
         dispatch={props.dispatch}
         setResults={setResults}
@@ -33,6 +35,6 @@ export function PlannerDayStats(props: IPlannerDayStatsProps): JSX.Element {
         frequency={false}
         focusedExercise={props.focusedExercise}
       />
-    </div>
+    </View>
   );
 }
