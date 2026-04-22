@@ -6,6 +6,7 @@ import { ScriptEditor } from "../../../components/editProgramExercise/progressio
 type IAnyEditor = PlannerEditor | ScriptEditor;
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   interface Window {
     __lft?: { recv: (msg: IHostToWebview) => void };
     ReactNativeWebView?: { postMessage: (data: string) => void };

@@ -21,7 +21,7 @@ import { IconFilter } from "./icons/iconFilter";
 import { MenuItemEditable } from "./menuItemEditable";
 import { ComparerUtils_noFns } from "../utils/comparer";
 import { Thunk_editHistoryRecord } from "../ducks/thunks";
-import { Tailwind_colors, Tailwind_semantic } from "../utils/tailwindConfig";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
 
 interface IExerciseHistoryProps {
   surfaceRef: RefObject<{ clientHeight?: number } | null>;
