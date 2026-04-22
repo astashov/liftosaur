@@ -173,40 +173,38 @@ export function ScreenEquipment(props: IProps): JSX.Element {
     }
   });
 
-  if (hiddenEquipment.length > 0) {
-    children.push(
-      <View key="hidden" className="flex-row flex-wrap mx-4 my-2">
-        <Text className="text-xs">Hidden Equipment: </Text>
-        {hiddenEquipment.map((e, i) => (
-          <View key={e} className="flex-row">
-            {i !== 0 && <Text className="text-xs">, </Text>}
-            <LinkButton
-              className="text-xs"
-              name={`show-equipment-${e}`}
-              onClick={() => {
-                const lensRecording = lensPrefix.then(lb<IAllEquipment>().pi(e).p("isDeleted").get()).record(false);
-                lensDispatch(lensRecording, `Show equipment ${e}`);
-              }}
-            >
-              {equipmentName(e, props.allEquipment)}
-            </LinkButton>
-          </View>
-        ))}
+  return (
+    <NavScreenContent stickyHeaderIndices={stickyIndices}>
+      {children}
+      {hiddenEquipment.length > 0 && (
+        <View className="flex-row flex-wrap mx-4 my-2">
+          <Text className="text-xs">Hidden Equipment: </Text>
+          {hiddenEquipment.map((e, i) => (
+            <View key={e} className="flex-row">
+              {i !== 0 && <Text className="text-xs">, </Text>}
+              <LinkButton
+                className="text-xs"
+                name={`show-equipment-${e}`}
+                onClick={() => {
+                  const lensRecording = lensPrefix.then(lb<IAllEquipment>().pi(e).p("isDeleted").get()).record(false);
+                  lensDispatch(lensRecording, `Show equipment ${e}`);
+                }}
+              >
+                {equipmentName(e, props.allEquipment)}
+              </LinkButton>
+            </View>
+          ))}
+        </View>
+      )}
+      <View className="m-4">
+        <LinkButton
+          className="text-sm"
+          name="add-new-equipment"
+          onClick={() => navigationRef.navigate("newEquipmentModal")}
+        >
+          Add New Equipment Type
+        </LinkButton>
       </View>
-    );
-  }
-
-  children.push(
-    <View key="add-new" className="m-4">
-      <LinkButton
-        className="text-sm"
-        name="add-new-equipment"
-        onClick={() => navigationRef.navigate("newEquipmentModal")}
-      >
-        Add New Equipment Type
-      </LinkButton>
-    </View>
+    </NavScreenContent>
   );
-
-  return <NavScreenContent stickyHeaderIndices={stickyIndices}>{children}</NavScreenContent>;
 }

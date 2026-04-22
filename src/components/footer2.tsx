@@ -108,7 +108,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
             screen={screen}
             icon={(isActive) => <IconGraphs color={isActive ? activeColor : inactiveColor} />}
             text="Graphs"
-            onClick={() => props.dispatch(Thunk_pushScreen("graphs", undefined, { tab: "graphs" }))}
+            onClick={() => props.dispatch(Thunk_pushScreen("graphsList", undefined, { tab: "graphs" }))}
           />
           <FooterButton
             name="me"

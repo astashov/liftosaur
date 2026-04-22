@@ -90,12 +90,14 @@ export function CustomKeyboardProvider(props: { children: ReactNode; applySafeAr
       }
     } else if (prev) {
       const endVal = measuredHeightRef.current > 0 ? measuredHeightRef.current : 400;
-      Animated.timing(slideY, { toValue: endVal, duration: 200, useNativeDriver: Platform.OS !== "web" }).start(({ finished }) => {
-        if (finished) {
-          setShouldMount(false);
-          setRenderedConfig(null);
+      Animated.timing(slideY, { toValue: endVal, duration: 200, useNativeDriver: Platform.OS !== "web" }).start(
+        ({ finished }) => {
+          if (finished) {
+            setShouldMount(false);
+            setRenderedConfig(null);
+          }
         }
-      });
+      );
     }
     prevActiveRef.current = activeConfig;
   }, [activeConfig, slideY]);

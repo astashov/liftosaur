@@ -891,7 +891,7 @@ export function Thunk_pushScreen<T extends IScreen>(
       }
     }
     if (
-      ["musclesProgram", "musclesDay", "graphs"].indexOf(screen) !== -1 &&
+      ["musclesProgram", "musclesDay", "graphsList"].indexOf(screen) !== -1 &&
       !Subscriptions_hasSubscription(getState().storage.subscription)
     ) {
       opts = { stack: "subscription" };

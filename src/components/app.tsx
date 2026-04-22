@@ -438,9 +438,7 @@ export function AppView(props: IProps): JSX.Element | null {
             __html: `
         ${lftAndroidSafeInsetTop ? `.safe-area-inset-top { padding-top: ${lftAndroidSafeInsetTop}px; }` : ""}
         ${
-          lftAndroidSafeInsetBottom
-            ? `.safe-area-inset-bottom { padding-bottom: ${lftAndroidSafeInsetBottom}px; }`
-            : ""
+          lftAndroidSafeInsetBottom ? `.safe-area-inset-bottom { padding-bottom: ${lftAndroidSafeInsetBottom}px; }` : ""
         }
       `,
           }}
