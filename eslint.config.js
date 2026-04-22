@@ -209,5 +209,7 @@ module.exports = defineConfig([
     "codemods",
     "nativewind-env.d.ts",
     "codemods",
+    "**/*.generated.ts",
+    "**/*.generated.tsx",
   ]),
 ]);

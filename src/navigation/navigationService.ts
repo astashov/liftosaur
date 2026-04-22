@@ -1,4 +1,4 @@
-import { CommonActions, type NavigationState } from "@react-navigation/native";
+import { CommonActions, type NavigationState, type PartialState } from "@react-navigation/native";
 import { navigationRef } from "./navigationRef";
 import { Screen_tab, IScreen } from "../models/screen";
 import type { ITab, IScreenData } from "../models/screen";
@@ -53,27 +53,26 @@ export function navigateTo<T extends IScreen>(screen: T, params?: IAllScreenPara
   }
 
   if (opts?.tab) {
-    navigationRef.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [
-          {
-            name: "mainTabs",
-            state: {
-              routes: [
-                {
-                  name: opts.tab,
-                  state: {
-                    index: 0,
-                    routes: [{ name: screen, params }],
-                  },
+    const resetState: PartialState<NavigationState> = {
+      index: 0,
+      routes: [
+        {
+          name: "mainTabs",
+          state: {
+            routes: [
+              {
+                name: opts.tab,
+                state: {
+                  index: 0,
+                  routes: [{ name: screen, params }],
                 },
-              ],
-            },
+              },
+            ],
           },
-        ],
-      })
-    );
+        },
+      ],
+    };
+    navigationRef.dispatch(CommonActions.reset(resetState));
     return;
   }
 

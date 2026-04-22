@@ -18,7 +18,7 @@ function getScreenFromTabProps(tabState: BottomTabBarProps["state"]): IScreen {
     home: "main",
     program: "programs",
     workout: "progress",
-    graphs: "graphs",
+    graphs: "graphsList",
     me: "settings",
   };
   return tabToDefaultScreen[activeTab.name] ?? "main";

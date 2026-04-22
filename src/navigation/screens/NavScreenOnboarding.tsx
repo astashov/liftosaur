@@ -37,14 +37,12 @@ export function NavScreenSetupEquipment(): JSX.Element {
   const { state, dispatch } = useAppState();
   const navCommon = buildNavCommon(state);
   return (
-    <NavScreenContent>
-      <ScreenSetupEquipmentComponent
-        stats={state.storage.stats}
-        navCommon={navCommon}
-        dispatch={dispatch}
-        settings={state.storage.settings}
-      />
-    </NavScreenContent>
+    <ScreenSetupEquipmentComponent
+      stats={state.storage.stats}
+      navCommon={navCommon}
+      dispatch={dispatch}
+      settings={state.storage.settings}
+    />
   );
 }
 
@@ -52,14 +50,12 @@ export function NavScreenSetupPlates(): JSX.Element {
   const { state, dispatch } = useAppState();
   const navCommon = buildNavCommon(state);
   return (
-    <NavScreenContent>
-      <ScreenSetupPlatesComponent
-        stats={state.storage.stats}
-        navCommon={navCommon}
-        dispatch={dispatch}
-        settings={state.storage.settings}
-      />
-    </NavScreenContent>
+    <ScreenSetupPlatesComponent
+      stats={state.storage.stats}
+      navCommon={navCommon}
+      dispatch={dispatch}
+      settings={state.storage.settings}
+    />
   );
 }
 
