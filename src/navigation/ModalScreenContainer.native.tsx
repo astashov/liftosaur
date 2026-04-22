@@ -18,7 +18,7 @@ export function ModalScreenContainer(props: IProps): JSX.Element {
   const animatedKeyboardHeight = useCustomKeyboardAnimatedHeight();
   return (
     <ScrollView
-      className={`bg-background-default ${props.noPaddings ? "" : "px-4 pt-2 pb-6"}`}
+      className={`bg-background-default ${props.noPaddings ? "" : "px-4 py-6"}`}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="interactive"
       automaticallyAdjustKeyboardInsets

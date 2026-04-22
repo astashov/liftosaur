@@ -1,4 +1,4 @@
-import { JSX, Fragment, useEffect, useRef, useCallback } from "react";
+import { JSX, useEffect, useRef, useCallback } from "react";
 import { ModalStateProvider } from "../navigation/ModalStateContext";
 import { reducerWrapper, defaultOnActions, IAction } from "../ducks/reducer";
 import { Program_getProgram } from "../models/program";
@@ -45,6 +45,8 @@ import { TextSize_apply } from "../utils/textSize";
 import { AppContext } from "./appContext";
 import { TourConfigs_findTourId } from "./tour/tourConfigs";
 import { NavigationContainer, DefaultTheme, type NavigationState } from "@react-navigation/native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { navigationRef } from "../navigation/navigationRef";
 import { getCurrentScreenData } from "../navigation/navigationService";
 import { StateContext } from "../navigation/StateContext";
@@ -429,40 +431,44 @@ export function AppView(props: IProps): JSX.Element | null {
   const screensWithoutTimer: IScreen[] = ["subscription"];
 
   return (
-    <Fragment>
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <style
+          dangerouslySetInnerHTML={{
+            __html: `
         ${lftAndroidSafeInsetTop ? `.safe-area-inset-top { padding-top: ${lftAndroidSafeInsetTop}px; }` : ""}
         ${
-          lftAndroidSafeInsetBottom ? `.safe-area-inset-bottom { padding-bottom: ${lftAndroidSafeInsetBottom}px; }` : ""
+          lftAndroidSafeInsetBottom
+            ? `.safe-area-inset-bottom { padding-bottom: ${lftAndroidSafeInsetBottom}px; }`
+            : ""
         }
       `,
-        }}
-      />
-      <StateContext.Provider value={{ state, dispatch }}>
-        <ModalStateProvider>
-          <AppContext.Provider value={{ service, isApp: true }}>
-            <NavigationContainer
-              ref={navigationRef}
-              onStateChange={onNavigationStateChange}
-              documentTitle={{ enabled: false }}
-              theme={{ ...DefaultTheme, colors: { ...DefaultTheme.colors, background: "transparent" } }}
-            >
-              <AppNavigator initialScreen={initialScreen} />
-            </NavigationContainer>
-          </AppContext.Provider>
-        </ModalStateProvider>
-      </StateContext.Provider>
-      {progress && currentScreenName && screensWithoutTimer.indexOf(currentScreenName) === -1 && (
-        <RestTimer
-          progress={progress}
-          dispatch={dispatch}
-          settings={state.storage.settings}
-          subscription={state.storage.subscription}
+          }}
         />
-      )}
-      <Notification dispatch={dispatch} notification={state.notification} />
-    </Fragment>
+        <StateContext.Provider value={{ state, dispatch }}>
+          <ModalStateProvider>
+            <AppContext.Provider value={{ service, isApp: true }}>
+              <NavigationContainer
+                ref={navigationRef}
+                onStateChange={onNavigationStateChange}
+                documentTitle={{ enabled: false }}
+                theme={{ ...DefaultTheme, colors: { ...DefaultTheme.colors, background: "transparent" } }}
+              >
+                <AppNavigator initialScreen={initialScreen} />
+              </NavigationContainer>
+            </AppContext.Provider>
+          </ModalStateProvider>
+        </StateContext.Provider>
+        {progress && currentScreenName && screensWithoutTimer.indexOf(currentScreenName) === -1 && (
+          <RestTimer
+            progress={progress}
+            dispatch={dispatch}
+            settings={state.storage.settings}
+            subscription={state.storage.subscription}
+          />
+        )}
+        <Notification dispatch={dispatch} notification={state.notification} />
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

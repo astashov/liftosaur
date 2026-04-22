@@ -1,5 +1,5 @@
 import { JSX, useEffect, useRef } from "react";
-import { Animated, Easing } from "react-native";
+import { Animated, Easing, Platform } from "react-native";
 import { Svg, Path } from "../primitives/svg";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
@@ -19,7 +19,7 @@ export function IconSpinner(props: IProps): JSX.Element {
         toValue: 1,
         duration: 1000,
         easing: Easing.linear,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== "web",
       })
     );
     animation.start();

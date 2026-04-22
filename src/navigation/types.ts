@@ -44,7 +44,7 @@ export type IWorkoutStackParamList = {
 };
 
 export type IGraphsStackParamList = {
-  graphs: undefined;
+  graphsList: undefined;
   progress: { id?: number } | undefined;
 };
 
