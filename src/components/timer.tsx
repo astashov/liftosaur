@@ -1,5 +1,5 @@
 import { JSX, useEffect, useRef, useState } from "react";
-import { View, Pressable, Animated } from "react-native";
+import { View, Pressable, Animated, Platform } from "react-native";
 import { Text } from "./primitives/text";
 import { TimeUtils_formatHH, TimeUtils_formatMM } from "../utils/time";
 import { IconPlay } from "./icons/iconPlay";
@@ -41,8 +41,8 @@ export function Timer(props: IProps): JSX.Element {
     }
     const animation = Animated.loop(
       Animated.sequence([
-        Animated.timing(blinkOpacity, { toValue: 0.3, duration: 500, useNativeDriver: true }),
-        Animated.timing(blinkOpacity, { toValue: 1, duration: 500, useNativeDriver: true }),
+        Animated.timing(blinkOpacity, { toValue: 0.3, duration: 500, useNativeDriver: Platform.OS !== "web" }),
+        Animated.timing(blinkOpacity, { toValue: 1, duration: 500, useNativeDriver: Platform.OS !== "web" }),
       ])
     );
     animation.start();

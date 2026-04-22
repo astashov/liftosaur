@@ -141,7 +141,7 @@ function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
 
   return (
     <View>
-      <Text className="my-4 text-lg font-bold text-center">Account</Text>
+      <Text className="mb-4 text-lg font-bold text-center">Account</Text>
       {isLoading ? (
         <View className="items-center my-4">
           <IconSpinner width={48} height={48} />
@@ -188,7 +188,7 @@ function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
             <View>
               <IconGoogle />
             </View>
-            <Text className="flex-1 ml-2 text-base">Sign in with Google</Text>
+            <Text className="flex-1 ml-2 text-base text-center">Sign in with Google</Text>
           </Pressable>
           <Pressable
             className="flex-row items-center w-full px-4 py-3 mt-2 bg-black rounded-lg nm-sign-in-with-apple"
@@ -224,7 +224,7 @@ function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
             <View style={{ marginTop: -3 }}>
               <IconApple />
             </View>
-            <Text className="flex-1 ml-2 text-base text-text-alwayswhite">Sign in with Apple</Text>
+            <Text className="flex-1 ml-2 text-base text-center text-text-alwayswhite">Sign in with Apple</Text>
           </Pressable>
         </View>
       )}

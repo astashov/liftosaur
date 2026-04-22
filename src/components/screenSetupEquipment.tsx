@@ -1,7 +1,8 @@
 import type { JSX } from "react";
-import { View, Image, ScrollView, Switch, Pressable, Platform } from "react-native";
+import { View, Image, ScrollView, Pressable, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "./primitives/text";
+import { Switch } from "./primitives/switch";
 import { IDispatch } from "../ducks/types";
 import { ISettings, IStats } from "../types";
 import { INavCommon, IState } from "../models/state";
@@ -14,7 +15,6 @@ import { equipmentName } from "../models/exercise";
 import { lb } from "lens-shmens";
 import { ObjectUtils_keys } from "../utils/object";
 import { HostConfig_resolveUrl } from "../utils/hostConfig";
-import { Tailwind_semantic } from "../utils/tailwindConfig";
 
 interface IScreenSetupEquipmentProps {
   dispatch: IDispatch;
@@ -88,7 +88,6 @@ export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Ele
                   <Text className="flex-1 text-sm font-semibold">{name}</Text>
                   <Switch
                     value={!!isEnabled}
-                    trackColor={{ false: "#d1d5db", true: Tailwind_semantic().icon.purple }}
                     onValueChange={() => {
                       props.dispatch({
                         type: "UpdateState",

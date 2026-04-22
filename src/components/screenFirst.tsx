@@ -136,13 +136,13 @@ function AnimatedArrow(): JSX.Element {
           toValue: 4,
           duration: 500,
           easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== "web",
         }),
         Animated.timing(translateX, {
           toValue: 0,
           duration: 500,
           easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== "web",
         }),
       ])
     );

@@ -218,6 +218,8 @@ const mainConfig = {
     }),
     new MiniCssExtractPlugin({ filename: "[name].css" }),
     new DefinePlugin({
+      "process.env.JEST_WORKER_ID": "undefined",
+      __DEV__: JSON.stringify(process.env.NODE_ENV !== "production"),
       __BUNDLE_VERSION_IOS__: bundleVersionIos,
       __BUNDLE_VERSION_ANDROID__: bundleVersionAndroid,
       __COMMIT_HASH__: JSON.stringify(commitHash),
