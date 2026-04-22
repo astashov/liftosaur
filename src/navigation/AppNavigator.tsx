@@ -200,7 +200,7 @@ function GraphsStackScreen(): JSX.Element {
   const screenOptions = useStackScreenOptions();
   return (
     <GraphsStack.Navigator screenOptions={screenOptions}>
-      <GraphsStack.Screen name="graphs" component={NavScreenGraphs} />
+      <GraphsStack.Screen name="graphsList" component={NavScreenGraphs} />
       <GraphsStack.Screen
         name="progress"
         component={NavScreenProgress}

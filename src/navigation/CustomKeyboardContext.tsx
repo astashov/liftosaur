@@ -10,7 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { View, Animated, StyleSheet } from "react-native";
+import { View, Animated, StyleSheet, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { NativeCustomKeyboard } from "../components/nativeCustomKeyboard.native";
 import { IPercentageUnit, IUnit } from "../types";
@@ -86,11 +86,11 @@ export function CustomKeyboardProvider(props: { children: ReactNode; applySafeAr
         setShouldMount(true);
         const startVal = measuredHeightRef.current > 0 ? measuredHeightRef.current : 400;
         slideY.setValue(startVal);
-        Animated.timing(slideY, { toValue: 0, duration: 250, useNativeDriver: true }).start();
+        Animated.timing(slideY, { toValue: 0, duration: 250, useNativeDriver: Platform.OS !== "web" }).start();
       }
     } else if (prev) {
       const endVal = measuredHeightRef.current > 0 ? measuredHeightRef.current : 400;
-      Animated.timing(slideY, { toValue: endVal, duration: 200, useNativeDriver: true }).start(({ finished }) => {
+      Animated.timing(slideY, { toValue: endVal, duration: 200, useNativeDriver: Platform.OS !== "web" }).start(({ finished }) => {
         if (finished) {
           setShouldMount(false);
           setRenderedConfig(null);

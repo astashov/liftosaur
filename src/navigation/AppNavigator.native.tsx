@@ -199,7 +199,7 @@ function GraphsStackScreen(): JSX.Element {
   return (
     <GraphsStack.Navigator screenOptions={stackScreenOptions}>
       <GraphsStack.Screen
-        name="graphs"
+        name="graphsList"
         component={NavScreenGraphs}
         options={{ headerShown: true, header: NavHeader }}
       />
