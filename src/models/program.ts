@@ -629,6 +629,12 @@ export function Program_runAllFinishDayScripts(
 ): { program: IProgram; exerciseData: IExerciseData } {
   const exerciseData: IExerciseData = {};
   const newEvaluatedProgram = Program_forceEvaluate(program, settings);
+  if (newEvaluatedProgram.errors.length > 0) {
+    const theNextDay = Program_nextDay(newEvaluatedProgram, progress.day);
+    const newProgram = ObjectUtils_clone(program);
+    newProgram.nextDay = theNextDay;
+    return { program: newProgram, exerciseData };
+  }
   const dayData = Progress_getDayData(progress);
   const programDay = Program_getProgramDay(newEvaluatedProgram, progress.day);
   if (!programDay) {
