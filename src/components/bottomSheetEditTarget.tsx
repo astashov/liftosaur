@@ -1,6 +1,7 @@
 import { JSX, useRef, useState } from "react";
-import { View, Pressable, Switch } from "react-native";
+import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
+import { Switch } from "./primitives/switch";
 import { BottomSheet } from "./bottomSheet";
 import { IHistoryRecord, IProgressUi, ISettings, ISubscription } from "../types";
 import { MenuItemWrapper } from "./menuItem";

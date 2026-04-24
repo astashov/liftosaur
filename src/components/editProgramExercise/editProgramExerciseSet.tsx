@@ -1,6 +1,7 @@
 import { JSX, Dispatch, SetStateAction } from "react";
-import { View, Pressable, Switch } from "react-native";
+import { View, Pressable } from "react-native";
 import { Text } from "../primitives/text";
+import { Switch } from "../primitives/switch";
 import {
   IPlannerExerciseState,
   IPlannerExerciseUi,

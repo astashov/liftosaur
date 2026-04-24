@@ -1,8 +1,9 @@
-import { JSX, useState } from "react";
-import { View, TextInput } from "react-native";
+import { JSX, useRef, useState } from "react";
+import { View } from "react-native";
 import { Text } from "./primitives/text";
 import { Button } from "./button";
-import { Tailwind_semantic } from "../utils/tailwindConfig";
+import { Input, IInputHandle, IValidationError } from "./input";
+import { IEither } from "../utils/types";
 import { IUnit } from "../types";
 
 interface IProps {
@@ -12,20 +13,20 @@ interface IProps {
 }
 
 export function ModalPlatesContent(props: IProps): JSX.Element {
-  const [value, setValue] = useState("");
+  const [result, setResult] = useState<IEither<string, Set<IValidationError>>>();
+  const inputHandle = useRef<IInputHandle>(null);
 
   return (
     <View>
       <Text className="mb-4 text-lg font-bold">Enter new plate weight</Text>
-      <TextInput
-        autoFocus
-        keyboardType="numeric"
+      <Input
+        type="number"
+        required={true}
+        requiredMessage="Please enter a plate weight"
         placeholder={`Plate weight in ${props.units}`}
-        placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
-        value={value}
-        onChangeText={setValue}
-        className="px-4 py-3 text-base border rounded-lg border-border-neutral bg-background-default"
-        style={{ fontFamily: "Poppins" }}
+        changeType="oninput"
+        changeHandler={setResult}
+        handleRef={inputHandle}
       />
       <View className="flex-row justify-end gap-3 mt-4">
         <Button name="modal-new-plate-weight-cancel" kind="grayv2" onClick={props.onClose}>
@@ -36,10 +37,14 @@ export function ModalPlatesContent(props: IProps): JSX.Element {
           kind="purple"
           data-cy="add-plate"
           onClick={() => {
-            const numValue = value !== "" ? parseFloat(value) : undefined;
-            if (numValue != null && !isNaN(numValue)) {
-              props.onSelect(Math.abs(numValue));
+            if (result?.success) {
+              const numValue = parseFloat(result.data);
+              if (!isNaN(numValue)) {
+                props.onSelect(Math.abs(numValue));
+                return;
+              }
             }
+            inputHandle.current?.touch();
           }}
         >
           Add

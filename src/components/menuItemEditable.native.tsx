@@ -1,6 +1,7 @@
 import { JSX, Dispatch, ReactNode, SetStateAction, useRef, useEffect, RefObject } from "react";
-import { View, Pressable, ActionSheetIOS, Switch, TextInput } from "react-native";
+import { View, Pressable, ActionSheetIOS, TextInput } from "react-native";
 import { Text } from "./primitives/text";
+import { Switch } from "./primitives/switch";
 import { MenuItemWrapper } from "./menuItem";
 import { IconTrash } from "./icons/iconTrash";
 import { StringUtils_dashcase } from "../utils/string";
@@ -124,7 +125,6 @@ export function MenuItemValue(
   if (props.type === "boolean") {
     return (
       <Switch
-        className="py-1"
         value={props.value === "true"}
         onValueChange={(v) => props.onChange?.(v ? "true" : "false")}
       />

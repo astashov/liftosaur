@@ -1,9 +1,11 @@
-import { JSX, useState } from "react";
-import { View, TextInput } from "react-native";
+import { JSX, useRef, useState } from "react";
+import { View } from "react-native";
 import { Text } from "./primitives/text";
 import { Button } from "./button";
 import { Modal } from "./modal";
 import { IconSpinner } from "./icons/iconSpinner";
+import { Input, IInputHandle, IValidationError } from "./input";
+import { IEither } from "../utils/types";
 
 interface IProps {
   onSelect: (name: string) => void;
@@ -13,21 +15,21 @@ interface IProps {
 }
 
 export function ModalCreateProgramContent(props: Omit<IProps, "isHidden">): JSX.Element {
-  const [name, setName] = useState("");
+  const [result, setResult] = useState<IEither<string, Set<IValidationError>>>();
+  const inputHandle = useRef<IInputHandle>(null);
+
   return (
     <View>
       <Text className="py-2 text-xl font-bold text-center">Create Program</Text>
-      <Text className="mb-1 text-sm text-text-secondary">Program Name</Text>
-      <TextInput
-        testID="modal-create-program-input"
-        data-cy="modal-create-program-input"
-        autoFocus
+      <Input
+        identifier="modal-create-program-input"
+        label="Program Name"
+        required={true}
+        requiredMessage="Please enter a program name"
         placeholder="My Awesome Routine"
-        placeholderTextColor="#9ca3af"
-        value={name}
-        onChangeText={setName}
-        className="w-full px-4 py-2 text-base border rounded-lg border-border-prominent bg-background-default"
-        style={{ fontFamily: "Poppins" }}
+        changeType="oninput"
+        changeHandler={setResult}
+        handleRef={inputHandle}
       />
       <View className="flex-row justify-center mt-4" style={{ gap: 12 }}>
         <Button name="modal-create-program-cancel" kind="grayv2" onClick={props.onClose}>
@@ -38,8 +40,13 @@ export function ModalCreateProgramContent(props: Omit<IProps, "isHidden">): JSX.
           kind="purple"
           disabled={props.isLoading}
           onClick={() => {
-            if (!props.isLoading && name) {
-              props.onSelect(name);
+            if (props.isLoading) {
+              return;
+            }
+            if (result?.success) {
+              props.onSelect(result.data);
+            } else {
+              inputHandle.current?.touch();
             }
           }}
         >

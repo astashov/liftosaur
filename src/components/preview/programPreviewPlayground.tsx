@@ -1,4 +1,4 @@
-import { JSX, memo, ReactNode, useEffect, useMemo } from "react";
+import { JSX, memo, ReactNode, useCallback, useEffect, useMemo, useRef } from "react";
 import { View } from "react-native";
 import { IHistoryRecord, IProgram, ISettings, IStats } from "../../types";
 import { IDispatch } from "../../ducks/types";
@@ -238,7 +238,9 @@ function renderWeekContent(
   state: IProgramPreviewPlaygroundState,
   props: IProgramPreviewPlaygroundProps,
   dispatch: ILensDispatch<IProgramPreviewPlaygroundState>,
-  evaluatedProgram: IEvaluatedProgram
+  evaluatedProgram: IEvaluatedProgram,
+  handleProgressChange: (weekIndex: number, dayIndex: number, newProgress: IHistoryRecord) => void,
+  handleFinish: (weekIndex: number, dayIndex: number) => void
 ): JSX.Element {
   const programWeekDescription = evaluatedProgram.weeks[weekIndex]?.description;
   return (
@@ -255,13 +257,15 @@ function renderWeekContent(
               <ProgramPreviewPlaygroundDay
                 weekName={state.progresses.length > 1 ? week.name : undefined}
                 day={d.day}
+                weekIndex={weekIndex}
+                dayIndex={i}
                 program={evaluatedProgram}
                 progress={d.progress}
                 settings={state.settings}
                 isPlayground={state.isPlayground}
                 stats={props.stats}
-                onProgressChange={(newProgress) => onProgressChange(dispatch, weekIndex, i, newProgress)}
-                onFinish={() => onFinish(dispatch, props, state, d)}
+                onProgressChange={handleProgressChange}
+                onFinish={handleFinish}
               />
               {!props.useNavModals && (
                 <WebWorkoutModals
@@ -289,8 +293,39 @@ function renderWeekContent(
 function ProgramPreviewPlaygroundInner(p: IProgramPreviewPlaygroundInnerProps): JSX.Element {
   const { props, state, dispatch, evaluatedProgram } = p;
 
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  const propsRef = useRef(props);
+  propsRef.current = props;
+
+  const handleProgressChange = useCallback(
+    (weekIndex: number, dayIndex: number, newProgress: IHistoryRecord) => {
+      onProgressChange(dispatch, weekIndex, dayIndex, newProgress);
+    },
+    [dispatch]
+  );
+
+  const handleFinish = useCallback(
+    (weekIndex: number, dayIndex: number) => {
+      const s = stateRef.current;
+      const pp = propsRef.current;
+      const d = s.progresses[weekIndex].days[dayIndex];
+      onFinish(dispatch, pp, s, d);
+    },
+    [dispatch]
+  );
+
   if (props.showAllWeeks && !props.isPlayground) {
-    return <ProgramPreviewAllWeeks {...props} state={state} dispatch={dispatch} evaluatedProgram={evaluatedProgram} />;
+    return (
+      <ProgramPreviewAllWeeks
+        {...props}
+        state={state}
+        dispatch={dispatch}
+        evaluatedProgram={evaluatedProgram}
+        handleProgressChange={handleProgressChange}
+        handleFinish={handleFinish}
+      />
+    );
   }
 
   return (
@@ -299,7 +334,16 @@ function ProgramPreviewPlaygroundInner(p: IProgramPreviewPlaygroundInnerProps): 
       weekNames={state.progresses.map((w) => w.name)}
       singleWeek={state.progresses.length <= 1}
       renderWeekContent={(weekIndex) =>
-        renderWeekContent(state.progresses[weekIndex], weekIndex, state, props, dispatch, evaluatedProgram)
+        renderWeekContent(
+          state.progresses[weekIndex],
+          weekIndex,
+          state,
+          props,
+          dispatch,
+          evaluatedProgram,
+          handleProgressChange,
+          handleFinish
+        )
       }
       scrollableTabsProps={props.scrollableTabsProps}
       hasNavbar={props.hasNavbar}
@@ -399,6 +443,8 @@ interface IProgramPreviewAllWeeksProps extends IProgramPreviewPlaygroundProps {
   evaluatedProgram: IEvaluatedProgram;
   state: IProgramPreviewPlaygroundState;
   dispatch: ILensDispatch<IProgramPreviewPlaygroundState>;
+  handleProgressChange: (weekIndex: number, dayIndex: number, newProgress: IHistoryRecord) => void;
+  handleFinish: (weekIndex: number, dayIndex: number) => void;
 }
 
 function buildAllWeeksCss(numWeeks: number): string {
@@ -432,7 +478,7 @@ function buildAllWeeksCss(numWeeks: number): string {
 }
 
 function ProgramPreviewAllWeeks(props: IProgramPreviewAllWeeksProps): JSX.Element {
-  const { state, dispatch, evaluatedProgram } = props;
+  const { state, dispatch, evaluatedProgram, handleProgressChange, handleFinish } = props;
   const numWeeks = state.progresses.length;
   const cssRules = useMemo(() => buildAllWeeksCss(numWeeks), [numWeeks]);
 
@@ -460,13 +506,15 @@ function ProgramPreviewAllWeeks(props: IProgramPreviewAllWeeksProps): JSX.Elemen
                 <ProgramPreviewPlaygroundDay
                   weekName={numWeeks > 1 ? week.name : undefined}
                   day={d.day}
+                  weekIndex={weekIndex}
+                  dayIndex={i}
                   program={evaluatedProgram}
                   progress={d.progress}
                   settings={props.settings}
                   isPlayground={props.isPlayground}
                   stats={props.stats}
-                  onProgressChange={(newProgress) => onProgressChange(dispatch, weekIndex, i, newProgress)}
-                  onFinish={() => onFinish(dispatch, props, state, d)}
+                  onProgressChange={handleProgressChange}
+                  onFinish={handleFinish}
                 />
                 {!props.useNavModals && (
                   <WebWorkoutModals
