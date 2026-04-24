@@ -141,7 +141,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
             <View>
               <IconGoogle />
             </View>
-            <Text className="flex-1 ml-2 text-base">Sign in with Google</Text>
+            <Text className="flex-1 ml-2 text-base text-center">Sign in with Google</Text>
           </Pressable>
           <Pressable
             className="flex-row items-center w-full px-4 py-3 mt-2 bg-black rounded-lg nm-sign-in-with-apple"
@@ -150,7 +150,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
             <View style={{ marginTop: -3 }}>
               <IconApple />
             </View>
-            <Text className="flex-1 ml-2 text-base text-text-alwayswhite">Sign in with Apple</Text>
+            <Text className="flex-1 ml-2 text-base text-center text-text-alwayswhite">Sign in with Apple</Text>
           </Pressable>
         </View>
       )}

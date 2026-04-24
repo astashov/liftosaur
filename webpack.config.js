@@ -370,15 +370,12 @@ const mainConfig = {
     },
     static: path.join(__dirname, "dist"),
     compress: true,
-    https:
-      process.env.NODE_ENV === "production"
-        ? undefined
-        : {
-            key: fs.readFileSync(path.join(process.env.HOME, `.secrets/live/${localdomain}.liftosaur.com/privkey.pem`)),
-            cert: fs.readFileSync(
-              path.join(process.env.HOME, `.secrets/live/${localdomain}.liftosaur.com/fullchain.pem`)
-            ),
-          },
+    https: {
+      key: fs.readFileSync(path.join(process.env.HOME, `.secrets/live/${localdomain}.liftosaur.com/privkey.pem`)),
+      cert: fs.readFileSync(
+        path.join(process.env.HOME, `.secrets/live/${localdomain}.liftosaur.com/fullchain.pem`)
+      ),
+    },
     hot: false,
     allowedHosts: "all",
     liveReload: false,

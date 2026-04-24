@@ -19,15 +19,18 @@ interface IProgramPreviewPlaygroundDayProps {
   program: IEvaluatedProgram;
   weekName?: string;
   day: number;
+  weekIndex: number;
+  dayIndex: number;
   isPlayground: boolean;
   settings: ISettings;
   progress: IHistoryRecord;
-  onProgressChange: (newProgress: IHistoryRecord) => void;
+  onProgressChange: (weekIndex: number, dayIndex: number, newProgress: IHistoryRecord) => void;
   stats: IStats;
-  onFinish: () => void;
+  onFinish: (weekIndex: number, dayIndex: number) => void;
 }
 
 export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroundDayProps): JSX.Element => {
+  const { weekIndex, dayIndex, onProgressChange, onFinish } = props;
   const dispatch: IDispatch = useCallback(
     async (action) => {
       const newProgress = buildCardsReducer(
@@ -35,10 +38,11 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
         props.stats,
         undefined
       )(props.progress, action as ICardsAction);
-      props.onProgressChange(newProgress);
+      onProgressChange(weekIndex, dayIndex, newProgress);
     },
-    [props.settings, props.progress]
+    [props.settings, props.progress, onProgressChange, weekIndex, dayIndex]
   );
+  const handleFinish = useCallback(() => onFinish(weekIndex, dayIndex), [onFinish, weekIndex, dayIndex]);
 
   const programDay = Program_getProgramDay(props.program, props.day)!;
   const index = props.progress.ui?.currentEntryIndex ?? 0;
@@ -98,7 +102,7 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
           <Button
             name="finish-day-details-playground"
             kind="purple"
-            onClick={props.onFinish}
+            onClick={handleFinish}
             data-cy="finish-day-details-playground"
           >
             Finish this day

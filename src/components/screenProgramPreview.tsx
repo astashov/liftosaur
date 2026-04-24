@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import { JSX, useMemo } from "react";
 import { View } from "react-native";
 import { IDispatch } from "../ducks/types";
 import { IProgram, ISettings, ISubscription } from "../types";
@@ -22,24 +22,32 @@ export function ScreenProgramPreview(props: IProps): JSX.Element {
 
   useNavOptions({ navTitle: "Program Preview" });
 
-  const topHeader = (
-    <View className="px-4" pointerEvents="box-none">
-      <MenuItemEditable
-        type="select"
-        name="Program"
-        value={props.selectedProgramId}
-        values={props.programs.map((p) => [p.id, p.name])}
-        onChange={(value) => {
-          if (value != null) {
-            updateState(
-              props.dispatch,
-              [lb<IState>().pi("previewProgram").p("id").record(value)],
-              "Select preview program"
-            );
-          }
-        }}
-      />
-    </View>
+  const { dispatch, programs, selectedProgramId } = props;
+  const programValues = useMemo(
+    () => programs.map((p): [string, string] => [p.id, p.name]),
+    [programs]
+  );
+  const topHeader = useMemo(
+    () => (
+      <View className="px-4" pointerEvents="box-none">
+        <MenuItemEditable
+          type="select"
+          name="Program"
+          value={selectedProgramId}
+          values={programValues}
+          onChange={(value) => {
+            if (value != null) {
+              updateState(
+                dispatch,
+                [lb<IState>().pi("previewProgram").p("id").record(value)],
+                "Select preview program"
+              );
+            }
+          }}
+        />
+      </View>
+    ),
+    [selectedProgramId, programValues, dispatch]
   );
 
   return (

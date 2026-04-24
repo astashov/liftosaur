@@ -62,7 +62,7 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
   const keyExtractor = useCallback((item: IProgramIndexEntry) => item.id, []);
 
   const listHeader = (
-    <View className="px-4">
+    <View>
       <Text className="pb-4">
         I've been lifting for{" "}
         <SelectLink
@@ -171,7 +171,7 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
         {entry.shortDescription && (
           <SimpleMarkdown value={entry.shortDescription} className="text-sm text-text-secondary" />
         )}
-        <View className="flex-row flex-wrap py-3">
+        <View className="flex-row flex-wrap pb-2">
           {exercises
             .filter((e) => ExerciseImageUtils_exists(e, "small"))
             .map((e) => (

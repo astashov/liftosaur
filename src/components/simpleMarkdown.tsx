@@ -1,8 +1,9 @@
 import { JSX, useMemo } from "react";
-import { View, Linking, Platform } from "react-native";
+import { View } from "react-native";
 import { Text } from "./primitives/text";
 import MarkdownIt from "markdown-it";
 import type Token from "markdown-it/lib/token.mjs";
+import { Link } from "./link";
 
 const md = new MarkdownIt({ html: false, linkify: true });
 
@@ -24,7 +25,7 @@ function renderTokens(tokens: Token[]): JSX.Element[] {
     if (token.type === "paragraph_open") {
       const inline = tokens[i + 1];
       elements.push(
-        <Text key={i} className="text-sm mb-2">
+        <Text key={i} className="mb-2 text-sm">
           {inline?.children ? renderInline(inline.children) : null}
         </Text>
       );
@@ -53,7 +54,7 @@ function renderTokens(tokens: Token[]): JSX.Element[] {
             listItems.push(
               <View key={i} className="flex-row pl-2 mb-1">
                 <Text className="text-sm">{bullet}</Text>
-                <Text className="text-sm flex-1">{inline?.children ? renderInline(inline.children) : null}</Text>
+                <Text className="flex-1 text-sm">{inline?.children ? renderInline(inline.children) : null}</Text>
               </View>
             );
             orderIndex += 1;
@@ -67,13 +68,13 @@ function renderTokens(tokens: Token[]): JSX.Element[] {
       i += 1;
     } else if (token.type === "fence" || token.type === "code_block") {
       elements.push(
-        <View key={i} className="bg-background-subtle rounded p-2 mb-2">
-          <Text className="text-xs font-mono">{token.content}</Text>
+        <View key={i} className="p-2 mb-2 rounded bg-background-subtle">
+          <Text className="font-mono text-xs">{token.content}</Text>
         </View>
       );
       i += 1;
     } else if (token.type === "hr") {
-      elements.push(<View key={i} className="border-b border-border-neutral my-2" />);
+      elements.push(<View key={i} className="my-2 border-b border-border-neutral" />);
       i += 1;
     } else {
       i += 1;
@@ -98,7 +99,7 @@ function renderInline(tokens: Token[]): (JSX.Element | string)[] {
       i += 1;
     } else if (token.type === "code_inline") {
       elements.push(
-        <Text key={i} className="bg-background-subtle rounded px-1 text-xs font-mono">
+        <Text key={i} className="px-1 font-mono text-xs rounded bg-background-subtle">
           {token.content}
         </Text>
       );
@@ -122,23 +123,13 @@ function renderInline(tokens: Token[]): (JSX.Element | string)[] {
     } else if (token.type === "link_open") {
       const href = token.attrGet("href") || "";
       const content = collectInlineUntil(tokens, i + 1, "link_close");
-      elements.push(
-        <Text
-          key={i}
-          className="text-text-link underline"
-          onPress={() => {
-            if (href) {
-              if (Platform.OS === "web") {
-                window.open(href, "_blank");
-              } else {
-                Linking.openURL(href);
-              }
-            }
-          }}
-        >
-          {renderInline(content.tokens)}
-        </Text>
-      );
+      if (href) {
+        elements.push(
+          <Link key={i} className="text-sm underline text-text-link" href={href}>
+            {renderInline(content.tokens)}
+          </Link>
+        );
+      }
       i = content.endIndex + 1;
     } else {
       i += 1;

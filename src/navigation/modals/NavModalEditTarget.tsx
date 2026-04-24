@@ -1,8 +1,9 @@
 import { JSX, useEffect } from "react";
-import { View, Animated } from "react-native";
+import { View, Animated, Platform } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { BottomSheetEditTargetContent } from "../../components/bottomSheetEditTarget";
+import { BottomSheet } from "../../components/bottomSheet";
 import { lb } from "lens-shmens";
 import { IHistoryRecord } from "../../types";
 import { IState, updateState } from "../../models/state";
@@ -85,7 +86,7 @@ export function NavModalEditTarget(): JSX.Element {
     return <></>;
   }
 
-  return (
+  const content = (
     <CustomKeyboardProvider applySafeAreaBottom={false}>
       <View className="bg-background-default">
         <BottomSheetEditTargetContent
@@ -100,6 +101,16 @@ export function NavModalEditTarget(): JSX.Element {
       </View>
     </CustomKeyboardProvider>
   );
+
+  if (Platform.OS === "web") {
+    return (
+      <BottomSheet shouldShowClose={true} onClose={onClose} isHidden={false}>
+        {content}
+      </BottomSheet>
+    );
+  }
+
+  return content;
 }
 
 function KeyboardSpacer(): JSX.Element {

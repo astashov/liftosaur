@@ -112,7 +112,7 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
   );
 
   return (
-    <View>
+    <View className="overflow-hidden">
       <View className="flex-row items-center pb-1 border-b border-border-neutral">
         <View className="items-center" style={{ width: columnWidths.set }}>
           <Text className="text-xs text-text-secondary">Set</Text>

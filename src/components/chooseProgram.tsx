@@ -56,6 +56,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
             className="w-full py-2 pr-4 text-sm border rounded-lg pl-9 border-border-neutral bg-background-default"
             style={{ fontSize: 15 }}
             placeholder="Search by name"
+            placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
             defaultValue=""
             onChangeText={(text) => setSearch(text)}
             data-cy="program-search"

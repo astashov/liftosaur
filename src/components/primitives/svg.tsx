@@ -1,4 +1,5 @@
 import React from "react";
+import { Platform } from "react-native";
 
 type ISvgProps = React.SVGProps<SVGSVGElement> & { children?: React.ReactNode };
 type IPathProps = React.SVGProps<SVGPathElement>;
@@ -26,6 +27,12 @@ type ISymbolProps = React.SVGProps<SVGSymbolElement>;
 export type ISvgComponentProps = ISvgProps;
 
 export function Svg(props: ISvgProps): React.JSX.Element {
+  if (
+    Platform.OS === "web" &&
+    ["inline-block", "inline", "block", "flex"].every((cl) => !props.className?.includes(cl))
+  ) {
+    props = { ...props, className: `inline-block ${props.className || ""}` };
+  }
   return React.createElement("svg", { xmlns: "http://www.w3.org/2000/svg", ...props });
 }
 
