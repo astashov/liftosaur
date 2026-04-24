@@ -14,7 +14,11 @@ import {
   ApiV1_deleteProgram,
   ApiV1_playground,
   ApiV1_programStats,
+  ApiV1_getStats,
+  ApiV1_createStats,
+  ApiV1_deleteStats,
   IApiError,
+  ICreateStatInput,
 } from "../utils/apiv1";
 import { EventDao } from "../dao/eventDao";
 
@@ -252,5 +256,62 @@ export const postV1ProgramStatsHandler: RouteHandler<
       return apiError(400, "invalid_input", "Missing 'programText' field");
     }
     return resultToResponse(ApiV1_programStats(auth.user, body.programText as string));
+  });
+};
+
+// --- Stats Endpoints ---
+
+export const getV1StatsEndpoint = Endpoint.build("/api/v1/stats", {
+  type: "string?",
+  name: "string?",
+});
+export const getV1StatsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getV1StatsEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-get-stats", async (auth) => {
+    return resultToResponse(await ApiV1_getStats(auth.userId, params, di));
+  });
+};
+
+export const postV1StatsEndpoint = Endpoint.build("/api/v1/stats");
+export const postV1StatsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postV1StatsEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-create-stats", async (auth) => {
+    const body = getBodyJson(event);
+    if (!body.measurements || !Array.isArray(body.measurements) || body.measurements.length === 0) {
+      return apiError(400, "invalid_input", "Missing 'measurements' array");
+    }
+    return resultToResponse(
+      await ApiV1_createStats(
+        auth.userId,
+        auth.user,
+        body.measurements as ICreateStatInput[],
+        body.timestamp as number | undefined,
+        di
+      ),
+      201
+    );
+  });
+};
+
+export const deleteV1StatsEndpoint = Endpoint.build("/api/v1/stats/:timestamp", { name: "string?" });
+export const deleteV1StatsHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof deleteV1StatsEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-delete-stats", async (auth) => {
+    const name = params.name;
+    if (!name) {
+      return apiError(400, "invalid_input", "Missing 'name' query parameter");
+    }
+    return resultToResponse(
+      await ApiV1_deleteStats(auth.userId, auth.user, parseInt(params.timestamp, 10), name, di)
+    );
   });
 };

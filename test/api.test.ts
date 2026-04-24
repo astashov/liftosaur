@@ -452,6 +452,211 @@ Squat / 3x5 / 100lb`;
     });
   });
 
+  describe("stats endpoints", () => {
+    let apiKey: string;
+
+    beforeEach(async () => {
+      const created = await service.createApiKey("Stats Key");
+      apiKey = created!.key;
+    });
+
+    it("returns empty stats", async () => {
+      const result = await handler(buildEvent("GET", "/api/v1/stats", { headers: apiHeaders(apiKey) }), {
+        getRemainingTimeInMillis: () => 10000,
+      });
+      expect(result.statusCode).to.equal(200);
+      const body = parseBody(result);
+      expect(body.data.measurements).to.deep.equal([]);
+    });
+
+    it("creates a bodyweight measurement", async () => {
+      const createResult = await handler(
+        buildEvent("POST", "/api/v1/stats", {
+          headers: apiHeaders(apiKey),
+          body: {
+            measurements: [{ type: "weight", name: "weight", value: { value: 79.5, unit: "kg" } }],
+          },
+        }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(createResult.statusCode).to.equal(201);
+      const created = parseBody(createResult);
+      expect(created.data.measurements).to.have.length(1);
+      expect(created.data.measurements[0].type).to.equal("weight");
+      expect(created.data.measurements[0].name).to.equal("weight");
+      expect(created.data.measurements[0].value.value).to.equal(79.5);
+      expect(created.data.measurements[0].value.unit).to.equal("kg");
+      expect(created.data.measurements[0].timestamp).to.be.a("number");
+
+      const listResult = await handler(buildEvent("GET", "/api/v1/stats", { headers: apiHeaders(apiKey) }), {
+        getRemainingTimeInMillis: () => 10000,
+      });
+      expect(parseBody(listResult).data.measurements).to.have.length(1);
+    });
+
+    it("creates multiple measurements in one request", async () => {
+      const createResult = await handler(
+        buildEvent("POST", "/api/v1/stats", {
+          headers: apiHeaders(apiKey),
+          body: {
+            measurements: [
+              { type: "weight", name: "weight", value: { value: 79.5, unit: "kg" } },
+              { type: "percentage", name: "bodyfat", value: { value: 15.2 } },
+              { type: "length", name: "waist", value: { value: 84, unit: "cm" } },
+            ],
+          },
+        }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(createResult.statusCode).to.equal(201);
+      expect(parseBody(createResult).data.measurements).to.have.length(3);
+    });
+
+    it("creates a measurement with explicit timestamp", async () => {
+      const ts = 1700000000000;
+      const createResult = await handler(
+        buildEvent("POST", "/api/v1/stats", {
+          headers: apiHeaders(apiKey),
+          body: {
+            measurements: [{ type: "weight", name: "weight", value: { value: 80, unit: "kg" } }],
+            timestamp: ts,
+          },
+        }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(createResult.statusCode).to.equal(201);
+      expect(parseBody(createResult).data.measurements[0].timestamp).to.equal(ts);
+    });
+
+    it("filters stats by type", async () => {
+      await handler(
+        buildEvent("POST", "/api/v1/stats", {
+          headers: apiHeaders(apiKey),
+          body: {
+            measurements: [
+              { type: "weight", name: "weight", value: { value: 79.5, unit: "kg" } },
+              { type: "percentage", name: "bodyfat", value: { value: 15.2 } },
+            ],
+          },
+        }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+
+      const result = await handler(
+        buildEvent("GET", "/api/v1/stats", { headers: apiHeaders(apiKey), qs: { type: "weight" } }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(result.statusCode).to.equal(200);
+      const body = parseBody(result);
+      expect(body.data.measurements).to.have.length(1);
+      expect(body.data.measurements[0].type).to.equal("weight");
+    });
+
+    it("filters stats by name", async () => {
+      await handler(
+        buildEvent("POST", "/api/v1/stats", {
+          headers: apiHeaders(apiKey),
+          body: {
+            measurements: [
+              { type: "length", name: "waist", value: { value: 84, unit: "cm" } },
+              { type: "length", name: "chest", value: { value: 100, unit: "cm" } },
+            ],
+          },
+        }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+
+      const result = await handler(
+        buildEvent("GET", "/api/v1/stats", { headers: apiHeaders(apiKey), qs: { name: "waist" } }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(result.statusCode).to.equal(200);
+      expect(parseBody(result).data.measurements).to.have.length(1);
+      expect(parseBody(result).data.measurements[0].name).to.equal("waist");
+    });
+
+    it("deletes a stat by timestamp", async () => {
+      const createResult = await handler(
+        buildEvent("POST", "/api/v1/stats", {
+          headers: apiHeaders(apiKey),
+          body: {
+            measurements: [{ type: "weight", name: "weight", value: { value: 79.5, unit: "kg" } }],
+          },
+        }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      const ts = parseBody(createResult).data.measurements[0].timestamp;
+
+      const deleteResult = await handler(
+        buildEvent("DELETE", `/api/v1/stats/${ts}`, { headers: apiHeaders(apiKey), qs: { name: "weight" } }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(deleteResult.statusCode).to.equal(200);
+      expect(parseBody(deleteResult).data.deleted).to.equal(true);
+
+      const listResult = await handler(buildEvent("GET", "/api/v1/stats", { headers: apiHeaders(apiKey) }), {
+        getRemainingTimeInMillis: () => 10000,
+      });
+      expect(parseBody(listResult).data.measurements).to.have.length(0);
+    });
+
+    it("returns 400 for invalid type", async () => {
+      const result = await handler(
+        buildEvent("POST", "/api/v1/stats", {
+          headers: apiHeaders(apiKey),
+          body: {
+            measurements: [{ type: "invalid", name: "weight", value: { value: 79.5, unit: "kg" } }],
+          },
+        }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(result.statusCode).to.equal(400);
+    });
+
+    it("returns 400 for invalid name", async () => {
+      const result = await handler(
+        buildEvent("POST", "/api/v1/stats", {
+          headers: apiHeaders(apiKey),
+          body: {
+            measurements: [{ type: "weight", name: "bicep", value: { value: 79.5, unit: "kg" } }],
+          },
+        }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(result.statusCode).to.equal(400);
+    });
+
+    it("returns 400 for missing measurements", async () => {
+      const result = await handler(
+        buildEvent("POST", "/api/v1/stats", {
+          headers: apiHeaders(apiKey),
+          body: {},
+        }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(result.statusCode).to.equal(400);
+    });
+
+    it("returns 400 for delete without name", async () => {
+      const result = await handler(
+        buildEvent("DELETE", "/api/v1/stats/1700000000000", { headers: apiHeaders(apiKey) }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(result.statusCode).to.equal(400);
+    });
+
+    it("returns 404 for delete of nonexistent stat", async () => {
+      const result = await handler(
+        buildEvent("DELETE", "/api/v1/stats/9999999999999", {
+          headers: apiHeaders(apiKey),
+          qs: { name: "weight" },
+        }),
+        { getRemainingTimeInMillis: () => 10000 }
+      );
+      expect(result.statusCode).to.equal(404);
+    });
+  });
+
   describe("CORS", () => {
     it("returns CORS headers on OPTIONS", async () => {
       const result = await handler(buildEvent("OPTIONS", "/api/v1/history"), { getRemainingTimeInMillis: () => 10000 });
