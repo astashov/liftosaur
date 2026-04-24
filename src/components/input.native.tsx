@@ -38,6 +38,8 @@ export interface IProps {
   placeholder?: string;
   step?: string;
   handleRef?: Ref<IInputHandle>;
+  autoCapitalize?: "none" | "sentences" | "words" | "characters";
+  autoCorrect?: boolean;
 }
 
 export function selectInputOnFocus(): undefined {
@@ -158,6 +160,8 @@ export const Input = memo(
             style={{ height: size === "md" ? 28 : 22 }}
             defaultValue={currentValueRef.current}
             placeholder={props.placeholder}
+            autoCapitalize={props.autoCapitalize}
+            autoCorrect={props.autoCorrect}
             onChangeText={(text) => {
               currentValueRef.current = text;
               if (changeType === "oninput") {

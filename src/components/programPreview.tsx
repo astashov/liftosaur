@@ -1,4 +1,4 @@
-import { JSX, ReactNode, useState } from "react";
+import { JSX, ReactNode, useMemo, useState } from "react";
 import { View, Pressable, Platform } from "react-native";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
@@ -24,6 +24,7 @@ import { ProgramPreviewOrPlayground } from "./programPreviewOrPlayground";
 import { IconDoc } from "./icons/iconDoc";
 import { StringUtils_pluralize } from "../utils/string";
 import { SimpleMarkdown } from "./simpleMarkdown";
+import { Link } from "./link";
 
 export type IPreviewProgramMuscles =
   | {
@@ -46,80 +47,89 @@ interface IProps {
 
 export function ProgramPreview(props: IProps): JSX.Element {
   const program = props.program;
-  const evaluatedProgram = Program_evaluate(program, props.settings);
+  const settings = props.settings;
+  const evaluatedProgram = useMemo(() => Program_evaluate(program, settings), [program, settings]);
   const [musclesModal, setMusclesModal] = useState<IPreviewProgramMuscles | undefined>(undefined);
   const isWeb = Platform.OS === "web";
+  const headerContent = props.headerContent;
 
-  const previewHeader = (
-    <View pointerEvents="box-none">
-      {props.headerContent}
-      <View className="px-4" pointerEvents="box-none">
-        <View className="flex-row items-center pt-2" pointerEvents="box-none">
-          <View className="flex-1" pointerEvents="none">
-            {program.url ? (
+  const previewHeader = useMemo(
+    () => (
+      <View>
+        {headerContent}
+        <View className="px-4">
+          <View className="flex-row items-center pt-2">
+            <View className="flex-1">
+              {program.url ? (
+                <Link
+                  data-cy="program-name"
+                  className="text-2xl font-bold leading-tight underline text-text-link"
+                  href={program.url}
+                >
+                  {program.name}
+                </Link>
+              ) : (
+                <Text data-cy="program-name" testID="program-name" className="text-2xl font-bold leading-tight">
+                  {program.name}
+                </Text>
+              )}
+            </View>
+            <Pressable
+              data-cy="program-show-muscles"
+              testID="program-show-muscles"
+              className="p-2"
+              onPress={() => {
+                if (isWeb) {
+                  setMusclesModal({ type: "program" });
+                } else {
+                  navigationRef.navigate("programPreviewMusclesModal", { type: "program" });
+                }
+              }}
+            >
+              <IconMuscles2 />
+            </Pressable>
+          </View>
+          <View>
+            {program.author && (
               <Text
-                data-cy="program-name"
-                testID="program-name"
-                className="text-2xl font-bold leading-tight underline text-text-link"
+                data-cy="program-author"
+                testID="program-author"
+                className="text-sm font-bold uppercase text-text-secondary"
               >
-                {program.name}
-              </Text>
-            ) : (
-              <Text data-cy="program-name" testID="program-name" className="text-2xl font-bold leading-tight">
-                {program.name}
+                By {program.author}
               </Text>
             )}
-          </View>
-          <Pressable
-            data-cy="program-show-muscles"
-            testID="program-show-muscles"
-            className="p-2"
-            onPress={() => {
-              if (isWeb) {
-                setMusclesModal({ type: "program" });
-              } else {
-                navigationRef.navigate("programPreviewMusclesModal", { type: "program" });
-              }
-            }}
-          >
-            <IconMuscles2 />
-          </Pressable>
-        </View>
-        <View pointerEvents="none">
-          {program.author && (
-            <Text
-              data-cy="program-author"
-              testID="program-author"
-              className="text-sm font-bold uppercase text-text-secondary"
-            >
-              By {program.author}
-            </Text>
-          )}
-          <View className="flex-row items-center py-1">
-            <IconWatch />
-            <Text className="ml-1">
-              Average time to finish a workout:{" "}
-              <Text className="font-bold">
-                {TimeUtils_formatHHMM(Program_dayAverageTimeMs(evaluatedProgram, props.settings))}
+            <View className="flex-row items-start py-1">
+              <View className="mt-0.5">
+                <IconWatch />
+              </View>
+              <Text className="flex-1 ml-1">
+                Average time to finish a workout:{" "}
+                <Text className="font-bold">
+                  {TimeUtils_formatHHMM(Program_dayAverageTimeMs(evaluatedProgram, settings))}
+                </Text>
               </Text>
-            </Text>
-          </View>
-          <View className="flex-row items-center py-1">
-            <IconDoc width={15} height={20} />
-            <Text className="ml-1 text-text-secondary">
-              {evaluatedProgram.weeks.length > 1 &&
-                `${evaluatedProgram.weeks.length} ${StringUtils_pluralize("week", evaluatedProgram.weeks.length)}, `}
-              {Program_daysRange(evaluatedProgram)}, {Program_exerciseRange(evaluatedProgram)}
-            </Text>
-          </View>
-          {program.description && (
-            <View className="pt-2">
-              <SimpleMarkdown value={program.description} />
             </View>
-          )}
+            <View className="flex-row items-start py-1">
+              <View className="mt-0.5">
+                <IconDoc width={15} height={20} />
+              </View>
+              <Text className="flex-1 ml-1 text-text-secondary">
+                {evaluatedProgram.weeks.length > 1 &&
+                  `${evaluatedProgram.weeks.length} ${StringUtils_pluralize("week", evaluatedProgram.weeks.length)}, `}
+                {Program_daysRange(evaluatedProgram)}, {Program_exerciseRange(evaluatedProgram)}
+              </Text>
+            </View>
+            {program.description && (
+              <View className="pt-2">
+                <SimpleMarkdown value={program.description} />
+              </View>
+            )}
+          </View>
         </View>
       </View>
-    </View>
+    ),
+    [headerContent, program, evaluatedProgram, settings, isWeb]
   );
 
   if (!isWeb) {

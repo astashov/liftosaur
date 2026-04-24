@@ -13,7 +13,10 @@ export interface IInputHandle {
 }
 
 export interface IProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement> & React.TextareaHTMLAttributes<HTMLTextAreaElement>, "ref"> {
+  extends Omit<
+    React.InputHTMLAttributes<HTMLInputElement> & React.TextareaHTMLAttributes<HTMLTextAreaElement>,
+    "ref" | "autoCapitalize" | "autoCorrect"
+  > {
   label?: string;
   identifier?: string;
   multiline?: number;
@@ -27,6 +30,8 @@ export interface IProps
   requiredMessage?: string;
   changeHandler?: (e: IEither<string, Set<IValidationError>>) => void;
   handleRef?: Ref<IInputHandle>;
+  autoCapitalize?: "none" | "sentences" | "words" | "characters";
+  autoCorrect?: boolean;
 }
 
 export function selectInputOnFocus(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>): boolean | undefined {
@@ -62,8 +67,11 @@ export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement> | Ref
     value: valueProp,
     defaultValue: _defaultValue,
     handleRef: _handleRef,
+    autoCapitalize,
+    autoCorrect,
     ...otherProps
   } = props;
+  const autoCorrectStr = autoCorrect == null ? undefined : autoCorrect ? "on" : "off";
   const changeType = changeTypeProp || "onblur";
   const identifier = identifierProp || StringUtils_dashcase((label || UidFactory_generateUid(8))?.toLowerCase());
   const [validationErrors, setValidationErrors] = useState<Set<IValidationError>>(new Set());
@@ -221,6 +229,8 @@ export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement> | Ref
                 }}
                 onInput={changeType === "oninput" ? onInputHandler : undefined}
                 onFocus={selectInputOnFocus}
+                autoCapitalize={autoCapitalize}
+                autoCorrect={autoCorrectStr}
                 className="flex-1 w-0 min-w-0 text-base border-none focus:outline-none bg-background-default"
                 style={{ fontSize: size === "md" ? "16px" : "15px", height: `${multiline * 25}px` }}
                 {...otherProps}
@@ -245,6 +255,8 @@ export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement> | Ref
                 }}
                 onInput={changeType === "oninput" ? onInputHandler : undefined}
                 onFocus={selectInputOnFocus}
+                autoCapitalize={autoCapitalize}
+                autoCorrect={autoCorrectStr}
                 className="flex-1 w-0 min-w-0 text-base border-none focus:outline-none bg-background-default"
                 style={{ height: "1.25rem", fontSize: size === "md" ? "16px" : "15px" }}
                 {...otherProps}

@@ -211,10 +211,12 @@ function MainPlayground(props: IMainPlaygroundProps): JSX.Element {
         stats={stats}
         program={evaluatedProgram}
         day={1}
+        weekIndex={0}
+        dayIndex={0}
         isPlayground={true}
         settings={settings}
         progress={progress}
-        onProgressChange={(newProgress) => {
+        onProgressChange={(_weekIndex, _dayIndex, newProgress) => {
           track({ name: "main_playground" });
           setProgress(newProgress);
         }}

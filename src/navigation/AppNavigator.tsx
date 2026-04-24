@@ -133,6 +133,7 @@ function useStackScreenOptions() {
   return {
     header: NavHeader,
     animationEnabled: false,
+    freezeOnBlur: true,
     cardStyle: { flex: 1, overflow: "hidden" as const, backgroundColor: Tailwind_semantic().background.default },
   };
 }
@@ -236,6 +237,7 @@ function MeStackScreen(): JSX.Element {
 
 const tabScreenOptions = {
   headerShown: false,
+  freezeOnBlur: true,
   sceneStyle: { flex: 1, overflow: "hidden" as const },
 };
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -244,6 +246,7 @@ function useRootScreenOptions() {
   return {
     headerShown: false,
     animationEnabled: false,
+    freezeOnBlur: true,
     cardStyle: { flex: 1, backgroundColor: Tailwind_semantic().background.default },
   };
 }

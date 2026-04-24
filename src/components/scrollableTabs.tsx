@@ -1,5 +1,5 @@
 import { JSX, ReactNode, useState } from "react";
-import { View, ScrollView, Pressable, Platform } from "react-native";
+import { View, ScrollView, Pressable, Platform, LayoutChangeEvent } from "react-native";
 import { Text } from "./primitives/text";
 import { StringUtils_dashcase } from "../utils/string";
 import { Scroller } from "./scroller";
@@ -28,14 +28,21 @@ export interface IScrollableTabsProps {
 export function ScrollableTabs(props: IScrollableTabsProps): JSX.Element {
   const { tabs } = props;
   const [selectedIndex, setSelectedIndex] = useState<number>(props.defaultIndex || 0);
+  const [barWidth, setBarWidth] = useState<number>(0);
   const color = props.color || "orange";
 
-  const useScroller = props.type === "squares";
+  const onBarLayout = (e: LayoutChangeEvent): void => {
+    setBarWidth(e.nativeEvent.layout.width);
+  };
+
   const tabsRow =
     tabs.length > 1 ? (
       <View
-        className={`flex-row w-full ${props.topPadding == null ? "pt-6" : ""} pb-2 ${props.className || ""}`}
-        style={props.topPadding != null ? { paddingTop: parseFloat(props.topPadding) || 0 } : undefined}
+        className={`flex-row ${props.topPadding == null ? "pt-6" : ""} pb-2 ${props.className || ""}`}
+        style={{
+          ...(props.topPadding != null ? { paddingTop: parseFloat(props.topPadding) || 0 } : null),
+          minWidth: barWidth || undefined,
+        }}
       >
         {tabs.map(({ label, isInvalid }, index) => {
           const nameClass = `tab-${StringUtils_dashcase(label.toLowerCase())}`;
@@ -68,7 +75,11 @@ export function ScrollableTabs(props: IScrollableTabsProps): JSX.Element {
           const activeTextColor = color === "orange" ? "text-icon-yellow" : "text-text-purple";
 
           return (
-            <View key={label} className="items-center flex-1 border-b border-border-neutral">
+            <View
+              key={label}
+              className="items-center border-b border-border-neutral"
+              style={{ flexGrow: 1, flexShrink: 0, flexBasis: "auto" }}
+            >
               <Pressable
                 className="px-4 pb-1"
                 style={isSelected ? { borderBottomWidth: 2, borderBottomColor: activeColor } : undefined}
@@ -80,6 +91,7 @@ export function ScrollableTabs(props: IScrollableTabsProps): JSX.Element {
                 }}
               >
                 <Text
+                  numberOfLines={1}
                   className={`text-base ${isSelected ? activeTextColor : ""} ${isInvalid ? "text-text-error" : ""}`}
                 >
                   {isInvalid ? "⚠️" : ""}
@@ -93,7 +105,9 @@ export function ScrollableTabs(props: IScrollableTabsProps): JSX.Element {
     ) : null;
   const tabBar =
     tabsRow != null ? (
-      <View className="bg-background-default">{useScroller ? <Scroller>{tabsRow}</Scroller> : tabsRow}</View>
+      <View className="bg-background-default" onLayout={onBarLayout}>
+        <Scroller>{tabsRow}</Scroller>
+      </View>
     ) : null;
 
   const content = (
