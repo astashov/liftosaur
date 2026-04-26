@@ -115,9 +115,10 @@ export function EditProgramExerciseReuseDescriptions(props: IEditProgramExercise
                 if (newReuseCandidate) {
                   const currentWeek = newReuseCandidate.weekAndDays[plannerExercise.dayData.week];
                   const week = !currentWeek ? ObjectUtils_keys(newReuseCandidate.weekAndDays)[0] : undefined;
+                  const weekDays = newReuseCandidate.weekAndDays[week ?? plannerExercise.dayData.week];
                   const day =
-                    week != null || (currentWeek != null && currentWeek.size > 1)
-                      ? Array.from(newReuseCandidate.weekAndDays[week ?? plannerExercise.dayData.week])[0]
+                    (week != null || (currentWeek != null && currentWeek.size > 1)) && weekDays != null
+                      ? Array.from(weekDays)[0]
                       : undefined;
                   ex.descriptions = {
                     reuse: {
