@@ -70,6 +70,7 @@ export class LiftoscriptSyntaxError extends SyntaxError {
 
   constructor(message: string, line: number, offset: number, from: number, to: number) {
     super(message);
+    Object.setPrototypeOf(this, LiftoscriptSyntaxError.prototype);
     this.line = line;
     this.offset = offset;
     this.from = from;

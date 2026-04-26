@@ -1700,7 +1700,12 @@ export function Progress_finishWorkout(storage: IStorage, progress: IHistoryReco
   const settings = storage.settings;
   const programIndex = storage.programs.findIndex((p) => p.id === progress.programId)!;
   const program = progress.programId === emptyProgramId ? Program_createEmptyProgram() : storage.programs[programIndex];
-  const evaluatedProgram = program ? Program_evaluate(program, settings) : undefined;
+  let evaluatedProgram: IEvaluatedProgram | undefined;
+  try {
+    evaluatedProgram = program ? Program_evaluate(program, settings) : undefined;
+  } catch (e) {
+    evaluatedProgram = undefined;
+  }
   Progress_stopTimer(progress);
   const historyRecord = History_finishProgramDay(progress, storage.settings, progress.day, evaluatedProgram);
   let newHistory;
@@ -1710,10 +1715,17 @@ export function Progress_finishWorkout(storage: IStorage, progress: IHistoryReco
     newHistory = [historyRecord, ...storage.history];
   }
   const exerciseData = storage.settings.exerciseData;
-  const { program: newProgram, exerciseData: newExerciseData } =
-    Progress_isCurrent(progress) && program != null
-      ? Program_runAllFinishDayScripts(program, progress, storage.stats, settings)
-      : { program, exerciseData };
+  let finishResult: { program: IProgram | undefined; exerciseData: typeof exerciseData };
+  if (Progress_isCurrent(progress) && program != null) {
+    try {
+      finishResult = Program_runAllFinishDayScripts(program, progress, storage.stats, settings);
+    } catch (e) {
+      finishResult = { program, exerciseData };
+    }
+  } else {
+    finishResult = { program, exerciseData };
+  }
+  const { program: newProgram, exerciseData: newExerciseData } = finishResult;
   const newPrograms = newProgram != null ? lf(storage.programs).i(programIndex).set(newProgram) : storage.programs;
   const newSettingsExerciseData = deepmerge(storage.settings.exerciseData, newExerciseData);
   return {
