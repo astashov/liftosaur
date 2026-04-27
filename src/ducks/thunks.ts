@@ -859,6 +859,9 @@ export function Thunk_pushScreen<T extends IScreen>(
       opts = { stack: "subscription" };
       screen = "subscription" as T;
     }
+    if (screen === "subscription") {
+      opts = { ...opts, stack: "subscription" };
+    }
     const screensWithoutCurrentProgram = [
       "first",
       "onboarding",
