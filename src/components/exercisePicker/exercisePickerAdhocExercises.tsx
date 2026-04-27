@@ -1,12 +1,12 @@
-import { JSX, Fragment, useMemo, useCallback } from "react";
-import { View, TextInput, Pressable, FlatList, ListRenderItem } from "react-native";
+import { JSX, Fragment, useMemo, useCallback, useEffect, useRef, RefObject } from "react";
+import { View, TextInput, Pressable, ScrollView } from "react-native";
+import { useGradualList } from "../../utils/useGradualList";
 import { Text } from "../primitives/text";
 import { IExercisePickerState, IExerciseType, ISettings } from "../../types";
 import { IconMagnifyingGlass } from "../icons/iconMagnifyingGlass";
 import { Tailwind_colors, Tailwind_semantic } from "../../utils/tailwindConfig";
 import { IconFilter2 } from "../icons/iconFilter2";
 import {
-  IExercise,
   Exercise_filterCustomExercises,
   Exercise_toKey,
   Exercise_createCustomExercise,
@@ -64,53 +64,24 @@ export function ExercisePickerAdhocExercises(props: IProps): JSX.Element {
     [props.dispatch, props.state]
   );
 
-  const keyExtractor = useCallback((e: IExercise) => Exercise_toKey(e), []);
-  const renderBuiltinItem: ListRenderItem<IExercise> = useCallback(
-    ({ item: e }) => {
-      const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise_eq(et, e));
-      const isSelectedAlready = props.state.selectedExercises.some(
-        (ex) => "exerciseType" in ex && Exercise_eq(ex.exerciseType, e)
-      );
-      const isSelected = props.state.selectedExercises.some(
-        (ex) => ex.type === "adhoc" && Exercise_eq(ex.exerciseType, e)
-      );
-      const testId = `menu-item-${StringUtils_dashcase(e.name)}${e.equipment ? `-${StringUtils_dashcase(e.equipment)}` : ""}`;
-      return (
-        <View
-          data-cy={testId}
-          testID={testId}
-          className={`w-full py-1 pl-4 pr-2 border-b border-border-neutral ${
-            isSelected ? "bg-background-purpledark" : ""
-          }`}
-        >
-          <ExercisePickerExerciseItem
-            onStar={props.onStar}
-            isMultiselect={isMultiselect}
-            isEnabled={!isUsedForDay && (!isMultiselect || !isSelectedAlready)}
-            isSelected={isSelected}
-            onChoose={onChoose}
-            showMuscles={props.state.showMuscles}
-            settings={props.settings}
-            currentExerciseType={props.state.exerciseType}
-            exercise={e}
-          />
-        </View>
-      );
-    },
-    [
-      props.onStar,
-      props.settings,
-      props.state.selectedExercises,
-      props.state.exerciseType,
-      props.state.showMuscles,
-      props.usedExerciseTypes,
-      isMultiselect,
-      onChoose,
-    ]
+  const containerRef = useRef<View>(null);
+  const { visibleRecords, loadMoreVisibleRecords } = useGradualList(
+    builtinExercises,
+    0,
+    20,
+    containerRef as unknown as RefObject<{ clientHeight?: number } | null>,
+    () => {}
   );
+  useEffect(() => {
+    if (builtinExercises.length > 20) {
+      const t = setTimeout(() => loadMoreVisibleRecords(builtinExercises.length), 300);
+      return () => clearTimeout(t);
+    }
+    return undefined;
+  }, [builtinExercises.length, loadMoreVisibleRecords]);
 
-  const ListHeader = (
-    <View>
+  return (
+    <ScrollView keyboardShouldPersistTaps="handled" ref={containerRef as unknown as RefObject<ScrollView>}>
       <SearchAndFilter dispatch={props.dispatch} state={props.state} settings={props.settings} />
       <CustomExercises
         usedExerciseTypes={props.usedExerciseTypes}
@@ -124,21 +95,39 @@ export function ExercisePickerAdhocExercises(props: IProps): JSX.Element {
       <View className="py-2">
         <GroupHeader isExpanded={true} leftExpandIcon={true} name="Built-in Exercises" headerClassName="mx-4" />
       </View>
-    </View>
-  );
-
-  return (
-    <FlatList
-      data={builtinExercises}
-      keyExtractor={keyExtractor}
-      renderItem={renderBuiltinItem}
-      ListHeaderComponent={ListHeader}
-      initialNumToRender={8}
-      maxToRenderPerBatch={10}
-      windowSize={5}
-      removeClippedSubviews
-      keyboardShouldPersistTaps="handled"
-    />
+      {builtinExercises.slice(0, visibleRecords).map((e) => {
+        const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise_eq(et, e));
+        const isSelectedAlready = props.state.selectedExercises.some(
+          (ex) => "exerciseType" in ex && Exercise_eq(ex.exerciseType, e)
+        );
+        const isSelected = props.state.selectedExercises.some(
+          (ex) => ex.type === "adhoc" && Exercise_eq(ex.exerciseType, e)
+        );
+        const testId = `menu-item-${StringUtils_dashcase(e.name)}${e.equipment ? `-${StringUtils_dashcase(e.equipment)}` : ""}`;
+        return (
+          <View
+            key={Exercise_toKey(e)}
+            data-cy={testId}
+            testID={testId}
+            className={`w-full py-1 pl-4 pr-2 border-b border-border-neutral ${
+              isSelected ? "bg-background-purpledark" : ""
+            }`}
+          >
+            <ExercisePickerExerciseItem
+              onStar={props.onStar}
+              isMultiselect={isMultiselect}
+              isEnabled={!isUsedForDay && (!isMultiselect || !isSelectedAlready)}
+              isSelected={isSelected}
+              onChoose={onChoose}
+              showMuscles={props.state.showMuscles}
+              settings={props.settings}
+              currentExerciseType={props.state.exerciseType}
+              exercise={e}
+            />
+          </View>
+        );
+      })}
+    </ScrollView>
   );
 }
 

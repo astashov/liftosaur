@@ -150,11 +150,14 @@ const mainConfig = {
             loader: "esbuild-loader",
             options: {
               target: "es2015",
+              sourcemap: true,
             },
           },
           {
             loader: "babel-loader",
             options: {
+              sourceMaps: true,
+              compact: false,
               presets: [
                 ["@babel/preset-typescript", { isTSX: true, allExtensions: true }],
                 ["@babel/preset-react", { runtime: "automatic", importSource: "nativewind" }],

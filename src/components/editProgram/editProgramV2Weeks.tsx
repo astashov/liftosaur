@@ -22,6 +22,7 @@ import { IconPlus2 } from "../icons/iconPlus2";
 import { LinkButton } from "../linkButton";
 import { ContentGrowingTextarea } from "../contentGrowingTextarea";
 import { EditProgramUiHelpers_onDaysChange } from "./editProgramUi/editProgramUiHelpers";
+import { useRem } from "../../utils/useRem";
 
 export interface IPlannerContentWeeksProps {
   state: IPlannerState;
@@ -77,6 +78,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
 
   const lbProgram = lb<IPlannerState>().p("current").p("program").pi("planner");
   const { evaluatedWeeks } = PlannerProgram_evaluate(plannerProgram, props.settings);
+  const rem = useRem();
 
   return (
     <View>
@@ -138,7 +140,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
               <View key={weekIndex} className="flex-row w-full px-2 py-1">
                 <View className="flex-col">
                   {dragHandle(
-                    <View className="p-2">
+                    <View className="p-2 ml-[-1rem]">
                       <IconHandle />
                     </View>
                   )}
@@ -147,7 +149,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                   </View>
                 </View>
                 <View className="flex-1">
-                  <View className="flex-row">
+                  <View className="flex-row items-center">
                     <View>
                       <Pressable
                         onPress={() => {
@@ -169,7 +171,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                             "Toggle week collapse"
                           );
                         }}
-                        className="w-8 p-2 mr-1 items-center nm-web-editor-expand-collapse-day"
+                        className="items-center w-8 p-2 mr-1 nm-web-editor-expand-collapse-day"
                       >
                         {collapsedWeeks.has(`${weekIndex}`) ? <IconArrowRight /> : <IconArrowDown2 />}
                       </Pressable>
@@ -277,12 +279,12 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                           const evalResult = evaluatedWeeks[weekIndex][dayIndex];
                           return (
                             <View
-                              className="flex-row items-center px-4 py-1 my-1 border border-background-default rounded-lg bg-background-purpledark"
+                              className="flex-row items-center px-4 py-1 my-1 border rounded-lg border-background-default bg-background-purpledark"
                               style={SHADOW_STYLE}
                             >
                               <View className="flex-row items-center">
                                 {dayDragHandle(
-                                  <View className="p-2">
+                                  <View className="p-2 ml-[-1rem]">
                                     <IconHandle />
                                   </View>
                                 )}
@@ -306,7 +308,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                                     }
                                   }}
                                 />
-                                <View className="flex-row flex-wrap">
+                                <View className="flex-row flex-wrap items-center gap-1">
                                   {evalResult.success
                                     ? CollectionUtils_compact(
                                         evalResult.data.map((e) => {
@@ -319,6 +321,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                                                 key={`${exerciseType.id}-${exerciseType.equipment}`}
                                                 settings={props.settings}
                                                 exerciseType={exerciseType}
+                                                width={rem * 1.5}
                                                 size="small"
                                                 className="w-6 mr-1"
                                               />
@@ -403,7 +406,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                           }}
                         >
                           <IconPlus2 size={12} />
-                          <Text className="ml-2 text-sm text-text-link font-semibold">Add Day</Text>
+                          <Text className="ml-2 text-sm font-semibold text-text-link">Add Day</Text>
                         </Button>
                       </View>
                     </View>
@@ -433,7 +436,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
             }}
           >
             <IconPlus2 size={12} />
-            <Text className="ml-2 text-sm text-text-link font-semibold">Add Week</Text>
+            <Text className="ml-2 text-sm font-semibold text-text-link">Add Week</Text>
           </Button>
         </View>
       </View>

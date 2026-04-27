@@ -285,6 +285,8 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
     );
   }, [kebabActions, runKebabAction]);
 
+  const kebabMenuZIndex = Platform.OS === "web" && isKebabMenuOpen ? { zIndex: 50 } : undefined;
+
   return (
     <View
       data-cy={`entry-${StringUtils_dashcase(exercise.name)}`}
@@ -292,12 +294,13 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
         props.entry.sets,
         false
       )} ${WorkoutExerciseUtils_getBorderColor100(props.entry.sets, false)}`}
+      style={kebabMenuZIndex}
     >
-      <View className="px-4">
-        <View className="flex-row">
+      <View className="px-4" style={kebabMenuZIndex}>
+        <View className="flex-row gap-2" style={kebabMenuZIndex}>
           <Pressable
             onPress={() => props.dispatch(Thunk_pushExerciseStatsScreen(props.entry.exercise))}
-            className="px-2 rounded-lg bg-background-image"
+            className="self-center rounded-lg bg-background-image"
             data-cy="workout-exercise-image"
             testID="workout-exercise-image"
           >
@@ -319,31 +322,38 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
                 name="exercise-equipment-picker"
                 data-cy="exercise-equipment-picker"
                 onClick={openEquipmentModal}
+                className="text-sm"
               >
                 {currentEquipmentName || "None"}
               </LinkButton>
             </View>
             {supersetExercise && (
-              <View data-cy="exercise-superset" className="flex-row flex-wrap">
+              <View data-cy="exercise-superset" className="flex-row flex-wrap items-center">
                 <Text className="text-sm text-text-secondary">Supersets with: </Text>
                 <LinkButton
                   name="exercise-superset-picker"
                   data-cy="exercise-superset-picker"
                   onClick={openSupersetPicker}
+                  className="text-sm"
                 >
                   {Exercise_fullName(supersetExercise, props.settings)}
                 </LinkButton>
               </View>
             )}
-            {currentEquipmentNotes && (
+            {!!currentEquipmentNotes && (
               <View className="mt-1">
                 <Markdown value={currentEquipmentNotes} />
               </View>
             )}
             {((programExercise && ProgramExercise_doesUse1RM(programExercise)) || Progress_doesUse1RM(props.entry)) && (
-              <View data-cy="exercise-rm1" className="flex-row flex-wrap">
+              <View data-cy="exercise-rm1" className="flex-row flex-wrap items-center">
                 <Text className="text-sm text-text-secondary">1RM: </Text>
-                <LinkButton name="exercise-rm1-picker" data-cy="exercise-rm1-picker" onClick={openRm1Modal}>
+                <LinkButton
+                  name="exercise-rm1-picker"
+                  data-cy="exercise-rm1-picker"
+                  onClick={openRm1Modal}
+                  className="text-sm"
+                >
                   {Weight_print(onerm)}
                 </LinkButton>
               </View>
@@ -363,9 +373,11 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
               <DropdownMenu rightOffset="2rem" onClose={() => setIsKebabMenuOpen(false)} maxWidth="20rem">
                 {programExercise && programExerciseId && (
                   <DropdownMenuItem isTop={true} data-cy="exercise-edit-mode" onClick={() => runKebabAction("edit")}>
-                    <View className="flex-row items-center" style={{ gap: 8 }}>
-                      <IconEdit2 size={22} />
-                      <Text>Edit Program Exercise</Text>
+                    <View className="flex-row items-center gap-2">
+                      <View>
+                        <IconEdit2 size={22} />
+                      </View>
+                      <Text className="whitespace-nowrap">Edit Program Exercise</Text>
                     </View>
                   </DropdownMenuItem>
                 )}
@@ -374,15 +386,15 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
                   isTop={!programExercise || !programExerciseId}
                   onClick={() => runKebabAction("swap")}
                 >
-                  <View className="flex-row items-center" style={{ gap: 8 }}>
+                  <View className="flex-row items-center gap-2">
                     <IconSwap size={18} />
-                    <Text>Swap Exercise</Text>
+                    <Text className="whitespace-nowrap">Swap Exercise</Text>
                   </View>
                 </DropdownMenuItem>
                 <DropdownMenuItem data-cy="exercise-superset" onClick={() => runKebabAction("superset")}>
                   <View className="flex-row items-center" style={{ gap: 8 }}>
                     <IconReorder size={18} />
-                    <Text>Edit Superset</Text>
+                    <Text className="whitespace-nowrap">Edit Superset</Text>
                   </View>
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -391,26 +403,26 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
                 >
                   <View className="flex-row items-center" style={{ gap: 8 }}>
                     <IconTrash width={15} height={18} />
-                    <Text>Remove Exercise</Text>
+                    <Text className="whitespace-nowrap">Remove Exercise</Text>
                   </View>
                 </DropdownMenuItem>
               </DropdownMenu>
             )}
           </View>
         </View>
-        {exerciseNotes && (
+        {!!exerciseNotes && (
           <View className="mt-1">
-            {exerciseNotes && description && <GroupHeader name="Exercise Notes" />}
+            {!!exerciseNotes && !!description && <GroupHeader name="Exercise Notes" />}
             <Markdown value={exerciseNotes} />
           </View>
         )}
-        {description && (
+        {!!description && (
           <View className="mt-1">
-            {exerciseNotes && description && <GroupHeader name="Program Exercise Description" />}
+            {!!exerciseNotes && !!description && <GroupHeader name="Program Exercise Description" />}
             <Markdown value={description} />
           </View>
         )}
-        {lastNote && timestamp && (
+        {!!lastNote && !!timestamp && (
           <View>
             <GroupHeader name={`Previous Note (from ${DateUtils_format(timestamp)})`} />
             <View className="pl-1 mb-1 border-purplev3-300" style={{ borderLeftWidth: 4 }}>
@@ -435,9 +447,9 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
         </View>
       </View>
       {!props.hidePlatesCalculator &&
-        nextSet &&
-        currentEquipmentName &&
-        (nextSet.completedWeight || nextSet.weight) && (
+        !!nextSet &&
+        !!currentEquipmentName &&
+        !!(nextSet.completedWeight || nextSet.weight) && (
           <View className="mx-4">
             <WorkoutPlatesCalculator
               entry={props.entry}

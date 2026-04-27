@@ -16,6 +16,7 @@ import { Exercise_eq } from "../../models/exercise";
 import { ExercisePickerUtils_getIsMultiselect, ExercisePickerUtils_chooseProgramExercise } from "./exercisePickerUtils";
 import { StringUtils_dashcase } from "../../utils/string";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
+import { Switch } from "../primitives/switch";
 
 interface IProps {
   evaluatedProgram: IEvaluatedProgram;
@@ -107,35 +108,49 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
                 );
                 const isItemDisabled = isMultiselect ? isUsedForDay || (isDisabled && !isSelected) : isUsedForDay;
                 const testId = `exercise-picker-program-${StringUtils_dashcase(exercise.name)}-${exercise.dayData.week}-${exercise.dayData.dayInWeek}`;
+                const choose = (): void => {
+                  ExercisePickerUtils_chooseProgramExercise(
+                    props.dispatch,
+                    anExerciseType,
+                    exercise.dayData.week,
+                    exercise.dayData.dayInWeek,
+                    props.state
+                  );
+                };
+                const dayContent = (
+                  <View>
+                    <Text className="px-1 pb-1 text-xs text-text-secondary">Day {exercise.dayData.dayInWeek}</Text>
+                    {displayGroups.map((g, gi) => (
+                      <HistoryRecordSet key={gi} sets={g} isNext={true} settings={props.settings} />
+                    ))}
+                  </View>
+                );
+                const rowKey = `${exercise.key}_${exercise.dayData.week}_${exercise.dayData.dayInWeek}`;
+                const rowClassName = `justify-end flex-row pb-1 ${isItemDisabled && !isAllDisabled ? "opacity-40" : ""}`;
+                if (isMultiselect) {
+                  return (
+                    <View key={rowKey} className={rowClassName} data-cy={testId} testID={testId}>
+                      <Pressable className="flex-row flex-1" disabled={isItemDisabled} onPress={choose}>
+                        {dayContent}
+                      </Pressable>
+                      <View className="items-center justify-center p-2">
+                        <Switch value={isSelected} disabled={isItemDisabled} onValueChange={choose} />
+                      </View>
+                    </View>
+                  );
+                }
                 return (
                   <Pressable
-                    key={`${exercise.key}_${exercise.dayData.week}_${exercise.dayData.dayInWeek}`}
-                    className={`flex-row pb-1 ${isItemDisabled && !isAllDisabled ? "opacity-40" : ""}`}
+                    key={rowKey}
+                    className={rowClassName}
                     disabled={isItemDisabled}
                     data-cy={testId}
                     testID={testId}
-                    onPress={() => {
-                      ExercisePickerUtils_chooseProgramExercise(
-                        props.dispatch,
-                        anExerciseType,
-                        exercise.dayData.week,
-                        exercise.dayData.dayInWeek,
-                        props.state
-                      );
-                    }}
+                    onPress={choose}
                   >
-                    <View>
-                      <Text className="px-1 pb-1 text-xs text-text-secondary">Day {exercise.dayData.dayInWeek}</Text>
-                      {displayGroups.map((g, gi) => (
-                        <HistoryRecordSet key={gi} sets={g} isNext={true} settings={props.settings} />
-                      ))}
-                    </View>
+                    {dayContent}
                     <View className="items-center justify-center p-2">
-                      {isMultiselect ? (
-                        <CheckboxIndicator checked={isSelected} />
-                      ) : (
-                        <RadioIndicator checked={isSelected} />
-                      )}
+                      <RadioIndicator checked={isSelected} />
                     </View>
                   </Pressable>
                 );
@@ -152,27 +167,10 @@ function RadioIndicator(props: { checked: boolean }): JSX.Element {
   const color = Tailwind_semantic().icon.purple;
   return (
     <View
-      className="items-center justify-center rounded-full border-2"
+      className="items-center justify-center border-2 rounded-full"
       style={{ width: 20, height: 20, borderColor: props.checked ? color : Tailwind_semantic().border.prominent }}
     >
       {props.checked && <View className="rounded-full" style={{ width: 10, height: 10, backgroundColor: color }} />}
-    </View>
-  );
-}
-
-function CheckboxIndicator(props: { checked: boolean }): JSX.Element {
-  const color = Tailwind_semantic().icon.purple;
-  return (
-    <View
-      className="items-center justify-center rounded border-2"
-      style={{
-        width: 20,
-        height: 20,
-        borderColor: props.checked ? color : Tailwind_semantic().border.prominent,
-        backgroundColor: props.checked ? color : "transparent",
-      }}
-    >
-      {props.checked && <Text className="text-xs font-bold text-text-alwayswhite">✓</Text>}
     </View>
   );
 }

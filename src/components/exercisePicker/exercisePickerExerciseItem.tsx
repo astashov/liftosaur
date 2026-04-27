@@ -18,6 +18,7 @@ import { ExerciseImage } from "../exerciseImage";
 import { IconEdit2 } from "../icons/iconEdit2";
 import { IconStar } from "../icons/iconStar";
 import { Muscle_getMusclesFromScreenMuscle, Muscle_getMuscleGroupName } from "../../models/muscle";
+import { Switch } from "../primitives/switch";
 
 interface IExerciseItemProps {
   exercise: IExercise;
@@ -103,28 +104,37 @@ export const ExercisePickerExerciseItem = memo(function ExercisePickerExerciseIt
         {onEdit && (
           <Pressable
             onPress={onEdit}
-            className="px-2 pb-2"
+            className="p-2"
             data-cy={`custom-exercise-edit-${StringUtils_dashcase(e.name)}`}
             testID={`custom-exercise-edit-${StringUtils_dashcase(e.name)}`}
           >
             <IconEdit2 />
           </Pressable>
         )}
-        {onChoose && (
-          <Pressable
-            className="p-2"
-            disabled={isDisabled}
-            data-cy={`menu-item-${StringUtils_dashcase(e.name)}`}
-            testID={`menu-item-${StringUtils_dashcase(e.name)}`}
-            onPress={() => onChoose(Exercise_toKey(e))}
-          >
-            {props.isMultiselect ? (
-              <CheckboxIndicator checked={!!props.isSelected} />
-            ) : (
+        {onChoose &&
+          (props.isMultiselect ? (
+            <View
+              className="p-2"
+              data-cy={`menu-item-${StringUtils_dashcase(e.name)}`}
+              testID={`menu-item-${StringUtils_dashcase(e.name)}`}
+            >
+              <Switch
+                value={!!props.isSelected}
+                disabled={isDisabled}
+                onValueChange={() => onChoose(Exercise_toKey(e))}
+              />
+            </View>
+          ) : (
+            <Pressable
+              className="p-2"
+              disabled={isDisabled}
+              data-cy={`menu-item-${StringUtils_dashcase(e.name)}`}
+              testID={`menu-item-${StringUtils_dashcase(e.name)}`}
+              onPress={() => onChoose(Exercise_toKey(e))}
+            >
               <RadioIndicator checked={!!props.isSelected} />
-            )}
-          </Pressable>
-        )}
+            </Pressable>
+          ))}
       </View>
     </View>
   );
@@ -134,27 +144,10 @@ function RadioIndicator(props: { checked: boolean }): JSX.Element {
   const color = Tailwind_semantic().icon.purple;
   return (
     <View
-      className="items-center justify-center rounded-full border-2"
+      className="items-center justify-center border-2 rounded-full"
       style={{ width: 20, height: 20, borderColor: props.checked ? color : Tailwind_semantic().border.prominent }}
     >
       {props.checked && <View className="rounded-full" style={{ width: 10, height: 10, backgroundColor: color }} />}
-    </View>
-  );
-}
-
-function CheckboxIndicator(props: { checked: boolean }): JSX.Element {
-  const color = Tailwind_semantic().icon.purple;
-  return (
-    <View
-      className="items-center justify-center rounded border-2"
-      style={{
-        width: 20,
-        height: 20,
-        borderColor: props.checked ? color : Tailwind_semantic().border.prominent,
-        backgroundColor: props.checked ? color : "transparent",
-      }}
-    >
-      {props.checked && <Text className="text-xs font-bold text-text-alwayswhite">✓</Text>}
     </View>
   );
 }

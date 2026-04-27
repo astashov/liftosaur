@@ -33,17 +33,25 @@ export function Button(props: IProps): JSX.Element {
   const { children, buttonSize, kind, disabled } = props;
   const testID = props.testID || props["data-cy"] || props.name;
 
-  const hasTextSize =
-    props.className &&
-    (props.className.includes("text-xs") ||
-      props.className.includes("text-sm") ||
-      props.className.includes("text-lg") ||
-      props.className.includes("text-base"));
+  // extract classname text size
+  const textSize = props.className
+    ? props.className.includes("text-xs")
+      ? "text-xs"
+      : props.className.includes("text-sm")
+        ? "text-sm"
+        : props.className.includes("text-lg")
+          ? "text-lg"
+          : props.className.includes("text-base")
+            ? "text-base"
+            : undefined
+    : undefined;
 
   let containerCn = "rounded-lg items-center justify-center";
-  let textCn = "";
-  if (!hasTextSize) {
+  let textCn = "text-center ";
+  if (!textSize) {
     textCn += "text-xs ";
+  } else {
+    textCn += textSize + " ";
   }
 
   if (disabled) {

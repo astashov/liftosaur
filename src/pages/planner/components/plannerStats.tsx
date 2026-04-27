@@ -27,57 +27,87 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
   const { setResults, settings, frequency, dispatch, focusedExercise, onEditSettings } = props;
   const showLink = !frequency;
   return (
-    <View className="mb-2 text-sm" data-cy="planner-stats">
-      <Text>
-        <Text className="text-text-secondary">Total Sets:</Text> {setResults.total}
+    <View className="mb-2" data-cy="planner-stats">
+      <Text className="text-sm">
+        <Text className="text-sm text-text-secondary">Total Sets:</Text> {setResults.total}
       </Text>
-      <Text>
-        <Text className="text-text-secondary">Strength Sets: </Text>
+      <Text className="text-sm">
+        <Text className="text-sm text-text-secondary">Strength Sets: </Text>
         <Text
-          className={
+          className={`text-sm ${
             props.colorize ? colorPctValue(setResults.total, setResults.strength, settings.planner.strengthSetsPct) : ""
-          }
+          }`}
         >
           {setResults.strength}
           {setResults.total > 0 ? `, ${Math.round((setResults.strength * 100) / setResults.total)}%` : ""}
         </Text>
       </Text>
-      <Text className="mb-2">
-        <Text className="text-text-secondary">Hypertrophy Sets: </Text>
+      <Text className="mb-2 text-sm">
+        <Text className="text-sm text-text-secondary">Hypertrophy Sets: </Text>
         <Text
-          className={
+          className={`text-sm ${
             props.colorize
               ? colorPctValue(setResults.total, setResults.hypertrophy, settings.planner.hypertrophySetsPct)
               : ""
-          }
+          }`}
         >
           {setResults.hypertrophy}
           {setResults.total > 0 ? `, ${Math.round((setResults.hypertrophy * 100) / setResults.total)}%` : ""}
         </Text>
       </Text>
-      <Text>
+      <Text className="text-sm">
         {labelSet("Upper Sets", showLink, ["upper"], [], dispatch, focusedExercise)}{" "}
-        <PlannerSetSplit split={setResults.upper} settings={settings} shouldIncludeFrequency={frequency} />
+        <PlannerSetSplit
+          split={setResults.upper}
+          settings={settings}
+          shouldIncludeFrequency={frequency}
+          textSize="text-sm"
+        />
       </Text>
-      <Text>
+      <Text className="text-sm">
         {labelSet("Lower Sets", showLink, ["lower"], [], dispatch, focusedExercise)}{" "}
-        <PlannerSetSplit split={setResults.lower} settings={settings} shouldIncludeFrequency={frequency} />
+        <PlannerSetSplit
+          split={setResults.lower}
+          settings={settings}
+          shouldIncludeFrequency={frequency}
+          textSize="text-sm"
+        />
       </Text>
-      <Text>
+      <Text className="text-sm">
         {labelSet("Core Sets", showLink, ["core"], [], dispatch, focusedExercise)}{" "}
-        <PlannerSetSplit split={setResults.core} settings={settings} shouldIncludeFrequency={frequency} />
+        <PlannerSetSplit
+          split={setResults.core}
+          settings={settings}
+          shouldIncludeFrequency={frequency}
+          textSize="text-sm"
+        />
       </Text>
-      <Text>
+      <Text className="text-sm">
         {labelSet("Push Sets", showLink, ["push"], [], dispatch, focusedExercise)}{" "}
-        <PlannerSetSplit split={setResults.push} settings={settings} shouldIncludeFrequency={frequency} />
+        <PlannerSetSplit
+          split={setResults.push}
+          settings={settings}
+          shouldIncludeFrequency={frequency}
+          textSize="text-sm"
+        />
       </Text>
-      <Text>
+      <Text className="text-sm">
         {labelSet("Pull Sets", showLink, ["pull"], [], dispatch, focusedExercise)}{" "}
-        <PlannerSetSplit split={setResults.pull} settings={settings} shouldIncludeFrequency={frequency} />
+        <PlannerSetSplit
+          split={setResults.pull}
+          settings={settings}
+          shouldIncludeFrequency={frequency}
+          textSize="text-sm"
+        />
       </Text>
-      <Text className="mb-4">
+      <Text className="mb-4 text-sm">
         {labelSet("Legs Sets", showLink, ["legs"], [], dispatch, focusedExercise)}{" "}
-        <PlannerSetSplit split={setResults.legs} settings={settings} shouldIncludeFrequency={frequency} />
+        <PlannerSetSplit
+          split={setResults.legs}
+          settings={settings}
+          shouldIncludeFrequency={frequency}
+          textSize="text-sm"
+        />
       </Text>
 
       <View className="w-32 mb-2">
@@ -85,8 +115,8 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
       </View>
 
       {onEditSettings && (
-        <View className="py-2 text-xs">
-          <LinkButton name="planner-stats-edit-settings" onClick={() => onEditSettings()}>
+        <View className="py-2">
+          <LinkButton name="planner-stats-edit-settings" className="text-xs" onClick={() => onEditSettings()}>
             Edit Weekly Muscle Range Settings
           </LinkButton>
         </View>
@@ -94,7 +124,7 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
 
       {ObjectUtils_keys(setResults.muscleGroup).map((muscleGroup) => {
         return (
-          <Text key={muscleGroup}>
+          <Text key={muscleGroup} className="text-sm">
             {labelSet(
               Muscle_getMuscleGroupName(muscleGroup, props.settings),
               showLink,
@@ -108,6 +138,7 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
               settings={settings}
               shouldIncludeFrequency={frequency}
               muscle={props.colorize ? muscleGroup : undefined}
+              textSize="text-sm"
             />
           </Text>
         );
@@ -128,7 +159,7 @@ export function labelSet(
     return (
       <LinkButton
         name={`planner-stats-${label}`}
-        className="font-normal"
+        className="text-sm font-normal"
         onClick={() => {
           dispatch(
             lb<IPlannerState>().p("ui").p("modalExercise").record({
@@ -144,7 +175,7 @@ export function labelSet(
       </LinkButton>
     );
   } else {
-    return <Text className="text-text-secondary">{label}:</Text>;
+    return <Text className="text-sm text-text-secondary">{label}:</Text>;
   }
 }
 
@@ -153,6 +184,7 @@ export function PlannerSetSplit(props: {
   settings: ISettings;
   shouldIncludeFrequency: boolean;
   muscle?: IScreenMuscle;
+  textSize?: string;
 }): JSX.Element {
   const { split, settings, shouldIncludeFrequency, muscle } = props;
   const total = split.strength + split.hypertrophy;
@@ -181,21 +213,23 @@ export function PlannerSetSplit(props: {
           )
       : undefined;
 
+  const textSize = props.textSize ?? "";
+
   return (
-    <Text onPress={handlePress}>
-      <Text className={setColor}>
+    <Text onPress={handlePress} className={textSize}>
+      <Text className={`${textSize} ${setColor}`.trim()}>
         {n(total, 0)}
         {setDirection}
       </Text>{" "}
       {total > 0 && (
-        <Text>
-          ({split.strength > 0 && <Text>{n(split.strength, 0)}s</Text>}
+        <Text className={textSize}>
+          ({split.strength > 0 && <Text className={textSize}>{n(split.strength, 0)}s</Text>}
           {split.strength > 0 && split.hypertrophy > 0 && ", "}
-          {split.hypertrophy > 0 && <Text>{n(split.hypertrophy, 0)}h</Text>})
+          {split.hypertrophy > 0 && <Text className={textSize}>{n(split.hypertrophy, 0)}h</Text>})
         </Text>
       )}
       {shouldIncludeFrequency && frequency > 0 && (
-        <Text className={frequencyColor}>, {Object.keys(split.frequency).length}d</Text>
+        <Text className={`${textSize} ${frequencyColor}`.trim()}>, {Object.keys(split.frequency).length}d</Text>
       )}
     </Text>
   );

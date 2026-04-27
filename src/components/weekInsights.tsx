@@ -77,6 +77,7 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
           <View className="ml-auto">
             <LinkButton
               name="toggle-week-insights"
+              className="text-sm"
               onPress={() =>
                 navigationRef.navigate("weekInsightsDetailsModal", {
                   selectedFirstDayOfWeek: props.selectedFirstDayOfWeek,
@@ -157,15 +158,15 @@ export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Eleme
         </View>
       )}
       <View className="mb-2">
-        <Text className="font-semibold">
+        <Text className="text-sm font-semibold">
           {"\u{1F4AA}"} {setResults.total} {StringUtils_pluralize("Set", setResults.total)}
         </Text>
       </View>
       <View>
-        <Text>
-          <Text className="text-text-secondary">Strength: </Text>
+        <Text className="text-sm">
+          <Text className="text-sm text-text-secondary">Strength: </Text>
           <Text
-            className={colorPctValue(setResults.total, setResults.strength, props.settings.planner.strengthSetsPct)}
+            className={`text-sm ${colorPctValue(setResults.total, setResults.strength, props.settings.planner.strengthSetsPct)}`}
           >
             {setResults.strength}
             {setResults.total > 0 ? `, ${Math.round((setResults.strength * 100) / setResults.total)}%` : ""}
@@ -173,14 +174,14 @@ export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Eleme
         </Text>
       </View>
       <View>
-        <Text>
-          <Text className="text-text-secondary">Hypertrophy: </Text>
+        <Text className="text-sm">
+          <Text className="text-sm text-text-secondary">Hypertrophy: </Text>
           <Text
-            className={colorPctValue(
+            className={`text-sm ${colorPctValue(
               setResults.total,
               setResults.hypertrophy,
               props.settings.planner.hypertrophySetsPct
-            )}
+            )}`}
           >
             {setResults.hypertrophy}
             {setResults.total > 0 ? `, ${Math.round((setResults.hypertrophy * 100) / setResults.total)}%` : ""}
@@ -189,31 +190,61 @@ export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Eleme
       </View>
       <View className="flex-row mt-2">
         <View className="flex-1 gap-1">
-          <Text>
-            <Text className="text-text-secondary">Upper:</Text>{" "}
-            <PlannerSetSplit split={setResults.upper} settings={props.settings} shouldIncludeFrequency={true} />
+          <Text className="text-sm">
+            <Text className="text-sm text-text-secondary">Upper:</Text>{" "}
+            <PlannerSetSplit
+              split={setResults.upper}
+              settings={props.settings}
+              shouldIncludeFrequency={true}
+              textSize="text-sm"
+            />
           </Text>
-          <Text>
-            <Text className="text-text-secondary">Lower:</Text>{" "}
-            <PlannerSetSplit split={setResults.lower} settings={props.settings} shouldIncludeFrequency={true} />
+          <Text className="text-sm">
+            <Text className="text-sm text-text-secondary">Lower:</Text>{" "}
+            <PlannerSetSplit
+              split={setResults.lower}
+              settings={props.settings}
+              shouldIncludeFrequency={true}
+              textSize="text-sm"
+            />
           </Text>
-          <Text>
-            <Text className="text-text-secondary">Core:</Text>{" "}
-            <PlannerSetSplit split={setResults.core} settings={props.settings} shouldIncludeFrequency={true} />
+          <Text className="text-sm">
+            <Text className="text-sm text-text-secondary">Core:</Text>{" "}
+            <PlannerSetSplit
+              split={setResults.core}
+              settings={props.settings}
+              shouldIncludeFrequency={true}
+              textSize="text-sm"
+            />
           </Text>
         </View>
         <View className="flex-1">
-          <Text>
-            <Text className="text-text-secondary">Push:</Text>{" "}
-            <PlannerSetSplit split={setResults.push} settings={props.settings} shouldIncludeFrequency={true} />
+          <Text className="text-sm">
+            <Text className="text-sm text-text-secondary">Push:</Text>{" "}
+            <PlannerSetSplit
+              split={setResults.push}
+              settings={props.settings}
+              shouldIncludeFrequency={true}
+              textSize="text-sm"
+            />
           </Text>
-          <Text>
-            <Text className="text-text-secondary">Pull:</Text>{" "}
-            <PlannerSetSplit split={setResults.pull} settings={props.settings} shouldIncludeFrequency={true} />
+          <Text className="text-sm">
+            <Text className="text-sm text-text-secondary">Pull:</Text>{" "}
+            <PlannerSetSplit
+              split={setResults.pull}
+              settings={props.settings}
+              shouldIncludeFrequency={true}
+              textSize="text-sm"
+            />
           </Text>
-          <Text>
-            <Text className="text-text-secondary">Legs:</Text>{" "}
-            <PlannerSetSplit split={setResults.legs} settings={props.settings} shouldIncludeFrequency={true} />
+          <Text className="text-sm">
+            <Text className="text-sm text-text-secondary">Legs:</Text>{" "}
+            <PlannerSetSplit
+              split={setResults.legs}
+              settings={props.settings}
+              shouldIncludeFrequency={true}
+              textSize="text-sm"
+            />
           </Text>
         </View>
       </View>
@@ -221,13 +252,16 @@ export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Eleme
         <View className="flex-1">
           {ObjectUtils_keys(setResults.muscleGroup).map((muscleGroup) => {
             return (
-              <Text key={muscleGroup}>
-                <Text className="text-text-secondary">{Muscle_getMuscleGroupName(muscleGroup, props.settings)}:</Text>{" "}
+              <Text key={muscleGroup} className="text-sm">
+                <Text className="text-sm text-text-secondary">
+                  {Muscle_getMuscleGroupName(muscleGroup, props.settings)}:
+                </Text>{" "}
                 <PlannerSetSplit
                   split={setResults.muscleGroup[muscleGroup]}
                   settings={props.settings}
                   shouldIncludeFrequency={true}
                   muscle={muscleGroup}
+                  textSize="text-sm"
                 />
               </Text>
             );
@@ -238,7 +272,11 @@ export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Eleme
         </View>
       </View>
       <View className="mt-2">
-        <LinkButton name="week-insights-show-planner-settings" onPress={props.onOpenPlannerSettings}>
+        <LinkButton
+          className="text-sm"
+          name="week-insights-show-planner-settings"
+          onPress={props.onOpenPlannerSettings}
+        >
           Change Set Range Settings
         </LinkButton>
       </View>

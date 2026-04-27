@@ -54,10 +54,13 @@ export function NavModalEditExerciseChange(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose} shouldShowClose={true}>
-      <Text className="mb-2 text-lg font-semibold text-center">Change Exercise</Text>
-      <View className="flex-row" style={{ gap: 16 }}>
-        <View>
+      <View className="mb-2 text-center">
+        <Text className="text-lg font-semibold text-center">Change Exercise</Text>
+      </View>
+      <View className="flex-row w-full" style={{ gap: 16 }}>
+        <View className="flex-1">
           <Button
+            className="text-center"
             name="edit-exercise-change-one"
             data-cy="edit-exercise-change-one"
             testID="edit-exercise-change-one"
@@ -81,8 +84,9 @@ export function NavModalEditExerciseChange(): JSX.Element {
             Change only for this week/day
           </Button>
         </View>
-        <View>
+        <View className="flex-1">
           <Button
+            className="text-center"
             name="edit-exercise-change-all"
             data-cy="edit-exercise-change-all"
             testID="edit-exercise-change-all"

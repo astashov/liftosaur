@@ -1,9 +1,10 @@
 import { JSX } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
-import { ModalScreenContainer } from "../ModalScreenContainer";
 import { BottomSheetNextWorkoutContent } from "../../components/bottomSheetNextWorkout";
 import { Program_getProgram } from "../../models/program";
+import { SheetScreenContainer } from "../SheetScreenContainer";
+import { Platform } from "react-native";
 
 export function NavModalNextWorkout(): JSX.Element {
   const { state, dispatch } = useAppState();
@@ -16,16 +17,22 @@ export function NavModalNextWorkout(): JSX.Element {
     navigation.goBack();
   };
 
-  return (
-    <ModalScreenContainer onClose={onClose} shouldShowClose={true} noPaddings={true}>
-      <BottomSheetNextWorkoutContent
-        currentProgram={currentProgram}
-        allPrograms={state.storage.programs}
-        settings={state.storage.settings}
-        stats={state.storage.stats}
-        dispatch={dispatch}
-        onClose={onClose}
-      />
-    </ModalScreenContainer>
+  const content = (
+    <BottomSheetNextWorkoutContent
+      currentProgram={currentProgram}
+      allPrograms={state.storage.programs}
+      settings={state.storage.settings}
+      stats={state.storage.stats}
+      dispatch={dispatch}
+      onClose={onClose}
+    />
+  );
+
+  return Platform.OS === "web" ? (
+    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
+      {content}
+    </SheetScreenContainer>
+  ) : (
+    content
   );
 }

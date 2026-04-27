@@ -46,6 +46,9 @@ function clamp(value: string | number, min?: number, max?: number): number | und
   return num;
 }
 
+let nextPadOwnerId = 1;
+let activePadOwnerId: number | null = null;
+
 export function InputNumber2(props: IInputNumber2Props): JSX.Element {
   const initialValue = props.value != null ? n(props.value) : "";
   const [value, setValue] = useState(initialValue);
@@ -86,14 +89,27 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
 
   const maxLength = (props.max?.toString().length ?? 5) + (props.allowDot ? 3 : 0) + (props.allowNegative ? 1 : 0);
 
+  const paddedScrollerRef = useRef<HTMLElement | null>(null);
+  const padOwnerIdRef = useRef<number>(0);
+  if (padOwnerIdRef.current === 0) {
+    padOwnerIdRef.current = nextPadOwnerId++;
+  }
+
   function resetKeyboardStyles(): void {
-    document.body.style.paddingBottom = "0px";
+    if (activePadOwnerId !== padOwnerIdRef.current) {
+      return;
+    }
     document.body.classList.remove("show-keyboard");
     document.querySelectorAll(".bottom-sticked").forEach((el) => {
       if (el instanceof HTMLElement) {
         el.style.bottom = "0px";
       }
     });
+    if (paddedScrollerRef.current) {
+      paddedScrollerRef.current.style.paddingBottom = "";
+      paddedScrollerRef.current = null;
+    }
+    activePadOwnerId = null;
   }
 
   useEffect(() => {
@@ -163,36 +179,47 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
         return;
       }
       document.body.classList.add("show-keyboard");
-      const paddingBottom = keyboardRef.current?.clientHeight ?? 0;
-      document.body.style.paddingBottom = `${paddingBottom}px`;
+      const keyboardHeight = keyboardRef.current?.clientHeight ?? 0;
 
       document.querySelectorAll(".bottom-sticked").forEach((el) => {
         if (el instanceof HTMLElement) {
-          el.style.bottom = `${paddingBottom}px`;
+          el.style.bottom = `${keyboardHeight}px`;
         }
       });
 
-      let scrollableContainer = containerRef.current as HTMLElement | null;
-      while (scrollableContainer && scrollableContainer.scrollHeight <= scrollableContainer.clientHeight) {
+      let scrollableContainer = containerRef.current?.parentElement as HTMLElement | null;
+      while (scrollableContainer && scrollableContainer !== document.documentElement) {
+        const overflowY = getComputedStyle(scrollableContainer).overflowY;
+        if (overflowY === "auto" || overflowY === "scroll" || overflowY === "overlay") {
+          break;
+        }
         scrollableContainer = scrollableContainer.parentElement;
       }
       scrollableContainer = scrollableContainer ?? document.documentElement;
 
-      const elementTop = (containerRef.current?.getBoundingClientRect().top ?? 0) + scrollableContainer.scrollTop;
-      const elementHeight = containerRef.current?.clientHeight ?? 0;
-      const elementCenter = elementTop + elementHeight / 2;
-      const scrollTop = scrollableContainer.scrollTop;
-      const scrollBottom =
-        scrollableContainer.clientHeight +
-        scrollTop -
-        (scrollableContainer === document.documentElement ? paddingBottom : 0);
+      const contentEl = scrollableContainer.firstElementChild as HTMLElement | null;
+      if (scrollableContainer !== document.documentElement && contentEl) {
+        contentEl.style.paddingBottom = `${keyboardHeight}px`;
+        paddedScrollerRef.current = contentEl;
+      }
+      activePadOwnerId = padOwnerIdRef.current;
 
-      if (elementCenter > scrollBottom || elementCenter < scrollTop) {
-        const top = elementCenter - scrollableContainer.clientHeight / 2;
-        scrollableContainer.scrollTo({
-          top: top,
-          behavior: "smooth",
-        });
+      const inputRect = containerRef.current?.getBoundingClientRect();
+      if (inputRect) {
+        const scrollerRect =
+          scrollableContainer === document.documentElement
+            ? { top: 0, bottom: window.innerHeight }
+            : scrollableContainer.getBoundingClientRect();
+        const visibleTop = scrollerRect.top;
+        const visibleBottom = Math.min(scrollerRect.bottom, window.innerHeight - keyboardHeight);
+        const margin = 16;
+
+        if (inputRect.bottom + margin > visibleBottom || inputRect.top - margin < visibleTop) {
+          const inputCenter = (inputRect.top + inputRect.bottom) / 2;
+          const targetCenter = (visibleTop + visibleBottom) / 2;
+          const delta = inputCenter - targetCenter;
+          scrollableContainer.scrollBy({ top: delta, behavior: "smooth" });
+        }
       }
     } else {
       if (!isMobile) {
