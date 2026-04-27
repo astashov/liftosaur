@@ -62,7 +62,7 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
 
   return (
     <View
-      className="py-2 px-2 mx-4 mb-3 rounded-lg bg-background-cardpurple relative"
+      className="relative px-2 py-2 mx-4 mb-3 rounded-lg bg-background-cardpurple"
       data-cy={StringUtils_dashcase(exercise.name)}
     >
       <View className="flex-row items-center gap-2">
@@ -100,7 +100,7 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
             <LinkButton
               name="exercise-equipment-picker"
               data-cy="exercise-equipment-picker"
-              className="text-xs font-normal"
+              className="text-xs font-semibold"
               onClick={() => {
                 props.plannerDispatch(
                   lb<IPlannerState>()
@@ -115,7 +115,7 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
               {currentEquipmentName || "None"}
             </LinkButton>
           </View>
-          {currentEquipmentNotes && (
+          {!!currentEquipmentNotes && (
             <View>
               <Markdown className="text-xs" value={currentEquipmentNotes} />
             </View>
@@ -126,7 +126,7 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
               <LinkButton
                 name="exercise-rm1-picker"
                 data-cy="exercise-rm1-picker"
-                className="text-xs font-normal"
+                className="text-xs font-semibold"
                 onClick={() => {
                   props.plannerDispatch(
                     lb<IPlannerState>()
@@ -157,15 +157,15 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
           <HistoryRecordSetsView sets={props.entry.sets} settings={props.settings} isNext={true} />
         </View>
       </View>
-      {exerciseNotes && (
+      {!!exerciseNotes && (
         <View className="mt-1">
-          {exerciseNotes && description && <GroupHeader name="Exercise Notes" />}
+          {!!exerciseNotes && !!description && <GroupHeader name="Exercise Notes" />}
           <Markdown className="text-sm" value={exerciseNotes} />
         </View>
       )}
-      {description && (
+      {!!description && (
         <View className="mt-1">
-          {exerciseNotes && description && <GroupHeader name="Program Exercise Description" />}
+          {!!exerciseNotes && !!description && <GroupHeader name="Program Exercise Description" />}
           <Markdown className="text-sm" value={description} />
         </View>
       )}

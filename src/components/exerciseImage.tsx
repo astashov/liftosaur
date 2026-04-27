@@ -63,7 +63,7 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
               className={`relative ${props.className} ${props.customClassName}`}
               style={{ paddingBottom: "100%" as unknown as number }}
             >
-              <View className="absolute inset-0 items-start justify-center bg-background-image">
+              <View className="absolute inset-0 items-start justify-center overflow-hidden bg-background-image">
                 <Text className="text-xs text-text-secondarysubtle" style={{ fontSize: 11, lineHeight: 13 }}>
                   {Exercise_nameWithEquipment(exercise, props.settings)}
                 </Text>

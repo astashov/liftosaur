@@ -62,6 +62,7 @@ function WorkoutExerciseThumbnailInner(props: IWorkoutExerciseThumbnailProps): J
           <ExerciseImage
             useTextForCustomExercise={true}
             className="h-10"
+            customClassName="w-10"
             exerciseType={entry.exercise}
             size="small"
             settings={props.settings}

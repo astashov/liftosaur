@@ -32,12 +32,12 @@ export function BottomSheetEditProgramV2Content(props: IBottomSheetEditProgramV2
         title="Copy Shareable Link to Program"
         icon={<IconLink />}
         description={
-          <Text>
+          <Text className="text-xs text-text-secondary">
             To share it with somebody
             {props.isAffiliateEnabled ? (
               <>
                 ,{" "}
-                <Text className="px-1 rounded-md border-border-cardyellow bg-background-yellowdark text-text-purple">
+                <Text className="px-1 text-xs rounded-md border-border-cardyellow bg-background-yellowdark text-text-purple">
                   as an affiliate link
                 </Text>
               </>

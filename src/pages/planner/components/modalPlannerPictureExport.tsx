@@ -189,7 +189,7 @@ function SettingsTab(props: ISettingsTabProps): JSX.Element {
 
   return (
     <div>
-      <div className="my-2 text-center">
+      <div className="flex flex-row items-center justify-center my-2">
         <Button
           disabled={isLoading}
           name="export-program-picture"
@@ -236,15 +236,21 @@ function SettingsTab(props: ISettingsTabProps): JSX.Element {
         }}
       />
       <GroupHeader name="Days to show" topPadding={true} />
-      <div className="text-sm">
-        <span className="mr-2">
-          <LinkButton name="select-all" onClick={() => setConfig({ ...config, daysToShow: props.initialDaysToShow })}>
+      <div className="flex flex-row gap-2 text-sm">
+        <div>
+          <LinkButton
+            className="text-sm"
+            name="select-all"
+            onClick={() => setConfig({ ...config, daysToShow: props.initialDaysToShow })}
+          >
             Select All
           </LinkButton>
-        </span>
-        <LinkButton name="deselect-all" onClick={() => setConfig({ ...config, daysToShow: [] })}>
-          Deselect All
-        </LinkButton>
+        </div>
+        <div>
+          <LinkButton className="text-sm" name="deselect-all" onClick={() => setConfig({ ...config, daysToShow: [] })}>
+            Deselect All
+          </LinkButton>
+        </div>
       </div>
       {props.program.weeks.map((week, weekIndex) => {
         const dayIndexes = week.days.map((_, i) => weekDayMapping[weekIndex][i]);

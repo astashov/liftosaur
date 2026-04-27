@@ -1,10 +1,10 @@
 import { JSX } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
-import { SheetScreenContainer } from "../SheetScreenContainer";
 import { BottomSheetChangeNextDayContent } from "../../components/bottomSheetChangeNextDay";
 import { Program_selectProgram, Program_getProgram } from "../../models/program";
 import { EditProgram_setNextDay } from "../../models/editProgram";
+import { ModalScreenContainer } from "../ModalScreenContainer";
 
 export function NavModalChangeNextDay(): JSX.Element {
   const { state, dispatch } = useAppState();
@@ -18,7 +18,7 @@ export function NavModalChangeNextDay(): JSX.Element {
   };
 
   return (
-    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
+    <ModalScreenContainer onClose={onClose} shouldShowClose={true}>
       <BottomSheetChangeNextDayContent
         initialCurrentProgramId={currentProgram?.id}
         allPrograms={state.storage.programs}
@@ -31,6 +31,6 @@ export function NavModalChangeNextDay(): JSX.Element {
         }}
         onClose={onClose}
       />
-    </SheetScreenContainer>
+    </ModalScreenContainer>
   );
 }

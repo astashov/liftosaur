@@ -83,23 +83,31 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
   }
 
   return (
-    <View className="flex-1" style={{ marginTop: -12 }}>
+    <View className="flex-1">
       <SheetDragHandle>
-        <View className="relative pt-4 mt-2">
-          <Text className="px-4 font-bold text-center">{title}</Text>
-          <View className="absolute flex-row top-4 left-4">
+        <View className="relative py-1">
+          <Text className="px-4 py-2 font-bold text-center">{title}</Text>
+          <View className="absolute flex-row top-3 left-4">
             <Pressable
               className="px-2"
               onPress={async () => {
-                const { navigationRef } = await getNavigationRef();
-                console.log("Navigate to exercise picker settings modal");
-                navigationRef.navigate("exercisePickerSettingsModal");
+                if (Platform.OS === "web") {
+                  props.dispatch(
+                    lb<IExercisePickerState>()
+                      .p("screenStack")
+                      .recordModify((stack) => [...stack, "settings"]),
+                    "Navigate to settings picker screen"
+                  );
+                } else {
+                  const { navigationRef } = await getNavigationRef();
+                  navigationRef.navigate("exercisePickerSettingsModal");
+                }
               }}
             >
               <IconFilter />
             </Pressable>
           </View>
-          <View className="absolute flex-row top-4 right-4">
+          <View className="absolute flex-row items-center top-3 right-4">
             <Pressable
               className="px-2"
               onPress={() => {

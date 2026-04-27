@@ -118,9 +118,9 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
           {!isCurrent && <HistoryRecordStats historyRecord={historyRecord} settings={props.settings} />}
           {historyRecord.notes && (
             <View className="mt-2">
-              <Text className="text-sm">
-                <Text>Note: </Text>
-                <Text className="text-text-secondary">{historyRecord.notes}</Text>
+              <Text>
+                <Text className="text-sm">Note: </Text>
+                <Text className="text-sm text-text-secondary">{historyRecord.notes}</Text>
               </Text>
             </View>
           )}
@@ -132,7 +132,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
                   data-cy="start-workout"
                   kind="purple"
                   className="w-full"
-                  onPress={() => undefined}
+                  onPress={handleCardPress}
                 >
                   Start
                 </Button>
@@ -142,7 +142,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
                   data-cy="start-workout"
                   kind="purple"
                   className="w-full"
-                  onPress={() => undefined}
+                  onPress={handleCardPress}
                 >
                   Continue
                 </Button>

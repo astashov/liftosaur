@@ -29,6 +29,7 @@ import { PlannerKey_fromPlannerExercise } from "../plannerKey";
 import { IconExternalLink } from "../../../components/icons/iconExternalLink";
 import { ExerciseImageUtils_exists } from "../../../models/exerciseImage";
 import { Muscle_getMuscleGroupName } from "../../../models/muscle";
+import { useRem } from "../../../utils/useRem";
 
 interface IPlannerExerciseStatsProps {
   settings: ISettings;
@@ -99,17 +100,18 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
   const volumeGraphData = getVolumePerWeeks(props.evaluatedWeeks, props.dayIndex, exercise.name);
   const intensityKey = JSON.stringify(intensityGraphData);
   const volumeKey = JSON.stringify(volumeGraphData);
+  const rem = useRem();
 
   return (
     <View>
-      <View className="flex-row mb-2">
-        <View className="w-12 mr-4">
-          <ExerciseImage exerciseType={exercise} size="small" />
+      <View className="flex-row gap-4 mb-2">
+        <View className="w-12">
+          <ExerciseImage exerciseType={exercise} size="small" width={rem * 3} />
         </View>
         <View className="flex-1">
           {ExerciseImageUtils_exists(exercise, "small") ? (
             <Pressable
-              className="mb-2 flex-row items-center"
+              className="flex-row items-center mb-2"
               onPress={() => {
                 Linking.openURL(Exercise_toExternalUrl(exercise)).catch(() => undefined);
               }}
@@ -126,6 +128,7 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
             <View>
               <LinkButton
                 name="planner-swap-exercise"
+                className="text-xs"
                 data-cy="planner-swap-exercise"
                 onClick={() => {
                   const exerciseKey = PlannerKey_fromPlannerExercise(evaluatedExercise, props.settings);
@@ -156,26 +159,29 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
             </View>
           )}
           <Text className="text-xs">
-            <Text className="text-text-secondary">Sets this day: </Text>
-            <Text>{PlannerProgramExercise_numberOfSets(evaluatedExercise)}</Text>
+            <Text className="text-xs text-text-secondary">Sets this day: </Text>
+            <Text className="text-xs">{PlannerProgramExercise_numberOfSets(evaluatedExercise)}</Text>
           </Text>
           <Text className="text-xs">
-            <Text className="text-text-secondary">Sets this week: </Text>
-            <Text>{PlannerProgramExercise_numberOfSetsThisWeek(evaluatedExercise.name, evaluatedWeek)}</Text>
+            <Text className="text-xs text-text-secondary">Sets this week: </Text>
+            <Text className="text-xs">
+              {PlannerProgramExercise_numberOfSetsThisWeek(evaluatedExercise.name, evaluatedWeek)}
+            </Text>
           </Text>
         </View>
       </View>
       <Text className="mt-1 text-xs">
-        <Text className="text-text-secondary">Target Muscles: </Text>
-        <Text className="font-bold">{targetMuscles.join(", ")}</Text>
+        <Text className="text-xs text-text-secondary">Target Muscles: </Text>
+        <Text className="text-xs font-bold">{targetMuscles.join(", ")}</Text>
       </Text>
       <Text className="text-xs">
-        <Text className="text-text-secondary">Synergist Muscles: </Text>
-        <Text className="font-bold">{synergeticMuscles.join(", ")}</Text>
+        <Text className="text-xs text-text-secondary">Synergist Muscles: </Text>
+        <Text className="text-xs font-bold">{synergeticMuscles.join(", ")}</Text>
       </Text>
       <View>
         <LinkButton
           name="edit-muscle-groups"
+          className="text-xs"
           onClick={() => {
             if (props.onEditMuscleGroupsOverride) {
               props.onEditMuscleGroupsOverride(exercise);
@@ -191,16 +197,17 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
         </LinkButton>
       </View>
       <Text className="mt-1 text-xs">
-        <Text className="text-text-secondary">Target Muscles Groups: </Text>
-        <Text className="font-bold">{targetMuscleGroups.join(", ")}</Text>
+        <Text className="text-xs text-text-secondary">Target Muscles Groups: </Text>
+        <Text className="text-xs font-bold">{targetMuscleGroups.join(", ")}</Text>
       </Text>
       <Text className="text-xs">
-        <Text className="text-text-secondary">Synergist Muscle Groups: </Text>
-        <Text className="font-bold">{synergeticMuscleGroups.join(", ")}</Text>
+        <Text className="text-xs text-text-secondary">Synergist Muscle Groups: </Text>
+        <Text className="text-xs font-bold">{synergeticMuscleGroups.join(", ")}</Text>
       </Text>
       <View>
         <LinkButton
           name="edit-muscle-groups"
+          className="text-xs"
           onClick={() => {
             props.dispatch([lb<IPlannerState>().pi("ui").p("showEditMuscleGroups").record(true)], "Edit muscle groups");
           }}

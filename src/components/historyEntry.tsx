@@ -48,7 +48,11 @@ export const HistoryEntryView = memo((props: IHistoryEntryProps): JSX.Element =>
       >
         <View className="flex-row items-center gap-2 min-h-8">
           <View className="flex-1 flex-shrink">
-            <Text data-cy="history-entry-exercise-name" testID="history-entry-exercise-name" className="font-semibold">
+            <Text
+              data-cy="history-entry-exercise-name"
+              testID="history-entry-exercise-name"
+              className="text-sm font-semibold"
+            >
               {Exercise_nameWithEquipment(exercise, props.settings)}
               {isPr && " \u{1F3C6}"}
             </Text>

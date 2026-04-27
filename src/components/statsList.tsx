@@ -1,4 +1,4 @@
-import { JSX, useEffect, useRef, useState } from "react";
+import { JSX, useEffect, useState } from "react";
 import { View, Pressable, TextInput, Image } from "react-native";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
@@ -273,28 +273,20 @@ interface IStatValueInputProps {
 }
 
 function StatValueInput(props: IStatValueInputProps): JSX.Element {
-  const inputRef = useRef<TextInput>(null);
-  const currentRef = useRef(String(props.value));
+  const [text, setText] = useState(String(props.value));
 
   useEffect(() => {
-    const newStr = String(props.value);
-    if (currentRef.current !== newStr) {
-      currentRef.current = newStr;
-      inputRef.current?.setNativeProps({ text: newStr });
-    }
+    setText(String(props.value));
   }, [props.value]);
 
   return (
     <TextInput
-      ref={inputRef}
       data-cy="input-stats-value"
       className="flex-1 w-0 min-w-0 p-2 text-right text-text-link bg-background-default"
       keyboardType="numeric"
-      defaultValue={currentRef.current}
-      onChangeText={(text) => {
-        currentRef.current = text;
-      }}
-      onBlur={() => props.onChange(currentRef.current)}
+      value={text}
+      onChangeText={setText}
+      onBlur={() => props.onChange(text)}
       selectTextOnFocus
     />
   );

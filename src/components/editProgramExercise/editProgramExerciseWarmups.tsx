@@ -89,7 +89,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
 
   return (
     <View className="px-4 py-2 bg-background-default">
-      <View className="flex-row gap-4 pb-2">
+      <View className="flex-row items-center gap-4 pb-2">
         <View className="flex-1">
           <Text className="text-base font-bold">Edit Warmups</Text>
         </View>

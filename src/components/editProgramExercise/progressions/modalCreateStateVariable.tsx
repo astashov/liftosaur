@@ -33,7 +33,7 @@ export function ModalCreateStateVariableContent(props: IModalCreateStateVariable
       <Text className="mb-1 text-lg font-bold text-center">Add New State Variable</Text>
       <Text className="mb-2 text-xs text-text-secondary">
         You can use state variables to store values between workouts, or parameterize your progress scripts. Use them
-        via <Text className="font-bold">state.yourVariable</Text> in the script.
+        via <Text className="text-xs font-bold">state.yourVariable</Text> in the script.
       </Text>
       <View className="w-full">
         <MenuItemEditable
