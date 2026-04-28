@@ -22,7 +22,7 @@ export function EditProgramCustomErrorCta(props: IPlannerEditorCustomCtaProps): 
   return (
     <Pressable
       className="nm-planner-add-custom-exercise"
-      data-cy="planner-add-custom-exercise"
+      data-cy="planner-add-custom-exercise" data-testid="planner-add-custom-exercise"
       testID="planner-add-custom-exercise"
       onPress={() => {
         props.dispatch(

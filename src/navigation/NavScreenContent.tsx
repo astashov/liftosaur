@@ -36,7 +36,7 @@ export function NavScreenContent(props: { children: ReactNode; stickyHeaderIndic
     <NavScreenScrollContext.Provider value={contextValue}>
       <ScrollView
         ref={scrollRef}
-        data-cy="screen"
+        data-cy="screen" data-testid="screen"
         testID="screen"
         className="bg-background-default"
         contentContainerStyle={{ flexGrow: 1 }}

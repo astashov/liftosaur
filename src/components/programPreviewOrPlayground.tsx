@@ -33,10 +33,12 @@ export function ProgramPreviewOrPlayground(props: IProgramPreviewOrPlaygroundPro
         {isWeb ? (
           <View className="mx-4 mt-2">
             {isMobile ? (
-              <View className="flex-row items-center py-3">
-                <Text className="flex-1 text-base text-text-primary">Enable Playground</Text>
-                <Switch value={isPlayground} onValueChange={setIsPlayground} />
-              </View>
+              <MenuItemEditable
+                name="Enable Playground"
+                type="boolean"
+                value={isPlayground ? "true" : "false"}
+                onChange={(v) => setIsPlayground(v === "true")}
+              />
             ) : (
               <View className="flex-row items-center">
                 <Text className="mr-2">Enable Playground:</Text>

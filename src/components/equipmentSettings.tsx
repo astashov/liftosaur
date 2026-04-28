@@ -178,7 +178,7 @@ export function EquipmentRowHeader<T>(props: IEquipmentRowHeaderProps<T>): JSX.E
           <Pressable
             className="px-2"
             testID={`group-header-${StringUtils_dashcase(name)}`}
-            data-cy={`group-header-${StringUtils_dashcase(name)}`}
+            data-cy={`group-header-${StringUtils_dashcase(name)}`} data-testid={`group-header-${StringUtils_dashcase(name)}`}
             onPress={props.onToggle}
           >
             {props.isExpanded ? <IconArrowUp /> : <IconArrowDown2 />}
@@ -193,7 +193,7 @@ export function EquipmentRowHeader<T>(props: IEquipmentRowHeaderProps<T>): JSX.E
           <Pressable
             className="p-2"
             testID={`delete-equipment-${StringUtils_dashcase(name)}`}
-            data-cy={`delete-equipment-${StringUtils_dashcase(name)}`}
+            data-cy={`delete-equipment-${StringUtils_dashcase(name)}`} data-testid={`delete-equipment-${StringUtils_dashcase(name)}`}
             onPress={() => {
               const doDelete = (): void => {
                 LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -459,7 +459,7 @@ function EquipmentSettingsFixed<T>(props: IEquipmentSettingsFixedProps<T>): JSX.
             value={
               <Pressable
                 testID="nm-remove-fixed-weight"
-                data-cy="nm-remove-fixed-weight"
+                data-cy="nm-remove-fixed-weight" data-testid="nm-remove-fixed-weight"
                 onPress={() => {
                   const newFixedWeights = equipmentData.fixed.filter((p) => !Weight_eqeq(p, weight));
                   const lensRecording = props.lensPrefix

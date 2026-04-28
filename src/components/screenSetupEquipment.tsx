@@ -72,7 +72,7 @@ export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Ele
                 <Pressable
                   key={eqid}
                   testID={`equipment-toggle-${eqid}`}
-                  data-cy={`equipment-toggle-${eqid}`}
+                  data-cy={`equipment-toggle-${eqid}`} data-testid={`equipment-toggle-${eqid}`}
                   className={`flex-row items-center px-4 py-3 border rounded-xl ${
                     isEnabled
                       ? "bg-background-subtlecardpurple border-border-cardpurple"
@@ -142,7 +142,7 @@ export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Ele
             name="setup-equipment-skip"
             kind="lightgrayv3"
             buttonSize="lg"
-            data-cy="setup-equipment-skip"
+            data-cy="setup-equipment-skip" data-testid="setup-equipment-skip" testID="setup-equipment-skip"
             onClick={() => props.dispatch(Thunk_pushScreen("programselect"))}
           >
             Skip
@@ -152,7 +152,7 @@ export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Ele
             name="setup-equipment-continue"
             kind="purple"
             buttonSize="lg"
-            data-cy="setup-equipment-continue"
+            data-cy="setup-equipment-continue" data-testid="setup-equipment-continue" testID="setup-equipment-continue"
             onClick={() => props.dispatch(Thunk_pushScreen("setupplates"))}
           >
             Set up plates
@@ -318,7 +318,7 @@ export function ScreenSetupPlates(props: IScreenSetupPlatesProps): JSX.Element {
           kind="purple"
           buttonSize="lg"
           onClick={() => props.dispatch(Thunk_pushScreen("programselect"))}
-          data-cy="setup-plates-continue"
+          data-cy="setup-plates-continue" data-testid="setup-plates-continue" testID="setup-plates-continue"
         >
           Continue
         </Button>

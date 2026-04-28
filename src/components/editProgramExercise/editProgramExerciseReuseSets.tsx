@@ -110,7 +110,7 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
       )}
       <Pressable
         className="flex-1 px-4 mb-2"
-        data-cy="edit-exercise-reuse-sets"
+        data-cy="edit-exercise-reuse-sets" data-testid="edit-exercise-reuse-sets"
         testID="edit-exercise-reuse-sets"
         onPress={() => {
           if (reusingSetsExercises.length > 0) {
@@ -224,7 +224,7 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
             (isOverriding ? (
               <LinkButton
                 className="text-sm"
-                data-cy="edit-exercise-remove-override-sets"
+                data-cy="edit-exercise-remove-override-sets" data-testid="edit-exercise-remove-override-sets" testID="edit-exercise-remove-override-sets"
                 name="edit-exercise-remove-override-sets"
                 onClick={() => {
                   EditProgramUiHelpers_changeCurrentInstanceExercise(
@@ -246,7 +246,7 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
               <LinkButton
                 className="text-sm"
                 name="edit-exercise-override-sets"
-                data-cy="edit-exercise-override-sets"
+                data-cy="edit-exercise-override-sets" data-testid="edit-exercise-override-sets" testID="edit-exercise-override-sets"
                 onClick={() => {
                   props.plannerDispatch(
                     lbProgram.recordModify((program) => {

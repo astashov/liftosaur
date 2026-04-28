@@ -31,7 +31,7 @@ export function MenuItemWrapper(props: {
     return (
       <Pressable
         testID={testId}
-        data-cy={testId}
+        data-cy={testId} data-testid={testId}
         className="w-full"
         onPress={(e) => props.onClick?.(e as unknown as React.MouseEvent)}
       >
@@ -40,7 +40,7 @@ export function MenuItemWrapper(props: {
     );
   }
   return (
-    <View testID={testId} data-cy={testId} className="w-full">
+    <View testID={testId} data-cy={testId} data-testid={testId} className="w-full">
       {inner}
     </View>
   );

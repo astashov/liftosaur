@@ -48,7 +48,8 @@ function WorkoutExerciseThumbnailInner(props: IWorkoutExerciseThumbnailProps): J
         onPress={props.onClick}
         data-name={`workout-exercise-tab-${entryIndex}`}
         testID={`workout-tab-${StringUtils_dashcase(exercise.name)}`}
-        data-cy={`workout-tab-${StringUtils_dashcase(exercise.name)}`}
+        data-cy={`workout-tab-${StringUtils_dashcase(exercise.name)}`} data-testid={`workout-tab-${StringUtils_dashcase(exercise.name)}`}
+        dataSet={{ isSelected: isCurrent ? "true" : "false" }}
         className="bg-background-default"
         style={{ paddingHorizontal: 2 }}
       >

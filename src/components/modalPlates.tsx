@@ -20,6 +20,7 @@ export function ModalPlatesContent(props: IProps): JSX.Element {
     <View>
       <Text className="mb-4 text-lg font-bold">Enter new plate weight</Text>
       <Input
+        identifier="plate"
         type="number"
         required={true}
         requiredMessage="Please enter a plate weight"
@@ -35,7 +36,7 @@ export function ModalPlatesContent(props: IProps): JSX.Element {
         <Button
           name="modal-new-plate-weight-submit"
           kind="purple"
-          data-cy="add-plate"
+          data-cy="add-plate" data-testid="add-plate" testID="add-plate"
           onClick={() => {
             if (result?.success) {
               const numValue = parseFloat(result.data);

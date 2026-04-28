@@ -44,7 +44,7 @@ export function BottomSheet(props: IProps): JSX.Element {
     <div
       className={`fixed inset-0 ${!props.zIndex ? "z-40" : ""} pointer-events-none`}
       style={{ zIndex: props.zIndex }}
-      data-cy="bottom-sheet-container"
+      data-cy="bottom-sheet-container" data-testid="bottom-sheet-container" testID="bottom-sheet-container"
     >
       <div
         data-name="overlay"
@@ -61,7 +61,7 @@ export function BottomSheet(props: IProps): JSX.Element {
         className={`bottom-sticked absolute bottom-0 left-0 flex w-full overflow-y-auto bg-background-default pointer-events-auto will-change-transform ${
           props.isHidden ? "invisible" : "visible"
         }`}
-        data-cy="bottom-sheet"
+        data-cy="bottom-sheet" data-testid="bottom-sheet" testID="bottom-sheet"
         style={{
           transition: "transform 0.2s ease-out, visibility 0.2s",
           transform: `translateY(${bottomShift}px)`,
@@ -71,7 +71,7 @@ export function BottomSheet(props: IProps): JSX.Element {
       >
         {props.shouldShowClose && (
           <button
-            data-cy={`bottom-sheet-close`}
+            data-cy={`bottom-sheet-close`} data-testid={`bottom-sheet-close`} testID={`bottom-sheet-close`}
             onClick={props.onClose}
             className="absolute top-0 right-0 z-20 p-2 nm-bottom-sheet-close"
           >

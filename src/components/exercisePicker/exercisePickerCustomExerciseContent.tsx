@@ -154,8 +154,8 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
             Name<Text className="text-text-error"> *</Text>
           </Text>
           <TextInput
-            data-cy="custom-exercise-name"
-            testID="custom-exercise-name"
+            data-cy="custom-exercise-name-input" data-testid="custom-exercise-name-input"
+            testID="custom-exercise-name-input"
             defaultValue={editCustomExercise.name}
             placeholder="Super Squat"
             className="px-4 py-2 text-base border rounded-lg bg-background-default border-border-prominent text-text-primary"
@@ -326,7 +326,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
           <Button
             name="delete-custom-exercise"
             kind="red"
-            data-cy="custom-exercise-delete"
+            data-cy="custom-exercise-delete" data-testid="custom-exercise-delete" testID="custom-exercise-delete"
             buttonSize="md"
             className="w-full mt-4"
             onPress={async () => {
@@ -611,7 +611,7 @@ function ExercisePickerCustomExerciseMuscles(props: IExercisePickerCustomExercis
         <Text className="text-sm">{props.label}</Text>
         <Text className="text-xs text-text-secondary"> (optional)</Text>
       </Text>
-      <Pressable onPress={openPicker} data-cy={`select-${props.name}`} testID={`select-${props.name}`}>
+      <Pressable onPress={openPicker} data-cy={`select-${props.name}`} data-testid={`select-${props.name}`} testID={`select-${props.name}`}>
         <ExercisePickerCustomExercise2SelectInput selectedValues={props.selectedMuscles} />
       </Pressable>
       {props.useInlineModals && isOpened && (
@@ -634,7 +634,7 @@ function ExercisePickerCustomExerciseMuscles(props: IExercisePickerCustomExercis
             <View className="py-2 bg-background-default">
               <Button
                 kind="purple"
-                data-cy="done-selecting-muscles"
+                data-cy="done-selecting-muscles" data-testid="done-selecting-muscles" testID="done-selecting-muscles"
                 name="done-selecting-muscles"
                 className="w-full"
                 buttonSize="md"

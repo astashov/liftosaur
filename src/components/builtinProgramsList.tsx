@@ -153,9 +153,11 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
 
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={entry.name}
       className="flex-row items-center w-full p-3 mb-4 border rounded-lg bg-background-cardpurple border-border-cardpurple"
       onPress={props.onClick}
-      data-cy="program-list-choose-program"
+      data-cy="program-list-choose-program" data-testid="program-list-choose-program"
       testID="program-list-choose-program"
     >
       <View className="flex-1">

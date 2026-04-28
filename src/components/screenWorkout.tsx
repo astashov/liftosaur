@@ -146,7 +146,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
     navRightButtons: [
       <Pressable
         key="delete"
-        data-cy="delete-progress"
+        data-cy="delete-progress" data-testid="delete-progress"
         testID="delete-progress"
         className="p-2"
         onPress={() => {

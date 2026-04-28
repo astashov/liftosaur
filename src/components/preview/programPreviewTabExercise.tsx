@@ -63,7 +63,7 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
   return (
     <View
       className="relative px-2 py-2 mx-4 mb-3 rounded-lg bg-background-cardpurple"
-      data-cy={StringUtils_dashcase(exercise.name)}
+      data-cy={StringUtils_dashcase(exercise.name)} data-testid={StringUtils_dashcase(exercise.name)} testID={StringUtils_dashcase(exercise.name)}
     >
       <View className="flex-row items-center gap-2">
         <ProgramPreviewTabExerciseTopBar
@@ -95,11 +95,11 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
               <IconArrowRight width={5} height={10} style={{ marginBottom: 1 }} />
             </Pressable>
           </View>
-          <View data-cy="exercise-equipment" className="flex-row flex-wrap items-center">
+          <View data-cy="exercise-equipment" data-testid="exercise-equipment" testID="exercise-equipment" className="flex-row flex-wrap items-center">
             <Text className="text-xs text-text-secondary">Equipment: </Text>
             <LinkButton
               name="exercise-equipment-picker"
-              data-cy="exercise-equipment-picker"
+              data-cy="exercise-equipment-picker" data-testid="exercise-equipment-picker" testID="exercise-equipment-picker"
               className="text-xs font-semibold"
               onClick={() => {
                 props.plannerDispatch(
@@ -121,11 +121,11 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
             </View>
           )}
           {programExercise && ProgramExercise_doesUse1RM(programExercise) && (
-            <View data-cy="exercise-rm1" className="flex-row flex-wrap items-center">
+            <View data-cy="exercise-rm1" data-testid="exercise-rm1" testID="exercise-rm1" className="flex-row flex-wrap items-center">
               <Text className="text-xs text-text-secondary">1RM: </Text>
               <LinkButton
                 name="exercise-rm1-picker"
-                data-cy="exercise-rm1-picker"
+                data-cy="exercise-rm1-picker" data-testid="exercise-rm1-picker" testID="exercise-rm1-picker"
                 className="text-xs font-semibold"
                 onClick={() => {
                   props.plannerDispatch(
@@ -143,7 +143,7 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
             </View>
           )}
           {supersetExercise && (
-            <View data-cy="exercise-superset">
+            <View data-cy="exercise-superset" data-testid="exercise-superset" testID="exercise-superset">
               <Text className="text-xs text-text-secondary">
                 Supersets with:{" "}
                 <Text className="text-xs font-bold text-text-secondary">
@@ -193,7 +193,7 @@ function ProgramPreviewTabExerciseTopBar(props: IProgramPreviewTabExerciseTopBar
       <View className="flex-row items-center gap-2">
         <Pressable
           className="nm-program-details-playground-edit"
-          data-cy="program-preview-edit-exercise"
+          data-cy="program-preview-edit-exercise" data-testid="program-preview-edit-exercise"
           testID="program-preview-edit-exercise"
           onPress={() => {
             props.plannerDispatch(

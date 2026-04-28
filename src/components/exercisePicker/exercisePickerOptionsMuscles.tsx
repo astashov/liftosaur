@@ -64,7 +64,7 @@ export function ExercisePickerOptionsMuscles(props: IProps): JSX.Element {
                   <View key={key} style={{ width: "50%" }} className="p-1">
                     <Pressable
                       testID={`select-muscle-${StringUtils_dashcase(value.label)}`}
-                      data-cy={`select-muscle-${StringUtils_dashcase(value.label)}`}
+                      data-cy={`select-muscle-${StringUtils_dashcase(value.label)}`} data-testid={`select-muscle-${StringUtils_dashcase(value.label)}`}
                       className={`bg-background-subtle flex-row items-center min-h-14 rounded-lg border ${value.isSelected ? "border-text-purple" : "border-border-neutral"}`}
                       style={{ borderWidth: value.isSelected ? 2 : 1 }}
                       onPress={() => props.onSelect(key)}

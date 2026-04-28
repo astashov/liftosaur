@@ -31,7 +31,7 @@ export function Multiselect(props: IMultiselectProps): JSX.Element {
       ) : null}
       <View className="relative z-20">
         <TextInput
-          data-cy={`multiselect-${props.id}`}
+          data-cy={`multiselect-${props.id}`} data-testid={`multiselect-${props.id}`}
           testID={`multiselect-${props.id}`}
           placeholder={props.placeholder}
           value={filter}
@@ -51,7 +51,7 @@ export function Multiselect(props: IMultiselectProps): JSX.Element {
               {filteredValues.map((value) => (
                 <Pressable
                   key={value}
-                  data-cy={`multiselect-option-${StringUtils_dashcase(value)}`}
+                  data-cy={`multiselect-option-${StringUtils_dashcase(value)}`} data-testid={`multiselect-option-${StringUtils_dashcase(value)}`}
                   testID={`multiselect-option-${StringUtils_dashcase(value)}`}
                   onPress={() => {
                     const newValues = new Set([...selectedValues, value]);

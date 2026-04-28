@@ -111,6 +111,7 @@ export function NavModalExercisePicker(): JSX.Element {
               );
               if (programExercise && programExercise.exerciseType) {
                 if (exercisePickerState.entryIndex == null) {
+                  const newEntryIndex = progress.entries.length;
                   updateProgress(
                     dispatch,
                     [
@@ -127,6 +128,7 @@ export function NavModalExercisePicker(): JSX.Element {
                           );
                           return [...entries, nextHistoryEntry].map((e, i) => ({ ...e, index: i }));
                         }),
+                      lb<IHistoryRecord>().pi("ui", {}).p("currentEntryIndex").record(newEntryIndex),
                     ],
                     "add-exercise"
                   );

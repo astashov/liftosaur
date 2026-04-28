@@ -20,7 +20,7 @@ export async function PlaywrightUtils_clearCodeMirror(page: Page, dataCy: string
   await page.evaluate(
     ([theDataCy, theIndex]) => {
       const i = parseInt(`${theIndex ?? "0"}`, 10);
-      const cmContent = document.querySelectorAll(`[data-cy=${theDataCy}] .cm-content`)[i] as any;
+      const cmContent = document.querySelectorAll(`[data-testid=${theDataCy}] .cm-content`)[i] as any;
       cmContent.cmView.view.update([
         cmContent.cmView.view.state.update({
           changes: { from: 0, to: cmContent.cmView.view.state.doc.length, insert: "" },
@@ -105,7 +105,7 @@ export function PlaywrightUtils_typeCodeMirror(
   return page.evaluate(
     ([theDataCy, theText, theIndex]) => {
       const i = parseInt(`${theIndex ?? "0"}`, 10);
-      const cmContent = document.querySelectorAll(`[data-cy=${theDataCy}] .cm-content`)[i] as any;
+      const cmContent = document.querySelectorAll(`[data-testid=${theDataCy}] .cm-content`)[i] as any;
       cmContent.cmView.view.update([
         cmContent.cmView.view.state.update({
           changes: { from: 0, to: cmContent.cmView.view.state.doc.length, insert: theText },

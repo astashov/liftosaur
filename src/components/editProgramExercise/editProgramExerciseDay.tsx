@@ -1,5 +1,5 @@
 import { JSX, useState } from "react";
-import { View, Pressable } from "react-native";
+import { View, Pressable, Platform } from "react-native";
 import { Text } from "../primitives/text";
 import { IPlannerExerciseState, IPlannerExerciseUi } from "../../pages/planner/models/types";
 import { IExerciseType, ISettings } from "../../types";
@@ -42,6 +42,8 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
   const [showRepeat, setShowRepeat] = useState((plannerExercise?.repeating.length ?? 0) > 0);
   const [showOrder, setShowOrder] = useState((plannerExercise?.order ?? 0) !== 0);
   const [showSupersets, setShowSupersets] = useState(plannerExercise?.superset != null);
+  const [isKebabMenuOpen, setIsKebabMenuOpen] = useState(false);
+  const kebabMenuZIndex = Platform.OS === "web" && isKebabMenuOpen ? { zIndex: 50 } : undefined;
 
   const dayKebabActions: IActionMenuAction[] = plannerExercise
     ? (() => {
@@ -171,11 +173,12 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
 
   return (
     <View
-      className="py-3 border bg-background-default rounded-2xl border-border-neutral"
-      data-cy={`edit-day-${props.weekIndex + 1}-${props.dayInWeekIndex + 1}`}
+      className="py-3 mb-4 border bg-background-default rounded-2xl border-border-neutral"
+      data-cy={`edit-day-${props.weekIndex + 1}-${props.dayInWeekIndex + 1}`} data-testid={`edit-day-${props.weekIndex + 1}-${props.dayInWeekIndex + 1}`}
       testID={`edit-day-${props.weekIndex + 1}-${props.dayInWeekIndex + 1}`}
+      style={kebabMenuZIndex}
     >
-      <View className="flex-row items-center gap-4 px-4 pb-2">
+      <View className="flex-row items-center gap-4 px-4 pb-2" style={kebabMenuZIndex}>
         <View className="flex-1">
           <Text className="text-base font-bold">{day?.name}</Text>
         </View>
@@ -183,8 +186,9 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
           <View className="relative flex-row items-center">
             <ActionMenu
               actions={dayKebabActions}
+              onOpenChange={setIsKebabMenuOpen}
               renderTrigger={(open) => (
-                <Pressable data-cy="day-kebab-menu" testID="day-kebab-menu" className="p-2" onPress={open}>
+                <Pressable data-cy="day-kebab-menu" data-testid="day-kebab-menu" testID="day-kebab-menu" className="p-2" onPress={open}>
                   <IconKebab />
                 </Pressable>
               )}

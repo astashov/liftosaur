@@ -59,7 +59,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
             placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
             defaultValue=""
             onChangeText={(text) => setSearch(text)}
-            data-cy="program-search"
+            data-cy="program-search" data-testid="program-search"
             testID="program-search"
           />
         </View>
@@ -72,7 +72,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
                 key={label}
                 className="items-center flex-1 pb-2"
                 onPress={() => setSelectedTab(index)}
-                data-cy={`tab-${label.toLowerCase()}`}
+                data-cy={`tab-${label.toLowerCase()}`} data-testid={`tab-${label.toLowerCase()}`}
                 testID={`tab-${label.toLowerCase()}`}
               >
                 <Text
@@ -137,7 +137,7 @@ function Footer(props: IFooterProps): JSX.Element {
     <View className="flex-row items-stretch justify-around px-2 py-4 border-t border-border-neutral bg-background-default">
       <Pressable
         className="items-center justify-center flex-1"
-        data-cy="create-program"
+        data-cy="create-program" data-testid="create-program"
         testID="create-program"
         onPress={props.onCreate}
       >
@@ -146,7 +146,7 @@ function Footer(props: IFooterProps): JSX.Element {
       <View style={{ width: 1 }} className="bg-background-subtle" />
       <Pressable
         className="items-center justify-center flex-1"
-        data-cy="empty-program"
+        data-cy="empty-program" data-testid="empty-program"
         testID="empty-program"
         onPress={props.onEmpty}
       >

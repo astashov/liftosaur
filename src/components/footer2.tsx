@@ -83,7 +83,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
         </View>
         <View className="items-center w-20">
           <Pressable
-            data-cy="footer-workout"
+            data-cy="footer-workout" data-testid="footer-workout"
             testID="footer-workout"
             className="mt-[-1.5rem]"
             onPress={() => {

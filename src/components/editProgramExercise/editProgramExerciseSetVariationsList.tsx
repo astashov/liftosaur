@@ -39,7 +39,7 @@ export function EditProgramExerciseSetVariationsList(props: IEditProgramExercise
           </View>
           <View className="flex-row items-center gap-1">
             <Pressable
-              data-cy="set-variations-add"
+              data-cy="set-variations-add" data-testid="set-variations-add"
               testID="set-variations-add"
               className="p-1 mr-4 border rounded-full border-border-neutral"
               onPress={() => {
@@ -60,7 +60,7 @@ export function EditProgramExerciseSetVariationsList(props: IEditProgramExercise
             </Pressable>
             <Pressable
               className="p-1 border rounded-full border-border-neutral"
-              data-cy="set-variations-scroll-left"
+              data-cy="set-variations-scroll-left" data-testid="set-variations-scroll-left"
               testID="set-variations-scroll-left"
               onPress={() => {
                 if (!scrollRef.current) {
@@ -74,7 +74,7 @@ export function EditProgramExerciseSetVariationsList(props: IEditProgramExercise
               </View>
             </Pressable>
             <Pressable
-              data-cy="set-variations-scroll-right"
+              data-cy="set-variations-scroll-right" data-testid="set-variations-scroll-right"
               testID="set-variations-scroll-right"
               className="p-1 border rounded-full border-border-neutral"
               onPress={() => {
@@ -107,7 +107,7 @@ export function EditProgramExerciseSetVariationsList(props: IEditProgramExercise
               return (
                 <View
                   key={index}
-                  data-cy={`set-variation-${index + 1}`}
+                  data-cy={`set-variation-${index + 1}`} data-testid={`set-variation-${index + 1}`}
                   testID={`set-variation-${index + 1}`}
                   style={{ width: pageWidth }}
                 >

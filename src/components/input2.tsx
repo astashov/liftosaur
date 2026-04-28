@@ -103,7 +103,7 @@ export const Input2 = forwardRef((props: IProps, ref: Ref<HTMLInputElement>): JS
       <div className="relative flex">
         <input
           id={identifier}
-          data-cy={`${identifier}-input`}
+          data-cy={`${identifier}-input`} data-testid={`${identifier}-input`} testID={`${identifier}-input`}
           ref={ref}
           onBlur={changeType === "onblur" ? onInputHandler : undefined}
           onInput={changeType === "oninput" ? onInputHandler : undefined}

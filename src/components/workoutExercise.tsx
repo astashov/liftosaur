@@ -92,7 +92,7 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
   }, [dispatch, shouldHideGraphs]);
 
   return (
-    <View data-cy={`exercise-progress-${status}`}>
+    <View data-cy={`exercise-progress-${status}`} data-testid={`exercise-progress-${status}`} testID={`exercise-progress-${status}`}>
       <WorkoutExerciseCard
         day={props.day}
         stats={props.stats}
@@ -124,7 +124,7 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
       {!props.settings.workoutSettings.shouldHideGraphs && (
         <>
           {history.length > 1 && isHeavyContentReady && (
-            <View data-cy="workout-stats-graph" className="relative mx-4 mt-2">
+            <View data-cy="workout-stats-graph" data-testid="workout-stats-graph" testID="workout-stats-graph" className="relative mx-4 mt-2">
               <Locker topic="Graphs" dispatch={props.dispatch} blur={8} subscription={props.subscription} />
               <ActiveGraphContext.Provider value={activeGraphValue}>
                 <GraphExercise

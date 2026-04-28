@@ -147,7 +147,7 @@ export function ExerciseImageLibraryContent(props: IExerciseImageLibraryContentP
             placeholder="Search by name"
             placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
             className="flex-1 text-sm text-text-secondary"
-            data-cy="exercise-filter-by-name"
+            data-cy="exercise-filter-by-name" data-testid="exercise-filter-by-name"
             testID="exercise-filter-by-name"
             defaultValue={search}
             onChangeText={setSearch}

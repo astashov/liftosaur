@@ -44,7 +44,7 @@ export function InputSelectValue<T extends string>(props: IInputSelectProps<T>):
 
   return (
     <Pressable
-      data-cy={`select-${props.name}`}
+      data-cy={`select-${props.name}`} data-testid={`select-${props.name}`}
       testID={`select-${props.name}`}
       className="flex-row items-center w-full gap-2 p-2 border rounded bg-background-default border-border-neutral"
       onPress={() => {

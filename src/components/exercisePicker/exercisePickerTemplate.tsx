@@ -20,7 +20,7 @@ export function ExercisePickerTemplate(props: IProps): JSX.Element {
           Template Name<Text className="text-text-error"> *</Text>
         </Text>
         <TextInput
-          data-cy="exercise-template-name"
+          data-cy="exercise-template-name" data-testid="exercise-template-name"
           testID="exercise-template-name"
           defaultValue={props.templateName ?? ""}
           placeholder="My Awesome Template"

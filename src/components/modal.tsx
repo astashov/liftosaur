@@ -67,7 +67,7 @@ export function Modal(props: IProps): JSX.Element {
       ></div>
       <div
         data-name="modal"
-        data-cy={`modal${props.name ? `-${props.name}` : ""}`}
+        data-cy={`modal${props.name ? `-${props.name}` : ""}`} data-testid={`modal${props.name ? `-${props.name}` : ""}`} testID={`modal${props.name ? `-${props.name}` : ""}`}
         className={`relative z-20 flex flex-col ${props.noPaddings ? "" : "py-6"} bg-background-default rounded-lg shadow-lg text-text-primary`}
         style={{
           maxWidth: props.maxWidth ?? "92%",
@@ -86,7 +86,7 @@ export function Modal(props: IProps): JSX.Element {
         </div>
         {props.shouldShowClose && (
           <button
-            data-cy={`modal-close${props.name ? `-${props.name}` : ""}`}
+            data-cy={`modal-close${props.name ? `-${props.name}` : ""}`} data-testid={`modal-close${props.name ? `-${props.name}` : ""}`} testID={`modal-close${props.name ? `-${props.name}` : ""}`}
             onClick={props.onClose}
             className="absolute p-2 nm-modal-close"
             style={{ top: "-3px", right: "-3px" }}

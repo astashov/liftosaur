@@ -45,7 +45,7 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
     <View className="flex-row items-center justify-between gap-2 py-1 pl-2 pr-4 border-b bg-background-default border-background-subtle">
       <View className="flex-row items-center">
         <Pressable
-          data-cy="nm-program-undo"
+          data-cy="nm-program-undo" data-testid="nm-program-undo"
           testID="nm-program-undo"
           className="p-2"
           disabled={!undoEnabled}
@@ -58,7 +58,7 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
           />
         </Pressable>
         <Pressable
-          data-cy="nm-program-redo"
+          data-cy="nm-program-redo" data-testid="nm-program-redo"
           testID="nm-program-redo"
           className="p-2"
           disabled={!redoEnabled}
@@ -98,7 +98,7 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
           <View>
             <Pressable
               className="p-2"
-              data-cy="edit-program-exercise-change"
+              data-cy="edit-program-exercise-change" data-testid="edit-program-exercise-change"
               testID="edit-program-exercise-change"
               onPress={() => {
                 props.plannerDispatch(
@@ -121,7 +121,7 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
           kind="purple"
           buttonSize="md"
           className="keyboard-close"
-          data-cy="save-program-exercise"
+          data-cy="save-program-exercise" data-testid="save-program-exercise" testID="save-program-exercise"
           onClick={delayfn(() => {
             const updatedProgram = stateRef.current.current.program;
             if (stateRef.current.ui.fromWorkout) {

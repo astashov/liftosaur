@@ -47,10 +47,10 @@ export function ModalProgramInfoContent(props: IProps): JSX.Element {
       )}
       <SimpleMarkdown value={props.program.description} className="mt-4 text-sm" />
       <View className="flex-row justify-center gap-3 mt-6">
-        <Button name="preview-program" data-cy="preview-program" kind="grayv2" onClick={props.onPreview}>
+        <Button name="preview-program" data-cy="preview-program" data-testid="preview-program" testID="preview-program" kind="grayv2" onClick={props.onPreview}>
           Preview
         </Button>
-        <Button name="clone-program" kind="purple" data-cy="clone-program" onClick={props.onSelect}>
+        <Button name="clone-program" kind="purple" data-cy="clone-program" data-testid="clone-program" testID="clone-program" onClick={props.onSelect}>
           {props.hasCustomPrograms ? "Clone" : "Start"}
         </Button>
       </View>

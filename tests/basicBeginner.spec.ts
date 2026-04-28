@@ -23,7 +23,7 @@ test("Basic Beginner Program", async ({ page }) => {
   // Workout A
 
   // First exercise is successful
-  await page.locator("[data-cy^=exercise-]:has-text('Bent Over Row')").getByTestId("exercise-equipment-picker").click();
+  await page.locator("[data-testid^=exercise-]:has-text('Bent Over Row')").getByTestId("exercise-equipment-picker").click();
   await page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").click();
   await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
   await page.getByTestId("scroll-barrel-item-barbell").click();
@@ -70,7 +70,7 @@ test("Basic Beginner Program", async ({ page }) => {
 
   // Second exercise is successful
   await page.getByTestId("workout-tab-deadlift").click();
-  await page.locator("[data-cy^=exercise-]:has-text('Deadlift')").getByTestId("exercise-equipment-picker").click();
+  await page.locator("[data-testid^=exercise-]:has-text('Deadlift')").getByTestId("exercise-equipment-picker").click();
   await page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").click();
   await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
   await page.getByTestId("scroll-barrel-item-barbell").click();
@@ -91,7 +91,7 @@ test("Basic Beginner Program", async ({ page }) => {
   // Third exercise is unsuccessful
   await page.getByTestId("workout-tab-overhead-press").click();
   await page
-    .locator("[data-cy^=exercise-]:has-text('Overhead Press')")
+    .locator("[data-testid^=exercise-]:has-text('Overhead Press')")
     .getByTestId("exercise-equipment-picker")
     .click();
   await page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").click();
@@ -126,7 +126,7 @@ test("Basic Beginner Program", async ({ page }) => {
       .getByTestId("bottom-sheet")
       .getByTestId("history-record")
       .first()
-      .locator("[data-cy=history-entry-exercise]:has-text('Bent Over Row') >> [data-cy=history-entry-weight]")
+      .locator("[data-testid=history-entry-exercise]:has-text('Bent Over Row') >> [data-testid=history-entry-weight]")
       .first()
   ).toHaveText("202.5lb");
   await expect(
@@ -134,7 +134,7 @@ test("Basic Beginner Program", async ({ page }) => {
       .getByTestId("bottom-sheet")
       .getByTestId("history-record")
       .first()
-      .locator("[data-cy=history-entry-exercise]:has-text('Squat') >> [data-cy=history-entry-weight]")
+      .locator("[data-testid=history-entry-exercise]:has-text('Squat') >> [data-testid=history-entry-weight]")
       .first()
   ).toHaveText("205lb");
   await expect(
@@ -142,7 +142,7 @@ test("Basic Beginner Program", async ({ page }) => {
       .getByTestId("bottom-sheet")
       .getByTestId("history-record")
       .first()
-      .locator("[data-cy=history-entry-exercise]:has-text('Bench Press') >> [data-cy=history-entry-weight]")
+      .locator("[data-testid=history-entry-exercise]:has-text('Bench Press') >> [data-testid=history-entry-weight]")
       .first()
   ).toHaveText("45lb");
 
@@ -177,7 +177,7 @@ test("Basic Beginner Program", async ({ page }) => {
       .getByTestId("bottom-sheet")
       .getByTestId("history-record")
       .first()
-      .locator("[data-cy=history-entry-exercise]:has-text('Chin Up') >> [data-cy=history-entry-weight]")
+      .locator("[data-testid=history-entry-exercise]:has-text('Chin Up') >> [data-testid=history-entry-weight]")
       .first()
   ).toHaveText("5lb");
   await expect(
@@ -185,7 +185,7 @@ test("Basic Beginner Program", async ({ page }) => {
       .getByTestId("bottom-sheet")
       .getByTestId("history-record")
       .first()
-      .locator("[data-cy=history-entry-exercise]:has-text('Deadlift') >> [data-cy=history-entry-weight]")
+      .locator("[data-testid=history-entry-exercise]:has-text('Deadlift') >> [data-testid=history-entry-weight]")
       .first()
   ).toHaveText("100lb");
   await expect(
@@ -193,7 +193,7 @@ test("Basic Beginner Program", async ({ page }) => {
       .getByTestId("bottom-sheet")
       .getByTestId("history-record")
       .first()
-      .locator("[data-cy=history-entry-exercise]:has-text('Overhead Press') >> [data-cy=history-entry-weight]")
+      .locator("[data-testid=history-entry-exercise]:has-text('Overhead Press') >> [data-testid=history-entry-weight]")
       .first()
   ).toHaveText("45lb");
 
@@ -211,7 +211,7 @@ test("Basic Beginner Program", async ({ page }) => {
       .getByTestId("bottom-sheet")
       .getByTestId("history-record")
       .first()
-      .locator("[data-cy=history-entry-exercise]:has-text('Bent Over Row') >> [data-cy=history-entry-weight]")
+      .locator("[data-testid=history-entry-exercise]:has-text('Bent Over Row') >> [data-testid=history-entry-weight]")
       .first()
   ).toHaveText("205lb");
   await expect(
@@ -219,7 +219,7 @@ test("Basic Beginner Program", async ({ page }) => {
       .getByTestId("bottom-sheet")
       .getByTestId("history-record")
       .first()
-      .locator("[data-cy=history-entry-exercise]:has-text('Squat') >> [data-cy=history-entry-weight]")
+      .locator("[data-testid=history-entry-exercise]:has-text('Squat') >> [data-testid=history-entry-weight]")
       .first()
   ).toHaveText("182.5lb");
   await expect(
@@ -227,7 +227,7 @@ test("Basic Beginner Program", async ({ page }) => {
       .getByTestId("bottom-sheet")
       .getByTestId("history-record")
       .first()
-      .locator("[data-cy=history-entry-exercise]:has-text('Bench Press') >> [data-cy=history-entry-weight]")
+      .locator("[data-testid=history-entry-exercise]:has-text('Bench Press') >> [data-testid=history-entry-weight]")
       .first()
   ).toHaveText("47.5lb");
 });

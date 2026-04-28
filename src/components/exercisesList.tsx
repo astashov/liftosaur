@@ -111,9 +111,9 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
 
   return (
     <View className="pb-8">
-      <View data-cy="exercises-list">
+      <View data-cy="exercises-list" data-testid="exercises-list">
         <TextInput
-          data-cy="exercises-list-filter"
+          data-cy="exercises-list-filter" data-testid="exercises-list-filter"
           testID="exercises-list-filter"
           className="px-4 py-2 mb-2 text-base border rounded-lg bg-background-default border-border-neutral"
           value={filter}

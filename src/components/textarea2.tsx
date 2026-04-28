@@ -93,7 +93,7 @@ export const Textarea2 = forwardRef((props: IProps, ref: Ref<HTMLTextAreaElement
       )}
       <div className="relative flex">
         <textarea
-          data-cy={`${identifier}-input`}
+          data-cy={`${identifier}-input`} data-testid={`${identifier}-input`} testID={`${identifier}-input`}
           ref={ref}
           onBlur={changeType === "onblur" ? onInputHandler : undefined}
           onInput={changeType === "oninput" ? onInputHandler : undefined}

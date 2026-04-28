@@ -98,7 +98,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
     navRightButtons: [
       <Pressable
         key="kebab"
-        data-cy="navbar-3-dot"
+        data-cy="navbar-3-dot" data-testid="navbar-3-dot"
         testID="navbar-3-dot"
         className="p-2 nm-edit-program-v2-navbar-kebab"
         onPress={() => navigationRef.navigate("editProgramMenuModal", { programId: props.originalProgram.id })}
@@ -284,6 +284,9 @@ function WeekTabBar(props: IWeekTabBarProps): JSX.Element {
           return (
             <Pressable
               key={`${label}-${index}`}
+              testID={`tab-${StringUtils_dashcase(label.toLowerCase())}`}
+              data-cy={`tab-${StringUtils_dashcase(label.toLowerCase())}`}
+              data-testid={`tab-${StringUtils_dashcase(label.toLowerCase())}`}
               className={`px-3 py-2 rounded mr-2 ${
                 isSelected
                   ? "bg-background-default border border-button-primarybackground"
@@ -320,7 +323,7 @@ function OuterTabBar(props: IOuterTabBarProps): JSX.Element {
           <View key={label} className="items-center flex-1 border-b border-border-neutral">
             <Pressable
               className="px-4 pb-1"
-              data-cy={nameClass}
+              data-cy={nameClass} data-testid={nameClass}
               testID={nameClass}
               style={isSelected ? { borderBottomWidth: 2, borderBottomColor: activeColor } : undefined}
               onPress={() => props.onChange(index)}
@@ -392,7 +395,7 @@ function EditProgramHeader(props: IEditProgramHeaderProps): JSX.Element {
       <View className="flex-row items-center mt-1">
         <Text className="text-xs font-bold text-text-secondary">Next Day: </Text>
         <LinkButton
-          data-cy="change-program-day"
+          data-cy="change-program-day" data-testid="change-program-day" testID="change-program-day"
           name="change-program-day"
           className="text-xs font-bold"
           onClick={() => props.onChangeDay()}

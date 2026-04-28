@@ -81,7 +81,7 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
                 <Pressable
                   className="p-2"
                   testID={`edit-muscle-group-${muscleGroupSlug}`}
-                  data-cy={`edit-muscle-group-${muscleGroupSlug}`}
+                  data-cy={`edit-muscle-group-${muscleGroupSlug}`} data-testid={`edit-muscle-group-${muscleGroupSlug}`}
                   onPress={() => {
                     if (props.useInlineModals) {
                       setShowMusclePicker(muscleGroup);
@@ -97,7 +97,7 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
                 <Pressable
                   className="p-2"
                   testID={`delete-muscle-group-${muscleGroupSlug}`}
-                  data-cy={`delete-muscle-group-${muscleGroupSlug}`}
+                  data-cy={`delete-muscle-group-${muscleGroupSlug}`} data-testid={`delete-muscle-group-${muscleGroupSlug}`}
                   onPress={() => {
                     props.onDelete(muscleGroup);
                   }}
@@ -112,7 +112,7 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
       <View className="pb-4">
         <LinkButton
           name="add-muscle-group"
-          data-cy="add-muscle-group"
+          data-cy="add-muscle-group" data-testid="add-muscle-group" testID="add-muscle-group"
           className="text-sm"
           onClick={handleAddMuscleGroup}
         >
@@ -129,7 +129,7 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
               <Fragment key={muscleGroup}>
                 {i !== 0 ? <Text className="text-xs text-text-secondary">, </Text> : null}
                 <LinkButton
-                  data-cy={`unhide-muscle-group-${muscleGroupSlug}`}
+                  data-cy={`unhide-muscle-group-${muscleGroupSlug}`} data-testid={`unhide-muscle-group-${muscleGroupSlug}`} testID={`unhide-muscle-group-${muscleGroupSlug}`}
                   name="unhide-muscle-group"
                   className="text-xs"
                   onClick={() => props.onRestore(muscleGroup)}

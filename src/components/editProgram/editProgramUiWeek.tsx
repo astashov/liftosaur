@@ -74,7 +74,7 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
         <View className="flex-row items-center">
           <View>
             <Pressable
-              data-cy="editor-v2-week-muscles"
+              data-cy="editor-v2-week-muscles" data-testid="editor-v2-week-muscles"
               testID="editor-v2-week-muscles"
               className="px-2"
               onPress={() => {
@@ -232,7 +232,7 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
           kind="lightgrayv3"
           buttonSize="md"
           name="add-day"
-          data-cy="add-day"
+          data-cy="add-day" data-testid="add-day" testID="add-day"
           className="flex-row items-center justify-center w-full"
           onClick={() => {
             props.plannerDispatch(

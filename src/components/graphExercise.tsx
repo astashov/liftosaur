@@ -203,11 +203,12 @@ function GraphExerciseInner(props: IGraphProps): JSX.Element {
   const overlayVisible = isActive && cursorIdx != null;
 
   return (
-    <View className="relative">
+    <View className="relative" testID="graph" data-cy="graph" data-testid="graph">
+     <View testID="graph-data" data-cy="graph-data" data-testid="graph-data">
       <View className="flex-row items-center flex-1 mb-1">
         <View className="flex-1">
           <View>
-            <Text className="text-lg font-semibold leading-6">{props.title || exercise.name}</Text>
+            <Text className="text-lg font-semibold leading-6 u-title">{props.title || exercise.name}</Text>
           </View>
           <View>
             <Text className="text-xs leading-4 text-text-secondary">{props.subtitle || eqName}</Text>
@@ -263,6 +264,7 @@ function GraphExerciseInner(props: IGraphProps): JSX.Element {
           </View>
         )}
       </View>
+     </View>
     </View>
   );
 }

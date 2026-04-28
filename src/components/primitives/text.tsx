@@ -30,7 +30,11 @@ function resolveFontFamily(className: string | undefined): string {
   return "Poppins-Regular";
 }
 
-export function Text({ style, className, ...props }: TextProps & { className?: string }): JSX.Element {
+export function Text({
+  style,
+  className,
+  ...props
+}: TextProps & { className?: string; "data-cy"?: string; "data-testid"?: string }): JSX.Element {
   const defaults: string[] = [];
   if (className == null || !textColorPattern.test(className)) {
     defaults.push("text-text-primary");
@@ -41,5 +45,8 @@ export function Text({ style, className, ...props }: TextProps & { className?: s
   const effectiveClassName =
     defaults.length > 0 ? (className ? `${defaults.join(" ")} ${className}` : defaults.join(" ")) : className;
   const fontFamily = resolveFontFamily(effectiveClassName);
-  return <RNText className={effectiveClassName} style={[{ fontFamily }, style]} {...props} />;
+  const dataCy = (props as { "data-cy"?: string })["data-cy"];
+  const dataTestid = (props as { "data-testid"?: string })["data-testid"];
+  const testID = props.testID || dataCy || dataTestid;
+  return <RNText className={effectiveClassName} style={[{ fontFamily }, style]} {...props} testID={testID} />;
 }

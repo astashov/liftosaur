@@ -129,7 +129,7 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
                 const rowClassName = `justify-end flex-row pb-1 ${isItemDisabled && !isAllDisabled ? "opacity-40" : ""}`;
                 if (isMultiselect) {
                   return (
-                    <View key={rowKey} className={rowClassName} data-cy={testId} testID={testId}>
+                    <View key={rowKey} className={rowClassName} data-cy={testId} data-testid={testId} testID={testId}>
                       <Pressable className="flex-row flex-1" disabled={isItemDisabled} onPress={choose}>
                         {dayContent}
                       </Pressable>
@@ -144,7 +144,7 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
                     key={rowKey}
                     className={rowClassName}
                     disabled={isItemDisabled}
-                    data-cy={testId}
+                    data-cy={testId} data-testid={testId}
                     testID={testId}
                     onPress={choose}
                   >

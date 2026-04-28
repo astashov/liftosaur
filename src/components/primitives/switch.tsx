@@ -15,7 +15,7 @@ export function Switch(props: ISwitchProps): JSX.Element {
       className="checkbox text-text-link"
       checked={!!props.value}
       disabled={props.disabled}
-      data-cy={props["data-cy"]}
+      data-cy={props["data-cy"]} data-testid={props["data-cy"]} testID={props["data-cy"]}
       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
         props.onValueChange(e.currentTarget.checked);
       }}

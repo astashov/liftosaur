@@ -213,7 +213,7 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
           ref={moveRef as unknown as React.RefObject<View>}
           className={`${WorkoutExerciseUtils_getBgColor50([set], props.type === "warmup")}`}
           style={style as object}
-          data-cy={getDataCy(set)}
+          data-cy={getDataCy(set)} data-testid={getDataCy(set)}
           testID={getDataCy(set)}
         >
           <View className={`flex-row items-center border-b ${borderColor}`}>
@@ -231,7 +231,7 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
               </View>
             </View>
 
-            <View className="flex-1" data-cy="workout-set-target" testID="workout-set-target">
+            <View className="flex-1" data-cy="workout-set-target" data-testid="workout-set-target" testID="workout-set-target">
               <WorkoutExerciseSetTargetField
                 set={set}
                 lastSet={props.lastSet}
@@ -321,7 +321,7 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
                   settings={props.settings}
                 />
                 {completedRpeValue != null ? (
-                  <Text data-cy="rpe-value" testID="rpe-value" className="ml-1 text-xs font-semibold text-text-success">
+                  <Text data-cy="rpe-value" data-testid="rpe-value" testID="rpe-value" className="ml-1 text-xs font-semibold text-text-success">
                     @{n(completedRpeValue)}
                   </Text>
                 ) : null}
@@ -331,7 +331,7 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
             <View className="items-end justify-center" style={{ width: props.columnWidths.check }}>
               <Pressable
                 className="px-4 py-3"
-                data-cy="complete-set"
+                data-cy="complete-set" data-testid="complete-set"
                 testID="complete-set"
                 onPress={onCompleteSet}
                 style={{ marginRight: -8 }}
@@ -358,7 +358,7 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
           >
             {hasEdit && (
               <Pressable
-                data-cy="edit-set-target"
+                data-cy="edit-set-target" data-testid="edit-set-target"
                 testID="edit-set-target"
                 onPress={() => {
                   close();
@@ -380,7 +380,7 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
               </Pressable>
             )}
             <Pressable
-              data-cy="delete-set"
+              data-cy="delete-set" data-testid="delete-set"
               testID="delete-set"
               onPress={() => {
                 close();
@@ -626,7 +626,7 @@ function WorkoutExercisePlatesCalculator(props: IWorkoutExercisePlatesCalculator
   const setWeight = props.set.weight;
   if (setWeight == null) {
     return (
-      <Text className="text-sm font-semibold" data-cy="plates-list" testID="plates-list">
+      <Text className="text-sm font-semibold" data-cy="plates-list" data-testid="plates-list" testID="plates-list">
         None
       </Text>
     );
@@ -642,7 +642,7 @@ function WorkoutExercisePlatesCalculator(props: IWorkoutExercisePlatesCalculator
   return (
     <Text
       className={`text-sm font-semibold ${Weight_eq(weight, props.set.completedWeight ?? setWeight) ? "text-text-primary" : "text-text-error"}`}
-      data-cy="plates-list"
+      data-cy="plates-list" data-testid="plates-list"
       testID="plates-list"
     >
       {formattedPlates}

@@ -42,7 +42,7 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
           <Input
             type="number"
             label="Reps"
-            data-cy="rep-max-calculator-known-reps"
+            data-cy="rep-max-calculator-known-reps" data-testid="rep-max-calculator-known-reps" testID="rep-max-calculator-known-reps"
             identifier="rep-max-calculator-known-reps"
             value={knownRepsValue}
             maxLength={2}
@@ -62,7 +62,7 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
             label="RPE"
             value={knownRpeValue}
             maxLength={4}
-            data-cy="rep-max-calculator-known-rpe"
+            data-cy="rep-max-calculator-known-rpe" data-testid="rep-max-calculator-known-rpe" testID="rep-max-calculator-known-rpe"
             identifier="rep-max-calculator-known-rpe"
             min={1}
             max={10}
@@ -79,7 +79,7 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
           <Input
             type="number"
             label="Weight"
-            data-cy="rep-max-calculator-known-weight"
+            data-cy="rep-max-calculator-known-weight" data-testid="rep-max-calculator-known-weight" testID="rep-max-calculator-known-weight"
             identifier="rep-max-calculator-known-weight"
             value={knownWeightValue}
             maxLength={8}
@@ -99,7 +99,7 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
         <View className="flex-1">
           <Input
             type="number"
-            data-cy="rep-max-calculator-target-reps"
+            data-cy="rep-max-calculator-target-reps" data-testid="rep-max-calculator-target-reps" testID="rep-max-calculator-target-reps"
             identifier="rep-max-calculator-target-reps"
             value={targetRepsValue}
             label="Reps"
@@ -116,7 +116,7 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
         <View className="flex-1">
           <Input
             type="number"
-            data-cy="rep-max-calculator-target-rpe"
+            data-cy="rep-max-calculator-target-rpe" data-testid="rep-max-calculator-target-rpe" testID="rep-max-calculator-target-rpe"
             identifier="rep-max-calculator-target-rpe"
             label="RPE"
             value={targetRpeValue}
@@ -131,7 +131,7 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
           />
         </View>
         <Text>=</Text>
-        <View className="flex-1" data-cy="rep-max-calculator-target-weight">
+        <View className="flex-1" data-cy="rep-max-calculator-target-weight" data-testid="rep-max-calculator-target-weight" testID="rep-max-calculator-target-weight">
           <Text className="text-lg font-bold">
             {weight} {props.unit}
           </Text>
@@ -143,7 +143,7 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
             name="rep-max-calculator-back"
             kind="grayv2"
             onClick={() => props.onSelect()}
-            data-cy="rep-max-calculator-back"
+            data-cy="rep-max-calculator-back" data-testid="rep-max-calculator-back" testID="rep-max-calculator-back"
           >
             {props.backLabel}
           </Button>
@@ -152,7 +152,7 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
           <Button
             name="rep-max-calculator-submit"
             kind="purple"
-            data-cy="rep-max-calculator-submit"
+            data-cy="rep-max-calculator-submit" data-testid="rep-max-calculator-submit" testID="rep-max-calculator-submit"
             onClick={() => props.onSelect(weight)}
           >
             Use it!

@@ -87,7 +87,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
       <button
         key="close"
         className="p-2 nm-back"
-        data-cy="navbar-back"
+        data-cy="navbar-back" data-testid="navbar-back" testID="navbar-back"
         onClick={() => {
           props.dispatch(Thunk_pullScreen());
         }}
@@ -211,7 +211,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                     onClick={() => props.dispatch(Thunk_claimkey())}
                     kind="purple"
                     className="whitespace-nowrap"
-                    data-cy="button-subscription-free"
+                    data-cy="button-subscription-free" data-testid="button-subscription-free" testID="button-subscription-free"
                     buttonSize="lg"
                   >
                     Get it!
@@ -248,7 +248,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                       }}
                       className="w-full"
                       kind="purple"
-                      data-cy="button-subscription-monthly"
+                      data-cy="button-subscription-monthly" data-testid="button-subscription-monthly" testID="button-subscription-monthly"
                     >
                       {!props.subscriptionLoading?.monthly ? (
                         <>
@@ -294,7 +294,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                       }}
                       className="w-full"
                       kind="purple"
-                      data-cy="button-subscription-yearly"
+                      data-cy="button-subscription-yearly" data-testid="button-subscription-yearly" testID="button-subscription-yearly"
                     >
                       {!props.subscriptionLoading?.yearly ? (
                         <>
@@ -340,7 +340,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                       }}
                       className="w-full"
                       kind="red"
-                      data-cy="button-subscription-lifetime"
+                      data-cy="button-subscription-lifetime" data-testid="button-subscription-lifetime" testID="button-subscription-lifetime"
                     >
                       {!props.subscriptionLoading?.lifetime ? (
                         "Lifetime - " + lifetimePrice

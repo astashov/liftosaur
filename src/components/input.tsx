@@ -190,7 +190,7 @@ export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement> | Ref
         </div>
       )}
       <label
-        data-cy={`${identifier}-label`}
+        data-cy={`${identifier}-label`} data-testid={`${identifier}-label`} testID={`${identifier}-label`}
         className={className}
         style={{
           minHeight: size === "md" ? (isLabelOutside ? "40px" : "48px") : isLabelOutside ? "32px" : "40px",
@@ -211,7 +211,7 @@ export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement> | Ref
           <div className="relative flex" style={{ top: label ? "3px" : "8px", left: "0" }}>
             {multiline ? (
               <textarea
-                data-cy={`${identifier}-input`}
+                data-cy={`${identifier}-input`} data-testid={`${identifier}-input`} testID={`${identifier}-input`}
                 ref={setInputRef}
                 value={isControlled ? localValue : undefined}
                 defaultValue={!isControlled ? props.defaultValue : undefined}
@@ -237,7 +237,7 @@ export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement> | Ref
               />
             ) : (
               <input
-                data-cy={`${identifier}-input`}
+                data-cy={`${identifier}-input`} data-testid={`${identifier}-input`} testID={`${identifier}-input`}
                 ref={setInputRef}
                 value={isControlled ? localValue : undefined}
                 defaultValue={!isControlled ? props.defaultValue : undefined}

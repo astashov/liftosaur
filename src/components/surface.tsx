@@ -12,7 +12,7 @@ export const Surface = forwardRef((props: IProps, ref: Ref<HTMLElement>): JSX.El
     <section className="h-full bg-background-default text-text-primary">
       {props.navbar}
       <section
-        data-cy="screen"
+        data-cy="screen" data-testid="screen" testID="screen"
         ref={ref}
         className={`surface ${props.navbar ? " pt-16" : ""}${props.footer ? " pb-16" : ""}`}
       >

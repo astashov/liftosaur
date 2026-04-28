@@ -76,14 +76,14 @@ export function GroupHeader(props: IProps): JSX.Element {
       {props.children ? (
         <Pressable
           testID={testId}
-          data-cy={testId}
+          data-cy={testId} data-testid={testId}
           onPress={!props.expandOnIconClick ? onClick : undefined}
           className={wrapperClassName}
         >
           {inner}
         </Pressable>
       ) : (
-        <View testID={testId} data-cy={testId} className={wrapperClassName}>
+        <View testID={testId} data-cy={testId} data-testid={testId} className={wrapperClassName}>
           {inner}
         </View>
       )}

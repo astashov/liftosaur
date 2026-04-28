@@ -88,7 +88,7 @@ export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Eleme
               <Pressable
                 key={opt.key}
                 className="flex-row items-center w-full gap-3 px-4 py-4 border rounded-xl bg-background-subtlecardpurple border-border-cardpurple nm-program-select"
-                data-cy={`program-select-${opt.key}`}
+                data-cy={`program-select-${opt.key}`} data-testid={`program-select-${opt.key}`}
                 testID={`program-select-${opt.key}`}
                 onPress={opt.onClick}
               >

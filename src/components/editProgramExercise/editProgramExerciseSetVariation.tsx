@@ -154,7 +154,7 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
       <View className="flex-row">
         <Pressable
           className="flex-row items-center justify-center flex-1 py-2 m-2 rounded-md bg-background-purpledark"
-          data-cy="add-set"
+          data-cy="add-set" data-testid="add-set"
           testID="add-set"
           onPress={() => {
             EditProgramUiHelpers_changeCurrentInstanceExercise(

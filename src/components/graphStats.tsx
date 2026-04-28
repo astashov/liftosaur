@@ -111,10 +111,11 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
   const movingAvg = cursorIdx != null && movingAverageWindowSize != null ? data[2][cursorIdx] : null;
 
   return (
-    <View className="relative">
+    <View className="relative" testID="graph" data-cy="graph" data-testid="graph">
+     <View testID="graph-data" data-cy="graph-data" data-testid="graph-data">
       {title && (
         <View className="mb-1">
-          <Text className="text-lg font-semibold leading-6">{title}</Text>
+          <Text className="text-lg font-semibold leading-6 u-title">{title}</Text>
         </View>
       )}
       <View className="relative">
@@ -145,6 +146,7 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
           )}
         </View>
       </View>
+     </View>
     </View>
   );
 }

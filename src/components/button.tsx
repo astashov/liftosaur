@@ -101,13 +101,16 @@ export function Button(props: IProps): JSX.Element {
     containerCn += ` ${props.className}`;
   }
 
+  const accessibilityLabel = typeof children === "string" ? children : undefined;
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
       className={containerCn}
       onPress={props.onPress || props.onClick}
       disabled={disabled}
       testID={testID}
-      data-cy={testID}
+      data-cy={testID} data-testid={testID}
     >
       {containsString(children) ? <Text className={textCn}>{children}</Text> : children}
     </Pressable>

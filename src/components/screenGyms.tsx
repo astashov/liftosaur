@@ -48,7 +48,7 @@ export function ScreenGyms(props: IProps): JSX.Element {
               <View className="flex-row">
                 <Pressable
                   testID="edit-gym"
-                  data-cy="edit-gym"
+                  data-cy="edit-gym" data-testid="edit-gym"
                   className="px-2"
                   onPress={() => {
                     updateState(props.dispatch, [lb<IState>().p("selectedGymId").record(gym.id)], "Select gym to edit");
@@ -86,7 +86,7 @@ export function ScreenGyms(props: IProps): JSX.Element {
                 {props.settings.gyms.length > 1 && (
                   <Pressable
                     testID={`menu-item-delete-${StringUtils_dashcase(gym.name)}`}
-                    data-cy={`menu-item-delete-${StringUtils_dashcase(gym.name)}`}
+                    data-cy={`menu-item-delete-${StringUtils_dashcase(gym.name)}`} data-testid={`menu-item-delete-${StringUtils_dashcase(gym.name)}`}
                     className="px-2"
                     onPress={async () => {
                       if (await Dialog_confirm("Are you sure you want to delete this gym?")) {

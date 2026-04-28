@@ -22,7 +22,7 @@ export function ModalCreateProgramContent(props: Omit<IProps, "isHidden">): JSX.
     <View>
       <Text className="py-2 text-xl font-bold text-center">Create Program</Text>
       <Input
-        identifier="modal-create-program-input"
+        identifier="modal-create-program"
         label="Program Name"
         required={true}
         requiredMessage="Please enter a program name"
@@ -37,6 +37,7 @@ export function ModalCreateProgramContent(props: Omit<IProps, "isHidden">): JSX.
         </Button>
         <Button
           name="modal-create-program-submit"
+          data-cy="modal-create-experimental-program-submit"
           kind="purple"
           disabled={props.isLoading}
           onClick={() => {

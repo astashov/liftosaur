@@ -1314,6 +1314,7 @@ export function Progress_addExercise(dispatch: IDispatch, exerciseType: IExercis
             index: i,
           }));
         }),
+      lb<IHistoryRecord>().pi("ui", {}).p("currentEntryIndex").record(numberOfEntries),
     ],
     "add-exercise"
   );

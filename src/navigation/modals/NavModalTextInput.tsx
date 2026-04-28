@@ -39,7 +39,7 @@ export function NavModalTextInput(): JSX.Element {
         <div className="mt-4 text-right">
           <Button
             name={`${data.dataCyPrefix}-cancel`}
-            data-cy={`${data.dataCyPrefix}-cancel`}
+            data-cy={`${data.dataCyPrefix}-cancel`} data-testid={`${data.dataCyPrefix}-cancel`} testID={`${data.dataCyPrefix}-cancel`}
             type="button"
             kind="grayv2"
             className="mr-3"
@@ -50,7 +50,7 @@ export function NavModalTextInput(): JSX.Element {
           <Button
             kind="purple"
             name={`${data.dataCyPrefix}-submit`}
-            data-cy={`${data.dataCyPrefix}-submit`}
+            data-cy={`${data.dataCyPrefix}-submit`} data-testid={`${data.dataCyPrefix}-submit`} testID={`${data.dataCyPrefix}-submit`}
             type="submit"
             disabled={!name.trim()}
             onClick={() => {
