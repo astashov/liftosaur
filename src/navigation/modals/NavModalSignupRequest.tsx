@@ -60,7 +60,8 @@ export function NavModalSignupRequest(): JSX.Element {
             name="modal-signup-request-later"
             type="button"
             kind="grayv2"
-            data-cy="modal-signup-request-later" data-testid="modal-signup-request-later" testID="modal-signup-request-later"
+            data-testid="modal-signup-request-later"
+            testID="modal-signup-request-later"
             className="mr-3 ls-signup-request-maybe-later"
             onClick={() => {
               updateState(dispatch, lbSaveSignupRequestDate, "Defer signup request");
@@ -72,7 +73,8 @@ export function NavModalSignupRequest(): JSX.Element {
           <Button
             name="modal-signup-request-submit"
             kind="purple"
-            data-cy="modal-signup-request-submit" data-testid="modal-signup-request-submit" testID="modal-signup-request-submit"
+            data-testid="modal-signup-request-submit"
+            testID="modal-signup-request-submit"
             className="ls-signup-request-signup"
             onClick={() => {
               updateState(dispatch, lbSaveSignupRequestDate, "Accept signup request");

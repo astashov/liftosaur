@@ -8,7 +8,7 @@ export interface IActionMenuAction {
   onPress: () => void;
   destructive?: boolean;
   disabled?: boolean;
-  "data-cy"?: string;
+  testID?: string;
 }
 
 export interface IActionMenuProps {
@@ -60,7 +60,8 @@ export function ActionMenu(props: IActionMenuProps): JSX.Element {
             <DropdownMenuItem
               key={a.label}
               isTop={i === 0}
-              data-cy={a["data-cy"]} data-testid={a["data-cy"]} testID={a["data-cy"]}
+              data-testid={a.testID}
+              testID={a.testID}
               disabled={a.disabled}
               onClick={() => {
                 close();
@@ -86,8 +87,8 @@ export function ActionMenu(props: IActionMenuProps): JSX.Element {
               {props.actions.map((a) => (
                 <Pressable
                   key={a.label}
-                  data-cy={a["data-cy"]} data-testid={a["data-cy"]}
-                  testID={a["data-cy"]}
+                  data-testid={a.testID}
+                  testID={a.testID}
                   disabled={a.disabled}
                   className="px-4 py-4 border-b border-border-neutral"
                   onPress={() => {

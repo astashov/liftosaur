@@ -56,7 +56,8 @@ export function PlannerExerciseStatsFull(props: IPlannerExerciseStatsFullProps):
       <div className="px-4 pb-2">
         <LinkButton
           name="planner-swap-exercise"
-          data-cy="planner-swap-exercise" data-testid="planner-swap-exercise" testID="planner-swap-exercise"
+          data-testid="planner-swap-exercise"
+          testID="planner-swap-exercise"
           onClick={() => {
             const exerciseKey = PlannerKey_fromPlannerExercise(evaluatedExercise, props.settings);
             props.dispatch(

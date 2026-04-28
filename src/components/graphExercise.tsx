@@ -203,68 +203,68 @@ function GraphExerciseInner(props: IGraphProps): JSX.Element {
   const overlayVisible = isActive && cursorIdx != null;
 
   return (
-    <View className="relative" testID="graph" data-cy="graph" data-testid="graph">
-     <View testID="graph-data" data-cy="graph-data" data-testid="graph-data">
-      <View className="flex-row items-center flex-1 mb-1">
-        <View className="flex-1">
-          <View>
-            <Text className="text-lg font-semibold leading-6 u-title">{props.title || exercise.name}</Text>
+    <View className="relative" testID="graph" data-testid="graph">
+      <View testID="graph-data" data-testid="graph-data">
+        <View className="flex-row items-center flex-1 mb-1">
+          <View className="flex-1">
+            <View>
+              <Text className="text-lg font-semibold leading-6 u-title">{props.title || exercise.name}</Text>
+            </View>
+            <View>
+              <Text className="text-xs leading-4 text-text-secondary">{props.subtitle || eqName}</Text>
+            </View>
           </View>
           <View>
-            <Text className="text-xs leading-4 text-text-secondary">{props.subtitle || eqName}</Text>
-          </View>
-        </View>
-        <View>
-          <Select
-            value={selectedType}
-            onChange={(v) => setSelectedType(v as IExerciseSelectedType)}
-            options={[
-              { value: "weight", label: "Max Weight" },
-              { value: "volume", label: "Volume" },
-            ]}
-            className="p-2 text-right bg-background-default"
-          />
-        </View>
-      </View>
-      <View className="relative">
-        <LineChart
-          ref={chartRef}
-          data={result.data}
-          series={series}
-          height={320}
-          xMin={xMin}
-          xMax={xMax}
-          programLines={props.isWithProgramLines ? result.changeProgramTimes : undefined}
-          onCursorChange={handleCursorChange}
-          yAxisFormatter={(v) => `${Math.round(v)}`}
-        />
-        {overlayVisible && (
-          <View
-            className="absolute border rounded-lg left-2 right-2 border-border-cardpurple"
-            style={{
-              top: -60,
-              zIndex: 10,
-              padding: 8,
-              backgroundColor: Colors_hexToRgba(Tailwind_semantic().background.subtlecardpurple, 0.9),
-            }}
-          >
-            <Pressable onPress={onCloseOverlay} style={{ position: "absolute", top: 4, right: 4, zIndex: 20 }}>
-              <IconCloseCircle size={18} />
-            </Pressable>
-            <GraphExerciseLegend
-              cursorIdx={cursorIdx}
-              data={result.data}
-              units={units}
-              selectedType={selectedType}
-              isWithOneRm={props.isWithOneRm}
-              record={cursorRecord}
-              exercise={props.exercise}
-              dispatch={props.dispatch}
+            <Select
+              value={selectedType}
+              onChange={(v) => setSelectedType(v as IExerciseSelectedType)}
+              options={[
+                { value: "weight", label: "Max Weight" },
+                { value: "volume", label: "Volume" },
+              ]}
+              className="p-2 text-right bg-background-default"
             />
           </View>
-        )}
+        </View>
+        <View className="relative">
+          <LineChart
+            ref={chartRef}
+            data={result.data}
+            series={series}
+            height={320}
+            xMin={xMin}
+            xMax={xMax}
+            programLines={props.isWithProgramLines ? result.changeProgramTimes : undefined}
+            onCursorChange={handleCursorChange}
+            yAxisFormatter={(v) => `${Math.round(v)}`}
+          />
+          {overlayVisible && (
+            <View
+              className="absolute border rounded-lg left-2 right-2 border-border-cardpurple"
+              style={{
+                top: -60,
+                zIndex: 10,
+                padding: 8,
+                backgroundColor: Colors_hexToRgba(Tailwind_semantic().background.subtlecardpurple, 0.9),
+              }}
+            >
+              <Pressable onPress={onCloseOverlay} style={{ position: "absolute", top: 4, right: 4, zIndex: 20 }}>
+                <IconCloseCircle size={18} />
+              </Pressable>
+              <GraphExerciseLegend
+                cursorIdx={cursorIdx}
+                data={result.data}
+                units={units}
+                selectedType={selectedType}
+                isWithOneRm={props.isWithOneRm}
+                record={cursorRecord}
+                exercise={props.exercise}
+                dispatch={props.dispatch}
+              />
+            </View>
+          )}
+        </View>
       </View>
-     </View>
     </View>
   );
 }

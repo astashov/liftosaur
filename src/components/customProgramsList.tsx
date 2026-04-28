@@ -106,7 +106,7 @@ function CustomProgram(props: ICustomProgramProps): JSX.Element {
       >
         <Pressable
           className="px-2 py-1"
-          data-cy="custom-program-edit" data-testid="custom-program-edit"
+          data-testid="custom-program-edit"
           testID="custom-program-edit"
           onPress={() => {
             if (props.editProgramId == null || props.editProgramId !== props.program.id) {
@@ -120,7 +120,7 @@ function CustomProgram(props: ICustomProgramProps): JSX.Element {
         </Pressable>
         <Pressable
           className="px-2 py-1"
-          data-cy="custom-program-delete" data-testid="custom-program-delete"
+          data-testid="custom-program-delete"
           testID="custom-program-delete"
           onPress={() => {
             if (props.progress == null || props.progress.programId !== props.program.id) {
@@ -142,7 +142,7 @@ function CustomProgram(props: ICustomProgramProps): JSX.Element {
       </View>
       <Pressable
         className="flex-row items-center w-full p-3 mt-8 mb-4 border rounded-lg bg-background-cardyellow border-border-cardyellow"
-        data-cy="program-list-choose-program" data-testid="program-list-choose-program"
+        data-testid="program-list-choose-program"
         testID="program-list-choose-program"
         onPress={() => {
           if (props.program.planner == null) {

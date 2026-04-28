@@ -92,7 +92,7 @@ export function PlannerEditorView(props: IProps): JSX.Element {
           <EvalResult redTheme={props.lineNumbers} error={props.error} onCustomErrorCta={props.onCustomErrorCta} />
         )}
       </div>
-      <div data-cy="planner-editor" data-testid="planner-editor" testID="planner-editor" className={className} ref={divRef}></div>
+      <div data-testid="planner-editor" testID="planner-editor" className={className} ref={divRef}></div>
     </div>
   );
 }

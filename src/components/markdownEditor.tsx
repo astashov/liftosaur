@@ -61,7 +61,7 @@ export function MarkdownEditor(props: IProps): JSX.Element {
 
   return (
     <div className="markdown-editor-view" style={{ fontFamily: "Iosevka Web" }}>
-      <div data-cy="markdown-editor" data-testid="markdown-editor" testID="markdown-editor" className={className} ref={divRef}></div>
+      <div data-testid="markdown-editor" testID="markdown-editor" className={className} ref={divRef}></div>
     </div>
   );
 }

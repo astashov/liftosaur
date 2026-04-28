@@ -27,7 +27,7 @@ export function PlannerStats(props: IPlannerWeekStatsProps): JSX.Element {
   const { setResults, settings, frequency, dispatch, focusedExercise, onEditSettings } = props;
   const showLink = !frequency;
   return (
-    <View className="mb-2" data-cy="planner-stats" data-testid="planner-stats" testID="planner-stats">
+    <View className="mb-2" data-testid="planner-stats" testID="planner-stats">
       <Text className="text-sm">
         <Text className="text-sm text-text-secondary">Total Sets:</Text> {setResults.total}
       </Text>

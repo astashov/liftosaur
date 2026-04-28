@@ -189,7 +189,7 @@ export function ScreenStats(props: IProps): JSX.Element {
       <Pressable
         key="filter"
         className="p-2 nm-modify-stats"
-        data-cy="modify-stats" data-testid="modify-stats"
+        data-testid="modify-stats"
         testID="modify-stats"
         onPress={() => navigationRef.navigate("statsSettingsModal")}
       >
@@ -205,7 +205,8 @@ export function ScreenStats(props: IProps): JSX.Element {
       </Text>
       <View className="items-center">
         <Button
-          data-cy="clear-stats-fields" data-testid="clear-stats-fields" testID="clear-stats-fields"
+          data-testid="clear-stats-fields"
+          testID="clear-stats-fields"
           name="clear-stats-fields"
           kind="grayv2"
           onClick={() => {
@@ -437,7 +438,15 @@ export function ScreenStats(props: IProps): JSX.Element {
         </View>
       )}
       <View className="items-center py-4 mb-2">
-        <Button name="add-stats" tabIndex={1} className="ls-add-stats" data-cy="add-stats" data-testid="add-stats" testID="add-stats" kind="purple" onClick={save}>
+        <Button
+          name="add-stats"
+          tabIndex={1}
+          className="ls-add-stats"
+          data-testid="add-stats"
+          testID="add-stats"
+          kind="purple"
+          onClick={save}
+        >
           Done
         </Button>
       </View>
@@ -493,7 +502,8 @@ function StatInput(props: IStatInputProps): JSX.Element {
       min={0}
       step="0.01"
       tabIndex={1}
-      data-cy={`input-stats-${testName}`} data-testid={`input-stats-${testName}`} testID={`input-stats-${testName}`}
+      data-testid={`input-stats-${testName}`}
+      testID={`input-stats-${testName}`}
       identifier={`input-stats-${testName}`}
       changeHandler={(e) => {
         props.valuesRef.current[props.name] = e.success ? e.data : "";

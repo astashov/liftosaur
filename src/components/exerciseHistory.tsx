@@ -61,14 +61,14 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
   }
 
   return (
-    <View data-cy="exercise-stats-history" data-testid="exercise-stats-history">
+    <View data-testid="exercise-stats-history">
       <GroupHeader
         topPadding={true}
         name={`${Exercise_fullName(fullExercise, props.settings)} History`}
         rightAddOn={
           <Pressable
             className="p-2"
-            data-cy="exercise-stats-history-filter" data-testid="exercise-stats-history-filter"
+            data-testid="exercise-stats-history-filter"
             testID="exercise-stats-history-filter"
             style={{ marginRight: -8, marginTop: -8 }}
             onPress={() => setShowFilters(!showFilters)}

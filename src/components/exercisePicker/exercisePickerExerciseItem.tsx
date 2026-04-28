@@ -84,7 +84,7 @@ export const ExercisePickerExerciseItem = memo(function ExercisePickerExerciseIt
           </Text>
         </Pressable>
         <Pressable
-          data-cy={`custom-exercise-${StringUtils_dashcase(e.name)}`} data-testid={`custom-exercise-${StringUtils_dashcase(e.name)}`}
+          data-testid={`custom-exercise-${StringUtils_dashcase(e.name)}`}
           testID={`custom-exercise-${StringUtils_dashcase(e.name)}`}
           disabled={isDisabled || !props.onChoose}
           onPress={() => {
@@ -105,7 +105,7 @@ export const ExercisePickerExerciseItem = memo(function ExercisePickerExerciseIt
           <Pressable
             onPress={onEdit}
             className="p-2"
-            data-cy={`custom-exercise-edit-${StringUtils_dashcase(e.name)}`} data-testid={`custom-exercise-edit-${StringUtils_dashcase(e.name)}`}
+            data-testid={`custom-exercise-edit-${StringUtils_dashcase(e.name)}`}
             testID={`custom-exercise-edit-${StringUtils_dashcase(e.name)}`}
           >
             <IconEdit2 />
@@ -115,7 +115,7 @@ export const ExercisePickerExerciseItem = memo(function ExercisePickerExerciseIt
           (props.isMultiselect ? (
             <View
               className="p-2"
-              data-cy={`menu-item-${StringUtils_dashcase(e.name)}`} data-testid={`menu-item-${StringUtils_dashcase(e.name)}`}
+              data-testid={`menu-item-${StringUtils_dashcase(e.name)}`}
               testID={`menu-item-${StringUtils_dashcase(e.name)}`}
             >
               <Switch
@@ -128,7 +128,7 @@ export const ExercisePickerExerciseItem = memo(function ExercisePickerExerciseIt
             <Pressable
               className="p-2"
               disabled={isDisabled}
-              data-cy={`menu-item-${StringUtils_dashcase(e.name)}`} data-testid={`menu-item-${StringUtils_dashcase(e.name)}`}
+              data-testid={`menu-item-${StringUtils_dashcase(e.name)}`}
               testID={`menu-item-${StringUtils_dashcase(e.name)}`}
               onPress={() => onChoose(Exercise_toKey(e))}
             >

@@ -62,20 +62,20 @@ export function ProgramPreview(props: IProps): JSX.Element {
             <View className="flex-1">
               {program.url ? (
                 <Link
-                  data-cy="program-name" data-testid="program-name"
+                  data-testid="program-name"
                   className="text-2xl font-bold leading-tight underline text-text-link"
                   href={program.url}
                 >
                   {program.name}
                 </Link>
               ) : (
-                <Text data-cy="program-name" data-testid="program-name" testID="program-name" className="text-2xl font-bold leading-tight">
+                <Text data-testid="program-name" testID="program-name" className="text-2xl font-bold leading-tight">
                   {program.name}
                 </Text>
               )}
             </View>
             <Pressable
-              data-cy="program-show-muscles" data-testid="program-show-muscles"
+              data-testid="program-show-muscles"
               testID="program-show-muscles"
               className="p-2"
               onPress={() => {
@@ -92,7 +92,7 @@ export function ProgramPreview(props: IProps): JSX.Element {
           <View>
             {program.author && (
               <Text
-                data-cy="program-author" data-testid="program-author"
+                data-testid="program-author"
                 testID="program-author"
                 className="text-sm font-bold uppercase text-text-secondary"
               >

@@ -98,7 +98,7 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
         ? "history-entry-sets-in-range"
         : "history-entry-sets-incompleted";
   return (
-    <View className="flex-row items-center" data-cy={dataCy} data-testid={dataCy} testID={dataCy}>
+    <View className="flex-row items-center" data-testid={dataCy} testID={dataCy}>
       {props.showPrDetails && isPr && (
         <View className="flex-row items-center mr-2">
           <Text className="text-xs font-semibold leading-6 text-yellow-600">{prTypes.join(", ")} </Text>
@@ -110,7 +110,7 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
           <>
             <Text
               className="text-sm font-semibold text-text-purple"
-              data-cy="history-entry-sets" data-testid="history-entry-sets"
+              data-testid="history-entry-sets"
               testID="history-entry-sets"
             >
               {group.length}
@@ -118,13 +118,17 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
             <Text className="text-sm text-text-secondary"> {"\u00D7"} </Text>
           </>
         )}
-        <Text className={`font-semibold ${repsColor} text-sm`} data-cy="history-entry-reps" data-testid="history-entry-reps" testID="history-entry-reps">
+        <Text
+          className={`font-semibold ${repsColor} text-sm`}
+          data-testid="history-entry-reps"
+          testID="history-entry-reps"
+        >
           {set.reps}
         </Text>
         {set.weight && (
           <>
             <Text className="text-sm text-text-secondary"> {"\u00D7"} </Text>
-            <Text data-cy="history-entry-weight" data-testid="history-entry-weight" testID="history-entry-weight">
+            <Text data-testid="history-entry-weight" testID="history-entry-weight">
               <Text className="text-sm font-semibold">{set.weight}</Text>
               <Text className="text-sm">{set.askWeight ? "+" : ""}</Text>
               <Text className="text-sm text-text-secondary">{set.unit}</Text>
@@ -132,13 +136,13 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
           </>
         )}
         {set.rpe != null && (
-          <Text className={rpeColor} data-cy="history-entry-rpe" data-testid="history-entry-rpe" testID="history-entry-rpe">
+          <Text className={rpeColor} data-testid="history-entry-rpe" testID="history-entry-rpe">
             <Text className="text-xs"> @</Text>
             <Text className="text-sm">{set.rpe}</Text>
           </Text>
         )}
         {set.timer != null && (
-          <Text className={timerColor} data-cy="history-entry-timer" data-testid="history-entry-timer" testID="history-entry-timer">
+          <Text className={timerColor} data-testid="history-entry-timer" testID="history-entry-timer">
             <Text className="text-sm"> {set.timer}</Text>
             <Text className="text-xs">s</Text>
           </Text>

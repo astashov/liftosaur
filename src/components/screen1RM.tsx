@@ -78,7 +78,8 @@ export function Screen1RM(props: IScreen1RMProps): JSX.Element {
                         name="onerm-weight"
                         width={4}
                         exerciseType={exerciseType}
-                        data-cy="onerm-weight" data-testid="onerm-weight" testID="onerm-weight"
+                        data-testid="onerm-weight"
+                        testID="onerm-weight"
                         units={["lb", "kg"] as const}
                         onInput={(v) => {
                           if (v != null && !Weight_isPct(v)) {
@@ -144,7 +145,8 @@ function Footer(props: IFooterProps): JSX.Element {
               kind="purple"
               buttonSize="lg"
               onClick={props.onContinue}
-              data-cy="continue-1rms" data-testid="continue-1rms" testID="continue-1rms"
+              data-testid="continue-1rms"
+              testID="continue-1rms"
             >
               Continue
             </Button>

@@ -132,7 +132,8 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
               <InputNumber
                 label="Completed reps (left)"
                 value={repsLeftInputValue ?? 0}
-                data-cy="modal-amrap-left-input" data-testid="modal-amrap-left-input" testID="modal-amrap-left-input"
+                data-testid="modal-amrap-left-input"
+                testID="modal-amrap-left-input"
                 data-name="modal-input-left-autofocus"
                 min={0}
                 step={1}
@@ -146,7 +147,8 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
             <InputNumber
               label={isUnilateral ? "Completed reps (right)" : "Completed reps"}
               value={repsInputValue ?? 0}
-              data-cy="modal-amrap-input" data-testid="modal-amrap-input" testID="modal-amrap-input"
+              data-testid="modal-amrap-input"
+              testID="modal-amrap-input"
               data-name="modal-input-autofocus"
               min={0}
               step={1}
@@ -164,7 +166,8 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
             label="Weight"
             units={["kg", "lb"]}
             value={weightInputValue || Weight_build(0, props.settings.units)}
-            data-cy="modal-amrap-weight-input" data-testid="modal-amrap-weight-input" testID="modal-amrap-weight-input"
+            data-testid="modal-amrap-weight-input"
+            testID="modal-amrap-weight-input"
             settings={props.settings}
             onUpdate={(newValue) => {
               setWeightInputValue(newValue);
@@ -177,7 +180,8 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
           <InputNumber
             label="Completed RPE"
             value={rpeInputValue ?? 0}
-            data-cy="modal-rpe-input" data-testid="modal-rpe-input" testID="modal-rpe-input"
+            data-testid="modal-rpe-input"
+            testID="modal-rpe-input"
             data-name="modal-rpe-autofocus"
             min={0}
             max={10}
@@ -207,7 +211,8 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
       <View className="flex-row justify-end gap-3 mt-4">
         <Button
           name="modal-amrap-clear"
-          data-cy="modal-amrap-clear" data-testid="modal-amrap-clear" testID="modal-amrap-clear"
+          data-testid="modal-amrap-clear"
+          testID="modal-amrap-clear"
           kind="grayv2"
           onClick={() => {
             onDone();
@@ -218,7 +223,8 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
         <Button
           name="modal-amrap-submit"
           kind="purple"
-          data-cy="modal-amrap-submit" data-testid="modal-amrap-submit" testID="modal-amrap-submit"
+          data-testid="modal-amrap-submit"
+          testID="modal-amrap-submit"
           className="ls-modal-set-amrap"
           onClick={() => {
             const amrapValue = isAmrap ? (repsInputValue ?? 0) : undefined;
@@ -280,7 +286,8 @@ export function UserPromptedStateVar(props: IUserPromptedStateVarProps): JSX.Ele
   return (
     <View className={props.index !== 0 ? "mt-2" : ""}>
       <InputNumber
-        data-cy={`modal-state-vars-user-prompt-input-${key}`} data-testid={`modal-state-vars-user-prompt-input-${key}`} testID={`modal-state-vars-user-prompt-input-${key}`}
+        data-testid={`modal-state-vars-user-prompt-input-${key}`}
+        testID={`modal-state-vars-user-prompt-input-${key}`}
         label={label}
         value={num}
         min={Weight_is(value) || Weight_isPct(value) ? 0 : undefined}

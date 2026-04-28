@@ -23,7 +23,10 @@ test("Basic Beginner Program", async ({ page }) => {
   // Workout A
 
   // First exercise is successful
-  await page.locator("[data-testid^=exercise-]:has-text('Bent Over Row')").getByTestId("exercise-equipment-picker").click();
+  await page
+    .locator("[data-testid^=exercise-]:has-text('Bent Over Row')")
+    .getByTestId("exercise-equipment-picker")
+    .click();
   await page.getByTestId("modal-equipment").getByTestId("menu-item-value-equipment").click();
   await page.getByTestId("scroll-barrel-item-barbell").scrollIntoViewIfNeeded();
   await page.getByTestId("scroll-barrel-item-barbell").click();

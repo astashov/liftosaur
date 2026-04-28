@@ -158,14 +158,14 @@ export function ScreenApiKeys(props: IProps): JSX.Element {
                     </Text>
                   </View>
                   <View className="flex-row gap-4 ml-2 shrink-0">
-                    <Pressable testID="copy-api-key" data-cy="copy-api-key" data-testid="copy-api-key" onPress={() => handleCopy(apiKey.key)}>
+                    <Pressable testID="copy-api-key" data-testid="copy-api-key" onPress={() => handleCopy(apiKey.key)}>
                       <Text className="text-xs underline text-text-link">
                         {copiedKey === apiKey.key ? "Copied!" : "Copy"}
                       </Text>
                     </Pressable>
                     <Pressable
                       testID="delete-api-key"
-                      data-cy="delete-api-key" data-testid="delete-api-key"
+                      data-testid="delete-api-key"
                       onPress={() => handleDelete(apiKey.key)}
                     >
                       <Text className="text-xs underline text-text-error">Delete</Text>

@@ -33,7 +33,8 @@ export function ModalDayFromAdhocContent(props: IModalChangeNextDayProps): JSX.E
       <View className="mx-4 mb-2">
         <LinkButton
           name="create-program-from-adhoc"
-          data-cy="create-program-from-adhoc" data-testid="create-program-from-adhoc" testID="create-program-from-adhoc"
+          data-testid="create-program-from-adhoc"
+          testID="create-program-from-adhoc"
           onClick={() => {
             setShowCreateProgramModal(true);
           }}

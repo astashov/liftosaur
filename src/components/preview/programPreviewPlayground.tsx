@@ -239,8 +239,8 @@ function renderWeekContent(
   props: IProgramPreviewPlaygroundProps,
   dispatch: ILensDispatch<IProgramPreviewPlaygroundState>,
   evaluatedProgram: IEvaluatedProgram,
-  handleProgressChange: (weekIndex: number, dayIndex: number, newProgress: IHistoryRecord) => void,
-  handleFinish: (weekIndex: number, dayIndex: number) => void
+  handleProgressChange: (wIndex: number, dayIndex: number, newProgress: IHistoryRecord) => void,
+  handleFinish: (wIndex: number, dayIndex: number) => void
 ): JSX.Element {
   const programWeekDescription = evaluatedProgram.weeks[weekIndex]?.description;
   return (

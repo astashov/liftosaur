@@ -161,17 +161,17 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
         {
           label: `${ui.isProgressEnabled ? "Disable" : "Enable"} Progress`,
           onPress: toggleProgress,
-          "data-cy": "program-exercise-toggle-progress",
+          testID: "program-exercise-toggle-progress",
         },
         {
           label: `${ui.isUpdateEnabled ? "Disable" : "Enable"} Update`,
           onPress: toggleUpdate,
-          "data-cy": "program-exercise-toggle-update",
+          testID: "program-exercise-toggle-update",
         },
         {
           label: `Make ${plannerExercise.notused ? "Used" : "Unused"}`,
           onPress: toggleUsed,
-          "data-cy": "program-exercise-toggle-used",
+          testID: "program-exercise-toggle-used",
         },
       ]
     : [];
@@ -192,7 +192,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
           actions={kebabActions}
           renderTrigger={(open) => (
             <Pressable
-              data-cy="program-exercise-navbar-kebab" data-testid="program-exercise-navbar-kebab"
+              data-testid="program-exercise-navbar-kebab"
               testID="program-exercise-navbar-kebab"
               className="p-2"
               onPress={open}

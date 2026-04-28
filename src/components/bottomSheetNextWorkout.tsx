@@ -63,7 +63,8 @@ export function BottomSheetNextWorkoutContent(props: IBottomSheetNextWorkoutCont
       <View className="flex-row justify-between px-4 pb-4 bg-background-default">
         <LinkButton
           name="change-next-day"
-          data-cy="change-next-day" data-testid="change-next-day" testID="change-next-day"
+          data-testid="change-next-day"
+          testID="change-next-day"
           onClick={() => navigationRef.navigate("changeNextDayModal")}
         >
           <View className="flex-row items-center">
@@ -73,7 +74,8 @@ export function BottomSheetNextWorkoutContent(props: IBottomSheetNextWorkoutCont
         </LinkButton>
         <LinkButton
           name="start-empty-workout"
-          data-cy="start-empty-workout" data-testid="start-empty-workout" testID="start-empty-workout"
+          data-testid="start-empty-workout"
+          testID="start-empty-workout"
           onClick={() => {
             props.dispatch(Thunk_startProgramDay(emptyProgramId));
           }}

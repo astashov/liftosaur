@@ -37,7 +37,6 @@ export function ModalCreateProgramContent(props: Omit<IProps, "isHidden">): JSX.
         </Button>
         <Button
           name="modal-create-program-submit"
-          data-cy="modal-create-experimental-program-submit"
           kind="purple"
           disabled={props.isLoading}
           onClick={() => {

@@ -7,7 +7,6 @@ interface ISwitchProps {
   onValueChange: (value: boolean) => void;
   disabled?: boolean;
   testID?: string;
-  "data-cy"?: string;
 }
 
 export function Switch(props: ISwitchProps): JSX.Element {

@@ -47,7 +47,7 @@ export function BottomSheetEditProgramExerciseSupersetContent(
       <View className="flex-1 pb-4">
         <Pressable
           key="none"
-          data-cy="superset-group-none" data-testid="superset-group-none"
+          data-testid="superset-group-none"
           testID="superset-group-none"
           className={`${props.plannerExercise.superset == null ? "bg-background-cardpurple" : ""} px-4 py-1 border-b border-border-neutral min-h-12 justify-center`}
           onPress={() => {
@@ -61,7 +61,7 @@ export function BottomSheetEditProgramExerciseSupersetContent(
           return (
             <Pressable
               key={name}
-              data-cy={`superset-group-${StringUtils_dashcase(name)}`} data-testid={`superset-group-${StringUtils_dashcase(name)}`}
+              data-testid={`superset-group-${StringUtils_dashcase(name)}`}
               testID={`superset-group-${StringUtils_dashcase(name)}`}
               className={`${isSelected ? "bg-background-cardpurple" : ""} px-4 py-1 border-b border-border-neutral min-h-12 justify-center`}
               onPress={() => {
@@ -102,7 +102,8 @@ export function BottomSheetEditProgramExerciseSupersetContent(
               dataCyPrefix: "modal-new-superset",
             });
           }}
-          data-cy="superset-create-group" data-testid="superset-create-group" testID="superset-create-group"
+          data-testid="superset-create-group"
+          testID="superset-create-group"
         >
           Create New Group
         </Button>

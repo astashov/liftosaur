@@ -50,7 +50,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
         const actions: IActionMenuAction[] = [
           {
             label: `${areDescriptionsEnabled ? "Disable" : "Enable"} Descriptions`,
-            "data-cy": "program-exercise-toggle-descriptions",
+            testID: "program-exercise-toggle-descriptions",
             onPress: () => {
               EditProgramUiHelpers_changeCurrentInstanceExercise(
                 props.plannerDispatch,
@@ -70,7 +70,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
         if (!hasSetVariations) {
           actions.push({
             label: "Enable Set Variations",
-            "data-cy": "program-exercise-toggle-set-variations",
+            testID: "program-exercise-toggle-set-variations",
             onPress: () => {
               EditProgramUiHelpers_changeCurrentInstanceExercise(
                 props.plannerDispatch,
@@ -86,7 +86,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
         }
         actions.push({
           label: "Delete At This Day",
-          "data-cy": "program-exercise-delete-at-this-day",
+          testID: "program-exercise-delete-at-this-day",
           destructive: true,
           onPress: () => {
             const dayData = {
@@ -112,7 +112,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
         if (props.evaluatedProgram.weeks.length > 1) {
           actions.push({
             label: `${showRepeat ? "Disable" : "Enable"} Repeating`,
-            "data-cy": "program-exercise-toggle-repeating",
+            testID: "program-exercise-toggle-repeating",
             onPress: () => {
               if (showRepeat) {
                 props.plannerDispatch(
@@ -135,7 +135,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
         }
         actions.push({
           label: `${plannerExercise.order !== 0 ? "Disable" : "Enable"} Forced Order`,
-          "data-cy": "edit-menu-exercise-toggle-order",
+          testID: "edit-menu-exercise-toggle-order",
           onPress: () => {
             if (showOrder) {
               EditProgramUiHelpers_changeCurrentInstanceExercise(
@@ -152,7 +152,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
         });
         actions.push({
           label: `${plannerExercise.superset != null ? "Disable" : "Enable"} Superset`,
-          "data-cy": "edit-menu-exercise-toggle-supersets",
+          testID: "edit-menu-exercise-toggle-supersets",
           onPress: () => {
             if (showSupersets) {
               EditProgramUiHelpers_changeCurrentInstanceExercise(
@@ -174,7 +174,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
   return (
     <View
       className="py-3 mb-4 border bg-background-default rounded-2xl border-border-neutral"
-      data-cy={`edit-day-${props.weekIndex + 1}-${props.dayInWeekIndex + 1}`} data-testid={`edit-day-${props.weekIndex + 1}-${props.dayInWeekIndex + 1}`}
+      data-testid={`edit-day-${props.weekIndex + 1}-${props.dayInWeekIndex + 1}`}
       testID={`edit-day-${props.weekIndex + 1}-${props.dayInWeekIndex + 1}`}
       style={kebabMenuZIndex}
     >
@@ -188,7 +188,7 @@ export function EditProgramExerciseDay(props: IEditProgramExerciseDayProps): JSX
               actions={dayKebabActions}
               onOpenChange={setIsKebabMenuOpen}
               renderTrigger={(open) => (
-                <Pressable data-cy="day-kebab-menu" data-testid="day-kebab-menu" testID="day-kebab-menu" className="p-2" onPress={open}>
+                <Pressable data-testid="day-kebab-menu" testID="day-kebab-menu" className="p-2" onPress={open}>
                   <IconKebab />
                 </Pressable>
               )}

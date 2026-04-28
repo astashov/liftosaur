@@ -48,7 +48,7 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
       <>
         {!isError && doesExist && (
           <Image
-            data-cy="exercise-image-small" data-testid="exercise-image-small"
+            data-testid="exercise-image-small"
             testID="exercise-image-small"
             className={props.className}
             source={{ uri: src }}
@@ -81,7 +81,7 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
     return doesExist ? (
       <>
         <Image
-          data-cy="exercise-image-large" data-testid="exercise-image-large"
+          data-testid="exercise-image-large"
           testID="exercise-image-large"
           className={props.className}
           source={{ uri: src }}

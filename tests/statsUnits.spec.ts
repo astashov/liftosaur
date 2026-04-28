@@ -36,9 +36,9 @@ test("converts length units properly", async ({ page }) => {
   await page.getByTestId("menu-item-name-type").click();
   await page.getByTestId("menu-item-type").getByTestId("scroll-barrel-item-shoulders").click();
   await expect(page.getByTestId("input-stats-value")).toHaveCount(2);
-  await expect(page.getByTestId("stats-list-shoulders").locator("[data-testid='input-stats-value']").nth(0)).toHaveValue(
-    "40"
-  );
+  await expect(
+    page.getByTestId("stats-list-shoulders").locator("[data-testid='input-stats-value']").nth(0)
+  ).toHaveValue("40");
   await expect(page.getByTestId("input-stats-value").nth(1)).toHaveValue("51.66");
   await expect(page.getByTestId("input-stats-unit").nth(0)).toHaveText("cm");
   await expect(page.getByTestId("input-stats-unit").nth(1)).toHaveText("cm");
@@ -53,9 +53,9 @@ test("converts length units properly", async ({ page }) => {
   await page.getByTestId("menu-item-name-type").click();
   await page.getByTestId("menu-item-type").getByTestId("scroll-barrel-item-shoulders").click();
   await expect(page.getByTestId("input-stats-value")).toHaveCount(2);
-  await expect(page.getByTestId("stats-list-shoulders").locator("[data-testid='input-stats-value']").nth(0)).toHaveValue(
-    "15.75"
-  );
+  await expect(
+    page.getByTestId("stats-list-shoulders").locator("[data-testid='input-stats-value']").nth(0)
+  ).toHaveValue("15.75");
   await expect(page.getByTestId("input-stats-value").nth(1)).toHaveValue("20.34");
   await expect(page.getByTestId("input-stats-unit").nth(0)).toHaveText("in");
   await expect(page.getByTestId("input-stats-unit").nth(1)).toHaveText("in");

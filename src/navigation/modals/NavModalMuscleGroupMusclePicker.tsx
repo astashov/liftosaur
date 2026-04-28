@@ -49,7 +49,8 @@ export function NavModalMuscleGroupMusclePicker(): JSX.Element {
               kind="purple"
               buttonSize="md"
               name="done-selecting-muscles"
-              data-cy="done-selecting-muscles" data-testid="done-selecting-muscles" testID="done-selecting-muscles"
+              data-testid="done-selecting-muscles"
+              testID="done-selecting-muscles"
               onClick={onClose}
             >
               Done
@@ -100,7 +101,6 @@ export function NavModalMuscleGroupMusclePicker(): JSX.Element {
                 kind="purple"
                 buttonSize="md"
                 name="done-selecting-muscles"
-                data-cy="done-selecting-muscles"
                 data-testid="done-selecting-muscles"
                 testID="done-selecting-muscles"
                 onClick={onClose}

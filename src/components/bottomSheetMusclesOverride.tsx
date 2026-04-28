@@ -123,7 +123,7 @@ export function BottomSheetMusclesOverrideContent(props: IBottomSheetMusclesOver
           <Pressable
             className="px-4 py-2"
             hitSlop={12}
-            data-cy="muscle-overrides-close" data-testid="muscle-overrides-close"
+            data-testid="muscle-overrides-close"
             testID="muscle-overrides-close"
             onPress={props.onClose}
           >
@@ -135,7 +135,7 @@ export function BottomSheetMusclesOverrideContent(props: IBottomSheetMusclesOver
               kind="purple"
               buttonSize="md"
               name="save-muscle-overrides"
-              data-cy="save-muscle-overrides" data-testid="save-muscle-overrides"
+              data-testid="save-muscle-overrides"
               onClick={handleSave}
             >
               Save
@@ -146,7 +146,8 @@ export function BottomSheetMusclesOverrideContent(props: IBottomSheetMusclesOver
               <Text className="font-semibold">Override Muscles</Text>
               <View className="items-center">
                 <LinkButton
-                  data-cy="toggle-muscle-overrides" data-testid="toggle-muscle-overrides" testID="toggle-muscle-overrides"
+                  data-testid="toggle-muscle-overrides"
+                  testID="toggle-muscle-overrides"
                   name="toggle-muscle-overrides"
                   className="text-xs"
                   onClick={() =>
@@ -235,7 +236,7 @@ function MusclesOverrideList(props: {
                 <View className="w-12">
                   <TextInput
                     testID={`muscle-multiplier-${StringUtils_dashcase(mm.muscle)}-input`}
-                    data-cy={`muscle-multiplier-${StringUtils_dashcase(mm.muscle)}-input`} data-testid={`muscle-multiplier-${StringUtils_dashcase(mm.muscle)}-input`}
+                    data-testid={`muscle-multiplier-${StringUtils_dashcase(mm.muscle)}-input`}
                     className="px-2 py-2 text-base leading-5 text-center border rounded-md bg-background-default border-border-prominent"
                     keyboardType="decimal-pad"
                     value={mm.multiplier != null ? String(mm.multiplier) : ""}
@@ -254,7 +255,7 @@ function MusclesOverrideList(props: {
                 </View>
                 <View className="ml-4">
                   <Pressable
-                    data-cy={`remove-muscle-override-${StringUtils_dashcase(mm.muscle)}`} data-testid={`remove-muscle-override-${StringUtils_dashcase(mm.muscle)}`}
+                    data-testid={`remove-muscle-override-${StringUtils_dashcase(mm.muscle)}`}
                     testID={`remove-muscle-override-${StringUtils_dashcase(mm.muscle)}`}
                     onPress={() => {
                       setMusclesAndMultipliers((mms) => mms.filter((x) => x.muscle !== mm.muscle));

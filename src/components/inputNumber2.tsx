@@ -33,6 +33,8 @@ interface IInputNumber2Props {
   onChangeUnits?: (unit: IUnit | IPercentageUnit) => void;
   selectedUnit?: IUnit | IPercentageUnit;
   showUnitInside?: boolean;
+  "data-testid"?: string;
+  testID?: string;
 }
 
 function clamp(value: string | number, min?: number, max?: number): number | undefined {
@@ -92,7 +94,8 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
   const paddedScrollerRef = useRef<HTMLElement | null>(null);
   const padOwnerIdRef = useRef<number>(0);
   if (padOwnerIdRef.current === 0) {
-    padOwnerIdRef.current = nextPadOwnerId++;
+    nextPadOwnerId += 1;
+    padOwnerIdRef.current = nextPadOwnerId;
   }
 
   function resetKeyboardStyles(): void {
@@ -348,7 +351,8 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
         onClick={(e) => {
           e.currentTarget.focus();
         }}
-        data-cy={`input-${StringUtils_dashcase(props.name)}-field`} data-testid={`input-${StringUtils_dashcase(props.name)}-field`} testID={`input-${StringUtils_dashcase(props.name)}-field`}
+        data-testid={`input-${StringUtils_dashcase(props.name)}-field`}
+        testID={`input-${StringUtils_dashcase(props.name)}-field`}
       >
         <div ref={inputRef} className="leading-none">
           {!value && !isFocused && props.placeholder ? (
@@ -449,7 +453,8 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: React.Forwa
           {props.enableCalculator && (
             <div className="py-2">
               <button
-                data-cy="keyboard-rm-calculator" data-testid="keyboard-rm-calculator" testID="keyboard-rm-calculator"
+                data-testid="keyboard-rm-calculator"
+                testID="keyboard-rm-calculator"
                 className="flex items-center justify-center w-24 px-2 py-1 border rounded keyboard-close border-border-cardpurple bg-background-cardpurple"
                 onClick={props.onShowCalculator}
               >
@@ -480,7 +485,8 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: React.Forwa
               if (key) {
                 return (
                   <button
-                    data-cy={`keyboard-button-${key}`} data-testid={`keyboard-button-${key}`} testID={`keyboard-button-${key}`}
+                    data-testid={`keyboard-button-${key}`}
+                    testID={`keyboard-button-${key}`}
                     key={key}
                     className="p-2 text-2xl bg-background-default active:bg-background-neutral touch-manipulation text-text-primary"
                     onClick={() => props.onInput(key)}
@@ -497,7 +503,8 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: React.Forwa
             <div className="mb-4">
               <button
                 className="flex items-center justify-center w-full pt-2 pb-1 border rounded touch-manipulation keyboard-close border-border-cardpurple bg-background-cardpurple"
-                data-cy="keyboard-close" data-testid="keyboard-close" testID="keyboard-close"
+                data-testid="keyboard-close"
+                testID="keyboard-close"
                 onClick={props.onBlur}
               >
                 <IconKeyboardClose />
@@ -507,7 +514,8 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: React.Forwa
               <div className="flex-1">
                 <button
                   className="flex items-center justify-center w-full p-2 border rounded touch-manipulation rounded-e-none border-border-cardpurple bg-background-cardpurple text-icon-neutral"
-                  data-cy="keyboard-minus" data-testid="keyboard-minus" testID="keyboard-minus"
+                  data-testid="keyboard-minus"
+                  testID="keyboard-minus"
                   onClick={props.onMinus}
                 >
                   -
@@ -516,7 +524,8 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: React.Forwa
               <div className="flex-1">
                 <button
                   className="flex items-center justify-center w-full p-2 border rounded touch-manipulation rounded-s-none border-border-cardpurple bg-background-cardpurple text-icon-neutral"
-                  data-cy="keyboard-plus" data-testid="keyboard-plus" testID="keyboard-plus"
+                  data-testid="keyboard-plus"
+                  testID="keyboard-plus"
                   onClick={props.onPlus}
                 >
                   +
@@ -529,7 +538,8 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: React.Forwa
                   <button
                     key={unit}
                     className={`flex text-icon-neutral touch-manipulation items-center  aspect-square justify-center flex-1 w-full border rounded ${unit === props.selectedUnit ? "border-border-prominent bg-background-cardpurpleselected" : " border-border-cardpurple bg-background-cardpurple"}`}
-                    data-cy={`keyboard-unit-${unit}`} data-testid={`keyboard-unit-${unit}`} testID={`keyboard-unit-${unit}`}
+                    data-testid={`keyboard-unit-${unit}`}
+                    testID={`keyboard-unit-${unit}`}
                     onClick={() => {
                       if (props.onChangeUnits) {
                         props.onChangeUnits(unit);
@@ -546,7 +556,8 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: React.Forwa
             <div className="mt-4">
               <button
                 className="flex items-center justify-center w-full h-10 border rounded touch-manipulation border-border-cardpurple bg-background-cardpurple"
-                data-cy={`keyboard-backspace`} data-testid={`keyboard-backspace`} testID={`keyboard-backspace`}
+                data-testid={`keyboard-backspace`}
+                testID={`keyboard-backspace`}
                 onClick={() => props.onInput("⌫")}
               >
                 <IconBackspace />

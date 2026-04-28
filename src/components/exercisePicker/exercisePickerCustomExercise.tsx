@@ -39,7 +39,7 @@ export function ExercisePickerCustomExercise(props: IExercisePickerCustomExercis
           <Pressable
             className="px-4 py-2"
             hitSlop={12}
-            data-cy="navbar-back" data-testid="navbar-back"
+            data-testid="navbar-back"
             testID="navbar-back"
             onPress={() => {
               props.onGoBack("Pop screen in exercise picker screen stack");
@@ -54,7 +54,8 @@ export function ExercisePickerCustomExercise(props: IExercisePickerCustomExercis
               buttonSize="md"
               disabled={!isEdited || !isValid}
               name="navbar-save-custom-exercise"
-              data-cy="custom-exercise-create" data-testid="custom-exercise-create" testID="custom-exercise-create"
+              data-testid="custom-exercise-create"
+              testID="custom-exercise-create"
               onPress={() => {
                 props.onChange("upsert", props.exercise, notes);
                 props.onGoBack("Save custom exercise");

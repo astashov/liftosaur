@@ -182,14 +182,14 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
           }
         />
       </GroupHeader>
-      <View className="relative" data-cy="modal-graphs" data-testid="modal-graphs" testID="modal-graphs">
+      <View className="relative" data-testid="modal-graphs" testID="modal-graphs">
         {graphs.length > 0 && <GroupHeader topPadding={true} name="Selected Graphs" />}
         <DraggableList2
           items={graphs}
           element={(graph, i, handle) => {
             return (
               <View
-                data-cy={`item-graph-${graph.type}-${StringUtils_dashcase(graph.id)}`} data-testid={`item-graph-${graph.type}-${StringUtils_dashcase(graph.id)}`}
+                data-testid={`item-graph-${graph.type}-${StringUtils_dashcase(graph.id)}`}
                 testID={`item-graph-${graph.type}-${StringUtils_dashcase(graph.id)}`}
                 className="w-full px-2 py-1 border-b border-border-neutral"
               >
@@ -209,7 +209,7 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
                     <StatsPreview stats={graph.id} />
                   )}
                   <Pressable
-                    data-cy="remove-graph" data-testid="remove-graph"
+                    data-testid="remove-graph"
                     testID="remove-graph"
                     className="p-1 nm-remove-graph"
                     onPress={() => EditGraphs_removeGraph(props.dispatch, graph)}
@@ -233,7 +233,7 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
               return (
                 <Pressable
                   key={Exercise_toKey(e)}
-                  data-cy={`item-graph-${StringUtils_dashcase(e.name)}`} data-testid={`item-graph-${StringUtils_dashcase(e.name)}`}
+                  data-testid={`item-graph-${StringUtils_dashcase(e.name)}`}
                   testID={`item-graph-${StringUtils_dashcase(e.name)}`}
                   className="flex-row w-full px-2 py-1 border-b border-border-neutral"
                   onPress={() => EditGraphs_addExerciseGraph(props.dispatch, e)}
@@ -251,7 +251,7 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
               return (
                 <Pressable
                   key={muscleGroup}
-                  data-cy={`item-graph-${muscleGroup}`} data-testid={`item-graph-${muscleGroup}`}
+                  data-testid={`item-graph-${muscleGroup}`}
                   testID={`item-graph-${muscleGroup}`}
                   className="flex-row w-full px-2 py-1 border-b border-border-neutral"
                   onPress={() => EditGraphs_addMuscleGroupGraph(props.dispatch, muscleGroup)}

@@ -21,7 +21,7 @@ export function NavModalRepMaxCalculator(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose} shouldShowClose={true} isFullWidth={true}>
-      <View data-cy="modal-rep-max-calculator" data-testid="modal-rep-max-calculator" testID="modal-rep-max-calculator">
+      <View data-testid="modal-rep-max-calculator" testID="modal-rep-max-calculator">
         <RepMaxCalculator
           backLabel="Back"
           unit={data.unit}

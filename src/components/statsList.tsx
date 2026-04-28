@@ -90,7 +90,8 @@ export function StatsList(props: IProps): JSX.Element {
         <View className="items-center">
           <Button
             name="add-measurements"
-            data-cy="add-measurements" data-testid="add-measurements" testID="add-measurements"
+            data-testid="add-measurements"
+            testID="add-measurements"
             kind="purple"
             onClick={() => props.dispatch(Thunk_pushScreen("stats"))}
           >
@@ -113,11 +114,12 @@ export function StatsList(props: IProps): JSX.Element {
     selectedKey === "weight" ? props.settings.units : selectedKey === "bodyfat" ? "%" : props.settings.lengthUnits;
 
   return (
-    <View className="px-4" data-cy={`stats-list-${selectedKey}`} data-testid={`stats-list-${selectedKey}`} testID={`stats-list-${selectedKey}`}>
+    <View className="px-4" data-testid={`stats-list-${selectedKey}`} testID={`stats-list-${selectedKey}`}>
       <View className="items-center pb-2">
         <Button
           name="add-measurements"
-          data-cy="add-measurements" data-testid="add-measurements" testID="add-measurements"
+          data-testid="add-measurements"
+          testID="add-measurements"
           kind="purple"
           onClick={() => props.dispatch(Thunk_pushScreen("stats"))}
         >
@@ -236,13 +238,14 @@ export function StatsList(props: IProps): JSX.Element {
                   </View>
                   <View className="flex-row flex-1 items-center">
                     <StatValueInput value={+convertedValue.value.toFixed(2)} onChange={onChangeValue} />
-                    <Text className="py-3 pl-1" data-cy="input-stats-unit" data-testid="input-stats-unit">
+                    <Text className="py-3 pl-1" data-testid="input-stats-unit">
                       {units}
                     </Text>
                   </View>
                   <Pressable
                     className="p-3 nm-delete-stat"
-                    data-cy="delete-stat" data-testid="delete-stat" testID="delete-stat"
+                    data-testid="delete-stat"
+                    testID="delete-stat"
                     onPress={async () => {
                       if (await Dialog_confirm("Are you sure?")) {
                         if (selectedKey === "weight") {
@@ -281,7 +284,8 @@ function StatValueInput(props: IStatValueInputProps): JSX.Element {
 
   return (
     <TextInput
-      data-cy="input-stats-value" data-testid="input-stats-value" testID="input-stats-value"
+      data-testid="input-stats-value"
+      testID="input-stats-value"
       className="flex-1 w-0 min-w-0 p-2 text-right text-text-link bg-background-default"
       keyboardType="numeric"
       value={text}

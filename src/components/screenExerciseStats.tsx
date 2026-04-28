@@ -166,7 +166,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
         show1RM={true}
       />
 
-      <View data-cy="exercise-stats-image" data-testid="exercise-stats-image" testID="exercise-stats-image">
+      <View data-testid="exercise-stats-image" testID="exercise-stats-image">
         <ExerciseImage
           settings={props.settings}
           key={Exercise_toKey(exerciseType)}
@@ -175,7 +175,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
         />
       </View>
       {history.length > 1 && (
-        <View data-cy="exercise-stats-graph" data-testid="exercise-stats-graph" testID="exercise-stats-graph" className="relative">
+        <View data-testid="exercise-stats-graph" testID="exercise-stats-graph" className="relative">
           <Locker topic="Graphs" dispatch={props.dispatch} blur={8} subscription={props.subscription} />
           <GraphExercise
             isSameXAxis={false}
@@ -237,7 +237,8 @@ export function MuscleGroupsView(props: {
     <View>
       <View>
         <LinkButton
-          data-cy="override-exercise-muscles" data-testid="override-exercise-muscles" testID="override-exercise-muscles"
+          data-testid="override-exercise-muscles"
+          testID="override-exercise-muscles"
           name="override-exercise-muscles"
           className="text-xs"
           onClick={() => props.onOverride()}

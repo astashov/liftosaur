@@ -38,6 +38,8 @@ interface IInputWeight2Props {
   onInput?: (value: IWeight | IPercentage | undefined) => void;
   subscription?: ISubscription;
   tabIndex?: number;
+  "data-testid"?: string;
+  testID?: string;
 }
 
 function InputWeight2Inner(props: IInputWeight2Props): JSX.Element {
@@ -163,7 +165,7 @@ function PlatesCalculator(props: IPlatesCalculatorProps): JSX.Element {
           Plates:{" "}
           <Text
             className={`text-xs font-semibold ${Weight_eq(weight, props.weight) ? "text-text-primary" : "text-text-error"}`}
-            data-cy="plates-list" data-testid="plates-list"
+            data-testid="plates-list"
             testID="plates-list"
           >
             {plates.length > 0 ? Weight_formatOneSide(props.settings, plates, props.exerciseType) : "None"}

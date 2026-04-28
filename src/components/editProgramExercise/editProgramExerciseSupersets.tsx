@@ -27,7 +27,7 @@ export function EditProgramExerciseSupersets(props: IEditProgramExerciseSuperset
     <View>
       <Pressable
         className="flex-row flex-wrap items-center gap-2 mx-4 mb-2 border-b border-border-neutral min-h-12"
-        data-cy="edit-exercise-select-superset" data-testid="edit-exercise-select-superset"
+        data-testid="edit-exercise-select-superset"
         testID="edit-exercise-select-superset"
         onPress={openSupersetModal}
       >
@@ -36,7 +36,11 @@ export function EditProgramExerciseSupersets(props: IEditProgramExerciseSuperset
           {superset == null ? "None" : superset.name}
         </LinkButton>
         {supersetExercises.length > 0 && (
-          <View className="flex-row flex-wrap" data-cy="edit-exercise-superset-exercises" data-testid="edit-exercise-superset-exercises" testID="edit-exercise-superset-exercises">
+          <View
+            className="flex-row flex-wrap"
+            data-testid="edit-exercise-superset-exercises"
+            testID="edit-exercise-superset-exercises"
+          >
             <Text className="text-xs text-text-secondary">(</Text>
             {supersetExercises.map((e, i) => {
               return (

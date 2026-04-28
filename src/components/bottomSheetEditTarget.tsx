@@ -100,7 +100,7 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
               <Switch
                 value={set.isAmrap}
                 testID="edit-target-amrap"
-                data-cy="edit-target-amrap" data-testid="edit-target-amrap"
+                data-testid="edit-target-amrap"
                 onValueChange={() => {
                   updateProgress(props.dispatch, [lbSet.p("isAmrap").record(!set.isAmrap)], "amrap-checkbox");
                 }}
@@ -157,7 +157,7 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
               <Switch
                 value={set.askWeight}
                 testID="edit-target-ask-weight"
-                data-cy="edit-target-ask-weight" data-testid="edit-target-ask-weight"
+                data-testid="edit-target-ask-weight"
                 onValueChange={() => {
                   updateProgress(props.dispatch, [lbSet.p("askWeight").record(!set.askWeight)], "ask-weight-checkbox");
                 }}
@@ -215,7 +215,7 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
                 <Switch
                   value={set.logRpe}
                   testID="edit-target-log-rpe"
-                  data-cy="edit-target-log-rpe" data-testid="edit-target-log-rpe"
+                  data-testid="edit-target-log-rpe"
                   onValueChange={() => {
                     updateProgress(props.dispatch, [lbSet.p("logRpe").record(!set.logRpe)], "log-rpe-checkbox");
                   }}
@@ -301,7 +301,8 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
         <Button
           kind="purple"
           name="edit-set-target-save"
-          data-cy="edit-set-target-save" data-testid="edit-set-target-save" testID="edit-set-target-save"
+          data-testid="edit-set-target-save"
+          testID="edit-set-target-save"
           className="w-full"
           onClick={() => {
             savedRef.current = true;

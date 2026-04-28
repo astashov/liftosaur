@@ -75,14 +75,18 @@ test("Empty Workout", async ({ page }) => {
     page
       .getByTestId("history-record")
       .nth(1)
-      .locator("[data-testid=history-entry-exercise]:has-text('Bench Press') >> [data-testid=history-entry-sets-completed]")
+      .locator(
+        "[data-testid=history-entry-exercise]:has-text('Bench Press') >> [data-testid=history-entry-sets-completed]"
+      )
       .first()
   ).toHaveText("7 × 100lb");
   await expect(
     page
       .getByTestId("history-record")
       .nth(1)
-      .locator("[data-testid=history-entry-exercise]:has-text('Bench Press') >> [data-testid=history-entry-sets-completed]")
+      .locator(
+        "[data-testid=history-entry-exercise]:has-text('Bench Press') >> [data-testid=history-entry-sets-completed]"
+      )
       .nth(1)
   ).toHaveText("5 × 80lb");
   await expect(

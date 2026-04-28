@@ -204,7 +204,7 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
         <View className="flex-1">
           <Pressable
             className={`${buttonBgColor} w-full py-2 rounded-md flex-row items-center justify-center`}
-            data-cy="add-warmup-set" data-testid="add-warmup-set"
+            data-testid="add-warmup-set"
             testID="add-warmup-set"
             onPress={onAddWarmupSet}
           >
@@ -215,7 +215,7 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
         <View className="flex-1">
           <Pressable
             className={`${buttonBgColor} w-full py-2 rounded-md flex-row items-center justify-center`}
-            data-cy="add-workout-set" data-testid="add-workout-set"
+            data-testid="add-workout-set"
             testID="add-workout-set"
             onPress={onAddSet}
           >

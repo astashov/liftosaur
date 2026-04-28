@@ -29,8 +29,11 @@ export const ProgramPreviewTabDay = memo((props: IProgramPreviewTabDayProps): JS
   const programExercises = programDay ? Program_getProgramDayUsedExercises(programDay) : [];
 
   return (
-    <View data-cy={`preview-day-${StringUtils_dashcase(programDay.name)}`} data-testid={`preview-day-${StringUtils_dashcase(programDay.name)}`} testID={`preview-day-${StringUtils_dashcase(programDay.name)}`}>
-      <Text className="mx-4 mb-1 text-lg font-bold" data-cy="preview-day-name" data-testid="preview-day-name" testID="preview-day-name">
+    <View
+      data-testid={`preview-day-${StringUtils_dashcase(programDay.name)}`}
+      testID={`preview-day-${StringUtils_dashcase(programDay.name)}`}
+    >
+      <Text className="mx-4 mb-1 text-lg font-bold" data-testid="preview-day-name" testID="preview-day-name">
         {props.weekName ? `${props.weekName} - ` : ""}
         {programDay.name}
       </Text>

@@ -40,7 +40,8 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
         : "Share workout to Tiktok";
   return (
     <section
-      data-cy="workout-share-sheet" data-testid="workout-share-sheet" testID="workout-share-sheet"
+      data-testid="workout-share-sheet"
+      testID="workout-share-sheet"
       className="relative flex flex-col overflow-hidden text-text-primary"
       style={{ height: "calc(100vh - 4rem)" }}
     >

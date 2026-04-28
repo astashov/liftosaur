@@ -32,7 +32,7 @@ export function BottomSheetWorkoutSupersetContent(props: IBottomSheetWorkoutSupe
       </View>
       <View className="pb-4">
         <Pressable
-          data-cy="superset-group-none" data-testid="superset-group-none"
+          data-testid="superset-group-none"
           testID="superset-group-none"
           className={`${props.entry.superset == null ? "bg-background-cardpurple" : ""} px-4 py-1 border-b border-border-neutral`}
           style={{ minHeight: 48, justifyContent: "center" }}
@@ -48,7 +48,7 @@ export function BottomSheetWorkoutSupersetContent(props: IBottomSheetWorkoutSupe
           return (
             <Pressable
               key={name}
-              data-cy={`superset-group-${StringUtils_dashcase(name)}`} data-testid={`superset-group-${StringUtils_dashcase(name)}`}
+              data-testid={`superset-group-${StringUtils_dashcase(name)}`}
               testID={`superset-group-${StringUtils_dashcase(name)}`}
               className={`${isSelected ? "bg-background-cardpurple" : ""} px-4 py-1 border-b border-border-neutral`}
               style={{ minHeight: 48, justifyContent: "center" }}
@@ -90,7 +90,8 @@ export function BottomSheetWorkoutSupersetContent(props: IBottomSheetWorkoutSupe
               dataCyPrefix: "modal-new-superset",
             });
           }}
-          data-cy="superset-create-group" data-testid="superset-create-group" testID="superset-create-group"
+          data-testid="superset-create-group"
+          testID="superset-create-group"
         >
           Create New Group
         </Button>

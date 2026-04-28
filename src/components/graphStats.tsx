@@ -111,42 +111,42 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
   const movingAvg = cursorIdx != null && movingAverageWindowSize != null ? data[2][cursorIdx] : null;
 
   return (
-    <View className="relative" testID="graph" data-cy="graph" data-testid="graph">
-     <View testID="graph-data" data-cy="graph-data" data-testid="graph-data">
-      {title && (
-        <View className="mb-1">
-          <Text className="text-lg font-semibold leading-6 u-title">{title}</Text>
-        </View>
-      )}
-      <View className="relative">
-        <LineChart
-          data={data}
-          series={series}
-          height={320}
-          xMin={xMin}
-          xMax={xMax}
-          onCursorChange={setCursorIdx}
-          yAxisFormatter={(v) => `${Math.round(v * 10) / 10}`}
-        />
-        <View
-          className={`box-content px-8 ${props.title === null ? "pt-2" : "pt-8"} pb-2 items-center`}
-          style={{ minHeight: 24 }}
-        >
-          {timestamp != null && value != null && props.units != null && (
-            <Text className="text-sm">
-              {DateUtils_format(new Date(timestamp * 1000))}, <Text className="font-bold text-sm">{value}</Text>{" "}
-              {props.units}
-              {movingAvg != null && (
-                <Text className="text-sm text-text-secondary">
-                  {" "}
-                  (Avg. {movingAvg} {props.units})
-                </Text>
-              )}
-            </Text>
-          )}
+    <View className="relative" testID="graph" data-testid="graph">
+      <View testID="graph-data" data-testid="graph-data">
+        {title && (
+          <View className="mb-1">
+            <Text className="text-lg font-semibold leading-6 u-title">{title}</Text>
+          </View>
+        )}
+        <View className="relative">
+          <LineChart
+            data={data}
+            series={series}
+            height={320}
+            xMin={xMin}
+            xMax={xMax}
+            onCursorChange={setCursorIdx}
+            yAxisFormatter={(v) => `${Math.round(v * 10) / 10}`}
+          />
+          <View
+            className={`box-content px-8 ${props.title === null ? "pt-2" : "pt-8"} pb-2 items-center`}
+            style={{ minHeight: 24 }}
+          >
+            {timestamp != null && value != null && props.units != null && (
+              <Text className="text-sm">
+                {DateUtils_format(new Date(timestamp * 1000))}, <Text className="font-bold text-sm">{value}</Text>{" "}
+                {props.units}
+                {movingAvg != null && (
+                  <Text className="text-sm text-text-secondary">
+                    {" "}
+                    (Avg. {movingAvg} {props.units})
+                  </Text>
+                )}
+              </Text>
+            )}
+          </View>
         </View>
       </View>
-     </View>
     </View>
   );
 }

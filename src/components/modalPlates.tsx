@@ -36,7 +36,8 @@ export function ModalPlatesContent(props: IProps): JSX.Element {
         <Button
           name="modal-new-plate-weight-submit"
           kind="purple"
-          data-cy="add-plate" data-testid="add-plate" testID="add-plate"
+          data-testid="add-plate"
+          testID="add-plate"
           onClick={() => {
             if (result?.success) {
               const numValue = parseFloat(result.data);

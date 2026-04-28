@@ -13,14 +13,15 @@ interface IInputWeightProps {
   exerciseType?: IExerciseType;
   units?: (IUnit | "%")[];
   settings: ISettings;
-  "data-cy"?: string;
+  "data-testid"?: string;
+  testID?: string;
   onUpdate: (weight: IWeight | IPercentage) => void;
 }
 
 export function InputWeight(props: IInputWeightProps): JSX.Element {
   const [text, setText] = useState(String(props.value.value));
   const [unit, setUnit] = useState<IUnit | "%">(props.value.unit);
-  const testId = props["data-cy"] || `input-${StringUtils_dashcase(props.label || "")}`;
+  const testId = props.testID || `input-${StringUtils_dashcase(props.label || "")}`;
   const availableUnits = props.units ?? (["kg", "lb", "%"] as const);
 
   useEffect(() => {
@@ -54,7 +55,7 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
       <View className="flex-row items-center gap-2">
         <Pressable
           className="items-center justify-center w-10 h-10 border rounded-lg bg-background-purpledark border-border-neutral"
-          data-cy="edit-weight-minus" data-testid="edit-weight-minus"
+          data-testid="edit-weight-minus"
           testID="edit-weight-minus"
           onPress={() => {
             const value = getValue();
@@ -79,7 +80,7 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
               className="w-full px-4 py-2 text-base border rounded-lg bg-background-default border-border-prominent"
               keyboardType="numeric"
               value={text}
-              data-cy={testId} data-testid={testId}
+              data-testid={testId}
               testID={testId}
               onChangeText={setText}
               onBlur={() => {
@@ -95,7 +96,7 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
             {availableUnits.map((u) => (
               <Pressable
                 key={u}
-                data-cy={`edit-weight-unit-${u}`} data-testid={`edit-weight-unit-${u}`}
+                data-testid={`edit-weight-unit-${u}`}
                 testID={`edit-weight-unit-${u}`}
                 className={`px-2 py-1 border rounded ${u === unit ? "border-border-prominent bg-background-cardpurpleselected" : "border-border-neutral bg-background-default"}`}
                 onPress={() => {
@@ -114,7 +115,7 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
         {unit !== "%" && (
           <Pressable
             className="items-center justify-center w-10 h-10 border rounded-lg bg-background-purpledark border-border-neutral"
-            data-cy="edit-weight-calculator" data-testid="edit-weight-calculator"
+            data-testid="edit-weight-calculator"
             testID="edit-weight-calculator"
             onPress={() => openCalculator({ unit: unit as IUnit })}
           >
@@ -123,7 +124,7 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
         )}
         <Pressable
           className="items-center justify-center w-10 h-10 border rounded-lg bg-background-purpledark border-border-neutral"
-          data-cy="edit-weight-plus" data-testid="edit-weight-plus"
+          data-testid="edit-weight-plus"
           testID="edit-weight-plus"
           onPress={() => {
             const value = getValue();

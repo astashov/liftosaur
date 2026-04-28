@@ -83,7 +83,8 @@ function ProgressStateChangesInner(props: IProps): JSX.Element | null {
               <LinkButton
                 name="supress-progress"
                 className="text-xs"
-                data-cy="suppress-progress" data-testid="suppress-progress" testID="suppress-progress"
+                data-testid="suppress-progress"
+                testID="suppress-progress"
                 onClick={() => {
                   onSuppressProgress(!props.entry.isSuppressed);
                 }}
@@ -106,18 +107,18 @@ function ExerciseChanges({ diffVars }: { diffVars: Record<string, string | undef
     return (
       <View>
         <Text className="text-xs font-bold">Exercise Changes</Text>
-        <View data-cy="variable-changes" data-testid="variable-changes" testID="variable-changes">
+        <View data-testid="variable-changes" testID="variable-changes">
           {ObjectUtils_keys(diffVars).map((key) => (
             <View
               key={key}
-              data-cy={`variable-changes-key-${StringUtils_dashcase(key)}`} data-testid={`variable-changes-key-${StringUtils_dashcase(key)}`}
+              data-testid={`variable-changes-key-${StringUtils_dashcase(key)}`}
               testID={`variable-changes-key-${StringUtils_dashcase(key)}`}
             >
               <Text>
                 <Text className="text-xs italic">{key}</Text>:{" "}
                 <Text
                   className="text-xs font-bold"
-                  data-cy={`variable-changes-value-${StringUtils_dashcase(key)}`} data-testid={`variable-changes-value-${StringUtils_dashcase(key)}`}
+                  data-testid={`variable-changes-value-${StringUtils_dashcase(key)}`}
                   testID={`variable-changes-value-${StringUtils_dashcase(key)}`}
                 >
                   {diffVars[key]}
@@ -137,18 +138,18 @@ function StateVariablesChanges({ diffState }: { diffState: Record<string, string
     return (
       <View>
         <Text className="text-xs font-bold">State Variables changes</Text>
-        <View data-cy="state-changes" data-testid="state-changes" testID="state-changes">
+        <View data-testid="state-changes" testID="state-changes">
           {ObjectUtils_keys(diffState).map((key) => (
             <View
               key={key}
-              data-cy={`state-changes-key-${StringUtils_dashcase(key)}`} data-testid={`state-changes-key-${StringUtils_dashcase(key)}`}
+              data-testid={`state-changes-key-${StringUtils_dashcase(key)}`}
               testID={`state-changes-key-${StringUtils_dashcase(key)}`}
             >
               <Text className="text-xs">
                 <Text className="italic">{key}</Text>:{" "}
                 <Text
                   className="font-bold"
-                  data-cy={`state-changes-value-${StringUtils_dashcase(key)}`} data-testid={`state-changes-value-${StringUtils_dashcase(key)}`}
+                  data-testid={`state-changes-value-${StringUtils_dashcase(key)}`}
                   testID={`state-changes-value-${StringUtils_dashcase(key)}`}
                 >
                   {diffState[key]}
