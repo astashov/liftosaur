@@ -33,7 +33,7 @@ Here we use a "template" \`main\`, and all the main lifts just reuse it, so we c
 main / used: none / 1x5 58%, 1x5 67%, 1x5+ 76%, 5x5 58% / progress: custom(increment: 10lb) {~
   if (dayInWeek > 1 && week == 3) {
     rm1 += state.increment
-  }
+  } 
 ~}
 
 Squat[1-3] / ...main
@@ -739,8 +739,8 @@ Wednesday (Light): Same lifts with lighter load (2×5) to aid recovery.
 Friday (Medium): Moderate weight (1×3) followed by a heavier top set, plus a back-off set (~8 reps)
 
 Increase your top set week-to-week (≈2.5 % or ~5 lb).
-Auxiliary sets scale based on percentages of that top set (50–100 %)
-Example: Squat top set progression from ~315 lb up over several weeks
+Auxiliary sets scale based on percentages of that top set (50–100 %) 
+Example: Squat top set progression from ~315 lb up over several weeks 
 
 \`\`\`
 # Week 1
@@ -748,7 +748,7 @@ Example: Squat top set progression from ~315 lb up over several weeks
 main / used: none / 1x5 40%, 1x5 55%, 1x5 65%, 1x5 75%, 1x5 85% / progress: custom(increment: 5lb) {~
   if (completedReps >= reps && dayInWeek == 3) {
     weights += state.increment
-  }
+  }  
 ~} / update: custom() {~
   if (dayInWeek == 3 && setIndex == 4) {
     if (completedReps[setIndex] >= reps[setIndex]) {
