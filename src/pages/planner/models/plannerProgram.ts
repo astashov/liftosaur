@@ -16,7 +16,12 @@ import {
   IProgram,
   ISettings,
 } from "../../../types";
-import { ObjectUtils_isEqual, ObjectUtils_clone, ObjectUtils_filter } from "../../../utils/object";
+import {
+  ObjectUtils_isEqual,
+  ObjectUtils_clone,
+  ObjectUtils_filter,
+  ObjectUtils_findKeyByExpression,
+} from "../../../utils/object";
 import { PlannerExerciseEvaluatorText } from "../plannerExerciseEvaluatorText";
 import { IPlannerTopLineItem } from "../plannerExerciseEvaluator";
 import {
@@ -296,7 +301,8 @@ export function PlannerProgram_compact(
   oldPlannerProgram: IPlannerProgram,
   plannerProgram: IPlannerProgram,
   settings: ISettings,
-  additionalRepeatingExercises?: Set<string>
+  additionalRepeatingExercises?: Set<string>,
+  renameMapping?: Record<string, { to: string; dayData?: Required<IDayData> }>
 ): IPlannerProgram {
   let dayIndex = 0;
   const repeatingExercises = new Set<string>();
@@ -360,7 +366,17 @@ export function PlannerProgram_compact(
                 return false;
               }
               const oldDay = evaluatedWeeks[repeatWeekIndex][dayIndex];
-              const oldExercise = oldDay.success ? oldDay.data.find((ex) => ex.key === e.value) : undefined;
+              const beforeRenamingExercise = renameMapping
+                ? ObjectUtils_findKeyByExpression(
+                    renameMapping,
+                    (_, v) =>
+                      v.to === line.value &&
+                      (v.dayData == null ||
+                        (v.dayData.week === repeatWeekIndex + 1 && v.dayData.dayInWeek === dayIndex + 1))
+                  )
+                : undefined;
+              const oldKey = beforeRenamingExercise ?? line.value;
+              const oldExercise = oldDay.success ? oldDay.data.find((ex) => ex.key === oldKey) : undefined;
               return oldExercise?.repeating?.includes(weekIndex + 1);
             });
             for (const e of repeatedExercises) {

@@ -546,7 +546,13 @@ export class ProgramToPlanner {
         repeatingExercises.add(key);
       }
     });
-    const newPlanner = PlannerProgram_compact(this.program.planner, result, this.settings, repeatingExercises);
+    const newPlanner = PlannerProgram_compact(
+      this.program.planner,
+      result,
+      this.settings,
+      repeatingExercises,
+      opts.renameMapping
+    );
     // console.log(PlannerProgram.generateFullText(newPlanner.weeks));
     return newPlanner;
   }

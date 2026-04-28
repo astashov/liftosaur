@@ -610,6 +610,43 @@ Bench Press / 3x8 / progress: dp(5lb, 8, 12)`);
     expect(newText.split("\n")[2]).to.match(/^[a-z]{3}: Bench Press/);
   });
 
+  it("preserves repeating ranges when replacing an exercise", () => {
+    const programText = `# Week 1
+## Day 1
+Deadlift[1-4] / 3x5 100lb / progress: lp(5lb)
+
+# Week 2
+## Day 1
+
+# Week 3
+## Day 1
+
+# Week 4
+## Day 1
+`;
+    const newText = PlannerTestUtils_changeExercise(programText, "Deadlift", {
+      id: "benchPress",
+      equipment: "barbell",
+    }).trim();
+    expect(newText).to.equal(`# Week 1
+## Day 1
+Bench Press[1-4] / 3x5 / 100lb / progress: lp(5lb)
+
+
+# Week 2
+## Day 1
+
+
+
+# Week 3
+## Day 1
+
+
+
+# Week 4
+## Day 1`);
+  });
+
   it("properly update weights", () => {
     const programText = `# Week 1
 ## Day 1

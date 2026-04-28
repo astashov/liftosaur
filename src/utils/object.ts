@@ -231,6 +231,18 @@ export function ObjectUtils_findMaxValue<T extends Record<string, number | undef
   }, 0);
 }
 
+export function ObjectUtils_findKeyByExpression<T extends Record<string, any>>(
+  obj: T,
+  expression: (key: keyof T, value: T[keyof T]) => boolean
+): keyof T | undefined {
+  for (const key of ObjectUtils_keys(obj)) {
+    if (expression(key, obj[key])) {
+      return key;
+    }
+  }
+  return undefined;
+}
+
 export function ObjectUtils_clone<T>(obj: T): T {
   if (obj == null) {
     return obj;
