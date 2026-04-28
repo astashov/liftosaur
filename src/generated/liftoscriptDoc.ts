@@ -35,7 +35,7 @@ That would be 8 sets total - first 5 reps, then 3 reps, 1 rep, and then 5 sets o
 
 If you don't specify the weight and RPE, it'll keep the weight empty during workout, so user would have to specify it themselves to finish a set. If the set specified the \`RPE though - it'll infer the weight calculated from
 <abbr title="RPE - Rate of Perceived Exertion - is a way to measure how close you are to failure. It's a scale from 1 to 10, where 1 is very easy, and 10 is failure.">RPE</abbr>
-tables, like [this one](/blog/images/rpetable.png). 
+tables, like [this one](/blog/images/rpetable.png).
 
 For example if you do:
 
@@ -165,7 +165,7 @@ Squat / 5x5 / progress: lp(5lb)
 
 # Week 3
 ## Day 1
-// 
+//
 Squat / 5x5 / progress: lp(5lb)
 
 # Week 4
@@ -197,7 +197,7 @@ Squat / 5x5 / progress: lp(5lb)
 
 ### Exercise Labels
 
-If you want the same exercises to be separate (e.g. you have Squat as a main lift, and Squat as an accessory lift, and 
+If you want the same exercises to be separate (e.g. you have Squat as a main lift, and Squat as an accessory lift, and
 you want to apply different progressions for them), you can mark exercises with different labels. Like this:
 
 \`\`\`
@@ -227,7 +227,7 @@ Squat / 5x5 / warmup: 1x5 45lb, 1x5 135lb, 1x3 80%
 \`\`\`
 
 Syntax is very similar to the regular sets x reps, but you cannot specify timer and RPE there. Also, percentages are not
-1RM percentages, but percentages of the weight of the first set. 
+1RM percentages, but percentages of the weight of the first set.
 
 If you don't want warmups at all, you can specify \`warmup: none\`:
 
@@ -473,7 +473,7 @@ And if you progress in Bench Press - then **ALL** the reused exercises would mov
 
 #### Repeating the same exercise over multiple weeks via \`Squat[1-4]\`
 
-Usually in multi-week programs, you have exactly the same exercises on the same days over multiple weeks. So, to avoid typing them over and over, you can specify that the same exercise would be repeated over multiple weeks, by specifying a range of weeks after exercise name. 
+Usually in multi-week programs, you have exactly the same exercises on the same days over multiple weeks. So, to avoid typing them over and over, you can specify that the same exercise would be repeated over multiple weeks, by specifying a range of weeks after exercise name.
 
 \`\`\`
 Bench Press[1-5] / 3x8
@@ -607,7 +607,7 @@ Hanging Leg Raise[3,1-4] / ...t3
 
 # Week 2
 ## Day 1
-/// Now we only need to specify undulating sets for main templates exercises 
+/// Now we only need to specify undulating sets for main templates exercises
 t1 / 1x7, 3x4 / 80%
 t2 / 1x9, 3x5 / 70%
 ## Day 2
@@ -855,7 +855,7 @@ Bench Press / 3x8 / progress: custom() {~
 \`\`\`
 
 That would set the weights of the next workout to 5lb more than finished weights of this workout.
-The syntax is \`for (var.i in weights)\`, where \`var.i\` should always be a temporary variable (i.e. start with \`var.\`), and 
+The syntax is \`for (var.i in weights)\`, where \`var.i\` should always be a temporary variable (i.e. start with \`var.\`), and
 the expression on the right side of \`in\` should return an array.
 The \`var.i\` would contain the index of each set, starting from 1.
 
@@ -1210,8 +1210,8 @@ There's also syntax to add/subtract/multiply/divide to the current value, like t
 \`\`\`javascript
 state.someVar += 5
 state.someVar -= 10
-state.someVar *= 2 
-state.someVar /= 2 
+state.someVar *= 2
+state.someVar /= 2
 \`\`\`
 
 ### Predefined read-only variables

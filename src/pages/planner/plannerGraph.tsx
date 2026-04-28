@@ -83,9 +83,15 @@ export function PlannerGraph(props: IPlannerGraphProps): JSX.Element {
   }, []);
 
   return (
-    <div className="relative z-0" data-cy="graph" data-testid="graph" testID="graph">
-      <div className="w-full" data-cy="graph-data" data-testid="graph-data" testID="graph-data" style={{ height: props.height || "10em" }} ref={graphRef}></div>
-      <div data-cy="graph-legend" data-testid="graph-legend" testID="graph-legend" className="box-content px-8 text-sm" ref={legendRef}></div>
+    <div className="relative z-0" data-testid="graph" testID="graph">
+      <div
+        className="w-full"
+        data-testid="graph-data"
+        testID="graph-data"
+        style={{ height: props.height || "10em" }}
+        ref={graphRef}
+      ></div>
+      <div data-testid="graph-legend" testID="graph-legend" className="box-content px-8 text-sm" ref={legendRef}></div>
     </div>
   );
 }

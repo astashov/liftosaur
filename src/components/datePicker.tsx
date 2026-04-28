@@ -10,7 +10,7 @@ interface IDatePickerProps {
 export function DatePicker(props: IDatePickerProps): JSX.Element {
   return (
     <input
-      data-cy={props.testID} data-testid={props.testID}
+      data-testid={props.testID}
       className="inline-block py-2 text-text-link bg-background-default"
       type="date"
       value={DateUtils_formatYYYYMMDD(props.value)}

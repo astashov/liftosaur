@@ -82,7 +82,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
     navRightButtons: [
       <Pressable
         key="filter"
-        data-cy="graphs-modify" data-testid="graphs-modify"
+        data-testid="graphs-modify"
         testID="graphs-modify"
         className="p-2 nm-graphs-navbar-filter"
         onPress={() => navigationRef.navigate("graphsModal")}

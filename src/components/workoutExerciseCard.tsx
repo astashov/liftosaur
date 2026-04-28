@@ -289,7 +289,8 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
 
   return (
     <View
-      data-cy={`entry-${StringUtils_dashcase(exercise.name)}`} data-testid={`entry-${StringUtils_dashcase(exercise.name)}`} testID={`entry-${StringUtils_dashcase(exercise.name)}`}
+      data-testid={`entry-${StringUtils_dashcase(exercise.name)}`}
+      testID={`entry-${StringUtils_dashcase(exercise.name)}`}
       className={`py-1 border rounded-xl ${WorkoutExerciseUtils_getBgColor50(
         props.entry.sets,
         false
@@ -301,7 +302,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
           <Pressable
             onPress={() => props.dispatch(Thunk_pushExerciseStatsScreen(props.entry.exercise))}
             className="self-center rounded-lg bg-background-image"
-            data-cy="workout-exercise-image" data-testid="workout-exercise-image"
+            data-testid="workout-exercise-image"
             testID="workout-exercise-image"
           >
             <ExerciseImage settings={props.settings} width={48} exerciseType={exerciseType} size="small" />
@@ -309,18 +310,19 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
           <View className="flex-1 min-w-0 mt-2 ml-2">
             <Pressable
               className="flex-row items-center"
-              data-cy="exercise-name" data-testid="exercise-name"
+              data-testid="exercise-name"
               testID="exercise-name"
               onPress={() => props.dispatch(Thunk_pushExerciseStatsScreen(props.entry.exercise))}
             >
               <Text className="pr-1 text-lg font-bold">{Exercise_nameWithEquipment(exercise, props.settings)}</Text>
               <IconArrowRight />
             </Pressable>
-            <View data-cy="exercise-equipment" data-testid="exercise-equipment" className="flex-row flex-wrap items-center">
+            <View data-testid="exercise-equipment" className="flex-row flex-wrap items-center">
               <Text className="text-sm text-text-secondary">Equipment: </Text>
               <LinkButton
                 name="exercise-equipment-picker"
-                data-cy="exercise-equipment-picker" data-testid="exercise-equipment-picker" testID="exercise-equipment-picker"
+                data-testid="exercise-equipment-picker"
+                testID="exercise-equipment-picker"
                 onClick={openEquipmentModal}
                 className="text-sm"
               >
@@ -328,11 +330,16 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
               </LinkButton>
             </View>
             {supersetExercise && (
-              <View data-cy="exercise-superset" data-testid="exercise-superset" testID="exercise-superset" className="flex-row flex-wrap items-center">
+              <View
+                data-testid="exercise-superset"
+                testID="exercise-superset"
+                className="flex-row flex-wrap items-center"
+              >
                 <Text className="text-sm text-text-secondary">Supersets with: </Text>
                 <LinkButton
                   name="exercise-superset-picker"
-                  data-cy="exercise-superset-picker" data-testid="exercise-superset-picker" testID="exercise-superset-picker"
+                  data-testid="exercise-superset-picker"
+                  testID="exercise-superset-picker"
                   onClick={openSupersetPicker}
                   className="text-sm"
                 >
@@ -346,11 +353,11 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
               </View>
             )}
             {((programExercise && ProgramExercise_doesUse1RM(programExercise)) || Progress_doesUse1RM(props.entry)) && (
-              <View data-cy="exercise-rm1" data-testid="exercise-rm1" testID="exercise-rm1" className="flex-row flex-wrap items-center">
+              <View data-testid="exercise-rm1" testID="exercise-rm1" className="flex-row flex-wrap items-center">
                 <Text className="text-sm text-text-secondary">1RM: </Text>
                 <LinkButton
                   name="exercise-rm1-picker"
-                  data-cy="exercise-rm1-picker" data-testid="exercise-rm1-picker"
+                  data-testid="exercise-rm1-picker"
                   onClick={openRm1Modal}
                   className="text-sm"
                 >
@@ -361,7 +368,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
           </View>
           <View className="relative">
             <Pressable
-              data-cy="exercise-options" data-testid="exercise-options"
+              data-testid="exercise-options"
               testID="exercise-options"
               className="px-4 py-2"
               style={{ marginRight: -12 }}
@@ -372,7 +379,12 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
             {Platform.OS === "web" && isKebabMenuOpen && (
               <DropdownMenu rightOffset="2rem" onClose={() => setIsKebabMenuOpen(false)} maxWidth="20rem">
                 {programExercise && programExerciseId && (
-                  <DropdownMenuItem isTop={true} data-cy="exercise-edit-mode" data-testid="exercise-edit-mode" testID="exercise-edit-mode" onClick={() => runKebabAction("edit")}>
+                  <DropdownMenuItem
+                    isTop={true}
+                    data-testid="exercise-edit-mode"
+                    testID="exercise-edit-mode"
+                    onClick={() => runKebabAction("edit")}
+                  >
                     <View className="flex-row items-center gap-2">
                       <View>
                         <IconEdit2 size={22} />
@@ -382,7 +394,8 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem
-                  data-cy="exercise-swap" data-testid="exercise-swap" testID="exercise-swap"
+                  data-testid="exercise-swap"
+                  testID="exercise-swap"
                   isTop={!programExercise || !programExerciseId}
                   onClick={() => runKebabAction("swap")}
                 >
@@ -391,14 +404,19 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
                     <Text className="whitespace-nowrap">Swap Exercise</Text>
                   </View>
                 </DropdownMenuItem>
-                <DropdownMenuItem data-cy="exercise-superset" data-testid="exercise-superset" testID="exercise-superset" onClick={() => runKebabAction("superset")}>
+                <DropdownMenuItem
+                  data-testid="exercise-superset"
+                  testID="exercise-superset"
+                  onClick={() => runKebabAction("superset")}
+                >
                   <View className="flex-row items-center" style={{ gap: 8 }}>
                     <IconReorder size={18} />
                     <Text className="whitespace-nowrap">Edit Superset</Text>
                   </View>
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  data-cy="edit-exercise-kebab-remove-exercise" data-testid="edit-exercise-kebab-remove-exercise" testID="edit-exercise-kebab-remove-exercise"
+                  data-testid="edit-exercise-kebab-remove-exercise"
+                  testID="edit-exercise-kebab-remove-exercise"
                   onClick={() => runKebabAction("remove")}
                 >
                   <View className="flex-row items-center" style={{ gap: 8 }}>
@@ -433,7 +451,8 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
         <View>
           <TextareaAutogrow
             debounceMs={1000}
-            data-cy="exercise-notes-input" data-testid="exercise-notes-input" testID="exercise-notes-input"
+            data-testid="exercise-notes-input"
+            testID="exercise-notes-input"
             id="exercise-notes"
             maxLength={4095}
             name="exercise-notes"

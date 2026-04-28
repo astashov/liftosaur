@@ -18,7 +18,7 @@ export function FooterButton(props: IProps): JSX.Element {
   const isActive = Screen_tab(props.screen) === props.name;
   const dataCy = `footer-${StringUtils_dashcase(props.text)}`;
   return (
-    <Pressable className="relative items-center px-2" data-cy={dataCy} data-testid={dataCy} testID={dataCy} onPress={props.onClick}>
+    <Pressable className="relative items-center px-2" data-testid={dataCy} testID={dataCy} onPress={props.onClick}>
       {props.hasDot && <View className="absolute w-2 h-2 rounded-full top-3 right-3 bg-redv2-700" />}
       <View className="flex-row items-center justify-center w-6 h-6">{props.icon(isActive)}</View>
       <Text className={`pt-1 text-[0.625rem] ${isActive ? "text-text-purple" : "text-text-secondary"}`}>

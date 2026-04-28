@@ -33,7 +33,8 @@ export function NavModalExerciseMusclesPicker(): JSX.Element {
         <View className="absolute right-4">
           <Button
             kind="purple"
-            data-cy="done-selecting-muscles" data-testid="done-selecting-muscles" testID="done-selecting-muscles"
+            data-testid="done-selecting-muscles"
+            testID="done-selecting-muscles"
             name="done-selecting-muscles"
             buttonSize="md"
             onPress={onClose}

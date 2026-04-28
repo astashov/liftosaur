@@ -67,9 +67,13 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
   };
 
   return (
-    <View data-cy="history-record" data-testid="history-record" testID="history-record" className="pt-2 mx-4 mb-6">
+    <View data-testid="history-record" testID="history-record" className="pt-2 mx-4 mb-6">
       {props.showTitle && (
-        <Text data-cy="history-record-date" data-testid="history-record-date" testID="history-record-date" className="mx-1 mb-1 text-base font-semibold">
+        <Text
+          data-testid="history-record-date"
+          testID="history-record-date"
+          className="mx-1 mb-1 text-base font-semibold"
+        >
           {!isCurrent ? DateUtils_format(historyRecord.date) : props.isOngoing ? "Ongoing workout" : "Next workout"}
         </Text>
       )}
@@ -86,7 +90,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
       >
         <View className="py-4">
           <View className="pb-2">
-            <View data-cy="history-record-program" data-testid="history-record-program" testID="history-record-program">
+            <View data-testid="history-record-program" testID="history-record-program">
               <Text className="text-sm font-semibold">{historyRecord.dayName}</Text>
               <Text className="text-xs text-text-secondary">{historyRecord.programName}</Text>
             </View>
@@ -96,7 +100,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
               <SimpleMarkdown value={description} />
             </View>
           )}
-          <View data-cy="history-entry" data-testid="history-entry" testID="history-entry">
+          <View data-testid="history-entry" testID="history-entry">
             {entries.map((entry, i) => {
               const isNext = isCurrent && Progress_isFullyEmptySet(historyRecord);
               const exerciseKey = Exercise_toKey(entry.exercise);
@@ -129,7 +133,8 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
               {!props.isOngoing ? (
                 <Button
                   name="start-workout-button"
-                  data-cy="start-workout" data-testid="start-workout" testID="start-workout"
+                  data-testid="start-workout"
+                  testID="start-workout"
                   kind="purple"
                   className="w-full"
                   onPress={handleCardPress}
@@ -139,7 +144,8 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
               ) : (
                 <Button
                   name="continue-workout-button"
-                  data-cy="start-workout" data-testid="start-workout" testID="start-workout"
+                  data-testid="start-workout"
+                  testID="start-workout"
                   kind="purple"
                   className="w-full"
                   onPress={handleCardPress}

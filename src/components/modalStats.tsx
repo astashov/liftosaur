@@ -42,7 +42,7 @@ export function ModalStatsContent(props: IModalStatsProps): JSX.Element {
   return (
     <View className="py-4">
       <GroupHeader name="Enabled measurement types" />
-      <View data-cy="modal-stats" data-testid="modal-stats" testID="modal-stats">
+      <View data-testid="modal-stats" testID="modal-stats">
         <MenuItemEditable
           onChange={saveWeight("weight")}
           name="Weight"

@@ -13,7 +13,8 @@ interface IProps {
 export function BottomSheetItem(props: IProps): JSX.Element {
   return (
     <button
-      data-cy={`bottom-sheet-${props.name}`} data-testid={`bottom-sheet-${props.name}`} testID={`bottom-sheet-${props.name}`}
+      data-testid={`bottom-sheet-${props.name}`}
+      testID={`bottom-sheet-${props.name}`}
       style={{ outline: "none" }}
       className={`block text-base w-full text-left ${!props.isFirst ? "border-t border-border-neutral mt-4" : ""} ${
         props.className

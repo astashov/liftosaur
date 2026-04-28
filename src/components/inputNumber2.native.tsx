@@ -39,6 +39,8 @@ interface IInputNumber2Props {
   onChangeUnits?: (unit: IUnit | IPercentageUnit) => void;
   selectedUnit?: IUnit | IPercentageUnit;
   showUnitInside?: boolean;
+  "data-testid"?: string;
+  testID?: string;
 }
 
 function clamp(value: string | number, min?: number, max?: number): number | undefined {
@@ -294,7 +296,7 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
       <Pressable
         onPress={focusSelf}
         testID={`input-${StringUtils_dashcase(props.name)}-field`}
-        data-cy={`input-${StringUtils_dashcase(props.name)}-field`} data-testid={`input-${StringUtils_dashcase(props.name)}-field`}
+        data-testid={`input-${StringUtils_dashcase(props.name)}-field`}
         className={fieldClassName}
         style={props.autowidth ? undefined : { width: fieldWidth }}
       >

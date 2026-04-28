@@ -298,7 +298,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps, ref: Ref<HTMLDivEl
 
   return (
     <div className="h-full pb-8">
-      <form data-cy="exercises-list" data-testid="exercises-list" testID="exercises-list" onSubmit={(e) => e.preventDefault()}>
+      <form data-testid="exercises-list" testID="exercises-list" onSubmit={(e) => e.preventDefault()}>
         <input
           ref={textInput}
           className="block w-full px-4 py-2 mb-2 text-base leading-normal border border-gray-300 rounded-lg appearance-none bg-background-default focus:outline-none focus:shadow-outline"

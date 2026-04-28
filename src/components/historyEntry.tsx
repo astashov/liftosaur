@@ -27,12 +27,12 @@ export const HistoryEntryView = memo((props: IHistoryEntryProps): JSX.Element =>
   const isPr = ObjectUtils_values(props.prs || {}).some((v) => v);
   return (
     <View
-      data-cy="history-entry-exercise" data-testid="history-entry-exercise"
+      data-testid="history-entry-exercise"
       testID="history-entry-exercise"
       className="flex-row items-center flex-1 gap-2"
     >
       <View
-        data-cy="history-entry-exercise-img" data-testid="history-entry-exercise-img"
+        data-testid="history-entry-exercise-img"
         testID="history-entry-exercise-img"
         className="items-center justify-center py-1 my-1 rounded-lg bg-background-image"
         style={{ minWidth: 36 }}
@@ -49,7 +49,7 @@ export const HistoryEntryView = memo((props: IHistoryEntryProps): JSX.Element =>
         <View className="flex-row items-center gap-2 min-h-8">
           <View className="flex-1 flex-shrink">
             <Text
-              data-cy="history-entry-exercise-name" data-testid="history-entry-exercise-name"
+              data-testid="history-entry-exercise-name"
               testID="history-entry-exercise-name"
               className="text-sm font-semibold"
             >

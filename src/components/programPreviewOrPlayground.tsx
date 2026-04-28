@@ -1,7 +1,6 @@
 import { JSX, ReactNode, useMemo, useState } from "react";
 import { View, Platform } from "react-native";
 import { Text } from "./primitives/text";
-import { Switch } from "./primitives/switch";
 import { ProgramPreviewPlayground } from "./preview/programPreviewPlayground";
 import { IProgram, ISettings, IStats, IUnit } from "../types";
 import { IconEditSquare } from "./icons/iconEditSquare";

@@ -143,7 +143,7 @@ export function MusclesTypeView(props: IMusclesTypeViewProps): JSX.Element {
                     <View key={exerciseKey} className="pb-2">
                       <Text className="text-base font-bold">{Exercise_get(e, props.settings.exercises).name}</Text>
                       <View className="flex-row">
-                        <View data-cy="target-muscles-list" data-testid="target-muscles-list" testID="target-muscles-list" className="flex-1">
+                        <View data-testid="target-muscles-list" testID="target-muscles-list" className="flex-1">
                           <Text className="text-sm text-text-secondary">Target</Text>
                           {targetScreenMusclesWithPercentage.map(([m, val]) => (
                             <Text key={m}>
@@ -151,7 +151,7 @@ export function MusclesTypeView(props: IMusclesTypeViewProps): JSX.Element {
                             </Text>
                           ))}
                         </View>
-                        <View data-cy="synergist-muscles-list" data-testid="synergist-muscles-list" testID="synergist-muscles-list" className="flex-1">
+                        <View data-testid="synergist-muscles-list" testID="synergist-muscles-list" className="flex-1">
                           <Text className="text-sm text-text-secondary">Synergist</Text>
                           {synergistScreenMusclesWithPercentage.map(([m, val]) => (
                             <Text key={m}>

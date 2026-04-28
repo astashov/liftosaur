@@ -65,7 +65,8 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
     <View
       key={props.day.id}
       className="p-1 my-1 border bg-background-default rounded-2xl border-border-neutral"
-      data-cy={`edit-day-${props.weekIndex + 1}-${props.dayInWeekIndex + 1}`} data-testid={`edit-day-${props.weekIndex + 1}-${props.dayInWeekIndex + 1}`} testID={`edit-day-${props.weekIndex + 1}-${props.dayInWeekIndex + 1}`}
+      data-testid={`edit-day-${props.weekIndex + 1}-${props.dayInWeekIndex + 1}`}
+      testID={`edit-day-${props.weekIndex + 1}-${props.dayInWeekIndex + 1}`}
     >
       <View className="flex-row items-center">
         {props.dragHandle ? (
@@ -93,7 +94,7 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
         <View className="flex-row items-center">
           <View>
             <Pressable
-              data-cy="edit-day-muscles-d" data-testid="edit-day-muscles-d"
+              data-testid="edit-day-muscles-d"
               testID="edit-day-muscles-d"
               className="px-2 nm-day-muscles-d"
               onPress={() => {
@@ -109,7 +110,7 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
           </View>
           <View>
             <Pressable
-              data-cy="edit-day-clone" data-testid="edit-day-clone"
+              data-testid="edit-day-clone"
               testID="edit-day-clone"
               className="px-2 nm-clone-day"
               onPress={() => {
@@ -149,7 +150,7 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
           {props.showDelete && (
             <View>
               <Pressable
-                data-cy="edit-day-delete" data-testid="edit-day-delete"
+                data-testid="edit-day-delete"
                 testID="edit-day-delete"
                 className="px-2 nm-delete-day"
                 onPress={() => {
@@ -383,7 +384,8 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
               <Button
                 kind="lightgrayv3"
                 buttonSize="md"
-                data-cy="add-exercise" data-testid="add-exercise" testID="add-exercise"
+                data-testid="add-exercise"
+                testID="add-exercise"
                 name="add-exercise"
                 className="flex-row items-center justify-center w-full"
                 onClick={() => {

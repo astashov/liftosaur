@@ -107,7 +107,7 @@ export function ExercisePickerAdhocExercises(props: IProps): JSX.Element {
         return (
           <View
             key={Exercise_toKey(e)}
-            data-cy={testId} data-testid={testId}
+            data-testid={testId}
             testID={testId}
             className={`w-full py-1 pl-4 pr-2 border-b border-border-neutral ${
               isSelected ? "bg-background-purpledark" : ""
@@ -149,7 +149,7 @@ function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
             placeholder="Search by name"
             placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
             className="flex-1 text-sm text-text-secondary"
-            data-cy="exercise-filter-by-name" data-testid="exercise-filter-by-name"
+            data-testid="exercise-filter-by-name"
             testID="exercise-filter-by-name"
             defaultValue={props.state.search ?? ""}
             onChangeText={(value) => {
@@ -248,7 +248,8 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
         rightAddOn={
           <LinkButton
             className="text-xs"
-            data-cy="custom-exercise-create" data-testid="custom-exercise-create" testID="custom-exercise-create"
+            data-testid="custom-exercise-create"
+            testID="custom-exercise-create"
             name="create-custom-exercise"
             onPress={() => {
               props.dispatch(
@@ -280,7 +281,7 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
           return (
             <View
               key={Exercise_toKey(e)}
-              data-cy={`menu-item-${e.id}`} data-testid={`menu-item-${e.id}`}
+              data-testid={`menu-item-${e.id}`}
               testID={`menu-item-${e.id}`}
               className={`w-full py-1 pl-4 pr-2 border-b border-border-neutral ${
                 isSelected ? "bg-background-purpledark" : ""

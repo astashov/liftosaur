@@ -122,7 +122,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
           <Button
             name="account-sign-out"
             kind="purple"
-            data-cy="menu-item-logout" data-testid="menu-item-logout"
+            data-testid="menu-item-logout"
             className="ls-logout"
             onClick={() => props.dispatch(Thunk_logOut())}
           >
@@ -134,7 +134,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
           <Pressable
             className="flex-row items-center w-full px-4 py-2 mt-2 rounded-lg nm-sign-in-with-google bg-background-default"
             style={googleShadow}
-            data-cy="menu-item-login" data-testid="menu-item-login"
+            data-testid="menu-item-login"
             testID="menu-item-login"
             onPress={() => props.dispatch(Thunk_googleSignIn())}
           >

@@ -93,7 +93,11 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
           <div className="text-sm text-text-secondary">{record.programName}</div>
           <div className="text-base">{record.dayName}</div>
         </section>
-        <div className="px-4 pt-2 pb-3 rounded-lg bg-background-purpledark" data-cy="totals-summary" data-testid="totals-summary" testID="totals-summary">
+        <div
+          className="px-4 pt-2 pb-3 rounded-lg bg-background-purpledark"
+          data-testid="totals-summary"
+          testID="totals-summary"
+        >
           <GroupHeader name="Totals" />
           <div className="flex gap-2">
             <ul className="flex-1">
@@ -118,7 +122,11 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
 
         {startedEntries.length > 0 ? (
           <>
-            <div className="px-4 py-2 mt-2 rounded-lg bg-background-purpledark" data-cy="completed-exercises" data-testid="completed-exercises" testID="completed-exercises">
+            <div
+              className="px-4 py-2 mt-2 rounded-lg bg-background-purpledark"
+              data-testid="completed-exercises"
+              testID="completed-exercises"
+            >
               <GroupHeader name="Exercises" />
               {startedEntries.map((entry, i) => {
                 return (
@@ -138,7 +146,11 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
           <></>
         )}
 
-        <div data-cy="sets-per-muscle-group" data-testid="sets-per-muscle-group" testID="sets-per-muscle-group" className="px-4 py-2 mt-2 rounded-lg bg-background-purpledark">
+        <div
+          data-testid="sets-per-muscle-group"
+          testID="sets-per-muscle-group"
+          className="px-4 py-2 mt-2 rounded-lg bg-background-purpledark"
+        >
           <GroupHeader name="Sets per muscle group" />
           <div className="flex gap-4">
             {muscleGroupsGrouped.map((group, gi) => {
@@ -180,7 +192,8 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
                 kind="purple"
                 buttonSize="lg2"
                 className="w-36"
-                data-cy="create-program-day" data-testid="create-program-day" testID="create-program-day"
+                data-testid="create-program-day"
+                testID="create-program-day"
                 onClick={() => {
                   setShowCreateProgramDay(true);
                 }}
@@ -194,7 +207,8 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
               name="finish-day-continue"
               kind="purple"
               className="w-36"
-              data-cy="finish-day-continue" data-testid="finish-day-continue" testID="finish-day-continue"
+              data-testid="finish-day-continue"
+              testID="finish-day-continue"
               onClick={() => {
                 props.dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }));
                 props.dispatch(Thunk_maybeRequestReview());
@@ -331,7 +345,8 @@ function WebappShare(props: IWebappShareProps): JSX.Element {
           </div>
           <div className="text-center">
             <button
-              data-cy="finishday-share-text" data-testid="finishday-share-text" testID="finishday-share-text"
+              data-testid="finishday-share-text"
+              testID="finishday-share-text"
               className="w-10 h-10 rounded-full bg-background-subtle"
               onClick={() => {
                 const text = LiftohistorySerializer_serialize(props.history[0], props.settings);

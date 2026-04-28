@@ -31,7 +31,8 @@ export function BottomSheetMuscleGroupMusclePicker(props: IExercisePickerCustomE
         <div className="py-2 bg-background-default">
           <Button
             kind="purple"
-            data-cy="done-selecting-muscles" data-testid="done-selecting-muscles" testID="done-selecting-muscles"
+            data-testid="done-selecting-muscles"
+            testID="done-selecting-muscles"
             name="done-selecting-muscles"
             className="w-full"
             buttonSize="md"

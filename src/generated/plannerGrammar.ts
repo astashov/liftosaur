@@ -25,7 +25,7 @@ WeekDay { "[" WeekOrDay (":" WeekOrDay)? "]" }
 WeekOrDay { (Int | Current) }
 Repeat { "[" (Rep | RepRange) ("," (Rep | RepRange))* "]" }
 
-FunctionExpression { 
+FunctionExpression {
   FunctionName
   ("(" FunctionArgument? ("," FunctionArgument)* ")")?
   (Liftoscript | ReuseLiftoscript)?

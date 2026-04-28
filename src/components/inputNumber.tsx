@@ -13,8 +13,9 @@ interface IInputNumberProps {
   type?: string;
   className?: string;
   onUpdate: (value: number) => void;
-  "data-cy"?: string;
   "data-name"?: string;
+  "data-testid"?: string;
+  testID?: string;
 }
 
 export function InputNumber(props: IInputNumberProps): JSX.Element {
@@ -37,7 +38,7 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
       <View className="flex-row items-center gap-2">
         <Pressable
           className="items-center justify-center w-10 h-10 border rounded-lg bg-background-purpledark border-border-neutral"
-          data-cy={`${testId}-minus`} data-testid={`${testId}-minus`}
+          data-testid={`${testId}-minus`}
           testID={`${testId}-minus`}
           onPress={() => {
             const v = getNumericValue(text);
@@ -53,8 +54,8 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
             className="w-full h-10 px-4 text-base leading-5 border rounded-lg bg-background-default border-border-prominent"
             keyboardType="numeric"
             value={text}
-            testID={props["data-cy"] || `${testId}-field`}
-            data-cy={props["data-cy"] || `${testId}-field`} data-testid={props["data-cy"] || `${testId}-field`}
+            testID={props.testID || `${testId}-field`}
+            data-testid={props.testID || `${testId}-field`}
             onChangeText={setText}
             onBlur={() => {
               const v = getNumericValue(text);
@@ -66,7 +67,7 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
         </View>
         <Pressable
           className="items-center justify-center w-10 h-10 border rounded-lg bg-background-purpledark border-border-neutral"
-          data-cy={`${testId}-plus`} data-testid={`${testId}-plus`}
+          data-testid={`${testId}-plus`}
           testID={`${testId}-plus`}
           onPress={() => {
             const v = getNumericValue(text);

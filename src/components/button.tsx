@@ -22,7 +22,6 @@ interface IProps {
   className?: string;
   children?: ReactNode;
   testID?: string;
-  "data-cy"?: string;
   type?: string;
   title?: string;
   style?: Record<string, unknown>;
@@ -31,7 +30,7 @@ interface IProps {
 
 export function Button(props: IProps): JSX.Element {
   const { children, buttonSize, kind, disabled } = props;
-  const testID = props.testID || props["data-cy"] || props.name;
+  const testID = props.testID || props.name;
 
   // extract classname text size
   const textSize = props.className
@@ -110,7 +109,7 @@ export function Button(props: IProps): JSX.Element {
       onPress={props.onPress || props.onClick}
       disabled={disabled}
       testID={testID}
-      data-cy={testID} data-testid={testID}
+      data-testid={testID}
     >
       {containsString(children) ? <Text className={textCn}>{children}</Text> : children}
     </Pressable>

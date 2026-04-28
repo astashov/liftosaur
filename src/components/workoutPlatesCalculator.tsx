@@ -54,7 +54,8 @@ function WorkoutPlatesCalculatorInner(props: IWorkoutPlatesCalculatorProps): JSX
               <Text className="text-sm text-text-secondary">Plates: </Text>
               <Text
                 className={`text-sm font-semibold ${isPlatesMatch ? "text-text-primary" : "text-text-error"}`}
-                data-cy="plates-list" data-testid="plates-list" testID="plates-list"
+                data-testid="plates-list"
+                testID="plates-list"
               >
                 {plates.length > 0 ? Weight_formatOneSide(props.settings, plates, props.entry.exercise) : "None"}
               </Text>

@@ -285,7 +285,7 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
       <View className="flex-row gap-4">
         <View className="flex-1 mr-2">
           <Text className="text-sm font-semibold">{props.progress?.dayName}</Text>
-          <Text data-cy="day-name" data-testid="day-name" testID="day-name" className="text-sm text-text-secondary">
+          <Text data-testid="day-name" testID="day-name" className="text-sm text-text-secondary">
             {props.progress?.programName}
           </Text>
         </View>
@@ -294,7 +294,8 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
             <Button
               kind="purple"
               buttonSize="md"
-              data-cy="save-to-program" data-testid="save-to-program" testID="save-to-program"
+              data-testid="save-to-program"
+              testID="save-to-program"
               name="save-to-program"
               onClick={() => props.onConvertToProgram?.()}
             >
@@ -340,7 +341,8 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
             name={Progress_isCurrent(props.progress) ? "finish-workout" : "save-history-record"}
             kind="purple"
             buttonSize="md"
-            data-cy="finish-workout" data-testid="finish-workout" testID="finish-workout"
+            data-testid="finish-workout"
+            testID="finish-workout"
             onClick={() => {
               onFinish().catch(() => undefined);
             }}
@@ -356,7 +358,8 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
       )}
       <View>
         <TextareaAutogrow
-          data-cy="workout-notes-input" data-testid="workout-notes-input" testID="workout-notes-input"
+          data-testid="workout-notes-input"
+          testID="workout-notes-input"
           id="workout-notes"
           debounceMs={1000}
           maxLength={4095}
@@ -458,7 +461,7 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
             />
             <Pressable
               testID="add-exercise-button"
-              data-cy="add-exercise-button" data-testid="add-exercise-button"
+              data-testid="add-exercise-button"
               className="p-2"
               onPress={() => {
                 updateState(

@@ -34,7 +34,7 @@ export function AllExercisesContent(props: IAllExercisesContentProps): JSX.Eleme
         <span className="text-text-primary">Exercises</span>
       </nav>
       <h1 className="pb-2 text-2xl font-bold text-center">All exercises</h1>
-      <form data-cy="exercises-list" data-testid="exercises-list" testID="exercises-list" onSubmit={(e) => e.preventDefault()}>
+      <form data-testid="exercises-list" testID="exercises-list" onSubmit={(e) => e.preventDefault()}>
         <input
           ref={textInput}
           className="block w-full px-4 py-2 mb-2 text-base leading-normal border border-gray-300 rounded-lg appearance-none bg-background-default focus:outline-none focus:shadow-outline"

@@ -76,7 +76,8 @@ export function RepMaxContent(props: IRepMaxContentProps): JSX.Element {
               <InputNumber
                 label="Reps"
                 value={knownReps}
-                data-cy="known-reps-input" data-testid="known-reps-input" testID="known-reps-input"
+                data-testid="known-reps-input"
+                testID="known-reps-input"
                 data-name="known-reps-input"
                 min={1}
                 max={24}
@@ -93,7 +94,8 @@ export function RepMaxContent(props: IRepMaxContentProps): JSX.Element {
                 <InputNumber
                   label="RPE"
                   value={knownRpe}
-                  data-cy="known-rpe-input" data-testid="known-rpe-input" testID="known-rpe-input"
+                  data-testid="known-rpe-input"
+                  testID="known-rpe-input"
                   data-name="known-rpe-input"
                   min={0}
                   max={10}
@@ -110,7 +112,8 @@ export function RepMaxContent(props: IRepMaxContentProps): JSX.Element {
               <InputNumber
                 label="Weight"
                 value={knownWeight}
-                data-cy="known-weight-input" data-testid="known-weight-input" testID="known-weight-input"
+                data-testid="known-weight-input"
+                testID="known-weight-input"
                 data-name="known-weight-input"
                 min={0}
                 step={2.5}
@@ -135,7 +138,8 @@ export function RepMaxContent(props: IRepMaxContentProps): JSX.Element {
               <InputNumber
                 label="Reps"
                 value={reps}
-                data-cy="reps-input" data-testid="reps-input" testID="reps-input"
+                data-testid="reps-input"
+                testID="reps-input"
                 data-name="reps-input"
                 min={1}
                 max={24}
@@ -152,7 +156,8 @@ export function RepMaxContent(props: IRepMaxContentProps): JSX.Element {
                 <InputNumber
                   label="RPE"
                   value={rpe}
-                  data-cy="rpe-input" data-testid="rpe-input" testID="rpe-input"
+                  data-testid="rpe-input"
+                  testID="rpe-input"
                   data-name="rpe-input"
                   min={0}
                   max={10}
@@ -343,7 +348,8 @@ function TMConverter(): JSX.Element {
             <InputNumber
               label="TM, %"
               value={tm}
-              data-cy="tm-input" data-testid="tm-input" testID="tm-input"
+              data-testid="tm-input"
+              testID="tm-input"
               data-name="tm-input"
               min={0}
               max={200}

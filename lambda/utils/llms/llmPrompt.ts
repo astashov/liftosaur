@@ -32,7 +32,7 @@ Syntax is INCREDIBLY important, it's formalized and YOU'LL NEED TO FOLLOW IT PRE
 No free form text (unless in code comments), and use ONLY THE EXERCISES FROM THE PROVIDED LIST. If there's no matching exercise - use a similar one, FROM THE LIST!
 
 There's no seconds unit for time-based exercises in Liftoscript, so if you see seconds - just use reps.
-E.g. 2 sets of 60 second planks would be: 
+E.g. 2 sets of 60 second planks would be:
 
 Plank / 2x60
 

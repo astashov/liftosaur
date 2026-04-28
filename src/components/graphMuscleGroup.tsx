@@ -57,50 +57,50 @@ export function GraphMuscleGroup(props: IGraphMuscleGroupProps): JSX.Element {
   const units = props.settings.units;
 
   return (
-    <View className="relative" testID="graph" data-cy="graph" data-testid="graph">
-     <View testID="graph-data" data-cy="graph-data" data-testid="graph-data">
-      <View className="flex-row items-center mb-1">
-        <View className="flex-1">
-          <Text className="text-lg font-semibold leading-6 u-title">{title}</Text>
+    <View className="relative" testID="graph" data-testid="graph">
+      <View testID="graph-data" data-testid="graph-data">
+        <View className="flex-row items-center mb-1">
+          <View className="flex-1">
+            <Text className="text-lg font-semibold leading-6 u-title">{title}</Text>
+          </View>
+          <View>
+            <Select
+              value={selectedType}
+              onChange={(v) => setSelectedType(v as IVolumeSelectedType)}
+              options={[
+                { value: "volume", label: "Volume" },
+                { value: "sets", label: "Sets" },
+              ]}
+              className="p-2 text-right bg-background-default"
+            />
+          </View>
         </View>
-        <View>
-          <Select
-            value={selectedType}
-            onChange={(v) => setSelectedType(v as IVolumeSelectedType)}
-            options={[
-              { value: "volume", label: "Volume" },
-              { value: "sets", label: "Sets" },
-            ]}
-            className="p-2 text-right bg-background-default"
+        <View className="relative">
+          <LineChart
+            data={props.data}
+            series={series}
+            height={320}
+            programLines={props.programChangeTimes}
+            onCursorChange={setCursorIdx}
+            yAxisFormatter={yAxisFormatter}
           />
-        </View>
-      </View>
-      <View className="relative">
-        <LineChart
-          data={props.data}
-          series={series}
-          height={320}
-          programLines={props.programChangeTimes}
-          onCursorChange={setCursorIdx}
-          yAxisFormatter={yAxisFormatter}
-        />
-        <View className="box-content px-8 pt-8 pb-2 items-center" style={{ minHeight: 40 }}>
-          {timestamp != null && selectedType === "volume" && volume != null && (
-            <Text className="text-sm">
-              {DateUtils_format(new Date(timestamp * 1000))}, Volume:{" "}
-              <Text className="font-bold text-sm">
-                {volume} {units}s
+          <View className="box-content px-8 pt-8 pb-2 items-center" style={{ minHeight: 40 }}>
+            {timestamp != null && selectedType === "volume" && volume != null && (
+              <Text className="text-sm">
+                {DateUtils_format(new Date(timestamp * 1000))}, Volume:{" "}
+                <Text className="font-bold text-sm">
+                  {volume} {units}s
+                </Text>
               </Text>
-            </Text>
-          )}
-          {timestamp != null && selectedType === "sets" && sets != null && (
-            <Text className="text-sm">
-              {DateUtils_format(new Date(timestamp * 1000))}, Sets: <Text className="font-bold text-sm">{sets}</Text>
-            </Text>
-          )}
+            )}
+            {timestamp != null && selectedType === "sets" && sets != null && (
+              <Text className="text-sm">
+                {DateUtils_format(new Date(timestamp * 1000))}, Sets: <Text className="font-bold text-sm">{sets}</Text>
+              </Text>
+            )}
+          </View>
         </View>
       </View>
-     </View>
     </View>
   );
 }

@@ -62,7 +62,8 @@ export function EditProgramExerciseUpdate(props: IEditProgramExerciseUpdateProps
           <View>
             <LinkButton
               className="text-sm"
-              data-cy="edit-exercise-update-edit-script" data-testid="edit-exercise-update-edit-script" testID="edit-exercise-update-edit-script"
+              data-testid="edit-exercise-update-edit-script"
+              testID="edit-exercise-update-edit-script"
               name="edit-exercise-update-edit-script"
               onClick={() => {
                 props.plannerDispatch(
@@ -83,7 +84,8 @@ export function EditProgramExerciseUpdate(props: IEditProgramExerciseUpdateProps
           <View>
             <LinkButton
               className="text-sm"
-              data-cy="edit-exercise-update-override" data-testid="edit-exercise-update-override" testID="edit-exercise-update-override"
+              data-testid="edit-exercise-update-override"
+              testID="edit-exercise-update-override"
               name="edit-exercise-update-override"
               onClick={() => {
                 setIsOverriding(true);

@@ -151,7 +151,7 @@ export function WeekInsightsDetails(props: IWeekInsightsDetailsProps): JSX.Eleme
   const hasPersonalRecords = History_getNumberOfPersonalRecords(props.thisWeekHistory, props.prs) > 0;
 
   return (
-    <View className="pt-2" data-cy="week-insights-details" data-testid="week-insights-details" testID="week-insights-details">
+    <View className="pt-2" data-testid="week-insights-details" testID="week-insights-details">
       {hasPersonalRecords && (
         <View className="mb-4">
           <PersonalRecords historyRecords={props.thisWeekHistory} prs={props.prs} settings={props.settings} />

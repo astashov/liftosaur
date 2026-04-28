@@ -9,7 +9,6 @@ interface IProps {
   className?: string;
   children?: ReactNode;
   testID?: string;
-  "data-cy"?: string;
   disabled?: boolean;
 }
 
@@ -25,7 +24,7 @@ function containsString(children: ReactNode): boolean {
 
 export function LinkButton(props: IProps): JSX.Element {
   const { className, children } = props;
-  const testID = props.testID || props["data-cy"] || props.name;
+  const testID = props.testID || props.name;
   const isFontNormal = className?.includes("font-normal");
   const isNoUnderline = className?.includes("no-underline");
   const textCn = `text-text-link ${!isFontNormal ? "font-bold" : ""} ${!isNoUnderline ? "underline" : ""} ${className || ""}`;
@@ -36,7 +35,6 @@ export function LinkButton(props: IProps): JSX.Element {
       accessibilityLabel={accessibilityLabel}
       onPress={props.onPress || props.onClick}
       testID={testID}
-      data-cy={testID}
       data-testid={testID}
       disabled={props.disabled}
     >

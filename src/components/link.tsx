@@ -6,13 +6,14 @@ interface IProps {
   href?: string;
   className?: string;
   children?: ReactNode;
-  "data-cy"?: string;
+  testID?: string;
 }
 
 export function Link(props: IProps): JSX.Element {
   return (
     <Text
-      data-cy={props["data-cy"]} data-testid={props["data-cy"]} testID={props["data-cy"]}
+      data-testid={props.testID}
+      testID={props.testID}
       className={`text-text-link font-bold underline ${props.className || ""}`}
       onPress={() => {
         if (props.href) {

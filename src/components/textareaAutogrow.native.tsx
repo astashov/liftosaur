@@ -48,7 +48,7 @@ export function TextareaAutogrow(props: IProps): JSX.Element {
       multiline={true}
       textAlignVertical="top"
       className={props.className}
-      testID={props["data-cy"] ?? props.id}
+      testID={props.testID ?? props.id}
       style={styles.input}
       onChangeText={(text) => {
         currentValueRef.current = text;

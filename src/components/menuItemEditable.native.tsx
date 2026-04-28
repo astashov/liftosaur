@@ -79,7 +79,7 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
           <Pressable
             className="p-2"
             testID={`menu-item-delete-${StringUtils_dashcase(props.name)}`}
-            data-cy={`menu-item-delete-${StringUtils_dashcase(props.name)}`} data-testid={`menu-item-delete-${StringUtils_dashcase(props.name)}`}
+            data-testid={`menu-item-delete-${StringUtils_dashcase(props.name)}`}
             onPress={() => props.onChange?.(undefined)}
           >
             <IconTrash />
@@ -123,12 +123,7 @@ export function MenuItemValue(
   }
 
   if (props.type === "boolean") {
-    return (
-      <Switch
-        value={props.value === "true"}
-        onValueChange={(v) => props.onChange?.(v ? "true" : "false")}
-      />
-    );
+    return <Switch value={props.value === "true"} onValueChange={(v) => props.onChange?.(v ? "true" : "false")} />;
   }
 
   if (props.type === "text" || props.type === "number") {

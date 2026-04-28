@@ -85,7 +85,8 @@ export function ProgramPreviewPlaygroundExerciseEditContent(
             }
             props.onClose();
           }}
-          data-cy="modal-edit-mode-save-statvars" data-testid="modal-edit-mode-save-statvars" testID="modal-edit-mode-save-statvars"
+          data-testid="modal-edit-mode-save-statvars"
+          testID="modal-edit-mode-save-statvars"
         >
           Done
         </Button>

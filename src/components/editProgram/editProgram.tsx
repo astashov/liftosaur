@@ -210,7 +210,8 @@ export function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
           name="save-program"
           kind="purple"
           buttonSize="md"
-          data-cy="save-program" data-testid="save-program" testID="save-program"
+          data-testid="save-program"
+          testID="save-program"
           onClick={() => {
             const newProgram: IProgram = Program_cleanPlannerProgram({ ...props.originalProgram, planner });
             updateState(
@@ -247,7 +248,7 @@ function EditProgramModeSwitchButton(props: IEditProgramModeSwitchButtonProps): 
   const isSelected = props.isSelected;
   return (
     <Pressable
-      data-cy={props.name} data-testid={props.name}
+      data-testid={props.name}
       testID={props.name}
       className={`p-2 ${isSelected ? "bg-purplev3-200" : ""} rounded nm-${props.name}`}
       style={{ opacity: props.disabled && !isSelected ? 0.5 : 1 }}

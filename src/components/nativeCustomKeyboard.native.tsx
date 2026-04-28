@@ -71,7 +71,7 @@ export function NativeCustomKeyboard(props: INativeCustomKeyboardProps): JSX.Ele
           {props.enableCalculator && (
             <Pressable
               testID="keyboard-rm-calculator"
-              data-cy="keyboard-rm-calculator" data-testid="keyboard-rm-calculator"
+              data-testid="keyboard-rm-calculator"
               onPress={props.onShowCalculator}
               className="flex-row items-center justify-center w-24 px-2 py-1 border rounded border-border-cardpurple bg-background-cardpurple my-2"
             >
@@ -105,7 +105,7 @@ export function NativeCustomKeyboard(props: INativeCustomKeyboardProps): JSX.Ele
         <View className="w-24 mt-2">
           <Pressable
             testID="keyboard-close"
-            data-cy="keyboard-close" data-testid="keyboard-close"
+            data-testid="keyboard-close"
             onPress={props.onBlur}
             className="w-full pt-2 pb-1 border rounded border-border-cardpurple bg-background-cardpurple items-center justify-center mb-4"
           >
@@ -115,7 +115,7 @@ export function NativeCustomKeyboard(props: INativeCustomKeyboardProps): JSX.Ele
           <View className="flex-row gap-1">
             <Pressable
               testID="keyboard-minus"
-              data-cy="keyboard-minus" data-testid="keyboard-minus"
+              data-testid="keyboard-minus"
               onPress={props.onMinus}
               className="flex-1 p-2 border rounded rounded-r-none border-border-cardpurple bg-background-cardpurple items-center justify-center"
             >
@@ -123,7 +123,7 @@ export function NativeCustomKeyboard(props: INativeCustomKeyboardProps): JSX.Ele
             </Pressable>
             <Pressable
               testID="keyboard-plus"
-              data-cy="keyboard-plus" data-testid="keyboard-plus"
+              data-testid="keyboard-plus"
               onPress={props.onPlus}
               className="flex-1 p-2 border rounded rounded-l-none border-border-cardpurple bg-background-cardpurple items-center justify-center"
             >
@@ -137,7 +137,7 @@ export function NativeCustomKeyboard(props: INativeCustomKeyboardProps): JSX.Ele
                 <Pressable
                   key={unit}
                   testID={`keyboard-unit-${unit}`}
-                  data-cy={`keyboard-unit-${unit}`} data-testid={`keyboard-unit-${unit}`}
+                  data-testid={`keyboard-unit-${unit}`}
                   onPress={() => props.onChangeUnits?.(unit)}
                   className={`flex-1 aspect-square border rounded items-center justify-center ${
                     unit === props.selectedUnit
@@ -155,7 +155,7 @@ export function NativeCustomKeyboard(props: INativeCustomKeyboardProps): JSX.Ele
 
           <Pressable
             testID="keyboard-backspace"
-            data-cy="keyboard-backspace" data-testid="keyboard-backspace"
+            data-testid="keyboard-backspace"
             onPress={() => props.onInput("⌫")}
             className="w-full h-10 mt-4 border rounded border-border-cardpurple bg-background-cardpurple items-center justify-center"
           >
@@ -172,7 +172,7 @@ function KeyButton(props: { label: string; onPress: () => void }): JSX.Element {
   return (
     <Pressable
       testID={`keyboard-button-${props.label}`}
-      data-cy={`keyboard-button-${props.label}`} data-testid={`keyboard-button-${props.label}`}
+      data-testid={`keyboard-button-${props.label}`}
       onPress={props.onPress}
       className="flex-1 p-2 items-center rounded"
       style={({ pressed }) => ({

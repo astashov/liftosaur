@@ -121,49 +121,69 @@ test("edits sets properly", async ({ page }) => {
 
   await expect(
     page
-      .locator("[data-testid=history-entry-exercise]:has-text('Bench Press, Barbell') >> [data-testid=history-entry-reps]")
+      .locator(
+        "[data-testid=history-entry-exercise]:has-text('Bench Press, Barbell') >> [data-testid=history-entry-reps]"
+      )
       .nth(0)
   ).toHaveText("8");
   await expect(
     page
-      .locator("[data-testid=history-entry-exercise]:has-text('Bench Press, Barbell') >> [data-testid=history-entry-reps]")
+      .locator(
+        "[data-testid=history-entry-exercise]:has-text('Bench Press, Barbell') >> [data-testid=history-entry-reps]"
+      )
       .nth(1)
   ).toHaveText("5");
   await expect(
     page
-      .locator("[data-testid=history-entry-exercise]:has-text('Bench Press, Barbell') >> [data-testid=history-entry-reps]")
+      .locator(
+        "[data-testid=history-entry-exercise]:has-text('Bench Press, Barbell') >> [data-testid=history-entry-reps]"
+      )
       .nth(2)
   ).toHaveText("15");
 
   await expect(
     page
-      .locator("[data-testid=history-entry-exercise]:has-text('Bench Press, Barbell') >> [data-testid=history-entry-weight]")
+      .locator(
+        "[data-testid=history-entry-exercise]:has-text('Bench Press, Barbell') >> [data-testid=history-entry-weight]"
+      )
       .nth(0)
   ).toHaveText("80lb");
   await expect(
     page
-      .locator("[data-testid=history-entry-exercise]:has-text('Bench Press, Barbell') >> [data-testid=history-entry-weight]")
+      .locator(
+        "[data-testid=history-entry-exercise]:has-text('Bench Press, Barbell') >> [data-testid=history-entry-weight]"
+      )
       .nth(1)
   ).toHaveText("45lb");
   await expect(
     page
-      .locator("[data-testid=history-entry-exercise]:has-text('Bench Press, Barbell') >> [data-testid=history-entry-weight]")
+      .locator(
+        "[data-testid=history-entry-exercise]:has-text('Bench Press, Barbell') >> [data-testid=history-entry-weight]"
+      )
       .nth(2)
   ).toHaveText("200lb");
 
   await expect(
-    page.locator("[data-testid=history-entry-exercise]:has-text('Squat, Barbell') >> [data-testid=history-entry-sets]").nth(0)
+    page
+      .locator("[data-testid=history-entry-exercise]:has-text('Squat, Barbell') >> [data-testid=history-entry-sets]")
+      .nth(0)
   ).toHaveText("3");
   await expect(
-    page.locator("[data-testid=history-entry-exercise]:has-text('Squat, Barbell') >> [data-testid=history-entry-reps]").nth(0)
+    page
+      .locator("[data-testid=history-entry-exercise]:has-text('Squat, Barbell') >> [data-testid=history-entry-reps]")
+      .nth(0)
   ).toHaveText("-");
   await expect(
-    page.locator("[data-testid=history-entry-exercise]:has-text('Squat, Barbell') >> [data-testid=history-entry-weight]").nth(0)
+    page
+      .locator("[data-testid=history-entry-exercise]:has-text('Squat, Barbell') >> [data-testid=history-entry-weight]")
+      .nth(0)
   ).toHaveText("45lb");
 
   await expect(
     page
-      .locator("[data-testid=history-entry-exercise]:has-text('Arnold Press, Kettlebell') >> [data-testid=history-entry-reps]")
+      .locator(
+        "[data-testid=history-entry-exercise]:has-text('Arnold Press, Kettlebell') >> [data-testid=history-entry-reps]"
+      )
       .nth(0)
   ).toHaveText("8");
   await expect(

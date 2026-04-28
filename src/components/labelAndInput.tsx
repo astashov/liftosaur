@@ -14,11 +14,24 @@ export const LabelAndInput = forwardRef((props: ILabelAndInputProps, ref: Ref<HT
   const id = [props.id, identifier].filter((r) => r).join(" ");
   return (
     <div className="mb-4">
-      <label data-cy={`${identifier}-label`} data-testid={`${identifier}-label`} testID={`${identifier}-label`} htmlFor={identifier} className="block text-sm font-bold">
+      <label
+        data-testid={`${identifier}-label`}
+        testID={`${identifier}-label`}
+        htmlFor={identifier}
+        className="block text-sm font-bold"
+      >
         {label}
         {props.star && <span className="text-text-error"> *</span>}
       </label>
-      <input ref={ref} data-cy={`${identifier}-input`} data-testid={`${identifier}-input`} testID={`${identifier}-input`} id={id} className={inputClassName} type="text" {...props} />
+      <input
+        ref={ref}
+        data-testid={`${identifier}-input`}
+        testID={`${identifier}-input`}
+        id={id}
+        className={inputClassName}
+        type="text"
+        {...props}
+      />
       {hint && <div className="text-xs text-text-secondary">{hint}</div>}
       {errorMessage && <div className="text-xs text-text-error">{errorMessage}</div>}
     </div>

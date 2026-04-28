@@ -25,7 +25,7 @@ export function ExercisePickerSettings(props: IProps): JSX.Element {
         <Pressable
           className="px-4 py-2"
           hitSlop={12}
-          data-cy="navbar-back" data-testid="navbar-back"
+          data-testid="navbar-back"
           testID="navbar-back"
           onPress={() => {
             props.dispatch(

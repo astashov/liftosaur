@@ -28,7 +28,7 @@ export function Tabs2(props: IProps): JSX.Element {
                     ? { borderBottomWidth: 2, borderBottomColor: Tailwind_semantic().icon.yellow }
                     : undefined
                 }
-                data-cy={nameClass} data-testid={nameClass}
+                data-testid={nameClass}
                 testID={nameClass}
                 onPress={() => {
                   if (onChange) {
