@@ -135,7 +135,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
           } else if (graph.type === "statsWeight") {
             const collection = getWeightDataForGraph(props.stats.weight[graph.id] || [], props.settings);
             return (
-              <View key={`${graph.id}_${isSameXAxis}`} className="mb-2">
+              <View key={`${graph.id}_${isSameXAxis}`} className="mx-4 mb-2">
                 <GraphStats
                   id={id}
                   isSameXAxis={isSameXAxis}
@@ -151,7 +151,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
           } else if (graph.type === "statsLength") {
             const collection = getLengthDataForGraph(props.stats.length[graph.id] || [], props.settings);
             return (
-              <View key={graph.id} className="mb-2">
+              <View key={graph.id} className="mx-4 mb-2">
                 <GraphStats
                   id={id}
                   isSameXAxis={isSameXAxis}
@@ -167,20 +167,22 @@ export function ScreenGraphs(props: IProps): JSX.Element {
           } else if (graph.type === "muscleGroup") {
             const muscleGroup = graph.id as IScreenMuscle | "total";
             return (
-              <GraphMuscleGroup
-                key={graph.id}
-                id={id}
-                initialType={props.settings.graphsSettings.defaultMuscleGroupType}
-                programChangeTimes={isWithProgramLines ? programChangeTimes.changeProgramTimes : undefined}
-                data={muscleGroupsData[muscleGroup] ?? [[], [], []]}
-                muscleGroup={muscleGroup}
-                settings={props.settings}
-              />
+              <View key={graph.id} className="mx-4 mb-2">
+                <GraphMuscleGroup
+                  key={graph.id}
+                  id={id}
+                  initialType={props.settings.graphsSettings.defaultMuscleGroupType}
+                  programChangeTimes={isWithProgramLines ? programChangeTimes.changeProgramTimes : undefined}
+                  data={muscleGroupsData[muscleGroup] ?? [[], [], []]}
+                  muscleGroup={muscleGroup}
+                  settings={props.settings}
+                />
+              </View>
             );
           } else {
             const collection = getPercentageDataForGraph(props.stats.percentage[graph.id] || [], props.settings);
             return (
-              <View key={graph.id} className="mb-2">
+              <View key={graph.id} className="mx-4 mb-2">
                 <GraphStats
                   id={id}
                   isSameXAxis={isSameXAxis}

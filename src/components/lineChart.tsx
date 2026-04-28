@@ -1,10 +1,12 @@
-import { forwardRef, JSX, useState, useRef, useMemo, useCallback, useEffect, useImperativeHandle } from "react";
-import { View, LayoutChangeEvent } from "react-native";
-import { Svg, Path, Line, G, SvgText, Circle, Rect } from "./primitives/svg";
+import { forwardRef, JSX, useState, useRef, useMemo, useCallback, useEffect, useId, useImperativeHandle } from "react";
+import { View, LayoutChangeEvent, Platform } from "react-native";
+import { Svg, Path, Line, G, SvgText, Circle, Rect, Defs, ClipPath } from "./primitives/svg";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { DateUtils_format } from "../utils/date";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { runOnJS } from "react-native-reanimated";
+
+const IS_WEB = Platform.OS === "web";
 
 export interface ILineChartSeries {
   label: string;
@@ -141,20 +143,29 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
   const initialMin = props.xMin != null ? Math.max(props.xMin, (props.xMax ?? dataMaxX) - YEAR_SECONDS) : dataMinX;
   const initialMax = props.xMax != null ? props.xMax : dataMaxX;
 
-  const [viewport, setViewport] = useState<{ xMin: number; xMax: number }>({ xMin: initialMin, xMax: initialMax });
+  const [userViewport, setUserViewport] = useState<{ xMin: number; xMax: number } | null>(null);
+  const viewport = userViewport ?? { xMin: initialMin, xMax: initialMax };
+  const setViewport = setUserViewport;
   const [cursorIdx, setCursorIdx] = useState<number | null>(null);
+  const [frozen, setFrozen] = useState<boolean>(false);
+  const frozenRef = useRef(frozen);
+  useEffect(() => {
+    frozenRef.current = frozen;
+  }, [frozen]);
 
   useImperativeHandle(
     ref,
     () => ({
-      clearCursor: () => setCursorIdx(null),
+      clearCursor: () => {
+        setCursorIdx(null);
+        setFrozen(false);
+      },
     }),
     []
   );
 
   const pinchStartRef = useRef<{ xMin: number; xMax: number; focalX: number } | null>(null);
   const panStartRef = useRef<{ xMin: number; xMax: number } | null>(null);
-  const initialViewportRef = useRef<{ xMin: number; xMax: number }>({ xMin: initialMin, xMax: initialMax });
 
   useEffect(() => {
     props.onCursorChange?.(cursorIdx);
@@ -345,8 +356,9 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
   );
 
   const resetViewport = useCallback(() => {
-    setViewport({ ...initialViewportRef.current });
+    setUserViewport(null);
     setCursorIdx(null);
+    setFrozen(false);
   }, []);
 
   const doubleTap = useMemo(
@@ -380,13 +392,150 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
   }, [props.programLines, xToPx, padLeft, plotWidth]);
 
   const renderSvg = width > 0 && plotHeight > 0;
+  const reactId = useId();
+  const clipId = `lineChart-clip-${reactId.replace(/:/g, "")}`;
+
+  const webContainerRef = useRef<View>(null);
+  const viewportRef = useRef(viewport);
+  useEffect(() => {
+    viewportRef.current = viewport;
+  }, [viewport]);
+  const plotWidthRef = useRef(plotWidth);
+  useEffect(() => {
+    plotWidthRef.current = plotWidth;
+  }, [plotWidth]);
+  const padLeftRef = useRef(padLeft);
+  useEffect(() => {
+    padLeftRef.current = padLeft;
+  }, [padLeft]);
+  const timestampsRef = useRef(timestamps);
+  useEffect(() => {
+    timestampsRef.current = timestamps;
+  }, [timestamps]);
+
+  useEffect(() => {
+    if (!IS_WEB) {
+      return;
+    }
+    const node = webContainerRef.current as unknown as HTMLElement | null;
+    if (!node) {
+      return;
+    }
+
+    let dragStart: { clientX: number; xMin: number; xMax: number; moved: boolean } | null = null;
+
+    const onMouseDown = (e: MouseEvent): void => {
+      if (e.button !== 0) {
+        return;
+      }
+      const v = viewportRef.current;
+      dragStart = { clientX: e.clientX, xMin: v.xMin, xMax: v.xMax, moved: false };
+      e.preventDefault();
+    };
+
+    const updateCursorAt = (clientX: number): number | null => {
+      const rect = node.getBoundingClientRect();
+      const xPx = clientX - rect.left;
+      const v = viewportRef.current;
+      const pw = plotWidthRef.current;
+      if (pw <= 0) {
+        return null;
+      }
+      const xVal = v.xMin + ((xPx - padLeftRef.current) / pw) * Math.max(1, v.xMax - v.xMin);
+      const idx = findNearestIdx(timestampsRef.current, xVal, v.xMin, v.xMax);
+      setCursorIdx(idx);
+      return idx;
+    };
+
+    const onMouseMove = (e: MouseEvent): void => {
+      if (dragStart) {
+        const dx = e.clientX - dragStart.clientX;
+        if (Math.abs(dx) > 2) {
+          dragStart.moved = true;
+        }
+        const pw = plotWidthRef.current;
+        if (pw <= 0) {
+          return;
+        }
+        const range = dragStart.xMax - dragStart.xMin;
+        const deltaSec = -(dx / pw) * range;
+        setViewport({ xMin: dragStart.xMin + deltaSec, xMax: dragStart.xMax + deltaSec });
+        return;
+      }
+      if (frozenRef.current) {
+        return;
+      }
+      updateCursorAt(e.clientX);
+    };
+
+    const onMouseUp = (e: MouseEvent): void => {
+      if (dragStart && !dragStart.moved) {
+        const idx = updateCursorAt(e.clientX);
+        if (idx != null) {
+          setFrozen(true);
+        }
+      }
+      dragStart = null;
+    };
+
+    const onMouseLeave = (): void => {
+      if (!dragStart && !frozenRef.current) {
+        setCursorIdx(null);
+      }
+    };
+
+    const onWheel = (e: WheelEvent): void => {
+      e.preventDefault();
+      const rect = node.getBoundingClientRect();
+      const focalX = e.clientX - rect.left;
+      const v = viewportRef.current;
+      const pw = plotWidthRef.current;
+      if (pw <= 0) {
+        return;
+      }
+      const range = v.xMax - v.xMin;
+      const focalPct = Math.max(0, Math.min(1, (focalX - padLeftRef.current) / pw));
+      const xAtFocal = v.xMin + focalPct * range;
+      const zoomFactor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+      const newRange = range / zoomFactor;
+      const newXMin = xAtFocal - focalPct * newRange;
+      setViewport({ xMin: newXMin, xMax: newXMin + newRange });
+    };
+
+    const onDblClick = (e: MouseEvent): void => {
+      e.preventDefault();
+      resetViewport();
+    };
+
+    node.addEventListener("mousedown", onMouseDown);
+    node.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+    node.addEventListener("mouseleave", onMouseLeave);
+    node.addEventListener("wheel", onWheel, { passive: false });
+    node.addEventListener("dblclick", onDblClick);
+    return () => {
+      node.removeEventListener("mousedown", onMouseDown);
+      node.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+      node.removeEventListener("mouseleave", onMouseLeave);
+      node.removeEventListener("wheel", onWheel);
+      node.removeEventListener("dblclick", onDblClick);
+    };
+  }, [resetViewport, renderSvg]);
+
+  const innerStyle = { width, height: props.height, ...(IS_WEB ? { cursor: "crosshair" } : null) } as object;
 
   return (
     <View onLayout={onLayout} style={{ width: "100%", height: props.height }}>
       {renderSvg && (
         <GestureDetector gesture={composed}>
-          <View style={{ width, height: props.height }}>
+          <View ref={webContainerRef} style={innerStyle}>
             <Svg width={width} height={props.height}>
+              <Defs>
+                <ClipPath id={clipId}>
+                  <Rect x={padLeft} y={padTop} width={plotWidth} height={plotHeight} />
+                </ClipPath>
+              </Defs>
               <G>
                 {yTicks.map((t, i) => {
                   const py = yToPx(t);
@@ -438,7 +587,7 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
                 })}
               </G>
 
-              <G>
+              <G clipPath={`url(#${clipId})`}>
                 {programLinePositions.map(([px, name], i) => {
                   const labelX = px + 3;
                   const labelY = padTop + 4;
@@ -478,7 +627,7 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
                 />
               </G>
 
-              <G>
+              <G clipPath={`url(#${clipId})`}>
                 {props.series.map((s, i) => {
                   if (!s.show) {
                     return null;
