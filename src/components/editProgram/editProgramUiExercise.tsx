@@ -66,7 +66,7 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
 
   return (
     <View
-      data-cy={`exercise-${props.plannerExercise.key}`}
+      data-cy={`exercise-${props.plannerExercise.key}`} data-testid={`exercise-${props.plannerExercise.key}`} testID={`exercise-${props.plannerExercise.key}`}
       className="my-1 overflow-hidden border bg-background-cardpurple rounded-xl border-border-cardpurple"
     >
       <View className="flex-row items-center">
@@ -84,7 +84,7 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
         ) : (
           <View className="w-16" />
         )}
-        <View className="flex-row items-center flex-1" data-cy="planner-ui-exercise-name">
+        <View className="flex-row items-center flex-1" data-cy="planner-ui-exercise-name" data-testid="planner-ui-exercise-name" testID="planner-ui-exercise-name">
           <View className="flex-1">
             <Text className="text-base font-bold">
               {props.plannerExercise.label ? `${props.plannerExercise.label}: ` : ""}
@@ -103,7 +103,7 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
           )}
           <Pressable
             className="p-2"
-            data-cy="edit-exercise-swap"
+            data-cy="edit-exercise-swap" data-testid="edit-exercise-swap"
             testID="edit-exercise-swap"
             onPress={() => {
               const numberOfExerciseInstances = Program_getNumberOfExerciseInstances(
@@ -143,7 +143,7 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
         <View>
           <Pressable
             className="p-2"
-            data-cy="show-exercise-stats"
+            data-cy="show-exercise-stats" data-testid="show-exercise-stats"
             testID="show-exercise-stats"
             onPress={() => {
               props.plannerDispatch(
@@ -258,7 +258,7 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
                 <View className="flex-row items-start my-2">
                   {displayWarmupSets.flat().length > 0 && (
                     <>
-                      <View data-cy="ui-warmups-sets">
+                      <View data-cy="ui-warmups-sets" data-testid="ui-warmups-sets" testID="ui-warmups-sets">
                         <Text className="pb-1 text-xs text-left text-text-secondary">Warmups</Text>
                         <View>
                           <View>
@@ -271,7 +271,7 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
                       <View className="self-stretch ml-4 mr-4 bg-border-neutral" style={{ width: 1 }} />
                     </>
                   )}
-                  <View data-cy="ui-workout-sets">
+                  <View data-cy="ui-workout-sets" data-testid="ui-workout-sets" testID="ui-workout-sets">
                     <Text className="pb-1 text-xs text-left text-text-secondary">Workout</Text>
                     {reusingSets && <Text className="pb-1 text-xs text-text-secondary">Reusing {reusingSets}</Text>}
                     <EditProgramUiExerciseSetVariations plannerExercise={plannerExercise} settings={props.settings} />
@@ -314,7 +314,7 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
           <View className="items-center">
             <Pressable
               className="p-2"
-              data-cy="edit-exercise"
+              data-cy="edit-exercise" data-testid="edit-exercise"
               testID="edit-exercise"
               onPress={() => {
                 props.plannerDispatch(

@@ -192,7 +192,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                     </View>
                     <View className="flex-row items-center pr-4">
                       <Pressable
-                        data-cy="clone-day"
+                        data-cy="clone-day" data-testid="clone-day"
                         testID="clone-day"
                         className="p-2 nm-clone-day-v2"
                         onPress={() => {
@@ -218,7 +218,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                       </Pressable>
                       {plannerProgram.weeks.length > 0 && (
                         <Pressable
-                          data-cy={`delete-week-v2`}
+                          data-cy={`delete-week-v2`} data-testid={`delete-week-v2`}
                           testID="delete-week-v2"
                           className="p-2 nm-delete-week-v2"
                           onPress={() => {
@@ -336,7 +336,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                               </View>
                               <View className="flex-row items-center">
                                 <Pressable
-                                  data-cy="clone-day"
+                                  data-cy="clone-day" data-testid="clone-day"
                                   testID="clone-day"
                                   className="p-2 nm-clone-day-v2"
                                   onPress={() => {
@@ -358,7 +358,7 @@ export function EditProgramV2Weeks(props: IPlannerContentWeeksProps): JSX.Elemen
                                 </Pressable>
                                 {plannerProgram.weeks.length > 0 && (
                                   <Pressable
-                                    data-cy={`delete-week-v2`}
+                                    data-cy={`delete-week-v2`} data-testid={`delete-week-v2`}
                                     testID="delete-week-v2"
                                     className="p-2 nm-delete-week-v2"
                                     onPress={() => {

@@ -62,7 +62,7 @@ export function NavModalEditExerciseChange(): JSX.Element {
           <Button
             className="text-center"
             name="edit-exercise-change-one"
-            data-cy="edit-exercise-change-one"
+            data-cy="edit-exercise-change-one" data-testid="edit-exercise-change-one"
             testID="edit-exercise-change-one"
             kind="purple"
             onClick={() => {
@@ -88,7 +88,7 @@ export function NavModalEditExerciseChange(): JSX.Element {
           <Button
             className="text-center"
             name="edit-exercise-change-all"
-            data-cy="edit-exercise-change-all"
+            data-cy="edit-exercise-change-all" data-testid="edit-exercise-change-all"
             testID="edit-exercise-change-all"
             kind="purple"
             onClick={() => {

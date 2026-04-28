@@ -61,12 +61,12 @@ test("enters stats and shows graphs", async ({ page }) => {
   await expect(page.getByTestId("input-stats-unit").nth(1)).toHaveText("lb");
 
   await page.getByTestId("menu-item-name-type").click();
-  await page.getByTestId("menu-item-type").locator("[data-cy=scroll-barrel-item-shoulders]").click();
+  await page.getByTestId("menu-item-type").locator("[data-testid=scroll-barrel-item-shoulders]").click();
   await expect(page.getByTestId("input-stats-value")).toHaveCount(1);
   await expect(page.getByTestId("input-stats-value").nth(0)).toHaveValue("20");
   await expect(page.getByTestId("input-stats-unit").nth(0)).toHaveText("in");
 
-  await page.getByTestId("menu-item-type").locator("[data-cy=scroll-barrel-item-left-forearm]").click();
+  await page.getByTestId("menu-item-type").locator("[data-testid=scroll-barrel-item-left-forearm]").click();
   await expect(page.getByTestId("input-stats-value")).toHaveCount(3);
   await expect(page.getByTestId("input-stats-value").nth(0)).toHaveValue("40");
   await expect(page.getByTestId("input-stats-value").nth(1)).toHaveValue("35");

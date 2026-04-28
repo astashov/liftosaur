@@ -57,7 +57,7 @@ export function ScrollableTabs(props: IScrollableTabsProps): JSX.Element {
                     ? "bg-background-default border border-button-primarybackground"
                     : "bg-background-subtle border border-background-default"
                 }`}
-                data-cy={nameClass}
+                data-cy={nameClass} data-testid={nameClass}
                 testID={nameClass}
                 onPress={() => {
                   props.onChange?.(index);
@@ -83,7 +83,7 @@ export function ScrollableTabs(props: IScrollableTabsProps): JSX.Element {
               <Pressable
                 className="px-4 pb-1"
                 style={isSelected ? { borderBottomWidth: 2, borderBottomColor: activeColor } : undefined}
-                data-cy={nameClass}
+                data-cy={nameClass} data-testid={nameClass}
                 testID={nameClass}
                 onPress={() => {
                   props.onChange?.(index);

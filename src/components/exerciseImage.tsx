@@ -34,6 +34,7 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isError, setIsError] = useState<boolean>(false);
+  const [aspectRatio, setAspectRatio] = useState<number>(4 / 3);
   const rawSrc = ExerciseImageUtils_url(exerciseType, size, props.settings);
   const src = rawSrc ? HostConfig_resolveUrl(rawSrc) : undefined;
   const doesExist =
@@ -47,7 +48,7 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
       <>
         {!isError && doesExist && (
           <Image
-            data-cy="exercise-image-small"
+            data-cy="exercise-image-small" data-testid="exercise-image-small"
             testID="exercise-image-small"
             className={props.className}
             source={{ uri: src }}
@@ -80,11 +81,19 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
     return doesExist ? (
       <>
         <Image
-          data-cy="exercise-image-large"
+          data-cy="exercise-image-large" data-testid="exercise-image-large"
           testID="exercise-image-large"
           className={props.className}
           source={{ uri: src }}
-          onLoad={() => setIsLoading(false)}
+          resizeMode="contain"
+          style={{ width: "100%", aspectRatio }}
+          onLoad={(e) => {
+            setIsLoading(false);
+            const source = (e?.nativeEvent as { source?: { width?: number; height?: number } } | undefined)?.source;
+            if (source?.width && source?.height) {
+              setAspectRatio(source.width / source.height);
+            }
+          }}
           onError={() => setIsError(true)}
           accessibilityLabel={Exercise_nameWithEquipment(exercise, props.settings)}
         />

@@ -29,8 +29,17 @@ export function LinkButton(props: IProps): JSX.Element {
   const isFontNormal = className?.includes("font-normal");
   const isNoUnderline = className?.includes("no-underline");
   const textCn = `text-text-link ${!isFontNormal ? "font-bold" : ""} ${!isNoUnderline ? "underline" : ""} ${className || ""}`;
+  const accessibilityLabel = typeof children === "string" ? children : undefined;
   return (
-    <Pressable onPress={props.onPress || props.onClick} testID={testID} data-cy={testID} disabled={props.disabled}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      onPress={props.onPress || props.onClick}
+      testID={testID}
+      data-cy={testID}
+      data-testid={testID}
+      disabled={props.disabled}
+    >
       {containsString(children) ? <Text className={textCn}>{children}</Text> : children}
     </Pressable>
   );

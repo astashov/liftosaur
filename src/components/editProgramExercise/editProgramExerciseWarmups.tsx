@@ -96,7 +96,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
         <View>
           <LinkButton
             className="text-sm"
-            data-cy="edit-exercise-warmups-customize"
+            data-cy="edit-exercise-warmups-customize" data-testid="edit-exercise-warmups-customize" testID="edit-exercise-warmups-customize"
             name="customize-warmups"
             onClick={() => {
               props.plannerDispatch(
@@ -181,7 +181,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                     {({ style, close, moveRef }) => (
                       <View
                         ref={moveRef as unknown as React.RefObject<View>}
-                        data-cy="warmup-set"
+                        data-cy="warmup-set" data-testid="warmup-set"
                         testID="warmup-set"
                         style={style as object}
                       >
@@ -189,7 +189,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                           <View
                             style={{ width: setCol }}
                             className="px-2 py-1"
-                            data-cy="warmup-set-number"
+                            data-cy="warmup-set-number" data-testid="warmup-set-number"
                             testID="warmup-set-number"
                           >
                             <Text className="text-sm">{setIndex + 1}</Text>
@@ -197,7 +197,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                           <View style={{ width: repsCol }} className="items-center justify-center py-2">
                             <InputNumber2
                               width={3.5}
-                              data-cy="reps-value"
+                              data-cy="reps-value" data-testid="reps-value"
                               name="set-reps"
                               onInput={(value) => {
                                 if (value != null && !isNaN(value)) {
@@ -228,7 +228,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                           <View
                             style={{ width: xCol }}
                             className="items-center justify-center py-2"
-                            data-cy="warmup-set-x"
+                            data-cy="warmup-set-x" data-testid="warmup-set-x"
                             testID="warmup-set-x"
                           >
                             <Text>×</Text>
@@ -238,7 +238,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                               <InputWeight2
                                 name="set-weight"
                                 exerciseType={plannerExercise.exerciseType}
-                                data-cy="weight-value"
+                                data-cy="weight-value" data-testid="weight-value" testID="weight-value"
                                 units={["lb", "kg", "%"] as const}
                                 onBlur={(value) => {
                                   if (value != null) {
@@ -286,7 +286,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                           }}
                         >
                           <Pressable
-                            data-cy="delete-warmup-set"
+                            data-cy="delete-warmup-set" data-testid="delete-warmup-set"
                             testID="delete-warmup-set"
                             style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
                             className="bg-background-darkred"
@@ -322,7 +322,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
           <View className="flex-row">
             <Pressable
               className="flex-row items-center justify-center flex-1 py-2 m-2 rounded-md bg-background-purpledark"
-              data-cy="add-warmup-set"
+              data-cy="add-warmup-set" data-testid="add-warmup-set"
               testID="add-warmup-set"
               onPress={() => {
                 props.plannerDispatch(

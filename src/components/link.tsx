@@ -12,7 +12,7 @@ interface IProps {
 export function Link(props: IProps): JSX.Element {
   return (
     <Text
-      data-cy={props["data-cy"]}
+      data-cy={props["data-cy"]} data-testid={props["data-cy"]} testID={props["data-cy"]}
       className={`text-text-link font-bold underline ${props.className || ""}`}
       onPress={() => {
         if (props.href) {

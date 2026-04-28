@@ -94,7 +94,7 @@ function AccountLoggedInView(props: IAccountLoggedInViewProps): JSX.Element {
             <Button
               name="account-sign-out"
               kind="purple"
-              data-cy="menu-item-logout"
+              data-cy="menu-item-logout" data-testid="menu-item-logout" testID="menu-item-logout"
               className="ls-logout"
               onClick={async () => {
                 setIsLoading(true);
@@ -155,7 +155,7 @@ function AccountLoggedOutView(props: IAccountLoggedOutViewProps): JSX.Element {
               android: { elevation: 2 },
               default: { boxShadow: "0 1px 4px 0 rgba(0,0,0,0.1)" },
             })}
-            data-cy="menu-item-login"
+            data-cy="menu-item-login" data-testid="menu-item-login"
             testID="menu-item-login"
             onPress={async () => {
               track({ name: "SignUp" });

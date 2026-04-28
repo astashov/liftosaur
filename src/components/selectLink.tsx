@@ -56,7 +56,7 @@ export function SelectLink<T extends string | number>(props: ISelectLinkProps<T>
   return (
     <Text
       onPress={onPress}
-      data-cy={props.name}
+      data-cy={props.name} data-testid={props.name}
       testID={props.name}
       className={`text-text-purple ${props.className || ""}`}
       style={{ textDecorationLine: "underline", textDecorationStyle: "dotted" }}

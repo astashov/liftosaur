@@ -14,8 +14,8 @@ export function ButtonIcon(props: IButtonIconProps): JSX.Element {
   return (
     <Pressable
       testID={props["data-cy"] ?? `nm-${props.name}`}
-      data-cy={props["data-cy"]}
-      className={`${props.className || ""} min-h-8 w-8 h-8 items-center justify-center bg-background-cardpurple border-border-cardpurple border rounded-lg`}
+      data-cy={props["data-cy"]} data-testid={props["data-cy"]}
+      className={`${props.className || ""} nm-${props.name} min-h-8 w-8 h-8 items-center justify-center bg-background-cardpurple border-border-cardpurple border rounded-lg`}
       onPress={props.onPress ?? props.onClick}
     >
       {props.children}

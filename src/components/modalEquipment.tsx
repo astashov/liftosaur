@@ -44,7 +44,7 @@ export function ModalEquipmentContent(props: IModalEquipmentContentProps): JSX.E
 
   const currentGymId = props.settings.currentGymId ?? props.settings.gyms[0].id;
   return (
-    <View data-cy="modal-equipment">
+    <View data-cy="modal-equipment" data-testid="modal-equipment" testID="modal-equipment">
       <MenuItemEditable
         type="select"
         name="Equipment"

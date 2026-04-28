@@ -120,7 +120,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                       <View style={{ opacity: reusingSets ? 0.5 : 1 }}>
                         <InputNumber2
                           width={2.5}
-                          data-cy="min-reps-value"
+                          data-cy="min-reps-value" data-testid="min-reps-value" testID="min-reps-value"
                           name="set-min-reps"
                           onBlur={(value) => {
                             if (value != null && !isNaN(value)) {
@@ -155,7 +155,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
               <View style={{ opacity: reusingSets ? 0.3 : 1 }} className="flex-row items-center justify-center">
                 <InputNumber2
                   width={repsInputWidth}
-                  data-cy="reps-value"
+                  data-cy="reps-value" data-testid="reps-value" testID="reps-value"
                   name="set-reps"
                   onBlur={(value) => {
                     if (value != null && !isNaN(value)) {
@@ -171,7 +171,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                   keyboardAddon={
                     <View className="py-2">
                       <InputNumberAddOn
-                        data-cy="keyboard-addon-amrap"
+                        data-cy="keyboard-addon-amrap" data-testid="keyboard-addon-amrap" testID="keyboard-addon-amrap"
                         label="Is AMRAP?"
                         value={set.isAmrap}
                         onChange={(value) => {
@@ -190,7 +190,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
             {props.opts.hasWeight && (
               <>
                 <View style={columnWidths.x} className="items-center justify-center py-2">
-                  <Text data-cy="set-x">×</Text>
+                  <Text data-cy="set-x" data-testid="set-x" testID="set-x">×</Text>
                 </View>
                 {set.weight != null ? (
                   <View style={columnWidths.weight} className="items-center justify-center py-2">
@@ -199,7 +199,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                         name="set-weight"
                         width={weightInputWidth}
                         exerciseType={props.plannerExercise.exerciseType}
-                        data-cy="weight-value"
+                        data-cy="weight-value" data-testid="weight-value" testID="weight-value"
                         units={["lb", "kg", "%"] as const}
                         onBlur={(value) => {
                           if (value != null) {
@@ -222,7 +222,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                         settings={props.settings}
                         addOn={() => (
                           <InputNumberAddOn
-                            data-cy="keyboard-addon-ask-weight"
+                            data-cy="keyboard-addon-ask-weight" data-testid="keyboard-addon-ask-weight" testID="keyboard-addon-ask-weight"
                             label="Ask Weight?"
                             value={set.askWeight}
                             onChange={(value) => {
@@ -244,7 +244,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                   <View style={{ opacity: reusingRpe ? 0.3 : 1 }} className="flex-row items-center justify-center">
                     <InputNumber2
                       width={rpeInputWidth}
-                      data-cy="rpe-value"
+                      data-cy="rpe-value" data-testid="rpe-value" testID="rpe-value"
                       allowDot={true}
                       name="set-rpe"
                       after={() => (set.logRpe ? <Text className="text-xs text-text-secondary">+</Text> : undefined)}
@@ -252,7 +252,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                         <View className="py-2">
                           <InputNumberAddOn
                             label="Log RPE?"
-                            data-cy="keyboard-addon-log-rpe"
+                            data-cy="keyboard-addon-log-rpe" data-testid="keyboard-addon-log-rpe" testID="keyboard-addon-log-rpe"
                             value={set.logRpe}
                             onChange={(value) => {
                               changeSet((s) => (s.logRpe = value));
@@ -286,7 +286,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                   <View style={{ opacity: reusingTimer ? 0.3 : 1 }} className="flex-row items-center justify-center">
                     <InputNumber2
                       width={timerInputWidth}
-                      data-cy="set-timer"
+                      data-cy="set-timer" data-testid="set-timer" testID="set-timer"
                       name="timer-value"
                       onBlur={(value) => {
                         if (value != null && !isNaN(value)) {
@@ -321,7 +321,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
             }}
           >
             <Pressable
-              data-cy="edit-set"
+              data-cy="edit-set" data-testid="edit-set"
               testID="edit-set"
               style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
               className="bg-background-darkgray"
@@ -345,7 +345,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
               <Text className="text-text-alwayswhite">Edit</Text>
             </Pressable>
             <Pressable
-              data-cy="delete-set"
+              data-cy="delete-set" data-testid="delete-set"
               testID="delete-set"
               style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
               className="bg-background-darkred"
@@ -392,7 +392,7 @@ export function InputNumberAddOn(props: IInputNumberAddOnProps): JSX.Element {
       <Text className="mr-2 text-sm font-semibold">{props.label}</Text>
       <Switch
         value={props.value}
-        data-cy={props["data-cy"]}
+        data-cy={props["data-cy"]} data-testid={props["data-cy"]}
         testID={props["data-cy"]}
         onValueChange={(v) => {
           props.onChange(v);

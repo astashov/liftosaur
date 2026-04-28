@@ -57,10 +57,11 @@ export function GraphMuscleGroup(props: IGraphMuscleGroupProps): JSX.Element {
   const units = props.settings.units;
 
   return (
-    <View className="relative">
+    <View className="relative" testID="graph" data-cy="graph" data-testid="graph">
+     <View testID="graph-data" data-cy="graph-data" data-testid="graph-data">
       <View className="flex-row items-center mb-1">
         <View className="flex-1">
-          <Text className="text-lg font-semibold leading-6">{title}</Text>
+          <Text className="text-lg font-semibold leading-6 u-title">{title}</Text>
         </View>
         <View>
           <Select
@@ -99,6 +100,7 @@ export function GraphMuscleGroup(props: IGraphMuscleGroupProps): JSX.Element {
           )}
         </View>
       </View>
+     </View>
     </View>
   );
 }

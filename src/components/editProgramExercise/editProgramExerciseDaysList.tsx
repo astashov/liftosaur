@@ -26,21 +26,20 @@ export function EditProgramExerciseDaysList(props: IEditProgramExerciseDaysListP
     <View>
       {days.map((day, dayInWeekIndex) => {
         return (
-          <View className="mb-4" key={`${props.weekIndex}-${dayInWeekIndex}-${props.exerciseKey}`}>
-            <EditProgramExerciseDay
-              exerciseKey={props.exerciseKey}
-              weekIndex={props.weekIndex}
-              dayInWeekIndex={dayInWeekIndex}
-              fullName={props.fullName}
-              exerciseType={props.exerciseType}
-              ui={props.ui}
-              evaluatedProgram={props.evaluatedProgram}
-              settings={props.settings}
-              plannerDispatch={props.plannerDispatch}
-              exerciseStateKey={props.exerciseStateKey}
-              programId={props.programId}
-            />
-          </View>
+          <EditProgramExerciseDay
+            key={`${props.weekIndex}-${dayInWeekIndex}-${props.exerciseKey}`}
+            exerciseKey={props.exerciseKey}
+            weekIndex={props.weekIndex}
+            dayInWeekIndex={dayInWeekIndex}
+            fullName={props.fullName}
+            exerciseType={props.exerciseType}
+            ui={props.ui}
+            evaluatedProgram={props.evaluatedProgram}
+            settings={props.settings}
+            plannerDispatch={props.plannerDispatch}
+            exerciseStateKey={props.exerciseStateKey}
+            programId={props.programId}
+          />
         );
       })}
     </View>

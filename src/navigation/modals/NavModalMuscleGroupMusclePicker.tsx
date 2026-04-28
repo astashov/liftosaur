@@ -49,7 +49,7 @@ export function NavModalMuscleGroupMusclePicker(): JSX.Element {
               kind="purple"
               buttonSize="md"
               name="done-selecting-muscles"
-              data-cy="done-selecting-muscles"
+              data-cy="done-selecting-muscles" data-testid="done-selecting-muscles" testID="done-selecting-muscles"
               onClick={onClose}
             >
               Done
@@ -93,7 +93,22 @@ export function NavModalMuscleGroupMusclePicker(): JSX.Element {
     return (
       <WebSheet onClose={onClose}>
         <View className="px-4 py-2">
-          <Text className="pt-2 pb-3 text-base font-semibold text-center">Choose Muscles</Text>
+          <View className="flex-row items-center pt-2 pb-3">
+            <Text className="flex-1 text-base font-semibold text-center">Choose Muscles</Text>
+            <View className="absolute right-0">
+              <Button
+                kind="purple"
+                buttonSize="md"
+                name="done-selecting-muscles"
+                data-cy="done-selecting-muscles"
+                data-testid="done-selecting-muscles"
+                testID="done-selecting-muscles"
+                onClick={onClose}
+              >
+                Done
+              </Button>
+            </View>
+          </View>
           {list}
         </View>
       </WebSheet>

@@ -18,6 +18,7 @@ export function ModalNewEquipmentContent(props: IProps): JSX.Element {
     <View>
       <Text className="mb-4 text-lg font-bold">Enter new equipment name</Text>
       <Input
+        identifier="equipment-name"
         label="Equipment name"
         required={true}
         requiredMessage="Please enter a name for the equipment"

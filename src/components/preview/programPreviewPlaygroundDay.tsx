@@ -54,10 +54,10 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
 
   return (
     <View
-      data-cy={`preview-day-${StringUtils_dashcase(programDay.name)}`}
+      data-cy={`preview-day-${StringUtils_dashcase(programDay.name)}`} data-testid={`preview-day-${StringUtils_dashcase(programDay.name)}`}
       testID={`preview-day-${StringUtils_dashcase(programDay.name)}`}
     >
-      <Text className="mx-4 mb-1 text-lg font-bold" data-cy="preview-day-name" testID="preview-day-name">
+      <Text className="mx-4 mb-1 text-lg font-bold" data-cy="preview-day-name" data-testid="preview-day-name" testID="preview-day-name">
         {props.weekName ? `${props.weekName} - ` : ""}
         {programDay.name}
       </Text>
@@ -103,7 +103,7 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
             name="finish-day-details-playground"
             kind="purple"
             onClick={handleFinish}
-            data-cy="finish-day-details-playground"
+            data-cy="finish-day-details-playground" data-testid="finish-day-details-playground" testID="finish-day-details-playground"
           >
             Finish this day
           </Button>

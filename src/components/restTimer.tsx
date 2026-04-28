@@ -93,7 +93,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
       <View style={[{ position: "absolute", left: 16, right: 16, bottom, zIndex: 30 }]} pointerEvents="box-none">
         <View className={`flex-row ${bgClass} rounded-lg`} style={shadowStyle}>
           <Pressable
-            data-cy="rest-timer-minus"
+            data-cy="rest-timer-minus" data-testid="rest-timer-minus"
             testID="rest-timer-minus"
             className="relative items-center justify-center m-2"
             style={{ width: 40, minHeight: 40 }}
@@ -107,7 +107,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
             <Text className="font-bold text-text-alwayswhite">-15s</Text>
           </Pressable>
           <Pressable
-            data-cy="rest-timer-cancel"
+            data-cy="rest-timer-cancel" data-testid="rest-timer-cancel"
             testID="rest-timer-cancel"
             className="relative items-center justify-center my-2"
             style={{ width: 40, minHeight: 40 }}
@@ -117,20 +117,20 @@ export function RestTimer(props: IProps): JSX.Element | null {
             <IconTrash color="white" />
           </Pressable>
           <Pressable
-            data-cy="rest-timer-expanded"
+            data-cy="rest-timer-expanded" data-testid="rest-timer-expanded"
             testID="rest-timer-expanded"
             className="flex-1 items-center justify-center"
             onPress={() => setIsExpanded(false)}
           >
-            <Text data-cy="rest-timer-current" className="font-bold text-text-alwayswhite">
+            <Text data-cy="rest-timer-current" data-testid="rest-timer-current" className="font-bold text-text-alwayswhite">
               {TimeUtils_formatMMSS(timeDifference)}
             </Text>
-            <Text data-cy="rest-timer-total" className={`text-xs ${totalColorClass}`}>
+            <Text data-cy="rest-timer-total" data-testid="rest-timer-total" className={`text-xs ${totalColorClass}`}>
               {TimeUtils_formatMMSS(timer * 1000)}
             </Text>
           </Pressable>
           <Pressable
-            data-cy="rest-timer-back"
+            data-cy="rest-timer-back" data-testid="rest-timer-back"
             testID="rest-timer-back"
             className="relative items-center justify-center my-2"
             style={{ width: 40, minHeight: 40 }}
@@ -142,7 +142,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
             </View>
           </Pressable>
           <Pressable
-            data-cy="rest-timer-plus"
+            data-cy="rest-timer-plus" data-testid="rest-timer-plus"
             testID="rest-timer-plus"
             className="relative items-center justify-center m-2"
             style={{ width: 40, minHeight: 40 }}
@@ -163,16 +163,16 @@ export function RestTimer(props: IProps): JSX.Element | null {
   return (
     <View style={[{ position: "absolute", right: 16, bottom, zIndex: 30 }]} pointerEvents="box-none">
       <Pressable
-        data-cy="rest-timer-collapsed"
+        data-cy="rest-timer-collapsed" data-testid="rest-timer-collapsed"
         testID="rest-timer-collapsed"
         onPress={() => setIsExpanded(true)}
         className={`${bgClass} items-center px-2 py-2 rounded-lg`}
         style={[{ width: 64 }, shadowStyle]}
       >
-        <Text data-cy="rest-timer-current" className="font-bold text-text-alwayswhite">
+        <Text data-cy="rest-timer-current" data-testid="rest-timer-current" className="font-bold text-text-alwayswhite">
           {TimeUtils_formatMMSS(timeDifference)}
         </Text>
-        <Text data-cy="rest-timer-total" className={`text-xs ${totalColorClass}`}>
+        <Text data-cy="rest-timer-total" data-testid="rest-timer-total" className={`text-xs ${totalColorClass}`}>
           {TimeUtils_formatMMSS(timer * 1000)}
         </Text>
       </Pressable>

@@ -235,7 +235,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps, _ref): JSX.Element
   const exercise = props.exerciseType ? Exercise_get(props.exerciseType, props.settings.exercises) : undefined;
 
   return (
-    <form data-cy="modal-exercise" onSubmit={(e) => e.preventDefault()}>
+    <form data-cy="modal-exercise" data-testid="modal-exercise" testID="modal-exercise" onSubmit={(e) => e.preventDefault()}>
       {props.isSubstitute && (
         <p className="text-xs italic">Similar exercises are sorted by the same muscles as the current one.</p>
       )}
@@ -256,7 +256,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps, _ref): JSX.Element
         className="block w-full px-4 py-2 mb-2 text-base leading-normal border border-gray-300 rounded-lg appearance-none bg-background-default focus:outline-none focus:shadow-outline"
         type="text"
         value={filter}
-        data-cy="exercise-filter-by-name"
+        data-cy="exercise-filter-by-name" data-testid="exercise-filter-by-name" testID="exercise-filter-by-name"
         placeholder="Filter by name"
         onInput={() => {
           setFilter(textInput.current!.value.toLowerCase());
@@ -265,7 +265,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps, _ref): JSX.Element
       <Multiselect
         id="filtertypes"
         label=""
-        data-cy="exercise-filter-by-type"
+        data-cy="exercise-filter-by-type" data-testid="exercise-filter-by-type" testID="exercise-filter-by-type"
         placeholder="Filter by type"
         values={filterOptions}
         initialSelectedValues={new Set(initialFilterOptions)}
@@ -281,7 +281,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps, _ref): JSX.Element
               return (
                 <section
                   key={id}
-                  data-cy={`menu-item-${StringUtils_dashcase(e.name)}`}
+                  data-cy={`menu-item-${StringUtils_dashcase(e.name)}`} data-testid={`menu-item-${StringUtils_dashcase(e.name)}`} testID={`menu-item-${StringUtils_dashcase(e.name)}`}
                   className="w-full px-2 py-1 text-left border-b border-gray-200"
                   onClick={(event) => {
                     if (!HtmlUtils_classInParents(event.target as Element, "button")) {
@@ -303,7 +303,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps, _ref): JSX.Element
                     <div>
                       <button
                         className={`px-3 py-4 button nm-edit-custom-exercise-${StringUtils_dashcase(e.name)}`}
-                        data-cy={`custom-exercise-edit-${StringUtils_dashcase(e.name)}`}
+                        data-cy={`custom-exercise-edit-${StringUtils_dashcase(e.name)}`} data-testid={`custom-exercise-edit-${StringUtils_dashcase(e.name)}`} testID={`custom-exercise-edit-${StringUtils_dashcase(e.name)}`}
                         onClick={(event) => {
                           event.preventDefault();
                           props.setEditingExercise(e);
@@ -314,7 +314,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps, _ref): JSX.Element
                       </button>
                       <button
                         className={`px-1 py-4 button nm-delete-custom-exercise-${StringUtils_dashcase(e.name)}`}
-                        data-cy={`custom-exercise-delete-${StringUtils_dashcase(e.name)}`}
+                        data-cy={`custom-exercise-delete-${StringUtils_dashcase(e.name)}`} data-testid={`custom-exercise-delete-${StringUtils_dashcase(e.name)}`} testID={`custom-exercise-delete-${StringUtils_dashcase(e.name)}`}
                         onClick={(event) => {
                           event.preventDefault();
                           if (confirm(`Are you sure you want to delete ${e.name}?`)) {
@@ -332,7 +332,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps, _ref): JSX.Element
           <div className="mb-4 text-sm">
             <LinkButton
               name="custom-exercise-create"
-              data-cy="custom-exercise-create"
+              data-cy="custom-exercise-create" data-testid="custom-exercise-create" testID="custom-exercise-create"
               onClick={() => {
                 props.setEditingExercise(undefined);
                 props.setIsCustomExerciseDisplayed(true);
@@ -349,6 +349,10 @@ const ExercisesList = forwardRef((props: IExercisesListProps, _ref): JSX.Element
           <section
             key={Exercise_toKey(e)}
             data-cy={`menu-item-${StringUtils_dashcase(e.name)}${
+              e.equipment ? `-${StringUtils_dashcase(e.equipment)}` : ""
+            }`} data-testid={`menu-item-${StringUtils_dashcase(e.name)}${
+              e.equipment ? `-${StringUtils_dashcase(e.equipment)}` : ""
+            }`} testID={`menu-item-${StringUtils_dashcase(e.name)}${
               e.equipment ? `-${StringUtils_dashcase(e.equipment)}` : ""
             }`}
             className="w-full px-2 py-1 text-left border-b border-gray-200"
@@ -470,7 +474,7 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
           <Button
             name="custom-exercise-cancel"
             kind="grayv2"
-            data-cy="custom-exercise-cancel"
+            data-cy="custom-exercise-cancel" data-testid="custom-exercise-cancel" testID="custom-exercise-cancel"
             onClick={() => {
               props.setIsCustomExerciseDisplayed(false);
             }}
@@ -482,7 +486,7 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
           <Button
             name="custom-exercise-create"
             kind="purple"
-            data-cy="custom-exercise-create"
+            data-cy="custom-exercise-create" data-testid="custom-exercise-create" testID="custom-exercise-create"
             onClick={() => {
               props.onCreateOrUpdate(
                 true,
@@ -686,7 +690,7 @@ function ExerciseTemplate(props: IExerciseTemplateProps): JSX.Element {
           <Button
             name="exercise-template-cancel"
             kind="grayv2"
-            data-cy="exercise-template-cancel"
+            data-cy="exercise-template-cancel" data-testid="exercise-template-cancel" testID="exercise-template-cancel"
             onClick={() => props.onSaveAsTemplate && props.onSaveAsTemplate(undefined, undefined)}
           >
             Cancel
@@ -697,7 +701,7 @@ function ExerciseTemplate(props: IExerciseTemplateProps): JSX.Element {
             name="exercise-template-create"
             kind="purple"
             disabled={!!nameError}
-            data-cy="exercise-template-create"
+            data-cy="exercise-template-create" data-testid="exercise-template-create" testID="exercise-template-create"
             onClick={() => {
               if (!name) {
                 setNameError("Name cannot be empty");

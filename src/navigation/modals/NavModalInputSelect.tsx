@@ -28,12 +28,12 @@ export function NavModalInputSelect(): JSX.Element {
       )}
       <View
         className="flex-col px-2 py-2"
-        data-cy={data.name ? `select-options-${data.name}` : undefined}
+        data-cy={data.name ? `select-options-${data.name}` : undefined} data-testid={data.name ? `select-options-${data.name}` : undefined}
         testID={data.name ? `select-options-${data.name}` : undefined}
       >
         {data.emptyLabel != null && (
           <Pressable
-            data-cy="select-option-empty"
+            data-cy="select-option-empty" data-testid="select-option-empty"
             testID="select-option-empty"
             className={`py-2 px-2 ${data.selectedValue == null ? "bg-background-subtle rounded" : ""}`}
             onPress={() => {
@@ -47,7 +47,7 @@ export function NavModalInputSelect(): JSX.Element {
         )}
         {data.values.map(([key, label], i) => (
           <Pressable
-            data-cy={`select-option-${key}`}
+            data-cy={`select-option-${key}`} data-testid={`select-option-${key}`}
             testID={`select-option-${key}`}
             key={key}
             className={`py-2 px-2 ${key === data.selectedValue ? "bg-background-subtle rounded" : ""} ${

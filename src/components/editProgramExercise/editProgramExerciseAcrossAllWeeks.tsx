@@ -340,7 +340,7 @@ function RepsValue(props: IValueProps): JSX.Element {
             <View>
               <InputNumber2
                 width={3.5}
-                data-cy="min-reps-value"
+                data-cy="min-reps-value" data-testid="min-reps-value" testID="min-reps-value"
                 name="set-min-reps"
                 onBlur={(value) => {
                   change(group, (s) => {
@@ -365,7 +365,7 @@ function RepsValue(props: IValueProps): JSX.Element {
         <View>
           <InputNumber2
             width={3.5}
-            data-cy="reps-value"
+            data-cy="reps-value" data-testid="reps-value" testID="reps-value"
             name="set-reps"
             onBlur={(value) => change(group, (s) => (s.maxrep = value))}
             after={() => (set.isAmrap ? <Text className="text-xs text-text-secondary">+</Text> : undefined)}
@@ -401,7 +401,7 @@ function WeightsValue(props: IValueProps): JSX.Element {
           name="set-weight"
           width={4}
           exerciseType={props.exerciseType}
-          data-cy="weight-value"
+          data-cy="weight-value" data-testid="weight-value" testID="weight-value"
           units={["lb", "kg", "%"] as const}
           onBlur={(value) => change(group, (s) => (s.weight = value))}
           showUnitInside={true}
@@ -434,7 +434,7 @@ function RpeValue(props: IValueProps): JSX.Element {
       <View>
         <InputNumber2
           width={3}
-          data-cy="rpe-value"
+          data-cy="rpe-value" data-testid="rpe-value" testID="rpe-value"
           allowDot={true}
           name="set-rpe"
           after={() => (set.logRpe ? <Text className="text-xs text-text-secondary">+</Text> : undefined)}
@@ -468,7 +468,7 @@ function TimerValue(props: IValueProps): JSX.Element {
       <View>
         <InputNumber2
           width={3.5}
-          data-cy="set-timer"
+          data-cy="set-timer" data-testid="set-timer" testID="set-timer"
           name="timer-value"
           onBlur={(value) => change(group, (s) => (s.timer = value))}
           value={set.timer}

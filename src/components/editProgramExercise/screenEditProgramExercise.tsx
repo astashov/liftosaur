@@ -192,7 +192,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
           actions={kebabActions}
           renderTrigger={(open) => (
             <Pressable
-              data-cy="program-exercise-navbar-kebab"
+              data-cy="program-exercise-navbar-kebab" data-testid="program-exercise-navbar-kebab"
               testID="program-exercise-navbar-kebab"
               className="p-2"
               onPress={open}

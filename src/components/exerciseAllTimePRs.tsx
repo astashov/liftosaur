@@ -20,7 +20,7 @@ function ExerciseAllTimePRsInner(props: IExerciseAllTimePRsProps): JSX.Element {
   const { maxWeight, max1RM } = props;
 
   return (
-    <View data-cy="exercise-stats-pr" className="px-4 py-2 bg-background-cardpurple rounded-2xl">
+    <View data-cy="exercise-stats-pr" data-testid="exercise-stats-pr" testID="exercise-stats-pr" className="px-4 py-2 bg-background-cardpurple rounded-2xl">
       <GroupHeader topPadding={false} name="🏆 Personal Records" />
       {maxWeight && (
         <MenuItem
@@ -29,7 +29,7 @@ function ExerciseAllTimePRsInner(props: IExerciseAllTimePRsProps): JSX.Element {
           onClick={() => maxWeight.historyRecord && props.dispatch(Thunk_editHistoryRecord(maxWeight.historyRecord))}
           value={
             <View>
-              <Text className="text-text-primary text-right" data-cy="max-weight-value">
+              <Text className="text-text-primary text-right" data-cy="max-weight-value" data-testid="max-weight-value" testID="max-weight-value">
                 {Weight_display(Weight_convertTo(maxWeight.weight, props.settings.units))}
               </Text>
               {maxWeight.historyRecord && (
@@ -50,7 +50,7 @@ function ExerciseAllTimePRsInner(props: IExerciseAllTimePRsProps): JSX.Element {
           name="Max 1RM"
           value={
             <View>
-              <Text className="text-text-primary text-right" data-cy="one-rm-value">
+              <Text className="text-text-primary text-right" data-cy="one-rm-value" data-testid="one-rm-value" testID="one-rm-value">
                 {Weight_display(Weight_convertTo(max1RM.weight, props.settings.units))}
                 {max1RM.set
                   ? ` (${max1RM.set.completedReps} x ${Weight_display(max1RM.set.completedWeight ?? max1RM.set.weight ?? Weight_build(0, props.settings.units))})`

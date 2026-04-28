@@ -294,7 +294,7 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
       <Pressable
         onPress={focusSelf}
         testID={`input-${StringUtils_dashcase(props.name)}-field`}
-        data-cy={`input-${StringUtils_dashcase(props.name)}-field`}
+        data-cy={`input-${StringUtils_dashcase(props.name)}-field`} data-testid={`input-${StringUtils_dashcase(props.name)}-field`}
         className={fieldClassName}
         style={props.autowidth ? undefined : { width: fieldWidth }}
       >

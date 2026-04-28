@@ -262,7 +262,7 @@ function BottomButton(props: IBottomButtonProps): JSX.Element {
         kind="purple"
         buttonSize="lg"
         onPress={props.onClick}
-        data-cy="exercise-picker-confirm"
+        data-cy="exercise-picker-confirm" data-testid="exercise-picker-confirm" testID="exercise-picker-confirm"
       >
         {props.state.mode === "workout"
           ? props.state.exerciseType

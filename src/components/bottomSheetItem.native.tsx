@@ -15,7 +15,7 @@ interface IProps {
 export function BottomSheetItem(props: IProps): JSX.Element {
   return (
     <Pressable
-      data-cy={`bottom-sheet-${props.name}`}
+      data-cy={`bottom-sheet-${props.name}`} data-testid={`bottom-sheet-${props.name}`}
       testID={`bottom-sheet-${props.name}`}
       className={`${!props.isFirst ? "mt-4 border-t border-border-neutral" : ""} ${props.className ?? ""}`}
       onPress={props.onClick}

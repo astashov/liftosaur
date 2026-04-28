@@ -111,7 +111,7 @@ function ProgramPreviewHistoryRecordSets(props: IProgramPreviewHistoryRecordSets
   return (
     <View
       className={`py-2 px-2 mx-4 mb-3 rounded-lg ${getBgColor100(props.entry)} relative`}
-      data-cy={StringUtils_dashcase(exercise.name)}
+      data-cy={StringUtils_dashcase(exercise.name)} data-testid={StringUtils_dashcase(exercise.name)}
       testID={StringUtils_dashcase(exercise.name)}
     >
       <View className="flex-row items-center gap-2">
@@ -172,7 +172,7 @@ function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.El
   return (
     <View
       className={`pt-2 pb-2 mb-6 rounded-lg ${WorkoutExerciseUtils_getBgColor50(props.entry.sets, false)} relative`}
-      data-cy={`entry-${StringUtils_dashcase(exercise.name)}`}
+      data-cy={`entry-${StringUtils_dashcase(exercise.name)}`} data-testid={`entry-${StringUtils_dashcase(exercise.name)}`}
       testID={`entry-${StringUtils_dashcase(exercise.name)}`}
     >
       <View>
@@ -194,11 +194,11 @@ function ProgramPreviewPlayground(props: IProgramPreviewPlaygroundProps): JSX.El
             <View className="flex-row items-center">
               <Text className="flex-1 mr-1 font-bold">{Exercise_nameWithEquipment(exercise, props.settings)}</Text>
             </View>
-            <Text data-cy="exercise-equipment" testID="exercise-equipment" className="text-xs text-text-secondary">
+            <Text data-cy="exercise-equipment" data-testid="exercise-equipment" testID="exercise-equipment" className="text-xs text-text-secondary">
               Equipment: <Text className="text-xs font-bold text-text-secondary">{currentEquipmentName || "None"}</Text>
             </Text>
             {supersetExercise && (
-              <Text data-cy="exercise-superset" testID="exercise-superset" className="text-xs text-text-secondary">
+              <Text data-cy="exercise-superset" data-testid="exercise-superset" testID="exercise-superset" className="text-xs text-text-secondary">
                 Supersets with:{" "}
                 <Text className="text-xs font-bold text-text-secondary">
                   {Exercise_fullName(supersetExercise, props.settings)}
@@ -261,7 +261,7 @@ function PlaygroundExerciseTopBar(props: IPlaygroundExerciseTopBarProps): JSX.El
     >
       <View className="flex-row items-center gap-2">
         <Pressable
-          data-cy="program-preview-edit-exercise"
+          data-cy="program-preview-edit-exercise" data-testid="program-preview-edit-exercise"
           testID="program-preview-edit-exercise"
           onPress={() => {
             props.dispatch({
@@ -287,7 +287,7 @@ function PlaygroundExerciseTopBar(props: IPlaygroundExerciseTopBarProps): JSX.El
         </Pressable>
         {props.isPlayground && (
           <Pressable
-            data-cy="program-preview-complete-exercise"
+            data-cy="program-preview-complete-exercise" data-testid="program-preview-complete-exercise"
             testID="program-preview-complete-exercise"
             onPress={() => {
               props.dispatch({

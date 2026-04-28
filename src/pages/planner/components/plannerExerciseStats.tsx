@@ -129,7 +129,7 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
               <LinkButton
                 name="planner-swap-exercise"
                 className="text-xs"
-                data-cy="planner-swap-exercise"
+                data-cy="planner-swap-exercise" data-testid="planner-swap-exercise" testID="planner-swap-exercise"
                 onClick={() => {
                   const exerciseKey = PlannerKey_fromPlannerExercise(evaluatedExercise, props.settings);
                   props.dispatch(

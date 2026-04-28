@@ -8,7 +8,6 @@ import { CollectionUtils_removeBy } from "./collection";
 import { Thunk_postevent } from "../ducks/thunks";
 
 export function Subscriptions_hasSubscription(subscription: ISubscription): boolean {
-  return true;
   if (subscription.key && subscription.key !== "unclaimed") {
     return true;
   }

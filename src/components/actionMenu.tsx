@@ -15,10 +15,12 @@ export interface IActionMenuProps {
   renderTrigger: (open: () => void) => JSX.Element;
   title?: string;
   actions: IActionMenuAction[];
+  onOpenChange?: (isOpen: boolean) => void;
 }
 
 export function ActionMenu(props: IActionMenuProps): JSX.Element {
   const [isOpen, setIsOpen] = useState(false);
+  const { onOpenChange } = props;
 
   const open = useCallback(() => {
     if (Platform.OS === "ios") {
@@ -41,9 +43,13 @@ export function ActionMenu(props: IActionMenuProps): JSX.Element {
       return;
     }
     setIsOpen(true);
-  }, [props.actions, props.title]);
+    onOpenChange?.(true);
+  }, [props.actions, props.title, onOpenChange]);
 
-  const close = useCallback(() => setIsOpen(false), []);
+  const close = useCallback(() => {
+    setIsOpen(false);
+    onOpenChange?.(false);
+  }, [onOpenChange]);
 
   return (
     <>
@@ -54,7 +60,7 @@ export function ActionMenu(props: IActionMenuProps): JSX.Element {
             <DropdownMenuItem
               key={a.label}
               isTop={i === 0}
-              data-cy={a["data-cy"]}
+              data-cy={a["data-cy"]} data-testid={a["data-cy"]} testID={a["data-cy"]}
               disabled={a.disabled}
               onClick={() => {
                 close();
@@ -63,24 +69,24 @@ export function ActionMenu(props: IActionMenuProps): JSX.Element {
                 }
               }}
             >
-              <Text className={a.destructive ? "text-text-error" : ""}>{a.label}</Text>
+              <Text className={`whitespace-nowrap ${a.destructive ? "text-text-error" : ""}`}>{a.label}</Text>
             </DropdownMenuItem>
           ))}
         </DropdownMenu>
       )}
       {Platform.OS === "android" && (
         <RNModal transparent visible={isOpen} animationType="fade" onRequestClose={close}>
-          <Pressable className="flex-1 justify-end" style={{ backgroundColor: "rgba(0,0,0,0.4)" }} onPress={close}>
-            <Pressable className="bg-background-default rounded-t-2xl pb-8" onPress={(e) => e.stopPropagation()}>
+          <Pressable className="justify-end flex-1" style={{ backgroundColor: "rgba(0,0,0,0.4)" }} onPress={close}>
+            <Pressable className="pb-8 bg-background-default rounded-t-2xl" onPress={(e) => e.stopPropagation()}>
               {props.title && (
                 <View className="px-4 py-3 border-b border-border-neutral">
-                  <Text className="text-sm text-text-secondary text-center">{props.title}</Text>
+                  <Text className="text-sm text-center text-text-secondary">{props.title}</Text>
                 </View>
               )}
               {props.actions.map((a) => (
                 <Pressable
                   key={a.label}
-                  data-cy={a["data-cy"]}
+                  data-cy={a["data-cy"]} data-testid={a["data-cy"]}
                   testID={a["data-cy"]}
                   disabled={a.disabled}
                   className="px-4 py-4 border-b border-border-neutral"
@@ -101,7 +107,7 @@ export function ActionMenu(props: IActionMenuProps): JSX.Element {
                 </Pressable>
               ))}
               <Pressable className="px-4 py-4" onPress={close}>
-                <Text className="text-base text-text-secondary text-center">Cancel</Text>
+                <Text className="text-base text-center text-text-secondary">Cancel</Text>
               </Pressable>
             </Pressable>
           </Pressable>

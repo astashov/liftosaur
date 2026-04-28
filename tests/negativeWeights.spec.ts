@@ -55,7 +55,7 @@ Triceps Dip, Leverage Machine / 2x3-5 -20lb / progress: lp(30lb)`
       .getByTestId("history-record")
       .first()
       .locator(
-        "[data-cy=history-entry-exercise]:has-text('Pull Up, Leverage Machine') >> [data-cy=history-entry-weight]"
+        "[data-testid=history-entry-exercise]:has-text('Pull Up, Leverage Machine') >> [data-testid=history-entry-weight]"
       )
       .first()
   ).toHaveText("-45lb");
@@ -65,7 +65,7 @@ Triceps Dip, Leverage Machine / 2x3-5 -20lb / progress: lp(30lb)`
       .getByTestId("history-record")
       .first()
       .locator(
-        "[data-cy=history-entry-exercise]:has-text('Triceps Dip, Leverage Machine') >> [data-cy=history-entry-weight]"
+        "[data-testid=history-entry-exercise]:has-text('Triceps Dip, Leverage Machine') >> [data-testid=history-entry-weight]"
       )
       .first()
   ).toHaveText("10lb");
