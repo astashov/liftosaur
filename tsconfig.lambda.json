@@ -5,7 +5,9 @@
     "noEmit": false,
     "declaration": false,
     "sourceMap": false,
-    "outDir": "./dist-lambda"
+    "outDir": "./dist-lambda",
+    "jsx": "react-jsx",
+    "jsxImportSource": "react"
   },
   "include": ["lambda/**/*", "nativewind-env.d.ts", "src/types/reactNative.d.ts"]
 }
