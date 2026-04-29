@@ -90,7 +90,7 @@ async function saveProgram(
   if (result.success) {
     return result.data;
   } else {
-    alert("Failed to save the program");
+    alert(result.error || "Failed to save the program");
     return undefined;
   }
 }

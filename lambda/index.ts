@@ -1006,6 +1006,26 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
       di.log.log(`Program Save: Version mismatch! Old: ${oldStorage.version}, New: ${exportedProgram.version}.`);
       return ResponseUtils_json(400, event, { error: "Version mismatch! Please refresh the page." });
     }
+    const programsDeletedMap = (oldStorage._versions?.programs as ICollectionVersions | undefined)?.deleted || {};
+    const submittedClonedAt = exportedProgram.program.clonedAt;
+    if (submittedClonedAt != null && submittedClonedAt in programsDeletedMap) {
+      di.log.log(`Program Save: Stale clonedAt ${submittedClonedAt} for program ${exportedProgram.program.id}.`);
+      await eventDao.post({
+        type: "event",
+        name: "save-program-www-stale-cloned-at",
+        userId: user.id,
+        commithash: process.env.COMMIT_HASH ?? "",
+        timestamp: Date.now(),
+        isMobile: false,
+        extra: {
+          programId: exportedProgram.program.id,
+          clonedAt: submittedClonedAt,
+        },
+      });
+      return ResponseUtils_json(409, event, {
+        error: "Your program is out of date. Please refresh the page and try again.",
+      });
+    }
     const newStorage: IPartialStorage = {
       ...oldStorage,
       programs: CollectionUtils_setBy(oldStorage.programs, "id", exportedProgram.program.id, exportedProgram.program),

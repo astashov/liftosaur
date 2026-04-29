@@ -56,7 +56,7 @@ async function saveProgram(newProgram: IProgram, service: Service): Promise<void
       window.location.href
     ).toString();
   } else {
-    alert("Error while saving the program, try again");
+    alert(result.error || "Error while saving the program, try again");
   }
 }
 
