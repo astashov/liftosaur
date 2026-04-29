@@ -4,6 +4,7 @@ import { debounce } from "../utils/throttler";
 interface IProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   onChangeText?: (text: string) => void;
   debounceMs?: number;
+  testID?: string;
 }
 
 export function TextareaAutogrow(props: IProps): JSX.Element {
@@ -32,7 +33,7 @@ export function TextareaAutogrow(props: IProps): JSX.Element {
     }
   };
 
-  const { onChangeText, debounceMs, className, value: _value, ...otherProps } = props;
+  const { onChangeText, debounceMs, className, value: _value, testID, ...otherProps } = props;
 
   return (
     <textarea
