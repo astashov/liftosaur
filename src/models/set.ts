@@ -1,4 +1,4 @@
-import { CollectionUtils_inGroupsOf } from "../utils/collection";
+import { CollectionUtils_groupBy, CollectionUtils_inGroupsOf } from "../utils/collection";
 import {
   Weight_display,
   Weight_eqNull,
@@ -43,6 +43,18 @@ export function Reps_display(sets: ISet[], isNext: boolean = false): string {
     const groups = CollectionUtils_inGroupsOf(5, arr);
     return groups.map((g) => g.join("/")).join("/ ");
   }
+}
+
+function isSameDisplaySet(a: IDisplaySet, b: IDisplaySet): boolean {
+  return (
+    a.reps === b.reps && a.weight === b.weight && a.rpe === b.rpe && a.askWeight === b.askWeight && a.timer === b.timer
+  );
+}
+
+export function Reps_groupDisplaySets(displaySets: IDisplaySet[]): IDisplaySet[][] {
+  return CollectionUtils_groupBy(displaySets, (last, set) => {
+    return !isSameDisplaySet(last, set);
+  });
 }
 
 export function Reps_setToDisplaySet(set: ISet, isNext: boolean, settings: ISettings): IDisplaySet {
