@@ -81,11 +81,6 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
   const displayWarmupSets = PlannerProgramExercise_warmupSetsToDisplaySets(
     ownWarmups || reuseWarmups || defaultWarmups
   );
-  const remValue = props.settings.textSize ?? 16;
-  const setCol = Math.round(2 * remValue);
-  const repsCol = Math.round(3 * remValue);
-  const xCol = Math.round(0.75 * remValue);
-  const weightCol = Math.round(6 * remValue);
 
   return (
     <View className="px-4 py-2 bg-background-default">
@@ -154,17 +149,17 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
           </View>
         </View>
       ) : (
-        <View className="border rounded-lg bg-background-subtlecardpurple border-border-cardpurple">
+        <View className="overflow-hidden border rounded-lg bg-background-subtlecardpurple border-border-cardpurple">
           <View className="w-full">
             <View className="flex-row border-b border-border-neutral">
-              <View style={{ width: setCol }} className="px-2 py-1">
+              <View className="w-12 px-2 py-1">
                 <Text className="text-xs text-text-secondary">Set</Text>
               </View>
-              <View style={{ width: repsCol }} className="items-center py-1">
+              <View className="items-center flex-1 py-1">
                 <Text className="text-xs text-text-secondary">Reps</Text>
               </View>
-              <View style={{ width: xCol }} />
-              <View style={{ width: weightCol }} className="items-center py-1 pr-4">
+              <View className="w-3" />
+              <View className="items-center flex-1 py-1 pr-6">
                 <Text className="text-xs text-text-secondary">Weight</Text>
               </View>
             </View>
@@ -187,15 +182,10 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                         style={style as object}
                       >
                         <View className="flex-row items-center border-b border-border-neutral">
-                          <View
-                            style={{ width: setCol }}
-                            className="px-2 py-1"
-                            data-testid="warmup-set-number"
-                            testID="warmup-set-number"
-                          >
+                          <View className="w-12 px-2 py-1" data-testid="warmup-set-number" testID="warmup-set-number">
                             <Text className="text-sm">{setIndex + 1}</Text>
                           </View>
-                          <View style={{ width: repsCol }} className="items-center justify-center py-2">
+                          <View className="items-center justify-center flex-1 py-2">
                             <InputNumber2
                               width={3.5}
                               data-testid="reps-value"
@@ -227,14 +217,13 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                             />
                           </View>
                           <View
-                            style={{ width: xCol }}
-                            className="items-center justify-center py-2"
+                            className="items-center justify-center w-3 py-2"
                             data-testid="warmup-set-x"
                             testID="warmup-set-x"
                           >
                             <Text>×</Text>
                           </View>
-                          <View style={{ width: weightCol }} className="items-center justify-center py-2">
+                          <View className="items-center justify-center flex-1 py-2">
                             <View className="flex-row items-center">
                               <InputWeight2
                                 name="set-weight"

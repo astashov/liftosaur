@@ -22,6 +22,7 @@
     "pretty": true,
     "strict": true,
     "jsx": "react-jsx",
+    "jsxImportSource": "nativewind",
     "skipLibCheck": true,
     "noEmit": true,
     "outDir": "out",

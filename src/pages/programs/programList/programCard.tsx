@@ -44,7 +44,7 @@ export function ProgramCard(props: IProgramCardProps): JSX.Element {
           <Markdown value={program.shortDescription} className="mt-1 text-sm text-text-secondary" />
         )}
 
-        <div className="py-3">
+        <div className="flex flex-row flex-wrap py-3">
           {exercises
             .filter((e) => ExerciseImageUtils_exists(e, "small"))
             .map((e) => (

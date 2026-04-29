@@ -188,7 +188,7 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
                   </button>
                 </span>
               </div>
-              <div className="pt-2">
+              <div className="flex flex-row flex-wrap pt-2">
                 {usedExercises
                   .filter((e) => ExerciseImageUtils_exists(e, "small"))
                   .map((e) => (

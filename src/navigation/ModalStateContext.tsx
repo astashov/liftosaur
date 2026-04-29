@@ -104,8 +104,10 @@ const initialModalState: IModalState = { modals: {}, results: {} };
 
 export type IModalDispatch = (action: IModalAction) => void;
 
+const noopModalDispatch: IModalDispatch = () => {};
+
 const ModalStateContext = createContext<IModalState>(initialModalState);
-const ModalDispatchContext = createContext<IModalDispatch>(() => {});
+const ModalDispatchContext = createContext<IModalDispatch>(noopModalDispatch);
 
 export function ModalStateProvider(props: { children: ReactNode }): JSX.Element {
   const [state, dispatch] = useReducer(modalReducer, initialModalState);
@@ -114,6 +116,10 @@ export function ModalStateProvider(props: { children: ReactNode }): JSX.Element 
       <ModalStateContext.Provider value={state}>{props.children}</ModalStateContext.Provider>
     </ModalDispatchContext.Provider>
   );
+}
+
+export function useIsModalAvailable(): boolean {
+  return useContext(ModalDispatchContext) !== noopModalDispatch;
 }
 
 export function useModalState(): IModalState {
