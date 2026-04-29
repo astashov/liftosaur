@@ -150,7 +150,7 @@ export async function PlaywrightUtils_selectBuiltin(page: Page): Promise<void> {
 export async function PlaywrightUtils_createProgram(page: Page, name: string): Promise<void> {
   await page.getByTestId("program-select-create").click();
   await page.getByTestId("modal-create-program-input").fill(name);
-  await page.getByTestId("modal-create-experimental-program-submit").click();
+  await page.getByTestId("modal-create-program-submit").click();
 }
 
 export async function PlaywrightUtils_closeTour(page: Page): Promise<void> {

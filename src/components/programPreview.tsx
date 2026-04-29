@@ -62,7 +62,7 @@ export function ProgramPreview(props: IProps): JSX.Element {
             <View className="flex-1">
               {program.url ? (
                 <Link
-                  data-testid="program-name"
+                  testID="program-name"
                   className="text-2xl font-bold leading-tight underline text-text-link"
                   href={program.url}
                 >

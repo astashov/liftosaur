@@ -49,6 +49,7 @@ import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth }
 import { History_calories, History_pauseWorkout } from "../models/history";
 import { SendMessage_toIosAndAndroid, SendMessage_isIos } from "../utils/sendMessage";
 import { Dialog_confirm } from "../utils/dialog";
+import { NavScreenContent } from "../navigation/NavScreenContent";
 
 interface IWorkoutViewProps {
   history: IHistoryRecord[];
@@ -73,6 +74,7 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
   const forceUpdateEntryIndex = !!props.progress.ui?.forceUpdateEntryIndex;
   const { width: windowWidth } = useWindowDimensions();
   const currentEntryIndex = props.progress.ui?.currentEntryIndex ?? 0;
+  const [enableReorder, setEnableReorder] = useState(false);
 
   const [renderedIndices, setRenderedIndices] = useState<ReadonlySet<number>>(() => {
     const s = new Set<number>();
@@ -149,8 +151,25 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
     }
   };
 
+  const onClickThumbnail = useCallback(
+    (entryIndex: number) => {
+      updateProgress(
+        props.dispatch,
+        [
+          lb<IHistoryRecord>().pi("ui", {}).p("currentEntryIndex").record(entryIndex),
+          lb<IHistoryRecord>()
+            .pi("ui", {})
+            .p("forceUpdateEntryIndex")
+            .recordModify((v) => !v),
+        ],
+        "click-exercise-tab"
+      );
+    },
+    [props.dispatch]
+  );
+
   return (
-    <View className="pb-8">
+    <NavScreenContent stickyHeaderIndices={[2]}>
       <WorkoutHeader
         description={description}
         progress={props.progress}
@@ -163,70 +182,72 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
         }}
         onShare={props.onShare}
       />
-      <WorkoutListOfExercises
+      <View className="items-end mr-2">
+        <LinkButton
+          className="px-2 py-1 text-xs"
+          name="reorder-workout-exercises"
+          onClick={() => setEnableReorder(!enableReorder)}
+        >
+          {enableReorder ? "Finish Reordering" : "Reorder Exercises"}
+        </LinkButton>
+      </View>
+      <WorkoutThumbnailsStrip
         progress={props.progress}
         dispatch={props.dispatch}
         settings={props.settings}
-        onClick={(entryIndex) => {
-          updateProgress(
-            props.dispatch,
-            [
-              lb<IHistoryRecord>().pi("ui", {}).p("currentEntryIndex").record(entryIndex),
-              lb<IHistoryRecord>()
-                .pi("ui", {})
-                .p("forceUpdateEntryIndex")
-                .recordModify((v) => !v),
-            ],
-            "click-exercise-tab"
-          );
-        }}
+        enableReorder={enableReorder}
+        onClick={onClickThumbnail}
       />
-      {selectedEntry != null && (
-        <WorkoutScrollGestureContext.Provider value={scrollGesture}>
-          <View className="mt-2">
-            <GestureDetector gesture={scrollGesture}>
-              <ScrollView
-                ref={scrollRef}
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                onScroll={onScroll}
-                scrollEventThrottle={16}
-                style={pagerHeight != null ? { height: pagerHeight } : undefined}
-              >
-                {props.progress.entries.map((entry, entryIndex) => {
-                  const shouldRender = renderedIndices.has(entryIndex);
-                  return (
-                    <View key={entry.id} style={{ width: windowWidth }}>
-                      <View onLayout={(e: LayoutChangeEvent) => onPageLayout(entryIndex, e.nativeEvent.layout.height)}>
-                        {shouldRender ? (
-                          <WorkoutExercise
-                            day={props.progress.day}
-                            stats={props.stats}
-                            history={props.history}
-                            otherStates={props.program?.states}
-                            entryIndex={entryIndex}
-                            program={props.program}
-                            programDay={props.programDay}
-                            progress={props.progress}
-                            showHelp={true}
-                            helps={props.helps}
-                            entry={entry}
-                            subscription={props.subscription}
-                            settings={props.settings}
-                            dispatch={props.dispatch}
-                          />
-                        ) : null}
+      <View className="pb-8">
+        {selectedEntry != null && (
+          <WorkoutScrollGestureContext.Provider value={scrollGesture}>
+            <View className="mt-2">
+              <GestureDetector gesture={scrollGesture}>
+                <ScrollView
+                  ref={scrollRef}
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  onScroll={onScroll}
+                  scrollEventThrottle={16}
+                  style={pagerHeight != null ? { height: pagerHeight } : undefined}
+                >
+                  {props.progress.entries.map((entry, entryIndex) => {
+                    const shouldRender = renderedIndices.has(entryIndex);
+                    return (
+                      <View key={entry.id} style={{ width: windowWidth }}>
+                        <View
+                          onLayout={(e: LayoutChangeEvent) => onPageLayout(entryIndex, e.nativeEvent.layout.height)}
+                        >
+                          {shouldRender ? (
+                            <WorkoutExercise
+                              day={props.progress.day}
+                              stats={props.stats}
+                              history={props.history}
+                              otherStates={props.program?.states}
+                              entryIndex={entryIndex}
+                              program={props.program}
+                              programDay={props.programDay}
+                              progress={props.progress}
+                              showHelp={true}
+                              helps={props.helps}
+                              entry={entry}
+                              subscription={props.subscription}
+                              settings={props.settings}
+                              dispatch={props.dispatch}
+                            />
+                          ) : null}
+                        </View>
                       </View>
-                    </View>
-                  );
-                })}
-              </ScrollView>
-            </GestureDetector>
-          </View>
-        </WorkoutScrollGestureContext.Provider>
-      )}
-    </View>
+                    );
+                  })}
+                </ScrollView>
+              </GestureDetector>
+            </View>
+          </WorkoutScrollGestureContext.Provider>
+        )}
+      </View>
+    </NavScreenContent>
   );
 }
 
@@ -376,15 +397,16 @@ function WorkoutHeader(props: IWorkoutHeaderProps): JSX.Element {
   );
 }
 
-interface IWorkoutListOfExercisesProps {
+interface IWorkoutThumbnailsStripProps {
   progress: IHistoryRecord;
   onClick: (index: number) => void;
   dispatch: IDispatch;
   settings: ISettings;
+  enableReorder: boolean;
 }
 
-function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Element {
-  const [enableReorder, setEnableReorder] = useState(false);
+function WorkoutThumbnailsStrip(props: IWorkoutThumbnailsStripProps): JSX.Element {
+  const { enableReorder } = props;
   const colorToSupersetGroup = Progress_getColorToSupersetGroup(props.progress);
   const currentEntryIndex = props.progress.ui?.currentEntryIndex ?? 0;
   const currentSuperset = props.progress.entries[currentEntryIndex]?.superset;
@@ -399,96 +421,85 @@ function WorkoutListOfExercises(props: IWorkoutListOfExercisesProps): JSX.Elemen
     prevEntriesLengthRef.current = curr;
   }, [props.progress.entries.length]);
   return (
-    <>
-      <View className="items-end mr-2">
-        <LinkButton
-          className="px-2 py-1 text-xs"
-          name="reorder-workout-exercises"
-          onClick={() => setEnableReorder(!enableReorder)}
-        >
-          {enableReorder ? "Finish Reordering" : "Reorder Exercises"}
-        </LinkButton>
-      </View>
-      <View className="py-1 border-b bg-background-default border-background-subtle">
-        <Scroller ref={thumbScrollerRef}>
-          <View className="flex-row items-center gap-1 px-4">
-            <DraggableList2
-              isDisabled={!enableReorder}
-              mode="horizontal"
-              items={props.progress.entries}
-              element={(entry, entryIndex, dragHandle) => {
-                const thumbnail = (
-                  <WorkoutExerciseThumbnail
-                    colorToSupersetGroup={colorToSupersetGroup}
-                    onClick={() => {
-                      if (!enableReorder) {
-                        props.onClick(entryIndex);
-                      }
-                    }}
-                    shouldShowProgress={true}
-                    selectedIndex={currentEntryIndex}
-                    isCurrent={entryIndex === currentEntryIndex}
-                    currentSuperset={currentSuperset}
-                    settings={props.settings}
-                    entry={entry}
-                    entryIndex={entryIndex}
-                  />
-                );
-                return enableReorder ? dragHandle(thumbnail) : thumbnail;
-              }}
-              onDragEnd={(startIndex, endIndex) => {
-                updateProgress(
-                  props.dispatch,
-                  [
-                    lb<IHistoryRecord>()
-                      .p("changes")
-                      .recordModify((changes) => Array.from(new Set([...(changes || []), "order"]))),
-                    lb<IHistoryRecord>()
-                      .p("entries")
-                      .recordModify((entries) => {
-                        const newEntries = [...entries];
-                        const [entriesToMove] = newEntries.splice(startIndex, 1);
-                        newEntries.splice(endIndex, 0, entriesToMove);
-                        return newEntries.map((e, i) => ({ ...e, index: i }));
-                      }),
-                  ],
-                  "drag-exercise-tab"
-                );
-                setTimeout(() => {
-                  props.onClick(endIndex);
-                }, 0);
-              }}
-            />
-            <Pressable
-              testID="add-exercise-button"
-              data-testid="add-exercise-button"
-              className="p-2"
-              onPress={() => {
-                updateState(
-                  props.dispatch,
-                  [
-                    Progress_lbProgress(props.progress.id)
-                      .pi("ui", {})
-                      .p("exercisePicker")
-                      .record({
-                        state: {
-                          mode: "workout",
-                          screenStack: ["exercisePicker"],
-                          sort: "name_asc",
-                          filters: {},
-                          selectedExercises: [],
-                        },
-                      }),
-                  ],
-                  "Open exercise picker"
-                );
-              }}
-            >
-              <IconPlus2 size={15} color={Tailwind_colors().lightgray[600]} />
-            </Pressable>
-          </View>
-        </Scroller>
-      </View>
-    </>
+    <View className="py-1 border-b bg-background-default border-background-subtle">
+      <Scroller ref={thumbScrollerRef}>
+        <View className="flex-row items-center gap-1 px-4">
+          <DraggableList2
+            isDisabled={!enableReorder}
+            mode="horizontal"
+            items={props.progress.entries}
+            element={(entry, entryIndex, dragHandle) => {
+              const thumbnail = (
+                <WorkoutExerciseThumbnail
+                  colorToSupersetGroup={colorToSupersetGroup}
+                  onClick={() => {
+                    if (!enableReorder) {
+                      props.onClick(entryIndex);
+                    }
+                  }}
+                  shouldShowProgress={true}
+                  selectedIndex={currentEntryIndex}
+                  isCurrent={entryIndex === currentEntryIndex}
+                  currentSuperset={currentSuperset}
+                  settings={props.settings}
+                  entry={entry}
+                  entryIndex={entryIndex}
+                />
+              );
+              return enableReorder ? dragHandle(thumbnail) : thumbnail;
+            }}
+            onDragEnd={(startIndex, endIndex) => {
+              updateProgress(
+                props.dispatch,
+                [
+                  lb<IHistoryRecord>()
+                    .p("changes")
+                    .recordModify((changes) => Array.from(new Set([...(changes || []), "order"]))),
+                  lb<IHistoryRecord>()
+                    .p("entries")
+                    .recordModify((entries) => {
+                      const newEntries = [...entries];
+                      const [entriesToMove] = newEntries.splice(startIndex, 1);
+                      newEntries.splice(endIndex, 0, entriesToMove);
+                      return newEntries.map((e, i) => ({ ...e, index: i }));
+                    }),
+                ],
+                "drag-exercise-tab"
+              );
+              setTimeout(() => {
+                props.onClick(endIndex);
+              }, 0);
+            }}
+          />
+          <Pressable
+            testID="add-exercise-button"
+            data-testid="add-exercise-button"
+            className="p-2"
+            onPress={() => {
+              updateState(
+                props.dispatch,
+                [
+                  Progress_lbProgress(props.progress.id)
+                    .pi("ui", {})
+                    .p("exercisePicker")
+                    .record({
+                      state: {
+                        mode: "workout",
+                        screenStack: ["exercisePicker"],
+                        sort: "name_asc",
+                        filters: {},
+                        selectedExercises: [],
+                      },
+                    }),
+                ],
+                "Open exercise picker"
+              );
+            }}
+          >
+            <IconPlus2 size={15} color={Tailwind_colors().lightgray[600]} />
+          </Pressable>
+        </View>
+      </Scroller>
+    </View>
   );
 }

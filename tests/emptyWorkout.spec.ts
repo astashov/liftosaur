@@ -131,7 +131,7 @@ test("Empty Workout", async ({ page }) => {
   await page.getByTestId("create-program-from-adhoc").click();
 
   await page.getByTestId("modal-create-program-input").fill("Adhoccy");
-  await page.getByTestId("modal-create-experimental-program-submit").click();
+  await page.getByTestId("modal-create-program-submit").click();
 
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("change-next-day").click();
