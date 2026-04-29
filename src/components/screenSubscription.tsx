@@ -88,7 +88,6 @@ export function ScreenSubscription(props: IProps): JSX.Element {
         key="close"
         className="p-2 nm-back"
         data-testid="navbar-back"
-        testID="navbar-back"
         onClick={() => {
           props.dispatch(Thunk_pullScreen());
         }}

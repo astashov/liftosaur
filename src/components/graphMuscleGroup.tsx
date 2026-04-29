@@ -61,7 +61,7 @@ export function GraphMuscleGroup(props: IGraphMuscleGroupProps): JSX.Element {
       <View testID="graph-data" data-testid="graph-data">
         <View className="flex-row items-center mb-1">
           <View className="flex-1">
-            <Text className="text-lg font-semibold leading-6 u-title">{title}</Text>
+            <Text className="text-lg font-semibold leading-6 text-left u-title">{title}</Text>
           </View>
           <View>
             <Select
@@ -84,18 +84,18 @@ export function GraphMuscleGroup(props: IGraphMuscleGroupProps): JSX.Element {
             onCursorChange={setCursorIdx}
             yAxisFormatter={yAxisFormatter}
           />
-          <View className="box-content px-8 pt-8 pb-2 items-center" style={{ minHeight: 40 }}>
+          <View className="box-content items-center px-8 pt-8 pb-2" style={{ minHeight: 40 }}>
             {timestamp != null && selectedType === "volume" && volume != null && (
               <Text className="text-sm">
                 {DateUtils_format(new Date(timestamp * 1000))}, Volume:{" "}
-                <Text className="font-bold text-sm">
+                <Text className="text-sm font-bold">
                   {volume} {units}s
                 </Text>
               </Text>
             )}
             {timestamp != null && selectedType === "sets" && sets != null && (
               <Text className="text-sm">
-                {DateUtils_format(new Date(timestamp * 1000))}, Sets: <Text className="font-bold text-sm">{sets}</Text>
+                {DateUtils_format(new Date(timestamp * 1000))}, Sets: <Text className="text-sm font-bold">{sets}</Text>
               </Text>
             )}
           </View>

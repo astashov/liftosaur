@@ -62,7 +62,6 @@ export function SheetScreenContainer(props: IProps): JSX.Element {
       <div
         ref={sheetRef}
         data-testid="bottom-sheet"
-        testID="bottom-sheet"
         className={`bottom-sticked absolute bottom-0 left-0 flex w-full overflow-y-auto bg-background-default will-change-transform ${
           isVisible ? "visible" : "invisible"
         }`}
@@ -77,7 +76,6 @@ export function SheetScreenContainer(props: IProps): JSX.Element {
         {props.shouldShowClose && (
           <button
             data-testid="bottom-sheet-close"
-            testID="bottom-sheet-close"
             onClick={handleClose}
             className="absolute top-0 right-0 z-20 p-2 nm-bottom-sheet-close"
           >

@@ -81,7 +81,7 @@ export function ScriptEditorView(props: IProps): JSX.Element {
           <EvalResult redTheme={props.lineNumbers} error={props.error} onCustomErrorCta={props.onCustomErrorCta} />
         )}
       </div>
-      <div data-testid="planner-editor" testID="planner-editor" className={className} ref={divRef}></div>
+      <div data-testid="planner-editor" className={className} ref={divRef}></div>
     </div>
   );
 }

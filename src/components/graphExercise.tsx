@@ -208,10 +208,10 @@ function GraphExerciseInner(props: IGraphProps): JSX.Element {
         <View className="flex-row items-center flex-1 mb-1">
           <View className="flex-1">
             <View>
-              <Text className="text-lg font-semibold leading-6 u-title">{props.title || exercise.name}</Text>
+              <Text className="text-lg font-semibold leading-6 text-left u-title">{props.title || exercise.name}</Text>
             </View>
             <View>
-              <Text className="text-xs leading-4 text-text-secondary">{props.subtitle || eqName}</Text>
+              <Text className="text-xs leading-4 text-left text-text-secondary">{props.subtitle || eqName}</Text>
             </View>
           </View>
           <View>

@@ -22,7 +22,7 @@ export const StateVars = memo((props: IStateVarsProps): JSX.Element | null => {
     const name = `${id}_${key}`;
     const val = typeof variable === "number" ? variable : variable.value;
     return (
-      <li key={key} data-testid={`state-var-${key}`} testID={`state-var-${key}`} className="flex items-center pb-2">
+      <li key={key} data-testid={`state-var-${key}`} className="flex items-center pb-2">
         <label className="pr-2 font-bold" htmlFor={name}>
           {key}
         </label>
@@ -30,7 +30,6 @@ export const StateVars = memo((props: IStateVarsProps): JSX.Element | null => {
           className={inputClassName}
           id={name}
           data-testid={`state-var-${key}-input`}
-          testID={`state-var-${key}-input`}
           name={name}
           type={SendMessage_isIos() ? "number" : "tel"}
           value={val}

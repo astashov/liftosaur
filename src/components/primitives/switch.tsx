@@ -15,7 +15,6 @@ export function Switch(props: ISwitchProps): JSX.Element {
       checked={!!props.value}
       disabled={props.disabled}
       data-testid={props.testID}
-      testID={props.testID}
       onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
         props.onValueChange(e.currentTarget.checked);
       }}

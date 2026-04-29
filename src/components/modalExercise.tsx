@@ -235,7 +235,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps, _ref): JSX.Element
   const exercise = props.exerciseType ? Exercise_get(props.exerciseType, props.settings.exercises) : undefined;
 
   return (
-    <form data-testid="modal-exercise" testID="modal-exercise" onSubmit={(e) => e.preventDefault()}>
+    <form data-testid="modal-exercise" onSubmit={(e) => e.preventDefault()}>
       {props.isSubstitute && (
         <p className="text-xs italic">Similar exercises are sorted by the same muscles as the current one.</p>
       )}
@@ -257,7 +257,6 @@ const ExercisesList = forwardRef((props: IExercisesListProps, _ref): JSX.Element
         type="text"
         value={filter}
         data-testid="exercise-filter-by-name"
-        testID="exercise-filter-by-name"
         placeholder="Filter by name"
         onInput={() => {
           setFilter(textInput.current!.value.toLowerCase());
@@ -284,7 +283,6 @@ const ExercisesList = forwardRef((props: IExercisesListProps, _ref): JSX.Element
                 <section
                   key={id}
                   data-testid={`menu-item-${StringUtils_dashcase(e.name)}`}
-                  testID={`menu-item-${StringUtils_dashcase(e.name)}`}
                   className="w-full px-2 py-1 text-left border-b border-gray-200"
                   onClick={(event) => {
                     if (!HtmlUtils_classInParents(event.target as Element, "button")) {
@@ -307,7 +305,6 @@ const ExercisesList = forwardRef((props: IExercisesListProps, _ref): JSX.Element
                       <button
                         className={`px-3 py-4 button nm-edit-custom-exercise-${StringUtils_dashcase(e.name)}`}
                         data-testid={`custom-exercise-edit-${StringUtils_dashcase(e.name)}`}
-                        testID={`custom-exercise-edit-${StringUtils_dashcase(e.name)}`}
                         onClick={(event) => {
                           event.preventDefault();
                           props.setEditingExercise(e);
@@ -319,7 +316,6 @@ const ExercisesList = forwardRef((props: IExercisesListProps, _ref): JSX.Element
                       <button
                         className={`px-1 py-4 button nm-delete-custom-exercise-${StringUtils_dashcase(e.name)}`}
                         data-testid={`custom-exercise-delete-${StringUtils_dashcase(e.name)}`}
-                        testID={`custom-exercise-delete-${StringUtils_dashcase(e.name)}`}
                         onClick={(event) => {
                           event.preventDefault();
                           if (confirm(`Are you sure you want to delete ${e.name}?`)) {
@@ -355,9 +351,6 @@ const ExercisesList = forwardRef((props: IExercisesListProps, _ref): JSX.Element
           <section
             key={Exercise_toKey(e)}
             data-testid={`menu-item-${StringUtils_dashcase(e.name)}${
-              e.equipment ? `-${StringUtils_dashcase(e.equipment)}` : ""
-            }`}
-            testID={`menu-item-${StringUtils_dashcase(e.name)}${
               e.equipment ? `-${StringUtils_dashcase(e.equipment)}` : ""
             }`}
             className="w-full px-2 py-1 text-left border-b border-gray-200"

@@ -115,7 +115,6 @@ export function TourModalContent(props: ITourModalProps): JSX.Element | null {
         <button
           className="absolute z-10 p-1 nm-tour-close"
           data-testid="tour-close"
-          testID="tour-close"
           style={{ top: "8px", right: "8px" }}
           onClick={handleClose}
         >

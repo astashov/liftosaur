@@ -96,20 +96,9 @@ export function ProgramDetailsExerciseExampleGraph(props: IProgramDetailsExercis
   }, []);
 
   return (
-    <div className="relative z-0 pt-2" data-testid="graph" testID="graph">
-      <div
-        className="w-full"
-        data-testid="graph-data"
-        testID="graph-data"
-        style={{ height: "10em" }}
-        ref={graphRef}
-      ></div>
-      <div
-        data-testid="graph-legend"
-        testID="graph-legend"
-        className="box-content px-8 pt-8 pb-2 text-sm"
-        ref={legendRef}
-      ></div>
+    <div className="relative z-0 pt-2" data-testid="graph">
+      <div className="w-full" data-testid="graph-data" style={{ height: "10em" }} ref={graphRef}></div>
+      <div data-testid="graph-legend" className="box-content px-8 pt-8 pb-2 text-sm" ref={legendRef}></div>
     </div>
   );
 }

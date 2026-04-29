@@ -104,7 +104,6 @@ export const Input2 = forwardRef((props: IProps, ref: Ref<HTMLInputElement>): JS
         <input
           id={identifier}
           data-testid={`${identifier}-input`}
-          testID={`${identifier}-input`}
           ref={ref}
           onBlur={changeType === "onblur" ? onInputHandler : undefined}
           onInput={changeType === "oninput" ? onInputHandler : undefined}
