@@ -1,4 +1,4 @@
-import { JSX, useMemo, useState } from "react";
+import { JSX, useMemo } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
 import { CollectionUtils_sort } from "../utils/collection";
@@ -18,6 +18,7 @@ import { DateUtils_format } from "../utils/date";
 import { IPercentageUnit } from "../types";
 import { Tailwind_colors } from "../utils/tailwindConfig";
 import { LineChart, ILineChartSeries } from "./lineChart";
+import { GraphLegendOverlay, useGraphActiveCursor } from "./graphLegendOverlay";
 
 interface IGraphStatsProps {
   id?: string;
@@ -54,7 +55,7 @@ export function getPercentageDataForGraph(coll: IStatsPercentageValue[], setting
 }
 
 export function GraphStats(props: IGraphStatsProps): JSX.Element {
-  const [cursorIdx, setCursorIdx] = useState<number | null>(null);
+  const { cursorIdx, chartRef, handleCursorChange, onCloseOverlay, overlayVisible } = useGraphActiveCursor(props.id);
   const movingAverageWindowSize = props.movingAverageWindowSize;
 
   const data = useMemo(() => {
@@ -120,18 +121,16 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
         )}
         <View className="relative">
           <LineChart
+            ref={chartRef}
             data={data}
             series={series}
             height={320}
             xMin={xMin}
             xMax={xMax}
-            onCursorChange={setCursorIdx}
+            onCursorChange={handleCursorChange}
             yAxisFormatter={(v) => `${Math.round(v * 10) / 10}`}
           />
-          <View
-            className={`box-content px-8 ${props.title === null ? "pt-2" : "pt-8"} pb-2 items-center`}
-            style={{ minHeight: 24 }}
-          >
+          <GraphLegendOverlay visible={overlayVisible} onClose={onCloseOverlay}>
             {timestamp != null && value != null && props.units != null && (
               <Text className="text-sm">
                 {DateUtils_format(new Date(timestamp * 1000))}, <Text className="text-sm font-bold">{value}</Text>{" "}
@@ -144,7 +143,7 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
                 )}
               </Text>
             )}
-          </View>
+          </GraphLegendOverlay>
         </View>
       </View>
     </View>

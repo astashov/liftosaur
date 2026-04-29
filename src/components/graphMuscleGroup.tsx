@@ -8,6 +8,7 @@ import { DateUtils_format } from "../utils/date";
 import { Tailwind_colors } from "../utils/tailwindConfig";
 import { Muscle_getMuscleGroupName } from "../models/muscle";
 import { LineChart, ILineChartSeries } from "./lineChart";
+import { GraphLegendOverlay, useGraphActiveCursor } from "./graphLegendOverlay";
 
 interface IGraphMuscleGroupProps {
   id?: string;
@@ -20,7 +21,7 @@ interface IGraphMuscleGroupProps {
 
 export function GraphMuscleGroup(props: IGraphMuscleGroupProps): JSX.Element {
   const [selectedType, setSelectedType] = useState<IVolumeSelectedType>(props.initialType || "volume");
-  const [cursorIdx, setCursorIdx] = useState<number | null>(null);
+  const { cursorIdx, chartRef, handleCursorChange, onCloseOverlay, overlayVisible } = useGraphActiveCursor(props.id);
 
   const series: ILineChartSeries[] = useMemo(
     () => [
@@ -77,14 +78,15 @@ export function GraphMuscleGroup(props: IGraphMuscleGroupProps): JSX.Element {
         </View>
         <View className="relative">
           <LineChart
+            ref={chartRef}
             data={props.data}
             series={series}
             height={320}
             programLines={props.programChangeTimes}
-            onCursorChange={setCursorIdx}
+            onCursorChange={handleCursorChange}
             yAxisFormatter={yAxisFormatter}
           />
-          <View className="box-content items-center px-8 pt-8 pb-2" style={{ minHeight: 40 }}>
+          <GraphLegendOverlay visible={overlayVisible} onClose={onCloseOverlay}>
             {timestamp != null && selectedType === "volume" && volume != null && (
               <Text className="text-sm">
                 {DateUtils_format(new Date(timestamp * 1000))}, Volume:{" "}
@@ -98,7 +100,7 @@ export function GraphMuscleGroup(props: IGraphMuscleGroupProps): JSX.Element {
                 {DateUtils_format(new Date(timestamp * 1000))}, Sets: <Text className="text-sm font-bold">{sets}</Text>
               </Text>
             )}
-          </View>
+          </GraphLegendOverlay>
         </View>
       </View>
     </View>
