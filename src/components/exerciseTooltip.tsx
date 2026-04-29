@@ -3,6 +3,7 @@ import { IExerciseType, ISettings } from "../types";
 import { ExerciseImage } from "./exerciseImage";
 import { Exercise_targetMusclesGroups, Exercise_synergistMusclesGroups } from "../models/exercise";
 import { Muscle_getMuscleGroupName } from "../models/muscle";
+import { useRem } from "../utils/useRem";
 
 export function ExerciseTooltip(props: {
   exerciseType: IExerciseType;
@@ -14,6 +15,7 @@ export function ExerciseTooltip(props: {
   const [nudge, setNudge] = useState(0);
   const wrapperRef = useRef<HTMLSpanElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const rem = useRem();
 
   useEffect(() => {
     function handleOutsideClick(e: Event): void {
@@ -93,6 +95,7 @@ export function ExerciseTooltip(props: {
           <div className="flex items-start gap-2 mb-1">
             <div className="w-12">
               <ExerciseImage
+                width={3 * rem}
                 settings={props.settings}
                 className="inline-block w-12"
                 exerciseType={props.exerciseType}

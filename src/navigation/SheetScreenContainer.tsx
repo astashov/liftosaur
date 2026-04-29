@@ -50,7 +50,7 @@ export function SheetScreenContainer(props: IProps): JSX.Element {
   const bottomShift = isVisible ? 0 : (sheetRef.current?.clientHeight ?? 800);
 
   const element = (
-    <div className="fixed inset-0 z-40">
+    <div className="fixed inset-0" style={{ zIndex: 60 }}>
       <div
         data-name="overlay"
         className={`absolute inset-0 bg-text-secondary will-change-transform ${

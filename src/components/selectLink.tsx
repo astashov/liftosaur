@@ -1,8 +1,9 @@
-import { JSX } from "react";
+import { JSX, useState } from "react";
 import { ActionSheetIOS, Platform } from "react-native";
 import { Text } from "./primitives/text";
 import { ObjectUtils_keys } from "../utils/object";
-import { useModal } from "../navigation/ModalStateContext";
+import { useIsModalAvailable, useModal } from "../navigation/ModalStateContext";
+import { DropdownMenu, DropdownMenuItem } from "./dropdownMenu";
 
 interface ISelectLinkProps<T extends string | number> {
   values: Record<T, string>;
@@ -16,6 +17,8 @@ interface ISelectLinkProps<T extends string | number> {
 export function SelectLink<T extends string | number>(props: ISelectLinkProps<T>): JSX.Element {
   const selectedOption = props.value ? props.values[props.value] : undefined;
   const keys = ObjectUtils_keys(props.values);
+  const hasModal = useIsModalAvailable();
+  const [showOptions, setShowOptions] = useState(false);
 
   const openModal = useModal("inputSelectModal", (value) => {
     props.onChange(value === "" ? undefined : (value as T));
@@ -42,6 +45,8 @@ export function SelectLink<T extends string | number>(props: ISelectLinkProps<T>
           }
         }
       );
+    } else if (!hasModal) {
+      setShowOptions((s) => !s);
     } else {
       const values: [string, string][] = keys.map((key) => [String(key), props.values[key]]);
       openModal({
@@ -53,7 +58,7 @@ export function SelectLink<T extends string | number>(props: ISelectLinkProps<T>
     }
   };
 
-  return (
+  const label = (
     <Text
       onPress={onPress}
       data-testid={props.name}
@@ -63,5 +68,55 @@ export function SelectLink<T extends string | number>(props: ISelectLinkProps<T>
     >
       {selectedOption ?? props.emptyLabel}
     </Text>
+  );
+
+  if (hasModal) {
+    return label;
+  }
+
+  return (
+    <span style={{ position: "relative", display: "inline-block" }}>
+      {label}
+      {showOptions && (
+        <DropdownMenu
+          leftOffset="0"
+          topOffset="calc(100% + 8px)"
+          maxWidth="16rem"
+          bgColor="white"
+          tipClassName="add-tip-up"
+          textAlign="left"
+          onClose={() => setShowOptions(false)}
+        >
+          {props.emptyLabel != null && (
+            <DropdownMenuItem
+              isTop={true}
+              className={`text-left hover:bg-background-subtle ${props.value == null ? "font-bold text-text-purple" : ""}`}
+              onClick={() => {
+                props.onChange(undefined);
+                setShowOptions(false);
+              }}
+            >
+              {props.emptyLabel}
+            </DropdownMenuItem>
+          )}
+          {keys.map((key, i) => {
+            const value = props.values[key];
+            return (
+              <DropdownMenuItem
+                key={key}
+                isTop={i === 0 && props.emptyLabel == null}
+                className={`text-left hover:bg-background-subtle ${props.value === key ? "font-bold text-text-purple" : ""}`}
+                onClick={() => {
+                  props.onChange(key);
+                  setShowOptions(false);
+                }}
+              >
+                {value}
+              </DropdownMenuItem>
+            );
+          })}
+        </DropdownMenu>
+      )}
+    </span>
   );
 }

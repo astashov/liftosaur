@@ -445,7 +445,12 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: React.Forwa
   const containerRef = typeof window !== "undefined" ? window.document.querySelector("#keyboard") : undefined;
 
   const element = (
-    <div ref={ref} id="keyboard-content" className="fixed bottom-0 left-0 z-50 w-full keyboard-shadow">
+    <div
+      ref={ref}
+      id="keyboard-content"
+      className="fixed bottom-0 left-0 w-full keyboard-shadow"
+      style={{ zIndex: 70 }}
+    >
       <div className="safe-area-inset-bottom">
         <div className="flex items-center w-full gap-2 px-4 bg-background-subtle">
           <div className="flex-1">{props.keyboardAddon}</div>

@@ -87,7 +87,7 @@ function AccountLoggedInView(props: IAccountLoggedInViewProps): JSX.Element {
           {account.name && <Text className="text-xs text-text-secondary">id: {account.id}</Text>}
           {account.email !== "noemail@example.com" && (
             <Text className="text-xs text-text-secondary">
-              Signed in as <Text className="font-bold">{account.email}</Text>
+              Signed in as <Text className="text-xs font-bold text-text-secondary">{account.email}</Text>
             </Text>
           )}
           <View className="items-center mt-4">
