@@ -362,12 +362,14 @@ const mainConfig = {
     },
     static: path.join(__dirname, "dist"),
     compress: true,
-    https: {
-      key: fs.readFileSync(path.join(process.env.HOME, `.secrets/live/${localdomain}.liftosaur.com/privkey.pem`)),
-      cert: fs.readFileSync(
-        path.join(process.env.HOME, `.secrets/live/${localdomain}.liftosaur.com/fullchain.pem`)
-      ),
-    },
+    ...(() => {
+      const keyPath = path.join(process.env.HOME || "", `.secrets/live/${localdomain}.liftosaur.com/privkey.pem`);
+      const certPath = path.join(process.env.HOME || "", `.secrets/live/${localdomain}.liftosaur.com/fullchain.pem`);
+      if (fs.existsSync(keyPath) && fs.existsSync(certPath)) {
+        return { https: { key: fs.readFileSync(keyPath), cert: fs.readFileSync(certPath) } };
+      }
+      return {};
+    })(),
     hot: false,
     allowedHosts: "all",
     liveReload: false,
