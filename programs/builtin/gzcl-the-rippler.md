@@ -108,11 +108,11 @@ t2 / used: none / 5x6 (68%) / 68%
 // weights - it'll autobalance in later workouts.
 t3 / used: none / 5x10+ (75%) / 75% / progress: custom() {~
   if (week == 3 || week == 6 || week == 9) {
-    if (sum(completedReps) > (week == 3 ? 70 : week == 2 ? 60 : 50)) {
+    if (sum(completedReps) > (week == 3 ? 70 : week == 6 ? 60 : 50)) {
       rm1 += 15lb
-    } else if (sum(completedReps) > (week == 3 ? 60 : week == 2 ? 50 : 40)) {
+    } else if (sum(completedReps) > (week == 3 ? 60 : week == 6 ? 50 : 40)) {
       rm1 += 10lb
-    } else if (sum(completedReps) > (week == 3 ? 50 : week == 2 ? 40 : 30)) {
+    } else if (sum(completedReps) > (week == 3 ? 50 : week == 6 ? 40 : 30)) {
       rm1 += 5lb
     }
   }
