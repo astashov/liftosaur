@@ -1,4 +1,4 @@
-import { JSX, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { JSX, memo, useMemo, useState } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
 import { Select } from "./primitives/select";
@@ -11,12 +11,10 @@ import { IDispatch } from "../ducks/types";
 import { Reps_volume } from "../models/set";
 import { ObjectUtils_keys } from "../utils/object";
 import { History_getMaxWeightSetFromEntry, History_getMax1RMSetFromEntry } from "../models/history";
-import { Tailwind_colors, Tailwind_semantic } from "../utils/tailwindConfig";
-import { Colors_hexToRgba } from "../utils/colors";
+import { Tailwind_colors } from "../utils/tailwindConfig";
 import { Thunk_editHistoryRecord } from "../ducks/thunks";
-import { LineChart, ILineChartSeries, ILineChartHandle } from "./lineChart";
-import { useActiveGraph } from "./activeGraphContext";
-import { IconCloseCircle } from "./icons/iconCloseCircle";
+import { LineChart, ILineChartSeries } from "./lineChart";
+import { GraphLegendOverlay, useGraphActiveCursor } from "./graphLegendOverlay";
 
 interface IGraphProps {
   id?: string;
@@ -128,8 +126,6 @@ function GraphExerciseInner(props: IGraphProps): JSX.Element {
     [props.history, props.exercise, props.settings, props.isWithOneRm, props.bodyweightData]
   );
 
-  const [cursorIdx, setCursorIdx] = useState<number | null>(null);
-
   const series: ILineChartSeries[] = useMemo(
     () => [
       {
@@ -170,37 +166,11 @@ function GraphExerciseInner(props: IGraphProps): JSX.Element {
   const xMin = props.isSameXAxis ? Math.max(props.minX, props.maxX - yearSec) : undefined;
   const xMax = props.isSameXAxis ? props.maxX : undefined;
 
-  const { activeId, setActive } = useActiveGraph();
-  const isActive = props.id != null && activeId === props.id;
-  const chartRef = useRef<ILineChartHandle>(null);
-
-  const handleCursorChange = useCallback(
-    (idx: number | null) => {
-      setCursorIdx(idx);
-      if (idx != null && props.id != null && activeId !== props.id) {
-        setActive(props.id);
-      }
-    },
-    [activeId, props.id, setActive]
-  );
-
-  useEffect(() => {
-    if (!isActive) {
-      setCursorIdx(null);
-      chartRef.current?.clearCursor();
-    }
-  }, [isActive]);
-
-  const onCloseOverlay = useCallback(() => {
-    chartRef.current?.clearCursor();
-    setCursorIdx(null);
-    setActive(null);
-  }, [setActive]);
+  const { cursorIdx, chartRef, handleCursorChange, onCloseOverlay, overlayVisible } = useGraphActiveCursor(props.id);
 
   const timestamps = result.data[0];
   const cursorTimestamp = cursorIdx != null ? timestamps[cursorIdx] : null;
   const cursorRecord = cursorTimestamp != null ? result.historyRecords[cursorTimestamp] : undefined;
-  const overlayVisible = isActive && cursorIdx != null;
 
   return (
     <View className="relative" testID="graph" data-testid="graph">
@@ -238,31 +208,18 @@ function GraphExerciseInner(props: IGraphProps): JSX.Element {
             onCursorChange={handleCursorChange}
             yAxisFormatter={(v) => `${Math.round(v)}`}
           />
-          {overlayVisible && (
-            <View
-              className="absolute border rounded-lg left-2 right-2 border-border-cardpurple"
-              style={{
-                top: -60,
-                zIndex: 10,
-                padding: 8,
-                backgroundColor: Colors_hexToRgba(Tailwind_semantic().background.subtlecardpurple, 0.9),
-              }}
-            >
-              <Pressable onPress={onCloseOverlay} style={{ position: "absolute", top: 4, right: 4, zIndex: 20 }}>
-                <IconCloseCircle size={18} />
-              </Pressable>
-              <GraphExerciseLegend
-                cursorIdx={cursorIdx}
-                data={result.data}
-                units={units}
-                selectedType={selectedType}
-                isWithOneRm={props.isWithOneRm}
-                record={cursorRecord}
-                exercise={props.exercise}
-                dispatch={props.dispatch}
-              />
-            </View>
-          )}
+          <GraphLegendOverlay visible={overlayVisible} onClose={onCloseOverlay}>
+            <GraphExerciseLegend
+              cursorIdx={cursorIdx}
+              data={result.data}
+              units={units}
+              selectedType={selectedType}
+              isWithOneRm={props.isWithOneRm}
+              record={cursorRecord}
+              exercise={props.exercise}
+              dispatch={props.dispatch}
+            />
+          </GraphLegendOverlay>
         </View>
       </View>
     </View>
