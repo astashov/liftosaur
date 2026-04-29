@@ -7,5 +7,5 @@
     "sourceMap": false,
     "outDir": "./dist-lambda"
   },
-  "include": ["lambda/**/*"]
+  "include": ["lambda/**/*", "nativewind-env.d.ts", "src/types/reactNative.d.ts"]
 }
