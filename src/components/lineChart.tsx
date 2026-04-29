@@ -65,6 +65,32 @@ function timeTicks(minSec: number, maxSec: number, targetCount: number): number[
     return [];
   }
   const day = 24 * 60 * 60;
+  const yearApprox = 365 * day;
+
+  if (rangeSec / yearApprox > 1.5) {
+    const yearSteps = [1, 2, 5, 10, 20, 50, 100];
+    const approxYears = rangeSec / yearApprox;
+    let yearStep = yearSteps[yearSteps.length - 1];
+    for (const ys of yearSteps) {
+      if (approxYears / ys <= targetCount * 1.5) {
+        yearStep = ys;
+        break;
+      }
+    }
+    const minDate = new Date(minSec * 1000);
+    const maxDate = new Date(maxSec * 1000);
+    const startYear = Math.ceil(minDate.getFullYear() / yearStep) * yearStep;
+    const endYear = maxDate.getFullYear();
+    const ticks: number[] = [];
+    for (let y = startYear; y <= endYear; y += yearStep) {
+      const t = new Date(y, 0, 1).getTime() / 1000;
+      if (t >= minSec && t <= maxSec) {
+        ticks.push(t);
+      }
+    }
+    return ticks;
+  }
+
   const intervals = [day, 2 * day, 7 * day, 14 * day, 30 * day, 60 * day, 90 * day, 180 * day, 365 * day];
   let step = intervals[intervals.length - 1];
   for (const i of intervals) {
@@ -182,7 +208,7 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
   };
 
   const padTop = 8;
-  const padBottom = 16;
+  const padBottom = 30;
   const padLeft = props.yAxisWidth ?? 44;
   const padRight = 12;
   const plotWidth = Math.max(0, width - padLeft - padRight);
@@ -485,6 +511,9 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
     };
 
     const onWheel = (e: WheelEvent): void => {
+      if (!frozenRef.current) {
+        return;
+      }
       e.preventDefault();
       const rect = node.getBoundingClientRect();
       const focalX = e.clientX - rect.left;
@@ -502,6 +531,18 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
       setViewport({ xMin: newXMin, xMax: newXMin + newRange });
     };
 
+    const onDocMouseDown = (e: MouseEvent): void => {
+      if (!frozenRef.current) {
+        return;
+      }
+      const target = e.target as Node | null;
+      if (target && node.contains(target)) {
+        return;
+      }
+      setFrozen(false);
+      setCursorIdx(null);
+    };
+
     const onDblClick = (e: MouseEvent): void => {
       e.preventDefault();
       resetViewport();
@@ -513,6 +554,7 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
     node.addEventListener("mouseleave", onMouseLeave);
     node.addEventListener("wheel", onWheel, { passive: false });
     node.addEventListener("dblclick", onDblClick);
+    document.addEventListener("mousedown", onDocMouseDown, true);
     return () => {
       node.removeEventListener("mousedown", onMouseDown);
       node.removeEventListener("mousemove", onMouseMove);
@@ -520,10 +562,22 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
       node.removeEventListener("mouseleave", onMouseLeave);
       node.removeEventListener("wheel", onWheel);
       node.removeEventListener("dblclick", onDblClick);
+      document.removeEventListener("mousedown", onDocMouseDown, true);
     };
   }, [resetViewport, renderSvg]);
 
-  const innerStyle = { width, height: props.height, ...(IS_WEB ? { cursor: "crosshair" } : null) } as object;
+  const innerStyle = {
+    width,
+    height: props.height,
+    ...(IS_WEB
+      ? {
+          cursor: "crosshair",
+          outline: frozen ? `2px solid ${semantic.border.cardpurple}` : "none",
+          outlineOffset: "2px",
+          borderRadius: 4,
+        }
+      : null),
+  } as object;
 
   return (
     <View onLayout={onLayout} style={{ width: "100%", height: props.height }}>
@@ -573,15 +627,34 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
                         stroke={colors.grid}
                         strokeWidth={0.5}
                       />
-                      <SvgText
-                        x={px}
-                        y={padTop + plotHeight + 14}
-                        fill={colors.axisText}
-                        fontSize={10}
-                        textAnchor="middle"
-                      >
-                        {DateUtils_format(new Date(t * 1000), true, true)}
-                      </SvgText>
+                      {(() => {
+                        const d = new Date(t * 1000);
+                        const showYear = d.getFullYear() !== new Date().getFullYear();
+                        return (
+                          <>
+                            <SvgText
+                              x={px}
+                              y={padTop + plotHeight + 14}
+                              fill={colors.axisText}
+                              fontSize={10}
+                              textAnchor="middle"
+                            >
+                              {DateUtils_format(d, true, true)}
+                            </SvgText>
+                            {showYear && (
+                              <SvgText
+                                x={px}
+                                y={padTop + plotHeight + 26}
+                                fill={colors.axisText}
+                                fontSize={10}
+                                textAnchor="middle"
+                              >
+                                {d.getFullYear()}
+                              </SvgText>
+                            )}
+                          </>
+                        );
+                      })()}
                     </G>
                   );
                 })}

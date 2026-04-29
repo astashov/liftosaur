@@ -403,7 +403,6 @@ export function InputNumberAddOn(props: IInputNumberAddOnProps): JSX.Element {
       <Text className="mr-2 text-sm font-semibold">{props.label}</Text>
       <Switch
         value={props.value}
-        data-testid={props.testID}
         testID={props.testID}
         onValueChange={(v) => {
           props.onChange(v);

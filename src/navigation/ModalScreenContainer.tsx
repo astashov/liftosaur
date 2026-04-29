@@ -35,7 +35,6 @@ export function ModalScreenContainer(props: IProps): JSX.Element {
       <div
         data-name="modal"
         data-testid="modal"
-        testID="modal"
         className={`relative z-20 flex flex-col ${props.noPaddings ? "" : "py-6"} bg-background-default rounded-lg shadow-lg text-text-primary`}
         style={{
           maxWidth: props.maxWidth ?? "92%",
@@ -54,7 +53,6 @@ export function ModalScreenContainer(props: IProps): JSX.Element {
         {props.shouldShowClose !== false && (
           <button
             data-testid="modal-close"
-            testID="modal-close"
             onClick={props.onClose}
             className="absolute p-2 nm-modal-close"
             style={{ top: "-3px", right: "-3px" }}

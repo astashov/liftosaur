@@ -115,7 +115,7 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
       <View testID="graph-data" data-testid="graph-data">
         {title && (
           <View className="mb-1">
-            <Text className="text-lg font-semibold leading-6 u-title">{title}</Text>
+            <Text className="text-lg font-semibold leading-6 text-left u-title">{title}</Text>
           </View>
         )}
         <View className="relative">
@@ -134,7 +134,7 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
           >
             {timestamp != null && value != null && props.units != null && (
               <Text className="text-sm">
-                {DateUtils_format(new Date(timestamp * 1000))}, <Text className="font-bold text-sm">{value}</Text>{" "}
+                {DateUtils_format(new Date(timestamp * 1000))}, <Text className="text-sm font-bold">{value}</Text>{" "}
                 {props.units}
                 {movingAvg != null && (
                   <Text className="text-sm text-text-secondary">

@@ -72,7 +72,6 @@ export function MarkdownEditorBorderless(props: IProps): JSX.Element {
     <div className="markdown-editor-view">
       <div
         data-testid="markdown-editor"
-        testID="markdown-editor"
         className={`text-sm ${!props.isTransparent ? "bg-background-default" : ""} appearance-none focus:outline-none focus:shadow-outline`}
         ref={divRef}
       ></div>

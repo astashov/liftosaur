@@ -63,14 +63,12 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
           {props.isNameHtml ? (
             <span
               data-testid={`menu-item-name-${StringUtils_dashcase(props.name)}`}
-              testID={`menu-item-name-${StringUtils_dashcase(props.name)}`}
               className={`flex flex-col min-w-0 break-all items-start pr-2 ${props.isNameBold ? "font-bold" : ""}`}
               dangerouslySetInnerHTML={{ __html: props.name }}
             />
           ) : (
             <span
               data-testid={`menu-item-name-${StringUtils_dashcase(props.name)}`}
-              testID={`menu-item-name-${StringUtils_dashcase(props.name)}`}
               className={`flex flex-col min-w-0 break-all items-start pr-2 ${props.isNameBold ? "font-bold" : ""}`}
             >
               <div className={props.size === "sm" ? "text-sm" : ""}>{props.name}</div>
@@ -94,7 +92,6 @@ export function MenuItemEditable(props: IMenuItemEditableProps): JSX.Element {
           {props.value != null && props.hasClear && (
             <button
               data-testid={`menu-item-delete-${StringUtils_dashcase(props.name)}`}
-              testID={`menu-item-delete-${StringUtils_dashcase(props.name)}`}
               onClick={() => onChange(undefined)}
               style={{ marginRight: "-0.5rem" }}
               className={`p-2 nm-menu-item-delete-${StringUtils_dashcase(props.name)}`}
@@ -134,7 +131,6 @@ export function MenuItemValue(
     return (
       <select
         data-testid={`menu-item-value-${StringUtils_dashcase(props.name)}`}
-        testID={`menu-item-value-${StringUtils_dashcase(props.name)}`}
         className="border rounded border-border-neutral bg-background-default"
         value={props.value || undefined}
         onChange={handleChange(props.onChange, props.setPatternError)}
@@ -151,7 +147,6 @@ export function MenuItemValue(
     return (
       <div
         data-testid={`menu-item-value-${StringUtils_dashcase(props.name)}`}
-        testID={`menu-item-value-${StringUtils_dashcase(props.name)}`}
         className="flex-1 py-2 pl-2 text-right text-text-link"
         style={{ minHeight: "2.5rem" }}
       >
@@ -162,7 +157,6 @@ export function MenuItemValue(
     return (
       <input
         data-testid={`menu-item-value-${StringUtils_dashcase(props.name)}`}
-        testID={`menu-item-value-${StringUtils_dashcase(props.name)}`}
         key={props.value}
         type="text"
         className="flex-1 w-full py-2 text-right bg-transparent text-text-link"
@@ -188,7 +182,6 @@ export function MenuItemValue(
         <label className="flex items-center justify-end flex-1 p-2">
           <input
             data-testid={`menu-item-value-${StringUtils_dashcase(props.name)}`}
-            testID={`menu-item-value-${StringUtils_dashcase(props.name)}`}
             style={{ marginRight: "-0.5rem" }}
             key={props.value}
             type="checkbox"
@@ -209,7 +202,6 @@ export function MenuItemValue(
       <span className="flex flex-1 text-right">
         <input
           data-testid={`menu-item-value-${StringUtils_dashcase(props.name)}`}
-          testID={`menu-item-value-${StringUtils_dashcase(props.name)}`}
           key={props.value}
           onBlur={handleChange(props.onChange, props.setPatternError)}
           type={SendMessage_isIos() ? "number" : "tel"}
