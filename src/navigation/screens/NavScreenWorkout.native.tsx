@@ -4,7 +4,6 @@ import { Text } from "../../components/primitives/text";
 import { useRoute } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { buildNavCommon } from "../utils";
-import { NavScreenContent } from "../NavScreenContent";
 import { ScreenWorkout } from "../../components/screenWorkout";
 import { Progress_isCurrent } from "../../models/progress";
 import { Program_getFullProgram, Program_getProgram, Program_fullProgram } from "../../models/program";
@@ -26,26 +25,24 @@ export function NavScreenProgress(): JSX.Element {
     : undefined;
 
   return (
-    <NavScreenContent>
-      <FallbackScreen state={{ progress }} dispatch={dispatch}>
-        {({ progress: progress2 }) => (
-          <ScreenWorkout
-            navCommon={navCommon}
-            stats={state.storage.stats}
-            helps={state.storage.helps}
-            history={state.storage.history}
-            subscription={state.storage.subscription}
-            userId={state.user?.id}
-            progress={progress2}
-            allPrograms={state.storage.programs}
-            program={program}
-            currentProgram={currentProgram}
-            dispatch={dispatch}
-            settings={state.storage.settings}
-          />
-        )}
-      </FallbackScreen>
-    </NavScreenContent>
+    <FallbackScreen state={{ progress }} dispatch={dispatch}>
+      {({ progress: progress2 }) => (
+        <ScreenWorkout
+          navCommon={navCommon}
+          stats={state.storage.stats}
+          helps={state.storage.helps}
+          history={state.storage.history}
+          subscription={state.storage.subscription}
+          userId={state.user?.id}
+          progress={progress2}
+          allPrograms={state.storage.programs}
+          program={program}
+          currentProgram={currentProgram}
+          dispatch={dispatch}
+          settings={state.storage.settings}
+        />
+      )}
+    </FallbackScreen>
   );
 }
 
