@@ -3,7 +3,7 @@ import { View } from "react-native";
 import { Text } from "./primitives/text";
 import { IDisplaySet, Reps_group, Reps_setToDisplaySet } from "../models/set";
 import { ISet, ISettings } from "../types";
-import { CollectionUtils_groupBy, CollectionUtils_compact } from "../utils/collection";
+import { CollectionUtils_compact } from "../utils/collection";
 import { ObjectUtils_keys } from "../utils/object";
 import { IHistoryEntryPersonalRecords } from "../models/history";
 
@@ -11,12 +11,6 @@ function isSameDisplaySet(a: IDisplaySet, b: IDisplaySet): boolean {
   return (
     a.reps === b.reps && a.weight === b.weight && a.rpe === b.rpe && a.askWeight === b.askWeight && a.timer === b.timer
   );
-}
-
-export function groupDisplaySets(displaySets: IDisplaySet[]): IDisplaySet[][] {
-  return CollectionUtils_groupBy(displaySets, (last, set) => {
-    return !isSameDisplaySet(last, set);
-  });
 }
 
 interface IHistoryRecordSetsProps {

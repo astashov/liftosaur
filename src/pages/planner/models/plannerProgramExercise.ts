@@ -12,7 +12,6 @@ import {
 } from "./types";
 import { IPlannerEvalResult, PlannerExerciseEvaluator } from "../plannerExerciseEvaluator";
 import { ObjectUtils_clone, ObjectUtils_filter, ObjectUtils_values } from "../../../utils/object";
-import { groupDisplaySets } from "../../../components/historyRecordSets";
 import {
   Weight_rpeMultiplier,
   Weight_build,
@@ -47,7 +46,7 @@ import { UidFactory_generateUid } from "../../../utils/generator";
 import { PlannerKey_fromExerciseType } from "../plannerKey";
 import { CollectionUtils_compact, CollectionUtils_groupByExpr } from "../../../utils/collection";
 import { IEither } from "../../../utils/types";
-import { IDisplaySet } from "../../../models/set";
+import { IDisplaySet, Reps_groupDisplaySets } from "../../../models/set";
 
 export type ILinearProgressionType = {
   type: "linear";
@@ -281,7 +280,7 @@ export function PlannerProgramExercise_warmupSetsToDisplaySets(
     }
   }
 
-  return groupDisplaySets(displaySets);
+  return Reps_groupDisplaySets(displaySets);
 }
 
 export function PlannerProgramExercise_uniqueKey(exercise: IPlannerProgramExercise): string {
@@ -313,7 +312,7 @@ export function PlannerProgramExercise_evaluatedSetsToDisplaySets(
       timer: set.timer,
     });
   }
-  return groupDisplaySets(displaySets);
+  return Reps_groupDisplaySets(displaySets);
 }
 
 export function PlannerProgramExercise_setsToDisplaySets(
@@ -349,7 +348,7 @@ export function PlannerProgramExercise_setsToDisplaySets(
     }
   }
 
-  return groupDisplaySets(displaySets);
+  return Reps_groupDisplaySets(displaySets);
 }
 
 export function PlannerProgramExercise_degroupWarmupSets(
