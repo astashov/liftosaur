@@ -114,6 +114,8 @@
     "globals": "^16.3.0",
     "googleapis": "^161.0.0",
     "gray-matter": "^4.0.3",
+    "html-inline-script-webpack-plugin": "^3.2.1",
+    "html-webpack-plugin": "^5.6.7",
     "jimp": "^0.16.1",
     "knip": "^5.44.0",
     "lambda-local": "^1.7.4",
