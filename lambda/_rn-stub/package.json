@@ -1,7 +1,0 @@
-{
-  "name": "react-native",
-  "version": "0.0.0-lambda-stub",
-  "description": "No-op stub for the Liftosaur Lambda runtime; UI code paths in shared src/* never execute server-side.",
-  "main": "index.js",
-  "license": "AGPL-3.0"
-}

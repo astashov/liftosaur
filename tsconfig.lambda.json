@@ -2,7 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "target": "ES2018",
-    "noEmit": false,
+    "noEmit": true,
     "declaration": false,
     "sourceMap": false,
     "outDir": "./dist-lambda",
