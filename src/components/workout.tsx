@@ -143,7 +143,6 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
             style={{
               WebkitOverflowScrolling: "touch",
               scrollSnapType: "x mandatory",
-              touchAction: "pan-x",
             }}
           >
             {props.progress.entries.map((entry, entryIndex) => {
