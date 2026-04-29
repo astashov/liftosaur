@@ -1,6 +1,7 @@
 import { gzip, gzipSync, gunzip, gunzipSync } from "fflate";
-import { Platform } from "react-native";
 import { UrlUtils_build } from "./url";
+
+const isBrowser = typeof FileReader !== "undefined";
 
 export async function Encoder_encodeIntoUrlAndSetUrl(str: string): Promise<void> {
   const url = await Encoder_encodeIntoUrl(str, window.location.href);
@@ -20,7 +21,7 @@ export function Encoder_encode(str: string): Promise<string> {
   const textEncoder = new TextEncoder();
   const input = textEncoder.encode(str);
 
-  if (Platform.OS !== "web") {
+  if (!isBrowser) {
     const result = gzipSync(input);
     let binary = "";
     for (let i = 0; i < result.length; i++) {
@@ -64,7 +65,7 @@ export function Encoder_decode(str: string): Promise<string> {
     try {
       const dataUrl = atob(str);
       let uintarray: Uint8Array;
-      if (Platform.OS === "web") {
+      if (isBrowser) {
         const response = await fetch(dataUrl);
         const blob = await response.blob();
         uintarray = new Uint8Array(await blob.arrayBuffer());
@@ -77,7 +78,7 @@ export function Encoder_decode(str: string): Promise<string> {
           uintarray[i] = binary.charCodeAt(i);
         }
       }
-      const result = Platform.OS === "web" ? await gunzipPromise(uintarray) : gunzipSync(uintarray);
+      const result = isBrowser ? await gunzipPromise(uintarray) : gunzipSync(uintarray);
       if (typeof TextDecoder !== "undefined") {
         resolve(new TextDecoder("utf-8").decode(result));
       } else {
