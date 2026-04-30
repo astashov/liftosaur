@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import { JSX, memo, useMemo } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "../primitives/text";
 import {
@@ -49,16 +49,36 @@ interface IProgramPreviewTabExerciseProps {
   plannerDispatch: ILensDispatch<IPlannerState>;
 }
 
-export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps): JSX.Element {
-  const exercise = Exercise_get(props.entry.exercise, props.settings.exercises);
+export const ProgramPreviewTabExercise = memo(function ProgramPreviewTabExercise(
+  props: IProgramPreviewTabExerciseProps
+): JSX.Element {
+  const exercise = useMemo(
+    () => Exercise_get(props.entry.exercise, props.settings.exercises),
+    [props.entry.exercise, props.settings.exercises]
+  );
   const programExercise = props.programExercise;
-  const description = PlannerProgramExercise_currentDescription(programExercise);
-  const currentEquipmentName = Equipment_getEquipmentNameForExerciseType(props.settings, exercise);
-  const currentEquipmentNotes = Equipment_getEquipmentDataForExerciseType(props.settings, exercise)?.notes;
-  const exerciseNotes = Exercise_getNotes(props.entry.exercise, props.settings);
-  const onerm = Exercise_onerm(exercise, props.settings);
-  const supersetEntry = Progress_getNextSupersetEntry(props.entries, props.entry);
-  const supersetExercise = supersetEntry ? Exercise_get(supersetEntry.exercise, props.settings.exercises) : undefined;
+  const description = useMemo(() => PlannerProgramExercise_currentDescription(programExercise), [programExercise]);
+  const currentEquipmentName = useMemo(
+    () => Equipment_getEquipmentNameForExerciseType(props.settings, exercise),
+    [props.settings, exercise]
+  );
+  const currentEquipmentNotes = useMemo(
+    () => Equipment_getEquipmentDataForExerciseType(props.settings, exercise)?.notes,
+    [props.settings, exercise]
+  );
+  const exerciseNotes = useMemo(
+    () => Exercise_getNotes(props.entry.exercise, props.settings),
+    [props.entry.exercise, props.settings]
+  );
+  const onerm = useMemo(() => Exercise_onerm(exercise, props.settings), [exercise, props.settings]);
+  const supersetEntry = useMemo(
+    () => Progress_getNextSupersetEntry(props.entries, props.entry),
+    [props.entries, props.entry]
+  );
+  const supersetExercise = useMemo(
+    () => (supersetEntry ? Exercise_get(supersetEntry.exercise, props.settings.exercises) : undefined),
+    [supersetEntry, props.settings.exercises]
+  );
 
   return (
     <View
@@ -178,7 +198,7 @@ export function ProgramPreviewTabExercise(props: IProgramPreviewTabExerciseProps
       )}
     </View>
   );
-}
+});
 
 interface IProgramPreviewTabExerciseTopBarProps {
   plannerDispatch: ILensDispatch<IPlannerState>;

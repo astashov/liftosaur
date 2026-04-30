@@ -1,4 +1,4 @@
-import { JSX, memo } from "react";
+import { JSX, memo, useMemo } from "react";
 import { View } from "react-native";
 import { IProgram, ISettings, IStats } from "../../types";
 import {
@@ -55,7 +55,9 @@ interface IProgramPreviewWeekContentProps {
   totalWeeks: number;
 }
 
-export function ProgramPreviewWeekContent(props: IProgramPreviewWeekContentProps): JSX.Element {
+export const ProgramPreviewWeekContent = memo(function ProgramPreviewWeekContent(
+  props: IProgramPreviewWeekContentProps
+): JSX.Element {
   const evaluatedProgram = Program_evaluate(props.program, props.settings);
   const { week, totalWeeks } = props;
   return (
@@ -85,7 +87,7 @@ export function ProgramPreviewWeekContent(props: IProgramPreviewWeekContentProps
       </View>
     </View>
   );
-}
+});
 
 interface IProgramPreviewTabProps {
   program: IProgram;
@@ -98,17 +100,14 @@ interface IProgramPreviewTabProps {
 }
 
 export const ProgramPreviewTab = memo((props: IProgramPreviewTabProps): JSX.Element => {
-  const weeks = ProgramPreview_buildWeeks(props.program, props.settings, props.stats);
+  const weeks = useMemo(
+    () => ProgramPreview_buildWeeks(props.program, props.settings, props.stats),
+    [props.program, props.settings, props.stats]
+  );
 
-  return (
-    <ScrollableTabs
-      shouldNotExpand={true}
-      color="purple"
-      type="squares"
-      topPadding="0.25rem"
-      className="gap-2 px-4"
-      nonSticky={false}
-      tabs={weeks.map((week) => ({
+  const tabs = useMemo(
+    () =>
+      weeks.map((week) => ({
         label: week.name,
         children: () => (
           <ProgramPreviewWeekContent
@@ -123,7 +122,28 @@ export const ProgramPreviewTab = memo((props: IProgramPreviewTabProps): JSX.Elem
             totalWeeks={weeks.length}
           />
         ),
-      }))}
+      })),
+    [
+      weeks,
+      props.program,
+      props.programId,
+      props.settings,
+      props.ui,
+      props.stats,
+      props.dispatch,
+      props.plannerDispatch,
+    ]
+  );
+
+  return (
+    <ScrollableTabs
+      shouldNotExpand={true}
+      color="purple"
+      type="squares"
+      topPadding="0.25rem"
+      className="gap-2 px-4"
+      nonSticky={false}
+      tabs={tabs}
     />
   );
 });

@@ -96,7 +96,7 @@ export function ScreenFirst(props: IProps): JSX.Element {
               image="slide-5-image"
             />,
           ]}
-          duration={500000}
+          duration={5000}
         />
       </View>
       <View className="pb-6 mx-4">

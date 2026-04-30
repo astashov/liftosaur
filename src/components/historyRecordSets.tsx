@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import { JSX, memo, useMemo } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
 import { IDisplaySet, Reps_group, Reps_setToDisplaySet } from "../models/set";
@@ -21,12 +21,12 @@ interface IHistoryRecordSetsProps {
   prs?: IHistoryEntryPersonalRecords;
 }
 
-export function HistoryRecordSetsView(props: IHistoryRecordSetsProps): JSX.Element {
-  const { sets, isNext } = props;
-  const groups = Reps_group(sets, isNext);
-  const displayGroups = groups.map((g) => {
-    return g.map((set) => Reps_setToDisplaySet(set, isNext, props.settings));
-  });
+export const HistoryRecordSetsView = memo(function HistoryRecordSetsView(props: IHistoryRecordSetsProps): JSX.Element {
+  const { sets, isNext, settings } = props;
+  const displayGroups = useMemo(() => {
+    const groups = Reps_group(sets, isNext);
+    return groups.map((g) => g.map((set) => Reps_setToDisplaySet(set, isNext, settings)));
+  }, [sets, isNext, settings]);
   return (
     <View className="text-sm" style={{ alignItems: "flex-end" }}>
       {displayGroups.map((g, i) => (
@@ -41,7 +41,7 @@ export function HistoryRecordSetsView(props: IHistoryRecordSetsProps): JSX.Eleme
       ))}
     </View>
   );
-}
+});
 
 interface IHistoryRecordSet2Props {
   prs?: IHistoryEntryPersonalRecords;

@@ -73,9 +73,9 @@ function WorkoutExerciseThumbnailInner(props: IWorkoutExerciseThumbnailProps): J
               <View style={{ position: "absolute", bottom: 0, right: 0, padding: 2 }}>
                 <View className="absolute inset-0 rounded-md bg-lightgray-50" style={{ opacity: 0.75 }} />
                 <View style={{ position: "relative", zIndex: 10 }}>
-                  <Text>
-                    <Text className="text-xs font-semibold">{completedSetsCount}</Text>/
-                    <Text className="text-xs font-semibold">{totalSetsCount}</Text>
+                  <Text className="text-black">
+                    <Text className="text-xs font-semibold text-black">{completedSetsCount}</Text>/
+                    <Text className="text-xs font-semibold text-black">{totalSetsCount}</Text>
                   </Text>
                 </View>
               </View>

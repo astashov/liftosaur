@@ -1,6 +1,12 @@
 import { JSX, ReactNode } from "react";
 import { Linking } from "react-native";
 import { Text } from "./primitives/text";
+import {
+  SendMessage_isIos,
+  SendMessage_isAndroid,
+  SendMessage_toIos,
+  SendMessage_toAndroid,
+} from "../utils/sendMessage";
 
 interface IProps {
   href?: string;
@@ -16,8 +22,16 @@ export function Link(props: IProps): JSX.Element {
       testID={props.testID}
       className={`text-text-link font-bold underline ${props.className || ""}`}
       onPress={() => {
-        if (props.href) {
-          Linking.openURL(props.href);
+        const href = props.href;
+        if (!href) {
+          return;
+        }
+        if (SendMessage_isIos()) {
+          SendMessage_toIos({ type: "openUrl", url: href });
+        } else if (SendMessage_isAndroid()) {
+          SendMessage_toAndroid({ type: "openUrl", url: href });
+        } else {
+          Linking.openURL(href);
         }
       }}
     >
