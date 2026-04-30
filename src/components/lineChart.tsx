@@ -1,10 +1,9 @@
-import { forwardRef, JSX, useState, useRef, useMemo, useCallback, useEffect, useId, useImperativeHandle } from "react";
+import { forwardRef, JSX, useState, useMemo, useCallback, useEffect, useId, useImperativeHandle } from "react";
 import { View, LayoutChangeEvent, Platform } from "react-native";
 import { Svg, Path, Line, G, SvgText, Circle, Rect, Defs, ClipPath } from "./primitives/svg";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { DateUtils_format } from "../utils/date";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import { runOnJS } from "react-native-reanimated";
+import { useLineChartGestures } from "./lineChartGestures";
 
 const IS_WEB = Platform.OS === "web";
 
@@ -170,28 +169,14 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
   const initialMax = props.xMax != null ? props.xMax : dataMaxX;
 
   const [userViewport, setUserViewport] = useState<{ xMin: number; xMax: number } | null>(null);
-  const viewport = userViewport ?? { xMin: initialMin, xMax: initialMax };
-  const setViewport = setUserViewport;
-  const [cursorIdx, setCursorIdx] = useState<number | null>(null);
-  const [frozen, setFrozen] = useState<boolean>(false);
-  const frozenRef = useRef(frozen);
-  useEffect(() => {
-    frozenRef.current = frozen;
-  }, [frozen]);
-
-  useImperativeHandle(
-    ref,
-    () => ({
-      clearCursor: () => {
-        setCursorIdx(null);
-        setFrozen(false);
-      },
-    }),
-    []
+  const viewport = useMemo(
+    () => userViewport ?? { xMin: initialMin, xMax: initialMax },
+    [userViewport, initialMin, initialMax]
   );
-
-  const pinchStartRef = useRef<{ xMin: number; xMax: number; focalX: number } | null>(null);
-  const panStartRef = useRef<{ xMin: number; xMax: number } | null>(null);
+  const setViewport = useCallback((vp: { xMin: number; xMax: number }) => {
+    setUserViewport(vp);
+  }, []);
+  const [cursorIdx, setCursorIdx] = useState<number | null>(null);
 
   useEffect(() => {
     props.onCursorChange?.(cursorIdx);
@@ -275,132 +260,44 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
     setWidth(e.nativeEvent.layout.width);
   }, []);
 
-  const updateCursorFromPx = useCallback(
-    (xPx: number): void => {
+  const setCursorAtPx = useCallback(
+    (xPx: number): number | null => {
       const x = pxToX(xPx);
       const idx = findNearestIdx(timestamps, x, xMin, xMax);
       setCursorIdx(idx);
+      return idx;
     },
     [pxToX, timestamps, xMin, xMax]
   );
 
-  const beginPan = useCallback(() => {
-    panStartRef.current = { xMin, xMax };
-  }, [xMin, xMax]);
-
-  const updatePan = useCallback(
-    (translationX: number): void => {
-      if (!panStartRef.current || plotWidth <= 0) {
-        return;
-      }
-      const rangeSec = panStartRef.current.xMax - panStartRef.current.xMin;
-      const deltaSec = -(translationX / plotWidth) * rangeSec;
-      setViewport({
-        xMin: panStartRef.current.xMin + deltaSec,
-        xMax: panStartRef.current.xMax + deltaSec,
-      });
-    },
-    [plotWidth]
-  );
-
-  const endPan = useCallback(() => {
-    panStartRef.current = null;
+  const clearCursor = useCallback(() => {
+    setCursorIdx(null);
   }, []);
-
-  const beginPinch = useCallback(
-    (focalX: number) => {
-      pinchStartRef.current = { xMin, xMax, focalX };
-    },
-    [xMin, xMax]
-  );
-
-  const updatePinch = useCallback(
-    (scale: number): void => {
-      if (!pinchStartRef.current || plotWidth <= 0) {
-        return;
-      }
-      const startRange = pinchStartRef.current.xMax - pinchStartRef.current.xMin;
-      const newRange = startRange / Math.max(0.05, scale);
-      const focalPct = Math.max(0, Math.min(1, (pinchStartRef.current.focalX - padLeft) / plotWidth));
-      const xAtFocal = pinchStartRef.current.xMin + focalPct * startRange;
-      const newXMin = xAtFocal - focalPct * newRange;
-      const newXMax = newXMin + newRange;
-      setViewport({ xMin: newXMin, xMax: newXMax });
-    },
-    [plotWidth, padLeft]
-  );
-
-  const endPinch = useCallback(() => {
-    pinchStartRef.current = null;
-  }, []);
-
-  const pan = useMemo(
-    () =>
-      Gesture.Pan()
-        .minPointers(1)
-        .maxPointers(1)
-        .activateAfterLongPress(150)
-        .onStart((e) => {
-          runOnJS(updateCursorFromPx)(e.x);
-        })
-        .onUpdate((e) => {
-          runOnJS(updateCursorFromPx)(e.x);
-        }),
-    [updateCursorFromPx]
-  );
-
-  const twoFingerPan = useMemo(
-    () =>
-      Gesture.Pan()
-        .minPointers(2)
-        .maxPointers(2)
-        .onStart(() => {
-          runOnJS(beginPan)();
-        })
-        .onUpdate((e) => {
-          runOnJS(updatePan)(e.translationX);
-        })
-        .onEnd(() => {
-          runOnJS(endPan)();
-        }),
-    [beginPan, updatePan, endPan]
-  );
-
-  const pinch = useMemo(
-    () =>
-      Gesture.Pinch()
-        .onStart((e) => {
-          runOnJS(beginPinch)(e.focalX);
-        })
-        .onUpdate((e) => {
-          runOnJS(updatePinch)(e.scale);
-        })
-        .onEnd(() => {
-          runOnJS(endPinch)();
-        }),
-    [beginPinch, updatePinch, endPinch]
-  );
 
   const resetViewport = useCallback(() => {
     setUserViewport(null);
     setCursorIdx(null);
-    setFrozen(false);
   }, []);
 
-  const doubleTap = useMemo(
-    () =>
-      Gesture.Tap()
-        .numberOfTaps(2)
-        .maxDuration(300)
-        .onEnd(() => {
-          runOnJS(resetViewport)();
-        }),
-    [resetViewport]
-  );
+  const { Wrap, frozen, clearFrozen } = useLineChartGestures({
+    plotWidth,
+    padLeft,
+    viewport,
+    setViewport,
+    resetViewport,
+    setCursorAtPx,
+    clearCursor,
+  });
 
-  const composed = useMemo(
-    () => Gesture.Simultaneous(doubleTap, pan, twoFingerPan, pinch),
-    [doubleTap, pan, twoFingerPan, pinch]
+  useImperativeHandle(
+    ref,
+    () => ({
+      clearCursor: () => {
+        setCursorIdx(null);
+        clearFrozen();
+      },
+    }),
+    [clearFrozen]
   );
 
   const cursorTimestamp = cursorIdx != null ? (timestamps[cursorIdx] as number | null) : null;
@@ -421,151 +318,6 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
   const reactId = useId();
   const clipId = `lineChart-clip-${reactId.replace(/:/g, "")}`;
 
-  const webContainerRef = useRef<View>(null);
-  const viewportRef = useRef(viewport);
-  useEffect(() => {
-    viewportRef.current = viewport;
-  }, [viewport]);
-  const plotWidthRef = useRef(plotWidth);
-  useEffect(() => {
-    plotWidthRef.current = plotWidth;
-  }, [plotWidth]);
-  const padLeftRef = useRef(padLeft);
-  useEffect(() => {
-    padLeftRef.current = padLeft;
-  }, [padLeft]);
-  const timestampsRef = useRef(timestamps);
-  useEffect(() => {
-    timestampsRef.current = timestamps;
-  }, [timestamps]);
-
-  useEffect(() => {
-    if (!IS_WEB) {
-      return;
-    }
-    const node = webContainerRef.current as unknown as HTMLElement | null;
-    if (!node) {
-      return;
-    }
-
-    let dragStart: { clientX: number; xMin: number; xMax: number; moved: boolean } | null = null;
-
-    const onMouseDown = (e: MouseEvent): void => {
-      if (e.button !== 0) {
-        return;
-      }
-      const v = viewportRef.current;
-      dragStart = { clientX: e.clientX, xMin: v.xMin, xMax: v.xMax, moved: false };
-      e.preventDefault();
-    };
-
-    const updateCursorAt = (clientX: number): number | null => {
-      const rect = node.getBoundingClientRect();
-      const xPx = clientX - rect.left;
-      const v = viewportRef.current;
-      const pw = plotWidthRef.current;
-      if (pw <= 0) {
-        return null;
-      }
-      const xVal = v.xMin + ((xPx - padLeftRef.current) / pw) * Math.max(1, v.xMax - v.xMin);
-      const idx = findNearestIdx(timestampsRef.current, xVal, v.xMin, v.xMax);
-      setCursorIdx(idx);
-      return idx;
-    };
-
-    const onMouseMove = (e: MouseEvent): void => {
-      if (dragStart) {
-        const dx = e.clientX - dragStart.clientX;
-        if (Math.abs(dx) > 2) {
-          dragStart.moved = true;
-        }
-        const pw = plotWidthRef.current;
-        if (pw <= 0) {
-          return;
-        }
-        const range = dragStart.xMax - dragStart.xMin;
-        const deltaSec = -(dx / pw) * range;
-        setViewport({ xMin: dragStart.xMin + deltaSec, xMax: dragStart.xMax + deltaSec });
-        return;
-      }
-      if (frozenRef.current) {
-        return;
-      }
-      updateCursorAt(e.clientX);
-    };
-
-    const onMouseUp = (e: MouseEvent): void => {
-      if (dragStart && !dragStart.moved) {
-        const idx = updateCursorAt(e.clientX);
-        if (idx != null) {
-          setFrozen(true);
-        }
-      }
-      dragStart = null;
-    };
-
-    const onMouseLeave = (): void => {
-      if (!dragStart && !frozenRef.current) {
-        setCursorIdx(null);
-      }
-    };
-
-    const onWheel = (e: WheelEvent): void => {
-      if (!frozenRef.current) {
-        return;
-      }
-      e.preventDefault();
-      const rect = node.getBoundingClientRect();
-      const focalX = e.clientX - rect.left;
-      const v = viewportRef.current;
-      const pw = plotWidthRef.current;
-      if (pw <= 0) {
-        return;
-      }
-      const range = v.xMax - v.xMin;
-      const focalPct = Math.max(0, Math.min(1, (focalX - padLeftRef.current) / pw));
-      const xAtFocal = v.xMin + focalPct * range;
-      const zoomFactor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
-      const newRange = range / zoomFactor;
-      const newXMin = xAtFocal - focalPct * newRange;
-      setViewport({ xMin: newXMin, xMax: newXMin + newRange });
-    };
-
-    const onDocMouseDown = (e: MouseEvent): void => {
-      if (!frozenRef.current) {
-        return;
-      }
-      const target = e.target as Node | null;
-      if (target && node.contains(target)) {
-        return;
-      }
-      setFrozen(false);
-      setCursorIdx(null);
-    };
-
-    const onDblClick = (e: MouseEvent): void => {
-      e.preventDefault();
-      resetViewport();
-    };
-
-    node.addEventListener("mousedown", onMouseDown);
-    node.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
-    node.addEventListener("mouseleave", onMouseLeave);
-    node.addEventListener("wheel", onWheel, { passive: false });
-    node.addEventListener("dblclick", onDblClick);
-    document.addEventListener("mousedown", onDocMouseDown, true);
-    return () => {
-      node.removeEventListener("mousedown", onMouseDown);
-      node.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
-      node.removeEventListener("mouseleave", onMouseLeave);
-      node.removeEventListener("wheel", onWheel);
-      node.removeEventListener("dblclick", onDblClick);
-      document.removeEventListener("mousedown", onDocMouseDown, true);
-    };
-  }, [resetViewport, renderSvg]);
-
   const innerStyle = {
     width,
     height: props.height,
@@ -582,176 +334,167 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
   return (
     <View onLayout={onLayout} style={{ width: "100%", height: props.height }}>
       {renderSvg && (
-        <GestureDetector gesture={composed}>
-          <View ref={webContainerRef} style={innerStyle}>
-            <Svg width={width} height={props.height}>
-              <Defs>
-                <ClipPath id={clipId}>
-                  <Rect x={padLeft} y={padTop} width={plotWidth} height={plotHeight} />
-                </ClipPath>
-              </Defs>
-              <G>
-                {yTicks.map((t, i) => {
-                  const py = yToPx(t);
-                  return (
-                    <G key={`y-${i}`}>
-                      <Line
-                        x1={padLeft}
-                        x2={padLeft + plotWidth}
-                        y1={py}
-                        y2={py}
-                        stroke={colors.grid}
-                        strokeWidth={0.5}
-                      />
-                      <SvgText x={padLeft - 6} y={py + 3} fill={colors.axisText} fontSize={10} textAnchor="end">
-                        {yAxisFormatter(t)}
-                      </SvgText>
-                    </G>
-                  );
-                })}
-              </G>
+        <Wrap style={innerStyle}>
+          <Svg width={width} height={props.height}>
+            <Defs>
+              <ClipPath id={clipId}>
+                <Rect x={padLeft} y={padTop} width={plotWidth} height={plotHeight} />
+              </ClipPath>
+            </Defs>
+            <G>
+              {yTicks.map((t, i) => {
+                const py = yToPx(t);
+                return (
+                  <G key={`y-${i}`}>
+                    <Line
+                      x1={padLeft}
+                      x2={padLeft + plotWidth}
+                      y1={py}
+                      y2={py}
+                      stroke={colors.grid}
+                      strokeWidth={0.5}
+                    />
+                    <SvgText x={padLeft - 6} y={py + 3} fill={colors.axisText} fontSize={10} textAnchor="end">
+                      {yAxisFormatter(t)}
+                    </SvgText>
+                  </G>
+                );
+              })}
+            </G>
 
-              <G>
-                {xTicks.map((t, i) => {
-                  const px = xToPx(t);
-                  if (px < padLeft - 1 || px > padLeft + plotWidth + 1) {
-                    return null;
-                  }
-                  return (
-                    <G key={`x-${i}`}>
-                      <Line
-                        x1={px}
-                        x2={px}
-                        y1={padTop}
-                        y2={padTop + plotHeight}
-                        stroke={colors.grid}
-                        strokeWidth={0.5}
-                      />
-                      {(() => {
-                        const d = new Date(t * 1000);
-                        const showYear = d.getFullYear() !== new Date().getFullYear();
-                        return (
-                          <>
+            <G>
+              {xTicks.map((t, i) => {
+                const px = xToPx(t);
+                if (px < padLeft - 1 || px > padLeft + plotWidth + 1) {
+                  return null;
+                }
+                return (
+                  <G key={`x-${i}`}>
+                    <Line x1={px} x2={px} y1={padTop} y2={padTop + plotHeight} stroke={colors.grid} strokeWidth={0.5} />
+                    {(() => {
+                      const d = new Date(t * 1000);
+                      const showYear = d.getFullYear() !== new Date().getFullYear();
+                      return (
+                        <>
+                          <SvgText
+                            x={px}
+                            y={padTop + plotHeight + 14}
+                            fill={colors.axisText}
+                            fontSize={10}
+                            textAnchor="middle"
+                          >
+                            {DateUtils_format(d, true, true)}
+                          </SvgText>
+                          {showYear && (
                             <SvgText
                               x={px}
-                              y={padTop + plotHeight + 14}
+                              y={padTop + plotHeight + 26}
                               fill={colors.axisText}
                               fontSize={10}
                               textAnchor="middle"
                             >
-                              {DateUtils_format(d, true, true)}
+                              {d.getFullYear()}
                             </SvgText>
-                            {showYear && (
-                              <SvgText
-                                x={px}
-                                y={padTop + plotHeight + 26}
-                                fill={colors.axisText}
-                                fontSize={10}
-                                textAnchor="middle"
-                              >
-                                {d.getFullYear()}
-                              </SvgText>
-                            )}
-                          </>
-                        );
-                      })()}
-                    </G>
-                  );
-                })}
-              </G>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </G>
+                );
+              })}
+            </G>
 
-              <G clipPath={`url(#${clipId})`}>
-                {programLinePositions.map(([px, name], i) => {
-                  const labelX = px + 3;
-                  const labelY = padTop + 4;
-                  return (
-                    <G key={`prog-${i}`}>
-                      <Line x1={px} x2={px} y1={padTop} y2={padTop + plotHeight} stroke={colors.grid} strokeWidth={1} />
-                      <SvgText
-                        x={labelX}
-                        y={labelY}
-                        fill={colors.secondary}
-                        fontSize={9}
-                        transform={`rotate(90, ${labelX}, ${labelY})`}
-                      >
-                        {name}
-                      </SvgText>
-                    </G>
-                  );
-                })}
-              </G>
+            <G clipPath={`url(#${clipId})`}>
+              {programLinePositions.map(([px, name], i) => {
+                const labelX = px + 3;
+                const labelY = padTop + 4;
+                return (
+                  <G key={`prog-${i}`}>
+                    <Line x1={px} x2={px} y1={padTop} y2={padTop + plotHeight} stroke={colors.grid} strokeWidth={1} />
+                    <SvgText
+                      x={labelX}
+                      y={labelY}
+                      fill={colors.secondary}
+                      fontSize={9}
+                      transform={`rotate(90, ${labelX}, ${labelY})`}
+                    >
+                      {name}
+                    </SvgText>
+                  </G>
+                );
+              })}
+            </G>
 
+            <G>
+              <Line
+                x1={padLeft}
+                x2={padLeft}
+                y1={padTop}
+                y2={padTop + plotHeight}
+                stroke={colors.grid}
+                strokeWidth={1}
+              />
+              <Line
+                x1={padLeft}
+                x2={padLeft + plotWidth}
+                y1={padTop + plotHeight}
+                y2={padTop + plotHeight}
+                stroke={colors.grid}
+                strokeWidth={1}
+              />
+            </G>
+
+            <G clipPath={`url(#${clipId})`}>
+              {props.series.map((s, i) => {
+                if (!s.show) {
+                  return null;
+                }
+                const values = props.data[i + 1] || [];
+                const d = buildPath(timestamps, values, xToPx, yToPx);
+                if (!d) {
+                  return null;
+                }
+                return <Path key={`series-${i}`} d={d} stroke={s.color} strokeWidth={s.width ?? 1.5} fill="none" />;
+              })}
+            </G>
+
+            {cursorX != null && cursorIdx != null && (
               <G>
                 <Line
-                  x1={padLeft}
-                  x2={padLeft}
+                  x1={cursorX}
+                  x2={cursorX}
                   y1={padTop}
                   y2={padTop + plotHeight}
-                  stroke={colors.grid}
+                  stroke={colors.cursor}
                   strokeWidth={1}
+                  strokeDasharray="3,3"
                 />
-                <Line
-                  x1={padLeft}
-                  x2={padLeft + plotWidth}
-                  y1={padTop + plotHeight}
-                  y2={padTop + plotHeight}
-                  stroke={colors.grid}
-                  strokeWidth={1}
-                />
-              </G>
-
-              <G clipPath={`url(#${clipId})`}>
                 {props.series.map((s, i) => {
                   if (!s.show) {
                     return null;
                   }
-                  const values = props.data[i + 1] || [];
-                  const d = buildPath(timestamps, values, xToPx, yToPx);
-                  if (!d) {
+                  const v = props.data[i + 1]?.[cursorIdx];
+                  if (v == null || !isFinite(v)) {
                     return null;
                   }
-                  return <Path key={`series-${i}`} d={d} stroke={s.color} strokeWidth={s.width ?? 1.5} fill="none" />;
+                  return (
+                    <Circle
+                      key={`cursor-${i}`}
+                      cx={cursorX}
+                      cy={yToPx(v)}
+                      r={3.5}
+                      fill={s.color}
+                      stroke={colors.background}
+                      strokeWidth={1}
+                    />
+                  );
                 })}
               </G>
+            )}
 
-              {cursorX != null && cursorIdx != null && (
-                <G>
-                  <Line
-                    x1={cursorX}
-                    x2={cursorX}
-                    y1={padTop}
-                    y2={padTop + plotHeight}
-                    stroke={colors.cursor}
-                    strokeWidth={1}
-                    strokeDasharray="3,3"
-                  />
-                  {props.series.map((s, i) => {
-                    if (!s.show) {
-                      return null;
-                    }
-                    const v = props.data[i + 1]?.[cursorIdx];
-                    if (v == null || !isFinite(v)) {
-                      return null;
-                    }
-                    return (
-                      <Circle
-                        key={`cursor-${i}`}
-                        cx={cursorX}
-                        cy={yToPx(v)}
-                        r={3.5}
-                        fill={s.color}
-                        stroke={colors.background}
-                        strokeWidth={1}
-                      />
-                    );
-                  })}
-                </G>
-              )}
-
-              <Rect x={padLeft} y={padTop} width={plotWidth} height={plotHeight} fill="transparent" stroke="none" />
-            </Svg>
-          </View>
-        </GestureDetector>
+            <Rect x={padLeft} y={padTop} width={plotWidth} height={plotHeight} fill="transparent" stroke="none" />
+          </Svg>
+        </Wrap>
       )}
     </View>
   );
