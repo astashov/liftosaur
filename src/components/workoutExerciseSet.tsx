@@ -264,6 +264,7 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
                     min={0}
                     max={9999}
                     step={1}
+                    inputCommitMode="blur"
                   />
                 </View>
               )}
@@ -284,6 +285,7 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
                   min={0}
                   max={9999}
                   step={1}
+                  inputCommitMode="blur"
                 />
               </View>
             </View>

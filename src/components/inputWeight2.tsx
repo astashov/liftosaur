@@ -2,7 +2,7 @@ import { JSX, memo, useEffect, useRef, useState } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
 import { IExerciseType, IPercentage, IPercentageUnit, ISettings, ISubscription, IUnit, IWeight } from "../types";
-import { InputNumber2 } from "./inputNumber2";
+import { InputNumber2, IInputCommitMode } from "./inputNumber2";
 import {
   Weight_evaluateWeight,
   Weight_is,
@@ -38,6 +38,8 @@ interface IInputWeight2Props {
   onInput?: (value: IWeight | IPercentage | undefined) => void;
   subscription?: ISubscription;
   tabIndex?: number;
+  inputCommitMode?: IInputCommitMode;
+  inputDebounceMs?: number;
   "data-testid"?: string;
   testID?: string;
 }
@@ -122,6 +124,8 @@ function InputWeight2Inner(props: IInputWeight2Props): JSX.Element {
           }
         }}
         enableCalculator={true}
+        inputCommitMode={props.inputCommitMode}
+        inputDebounceMs={props.inputDebounceMs}
         onBlur={(v) => {
           if (props.onBlur) {
             const weight = v != null ? Weight_buildAny(v, unitRef.current) : undefined;
