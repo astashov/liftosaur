@@ -15,6 +15,8 @@ import {
   useOpenCustomKeyboard,
 } from "../navigation/CustomKeyboardContext";
 
+export type IInputCommitMode = "live" | "debounced" | "blur";
+
 interface IInputNumber2Props {
   name: string;
   placeholder?: string;
@@ -39,6 +41,8 @@ interface IInputNumber2Props {
   onChangeUnits?: (unit: IUnit | IPercentageUnit) => void;
   selectedUnit?: IUnit | IPercentageUnit;
   showUnitInside?: boolean;
+  inputCommitMode?: IInputCommitMode;
+  inputDebounceMs?: number;
   "data-testid"?: string;
   testID?: string;
 }
@@ -80,6 +84,13 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
   const maxRef = useRef(props.max);
   const stepRef = useRef(props.step);
   const initialValueRef = useRef(props.initialValue);
+  const commitMode: IInputCommitMode = props.inputCommitMode ?? "debounced";
+  const debounceMs = props.inputDebounceMs ?? 150;
+  const commitModeRef = useRef(commitMode);
+  const debounceMsRef = useRef(debounceMs);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingInputRef = useRef<number | undefined>(undefined);
+  const hasPendingInputRef = useRef(false);
   const cursorOpacity = useRef(new Animated.Value(1)).current;
   const pressableRef = useRef<View>(null);
   const scrollCtx = useContext(NavScreenScrollContext);
@@ -91,6 +102,12 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
   const { height: windowHeight } = useWindowDimensions();
 
   const openCalculator = useModal("repMaxCalculatorModal", (weightValue) => {
+    if (debounceTimerRef.current != null) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    hasPendingInputRef.current = false;
+    pendingInputRef.current = undefined;
     const newValue = clamp(weightValue, minRef.current, maxRef.current);
     valueRef.current = newValue?.toString() ?? "";
     setValue(newValue?.toString() ?? "");
@@ -113,9 +130,26 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
     maxRef.current = props.max;
     stepRef.current = props.step;
     initialValueRef.current = props.initialValue;
-  }, [props.allowDot, props.allowNegative, props.min, props.max, props.step, props.initialValue]);
+    commitModeRef.current = commitMode;
+    debounceMsRef.current = debounceMs;
+  }, [
+    props.allowDot,
+    props.allowNegative,
+    props.min,
+    props.max,
+    props.step,
+    props.initialValue,
+    commitMode,
+    debounceMs,
+  ]);
 
   useEffect(() => {
+    if (initialValue === valueRef.current) {
+      return;
+    }
+    if (isTypingRef.current) {
+      return;
+    }
     valueRef.current = initialValue;
     setValue(initialValue);
   }, [props.value]);
@@ -138,6 +172,12 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
   const prevFocusedRef = useRef(isFocused);
   useEffect(() => {
     if (prevFocusedRef.current && !isFocused) {
+      if (debounceTimerRef.current != null) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
+      hasPendingInputRef.current = false;
+      pendingInputRef.current = undefined;
       setIsTyping(false);
       isTypingRef.current = false;
       const newValueNum = clamp(valueRef.current, minRef.current, maxRef.current);
@@ -169,6 +209,19 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
     });
   }, [scrollCtx, windowHeight, measuredKeyboardHeightRef]);
 
+  const flushPendingInput = useCallback(() => {
+    if (debounceTimerRef.current != null) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    if (hasPendingInputRef.current && onInputRef.current) {
+      const pending = pendingInputRef.current;
+      hasPendingInputRef.current = false;
+      pendingInputRef.current = undefined;
+      onInputRef.current(pending);
+    }
+  }, []);
+
   const handleInput = useCallback((key: string) => {
     Vibration.vibrate(10);
     let newValue = valueRef.current;
@@ -195,18 +248,44 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
     } else if (newValue.length < dynMaxLength) {
       newValue += key;
     }
-    setIsTyping(true);
-    isTypingRef.current = true;
+    if (!isTypingRef.current) {
+      setIsTyping(true);
+      isTypingRef.current = true;
+    }
     valueRef.current = newValue;
     setValue(newValue);
     if (onInputRef.current && !newValue.endsWith(".")) {
       const newValueNum = clamp(newValue, minRef.current, maxRef.current);
-      onInputRef.current(newValueNum);
+      const mode = commitModeRef.current;
+      if (mode === "live") {
+        onInputRef.current(newValueNum);
+      } else if (mode === "debounced") {
+        pendingInputRef.current = newValueNum;
+        hasPendingInputRef.current = true;
+        if (debounceTimerRef.current != null) {
+          clearTimeout(debounceTimerRef.current);
+        }
+        debounceTimerRef.current = setTimeout(() => {
+          debounceTimerRef.current = null;
+          if (hasPendingInputRef.current && onInputRef.current) {
+            const v = pendingInputRef.current;
+            hasPendingInputRef.current = false;
+            pendingInputRef.current = undefined;
+            onInputRef.current(v);
+          }
+        }, debounceMsRef.current);
+      }
     }
   }, []);
 
   const handlePlus = useCallback(() => {
     Vibration.vibrate(10);
+    if (debounceTimerRef.current != null) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    hasPendingInputRef.current = false;
+    pendingInputRef.current = undefined;
     const currentNum = valueRef.current === "" ? (initialValueRef.current ?? 0) : Number(valueRef.current);
     const nextValue = onNextRef.current ? onNextRef.current(currentNum) : currentNum + (stepRef.current ?? 1);
     const newValue = clamp(nextValue, minRef.current, maxRef.current);
@@ -219,6 +298,12 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
 
   const handleMinus = useCallback(() => {
     Vibration.vibrate(10);
+    if (debounceTimerRef.current != null) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    hasPendingInputRef.current = false;
+    pendingInputRef.current = undefined;
     const currentNum = valueRef.current === "" ? (initialValueRef.current ?? 0) : Number(valueRef.current);
     const prevValue = onPrevRef.current ? onPrevRef.current(currentNum) : currentNum - (stepRef.current ?? 1);
     const newValue = clamp(prevValue, minRef.current, maxRef.current);
@@ -238,6 +323,7 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
       onPlus: handlePlus,
       onMinus: handleMinus,
       onShowCalculator: () => {
+        flushPendingInput();
         closeKeyboard();
         if (props.selectedUnit && props.selectedUnit !== "%") {
           openCalculator({ unit: props.selectedUnit as "kg" | "lb" });
@@ -263,6 +349,7 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
     closeKeyboard,
     openKeyboard,
     openCalculator,
+    flushPendingInput,
     props.allowDot,
     props.allowNegative,
     props.keyboardAddon,
@@ -274,11 +361,16 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
 
   useEffect(() => {
     return () => {
+      flushPendingInput();
+      if (debounceTimerRef.current != null) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
       if (prevFocusedRef.current) {
         closeKeyboard();
       }
     };
-  }, [closeKeyboard]);
+  }, [closeKeyboard, flushPendingInput]);
 
   const remValue = rem.get();
   const fieldWidth = (props.width ?? 4) * remValue;
@@ -290,6 +382,11 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
       }`,
     [props.autowidth]
   );
+  const fieldStyle = useMemo(
+    () => (props.autowidth ? undefined : { width: fieldWidth }),
+    [props.autowidth, fieldWidth]
+  );
+  const cursorStyle = useMemo(() => ({ opacity: cursorOpacity }), [cursorOpacity]);
 
   return (
     <View ref={pressableRef} collapsable={false}>
@@ -298,7 +395,7 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
         testID={`input-${StringUtils_dashcase(props.name)}-field`}
         data-testid={`input-${StringUtils_dashcase(props.name)}-field`}
         className={fieldClassName}
-        style={props.autowidth ? undefined : { width: fieldWidth }}
+        style={fieldStyle}
       >
         {!value && !isFocused && props.placeholder ? (
           <Text className="text-sm text-text-secondarysubtle" numberOfLines={1}>
@@ -309,7 +406,7 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
             {value}
           </Text>
         )}
-        {isFocused && <Animated.View className="w-px h-3 bg-background-darkgray" style={{ opacity: cursorOpacity }} />}
+        {isFocused && <Animated.View className="w-px h-3 bg-background-darkgray" style={cursorStyle} />}
         {props.showUnitInside && props.selectedUnit && props.value != null && (
           <Text className="text-xs text-text-secondary"> {props.selectedUnit}</Text>
         )}

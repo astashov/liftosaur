@@ -81,6 +81,11 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
   const isUnilateral = Exercise_getIsUnilateral(props.exerciseType, props.settings);
   const remValue = props.settings.textSize ?? 16;
   const columnWidths = useMemo(() => computeSetColumnWidths(remValue, isUnilateral), [remValue, isUnilateral]);
+  const lbWarmupSetByIndex = useMemo(
+    () => warmupSets.map((_, i) => props.lbWarmupSets.i(i)),
+    [props.lbWarmupSets, warmupSets.length]
+  );
+  const lbSetByIndex = useMemo(() => sets.map((_, i) => props.lbSets.i(i)), [props.lbSets, sets.length]);
 
   const { dispatch, lbWarmupSets, lbSets, lastSets, exerciseType, settings } = props;
   const onAddWarmupSet = useCallback(() => {
@@ -147,7 +152,7 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
             otherStates={props.otherStates}
             subscription={props.subscription}
             lbSets={props.lbWarmupSets}
-            lbSet={props.lbWarmupSets.i(i)}
+            lbSet={lbWarmupSetByIndex[i]}
             set={set}
             entryIndex={props.entryIndex}
             isNext={nextSetIndex === i}
@@ -174,7 +179,7 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
             lastSet={props.lastSets?.[i]}
             subscription={props.subscription}
             lbSets={props.lbSets}
-            lbSet={props.lbSets.i(i)}
+            lbSet={lbSetByIndex[i]}
             set={set}
             entryIndex={props.entryIndex}
             setIndex={i}

@@ -9,6 +9,8 @@ import { Mobile_isMobile } from "../../lambda/utils/mobile";
 import { useModal } from "../navigation/ModalStateContext";
 import { IconBackspace } from "./icons/iconBackspace";
 
+export type IInputCommitMode = "live" | "debounced" | "blur";
+
 interface IInputNumber2Props {
   name: string;
   placeholder?: string;
@@ -33,6 +35,8 @@ interface IInputNumber2Props {
   onChangeUnits?: (unit: IUnit | IPercentageUnit) => void;
   selectedUnit?: IUnit | IPercentageUnit;
   showUnitInside?: boolean;
+  inputCommitMode?: IInputCommitMode;
+  inputDebounceMs?: number;
   "data-testid"?: string;
   testID?: string;
 }
@@ -71,6 +75,12 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
   const [isCalculatorOpen, setIsCalculatorOpen] = useState(false);
   const isCalculatorOpenRef = useRef(isCalculatorOpen);
   const openCalculator = useModal("repMaxCalculatorModal", (weightValue) => {
+    if (debounceTimerRef.current != null) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    hasPendingInputRef.current = false;
+    pendingInputRef.current = undefined;
     const newValue = clamp(weightValue, props.min, props.max);
     valueRef.current = newValue?.toString() ?? "";
     setValue(newValue?.toString() ?? "");
@@ -81,6 +91,13 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
   });
   const onBlurRef = useRef<((v: number | undefined) => void) | undefined>(props.onBlur);
   const onInputRef = useRef<((v: number | undefined) => void) | undefined>(props.onInput);
+  const commitMode: IInputCommitMode = props.inputCommitMode ?? "debounced";
+  const debounceMs = props.inputDebounceMs ?? 150;
+  const commitModeRef = useRef(commitMode);
+  const debounceMsRef = useRef(debounceMs);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingInputRef = useRef<number | undefined>(undefined);
+  const hasPendingInputRef = useRef(false);
   useEffect(() => {
     setIsMobile(Mobile_isMobile(window.navigator?.userAgent || ""));
   }, []);
@@ -88,6 +105,36 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
     onBlurRef.current = props.onBlur;
     onInputRef.current = props.onInput;
   }, [props.onBlur, props.onInput]);
+  useEffect(() => {
+    commitModeRef.current = commitMode;
+    debounceMsRef.current = debounceMs;
+  }, [commitMode, debounceMs]);
+
+  const flushPendingInput = useCallback(() => {
+    if (debounceTimerRef.current != null) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    if (hasPendingInputRef.current && onInputRef.current) {
+      const pending = pendingInputRef.current;
+      hasPendingInputRef.current = false;
+      pendingInputRef.current = undefined;
+      onInputRef.current(pending);
+    }
+  }, []);
+
+  const cancelPendingInput = useCallback(() => {
+    if (debounceTimerRef.current != null) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    hasPendingInputRef.current = false;
+    pendingInputRef.current = undefined;
+  }, []);
+
+  useEffect(() => {
+    return () => flushPendingInput();
+  }, [flushPendingInput]);
 
   const maxLength = (props.max?.toString().length ?? 5) + (props.allowDot ? 3 : 0) + (props.allowNegative ? 1 : 0);
 
@@ -116,6 +163,12 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
   }
 
   useEffect(() => {
+    if (initialValue === valueRef.current) {
+      return;
+    }
+    if (isTypingRef.current) {
+      return;
+    }
     valueRef.current = initialValue;
     setValue(initialValue);
   }, [props.value]);
@@ -149,17 +202,38 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
     } else if (newValue.length < maxLength) {
       newValue += key;
     }
-    setIsTyping(true);
-    isTypingRef.current = true;
+    if (!isTypingRef.current) {
+      setIsTyping(true);
+      isTypingRef.current = true;
+    }
     valueRef.current = newValue;
     setValue(newValue);
     if (onInputRef.current && !newValue.endsWith(".")) {
       const newValueNum = clamp(newValue, props.min, props.max);
-      onInputRef.current(newValueNum);
+      const mode = commitModeRef.current;
+      if (mode === "live") {
+        onInputRef.current(newValueNum);
+      } else if (mode === "debounced") {
+        pendingInputRef.current = newValueNum;
+        hasPendingInputRef.current = true;
+        if (debounceTimerRef.current != null) {
+          clearTimeout(debounceTimerRef.current);
+        }
+        debounceTimerRef.current = setTimeout(() => {
+          debounceTimerRef.current = null;
+          if (hasPendingInputRef.current && onInputRef.current) {
+            const v = pendingInputRef.current;
+            hasPendingInputRef.current = false;
+            pendingInputRef.current = undefined;
+            onInputRef.current(v);
+          }
+        }, debounceMsRef.current);
+      }
     }
   };
 
   const blur = useCallback(() => {
+    cancelPendingInput();
     setIsFocused(false);
     setIsTyping(false);
     isTypingRef.current = false;
@@ -170,7 +244,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
       onBlurRef.current(newValueNum);
     }
     switchRef.current = false;
-  }, []);
+  }, [cancelPendingInput]);
 
   useEffect(() => {
     if (isFocused) {
@@ -383,6 +457,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
           keyboardAddon={props.keyboardAddon}
           onBlur={blur}
           onPlus={() => {
+            cancelPendingInput();
             const nextValue = props.onNext ? props.onNext(Number(value)) : Number(value) + (props.step ?? 1);
             const newValue = clamp(nextValue, props.min, props.max);
             valueRef.current = newValue != null ? newValue.toString() : "";
@@ -392,6 +467,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
             }
           }}
           onMinus={() => {
+            cancelPendingInput();
             const prevValue = props.onPrev ? props.onPrev(Number(value)) : Number(value) - (props.step ?? 1);
             const newValue = clamp(prevValue, props.min, props.max);
             valueRef.current = newValue != null ? newValue.toString() : "";
