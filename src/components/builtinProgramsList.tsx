@@ -1,4 +1,4 @@
-import { JSX, useState, useCallback, useMemo } from "react";
+import { JSX, memo, useState, useCallback, useMemo } from "react";
 import { View, Pressable, FlatList } from "react-native";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
@@ -37,26 +37,21 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
   const [filter, setFilter] = useState<IProgramFilter>({});
   const [sort, setSort] = useState<IProgramSort>(undefined);
   const searchLower = (props.search || "").toLowerCase();
-  const filtered = ProgramFilter_sort(ProgramFilter_filter(props.programsIndex, filter), sort);
+  const filtered = useMemo(
+    () => ProgramFilter_sort(ProgramFilter_filter(props.programsIndex, filter), sort),
+    [props.programsIndex, filter, sort]
+  );
   const entries = useMemo(
     () => (searchLower ? filtered.filter((e) => e.name.toLowerCase().includes(searchLower)) : filtered),
     [filtered, searchLower]
   );
 
+  const { settings, hasCustomPrograms } = props;
   const renderItem = useCallback(
     ({ item }: { item: IProgramIndexEntry }) => (
-      <BuiltInProgram
-        entry={item}
-        settings={props.settings}
-        onClick={() => {
-          navigationRef.navigate("programInfoModal", {
-            programId: item.id,
-            hasCustomPrograms: props.hasCustomPrograms,
-          });
-        }}
-      />
+      <BuiltInProgram entry={item} settings={settings} hasCustomPrograms={hasCustomPrograms} />
     ),
-    [props.settings, props.hasCustomPrograms]
+    [settings, hasCustomPrograms]
   );
 
   const keyExtractor = useCallback((item: IProgramIndexEntry) => item.id, []);
@@ -140,23 +135,30 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
 interface IBuiltInProgramProps {
   entry: IProgramIndexEntry;
   settings: ISettings;
-  onClick: () => void;
+  hasCustomPrograms: boolean;
 }
 
-function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
-  const { entry } = props;
+const BuiltInProgram = memo(function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
+  const { entry, hasCustomPrograms } = props;
   const exercises = entry.exercises ?? [];
-  const allEquipment = Equipment_currentEquipment(props.settings);
-  const equipment = (entry.equipment ?? []).map((e) => equipmentName(e, allEquipment));
+  const allEquipment = useMemo(() => Equipment_currentEquipment(props.settings), [props.settings]);
+  const equipment = useMemo(
+    () => (entry.equipment ?? []).map((e) => equipmentName(e, allEquipment)),
+    [entry.equipment, allEquipment]
+  );
   const exercisesRange = entry.exercisesRange;
   const numberOfWeeks = entry.weeksCount ?? 0;
+  const onPress = useCallback(() => {
+    navigationRef.navigate("programInfoModal", { programId: entry.id, hasCustomPrograms });
+  }, [entry.id, hasCustomPrograms]);
+  const visibleExercises = useMemo(() => exercises.filter((e) => ExerciseImageUtils_exists(e, "small")), [exercises]);
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={entry.name}
       className="flex-row items-center w-full p-3 mb-4 border rounded-lg bg-background-cardpurple border-border-cardpurple"
-      onPress={props.onClick}
+      onPress={onPress}
       data-testid="program-list-choose-program"
       testID="program-list-choose-program"
     >
@@ -174,17 +176,15 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
           <SimpleMarkdown value={entry.shortDescription} className="text-sm text-text-secondary" />
         )}
         <View className="flex-row flex-wrap pb-2">
-          {exercises
-            .filter((e) => ExerciseImageUtils_exists(e, "small"))
-            .map((e) => (
-              <ExerciseImage
-                key={`${e.id}_${e.equipment}`}
-                settings={props.settings}
-                exerciseType={e}
-                size="small"
-                className="w-6 mr-1"
-              />
-            ))}
+          {visibleExercises.map((e) => (
+            <ExerciseImage
+              key={`${e.id}_${e.equipment}`}
+              settings={props.settings}
+              exerciseType={e}
+              size="small"
+              className="w-6 mr-1"
+            />
+          ))}
         </View>
         <View className="flex-row items-center mb-1">
           <IconCalendarSmall color={Tailwind_colors().lightgray[600]} className="mr-1" />
@@ -201,4 +201,4 @@ function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
       </View>
     </Pressable>
   );
-}
+});
