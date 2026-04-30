@@ -62,7 +62,7 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
   const keyExtractor = useCallback((item: IProgramIndexEntry) => item.id, []);
 
   const listHeader = (
-    <View>
+    <View className="pt-4">
       <Text className="pb-4">
         I've been lifting for{" "}
         <SelectLink
