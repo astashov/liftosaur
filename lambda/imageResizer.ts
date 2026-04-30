@@ -1,3 +1,4 @@
+import "source-map-support/register";
 import { S3Event } from "aws-lambda";
 import sharp from "sharp";
 import { buildDi } from "./utils/di";

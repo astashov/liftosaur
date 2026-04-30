@@ -102,7 +102,7 @@ function CustomProgram(props: ICustomProgramProps): JSX.Element {
     <View className="relative">
       <View
         className="absolute z-10 flex-row items-center gap-1 px-2 py-1 border rounded-full bg-background-subtle border-border-neutral"
-        style={{ right: -12, top: -24 }}
+        style={{ right: -12, top: 8 }}
       >
         <Pressable
           className="px-2 py-1"
@@ -175,7 +175,7 @@ function CustomProgram(props: ICustomProgramProps): JSX.Element {
                 />
               ))}
           </View>
-          <View className="flex-row mb-1 items-center">
+          <View className="flex-row items-center mb-1">
             <IconCalendarSmall color={Tailwind_colors().lightgray[600]} className="mr-1" />
             <Text className="text-xs text-text-secondary">
               {evaluatedProgram.weeks.length > 1 &&
