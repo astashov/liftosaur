@@ -1,7 +1,8 @@
 import { JSX, useEffect } from "react";
+import { View, Platform } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
-import { ModalScreenContainer } from "../ModalScreenContainer";
+import { SheetScreenContainer } from "../SheetScreenContainer";
 import { BottomSheetWorkoutSupersetContent } from "../../components/bottomSheetWorkoutSuperset";
 import { IHistoryRecord } from "../../types";
 import { updateProgress } from "../../models/state";
@@ -41,21 +42,29 @@ export function NavModalWorkoutSuperset(): JSX.Element {
     return <></>;
   }
 
-  return (
-    <ModalScreenContainer onClose={onClose} shouldShowClose={true}>
-      <BottomSheetWorkoutSupersetContent
-        progress={progress}
-        entry={exerciseSuperset}
-        settings={state.storage.settings}
-        onSelect={(selectedEntry) => {
-          updateProgress(
-            dispatch,
-            [lb<IHistoryRecord>().p("entries").findBy("id", exerciseSuperset.id).p("superset").record(selectedEntry)],
-            "select-superset-entry"
-          );
-        }}
-        onClose={onClose}
-      />
-    </ModalScreenContainer>
+  const content = (
+    <BottomSheetWorkoutSupersetContent
+      progress={progress}
+      entry={exerciseSuperset}
+      settings={state.storage.settings}
+      onSelect={(selectedEntry) => {
+        updateProgress(
+          dispatch,
+          [lb<IHistoryRecord>().p("entries").findBy("id", exerciseSuperset.id).p("superset").record(selectedEntry)],
+          "select-superset-entry"
+        );
+      }}
+      onClose={onClose}
+    />
   );
+
+  if (Platform.OS === "web") {
+    return (
+      <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
+        {content}
+      </SheetScreenContainer>
+    );
+  }
+
+  return <View className="bg-background-default flex-1">{content}</View>;
 }
