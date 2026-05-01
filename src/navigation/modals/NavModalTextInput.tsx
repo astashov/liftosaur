@@ -22,7 +22,7 @@ export function NavModalTextInput(): JSX.Element {
   }
 
   return (
-    <ModalScreenContainer onClose={onClose} shouldShowClose={true}>
+    <ModalScreenContainer onClose={onClose} shouldShowClose={true} zIndex={70}>
       <GroupHeader size="large" name={data.title} />
       <form onSubmit={(e) => e.preventDefault()}>
         <Input2
@@ -36,7 +36,7 @@ export function NavModalTextInput(): JSX.Element {
           type="text"
           placeholder={data.placeholder}
         />
-        <div className="mt-4 text-right">
+        <div className="flex items-center justify-between gap-4 mt-4 text-right">
           <Button
             name={`${data.dataCyPrefix}-cancel`}
             data-testid={`${data.dataCyPrefix}-cancel`}

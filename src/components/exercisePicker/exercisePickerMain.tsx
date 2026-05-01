@@ -123,7 +123,6 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
             <Pressable
               className="px-2"
               onPress={() => {
-                console.log("Show starred");
                 props.dispatch(
                   lb<IExercisePickerState>().p("filters").p("isStarred").record(!props.state.filters.isStarred),
                   `Toggle starred exercises to ${!props.state.filters.isStarred}`

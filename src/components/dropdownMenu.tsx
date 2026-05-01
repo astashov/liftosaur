@@ -42,10 +42,11 @@ export function DropdownMenu(props: {
 
 interface IDropdownMenuItemProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   isTop?: boolean;
+  testID?: string;
 }
 
 export function DropdownMenuItem(props: IDropdownMenuItemProps): JSX.Element {
-  const { className, children, isTop, ...rest } = props;
+  const { className, children, isTop, testID, ...rest } = props;
   return (
     <button
       className={`block w-full px-2 whitespace-nowrap text-base ${
