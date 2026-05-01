@@ -12,6 +12,7 @@ interface IProps {
   overflowHidden?: boolean;
   innerClassName?: string;
   shouldShowClose?: boolean;
+  zIndex?: number;
 }
 
 export function ModalScreenContainer(props: IProps): JSX.Element {
@@ -26,7 +27,10 @@ export function ModalScreenContainer(props: IProps): JSX.Element {
   }, []);
 
   const element = (
-    <section className="fixed inset-0 flex items-center justify-center bottom-sticked" style={{ zIndex: 50 }}>
+    <section
+      className="fixed inset-0 flex items-center justify-center bottom-sticked"
+      style={{ zIndex: props.zIndex ?? 50 }}
+    >
       <div
         data-name="overlay"
         onClick={props.onClose}

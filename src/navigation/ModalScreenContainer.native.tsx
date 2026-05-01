@@ -12,6 +12,7 @@ interface IProps {
   overflowHidden?: boolean;
   innerClassName?: string;
   shouldShowClose?: boolean;
+  zIndex?: number;
 }
 
 export function ModalScreenContainer(props: IProps): JSX.Element {
