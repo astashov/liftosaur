@@ -51,7 +51,7 @@ export default function StorySlider({ slides, duration = 5000 }: IStorySliderPro
           return (
             <View key={i} className="flex-1 h-1 overflow-hidden rounded bg-white/30">
               {i === currentIndex ? (
-                <Animated.View className="h-full bg-white" style={{ width: animatedWidth }} />
+                <Animated.View style={{ height: "100%", backgroundColor: "white", width: animatedWidth }} />
               ) : (
                 <View className="h-full bg-white" style={{ width: fillWidth }} />
               )}
