@@ -1,4 +1,13 @@
+import { SendMessage_isIos, SendMessage_isAndroid, SendMessage_toIosAndAndroidWithResult } from "./sendMessage";
+
 export async function ImagePicker_pick(source: "camera" | "photo-library"): Promise<string | undefined> {
+  if (SendMessage_isIos() || SendMessage_isAndroid()) {
+    const result = await SendMessage_toIosAndAndroidWithResult<{ data: string }>({
+      type: "pickphoto",
+      source,
+    });
+    return result?.data;
+  }
   return new Promise((resolve) => {
     const input = document.createElement("input");
     input.type = "file";
