@@ -1,5 +1,5 @@
-import { createContext, JSX, ReactNode, RefObject, useCallback, useMemo, useRef } from "react";
-import { ScrollView, NativeSyntheticEvent, NativeScrollEvent, Animated } from "react-native";
+import { createContext, JSX, ReactNode, RefObject, useCallback, useMemo, useRef, useState } from "react";
+import { ScrollView, NativeSyntheticEvent, NativeScrollEvent, Animated, View, LayoutChangeEvent } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useCustomKeyboardAnimatedHeight } from "./CustomKeyboardContext";
 
@@ -10,12 +10,17 @@ export interface INavScreenScrollContextValue {
 
 export const NavScreenScrollContext = createContext<INavScreenScrollContextValue | null>(null);
 
-export function NavScreenContent(props: { children: ReactNode; stickyHeaderIndices?: number[] }): JSX.Element {
+export function NavScreenContent(props: {
+  children: ReactNode;
+  stickyHeaderIndices?: number[];
+  footer?: ReactNode;
+}): JSX.Element {
   const navigation = useNavigation();
   const isScrolledRef = useRef(false);
   const scrollRef = useRef<ScrollView>(null);
   const scrollYRef = useRef(0);
   const animatedKeyboardHeight = useCustomKeyboardAnimatedHeight();
+  const [footerHeight, setFooterHeight] = useState(0);
 
   const onScroll = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -30,24 +35,40 @@ export function NavScreenContent(props: { children: ReactNode; stickyHeaderIndic
     [navigation]
   );
 
+  const onFooterLayout = useCallback((e: LayoutChangeEvent) => {
+    setFooterHeight(e.nativeEvent.layout.height);
+  }, []);
+
   const contextValue = useMemo(() => ({ scrollRef, scrollYRef }), []);
+
+  const scrollView = (
+    <ScrollView
+      ref={scrollRef}
+      data-testid="screen"
+      testID="screen"
+      className="flex-1 bg-background-default"
+      contentContainerStyle={{ flexGrow: 1, paddingBottom: props.footer != null ? footerHeight : 0 }}
+      onScroll={onScroll}
+      scrollEventThrottle={16}
+      stickyHeaderIndices={props.stickyHeaderIndices}
+    >
+      {props.children}
+      <Animated.View style={{ height: animatedKeyboardHeight }} />
+    </ScrollView>
+  );
 
   return (
     <NavScreenScrollContext.Provider value={contextValue}>
-      <ScrollView
-        ref={scrollRef}
-        data-testid="screen"
-        testID="screen"
-        className="bg-background-default"
-        contentContainerStyle={{ flexGrow: 1 }}
-        style={{ flex: 1 }}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-        stickyHeaderIndices={props.stickyHeaderIndices}
-      >
-        {props.children}
-        <Animated.View style={{ height: animatedKeyboardHeight }} />
-      </ScrollView>
+      {props.footer != null ? (
+        <View className="flex-1">
+          {scrollView}
+          <View onLayout={onFooterLayout} className="absolute bottom-0 left-0 right-0" pointerEvents="box-none">
+            {props.footer}
+          </View>
+        </View>
+      ) : (
+        scrollView
+      )}
     </NavScreenScrollContext.Provider>
   );
 }

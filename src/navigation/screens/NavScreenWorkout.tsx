@@ -67,18 +67,16 @@ export function NavScreenSubscription(): JSX.Element {
   const { state, dispatch } = useAppState();
   const navCommon = buildNavCommon(state);
   return (
-    <NavScreenContent>
-      <ScreenSubscriptionComponent
-        history={state.storage.history}
-        prices={state.prices}
-        offers={state.offers}
-        appleOffer={state.appleOffer}
-        googleOffer={state.googleOffer}
-        subscription={state.storage.subscription}
-        subscriptionLoading={state.subscriptionLoading}
-        dispatch={dispatch}
-        navCommon={navCommon}
-      />
-    </NavScreenContent>
+    <ScreenSubscriptionComponent
+      history={state.storage.history}
+      prices={state.prices}
+      offers={state.offers}
+      appleOffer={state.appleOffer}
+      googleOffer={state.googleOffer}
+      subscription={state.storage.subscription}
+      subscriptionLoading={state.subscriptionLoading}
+      dispatch={dispatch}
+      navCommon={navCommon}
+    />
   );
 }
