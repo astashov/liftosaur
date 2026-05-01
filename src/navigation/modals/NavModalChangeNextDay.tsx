@@ -18,7 +18,7 @@ export function NavModalChangeNextDay(): JSX.Element {
   };
 
   return (
-    <ModalScreenContainer onClose={onClose} shouldShowClose={true}>
+    <ModalScreenContainer onClose={onClose} shouldShowClose={true} zIndex={70} isFullWidth={true}>
       <BottomSheetChangeNextDayContent
         initialCurrentProgramId={currentProgram?.id}
         allPrograms={state.storage.programs}
