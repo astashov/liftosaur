@@ -72,7 +72,7 @@ export function GraphMuscleGroup(props: IGraphMuscleGroupProps): JSX.Element {
                 { value: "volume", label: "Volume" },
                 { value: "sets", label: "Sets" },
               ]}
-              className="p-2 text-right bg-background-default"
+              className="p-2 text-xs text-right bg-background-default"
             />
           </View>
         </View>

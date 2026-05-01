@@ -435,7 +435,7 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
             {set.reps != null && set.weight != null && <Text className="text-sm text-text-secondary"> × </Text>}
             {set.weight != null && (
               <Text className="text-sm">
-                <Text className="font-semibold">{n(set.weight.value)}</Text>
+                <Text className="text-sm font-semibold">{n(set.weight.value)}</Text>
                 <Text className="text-xs text-text-primary">{set.weight.unit}</Text>
               </Text>
             )}
@@ -476,7 +476,7 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
               {aSet.weight && isDiffWeight && (
                 <Text className="text-sm">
                   {" "}
-                  <Text className="font-semibold text-syntax-weight">{n(aSet.weight.value)}</Text>
+                  <Text className="text-sm font-semibold text-syntax-weight">{n(aSet.weight.value)}</Text>
                   <Text className="text-xs text-syntax-weight">{aSet.weight.unit}</Text>
                 </Text>
               )}

@@ -192,7 +192,7 @@ function GraphExerciseInner(props: IGraphProps): JSX.Element {
                 { value: "weight", label: "Max Weight" },
                 { value: "volume", label: "Volume" },
               ]}
-              className="p-2 text-right bg-background-default"
+              className="p-2 text-xs text-right bg-background-default"
             />
           </View>
         </View>
