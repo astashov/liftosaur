@@ -190,7 +190,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
               </Button>
             </div>
           )}
-          <div className="flex-1 text-center">
+          <div className="flex justify-center flex-1 pb-8 text-center">
             <Button
               name="finish-day-continue"
               kind="purple"
@@ -265,7 +265,7 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
           </div>
           <div className="text-center">
             <button
-              className="nm-finishday-share-text w-10 h-10 rounded-full bg-background-subtle"
+              className="w-10 h-10 rounded-full nm-finishday-share-text bg-background-subtle"
               onClick={() => {
                 const text = LiftohistorySerializer_serialize(props.history[0], props.settings);
                 ClipboardUtils_copy(text);

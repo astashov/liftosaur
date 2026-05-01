@@ -24,7 +24,7 @@ interface IPersonalRecordItems {
 export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
   if (History_getNumberOfPersonalRecords(props.historyRecords, props.prs) === 0) {
     return (
-      <View className="px-4 pt-8 pb-4 items-center">
+      <View className="items-center px-4 pt-8 pb-4">
         <Text>No new personal records this time</Text>
       </View>
     );
@@ -55,7 +55,7 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
 
   return (
     <View>
-      <Text className="pb-1 font-bold text-yellow-600">{"\u{1F3C6}"} Personal Records</Text>
+      <Text className="pb-1 text-sm font-bold text-yellow-600">{"\u{1F3C6}"} Personal Records</Text>
       {ObjectUtils_keys(items.maxWeight).length > 0 && (
         <>
           <Text className="my-1 text-xs text-text-secondary">Max Weight</Text>
@@ -67,14 +67,14 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
                 return (
                   <View key={`${exerciseKey}_${i}`} className="mb-1">
                     <Text>
-                      <Text className="font-bold">{exercise.name}</Text>
-                      <Text>: </Text>
-                      <Text className="font-bold text-text-success">
+                      <Text className="text-sm font-bold">{exercise.name}</Text>
+                      <Text className="text-sm">: </Text>
+                      <Text className="text-sm font-bold text-text-success">
                         {Weight_display(
                           item.set.completedWeight ?? item.set.weight ?? Weight_build(0, props.settings.units)
                         )}
                       </Text>
-                      <Text>
+                      <Text className="text-sm">
                         , {item.set.completedReps || 0} {StringUtils_pluralize("rep", item.set.completedReps || 0)}
                       </Text>
                     </Text>
@@ -119,9 +119,9 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
                 return (
                   <View key={`${exerciseKey}_${i}`} className="mb-1">
                     <Text>
-                      <Text className="font-bold">{exercise.name}</Text>
-                      <Text>: </Text>
-                      <Text className="font-bold text-text-success">{Weight_display(estimated1RM)}</Text>
+                      <Text className="text-sm font-bold">{exercise.name}</Text>
+                      <Text className="text-sm">: </Text>
+                      <Text className="text-sm font-bold text-text-success">{Weight_display(estimated1RM)}</Text>
                       <Text>
                         {" "}
                         ({Reps_avgUnilateralCompletedReps(item.set) || 0} {"\u00D7"}{" "}
@@ -133,7 +133,7 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
                     </Text>
                     {item.prev != null && previous1RM && (
                       <Text className="text-xs italic text-text-secondarysubtle">
-                        (was <Text className="font-bold">{Weight_display(previous1RM)}</Text>,{" "}
+                        (was <Text className="text-xs font-bold">{Weight_display(previous1RM)}</Text>,{" "}
                         {Reps_avgUnilateralCompletedReps(item.prev) || 0} {"\u00D7"}{" "}
                         {Weight_display(
                           item.prev.completedWeight ?? item.prev.weight ?? Weight_build(0, props.settings.units)
