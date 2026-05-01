@@ -191,7 +191,7 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
               <View
                 data-testid={`item-graph-${graph.type}-${StringUtils_dashcase(graph.id)}`}
                 testID={`item-graph-${graph.type}-${StringUtils_dashcase(graph.id)}`}
-                className="w-full px-2 py-1 border-b border-border-neutral"
+                className="w-full px-2 py-1 border-b border-border-neutral bg-background-default"
               >
                 <View className="flex-row items-center">
                   <View style={{ marginLeft: -16 }}>
