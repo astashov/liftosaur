@@ -24,6 +24,7 @@ interface ILineChartProps {
   onCursorChange?: (idx: number | null) => void;
   yAxisFormatter?: (value: number) => string;
   yAxisWidth?: number;
+  isInteractive?: boolean;
 }
 
 export interface ILineChartHandle {
@@ -287,6 +288,7 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
     resetViewport,
     setCursorAtPx,
     clearCursor,
+    isInteractive: props.isInteractive !== false,
   });
 
   useImperativeHandle(

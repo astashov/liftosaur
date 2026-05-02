@@ -13,6 +13,8 @@ interface IProps {
   innerClassName?: string;
   shouldShowClose?: boolean;
   zIndex?: number;
+  overlay?: ReactNode;
+  overlayDetent?: number;
 }
 
 export function ModalScreenContainer(props: IProps): JSX.Element {
@@ -49,11 +51,12 @@ export function ModalScreenContainer(props: IProps): JSX.Element {
       >
         <div
           className={`relative h-full ${props.noPaddings ? "" : "px-6"} ${
-            props.overflowHidden ? "overflow-hidden" : "overflow-auto"
+            props.overflowHidden || props.overlay ? "overflow-hidden" : "overflow-auto"
           } ${props.innerClassName ?? ""}`}
         >
           {props.children}
         </div>
+        {props.overlay}
         {props.shouldShowClose !== false && (
           <button
             data-testid="modal-close"

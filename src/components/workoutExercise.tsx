@@ -18,6 +18,7 @@ import { IEvaluatedProgram, IEvaluatedProgramDay } from "../models/program";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { Collector } from "../utils/collector";
 import { Locker } from "./locker";
+import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { GraphExercise } from "./graphExercise";
 import { ExerciseAllTimePRs } from "./exerciseAllTimePRs";
 import { ExerciseHistory } from "./exerciseHistory";
@@ -149,6 +150,7 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
                   exercise={exerciseType}
                   initialType={props.settings.graphsSettings.defaultType}
                   dispatch={props.dispatch}
+                  isInteractive={Subscriptions_hasSubscription(props.subscription)}
                 />
               </ActiveGraphContext.Provider>
             </View>

@@ -177,6 +177,7 @@ export function StatsList(props: IProps): JSX.Element {
               collection={graphPoints}
               statsKey={selectedKey}
               movingAverageWindowSize={movingAverageWindowSize}
+              isInteractive={Subscriptions_hasSubscription(props.subscription)}
             />
             <Locker topic="Graphs" dispatch={props.dispatch} blur={8} subscription={props.subscription} />
           </>

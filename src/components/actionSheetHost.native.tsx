@@ -135,7 +135,9 @@ function ActionSheetModal(props: { request: IActionSheetRequest; onDismissed: ()
       navigationBarTranslucent
       onRequestClose={() => animateClose(cancelButtonIndex)}
     >
-      <GestureHandlerRootView style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, justifyContent: "flex-end" }}>
+      <GestureHandlerRootView
+        style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, justifyContent: "flex-end" }}
+      >
         <Animated.View
           pointerEvents={isClosing.current ? "none" : "auto"}
           style={[

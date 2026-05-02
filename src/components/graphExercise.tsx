@@ -31,6 +31,7 @@ interface IGraphProps {
   bodyweightData?: [number, number][];
   initialType?: IExerciseSelectedType;
   dispatch?: IDispatch;
+  isInteractive?: boolean;
 }
 
 interface IGraphData {
@@ -207,6 +208,7 @@ function GraphExerciseInner(props: IGraphProps): JSX.Element {
             programLines={props.isWithProgramLines ? result.changeProgramTimes : undefined}
             onCursorChange={handleCursorChange}
             yAxisFormatter={(v) => `${Math.round(v)}`}
+            isInteractive={props.isInteractive}
           />
           <GraphLegendOverlay visible={overlayVisible} onClose={onCloseOverlay}>
             <GraphExerciseLegend

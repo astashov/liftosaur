@@ -10,6 +10,7 @@ export interface ILineChartGesturesArgs {
   resetViewport: () => void;
   setCursorAtPx: (xPx: number) => number | null;
   clearCursor: () => void;
+  isInteractive?: boolean;
 }
 
 export interface ILineChartGesturesResult {
@@ -38,7 +39,7 @@ export function useLineChartGestures(args: ILineChartGesturesArgs): ILineChartGe
   }, []);
 
   useEffect(() => {
-    if (!node) {
+    if (!node || args.isInteractive === false) {
       return;
     }
 
@@ -344,7 +345,7 @@ export function useLineChartGestures(args: ILineChartGesturesArgs): ILineChartGe
       node.removeEventListener("touchcancel", onTouchCancel);
       document.removeEventListener("touchstart", onDocTouchStart, true);
     };
-  }, [node]);
+  }, [node, args.isInteractive]);
 
   const Wrap = useCallback(
     function LineChartGestureWrap(props: { children: ReactNode; style: StyleProp<ViewStyle> }): JSX.Element {

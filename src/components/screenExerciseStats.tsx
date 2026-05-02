@@ -30,6 +30,7 @@ import { ExerciseImage } from "./exerciseImage";
 import { GraphExercise } from "./graphExercise";
 import { Collector } from "../utils/collector";
 import { Locker } from "./locker";
+import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { HelpExerciseStats } from "./help/helpExerciseStats";
 import { ExerciseDataSettings } from "./exerciseDataSettings";
 import { LinkButton } from "./linkButton";
@@ -189,6 +190,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
             exercise={exerciseType}
             initialType={props.settings.graphsSettings.defaultType}
             dispatch={props.dispatch}
+            isInteractive={Subscriptions_hasSubscription(props.subscription)}
           />
         </View>
       )}

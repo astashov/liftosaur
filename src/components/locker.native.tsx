@@ -1,5 +1,6 @@
 import { JSX, memo } from "react";
-import { View } from "react-native";
+import { View, Platform, StyleSheet } from "react-native";
+import { BlurView } from "@react-native-community/blur";
 import { Text } from "./primitives/text";
 import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
@@ -21,15 +22,14 @@ function LockerInner(props: IProps): JSX.Element {
     return <></>;
   }
   return (
-    <View
-      className="absolute inset-0 z-10 flex-col items-center justify-center"
-      style={
-        {
-          backdropFilter: `blur(${props.blur}px)`,
-          WebkitBackdropFilter: `blur(${props.blur}px)`,
-        } as object
-      }
-    >
+    <View className="absolute inset-0 z-10 flex-col items-center justify-center overflow-hidden">
+      <BlurView
+        style={StyleSheet.absoluteFill}
+        blurType="light"
+        blurAmount={props.blur}
+        reducedTransparencyFallbackColor={Platform.OS === "ios" ? "white" : undefined}
+        overlayColor={Platform.OS === "android" ? "rgba(255,255,255,0.4)" : undefined}
+      />
       <View className="mx-auto text-center" style={{ maxWidth: 192 }}>
         <Text>
           Get <Text className="font-bold text-icon-yellow">Premium</Text> to unlock{" "}

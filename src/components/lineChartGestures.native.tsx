@@ -11,6 +11,7 @@ export interface ILineChartGesturesArgs {
   resetViewport: () => void;
   setCursorAtPx: (xPx: number) => number | null;
   clearCursor: () => void;
+  isInteractive?: boolean;
 }
 
 export interface ILineChartGesturesResult {
@@ -22,6 +23,7 @@ export interface ILineChartGesturesResult {
 export function useLineChartGestures(args: ILineChartGesturesArgs): ILineChartGesturesResult {
   const { plotWidth, padLeft, viewport, setViewport, resetViewport, setCursorAtPx } = args;
   const { xMin, xMax } = viewport;
+  const isInteractive = args.isInteractive !== false;
 
   const pinchStartRef = useRef<{ xMin: number; xMax: number; focalX: number } | null>(null);
   const panStartRef = useRef<{ xMin: number; xMax: number } | null>(null);
@@ -79,6 +81,7 @@ export function useLineChartGestures(args: ILineChartGesturesArgs): ILineChartGe
   const pan = useMemo(
     () =>
       Gesture.Pan()
+        .enabled(isInteractive)
         .minPointers(1)
         .maxPointers(1)
         .activateAfterLongPress(150)
@@ -88,12 +91,13 @@ export function useLineChartGestures(args: ILineChartGesturesArgs): ILineChartGe
         .onUpdate((e) => {
           runOnJS(setCursorAtPx)(e.x);
         }),
-    [setCursorAtPx]
+    [setCursorAtPx, isInteractive]
   );
 
   const twoFingerPan = useMemo(
     () =>
       Gesture.Pan()
+        .enabled(isInteractive)
         .minPointers(2)
         .maxPointers(2)
         .onStart(() => {
@@ -105,12 +109,13 @@ export function useLineChartGestures(args: ILineChartGesturesArgs): ILineChartGe
         .onEnd(() => {
           runOnJS(endPan)();
         }),
-    [beginPan, updatePan, endPan]
+    [beginPan, updatePan, endPan, isInteractive]
   );
 
   const pinch = useMemo(
     () =>
       Gesture.Pinch()
+        .enabled(isInteractive)
         .onStart((e) => {
           runOnJS(beginPinch)(e.focalX);
         })
@@ -120,18 +125,19 @@ export function useLineChartGestures(args: ILineChartGesturesArgs): ILineChartGe
         .onEnd(() => {
           runOnJS(endPinch)();
         }),
-    [beginPinch, updatePinch, endPinch]
+    [beginPinch, updatePinch, endPinch, isInteractive]
   );
 
   const doubleTap = useMemo(
     () =>
       Gesture.Tap()
+        .enabled(isInteractive)
         .numberOfTaps(2)
         .maxDuration(300)
         .onEnd(() => {
           runOnJS(resetViewport)();
         }),
-    [resetViewport]
+    [resetViewport, isInteractive]
   );
 
   const composed = useMemo(

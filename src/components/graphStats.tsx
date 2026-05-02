@@ -31,6 +31,7 @@ interface IGraphStatsProps {
   minX: number;
   maxX: number;
   movingAverageWindowSize?: number;
+  isInteractive?: boolean;
 }
 
 export function getWeightDataForGraph(coll: IStatsWeightValue[], settings: ISettings): [number, number][] {
@@ -129,6 +130,7 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
             xMax={xMax}
             onCursorChange={handleCursorChange}
             yAxisFormatter={(v) => `${Math.round(v * 10) / 10}`}
+            isInteractive={props.isInteractive}
           />
           <GraphLegendOverlay visible={overlayVisible} onClose={onCloseOverlay}>
             {timestamp != null && value != null && props.units != null && (

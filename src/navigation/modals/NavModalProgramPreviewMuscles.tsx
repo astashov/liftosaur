@@ -61,13 +61,17 @@ export function NavModalProgramPreviewMuscles(): JSX.Element {
   const title =
     params.type === "program" ? `Muscles for program '${evaluatedProgram.name}'` : `Muscles for day '${name}'`;
 
+  const isLocked = !Subscriptions_hasSubscription(subscription);
+
   return (
-    <ModalScreenContainer onClose={() => navigation.goBack()} shouldShowClose={true}>
-      {!Subscriptions_hasSubscription(subscription) && (
-        <Locker topic="Muscles" dispatch={dispatch} blur={8} subscription={subscription} />
-      )}
+    <ModalScreenContainer
+      onClose={() => navigation.goBack()}
+      shouldShowClose={true}
+      overlay={isLocked ? <Locker topic="Muscles" dispatch={dispatch} blur={8} subscription={subscription} /> : null}
+      overlayDetent={0.85}
+    >
       <Text className="pb-2 text-xl font-bold text-center">{title}</Text>
-      <ScrollView>
+      <ScrollView scrollEnabled={!isLocked}>
         <MusclesView settings={settings} points={points} title={evaluatedProgram.name} />
       </ScrollView>
     </ModalScreenContainer>
