@@ -2496,6 +2496,22 @@ Bent Over Row / 3x8 / superset: A`}
         </ul>
       ),
     },
+    "20260502": {
+      title: <span>Huge update where nothing changed</span>,
+      body: (
+        <ul>
+          <li>
+            In preparation for migrating the app from a webapp (like it is right now) to a native app, I had to do a
+            massive rewrite of the whole codebase. But the functionality stays the same. The only difference is graphs
+            look slightly different (had to rewrite the graphs engine from the scratch).
+          </li>
+          <li>
+            So, in case you find any new bugs after this - please let me know in Discord or at{" "}
+            <strong>info@liftosaur.com</strong>. Thanks!
+          </li>
+        </ul>
+      ),
+    },
   };
 
   return whatsNew;
