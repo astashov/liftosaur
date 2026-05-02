@@ -182,7 +182,9 @@ export function TestimonialsView(props: { testimonials: ITestimonial[] }): JSX.E
               style={{ opacity: page === 0 ? 0.5 : 1 }}
               disabled={page === 0}
             >
-              <IconArrowRight style={{ transform: "rotate(180deg)" }} />
+              <div className="rotate-180">
+                <IconArrowRight />
+              </div>
             </button>
             <button
               className="flex items-center justify-center w-10 h-10 transition-colors border rounded-full cursor-pointer border-border-prominent hover:bg-gray-100 active:bg-gray-200"

@@ -212,7 +212,7 @@ function ExerciseItem(props: IExerciseItemProps): JSX.Element {
           </View>
         </View>
         <View className="items-center py-2 pl-2">
-          <IconArrowRight style={{ color: "#a0aec0" }} />
+          <IconArrowRight />
         </View>
       </View>
     </MenuItemWrapper>
