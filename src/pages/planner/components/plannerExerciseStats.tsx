@@ -28,6 +28,12 @@ import { lb } from "lens-shmens";
 import { PlannerKey_fromPlannerExercise } from "../plannerKey";
 import { IconExternalLink } from "../../../components/icons/iconExternalLink";
 import { ExerciseImageUtils_exists } from "../../../models/exerciseImage";
+import {
+  SendMessage_isIos,
+  SendMessage_isAndroid,
+  SendMessage_toIos,
+  SendMessage_toAndroid,
+} from "../../../utils/sendMessage";
 import { Muscle_getMuscleGroupName } from "../../../models/muscle";
 import { useRem } from "../../../utils/useRem";
 
@@ -113,7 +119,14 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
             <Pressable
               className="flex-row items-center mb-2"
               onPress={() => {
-                Linking.openURL(Exercise_toExternalUrl(exercise)).catch(() => undefined);
+                const url = Exercise_toExternalUrl(exercise);
+                if (SendMessage_isIos()) {
+                  SendMessage_toIos({ type: "openUrl", url });
+                } else if (SendMessage_isAndroid()) {
+                  SendMessage_toAndroid({ type: "openUrl", url });
+                } else {
+                  Linking.openURL(url).catch(() => undefined);
+                }
               }}
             >
               <Text className="text-lg font-bold underline text-text-link">{evaluatedExercise.name}</Text>
