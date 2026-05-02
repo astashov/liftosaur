@@ -113,7 +113,7 @@ export const ProgramPreviewTabExercise = memo(function ProgramPreviewTabExercise
               <Text className="pr-1 text-sm font-bold text-left">
                 {Exercise_nameWithEquipment(exercise, props.settings)}
               </Text>
-              <IconArrowRight width={5} height={10} style={{ marginBottom: 1 }} />
+              <IconArrowRight width={5} height={10} />
             </Pressable>
           </View>
           <View

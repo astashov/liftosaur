@@ -7,7 +7,6 @@ interface IProps {
   width?: number;
   height?: number;
   className?: string;
-  style?: Record<string, unknown>;
 }
 
 export function IconArrowRight(props: IProps): JSX.Element {

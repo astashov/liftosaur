@@ -118,7 +118,9 @@ export const ProgramDetailsWorkoutPlayground = memo((props: IPlaygroundProps): J
                 onClick={() => scrollBy(-1)}
                 disabled={!canScrollLeft}
               >
-                <IconArrowRight style={{ transform: "rotate(180deg)" }} />
+                <div className="rotate-180">
+                  <IconArrowRight />
+                </div>
               </button>
               <button
                 className="flex items-center justify-center w-8 h-8 transition-colors border rounded-full border-border-prominent hover:bg-gray-100 active:bg-gray-200"
