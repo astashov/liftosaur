@@ -7,7 +7,7 @@ let cachedLiftohistoryReference: string | undefined;
 let cachedExercisesList: string[] | undefined;
 
 function readFile(relativePath: string): string {
-  return fs.readFileSync(path.join(__dirname, "..", "..", relativePath), "utf8");
+  return fs.readFileSync(path.join(__dirname, "..", relativePath), "utf8");
 }
 
 export function McpReference_getLiftoscriptReference(): string {
@@ -86,7 +86,7 @@ Liftohistory is a human-readable text format for workout history records in Lift
 }
 
 export function McpReference_listBuiltinPrograms(): { id: string; name: string }[] {
-  const dir = path.join(__dirname, "..", "..", "programs", "builtin");
+  const dir = path.join(__dirname, "..", "programs", "builtin");
   const files = fs.readdirSync(dir).filter((f) => f.endsWith(".md"));
   return files.map((f) => {
     const content = fs.readFileSync(path.join(dir, f), "utf8");
@@ -97,7 +97,7 @@ export function McpReference_listBuiltinPrograms(): { id: string; name: string }
 }
 
 export function McpReference_getBuiltinProgram(id: string): string | undefined {
-  const filePath = path.join(__dirname, "..", "..", "programs", "builtin", `${id}.md`);
+  const filePath = path.join(__dirname, "..", "programs", "builtin", `${id}.md`);
   try {
     return fs.readFileSync(filePath, "utf8");
   } catch {
