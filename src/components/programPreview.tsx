@@ -147,7 +147,7 @@ export function ProgramPreview(props: IProps): JSX.Element {
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View className="flex-1 pb-6">
       <ProgramPreviewOrPlayground
         headerContent={previewHeader}
         program={program}

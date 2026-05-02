@@ -527,7 +527,7 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: React.Forwa
       className="fixed bottom-0 left-0 w-full keyboard-shadow"
       style={{ zIndex: 70 }}
     >
-      <div className="safe-area-inset-bottom">
+      <div className="safe-area-inset-bottom bg-background-default">
         <div className="flex items-center w-full gap-2 px-4 bg-background-subtle">
           <div className="flex-1">{props.keyboardAddon}</div>
           {props.enableCalculator && (
