@@ -246,6 +246,32 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
     switchRef.current = false;
   }, [cancelPendingInput]);
 
+  const commitValueIfOutside = useCallback((target: HTMLElement | null): void => {
+    if (!isFocusedRef.current || !isTypingRef.current) {
+      return;
+    }
+    let cur: HTMLElement | null = target;
+    while (cur) {
+      if (cur === containerRef.current || cur === keyboardRef.current) {
+        return;
+      }
+      if (cur === document.body) {
+        break;
+      }
+      cur = cur.parentElement;
+    }
+    if (debounceTimerRef.current != null) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    hasPendingInputRef.current = false;
+    pendingInputRef.current = undefined;
+    const newValueNum = clamp(valueRef.current, props.min, props.max);
+    if (onBlurRef.current) {
+      onBlurRef.current(newValueNum);
+    }
+  }, []);
+
   useEffect(() => {
     if (isFocused) {
       if (props.value == null && props.initialValue != null) {
@@ -387,7 +413,9 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
       if (isCalculatorOpenRef.current) {
         return;
       }
-      onClickTarget.current = (event.target || event.currentTarget) as HTMLElement;
+      const target = (event.target || event.currentTarget) as HTMLElement;
+      onClickTarget.current = target;
+      commitValueIfOutside(target);
     };
     document.addEventListener("touchstart", documentClickHandler);
     document.addEventListener("mousedown", documentClickHandler);
@@ -395,7 +423,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
       document.removeEventListener("touchstart", documentClickHandler);
       document.removeEventListener("mousedown", documentClickHandler);
     };
-  }, []);
+  }, [commitValueIfOutside]);
 
   return (
     <div ref={containerRef} className="input-number">
