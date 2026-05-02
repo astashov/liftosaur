@@ -156,8 +156,8 @@ export const Input = memo(
           )}
           <TextInput
             ref={inputRef}
-            className="px-2 pb-2 text-base leading-5 text-text-primary"
-            style={{ height: size === "md" ? 28 : 22 }}
+            className={`px-2 text-base leading-5 text-text-primary ${label ? "pb-2" : "py-2"}`}
+            style={{ minHeight: size === "md" ? 40 : 32 }}
             defaultValue={currentValueRef.current}
             placeholder={props.placeholder}
             autoCapitalize={props.autoCapitalize}

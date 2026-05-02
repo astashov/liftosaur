@@ -1,7 +1,7 @@
 import { gzip, gzipSync, gunzip, gunzipSync } from "fflate";
 import { UrlUtils_build } from "./url";
 
-const isBrowser = typeof FileReader !== "undefined";
+const isBrowser = typeof FileReader !== "undefined" && typeof Worker !== "undefined";
 
 export async function Encoder_encodeIntoUrlAndSetUrl(str: string): Promise<void> {
   const url = await Encoder_encodeIntoUrl(str, window.location.href);
