@@ -1,5 +1,6 @@
 import { JSX, useState } from "react";
-import { IPaymentsDashboardData } from "../../../lambda/paymentsDashboard";
+import { IPaymentsDashboardData, IPaymentsDashboardUserAffiliate } from "../../../lambda/paymentsDashboard";
+import { IPaymentDao } from "../../../lambda/dao/paymentDao";
 import { StringUtils_truncate } from "../../utils/string";
 import { TimeUtils_formatUTCHHMM } from "../../utils/time";
 import { DateUtils_dayOfWeekStr, DateUtils_formatUTCYYYYMMDD, DateUtils_formatUTCYYYYMMDDHHMM } from "../../utils/date";
@@ -9,6 +10,24 @@ export interface IPaymentsDashboardContentProps {
   client: Window["fetch"];
   apiKey: string;
   paymentsData: IPaymentsDashboardData[];
+  userAffiliates: Partial<Record<string, IPaymentsDashboardUserAffiliate>>;
+}
+
+function getAttributedAffiliate(
+  payment: IPaymentDao,
+  userAffiliates: Partial<Record<string, IPaymentsDashboardUserAffiliate>>
+): IPaymentsDashboardUserAffiliate | undefined {
+  const affiliate = userAffiliates[payment.userId];
+  if (!affiliate) {
+    return undefined;
+  }
+  if (payment.subscriptionStartTimestamp == null) {
+    return undefined;
+  }
+  if (payment.subscriptionStartTimestamp <= affiliate.timestamp) {
+    return undefined;
+  }
+  return affiliate;
 }
 
 function getProductType(product: string): string {
@@ -613,6 +632,7 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
                   <th className="px-2 py-2 text-left">Platform</th>
                   <th className="px-2 py-2 text-left">Source</th>
                   <th className="px-2 py-2 text-left">Offer</th>
+                  <th className="px-2 py-2 text-left">Affiliate</th>
                   <th className="px-2 py-2 text-right">Amount</th>
                 </tr>
               </thead>
@@ -655,6 +675,23 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
                     <td className="px-2 py-2">{payment.type}</td>
                     <td className="px-2 py-2">{payment.source}</td>
                     <td className="px-2 py-2 font-mono text-xs text-purple-600">{payment.offerIdentifier || "-"}</td>
+                    <td className="px-2 py-2 font-mono text-xs">
+                      {(() => {
+                        const affiliate = getAttributedAffiliate(payment, props.userAffiliates);
+                        return affiliate ? (
+                          <a
+                            href={`/dashboards/affiliates/${affiliate.affiliateId}?key=${props.apiKey}`}
+                            className="text-blue-600 hover:underline"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {affiliate.affiliateId}
+                          </a>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        );
+                      })()}
+                    </td>
                     <td className="px-2 py-2 font-mono text-right">
                       {formatCurrencyWithUSD(payment.amount - (payment.tax ?? 0), payment.currency)}
                       {payment.tax ? <span className="text-xs text-gray-500"> (+{payment.tax.toFixed(2)})</span> : null}
@@ -688,6 +725,7 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
                       cancellation
                       {cancellation.wasTrialPayment && <span className="ml-1 text-purple-600">(trial)</span>}
                     </td>
+                    <td className="px-2 py-2 text-gray-400">-</td>
                     <td className="px-2 py-2 text-gray-400">-</td>
                     <td className="px-2 py-2 text-gray-400">-</td>
                     <td className="px-2 py-2 text-gray-400">-</td>

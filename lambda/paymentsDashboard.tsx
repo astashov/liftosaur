@@ -7,10 +7,23 @@ export interface IPaymentsDashboardData {
   payments: IPaymentDao[];
 }
 
+export interface IPaymentsDashboardUserAffiliate {
+  affiliateId: string;
+  timestamp: number;
+}
+
 export function renderPaymentsDashboardHtml(
   client: Window["fetch"],
   apiKey: string,
-  paymentsData: IPaymentsDashboardData[]
+  paymentsData: IPaymentsDashboardData[],
+  userAffiliates: Partial<Record<string, IPaymentsDashboardUserAffiliate>>
 ): string {
-  return renderPage(<PaymentsDashboardHtml client={client} apiKey={apiKey} paymentsData={paymentsData} />);
+  return renderPage(
+    <PaymentsDashboardHtml
+      client={client}
+      apiKey={apiKey}
+      paymentsData={paymentsData}
+      userAffiliates={userAffiliates}
+    />
+  );
 }

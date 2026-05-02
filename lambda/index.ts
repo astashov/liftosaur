@@ -99,7 +99,11 @@ import { EventDao } from "./dao/eventDao";
 import { PaymentDao } from "./dao/paymentDao";
 import { StorageDao } from "./dao/storageDao";
 import { renderUserDashboardHtml } from "./userDashboard";
-import { renderPaymentsDashboardHtml, IPaymentsDashboardData } from "./paymentsDashboard";
+import {
+  renderPaymentsDashboardHtml,
+  IPaymentsDashboardData,
+  IPaymentsDashboardUserAffiliate,
+} from "./paymentsDashboard";
 import { IExportedPlannerProgram } from "../src/pages/planner/models/types";
 import { UrlContentFetcher } from "./utils/urlContentFetcher";
 import { LlmPrompt_getSystemPrompt, LlmPrompt_getUserPrompt } from "./utils/llms/llmPrompt";
@@ -1544,9 +1548,26 @@ const getDashboardsPaymentsHandler: RouteHandler<
       }))
       .sort((a, b) => b.date.localeCompare(a.date));
 
+    const uniqueUserIds = Array.from(new Set(allPayments.map((p) => p.userId)));
+    const affiliatesByUser = await new AffiliateDao(di).getAffiliatesForUsers(uniqueUserIds);
+    const userAffiliates: Partial<Record<string, IPaymentsDashboardUserAffiliate>> = {};
+    for (const userId of uniqueUserIds) {
+      const affiliates = affiliatesByUser[userId] || [];
+      let earliest: { affiliateId: string; timestamp: number } | undefined;
+      for (const a of affiliates) {
+        const ts = a.timestamp || 0;
+        if (!earliest || ts < earliest.timestamp) {
+          earliest = { affiliateId: a.affiliateId, timestamp: ts };
+        }
+      }
+      if (earliest) {
+        userAffiliates[userId] = earliest;
+      }
+    }
+
     return {
       statusCode: 200,
-      body: renderPaymentsDashboardHtml(di.fetch, apiKey, paymentsData),
+      body: renderPaymentsDashboardHtml(di.fetch, apiKey, paymentsData, userAffiliates),
       headers: { "content-type": "text/html" },
     };
   } else {
