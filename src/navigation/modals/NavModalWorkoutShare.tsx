@@ -1,11 +1,9 @@
-import { JSX, useEffect, useState } from "react";
-import { useRoute, useNavigation } from "@react-navigation/native";
+import { JSX, useEffect } from "react";
+import { useRoute, useNavigation, StackActions } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
 import { BottomSheetItem } from "../../components/bottomSheetItem";
-import { BottomSheet } from "../../components/bottomSheet";
 import { WorkoutShareBottomSheetItem } from "../../components/workoutShareBottomSheetItem";
-import { WorkoutSocialShareSheet } from "../../components/workoutSocialShareSheet";
 import { IconInstagram } from "../../components/icons/iconInstagram";
 import { IconTiktok } from "../../components/icons/iconTiktok";
 import { IconLink } from "../../components/icons/iconLink";
@@ -40,8 +38,9 @@ export function NavModalWorkoutShare(): JSX.Element {
     (SendMessage_isIos() && SendMessage_iosAppVersion() >= 11) ||
     (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 20);
 
-  const [shareType, setShareType] = useState<"igstory" | "igfeed" | "tiktok">("igstory");
-  const [shouldShowShareSheet, setShouldShowShareSheet] = useState(false);
+  const replaceWithSocialShare = (type: "igstory" | "igfeed" | "tiktok"): void => {
+    navigation.dispatch(StackActions.replace("socialShareModal", { type, progressId }));
+  };
 
   const shouldGoBack = !progress;
   useEffect(() => {
@@ -72,30 +71,21 @@ export function NavModalWorkoutShare(): JSX.Element {
               isFirst={true}
               description={""}
               icon={<IconInstagram size={24} />}
-              onClick={() => {
-                setShouldShowShareSheet(true);
-                setShareType("igstory");
-              }}
+              onClick={() => replaceWithSocialShare("igstory")}
             />
             <BottomSheetItem
               name="share-to-igfeed"
               title="Share to Instagram Feed"
               description={""}
               icon={<IconInstagram size={24} />}
-              onClick={() => {
-                setShouldShowShareSheet(true);
-                setShareType("igfeed");
-              }}
+              onClick={() => replaceWithSocialShare("igfeed")}
             />
             <BottomSheetItem
               name="share-to-tiktok"
               title="Share to Tiktok"
               description={""}
               icon={<IconTiktok width={24} height={24} />}
-              onClick={() => {
-                setShouldShowShareSheet(true);
-                setShareType("tiktok");
-              }}
+              onClick={() => replaceWithSocialShare("tiktok")}
             />
             {shouldShowHealthSync && (
               <BottomSheetItem
@@ -150,17 +140,6 @@ export function NavModalWorkoutShare(): JSX.Element {
           }}
         />
       </div>
-      {shouldShowShareSheet && (
-        <BottomSheet isHidden={false} onClose={() => setShouldShowShareSheet(false)} shouldShowClose={true}>
-          <WorkoutSocialShareSheet
-            history={state.storage.history}
-            record={progress}
-            settings={state.storage.settings}
-            type={shareType}
-            isHidden={false}
-          />
-        </BottomSheet>
-      )}
     </SheetScreenContainer>
   );
 }

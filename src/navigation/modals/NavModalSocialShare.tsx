@@ -9,9 +9,14 @@ export function NavModalSocialShare(): JSX.Element {
   const { state } = useAppState();
   const navigation = useNavigation();
   const route = useRoute<{ key: string; name: "socialShareModal"; params: IRootStackParamList["socialShareModal"] }>();
-  const { type } = route.params;
+  const { type, progressId } = route.params;
 
-  const record = state.storage.history[0];
+  const record =
+    progressId == null
+      ? state.storage.history[0]
+      : progressId === 0
+        ? state.storage.progress?.[0]
+        : state.progress[progressId];
 
   return (
     <SheetScreenContainer onClose={() => navigation.goBack()} shouldShowClose={true}>
