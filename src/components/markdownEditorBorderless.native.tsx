@@ -1,6 +1,8 @@
 import { JSX, useMemo, useCallback, useState } from "react";
-import { View, TextInput, StyleSheet } from "react-native";
-import { Text } from "./primitives/text";
+import { StyleSheet } from "react-native";
+import MarkdownTextInput from "@expensify/react-native-live-markdown/src/MarkdownTextInput";
+import type { MarkdownStyle } from "@expensify/react-native-live-markdown/src/MarkdownTextInput";
+import type { MarkdownRange } from "@expensify/react-native-live-markdown/src/commonTypes";
 import { debounce } from "../utils/throttler";
 
 interface IProps {
@@ -11,186 +13,151 @@ interface IProps {
   debounceMs?: number;
 }
 
-interface ISpan {
-  text: string;
-  style?: "syntax" | "bold" | "italic" | "strikethrough" | "link" | "code" | "heading";
-}
-
-function parseMarkdown(text: string): ISpan[] {
-  const spans: ISpan[] = [];
-  const lines = text.split("\n");
+function parseMarkdownWorklet(input: string): MarkdownRange[] {
+  "worklet";
+  const ranges: MarkdownRange[] = [];
+  const lines = input.split("\n");
+  let lineStart = 0;
 
   for (let li = 0; li < lines.length; li++) {
     const line = lines[li];
-    if (li > 0) {
-      spans.push({ text: "\n" });
-    }
+    const lineLen = line.length;
 
-    // # Headings
     const hashMatch = line.match(/^(#{1,6} )/);
     if (hashMatch) {
-      spans.push({ text: hashMatch[1], style: "syntax" });
-      spans.push({ text: line.slice(hashMatch[1].length), style: "heading" });
+      const syntaxLen = hashMatch[1].length;
+      ranges.push({ type: "syntax", start: lineStart, length: syntaxLen });
+      if (lineLen > syntaxLen) {
+        ranges.push({ type: "h1", start: lineStart, length: lineLen });
+      }
+      lineStart += lineLen + 1;
       continue;
     }
 
-    // > Blockquotes
     if (line.startsWith("> ")) {
-      spans.push({ text: "> ", style: "syntax" });
-      spans.push({ text: line.slice(2) });
+      ranges.push({ type: "blockquote", start: lineStart, length: lineLen });
+      ranges.push({ type: "syntax", start: lineStart, length: 2 });
+      lineStart += lineLen + 1;
       continue;
     }
 
     let pos = 0;
-    while (pos < line.length) {
-      // Inline code `text`
-      if (line[pos] === "`") {
+    while (pos < lineLen) {
+      const ch = line[pos];
+
+      if (ch === "`") {
         const end = line.indexOf("`", pos + 1);
         if (end !== -1) {
-          spans.push({ text: "`", style: "syntax" });
-          spans.push({ text: line.slice(pos + 1, end), style: "code" });
-          spans.push({ text: "`", style: "syntax" });
+          ranges.push({ type: "syntax", start: lineStart + pos, length: 1 });
+          if (end > pos + 1) {
+            ranges.push({ type: "code", start: lineStart + pos + 1, length: end - pos - 1 });
+          }
+          ranges.push({ type: "syntax", start: lineStart + end, length: 1 });
           pos = end + 1;
           continue;
         }
       }
 
-      // Images ![alt](url)
-      if (line[pos] === "!" && line[pos + 1] === "[") {
-        const altEnd = line.indexOf("]", pos + 2);
-        if (altEnd !== -1 && line[altEnd + 1] === "(") {
-          const urlEnd = line.indexOf(")", altEnd + 2);
-          if (urlEnd !== -1) {
-            spans.push({ text: "![", style: "syntax" });
-            spans.push({ text: line.slice(pos + 2, altEnd) });
-            spans.push({ text: "](", style: "syntax" });
-            spans.push({ text: line.slice(altEnd + 2, urlEnd), style: "link" });
-            spans.push({ text: ")", style: "syntax" });
-            pos = urlEnd + 1;
-            continue;
-          }
-        }
-      }
-
-      // Links [text](url)
-      if (line[pos] === "[") {
-        const labelEnd = line.indexOf("]", pos + 1);
+      if (ch === "[" || (ch === "!" && line[pos + 1] === "[")) {
+        const labelStart = ch === "!" ? pos + 2 : pos + 1;
+        const labelEnd = line.indexOf("]", labelStart);
         if (labelEnd !== -1 && line[labelEnd + 1] === "(") {
           const urlEnd = line.indexOf(")", labelEnd + 2);
           if (urlEnd !== -1) {
-            spans.push({ text: "[", style: "syntax" });
-            spans.push({ text: line.slice(pos + 1, labelEnd) });
-            spans.push({ text: "](", style: "syntax" });
-            spans.push({ text: line.slice(labelEnd + 2, urlEnd), style: "link" });
-            spans.push({ text: ")", style: "syntax" });
+            const syntaxOpenLen = ch === "!" ? 2 : 1;
+            ranges.push({ type: "syntax", start: lineStart + pos, length: syntaxOpenLen });
+            ranges.push({ type: "syntax", start: lineStart + labelEnd, length: 2 });
+            if (urlEnd > labelEnd + 2) {
+              ranges.push({ type: "link", start: lineStart + labelEnd + 2, length: urlEnd - labelEnd - 2 });
+            }
+            ranges.push({ type: "syntax", start: lineStart + urlEnd, length: 1 });
             pos = urlEnd + 1;
             continue;
           }
         }
       }
 
-      // Strikethrough ~~text~~
-      if (line[pos] === "~" && line[pos + 1] === "~") {
+      if (ch === "~" && line[pos + 1] === "~") {
         const end = line.indexOf("~~", pos + 2);
         if (end !== -1) {
-          spans.push({ text: "~~", style: "syntax" });
-          spans.push({ text: line.slice(pos + 2, end), style: "strikethrough" });
-          spans.push({ text: "~~", style: "syntax" });
+          ranges.push({ type: "syntax", start: lineStart + pos, length: 2 });
+          if (end > pos + 2) {
+            ranges.push({ type: "strikethrough", start: lineStart + pos + 2, length: end - pos - 2 });
+          }
+          ranges.push({ type: "syntax", start: lineStart + end, length: 2 });
           pos = end + 2;
           continue;
         }
       }
 
-      // Bold **text**
-      if (line[pos] === "*" && line[pos + 1] === "*") {
+      if (ch === "*" && line[pos + 1] === "*") {
         const end = line.indexOf("**", pos + 2);
         if (end !== -1) {
-          spans.push({ text: "**", style: "syntax" });
-          spans.push({ text: line.slice(pos + 2, end), style: "bold" });
-          spans.push({ text: "**", style: "syntax" });
+          ranges.push({ type: "syntax", start: lineStart + pos, length: 2 });
+          if (end > pos + 2) {
+            ranges.push({ type: "bold", start: lineStart + pos + 2, length: end - pos - 2 });
+          }
+          ranges.push({ type: "syntax", start: lineStart + end, length: 2 });
           pos = end + 2;
           continue;
         }
       }
 
-      // Italic *text*
-      if (line[pos] === "*" && line[pos + 1] !== "*") {
+      if (ch === "*" && line[pos + 1] !== "*") {
         const end = line.indexOf("*", pos + 1);
         if (end !== -1 && line[end + 1] !== "*") {
-          spans.push({ text: "*", style: "syntax" });
-          spans.push({ text: line.slice(pos + 1, end), style: "italic" });
-          spans.push({ text: "*", style: "syntax" });
+          ranges.push({ type: "syntax", start: lineStart + pos, length: 1 });
+          if (end > pos + 1) {
+            ranges.push({ type: "italic", start: lineStart + pos + 1, length: end - pos - 1 });
+          }
+          ranges.push({ type: "syntax", start: lineStart + end, length: 1 });
           pos = end + 1;
           continue;
         }
       }
 
-      // Plain text — collect until next special char
-      let nextSpecial = line.length;
-      for (let j = pos + 1; j < line.length; j++) {
-        if (line[j] === "*" || line[j] === "`" || line[j] === "~" || line[j] === "[" || line[j] === "!") {
-          nextSpecial = j;
-          break;
-        }
-      }
-      spans.push({ text: line.slice(pos, nextSpecial) });
-      pos = nextSpecial;
+      pos++;
     }
+
+    lineStart += lineLen + 1;
   }
 
-  return spans;
+  return ranges;
 }
 
-const spanStyles = StyleSheet.create({
+const markdownStyle: MarkdownStyle = {
   syntax: { color: "#404740" },
-  bold: { fontWeight: "bold" },
-  italic: { fontStyle: "italic" },
-  strikethrough: { textDecorationLine: "line-through" },
-  link: { color: "#219", textDecorationLine: "underline" },
-  code: { color: "#a11" },
-  heading: { fontWeight: "bold" },
-});
+  link: { color: "#1d4ed8" },
+  h1: { fontSize: 18 },
+  code: {
+    color: "#a11",
+    backgroundColor: "transparent",
+    borderColor: "transparent",
+    borderWidth: 0,
+    borderRadius: 0,
+    padding: 0,
+    fontSize: 14,
+    fontFamily: "Courier",
+  },
+  blockquote: {
+    borderColor: "#9ca3af",
+    borderWidth: 3,
+    marginLeft: 0,
+    paddingLeft: 6,
+  },
+};
 
 const styles = StyleSheet.create({
-  container: { position: "relative" },
-  baseText: { fontFamily: "Poppins", fontSize: 14, color: "#000", padding: 8 },
   input: {
     fontFamily: "Poppins",
     fontSize: 14,
-    color: "transparent",
+    lineHeight: 20,
+    color: "#000",
     padding: 8,
     minHeight: 60,
     textAlignVertical: "top" as const,
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
   },
-  highlight: { minHeight: 60 },
 });
-
-function HighlightedText(props: { text: string }): JSX.Element {
-  const spans = useMemo(() => parseMarkdown(props.text), [props.text]);
-  return (
-    <Text style={styles.baseText}>
-      {spans.map((span, i) => {
-        if (!span.style) {
-          return (
-            <Text key={i} style={styles.baseText}>
-              {span.text}
-            </Text>
-          );
-        }
-        return (
-          <Text key={i} style={[styles.baseText, spanStyles[span.style]]}>
-            {span.text}
-          </Text>
-        );
-      })}
-    </Text>
-  );
-}
 
 export function MarkdownEditorBorderless(props: IProps): JSX.Element {
   const [text, setText] = useState(props.value ?? "");
@@ -211,15 +178,15 @@ export function MarkdownEditorBorderless(props: IProps): JSX.Element {
   );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.highlight}>
-        {text ? (
-          <HighlightedText text={text} />
-        ) : (
-          <Text style={[styles.baseText, { color: "#9ca3af" }]}>{props.placeholder}</Text>
-        )}
-      </View>
-      <TextInput value={text} onChangeText={handleChangeText} multiline style={styles.input} />
-    </View>
+    <MarkdownTextInput
+      multiline
+      value={text}
+      placeholder={props.placeholder}
+      placeholderTextColor="#9ca3af"
+      onChangeText={handleChangeText}
+      parser={parseMarkdownWorklet}
+      markdownStyle={markdownStyle}
+      style={styles.input}
+    />
   );
 }

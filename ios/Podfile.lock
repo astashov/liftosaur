@@ -2016,6 +2016,30 @@ PODS:
     - Yoga
   - RNInAppBrowser (3.7.1):
     - React-Core
+  - RNLiveMarkdown (0.1.325):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-FabricComponents
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererconsistency
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - RNWorklets
+    - Yoga
   - RNReanimated (4.3.0):
     - hermes-engine
     - RCTRequired
@@ -2344,6 +2368,7 @@ DEPENDENCIES:
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - "RNGoogleSignin (from `../node_modules/@react-native-google-signin/google-signin`)"
   - RNInAppBrowser (from `../node_modules/react-native-inappbrowser-reborn`)
+  - "RNLiveMarkdown (from `../node_modules/@expensify/react-native-live-markdown`)"
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNSVG (from `../node_modules/react-native-svg`)
@@ -2539,6 +2564,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-google-signin/google-signin"
   RNInAppBrowser:
     :path: "../node_modules/react-native-inappbrowser-reborn"
+  RNLiveMarkdown:
+    :path: "../node_modules/@expensify/react-native-live-markdown"
   RNReanimated:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
@@ -2646,6 +2673,7 @@ SPEC CHECKSUMS:
   RNGestureHandler: 242d92132af8f48b021baaa437a715ceef574f96
   RNGoogleSignin: 134be8e649914ddfae060eba2364ed138bed939b
   RNInAppBrowser: 904d24dc75e8e6c6c98a3160329192608946f9df
+  RNLiveMarkdown: f9c15ca2025f59e999736ca354cd49ebdfaf20f3
   RNReanimated: 160413ac24aa8876337bbdc53c03276e3a5765ab
   RNScreens: d0b84395f70841b48de7af26e45704ed4a24c62e
   RNSVG: 194bee0b443d3ea8ca41c86c657edcaf64f00f35
@@ -2658,6 +2686,6 @@ SPEC CHECKSUMS:
   SwiftUIIntrospect: fee9aa07293ee280373a591e1824e8ddc869ba5d
   Yoga: 9e495ad6f457c4ff504a8328981496b5cf41dd7f
 
-PODFILE CHECKSUM: 490f141e87653ef9785b69b9ffb7c26bf27b6eb1
+PODFILE CHECKSUM: 6d63eb20cd77bee8869ea53b2b8799ceff4b6f22
 
 COCOAPODS: 1.16.2

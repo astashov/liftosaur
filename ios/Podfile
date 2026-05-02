@@ -31,6 +31,22 @@ target 'Liftosaur' do
       # :ccache_enabled => true
     )
 
+    # RNLiveMarkdown 0.1.x podspec is missing the ReactCommon/jsitooling header search path
+    # required by RN 0.84 (its transitive include of <jsireact/JSIExecutor.h> pulls in
+    # <react/runtime/JSRuntimeBindings.h>, which lives under jsitooling/).
+    rn_common_dir = File.join(__dir__, '..', 'node_modules', 'react-native', 'ReactCommon')
+    rn_common_relative = Pathname.new(rn_common_dir).relative_path_from(installer.sandbox.root).to_s
+    installer.pods_project.targets.each do |target|
+      next unless target.name == 'RNLiveMarkdown'
+      target.build_configurations.each do |config|
+        config.build_settings['HEADER_SEARCH_PATHS'] ||= '$(inherited)'
+        config.build_settings['HEADER_SEARCH_PATHS'] = [
+          config.build_settings['HEADER_SEARCH_PATHS'],
+          "\"$(PODS_ROOT)/#{rn_common_relative}/jsitooling\"",
+        ].join(' ')
+      end
+    end
+
     # Xcode 26 / iOS 26 SDK treats netinet6/in6.h as a private framework header.
     # RollbarNotifier 3.3.3 imports it redundantly (netinet/in.h already covers it).
     rollbar_file = File.join(__dir__, 'Pods', 'RollbarNotifier', 'RollbarNotifier',
