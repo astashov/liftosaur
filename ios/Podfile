@@ -17,6 +17,10 @@ end
 target 'Liftosaur' do
   config = use_native_modules!
 
+  # RollbarReport (Swift) depends on RollbarCrash (Obj-C without modules);
+  # without modular headers it can't be linked as a static library.
+  pod 'RollbarCrash', :modular_headers => true
+
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.

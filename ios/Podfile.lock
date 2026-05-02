@@ -2177,6 +2177,27 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - RNShare (12.2.6):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - RNSVG (15.15.4):
     - hermes-engine
     - RCTRequired
@@ -2393,8 +2414,10 @@ DEPENDENCIES:
   - "RNLiveMarkdown (from `../node_modules/@expensify/react-native-live-markdown`)"
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
+  - RNShare (from `../node_modules/react-native-share`)
   - RNSVG (from `../node_modules/react-native-svg`)
   - RNWorklets (from `../node_modules/react-native-worklets`)
+  - RollbarCrash
   - RollbarReactNative (from `../node_modules/rollbar-react-native`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
@@ -2594,6 +2617,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  RNShare:
+    :path: "../node_modules/react-native-share"
   RNSVG:
     :path: "../node_modules/react-native-svg"
   RNWorklets:
@@ -2701,6 +2726,7 @@ SPEC CHECKSUMS:
   RNLiveMarkdown: f9c15ca2025f59e999736ca354cd49ebdfaf20f3
   RNReanimated: 160413ac24aa8876337bbdc53c03276e3a5765ab
   RNScreens: d0b84395f70841b48de7af26e45704ed4a24c62e
+  RNShare: 4db97500d742393e28dbf603c5e858b76222653b
   RNSVG: 194bee0b443d3ea8ca41c86c657edcaf64f00f35
   RNWorklets: 1ea54706807e7780b6aa67dab0f11e5c73cfeeef
   RollbarCommon: cb87be0f694a09c138f7d51d6f3b48151ca965ab
@@ -2711,6 +2737,6 @@ SPEC CHECKSUMS:
   SwiftUIIntrospect: fee9aa07293ee280373a591e1824e8ddc869ba5d
   Yoga: 9e495ad6f457c4ff504a8328981496b5cf41dd7f
 
-PODFILE CHECKSUM: 6d63eb20cd77bee8869ea53b2b8799ceff4b6f22
+PODFILE CHECKSUM: 3e86a84c1e2c129182e6d273e247ece41a14348c
 
 COCOAPODS: 1.16.2

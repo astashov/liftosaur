@@ -116,7 +116,7 @@ function parseMarkdownWorklet(input: string): MarkdownRange[] {
         }
       }
 
-      pos++;
+      pos += 1;
     }
 
     lineStart += lineLen + 1;
