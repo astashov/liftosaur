@@ -83,7 +83,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
 
   return (
     <>
-      <section className="px-4 text-sm">
+      <section className="px-4 pb-6 text-sm">
         <div className="flex items-center justify-center pb-2">
           <div>
             <img src={ImagePreloader_dynohappy} className="block" style={{ width: 170, height: 150 }} />
