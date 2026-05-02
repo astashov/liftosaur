@@ -1,4 +1,4 @@
-import { JSX, useRef } from "react";
+import { JSX, useRef, useState } from "react";
 import { View } from "react-native";
 import { Text } from "../primitives/text";
 import { Button } from "../button";
@@ -32,7 +32,7 @@ export function ProgramPreviewPlaygroundExerciseEditContent(
   const stateMetadata = PlannerProgramExercise_getStateMetadata(props.programExercise);
   const hasStateVariables = ObjectUtils_keys(state).length > 0;
   const pendingStateVarsRef = useRef<Record<string, string>>({});
-  const pendingRmRef = useRef<string | undefined>(undefined);
+  const [pendingRm, setPendingRm] = useState<string | undefined>(undefined);
   if (!programExercise.exerciseType) {
     return null;
   }
@@ -45,11 +45,12 @@ export function ProgramPreviewPlaygroundExerciseEditContent(
           rmKey="rm1"
           exercise={exercise}
           settings={props.settings}
+          displayValue={pendingRm}
           onEditVariable={(v) => {
-            pendingRmRef.current = String(v);
+            setPendingRm(String(v));
           }}
           onInput={(v) => {
-            pendingRmRef.current = v;
+            setPendingRm(v);
           }}
         />
       )}
@@ -76,8 +77,8 @@ export function ProgramPreviewPlaygroundExerciseEditContent(
           name="details-workout-playground-save-statvars"
           kind="purple"
           onClick={() => {
-            if (pendingRmRef.current != null) {
-              const num = parseFloat(pendingRmRef.current);
+            if (pendingRm != null) {
+              const num = parseFloat(pendingRm);
               if (!isNaN(num)) {
                 props.onEditVariable("rm1", num);
               }
