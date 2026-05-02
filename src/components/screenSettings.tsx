@@ -29,6 +29,8 @@ import {
   SendMessage_iosAppVersion,
   SendMessage_isAndroid,
   SendMessage_androidAppVersion,
+  SendMessage_toIos,
+  SendMessage_toAndroid,
 } from "../utils/sendMessage";
 import { IconSpeaker } from "./icons/iconSpeaker";
 import { ImporterLiftosaurCsv } from "./importerLiftosaurCsv";
@@ -56,7 +58,13 @@ interface IProps {
 }
 
 function openExternal(url: string): void {
-  Linking.openURL(url).catch(() => undefined);
+  if (SendMessage_isIos()) {
+    SendMessage_toIos({ type: "openUrl", url });
+  } else if (SendMessage_isAndroid()) {
+    SendMessage_toAndroid({ type: "openUrl", url });
+  } else {
+    Linking.openURL(url).catch(() => undefined);
+  }
 }
 
 export function ScreenSettings(props: IProps): JSX.Element {
