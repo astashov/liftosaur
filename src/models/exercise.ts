@@ -878,6 +878,15 @@ export const allExercisesList: Record<IExerciseId, IExercise> = {
     startingWeightLb: { value: 60, unit: "lb" },
     startingWeightKg: { value: 26.25, unit: "kg" },
   },
+  machinePullover: {
+    id: "machinePullover",
+    name: "Machine Pullover",
+    defaultWarmup: 10,
+    defaultEquipment: "leverageMachine",
+    types: ["upper", "pull"],
+    startingWeightLb: { value: 50, unit: "lb" },
+    startingWeightKg: { value: 22.5, unit: "kg" },
+  },
   mountainClimber: {
     id: "mountainClimber",
     name: "Mountain Climber",
@@ -922,6 +931,15 @@ export const allExercisesList: Record<IExerciseId, IExercise> = {
     types: ["lower", "legs"],
     startingWeightLb: { value: 55, unit: "lb" },
     startingWeightKg: { value: 25, unit: "kg" },
+  },
+  pallofPress: {
+    id: "pallofPress",
+    name: "Pallof Press",
+    defaultWarmup: 10,
+    defaultEquipment: "cable",
+    types: ["core"],
+    startingWeightLb: { value: 20, unit: "lb" },
+    startingWeightKg: { value: 10, unit: "kg" },
   },
   pecDeck: {
     id: "pecDeck",
@@ -2615,6 +2633,12 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     bodyParts: ["Thighs"],
     sortedEquipment: ["leverageMachine", "band"],
   },
+  machinePullover: {
+    targetMuscles: ["Latissimus Dorsi"],
+    synergistMuscles: ["Pectoralis Major Sternal Head", "Teres Major", "Triceps Brachii"],
+    bodyParts: ["Back"],
+    sortedEquipment: ["leverageMachine"],
+  },
   mountainClimber: {
     targetMuscles: ["Iliopsoas"],
     synergistMuscles: ["Adductor Brevis", "Adductor Longus", "Pectineous", "Sartorius", "Tensor Fasciae Latae"],
@@ -2663,6 +2687,12 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     synergistMuscles: ["Adductor Magnus", "Gluteus Maximus", "Soleus"],
     bodyParts: ["Thighs"],
     sortedEquipment: ["barbell", "dumbbell"],
+  },
+  pallofPress: {
+    targetMuscles: ["Obliques"],
+    synergistMuscles: ["Rectus Abdominis", "Gluteus Medius"],
+    bodyParts: ["Waist"],
+    sortedEquipment: ["cable", "band"],
   },
   pecDeck: {
     targetMuscles: ["Pectoralis Major Sternal Head"],
@@ -3394,7 +3424,7 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     targetMuscles: ["Triceps Brachii"],
     synergistMuscles: [],
     bodyParts: ["Upper Arms"],
-    sortedEquipment: ["barbell", "cable", "band", "dumbbell"],
+    sortedEquipment: ["barbell", "cable", "band", "dumbbell", "leverageMachine"],
   },
   tricepsPushdown: {
     targetMuscles: ["Triceps Brachii"],
