@@ -45,7 +45,9 @@ export function ProgramPreviewPlaygroundExerciseEditContent(
           rmKey="rm1"
           exercise={exercise}
           settings={props.settings}
-          onEditVariable={() => {}}
+          onEditVariable={(v) => {
+            pendingRmRef.current = String(v);
+          }}
           onInput={(v) => {
             pendingRmRef.current = v;
           }}
@@ -137,7 +139,11 @@ function ProgramStateVariables(props: IStateProps): JSX.Element {
             value={displayValue.toString()}
             valueUnits={Weight_is(value) || Weight_isPct(value) ? value.unit : undefined}
             hasClear={false}
-            onChange={() => {}}
+            onChange={(v) => {
+              if (props.pendingRef && v != null) {
+                props.pendingRef.current[stateKey] = v;
+              }
+            }}
             onInput={(v) => {
               if (props.pendingRef) {
                 props.pendingRef.current[stateKey] = v;
