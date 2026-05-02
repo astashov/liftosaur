@@ -106,6 +106,7 @@ import { IndexedDBUtils_initializeForSafari, IndexedDBUtils_get } from "./utils/
 import { Settings_applyTheme, Settings_getTheme } from "./models/settings";
 import { TextSize_apply } from "./utils/textSize";
 import { AppContext } from "./components/appContext";
+import { ActionSheetHost } from "./components/actionSheetHost";
 import { Thunk_fetchInitial, Thunk_sync2 } from "./ducks/thunks";
 
 GoogleSignin.configure({
@@ -141,6 +142,7 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
           <NavigationContainer ref={navigationRef}>
             <AppNavigator initialScreen={initialScreen} />
           </NavigationContainer>
+          <ActionSheetHost />
         </ModalStateProvider>
       </StateContext.Provider>
     </AppContext.Provider>

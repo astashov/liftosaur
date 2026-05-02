@@ -12,6 +12,8 @@
     "ios-device-release": "RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --mode Release --device='Anton iPhone Air'",
     "pod-install": "cd ios && RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static pod install",
     "android": "react-native run-android",
+    "android-device": "react-native run-android --device",
+    "android-device-release": "react-native run-android --mode=release --device",
     "rn:start": "react-native start",
     "build": "npm run ensure:localdomain && npm run build:prepare && npm run upload-source-maps",
     "build:prepare": "npm run ensure:localdomain && npm run build:markdown && npm run build:programs && npm run build:exercises && npm run plannerhighlighter && npm run blog && npm run docs && npm run sitemap && NODE_ENV=production npm run build:dev",

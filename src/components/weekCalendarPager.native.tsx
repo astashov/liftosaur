@@ -76,7 +76,7 @@ export const WeekCalendarPager = forwardRef<IWeekCalendarPagerHandle, IWeekCalen
     const keyExtractor = useCallback((item: number) => String(item), []);
 
     return (
-      <View className="flex-1" onLayout={handleLayout}>
+      <View onLayout={handleLayout}>
         {pageWidth > 0 && (
           <FlatList
             ref={flatListRef}

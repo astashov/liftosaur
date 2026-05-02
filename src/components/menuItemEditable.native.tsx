@@ -1,10 +1,11 @@
 import { JSX, Dispatch, ReactNode, SetStateAction, useRef, useEffect, RefObject } from "react";
-import { View, Pressable, ActionSheetIOS, TextInput } from "react-native";
+import { View, Pressable, TextInput } from "react-native";
 import { Text } from "./primitives/text";
 import { Switch } from "./primitives/switch";
 import { MenuItemWrapper } from "./menuItem";
 import { IconTrash } from "./icons/iconTrash";
 import { StringUtils_dashcase } from "../utils/string";
+import { ActionSheet_show } from "../utils/actionSheet";
 
 type IMenuItemType = "text" | "number" | "select" | "boolean" | "desktop-select" | "select2";
 
@@ -105,8 +106,8 @@ export function MenuItemValue(
 
     const showPicker = (): void => {
       const options = (props.values || []).map(([, label]) => label).concat("Cancel");
-      ActionSheetIOS.showActionSheetWithOptions({ options, cancelButtonIndex: options.length - 1 }, (buttonIndex) => {
-        if (buttonIndex < (props.values || []).length) {
+      ActionSheet_show({ options, cancelButtonIndex: options.length - 1 }, (buttonIndex) => {
+        if (buttonIndex != null && buttonIndex < (props.values || []).length) {
           const selected = (props.values || [])[buttonIndex];
           if (selected && props.onChange) {
             props.onChange(selected[0]);
