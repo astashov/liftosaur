@@ -14,10 +14,12 @@ interface IExerciseRMProps {
   settings: ISettings;
   onEditVariable: (value: number) => void;
   onInput?: (v: string) => void;
+  displayValue?: string;
 }
 
 export function ExerciseRM(props: IExerciseRMProps): JSX.Element {
   const rm = Exercise_onerm(props.exercise, props.settings);
+  const displayValue = props.displayValue ?? `${rm.value}`;
 
   const openCalculator = useModal("repMaxCalculatorModal", (weightValue) => {
     if (weightValue != null) {
@@ -42,7 +44,7 @@ export function ExerciseRM(props: IExerciseRMProps): JSX.Element {
           }
         }}
         onInput={props.onInput}
-        value={`${rm.value}`}
+        value={displayValue}
         after={
           <>
             <Text className="ml-1 mr-2 font-normal text-text-secondary">{rm.unit}</Text>
