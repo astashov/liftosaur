@@ -38,6 +38,26 @@ const local = `https://${localdomain}.liftosaur.com:${localport}/`;
 
 const isDev = process.env.NODE_ENV !== "production";
 
+const lftMarkerPlugin = {
+  apply(compiler) {
+    compiler.hooks.compilation.tap("LftMarkerPlugin", (compilation) => {
+      compilation.hooks.processAssets.tap(
+        { name: "LftMarkerPlugin", stage: Compilation.PROCESS_ASSETS_STAGE_DEV_TOOLING - 1 },
+        (assets) => {
+          for (const [name, source] of Object.entries(assets)) {
+            if (/\.(js|css)$/.test(name) && !name.includes(".map")) {
+              compilation.updateAsset(
+                name,
+                new sources.ConcatSource("/* LFTSTART */\n", source, "\n/* LFTEND */")
+              );
+            }
+          }
+        }
+      );
+    });
+  },
+};
+
 const watchConfig = {
   entry: "./src/watch/index.ts",
   target: "node",
@@ -82,6 +102,7 @@ const watchConfig = {
     },
   },
   plugins: [
+    lftMarkerPlugin,
     new DefinePlugin({
       window: "globalThis",
       __BUNDLE_VERSION_WATCH_IOS__: bundleVersionWatchIos,
@@ -188,22 +209,7 @@ const mainConfig = {
   },
   plugins: [
     new NormalModuleReplacementPlugin(/react-native-css-interop\/dist\/doctor/, require.resolve("./empty-module.js")),
-    {
-      apply(compiler) {
-        compiler.hooks.compilation.tap("LftMarkerPlugin", (compilation) => {
-          compilation.hooks.processAssets.tap(
-            { name: "LftMarkerPlugin", stage: Compilation.PROCESS_ASSETS_STAGE_DEV_TOOLING - 1 },
-            (assets) => {
-              for (const [name, source] of Object.entries(assets)) {
-                if (/\.(js|css)$/.test(name) && !name.includes(".map")) {
-                  compilation.updateAsset(name, new sources.ConcatSource("/* LFTSTART */\n", source, "\n/* LFTEND */"));
-                }
-              }
-            }
-          );
-        });
-      },
-    },
+    lftMarkerPlugin,
     new SourceMapDevToolPlugin({
       append: `\n//# sourceMappingURL=[name].js.map?version=${commitHash}`,
       filename: "[file].map",
