@@ -114,7 +114,7 @@ function ExerciseChanges({ diffVars }: { diffVars: Record<string, string | undef
               data-testid={`variable-changes-key-${StringUtils_dashcase(key)}`}
               testID={`variable-changes-key-${StringUtils_dashcase(key)}`}
             >
-              <Text>
+              <Text className="text-xs">
                 <Text className="text-xs italic">{key}</Text>:{" "}
                 <Text
                   className="text-xs font-bold"
@@ -146,9 +146,9 @@ function StateVariablesChanges({ diffState }: { diffState: Record<string, string
               testID={`state-changes-key-${StringUtils_dashcase(key)}`}
             >
               <Text className="text-xs">
-                <Text className="italic">{key}</Text>:{" "}
+                <Text className="text-xs italic">{key}</Text>:{" "}
                 <Text
-                  className="font-bold"
+                  className="text-xs font-bold"
                   data-testid={`state-changes-value-${StringUtils_dashcase(key)}`}
                   testID={`state-changes-value-${StringUtils_dashcase(key)}`}
                 >
