@@ -4,7 +4,9 @@ import { Text } from "../../components/primitives/text";
 import { useRoute } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { buildNavCommon } from "../utils";
+import { NavScreenContent } from "../NavScreenContent";
 import { ScreenWorkout } from "../../components/screenWorkout";
+import { ScreenFinishDay as ScreenFinishDayComponent } from "../../components/screenFinishDay";
 import { Progress_isCurrent } from "../../models/progress";
 import { Program_getFullProgram, Program_getProgram, Program_fullProgram } from "../../models/program";
 import { FallbackScreen } from "../../components/fallbackScreen";
@@ -49,10 +51,18 @@ export function NavScreenProgress(): JSX.Element {
 }
 
 export function NavScreenFinishDay(): JSX.Element {
+  const { state, dispatch } = useAppState();
+  const navCommon = buildNavCommon(state);
   return (
-    <View className="flex-1 justify-center items-center bg-background-default">
-      <Text className="text-2xl font-bold text-icon-neutral">Finish Day</Text>
-    </View>
+    <NavScreenContent>
+      <ScreenFinishDayComponent
+        navCommon={navCommon}
+        settings={state.storage.settings}
+        dispatch={dispatch}
+        history={state.storage.history}
+        userId={state.user?.id}
+      />
+    </NavScreenContent>
   );
 }
 

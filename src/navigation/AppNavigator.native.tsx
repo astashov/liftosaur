@@ -183,7 +183,11 @@ function WorkoutStackScreen(): JSX.Element {
         getId={({ params }) => String(params?.id ?? 0)}
         options={{ headerShown: true, header: NavHeader }}
       />
-      <WorkoutStack.Screen name="finishDay" component={NavScreenFinishDay} />
+      <WorkoutStack.Screen
+        name="finishDay"
+        component={NavScreenFinishDay}
+        options={{ headerShown: true, header: NavHeader }}
+      />
       <WorkoutStack.Screen
         name="editProgramExercise"
         component={NavScreenEditProgramExercise}

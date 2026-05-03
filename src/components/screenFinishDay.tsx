@@ -1,4 +1,7 @@
 import { JSX, useState } from "react";
+import { View, Pressable, Platform } from "react-native";
+import { SvgUri } from "react-native-svg";
+import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import { Dialog_alert } from "../utils/dialog";
 import {
@@ -42,6 +45,7 @@ import { IconTiktok } from "./icons/iconTiktok";
 import { PersonalRecords } from "./personalRecords";
 import { ModalDayFromAdhoc } from "./modalDayFromAdhoc";
 import { ImagePreloader_dynohappy } from "../utils/imagePreloader";
+import { HostConfig_resolveUrl } from "../utils/hostConfig";
 import { n } from "../utils/math";
 import { Muscle_getMuscleGroupName } from "../models/muscle";
 import { IconDoc } from "./icons/iconDoc";
@@ -80,125 +84,123 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
   const [showCreateProgramDay, setShowCreateProgramDay] = useState(false);
   const eligibleForCreateProgramDay = props.navCommon.allPrograms.every((p) => p.id !== record.programId);
 
+  const isMobile =
+    Platform.OS === "ios" ||
+    Platform.OS === "android" ||
+    (SendMessage_isIos() && SendMessage_iosAppVersion() >= 11) ||
+    (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 20);
+
   useNavOptions({ navTitle: "Congratulations!" });
 
   return (
     <>
-      <section className="px-4 pb-6 text-sm">
-        <div className="flex items-center justify-center pb-2">
-          <div>
-            <img src={ImagePreloader_dynohappy} className="block" style={{ width: 170, height: 150 }} />
-          </div>
-        </div>
-        <section className="px-4 pb-2 text-center">
-          <div className="text-sm text-text-secondary">{record.programName}</div>
-          <div className="text-base">{record.dayName}</div>
-        </section>
-        <div className="px-4 pt-2 pb-3 rounded-lg bg-background-purpledark" data-testid="totals-summary">
+      <View className="px-4 pb-6">
+        <View className="flex-row items-center justify-center pb-2">
+          <SvgUri uri={HostConfig_resolveUrl(ImagePreloader_dynohappy)} width={170} height={150} />
+        </View>
+        <View className="items-center px-4 pb-2">
+          <Text className="text-sm text-text-secondary">{record.programName}</Text>
+          <Text className="text-base">{record.dayName}</Text>
+        </View>
+        <View className="px-4 pt-2 pb-3 rounded-lg bg-background-purpledark" testID="totals-summary">
           <GroupHeader name="Totals" />
-          <div className="flex gap-2">
-            <ul className="flex-1">
-              <li>
-                <span className="mr-1">🕐</span> Time:{" "}
-                <strong>{TimeUtils_formatHHMM(History_workoutTime(record))} h</strong>
-              </li>
-              <li>
-                <span className="mr-1">🏋</span> Volume: <strong>{Weight_display(totalWeight)}</strong>
-              </li>
-            </ul>
-            <ul className="flex-1">
-              <li>
-                <span className="mr-1">💪</span> Sets: <strong>{totalSets}</strong>
-              </li>
-              <li>
-                <span className="mr-1">🔄</span> Reps: <strong>{totalReps}</strong>
-              </li>
-            </ul>
-          </div>
-        </div>
+          <View className="flex-row gap-2">
+            <View className="flex-1">
+              <Text className="text-sm">
+                <Text className="mr-1">🕐</Text> Time:{" "}
+                <Text className="font-bold">{TimeUtils_formatHHMM(History_workoutTime(record))} h</Text>
+              </Text>
+              <Text className="text-sm">
+                <Text className="mr-1">🏋</Text> Volume:{" "}
+                <Text className="font-bold">{Weight_display(totalWeight)}</Text>
+              </Text>
+            </View>
+            <View className="flex-1">
+              <Text className="text-sm">
+                <Text className="mr-1">💪</Text> Sets: <Text className="font-bold">{totalSets}</Text>
+              </Text>
+              <Text className="text-sm">
+                <Text className="mr-1">🔄</Text> Reps: <Text className="font-bold">{totalReps}</Text>
+              </Text>
+            </View>
+          </View>
+        </View>
 
-        {startedEntries.length > 0 ? (
-          <>
-            <div className="px-4 py-2 mt-2 rounded-lg bg-background-purpledark" data-testid="completed-exercises">
-              <GroupHeader name="Exercises" />
-              {startedEntries.map((entry, i) => {
-                return (
-                  <HistoryEntryView
-                    key={`${entry.exercise.id}_${entry.exercise.equipment}`}
-                    showNotes={false}
-                    entry={entry}
-                    isNext={false}
-                    isLast={i === startedEntries.length - 1}
-                    settings={props.settings}
-                  />
-                );
-              })}
-            </div>
-          </>
-        ) : (
-          <></>
-        )}
-
-        <div data-testid="sets-per-muscle-group" className="px-4 py-2 mt-2 rounded-lg bg-background-purpledark">
-          <GroupHeader name="Sets per muscle group" />
-          <div className="flex gap-4">
-            {muscleGroupsGrouped.map((group, gi) => {
+        {startedEntries.length > 0 && (
+          <View className="px-4 py-2 mt-2 rounded-lg bg-background-purpledark" testID="completed-exercises">
+            <GroupHeader name="Exercises" />
+            {startedEntries.map((entry, i) => {
               return (
-                <ul key={gi} className="flex-1">
-                  {group.map(([mg, value]) => {
-                    return (
-                      <li key={mg}>
-                        {Muscle_getMuscleGroupName(mg, props.settings)}: <strong>{n(value)}</strong>
-                      </li>
-                    );
-                  })}
-                </ul>
+                <HistoryEntryView
+                  key={`${entry.exercise.id}_${entry.exercise.equipment}`}
+                  showNotes={false}
+                  entry={entry}
+                  isNext={false}
+                  isLast={i === startedEntries.length - 1}
+                  settings={props.settings}
+                />
               );
             })}
-          </div>
-        </div>
+          </View>
+        )}
 
-        <section className="px-4 py-4 mt-4">
+        <View className="px-4 py-2 mt-2 rounded-lg bg-background-purpledark" testID="sets-per-muscle-group">
+          <GroupHeader name="Sets per muscle group" />
+          <View className="flex-row gap-4">
+            {muscleGroupsGrouped.map((group, gi) => {
+              return (
+                <View key={gi} className="flex-1">
+                  {group.map(([mg, value]) => {
+                    return (
+                      <Text key={mg} className="text-sm">
+                        {Muscle_getMuscleGroupName(mg, props.settings)}: <Text className="font-bold">{n(value)}</Text>
+                      </Text>
+                    );
+                  })}
+                </View>
+              );
+            })}
+          </View>
+        </View>
+
+        <View className="px-4 py-4 mt-4">
           <PersonalRecords prs={allPrs} historyRecords={[record]} settings={props.settings} />
-        </section>
+        </View>
 
-        {(SendMessage_isIos() && SendMessage_iosAppVersion() >= 11) ||
-        (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 20) ? (
+        {isMobile ? (
           <MobileShare userId={props.userId} history={props.history} settings={props.settings} />
         ) : (
           <WebappShare userId={props.userId} history={props.history} settings={props.settings} />
         )}
 
         {eligibleForCreateProgramDay && (
-          <div className="mx-2 my-1 text-xs text-text-secondary">You can create a program day from this workout</div>
+          <Text className="mx-2 my-1 text-xs text-text-secondary">You can create a program day from this workout</Text>
         )}
 
-        <div className="flex w-full gap-4 pt-4">
+        <View className="flex-row w-full gap-4 pt-4">
           {eligibleForCreateProgramDay && (
-            <div className="flex-1 text-center">
+            <View className="items-center flex-1">
               <Button
                 name="create-program-day"
                 kind="purple"
                 buttonSize="lg2"
                 className="w-36"
-                data-testid="create-program-day"
                 testID="create-program-day"
-                onClick={() => {
+                onPress={() => {
                   setShowCreateProgramDay(true);
                 }}
               >
                 Create Program Day
               </Button>
-            </div>
+            </View>
           )}
-          <div className="flex justify-center flex-1 pb-8 text-center">
+          <View className="items-center justify-center flex-1 pb-8">
             <Button
               name="finish-day-continue"
               kind="purple"
               className="w-36"
-              data-testid="finish-day-continue"
               testID="finish-day-continue"
-              onClick={() => {
+              onPress={() => {
                 props.dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }));
                 props.dispatch(Thunk_maybeRequestReview());
                 props.dispatch(Thunk_maybeRequestSignup());
@@ -206,9 +208,9 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
             >
               Continue
             </Button>
-          </div>
-        </div>
-      </section>
+          </View>
+        </View>
+      </View>
       <Confetti />
       {showCreateProgramDay && (
         <ModalDayFromAdhoc
@@ -233,78 +235,76 @@ interface IMobileShareProps {
 
 function MobileShare(props: IMobileShareProps): JSX.Element {
   return (
-    <div>
-      <div className="px-4 py-4">
-        <GroupHeader name="Share it!" />
-        <div className="flex justify-between gap-4 text-xs text-text-secondary">
-          <div className="text-center">
-            <button
-              className="nm-finishday-share-igstory"
-              onClick={() => navigationRef.navigate("socialShareModal", { type: "igstory" })}
-            >
-              <IconInstagram />
-            </button>
-            <div>IG Story</div>
-          </div>
-          <div className="text-center">
-            <button
-              className="nm-finishday-share-igfeed"
-              onClick={() => navigationRef.navigate("socialShareModal", { type: "igfeed" })}
-            >
-              <IconInstagram />
-            </button>
-            <div>IG Feed</div>
-          </div>
-          <div className="text-center">
-            <button
-              className="nm-finishday-share-tiktok"
-              onClick={() => navigationRef.navigate("socialShareModal", { type: "tiktok" })}
-            >
-              <IconTiktok />
-            </button>
-            <div>Tiktok</div>
-          </div>
-          <div className="text-center">
-            <button
-              className="w-10 h-10 rounded-full nm-finishday-share-text bg-background-subtle"
-              onClick={() => {
-                const text = LiftohistorySerializer_serialize(props.history[0], props.settings);
-                ClipboardUtils_copy(text);
-                Dialog_alert("Copied!");
-              }}
-            >
-              <IconDoc className="inline-block" />
-            </button>
-            <div>Text</div>
-          </div>
-          <div className="text-center">
-            <WorkoutShareButton
-              history={props.history}
-              record={props.history[0]}
-              settings={props.settings}
-              icon={<IconKebab className="inline-block" />}
-            />
-            <div>More</div>
-          </div>
-        </div>
-        <div className="mt-1 text-center">
-          <LinkButton
-            name="copy-workout-link"
-            onClick={() => {
-              if (props.userId) {
-                const link = Share_generateLink(props.userId, props.history[0].id);
-                ClipboardUtils_copy(link);
-                Dialog_alert("Copied!");
-              } else {
-                Dialog_alert("You should be logged in to copy link to a workout");
-              }
+    <View className="px-4 py-4">
+      <GroupHeader name="Share it!" />
+      <View className="flex-row justify-between gap-4">
+        <View className="items-center">
+          <Pressable
+            className="nm-finishday-share-igstory"
+            onPress={() => navigationRef.navigate("socialShareModal", { type: "igstory" })}
+          >
+            <IconInstagram />
+          </Pressable>
+          <Text className="text-xs text-text-secondary">IG Story</Text>
+        </View>
+        <View className="items-center">
+          <Pressable
+            className="nm-finishday-share-igfeed"
+            onPress={() => navigationRef.navigate("socialShareModal", { type: "igfeed" })}
+          >
+            <IconInstagram />
+          </Pressable>
+          <Text className="text-xs text-text-secondary">IG Feed</Text>
+        </View>
+        <View className="items-center">
+          <Pressable
+            className="nm-finishday-share-tiktok"
+            onPress={() => navigationRef.navigate("socialShareModal", { type: "tiktok" })}
+          >
+            <IconTiktok />
+          </Pressable>
+          <Text className="text-xs text-text-secondary">Tiktok</Text>
+        </View>
+        <View className="items-center">
+          <Pressable
+            className="items-center justify-center w-10 h-10 rounded-full nm-finishday-share-text bg-background-subtle"
+            onPress={() => {
+              const text = LiftohistorySerializer_serialize(props.history[0], props.settings);
+              ClipboardUtils_copy(text);
+              Dialog_alert("Copied!");
             }}
           >
-            or just copy a link
-          </LinkButton>
-        </div>
-      </div>
-    </div>
+            <IconDoc />
+          </Pressable>
+          <Text className="text-xs text-text-secondary">Text</Text>
+        </View>
+        <View className="items-center">
+          <WorkoutShareButton
+            history={props.history}
+            record={props.history[0]}
+            settings={props.settings}
+            icon={<IconKebab />}
+          />
+          <Text className="text-xs text-text-secondary">More</Text>
+        </View>
+      </View>
+      <View className="items-center mt-1">
+        <LinkButton
+          name="copy-workout-link"
+          onPress={() => {
+            if (props.userId) {
+              const link = Share_generateLink(props.userId, props.history[0].id);
+              ClipboardUtils_copy(link);
+              Dialog_alert("Copied!");
+            } else {
+              Dialog_alert("You should be logged in to copy link to a workout");
+            }
+          }}
+        >
+          or just copy a link
+        </LinkButton>
+      </View>
+    </View>
   );
 }
 
@@ -319,65 +319,59 @@ function WebappShare(props: IWebappShareProps): JSX.Element {
   const userId = props.userId;
 
   return (
-    <div>
-      <div className="px-4 py-4">
-        <GroupHeader name="Share it!" />
-        <div className="flex justify-between gap-4 text-xs text-text-secondary">
-          <div className="text-center">
-            <WorkoutShareButton
-              history={props.history}
-              record={props.history[0]}
-              settings={props.settings}
-              icon={<IconPicture />}
-            />
-            <div>Image</div>
-          </div>
-          <div className="text-center">
-            <button
-              data-testid="finishday-share-text"
-              className="w-10 h-10 rounded-full bg-background-subtle"
-              onClick={() => {
-                const text = LiftohistorySerializer_serialize(props.history[0], props.settings);
-                ClipboardUtils_copy(text);
-                Dialog_alert("Copied!");
-              }}
-            >
-              <IconDoc className="inline-block" />
-            </button>
-            <div>Text</div>
-          </div>
-          <div className="text-center">
-            <button
-              className="w-10 h-10 rounded-full bg-background-subtle"
-              onClick={() => {
-                if (userId) {
-                  const link = Share_generateLink(userId, props.history[0].id);
-                  ClipboardUtils_copy(link);
-                  setCopiedLink(link);
-                } else {
-                  Dialog_alert("You should be logged in to copy link to a workout");
-                }
-              }}
-            >
-              <IconLink className="inline-block" />
-            </button>
-            {copiedLink ? (
-              <div>
-                <span>Copied: </span>
-                <InternalLink
-                  name="shared-workout-link"
-                  href={copiedLink}
-                  className="font-bold underline text-text-link"
-                >
-                  Link
-                </InternalLink>
-              </div>
-            ) : (
-              <div>Copy Link</div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+    <View className="px-4 py-4">
+      <GroupHeader name="Share it!" />
+      <View className="flex-row justify-between gap-4">
+        <View className="items-center">
+          <WorkoutShareButton
+            history={props.history}
+            record={props.history[0]}
+            settings={props.settings}
+            icon={<IconPicture />}
+          />
+          <Text className="text-xs text-text-secondary">Image</Text>
+        </View>
+        <View className="items-center">
+          <Pressable
+            testID="finishday-share-text"
+            className="items-center justify-center w-10 h-10 rounded-full bg-background-subtle"
+            onPress={() => {
+              const text = LiftohistorySerializer_serialize(props.history[0], props.settings);
+              ClipboardUtils_copy(text);
+              Dialog_alert("Copied!");
+            }}
+          >
+            <IconDoc />
+          </Pressable>
+          <Text className="text-xs text-text-secondary">Text</Text>
+        </View>
+        <View className="items-center">
+          <Pressable
+            className="items-center justify-center w-10 h-10 rounded-full bg-background-subtle"
+            onPress={() => {
+              if (userId) {
+                const link = Share_generateLink(userId, props.history[0].id);
+                ClipboardUtils_copy(link);
+                setCopiedLink(link);
+              } else {
+                Dialog_alert("You should be logged in to copy link to a workout");
+              }
+            }}
+          >
+            <IconLink />
+          </Pressable>
+          {copiedLink ? (
+            <View className="flex-row">
+              <Text className="text-xs text-text-secondary">Copied: </Text>
+              <InternalLink name="shared-workout-link" href={copiedLink} className="font-bold underline text-text-link">
+                Link
+              </InternalLink>
+            </View>
+          ) : (
+            <Text className="text-xs text-text-secondary">Copy Link</Text>
+          )}
+        </View>
+      </View>
+    </View>
   );
 }
