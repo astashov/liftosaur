@@ -102,6 +102,7 @@ import {
 } from "../utils/liveActivityManager";
 import { ProgramExercise_hasUserPromptedVars } from "./programExercise";
 import deepmerge from "deepmerge";
+import { Dialog_alert } from "../utils/dialog";
 
 export interface IScriptBindings {
   day: number;
@@ -1006,7 +1007,7 @@ export function Progress_runUpdateScriptForEntry(
   } catch (error) {
     const e = error as Error;
     console.error(e);
-    alert(`Error during executing 'update: custom()' script: ${e.message}`);
+    Dialog_alert(`Error during executing 'update: custom()' script: ${e.message}`);
     return entry;
   }
 }

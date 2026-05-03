@@ -29,7 +29,7 @@ export const HistoryEntryView = memo((props: IHistoryEntryProps): JSX.Element =>
     <View
       data-testid="history-entry-exercise"
       testID="history-entry-exercise"
-      className="flex-row items-center flex-1 gap-2"
+      className="flex-row items-center gap-2"
     >
       <View
         data-testid="history-entry-exercise-img"

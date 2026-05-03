@@ -822,7 +822,7 @@ export function Thunk_startProgramDay(programId?: string): IThunk {
         updateState(dispatch, [lb<IState>().p("storage").p("progress").record([newProgress])], "Create new progress");
         dispatch(Thunk_pushScreen("progress", { id: newProgress.id }, { tab: "workout" }));
       } else {
-        alert("No currently selected program");
+        Dialog_alert("No currently selected program");
       }
     }
   };
