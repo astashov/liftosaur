@@ -1,4 +1,4 @@
-import { JSX, useEffect, useRef, useCallback } from "react";
+import { JSX, useEffect, useRef, useCallback, useState } from "react";
 import { ModalStateProvider } from "../navigation/ModalStateContext";
 import { reducerWrapper, defaultOnActions, IAction } from "../ducks/reducer";
 import { Program_getProgram } from "../models/program";
@@ -122,47 +122,54 @@ export function AppView(props: IProps): JSX.Element | null {
 
   useLoopCatcher();
 
+  const [isNavReady, setIsNavReady] = useState(false);
+
   const prevShouldShowWhatsNew = useRef(false);
   useEffect(() => {
+    if (!isNavReady) return;
     if (shouldShowWhatsNew && state.storage.whatsNew != null && !prevShouldShowWhatsNew.current) {
       navigationRef.navigate("whatsnewModal");
     }
     prevShouldShowWhatsNew.current = !!(shouldShowWhatsNew && state.storage.whatsNew != null);
-  }, [shouldShowWhatsNew, state.storage.whatsNew]);
+  }, [isNavReady, shouldShowWhatsNew, state.storage.whatsNew]);
 
   const showThanks25 = isEligibleForThanks25 && !helps.includes("thanks25");
   const prevShowThanks25 = useRef(false);
   useEffect(() => {
+    if (!isNavReady) return;
     if (showThanks25 && !prevShowThanks25.current) {
       navigationRef.navigate("thanks25Modal");
     }
     prevShowThanks25.current = showThanks25;
-  }, [showThanks25]);
+  }, [isNavReady, showThanks25]);
 
   const showCorruptedState = state.errors.corruptedstorage != null;
   const prevShowCorruptedState = useRef(false);
   useEffect(() => {
+    if (!isNavReady) return;
     if (showCorruptedState && !prevShowCorruptedState.current) {
       navigationRef.navigate("corruptedStateModal");
     }
     prevShowCorruptedState.current = showCorruptedState;
-  }, [showCorruptedState]);
+  }, [isNavReady, showCorruptedState]);
 
   const prevShowSignupRequest = useRef(false);
   useEffect(() => {
+    if (!isNavReady) return;
     if (state.showSignupRequest && !prevShowSignupRequest.current) {
       navigationRef.navigate("signupRequestModal");
     }
     prevShowSignupRequest.current = !!state.showSignupRequest;
-  }, [state.showSignupRequest]);
+  }, [isNavReady, state.showSignupRequest]);
 
   const prevTour = useRef(false);
   useEffect(() => {
+    if (!isNavReady) return;
     if (state.tour && !prevTour.current) {
       navigationRef.navigate("tourModal");
     }
     prevTour.current = !!state.tour;
-  }, [state.tour]);
+  }, [isNavReady, state.tour]);
 
   const checkToursRef = useRef(() => {
     const tourId = TourConfigs_findTourId(stateRef.current, true);
@@ -448,6 +455,7 @@ export function AppView(props: IProps): JSX.Element | null {
             <AppContext.Provider value={{ service, isApp: true }}>
               <NavigationContainer
                 ref={navigationRef}
+                onReady={() => setIsNavReady(true)}
                 onStateChange={onNavigationStateChange}
                 documentTitle={{ enabled: false }}
                 theme={{ ...DefaultTheme, colors: { ...DefaultTheme.colors, background: "transparent" } }}
