@@ -1,5 +1,5 @@
 import { JSX, useContext, useState } from "react";
-import { View, Alert } from "react-native";
+import { View, Platform } from "react-native";
 import { Text } from "../../components/primitives/text";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
@@ -12,6 +12,8 @@ import { AppContext } from "../../components/appContext";
 import { Service } from "../../api/service";
 import { ImageUploader } from "../../utils/imageUploader";
 import { ImagePicker_pick } from "../../utils/imagePicker";
+import { SheetScreenContainer } from "../SheetScreenContainer";
+import { Dialog_alert } from "../../utils/dialog";
 
 export function NavModalExerciseImageSource(): JSX.Element {
   const { state } = useAppState();
@@ -32,7 +34,7 @@ export function NavModalExerciseImageSource(): JSX.Element {
 
   const upload = async (source: "camera" | "photo-library"): Promise<void> => {
     if (!isLoggedIn) {
-      Alert.alert("You need to be logged in to upload custom exercise images");
+      Dialog_alert("You need to be logged in to upload custom exercise images");
       return;
     }
     setIsUploading(true);
@@ -51,7 +53,12 @@ export function NavModalExerciseImageSource(): JSX.Element {
     return <></>;
   }
 
-  return (
+  const onCloseSheet = (): void => {
+    Modal_clear(modalDispatch, "exerciseImageSourceModal");
+    navigation.goBack();
+  };
+
+  const content = (
     <View className="p-4 bg-background-default">
       <View>
         <Text className="text-xs text-center text-text-secondary">Prefer 2:3 aspect ratio</Text>
@@ -79,4 +86,14 @@ export function NavModalExerciseImageSource(): JSX.Element {
       </View>
     </View>
   );
+
+  if (Platform.OS === "web") {
+    return (
+      <SheetScreenContainer onClose={onCloseSheet} shouldShowClose={true}>
+        {content}
+      </SheetScreenContainer>
+    );
+  }
+
+  return content;
 }
