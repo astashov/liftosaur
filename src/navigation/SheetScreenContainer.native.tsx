@@ -15,6 +15,7 @@ import { useCustomKeyboardHeight } from "./CustomKeyboardContext";
 interface IProps {
   children: ReactNode;
   shouldShowClose?: boolean;
+  fitContent?: boolean;
   onClose: () => void;
 }
 
@@ -85,7 +86,7 @@ export function SheetScreenContainer(props: IProps): JSX.Element {
         <Animated.View
           className="overflow-hidden bg-background-default"
           style={{
-            height: sheetHeight + insets.bottom + keyboardHeight,
+            ...(props.fitContent ? null : { height: sheetHeight + insets.bottom + keyboardHeight }),
             paddingBottom: insets.bottom + keyboardHeight,
             borderTopLeftRadius: 16,
             borderTopRightRadius: 16,

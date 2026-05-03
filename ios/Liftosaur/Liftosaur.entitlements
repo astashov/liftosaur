@@ -6,5 +6,10 @@
 	<array>
 		<string>Default</string>
 	</array>
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:www.liftosaur.com</string>
+		<string>applinks:liftosaur.com</string>
+	</array>
 </dict>
 </plist>

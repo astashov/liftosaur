@@ -1,6 +1,7 @@
 import { JSX } from "react";
-import { ActionSheetIOS, Pressable } from "react-native";
+import { Pressable } from "react-native";
 import { Text } from "./text";
+import { ActionSheet_show } from "../../utils/actionSheet";
 
 interface ISelectOption {
   value: string;
@@ -19,14 +20,11 @@ export function Select(props: ISelectProps): JSX.Element {
 
   const showPicker = (): void => {
     const labels = props.options.map((o) => o.label).concat("Cancel");
-    ActionSheetIOS.showActionSheetWithOptions(
-      { options: labels, cancelButtonIndex: labels.length - 1 },
-      (buttonIndex) => {
-        if (buttonIndex < props.options.length) {
-          props.onChange(props.options[buttonIndex].value);
-        }
+    ActionSheet_show({ options: labels, cancelButtonIndex: labels.length - 1 }, (buttonIndex) => {
+      if (buttonIndex != null && buttonIndex < props.options.length) {
+        props.onChange(props.options[buttonIndex].value);
       }
-    );
+    });
   };
 
   return (

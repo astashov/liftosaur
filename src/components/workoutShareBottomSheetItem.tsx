@@ -1,4 +1,5 @@
 import { JSX, useRef, useState } from "react";
+import { View } from "react-native";
 import { IHistoryRecord, ISettings } from "../types";
 import { WorkoutShareOutput } from "./workoutShareOutput";
 import { Dialog_alert } from "../utils/dialog";
@@ -14,10 +15,10 @@ interface IWorkoutShareBottomSheetItemProps {
 }
 
 export function WorkoutShareBottomSheetItem(props: IWorkoutShareBottomSheetItemProps): JSX.Element {
-  const workoutShareRef = useRef<HTMLDivElement>(null);
+  const workoutShareRef = useRef<View>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   return (
-    <div className="relative overflow-hidden text-left">
+    <View className="relative overflow-hidden">
       <BottomSheetItem
         name="share-to-image"
         title="Share Image..."
@@ -37,11 +38,11 @@ export function WorkoutShareBottomSheetItem(props: IWorkoutShareBottomSheetItemP
           }
         }}
       />
-      <div className="absolute" style={{ top: "9999px", left: "9999px" }}>
-        <div ref={workoutShareRef} style={{ width: "420px" }}>
+      <View collapsable={false} className="absolute" style={{ left: -9999, top: -9999 }}>
+        <View ref={workoutShareRef} collapsable={false} style={{ width: 420 }}>
           <WorkoutShareOutput history={props.history} record={props.record} settings={props.settings} />
-        </div>
-      </div>
-    </div>
+        </View>
+      </View>
+    </View>
   );
 }

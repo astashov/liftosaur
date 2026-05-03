@@ -1,4 +1,6 @@
 import type { JSX } from "react";
+import { View, Image } from "react-native";
+import { Text } from "./primitives/text";
 import { IHistoryRecord, ISettings } from "../types";
 import { ExerciseImage } from "./exerciseImage";
 import { Exercise_toKey, Exercise_get } from "../models/exercise";
@@ -13,6 +15,7 @@ import { TimeUtils_formatHHMM } from "../utils/time";
 import { ObjectUtils_keys } from "../utils/object";
 import { StringUtils_pluralize } from "../utils/string";
 import { HistoryRecordSetsView } from "./historyRecordSets";
+import { HostConfig_resolveUrl } from "../utils/hostConfig";
 
 interface IWorkoutShareOutputProps {
   record?: IHistoryRecord;
@@ -23,7 +26,7 @@ interface IWorkoutShareOutputProps {
 export function WorkoutShareOutput(props: IWorkoutShareOutputProps): JSX.Element {
   const { record, settings } = props;
   if (!record) {
-    return <div></div>;
+    return <View />;
   }
   const allPrs = History_getPersonalRecords(props.history);
   const recordPrs = allPrs[record.id] ?? {};
@@ -34,70 +37,69 @@ export function WorkoutShareOutput(props: IWorkoutShareOutputProps): JSX.Element
   const totalReps = History_totalRecordReps(record);
   const totalSets = History_totalRecordSets(record);
   return (
-    <div>
-      <div className="flex items-end">
-        <div className="flex items-start gap-2 mx-2 font-bold text-white bg-no-repeat bg-contain">
-          <img src="/images/icon512.png" className="w-6 h-6 rounded-md" />
-          <div className="text-lg">Liftosaur</div>
-        </div>
+    <View>
+      <View className="flex-row items-end">
+        <View className="flex-row items-start gap-2 mx-2">
+          <Image source={{ uri: HostConfig_resolveUrl("/images/icon512.png") }} className="w-6 h-6 rounded-md" />
+          <Text className="text-lg font-bold text-white">Liftosaur</Text>
+        </View>
         {numberOfRecordPrs > 0 && (
-          <div className="pr-2 ml-auto font-bold text-right text-yellow-600">
-            <div className="text-xl">🏆 {numberOfRecordPrs}</div>
-            <div className="text-sm">Personal {StringUtils_pluralize("Record", numberOfRecordPrs)}</div>
-          </div>
+          <View className="pr-2 ml-auto items-end">
+            <Text className="text-xl font-bold text-yellow-600">{`🏆 ${numberOfRecordPrs}`}</Text>
+            <Text className="text-sm font-bold text-yellow-600">
+              {`Personal ${StringUtils_pluralize("Record", numberOfRecordPrs)}`}
+            </Text>
+          </View>
         )}
-      </div>
-      <div className="p-2 m-2 rounded-lg bg-background-default">
-        <h2 className="text-base font-bold">{record.programName}</h2>
-        <h3 className="text-base">{record.dayName}</h3>
-        <div className="flex justify-between mt-1">
+      </View>
+      <View className="p-2 m-2 rounded-lg bg-background-default">
+        <Text className="text-base font-bold">{record.programName}</Text>
+        <Text className="text-base">{record.dayName}</Text>
+        <View className="flex-row justify-between mt-1">
           <Property name="Time" value={time} />
           <Property name="Volume" value={totalWeight.value} unit={totalWeight.unit} />
           <Property name="Sets" value={totalSets} />
           <Property name="Reps" value={totalReps} />
-        </div>
-      </div>
-      <div className="flex flex-col gap-1 p-2 m-2 rounded-lg bg-background-default">
+        </View>
+      </View>
+      <View className="flex-col gap-1 p-2 m-2 rounded-lg bg-background-default">
         {entries.map((entry) => {
           const prs = recordPrs[Exercise_toKey(entry.exercise)] ?? {};
           const hasPrs = ObjectUtils_keys(prs).length > 0;
           const exercise = Exercise_get(entry.exercise, settings.exercises);
           return (
-            <div key={Exercise_toKey(entry.exercise)} className="flex items-center gap-4">
-              <div className="w-12 h-12" style={{ minHeight: "3rem" }}>
+            <View key={Exercise_toKey(entry.exercise)} className="flex-row items-center gap-4">
+              <View className="w-12 h-12">
                 <ExerciseImage
                   size="small"
-                  className="object-contain w-full h-full"
+                  className="w-full h-full"
                   suppressCustom={true}
                   exerciseType={exercise}
                   settings={settings}
                 />
-              </div>
-              <div className="flex-1">
-                <span className="font-bold">
-                  {exercise.name}
-                  {hasPrs ? " 🏆" : ""}
-                </span>
-              </div>
-              <div className="text-right">
+              </View>
+              <View className="flex-1">
+                <Text className="font-bold">{`${exercise.name}${hasPrs ? " 🏆" : ""}`}</Text>
+              </View>
+              <View className="items-end">
                 <HistoryRecordSetsView sets={entry.sets} prs={prs} settings={settings} isNext={false} />
-              </div>
-            </div>
+              </View>
+            </View>
           );
         })}
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }
 
 function Property(props: { name: string; value: string | number; unit?: string }): JSX.Element {
   return (
-    <div>
-      <div className="text-xs text-lightgray-600">{props.name}</div>
-      <div>
-        <span className="text-xl font-bold">{props.value}</span>
-        {props.unit && <span className="ml-1 text-sm">{props.unit}</span>}
-      </div>
-    </div>
+    <View>
+      <Text className="text-xs text-lightgray-600">{props.name}</Text>
+      <View className="flex-row items-baseline">
+        <Text className="text-xl font-bold">{`${props.value}`}</Text>
+        {props.unit && <Text className="ml-1 text-sm">{props.unit}</Text>}
+      </View>
+    </View>
   );
 }

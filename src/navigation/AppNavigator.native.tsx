@@ -100,6 +100,9 @@ import { NavModalEditProgramExerciseSuperset } from "./modals/NavModalEditProgra
 import { NavModalCreateStateVariable } from "./modals/NavModalCreateStateVariable";
 import { NavModalEditProgressScript } from "./modals/NavModalEditProgressScript";
 import { NavModalEditUpdateScript } from "./modals/NavModalEditUpdateScript";
+import { NavModalWorkoutShare } from "./modals/NavModalWorkoutShare";
+import { NavModalSocialShare } from "./modals/NavModalSocialShare";
+import { NavModalPhotoPicker } from "./modals/NavModalPhotoPicker";
 import { NavHeader } from "./NavHeader";
 
 const OnboardingStack = createNativeStackNavigator<IOnboardingStackParamList>();
@@ -147,7 +150,12 @@ function HomeStackScreen(): JSX.Element {
   return (
     <HomeStack.Navigator screenOptions={stackScreenOptions}>
       <HomeStack.Screen name="main" component={NavScreenMain} />
-      <HomeStack.Screen name="progress" component={NavScreenProgress} getId={({ params }) => String(params?.id ?? 0)} />
+      <HomeStack.Screen
+        name="progress"
+        component={NavScreenProgress}
+        getId={({ params }) => String(params?.id ?? 0)}
+        options={{ headerShown: true, header: NavHeader }}
+      />
     </HomeStack.Navigator>
   );
 }
@@ -364,6 +372,13 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
               component={NavModalEditUpdateScript}
               options={{ sheetAllowedDetents: [0.9] }}
             />
+            <RootStack.Screen name="workoutShareModal" component={NavModalWorkoutShare} />
+            <RootStack.Screen
+              name="socialShareModal"
+              component={NavModalSocialShare}
+              options={{ sheetAllowedDetents: [0.9] }}
+            />
+            <RootStack.Screen name="photoPickerModal" component={NavModalPhotoPicker} />
           </RootStack.Group>
         </RootStack.Navigator>
       </CustomKeyboardProvider>

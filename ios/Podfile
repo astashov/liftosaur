@@ -21,6 +21,9 @@ target 'Liftosaur' do
   # without modular headers it can't be linked as a static library.
   pod 'RollbarCrash', :modular_headers => true
 
+  pod 'TikTokOpenSDKCore'
+  pod 'TikTokOpenShareSDK'
+
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.

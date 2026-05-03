@@ -1,5 +1,5 @@
 import { JSX, memo, useCallback, useMemo, useState } from "react";
-import { View, Pressable, Platform, ActionSheetIOS } from "react-native";
+import { View, Pressable, Platform } from "react-native";
 import { Text } from "./primitives/text";
 import { IHistoryEntry, IHistoryRecord, IProgramState, ISettings, IStats, ISubscription } from "../types";
 import { IState, updateProgress, updateSettings, updateState } from "../models/state";
@@ -13,6 +13,7 @@ import {
   Exercise_fullName,
 } from "../models/exercise";
 import { IconArrowRight } from "./icons/iconArrowRight";
+import { ActionSheet_show } from "../utils/actionSheet";
 import { LinkButton } from "./linkButton";
 import { ProgramExercise_doesUse1RM } from "../models/programExercise";
 import { Weight_print, Weight_build } from "../models/weight";
@@ -274,7 +275,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
       return;
     }
     const labels = kebabActions.map((a) => a.label).concat("Cancel");
-    ActionSheetIOS.showActionSheetWithOptions(
+    ActionSheet_show(
       {
         options: labels,
         cancelButtonIndex: labels.length - 1,

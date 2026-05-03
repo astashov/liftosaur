@@ -1,4 +1,5 @@
-import { JSX, useEffect, useRef, useState } from "react";
+import { JSX, useState } from "react";
+import { View, Image } from "react-native";
 import { IHistoryRecord, ISettings } from "../types";
 import { WorkoutShareOutput } from "./workoutShareOutput";
 
@@ -13,46 +14,47 @@ interface IWorkoutShareOutputWithBgProps {
 export function WorkoutShareOutputWithBg(props: IWorkoutShareOutputWithBgProps): JSX.Element {
   const width = 420;
   const height = props.type === "igfeed" ? width : (width * 16) / 9;
-  const workoutRef = useRef<HTMLDivElement>(null);
   const [multiplier, setMultiplier] = useState(1.0);
 
-  useEffect(() => {
-    const workoutHeight = workoutRef.current?.clientHeight || 0;
-    const newMultiplier = Math.min(1.0, (height * 0.9) / workoutHeight);
-    setMultiplier(newMultiplier);
-  }, []);
-
   return (
-    <div
-      className="relative bg-text-primary"
-      style={{
-        width: `${width}px`,
-        height: `${height}px`,
-        backgroundImage: `url(${props.backgroundImage})`,
-        backgroundSize: "contain",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
-      <div
+    <View className="relative bg-text-primary" style={{ width, height }}>
+      {props.backgroundImage ? (
+        <Image
+          source={{ uri: props.backgroundImage }}
+          className="absolute top-0 left-0"
+          style={{ width, height }}
+          resizeMode="contain"
+        />
+      ) : null}
+      <View
         className="absolute left-0"
         style={{
-          right: props.type === "tiktok" ? "60px" : "0",
-          bottom: props.type === "tiktok" ? "82px" : "0",
+          right: props.type === "tiktok" ? 60 : 0,
+          bottom: props.type === "tiktok" ? 82 : 0,
         }}
       >
-        <div
+        <View
           style={{
             width,
-            transform: `scale(${multiplier}) translateX(${210 - multiplier * 210}px)`,
+            transform: [{ translateX: 210 - multiplier * 210 }, { scale: multiplier }],
             transformOrigin: "bottom left",
           }}
         >
-          <div ref={workoutRef}>
+          <View
+            onLayout={(e) => {
+              const workoutHeight = e.nativeEvent.layout.height;
+              if (workoutHeight > 0) {
+                const newMultiplier = Math.min(1.0, (height * 0.9) / workoutHeight);
+                if (Math.abs(newMultiplier - multiplier) > 0.001) {
+                  setMultiplier(newMultiplier);
+                }
+              }
+            }}
+          >
             <WorkoutShareOutput history={props.history} record={props.record} settings={props.settings} />
-          </div>
-        </div>
-      </div>
-    </div>
+          </View>
+        </View>
+      </View>
+    </View>
   );
 }

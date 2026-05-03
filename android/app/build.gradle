@@ -78,6 +78,10 @@ def enableProguardInReleaseBuilds = false
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
+repositories {
+    maven { url 'https://artifact.bytedance.com/repository/AwemeOpenSDK' }
+}
+
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -129,6 +133,9 @@ android {
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
+
+    implementation 'com.tiktok.open.sdk:tiktok-open-sdk-core:2.3.0'
+    implementation 'com.tiktok.open.sdk:tiktok-open-sdk-share:2.3.0'
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")

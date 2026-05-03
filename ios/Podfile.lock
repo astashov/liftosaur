@@ -1589,6 +1589,27 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - react-native-view-shot (5.0.1):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - react-native-webview (13.16.1):
     - hermes-engine
     - RCTRequired
@@ -1968,6 +1989,27 @@ PODS:
   - ReactNativeDependencies (0.84.1)
   - RNAppleAuthentication (2.5.1):
     - React-Core
+  - RNCClipboard (1.16.3):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - RNDateTimePicker (9.1.0):
     - hermes-engine
     - RCTRequired
@@ -2321,6 +2363,14 @@ PODS:
   - RollbarReport (3.3.3):
     - RollbarCrash (~> 3.3.3)
   - SwiftUIIntrospect (1.3.0)
+  - TikTokOpenSDKCore (2.5.0):
+    - TikTokOpenSDKCore/Core (= 2.5.0)
+  - TikTokOpenSDKCore/Core (2.5.0)
+  - TikTokOpenShareSDK (2.5.0):
+    - TikTokOpenSDKCore (= 2.5.0)
+    - TikTokOpenShareSDK/Share (= 2.5.0)
+  - TikTokOpenShareSDK/Share (2.5.0):
+    - TikTokOpenSDKCore (= 2.5.0)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -2370,6 +2420,7 @@ DEPENDENCIES:
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
+  - react-native-view-shot (from `../node_modules/react-native-view-shot`)
   - react-native-webview (from `../node_modules/react-native-webview`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-networking (from `../node_modules/react-native/ReactCommon/react/networking`)
@@ -2406,6 +2457,7 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - ReactNativeDependencies (from `../node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec`)
   - "RNAppleAuthentication (from `../node_modules/@invertase/react-native-apple-authentication`)"
+  - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
   - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
@@ -2419,6 +2471,8 @@ DEPENDENCIES:
   - RNWorklets (from `../node_modules/react-native-worklets`)
   - RollbarCrash
   - RollbarReactNative (from `../node_modules/rollbar-react-native`)
+  - TikTokOpenSDKCore
+  - TikTokOpenShareSDK
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -2436,6 +2490,8 @@ SPEC REPOS:
     - RollbarNotifier
     - RollbarReport
     - SwiftUIIntrospect
+    - TikTokOpenSDKCore
+    - TikTokOpenShareSDK
 
 EXTERNAL SOURCES:
   FBLazyVector:
@@ -2529,6 +2585,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-slider:
     :path: "../node_modules/@react-native-community/slider"
+  react-native-view-shot:
+    :path: "../node_modules/react-native-view-shot"
   react-native-webview:
     :path: "../node_modules/react-native-webview"
   React-NativeModulesApple:
@@ -2601,6 +2659,8 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec"
   RNAppleAuthentication:
     :path: "../node_modules/@invertase/react-native-apple-authentication"
+  RNCClipboard:
+    :path: "../node_modules/@react-native-clipboard/clipboard"
   RNDateTimePicker:
     :path: "../node_modules/@react-native-community/datetimepicker"
   RNFS:
@@ -2682,6 +2742,7 @@ SPEC CHECKSUMS:
   react-native-pager-view: 58cdd1bcb4a219738176542ebd57d37dc9421a77
   react-native-safe-area-context: 45435943d06e262f946fcc3f4c4de6bfd0c9cbe1
   react-native-slider: d3c62864af399014469359120d9a9a6cbbd9c6f7
+  react-native-view-shot: ef93993d27e1101743982ac546d57097bd9372e9
   react-native-webview: cac57e5c9caaac09627c910efb968bac54d5b4dd
   React-NativeModulesApple: 1eade1fa3a182fbfe8a0ffe80833daf35e5161de
   React-networking: cc690cd054fc4c3a4a4804a188238c5b443d11ea
@@ -2714,10 +2775,11 @@ SPEC CHECKSUMS:
   React-utils: b166eb9024baee3cab40ebe88c433ce91f3f5df1
   React-webperformancenativemodule: d36ebe5b104319cab9e98a7661282e596022d5ce
   ReactAppDependencyProvider: e96e93b493d8d86eeaee3e590ba0be53f6abe46f
-  ReactCodegen: 5edd15cd50765907148500c3accaaf2e6adb2780
+  ReactCodegen: d37b66c575bff7da8ca8b5169a58888b6c1f901b
   ReactCommon: 1961c273f1212d68a95d82c340b87dfe394d1819
   ReactNativeDependencies: 05329dd44c0aab3047e366c1088ee3b83bde33af
   RNAppleAuthentication: a89c9804592b38ed4ab11f0aee68d05ba12ad432
+  RNCClipboard: d73fd4b2ac59e792596e7cd615b6321d577c1a2b
   RNDateTimePicker: 2e1dc353ee0e3598f636928f7a8d180f12be7c16
   RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8
   RNGestureHandler: 242d92132af8f48b021baaa437a715ceef574f96
@@ -2735,8 +2797,10 @@ SPEC CHECKSUMS:
   RollbarReactNative: 763cf9e5084af2f1c2f6710e1cb40b51d85a6c64
   RollbarReport: 0e57a3ac73c66dd6d5add5e999a967210753c4c3
   SwiftUIIntrospect: fee9aa07293ee280373a591e1824e8ddc869ba5d
+  TikTokOpenSDKCore: e6f34e48bd6e85e4d94f9c04782c13d5defafb55
+  TikTokOpenShareSDK: a7da017bc66c28d0aefea9342c0cfcc7e52ea2b7
   Yoga: 9e495ad6f457c4ff504a8328981496b5cf41dd7f
 
-PODFILE CHECKSUM: 3e86a84c1e2c129182e6d273e247ece41a14348c
+PODFILE CHECKSUM: 2cd0b99cc1113cadc81719b494fc84f348d18610
 
 COCOAPODS: 1.16.2

@@ -17,6 +17,7 @@ export function SheetDragHandle(props: {
 interface IProps {
   children: ReactNode;
   shouldShowClose?: boolean;
+  fitContent?: boolean;
   onClose: () => void;
 }
 

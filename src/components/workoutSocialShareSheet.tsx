@@ -1,17 +1,28 @@
-import { JSX, useEffect, useRef, useState } from "react";
+import { JSX, useRef, useState } from "react";
+import {
+  View,
+  ScrollView,
+  Pressable,
+  Image,
+  Dimensions,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Text } from "./primitives/text";
 import { IHistoryRecord, ISettings } from "../types";
 import { Button } from "./button";
 import { Dialog_alert } from "../utils/dialog";
-import { IRect } from "../utils/types";
-import { Geometry_fitRectIntoRect } from "../utils/geometry";
 import { WorkoutShareOutput } from "./workoutShareOutput";
-import { SendMessage_toIosAndAndroid } from "../utils/sendMessage";
 import { IconCamera } from "./icons/iconCamera";
 import { IconSpinner } from "./icons/iconSpinner";
 import { WorkoutShareOutputWithBg } from "./workoutShareOutputWithBg";
 import { ImageShareUtils } from "../utils/imageshare";
 import { LinkButton } from "./linkButton";
 import { useModal } from "../navigation/ModalStateContext";
+import { Geometry_fitRectIntoRect } from "../utils/geometry";
+import { IRect } from "../utils/types";
+import { HostConfig_resolveUrl } from "../utils/hostConfig";
 
 interface IWorkoutShareSheetProps {
   record?: IHistoryRecord;
@@ -22,11 +33,15 @@ interface IWorkoutShareSheetProps {
 }
 
 export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Element {
-  const screensRef = useRef<HTMLDivElement>(null);
-  const workoutShareRef = useRef<HTMLDivElement>(null);
+  const workoutShareRef = useRef<View>(null);
   const [backgroundImage, setBackgroundImage] = useState<string | undefined>(undefined);
   const [selectedFrameIndex, setSelectedFrameIndex] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const window = Dimensions.get("window");
+  const frameWidth = window.width * 0.625;
+  const sidePadding = window.width * 0.1875;
+  const insets = useSafeAreaInsets();
 
   const openPhotoPicker = useModal("photoPickerModal", (result) => {
     if (result) {
@@ -39,36 +54,34 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
       : props.type === "igfeed"
         ? "Share workout to IG Feed"
         : "Share workout to Tiktok";
+
+  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>): void => {
+    const scrollLeft = e.nativeEvent.contentOffset.x;
+    const selectedFrame = Math.floor((scrollLeft + window.width / 2) / window.width);
+    if (selectedFrameIndex !== selectedFrame) {
+      setSelectedFrameIndex(selectedFrame);
+    }
+  };
+
   return (
-    <section
+    <View
       data-testid="workout-share-sheet"
-      className="relative flex flex-col overflow-hidden text-text-primary"
-      style={{ height: "calc(100vh - 4rem)" }}
+      testID="workout-share-sheet"
+      className="relative flex-col flex-1 overflow-hidden"
     >
-      <h2 className="my-4 text-base font-bold text-center">{title}</h2>
-      <div className="flex-1">
-        <div
-          ref={screensRef}
-          className="flex items-stretch h-full gap-8 overflow-x-scroll overflow-y-hidden"
-          style={{
-            padding: "0 18.75vw",
-            WebkitOverflowScrolling: "touch",
-            scrollSnapType: "x mandatory",
-          }}
-          onScroll={() => {
-            const scrollLeft = screensRef.current?.scrollLeft ?? 0;
-            const windowWidth = window.innerWidth;
-            const selectedFrame = Math.floor((scrollLeft + windowWidth / 2) / windowWidth);
-            if (selectedFrameIndex !== selectedFrame) {
-              setSelectedFrameIndex(selectedFrame);
-            }
-          }}
+      <Text className="my-4 text-base font-bold text-center">{title}</Text>
+      <View className="flex-1">
+        <ScrollView
+          horizontal={true}
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={window.width}
+          decelerationRate="fast"
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+          contentContainerStyle={{ paddingHorizontal: sidePadding, gap: 32, alignItems: "stretch" }}
         >
-          <div
-            className="flex flex-col"
-            style={{ minWidth: "62.5vw", scrollSnapAlign: "center", scrollSnapStop: "always" }}
-          >
-            <div className="relative flex items-center flex-1">
+          <View className="flex-col" style={{ minWidth: frameWidth }}>
+            <View className="relative flex-row items-center flex-1">
               {!props.isHidden && (
                 <WorkoutShareImage
                   type={props.type}
@@ -77,14 +90,11 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
                   settings={props.settings}
                 />
               )}
-            </div>
-            <h2 className="px-4 pt-2 pb-4 text-base text-center">Default Background</h2>
-          </div>
-          <div
-            className="flex flex-col"
-            style={{ minWidth: "62.5vw", scrollSnapAlign: "center", scrollSnapStop: "always" }}
-          >
-            <div className="relative flex items-center flex-1">
+            </View>
+            <Text className="px-4 pt-2 pb-4 text-base text-center">Default Background</Text>
+          </View>
+          <View className="flex-col" style={{ minWidth: frameWidth }}>
+            <View className="relative flex-row items-center flex-1">
               {!props.isHidden && (
                 <WorkoutShareImage
                   type={props.type}
@@ -98,8 +108,8 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
                   }}
                 />
               )}
-            </div>
-            <h2 className="pt-2 pb-4 text-base text-center">
+            </View>
+            <Text className="pt-2 pb-4 text-base text-center">
               <LinkButton
                 name="your-photo-bg"
                 onClick={() => {
@@ -108,44 +118,38 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
               >
                 Your photo as background
               </LinkButton>
-            </h2>
-          </div>
-        </div>
-      </div>
-      <div className="flex items-center justify-center pb-4 text-center">
-        <div className="safe-area-inset-bottom">
-          <div className="mt-2">
-            <Button
-              name="share-workout"
-              kind="purple"
-              disabled={isLoading}
-              className="w-32"
-              onClick={async () => {
-                setIsLoading(true);
-                try {
-                  const dataUrl = await ImageShareUtils.generateImageDataUrl(workoutShareRef.current!);
-                  setIsLoading(false);
-                  SendMessage_toIosAndAndroid({
-                    type: "share",
-                    target: props.type,
-                    useCustomBackground: selectedFrameIndex === 1 ? "true" : "false",
-                    backgroundImage: selectedFrameIndex === 1 ? backgroundImage : undefined,
-                    workoutImage: dataUrl,
-                  });
-                } catch (error) {
-                  setIsLoading(false);
-                  console.error(error);
-                  Dialog_alert("Unknown error happened. Couldn't share the workout");
-                }
-              }}
-            >
-              {isLoading ? <IconSpinner color="white" width={16} height={16} /> : "Share"}
-            </Button>
-          </div>
-        </div>
-      </div>
-      <div className="absolute" style={{ top: "9999px", left: "9999px" }}>
-        <div ref={workoutShareRef} style={{ width: "420px" }}>
+            </Text>
+          </View>
+        </ScrollView>
+      </View>
+      <View className="flex-row items-center justify-center pb-4" style={{ paddingBottom: insets.bottom + 16 }}>
+        <View className="mt-2">
+          <Button
+            name="share-workout"
+            kind="purple"
+            disabled={isLoading}
+            className="w-32"
+            onClick={async () => {
+              setIsLoading(true);
+              try {
+                const dataUrl = await ImageShareUtils.generateImageDataUrl(workoutShareRef.current!);
+                setIsLoading(false);
+                await ImageShareUtils.shareToSocial(props.type, dataUrl, {
+                  backgroundImage: selectedFrameIndex === 1 ? backgroundImage : undefined,
+                });
+              } catch (error) {
+                setIsLoading(false);
+                console.error(error);
+                Dialog_alert("Unknown error happened. Couldn't share the workout");
+              }
+            }}
+          >
+            {isLoading ? <IconSpinner color="white" width={16} height={16} /> : "Share"}
+          </Button>
+        </View>
+      </View>
+      <View collapsable={false} className="absolute" style={{ left: -9999, top: -9999 }}>
+        <View ref={workoutShareRef} collapsable={false} style={{ width: 420 }}>
           {props.type === "igstory" ? (
             <WorkoutShareOutput history={props.history} record={props.record} settings={props.settings} />
           ) : props.type === "igfeed" || props.type === "tiktok" ? (
@@ -158,14 +162,14 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
                 selectedFrameIndex === 1
                   ? backgroundImage
                   : props.type === "igfeed"
-                    ? "/images/workoutsharesquarebg.jpg"
-                    : "/images/workoutsharebg.jpg"
+                    ? HostConfig_resolveUrl("/images/workoutsharesquarebg.jpg")
+                    : HostConfig_resolveUrl("/images/workoutsharebg.jpg")
               }
             />
           ) : null}
-        </div>
-      </div>
-    </section>
+        </View>
+      </View>
+    </View>
   );
 }
 
@@ -180,76 +184,77 @@ interface IWorkoutShareImageProps {
 }
 
 function WorkoutShareImage(props: IWorkoutShareImageProps): JSX.Element {
-  const [rect, setRect] = useState<IRect>({ x: 0, y: 0, width: 0, height: 0 });
-  const mainRef = useRef<HTMLDivElement>(null);
-  const workoutRef = useRef<HTMLDivElement>(null);
-  const [multiplier, setMultiplier] = useState<number>(1.0);
-  const backgroundImage = props.backgroundImage;
+  const [parentSize, setParentSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
+  const [workoutHeight, setWorkoutHeight] = useState<number>(0);
 
-  useEffect(() => {
-    const handleResize = (): void => {
-      const parent = mainRef.current?.parentElement;
-      if (parent) {
-        const parentRect = { x: 0, y: 0, width: parent.clientWidth, height: parent.clientHeight };
-        const newRect = Geometry_fitRectIntoRect(
+  const rect: IRect =
+    parentSize.width > 0 && parentSize.height > 0
+      ? Geometry_fitRectIntoRect(
           { x: 0, y: 0, width: 90, height: props.type === "igfeed" ? 90 : 160 },
-          parentRect
-        );
-        const newRatio = newRect.width / 420;
-        const workoutHeight = (workoutRef.current?.clientHeight || 0) * newRatio;
-        const newMultiplier = Math.min(1.0, (newRect.height * 0.9) / workoutHeight);
-        setMultiplier(newMultiplier);
-        setRect(newRect);
-      }
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+          { x: 0, y: 0, width: parentSize.width, height: parentSize.height }
+        )
+      : { x: 0, y: 0, width: 0, height: 0 };
 
   const width = 420;
-  const ratio = (rect.width / width) * multiplier;
+  const newRatio = rect.width / width;
+  const multiplier = workoutHeight > 0 ? Math.min(1.0, (rect.height * 0.9) / (workoutHeight * newRatio)) : 1;
+  const ratio = newRatio * multiplier;
+
+  const isFeed = props.type === "igfeed";
+  const defaultBgUri = HostConfig_resolveUrl(
+    isFeed ? "/images/workoutsharesquarebg.jpg" : "/images/workoutsharebg.jpg"
+  );
+  const effectiveBgUri = props.isCustomBg ? props.backgroundImage : defaultBgUri;
+
   return (
-    <div
-      ref={mainRef}
-      className="absolute bg-gray-300"
-      onClick={props.onPickCustomBg}
-      style={{
-        width: `${rect.width}px`,
-        height: `${rect.height}px`,
-        left: `${rect.x}px`,
-        top: `${rect.y}px`,
-        backgroundColor: "#5F5F5F",
-        backgroundImage: props.isCustomBg
-          ? backgroundImage
-            ? `url(${backgroundImage})`
-            : undefined
-          : props.type === "igfeed"
-            ? `url("/images/workoutsharesquarebg.jpg")`
-            : `url("/images/workoutsharebg.jpg")`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
+    <View
+      className="absolute top-0 left-0 right-0 bottom-0"
+      onLayout={(e) => {
+        const { width: w, height: h } = e.nativeEvent.layout;
+        if ((w !== parentSize.width || h !== parentSize.height) && w > 0 && h > 0) {
+          setParentSize({ width: w, height: h });
+        }
       }}
     >
-      {props.isCustomBg && !backgroundImage && (
-        <div className="absolute" style={{ top: `15%`, left: "50%", transform: "translate(-50%, -50%)" }}>
-          <IconCamera size={51} color="white" />
-        </div>
-      )}
-      <div className="absolute bottom-0 left-0 w-full">
-        <div
-          style={{
-            width,
-            transform: `scale(${ratio})`,
-            transformOrigin: "bottom left",
-          }}
-        >
-          <div ref={workoutRef}>
-            <WorkoutShareOutput record={props.record} history={props.history} settings={props.settings} />
-          </div>
-        </div>
-      </div>
-    </div>
+      <Pressable
+        onPress={props.onPickCustomBg}
+        className="absolute bg-gray-500"
+        style={{ width: rect.width, height: rect.height, left: rect.x, top: rect.y }}
+      >
+        {effectiveBgUri ? (
+          <Image
+            source={{ uri: effectiveBgUri }}
+            className="absolute top-0 left-0 right-0 bottom-0"
+            resizeMode="cover"
+          />
+        ) : null}
+        {props.isCustomBg && !props.backgroundImage && (
+          <View className="absolute items-center" style={{ top: "15%", left: "50%", marginLeft: -25 }}>
+            <IconCamera size={51} color="white" />
+          </View>
+        )}
+        <View className="absolute bottom-0 left-0 w-full">
+          <View
+            style={{
+              width,
+              transform: [{ scale: ratio }],
+              transformOrigin: "bottom left",
+            }}
+          >
+            <View
+              collapsable={false}
+              onLayout={(e) => {
+                const h = e.nativeEvent.layout.height;
+                if (h > 0 && Math.abs(h - workoutHeight) > 0.5) {
+                  setWorkoutHeight(h);
+                }
+              }}
+            >
+              <WorkoutShareOutput record={props.record} history={props.history} settings={props.settings} />
+            </View>
+          </View>
+        </View>
+      </Pressable>
+    </View>
   );
 }

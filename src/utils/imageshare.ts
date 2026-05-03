@@ -1,6 +1,11 @@
 import { Mobile_isMobile } from "../../lambda/utils/mobile";
 import * as htmlToImage from "html-to-image";
-import { SendMessage_isAndroid, SendMessage_androidAppVersion, SendMessage_toAndroid } from "./sendMessage";
+import {
+  SendMessage_isAndroid,
+  SendMessage_androidAppVersion,
+  SendMessage_toAndroid,
+  SendMessage_toIosAndAndroid,
+} from "./sendMessage";
 import { Dialog_alert } from "./dialog";
 
 export class ImageShareUtils {
@@ -9,10 +14,25 @@ export class ImageShareUtils {
     private readonly fileName: string
   ) {}
 
-  public static async generateImageDataUrl(element: HTMLElement): Promise<string> {
-    await htmlToImage.toPng(element, { pixelRatio: 2 });
-    await htmlToImage.toPng(element, { pixelRatio: 2 });
-    return htmlToImage.toPng(element, { pixelRatio: 2 });
+  public static async generateImageDataUrl(element: unknown): Promise<string> {
+    const el = element as HTMLElement;
+    await htmlToImage.toPng(el, { pixelRatio: 2 });
+    await htmlToImage.toPng(el, { pixelRatio: 2 });
+    return htmlToImage.toPng(el, { pixelRatio: 2 });
+  }
+
+  public static async shareToSocial(
+    target: "igstory" | "igfeed" | "tiktok",
+    workoutImage: string,
+    options: { backgroundImage?: string } = {}
+  ): Promise<void> {
+    SendMessage_toIosAndAndroid({
+      type: "share",
+      target,
+      useCustomBackground: options.backgroundImage ? "true" : "false",
+      backgroundImage: options.backgroundImage,
+      workoutImage,
+    });
   }
 
   public shareOrDownload(): void {

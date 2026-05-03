@@ -1,4 +1,5 @@
 import { JSX, useEffect } from "react";
+import { View, Platform } from "react-native";
 import { Dialog_alert } from "../../utils/dialog";
 import { useRoute, useNavigation, StackActions } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
@@ -36,6 +37,8 @@ export function NavModalWorkoutShare(): JSX.Element {
 
   const progress = progressId === 0 ? state.storage.progress?.[0] : state.progress[progressId];
   const isMobile =
+    Platform.OS === "ios" ||
+    Platform.OS === "android" ||
     (SendMessage_isIos() && SendMessage_iosAppVersion() >= 11) ||
     (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 20);
 
@@ -62,8 +65,8 @@ export function NavModalWorkoutShare(): JSX.Element {
   const shouldShowHealthSync = HealthSync_eligibleForAppleHealth() || HealthSync_eligibleForGoogleHealth();
 
   return (
-    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
-      <div className="p-4">
+    <SheetScreenContainer onClose={onClose} shouldShowClose={true} fitContent={true}>
+      <View className="p-4">
         {isMobile && (
           <>
             <BottomSheetItem
@@ -140,7 +143,7 @@ export function NavModalWorkoutShare(): JSX.Element {
             onClose();
           }}
         />
-      </div>
+      </View>
     </SheetScreenContainer>
   );
 }

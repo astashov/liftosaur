@@ -1,6 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
 
     <queries>
         <intent>
@@ -8,6 +11,9 @@
             <category android:name="android.intent.category.BROWSABLE" />
             <data android:scheme="https" />
         </intent>
+        <package android:name="com.instagram.android" />
+        <package android:name="com.zhiliaoapp.musically" />
+        <package android:name="com.ss.android.ugc.trill" />
     </queries>
 
     <application
@@ -37,5 +43,14 @@
             <data android:scheme="com.liftosaur.www" android:host="apple-callback" />
         </intent-filter>
       </activity>
+      <provider
+        android:name="androidx.core.content.FileProvider"
+        android:authorities="${applicationId}.shareprovider"
+        android:exported="false"
+        android:grantUriPermissions="true">
+        <meta-data
+          android:name="android.support.FILE_PROVIDER_PATHS"
+          android:resource="@xml/share_file_paths"/>
+      </provider>
     </application>
 </manifest>

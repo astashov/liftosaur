@@ -1,11 +1,12 @@
 import { JSX, useState } from "react";
+import { View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { SheetScreenContainer } from "../SheetScreenContainer";
 import { BottomSheetItem } from "../../components/bottomSheetItem";
 import { IconCamera } from "../../components/icons/iconCamera";
 import { IconPicture } from "../../components/icons/iconPicture";
 import { IconSpinner } from "../../components/icons/iconSpinner";
-import { SendMessage_toIosAndAndroidWithResult } from "../../utils/sendMessage";
+import { ImagePicker_pick } from "../../utils/imagePicker";
 import { useModalDispatch, Modal_setResult, Modal_clear } from "../ModalStateContext";
 
 export function NavModalPhotoPicker(): JSX.Element {
@@ -20,19 +21,16 @@ export function NavModalPhotoPicker(): JSX.Element {
 
   const pickPhoto = async (source: "camera" | "photo-library"): Promise<void> => {
     setIsLoading(true);
-    const result = await SendMessage_toIosAndAndroidWithResult<{ data: string }>({
-      type: "pickphoto",
-      source,
-    });
+    const data = await ImagePicker_pick(source);
     setIsLoading(false);
-    Modal_setResult(modalDispatch, "photoPickerModal", result?.data ?? "");
+    Modal_setResult(modalDispatch, "photoPickerModal", data ?? "");
     Modal_clear(modalDispatch, "photoPickerModal");
     navigation.goBack();
   };
 
   return (
-    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
-      <div className="p-4">
+    <SheetScreenContainer onClose={onClose} shouldShowClose={true} fitContent={true}>
+      <View className="p-4">
         <BottomSheetItem
           title="From Camera"
           name="from-camera"
@@ -48,7 +46,7 @@ export function NavModalPhotoPicker(): JSX.Element {
           description="Pick photo from your photo library"
           onClick={() => pickPhoto("photo-library")}
         />
-      </div>
+      </View>
     </SheetScreenContainer>
   );
 }

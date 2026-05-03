@@ -1,13 +1,14 @@
-import { Dialog_alert } from "./dialog";
+import Clipboard from "@react-native-clipboard/clipboard";
 
 export async function ClipboardUtils_paste(): Promise<string | undefined> {
-  return undefined;
+  const text = await Clipboard.getString();
+  return text === "" ? undefined : text;
 }
 
 export async function ClipboardUtils_copy(text: string): Promise<void> {
-  Dialog_alert("Copy this value\n\n" + text);
+  Clipboard.setString(text);
 }
 
 export async function ClipboardUtils_canReadTextFromClipboard(): Promise<boolean> {
-  return false;
+  return Clipboard.hasString();
 }

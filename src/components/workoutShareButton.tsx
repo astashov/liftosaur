@@ -1,4 +1,5 @@
 import { JSX, useRef, useState } from "react";
+import { View, Pressable } from "react-native";
 import { IHistoryRecord, ISettings } from "../types";
 import { WorkoutShareOutput } from "./workoutShareOutput";
 import { IconSpinner } from "./icons/iconSpinner";
@@ -13,13 +14,13 @@ interface IWorkoutShareButtonProps {
 }
 
 export function WorkoutShareButton(props: IWorkoutShareButtonProps): JSX.Element {
-  const workoutShareRef = useRef<HTMLDivElement>(null);
+  const workoutShareRef = useRef<View>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   return (
-    <div className="relative overflow-hidden text-left">
-      <button
-        className="w-10 h-10 rounded-full bg-background-subtle nm-workout-share-image"
-        onClick={async () => {
+    <View className="relative overflow-hidden">
+      <Pressable
+        className="w-10 h-10 rounded-full bg-background-subtle items-center justify-center nm-workout-share-image"
+        onPress={async () => {
           setIsLoading(true);
           try {
             const dataUrl = await ImageShareUtils.generateImageDataUrl(workoutShareRef.current!);
@@ -34,12 +35,12 @@ export function WorkoutShareButton(props: IWorkoutShareButtonProps): JSX.Element
         }}
       >
         {isLoading ? <IconSpinner width={20} height={20} /> : props.icon}
-      </button>
-      <div className="absolute" style={{ top: "9999px", left: "9999px" }}>
-        <div ref={workoutShareRef} style={{ width: "420px" }}>
+      </Pressable>
+      <View collapsable={false} className="absolute" style={{ left: -9999, top: -9999 }}>
+        <View ref={workoutShareRef} collapsable={false} style={{ width: 420 }}>
           <WorkoutShareOutput record={props.record} history={props.history} settings={props.settings} />
-        </div>
-      </div>
-    </div>
+        </View>
+      </View>
+    </View>
   );
 }

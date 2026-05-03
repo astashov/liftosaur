@@ -37,6 +37,19 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>GIDClientID</key>
 	<string>944666871420-of5rtcpja10vsp2jbe5m6amob7u5qvjq.apps.googleusercontent.com</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>instagram</string>
+		<string>instagram-stories</string>
+		<string>tiktokopensdk</string>
+		<string>tiktoksharesdk</string>
+		<string>snssdk1180</string>
+		<string>snssdk1233</string>
+	</array>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Liftosaur needs to add the workout image to your photo library so it can be shared to Instagram Feed and TikTok.</string>
+	<key>TikTokClientKey</key>
+	<string>awotgboh9ncnqq9w</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -46,6 +59,10 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Liftosaur needs access to your camera to take photos for use as workout share backgrounds.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Liftosaur needs access to your photo library to pick photos for use as workout share backgrounds.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string/>
 	<key>RCTNewArchEnabled</key>
