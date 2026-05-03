@@ -321,16 +321,12 @@ export function Program_nextHistoryEntry(
     superset: programExercise.superset?.name,
     warmupSets: Exercise_getWarmupSets(exercise, sets[0]?.weight, settings, warmupSets),
   };
-  const newEntry = Progress_runUpdateScriptForEntry(
-    entry,
-    dayData,
-    programExercise,
-    program.states,
-    -1,
-    settings,
-    stats
-  );
-  return newEntry;
+  try {
+    return Progress_runUpdateScriptForEntry(entry, dayData, programExercise, program.states, -1, settings, stats);
+  } catch (error) {
+    console.error(error);
+    return entry;
+  }
 }
 
 export function Program_stateValue(

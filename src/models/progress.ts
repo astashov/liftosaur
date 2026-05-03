@@ -985,31 +985,24 @@ export function Progress_runUpdateScriptForEntry(
     setVariationIndex,
     descriptionIndex
   );
-  try {
-    const fnContext: IScriptFnContext = { exerciseType: exercise, unit: settings.units, prints: [] };
-    const runner = new ScriptRunner(
-      script,
-      state,
-      ObjectUtils_clone(otherStates),
-      bindings,
-      Progress_createScriptFunctions(settings),
-      settings.units,
-      fnContext,
-      "update"
-    );
-    runner.execute();
-    const newEntry = Progress_applyBindings(entry, bindings, settings);
-    newEntry.state = { ...newEntry.state, ...state };
-    if (fnContext.prints.length > 0) {
-      newEntry.updatePrints = fnContext.prints;
-    }
-    return newEntry;
-  } catch (error) {
-    const e = error as Error;
-    console.error(e);
-    Dialog_alert(`Error during executing 'update: custom()' script: ${e.message}`);
-    return entry;
+  const fnContext: IScriptFnContext = { exerciseType: exercise, unit: settings.units, prints: [] };
+  const runner = new ScriptRunner(
+    script,
+    state,
+    ObjectUtils_clone(otherStates),
+    bindings,
+    Progress_createScriptFunctions(settings),
+    settings.units,
+    fnContext,
+    "update"
+  );
+  runner.execute();
+  const newEntry = Progress_applyBindings(entry, bindings, settings);
+  newEntry.state = { ...newEntry.state, ...state };
+  if (fnContext.prints.length > 0) {
+    newEntry.updatePrints = fnContext.prints;
   }
+  return newEntry;
 }
 
 export function Progress_runInitialUpdateScripts(
@@ -1037,15 +1030,22 @@ export function Progress_runInitialUpdateScripts(
       if (!programExercise) {
         return entry;
       }
-      return Progress_runUpdateScriptForEntry(
-        entry,
-        Progress_getDayData(aProgress),
-        programExercise,
-        program.states,
-        -1,
-        settings,
-        stats
-      );
+      try {
+        return Progress_runUpdateScriptForEntry(
+          entry,
+          Progress_getDayData(aProgress),
+          programExercise,
+          program.states,
+          -1,
+          settings,
+          stats
+        );
+      } catch (error) {
+        const e = error as Error;
+        console.error(e);
+        Dialog_alert(`Error during executing 'update: custom()' script for ${programExercise.fullName}: ${e.message}`);
+        return entry;
+      }
     }),
   };
 }
@@ -1064,15 +1064,23 @@ export function Progress_runUpdateScript(
     return aProgress;
   }
   const entry = aProgress.entries[entryIndex];
-  const newEntry = Progress_runUpdateScriptForEntry(
-    entry,
-    Progress_getDayData(aProgress),
-    programExercise,
-    otherStates,
-    setIndex,
-    settings,
-    stats
-  );
+  let newEntry: IHistoryEntry;
+  try {
+    newEntry = Progress_runUpdateScriptForEntry(
+      entry,
+      Progress_getDayData(aProgress),
+      programExercise,
+      otherStates,
+      setIndex,
+      settings,
+      stats
+    );
+  } catch (error) {
+    const e = error as Error;
+    console.error(e);
+    Dialog_alert(`Error during executing 'update: custom()' script for ${programExercise.fullName}: ${e.message}`);
+    newEntry = entry;
+  }
   const progress = lf(aProgress).p("entries").i(entryIndex).set(newEntry);
   return progress;
 }

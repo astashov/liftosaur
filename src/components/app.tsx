@@ -126,7 +126,9 @@ export function AppView(props: IProps): JSX.Element | null {
 
   const prevShouldShowWhatsNew = useRef(false);
   useEffect(() => {
-    if (!isNavReady) return;
+    if (!isNavReady) {
+      return;
+    }
     if (shouldShowWhatsNew && state.storage.whatsNew != null && !prevShouldShowWhatsNew.current) {
       navigationRef.navigate("whatsnewModal");
     }
@@ -136,7 +138,9 @@ export function AppView(props: IProps): JSX.Element | null {
   const showThanks25 = isEligibleForThanks25 && !helps.includes("thanks25");
   const prevShowThanks25 = useRef(false);
   useEffect(() => {
-    if (!isNavReady) return;
+    if (!isNavReady) {
+      return;
+    }
     if (showThanks25 && !prevShowThanks25.current) {
       navigationRef.navigate("thanks25Modal");
     }
@@ -146,7 +150,9 @@ export function AppView(props: IProps): JSX.Element | null {
   const showCorruptedState = state.errors.corruptedstorage != null;
   const prevShowCorruptedState = useRef(false);
   useEffect(() => {
-    if (!isNavReady) return;
+    if (!isNavReady) {
+      return;
+    }
     if (showCorruptedState && !prevShowCorruptedState.current) {
       navigationRef.navigate("corruptedStateModal");
     }
@@ -155,7 +161,9 @@ export function AppView(props: IProps): JSX.Element | null {
 
   const prevShowSignupRequest = useRef(false);
   useEffect(() => {
-    if (!isNavReady) return;
+    if (!isNavReady) {
+      return;
+    }
     if (state.showSignupRequest && !prevShowSignupRequest.current) {
       navigationRef.navigate("signupRequestModal");
     }
@@ -164,7 +172,9 @@ export function AppView(props: IProps): JSX.Element | null {
 
   const prevTour = useRef(false);
   useEffect(() => {
-    if (!isNavReady) return;
+    if (!isNavReady) {
+      return;
+    }
     if (state.tour && !prevTour.current) {
       navigationRef.navigate("tourModal");
     }

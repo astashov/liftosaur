@@ -26,11 +26,7 @@ export const HistoryEntryView = memo((props: IHistoryEntryProps): JSX.Element =>
   const exerciseUnit = Equipment_getUnitOrDefaultForExerciseType(settings, exercise);
   const isPr = ObjectUtils_values(props.prs || {}).some((v) => v);
   return (
-    <View
-      data-testid="history-entry-exercise"
-      testID="history-entry-exercise"
-      className="flex-row items-center gap-2"
-    >
+    <View data-testid="history-entry-exercise" testID="history-entry-exercise" className="flex-row items-center gap-2">
       <View
         data-testid="history-entry-exercise-img"
         testID="history-entry-exercise-img"
