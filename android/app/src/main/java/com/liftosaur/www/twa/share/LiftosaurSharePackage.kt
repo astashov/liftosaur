@@ -1,4 +1,4 @@
-package com.liftosaur.www.share
+package com.liftosaur.www.twa.share
 
 import com.facebook.react.BaseReactPackage
 import com.facebook.react.bridge.NativeModule

@@ -8,6 +8,7 @@ import {
   useWindowDimensions,
   ViewStyle,
   StyleProp,
+  Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCustomKeyboardHeight } from "./CustomKeyboardContext";
@@ -96,7 +97,7 @@ export function SheetScreenContainer(props: IProps): JSX.Element {
           <SheetDragHandle className="items-center py-2">
             <View className="rounded-full bg-text-disabled" style={{ width: 36, height: 5 }} />
           </SheetDragHandle>
-          {props.children}
+          {Platform.OS === "android" ? <View className="pt-4">{props.children}</View> : props.children}
         </Animated.View>
       </View>
     </SheetPanContext.Provider>

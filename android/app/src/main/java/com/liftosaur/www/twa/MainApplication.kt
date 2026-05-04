@@ -1,4 +1,4 @@
-package com.liftosaur.www
+package com.liftosaur.www.twa
 
 import android.app.Application
 import com.facebook.react.PackageList
@@ -6,7 +6,7 @@ import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
-import com.liftosaur.www.share.LiftosaurSharePackage
+import com.liftosaur.www.twa.share.LiftosaurSharePackage
 import com.rollbar.RollbarReactNative
 
 class MainApplication : Application(), ReactApplication {

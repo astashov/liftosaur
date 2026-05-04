@@ -237,7 +237,7 @@
     "type": "modules",
     "jsSrcsDir": "src/specs",
     "android": {
-      "javaPackageName": "com.liftosaur.www.share"
+      "javaPackageName": "com.liftosaur.www.twa.share"
     },
     "ios": {
       "modulesProvider": {

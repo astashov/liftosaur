@@ -1,4 +1,4 @@
-package com.liftosaur.www.share
+package com.liftosaur.www.twa.share
 
 import android.content.Intent
 import android.net.Uri
@@ -6,6 +6,7 @@ import android.util.Base64
 import androidx.core.content.FileProvider
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
+import com.liftosaur.www.twa.BuildConfig
 import com.tiktok.open.sdk.share.Format
 import com.tiktok.open.sdk.share.MediaType
 import com.tiktok.open.sdk.share.ShareApi
@@ -18,7 +19,7 @@ class LiftosaurShareModule(reactContext: ReactApplicationContext) :
     NativeLiftosaurShareSpec(reactContext) {
 
     private val igAppId = "3448767138535273"
-    private val tiktokClientKey = "awotgboh9ncnqq9w"
+    private val tiktokClientKey = if (BuildConfig.DEBUG) "sbaw0evkeryu51f2d4" else "awotgboh9ncnqq9w"
     private val instagramPackage = "com.instagram.android"
     private val tiktokPackages = listOf("com.zhiliaoapp.musically", "com.ss.android.ugc.trill")
 
@@ -144,7 +145,7 @@ class LiftosaurShareModule(reactContext: ReactApplicationContext) :
                 mediaContent = mediaContent,
                 shareFormat = Format.DEFAULT,
                 packageName = reactApplicationContext.packageName,
-                resultActivityFullPath = "${reactApplicationContext.packageName}.MainActivity"
+                resultActivityFullPath = "com.liftosaur.www.twa.MainActivity"
             )
             ShareApi(activity = activity).share(request)
             promise.resolve(null)
