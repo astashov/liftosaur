@@ -1,5 +1,5 @@
 import { JSX, useRef } from "react";
-import { View, Pressable, useWindowDimensions } from "react-native";
+import { View, Pressable, Platform, useWindowDimensions } from "react-native";
 import { ScrollView, Gesture, GestureDetector } from "react-native-gesture-handler";
 import { Text } from "../primitives/text";
 import { WorkoutScrollGestureContext } from "../workoutScrollGestureContext";
@@ -92,42 +92,45 @@ export function EditProgramExerciseSetVariationsList(props: IEditProgramExercise
         </View>
       )}
       <WorkoutScrollGestureContext.Provider value={scrollGesture}>
-        <GestureDetector gesture={scrollGesture}>
-          <ScrollView
-            ref={scrollRef}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onScroll={(e) => {
-              scrollXRef.current = e.nativeEvent.contentOffset.x;
-            }}
-            scrollEventThrottle={16}
-          >
-            {setVariations.map((setVariation, index) => {
-              return (
-                <View
-                  key={index}
-                  data-testid={`set-variation-${index + 1}`}
-                  testID={`set-variation-${index + 1}`}
-                  style={{ width: pageWidth }}
-                >
-                  <EditProgramExerciseSetVariation
-                    areSetVariationsEnabled={setVariations.length > 1}
-                    name={setVariations.length > 1 ? `Set Variation ${index + 1}` : "Working Sets"}
-                    setVariation={setVariation}
-                    setVariationIndex={index}
-                    ui={props.ui}
-                    plannerExercise={props.plannerExercise}
-                    plannerDispatch={props.plannerDispatch}
-                    settings={props.settings}
-                    exerciseStateKey={props.exerciseStateKey}
-                    programId={props.programId}
-                  />
-                </View>
-              );
-            })}
-          </ScrollView>
-        </GestureDetector>
+        {(() => {
+          const pager = (
+            <ScrollView
+              ref={scrollRef}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onScroll={(e) => {
+                scrollXRef.current = e.nativeEvent.contentOffset.x;
+              }}
+              scrollEventThrottle={16}
+            >
+              {setVariations.map((setVariation, index) => {
+                return (
+                  <View
+                    key={index}
+                    data-testid={`set-variation-${index + 1}`}
+                    testID={`set-variation-${index + 1}`}
+                    style={{ width: pageWidth }}
+                  >
+                    <EditProgramExerciseSetVariation
+                      areSetVariationsEnabled={setVariations.length > 1}
+                      name={setVariations.length > 1 ? `Set Variation ${index + 1}` : "Working Sets"}
+                      setVariation={setVariation}
+                      setVariationIndex={index}
+                      ui={props.ui}
+                      plannerExercise={props.plannerExercise}
+                      plannerDispatch={props.plannerDispatch}
+                      settings={props.settings}
+                      exerciseStateKey={props.exerciseStateKey}
+                      programId={props.programId}
+                    />
+                  </View>
+                );
+              })}
+            </ScrollView>
+          );
+          return Platform.OS === "web" ? pager : <GestureDetector gesture={scrollGesture}>{pager}</GestureDetector>;
+        })()}
       </WorkoutScrollGestureContext.Provider>
     </View>
   );

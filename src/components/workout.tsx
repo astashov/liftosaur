@@ -5,6 +5,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
   LayoutChangeEvent,
+  Platform,
   useWindowDimensions,
 } from "react-native";
 import { ScrollView, Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -202,47 +203,54 @@ export function Workout(props: IWorkoutViewProps): JSX.Element {
         {selectedEntry != null && (
           <WorkoutScrollGestureContext.Provider value={scrollGesture}>
             <View className="mt-2">
-              <GestureDetector gesture={scrollGesture}>
-                <ScrollView
-                  ref={scrollRef}
-                  horizontal
-                  pagingEnabled
-                  showsHorizontalScrollIndicator={false}
-                  onScroll={onScroll}
-                  scrollEventThrottle={16}
-                  style={pagerHeight != null ? { height: pagerHeight } : undefined}
-                >
-                  {props.progress.entries.map((entry, entryIndex) => {
-                    const shouldRender = renderedIndices.has(entryIndex);
-                    return (
-                      <View key={entry.id} style={{ width: windowWidth }}>
-                        <View
-                          onLayout={(e: LayoutChangeEvent) => onPageLayout(entryIndex, e.nativeEvent.layout.height)}
-                        >
-                          {shouldRender ? (
-                            <WorkoutExercise
-                              day={props.progress.day}
-                              stats={props.stats}
-                              history={props.history}
-                              otherStates={props.program?.states}
-                              entryIndex={entryIndex}
-                              program={props.program}
-                              programDay={props.programDay}
-                              progress={props.progress}
-                              showHelp={true}
-                              helps={props.helps}
-                              entry={entry}
-                              subscription={props.subscription}
-                              settings={props.settings}
-                              dispatch={props.dispatch}
-                            />
-                          ) : null}
+              {(() => {
+                const pager = (
+                  <ScrollView
+                    ref={scrollRef}
+                    horizontal
+                    pagingEnabled
+                    showsHorizontalScrollIndicator={false}
+                    onScroll={onScroll}
+                    scrollEventThrottle={16}
+                    style={pagerHeight != null ? { height: pagerHeight } : undefined}
+                  >
+                    {props.progress.entries.map((entry, entryIndex) => {
+                      const shouldRender = renderedIndices.has(entryIndex);
+                      return (
+                        <View key={entry.id} style={{ width: windowWidth }}>
+                          <View
+                            onLayout={(e: LayoutChangeEvent) => onPageLayout(entryIndex, e.nativeEvent.layout.height)}
+                          >
+                            {shouldRender ? (
+                              <WorkoutExercise
+                                day={props.progress.day}
+                                stats={props.stats}
+                                history={props.history}
+                                otherStates={props.program?.states}
+                                entryIndex={entryIndex}
+                                program={props.program}
+                                programDay={props.programDay}
+                                progress={props.progress}
+                                showHelp={true}
+                                helps={props.helps}
+                                entry={entry}
+                                subscription={props.subscription}
+                                settings={props.settings}
+                                dispatch={props.dispatch}
+                              />
+                            ) : null}
+                          </View>
                         </View>
-                      </View>
-                    );
-                  })}
-                </ScrollView>
-              </GestureDetector>
+                      );
+                    })}
+                  </ScrollView>
+                );
+                return Platform.OS === "web" ? (
+                  pager
+                ) : (
+                  <GestureDetector gesture={scrollGesture}>{pager}</GestureDetector>
+                );
+              })()}
             </View>
           </WorkoutScrollGestureContext.Provider>
         )}
