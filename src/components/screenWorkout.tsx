@@ -1,4 +1,4 @@
-import { JSX, useEffect, useRef } from "react";
+import { JSX, useCallback, useEffect, useMemo, useRef } from "react";
 import { Pressable } from "react-native";
 import { IHistoryRecord, IProgram, ISettings, IStats, ISubscription } from "../types";
 import { IDispatch } from "../ducks/types";
@@ -95,77 +95,84 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
     prevEditSetModal.current = editSetModal;
   }, [editSetModal]);
 
-  const onDeletePress = async (): Promise<void> => {
+  const dispatch = props.dispatch;
+  const isCurrent = Progress_isCurrent(progress);
+  const onDeletePress = useCallback(async (): Promise<void> => {
     const confirmed = await Dialog_confirm(
-      `Are you sure you want to delete this ${Progress_isCurrent(props.progress) ? "ONGOING" : "PAST"} workout?`
+      `Are you sure you want to delete this ${isCurrent ? "ONGOING" : "PAST"} workout?`
     );
     if (confirmed) {
-      props.dispatch(Thunk_deleteProgress());
+      dispatch(Thunk_deleteProgress());
     }
-  };
+  }, [dispatch, isCurrent]);
 
-  useNavOptions({
-    navHelpTourId: workoutTourConfig.id,
-    navTitle: Progress_isCurrent(progress) ? "Ongoing workout" : `${DateUtils_format(progress.date)}`,
-    navOnTitleClick: !Progress_isCurrent(progress)
-      ? () => {
-          props.dispatch({
-            type: "ChangeDate",
-            date: progress.date,
-            time: History_workoutTime(progress),
-          });
-          navigationRef.navigate("dateModal", { progressId: progress.id });
-        }
-      : undefined,
-    navSubtitle:
-      !Progress_isCurrent(progress) && progress.endTime ? (
-        TimeUtils_formatHHMM(History_workoutTime(props.progress))
-      ) : (
-        <Timer
-          progress={props.progress}
-          onPauseResume={() => {
-            if (History_isPaused(props.progress.intervals)) {
-              History_resumeWorkoutAction(
-                props.dispatch,
-                false,
-                props.settings,
-                Subscriptions_hasSubscription(props.subscription)
-              );
-              const currentEntryIndex = props.progress.ui?.currentEntryIndex || 0;
-              const currentEntry = props.progress.entries[currentEntryIndex];
-              const setIndex = currentEntry ? Reps_findNextSetIndex(currentEntry) : 0;
-              props.dispatch(
-                Thunk_updateLiveActivity(currentEntryIndex, setIndex, props.progress.timer, props.progress.timerSince)
-              );
-            } else {
-              History_pauseWorkoutAction(props.dispatch);
-            }
-          }}
-        />
-      ),
-    navRightButtons: [
+  const onDeletePressHandler = useCallback(() => {
+    onDeletePress().catch(() => undefined);
+  }, [onDeletePress]);
+
+  const onTitleClick = useCallback(() => {
+    dispatch({
+      type: "ChangeDate",
+      date: progress.date,
+      time: History_workoutTime(progress),
+    });
+    navigationRef.navigate("dateModal", { progressId: progress.id });
+  }, [dispatch, progress]);
+
+  const onPauseResume = useCallback(() => {
+    if (History_isPaused(props.progress.intervals)) {
+      History_resumeWorkoutAction(dispatch, false, props.settings, Subscriptions_hasSubscription(props.subscription));
+      const currentEntryIndex = props.progress.ui?.currentEntryIndex || 0;
+      const currentEntry = props.progress.entries[currentEntryIndex];
+      const setIndex = currentEntry ? Reps_findNextSetIndex(currentEntry) : 0;
+      dispatch(Thunk_updateLiveActivity(currentEntryIndex, setIndex, props.progress.timer, props.progress.timerSince));
+    } else {
+      History_pauseWorkoutAction(dispatch);
+    }
+  }, [dispatch, props.progress, props.settings, props.subscription]);
+
+  const navSubtitle = useMemo(() => {
+    return !isCurrent && progress.endTime ? (
+      TimeUtils_formatHHMM(History_workoutTime(progress))
+    ) : (
+      <Timer progress={progress} onPauseResume={onPauseResume} />
+    );
+  }, [isCurrent, progress, onPauseResume]);
+
+  const navRightButtons = useMemo(
+    () => [
       <Pressable
         key="delete"
         data-testid="delete-progress"
         testID="delete-progress"
         className="p-2"
-        onPress={() => {
-          onDeletePress().catch(() => undefined);
-        }}
+        onPress={onDeletePressHandler}
       >
         <IconTrash />
       </Pressable>,
     ],
+    [onDeletePressHandler]
+  );
+
+  useNavOptions({
+    navHelpTourId: workoutTourConfig.id,
+    navTitle: isCurrent ? "Ongoing workout" : `${DateUtils_format(progress.date)}`,
+    navOnTitleClick: !isCurrent ? onTitleClick : undefined,
+    navSubtitle,
+    navRightButtons,
   });
+
+  const progressId = progress.id;
+  const onShare = useCallback(() => {
+    if (!isCurrent) {
+      navigationRef.navigate("workoutShareModal", { progressId });
+    }
+  }, [isCurrent, progressId]);
 
   if (progress != null) {
     return (
       <Workout
-        onShare={() => {
-          if (!Progress_isCurrent(progress)) {
-            navigationRef.navigate("workoutShareModal", { progressId: progress.id });
-          }
-        }}
+        onShare={onShare}
         stats={props.navCommon.stats}
         allPrograms={props.allPrograms}
         subscription={props.subscription}

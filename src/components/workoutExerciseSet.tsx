@@ -10,7 +10,6 @@ import {
   ISubscription,
   IProgramState,
   IHistoryRecord,
-  IHistoryEntry,
   IWeight,
   IPercentage,
 } from "../types";
@@ -96,7 +95,6 @@ interface IWorkoutExerciseSet {
   isNext?: boolean;
   subscription?: ISubscription;
   isPlayground: boolean;
-  entry: IHistoryEntry;
   entryIndex: number;
   programExercise?: IPlannerProgramExercise;
   otherStates?: IByExercise<IProgramState>;

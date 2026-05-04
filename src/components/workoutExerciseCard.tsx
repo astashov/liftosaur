@@ -32,7 +32,7 @@ import { IconSwap } from "./icons/iconSwap";
 import { IconTrash } from "./icons/iconTrash";
 import { IconEdit2 } from "./icons/iconEdit2";
 import { TextareaAutogrow } from "./textareaAutogrow";
-import { Progress_getNextSupersetEntry, Progress_doesUse1RM, Progress_editExerciseNotes } from "../models/progress";
+import { Progress_doesUse1RM, Progress_editExerciseNotes } from "../models/progress";
 import { StringUtils_dashcase } from "../utils/string";
 import { GroupHeader } from "./groupHeader";
 import { Settings_getNextTargetType } from "../models/settings";
@@ -60,7 +60,7 @@ interface IWorkoutExerciseCardProps {
   history: IHistoryRecord[];
   progressId: number;
   progressStartTime: number;
-  progressEntries: IHistoryEntry[];
+  supersetEntry?: IHistoryEntry;
   progressUserPromptedStateVars?: Partial<Record<string, IProgramState>>;
   isCurrentProgress: boolean;
   stats: IStats;
@@ -76,10 +76,14 @@ interface IWorkoutExerciseCardProps {
 type IKebabAction = "edit" | "swap" | "superset" | "remove";
 
 function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element {
-  const programExercise =
-    props.program && props.entry.programExerciseId
-      ? Program_getProgramExerciseForKeyAndDay(props.program, props.day, props.entry.programExerciseId)
-      : undefined;
+  const programExerciseId = props.entry.programExerciseId;
+  const programExercise = useMemo(
+    () =>
+      props.program && programExerciseId
+        ? Program_getProgramExerciseForKeyAndDay(props.program, props.day, programExerciseId)
+        : undefined,
+    [props.program, props.day, programExerciseId]
+  );
   const exerciseType = props.entry.exercise;
   const exercise = Exercise_get(exerciseType, props.settings.exercises);
   const currentEquipmentName = Equipment_getEquipmentNameForExerciseType(props.settings, exercise);
@@ -96,19 +100,18 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
     () => lb<IHistoryRecord>().p("entries").i(props.entryIndex).p("warmupSets"),
     [props.entryIndex]
   );
-  const programExerciseId = props.entry.programExerciseId;
-
-  const historyCollector = Collector.build(props.history)
-    .addFn(History_collectLastEntry(props.progressStartTime, exerciseType))
-    .addFn(History_collectLastNote(props.progressStartTime, exerciseType));
-
+  const progressStartTime = props.progressStartTime;
   const [{ lastHistoryEntry }, { lastNote, timestamp }] = useMemo(
-    () => historyCollector.run(),
-    [props.history, exerciseType, props.settings]
+    () =>
+      Collector.build(props.history)
+        .addFn(History_collectLastEntry(progressStartTime, exerciseType))
+        .addFn(History_collectLastNote(progressStartTime, exerciseType))
+        .run(),
+    [props.history, exerciseType, progressStartTime]
   );
 
   const [isKebabMenuOpen, setIsKebabMenuOpen] = useState(false);
-  const supersetEntry = Progress_getNextSupersetEntry(props.progressEntries, props.entry);
+  const supersetEntry = props.supersetEntry;
   const supersetExercise = supersetEntry ? Exercise_get(supersetEntry.exercise, props.settings.exercises) : undefined;
 
   const { dispatch, entry, entryIndex, progressId, settings } = props;
@@ -285,6 +288,23 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
     );
   }, [kebabActions, runKebabAction]);
 
+  const onPressExerciseStats = useCallback(() => {
+    dispatch(Thunk_pushExerciseStatsScreen(entryExercise));
+  }, [dispatch, entryExercise]);
+
+  const onChangeNotes = useCallback(
+    (text: string) => {
+      Progress_editExerciseNotes(dispatch, entryIndex, text);
+    },
+    [dispatch, entryIndex]
+  );
+
+  const onCloseKebabMenu = useCallback(() => setIsKebabMenuOpen(false), []);
+  const onKebabEdit = useCallback(() => runKebabAction("edit"), [runKebabAction]);
+  const onKebabSwap = useCallback(() => runKebabAction("swap"), [runKebabAction]);
+  const onKebabSuperset = useCallback(() => runKebabAction("superset"), [runKebabAction]);
+  const onKebabRemove = useCallback(() => runKebabAction("remove"), [runKebabAction]);
+
   const kebabMenuZIndex = Platform.OS === "web" && isKebabMenuOpen ? { zIndex: 50 } : undefined;
 
   return (
@@ -300,7 +320,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
       <View className="px-4" style={kebabMenuZIndex}>
         <View className="flex-row gap-2" style={kebabMenuZIndex}>
           <Pressable
-            onPress={() => props.dispatch(Thunk_pushExerciseStatsScreen(props.entry.exercise))}
+            onPress={onPressExerciseStats}
             className="self-center rounded-lg bg-background-image"
             data-testid="workout-exercise-image"
             testID="workout-exercise-image"
@@ -312,7 +332,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
               className="flex-row items-center"
               data-testid="exercise-name"
               testID="exercise-name"
-              onPress={() => props.dispatch(Thunk_pushExerciseStatsScreen(props.entry.exercise))}
+              onPress={onPressExerciseStats}
             >
               <Text className="pr-1 text-lg font-bold">{Exercise_nameWithEquipment(exercise, props.settings)}</Text>
               <IconArrowRight />
@@ -377,13 +397,13 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
               <IconKebab />
             </Pressable>
             {Platform.OS === "web" && isKebabMenuOpen && (
-              <DropdownMenu rightOffset="2rem" onClose={() => setIsKebabMenuOpen(false)} maxWidth="20rem">
+              <DropdownMenu rightOffset="2rem" onClose={onCloseKebabMenu} maxWidth="20rem">
                 {programExercise && programExerciseId && (
                   <DropdownMenuItem
                     isTop={true}
                     data-testid="exercise-edit-mode"
                     testID="exercise-edit-mode"
-                    onClick={() => runKebabAction("edit")}
+                    onClick={onKebabEdit}
                   >
                     <View className="flex-row items-center gap-2">
                       <View>
@@ -397,18 +417,14 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
                   data-testid="exercise-swap"
                   testID="exercise-swap"
                   isTop={!programExercise || !programExerciseId}
-                  onClick={() => runKebabAction("swap")}
+                  onClick={onKebabSwap}
                 >
                   <View className="flex-row items-center gap-2">
                     <IconSwap size={18} />
                     <Text className="whitespace-nowrap">Swap Exercise</Text>
                   </View>
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  data-testid="exercise-superset"
-                  testID="exercise-superset"
-                  onClick={() => runKebabAction("superset")}
-                >
+                <DropdownMenuItem data-testid="exercise-superset" testID="exercise-superset" onClick={onKebabSuperset}>
                   <View className="flex-row items-center" style={{ gap: 8 }}>
                     <IconReorder size={18} />
                     <Text className="whitespace-nowrap">Edit Superset</Text>
@@ -417,7 +433,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
                 <DropdownMenuItem
                   data-testid="edit-exercise-kebab-remove-exercise"
                   testID="edit-exercise-kebab-remove-exercise"
-                  onClick={() => runKebabAction("remove")}
+                  onClick={onKebabRemove}
                 >
                   <View className="flex-row items-center" style={{ gap: 8 }}>
                     <IconTrash width={15} height={18} />
@@ -458,9 +474,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
             name="exercise-notes"
             placeholder="Add workout notes for this exercise here..."
             value={props.entry.notes}
-            onChangeText={(text) => {
-              Progress_editExerciseNotes(props.dispatch, props.entryIndex, text);
-            }}
+            onChangeText={onChangeNotes}
             className="mt-1"
           />
         </View>

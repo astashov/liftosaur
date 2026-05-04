@@ -22,7 +22,6 @@ import { GraphExercise } from "./graphExercise";
 import { ExerciseAllTimePRs } from "./exerciseAllTimePRs";
 import { ExerciseHistory } from "./exerciseHistory";
 import { Reps_setsStatus } from "../models/set";
-import { Progress_isCurrent } from "../models/progress";
 import { WorkoutExerciseCard } from "./workoutExerciseCard";
 
 interface IWorkoutExerciseProps {
@@ -31,7 +30,11 @@ interface IWorkoutExerciseProps {
   program?: IEvaluatedProgram;
   programDay?: IEvaluatedProgramDay;
   history: IHistoryRecord[];
-  progress: IHistoryRecord;
+  progressId: number;
+  progressStartTime: number;
+  userPromptedStateVars?: Partial<Record<string, IProgramState>>;
+  supersetEntry?: IHistoryEntry;
+  isCurrentProgress: boolean;
   showHelp?: boolean;
   helps: string[];
   stats: IStats;
@@ -46,19 +49,18 @@ interface IWorkoutExerciseProps {
 function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
   const exerciseType = props.entry.exercise;
 
-  const historyCollector = Collector.build(props.history)
-    .addFn(History_collectAllHistoryRecordsOfExerciseType(exerciseType))
-    .addFn(History_collectMinAndMaxTime())
-    .addFn(History_collectWeightPersonalRecord(exerciseType, props.settings.units))
-    .addFn(History_collect1RMPersonalRecord(exerciseType, props.settings));
-
   const [
     history,
     { maxTime: maxX, minTime: minX },
     { maxWeight, maxWeightHistoryRecord },
     { max1RM, max1RMHistoryRecord, max1RMSet },
   ] = useMemo(() => {
-    const results = historyCollector.run();
+    const results = Collector.build(props.history)
+      .addFn(History_collectAllHistoryRecordsOfExerciseType(exerciseType))
+      .addFn(History_collectMinAndMaxTime())
+      .addFn(History_collectWeightPersonalRecord(exerciseType, props.settings.units))
+      .addFn(History_collect1RMPersonalRecord(exerciseType, props.settings))
+      .run();
     results[0] = CollectionUtils_sort(results[0], (a, b) => {
       return props.settings.exerciseStatsSettings.ascendingSort ? a.startTime - b.startTime : b.startTime - a.startTime;
     });
@@ -66,7 +68,6 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
   }, [props.history, exerciseType, props.settings]);
   const showPrs = maxWeight.value > 0 || max1RM.value > 0;
   const status = Reps_setsStatus(props.entry.sets);
-  const isCurrentProgress = Progress_isCurrent(props.progress);
   const surfaceRef = useRef<{ clientHeight?: number } | null>(null);
 
   const [isHeavyContentReady, setIsHeavyContentReady] = useState(false);
@@ -104,11 +105,11 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
         program={props.program}
         programDay={props.programDay}
         otherStates={props.otherStates}
-        progressId={props.progress.id}
-        progressStartTime={props.progress.startTime}
-        progressEntries={props.progress.entries}
-        progressUserPromptedStateVars={props.progress.userPromptedStateVars}
-        isCurrentProgress={isCurrentProgress}
+        progressId={props.progressId}
+        progressStartTime={props.progressStartTime}
+        supersetEntry={props.supersetEntry}
+        progressUserPromptedStateVars={props.userPromptedStateVars}
+        isCurrentProgress={props.isCurrentProgress}
         showHelp={props.showHelp}
         helps={props.helps}
         subscription={props.subscription}

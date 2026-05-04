@@ -172,7 +172,6 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
             type="warmup"
             key={`warmup-${set.id}-${i}`}
             day={props.day}
-            entry={props.entry}
             exerciseType={props.exerciseType}
             programExercise={props.programExercise}
             otherStates={props.otherStates}
@@ -195,7 +194,6 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
             type="workout"
             key={`workout-${set.id}-${i}`}
             onStopShowingHint={props.onStopShowingHint}
-            entry={props.entry}
             helps={props.helps}
             isNext={nextSetIndex - warmupSets.length === i}
             programExercise={props.programExercise}
