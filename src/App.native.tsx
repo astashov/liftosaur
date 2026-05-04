@@ -107,6 +107,7 @@ import { Settings_applyTheme, Settings_getTheme } from "./models/settings";
 import { TextSize_apply } from "./utils/textSize";
 import { AppContext } from "./components/appContext";
 import { ActionSheetHost } from "./components/actionSheetHost";
+import { SystemBars } from "react-native-edge-to-edge";
 import { Thunk_fetchInitial, Thunk_sync2 } from "./ducks/thunks";
 
 GoogleSignin.configure({
@@ -142,6 +143,7 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
     <AppContext.Provider value={{ service, isApp: true }}>
       <StateContext.Provider value={{ state, dispatch }}>
         <ModalStateProvider>
+          <SystemBars style="auto" />
           <NavigationContainer ref={navigationRef}>
             <AppNavigator initialScreen={initialScreen} />
           </NavigationContainer>

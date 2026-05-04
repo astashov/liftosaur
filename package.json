@@ -204,6 +204,7 @@
     "react-dom": "^19.2.3",
     "react-native": "^0.84.1",
     "react-native-collapsible-tab-view": "^8.0.1",
+    "react-native-edge-to-edge": "^1.8.1",
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "^2.31.1",
     "react-native-image-picker": "^8.2.1",
