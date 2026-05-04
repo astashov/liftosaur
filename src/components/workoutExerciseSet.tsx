@@ -48,17 +48,37 @@ export interface ISetColumnWidths {
   reps: number;
   separator: number;
   weight: number;
+  rpe: number;
   check: number;
 }
 
-export function computeSetColumnWidths(remValue: number, isUnilateral: boolean): ISetColumnWidths {
+function computeRpeColumnWidth(rpeLabel: string, remValue: number): number {
+  if (!rpeLabel) {
+    return 0;
+  }
+  let units = 0.3;
+  for (const ch of rpeLabel) {
+    if (ch === ".") {
+      units += 0.2;
+    } else if (ch === "@") {
+      units += 0.5;
+    } else {
+      units += 0.42;
+    }
+  }
+  return Math.max(Math.round(units * remValue), Math.round(1.75 * remValue));
+}
+
+export function computeSetColumnWidths(remValue: number, isUnilateral: boolean, rpeLabel: string): ISetColumnWidths {
   const labelW = isUnilateral ? remValue : 0;
+  const rpe = computeRpeColumnWidth(rpeLabel, remValue);
   return {
     set: Math.round(2.5 * remValue),
     reps: Math.round(3.5 * remValue) + labelW,
     separator: Math.round(1.5 * remValue),
     weight: Math.round(4 * remValue),
-    check: Math.round(3.5 * remValue),
+    rpe,
+    check: rpe > 0 ? Math.round(2.5 * remValue) : Math.round(3.5 * remValue),
   };
 }
 
@@ -295,48 +315,47 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
             </View>
 
             <View className="items-start justify-center py-2" style={{ width: props.columnWidths.weight }}>
-              <View className="flex-row items-center">
-                <InputWeight2
-                  width={weightInputWidth}
-                  name="set-weight"
-                  exerciseType={props.exerciseType}
-                  onBlur={onBlurWeight}
-                  onInput={onInputWeight}
-                  addOn={
-                    set.rpe != null && set.reps != null
-                      ? () => (
-                          <RpeWeightHint
-                            reps={set.completedReps ?? set.reps ?? 0}
-                            rpe={set.completedRpe ?? set.rpe!}
-                            settings={props.settings}
-                            exerciseType={props.exerciseType}
-                          />
-                        )
-                      : undefined
-                  }
-                  subscription={props.subscription}
-                  placeholder={placeholderWeight}
-                  initialValue={set.weight}
-                  value={set.completedWeight || undefined}
-                  max={9999}
-                  min={-9999}
-                  settings={props.settings}
-                />
+              <InputWeight2
+                width={weightInputWidth}
+                name="set-weight"
+                exerciseType={props.exerciseType}
+                onBlur={onBlurWeight}
+                onInput={onInputWeight}
+                addOn={
+                  set.rpe != null && set.reps != null
+                    ? () => (
+                        <RpeWeightHint
+                          reps={set.completedReps ?? set.reps ?? 0}
+                          rpe={set.completedRpe ?? set.rpe!}
+                          settings={props.settings}
+                          exerciseType={props.exerciseType}
+                        />
+                      )
+                    : undefined
+                }
+                subscription={props.subscription}
+                placeholder={placeholderWeight}
+                initialValue={set.weight}
+                value={set.completedWeight || undefined}
+                max={9999}
+                min={-9999}
+                settings={props.settings}
+              />
+            </View>
+
+            {props.columnWidths.rpe > 0 ? (
+              <View className="items-start justify-center py-2 ml-1" style={{ width: props.columnWidths.rpe }}>
                 {completedRpeValue != null ? (
-                  <Text
-                    data-testid="rpe-value"
-                    testID="rpe-value"
-                    className="ml-1 text-xs font-semibold text-text-success"
-                  >
+                  <Text data-testid="rpe-value" testID="rpe-value" className="text-xs font-semibold text-text-success">
                     @{n(completedRpeValue)}
                   </Text>
                 ) : null}
               </View>
-            </View>
+            ) : null}
 
             <View className="items-end justify-center" style={{ width: props.columnWidths.check }}>
               <Pressable
-                className="px-4 py-3"
+                className={props.columnWidths.rpe > 0 ? "pl-1 pr-4 py-3" : "px-4 py-3"}
                 data-testid="complete-set"
                 testID="complete-set"
                 onPress={onCompleteSet}
@@ -553,16 +572,16 @@ function RpeWeightHint(props: IRpeWeightHintProps): JSX.Element {
   return (
     <View>
       <Text className="text-xs text-text-secondary">
-        <Text className="font-bold" style={{ color: "#940" }}>
+        <Text className="text-xs font-bold" style={{ color: "#940" }}>
           {props.reps}
         </Text>{" "}
         ×{" "}
-        <Text className="font-bold" style={{ color: "#164" }}>
+        <Text className="text-xs font-bold" style={{ color: "#164" }}>
           @{props.rpe}
         </Text>{" "}
-        - <Text className="font-bold text-text-primary">{n(multiplier * 100, 0)}%</Text> of 1RM -{" "}
-        <Text className="font-bold text-text-primary">{n(weight.value)}</Text>
-        <Text className="text-text-secondary">{weight.unit}</Text>
+        - <Text className="text-xs font-bold text-text-primary">{n(multiplier * 100, 0)}%</Text> of 1RM -{" "}
+        <Text className="text-xs font-bold text-text-primary">{n(weight.value)}</Text>
+        <Text className="text-xs text-text-secondary">{weight.unit}</Text>
       </Text>
     </View>
   );

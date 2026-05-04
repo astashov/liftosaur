@@ -18,6 +18,7 @@ import { updateProgress } from "../models/state";
 import { lb, LensBuilder } from "lens-shmens";
 import { WorkoutExerciseSet, computeSetColumnWidths } from "./workoutExerciseSet";
 import { Reps_isFinishedSet, Reps_addSet } from "../models/set";
+import { n } from "../utils/math";
 import { IconPlus2 } from "./icons/iconPlus2";
 import { Tailwind_colors } from "../utils/tailwindConfig";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
@@ -80,7 +81,27 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
   const lbEntry = useMemo(() => lb<IHistoryRecord>().p("entries").i(props.entryIndex), [props.entryIndex]);
   const isUnilateral = Exercise_getIsUnilateral(props.exerciseType, props.settings);
   const remValue = props.settings.textSize ?? 16;
-  const columnWidths = useMemo(() => computeSetColumnWidths(remValue, isUnilateral), [remValue, isUnilateral]);
+  const rpeLabel = useMemo(() => {
+    const allSets = [...sets, ...warmupSets];
+    const hasAny = allSets.some((s) => s.completedRpe != null);
+    if (!hasAny) {
+      return "";
+    }
+    let longest = "";
+    for (const s of allSets) {
+      if (s.completedRpe != null) {
+        const label = `@${n(s.completedRpe)}`;
+        if (label.length > longest.length) {
+          longest = label;
+        }
+      }
+    }
+    return longest || "";
+  }, [sets, warmupSets]);
+  const columnWidths = useMemo(
+    () => computeSetColumnWidths(remValue, isUnilateral, rpeLabel),
+    [remValue, isUnilateral, rpeLabel]
+  );
   const lbWarmupSetByIndex = useMemo(
     () => warmupSets.map((_, i) => props.lbWarmupSets.i(i)),
     [props.lbWarmupSets, warmupSets.length]
@@ -135,6 +156,11 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
         <View className="items-center" style={{ width: columnWidths.weight }}>
           <Text className="text-xs text-text-secondary">{exerciseUnit}</Text>
         </View>
+        {columnWidths.rpe > 0 ? (
+          <View className="items-center ml-1" style={{ width: columnWidths.rpe }}>
+            <Text className="text-xs text-center text-text-secondary">RPE</Text>
+          </View>
+        ) : null}
         <View style={{ width: columnWidths.check }} />
       </View>
 
