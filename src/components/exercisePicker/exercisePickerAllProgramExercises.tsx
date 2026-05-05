@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import { JSX, memo, useCallback, useMemo, useRef } from "react";
 import { View, Pressable, ScrollView } from "react-native";
 import { Text } from "../primitives/text";
 import { IEvaluatedProgram, IEvaluatedProgramWeek } from "../../models/program";
@@ -12,7 +12,7 @@ import {
   PlannerProgramExercise_evaluatedSetsToDisplaySets,
 } from "../../pages/planner/models/plannerProgramExercise";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { Exercise_eq } from "../../models/exercise";
+import { Exercise_toKey } from "../../models/exercise";
 import { ExercisePickerUtils_getIsMultiselect, ExercisePickerUtils_chooseProgramExercise } from "./exercisePickerUtils";
 import { StringUtils_dashcase } from "../../utils/string";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
@@ -28,16 +28,52 @@ interface IProps {
 }
 
 export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
-  const isMultiselect = ExercisePickerUtils_getIsMultiselect(props.state);
-  const exercisesToDays = props.week.days.reduce<Record<string, IPlannerProgramExercise[]>>((acc, day) => {
-    day.exercises.forEach((exercise) => {
-      if (!acc[exercise.key]) {
-        acc[exercise.key] = [];
+  console.log("[render] ExercisePickerAllProgramExercises");
+  const { state, dispatch, settings, week, usedExerciseTypes } = props;
+  const isMultiselect = useMemo(() => ExercisePickerUtils_getIsMultiselect(state), [state.mode, state.exerciseType]);
+
+  const exercisesToDays = useMemo(() => {
+    return week.days.reduce<Record<string, IPlannerProgramExercise[]>>((acc, day) => {
+      day.exercises.forEach((exercise) => {
+        if (!acc[exercise.key]) {
+          acc[exercise.key] = [];
+        }
+        acc[exercise.key].push(exercise);
+      });
+      return acc;
+    }, {});
+  }, [week]);
+
+  const usedKeys = useMemo(() => new Set(usedExerciseTypes.map((et) => Exercise_toKey(et))), [usedExerciseTypes]);
+
+  const selectedProgramKeys = useMemo(() => {
+    const keys = new Set<string>();
+    state.selectedExercises.forEach((ex) => {
+      if (ex.type === "program") {
+        keys.add(`${Exercise_toKey(ex.exerciseType)}_${ex.week}_${ex.dayInWeek}`);
       }
-      acc[exercise.key].push(exercise);
     });
-    return acc;
-  }, {});
+    return keys;
+  }, [state.selectedExercises]);
+
+  const selectedAnyKeys = useMemo(() => {
+    const keys = new Set<string>();
+    state.selectedExercises.forEach((ex) => {
+      if ("exerciseType" in ex) {
+        keys.add(Exercise_toKey(ex.exerciseType));
+      }
+    });
+    return keys;
+  }, [state.selectedExercises]);
+
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  const onChooseProgram = useCallback(
+    (exerciseType: IExerciseType, weekIndex: number, dayInWeek: number) => {
+      ExercisePickerUtils_chooseProgramExercise(dispatch, exerciseType, weekIndex, dayInWeek, stateRef.current);
+    },
+    [dispatch]
+  );
 
   return (
     <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 16 }}>
@@ -52,19 +88,11 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
           if (anExerciseType == null) {
             return true;
           }
-          const isSelected = props.state.selectedExercises.some((ex) => {
-            return (
-              ex.type === "program" &&
-              anExerciseType &&
-              Exercise_eq(ex.exerciseType, anExerciseType) &&
-              ex.week === exercise.dayData.week &&
-              ex.dayInWeek === exercise.dayData.dayInWeek
-            );
-          });
-          const isDisabled = props.state.selectedExercises.some(
-            (ex) => "exerciseType" in ex && Exercise_eq(ex.exerciseType, anExerciseType)
-          );
-          const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise_eq(et, anExerciseType));
+          const key = Exercise_toKey(anExerciseType);
+          const selKey = `${key}_${exercise.dayData.week}_${exercise.dayData.dayInWeek}`;
+          const isSelected = selectedProgramKeys.has(selKey);
+          const isDisabled = selectedAnyKeys.has(key);
+          const isUsedForDay = usedKeys.has(key);
           return isMultiselect ? isUsedForDay || (isDisabled && !isSelected) : isUsedForDay;
         });
         return (
@@ -76,7 +104,7 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
           >
             <View className="pl-1">
               <View className="p-1 rounded-lg bg-background-image">
-                <ExerciseImage settings={props.settings} exerciseType={exerciseType} size="small" className="w-10" />
+                <ExerciseImage settings={settings} exerciseType={exerciseType} size="small" className="w-10" />
               </View>
             </View>
             <View className="flex-1 pt-1">
@@ -88,71 +116,25 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
                 if (anExerciseType == null) {
                   return null;
                 }
-                const isSelected = props.state.selectedExercises.some((ex) => {
-                  return (
-                    ex.type === "program" &&
-                    anExerciseType &&
-                    Exercise_eq(ex.exerciseType, anExerciseType) &&
-                    ex.week === exercise.dayData.week &&
-                    ex.dayInWeek === exercise.dayData.dayInWeek
-                  );
-                });
-                const isDisabled = props.state.selectedExercises.some(
-                  (ex) => "exerciseType" in ex && Exercise_eq(ex.exerciseType, anExerciseType)
-                );
-                const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise_eq(et, anExerciseType));
-                const currentSetVariation = PlannerProgramExercise_currentEvaluatedSetVariation(exercise);
-                const displayGroups = PlannerProgramExercise_evaluatedSetsToDisplaySets(
-                  currentSetVariation.sets,
-                  props.settings
-                );
+                const key = Exercise_toKey(anExerciseType);
+                const selKey = `${key}_${exercise.dayData.week}_${exercise.dayData.dayInWeek}`;
+                const isSelected = selectedProgramKeys.has(selKey);
+                const isDisabled = selectedAnyKeys.has(key);
+                const isUsedForDay = usedKeys.has(key);
                 const isItemDisabled = isMultiselect ? isUsedForDay || (isDisabled && !isSelected) : isUsedForDay;
-                const testId = `exercise-picker-program-${StringUtils_dashcase(exercise.name)}-${exercise.dayData.week}-${exercise.dayData.dayInWeek}`;
-                const choose = (): void => {
-                  ExercisePickerUtils_chooseProgramExercise(
-                    props.dispatch,
-                    anExerciseType,
-                    exercise.dayData.week,
-                    exercise.dayData.dayInWeek,
-                    props.state
-                  );
-                };
-                const dayContent = (
-                  <View>
-                    <Text className="px-1 pb-1 text-xs text-text-secondary">Day {exercise.dayData.dayInWeek}</Text>
-                    {displayGroups.map((g, gi) => (
-                      <HistoryRecordSet key={gi} sets={g} isNext={true} settings={props.settings} />
-                    ))}
-                  </View>
-                );
                 const rowKey = `${exercise.key}_${exercise.dayData.week}_${exercise.dayData.dayInWeek}`;
-                const rowClassName = `justify-end flex-row pb-1 ${isItemDisabled && !isAllDisabled ? "opacity-40" : ""}`;
-                if (isMultiselect) {
-                  return (
-                    <View key={rowKey} className={rowClassName} data-testid={testId} testID={testId}>
-                      <Pressable className="flex-row flex-1" disabled={isItemDisabled} onPress={choose}>
-                        {dayContent}
-                      </Pressable>
-                      <View className="items-center justify-center p-2">
-                        <Switch value={isSelected} disabled={isItemDisabled} onValueChange={choose} />
-                      </View>
-                    </View>
-                  );
-                }
                 return (
-                  <Pressable
+                  <ProgramExerciseRow
                     key={rowKey}
-                    className={rowClassName}
-                    disabled={isItemDisabled}
-                    data-testid={testId}
-                    testID={testId}
-                    onPress={choose}
-                  >
-                    {dayContent}
-                    <View className="items-center justify-center p-2">
-                      <RadioIndicator checked={isSelected} />
-                    </View>
-                  </Pressable>
+                    exercise={exercise}
+                    exerciseType={anExerciseType}
+                    isMultiselect={isMultiselect}
+                    isSelected={isSelected}
+                    isItemDisabled={isItemDisabled}
+                    isAllDisabled={isAllDisabled}
+                    settings={settings}
+                    onChoose={onChooseProgram}
+                  />
                 );
               })}
             </View>
@@ -162,6 +144,66 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
     </ScrollView>
   );
 }
+
+interface IProgramExerciseRowProps {
+  exercise: IPlannerProgramExercise;
+  exerciseType: IExerciseType;
+  isMultiselect: boolean;
+  isSelected: boolean;
+  isItemDisabled: boolean;
+  isAllDisabled: boolean;
+  settings: ISettings;
+  onChoose: (exerciseType: IExerciseType, week: number, dayInWeek: number) => void;
+}
+
+const ProgramExerciseRow = memo(function ProgramExerciseRow(props: IProgramExerciseRowProps): JSX.Element {
+  console.log(
+    `[render] ProgramExerciseRow ${props.exercise.key}@${props.exercise.dayData.week}:${props.exercise.dayData.dayInWeek}`
+  );
+  const { exercise, exerciseType, isMultiselect, isSelected, isItemDisabled, isAllDisabled, settings, onChoose } =
+    props;
+  const choose = useCallback(() => {
+    onChoose(exerciseType, exercise.dayData.week, exercise.dayData.dayInWeek);
+  }, [onChoose, exerciseType, exercise.dayData.week, exercise.dayData.dayInWeek]);
+
+  const displayGroups = useMemo(() => {
+    const currentSetVariation = PlannerProgramExercise_currentEvaluatedSetVariation(exercise);
+    return PlannerProgramExercise_evaluatedSetsToDisplaySets(currentSetVariation.sets, settings);
+  }, [exercise, settings]);
+
+  const testId = `exercise-picker-program-${StringUtils_dashcase(exercise.name)}-${exercise.dayData.week}-${exercise.dayData.dayInWeek}`;
+  const rowClassName = `justify-end flex-row pb-1 ${isItemDisabled && !isAllDisabled ? "opacity-40" : ""}`;
+
+  const dayContent = (
+    <View>
+      <Text className="px-1 pb-1 text-xs text-text-secondary">Day {exercise.dayData.dayInWeek}</Text>
+      {displayGroups.map((g, gi) => (
+        <HistoryRecordSet key={gi} sets={g} isNext={true} settings={settings} />
+      ))}
+    </View>
+  );
+
+  if (isMultiselect) {
+    return (
+      <View className={rowClassName} data-testid={testId} testID={testId}>
+        <Pressable className="flex-row flex-1" disabled={isItemDisabled} onPress={choose}>
+          {dayContent}
+        </Pressable>
+        <View className="items-center justify-center p-2">
+          <Switch value={isSelected} disabled={isItemDisabled} onValueChange={choose} />
+        </View>
+      </View>
+    );
+  }
+  return (
+    <Pressable className={rowClassName} disabled={isItemDisabled} data-testid={testId} testID={testId} onPress={choose}>
+      {dayContent}
+      <View className="items-center justify-center p-2">
+        <RadioIndicator checked={isSelected} />
+      </View>
+    </Pressable>
+  );
+});
 
 function RadioIndicator(props: { checked: boolean }): JSX.Element {
   const color = Tailwind_semantic().icon.purple;
