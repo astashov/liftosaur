@@ -1,5 +1,6 @@
 import { JSX, useEffect, useRef, useState } from "react";
 import { Button } from "../../components/button";
+import { Dialog_alert } from "../../utils/dialog";
 import { Service } from "../../api/service";
 import { IconDoc } from "../../components/icons/iconDoc";
 import { IAccount } from "../../models/account";
@@ -54,7 +55,7 @@ export function AiPromptContent(props: IAiPromptContentProps): JSX.Element {
   const copyPrompt = (): void => {
     if (generatedPrompt) {
       navigator.clipboard.writeText(generatedPrompt);
-      alert("Prompt copied to clipboard!");
+      Dialog_alert("Prompt copied to clipboard!");
     }
   };
 

@@ -1,5 +1,6 @@
 import { JSX } from "react";
 import { IDispatch } from "../ducks/types";
+import { Dialog_alert } from "../utils/dialog";
 import { NavScreenContent } from "../navigation/NavScreenContent";
 import { useNavOptions } from "../navigation/useNavOptions";
 import {
@@ -406,7 +407,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
 }
 
 function webAlert(): void {
-  alert(
+  Dialog_alert(
     "You can only subscribe from an iOS or Android Liftosaur app. Install Liftosaur from Google Play or App Store, subscribe there, then log in in Liftosaur, and use the same login method on the web. That will unlock the premium features on the web."
   );
 }

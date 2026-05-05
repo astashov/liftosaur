@@ -1,5 +1,6 @@
 import { JSX, useState } from "react";
-import { View, Pressable, Alert } from "react-native";
+import { View, Pressable } from "react-native";
+import { Dialog_alert } from "../../utils/dialog";
 import { Text } from "../primitives/text";
 import { IPlannerProgramExercise, IPlannerExerciseState, IPlannerExerciseUi } from "../../pages/planner/models/types";
 import { IProgram, ISettings } from "../../types";
@@ -174,7 +175,7 @@ function UpdateContent(props: IUpdateContentProps): JSX.Element {
               name="program-exercise-update-reuse"
               onClick={() => {
                 if (cannotReuseOtherUpdates) {
-                  Alert.alert("You cannot reuse update if this custom update is reused by other USED exercises.");
+                  Dialog_alert("You cannot reuse update if this custom update is reused by other USED exercises.");
                 }
               }}
             >
@@ -182,7 +183,7 @@ function UpdateContent(props: IUpdateContentProps): JSX.Element {
                 className="flex-row items-center py-1"
                 onPress={() => {
                   if (cannotReuseOtherUpdates) {
-                    Alert.alert("You cannot reuse update if this custom update is reused by other USED exercises.");
+                    Dialog_alert("You cannot reuse update if this custom update is reused by other USED exercises.");
                   }
                 }}
               >

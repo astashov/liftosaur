@@ -1,5 +1,6 @@
 import { JSX, useState } from "react";
 import { IStorage, IProgram } from "../../types";
+import { Dialog_alert, Dialog_confirm } from "../../utils/dialog";
 import { IAccount } from "../../models/account";
 import { IconDuplicate2 } from "../../components/icons/iconDuplicate2";
 import { IconTrash } from "../../components/icons/iconTrash";
@@ -56,7 +57,7 @@ async function saveProgram(newProgram: IProgram, service: Service): Promise<void
       window.location.href
     ).toString();
   } else {
-    alert(result.error || "Error while saving the program, try again");
+    Dialog_alert(result.error || "Error while saving the program, try again");
   }
 }
 
@@ -65,7 +66,7 @@ async function deleteProgram(id: string, service: Service): Promise<boolean> {
   if (result.success) {
     return true;
   } else {
-    alert("Error while deleting the program, try again");
+    Dialog_alert("Error while deleting the program, try again");
     return false;
   }
 }
@@ -157,13 +158,13 @@ export function ProgramContentList(props: IProgramContentListProps): JSX.Element
                     disabled={isDeleting === program.id}
                     onClick={async () => {
                       if (state.storage.programs.length < 2) {
-                        alert("You cannot delete all your programs, you should have at least one");
+                        Dialog_alert("You cannot delete all your programs, you should have at least one");
                       } else {
                         const confirmText =
                           state.storage.currentProgramId === program.id
                             ? "Are you sure? This will delete your current program!"
                             : "Are you sure?";
-                        if (confirm(confirmText)) {
+                        if (await Dialog_confirm(confirmText)) {
                           setIsDeleting(program.id);
                           try {
                             await deleteProgram(program.id, props.service);

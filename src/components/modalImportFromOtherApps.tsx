@@ -9,6 +9,7 @@ import { lb } from "lens-shmens";
 import { CollectionUtils_sortBy, CollectionUtils_uniqBy } from "../utils/collection";
 import RB from "rollbar";
 import { ICustomExercise, IHistoryRecord, ISettings } from "../types";
+import { Dialog_alert, Dialog_confirm } from "../utils/dialog";
 
 declare let Rollbar: RB;
 
@@ -19,7 +20,7 @@ interface IModalImportFromOtherAppsContentProps {
 }
 
 export function ModalImportFromOtherAppsContent(props: IModalImportFromOtherAppsContentProps): JSX.Element {
-  const onFileSelect = useCallback((contents: string) => {
+  const onFileSelect = useCallback(async (contents: string) => {
     let historyRecords: IHistoryRecord[];
     let customExercises: Record<string, ICustomExercise>;
     try {
@@ -32,10 +33,10 @@ export function ModalImportFromOtherAppsContent(props: IModalImportFromOtherApps
       Rollbar.error(e);
       historyRecords = [];
       customExercises = {};
-      alert("Failed to import history from Hevy.");
+      Dialog_alert("Failed to import history from Hevy.");
     }
     if (historyRecords.length > 0) {
-      if (confirm(`Do you want to import ${historyRecords.length} workouts?`)) {
+      if (await Dialog_confirm(`Do you want to import ${historyRecords.length} workouts?`)) {
         updateState(
           props.dispatch,
           [

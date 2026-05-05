@@ -1,5 +1,6 @@
 import { JSX, useState } from "react";
 import { IProgram, ISettings } from "../../../types";
+import { Dialog_alert, Dialog_confirm } from "../../../utils/dialog";
 import { Program_exportProgram } from "../../../models/program";
 import { Service } from "../../../api/service";
 import {
@@ -33,7 +34,7 @@ export function ProgramDetailsAddButton(props: IProps): JSX.Element {
       disabled={isLoading}
       onClick={async () => {
         if (!props.isLoggedIn) {
-          alert("You should be logged in");
+          Dialog_alert("You should be logged in");
           return;
         }
         const exportProgram = Program_exportProgram(
@@ -47,7 +48,9 @@ export function ProgramDetailsAddButton(props: IProps): JSX.Element {
         if (pg.planner && PlannerProgram_hasNonSelectedWeightUnit(pg.planner, settings)) {
           const fromUnit = Weight_oppositeUnit(settings.units);
           const toUnit = settings.units;
-          if (confirm(`The program has weights in ${fromUnit}, do you want to convert them to ${toUnit}?`)) {
+          if (
+            await Dialog_confirm(`The program has weights in ${fromUnit}, do you want to convert them to ${toUnit}?`)
+          ) {
             pg.planner = PlannerProgram_switchToUnit(pg.planner, settings);
           }
         }
@@ -57,7 +60,7 @@ export function ProgramDetailsAddButton(props: IProps): JSX.Element {
         if (result.success) {
           window.location.href = `${__HOST__}/user/p/${result.data}`;
         } else {
-          alert("Failed to save the program");
+          Dialog_alert("Failed to save the program");
           setIsLoading(false);
         }
       }}

@@ -1,5 +1,6 @@
 import { JSX, RefObject, useEffect, useRef, useState } from "react";
 import { GroupHeader } from "../../../components/groupHeader";
+import { Dialog_alert } from "../../../utils/dialog";
 import { Modal } from "../../../components/modal";
 import { IPlannerProgram, IProgram, ISettings } from "../../../types";
 import { IProgramShareOutputOptions, ProgramShareOutput } from "../../../components/programShareOutput";
@@ -161,7 +162,7 @@ function SettingsTab(props: ISettingsTabProps): JSX.Element {
     const height = sourceRef.current!.clientHeight;
     console.log(`${width}x${height}`);
     if (width >= maxSize || height >= maxSize) {
-      alert(
+      Dialog_alert(
         `The image is too large to generate - max size is 16384x16384, and the image would be ${width}x${height}. Try to set more columns, or disable some weeks/days.`
       );
       return;
@@ -180,7 +181,7 @@ function SettingsTab(props: ISettingsTabProps): JSX.Element {
       .catch((error) => {
         setIsLoading(false);
         console.error(error);
-        alert(
+        Dialog_alert(
           "Unknown error happened. Likely because the image is too large to generate. Try to disable some weeks/days."
         );
       });

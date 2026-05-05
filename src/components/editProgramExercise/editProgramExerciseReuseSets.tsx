@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { View, Pressable, Alert } from "react-native";
+import { View, Pressable } from "react-native";
+import { Dialog_alert } from "../../utils/dialog";
 import { Text } from "../primitives/text";
 import {
   IPlannerProgramExercise,
@@ -114,7 +115,7 @@ export function EditProgramExerciseReuseSetsExercise(props: IEditProgramExercise
         testID="edit-exercise-reuse-sets"
         onPress={() => {
           if (reusingSetsExercises.length > 0) {
-            Alert.alert("You cannot reuse sets from this exercise because it is already reused by other exercises.");
+            Dialog_alert("You cannot reuse sets from this exercise because it is already reused by other exercises.");
           }
         }}
       >

@@ -1,4 +1,5 @@
 import { PP_iterate2 } from "../../../models/pp";
+import { Dialog_alert } from "../../../utils/dialog";
 import { PlannerProgram_evaluate } from "../../../pages/planner/models/plannerProgram";
 import {
   IModalExerciseUi,
@@ -241,9 +242,7 @@ export function EditProgramUiHelpers_validate(
     const { evaluatedWeeks } = PlannerEvaluator_evaluate(newPlanner, settings);
     const error = PlannerEvaluator_getFirstError(evaluatedWeeks);
     if (error) {
-      if (typeof window !== "undefined") {
-        alert(error.message);
-      }
+      Dialog_alert(error.message);
       return oldPlanner;
     } else {
       return newPlanner;
@@ -400,7 +399,7 @@ export function EditProgramUiHelpers_deleteCurrentInstance(
     const newEvaluatedProgram = Program_evaluate({ ...Program_create("Temp"), planner: newPlanner }, settings);
     const firstExercise = Program_getFirstProgramExercise(newEvaluatedProgram, fullName);
     if (!firstExercise) {
-      alert("You cannot delete this exercise from all days on the screen. Do it from the Program screen.");
+      Dialog_alert("You cannot delete this exercise from all days on the screen. Do it from the Program screen.");
       return planner;
     }
   }

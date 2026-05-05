@@ -1,6 +1,7 @@
 import { JSX, useRef, useState } from "react";
 import { IHistoryRecord, ISettings } from "../types";
 import { WorkoutShareOutput } from "./workoutShareOutput";
+import { Dialog_alert } from "../utils/dialog";
 import { IconSpinner } from "./icons/iconSpinner";
 import { ImageShareUtils } from "../utils/imageshare";
 import { BottomSheetItem } from "./bottomSheetItem";
@@ -32,7 +33,7 @@ export function WorkoutShareBottomSheetItem(props: IWorkoutShareBottomSheetItemP
           } catch (e) {
             console.error(e);
             setIsLoading(false);
-            alert("Couldn't share the workout image");
+            Dialog_alert("Couldn't share the workout image");
           }
         }}
       />

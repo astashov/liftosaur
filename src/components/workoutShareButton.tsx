@@ -3,6 +3,7 @@ import { IHistoryRecord, ISettings } from "../types";
 import { WorkoutShareOutput } from "./workoutShareOutput";
 import { IconSpinner } from "./icons/iconSpinner";
 import { ImageShareUtils } from "../utils/imageshare";
+import { Dialog_alert } from "../utils/dialog";
 
 interface IWorkoutShareButtonProps {
   record?: IHistoryRecord;
@@ -28,7 +29,7 @@ export function WorkoutShareButton(props: IWorkoutShareButtonProps): JSX.Element
           } catch (e) {
             console.error(e);
             setIsLoading(false);
-            alert("Couldn't share the workout image");
+            Dialog_alert("Couldn't share the workout image");
           }
         }}
       >

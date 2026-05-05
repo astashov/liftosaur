@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { View, Pressable, Alert } from "react-native";
+import { View, Pressable } from "react-native";
+import { Dialog_alert } from "../../utils/dialog";
 import { Text } from "../primitives/text";
 import { IPlannerProgramExercise, IPlannerExerciseState, IReuseCandidate } from "../../pages/planner/models/types";
 import { IDayData, ISettings } from "../../types";
@@ -95,7 +96,7 @@ export function EditProgramExerciseReuseDescriptions(props: IEditProgramExercise
         className="flex-1 px-4 mb-2"
         onPress={() => {
           if (reusingDescriptionsExercises.length > 0) {
-            Alert.alert(
+            Dialog_alert(
               "You cannot reuse descriptions from this exercise because it is already reused by other exercises."
             );
           }

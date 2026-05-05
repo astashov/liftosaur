@@ -14,6 +14,7 @@ import {
   IWeight,
 } from "../types";
 import { n } from "../utils/math";
+import { Dialog_alert } from "../utils/dialog";
 import { ObjectUtils_isEqual, ObjectUtils_entries } from "../utils/object";
 import {
   Weight_eqNull,
@@ -300,9 +301,7 @@ export class ProgramToPlanner {
       const error = this.program.errors[0];
       const msg = `There's an error during evaluating a program, week ${error.dayData.week}, day: ${error.dayData.dayInWeek}. Please fix it to proceed.\n\n${error.error.toString()}`;
       console.log(PlannerProgram_generateFullText(plannerProgram.weeks));
-      if (typeof window !== "undefined" && window.alert != null) {
-        window.alert(msg);
-      }
+      Dialog_alert(msg);
       throw error.error;
     }
     const topLineMap = PlannerProgram_topLineItems(plannerProgram, this.settings);

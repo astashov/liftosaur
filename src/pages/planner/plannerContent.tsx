@@ -1,5 +1,6 @@
 import { JSX, useEffect, useState } from "react";
 import { useLensReducer } from "../../utils/useLensReducer";
+import { Dialog_alert, Dialog_confirm } from "../../utils/dialog";
 import { IPlannerState } from "./models/types";
 import { LinkInlineInput } from "../../components/inlineInput";
 import { lb, lf } from "lens-shmens";
@@ -90,7 +91,7 @@ async function saveProgram(
   if (result.success) {
     return result.data;
   } else {
-    alert(result.error || "Failed to save the program");
+    Dialog_alert(result.error || "Failed to save the program");
     return undefined;
   }
 }
@@ -395,7 +396,11 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               if (pg.planner && PlannerProgram_hasNonSelectedWeightUnit(pg.planner, settings)) {
                 const fromUnit = Weight_oppositeUnit(settings.units);
                 const toUnit = settings.units;
-                if (confirm(`The program has weights in ${fromUnit}, do you want to convert them to ${toUnit}?`)) {
+                if (
+                  await Dialog_confirm(
+                    `The program has weights in ${fromUnit}, do you want to convert them to ${toUnit}?`
+                  )
+                ) {
                   pg.planner = PlannerProgram_switchToUnit(pg.planner, settings);
                 }
               }
@@ -706,7 +711,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                   const newText = PlannerProgram_generateFullText(newProgramResult.data.planner.weeks);
                   dispatch([lb<IPlannerState>().pi("fulltext").p("text").record(newText)], "Update fulltext");
                 } else if (!newProgramResult.success) {
-                  alert(newProgramResult.error);
+                  Dialog_alert(newProgramResult.error);
                 }
               } else {
                 const newProgramResult = PlannerProgram_replaceAndValidateExercise(
@@ -721,7 +726,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
                     "Replace exercise"
                   );
                 } else if (!newProgramResult.success) {
-                  alert(newProgramResult.error);
+                  Dialog_alert(newProgramResult.error);
                 }
               }
             } else {

@@ -1,4 +1,5 @@
 import { JSX, useEffect } from "react";
+import { Dialog_alert } from "../../utils/dialog";
 import { useRoute, useNavigation, StackActions } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
@@ -116,9 +117,9 @@ export function NavModalWorkoutShare(): JSX.Element {
             if (state.user?.id) {
               const link = Share_generateLink(state.user.id, progress.id);
               ClipboardUtils_copy(link);
-              alert("Copied!");
+              Dialog_alert("Copied!");
             } else {
-              alert("You should be logged in to copy link to a workout");
+              Dialog_alert("You should be logged in to copy link to a workout");
             }
           }}
         />
@@ -135,7 +136,7 @@ export function NavModalWorkoutShare(): JSX.Element {
           onClick={() => {
             const text = LiftohistorySerializer_serialize(progress, state.storage.settings);
             ClipboardUtils_copy(text);
-            alert("Copied!");
+            Dialog_alert("Copied!");
             onClose();
           }}
         />

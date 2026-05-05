@@ -1,5 +1,6 @@
 import { JSX, useCallback, useEffect, useRef } from "react";
-import { View, Pressable, Alert } from "react-native";
+import { View, Pressable } from "react-native";
+import { Dialog_alert } from "../../utils/dialog";
 import { Text } from "../primitives/text";
 import { IPlannerExerciseState, IPlannerState } from "../../pages/planner/models/types";
 import { IDispatch } from "../../ducks/types";
@@ -102,7 +103,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
               if (result.success) {
                 e.progress = result.data;
               } else {
-                Alert.alert(result.error);
+                Dialog_alert(result.error);
               }
             }
           });

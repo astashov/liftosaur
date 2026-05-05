@@ -1,4 +1,5 @@
 import { ISettings, IStorage } from "../types";
+import { Dialog_alert } from "../utils/dialog";
 import { DateUtils_formatYYYYMMDD } from "../utils/date";
 import { Exporter_toFile } from "../utils/exporter";
 import { IExportedProgram } from "../models/program";
@@ -80,7 +81,7 @@ export async function ImportExporter_handleUniversalLink(
       }
       dispatch(Thunk_importProgram(data.data));
     } else {
-      alert(data.error.join("\n"));
+      Dialog_alert(data.error.join("\n"));
     }
   }
 }

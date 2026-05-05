@@ -1,6 +1,7 @@
 import { JSX, useEffect, useRef, useState } from "react";
 import { IHistoryRecord, ISettings } from "../types";
 import { Button } from "./button";
+import { Dialog_alert } from "../utils/dialog";
 import { IRect } from "../utils/types";
 import { Geometry_fitRectIntoRect } from "../utils/geometry";
 import { WorkoutShareOutput } from "./workoutShareOutput";
@@ -134,7 +135,7 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
                 } catch (error) {
                   setIsLoading(false);
                   console.error(error);
-                  alert("Unknown error happened. Couldn't share the workout");
+                  Dialog_alert("Unknown error happened. Couldn't share the workout");
                 }
               }}
             >

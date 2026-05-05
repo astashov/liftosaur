@@ -1,5 +1,6 @@
 import { JSX, useState } from "react";
 import { IDispatch } from "../ducks/types";
+import { Dialog_alert } from "../utils/dialog";
 import {
   History_getPersonalRecords,
   History_totalRecordWeight,
@@ -269,7 +270,7 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
               onClick={() => {
                 const text = LiftohistorySerializer_serialize(props.history[0], props.settings);
                 ClipboardUtils_copy(text);
-                alert("Copied!");
+                Dialog_alert("Copied!");
               }}
             >
               <IconDoc className="inline-block" />
@@ -293,9 +294,9 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
               if (props.userId) {
                 const link = Share_generateLink(props.userId, props.history[0].id);
                 ClipboardUtils_copy(link);
-                alert("Copied!");
+                Dialog_alert("Copied!");
               } else {
-                alert("You should be logged in to copy link to a workout");
+                Dialog_alert("You should be logged in to copy link to a workout");
               }
             }}
           >
@@ -338,7 +339,7 @@ function WebappShare(props: IWebappShareProps): JSX.Element {
               onClick={() => {
                 const text = LiftohistorySerializer_serialize(props.history[0], props.settings);
                 ClipboardUtils_copy(text);
-                alert("Copied!");
+                Dialog_alert("Copied!");
               }}
             >
               <IconDoc className="inline-block" />
@@ -354,7 +355,7 @@ function WebappShare(props: IWebappShareProps): JSX.Element {
                   ClipboardUtils_copy(link);
                   setCopiedLink(link);
                 } else {
-                  alert("You should be logged in to copy link to a workout");
+                  Dialog_alert("You should be logged in to copy link to a workout");
                 }
               }}
             >

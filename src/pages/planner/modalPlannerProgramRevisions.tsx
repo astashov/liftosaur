@@ -1,5 +1,6 @@
 import { JSX, useEffect, useState } from "react";
 import { Service } from "../../api/service";
+import { Dialog_confirm } from "../../utils/dialog";
 import { Button } from "../../components/button";
 import { IconSpinner } from "../../components/icons/iconSpinner";
 import { LinkButton } from "../../components/linkButton";
@@ -106,10 +107,12 @@ export function ModalPlannerProgramRevisionsContent(props: IModalPlannerProgramR
               <Button
                 name="restore-program-revision"
                 kind="purple"
-                onClick={() => {
+                onClick={async () => {
                   if (
                     programRevision.result.success &&
-                    confirm("Are you sure you want to restore this version? It'll overwrite your current changes.")
+                    (await Dialog_confirm(
+                      "Are you sure you want to restore this version? It'll overwrite your current changes."
+                    ))
                   ) {
                     props.onRestore(programRevision.result.data);
                   }

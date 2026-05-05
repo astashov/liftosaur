@@ -1,5 +1,6 @@
 import { JSX, useContext, useState } from "react";
-import { View, Pressable, Image, Alert, TextInput, Platform } from "react-native";
+import { View, Pressable, Image, TextInput, Platform } from "react-native";
+import { Dialog_alert, Dialog_confirm } from "../../utils/dialog";
 import { Text } from "../primitives/text";
 import { ISettings, ICustomExercise, IMuscle, exerciseKinds, IExerciseKind } from "../../types";
 import { Button } from "../button";
@@ -55,7 +56,7 @@ async function uploadAndUpdateImage(
 ): Promise<void> {
   const data = await ImagePicker_pick(source);
   if (!data) {
-    Alert.alert(source === "camera" ? "Couldn't get image from camera" : "Couldn't get image from photo library");
+    Dialog_alert(source === "camera" ? "Couldn't get image from camera" : "Couldn't get image from photo library");
     return;
   }
   const imageUploader = new ImageUploader(service);
@@ -67,15 +68,7 @@ async function uploadAndUpdateImage(
 }
 
 async function confirmAsync(message: string): Promise<boolean> {
-  if (Platform.OS === "web") {
-    return Promise.resolve(typeof window !== "undefined" && window.confirm(message));
-  }
-  return new Promise((resolve) => {
-    Alert.alert("Confirm", message, [
-      { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
-      { text: "OK", onPress: () => resolve(true) },
-    ]);
-  });
+  return Dialog_confirm(message);
 }
 
 export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustomExerciseContentProps): JSX.Element {
@@ -199,7 +192,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
             className="w-full"
             onPress={async () => {
               if (!isValid) {
-                Alert.alert("Please enter a name");
+                Dialog_alert("Please enter a name");
                 return;
               }
               setIsAutofilling(true);
@@ -216,7 +209,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
                   "Autofill custom exercise muscles and types"
                 );
               } else {
-                Alert.alert("Couldn't autofill the muscles for this exercise. Try a different name!");
+                Dialog_alert("Couldn't autofill the muscles for this exercise. Try a different name!");
               }
             }}
           >
@@ -366,7 +359,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
                 title="Upload Image"
                 onClick={() => {
                   if (!props.isLoggedIn) {
-                    Alert.alert("You need to be logged in to upload custom exercise images");
+                    Dialog_alert("You need to be logged in to upload custom exercise images");
                     return;
                   }
                   setShowImageBottomSheet(false);
@@ -397,7 +390,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
                     title="Upload Image"
                     onClick={() => {
                       if (!props.isLoggedIn) {
-                        Alert.alert("You need to be logged in to upload custom exercise images");
+                        Dialog_alert("You need to be logged in to upload custom exercise images");
                       } else {
                         onClick();
                       }

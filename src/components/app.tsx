@@ -1,6 +1,7 @@
 import { JSX, useEffect, useMemo, useRef, useCallback, useState } from "react";
 import { ModalStateProvider } from "../navigation/ModalStateContext";
 import { reducerWrapper, defaultOnActions, IAction } from "../ducks/reducer";
+import { Dialog_alert } from "../utils/dialog";
 import { Program_getProgram } from "../models/program";
 import { useThunkReducer } from "../utils/useThunkReducer";
 import {
@@ -247,7 +248,7 @@ export function AppView(props: IProps): JSX.Element | null {
         dispatch(Thunk_syncHealthKit());
       } else if (event.data?.type === "syncToAppleHealthError") {
         dispatch(Thunk_postevent("apple-health-error"));
-        alert(event.data.error);
+        Dialog_alert(event.data.error);
       } else if (event.data?.type === "stopSubscriptionLoading") {
         updateState(dispatch, [lb<IState>().p("subscriptionLoading").record(undefined)], "Stop subscription loading");
       } else if (event.data?.type === "products") {
@@ -406,7 +407,7 @@ export function AppView(props: IProps): JSX.Element | null {
     const currentProgram =
       state.storage.currentProgramId != null ? Program_getProgram(state, state.storage.currentProgramId) : undefined;
     if (currentProgram != null && currentProgram.planner == null) {
-      alert(
+      Dialog_alert(
         "You're using OLD STYLE programs, which won't be supported, and WILL STOP WORKING starting from Feb 3, 2025! Please go to Program screen, and migrate the program to the new style"
       );
     }

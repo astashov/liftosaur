@@ -1,3 +1,5 @@
+import { Dialog_confirm } from "./dialog";
+
 export type IFileImportType = "json" | "csv" | "any";
 
 export async function FileImport_pickFile(_fileType: IFileImportType = "any"): Promise<string | undefined> {
@@ -24,5 +26,5 @@ export async function FileImport_pickFile(_fileType: IFileImportType = "any"): P
 }
 
 export async function FileImport_confirm(message: string): Promise<boolean> {
-  return Promise.resolve(window.confirm(message));
+  return Dialog_confirm(message);
 }

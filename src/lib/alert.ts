@@ -1,3 +1,5 @@
+import { Dialog_alert } from "../utils/dialog";
+
 let lastAlertTime: number | undefined = undefined;
 
 export function showAlert(message: string, cooldown: number): void {
@@ -6,5 +8,5 @@ export function showAlert(message: string, cooldown: number): void {
     return;
   }
   lastAlertTime = now;
-  alert(message);
+  Dialog_alert(message);
 }

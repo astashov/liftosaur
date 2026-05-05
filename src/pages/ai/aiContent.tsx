@@ -1,5 +1,6 @@
 import { JSX, useRef, useState } from "react";
 import { IAccount } from "../../models/account";
+import { Dialog_alert } from "../../utils/dialog";
 import { Service } from "../../api/service";
 import { PlannerProgram_evaluateFull } from "../../pages/planner/models/plannerProgram";
 import { Settings_build } from "../../models/settings";
@@ -226,7 +227,7 @@ export function AiContent(props: IAiContentProps): JSX.Element {
               className="mt-4"
               onClick={() => {
                 navigator.clipboard.writeText(output);
-                alert("Liftoscript copied to clipboard!");
+                Dialog_alert("Liftoscript copied to clipboard!");
               }}
             >
               Copy Liftoscript

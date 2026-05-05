@@ -1,5 +1,5 @@
 import { JSX, Fragment, Ref, useState } from "react";
-import { View, Pressable, Alert, Platform, LayoutAnimation, UIManager } from "react-native";
+import { View, Pressable, Platform, LayoutAnimation, UIManager } from "react-native";
 import { Text } from "./primitives/text";
 import { ILensRecordingPayload, lb, Lens } from "lens-shmens";
 import { Weight_build, Weight_eqeq, Weight_compare, Weight_display, Weight_print } from "../models/weight";
@@ -30,6 +30,7 @@ import { IconEquipmentKettlebell } from "./icons/iconEquipmentKettlebell";
 import { IconEquipmentLeverageMachine } from "./icons/iconEquipmentLeverageMachine";
 import { IconEquipmentSmith } from "./icons/iconEquipmentSmith";
 import { IconEquipmentTrapbar } from "./icons/iconEquipmentTrapbar";
+import { Dialog_confirm } from "../utils/dialog";
 
 interface IProps<T> {
   dispatch: IDispatch;
@@ -304,16 +305,9 @@ function EquipmentSummary(props: { equipmentData: IEquipmentData; settings: ISet
   return <Text className="text-xs text-text-secondary">{parts.join(" · ")}</Text>;
 }
 
-function confirmDelete(onConfirm: () => void): void {
-  if (Platform.OS === "web") {
-    if (confirm("Are you sure?")) {
-      onConfirm();
-    }
-  } else {
-    Alert.alert("Confirm", "Are you sure?", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: onConfirm },
-    ]);
+async function confirmDelete(onConfirm: () => void): Promise<void> {
+  if (await Dialog_confirm("Are you sure?")) {
+    onConfirm();
   }
 }
 

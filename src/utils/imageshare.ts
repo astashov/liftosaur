@@ -1,6 +1,7 @@
 import { Mobile_isMobile } from "../../lambda/utils/mobile";
 import * as htmlToImage from "html-to-image";
 import { SendMessage_isAndroid, SendMessage_androidAppVersion, SendMessage_toAndroid } from "./sendMessage";
+import { Dialog_alert } from "./dialog";
 
 export class ImageShareUtils {
   constructor(
@@ -64,7 +65,9 @@ export class ImageShareUtils {
         title: "Workout Program Image",
       });
     } catch (error) {
-      alert("Error sharing file. Likely because the image is too large to generate. Try to disable some weeks/days.");
+      Dialog_alert(
+        "Error sharing file. Likely because the image is too large to generate. Try to disable some weeks/days."
+      );
     }
   }
 

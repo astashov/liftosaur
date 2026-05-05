@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import { LinkInlineInput } from "../../../components/inlineInput";
+import { Dialog_confirm } from "../../../utils/dialog";
 import { IPlannerProgramExercise, IPlannerState, IPlannerUi } from "../models/types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
 import { lb, LensBuilder } from "lens-shmens";
@@ -200,8 +201,8 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
         <div className="mb-6 text-sm">
           <LinkButton
             name="planner-delete-day"
-            onClick={() => {
-              if (confirm("Are you sure you want to delete this day?")) {
+            onClick={async () => {
+              if (await Dialog_confirm("Are you sure you want to delete this day?")) {
                 dispatch(
                   lbProgram
                     .p("weeks")

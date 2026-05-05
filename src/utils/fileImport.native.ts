@@ -1,6 +1,6 @@
-import { Alert } from "react-native";
 import { pick, types } from "@react-native-documents/picker";
 import RNFS from "react-native-fs";
+import { Dialog_alert, Dialog_confirm } from "./dialog";
 
 export type IFileImportType = "json" | "csv" | "any";
 
@@ -22,16 +22,11 @@ export async function FileImport_pickFile(fileType: IFileImportType = "any"): Pr
     if (err.code === "DOCUMENT_PICKER_CANCELED" || err.code === "OPERATION_CANCELED") {
       return undefined;
     }
-    Alert.alert("Import failed", err.message ?? "Unknown error");
+    Dialog_alert("Import failed: " + (err.message ?? "Unknown error"));
     return undefined;
   }
 }
 
 export async function FileImport_confirm(message: string): Promise<boolean> {
-  return new Promise((resolve) => {
-    Alert.alert("Confirm", message, [
-      { text: "Cancel", style: "cancel", onPress: () => resolve(false) },
-      { text: "OK", onPress: () => resolve(true) },
-    ]);
-  });
+  return Dialog_confirm(message);
 }

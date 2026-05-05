@@ -14,6 +14,7 @@ import type { Tree } from "@lezer/common";
 import RB from "rollbar";
 import { IProgramMode } from "./models/program";
 import { ILiftoscriptEvaluatorUpdate } from "./liftoscriptEvaluator";
+import { Dialog_alert } from "./utils/dialog";
 
 declare let Rollbar: RB;
 
@@ -164,9 +165,7 @@ export class ScriptRunner {
         const lastAlertTs = lastAlertDisplayedTs[e.message];
         console.error(e);
         if (lastAlertTs == null || lastAlertTs < Date.now() - 1000 * 60 * 1) {
-          if (typeof window !== "undefined") {
-            alert(errorMsg(e));
-          }
+          Dialog_alert(errorMsg(e));
           this.reportError("Error during Liftoscript execution", e);
           lastAlertDisplayedTs[e.message] = Date.now();
         }

@@ -1,5 +1,6 @@
 import { JSX, useState } from "react";
-import { View, Alert } from "react-native";
+import { View } from "react-native";
+import { Dialog_alert } from "../../utils/dialog";
 import { Text } from "../primitives/text";
 import {
   IPlannerProgramExercise,
@@ -210,7 +211,7 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
           name="program-exercise-progress-type"
           onClick={() => {
             if (reusingCustomProgressExercises.length > 0) {
-              Alert.alert("You cannot use other progress types if this custom progress is reused by other exercises.");
+              Dialog_alert("You cannot use other progress types if this custom progress is reused by other exercises.");
             }
           }}
         >
@@ -247,7 +248,7 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
                               if (result.success) {
                                 e.progress = result.data;
                               } else {
-                                Alert.alert(result.error);
+                                Dialog_alert(result.error);
                               }
                             }
                           }
@@ -274,7 +275,7 @@ function ProgressContent(props: IProgressContentProps): JSX.Element {
               name="program-exercise-progress-reuse"
               onClick={() => {
                 if (cannotReuseOtherProgress) {
-                  Alert.alert("You cannot reuse progress if this custom progress is reused by other USED exercises.");
+                  Dialog_alert("You cannot reuse progress if this custom progress is reused by other USED exercises.");
                 }
               }}
             >

@@ -11,6 +11,7 @@ import {
   Exercise_fullName,
 } from "./exercise";
 import { ScriptRunner } from "../parser";
+import { Dialog_alert } from "../utils/dialog";
 import {
   IScriptBindings,
   Progress_getEntryId,
@@ -667,7 +668,7 @@ export function Program_runAllFinishDayScripts(
             });
           }
         } else {
-          alert(`There was an error executing progress script: ${newStateResult.error}`);
+          Dialog_alert(`There was an error executing progress script: ${newStateResult.error}`);
         }
       }
     }

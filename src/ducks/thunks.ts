@@ -21,7 +21,7 @@ import {
 } from "../models/program";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
 import { SignIn_google, SignIn_apple } from "../utils/signIn";
-import { Platform, Alert } from "react-native";
+import { Platform } from "react-native";
 import { Dialog_confirm, Dialog_alert } from "../utils/dialog";
 import { IEnv, IState, updateProgress, updateState } from "../models/state";
 import { IProgram, IStorage, IExerciseType, ISettings, IDayData, IHistoryRecord } from "../types";
@@ -181,14 +181,14 @@ export function Thunk_appleSignIn(cb?: (state: IState) => void): IThunk {
         return;
       }
       if ("error" in result) {
-        alert(result.error);
+        Dialog_alert(result.error);
         return;
       } else {
         ({ id_token, code } = result);
       }
     } else {
       if (!window.AppleID?.auth) {
-        alert("Apple Sign In is not available");
+        Dialog_alert("Apple Sign In is not available");
         if (cb) {
           cb(getState());
         }
@@ -364,12 +364,10 @@ async function _sync2(
       return false;
     } else if (result.type === "error") {
       if (result.error === "outdated_client_storage") {
-        if (typeof window !== "undefined") {
-          alert(
-            "The version of the storage on a device is older than on the server, so sync failed. " +
-              "To fix it - kill/restart the app a couple times."
-          );
-        }
+        Dialog_alert(
+          "The version of the storage on a device is older than on the server, so sync failed. " +
+            "To fix it - kill/restart the app a couple times."
+        );
       }
       throw new NoRetryError(result.error);
     }
@@ -1104,7 +1102,7 @@ export function Thunk_fetchRevisions(programId: string, cb: () => void): IThunk 
         "Set loaded Revisions"
       );
     } else {
-      alert("Couldn't fetch program revisions");
+      Dialog_alert("Couldn't fetch program revisions");
     }
     cb();
   };
@@ -1131,7 +1129,7 @@ export function Thunk_exportProgramToLink(program: IProgram): IThunk {
     const state = getState();
     const link = await Program_exportProgramToLink(program, state.storage.settings, state.storage.version);
     await ClipboardUtils_copy(link);
-    alert("Link copied to clipboard:\n\n" + link);
+    Dialog_alert("Link copied to clipboard:\n\n" + link);
   };
 }
 
@@ -1167,15 +1165,15 @@ export function Thunk_importStorage(maybeStorage: string): IThunk {
     try {
       parsedMaybeStorage = JSON.parse(maybeStorage);
     } catch (e) {
-      alert("Couldn't parse the provided file");
+      Dialog_alert("Couldn't parse the provided file");
       return;
     }
     const result = Storage_get(parsedMaybeStorage, false);
     if (result.success) {
       updateState(dispatch, [lb<IState>().p("storage").record(result.data)], "Importing Storage");
-      alert("Successfully imported");
+      Dialog_alert("Successfully imported");
     } else {
-      alert(`Couldn't import the storage, errors: \n${result.error.join("\n")}`);
+      Dialog_alert(`Couldn't import the storage, errors: \n${result.error.join("\n")}`);
     }
   };
 }
@@ -1212,7 +1210,7 @@ export function Thunk_importCsvData(rawCsv: string): IThunk {
       );
     } catch (e) {
       console.error(e);
-      alert("Couldn't parse the provided file");
+      Dialog_alert("Couldn't parse the provided file");
     }
   };
 }
@@ -1227,11 +1225,7 @@ export function Thunk_importFromLink(link: string): IThunk {
       }
       dispatch(Thunk_importProgram(data.data));
     } else {
-      if (Platform.OS === "web") {
-        alert(data.error.join("\n"));
-      } else {
-        Alert.alert("Import Error", data.error.join("\n"));
-      }
+      Dialog_alert(data.error.join("\n"));
     }
   };
 }
@@ -1390,11 +1384,11 @@ export function Thunk_switchAccount(id: string): IThunk {
             dispatch(Thunk_fetchInitial());
           } else {
             console.error("Failed to switch account, error:", result.error);
-            alert(`Error while trying to switch the account: ${result.error}`);
+            Dialog_alert(`Error while trying to switch the account: ${result.error}`);
           }
         } else {
           console.error("Error while trying to switch the account: missing account", id);
-          alert(`Error while trying to switch the account: missing account ${id}`);
+          Dialog_alert(`Error while trying to switch the account: missing account ${id}`);
         }
       })
     );
@@ -1407,7 +1401,7 @@ export function Thunk_claimkey(): IThunk {
     if (claim) {
       finishFreeAccess(dispatch, claim.key, claim.expires);
     } else {
-      alert("Failed to claim the free access");
+      Dialog_alert("Failed to claim the free access");
       dispatch(Thunk_log("ls-claim-free-user-fail"));
     }
   };
@@ -1416,7 +1410,7 @@ export function Thunk_claimkey(): IThunk {
 function finishFreeAccess(dispatch: IDispatch, key: string, expires: number): void {
   updateState(dispatch, [lb<IState>().p("storage").p("subscription").p("key").record(key)], "Set subscription key");
   const date = DateUtils_format(expires);
-  alert(`Successfully claimed the free access until ${date}`);
+  Dialog_alert(`Successfully claimed the free access until ${date}`);
   dispatch(Thunk_log("ls-claim-free-user-success"));
   dispatch(Thunk_pullScreen());
 }
@@ -1463,12 +1457,12 @@ export function Thunk_redeemCoupon(code: string, cb: (success: boolean) => void)
         console.log("Apple promotional offer data:", appleOffer);
         updateState(dispatch, [lb<IState>().p("appleOffer").record(appleOffer)], "Set apple promotional offer");
         lg("ls-coupon-applied", { code, type: "apple" });
-        alert("Coupon has been applied! Proceed to purchase now.");
+        Dialog_alert("Coupon has been applied! Proceed to purchase now.");
       } else if (googleOffer) {
         console.log("Google promotional offer data:", googleOffer);
         updateState(dispatch, [lb<IState>().p("googleOffer").record(googleOffer)], "Set google promotional offer");
         lg("ls-coupon-applied", { code, type: "google" });
-        alert("Coupon has been applied! Proceed to purchase now.");
+        Dialog_alert("Coupon has been applied! Proceed to purchase now.");
       } else if (key && expires) {
         finishFreeAccess(dispatch, key, expires);
       }
@@ -1479,27 +1473,27 @@ export function Thunk_redeemCoupon(code: string, cb: (success: boolean) => void)
     } else {
       switch (result.error) {
         case "not_authorized": {
-          alert("You need to sign in first to claim the coupon.");
+          Dialog_alert("You need to sign in first to claim the coupon.");
           break;
         }
         case "coupon_not_found": {
-          alert("Couldn't find the coupon with that code.");
+          Dialog_alert("Couldn't find the coupon with that code.");
           break;
         }
         case "coupon_disabled": {
-          alert("Couldn't find the coupon with that code.");
+          Dialog_alert("Couldn't find the coupon with that code.");
           break;
         }
         case "coupon_already_claimed": {
-          alert("This coupon is already claimed.");
+          Dialog_alert("This coupon is already claimed.");
           break;
         }
         case "wrong_platform": {
-          alert("This coupon could only be activated on Android or iOS.");
+          Dialog_alert("This coupon could only be activated on Android or iOS.");
           break;
         }
         default: {
-          alert("Failed to claim the coupon.");
+          Dialog_alert("Failed to claim the coupon.");
           break;
         }
       }

@@ -10,6 +10,7 @@ import { navigationRef } from "../navigationRef";
 import type { IRootStackParamList } from "../types";
 import { SheetScreenContainer } from "../SheetScreenContainer";
 import { Platform } from "react-native";
+import { Dialog_alert } from "../../utils/dialog";
 
 declare let __HOST__: string;
 
@@ -37,14 +38,14 @@ export function NavModalEditProgramMenu(): JSX.Element {
       onExportProgramToLink={() => {
         const url = UrlUtils_build(`/user/p/${programId}`, __HOST__);
         ClipboardUtils_copy(url.toString());
-        alert(`Copied link to the clipboard: ${url}`);
+        Dialog_alert(`Copied link to the clipboard: ${url}`);
         onClose();
       }}
       onShareProgramToLink={() => {
         if (program) {
           dispatch(
             Thunk_generateAndCopyLink(program, state.storage.settings, (url) => {
-              alert(`Copied link to the clipboard: ${url}`);
+              Dialog_alert(`Copied link to the clipboard: ${url}`);
             })
           );
         }

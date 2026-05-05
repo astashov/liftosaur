@@ -1,12 +1,22 @@
 export async function Dialog_confirm(message: string): Promise<boolean> {
-  return Promise.resolve(window.confirm(message));
+  if (typeof window !== "undefined") {
+    return Promise.resolve(window.confirm(message));
+  } else {
+    return Promise.resolve(false);
+  }
 }
 
 export async function Dialog_prompt(message: string): Promise<string | undefined> {
-  const result = window.prompt(message);
-  return result == null ? undefined : result;
+  if (typeof window !== "undefined") {
+    const result = window.prompt(message);
+    return result == null ? undefined : result;
+  } else {
+    return Promise.resolve(undefined);
+  }
 }
 
 export function Dialog_alert(message: string): void {
-  window.alert(message);
+  if (typeof window !== "undefined") {
+    window.alert(message);
+  }
 }

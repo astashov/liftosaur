@@ -60,7 +60,9 @@ export function NavScreenContent(props: {
       scrollEventThrottle={16}
       stickyHeaderIndices={props.stickyHeaderIndices}
       style={
-        Platform.OS === "web" ? ({ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain" } as object) : undefined
+        Platform.OS === "web"
+          ? ({ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain" } as object)
+          : undefined
       }
     >
       {props.children}

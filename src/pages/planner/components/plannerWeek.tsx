@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import { LinkInlineInput } from "../../../components/inlineInput";
+import { Dialog_confirm } from "../../../utils/dialog";
 import { LinkButton } from "../../../components/linkButton";
 import { CollectionUtils_removeAt } from "../../../utils/collection";
 import { ObjectUtils_clone } from "../../../utils/object";
@@ -47,8 +48,8 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
             <span className="mr-2">
               <LinkButton
                 name="planner-delete-week"
-                onClick={() => {
-                  if (confirm("Are you sure you want to delete this week?")) {
+                onClick={async () => {
+                  if (await Dialog_confirm("Are you sure you want to delete this week?")) {
                     props.dispatch(
                       lbProgram.p("weeks").recordModify((weeks) => CollectionUtils_removeAt(weeks, props.weekIndex)),
                       "Delete week"

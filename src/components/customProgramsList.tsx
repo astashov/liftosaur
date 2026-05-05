@@ -1,5 +1,5 @@
 import { JSX, useCallback, useMemo } from "react";
-import { View, Pressable, Alert, FlatList } from "react-native";
+import { View, Pressable, FlatList } from "react-native";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import { IEquipment, IHistoryRecord, IProgram, ISettings } from "../types";
@@ -23,6 +23,7 @@ import { IconCalendarSmall } from "./icons/iconCalendarSmall";
 import { IconKettlebellSmall } from "./icons/iconKettlebellSmall";
 import { IconWatch } from "./icons/iconWatch";
 import { TimeUtils_formatHHMM } from "../utils/time";
+import { Dialog_alert, Dialog_confirm } from "../utils/dialog";
 import { IconEditSquare } from "./icons/iconEditSquare";
 import { IconTrash } from "./icons/iconTrash";
 import { EditProgram_deleteProgram } from "../models/editProgram";
@@ -112,7 +113,7 @@ function CustomProgram(props: ICustomProgramProps): JSX.Element {
             if (props.editProgramId == null || props.editProgramId !== props.program.id) {
               Program_editAction(props.dispatch, props.program);
             } else {
-              Alert.alert("Cannot Edit", "You cannot edit the program while that program's workout is in progress");
+              Dialog_alert("You cannot edit the program while that program's workout is in progress");
             }
           }}
         >
@@ -122,18 +123,13 @@ function CustomProgram(props: ICustomProgramProps): JSX.Element {
           className="px-2 py-1"
           data-testid="custom-program-delete"
           testID="custom-program-delete"
-          onPress={() => {
+          onPress={async () => {
             if (props.progress == null || props.progress.programId !== props.program.id) {
-              Alert.alert("Delete Program", "Are you sure?", [
-                { text: "Cancel", style: "cancel" },
-                {
-                  text: "Delete",
-                  style: "destructive",
-                  onPress: () => EditProgram_deleteProgram(props.dispatch, props.program, props.programs),
-                },
-              ]);
+              if (await Dialog_confirm("Are you sure you want to delete this program?")) {
+                EditProgram_deleteProgram(props.dispatch, props.program, props.programs);
+              }
             } else {
-              Alert.alert("Cannot Delete", "You cannot delete the program while that program's workout is in progress");
+              Dialog_alert("You cannot delete the program while that program's workout is in progress");
             }
           }}
         >
@@ -146,7 +142,7 @@ function CustomProgram(props: ICustomProgramProps): JSX.Element {
         testID="program-list-choose-program"
         onPress={() => {
           if (props.program.planner == null) {
-            Alert.alert("Not Supported", "Old-style programs are not supported anymore");
+            Dialog_alert("Old-style programs are not supported anymore");
           } else {
             Program_selectProgram(props.dispatch, props.program.id);
           }

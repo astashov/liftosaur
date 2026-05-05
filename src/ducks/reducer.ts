@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Reducer } from "react";
 import { Program_getProgram, Program_nextHistoryRecord, Program_evaluate } from "../models/program";
+import { Dialog_alert } from "../utils/dialog";
 import {
   Progress_getProgress,
   Progress_completeSetAction,
@@ -662,7 +663,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
           storage: { ...state.storage, progress: [newProgress] },
         };
       } else {
-        alert("No currently selected program");
+        Dialog_alert("No currently selected program");
         return state;
       }
     } else {

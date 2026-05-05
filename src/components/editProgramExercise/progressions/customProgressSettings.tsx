@@ -1,5 +1,6 @@
 import type { JSX } from "react";
-import { View, Pressable, Alert } from "react-native";
+import { View, Pressable } from "react-native";
+import { Dialog_alert } from "../../../utils/dialog";
 import { Text } from "../../primitives/text";
 import { lb } from "lens-shmens";
 import {
@@ -126,9 +127,9 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
                       className="py-1 pl-1 pr-2"
                       onPress={() => {
                         if (isUsedVariable) {
-                          Alert.alert("You cannot delete it, because this state variable is used in the script.");
+                          Dialog_alert("You cannot delete it, because this state variable is used in the script.");
                         } else if (isReused) {
-                          Alert.alert("You cannot delete reused state variable.");
+                          Dialog_alert("You cannot delete reused state variable.");
                         } else {
                           props.plannerDispatch(
                             lbProgram.recordModify((program) => {

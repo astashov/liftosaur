@@ -1,5 +1,6 @@
 import { JSX, RefObject, forwardRef, useRef, useState } from "react";
 import { Modal } from "./modal";
+import { Dialog_confirm } from "../utils/dialog";
 import { StringUtils_capitalize, StringUtils_dashcase } from "../utils/string";
 import {
   ICustomExercise,
@@ -316,9 +317,9 @@ const ExercisesList = forwardRef((props: IExercisesListProps, _ref): JSX.Element
                       <button
                         className={`px-1 py-4 button nm-delete-custom-exercise-${StringUtils_dashcase(e.name)}`}
                         data-testid={`custom-exercise-delete-${StringUtils_dashcase(e.name)}`}
-                        onClick={(event) => {
+                        onClick={async (event) => {
                           event.preventDefault();
-                          if (confirm(`Are you sure you want to delete ${e.name}?`)) {
+                          if (await Dialog_confirm(`Are you sure you want to delete ${e.name}?`)) {
                             props.onDelete(e.id);
                           }
                         }}

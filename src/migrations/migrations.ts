@@ -1,4 +1,5 @@
 import { CollectionUtils_sort } from "../utils/collection";
+import { Dialog_alert } from "../utils/dialog";
 import { UidFactory_generateUid } from "../utils/generator";
 import { ObjectUtils_clone, ObjectUtils_keys, ObjectUtils_values } from "../utils/object";
 import { IGraph, IMuscle, ISettings, IStorage } from "../types";
@@ -68,7 +69,9 @@ export const migrations = {
       };
       storage.programs.push(plannerProgram);
       storage.currentProgramId = plannerProgram.id;
-      alert(`Old-style programs are not supported anymore, your current program now is '${plannerProgram.name}'`);
+      Dialog_alert(
+        `Old-style programs are not supported anymore, your current program now is '${plannerProgram.name}'`
+      );
     }
     return storage;
   },
