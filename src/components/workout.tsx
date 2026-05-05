@@ -310,8 +310,12 @@ function WorkoutExercisePageInner(props: IWorkoutExercisePageProps): JSX.Element
     (e: LayoutChangeEvent) => onPageLayout(entryIndex, e.nativeEvent.layout.height),
     [entryIndex, onPageLayout]
   );
+  const pageStyle =
+    Platform.OS === "web"
+      ? ({ width: props.windowWidth, transform: "translateZ(0)" } as object)
+      : { width: props.windowWidth };
   return (
-    <View style={{ width: props.windowWidth }}>
+    <View style={pageStyle}>
       <View onLayout={onLayout}>
         {props.shouldRender ? (
           <WorkoutExercise

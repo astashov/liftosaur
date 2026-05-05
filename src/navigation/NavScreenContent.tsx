@@ -1,5 +1,13 @@
 import { createContext, JSX, ReactNode, RefObject, useCallback, useMemo, useRef, useState } from "react";
-import { ScrollView, NativeSyntheticEvent, NativeScrollEvent, Animated, View, LayoutChangeEvent } from "react-native";
+import {
+  ScrollView,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+  Animated,
+  View,
+  LayoutChangeEvent,
+  Platform,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useCustomKeyboardAnimatedHeight } from "./CustomKeyboardContext";
 
@@ -51,6 +59,9 @@ export function NavScreenContent(props: {
       onScroll={onScroll}
       scrollEventThrottle={16}
       stickyHeaderIndices={props.stickyHeaderIndices}
+      style={
+        Platform.OS === "web" ? ({ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain" } as object) : undefined
+      }
     >
       {props.children}
       <Animated.View style={{ height: animatedKeyboardHeight }} />
