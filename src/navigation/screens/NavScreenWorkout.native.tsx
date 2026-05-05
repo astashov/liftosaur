@@ -8,12 +8,14 @@ import { ScreenWorkout } from "../../components/screenWorkout";
 import { Progress_isCurrent } from "../../models/progress";
 import { Program_getFullProgram, Program_getProgram, Program_fullProgram } from "../../models/program";
 import { FallbackScreen } from "../../components/fallbackScreen";
+import { useEqual } from "../../utils/useEqual";
 
 export function NavScreenProgress(): JSX.Element {
   const { state, dispatch } = useAppState();
   const route = useRoute<{ key: string; name: string; params?: { id?: number } }>();
   const progressId = route.params?.id ?? 0;
   const navCommon = buildNavCommon(state);
+  const subscription = useEqual(state.storage.subscription);
   const currentProgram =
     state.storage.currentProgramId != null ? Program_getProgram(state, state.storage.currentProgramId) : undefined;
   const progress = progressId === 0 ? state.storage.progress?.[0] : state.progress[progressId];
@@ -32,7 +34,7 @@ export function NavScreenProgress(): JSX.Element {
           stats={state.storage.stats}
           helps={state.storage.helps}
           history={state.storage.history}
-          subscription={state.storage.subscription}
+          subscription={subscription}
           userId={state.user?.id}
           progress={progress2}
           allPrograms={state.storage.programs}

@@ -84,6 +84,14 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
 
   const dispatch = props.dispatch;
   const shouldHideGraphs = props.settings.workoutSettings.shouldHideGraphs;
+  const maxWeightProp = useMemo(
+    () => (maxWeight ? { weight: maxWeight, historyRecord: maxWeightHistoryRecord } : undefined),
+    [maxWeight, maxWeightHistoryRecord]
+  );
+  const max1RMProp = useMemo(
+    () => (max1RM ? { weight: max1RM, historyRecord: max1RMHistoryRecord, set: max1RMSet } : undefined),
+    [max1RM, max1RMHistoryRecord, max1RMSet]
+  );
   const onToggleGraphs = useCallback(() => {
     updateSettings(
       dispatch,
@@ -148,8 +156,8 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
           {showPrs && (
             <View className="mx-4 mt-2">
               <ExerciseAllTimePRs
-                maxWeight={maxWeight ? { weight: maxWeight, historyRecord: maxWeightHistoryRecord } : undefined}
-                max1RM={max1RM ? { weight: max1RM, historyRecord: max1RMHistoryRecord, set: max1RMSet } : undefined}
+                maxWeight={maxWeightProp}
+                max1RM={max1RMProp}
                 settings={props.settings}
                 dispatch={props.dispatch}
               />

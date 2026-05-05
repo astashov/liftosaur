@@ -1,4 +1,4 @@
-import { JSX, useEffect, useRef, useCallback, useState } from "react";
+import { JSX, useEffect, useMemo, useRef, useCallback, useState } from "react";
 import { ModalStateProvider } from "../navigation/ModalStateContext";
 import { reducerWrapper, defaultOnActions, IAction } from "../ducks/reducer";
 import { Program_getProgram } from "../models/program";
@@ -92,14 +92,14 @@ function getScreenNameFromNavState(navState: NavigationState | undefined): IScre
 
 export function AppView(props: IProps): JSX.Element | null {
   const { client, audio, queue } = props;
-  const service = new Service(client);
-  const env: IEnv = { service, audio, queue, navigationRef, getCurrentScreenData };
-  const [state, dispatch] = useThunkReducer<IState, IAction, IEnv>(
-    reducerWrapper(true),
-    props.initialState,
-    env,
-    defaultOnActions(env)
+  const env = useMemo<IEnv>(
+    () => ({ service: new Service(client), audio, queue, navigationRef, getCurrentScreenData }),
+    [client, audio, queue]
   );
+  const service = env.service;
+  const reducer = useMemo(() => reducerWrapper(true), []);
+  const onActions = useMemo(() => defaultOnActions(env), [env]);
+  const [state, dispatch] = useThunkReducer<IState, IAction, IEnv>(reducer, props.initialState, env, onActions);
   const stateRef = useRef<IState>(state);
   useEffect(() => {
     stateRef.current = state;

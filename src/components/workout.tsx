@@ -51,6 +51,7 @@ import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth }
 import { History_calories, History_pauseWorkout } from "../models/history";
 import { SendMessage_toIosAndAndroid, SendMessage_isIos } from "../utils/sendMessage";
 import { Dialog_confirm } from "../utils/dialog";
+import { useEqual } from "../utils/useEqual";
 import { NavScreenContent } from "../navigation/NavScreenContent";
 
 interface IWorkoutViewProps {
@@ -500,7 +501,9 @@ interface IWorkoutThumbnailsStripProps {
 function WorkoutThumbnailsStripInner(props: IWorkoutThumbnailsStripProps): JSX.Element {
   const { enableReorder, onClick, dispatch } = props;
   const progressId = props.progress.id;
-  const colorToSupersetGroup = useMemo(() => Progress_getColorToSupersetGroup(props.progress), [props.progress]);
+  const colorToSupersetGroup = useEqual(
+    useMemo(() => Progress_getColorToSupersetGroup(props.progress), [props.progress])
+  );
   const currentEntryIndex = props.progress.ui?.currentEntryIndex ?? 0;
   const currentSuperset = props.progress.entries[currentEntryIndex]?.superset;
   const thumbScrollerRef = useRef<IScrollerHandle>(null);
@@ -572,13 +575,9 @@ function WorkoutThumbnailsStripInner(props: IWorkoutThumbnailsStripProps): JSX.E
               const thumbnail = (
                 <WorkoutExerciseThumbnail
                   colorToSupersetGroup={colorToSupersetGroup}
-                  onClick={() => {
-                    if (!enableReorder) {
-                      props.onClick(entryIndex);
-                    }
-                  }}
+                  onSelect={onClick}
+                  disabled={enableReorder}
                   shouldShowProgress={true}
-                  selectedIndex={currentEntryIndex}
                   isCurrent={entryIndex === currentEntryIndex}
                   currentSuperset={currentSuperset}
                   settings={props.settings}

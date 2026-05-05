@@ -1,4 +1,4 @@
-import { JSX, memo } from "react";
+import { JSX, memo, useCallback } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
 import { Exercise_get } from "../models/exercise";
@@ -15,10 +15,8 @@ import { Tailwind_colors, Tailwind_semantic } from "../utils/tailwindConfig";
 import { ObjectUtils_entries } from "../utils/object";
 
 interface IWorkoutExerciseThumbnailProps {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  handleTouchStart?: (...args: any[]) => void;
-  onClick?: () => void;
-  selectedIndex: number;
+  onSelect?: (entryIndex: number) => void;
+  disabled?: boolean;
   colorToSupersetGroup: Partial<Record<string, IHistoryEntry[]>>;
   isCurrent: boolean;
   currentSuperset?: string;
@@ -29,7 +27,12 @@ interface IWorkoutExerciseThumbnailProps {
 }
 
 function WorkoutExerciseThumbnailInner(props: IWorkoutExerciseThumbnailProps): JSX.Element {
-  const { entry, entryIndex, isCurrent, currentSuperset } = props;
+  const { entry, entryIndex, isCurrent, currentSuperset, onSelect, disabled } = props;
+  const onPress = useCallback(() => {
+    if (!disabled) {
+      onSelect?.(entryIndex);
+    }
+  }, [disabled, onSelect, entryIndex]);
   const hasSupersets = Object.keys(props.colorToSupersetGroup).length > 0;
   const colorAndSupersetGroup = ObjectUtils_entries(props.colorToSupersetGroup).find(([_, entries]) => {
     return entries && entries.some((e) => e.id === entry.id);
@@ -45,7 +48,7 @@ function WorkoutExerciseThumbnailInner(props: IWorkoutExerciseThumbnailProps): J
   return (
     <View>
       <Pressable
-        onPress={props.onClick}
+        onPress={onPress}
         data-name={`workout-exercise-tab-${entryIndex}`}
         testID={`workout-tab-${StringUtils_dashcase(exercise.name)}`}
         data-testid={`workout-tab-${StringUtils_dashcase(exercise.name)}`}

@@ -1,4 +1,4 @@
-import { JSX, memo, useCallback } from "react";
+import { JSX, memo, useCallback, useMemo } from "react";
 import { View } from "react-native";
 import { Text } from "../primitives/text";
 import { buildCardsReducer, ICardsAction } from "../../ducks/reducer";
@@ -122,33 +122,36 @@ interface IPreviewListOfExercisesProps {
 }
 
 function PreviewListOfExercises(props: IPreviewListOfExercisesProps): JSX.Element {
-  const colorToSupersetGroup = Progress_getColorToSupersetGroup(props.progress);
+  const colorToSupersetGroup = useMemo(() => Progress_getColorToSupersetGroup(props.progress), [props.progress]);
+  const dispatch = props.dispatch;
+  const onSelect = useCallback(
+    (entryIndex: number) => {
+      updateProgress(
+        dispatch,
+        [lb<IHistoryRecord>().pi("ui", {}).p("currentEntryIndex").record(entryIndex)],
+        "click-exercise-tab"
+      );
+    },
+    [dispatch]
+  );
+  const currentIdx = props.progress.ui?.currentEntryIndex ?? 0;
+  const currentSuperset = props.progress.entries[currentIdx]?.superset;
   return (
     <Scroller>
       <View className="flex-row items-center gap-1 px-4">
-        {props.progress.entries.map((entry, entryIndex) => {
-          const currentIdx = props.progress.ui?.currentEntryIndex ?? 0;
-          return (
-            <WorkoutExerciseThumbnail
-              colorToSupersetGroup={colorToSupersetGroup}
-              onClick={() => {
-                updateProgress(
-                  props.dispatch,
-                  [lb<IHistoryRecord>().pi("ui", {}).p("currentEntryIndex").record(entryIndex)],
-                  "click-exercise-tab"
-                );
-              }}
-              shouldShowProgress={props.isPlayground}
-              selectedIndex={currentIdx}
-              isCurrent={entryIndex === currentIdx}
-              currentSuperset={props.progress.entries[currentIdx]?.superset}
-              key={entryIndex}
-              settings={props.settings}
-              entry={entry}
-              entryIndex={entryIndex}
-            />
-          );
-        })}
+        {props.progress.entries.map((entry, entryIndex) => (
+          <WorkoutExerciseThumbnail
+            colorToSupersetGroup={colorToSupersetGroup}
+            onSelect={onSelect}
+            shouldShowProgress={props.isPlayground}
+            isCurrent={entryIndex === currentIdx}
+            currentSuperset={currentSuperset}
+            key={entryIndex}
+            settings={props.settings}
+            entry={entry}
+            entryIndex={entryIndex}
+          />
+        ))}
       </View>
     </Scroller>
   );

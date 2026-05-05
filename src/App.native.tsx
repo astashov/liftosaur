@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { ActivityIndicator, Platform, View } from "react-native";
 import { Client as RollbarClient } from "rollbar-react-native";
 
@@ -115,17 +115,20 @@ GoogleSignin.configure({
 });
 
 function AppInner(props: { initialState: IState }): React.JSX.Element {
-  const client = fetch;
-  const audio = new MockAudioInterface();
-  const queue = new AsyncQueue();
-  const service = new Service(client);
-  const env: IEnv = { service, audio, queue, navigationRef, getCurrentScreenData };
-  const [state, dispatch] = useThunkReducer<IState, IAction, IEnv>(
-    reducerWrapper(true),
-    props.initialState,
-    env,
-    defaultOnActions(env)
+  const env = useMemo<IEnv>(
+    () => ({
+      service: new Service(fetch),
+      audio: new MockAudioInterface(),
+      queue: new AsyncQueue(),
+      navigationRef,
+      getCurrentScreenData,
+    }),
+    []
   );
+  const service = env.service;
+  const reducer = useMemo(() => reducerWrapper(true), []);
+  const onActions = useMemo(() => defaultOnActions(env), [env]);
+  const [state, dispatch] = useThunkReducer<IState, IAction, IEnv>(reducer, props.initialState, env, onActions);
 
   useEffect(() => {
     dispatch(Thunk_sync2({ force: true }));
