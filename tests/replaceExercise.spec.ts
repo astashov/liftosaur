@@ -44,6 +44,7 @@ Bicep Curl / 1x5`
   await page.getByTestId("exercise-benchpress_barbell").getByTestId("edit-exercise-swap").click();
   await page.getByTestId("edit-exercise-change-all").click();
 
+  await page.getByTestId("exercise-filter-by-name").fill("Bent Over Row");
   await page.getByTestId("menu-item-bent-over-row-dumbbell").click();
   await page.getByTestId("exercise-picker-confirm").click();
 

@@ -1,4 +1,4 @@
-import { JSX, Fragment } from "react";
+import { JSX, Fragment, useCallback, useMemo } from "react";
 import { View, Pressable, Platform } from "react-native";
 import { Text } from "../primitives/text";
 import { IconMuscles2 } from "../icons/iconMuscles2";
@@ -36,51 +36,144 @@ interface IProps {
 }
 
 export function ExercisePickerMain(props: IProps): JSX.Element {
-  const { evaluatedProgram } = props;
-  const isStarred = !!props.state.filters.isStarred;
+  console.log("[render] ExercisePickerMain");
+  const { evaluatedProgram, state, dispatch, settings, onStar, onChoose, usedExerciseTypes } = props;
+  const isStarred = !!state.filters.isStarred;
+  const showMuscles = !!state.showMuscles;
   const title =
-    props.state.mode === "workout"
-      ? props.state.exerciseType
+    state.mode === "workout"
+      ? state.exerciseType
         ? "Swap Exercise"
         : "Add Exercises"
-      : props.state.exerciseType || props.state.templateName
+      : state.exerciseType || state.templateName
         ? "Edit Exercise"
         : "Add Exercise";
 
-  const tabs = [
-    {
-      label: props.state.mode === "workout" ? "Ad-hoc Exercise" : "Exercise",
-      children: () => (
-        <ExercisePickerAdhocExercises
-          onStar={props.onStar}
-          usedExerciseTypes={props.usedExerciseTypes}
-          state={props.state}
-          settings={props.settings}
-          dispatch={props.dispatch}
-        />
-      ),
+  const tabs = useMemo(() => {
+    const result: { label: string; children: () => JSX.Element }[] = [
+      {
+        label: state.mode === "workout" ? "Ad-hoc Exercise" : "Exercise",
+        children: () => (
+          <ExercisePickerAdhocExercises
+            onStar={onStar}
+            usedExerciseTypes={usedExerciseTypes}
+            state={state}
+            settings={settings}
+            dispatch={dispatch}
+          />
+        ),
+      },
+    ];
+    if (state.mode === "workout" && evaluatedProgram) {
+      result.push({
+        label: "From Program",
+        children: () => (
+          <ExercisePickerFromProgram
+            usedExerciseTypes={usedExerciseTypes}
+            state={state}
+            dispatch={dispatch}
+            settings={settings}
+            evaluatedProgram={evaluatedProgram}
+          />
+        ),
+      });
+    }
+    if (state.mode === "program") {
+      result.push({
+        label: "Template",
+        children: () => <ExercisePickerTemplate dispatch={dispatch} templateName={state.templateName} />,
+      });
+    }
+    return result;
+  }, [state, evaluatedProgram, settings, dispatch, onStar, usedExerciseTypes]);
+
+  const onSettingsPress = useCallback(async () => {
+    if (Platform.OS === "web") {
+      dispatch(
+        lb<IExercisePickerState>()
+          .p("screenStack")
+          .recordModify((stack) => [...stack, "settings"]),
+        "Navigate to settings picker screen"
+      );
+    } else {
+      const { navigationRef } = await getNavigationRef();
+      navigationRef.navigate("exercisePickerSettingsModal");
+    }
+  }, [dispatch]);
+
+  const onToggleMuscles = useCallback(() => {
+    dispatch(
+      lb<IExercisePickerState>().p("showMuscles").record(!showMuscles),
+      `Toggle show muscles to ${!showMuscles}`
+    );
+  }, [dispatch, showMuscles]);
+
+  const onToggleStarred = useCallback(() => {
+    dispatch(
+      lb<IExercisePickerState>().p("filters").p("isStarred").record(!isStarred),
+      `Toggle starred exercises to ${!isStarred}`
+    );
+  }, [dispatch, isStarred]);
+
+  const onLabelChange = useCallback(
+    (e: IEither<string, Set<IValidationError>>) => {
+      if (e.success) {
+        dispatch(
+          [
+            lb<IExercisePickerState>().p("label").record(e.data),
+            lb<IExercisePickerState>()
+              .p("selectedExercises")
+              .recordModify((exercises) => {
+                return exercises.map((ex) => {
+                  if (ex.type === "adhoc" || ex.type === "template") {
+                    return { ...ex, label: e.data };
+                  } else {
+                    return ex;
+                  }
+                });
+              }),
+          ],
+          `Set label to ${e.data}`
+        );
+      }
     },
-  ];
-  if (props.state.mode === "workout" && evaluatedProgram) {
-    tabs.push({
-      label: "From Program",
-      children: () => (
-        <ExercisePickerFromProgram
-          usedExerciseTypes={props.usedExerciseTypes}
-          state={props.state}
-          dispatch={props.dispatch}
-          settings={props.settings}
-          evaluatedProgram={evaluatedProgram}
-        />
-      ),
-    });
-  }
-  if (props.state.mode === "program") {
-    tabs.push({
-      label: "Template",
-      children: () => <ExercisePickerTemplate dispatch={props.dispatch} templateName={props.state.templateName} />,
-    });
-  }
+    [dispatch]
+  );
+
+  const onTabChange = useCallback(
+    (tab: number) => {
+      dispatch(
+        lb<IExercisePickerState>().p("selectedTab").record(tab),
+        `Set selected tab in exercise picker to ${tab}`
+      );
+    },
+    [dispatch]
+  );
+
+  const onBottomClick = useCallback(() => {
+    const isTemplateSave = state.mode === "program" && state.selectedTab === 1;
+    if (isTemplateSave && state.templateName) {
+      onChoose([
+        {
+          type: "template",
+          name: state.templateName,
+          label: state.label,
+        },
+      ]);
+    } else {
+      onChoose(state.selectedExercises);
+    }
+  }, [state.mode, state.selectedTab, state.templateName, state.label, state.selectedExercises, onChoose]);
+
+  const bottomShadowStyle = useMemo(
+    () =>
+      Platform.select({
+        ios: { shadowColor: "#000", shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.05, shadowRadius: 4 },
+        android: { elevation: 4 },
+        default: { boxShadow: "0 -4px 4px 0 rgba(0, 0, 0, 0.05)" },
+      }),
+    []
+  );
 
   return (
     <View className="flex-1">
@@ -88,92 +181,36 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
         <View className="relative py-1">
           <Text className="px-4 py-2 font-bold text-center">{title}</Text>
           <View className="absolute flex-row top-3 left-4">
-            <Pressable
-              className="px-2"
-              onPress={async () => {
-                if (Platform.OS === "web") {
-                  props.dispatch(
-                    lb<IExercisePickerState>()
-                      .p("screenStack")
-                      .recordModify((stack) => [...stack, "settings"]),
-                    "Navigate to settings picker screen"
-                  );
-                } else {
-                  const { navigationRef } = await getNavigationRef();
-                  navigationRef.navigate("exercisePickerSettingsModal");
-                }
-              }}
-            >
+            <Pressable className="px-2" onPress={onSettingsPress}>
               <IconFilter />
             </Pressable>
           </View>
           <View className="absolute flex-row items-center top-3 right-4">
-            <Pressable
-              className="px-2"
-              onPress={() => {
-                console.log("Show muacles");
-                props.dispatch(
-                  lb<IExercisePickerState>().p("showMuscles").record(!props.state.showMuscles),
-                  `Toggle show muscles to ${!props.state.showMuscles}`
-                );
-              }}
-            >
-              <IconMuscles2 color={Tailwind_semantic().icon.purple} isSelected={props.state.showMuscles} />
+            <Pressable className="px-2" onPress={onToggleMuscles}>
+              <IconMuscles2 color={Tailwind_semantic().icon.purple} isSelected={showMuscles} />
             </Pressable>
-            <Pressable
-              className="px-2"
-              onPress={() => {
-                props.dispatch(
-                  lb<IExercisePickerState>().p("filters").p("isStarred").record(!props.state.filters.isStarred),
-                  `Toggle starred exercises to ${!props.state.filters.isStarred}`
-                );
-              }}
-            >
+            <Pressable className="px-2" onPress={onToggleStarred}>
               <IconStar isSelected={isStarred} color={Tailwind_semantic().icon.purple} />
             </Pressable>
           </View>
-          {props.state.mode === "program" && (
+          {state.mode === "program" && (
             <View className="px-4 pb-1">
               <Input
                 label="Label"
-                defaultValue={props.state.label}
+                defaultValue={state.label}
                 isLabelOutside={true}
                 changeType={"oninput"}
                 inputSize="sm"
                 pattern="^[^\/\{\}\(\)\t\n\r#\[\]]+$"
                 patternMessage="Label cannot contain special characters: '/{}()#[]'"
                 labelSize="xs"
-                changeHandler={(e: IEither<string, Set<IValidationError>>) => {
-                  if (e.success) {
-                    props.dispatch(
-                      [
-                        lb<IExercisePickerState>().p("label").record(e.data),
-                        lb<IExercisePickerState>()
-                          .p("selectedExercises")
-                          .recordModify((exercises) => {
-                            return exercises.map((ex) => {
-                              if (ex.type === "adhoc" || ex.type === "template") {
-                                return { ...ex, label: e.data };
-                              } else {
-                                return ex;
-                              }
-                            });
-                          }),
-                      ],
-                      `Set label to ${e.data}`
-                    );
-                  }
-                }}
+                changeHandler={onLabelChange}
               />
             </View>
           )}
-          {props.state.exerciseType && (
+          {state.exerciseType && (
             <View className="pt-2">
-              <ExercisePickerCurrentExercise
-                state={props.state}
-                exerciseType={props.state.exerciseType}
-                settings={props.settings}
-              />
+              <ExercisePickerCurrentExercise state={state} exerciseType={state.exerciseType} settings={settings} />
             </View>
           )}
         </View>
@@ -184,14 +221,9 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
             topPadding="0rem"
             shouldNotExpand={true}
             fillHeight={true}
-            defaultIndex={props.state.selectedTab ?? 0}
+            defaultIndex={state.selectedTab ?? 0}
             nonSticky={true}
-            onChange={(tab) => {
-              props.dispatch(
-                lb<IExercisePickerState>().p("selectedTab").record(tab),
-                `Set selected tab in exercise picker to ${tab}`
-              );
-            }}
+            onChange={onTabChange}
             color="purple"
             tabs={tabs}
           />
@@ -199,33 +231,8 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
           <View className="flex-1">{tabs[0].children()}</View>
         )}
       </View>
-      <View
-        className="w-full px-4 pt-2 pb-2"
-        style={Platform.select({
-          ios: { shadowColor: "#000", shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.05, shadowRadius: 4 },
-          android: { elevation: 4 },
-          default: { boxShadow: "0 -4px 4px 0 rgba(0, 0, 0, 0.05)" },
-        })}
-      >
-        <BottomButton
-          state={props.state}
-          evaluatedProgram={evaluatedProgram}
-          onClick={() => {
-            const isTemplateSave = props.state.mode === "program" && props.state.selectedTab === 1;
-            if (isTemplateSave && props.state.templateName) {
-              props.onChoose([
-                {
-                  type: "template",
-                  name: props.state.templateName,
-                  label: props.state.label,
-                },
-              ]);
-            } else {
-              props.onChoose(props.state.selectedExercises);
-            }
-          }}
-          settings={props.settings}
-        />
+      <View className="w-full px-4 pt-2 pb-2" style={bottomShadowStyle}>
+        <BottomButton state={state} evaluatedProgram={evaluatedProgram} onClick={onBottomClick} settings={settings} />
       </View>
     </View>
   );
@@ -239,19 +246,25 @@ interface IBottomButtonProps {
 }
 
 function BottomButton(props: IBottomButtonProps): JSX.Element {
-  const selectedExercises = CollectionUtils_compact(
-    props.state.selectedExercises.map((e) => {
-      if (e.type === "adhoc") {
-        const ex = Exercise_get(e.exerciseType, props.settings.exercises);
-        return Exercise_fullName(ex, props.settings);
-      } else if (e.type === "program") {
-        return props.evaluatedProgram
-          ? ExercisePickerUtils_getProgramExercisefullName(e, props.evaluatedProgram, props.settings)
-          : undefined;
-      } else {
-        return undefined;
-      }
-    })
+  console.log("[render] BottomButton");
+  const { state, settings, evaluatedProgram } = props;
+  const selectedExercises = useMemo(
+    () =>
+      CollectionUtils_compact(
+        state.selectedExercises.map((e) => {
+          if (e.type === "adhoc") {
+            const ex = Exercise_get(e.exerciseType, settings.exercises);
+            return Exercise_fullName(ex, settings);
+          } else if (e.type === "program") {
+            return evaluatedProgram
+              ? ExercisePickerUtils_getProgramExercisefullName(e, evaluatedProgram, settings)
+              : undefined;
+          } else {
+            return undefined;
+          }
+        })
+      ),
+    [state.selectedExercises, settings, evaluatedProgram]
   );
   return (
     <View>
@@ -264,19 +277,19 @@ function BottomButton(props: IBottomButtonProps): JSX.Element {
         data-testid="exercise-picker-confirm"
         testID="exercise-picker-confirm"
       >
-        {props.state.mode === "workout"
-          ? props.state.exerciseType
+        {state.mode === "workout"
+          ? state.exerciseType
             ? "Swap Exercise"
             : selectedExercises.length > 0
               ? `Add to this workout${selectedExercises.length > 0 ? ` (${selectedExercises.length})` : ""}`
               : "Close"
-          : props.state.exerciseType || props.state.templateName
-            ? `Save ${props.state.selectedTab === 1 ? "Template" : "Exercise"}`
+          : state.exerciseType || state.templateName
+            ? `Save ${state.selectedTab === 1 ? "Template" : "Exercise"}`
             : selectedExercises.length > 0
-              ? `Add ${props.state.selectedTab === 1 ? "Template" : "Exercise"}`
+              ? `Add ${state.selectedTab === 1 ? "Template" : "Exercise"}`
               : "Close"}
       </Button>
-      {!(props.state.mode === "program" && props.state.selectedTab === 1) && selectedExercises.length > 0 && (
+      {!(state.mode === "program" && state.selectedTab === 1) && selectedExercises.length > 0 && (
         <Text className="text-xs text-text-secondary">
           {selectedExercises.map((e, i) => (
             <Fragment key={i}>

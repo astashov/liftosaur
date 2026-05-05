@@ -1,8 +1,8 @@
-import { JSX, Fragment, useMemo, useCallback, useEffect, useRef, RefObject } from "react";
+import { JSX, Fragment, useMemo, useCallback, useEffect, useRef, memo, useState } from "react";
 import { View, TextInput, Pressable, ScrollView } from "react-native";
-import { useGradualList } from "../../utils/useGradualList";
+import { useScrollProgressiveList } from "../../utils/useScrollProgressiveList";
 import { Text } from "../primitives/text";
-import { IExercisePickerState, IExerciseType, ISettings } from "../../types";
+import { ICustomExercise, IExercisePickerState, IExerciseType, ISettings } from "../../types";
 import { IconMagnifyingGlass } from "../icons/iconMagnifyingGlass";
 import { Tailwind_colors, Tailwind_semantic } from "../../utils/tailwindConfig";
 import { IconFilter2 } from "../icons/iconFilter2";
@@ -11,7 +11,6 @@ import {
   Exercise_toKey,
   Exercise_createCustomExercise,
   Exercise_get,
-  Exercise_eq,
   Exercise_allExpanded,
   Exercise_filterExercises,
 } from "../../models/exercise";
@@ -43,70 +42,80 @@ interface IProps {
 }
 
 export function ExercisePickerAdhocExercises(props: IProps): JSX.Element {
+  console.log("[render] ExercisePickerAdhocExercises");
+  const { state, settings, dispatch, usedExerciseTypes, onStar } = props;
+  const { search, filters, sort, showMuscles, exerciseType, selectedExercises } = state;
+
   const builtinExercises = useMemo(() => {
     let result = Exercise_allExpanded({});
-    if (props.state.search) {
-      result = Exercise_filterExercises(result, props.state.search);
+    if (search) {
+      result = Exercise_filterExercises(result, search);
     }
-    result = ExercisePickerUtils_filterExercises(result, props.state.filters, props.settings);
-    if (props.state.filters.isStarred) {
-      result = result.filter((e) => props.settings.starredExercises?.[Exercise_toKey(e)]);
+    result = ExercisePickerUtils_filterExercises(result, filters, settings);
+    if (filters.isStarred) {
+      result = result.filter((e) => settings.starredExercises?.[Exercise_toKey(e)]);
     }
-    result = ExercisePickerUtils_sortExercises(result, props.settings, props.state);
+    result = ExercisePickerUtils_sortExercises(result, settings, state);
     return result;
-  }, [props.state.search, props.state.filters, props.state.sort, props.settings]);
+  }, [search, filters, sort, settings, exerciseType]);
 
-  const isMultiselect = ExercisePickerUtils_getIsMultiselect(props.state);
+  const isMultiselect = useMemo(() => ExercisePickerUtils_getIsMultiselect(state), [state.mode, state.exerciseType]);
+
+  const stateRef = useRef(state);
+  stateRef.current = state;
   const onChoose = useCallback(
     (key: string) => {
-      ExercisePickerUtils_chooseAdhocExercise(props.dispatch, key, props.state);
+      ExercisePickerUtils_chooseAdhocExercise(dispatch, key, stateRef.current);
     },
-    [props.dispatch, props.state]
+    [dispatch]
   );
 
-  const containerRef = useRef<View>(null);
-  const { visibleRecords, loadMoreVisibleRecords } = useGradualList(
-    builtinExercises,
-    0,
-    20,
-    containerRef as unknown as RefObject<{ clientHeight?: number } | null>,
-    () => {}
+  const usedKeys = useMemo(() => new Set(usedExerciseTypes.map((et) => Exercise_toKey(et))), [usedExerciseTypes]);
+  const selectedAdhocKeys = useMemo(
+    () => new Set(selectedExercises.filter((ex) => ex.type === "adhoc").map((ex) => Exercise_toKey(ex.exerciseType))),
+    [selectedExercises]
   );
-  useEffect(() => {
-    if (builtinExercises.length > 20) {
-      const t = setTimeout(() => loadMoreVisibleRecords(builtinExercises.length), 300);
-      return () => clearTimeout(t);
-    }
-    return undefined;
-  }, [builtinExercises.length, loadMoreVisibleRecords]);
+  const selectedAnyKeys = useMemo(
+    () =>
+      new Set(
+        selectedExercises
+          .filter((ex) => "exerciseType" in ex)
+          .map((ex) => Exercise_toKey((ex as { exerciseType: IExerciseType }).exerciseType))
+      ),
+    [selectedExercises]
+  );
+
+  const isProgressiveEnabled = !(search && search.length > 2);
+  const { visibleItems: visibleBuiltinExercises, onScroll } = useScrollProgressiveList(builtinExercises, {
+    enabled: isProgressiveEnabled,
+  });
 
   return (
-    <ScrollView keyboardShouldPersistTaps="handled" ref={containerRef as unknown as RefObject<ScrollView>}>
-      <SearchAndFilter dispatch={props.dispatch} state={props.state} settings={props.settings} />
+    <ScrollView keyboardShouldPersistTaps="handled" onScroll={onScroll} scrollEventThrottle={100}>
+      <SearchAndFilter dispatch={dispatch} search={search} sort={sort} filters={filters} settings={settings} />
       <CustomExercises
-        usedExerciseTypes={props.usedExerciseTypes}
-        dispatch={props.dispatch}
-        onStar={props.onStar}
-        settings={props.settings}
-        state={props.state}
+        usedKeys={usedKeys}
+        selectedAdhocKeys={selectedAdhocKeys}
+        selectedAnyKeys={selectedAnyKeys}
+        dispatch={dispatch}
+        onStar={onStar}
+        settings={settings}
+        state={state}
         onChoose={onChoose}
         isMultiselect={isMultiselect}
       />
       <View className="py-2">
         <GroupHeader isExpanded={true} leftExpandIcon={true} name="Built-in Exercises" headerClassName="mx-4" />
       </View>
-      {builtinExercises.slice(0, visibleRecords).map((e) => {
-        const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise_eq(et, e));
-        const isSelectedAlready = props.state.selectedExercises.some(
-          (ex) => "exerciseType" in ex && Exercise_eq(ex.exerciseType, e)
-        );
-        const isSelected = props.state.selectedExercises.some(
-          (ex) => ex.type === "adhoc" && Exercise_eq(ex.exerciseType, e)
-        );
+      {visibleBuiltinExercises.map((e) => {
+        const key = Exercise_toKey(e);
+        const isUsedForDay = usedKeys.has(key);
+        const isSelectedAlready = selectedAnyKeys.has(key);
+        const isSelected = selectedAdhocKeys.has(key);
         const testId = `menu-item-${StringUtils_dashcase(e.name)}${e.equipment ? `-${StringUtils_dashcase(e.equipment)}` : ""}`;
         return (
           <View
-            key={Exercise_toKey(e)}
+            key={key}
             data-testid={testId}
             testID={testId}
             className={`w-full py-1 pl-4 pr-2 border-b border-border-neutral ${
@@ -114,14 +123,14 @@ export function ExercisePickerAdhocExercises(props: IProps): JSX.Element {
             }`}
           >
             <ExercisePickerExerciseItem
-              onStar={props.onStar}
+              onStar={onStar}
               isMultiselect={isMultiselect}
               isEnabled={!isUsedForDay && (!isMultiselect || !isSelectedAlready)}
               isSelected={isSelected}
               onChoose={onChoose}
-              showMuscles={props.state.showMuscles}
-              settings={props.settings}
-              currentExerciseType={props.state.exerciseType}
+              showMuscles={showMuscles}
+              settings={settings}
+              currentExerciseType={exerciseType}
               exercise={e}
             />
           </View>
@@ -134,12 +143,60 @@ export function ExercisePickerAdhocExercises(props: IProps): JSX.Element {
 interface ISearchAndFilterProps {
   dispatch: ILensDispatch<IExercisePickerState>;
   settings: ISettings;
-  state: IExercisePickerState;
+  search?: string;
+  sort: IExercisePickerState["sort"];
+  filters: IExercisePickerState["filters"];
 }
 
-function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
-  const filterNames = ExercisePickerUtils_getAllFilterNames(props.state.filters, props.settings);
+const SearchAndFilter = memo(function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
+  console.log("[render] SearchAndFilter");
+  const { dispatch, search, sort, filters, settings } = props;
+  const filterNames = useMemo(() => ExercisePickerUtils_getAllFilterNames(filters, settings), [filters, settings]);
   const isFiltered = filterNames.length > 0;
+
+  const [localSearch, setLocalSearch] = useState<string>(search ?? "");
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+  useEffect(() => {
+    if (timeoutRef.current == null && (search ?? "") !== localSearch) {
+      setLocalSearch(search ?? "");
+    }
+  }, [search, localSearch]);
+
+  const onChangeText = useCallback(
+    (value: string) => {
+      setLocalSearch(value);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        dispatch(lb<IExercisePickerState>().p("search").record(value), "Update search input");
+        timeoutRef.current = null;
+      }, 200);
+    },
+    [dispatch]
+  );
+
+  const onFilterPress = useCallback(() => {
+    dispatch(
+      lb<IExercisePickerState>()
+        .p("screenStack")
+        .recordModify((stack) => [...stack, "filter"]),
+      "Navigate to filter picker screen"
+    );
+  }, [dispatch]);
+
+  const onClearFilters = useCallback(
+    () => dispatch(lb<IExercisePickerState>().p("filters").record({}), "Clear filters"),
+    [dispatch]
+  );
+
   return (
     <View className="my-1">
       <View className="flex-row items-center gap-2 mx-4">
@@ -151,24 +208,15 @@ function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
             className="flex-1 text-sm text-text-secondary"
             data-testid="exercise-filter-by-name"
             testID="exercise-filter-by-name"
-            defaultValue={props.state.search ?? ""}
-            onChangeText={(value) => {
-              props.dispatch(lb<IExercisePickerState>().p("search").record(value), "Update search input");
-            }}
+            value={localSearch}
+            onChangeText={onChangeText}
           />
         </View>
         <Pressable
           className={`flex-row items-center gap-1 py-1 border rounded-lg ${
             isFiltered ? "border-button-secondarystroke px-2" : "px-4 border-border-neutral"
           }`}
-          onPress={() =>
-            props.dispatch(
-              lb<IExercisePickerState>()
-                .p("screenStack")
-                .recordModify((stack) => [...stack, "filter"]),
-              "Navigate to filter picker screen"
-            )
-          }
+          onPress={onFilterPress}
         >
           {isFiltered && (
             <View
@@ -184,7 +232,7 @@ function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
       <View className="mx-4">
         <Text className="text-xs text-text-secondary">
           <Text className="text-xs text-text-secondary">Sorted by: </Text>
-          <Text className="text-xs font-bold text-text-secondary">{exercisePickerSortNames[props.state.sort]}</Text>
+          <Text className="text-xs font-bold text-text-secondary">{exercisePickerSortNames[sort]}</Text>
           {filterNames.length > 0 && (
             <Text className="text-xs text-text-secondary">
               {", Filters: "}
@@ -198,44 +246,61 @@ function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
           )}
         </Text>
         {filterNames.length > 0 && (
-          <LinkButton
-            name="clear-filters"
-            className="text-xs"
-            onPress={() => props.dispatch(lb<IExercisePickerState>().p("filters").record({}), "Clear filters")}
-          >
+          <LinkButton name="clear-filters" className="text-xs" onPress={onClearFilters}>
             Clear
           </LinkButton>
         )}
       </View>
     </View>
   );
-}
+});
 
 interface ICustomExercisesProps {
   settings: ISettings;
   dispatch: ILensDispatch<IExercisePickerState>;
   state: IExercisePickerState;
-  usedExerciseTypes: IExerciseType[];
+  usedKeys: Set<string>;
+  selectedAdhocKeys: Set<string>;
+  selectedAnyKeys: Set<string>;
   onStar: (key: string) => void;
   onChoose: (key: string) => void;
   isMultiselect: boolean;
 }
 
 function CustomExercises(props: ICustomExercisesProps): JSX.Element {
+  console.log("[render] CustomExercises");
+  const { settings, dispatch, state, usedKeys, selectedAdhocKeys, selectedAnyKeys, onStar, onChoose, isMultiselect } =
+    props;
+  const { search, filters, sort, showMuscles, exerciseType } = state;
+
   const exercisesList = useMemo(() => {
-    let exercises = props.settings.exercises;
-    if (props.state.search) {
-      exercises = Exercise_filterCustomExercises(exercises, props.state.search);
+    let exercises = settings.exercises;
+    if (search) {
+      exercises = Exercise_filterCustomExercises(exercises, search);
     }
-    exercises = ExercisePickerUtils_filterCustomExercises(exercises, props.state.filters);
+    exercises = ExercisePickerUtils_filterCustomExercises(exercises, filters);
     let list = CollectionUtils_compact(ObjectUtils_values(exercises));
-    if (props.state.filters.isStarred) {
-      list = list.filter((e) => props.settings.starredExercises?.[Exercise_toKey(e)]);
+    if (filters.isStarred) {
+      list = list.filter((e) => settings.starredExercises?.[Exercise_toKey(e)]);
     }
     list = list.filter((e) => !e.isDeleted);
-    list = ExercisePickerUtils_sortCustomExercises(list, props.settings, props.state);
+    list = ExercisePickerUtils_sortCustomExercises(list, settings, state);
     return list;
-  }, [props.settings, props.state.search, props.state.filters, props.state.sort]);
+  }, [settings, search, filters, sort, exerciseType]);
+
+  const onCreatePress = useCallback(() => {
+    dispatch(
+      [
+        lb<IExercisePickerState>()
+          .p("editCustomExercise")
+          .record(Exercise_createCustomExercise("", [], [], [])),
+        lb<IExercisePickerState>()
+          .p("screenStack")
+          .recordModify((stack) => [...stack, "customExercise"]),
+      ],
+      "Navigate to create custom exercise screen"
+    );
+  }, [dispatch]);
 
   return (
     <View className="py-2">
@@ -251,68 +316,89 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
             data-testid="custom-exercise-create"
             testID="custom-exercise-create"
             name="create-custom-exercise"
-            onPress={() => {
-              props.dispatch(
-                [
-                  lb<IExercisePickerState>()
-                    .p("editCustomExercise")
-                    .record(Exercise_createCustomExercise("", [], [], [])),
-                  lb<IExercisePickerState>()
-                    .p("screenStack")
-                    .recordModify((stack) => [...stack, "customExercise"]),
-                ],
-                "Navigate to create custom exercise screen"
-              );
-            }}
+            onPress={onCreatePress}
           >
             Create
           </LinkButton>
         }
       >
         {exercisesList.map((e) => {
-          const ex = Exercise_get({ id: e.id }, props.settings.exercises);
-          const isSelectedAlready = props.state.selectedExercises.some(
-            (exrcs) => "exerciseType" in exrcs && Exercise_eq(exrcs.exerciseType, e)
-          );
-          const isUsedForDay = props.usedExerciseTypes.some((et) => Exercise_eq(et, e));
-          const isSelected = props.state.selectedExercises.some(
-            (exrcs) => exrcs.type === "adhoc" && Exercise_eq(exrcs.exerciseType, e)
-          );
+          const key = Exercise_toKey(e);
+          const ex = Exercise_get({ id: e.id }, settings.exercises);
+          const isSelectedAlready = selectedAnyKeys.has(key);
+          const isUsedForDay = usedKeys.has(key);
+          const isSelected = selectedAdhocKeys.has(key);
           return (
-            <View
-              key={Exercise_toKey(e)}
-              data-testid={`menu-item-${e.id}`}
-              testID={`menu-item-${e.id}`}
-              className={`w-full py-1 pl-4 pr-2 border-b border-border-neutral ${
-                isSelected ? "bg-background-purpledark" : ""
-              }`}
-            >
-              <ExercisePickerExerciseItem
-                onStar={props.onStar}
-                isMultiselect={props.isMultiselect}
-                isEnabled={!isUsedForDay && (!props.isMultiselect || !isSelectedAlready)}
-                showMuscles={props.state.showMuscles}
-                settings={props.settings}
-                currentExerciseType={props.state.exerciseType}
-                exercise={ex}
-                isSelected={isSelected}
-                onChoose={props.onChoose}
-                onEdit={() => {
-                  props.dispatch(
-                    [
-                      lb<IExercisePickerState>()
-                        .p("screenStack")
-                        .recordModify((stack) => [...stack, "customExercise"]),
-                      lb<IExercisePickerState>().p("editCustomExercise").record(ObjectUtils_clone(e)),
-                    ],
-                    `Navigate to edit custom exercise screen for ${e.name}`
-                  );
-                }}
-              />
-            </View>
+            <CustomExerciseRow
+              key={key}
+              exercise={ex}
+              rawExercise={e}
+              isSelected={isSelected}
+              isEnabled={!isUsedForDay && (!isMultiselect || !isSelectedAlready)}
+              isMultiselect={isMultiselect}
+              showMuscles={showMuscles}
+              currentExerciseType={exerciseType}
+              settings={settings}
+              dispatch={dispatch}
+              onChoose={onChoose}
+              onStar={onStar}
+            />
           );
         })}
       </GroupHeader>
     </View>
   );
 }
+
+interface ICustomExerciseRowProps {
+  exercise: ReturnType<typeof Exercise_get>;
+  rawExercise: ICustomExercise;
+  isSelected: boolean;
+  isEnabled: boolean;
+  isMultiselect: boolean;
+  showMuscles?: boolean;
+  currentExerciseType?: IExerciseType;
+  settings: ISettings;
+  dispatch: ILensDispatch<IExercisePickerState>;
+  onChoose: (key: string) => void;
+  onStar: (key: string) => void;
+}
+
+const CustomExerciseRow = memo(function CustomExerciseRow(props: ICustomExerciseRowProps): JSX.Element {
+  console.log(`[render] CustomExerciseRow ${props.rawExercise.id}`);
+  const { rawExercise, dispatch } = props;
+  const onEdit = useCallback(() => {
+    dispatch(
+      [
+        lb<IExercisePickerState>()
+          .p("screenStack")
+          .recordModify((stack) => [...stack, "customExercise"]),
+        lb<IExercisePickerState>().p("editCustomExercise").record(ObjectUtils_clone(rawExercise)),
+      ],
+      `Navigate to edit custom exercise screen for ${rawExercise.name}`
+    );
+  }, [dispatch, rawExercise]);
+
+  return (
+    <View
+      data-testid={`menu-item-${rawExercise.id}`}
+      testID={`menu-item-${rawExercise.id}`}
+      className={`w-full py-1 pl-4 pr-2 border-b border-border-neutral ${
+        props.isSelected ? "bg-background-purpledark" : ""
+      }`}
+    >
+      <ExercisePickerExerciseItem
+        onStar={props.onStar}
+        isMultiselect={props.isMultiselect}
+        isEnabled={props.isEnabled}
+        showMuscles={props.showMuscles}
+        settings={props.settings}
+        currentExerciseType={props.currentExerciseType}
+        exercise={props.exercise}
+        isSelected={props.isSelected}
+        onChoose={props.onChoose}
+        onEdit={onEdit}
+      />
+    </View>
+  );
+});
