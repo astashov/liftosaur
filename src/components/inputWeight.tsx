@@ -6,6 +6,7 @@ import { IExerciseType, IPercentage, ISettings, IUnit, IWeight } from "../types"
 import { IconCalculator } from "./icons/iconCalculator";
 import { useModal } from "../navigation/ModalStateContext";
 import { StringUtils_dashcase } from "../utils/string";
+import { InputWeightUnit } from "./inputWeightUnit";
 
 interface IInputWeightProps {
   value: IWeight | IPercentage;
@@ -92,25 +93,17 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
               selectTextOnFocus
             />
           </View>
-          <View className="flex-row gap-1">
-            {availableUnits.map((u) => (
-              <Pressable
-                key={u}
-                data-testid={`edit-weight-unit-${u}`}
-                testID={`edit-weight-unit-${u}`}
-                className={`px-2 py-1 border rounded ${u === unit ? "border-border-prominent bg-background-cardpurpleselected" : "border-border-neutral bg-background-default"}`}
-                onPress={() => {
-                  setUnit(u);
-                  const v = Number(text);
-                  if (!isNaN(v)) {
-                    props.onUpdate(buildWeight(v, u));
-                  }
-                }}
-              >
-                <Text className="text-sm">{u}</Text>
-              </Pressable>
-            ))}
-          </View>
+          <InputWeightUnit
+            value={unit}
+            units={availableUnits}
+            onChange={(u) => {
+              setUnit(u);
+              const v = Number(text);
+              if (!isNaN(v)) {
+                props.onUpdate(buildWeight(v, u));
+              }
+            }}
+          />
         </View>
         {unit !== "%" && (
           <Pressable

@@ -357,7 +357,6 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
                 data-testid="complete-set"
                 testID="complete-set"
                 onPress={onCompleteSet}
-                style={{ marginRight: -8 }}
               >
                 <IconCheckCircle
                   size={24}
