@@ -3706,7 +3706,7 @@ export function Exercise_searchNames(query: string, customExercises: IAllCustomE
     )
     .map((e) => `${e.name}${e.equipment ? `, ${equipmentName(e.equipment)}` : ""}`);
   const customExerciseNames = ObjectUtils_values(customExercises)
-    .filter((ce) => (ce ? StringUtils_fuzzySearch(query.toLowerCase(), ce.name.toLowerCase()) : false))
+    .filter((ce) => (ce && !ce.isDeleted ? StringUtils_fuzzySearch(query.toLowerCase(), ce.name.toLowerCase()) : false))
     .map((e) => e!.name);
   const names = [...exerciseNames, ...customExerciseNames];
   names.sort();
@@ -3886,6 +3886,7 @@ export function Exercise_getByIds(ids: IExerciseId[], customExercises: IAllCusto
 
 export function Exercise_all(customExercises: IAllCustomExercises): IExercise[] {
   return ObjectUtils_keys(customExercises)
+    .filter((id) => !customExercises[id]?.isDeleted)
     .map((id) => getExercise(id, customExercises))
     .concat(
       ObjectUtils_keys(allExercisesList).map((k) => ({
@@ -3897,6 +3898,7 @@ export function Exercise_all(customExercises: IAllCustomExercises): IExercise[] 
 
 export function Exercise_allExpanded(customExercises: IAllCustomExercises): IExercise[] {
   return ObjectUtils_keys(customExercises)
+    .filter((id) => !customExercises[id]?.isDeleted)
     .map((id) => getExercise(id, customExercises))
     .concat(
       ObjectUtils_keys(allExercisesList).flatMap((k) => {
@@ -4490,13 +4492,13 @@ export function Exercise_filterCustomExercises(
   filter: string
 ): IAllCustomExercises {
   return ObjectUtils_filter(customExercises, (e, v) =>
-    v ? StringUtils_fuzzySearch(filter.toLowerCase(), v.name.toLowerCase()) : true
+    v && !v.isDeleted ? StringUtils_fuzzySearch(filter.toLowerCase(), v.name.toLowerCase()) : false
   );
 }
 
 export function Exercise_filterCustomExercisesByType(filterTypes: string[], settings: ISettings): IAllCustomExercises {
   return ObjectUtils_filter(settings.exercises, (_id, exercise) => {
-    if (!exercise) {
+    if (!exercise || exercise.isDeleted) {
       return false;
     }
     const targetMuscleGroups = Array.from(
