@@ -21,7 +21,7 @@ export function EditProgramCustomErrorCta(props: IPlannerEditorCustomCtaProps): 
   const customExerciseName = match[1].trim();
   return (
     <Pressable
-      className="nm-planner-add-custom-exercise"
+      className="inline-block nm-planner-add-custom-exercise"
       data-testid="planner-add-custom-exercise"
       testID="planner-add-custom-exercise"
       onPress={() => {
@@ -46,7 +46,7 @@ export function EditProgramCustomErrorCta(props: IPlannerEditorCustomCtaProps): 
         );
       }}
     >
-      <Text className="underline text-text-alwayswhite">Add custom exercise</Text>
+      <Text className="inline-block underline text-text-alwayswhite">Add custom exercise</Text>
     </Pressable>
   );
 }

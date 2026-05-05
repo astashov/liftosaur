@@ -14,7 +14,10 @@ export function NavModalGraphs(): JSX.Element {
 
   const exerciseTypes = useMemo(() => {
     const maxSets = History_findAllMaxSetsPerId(state.storage.history);
-    return ObjectUtils_keys(maxSets).map(Exercise_fromKey);
+    const extypes = ObjectUtils_keys(maxSets).map(Exercise_fromKey);
+    return extypes.filter((e) => {
+      return !settings.exercises[e.id] || !settings.exercises[e.id]?.isDeleted;
+    });
   }, [state.storage.history]);
 
   const onClose = (): void => {

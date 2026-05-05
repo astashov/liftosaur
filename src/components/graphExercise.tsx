@@ -295,7 +295,7 @@ function GraphExerciseLegend(props: IGraphExerciseLegendProps): JSX.Element | nu
                   </Text>
                 )}
               </Text>
-              {props.record && props.dispatch && (
+              {!!(props.record && props.dispatch) && (
                 <Pressable onPress={onWorkoutPress}>
                   <Text className="ml-2 text-sm font-bold underline text-text-link">Workout</Text>
                 </Pressable>
@@ -309,7 +309,7 @@ function GraphExerciseLegend(props: IGraphExerciseLegendProps): JSX.Element | nu
                   {volume} {units}s
                 </Text>
               </Text>
-              {props.record && props.dispatch && (
+              {!!(props.record && props.dispatch) && (
                 <Pressable onPress={onWorkoutPress}>
                   <Text className="ml-2 text-sm font-bold underline text-text-link">Workout</Text>
                 </Pressable>
@@ -322,14 +322,14 @@ function GraphExerciseLegend(props: IGraphExerciseLegendProps): JSX.Element | nu
           {DateUtils_format(date)}, Bodyweight - <Text className="text-sm font-bold">{bodyweight}</Text> {units}
         </Text>
       ) : null}
-      {(entryNotes.length > 0 || props.record?.notes) && (
+      {!!(entryNotes.length > 0 || props.record?.notes) && (
         <View className="mt-1">
           {entryNotes.map((n, i) => (
             <Text key={i} className="text-xs text-text-secondary">
               • {n}
             </Text>
           ))}
-          {props.record?.notes && (
+          {!!props.record?.notes && (
             <Text className="text-xs text-text-secondary">
               <Text className="text-xs font-bold">Workout: </Text>
               {props.record.notes}
