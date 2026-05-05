@@ -125,7 +125,7 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
       />
       {(history.length > 1 || showPrs) && (
         <View className="items-center mt-2">
-          <LinkButton name="toggle-workout-graphs" onClick={onToggleGraphs}>
+          <LinkButton className="text-sm" name="toggle-workout-graphs" onClick={onToggleGraphs}>
             {props.settings.workoutSettings.shouldHideGraphs ? "Show Graphs and PRs" : "Hide Graphs and PRs"}
           </LinkButton>
         </View>

@@ -375,7 +375,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
       blur();
       return true;
     }
-    let foundCurrentInput = true;
+    let foundCurrentInput = false;
     let foundOtherInput: HTMLElement | null = null;
     while (target) {
       if (target.classList?.contains("keyboard-close")) {
@@ -388,7 +388,6 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
         foundOtherInput = target;
         break;
       } else if (target === document.body) {
-        foundCurrentInput = false;
         break;
       }
       target = target.parentElement;

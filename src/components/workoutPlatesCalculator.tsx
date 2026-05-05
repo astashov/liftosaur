@@ -63,6 +63,7 @@ function WorkoutPlatesCalculatorInner(props: IWorkoutPlatesCalculatorProps): JSX
           ) : (
             <LinkButton
               name="see-plates-for-each-side"
+              className="text-sm"
               onClick={() => props.dispatch(Thunk_pushScreen("subscription"))}
             >
               See plates for each side
