@@ -1,4 +1,9 @@
 import { JSX } from "react";
+import { View, Pressable, Platform } from "react-native";
+import { SvgUri } from "react-native-svg";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Text } from "./primitives/text";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { IDispatch } from "../ducks/types";
 import { Dialog_alert } from "../utils/dialog";
 import { NavScreenContent } from "../navigation/NavScreenContent";
@@ -27,7 +32,6 @@ import { LinkButton } from "./linkButton";
 import { IconBell } from "./icons/iconBell";
 import { lb } from "lens-shmens";
 import { IconSpinner } from "./icons/iconSpinner";
-import { InternalLink } from "../internalLink";
 import { IHistoryRecord, ISubscription } from "../types";
 import { Thunk_pullScreen, Thunk_claimkey } from "../ducks/thunks";
 import { IconClose } from "./icons/iconClose";
@@ -37,7 +41,8 @@ import { lg } from "../utils/posthog";
 import { IconW } from "./icons/iconW";
 import { IconWatch } from "./icons/iconWatch";
 import { IconLink } from "./icons/iconLink";
-import { Subscriptions_isEligibleForThanksgivingPromo } from "../utils/subscriptions";
+import { HostConfig_resolveUrl } from "../utils/hostConfig";
+import { InternalLink } from "../internalLink";
 
 interface IProps {
   prices?: Partial<Record<string, string>>;
@@ -51,7 +56,22 @@ interface IProps {
   navCommon: INavCommon;
 }
 
+function getFooterShadowStyle(semantic: ReturnType<typeof Tailwind_semantic>): Record<string, unknown> {
+  return Platform.select({
+    ios: {
+      shadowColor: semantic.background.default === "#000000" ? "#fff" : "#000",
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+    },
+    android: { elevation: 4 },
+    default: {},
+  }) as Record<string, unknown>;
+}
+
 export function ScreenSubscription(props: IProps): JSX.Element {
+  const insets = useSafeAreaInsets();
+  const footerShadow = getFooterShadowStyle(Tailwind_semantic());
   const monthlyPrice =
     ObjectUtils_entries(props.prices || {}).filter(([k]) => k.indexOf("mont") !== -1)?.[0]?.[1] ?? "$4.99";
   const yearlyPrice =
@@ -72,319 +92,274 @@ export function ScreenSubscription(props: IProps): JSX.Element {
         return o.offerId === props.appleOffer?.yearly?.offerId || o.offerId === props.googleOffer?.yearly?.offerId;
       });
   }
-  const isEligibleForThanks25 = Subscriptions_isEligibleForThanksgivingPromo(
-    props.history.length > 0,
-    props.subscription
-  );
   const hasOffer = monthlyOffer || yearlyOffer;
+  const supportsLifetime =
+    (SendMessage_isIos() && SendMessage_iosAppVersion() >= 8) ||
+    (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 15) ||
+    Platform.OS === "ios" ||
+    Platform.OS === "android";
 
   useNavOptions({
     navTitle: (
-      <span>
-        <span style={{ fontFamily: "sans-serif" }}>⭐</span> <span>Liftosaur Premium</span>{" "}
-        <span style={{ fontFamily: "sans-serif" }}>⭐</span>
-      </span>
+      <Text className="text-base font-semibold">
+        <Text className="text-base">⭐</Text> <Text className="text-lg font-semibold">Liftosaur Premium</Text>{" "}
+        <Text className="text-base">⭐</Text>
+      </Text>
     ),
     navRightButtons: [
-      <button
+      <Pressable
         key="close"
         className="p-2 nm-back"
         data-testid="navbar-back"
-        onClick={() => {
+        testID="navbar-back"
+        onPress={() => {
           props.dispatch(Thunk_pullScreen());
         }}
       >
         <IconClose />
-      </button>,
+      </Pressable>,
     ],
   });
 
   const footer = (
-    <div className="w-full px-2 py-2 bg-background-default">
-      <div className="safe-area-inset-bottom">
-        {props.subscription.key === "unclaimed" ? (
-          <div className="flex items-center px-2">
-            <div className="text-xs text-text-secondary">
-              You were granted the <strong>free access</strong> to Liftosaur!
-            </div>
-            <div>
+    <View
+      className="w-full px-2 py-2 bg-background-default footer-shadow"
+      style={[footerShadow, { paddingBottom: insets.bottom + 8 }]}
+    >
+      {props.subscription.key === "unclaimed" ? (
+        <View className="flex-row items-center px-2">
+          <View className="flex-1">
+            <Text className="text-xs text-text-secondary">
+              You were granted the <Text className="font-bold">free access</Text> to Liftosaur!
+            </Text>
+          </View>
+          <View>
+            <Button
+              name="subscription-free"
+              onPress={() => props.dispatch(Thunk_claimkey())}
+              kind="purple"
+              testID="button-subscription-free"
+              buttonSize="lg"
+            >
+              Get it!
+            </Button>
+          </View>
+        </View>
+      ) : (
+        <View>
+          <View className="flex-row">
+            <View className="flex-1 px-2">
+              {!hasOffer && (
+                <Text className="text-xs text-center text-text-secondary">Includes free 14 days trial</Text>
+              )}
               <Button
-                name="subscription-free"
-                onClick={() => props.dispatch(Thunk_claimkey())}
+                style={{ paddingVertical: 12, paddingHorizontal: 8 }}
+                name="subscription-monthly"
+                onPress={() => {
+                  if (SendMessage_isIos() || SendMessage_isAndroid()) {
+                    lg("start-subscription-monthly");
+                    SendMessage_toIos({
+                      type: "subscribeMontly",
+                      offer: JSON.stringify(props.appleOffer?.monthly),
+                    });
+                    SendMessage_toAndroid({
+                      type: "subscribeMontly",
+                      offer: JSON.stringify(props.googleOffer?.monthly),
+                    });
+                    updateState(
+                      props.dispatch,
+                      [lb<IState>().p("subscriptionLoading").record({ monthly: true })],
+                      "Start monthly subscription"
+                    );
+                  } else {
+                    webAlert();
+                  }
+                }}
+                className="w-full"
                 kind="purple"
-                className="whitespace-nowrap"
-                data-testid="button-subscription-free"
-                testID="button-subscription-free"
-                buttonSize="lg"
+                testID="button-subscription-monthly"
               >
-                Get it!
+                {!props.subscriptionLoading?.monthly ? (
+                  <Text className="text-xs font-semibold text-text-alwayswhite">
+                    {monthlyOffer ? (
+                      <>
+                        <Text className="mr-1 text-xs font-normal line-through text-text-alwayswhite">
+                          {monthlyPrice}
+                        </Text>
+                        <Text className="text-xs font-bold text-text-alwayswhite">{monthlyOffer.formattedPrice}</Text>
+                      </>
+                    ) : (
+                      <Text className="text-xs text-text-alwayswhite">{monthlyPrice}</Text>
+                    )}
+                    <Text className="text-xs text-text-alwayswhite">/month</Text>
+                  </Text>
+                ) : (
+                  <IconSpinner color="white" width={18} height={18} />
+                )}
               </Button>
-            </div>
-          </div>
-        ) : (
-          <div>
-            <div className="flex flex-row">
-              <div className="flex-1 px-2 text-center">
-                {!hasOffer && <div className="text-xs text-text-secondary">Includes free 14 days trial</div>}
-                <Button
-                  style={{ padding: "0.75rem 0.5rem" }}
-                  name="subscription-monthly"
-                  onClick={() => {
-                    if (SendMessage_isIos() || SendMessage_isAndroid()) {
-                      lg("start-subscription-monthly");
-                      SendMessage_toIos({
-                        type: "subscribeMontly",
-                        offer: JSON.stringify(props.appleOffer?.monthly),
-                      });
-                      SendMessage_toAndroid({
-                        type: "subscribeMontly",
-                        offer: JSON.stringify(props.googleOffer?.monthly),
-                      });
-                      updateState(
-                        props.dispatch,
-                        [lb<IState>().p("subscriptionLoading").record({ monthly: true })],
-                        "Start monthly subscription"
-                      );
-                    } else {
-                      webAlert();
-                    }
-                  }}
-                  className="w-full"
-                  kind="purple"
-                  data-testid="button-subscription-monthly"
-                  testID="button-subscription-monthly"
-                >
-                  {!props.subscriptionLoading?.monthly ? (
-                    <span className="text-xs font-semibold text-text-alwayswhite">
-                      {monthlyOffer ? (
-                        <>
-                          <span className="mr-1 font-normal line-through">{monthlyPrice}</span>
-                          <span className="font-bold">{monthlyOffer.formattedPrice}</span>
-                        </>
-                      ) : (
-                        <span>{monthlyPrice}</span>
-                      )}
-                      <span>/month</span>
-                    </span>
-                  ) : (
-                    <IconSpinner color="white" width={18} height={18} />
-                  )}
-                </Button>
-              </div>
-              <div className="flex-1 px-2 text-center">
-                {!hasOffer && <div className="text-xs text-text-secondary">Includes free 14 days trial</div>}
-                <Button
-                  name="subscription-yearly"
-                  style={{ padding: "0.75rem 0.5rem" }}
-                  onClick={() => {
-                    if (SendMessage_isIos() || SendMessage_isAndroid()) {
-                      lg("start-subscription-yearly");
-                      SendMessage_toIos({
-                        type: "subscribeYearly",
-                        offer: JSON.stringify(props.appleOffer?.yearly),
-                      });
-                      SendMessage_toAndroid({
-                        type: "subscribeYearly",
-                        offer: JSON.stringify(props.googleOffer?.yearly),
-                      });
-                      updateState(
-                        props.dispatch,
-                        [lb<IState>().p("subscriptionLoading").record({ yearly: true })],
-                        "Start yearly subscription"
-                      );
-                    } else {
-                      webAlert();
-                    }
-                  }}
-                  className="w-full"
-                  kind="purple"
-                  data-testid="button-subscription-yearly"
-                  testID="button-subscription-yearly"
-                >
-                  {!props.subscriptionLoading?.yearly ? (
-                    <span className="text-xs font-semibold text-text-alwayswhite">
-                      {yearlyOffer ? (
-                        <>
-                          <span className="mr-1 font-normal line-through">{yearlyPrice}</span>
-                          <span className="font-bold">{yearlyOffer.formattedPrice}</span>
-                        </>
-                      ) : (
-                        <span>{yearlyPrice}</span>
-                      )}
-                      <span>/year</span>
-                    </span>
-                  ) : (
-                    <IconSpinner color="white" width={18} height={18} />
-                  )}
-                </Button>
-              </div>
-            </div>
-            {(monthlyOffer || yearlyOffer) && (
-              <div className="pt-1 text-xs text-center text-text-secondary">Discount applies for the first year</div>
-            )}
-            {((SendMessage_isIos() && SendMessage_iosAppVersion() >= 8) ||
-              (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 15)) && (
-              <div className="px-2 pt-2 text-center">
-                <Button
-                  name="subscription-lifetime"
-                  onClick={() => {
-                    if (SendMessage_isIos() || SendMessage_isAndroid()) {
-                      lg("start-subscription-lifetime");
-                      SendMessage_toIos({ type: "subscribeLifetime" });
-                      SendMessage_toAndroid({ type: "subscribeLifetime" });
-                      updateState(
-                        props.dispatch,
-                        [lb<IState>().p("subscriptionLoading").record({ lifetime: true })],
-                        "Start lifetime subscription"
-                      );
-                    } else {
-                      webAlert();
-                    }
-                  }}
-                  className="w-full"
-                  kind="red"
-                  data-testid="button-subscription-lifetime"
-                  testID="button-subscription-lifetime"
-                >
-                  {!props.subscriptionLoading?.lifetime ? (
-                    "Lifetime - " + lifetimePrice
-                  ) : (
-                    <IconSpinner color="white" width={18} height={18} />
-                  )}
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
-        <div className="flex flex-row">
-          <div className="flex items-center justify-center flex-1 text-center">
-            <LinkButton
-              name="redeem-coupon"
-              onClick={() => {
-                if (SendMessage_isIos()) {
-                  SendMessage_toIos({ type: "redeemCoupon" });
-                } else {
-                  navigationRef.navigate("couponModal");
-                }
-              }}
-              className="pt-2 text-sm font-bold text-center"
-            >
-              Redeem coupon
-            </LinkButton>
-          </div>
-          <div className="flex items-center justify-center flex-1 pt-2 text-center">
-            <InternalLink
-              name="terms-of-use"
-              href="/terms.html"
-              className="text-sm font-bold underline border-none text-text-link"
-            >
-              Terms of use
-            </InternalLink>
-          </div>
-        </div>
-        <div className="flex flex-row">
-          <div className="flex items-center justify-center flex-1 pt-2 text-center">
-            <LinkButton
-              name="restore-subscriptions"
-              className="text-sm"
-              onClick={() => {
-                SendMessage_toIos({ type: "restoreSubscriptions" });
-                SendMessage_toAndroid({ type: "restoreSubscriptions" });
-              }}
-            >
-              Restore Subscription
-            </LinkButton>
-          </div>
-        </div>
-      </div>
-    </div>
+            </View>
+            <View className="flex-1 px-2">
+              {!hasOffer && (
+                <Text className="text-xs text-center text-text-secondary">Includes free 14 days trial</Text>
+              )}
+              <Button
+                name="subscription-yearly"
+                style={{ paddingVertical: 12, paddingHorizontal: 8 }}
+                onPress={() => {
+                  if (SendMessage_isIos() || SendMessage_isAndroid()) {
+                    lg("start-subscription-yearly");
+                    SendMessage_toIos({
+                      type: "subscribeYearly",
+                      offer: JSON.stringify(props.appleOffer?.yearly),
+                    });
+                    SendMessage_toAndroid({
+                      type: "subscribeYearly",
+                      offer: JSON.stringify(props.googleOffer?.yearly),
+                    });
+                    updateState(
+                      props.dispatch,
+                      [lb<IState>().p("subscriptionLoading").record({ yearly: true })],
+                      "Start yearly subscription"
+                    );
+                  } else {
+                    webAlert();
+                  }
+                }}
+                className="w-full"
+                kind="purple"
+                testID="button-subscription-yearly"
+              >
+                {!props.subscriptionLoading?.yearly ? (
+                  <Text className="text-xs font-semibold text-text-alwayswhite">
+                    {yearlyOffer ? (
+                      <>
+                        <Text className="mr-1 text-xs font-normal line-through text-text-alwayswhite">
+                          {yearlyPrice}
+                        </Text>
+                        <Text className="text-xs font-bold text-text-alwayswhite">{yearlyOffer.formattedPrice}</Text>
+                      </>
+                    ) : (
+                      <Text className="text-xs text-text-alwayswhite">{yearlyPrice}</Text>
+                    )}
+                    <Text className="text-xs text-text-alwayswhite">/year</Text>
+                  </Text>
+                ) : (
+                  <IconSpinner color="white" width={18} height={18} />
+                )}
+              </Button>
+            </View>
+          </View>
+          {(monthlyOffer || yearlyOffer) && (
+            <Text className="pt-1 text-xs text-center text-text-secondary">Discount applies for the first year</Text>
+          )}
+          {supportsLifetime && (
+            <View className="px-2 pt-2">
+              <Button
+                name="subscription-lifetime"
+                onPress={() => {
+                  if (SendMessage_isIos() || SendMessage_isAndroid()) {
+                    lg("start-subscription-lifetime");
+                    SendMessage_toIos({ type: "subscribeLifetime" });
+                    SendMessage_toAndroid({ type: "subscribeLifetime" });
+                    updateState(
+                      props.dispatch,
+                      [lb<IState>().p("subscriptionLoading").record({ lifetime: true })],
+                      "Start lifetime subscription"
+                    );
+                  } else {
+                    webAlert();
+                  }
+                }}
+                className="w-full"
+                kind="red"
+                testID="button-subscription-lifetime"
+              >
+                {!props.subscriptionLoading?.lifetime ? (
+                  "Lifetime - " + lifetimePrice
+                ) : (
+                  <IconSpinner color="white" width={18} height={18} />
+                )}
+              </Button>
+            </View>
+          )}
+        </View>
+      )}
+      <View className="flex-row py-2">
+        <View className="flex-row items-center justify-center flex-1">
+          <LinkButton
+            name="redeem-coupon"
+            onPress={() => {
+              if (SendMessage_isIos()) {
+                SendMessage_toIos({ type: "redeemCoupon" });
+              } else {
+                navigationRef.navigate("couponModal");
+              }
+            }}
+            className="text-sm font-bold"
+          >
+            Redeem coupon
+          </LinkButton>
+        </View>
+        <View className="flex-row items-center justify-center flex-1">
+          <InternalLink
+            name="terms-of-use"
+            href="/terms.html"
+            className="text-sm font-bold text-center underline text-text-link"
+          >
+            Terms of use
+          </InternalLink>
+        </View>
+      </View>
+      <View className="flex-row">
+        <View className="items-center justify-center flex-1">
+          <LinkButton
+            name="restore-subscriptions"
+            className="text-sm"
+            onPress={() => {
+              SendMessage_toIos({ type: "restoreSubscriptions" });
+              SendMessage_toAndroid({ type: "restoreSubscriptions" });
+            }}
+          >
+            Restore Subscription
+          </LinkButton>
+        </View>
+      </View>
+    </View>
   );
 
   return (
     <NavScreenContent footer={footer}>
-      <section className="flex flex-col flex-1 px-4">
-        {isEligibleForThanks25 ? (
-          <div className="flex items-center gap-4 p-2 mb-4 border rounded-lg bg-background-cardyellow border-border-cardyellow">
-            <div className="flex-2">
-              <img
-                src="/images/thanks25.png"
-                className="inline-block"
-                style={{ width: "100%", maxWidth: "300px" }}
-                alt="Thanksgiving 2025!"
-              />
-            </div>
-            <div className="flex-3">
-              <div className="mb-2">
-                <div>
-                  <span className="text-sm font-bold text-orange-600">30%</span> off
-                </div>
-                <div className="text-xs">first year of subscription</div>
-              </div>
-              <div className="mb-2">
-                {SendMessage_isIos() ? (
-                  <div>
-                    <div className="text-sm">
-                      <strong>Monthly Code: </strong>
-                      <span className="font-bold text-text-purple">THANKS25</span>
-                    </div>
-                    <div className="text-sm">
-                      <strong>Yearly Code: </strong>
-                      <span className="font-bold text-text-purple">THANKS25Y</span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-sm">
-                    <strong>Code: </strong>
-                    <span className="font-bold text-text-purple">THANKS25</span>
-                  </div>
-                )}
-                <div className="text-xs text-text-secondary">Valid 25 Nov - 3 Dec 25</div>
-              </div>
-              <div>
-                <div className="text-xs">
-                  Applicable to <span className="font-bold text-text-purple">monthly</span> and{" "}
-                  <span className="font-bold text-text-purple">yearly</span> subscriptions.
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div
-            className="pt-16 mb-2 bg-no-repeat"
-            style={{
-              backgroundImage: "url(/images/logo.svg)",
-              backgroundPosition: "top center",
-              backgroundSize: "4rem",
-            }}
-          ></div>
-        )}
-        <p className="mb-4 text-sm">
+      <View className="flex-1 px-4">
+        <View className="items-center pt-2 pb-2">
+          <SvgUri uri={HostConfig_resolveUrl("/images/logo.svg")} width={64} height={64} />
+        </View>
+        <Text className="mb-4 text-sm">
           While you can use Liftosaur for free, there're some features on Liftosaur that require premium access:
-        </p>
-        <ul>
+        </Text>
+        <View>
           <Feature
             icon={<IconBarbell />}
             title="Plates Calculator"
             description="What plates to add to each side of a bar to get the necessary weight"
-            onClick={() => navigationRef.navigate("subscriptionInfoModal", { type: "platesCalculator" })}
+            onPress={() => navigationRef.navigate("subscriptionInfoModal", { type: "platesCalculator" })}
           />
           <Feature
             icon={<IconGraphs />}
             title="Graphs"
             description="So you could visualize your progress over time"
-            onClick={() => navigationRef.navigate("subscriptionInfoModal", { type: "graphs" })}
+            onPress={() => navigationRef.navigate("subscriptionInfoModal", { type: "graphs" })}
           />
           <Feature
             icon={<IconBell />}
             title="Rest Timer Notifications"
             description="When it's about to start a new set, you'll get a notification."
-            onClick={() => navigationRef.navigate("subscriptionInfoModal", { type: "notifications" })}
+            onPress={() => navigationRef.navigate("subscriptionInfoModal", { type: "notifications" })}
           />
           <Feature
             icon={<IconW />}
             title="Week Insights"
             description="Weekly stats about your performance"
-            onClick={() => navigationRef.navigate("subscriptionInfoModal", { type: "weekInsights" })}
+            onPress={() => navigationRef.navigate("subscriptionInfoModal", { type: "weekInsights" })}
           />
           <Feature icon={<IconWatch />} title="Apple Watch App" description="Track workouts directly from your wrist" />
           <Feature
@@ -392,16 +367,16 @@ export function ScreenSubscription(props: IProps): JSX.Element {
             title="API & MCP"
             description="Programmatic access and AI assistant integration"
           />
-        </ul>
-        <p className="mb-4 text-xs text-text-secondary">
+        </View>
+        <Text className="mb-4 text-xs text-text-secondary">
           You can get monthly or yearly subscription (and you'll be charged for a month or year every month or year
           {!hasOffer ? "after initial 14 days free trial period" : ""}) or lifetime - one-time payment, that gives
           access to those features without recurring charges in the future.
-        </p>
-        <p className="mb-4 text-xs text-text-secondary">
+        </Text>
+        <Text className="mb-4 text-xs text-text-secondary">
           You can cancel subscriptions any time via Google Play or App Store subscriptions management.
-        </p>
-      </section>
+        </Text>
+      </View>
     </NavScreenContent>
   );
 }
@@ -416,19 +391,23 @@ interface IFeatureProps {
   icon: JSX.Element;
   title: string;
   description: string;
-  onClick?: () => void;
+  onPress?: () => void;
 }
 
 function Feature(props: IFeatureProps): JSX.Element {
   return (
-    <li className="flex flex-row flex-1 mb-6" onClick={props.onClick}>
-      <div className="w-6 pt-1 mr-3 text-center">{props.icon}</div>
-      <div className="flex-1">
-        <h3 className="text-base font-bold">
-          {props.onClick ? <LinkButton name="subscription-feature">{props.title}</LinkButton> : props.title}
-        </h3>
-        <p className="text-sm text-text-primary">{props.description}</p>
-      </div>
-    </li>
+    <Pressable className="flex-row mb-6" onPress={props.onPress}>
+      <View className="items-center w-6 pt-1 mr-3">{props.icon}</View>
+      <View className="flex-1">
+        <View>
+          {props.onPress ? (
+            <LinkButton name="subscription-feature">{props.title}</LinkButton>
+          ) : (
+            <Text className="text-base font-bold">{props.title}</Text>
+          )}
+        </View>
+        <Text className="text-sm text-text-primary">{props.description}</Text>
+      </View>
+    </Pressable>
   );
 }

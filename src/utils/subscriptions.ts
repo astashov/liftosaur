@@ -16,23 +16,6 @@ export function Subscriptions_hasSubscription(subscription: ISubscription): bool
   return hasApple || hasGoogle;
 }
 
-export function Subscriptions_isEligibleForThanksgivingPromo(
-  doesHaveWorkouts: boolean,
-  subscription: ISubscription
-): boolean {
-  if (!doesHaveWorkouts) {
-    return false;
-  }
-  if (Subscriptions_hasSubscription(subscription)) {
-    return false;
-  }
-  const today = new Date();
-  if ((today.getMonth() === 10 && today.getDate() >= 25) || (today.getMonth() === 11 && today.getDate() <= 3)) {
-    return true;
-  }
-  return false;
-}
-
 export function Subscriptions_listOfSubscriptions(subscription: ISubscription): string[] {
   const arr: string[] = [];
   if ((subscription.apple || []).length > 0) {

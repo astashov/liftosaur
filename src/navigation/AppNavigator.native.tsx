@@ -277,7 +277,11 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
         >
           <RootStack.Screen name="onboarding" component={OnboardingStackScreen} />
           <RootStack.Screen name="mainTabs" component={MainTabsScreen} />
-          <RootStack.Screen name="subscription" component={NavScreenSubscription} options={{ headerShown: true }} />
+          <RootStack.Screen
+            name="subscription"
+            component={NavScreenSubscription}
+            options={{ headerShown: true, header: NavHeader }}
+          />
           <RootStack.Group
             screenOptions={{
               presentation: "transparentModal",

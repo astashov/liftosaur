@@ -29,7 +29,6 @@ import { WhatsNew_doesHaveNewUpdates } from "../models/whatsnew";
 import {
   Subscriptions_cleanupOutdatedAppleReceipts,
   Subscriptions_cleanupOutdatedGooglePurchaseTokens,
-  Subscriptions_isEligibleForThanksgivingPromo,
 } from "../utils/subscriptions";
 import { lb } from "lens-shmens";
 import { RestTimer } from "./restTimer";
@@ -106,11 +105,6 @@ export function AppView(props: IProps): JSX.Element | null {
     stateRef.current = state;
   });
   const shouldShowWhatsNew = WhatsNew_doesHaveNewUpdates(state.storage.whatsNew) || state.showWhatsNew;
-  const isEligibleForThanks25 = Subscriptions_isEligibleForThanksgivingPromo(
-    state.storage.history.length > 0,
-    state.storage.subscription
-  );
-  const helps = state.storage.helps;
 
   useEffect(() => {
     SendMessage_toAndroid({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
@@ -135,18 +129,6 @@ export function AppView(props: IProps): JSX.Element | null {
     }
     prevShouldShowWhatsNew.current = !!(shouldShowWhatsNew && state.storage.whatsNew != null);
   }, [isNavReady, shouldShowWhatsNew, state.storage.whatsNew]);
-
-  const showThanks25 = isEligibleForThanks25 && !helps.includes("thanks25");
-  const prevShowThanks25 = useRef(false);
-  useEffect(() => {
-    if (!isNavReady) {
-      return;
-    }
-    if (showThanks25 && !prevShowThanks25.current) {
-      navigationRef.navigate("thanks25Modal");
-    }
-    prevShowThanks25.current = showThanks25;
-  }, [isNavReady, showThanks25]);
 
   const showCorruptedState = state.errors.corruptedstorage != null;
   const prevShowCorruptedState = useRef(false);

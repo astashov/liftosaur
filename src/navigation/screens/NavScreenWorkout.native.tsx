@@ -1,12 +1,11 @@
 import { JSX } from "react";
-import { View } from "react-native";
-import { Text } from "../../components/primitives/text";
 import { useRoute } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { buildNavCommon } from "../utils";
 import { NavScreenContent } from "../NavScreenContent";
 import { ScreenWorkout } from "../../components/screenWorkout";
 import { ScreenFinishDay as ScreenFinishDayComponent } from "../../components/screenFinishDay";
+import { ScreenSubscription as ScreenSubscriptionComponent } from "../../components/screenSubscription";
 import { Progress_isCurrent } from "../../models/progress";
 import { Program_getFullProgram, Program_getProgram, Program_fullProgram } from "../../models/program";
 import { FallbackScreen } from "../../components/fallbackScreen";
@@ -67,9 +66,19 @@ export function NavScreenFinishDay(): JSX.Element {
 }
 
 export function NavScreenSubscription(): JSX.Element {
+  const { state, dispatch } = useAppState();
+  const navCommon = buildNavCommon(state);
   return (
-    <View className="flex-1 justify-center items-center bg-background-default">
-      <Text className="text-2xl font-bold text-icon-neutral">Subscription</Text>
-    </View>
+    <ScreenSubscriptionComponent
+      history={state.storage.history}
+      prices={state.prices}
+      offers={state.offers}
+      appleOffer={state.appleOffer}
+      googleOffer={state.googleOffer}
+      subscription={state.storage.subscription}
+      subscriptionLoading={state.subscriptionLoading}
+      dispatch={dispatch}
+      navCommon={navCommon}
+    />
   );
 }

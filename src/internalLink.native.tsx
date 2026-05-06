@@ -13,7 +13,7 @@ export function InternalLink(props: IProps): JSX.Element {
   const url = props.href.startsWith("/") ? `https://www.liftosaur.com${props.href}` : props.href;
   return (
     <Pressable
-      className="w-full py-3"
+      className="w-full"
       onPress={() => {
         Linking.openURL(url).catch(() => undefined);
       }}
