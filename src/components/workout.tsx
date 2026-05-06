@@ -459,6 +459,7 @@ function WorkoutHeaderInner(props: IWorkoutHeaderProps): JSX.Element {
             buttonSize="md"
             data-testid="finish-workout"
             testID="finish-workout"
+            className={Progress_isCurrent(props.progress) ? "ls-finish-workout" : "ls-save-history-record"}
             onClick={() => {
               onFinish().catch(() => undefined);
             }}

@@ -99,6 +99,7 @@ export function Button(props: IProps): JSX.Element {
   if (props.className) {
     containerCn += ` ${props.className}`;
   }
+  containerCn += ` nm-${props.name}`;
 
   const accessibilityLabel = typeof children === "string" ? children : undefined;
   return (
