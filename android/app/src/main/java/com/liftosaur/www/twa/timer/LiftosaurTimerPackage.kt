@@ -1,26 +1,26 @@
-package com.liftosaur.www.twa.share
+package com.liftosaur.www.twa.timer
 
 import com.facebook.react.BaseReactPackage
 import com.facebook.react.bridge.NativeModule
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.module.model.ReactModuleInfo
 import com.facebook.react.module.model.ReactModuleInfoProvider
-import com.liftosaur.www.twa.specs.NativeLiftosaurShareSpec
+import com.liftosaur.www.twa.specs.NativeLiftosaurTimerSpec
 
-class LiftosaurSharePackage : BaseReactPackage() {
+class LiftosaurTimerPackage : BaseReactPackage() {
 
     override fun getModule(name: String, reactContext: ReactApplicationContext): NativeModule? =
         when (name) {
-            NativeLiftosaurShareSpec.NAME -> LiftosaurShareModule(reactContext)
+            NativeLiftosaurTimerSpec.NAME -> LiftosaurTimerModule(reactContext)
             else -> null
         }
 
     override fun getReactModuleInfoProvider(): ReactModuleInfoProvider =
         ReactModuleInfoProvider {
             mapOf(
-                NativeLiftosaurShareSpec.NAME to ReactModuleInfo(
-                    NativeLiftosaurShareSpec.NAME,
-                    LiftosaurShareModule::class.java.name,
+                NativeLiftosaurTimerSpec.NAME to ReactModuleInfo(
+                    NativeLiftosaurTimerSpec.NAME,
+                    LiftosaurTimerModule::class.java.name,
                     false, false, false, true
                 )
             )

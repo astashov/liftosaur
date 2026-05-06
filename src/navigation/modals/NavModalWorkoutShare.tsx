@@ -20,8 +20,8 @@ import {
   SendMessage_iosAppVersion,
   SendMessage_isAndroid,
   SendMessage_androidAppVersion,
-  SendMessage_toIosAndAndroid,
 } from "../../utils/sendMessage";
+import { NativeWorkoutBridge_finishWorkout } from "../../utils/nativeWorkoutBridge";
 import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../../lib/healthSync";
 import type { IRootStackParamList } from "../types";
 
@@ -98,10 +98,9 @@ export function NavModalWorkoutShare(): JSX.Element {
                 description={""}
                 icon={<IconHeart size={24} />}
                 onClick={() => {
-                  SendMessage_toIosAndAndroid({
-                    type: "finishWorkout",
-                    healthSync: "true",
-                    calories: `${History_calories(progress)}`,
+                  NativeWorkoutBridge_finishWorkout({
+                    healthSync: true,
+                    calories: History_calories(progress),
                     intervals: JSON.stringify(progress.intervals),
                   });
                   onClose();

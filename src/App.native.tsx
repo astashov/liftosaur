@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import { ActivityIndicator, Platform, View } from "react-native";
 import { Client as RollbarClient } from "rollbar-react-native";
 
@@ -94,7 +94,12 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { reducerWrapper, defaultOnActions, getInitialState, getIdbKey, IAction } from "./ducks/reducer";
 import { useThunkReducer } from "./utils/useThunkReducer";
 import { Service } from "./api/service";
-import { MockAudioInterface } from "./lib/audioInterface";
+import { AudioInterface } from "./lib/audioInterface";
+import { Progress_getCurrentProgress, Progress_lbProgress } from "./models/progress";
+import { NativeTimerBridge_subscribeOnScheduled } from "./utils/nativeTimerBridge";
+import { updateState } from "./models/state";
+import { RestTimer } from "./components/restTimer";
+import { IScreen } from "./models/screen";
 import { IEnv, IState } from "./models/state";
 import { AsyncQueue } from "./utils/asyncQueue";
 import { StateContext } from "./navigation/StateContext";
@@ -120,7 +125,7 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
   const env = useMemo<IEnv>(
     () => ({
       service: new Service(fetch),
-      audio: new MockAudioInterface(),
+      audio: new AudioInterface(),
       queue: new AsyncQueue(),
       navigationRef,
       getCurrentScreenData,
@@ -131,22 +136,58 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
   const reducer = useMemo(() => reducerWrapper(true), []);
   const onActions = useMemo(() => defaultOnActions(env), [env]);
   const [state, dispatch] = useThunkReducer<IState, IAction, IEnv>(reducer, props.initialState, env, onActions);
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
   useEffect(() => {
     dispatch(Thunk_sync2({ force: true }));
     dispatch(Thunk_fetchInitial());
   }, []);
 
+  useEffect(() => {
+    return NativeTimerBridge_subscribeOnScheduled(() => {
+      if (Progress_getCurrentProgress(stateRef.current)?.ui) {
+        updateState(
+          dispatch,
+          [Progress_lbProgress().pi("ui", {}).p("nativeNotificationScheduled").record(true)],
+          "Set native notification scheduled"
+        );
+      }
+    });
+  }, [dispatch]);
+
   const initialScreen = props.initialState.storage.currentProgramId ? "main" : "first";
+
+  const [currentScreenName, setCurrentScreenName] = useState<IScreen | undefined>(undefined);
+  const progress = Progress_getCurrentProgress(state);
+  const screensWithoutTimer: IScreen[] = ["subscription"];
 
   return (
     <AppContext.Provider value={{ service, isApp: true }}>
       <StateContext.Provider value={{ state, dispatch }}>
         <ModalStateProvider>
           <SystemBars style="auto" />
-          <NavigationContainer ref={navigationRef}>
+          <NavigationContainer
+            ref={navigationRef}
+            onStateChange={() => {
+              const route = navigationRef.getCurrentRoute();
+              setCurrentScreenName(route?.name as IScreen | undefined);
+            }}
+            onReady={() => {
+              const route = navigationRef.getCurrentRoute();
+              setCurrentScreenName(route?.name as IScreen | undefined);
+            }}
+          >
             <AppNavigator initialScreen={initialScreen} />
           </NavigationContainer>
+          {progress && currentScreenName && screensWithoutTimer.indexOf(currentScreenName) === -1 && (
+            <RestTimer
+              progress={progress}
+              dispatch={dispatch}
+              settings={state.storage.settings}
+              subscription={state.storage.subscription}
+            />
+          )}
           <ActionSheetHost />
         </ModalStateProvider>
       </StateContext.Provider>

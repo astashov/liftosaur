@@ -40,7 +40,8 @@ import { ImagePreloader_preload, ImagePreloader_dynohappy } from "../utils/image
 import { navigationRef } from "../navigation/navigationRef";
 import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
 import { History_calories, History_pauseWorkout } from "../models/history";
-import { SendMessage_toIosAndAndroid, SendMessage_isIos } from "../utils/sendMessage";
+import { NativeWorkoutBridge_finishWorkout, NativeWorkoutBridge_pauseWorkout } from "../utils/nativeWorkoutBridge";
+import { SendMessage_isIos } from "../utils/sendMessage";
 import { Dialog_confirm } from "../utils/dialog";
 import { useEqual } from "../utils/useEqual";
 import { NavScreenContent } from "../navigation/NavScreenContent";
@@ -344,7 +345,7 @@ function WorkoutHeaderInner(props: IWorkoutHeaderProps): JSX.Element {
         return;
       }
     }
-    SendMessage_toIosAndAndroid({ type: "pauseWorkout" });
+    NativeWorkoutBridge_pauseWorkout();
     props.dispatch(Thunk_finishProgramDay());
     if (Progress_isCurrent(props.progress)) {
       props.dispatch(Thunk_postevent("finish-workout", { workout: JSON.stringify(props.progress) }));
@@ -356,10 +357,9 @@ function WorkoutHeaderInner(props: IWorkoutHeaderProps): JSX.Element {
         isHealthEligible &&
         (!props.settings.healthConfirmation ||
           (await Dialog_confirm(`Do you want to sync this workout to ${healthName}?`)));
-      SendMessage_toIosAndAndroid({
-        type: "finishWorkout",
-        healthSync: shouldSyncToHealth ? "true" : "false",
-        calories: `${History_calories(props.progress)}`,
+      NativeWorkoutBridge_finishWorkout({
+        healthSync: !!shouldSyncToHealth,
+        calories: History_calories(props.progress),
         intervals: JSON.stringify(History_pauseWorkout(props.progress.intervals)),
       });
     }

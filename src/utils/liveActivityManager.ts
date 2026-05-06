@@ -8,18 +8,19 @@ import { Weight_calculatePlates, Weight_print, Weight_formatOneSide } from "../m
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IHistoryRecord, IProgram, ISettings, ISubscription } from "../types";
 import { n } from "./math";
-import { SendMessage_print, SendMessage_toIosAndAndroid } from "./sendMessage";
+import { NativeWorkoutBridge_updateLiveActivity } from "./nativeWorkoutBridge";
+import { SendMessage_print } from "./sendMessage";
 import { Subscriptions_hasSubscription } from "./subscriptions";
 import { UrlUtils_build } from "./url";
 
 declare const __HOST__: string;
 
-interface ILiveActivitySet {
+export interface ILiveActivitySet {
   status: ISetsStatus;
   isWarmup: boolean;
 }
 
-interface ILiveActivityEntry {
+export interface ILiveActivityEntry {
   exerciseName: string;
   currentSet: number;
   totalSets: number;
@@ -39,12 +40,12 @@ interface ILiveActivityEntry {
   currentReps?: string;
 }
 
-interface ILiveActivityRest {
+export interface ILiveActivityRest {
   restTimerSince: number;
   restTimer: number;
 }
 
-interface ILiveActivityState {
+export interface ILiveActivityState {
   restTimer?: ILiveActivityRest;
   historyEntryState?: ILiveActivityEntry;
   workoutStartTimestamp: number;
@@ -183,7 +184,7 @@ export function LiveActivityManager_updateLiveActivity(
   SendMessage_print(
     `Main App: Updating live activity for ${liveActivityEntry?.exerciseName} (${liveActivityEntry?.entryIndex}/${liveActivityEntry?.setIndex})`
   );
-  SendMessage_toIosAndAndroid({ type: "updateLiveActivity", data: JSON.stringify(attributes) });
+  NativeWorkoutBridge_updateLiveActivity(attributes);
 }
 
 export function LiveActivityManager_updateLiveActivityForNextEntry(

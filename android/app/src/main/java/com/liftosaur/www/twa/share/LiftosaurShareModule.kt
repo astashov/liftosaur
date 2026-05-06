@@ -15,6 +15,8 @@ import com.tiktok.open.sdk.share.model.MediaContent
 import java.io.File
 import java.io.FileOutputStream
 
+import com.liftosaur.www.twa.specs.NativeLiftosaurShareSpec
+
 class LiftosaurShareModule(reactContext: ReactApplicationContext) :
     NativeLiftosaurShareSpec(reactContext) {
 

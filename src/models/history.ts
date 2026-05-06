@@ -48,7 +48,7 @@ import { IState, updateState } from "./state";
 import { lb, lbu } from "lens-shmens";
 import { ObjectUtils_keys, ObjectUtils_clone } from "../utils/object";
 import { IDispatch } from "../ducks/types";
-import { SendMessage_toIosAndAndroid } from "../utils/sendMessage";
+import { NativeWorkoutBridge_pauseWorkout, NativeWorkoutBridge_resumeWorkout } from "../utils/nativeWorkoutBridge";
 import memoize from "micro-memoize";
 import { DateUtils_firstDayOfWeekTimestamp, DateUtils_formatYYYYMMDD } from "../utils/date";
 import { IEvaluatedProgram, Program_getProgramExerciseForKeyAndDay } from "./program";
@@ -724,7 +724,7 @@ export function History_exportAsCSV(history: IHistoryRecord[], settings: ISettin
 
 export function History_pauseWorkoutAction(dispatch: IDispatch): void {
   const lensGetters = { progress: lb<IState>().p("storage").pi("progress").get() };
-  SendMessage_toIosAndAndroid({ type: "pauseWorkout" });
+  NativeWorkoutBridge_pauseWorkout();
   updateState(
     dispatch,
     [
@@ -786,11 +786,10 @@ export function History_resumeWorkout(
   if (History_isPaused(intervals)) {
     const isStart = !intervals || intervals.length === 0;
     if (!isPlayground && Progress_isCurrent(historyRecord)) {
-      SendMessage_toIosAndAndroid({
-        type: "resumeWorkout",
-        reminder: `${reminder || 0}`,
-        isStart: isStart ? "true" : "false",
-        hasSubscription: hasSubscription ? "true" : "false",
+      NativeWorkoutBridge_resumeWorkout({
+        reminder: reminder || 0,
+        isStart,
+        hasSubscription,
       });
     }
     const newIntervals = intervals ? ObjectUtils_clone(intervals) : [];

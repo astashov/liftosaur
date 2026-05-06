@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Liftosaur</string>
+    <string name="channel_name">Liftosaur Notifications Channel</string>
+    <string name="channel_description">To deliver Liftosaur Notification</string>
 </resources>

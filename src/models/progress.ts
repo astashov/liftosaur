@@ -70,7 +70,8 @@ import {
   IProgram,
   IStorage,
 } from "../types";
-import { SendMessage_print, SendMessage_toIos, SendMessage_toAndroid } from "../utils/sendMessage";
+import { NativeTimerBridge_startTimer, NativeTimerBridge_stopTimer } from "../utils/nativeTimerBridge";
+import { SendMessage_print } from "../utils/sendMessage";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { IPercentage } from "../types";
 import {
@@ -550,35 +551,17 @@ export function Progress_startTimer(
         }
       }
     }
-    const ignoreDoNotDisturb = settings.ignoreDoNotDisturb ? "true" : "false";
-    const vibration = settings.vibration ? "true" : "false";
-    const volume = settings.volume.toString();
-    SendMessage_print(`Scheduling timer notification, volume: ${volume}`);
-    SendMessage_toIos({
-      type: "startTimer",
-      duration: timerForPush.toString(),
-      mode,
+    SendMessage_print(`Scheduling timer notification, volume: ${settings.volume}`);
+    NativeTimerBridge_startTimer({
+      duration: timerForPush,
       title,
       subtitleHeader,
       subtitle,
       bodyHeader,
       body,
-      ignoreDoNotDisturb,
-      vibration,
-      volume,
-    });
-    SendMessage_toAndroid({
-      type: "startTimer",
-      duration: timerForPush.toString(),
-      mode,
-      title,
-      subtitleHeader,
-      subtitle,
-      bodyHeader,
-      body,
-      ignoreDoNotDisturb,
-      vibration,
-      volume,
+      ignoreDoNotDisturb: !!settings.ignoreDoNotDisturb,
+      vibration: !!settings.vibration,
+      volume: settings.volume,
     });
   }
   const newProgress: IHistoryRecord = {
@@ -722,8 +705,7 @@ export function Progress_updateTimer(
     }
     return newProgress;
   } else {
-    SendMessage_toIos({ type: "stopTimer" });
-    SendMessage_toAndroid({ type: "stopTimer" });
+    NativeTimerBridge_stopTimer();
     const newProgress = {
       ...progress,
       timer: Math.max(0, newTimer),
@@ -765,8 +747,7 @@ export function Progress_maybeApplySuperset(
 }
 
 export function Progress_stopTimer(progress: IHistoryRecord): IHistoryRecord {
-  SendMessage_toIos({ type: "stopTimer" });
-  SendMessage_toAndroid({ type: "stopTimer" });
+  NativeTimerBridge_stopTimer();
   return Progress_stopTimerPure(progress);
 }
 

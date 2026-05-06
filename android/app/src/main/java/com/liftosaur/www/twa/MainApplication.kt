@@ -6,7 +6,9 @@ import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
+import com.liftosaur.www.twa.liveactivity.LiftosaurLiveActivityPackage
 import com.liftosaur.www.twa.share.LiftosaurSharePackage
+import com.liftosaur.www.twa.timer.LiftosaurTimerPackage
 import com.rollbar.RollbarReactNative
 
 class MainApplication : Application(), ReactApplication {
@@ -17,6 +19,8 @@ class MainApplication : Application(), ReactApplication {
       packageList =
         PackageList(this).packages.apply {
           add(LiftosaurSharePackage())
+          add(LiftosaurTimerPackage())
+          add(LiftosaurLiveActivityPackage())
         },
     )
   }

@@ -7,7 +7,7 @@
     "*.css"
   ],
   "scripts": {
-    "ios": "RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --simulator='iPhone 17'",
+    "ios": "RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --simulator='iPhone 17 RN'",
     "ios-device": "RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --device='Anton iPhone Air'",
     "ios-device-release": "RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --mode Release --device='Anton iPhone Air'",
     "pod-install": "cd ios && RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static pod install",
@@ -233,15 +233,17 @@
     "zingtouch": "^1.0.6"
   },
   "codegenConfig": {
-    "name": "LiftosaurShareSpecs",
+    "name": "LiftosaurSpecs",
     "type": "modules",
     "jsSrcsDir": "src/specs",
     "android": {
-      "javaPackageName": "com.liftosaur.www.twa.share"
+      "javaPackageName": "com.liftosaur.www.twa.specs"
     },
     "ios": {
       "modulesProvider": {
-        "LiftosaurShare": "RCTLiftosaurShare"
+        "LiftosaurShare": "RCTLiftosaurShare",
+        "LiftosaurTimer": "RCTLiftosaurTimer",
+        "LiftosaurLiveActivity": "RCTLiftosaurLiveActivity"
       }
     }
   }

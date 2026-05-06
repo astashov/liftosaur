@@ -10,6 +10,13 @@ FILES_TO_ADD = [
   { name: 'RCTLiftosaurShare.h',    path: 'Liftosaur/RCTLiftosaurShare.h',    type: :header },
   { name: 'RCTLiftosaurShare.mm',   path: 'Liftosaur/RCTLiftosaurShare.mm',   type: :source },
   { name: 'LiftosaurShareImpl.swift', path: 'Liftosaur/LiftosaurShareImpl.swift', type: :source },
+  { name: 'RCTLiftosaurTimer.h',    path: 'Liftosaur/RCTLiftosaurTimer.h',    type: :header },
+  { name: 'RCTLiftosaurTimer.mm',   path: 'Liftosaur/RCTLiftosaurTimer.mm',   type: :source },
+  { name: 'LiftosaurTimerImpl.swift', path: 'Liftosaur/LiftosaurTimerImpl.swift', type: :source },
+  { name: 'RCTLiftosaurLiveActivity.h',  path: 'Liftosaur/RCTLiftosaurLiveActivity.h',  type: :header },
+  { name: 'RCTLiftosaurLiveActivity.mm', path: 'Liftosaur/RCTLiftosaurLiveActivity.mm', type: :source },
+  { name: 'LiftosaurLiveActivityImpl.swift', path: 'Liftosaur/LiftosaurLiveActivityImpl.swift', type: :source },
+  { name: 'notification.m4r', path: 'Liftosaur/notification.m4r', type: :resource },
   { name: 'Liftosaur-Bridging-Header.h', path: BRIDGING_HEADER_REL, type: :header },
 ]
 
@@ -34,6 +41,11 @@ FILES_TO_ADD.each do |entry|
   if entry[:type] == :source
     unless target.source_build_phase.files_references.include?(file_ref)
       target.add_file_references([file_ref])
+      added = true
+    end
+  elsif entry[:type] == :resource
+    unless target.resources_build_phase.files_references.include?(file_ref)
+      target.resources_build_phase.add_file_reference(file_ref, true)
       added = true
     end
   end

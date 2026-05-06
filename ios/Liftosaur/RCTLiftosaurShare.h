@@ -1,4 +1,4 @@
-#import <LiftosaurShareSpecs/LiftosaurShareSpecs.h>
+#import <LiftosaurSpecs/LiftosaurSpecs.h>
 
 @interface RCTLiftosaurShare : NativeLiftosaurShareSpecBase <NativeLiftosaurShareSpec>
 @end

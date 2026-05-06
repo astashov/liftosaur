@@ -59,7 +59,8 @@ import { CollectionUtils_uniqBy, CollectionUtils_compact } from "../utils/collec
 import { Subscriptions_cleanupOutdatedGooglePurchaseTokens } from "../utils/subscriptions";
 import { UndoingFlag_set } from "../utils/undoingFlag";
 import { Exercise_toKey } from "../models/exercise";
-import { SendMessage_isIos, SendMessage_toIosAndAndroid } from "../utils/sendMessage";
+import { NativeWorkoutBridge_discardWorkout } from "../utils/nativeWorkoutBridge";
+import { SendMessage_isIos } from "../utils/sendMessage";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { EditProgramUiHelpers_getChangedKeys } from "../components/editProgram/editProgramUi/editProgramUiHelpers";
@@ -701,8 +702,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     if (progress != null) {
       const history = state.storage.history.filter((h) => h.id !== progress.id);
       if (Progress_isCurrent(progress)) {
-        SendMessage_toIosAndAndroid({ type: "pauseWorkout" });
-        SendMessage_toIosAndAndroid({ type: "discardWorkout" });
+        NativeWorkoutBridge_discardWorkout();
       }
       return {
         ...state,
