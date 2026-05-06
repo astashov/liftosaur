@@ -12,7 +12,9 @@ export class MockAudioInterface implements IAudioInterface {
 
 export class AudioInterface implements IAudioInterface {
   public play(volume: number, vibration: boolean): void {
-    if (volume <= 0 && !vibration) return;
+    if (volume <= 0 && !vibration) {
+      return;
+    }
     NativeTimerBridge_playSound(volume, vibration);
   }
 }

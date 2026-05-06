@@ -24,10 +24,10 @@ import {
   SendMessage_isIos,
   SendMessage_isAndroid,
   SendMessage_toIos,
-  SendMessage_toAndroid,
   SendMessage_iosAppVersion,
   SendMessage_androidAppVersion,
 } from "../utils/sendMessage";
+import { IAP_subscribeMonthly, IAP_subscribeYearly, IAP_buyLifetime, IAP_restorePurchases } from "../utils/iap";
 import { LinkButton } from "./linkButton";
 import { IconBell } from "./icons/iconBell";
 import { lb } from "lens-shmens";
@@ -54,6 +54,10 @@ interface IProps {
   history: IHistoryRecord[];
   dispatch: IDispatch;
   navCommon: INavCommon;
+}
+
+function isNativeSubscriptionRuntime(): boolean {
+  return SendMessage_isIos() || SendMessage_isAndroid() || Platform.OS === "ios" || Platform.OS === "android";
 }
 
 function getFooterShadowStyle(semantic: ReturnType<typeof Tailwind_semantic>): Record<string, unknown> {
@@ -156,15 +160,11 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                 style={{ paddingVertical: 12, paddingHorizontal: 8 }}
                 name="subscription-monthly"
                 onPress={() => {
-                  if (SendMessage_isIos() || SendMessage_isAndroid()) {
+                  if (isNativeSubscriptionRuntime()) {
                     lg("start-subscription-monthly");
-                    SendMessage_toIos({
-                      type: "subscribeMontly",
-                      offer: JSON.stringify(props.appleOffer?.monthly),
-                    });
-                    SendMessage_toAndroid({
-                      type: "subscribeMontly",
-                      offer: JSON.stringify(props.googleOffer?.monthly),
+                    void IAP_subscribeMonthly({
+                      applePromo: props.appleOffer?.monthly,
+                      googlePromo: props.googleOffer?.monthly,
                     });
                     updateState(
                       props.dispatch,
@@ -206,15 +206,11 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                 name="subscription-yearly"
                 style={{ paddingVertical: 12, paddingHorizontal: 8 }}
                 onPress={() => {
-                  if (SendMessage_isIos() || SendMessage_isAndroid()) {
+                  if (isNativeSubscriptionRuntime()) {
                     lg("start-subscription-yearly");
-                    SendMessage_toIos({
-                      type: "subscribeYearly",
-                      offer: JSON.stringify(props.appleOffer?.yearly),
-                    });
-                    SendMessage_toAndroid({
-                      type: "subscribeYearly",
-                      offer: JSON.stringify(props.googleOffer?.yearly),
+                    void IAP_subscribeYearly({
+                      applePromo: props.appleOffer?.yearly,
+                      googlePromo: props.googleOffer?.yearly,
                     });
                     updateState(
                       props.dispatch,
@@ -257,10 +253,9 @@ export function ScreenSubscription(props: IProps): JSX.Element {
               <Button
                 name="subscription-lifetime"
                 onPress={() => {
-                  if (SendMessage_isIos() || SendMessage_isAndroid()) {
+                  if (isNativeSubscriptionRuntime()) {
                     lg("start-subscription-lifetime");
-                    SendMessage_toIos({ type: "subscribeLifetime" });
-                    SendMessage_toAndroid({ type: "subscribeLifetime" });
+                    void IAP_buyLifetime();
                     updateState(
                       props.dispatch,
                       [lb<IState>().p("subscriptionLoading").record({ lifetime: true })],
@@ -316,8 +311,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
             name="restore-subscriptions"
             className="text-sm"
             onPress={() => {
-              SendMessage_toIos({ type: "restoreSubscriptions" });
-              SendMessage_toAndroid({ type: "restoreSubscriptions" });
+              void IAP_restorePurchases(props.dispatch);
             }}
           >
             Restore Subscription

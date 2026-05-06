@@ -59,6 +59,7 @@ import {
   SendMessage_toAndroid,
   SendMessage_isAndroid,
 } from "../utils/sendMessage";
+import { IAP_restorePurchases } from "../utils/iap";
 import { UidFactory_generateUid } from "../utils/generator";
 import { ClipboardUtils_copy } from "../utils/clipboard";
 import {
@@ -1434,7 +1435,9 @@ export function Thunk_fetchInitial(): IThunk {
           env.service,
           getState().storage.subscription
         );
-        SendMessage_toIos({ type: "restoreSubscriptions" });
+        if (SendMessage_isIos() || Platform.OS === "ios") {
+          void IAP_restorePurchases(dispatch);
+        }
       } else {
         dispatch(Thunk_postevent("apple-subscription-verified"));
         if (getState().storage.subscription.apple.length === 0) {
@@ -1442,7 +1445,9 @@ export function Thunk_fetchInitial(): IThunk {
         }
       }
     }
-    SendMessage_toAndroid({ type: "restoreSubscriptions" });
+    if (SendMessage_isAndroid() || Platform.OS === "android") {
+      void IAP_restorePurchases(dispatch);
+    }
   };
 }
 

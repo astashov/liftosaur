@@ -7,7 +7,9 @@ let currentReminderDuration: number | null = null;
 let appStateSubscribed = false;
 
 function ensureAppStateSubscription(): void {
-  if (appStateSubscribed) return;
+  if (appStateSubscribed) {
+    return;
+  }
   appStateSubscribed = true;
   AppState.addEventListener("change", (next: AppStateStatus) => {
     if (next === "active") {

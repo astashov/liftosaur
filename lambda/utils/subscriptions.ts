@@ -9,6 +9,24 @@ import { ISubscriptionDetailsDao, SubscriptionDetailsDao } from "../dao/subscrip
 import { ISubscription } from "../../src/types";
 import { FreeUserDao } from "../dao/freeUserDao";
 import { IDI } from "./di";
+import { AppleJWTVerifier } from "./appleJwtVerifier";
+import type { IAppleTransactionInfo } from "./appleWebhookHandler";
+
+export const APPLE_PRODUCT_IDS = [
+  "com.liftosaur.subscription.ios_montly",
+  "com.liftosaur.subscription.ios_yearly",
+  "com.liftosaur.subscription.ios_lifetime",
+];
+
+export const APPLE_BUNDLE_ID = "com.liftosaur.www";
+
+export function Subscriptions_isAppleJws(value: string): boolean {
+  if (!value) {
+    return false;
+  }
+  const parts = value.split(".");
+  return parts.length === 3 && parts.every((p) => /^[A-Za-z0-9_-]+$/.test(p));
+}
 
 interface IVerifyGoogleProductTokenSuccess {
   purchaseTimeMillis: number;
@@ -211,11 +229,63 @@ export class Subscriptions {
     if (appleReceipt == null) {
       return undefined;
     }
+    if (Subscriptions_isAppleJws(appleReceipt)) {
+      const transactionInfo = this.verifyAppleJws(appleReceipt);
+      if (transactionInfo == null) {
+        return null;
+      }
+      return this.isAppleJwsActive(transactionInfo) ? appleReceipt : null;
+    }
     const json = await this.getAppleVerificationJson(appleReceipt, env);
     if (json == null) {
       return appleReceipt;
     }
     return this.verifyAppleReceiptJson(appleReceipt, json);
+  }
+
+  public verifyAppleJws(jws: string): IAppleTransactionInfo | null {
+    const verifier = new AppleJWTVerifier(this.log);
+    const payload = verifier.verifyJWT(jws) as IAppleTransactionInfo | null;
+    if (!payload) {
+      this.log.log("JWS signature verification failed");
+      return null;
+    }
+    if (APPLE_PRODUCT_IDS.indexOf(payload.productId) === -1) {
+      this.log.log(`JWS productId ${payload.productId} is not a Liftosaur product`);
+      return null;
+    }
+    return payload;
+  }
+
+  public isAppleJwsActive(transactionInfo: IAppleTransactionInfo): boolean {
+    if (transactionInfo.productId.indexOf("lifetime") !== -1) {
+      return true;
+    }
+    return (transactionInfo.expiresDate ?? 0) > Date.now();
+  }
+
+  public getAppleVerificationInfoFromJws(
+    userId: string,
+    transactionInfo: IAppleTransactionInfo
+  ): ISubscriptionDetailsDao | undefined {
+    try {
+      const isLifetime = transactionInfo.productId.indexOf("lifetime") !== -1;
+      const expires = isLifetime ? 4105144800000 : transactionInfo.expiresDate ?? 0;
+      return {
+        userId,
+        type: "apple",
+        product: transactionInfo.productId,
+        expires,
+        isTrial: transactionInfo.offerDiscountType === "FREE_TRIAL",
+        isPromo: !!transactionInfo.offerIdentifier,
+        promoCode: transactionInfo.offerIdentifier,
+        isActive: expires > Date.now(),
+        originalTransactionId: transactionInfo.originalTransactionId,
+      };
+    } catch (error) {
+      this.log.log("Getting Apple JWS info error: ", error);
+      return undefined;
+    }
   }
 
   public verifyAppleReceiptJson(appleReceipt: string, json: IVerifyAppleReceiptResponse): string | undefined | null {

@@ -207,6 +207,7 @@
     "react-native-edge-to-edge": "^1.8.1",
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "^2.31.1",
+    "react-native-iap": "^15.2.0",
     "react-native-image-picker": "^8.2.1",
     "react-native-inappbrowser-reborn": "^3.7.1",
     "react-native-mmkv": "^4.3.1",

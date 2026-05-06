@@ -2,6 +2,7 @@ import { IDI } from "../utils/di";
 import { PaymentDao } from "../dao/paymentDao";
 import { IAppleTransaction, IAppleTransactionHistory, Subscriptions } from "./subscriptions";
 import { AppleJWTVerifier } from "./appleJwtVerifier";
+import type { IAppleTransactionInfo } from "./appleWebhookHandler";
 import { CollectionUtils_sort } from "../../src/utils/collection";
 
 interface IAppleReceiptInfo {
@@ -103,6 +104,31 @@ export class ApplePaymentProcessor {
       paymentType: isPurchase ? "purchase" : "renewal",
       isFreeTrialPayment,
       subscriptionStartTimestamp: originalPurchaseDate,
+    });
+  }
+
+  public async processJwsPayment(userId: string, transactionInfo: IAppleTransactionInfo): Promise<void> {
+    const paymentDao = new PaymentDao(this.di);
+    if (await paymentDao.doesExist(transactionInfo.transactionId)) {
+      this.di.log.log(`Apple JWS verification: Payment ${transactionInfo.transactionId} already exists`);
+      return;
+    }
+    const isPurchase = transactionInfo.originalTransactionId === transactionInfo.transactionId;
+    await paymentDao.addIfNotExists({
+      userId,
+      timestamp: transactionInfo.purchaseDate || Date.now(),
+      originalTransactionId: transactionInfo.originalTransactionId,
+      transactionId: transactionInfo.transactionId,
+      productId: transactionInfo.productId,
+      amount: transactionInfo.price ? transactionInfo.price / 1000 : 0,
+      tax: undefined,
+      currency: transactionInfo.currency || "USD",
+      type: "apple",
+      source: "verifier",
+      paymentType: isPurchase ? "purchase" : "renewal",
+      isFreeTrialPayment: transactionInfo.offerDiscountType === "FREE_TRIAL",
+      subscriptionStartTimestamp: transactionInfo.originalPurchaseDate,
+      offerIdentifier: transactionInfo.offerIdentifier,
     });
   }
 }

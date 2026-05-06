@@ -114,6 +114,7 @@ import { AppContext } from "./components/appContext";
 import { ActionSheetHost } from "./components/actionSheetHost";
 import { SystemBars } from "react-native-edge-to-edge";
 import { Thunk_fetchInitial, Thunk_sync2 } from "./ducks/thunks";
+import { IAP_initConnection, IAP_endConnection, IAP_fetchProducts } from "./utils/iap";
 
 GoogleSignin.configure({
   webClientId: "944666871420-p8kv124sgte8o0p6ev2ah6npudsl7e4f.apps.googleusercontent.com",
@@ -143,6 +144,20 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
     dispatch(Thunk_sync2({ force: true }));
     dispatch(Thunk_fetchInitial());
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      await IAP_initConnection(dispatch);
+      if (!cancelled) {
+        await IAP_fetchProducts(dispatch);
+      }
+    })();
+    return () => {
+      cancelled = true;
+      void IAP_endConnection();
+    };
+  }, [dispatch]);
 
   useEffect(() => {
     return NativeTimerBridge_subscribeOnScheduled(() => {

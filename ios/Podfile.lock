@@ -32,6 +32,30 @@ PODS:
     - hermes-engine/Pre-built (= 250829098.0.9)
   - hermes-engine/Pre-built (250829098.0.9)
   - MMKVCore (2.4.0)
+  - NitroIap (15.2.0):
+    - hermes-engine
+    - NitroModules
+    - openiap (= 2.1.0)
+    - RCTRequired
+    - RCTTypeSafety
+    - React-callinvoker
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - NitroMmkv (4.3.1):
     - hermes-engine
     - MMKVCore (= 2.4.0)
@@ -78,6 +102,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - openiap (2.1.0)
   - PromisesObjC (2.4.0)
   - RCTDeprecation (0.84.1)
   - RCTRequired (0.84.1)
@@ -2376,6 +2401,7 @@ PODS:
 DEPENDENCIES:
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
+  - NitroIap (from `../node_modules/react-native-iap`)
   - NitroMmkv (from `../node_modules/react-native-mmkv`)
   - NitroModules (from `../node_modules/react-native-nitro-modules`)
   - RCTDeprecation (from `../node_modules/react-native/ReactApple/Libraries/RCTFoundation/RCTDeprecation`)
@@ -2484,6 +2510,7 @@ SPEC REPOS:
     - GTMAppAuth
     - GTMSessionFetcher
     - MMKVCore
+    - openiap
     - PromisesObjC
     - RollbarCommon
     - RollbarCrash
@@ -2499,6 +2526,8 @@ EXTERNAL SOURCES:
   hermes-engine:
     :podspec: "../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec"
     :tag: hermes-v250829098.0.9
+  NitroIap:
+    :path: "../node_modules/react-native-iap"
   NitroMmkv:
     :path: "../node_modules/react-native-mmkv"
   NitroModules:
@@ -2698,8 +2727,10 @@ SPEC CHECKSUMS:
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   hermes-engine: 641a858cdc566a5b3b4a763d9af3a0e628ffa62c
   MMKVCore: 3d16ce9f7d411e135020915fde98a056859a1efa
+  NitroIap: 0e27696ff745e606edaa457619eb824a5ba70922
   NitroMmkv: ec5ea9bb8390e02653c2e46d7b87e307e9e360b6
   NitroModules: 8cb714abfae488c6a56470ef6c64137b5070010d
+  openiap: 35b7ebf3b953bc3f24a57fcb5f98fc4dd30f1b04
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   RCTDeprecation: 7489702d717ceea80e271eeacb3fbca39fa3c056
   RCTRequired: 1cceac389e77dc5826c681cb782d864b0ed623fc

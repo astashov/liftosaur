@@ -2,13 +2,7 @@ import type { TurboModule } from "react-native";
 import type { EventEmitter } from "react-native/Libraries/Types/CodegenTypes";
 import { TurboModuleRegistry } from "react-native";
 
-export type LiveActivitySetStatus =
-  | "success"
-  | "completed"
-  | "in-range"
-  | "failed"
-  | "not-finished"
-  | "not-started";
+export type LiveActivitySetStatus = "success" | "completed" | "in-range" | "failed" | "not-finished" | "not-started";
 
 export type LiveActivityCompletedSet = {
   status: LiveActivitySetStatus;

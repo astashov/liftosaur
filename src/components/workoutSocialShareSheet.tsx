@@ -1,13 +1,5 @@
 import { JSX, useRef, useState } from "react";
-import {
-  View,
-  ScrollView,
-  Pressable,
-  Image,
-  Dimensions,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
-} from "react-native";
+import { View, ScrollView, Pressable, Image, Dimensions, NativeSyntheticEvent, NativeScrollEvent } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "./primitives/text";
 import { IHistoryRecord, ISettings } from "../types";

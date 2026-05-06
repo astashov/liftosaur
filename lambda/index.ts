@@ -42,7 +42,7 @@ import {
 import { ImageCacher_cache } from "./utils/imageCacher";
 import { ProgramImageGenerator } from "./utils/programImageGenerator";
 import { AppleAuthTokenDao } from "./dao/appleAuthTokenDao";
-import { Subscriptions } from "./utils/subscriptions";
+import { Subscriptions, Subscriptions_isAppleJws } from "./utils/subscriptions";
 import * as ClientSubscription from "../src/utils/subscriptions";
 import { NodeEncoder_decode } from "./utils/nodeEncoder";
 import { renderProgramHtml } from "./program";
@@ -246,6 +246,27 @@ const postVerifyAppleReceiptHandler: RouteHandler<
     return ResponseUtils_json(200, event, { result: false });
   }
   const subscriptions = new Subscriptions(di.log, di.secrets);
+
+  if (Subscriptions_isAppleJws(appleReceipt)) {
+    const transactionInfo = subscriptions.verifyAppleJws(appleReceipt);
+    if (!transactionInfo || !subscriptions.isAppleJwsActive(transactionInfo)) {
+      return ResponseUtils_json(200, event, { result: false });
+    }
+    if (userId) {
+      const subscriptionDetails = subscriptions.getAppleVerificationInfoFromJws(userId, transactionInfo);
+      if (subscriptionDetails) {
+        await new SubscriptionDetailsDao(di).add(subscriptionDetails);
+      }
+      try {
+        const applePaymentProcessor = new ApplePaymentProcessor(di, subscriptions);
+        await applePaymentProcessor.processJwsPayment(userId, transactionInfo);
+      } catch (e) {
+        di.log.log("Failed to add Apple JWS payment record", e);
+      }
+    }
+    return ResponseUtils_json(200, event, { result: true });
+  }
+
   const appleJson = await subscriptions.getAppleVerificationJson(appleReceipt);
   let verifiedAppleReceipt = undefined;
   if (appleJson) {
