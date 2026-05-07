@@ -39,6 +39,7 @@ export const MonthCalendar = memo(
       const start = new Date(Math.max(props.firstDayOfWeeks[0], new Date(2015, 1, 1).getTime()));
       start.setDate(1);
       const end = new Date(props.firstDayOfWeeks[props.firstDayOfWeeks.length - 1]);
+      end.setDate(end.getDate() + 6);
       end.setDate(1);
 
       const monthToHistoryRecords = props.history.reduce<
