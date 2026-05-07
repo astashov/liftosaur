@@ -1,15 +1,5 @@
 import { JSX, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  View,
-  Pressable,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
-  LayoutChangeEvent,
-  Platform,
-  useWindowDimensions,
-} from "react-native";
-import { ScrollView, Gesture, GestureDetector } from "react-native-gesture-handler";
-import { WorkoutScrollGestureContext } from "./workoutScrollGestureContext";
+import { View, Pressable, LayoutChangeEvent, Platform, useWindowDimensions } from "react-native";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import { IHistoryEntry, IHistoryRecord, IProgram, IProgramState, ISettings, IStats, ISubscription } from "../types";
@@ -38,6 +28,7 @@ import {
 } from "../models/progress";
 import { IconPlus2 } from "./icons/iconPlus2";
 import { WorkoutExercise } from "./workoutExercise";
+import { WorkoutExercisePager } from "./workoutExercisePager";
 import { Scroller, IScrollerHandle } from "./scroller";
 import { WorkoutExerciseThumbnail } from "./workoutExerciseThumbnail";
 import { IconShare } from "./icons/iconShare";
@@ -72,8 +63,6 @@ interface IWorkoutViewProps {
 function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
   const selectedEntry = props.progress.entries[props.progress.ui?.currentEntryIndex ?? 0];
   const description = props.programDay?.description;
-  const scrollRef = useRef<ScrollView>(null);
-  const scrollGesture = useRef(Gesture.Native()).current;
   const forceUpdateEntryIndex = !!props.progress.ui?.forceUpdateEntryIndex;
   const { width: windowWidth } = useWindowDimensions();
   const currentEntryIndex = props.progress.ui?.currentEntryIndex ?? 0;
@@ -120,19 +109,11 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
     }
   }, []);
 
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ x: currentEntryIndex * windowWidth, animated: false });
-  }, [forceUpdateEntryIndex, windowWidth]);
-
   const dispatch = props.dispatch;
   const isExternal = !!props.progress.ui?.isExternal;
-  const onScroll = useCallback(
-    (e: NativeSyntheticEvent<NativeScrollEvent>): void => {
-      if (windowWidth <= 0) {
-        return;
-      }
-      const scrollLeft = e.nativeEvent.contentOffset.x;
-      const selectedIndex = Math.floor((scrollLeft + windowWidth / 2) / windowWidth);
+
+  const onPagerIndexChange = useCallback(
+    (selectedIndex: number): void => {
       if (selectedIndex === currentEntryIndex) {
         return;
       }
@@ -156,7 +137,7 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
         );
       }
     },
-    [dispatch, currentEntryIndex, isExternal, windowWidth]
+    [dispatch, currentEntryIndex, isExternal]
   );
 
   const onClickThumbnail = useCallback(
@@ -225,54 +206,42 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
       />
       <View className="pb-8">
         {selectedEntry != null && (
-          <WorkoutScrollGestureContext.Provider value={scrollGesture}>
-            <View className="mt-2">
-              {(() => {
-                const pager = (
-                  <ScrollView
-                    ref={scrollRef}
-                    horizontal
-                    pagingEnabled
-                    showsHorizontalScrollIndicator={false}
-                    onScroll={onScroll}
-                    scrollEventThrottle={16}
-                    style={pagerHeight != null ? { height: pagerHeight } : undefined}
-                  >
-                    {progressEntries.map((entry, entryIndex) => (
-                      <WorkoutExercisePage
-                        key={entry.id}
-                        entry={entry}
-                        entryIndex={entryIndex}
-                        shouldRender={renderedIndices.has(entryIndex)}
-                        windowWidth={windowWidth}
-                        onPageLayout={onPageLayout}
-                        day={progressDay}
-                        stats={props.stats}
-                        history={props.history}
-                        otherStates={otherStates}
-                        program={props.program}
-                        programDay={props.programDay}
-                        progressId={progressId}
-                        progressStartTime={progressStartTime}
-                        userPromptedStateVars={progressUserPromptedStateVars}
-                        supersetEntry={supersetByEntryId.get(entry.id)}
-                        isCurrentProgress={isCurrentProgress}
-                        helps={props.helps}
-                        subscription={props.subscription}
-                        settings={props.settings}
-                        dispatch={dispatch}
-                      />
-                    ))}
-                  </ScrollView>
-                );
-                return Platform.OS === "web" ? (
-                  pager
-                ) : (
-                  <GestureDetector gesture={scrollGesture}>{pager}</GestureDetector>
-                );
-              })()}
-            </View>
-          </WorkoutScrollGestureContext.Provider>
+          <View className="mt-2">
+            <WorkoutExercisePager
+              currentEntryIndex={currentEntryIndex}
+              entryCount={progressEntries.length}
+              windowWidth={windowWidth}
+              pageHeight={pagerHeight}
+              forceUpdateEntryIndex={forceUpdateEntryIndex}
+              onIndexChange={onPagerIndexChange}
+            >
+              {progressEntries.map((entry, entryIndex) => (
+                <WorkoutExercisePage
+                  key={entry.id}
+                  entry={entry}
+                  entryIndex={entryIndex}
+                  shouldRender={renderedIndices.has(entryIndex)}
+                  windowWidth={windowWidth}
+                  onPageLayout={onPageLayout}
+                  day={progressDay}
+                  stats={props.stats}
+                  history={props.history}
+                  otherStates={otherStates}
+                  program={props.program}
+                  programDay={props.programDay}
+                  progressId={progressId}
+                  progressStartTime={progressStartTime}
+                  userPromptedStateVars={progressUserPromptedStateVars}
+                  supersetEntry={supersetByEntryId.get(entry.id)}
+                  isCurrentProgress={isCurrentProgress}
+                  helps={props.helps}
+                  subscription={props.subscription}
+                  settings={props.settings}
+                  dispatch={dispatch}
+                />
+              ))}
+            </WorkoutExercisePager>
+          </View>
         )}
       </View>
     </NavScreenContent>
