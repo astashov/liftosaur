@@ -1,6 +1,6 @@
 import NativeLiftosaurTimer from "../specs/NativeLiftosaurTimer";
 
-export type NativeTimerStartParams = {
+export type INativeTimerStartParams = {
   duration: number;
   title: string;
   subtitleHeader: string;
@@ -14,8 +14,8 @@ export type NativeTimerStartParams = {
 
 const scheduledHandlers = new Set<() => void>();
 
-export function NativeTimerBridge_startTimer(params: NativeTimerStartParams): void {
-  void NativeLiftosaurTimer.startTimer(params)
+export function NativeTimerBridge_startTimer(params: INativeTimerStartParams): void {
+  NativeLiftosaurTimer.startTimer(params)
     .then((result) => {
       if (result?.scheduled) {
         scheduledHandlers.forEach((h) => h());
@@ -27,11 +27,11 @@ export function NativeTimerBridge_startTimer(params: NativeTimerStartParams): vo
 }
 
 export function NativeTimerBridge_stopTimer(): void {
-  void NativeLiftosaurTimer.stopTimer().catch(() => {});
+  NativeLiftosaurTimer.stopTimer().catch(() => {});
 }
 
 export function NativeTimerBridge_playSound(volume: number, vibration: boolean): boolean {
-  void NativeLiftosaurTimer.playSound(volume, vibration).catch(() => {});
+  NativeLiftosaurTimer.playSound(volume, vibration).catch(() => {});
   return true;
 }
 

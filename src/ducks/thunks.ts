@@ -23,7 +23,16 @@ import { getGoogleAccessToken } from "../utils/googleAccessToken";
 import { SignIn_google, SignIn_apple } from "../utils/signIn";
 import { Platform } from "react-native";
 import { Dialog_confirm, Dialog_alert } from "../utils/dialog";
-import { IEnv, IState, updateProgress, updateState } from "../models/state";
+import {
+  IApplePromotionalOffer,
+  IEnv,
+  IGooglePromotionalOffer,
+  IOfferData,
+  IState,
+  ISubscriptionLoading,
+  updateProgress,
+  updateState,
+} from "../models/state";
 import { IProgram, IStorage, IExerciseType, ISettings, IDayData, IHistoryRecord } from "../types";
 import {
   CollectionUtils_sortBy,
@@ -59,7 +68,14 @@ import {
   SendMessage_toAndroid,
   SendMessage_isAndroid,
 } from "../utils/sendMessage";
-import { IAP_restorePurchases } from "../utils/iap";
+import { IIapPurchase, IIapPurchaseError } from "../utils/iapAdapter";
+import {
+  IapHelpers_alertAlreadySubscribed,
+  IapHelpers_applePromoToAdapter,
+  IapHelpers_clearLoading,
+  IapHelpers_getSkus,
+  IapHelpers_readReceiptOrJwsIOS,
+} from "../utils/iapHelpers";
 import { UidFactory_generateUid } from "../utils/generator";
 import { ClipboardUtils_copy } from "../utils/clipboard";
 import {
@@ -1436,7 +1452,7 @@ export function Thunk_fetchInitial(): IThunk {
           getState().storage.subscription
         );
         if (SendMessage_isIos() || Platform.OS === "ios") {
-          void IAP_restorePurchases(dispatch);
+          dispatch(Thunk_restorePurchases());
         }
       } else {
         dispatch(Thunk_postevent("apple-subscription-verified"));
@@ -1446,7 +1462,7 @@ export function Thunk_fetchInitial(): IThunk {
       }
     }
     if (SendMessage_isAndroid() || Platform.OS === "android") {
-      void IAP_restorePurchases(dispatch);
+      dispatch(Thunk_restorePurchases());
     }
   };
 }
@@ -1704,4 +1720,212 @@ async function handleLogin(
     console.error(error);
     throw error;
   }
+}
+
+interface IIapSubscribeArgs {
+  applePromo?: IApplePromotionalOffer;
+  googlePromo?: IGooglePromotionalOffer;
+}
+
+function buildSubscribeThunk(
+  loadingKey: keyof ISubscriptionLoading,
+  messageType: "subscribeMontly" | "subscribeYearly",
+  sku: string,
+  args?: IIapSubscribeArgs
+): IThunk {
+  return async (dispatch, _getState, env) => {
+    updateState(
+      dispatch,
+      [
+        lb<IState>()
+          .p("subscriptionLoading")
+          .record({ [loadingKey]: true } as ISubscriptionLoading),
+      ],
+      `Start ${loadingKey} subscription`
+    );
+    if (env.iap) {
+      const owned = await env.iap.getAvailablePurchases();
+      if (owned.length > 0) {
+        IapHelpers_alertAlreadySubscribed();
+        IapHelpers_clearLoading(dispatch);
+        return;
+      }
+      try {
+        await env.iap.requestSubscription({
+          sku,
+          applePromo: IapHelpers_applePromoToAdapter(args?.applePromo),
+          googleOfferId: args?.googlePromo?.offerId,
+        });
+      } catch (e) {
+        IapHelpers_clearLoading(dispatch);
+        console.warn("IAP requestSubscription failed", e);
+      }
+    } else {
+      SendMessage_toIos({ type: messageType, offer: JSON.stringify(args?.applePromo) });
+      SendMessage_toAndroid({ type: messageType, offer: JSON.stringify(args?.googlePromo) });
+    }
+  };
+}
+
+export function Thunk_subscribeMonthly(args?: IIapSubscribeArgs): IThunk {
+  return buildSubscribeThunk("monthly", "subscribeMontly", IapHelpers_getSkus().monthly, args);
+}
+
+export function Thunk_subscribeYearly(args?: IIapSubscribeArgs): IThunk {
+  return buildSubscribeThunk("yearly", "subscribeYearly", IapHelpers_getSkus().yearly, args);
+}
+
+export function Thunk_buyLifetime(): IThunk {
+  return async (dispatch, _getState, env) => {
+    updateState(
+      dispatch,
+      [lb<IState>().p("subscriptionLoading").record({ lifetime: true })],
+      "Start lifetime subscription"
+    );
+    if (env.iap) {
+      const owned = await env.iap.getAvailablePurchases();
+      if (owned.length > 0) {
+        IapHelpers_alertAlreadySubscribed();
+        IapHelpers_clearLoading(dispatch);
+        return;
+      }
+      try {
+        await env.iap.requestInAppProduct({ sku: IapHelpers_getSkus().lifetime });
+      } catch (e) {
+        IapHelpers_clearLoading(dispatch);
+        console.warn("IAP requestInAppProduct failed", e);
+      }
+    } else {
+      SendMessage_toIos({ type: "subscribeLifetime" });
+      SendMessage_toAndroid({ type: "subscribeLifetime" });
+    }
+  };
+}
+
+export function Thunk_restorePurchases(args?: { interactive?: boolean }): IThunk {
+  return async (dispatch, _getState, env) => {
+    const interactive = args?.interactive ?? false;
+    if (env.iap) {
+      try {
+        const purchases = await env.iap.getAvailablePurchases();
+        if (purchases.length === 0) {
+          if (interactive) {
+            Dialog_alert("No active purchases to restore.");
+          }
+          return;
+        }
+        if (Platform.OS === "ios") {
+          const receipt = await IapHelpers_readReceiptOrJwsIOS(env.iap, purchases[0]);
+          if (receipt) {
+            dispatch(Thunk_setAppleReceipt(receipt));
+          }
+        } else {
+          for (const purchase of purchases) {
+            if (purchase.purchaseToken && purchase.productId) {
+              dispatch(Thunk_setGooglePurchaseToken(purchase.productId, purchase.purchaseToken));
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("IAP restorePurchases failed", e);
+        if (interactive) {
+          Dialog_alert("Couldn't restore purchases. Please try again later.");
+        }
+      }
+    } else {
+      SendMessage_toIos({ type: "restoreSubscriptions" });
+      SendMessage_toAndroid({ type: "restoreSubscriptions" });
+    }
+  };
+}
+
+export function Thunk_iapHandlePurchase(purchase: IIapPurchase): IThunk {
+  return async (dispatch, _getState, env) => {
+    if (!env.iap) {
+      return;
+    }
+    try {
+      if (Platform.OS === "ios") {
+        const receipt = await IapHelpers_readReceiptOrJwsIOS(env.iap, purchase);
+        if (receipt) {
+          console.log("IAP: dispatching Thunk_setAppleReceipt");
+          dispatch(Thunk_setAppleReceipt(receipt));
+        } else {
+          console.warn("IAP: no receipt obtained for purchase, server will not be notified");
+        }
+      } else {
+        if (purchase.purchaseToken && purchase.productId) {
+          dispatch(Thunk_setGooglePurchaseToken(purchase.productId, purchase.purchaseToken));
+        }
+      }
+    } finally {
+      try {
+        await env.iap.finishTransaction(purchase);
+      } catch (e) {
+        console.warn("IAP finishTransaction failed", e);
+      }
+      IapHelpers_clearLoading(dispatch);
+    }
+  };
+}
+
+export function Thunk_iapHandlePurchaseError(error: IIapPurchaseError): IThunk {
+  return async (dispatch) => {
+    console.warn("IAP purchase error", error);
+    IapHelpers_clearLoading(dispatch);
+  };
+}
+
+export function Thunk_redeemCouponIOS(): IThunk {
+  return async (_dispatch, _getState, env) => {
+    if (!env.iap) {
+      return;
+    }
+    try {
+      await env.iap.presentCodeRedemptionSheetIOS();
+    } catch (e) {
+      console.warn("IAP presentCodeRedemptionSheetIOS failed", e);
+    }
+  };
+}
+
+export function Thunk_iapFetchProducts(): IThunk {
+  return async (dispatch, _getState, env) => {
+    if (!env.iap) {
+      return;
+    }
+    try {
+      const skus = IapHelpers_getSkus();
+      const subs = await env.iap.fetchSubscriptions([skus.monthly, skus.yearly]);
+      const inApp = await env.iap.fetchInAppProducts([skus.lifetime]);
+      const newPrices: Record<string, string> = {};
+      const newOffers: Record<string, IOfferData[]> = {};
+      for (const sub of subs) {
+        newPrices[sub.id] = sub.displayPrice;
+        const mapped: IOfferData[] = sub.subscriptionOffers
+          .filter((o) => !!o.id)
+          .map((o) => ({ offerId: o.id, formattedPrice: o.displayPrice }));
+        if (mapped.length > 0) {
+          newOffers[sub.id] = mapped;
+        }
+      }
+      for (const product of inApp) {
+        newPrices[product.id] = product.displayPrice;
+      }
+      updateState(
+        dispatch,
+        [
+          lb<IState>()
+            .p("prices")
+            .recordModify((v) => ({ ...(v ?? {}), ...newPrices })),
+          lb<IState>()
+            .p("offers")
+            .recordModify((v) => ({ ...(v ?? {}), ...newOffers })),
+        ],
+        "Update prices for products"
+      );
+    } catch (e) {
+      console.warn("IAP fetchProducts failed", e);
+    }
+  };
 }

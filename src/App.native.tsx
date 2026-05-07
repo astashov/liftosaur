@@ -113,8 +113,14 @@ import { TextSize_apply } from "./utils/textSize";
 import { AppContext } from "./components/appContext";
 import { ActionSheetHost } from "./components/actionSheetHost";
 import { SystemBars } from "react-native-edge-to-edge";
-import { Thunk_fetchInitial, Thunk_sync2 } from "./ducks/thunks";
-import { IAP_initConnection, IAP_endConnection, IAP_fetchProducts } from "./utils/iap";
+import {
+  Thunk_fetchInitial,
+  Thunk_sync2,
+  Thunk_iapFetchProducts,
+  Thunk_iapHandlePurchase,
+  Thunk_iapHandlePurchaseError,
+} from "./ducks/thunks";
+import { IapAdapter } from "./utils/iap";
 
 GoogleSignin.configure({
   webClientId: "944666871420-p8kv124sgte8o0p6ev2ah6npudsl7e4f.apps.googleusercontent.com",
@@ -130,6 +136,7 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
       queue: new AsyncQueue(),
       navigationRef,
       getCurrentScreenData,
+      iap: new IapAdapter(),
     }),
     []
   );
@@ -146,18 +153,35 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
   }, []);
 
   useEffect(() => {
+    const iap = env.iap;
+    if (!iap) {
+      return;
+    }
+    const unsubPurchase = iap.onPurchaseUpdated((purchase) => {
+      dispatch(Thunk_iapHandlePurchase(purchase));
+    });
+    const unsubError = iap.onPurchaseError((error) => {
+      dispatch(Thunk_iapHandlePurchaseError(error));
+    });
     let cancelled = false;
-    void (async () => {
-      await IAP_initConnection(dispatch);
-      if (!cancelled) {
-        await IAP_fetchProducts(dispatch);
+    (async () => {
+      try {
+        await iap.initConnection();
+      } catch (e) {
+        console.warn("IAP initConnection failed", e);
+        return;
       }
-    })();
+      if (!cancelled) {
+        dispatch(Thunk_iapFetchProducts());
+      }
+    })().catch(() => {});
     return () => {
       cancelled = true;
-      void IAP_endConnection();
+      unsubPurchase();
+      unsubError();
+      iap.endConnection().catch((e) => console.warn("IAP endConnection failed", e));
     };
-  }, [dispatch]);
+  }, [env, dispatch]);
 
   useEffect(() => {
     return NativeTimerBridge_subscribeOnScheduled(() => {

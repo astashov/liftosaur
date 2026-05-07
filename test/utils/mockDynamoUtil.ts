@@ -20,6 +20,8 @@ const idKeys: Partial<Record<string, string[]>> = {
   [oauthTableNames.prod.authCodes]: ["code"],
   [oauthTableNames.prod.tokens]: ["token"],
   [freeUsersTableNames.prod.freeUsers]: ["id"],
+  lftSubscriptionDetails: ["userId"],
+  lftPayments: ["userId", "transactionId"],
 };
 
 export class MockDynamoUtil implements IDynamoUtil {

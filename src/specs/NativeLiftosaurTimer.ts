@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import type { TurboModule } from "react-native";
 import type { EventEmitter } from "react-native/Libraries/Types/CodegenTypes";
 import { TurboModuleRegistry } from "react-native";
@@ -25,7 +26,6 @@ export type LiftosaurTimerFiredEvent = {
   reason: "expired" | "userTapped" | "userDismissed";
 };
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export interface Spec extends TurboModule {
   startTimer(params: LiftosaurTimerStartParams): Promise<LiftosaurTimerStartResult>;
   stopTimer(): Promise<void>;

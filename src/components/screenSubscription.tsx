@@ -8,15 +8,7 @@ import { IDispatch } from "../ducks/types";
 import { Dialog_alert } from "../utils/dialog";
 import { NavScreenContent } from "../navigation/NavScreenContent";
 import { useNavOptions } from "../navigation/useNavOptions";
-import {
-  IAppleOffer,
-  IGoogleOffer,
-  INavCommon,
-  IOfferData,
-  IState,
-  ISubscriptionLoading,
-  updateState,
-} from "../models/state";
+import { IAppleOffer, IGoogleOffer, INavCommon, IOfferData, ISubscriptionLoading } from "../models/state";
 import { IconBarbell } from "./icons/iconBarbell";
 import { IconGraphs } from "./icons/iconGraphs";
 import { Button } from "./button";
@@ -27,13 +19,19 @@ import {
   SendMessage_iosAppVersion,
   SendMessage_androidAppVersion,
 } from "../utils/sendMessage";
-import { IAP_subscribeMonthly, IAP_subscribeYearly, IAP_buyLifetime, IAP_restorePurchases } from "../utils/iap";
 import { LinkButton } from "./linkButton";
 import { IconBell } from "./icons/iconBell";
-import { lb } from "lens-shmens";
 import { IconSpinner } from "./icons/iconSpinner";
 import { IHistoryRecord, ISubscription } from "../types";
-import { Thunk_pullScreen, Thunk_claimkey } from "../ducks/thunks";
+import {
+  Thunk_pullScreen,
+  Thunk_claimkey,
+  Thunk_subscribeMonthly,
+  Thunk_subscribeYearly,
+  Thunk_buyLifetime,
+  Thunk_restorePurchases,
+  Thunk_redeemCouponIOS,
+} from "../ducks/thunks";
 import { IconClose } from "./icons/iconClose";
 import { navigationRef } from "../navigation/navigationRef";
 import { ObjectUtils_entries, ObjectUtils_keys } from "../utils/object";
@@ -162,14 +160,11 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                 onPress={() => {
                   if (isNativeSubscriptionRuntime()) {
                     lg("start-subscription-monthly");
-                    void IAP_subscribeMonthly({
-                      applePromo: props.appleOffer?.monthly,
-                      googlePromo: props.googleOffer?.monthly,
-                    });
-                    updateState(
-                      props.dispatch,
-                      [lb<IState>().p("subscriptionLoading").record({ monthly: true })],
-                      "Start monthly subscription"
+                    props.dispatch(
+                      Thunk_subscribeMonthly({
+                        applePromo: props.appleOffer?.monthly,
+                        googlePromo: props.googleOffer?.monthly,
+                      })
                     );
                   } else {
                     webAlert();
@@ -208,14 +203,11 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                 onPress={() => {
                   if (isNativeSubscriptionRuntime()) {
                     lg("start-subscription-yearly");
-                    void IAP_subscribeYearly({
-                      applePromo: props.appleOffer?.yearly,
-                      googlePromo: props.googleOffer?.yearly,
-                    });
-                    updateState(
-                      props.dispatch,
-                      [lb<IState>().p("subscriptionLoading").record({ yearly: true })],
-                      "Start yearly subscription"
+                    props.dispatch(
+                      Thunk_subscribeYearly({
+                        applePromo: props.appleOffer?.yearly,
+                        googlePromo: props.googleOffer?.yearly,
+                      })
                     );
                   } else {
                     webAlert();
@@ -255,12 +247,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
                 onPress={() => {
                   if (isNativeSubscriptionRuntime()) {
                     lg("start-subscription-lifetime");
-                    void IAP_buyLifetime();
-                    updateState(
-                      props.dispatch,
-                      [lb<IState>().p("subscriptionLoading").record({ lifetime: true })],
-                      "Start lifetime subscription"
-                    );
+                    props.dispatch(Thunk_buyLifetime());
                   } else {
                     webAlert();
                   }
@@ -286,6 +273,8 @@ export function ScreenSubscription(props: IProps): JSX.Element {
             onPress={() => {
               if (SendMessage_isIos()) {
                 SendMessage_toIos({ type: "redeemCoupon" });
+              } else if (Platform.OS === "ios") {
+                props.dispatch(Thunk_redeemCouponIOS());
               } else {
                 navigationRef.navigate("couponModal");
               }
@@ -311,7 +300,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
             name="restore-subscriptions"
             className="text-sm"
             onPress={() => {
-              void IAP_restorePurchases(props.dispatch);
+              props.dispatch(Thunk_restorePurchases({ interactive: true }));
             }}
           >
             Restore Subscription

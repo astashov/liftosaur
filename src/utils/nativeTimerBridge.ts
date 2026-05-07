@@ -1,6 +1,6 @@
 import { SendMessage_toAndroid, SendMessage_toIos } from "./sendMessage";
 
-export type NativeTimerStartParams = {
+export type INativeTimerStartParams = {
   duration: number;
   title: string;
   subtitleHeader: string;
@@ -12,7 +12,7 @@ export type NativeTimerStartParams = {
   ignoreDoNotDisturb: boolean;
 };
 
-export function NativeTimerBridge_startTimer(params: NativeTimerStartParams): void {
+export function NativeTimerBridge_startTimer(params: INativeTimerStartParams): void {
   const obj = {
     type: "startTimer",
     duration: params.duration.toString(),

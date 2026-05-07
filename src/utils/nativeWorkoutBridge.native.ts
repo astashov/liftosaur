@@ -13,11 +13,11 @@ function ensureAppStateSubscription(): void {
   appStateSubscribed = true;
   AppState.addEventListener("change", (next: AppStateStatus) => {
     if (next === "active") {
-      void NativeLiftosaurTimer.cancelReminder().catch(() => {});
+      NativeLiftosaurTimer.cancelReminder().catch(() => {});
     } else if (next === "background") {
       const duration = currentReminderDuration;
       if (duration != null && duration > 0) {
-        void NativeLiftosaurTimer.scheduleReminder(
+        NativeLiftosaurTimer.scheduleReminder(
           duration,
           "Workout reminder",
           "You have an ongoing workout, make sure to finish it if you're done"
@@ -28,9 +28,9 @@ function ensureAppStateSubscription(): void {
 }
 
 export function NativeWorkoutBridge_pauseWorkout(): void {
-  void NativeLiftosaurLiveActivity.endLiveActivity().catch(() => {});
+  NativeLiftosaurLiveActivity.endLiveActivity().catch(() => {});
   currentReminderDuration = null;
-  void NativeLiftosaurTimer.cancelReminder().catch(() => {});
+  NativeLiftosaurTimer.cancelReminder().catch(() => {});
 }
 
 export function NativeWorkoutBridge_resumeWorkout(opts: {
@@ -47,20 +47,20 @@ export function NativeWorkoutBridge_finishWorkout(_opts: {
   calories: number;
   intervals: string;
 }): void {
-  void NativeLiftosaurLiveActivity.endLiveActivity().catch(() => {});
+  NativeLiftosaurLiveActivity.endLiveActivity().catch(() => {});
   currentReminderDuration = null;
-  void NativeLiftosaurTimer.cancelReminder().catch(() => {});
+  NativeLiftosaurTimer.cancelReminder().catch(() => {});
   // TODO: AppsFlyer track event, health sync, watch sync once those subsystems migrate
 }
 
 export function NativeWorkoutBridge_discardWorkout(): void {
-  void NativeLiftosaurLiveActivity.endLiveActivity().catch(() => {});
+  NativeLiftosaurLiveActivity.endLiveActivity().catch(() => {});
   currentReminderDuration = null;
-  void NativeLiftosaurTimer.cancelReminder().catch(() => {});
+  NativeLiftosaurTimer.cancelReminder().catch(() => {});
 }
 
 export function NativeWorkoutBridge_updateLiveActivity(state: ILiveActivityState): void {
-  void NativeLiftosaurLiveActivity.updateLiveActivity({
+  NativeLiftosaurLiveActivity.updateLiveActivity({
     workoutStartTimestamp: state.workoutStartTimestamp,
     ignoreDoNotDisturb: state.ignoreDoNotDisturb,
     rest: state.restTimer,

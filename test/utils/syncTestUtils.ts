@@ -1,6 +1,11 @@
 import { getRawHandler } from "../../lambda";
 import { getInitialState, IAction } from "../../src/ducks/reducer";
-import { Thunk_fetchInitial, Thunk_sync2 } from "../../src/ducks/thunks";
+import {
+  Thunk_fetchInitial,
+  Thunk_iapHandlePurchase,
+  Thunk_iapHandlePurchaseError,
+  Thunk_sync2,
+} from "../../src/ducks/thunks";
 import { IDispatch, IThunk } from "../../src/ducks/types";
 import { MockAudioInterface } from "../../src/lib/audioInterface";
 import { EditStats_addWeightStats } from "../../src/models/editStats";
@@ -19,6 +24,7 @@ import { MockLogUtil } from "./mockLogUtil";
 import { MockReducer } from "./mockReducer";
 import { lb } from "lens-shmens";
 import { Progress_getProgress } from "../../src/models/progress";
+import { MockIapAdapter } from "./mockIapAdapter";
 
 export function SyncTestUtils_mockDispatch(cb: (ds: IDispatch) => void): IAction | IThunk {
   let extractedAction: IAction | IThunk | undefined;
@@ -144,6 +150,7 @@ export async function SyncTestUtils_initTheApp(deviceId: string): Promise<{
   mockFetch: MockFetch;
   mockReducer: MockReducer<IState, IAction, IEnv>;
   env: IEnv;
+  iapAdapter: MockIapAdapter;
 }> {
   const aStorage = { ...Storage_getDefault(), email: "admin@example.com" };
   const log = new MockLogUtil();
@@ -165,16 +172,23 @@ export async function SyncTestUtils_initTheApp(deviceId: string): Promise<{
   mockFetch.handler = handler;
   const service = new Service(fetch);
   const queue = new AsyncQueue();
-  const env: IEnv = { service, audio: new MockAudioInterface(), queue };
+  const iapAdapter = new MockIapAdapter();
+  const env: IEnv = { service, audio: new MockAudioInterface(), queue, iap: iapAdapter };
   const url = UrlUtils_build("https://www.liftosaur.com");
   const initialState = await getInitialState(fetch, { url, storage: aStorage, deviceId });
   const mockReducer = MockReducer.build(initialState, env);
+  iapAdapter.onPurchaseUpdated(async (purchase) => {
+    await mockReducer.run([Thunk_iapHandlePurchase(purchase)]);
+  });
+  iapAdapter.onPurchaseError(async (error) => {
+    await mockReducer.run([Thunk_iapHandlePurchaseError(error)]);
+  });
   await mockReducer.run([Thunk_fetchInitial(), Thunk_sync2({ force: true })]);
 
   await mockReducer.run([
     SyncTestUtils_mockDispatch((ds) => Program_cloneProgram(ds, basicBeginnerProgram, initialState.storage.settings)),
   ]);
-  return { di, mockFetch, log, mockReducer, env };
+  return { di, mockFetch, log, mockReducer, env, iapAdapter };
 }
 
 export async function SyncTestUtils_initTheAppAndRecordWorkout(deviceId: string): Promise<{
@@ -183,6 +197,7 @@ export async function SyncTestUtils_initTheAppAndRecordWorkout(deviceId: string)
   mockFetch: MockFetch;
   mockReducer: MockReducer<IState, IAction, IEnv>;
   env: IEnv;
+  iapAdapter: MockIapAdapter;
 }> {
   const result = await SyncTestUtils_initTheApp(deviceId);
   await SyncTestUtils_logWorkout(result.mockReducer, basicBeginnerProgram, [

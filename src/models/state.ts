@@ -23,6 +23,7 @@ import type { NavigationContainerRef } from "@react-navigation/native";
 import type { IRootStackParamList } from "../navigation/types";
 import type { IScreenData } from "./screen";
 import type { IProgramPreviewPlaygroundState } from "../components/preview/programPreviewPlaygroundSetup";
+import type { IIapAdapter } from "../utils/iapAdapter";
 
 export type IEnv = {
   service: Service;
@@ -30,6 +31,7 @@ export type IEnv = {
   queue: AsyncQueue;
   navigationRef?: NavigationContainerRef<IRootStackParamList>;
   getCurrentScreenData?: () => IScreenData | undefined;
+  iap?: IIapAdapter;
 };
 
 export interface INotification {

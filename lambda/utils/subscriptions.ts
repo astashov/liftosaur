@@ -270,7 +270,7 @@ export class Subscriptions {
   ): ISubscriptionDetailsDao | undefined {
     try {
       const isLifetime = transactionInfo.productId.indexOf("lifetime") !== -1;
-      const expires = isLifetime ? 4105144800000 : transactionInfo.expiresDate ?? 0;
+      const expires = isLifetime ? 4105144800000 : (transactionInfo.expiresDate ?? 0);
       return {
         userId,
         type: "apple",
