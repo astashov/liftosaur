@@ -18,9 +18,9 @@ export function HelpMuscles(): JSX.Element {
       <Text className="pb-2 text-sm">
         In the <Text className="text-sm font-bold">Muscles used, relatively to each other</Text> section, for
         calculating percentages, we assume each{" "}
-        <Text className="text-sm font-bold">target muscle is 3x of each synergist muscle</Text>, we combine all sets
-        and reps, and then normalize by the most used muscle - it will be 100%. So all other muscles would be less
-        than 100%.
+        <Text className="text-sm font-bold">target muscle is 3x of each synergist muscle</Text>, we combine all sets and
+        reps, and then normalize by the most used muscle - it will be 100%. So all other muscles would be less than
+        100%.
       </Text>
       <Text className="pb-2 text-sm">
         In the <Text className="text-sm font-bold">List of exercises</Text> section, you could see the muscles for each

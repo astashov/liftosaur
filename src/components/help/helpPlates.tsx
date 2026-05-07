@@ -16,9 +16,9 @@ export function HelpPlates(): JSX.Element {
       </Text>
       <Text className="pb-2 text-sm">
         <Text className="text-sm font-bold">Fixed weight</Text> means you have e.g. 4 pairs of dumbbells of weight 10lb,
-        15lb, 20lb and 25lb, and that's it. They don't have plates which you can add to the dumbbell. It's fixed
-        weight, you cannot add weight to a dumbbell. You can specify pairs of dumbbells of what weight you have, and
-        the app would use only those.
+        15lb, 20lb and 25lb, and that's it. They don't have plates which you can add to the dumbbell. It's fixed weight,
+        you cannot add weight to a dumbbell. You can specify pairs of dumbbells of what weight you have, and the app
+        would use only those.
       </Text>
       <Text className="pb-2 text-sm">
         You also may have a <Text className="text-sm font-bold">Dumbbell with plates</Text>. It'd consist of a{" "}

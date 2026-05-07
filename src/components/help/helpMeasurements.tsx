@@ -20,8 +20,8 @@ export function HelpMeasurements(): JSX.Element {
       </Text>
       <Text className="pb-2 text-sm">If you have more than 3 data points, you'll also see the graph.</Text>
       <Text className="pb-2 text-sm">
-        You can edit and remove the data points below the graph, and you can add new data points by clicking on a
-        button in the footer.
+        You can edit and remove the data points below the graph, and you can add new data points by clicking on a button
+        in the footer.
       </Text>
     </View>
   );

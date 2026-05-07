@@ -15,17 +15,17 @@ export function HelpWorkout(): JSX.Element {
       <Text className="pb-2 text-sm">
         Some reps have <Text className="text-sm font-bold">+</Text> in it (like{" "}
         <Text className="text-sm font-bold">5+</Text>). That is <Text className="text-sm font-bold">AMRAP</Text> - As
-        Many Reps As Possible. You should strive to do as many reps as you can there, but if you do less than the
-        number on the square, it's considered as an unsuccessful set.
+        Many Reps As Possible. You should strive to do as many reps as you can there, but if you do less than the number
+        on the square, it's considered as an unsuccessful set.
       </Text>
       <Text className="pb-2 text-sm">
         In the <Text className="text-sm font-bold">Plates for each bar side</Text> section, you can see all the weights
         you use for that exercise, and the plates you have to put on each side of the bar to get that weight. E.g.{" "}
         <Text className="text-sm font-bold">185lb - 45/25</Text> means that to get{" "}
         <Text className="text-sm font-bold">185lb</Text> you need to put one{" "}
-        <Text className="text-sm font-bold">45lb</Text> and one <Text className="text-sm font-bold">25lb</Text> plate
-        on each side of the bar. By tapping on the weights there you can change them for that workout. It won't change
-        the weight in the program though, only for that workout.
+        <Text className="text-sm font-bold">45lb</Text> and one <Text className="text-sm font-bold">25lb</Text> plate on
+        each side of the bar. By tapping on the weights there you can change them for that workout. It won't change the
+        weight in the program though, only for that workout.
       </Text>
       <View className="flex-row flex-wrap items-center pb-2">
         <Text className="text-sm">

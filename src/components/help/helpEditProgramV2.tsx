@@ -19,8 +19,8 @@ export function HelpEditProgramV2(): JSX.Element {
         In Liftosaur, you need to build a weightlifting program in order to do workouts. This is the screen where you
         can do it. You can build your weightlifting program and ensure you have proper{" "}
         <Text className="text-sm font-bold">weekly volume per muscle group</Text>, and balance it with the{" "}
-        <Text className="text-sm font-bold">time you spend in a gym</Text>. You can build multi-week programs, plan
-        your mesocycles, deload weeks, testing 1RM weeks, and see the weekly undulation of volume and intensity of each
+        <Text className="text-sm font-bold">time you spend in a gym</Text>. You can build multi-week programs, plan your
+        mesocycles, deload weeks, testing 1RM weeks, and see the weekly undulation of volume and intensity of each
         exercise on a graph.
       </Text>
       <View className="flex-row flex-wrap items-center mb-2">
@@ -41,9 +41,12 @@ export function HelpEditProgramV2(): JSX.Element {
         </Text>
         <IconDoc width={14} height={14} />
         <Text className="text-sm">
-          ), type the list of exercises for each day, putting each exercise on a new line, along with the number of
-          sets and reps after slash (<Text className="text-sm" style={{ fontFamily: "Courier" }}>/</Text>) character,
-          like this:
+          ), type the list of exercises for each day, putting each exercise on a new line, along with the number of sets
+          and reps after slash (
+          <Text className="text-sm" style={{ fontFamily: "Courier" }}>
+            /
+          </Text>
+          ) character, like this:
         </Text>
       </View>
       <View className="px-4 py-2 my-1 mb-2 bg-background-default border rounded-md border-border-neutral">

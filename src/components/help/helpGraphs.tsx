@@ -37,8 +37,8 @@ export function HelpGraphs(): JSX.Element {
           <Text className="text-sm">{"• "}</Text>
           <Text className="flex-1 text-sm">
             And you can add <Text className="text-sm font-bold">1RM overlay</Text> (One Rep Max - the max weight you can
-            lift for one rep) to the graphs. It tries to predict what would be your 1RM based on how much weight and
-            how many reps you did, using{" "}
+            lift for one rep) to the graphs. It tries to predict what would be your 1RM based on how much weight and how
+            many reps you did, using{" "}
             <Link className="text-sm" href="https://en.wikipedia.org/wiki/One-repetition_maximum">
               Epley formula
             </Link>
