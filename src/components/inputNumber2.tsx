@@ -10,17 +10,6 @@ import { useModal } from "../navigation/ModalStateContext";
 import { IconBackspace } from "./icons/iconBackspace";
 import { lg } from "../utils/posthog";
 
-function activeElementInfo(prefix: string): Record<string, string | number> {
-  if (typeof document === "undefined") {
-    return {};
-  }
-  const el = document.activeElement as HTMLElement | null;
-  return {
-    [`${prefix}Tag`]: (el?.tagName ?? "null").toLowerCase(),
-    [`${prefix}Cls`]: (el?.className?.toString() ?? "").slice(0, 60),
-  };
-}
-
 export type IInputCommitMode = "live" | "debounced" | "blur";
 
 interface IInputNumber2Props {
@@ -187,44 +176,6 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
   }, [props.value]);
 
   useEffect(() => {
-    const focusableDiv = containerRef.current?.firstElementChild as HTMLElement | null;
-    if (!focusableDiv) {
-      return;
-    }
-    const handleNativeBlur = (event: FocusEvent): void => {
-      lg("kbd-native-blur", {
-        sid: debugSessionRef.current,
-        related: ((event.relatedTarget as HTMLElement | null)?.tagName ?? "null").toLowerCase(),
-        ...activeElementInfo("active"),
-      });
-    };
-    focusableDiv.addEventListener("blur", handleNativeBlur);
-    return () => focusableDiv.removeEventListener("blur", handleNativeBlur);
-  }, []);
-
-  useEffect(() => {
-    if (typeof document === "undefined") {
-      return;
-    }
-    const handleFocusOut = (event: FocusEvent): void => {
-      if (!isFocusedRef.current) {
-        return;
-      }
-      const focusableDiv = containerRef.current?.firstElementChild as HTMLElement | null;
-      if (event.target !== focusableDiv) {
-        return;
-      }
-      lg("kbd-doc-focusout", {
-        sid: debugSessionRef.current,
-        related: ((event.relatedTarget as HTMLElement | null)?.tagName ?? "null").toLowerCase(),
-        ...activeElementInfo("active"),
-      });
-    };
-    document.addEventListener("focusout", handleFocusOut);
-    return () => document.removeEventListener("focusout", handleFocusOut);
-  }, []);
-
-  useEffect(() => {
     isFocusedRef.current = isFocused;
     allowDotRef.current = !!props.allowDot;
     allowNegativeRef.current = !!props.allowNegative;
@@ -326,11 +277,10 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
       tag,
       cls,
       reachedBody: reachedBody ? 1 : 0,
-      ...activeElementInfo("active"),
     });
     setTimeout(() => {
       if (isFocusedRef.current && debugSessionRef.current === sid) {
-        lg("kbd-stuck-open", { sid, ev: eventType, tag, cls, ...activeElementInfo("active") });
+        lg("kbd-stuck-open", { sid, ev: eventType, tag, cls });
       }
     }, 250);
     if (debounceTimerRef.current != null) {
