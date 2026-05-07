@@ -82,6 +82,8 @@ export type IEventPayload =
       isMobile?: boolean;
       iOSVersion?: number;
       androidVersion?: number;
+      iOSOSVersion?: number;
+      androidOSVersion?: number;
       commithash: string;
       extra?: Record<string, string | number>;
     }

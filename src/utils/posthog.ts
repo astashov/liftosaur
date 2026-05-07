@@ -4,6 +4,8 @@ import {
   SendMessage_isAndroid,
   SendMessage_iosAppVersion,
   SendMessage_androidAppVersion,
+  SendMessage_iosVersion,
+  SendMessage_androidVersion,
   SendMessage_toIosAndAndroid,
 } from "./sendMessage";
 
@@ -66,6 +68,8 @@ export function lg(
     isMobile,
     iOSVersion: SendMessage_isIos() ? SendMessage_iosAppVersion() : undefined,
     androidVersion: SendMessage_isAndroid() ? SendMessage_androidAppVersion() : undefined,
+    iOSOSVersion: SendMessage_isIos() ? SendMessage_iosVersion() : undefined,
+    androidOSVersion: SendMessage_isAndroid() ? SendMessage_androidVersion() : undefined,
     name,
     extra,
     userId: tempUserId,
