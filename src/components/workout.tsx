@@ -4,7 +4,7 @@ import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import { IHistoryEntry, IHistoryRecord, IProgram, IProgramState, ISettings, IStats, ISubscription } from "../types";
 import { IState, updateProgress, updateState } from "../models/state";
-import { Thunk_postevent, Thunk_pushScreen, Thunk_finishProgramDay } from "../ducks/thunks";
+import { Thunk_postevent, Thunk_pushScreen, Thunk_finishProgramDay, Thunk_saveWorkoutToHealth } from "../ducks/thunks";
 import { IconMuscles2 } from "./icons/iconMuscles2";
 import {
   IEvaluatedProgram,
@@ -39,9 +39,9 @@ import { Button } from "./button";
 import { ImagePreloader_preload, ImagePreloader_dynohappy } from "../utils/imagePreloader";
 import { navigationRef } from "../navigation/navigationRef";
 import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
+import { SendMessage_isIos } from "../utils/sendMessage";
 import { History_calories, History_pauseWorkout } from "../models/history";
 import { NativeWorkoutBridge_finishWorkout, NativeWorkoutBridge_pauseWorkout } from "../utils/nativeWorkoutBridge";
-import { SendMessage_isIos } from "../utils/sendMessage";
 import { Dialog_confirm } from "../utils/dialog";
 import { useEqual } from "../utils/useEqual";
 import { NavScreenContent } from "../navigation/NavScreenContent";
@@ -349,7 +349,8 @@ function WorkoutHeaderInner(props: IWorkoutHeaderProps): JSX.Element {
     props.dispatch(Thunk_finishProgramDay());
     if (Progress_isCurrent(props.progress)) {
       props.dispatch(Thunk_postevent("finish-workout", { workout: JSON.stringify(props.progress) }));
-      const healthName = SendMessage_isIos() ? "Apple Health" : "Google Health";
+      const isIos = Platform.OS === "ios" || SendMessage_isIos();
+      const healthName = isIos ? "Apple Health" : "Google Health";
       const isHealthEligible =
         (HealthSync_eligibleForAppleHealth() && props.settings.appleHealthSyncWorkout) ||
         (HealthSync_eligibleForGoogleHealth() && props.settings.googleHealthSyncWorkout);
@@ -357,11 +358,26 @@ function WorkoutHeaderInner(props: IWorkoutHeaderProps): JSX.Element {
         isHealthEligible &&
         (!props.settings.healthConfirmation ||
           (await Dialog_confirm(`Do you want to sync this workout to ${healthName}?`)));
+      const rawIntervals = History_pauseWorkout(props.progress.intervals) ?? [];
+      const intervals: [number, number | null][] = rawIntervals.map(([s, e]) => [s, e ?? null]);
       NativeWorkoutBridge_finishWorkout({
         healthSync: !!shouldSyncToHealth,
         calories: History_calories(props.progress),
-        intervals: JSON.stringify(History_pauseWorkout(props.progress.intervals)),
+        intervals: JSON.stringify(intervals),
       });
+      if (shouldSyncToHealth) {
+        const validIntervals = intervals.filter((i): i is [number, number] => i[1] != null);
+        const startMs = validIntervals[0]?.[0] ?? props.progress.startTime;
+        const endMs = validIntervals[validIntervals.length - 1]?.[1] ?? Date.now();
+        props.dispatch(
+          Thunk_saveWorkoutToHealth({
+            startMs,
+            endMs,
+            calories: History_calories(props.progress),
+            intervals,
+          })
+        );
+      }
     }
   };
 

@@ -33,7 +33,17 @@ import {
   updateProgress,
   updateState,
 } from "../models/state";
-import { IProgram, IStorage, IExerciseType, ISettings, IDayData, IHistoryRecord } from "../types";
+import {
+  IProgram,
+  IStorage,
+  IExerciseType,
+  ISettings,
+  IDayData,
+  IHistoryRecord,
+  IWeight,
+  IPercentage,
+  ILength,
+} from "../types";
 import {
   CollectionUtils_sortBy,
   CollectionUtils_uniqBy,
@@ -62,8 +72,8 @@ import {
 import {
   SendMessage_isIos,
   SendMessage_toIosWithResult,
-  SendMessage_toIos,
   SendMessage_toAndroidWithResult,
+  SendMessage_toIos,
   SendMessage_print,
   SendMessage_toAndroid,
   SendMessage_isAndroid,
@@ -453,26 +463,27 @@ function getDeletedStats(state: IState): number[] {
 }
 
 async function _syncHealthKit(dispatch: IDispatch, getState: () => IState, env: IEnv): Promise<void> {
+  const settings = getState().storage.settings;
   if (SendMessage_isIos()) {
     dispatch(Thunk_postevent("read-apple-health"));
-    const anchor = getState().storage.settings.appleHealthAnchor;
     const result = await SendMessage_toIosWithResult({
       type: "getHealthKitData",
-      weightunit: getState().storage.settings.units,
-      lengthunit: getState().storage.settings.lengthUnits,
-      anchor,
+      weightunit: settings.units,
+      lengthunit: settings.lengthUnits,
+      anchor: settings.appleHealthAnchor,
     });
     if (result != null) {
       EditStats_uploadHealthStats("ios", dispatch, result, getState().storage.settings, getDeletedStats(getState()));
     }
-  } else {
+    return;
+  }
+  if (SendMessage_isAndroid()) {
     dispatch(Thunk_postevent("read-google-health"));
-    const anchor = getState().storage.settings.googleHealthAnchor;
     const result = await SendMessage_toAndroidWithResult({
       type: "getHealthKitData",
-      weightunit: getState().storage.settings.units,
-      lengthunit: getState().storage.settings.lengthUnits,
-      anchor,
+      weightunit: settings.units,
+      lengthunit: settings.lengthUnits,
+      anchor: settings.googleHealthAnchor,
     });
     if (result != null) {
       EditStats_uploadHealthStats(
@@ -483,7 +494,75 @@ async function _syncHealthKit(dispatch: IDispatch, getState: () => IState, env: 
         getDeletedStats(getState())
       );
     }
+    return;
   }
+  if (!env.health) {
+    return;
+  }
+  const platform: "ios" | "android" = Platform.OS === "ios" ? "ios" : "android";
+  dispatch(Thunk_postevent(platform === "ios" ? "read-apple-health" : "read-google-health"));
+  const anchor = platform === "ios" ? settings.appleHealthAnchor : settings.googleHealthAnchor;
+  const result = await env.health.syncMeasurements({
+    anchor,
+    weightUnit: settings.units,
+    lengthUnit: settings.lengthUnits,
+  });
+  EditStats_uploadHealthStats(
+    platform,
+    dispatch,
+    { data: result },
+    getState().storage.settings,
+    getDeletedStats(getState())
+  );
+}
+
+export function Thunk_saveWorkoutToHealth(args: {
+  startMs: number;
+  endMs: number;
+  calories: number;
+  intervals: [number, number | null][];
+}): IThunk {
+  return async (dispatch, _getState, env) => {
+    if (!env.health) {
+      return;
+    }
+    try {
+      await env.health.saveWorkout(args);
+    } catch (e) {
+      console.warn("Failed to save workout to Health", e);
+      const platform = Platform.OS === "ios" ? "apple" : "google";
+      dispatch(Thunk_postevent(`${platform}-health-save-workout-error`, { error: (e as Error)?.message ?? "unknown" }));
+      Dialog_alert(`Couldn't save workout to ${platform === "apple" ? "Apple Health" : "Google Health"}`);
+    }
+  };
+}
+
+export function Thunk_saveMeasurementsToHealth(args: {
+  bodyweight?: IWeight;
+  bodyfat?: IPercentage;
+  waist?: ILength;
+  timestamp: number;
+}): IThunk {
+  return async (dispatch, _getState, env) => {
+    if (!env.health) {
+      return;
+    }
+    if (!args.bodyweight && !args.bodyfat && !args.waist) {
+      return;
+    }
+    try {
+      await env.health.saveMeasurements(args);
+    } catch (e) {
+      console.warn("Failed to save measurements to Health", e);
+      const platform = Platform.OS === "ios" ? "apple" : "google";
+      dispatch(
+        Thunk_postevent(`${platform}-health-save-measurements-error`, {
+          error: (e as Error)?.message ?? "unknown",
+        })
+      );
+      Dialog_alert(`Couldn't save measurements to ${platform === "apple" ? "Apple Health" : "Google Health"}`);
+    }
+  };
 }
 
 export function Thunk_syncHealthKit(cb?: () => void): IThunk {
@@ -500,7 +579,13 @@ export function Thunk_syncHealthKit(cb?: () => void): IThunk {
     }
     try {
       await env.queue.enqueue(async () => {
-        await _syncHealthKit(dispatch, getState, env);
+        try {
+          await _syncHealthKit(dispatch, getState, env);
+        } catch (e) {
+          console.warn("Failed to sync from Health", e);
+          const platform = Platform.OS === "ios" ? "apple" : "google";
+          dispatch(Thunk_postevent(`${platform}-health-sync-error`, { error: (e as Error)?.message ?? "unknown" }));
+        }
       });
     } finally {
       if (cb != null) {

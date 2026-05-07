@@ -25,6 +25,7 @@ import { MockReducer } from "./mockReducer";
 import { lb } from "lens-shmens";
 import { Progress_getProgress } from "../../src/models/progress";
 import { MockIapAdapter } from "./mockIapAdapter";
+import { MockHealthAdapter } from "./mockHealthAdapter";
 
 export function SyncTestUtils_mockDispatch(cb: (ds: IDispatch) => void): IAction | IThunk {
   let extractedAction: IAction | IThunk | undefined;
@@ -151,6 +152,7 @@ export async function SyncTestUtils_initTheApp(deviceId: string): Promise<{
   mockReducer: MockReducer<IState, IAction, IEnv>;
   env: IEnv;
   iapAdapter: MockIapAdapter;
+  healthAdapter: MockHealthAdapter;
 }> {
   const aStorage = { ...Storage_getDefault(), email: "admin@example.com" };
   const log = new MockLogUtil();
@@ -173,7 +175,8 @@ export async function SyncTestUtils_initTheApp(deviceId: string): Promise<{
   const service = new Service(fetch);
   const queue = new AsyncQueue();
   const iapAdapter = new MockIapAdapter();
-  const env: IEnv = { service, audio: new MockAudioInterface(), queue, iap: iapAdapter };
+  const healthAdapter = new MockHealthAdapter();
+  const env: IEnv = { service, audio: new MockAudioInterface(), queue, iap: iapAdapter, health: healthAdapter };
   const url = UrlUtils_build("https://www.liftosaur.com");
   const initialState = await getInitialState(fetch, { url, storage: aStorage, deviceId });
   const mockReducer = MockReducer.build(initialState, env);
@@ -188,7 +191,7 @@ export async function SyncTestUtils_initTheApp(deviceId: string): Promise<{
   await mockReducer.run([
     SyncTestUtils_mockDispatch((ds) => Program_cloneProgram(ds, basicBeginnerProgram, initialState.storage.settings)),
   ]);
-  return { di, mockFetch, log, mockReducer, env, iapAdapter };
+  return { di, mockFetch, log, mockReducer, env, iapAdapter, healthAdapter };
 }
 
 export async function SyncTestUtils_initTheAppAndRecordWorkout(deviceId: string): Promise<{
@@ -198,6 +201,7 @@ export async function SyncTestUtils_initTheAppAndRecordWorkout(deviceId: string)
   mockReducer: MockReducer<IState, IAction, IEnv>;
   env: IEnv;
   iapAdapter: MockIapAdapter;
+  healthAdapter: MockHealthAdapter;
 }> {
   const result = await SyncTestUtils_initTheApp(deviceId);
   await SyncTestUtils_logWorkout(result.mockReducer, basicBeginnerProgram, [

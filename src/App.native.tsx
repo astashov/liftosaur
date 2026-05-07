@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState, useEffect } from "react";
-import { ActivityIndicator, Platform, View } from "react-native";
+import { ActivityIndicator, AppState, Platform, View } from "react-native";
 import { Client as RollbarClient } from "rollbar-react-native";
 
 declare let __HOST__: string;
@@ -118,11 +118,13 @@ import { SystemBars } from "react-native-edge-to-edge";
 import {
   Thunk_fetchInitial,
   Thunk_sync2,
+  Thunk_syncHealthKit,
   Thunk_iapFetchProducts,
   Thunk_iapHandlePurchase,
   Thunk_iapHandlePurchaseError,
 } from "./ducks/thunks";
 import { IapAdapter } from "./utils/iap";
+import { HealthAdapter } from "./utils/health";
 
 GoogleSignin.configure({
   webClientId: "944666871420-p8kv124sgte8o0p6ev2ah6npudsl7e4f.apps.googleusercontent.com",
@@ -139,6 +141,7 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
       navigationRef,
       getCurrentScreenData,
       iap: new IapAdapter(),
+      health: new HealthAdapter(),
     }),
     []
   );
@@ -152,7 +155,18 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
   useEffect(() => {
     dispatch(Thunk_sync2({ force: true }));
     dispatch(Thunk_fetchInitial());
+    dispatch(Thunk_syncHealthKit());
   }, []);
+
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (next) => {
+      if (next === "active") {
+        dispatch(Thunk_sync2({ force: true }));
+        dispatch(Thunk_syncHealthKit());
+      }
+    });
+    return () => sub.remove();
+  }, [dispatch]);
 
   useEffect(() => {
     const iap = env.iap;

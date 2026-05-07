@@ -24,6 +24,7 @@ import type { IRootStackParamList } from "../navigation/types";
 import type { IScreenData } from "./screen";
 import type { IProgramPreviewPlaygroundState } from "../components/preview/programPreviewPlaygroundSetup";
 import type { IIapAdapter } from "../utils/iapAdapter";
+import type { IHealthAdapter } from "../utils/healthAdapter";
 
 export type IEnv = {
   service: Service;
@@ -32,6 +33,7 @@ export type IEnv = {
   navigationRef?: NavigationContainerRef<IRootStackParamList>;
   getCurrentScreenData?: () => IScreenData | undefined;
   iap?: IIapAdapter;
+  health?: IHealthAdapter;
 };
 
 export interface INotification {

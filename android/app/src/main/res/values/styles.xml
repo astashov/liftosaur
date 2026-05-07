@@ -7,4 +7,6 @@
         <item name="enforceNavigationBarContrast">false</item>
     </style>
 
+    <style name="AppCompatTheme" parent="Theme.AppCompat.Light.DarkActionBar" />
+
 </resources>

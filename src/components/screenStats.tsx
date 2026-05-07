@@ -2,7 +2,7 @@ import { JSX, ReactNode, useRef, useState } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
-import { Thunk_pullScreen } from "../ducks/thunks";
+import { Thunk_pullScreen, Thunk_saveMeasurementsToHealth } from "../ducks/thunks";
 import {
   ISettings,
   IUnit,
@@ -162,6 +162,14 @@ export function ScreenStats(props: IProps): JSX.Element {
     ) {
       const updatesForHealthSync = getUpdatesForHealthSync(updates);
       SendMessage_toIosAndAndroid({ type: "finishMeasurements", ...updatesForHealthSync });
+      props.dispatch(
+        Thunk_saveMeasurementsToHealth({
+          bodyweight: updates.weight,
+          bodyfat: updates.bodyfat,
+          waist: updates.waist,
+          timestamp: Date.now(),
+        })
+      );
     }
     props.dispatch(Thunk_pullScreen());
   }

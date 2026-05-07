@@ -61,6 +61,10 @@
 	</dict>
 	<key>NSCameraUsageDescription</key>
 	<string>Liftosaur needs access to your camera to take photos for use as workout share backgrounds.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>App will sync this data with Apple Health.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>App will read this data from Apple Health and add to measurements inside the app.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Liftosaur needs access to your photo library to pick photos for use as workout share backgrounds.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

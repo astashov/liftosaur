@@ -122,7 +122,7 @@ export function PersonalRecords(props: IPersonalRecordsProps): JSX.Element {
                       <Text className="text-sm font-bold">{exercise.name}</Text>
                       <Text className="text-sm">: </Text>
                       <Text className="text-sm font-bold text-text-success">{Weight_display(estimated1RM)}</Text>
-                      <Text>
+                      <Text className="text-sm">
                         {" "}
                         ({Reps_avgUnilateralCompletedReps(item.set) || 0} {"\u00D7"}{" "}
                         {Weight_display(

@@ -11,5 +11,7 @@
 		<string>applinks:www.liftosaur.com</string>
 		<string>applinks:liftosaur.com</string>
 	</array>
+	<key>com.apple.developer.healthkit</key>
+	<true/>
 </dict>
 </plist>
