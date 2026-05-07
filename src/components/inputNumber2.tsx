@@ -8,6 +8,7 @@ import { IconCalculator } from "./icons/iconCalculator";
 import { Mobile_isMobile } from "../../lambda/utils/mobile";
 import { useModal } from "../navigation/ModalStateContext";
 import { IconBackspace } from "./icons/iconBackspace";
+import { lg } from "../utils/posthog";
 
 export type IInputCommitMode = "live" | "debounced" | "blur";
 
@@ -144,6 +145,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
     nextPadOwnerId += 1;
     padOwnerIdRef.current = nextPadOwnerId;
   }
+  const debugSessionRef = useRef<number>(0);
 
   function resetKeyboardStyles(): void {
     if (activePadOwnerId !== padOwnerIdRef.current) {
@@ -232,34 +234,55 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
     }
   };
 
-  const blur = useCallback(() => {
-    cancelPendingInput();
-    setIsFocused(false);
-    setIsTyping(false);
-    isTypingRef.current = false;
-    const newValueNum = clamp(valueRef.current, props.min, props.max);
-    valueRef.current = newValueNum != null ? newValueNum.toString() : "";
-    setValue(newValueNum != null ? newValueNum.toString() : "");
-    if (onBlurRef.current) {
-      onBlurRef.current(newValueNum);
-    }
-    switchRef.current = false;
-  }, [cancelPendingInput]);
+  const blur = useCallback(
+    (debugCaller: string = "unknown") => {
+      lg("kbd-blur-applied", { caller: debugCaller, sid: debugSessionRef.current });
+      cancelPendingInput();
+      setIsFocused(false);
+      setIsTyping(false);
+      isTypingRef.current = false;
+      const newValueNum = clamp(valueRef.current, props.min, props.max);
+      valueRef.current = newValueNum != null ? newValueNum.toString() : "";
+      setValue(newValueNum != null ? newValueNum.toString() : "");
+      if (onBlurRef.current) {
+        onBlurRef.current(newValueNum);
+      }
+      switchRef.current = false;
+    },
+    [cancelPendingInput]
+  );
 
-  const commitValueIfOutside = useCallback((target: HTMLElement | null): void => {
+  const commitValueIfOutside = useCallback((target: HTMLElement | null, eventType: string): void => {
     if (!isFocusedRef.current || !isTypingRef.current) {
       return;
     }
+    let reachedBody = false;
     let cur: HTMLElement | null = target;
     while (cur) {
       if (cur === containerRef.current || cur === keyboardRef.current) {
         return;
       }
       if (cur === document.body) {
+        reachedBody = true;
         break;
       }
       cur = cur.parentElement;
     }
+    const sid = debugSessionRef.current;
+    const tag = (target?.tagName ?? "null").toLowerCase();
+    const cls = (target?.className?.toString() ?? "").slice(0, 60);
+    lg("kbd-outside-commit", {
+      sid,
+      ev: eventType,
+      tag,
+      cls,
+      reachedBody: reachedBody ? 1 : 0,
+    });
+    setTimeout(() => {
+      if (isFocusedRef.current && debugSessionRef.current === sid) {
+        lg("kbd-stuck-open", { sid, ev: eventType, tag, cls });
+      }
+    }, 250);
     if (debounceTimerRef.current != null) {
       clearTimeout(debounceTimerRef.current);
       debounceTimerRef.current = null;
@@ -342,9 +365,9 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
         return;
       }
       if (event.key === "Escape") {
-        blur();
+        blur("escape");
       } else if (event.key === "Enter") {
-        blur();
+        blur("enter");
       } else if (event.key === "Backspace") {
         handleInput("⌫");
       } else if (
@@ -372,14 +395,15 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
 
   const maybeBlur = useCallback((target: HTMLElement | null): boolean => {
     if (target == null) {
-      blur();
+      blur("maybeBlur-null-target");
       return true;
     }
     let foundCurrentInput = false;
     let foundOtherInput: HTMLElement | null = null;
+    let reachedBody = false;
     while (target) {
       if (target.classList?.contains("keyboard-close")) {
-        blur();
+        blur("maybeBlur-keyboard-close");
         return true;
       } else if (target === containerRef.current || target === keyboardRef.current) {
         foundCurrentInput = true;
@@ -388,12 +412,13 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
         foundOtherInput = target;
         break;
       } else if (target === document.body) {
+        reachedBody = true;
         break;
       }
       target = target.parentElement;
     }
     if (foundOtherInput) {
-      blur();
+      blur("maybeBlur-switch");
       switchRef.current = true;
       const nextInput = foundOtherInput.querySelector(".input-number-child") as HTMLElement | null;
       if (nextInput) {
@@ -401,26 +426,38 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
       }
       return true;
     } else if (!foundCurrentInput) {
-      blur();
+      lg("kbd-maybeBlur-outside", {
+        sid: debugSessionRef.current,
+        reachedBody: reachedBody ? 1 : 0,
+      });
+      blur(reachedBody ? "maybeBlur-outside" : "maybeBlur-detached");
       return true;
     }
     return false;
   }, []);
 
   useEffect(() => {
-    const documentClickHandler = (event: MouseEvent | TouchEvent): void => {
+    const touchHandler = (event: TouchEvent): void => {
       if (isCalculatorOpenRef.current) {
         return;
       }
       const target = (event.target || event.currentTarget) as HTMLElement;
       onClickTarget.current = target;
-      commitValueIfOutside(target);
+      commitValueIfOutside(target, "touchstart");
     };
-    document.addEventListener("touchstart", documentClickHandler);
-    document.addEventListener("mousedown", documentClickHandler);
+    const mouseHandler = (event: MouseEvent): void => {
+      if (isCalculatorOpenRef.current) {
+        return;
+      }
+      const target = (event.target || event.currentTarget) as HTMLElement;
+      onClickTarget.current = target;
+      commitValueIfOutside(target, "mousedown");
+    };
+    document.addEventListener("touchstart", touchHandler);
+    document.addEventListener("mousedown", mouseHandler);
     return () => {
-      document.removeEventListener("touchstart", documentClickHandler);
-      document.removeEventListener("mousedown", documentClickHandler);
+      document.removeEventListener("touchstart", touchHandler);
+      document.removeEventListener("mousedown", mouseHandler);
     };
   }, [commitValueIfOutside]);
 
@@ -433,12 +470,19 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
         }
         tabIndex={props.tabIndex ?? 0}
         onFocus={() => {
+          debugSessionRef.current = Date.now();
+          lg("kbd-focus", { sid: debugSessionRef.current });
           setIsFocused(true);
         }}
         onBlur={(event) => {
+          const sid = debugSessionRef.current;
+          const relatedTag = ((event.relatedTarget as HTMLElement | null)?.tagName ?? "null").toLowerCase();
+          const clickTag = (onClickTarget.current?.tagName ?? "null").toLowerCase();
+          lg("kbd-input-onblur", { sid, related: relatedTag, click: clickTag });
           setTimeout(() => {
             const target = (event.relatedTarget || onClickTarget.current) as HTMLElement | null;
             const result = maybeBlur(target);
+            lg("kbd-input-onblur-after", { sid, result: result ? 1 : 0 });
             if (!result) {
               const currentTarget = event.currentTarget || event.target;
               event.preventDefault();
@@ -482,7 +526,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
           onInput={handleInput}
           inputRef={inputRef}
           keyboardAddon={props.keyboardAddon}
-          onBlur={blur}
+          onBlur={() => blur("keyboard-close-button")}
           onPlus={() => {
             cancelPendingInput();
             const nextValue = props.onNext ? props.onNext(Number(value)) : Number(value) + (props.step ?? 1);
@@ -509,7 +553,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
           withDot={value.includes(".")}
           enableCalculator={props.enableCalculator}
           onShowCalculator={() => {
-            blur();
+            blur("show-calculator");
             setIsCalculatorOpen(true);
             if (props.selectedUnit && props.selectedUnit !== "%") {
               openCalculator({ unit: props.selectedUnit });
