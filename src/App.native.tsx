@@ -97,7 +97,9 @@ import { Service } from "./api/service";
 import { AudioInterface } from "./lib/audioInterface";
 import { Progress_getCurrentProgress, Progress_lbProgress } from "./models/progress";
 import { NativeTimerBridge_subscribeOnScheduled } from "./utils/nativeTimerBridge";
+import { lb } from "lens-shmens";
 import { updateState } from "./models/state";
+import { TourConfigs_findTourId } from "./components/tour/tourConfigs";
 import { RestTimer } from "./components/restTimer";
 import { IScreen } from "./models/screen";
 import { IEnv, IState } from "./models/state";
@@ -198,6 +200,26 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
   const initialScreen = props.initialState.storage.currentProgramId ? "main" : "first";
 
   const [currentScreenName, setCurrentScreenName] = useState<IScreen | undefined>(undefined);
+  const [isNavReady, setIsNavReady] = useState(false);
+
+  useEffect(() => {
+    if (!isNavReady) {
+      return;
+    }
+    if (state.tour) {
+      navigationRef.navigate("tourModal");
+    }
+  }, [isNavReady, state.tour]);
+
+  useEffect(() => {
+    if (!isNavReady || !currentScreenName) {
+      return;
+    }
+    const tourId = TourConfigs_findTourId(stateRef.current, true);
+    if (tourId && tourId !== stateRef.current.tour?.id) {
+      updateState(dispatch, [lb<IState>().p("tour").record({ id: tourId, enforced: false })], "Auto-start a tour");
+    }
+  }, [isNavReady, currentScreenName, dispatch]);
   const progress = Progress_getCurrentProgress(state);
   const screensWithoutTimer: IScreen[] = ["subscription"];
 
@@ -215,6 +237,7 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
             onReady={() => {
               const route = navigationRef.getCurrentRoute();
               setCurrentScreenName(route?.name as IScreen | undefined);
+              setIsNavReady(true);
             }}
           >
             <AppNavigator initialScreen={initialScreen} />

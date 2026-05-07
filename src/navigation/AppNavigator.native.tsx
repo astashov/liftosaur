@@ -52,6 +52,7 @@ import {
 import { Footer2Wrapper } from "./screens/NavScreenFooter2";
 import { CustomKeyboardProvider } from "./CustomKeyboardContext";
 import { NavModalMonthCalendar } from "./modals/NavModalMonthCalendar";
+import { NavModalTour } from "./modals/NavModalTour";
 import { NavModalChangeNextDay } from "./modals/NavModalChangeNextDay";
 import { NavModalExercisePicker } from "./modals/NavModalExercisePicker";
 import { NavModalExerciseImageSource } from "./modals/NavModalExerciseImageSource";
@@ -387,6 +388,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
               options={{ sheetAllowedDetents: [0.9] }}
             />
             <RootStack.Screen name="photoPickerModal" component={NavModalPhotoPicker} />
+            <RootStack.Screen name="tourModal" component={NavModalTour} />
           </RootStack.Group>
         </RootStack.Navigator>
       </CustomKeyboardProvider>

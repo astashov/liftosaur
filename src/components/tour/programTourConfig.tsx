@@ -1,3 +1,4 @@
+import { View, Text } from "react-native";
 import { ITourConfig } from "./tourTypes";
 import { IPlannerProgram } from "../../types";
 import { IconDayTextMode } from "../icons/iconDayTextMode";
@@ -7,6 +8,8 @@ import { IconEdit2 } from "../icons/iconEdit2";
 import { IconUiMode } from "../icons/iconUiMode";
 import { getCurrentScreenData } from "../../navigation/navigationService";
 import { IState } from "../../models/state";
+
+const paraCn = "text-sm leading-relaxed text-text-secondary";
 
 function getPlannerFromState(state: IState): IPlannerProgram | undefined {
   const screenData = getCurrentScreenData();
@@ -38,17 +41,18 @@ export const programTourConfig: ITourConfig = {
       dino: "programtourstructure.png",
       content: () => (
         <>
-          <p className="mb-2">
-            Programs consist of <strong>weeks</strong> (or just 1 week for simple programs). Each week has{" "}
-            <strong>days</strong> (workouts). Each day has <strong>exercises</strong>.
-          </p>
-          <p className="mb-2">
+          <Text className={`mb-2 ${paraCn}`}>
+            Programs consist of <Text className="font-bold">weeks</Text> (or just 1 week for simple programs). Each week
+            has <Text className="font-bold">days</Text> (workouts). Each day has{" "}
+            <Text className="font-bold">exercises</Text>.
+          </Text>
+          <Text className={`mb-2 ${paraCn}`}>
             For periodized programs, you can have multiple weeks with different rep schemes that cycle through.
-          </p>
-          <p>
-            When you finish last week and day, it <strong>loops back</strong> to the beginning - keeping all your
-            progress and weight increases.
-          </p>
+          </Text>
+          <Text className={paraCn}>
+            When you finish last week and day, it <Text className="font-bold">loops back</Text> to the beginning -
+            keeping all your progress and weight increases.
+          </Text>
         </>
       ),
     },
@@ -57,12 +61,10 @@ export const programTourConfig: ITourConfig = {
       title: "How programs update",
       dino: "programtourupdate.png",
       content: () => (
-        <>
-          <p>
-            After you finish a workout, the program <strong>updates itself</strong> based on program's progression logic
-            and your performance and moves to the next day.
-          </p>
-        </>
+        <Text className={paraCn}>
+          After you finish a workout, the program <Text className="font-bold">updates itself</Text> based on program's
+          progression logic and your performance and moves to the next day.
+        </Text>
       ),
     },
     {
@@ -71,17 +73,22 @@ export const programTourConfig: ITourConfig = {
       dino: "programtourtext.png",
       content: () => (
         <>
-          <p className="mb-2">
-            Under the hood, programs are just text using a special syntax called <strong>Liftoscript</strong>.
-          </p>
-          <p>
-            You can use the UI to create and edit them, or use the{" "}
-            <strong>
-              <IconDayTextMode className="inline-block mx-1" /> mode
-            </strong>{" "}
-            to edit that <strong>Liftoscript</strong> text on a phone, or edit the text in the{" "}
-            <strong>web editor</strong> on your laptop for more control.
-          </p>
+          <Text className={`mb-2 ${paraCn}`}>
+            Under the hood, programs are just text using a special syntax called{" "}
+            <Text className="font-bold">Liftoscript</Text>.
+          </Text>
+          <View className="flex-row flex-wrap items-center">
+            <Text className={paraCn}>You can use the UI to create and edit them, or use the </Text>
+            <View className="mx-1">
+              <IconDayTextMode />
+            </View>
+            <Text className={`${paraCn} font-bold`}>mode</Text>
+            <Text className={paraCn}> to edit that </Text>
+            <Text className={`${paraCn} font-bold`}>Liftoscript</Text>
+            <Text className={paraCn}> text on a phone, or edit the text in the </Text>
+            <Text className={`${paraCn} font-bold`}>web editor</Text>
+            <Text className={paraCn}> on your laptop for more control.</Text>
+          </View>
         </>
       ),
     },
@@ -91,20 +98,20 @@ export const programTourConfig: ITourConfig = {
       dino: "programtourliftoscript.png",
       content: () => (
         <>
-          <p className="mb-2">
-            <strong>Liftoscript</strong> is a simple declarative language that controls your program logic -
-            progression, deloads, rep schemes, and more.
-          </p>
-          <p className="mb-2">A simple example:</p>
-          <div className="p-2 mb-2 text-xs rounded bg-background-cardsecondary">
+          <Text className={`mb-2 ${paraCn}`}>
+            <Text className="font-bold">Liftoscript</Text> is a simple declarative language that controls your program
+            logic - progression, deloads, rep schemes, and more.
+          </Text>
+          <Text className={`mb-2 ${paraCn}`}>A simple example:</Text>
+          <View className="p-2 mb-2 rounded bg-background-cardsecondary">
             <PlannerCodeBlock script={"Squat / 3x8 100lb / progress: lp(5lb)"} />
-          </div>
-          <p className="mb-2">
+          </View>
+          <Text className={`mb-2 ${paraCn}`}>
             This defines Squat for 3 sets of 8 reps at 100lb, with linear progression adding 5lb when you hit all reps.
-          </p>
-          <p>
+          </Text>
+          <Text className={paraCn}>
             <Link href="https://www.liftosaur.com/doc/liftoscript">Read the full Liftoscript docs</Link> to learn more.
-          </p>
+          </Text>
         </>
       ),
     },
@@ -114,11 +121,19 @@ export const programTourConfig: ITourConfig = {
       dino: "programtouradd.png",
       condition: (state) => isProgramEmpty(state),
       content: () => (
-        <p>
-          To add your first exercise - switch to <strong>Edit</strong>, then to{" "}
-          <IconUiMode className="inline-block mx-1" /> (UI Mode) and tap <strong>"Add Exercise"</strong> and search for
-          one - like <strong>Bench Press</strong>.
-        </p>
+        <View className="flex-row flex-wrap items-center">
+          <Text className={paraCn}>To add your first exercise - switch to </Text>
+          <Text className={`${paraCn} font-bold`}>Edit</Text>
+          <Text className={paraCn}>, then to </Text>
+          <View className="mx-1">
+            <IconUiMode />
+          </View>
+          <Text className={paraCn}> (UI Mode) and tap </Text>
+          <Text className={`${paraCn} font-bold`}>"Add Exercise"</Text>
+          <Text className={paraCn}> and search for one - like </Text>
+          <Text className={`${paraCn} font-bold`}>Bench Press</Text>
+          <Text className={paraCn}>.</Text>
+        </View>
       ),
     },
     {
@@ -127,11 +142,19 @@ export const programTourConfig: ITourConfig = {
       dino: "programtouredit.png",
       condition: (state) => !isProgramEmpty(state),
       content: () => (
-        <p>
-          To edit an exercise in UI Mode, tap the <strong>Edit</strong>, then{" "}
-          <IconUiMode className="inline-block mx-1" /> (UI Mode), and then - <IconEdit2 className="inline-block mx-1" />
-          on the right pane of the exercise.
-        </p>
+        <View className="flex-row flex-wrap items-center">
+          <Text className={paraCn}>To edit an exercise in UI Mode, tap the </Text>
+          <Text className={`${paraCn} font-bold`}>Edit</Text>
+          <Text className={paraCn}>, then </Text>
+          <View className="mx-1">
+            <IconUiMode />
+          </View>
+          <Text className={paraCn}> (UI Mode), and then - </Text>
+          <View className="mx-1">
+            <IconEdit2 />
+          </View>
+          <Text className={paraCn}> on the right pane of the exercise.</Text>
+        </View>
       ),
     },
     {
@@ -141,14 +164,14 @@ export const programTourConfig: ITourConfig = {
       condition: (state) => !isProgramEmpty(state),
       content: () => (
         <>
-          <p className="mb-2">
-            Use the <strong>Playground</strong> tab to test your program before you start training. You can simulate
-            finishing workouts and see how reps, weights, and sets change over time.
-          </p>
-          <p>
-            Everything in the Playground is <strong>ephemeral</strong> - it doesn't affect your real workouts, settings,
-            or program. It's a safe sandbox to verify your progressions work as planned.
-          </p>
+          <Text className={`mb-2 ${paraCn}`}>
+            Use the <Text className="font-bold">Playground</Text> tab to test your program before you start training.
+            You can simulate finishing workouts and see how reps, weights, and sets change over time.
+          </Text>
+          <Text className={paraCn}>
+            Everything in the Playground is <Text className="font-bold">ephemeral</Text> - it doesn't affect your real
+            workouts, settings, or program. It's a safe sandbox to verify your progressions work as planned.
+          </Text>
         </>
       ),
     },

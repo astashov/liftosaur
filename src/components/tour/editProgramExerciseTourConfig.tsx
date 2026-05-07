@@ -1,9 +1,12 @@
+import { View, Text } from "react-native";
 import { ITourConfig } from "./tourTypes";
 import { IconSwap } from "../icons/iconSwap";
 import { Program_evaluate } from "../../models/program";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { IState } from "../../models/state";
 import { getCurrentScreenData } from "../../navigation/navigationService";
+
+const paraCn = "text-sm leading-relaxed text-text-secondary";
 
 function getPlannerExerciseFromState(state: IState): IPlannerProgramExercise | undefined {
   const screenData = getCurrentScreenData();
@@ -46,21 +49,25 @@ export const editProgramExerciseTourConfig: ITourConfig = {
       dino: "programexercisetoursummary.png",
       content: () => (
         <>
-          <p className="mb-2">
+          <Text className={`mb-2 ${paraCn}`}>
             This is where you customize an exercise in your program - sets, reps, weights, warmups, and progression
             rules.
-          </p>
-          <p className="mb-2">
-            Changes are <strong>not saved</strong> until you tap the <strong>Save</strong> button. You can also{" "}
-            <strong>undo/redo</strong> any changes.
-          </p>
-          <p>
-            To change the exercise itself (e.g. swap Bench Press for Close-Grip Bench), tap the{" "}
-            <strong>
-              <IconSwap className="inline-block mx-1" size={12} /> swap icon
-            </strong>{" "}
-            next to the exercise name.
-          </p>
+          </Text>
+          <Text className={`mb-2 ${paraCn}`}>
+            Changes are <Text className="font-bold">not saved</Text> until you tap the{" "}
+            <Text className="font-bold">Save</Text> button. You can also <Text className="font-bold">undo/redo</Text>{" "}
+            any changes.
+          </Text>
+          <View className="flex-row flex-wrap items-center">
+            <Text className={paraCn}>
+              To change the exercise itself (e.g. swap Bench Press for Close-Grip Bench), tap the{" "}
+            </Text>
+            <View className="mx-1">
+              <IconSwap size={12} />
+            </View>
+            <Text className={`${paraCn} font-bold`}>swap icon</Text>
+            <Text className={paraCn}> next to the exercise name.</Text>
+          </View>
         </>
       ),
     },
@@ -70,18 +77,20 @@ export const editProgramExerciseTourConfig: ITourConfig = {
       dino: "programexercisetoursets.png",
       content: () => (
         <>
-          <p className="mb-2">
-            Change <strong>reps</strong> and <strong>weight</strong> directly in the set table.
-          </p>
-          <p className="mb-2">
-            <strong>Swipe left</strong> on a set to reveal <strong>Edit</strong> and <strong>Delete</strong>. Edit lets
-            you add features like <strong>RPE</strong>, <strong>Timer</strong>, <strong>Rep Range</strong>, and{" "}
-            <strong>Label</strong>.
-          </p>
-          <p>
-            Use the <strong>"By week/day"</strong> tab to edit sets for a specific week, or{" "}
-            <strong>"Across all weeks"</strong> to change all at once.
-          </p>
+          <Text className={`mb-2 ${paraCn}`}>
+            Change <Text className="font-bold">reps</Text> and <Text className="font-bold">weight</Text> directly in the
+            set table.
+          </Text>
+          <Text className={`mb-2 ${paraCn}`}>
+            <Text className="font-bold">Swipe left</Text> on a set to reveal <Text className="font-bold">Edit</Text> and{" "}
+            <Text className="font-bold">Delete</Text>. Edit lets you add features like{" "}
+            <Text className="font-bold">RPE</Text>, <Text className="font-bold">Timer</Text>,{" "}
+            <Text className="font-bold">Rep Range</Text>, and <Text className="font-bold">Label</Text>.
+          </Text>
+          <Text className={paraCn}>
+            Use the <Text className="font-bold">"By week/day"</Text> tab to edit sets for a specific week, or{" "}
+            <Text className="font-bold">"Across all weeks"</Text> to change all at once.
+          </Text>
         </>
       ),
     },
@@ -91,17 +100,18 @@ export const editProgramExerciseTourConfig: ITourConfig = {
       dino: "programexercisetourwarmups.png",
       content: () => (
         <>
-          <p className="mb-2">
-            Every exercise has <strong>default warmup sets</strong> based on the exercise type. Tap{" "}
-            <strong>Customize</strong> to edit warmup reps and weights.
-          </p>
-          <p className="mb-2">
-            Warmup weights can be <strong>absolute</strong> (e.g. 95lb) or{" "}
-            <strong>percentage-based of first set</strong> (e.g. 60% of your first set weight).
-          </p>
-          <p>
-            Some default warmup sets <strong>may be skipped</strong> if the first set weight is too light.
-          </p>
+          <Text className={`mb-2 ${paraCn}`}>
+            Every exercise has <Text className="font-bold">default warmup sets</Text> based on the exercise type. Tap{" "}
+            <Text className="font-bold">Customize</Text> to edit warmup reps and weights.
+          </Text>
+          <Text className={`mb-2 ${paraCn}`}>
+            Warmup weights can be <Text className="font-bold">absolute</Text> (e.g. 95lb) or{" "}
+            <Text className="font-bold">percentage-based of first set</Text> (e.g. 60% of your first set weight).
+          </Text>
+          <Text className={paraCn}>
+            Some default warmup sets <Text className="font-bold">may be skipped</Text> if the first set weight is too
+            light.
+          </Text>
         </>
       ),
     },
@@ -111,27 +121,39 @@ export const editProgramExerciseTourConfig: ITourConfig = {
       dino: "programexercisetourprogress.png",
       content: () => (
         <>
-          <p className="mb-2">
-            Progression controls how the exercise <strong>changes after you finish a workout</strong>. Four types
-            available:
-          </p>
-          <ul className="pl-4 mb-2 list-disc">
-            <li>
-              <strong>Linear</strong> - increase weight by a fixed amount
-            </li>
-            <li>
-              <strong>Double</strong> - increase reps first, then bump weight
-            </li>
-            <li>
-              <strong>Sum Reps</strong> - progress when total reps hit a target
-            </li>
-            <li>
-              <strong>Custom</strong> - write your own Liftoscript logic
-            </li>
-          </ul>
-          <p>
-            Enable or disable progression via the <strong>kebab menu</strong> in the top right.
-          </p>
+          <Text className={`mb-2 ${paraCn}`}>
+            Progression controls how the exercise <Text className="font-bold">changes after you finish a workout</Text>.
+            Four types available:
+          </Text>
+          <View className="pl-4 mb-2">
+            <View className="flex-row">
+              <Text className={paraCn}>{"• "}</Text>
+              <Text className={`flex-1 ${paraCn}`}>
+                <Text className="font-bold">Linear</Text> - increase weight by a fixed amount
+              </Text>
+            </View>
+            <View className="flex-row">
+              <Text className={paraCn}>{"• "}</Text>
+              <Text className={`flex-1 ${paraCn}`}>
+                <Text className="font-bold">Double</Text> - increase reps first, then bump weight
+              </Text>
+            </View>
+            <View className="flex-row">
+              <Text className={paraCn}>{"• "}</Text>
+              <Text className={`flex-1 ${paraCn}`}>
+                <Text className="font-bold">Sum Reps</Text> - progress when total reps hit a target
+              </Text>
+            </View>
+            <View className="flex-row">
+              <Text className={paraCn}>{"• "}</Text>
+              <Text className={`flex-1 ${paraCn}`}>
+                <Text className="font-bold">Custom</Text> - write your own Liftoscript logic
+              </Text>
+            </View>
+          </View>
+          <Text className={paraCn}>
+            Enable or disable progression via the <Text className="font-bold">kebab menu</Text> in the top right.
+          </Text>
         </>
       ),
     },
@@ -148,17 +170,18 @@ export const editProgramExerciseTourConfig: ITourConfig = {
       },
       content: () => (
         <>
-          <p className="mb-2">
-            <strong>Update</strong> is an advanced feature - a Liftoscript that runs <strong>during the workout</strong>{" "}
-            to dynamically change sets. For example, auto-calculating weight based on previous sets.
-          </p>
-          <p className="mb-2">
-            This is different from <strong>Progression</strong>, which runs <strong>after</strong> you finish the
-            workout.
-          </p>
-          <p>
-            Enable or disable via the <strong>kebab menu</strong> in the top right.
-          </p>
+          <Text className={`mb-2 ${paraCn}`}>
+            <Text className="font-bold">Update</Text> is an advanced feature - a Liftoscript that runs{" "}
+            <Text className="font-bold">during the workout</Text> to dynamically change sets. For example,
+            auto-calculating weight based on previous sets.
+          </Text>
+          <Text className={`mb-2 ${paraCn}`}>
+            This is different from <Text className="font-bold">Progression</Text>, which runs{" "}
+            <Text className="font-bold">after</Text> you finish the workout.
+          </Text>
+          <Text className={paraCn}>
+            Enable or disable via the <Text className="font-bold">kebab menu</Text> in the top right.
+          </Text>
         </>
       ),
     },
@@ -175,18 +198,20 @@ export const editProgramExerciseTourConfig: ITourConfig = {
       },
       content: () => (
         <>
-          <p className="mb-2">
-            In multi-week programs, an exercise can <strong>repeat across weeks</strong> automatically. You set a week
-            range (e.g. weeks 1-4) and the exercise appears in all those weeks without being listed separately.
-          </p>
-          <p className="mb-2">
+          <Text className={`mb-2 ${paraCn}`}>
+            In multi-week programs, an exercise can <Text className="font-bold">repeat across weeks</Text>{" "}
+            automatically. You set a week range (e.g. weeks 1-4) and the exercise appears in all those weeks without
+            being listed separately.
+          </Text>
+          <Text className={`mb-2 ${paraCn}`}>
             The sets come from whatever the exercise (or its reuse target) defines. This is useful with{" "}
-            <strong>templates</strong> - define a template once, reuse it, and just change the template each week.
-          </p>
-          <p>
-            If you need to <strong>override</strong> the exercise for a specific week, you can break out of the repeat
-            and customize that week independently.
-          </p>
+            <Text className="font-bold">templates</Text> - define a template once, reuse it, and just change the
+            template each week.
+          </Text>
+          <Text className={paraCn}>
+            If you need to <Text className="font-bold">override</Text> the exercise for a specific week, you can break
+            out of the repeat and customize that week independently.
+          </Text>
         </>
       ),
     },
@@ -203,18 +228,19 @@ export const editProgramExerciseTourConfig: ITourConfig = {
       },
       content: () => (
         <>
-          <p className="mb-2">
-            Exercises can <strong>reuse</strong> sets, progression, update, and descriptions from another exercise. This
-            keeps your program <strong>DRY</strong> - change once, apply everywhere.
-          </p>
-          <p className="mb-2">
-            If something is reused, you'll see a <strong>"Reuse from"</strong> dropdown and an <strong>Override</strong>{" "}
-            button to break the link and customize independently.
-          </p>
-          <p>
-            Under the hood, reuse is the <strong>...ExerciseName</strong> syntax in Liftoscript. Complex reuse patterns
-            are sometimes easier to manage in the text editor.
-          </p>
+          <Text className={`mb-2 ${paraCn}`}>
+            Exercises can <Text className="font-bold">reuse</Text> sets, progression, update, and descriptions from
+            another exercise. This keeps your program <Text className="font-bold">DRY</Text> - change once, apply
+            everywhere.
+          </Text>
+          <Text className={`mb-2 ${paraCn}`}>
+            If something is reused, you'll see a <Text className="font-bold">"Reuse from"</Text> dropdown and an{" "}
+            <Text className="font-bold">Override</Text> button to break the link and customize independently.
+          </Text>
+          <Text className={paraCn}>
+            Under the hood, reuse is the <Text className="font-bold">...ExerciseName</Text> syntax in Liftoscript.
+            Complex reuse patterns are sometimes easier to manage in the text editor.
+          </Text>
         </>
       ),
     },

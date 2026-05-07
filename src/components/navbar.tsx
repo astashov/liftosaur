@@ -100,7 +100,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
         />
         <View className="flex-row items-center justify-end" style={{ minWidth: numberOfButtons * 40 }}>
           {props.rightButtons}
-          {(props.helpContent || props.helpTourId) && isWeb && (
+          {(props.helpTourId || (props.helpContent && isWeb)) && (
             <Pressable
               className="p-2"
               onPress={() => {

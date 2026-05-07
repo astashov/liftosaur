@@ -1,3 +1,4 @@
+import { View, Text } from "react-native";
 import { ITourConfig } from "./tourTypes";
 import {
   Program_isEmpty,
@@ -16,6 +17,8 @@ import { IconKebab } from "../icons/iconKebab";
 import { Reps_isFinished } from "../../models/set";
 import { PlannerProgramExercise_getState } from "../../pages/planner/models/plannerProgramExercise";
 import { ObjectUtils_isNotEmpty } from "../../utils/object";
+
+const paraCn = "text-sm leading-relaxed text-text-secondary";
 
 export const workoutTourConfig: ITourConfig = {
   id: "workout",
@@ -41,17 +44,19 @@ export const workoutTourConfig: ITourConfig = {
       dino: "dinocoach.svg",
       content: () => (
         <>
-          <p className="mb-2">
-            Your <strong>program</strong> is the plan - it decides your exercises, sets, reps, and weights.
-          </p>
-          <p className="mb-2">
-            Each <strong>workout</strong> is generated from that program. When you <strong>finish</strong>, the app runs
-            the program's logic to update the program - like bumping weights if you hit all your reps.
-          </p>
-          <p>
+          <Text className={`mb-2 ${paraCn}`}>
+            Your <Text className="font-bold">program</Text> is the plan - it decides your exercises, sets, reps, and
+            weights.
+          </Text>
+          <Text className={`mb-2 ${paraCn}`}>
+            Each <Text className="font-bold">workout</Text> is generated from that program. When you{" "}
+            <Text className="font-bold">finish</Text>, the app runs the program's logic to update the program - like
+            bumping weights if you hit all your reps.
+          </Text>
+          <Text className={paraCn}>
             Changes you make during a workout (e.g. going heavier or less reps) are just for today - they don't change
             the program.
-          </p>
+          </Text>
         </>
       ),
     },
@@ -61,19 +66,19 @@ export const workoutTourConfig: ITourConfig = {
       dino: "firstworkouttoursets.png",
       content: () => (
         <>
-          <p className="mb-2">
-            Each set has a <strong>target</strong> prescribed by the program (reps and weight), and what you actually{" "}
-            <strong>complete</strong>. Set what you completed in the reps / weight fields. If what you completed =
-            what's prefilled in the fields, just tap the checkmark button.
-          </p>
-          <p className="mb-2">
-            <span className="font-bold text-text-success">Green</span> = you hit the target. But green doesn't
+          <Text className={`mb-2 ${paraCn}`}>
+            Each set has a <Text className="font-bold">target</Text> prescribed by the program (reps and weight), and
+            what you actually <Text className="font-bold">complete</Text>. Set what you completed in the reps / weight
+            fields. If what you completed = what's prefilled in the fields, just tap the checkmark button.
+          </Text>
+          <Text className={`mb-2 ${paraCn}`}>
+            <Text className="font-bold text-text-success">Green</Text> = you hit the target. But green doesn't
             necessarily mean the program will progress - that depends on the program's logic.
-          </p>
-          <p>
-            Based on what was the target and what you complete, programs decide how to <strong>adjust</strong> - e.g.
-            increase weight, change reps, or keep things the same.
-          </p>
+          </Text>
+          <Text className={paraCn}>
+            Based on what was the target and what you complete, programs decide how to{" "}
+            <Text className="font-bold">adjust</Text> - e.g. increase weight, change reps, or keep things the same.
+          </Text>
         </>
       ),
     },
@@ -84,14 +89,15 @@ export const workoutTourConfig: ITourConfig = {
       condition: (state) => state.storage.history.length >= 1,
       content: () => (
         <>
-          <p className="mb-2">
-            You can <strong>swipe left</strong> on any set to change its <strong>target</strong> reps and weight, or to
-            delete it.
-          </p>
-          <p>
-            These changes only affect <strong>this workout</strong> - they won't modify your program. To change the
-            program itself, use <strong>"Edit Program Exercise"</strong> from the exercise menu.
-          </p>
+          <Text className={`mb-2 ${paraCn}`}>
+            You can <Text className="font-bold">swipe left</Text> on any set to change its{" "}
+            <Text className="font-bold">target</Text> reps and weight, or to delete it.
+          </Text>
+          <Text className={paraCn}>
+            These changes only affect <Text className="font-bold">this workout</Text> - they won't modify your program.
+            To change the program itself, use <Text className="font-bold">"Edit Program Exercise"</Text> from the
+            exercise menu.
+          </Text>
         </>
       ),
     },
@@ -105,13 +111,14 @@ export const workoutTourConfig: ITourConfig = {
       },
       content: () => (
         <>
-          <p className="mb-2">
-            This program uses <strong>percentage-based weights</strong>. That means the weights are calculated as a
-            percentage of your <strong>1 Rep Max (1RM)</strong> - the heaviest weight you can lift once.
-          </p>
-          <p>
-            You can set your 1RMs by tapping on <strong>1RM</strong> under the exercise name
-          </p>
+          <Text className={`mb-2 ${paraCn}`}>
+            This program uses <Text className="font-bold">percentage-based weights</Text>. That means the weights are
+            calculated as a percentage of your <Text className="font-bold">1 Rep Max (1RM)</Text> - the heaviest weight
+            you can lift once.
+          </Text>
+          <Text className={paraCn}>
+            You can set your 1RMs by tapping on <Text className="font-bold">1RM</Text> under the exercise name
+          </Text>
         </>
       ),
     },
@@ -125,13 +132,14 @@ export const workoutTourConfig: ITourConfig = {
       },
       content: () => (
         <>
-          <p className="mb-2">
-            This program uses <strong>RPE (Rate of Perceived Exertion)</strong> - a 1-10 scale of how hard a set feels.
-          </p>
-          <p>
+          <Text className={`mb-2 ${paraCn}`}>
+            This program uses <Text className="font-bold">RPE (Rate of Perceived Exertion)</Text> - a 1-10 scale of how
+            hard a set feels.
+          </Text>
+          <Text className={paraCn}>
             RPE 10 = absolute max effort, nothing left. RPE 8 = you could do 2 more reps. Some programs may also ask
             what was your "completed" RPE - and the difference could be used for progression logic.
-          </p>
+          </Text>
         </>
       ),
     },
@@ -145,13 +153,12 @@ export const workoutTourConfig: ITourConfig = {
         return currentEntry?.sets.some((w) => !Weight_eqNull(w.originalWeight, w.weight)) || false;
       },
       content: () => (
-        <>
-          <p>
-            If you have a <span className="line-through">crossed-out weight</span> in your target - that's{" "}
-            <strong>rounding</strong>. The app adjusts the program's exact weight to match what you can actually load
-            with your equipment. You can fine-tune this in <strong>Equipment</strong> settings.
-          </p>
-        </>
+        <Text className={paraCn}>
+          If you have a <Text className="line-through">crossed-out weight</Text> in your target - that's{" "}
+          <Text className="font-bold">rounding</Text>. The app adjusts the program's exact weight to match what you can
+          actually load with your equipment. You can fine-tune this in <Text className="font-bold">Equipment</Text>{" "}
+          settings.
+        </Text>
       ),
     },
     {
@@ -159,16 +166,18 @@ export const workoutTourConfig: ITourConfig = {
       title: "Editing program exercise",
       dino: "firstworkouttouredit.png",
       content: () => (
-        <>
-          <p>
-            Want to tweak the exercise in the program? Tap the{" "}
-            <strong>
-              <IconKebab className="inline-block mx-1" /> menu
-            </strong>{" "}
-            and select <strong>"Edit Program Exercise"</strong> to change sets, reps, weights, or progression rules for
-            the program exercise.
-          </p>
-        </>
+        <View className="flex-row flex-wrap items-center">
+          <View>
+            <Text className={paraCn}>Want to tweak the exercise in the program? Tap the </Text>
+          </View>
+          <View className="inline-block mx-1">
+            <IconKebab />
+          </View>
+          <Text className={`${paraCn} font-bold`}>menu</Text>
+          <Text className={paraCn}> and select </Text>
+          <Text className={`${paraCn} font-bold`}>"Edit Program Exercise"</Text>
+          <Text className={paraCn}> to change sets, reps, weights, or progression rules for the program exercise.</Text>
+        </View>
       ),
     },
     {
@@ -223,13 +232,11 @@ export const workoutTourConfig: ITourConfig = {
         return false;
       },
       content: () => (
-        <>
-          <p>
-            When you finished all the sets, if the program exercise has progression, you'll see the{" "}
-            <strong>progression preview</strong> under the sets. It shows how this program exercise will adjust when you
-            finish a workout.
-          </p>
-        </>
+        <Text className={paraCn}>
+          When you finished all the sets, if the program exercise has progression, you'll see the{" "}
+          <Text className="font-bold">progression preview</Text> under the sets. It shows how this program exercise will
+          adjust when you finish a workout.
+        </Text>
       ),
     },
   ],

@@ -1,10 +1,14 @@
 import { JSX, useEffect, useRef, useState } from "react";
+import { View, Text, Pressable, Image } from "react-native";
+import { SvgUri } from "react-native-svg";
+import { Svg, Path } from "../primitives/svg";
 import { Tour_stepHelpFlag } from "./tourTypes";
 import { Button } from "../button";
 import { IState, IStateTour } from "../../models/state";
 import { IconCloseCircleOutline } from "../icons/iconCloseCircleOutline";
 import { tourConfigs } from "./tourConfigs";
 import { ImagePreloader_preload } from "../../utils/imagePreloader";
+import { HostConfig_resolveUrl } from "../../utils/hostConfig";
 
 interface ITourModalProps {
   stateTour: IStateTour;
@@ -22,6 +26,14 @@ function isStepActive(
   const conditionMet = !step.condition || step.condition(state);
   const alreadySeen = helps.includes(Tour_stepHelpFlag(stateTour.id, step.id));
   return conditionMet && (stateTour.enforced || !alreadySeen);
+}
+
+function DinoImage({ filename, height }: { filename: string; height: number }): JSX.Element {
+  const uri = HostConfig_resolveUrl(`/images/${filename}`);
+  if (filename.endsWith(".svg")) {
+    return <SvgUri uri={uri} width={200} height={height} />;
+  }
+  return <Image source={{ uri }} style={{ height, width: 200, resizeMode: "contain" }} />;
 }
 
 export function TourModalContent(props: ITourModalProps): JSX.Element | null {
@@ -51,7 +63,6 @@ export function TourModalContent(props: ITourModalProps): JSX.Element | null {
     if (currentStep && !seenRef.current.has(currentStep.id)) {
       seenRef.current.add(currentStep.id);
       const flag = Tour_stepHelpFlag(config.id, currentStep.id);
-      console.log("Sending flag", flag);
       onStepSeen(flag);
     }
   }, [currentStep?.id]);
@@ -85,63 +96,61 @@ export function TourModalContent(props: ITourModalProps): JSX.Element | null {
     }
   };
 
-  if (isPaused) {
+  useEffect(() => {
+    if (!isPaused && !currentStep) {
+      handleClose();
+    }
+  }, [currentStep, isPaused]);
+
+  if (isPaused || !currentStep) {
     return null;
   }
-
-  if (!currentStep) {
-    handleClose();
-    return null;
-  }
-
-  const dinoImage = `/images/${currentStep.dino}`;
 
   return (
-    <div className="overflow-hidden rounded-lg">
-      <div className="relative pb-6 bg-background-cardyellow">
+    <View>
+      <View className="relative pb-6 bg-background-cardyellow">
         {activeSteps.length > 1 ? (
-          <div className="flex gap-1.5 pl-4 pt-5 pb-3 pr-12">
+          <View className="flex-row gap-1.5 pl-4 pt-5 pb-3 pr-12">
             {activeSteps.map((_, i) => (
-              <div
+              <View
                 key={i}
                 className={`h-2 flex-1 rounded-full ${i <= currentIndex ? "bg-background-yellowdark" : "bg-color-yellow300"}`}
               />
             ))}
-          </div>
+          </View>
         ) : (
-          <div className="h-10" />
+          <View className="h-10" />
         )}
 
-        <button
+        <Pressable
           className="absolute z-10 p-1 nm-tour-close"
-          data-testid="tour-close"
-          style={{ top: "8px", right: "8px" }}
-          onClick={handleClose}
+          testID="tour-close"
+          style={{ top: 8, right: 8 }}
+          onPress={handleClose}
         >
           <IconCloseCircleOutline size={24} />
-        </button>
+        </Pressable>
 
-        <div className="flex items-center justify-center px-8" style={{ height: "120px" }}>
-          {dinoImage && <img src={dinoImage} alt="" className="h-full" />}
-        </div>
+        <View className="flex-row items-center justify-center px-8" style={{ height: 120 }}>
+          <DinoImage filename={currentStep.dino} height={120} />
+        </View>
 
-        <svg
-          className="absolute bottom-0 left-0 w-full"
+        <Svg
+          style={{ position: "absolute", bottom: 0, left: 0, width: "100%", height: 24 }}
           viewBox="0 0 340 24"
           fill="none"
           preserveAspectRatio="none"
-          style={{ height: "24px" }}
         >
-          <path d="M0 24 C85 0, 255 0, 340 24 L340 24 L0 24 Z" className="fill-background-default" />
-        </svg>
-      </div>
+          <Path d="M0 24 C85 0, 255 0, 340 24 L340 24 L0 24 Z" className="fill-background-default" />
+        </Svg>
+      </View>
 
-      <div className="px-6 pb-6 bg-background-default">
-        <h2 className="mb-3 text-xl font-bold text-center text-text-primary">{currentStep.title}</h2>
+      <View className="px-6 pb-6 bg-background-default">
+        <Text className="mb-3 text-xl font-bold text-center text-text-primary">{currentStep.title}</Text>
 
-        <div className="mb-5 text-sm leading-relaxed text-text-secondary">{currentStep.content(state)}</div>
+        <View className="mb-5">{currentStep.content(state)}</View>
 
-        <div className="flex gap-3">
+        <View className="flex-row gap-3">
           {activeSteps.length > 1 && (
             <Button
               name="tour-prev"
@@ -151,7 +160,7 @@ export function TourModalContent(props: ITourModalProps): JSX.Element | null {
               onClick={handlePrev}
               disabled={isFirstStep}
             >
-              {"\u2190 Back"}
+              {"← Back"}
             </Button>
           )}
           <Button
@@ -162,10 +171,10 @@ export function TourModalContent(props: ITourModalProps): JSX.Element | null {
             onClick={handleNext}
             disabled={!canProceed}
           >
-            {isLastStep ? "Done" : "Next \u2192"}
+            {isLastStep ? "Done" : "Next →"}
           </Button>
-        </div>
-      </div>
-    </div>
+        </View>
+      </View>
+    </View>
   );
 }

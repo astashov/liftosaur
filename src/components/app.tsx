@@ -153,15 +153,13 @@ export function AppView(props: IProps): JSX.Element | null {
     prevShowSignupRequest.current = !!state.showSignupRequest;
   }, [isNavReady, state.showSignupRequest]);
 
-  const prevTour = useRef(false);
   useEffect(() => {
     if (!isNavReady) {
       return;
     }
-    if (state.tour && !prevTour.current) {
+    if (state.tour) {
       navigationRef.navigate("tourModal");
     }
-    prevTour.current = !!state.tour;
   }, [isNavReady, state.tour]);
 
   const checkToursRef = useRef(() => {
