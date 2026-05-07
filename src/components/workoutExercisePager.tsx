@@ -38,7 +38,6 @@ export function WorkoutExercisePager(props: IWorkoutExercisePagerProps): JSX.Ele
         overflowY: "hidden",
         WebkitOverflowScrolling: "touch",
         scrollSnapType: "x mandatory",
-        height: props.pageHeight,
       }}
     >
       {Children.map(props.children, (child, index) => (
