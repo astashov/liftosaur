@@ -201,6 +201,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
         <div className="mb-6 text-sm">
           <LinkButton
             name="planner-delete-day"
+            className="text-sm"
             onClick={async () => {
               if (await Dialog_confirm("Are you sure you want to delete this day?")) {
                 dispatch(

@@ -336,6 +336,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps, _ref): JSX.Element
               name="custom-exercise-create"
               data-testid="custom-exercise-create"
               testID="custom-exercise-create"
+              className="text-sm"
               onClick={() => {
                 props.setEditingExercise(undefined);
                 props.setIsCustomExerciseDisplayed(true);
@@ -468,8 +469,8 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
           onDelete={() => {}}
         />
       </div>
-      <div className="flex py-4">
-        <div className="flex-1">
+      <div className="flex justify-between gap-4 py-4">
+        <div>
           <Button
             name="custom-exercise-cancel"
             kind="grayv2"
@@ -482,7 +483,7 @@ function CustomExerciseForm(props: IEditCustomExerciseProps): JSX.Element {
             {props.backLabel}
           </Button>
         </div>
-        <div className="flex-1 text-right">
+        <div className="ml-auto">
           <Button
             name="custom-exercise-create"
             kind="purple"

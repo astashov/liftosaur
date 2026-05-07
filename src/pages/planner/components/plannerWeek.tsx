@@ -43,9 +43,9 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
             }}
           />
         </h3>
-        <div className="mt-1 mb-4 text-sm">
+        <div className="flex flex-row gap-2 mt-1 mb-4 text-sm">
           {props.program.weeks.length > 1 && (
-            <span className="mr-2">
+            <div>
               <LinkButton
                 name="planner-delete-week"
                 onClick={async () => {
@@ -59,11 +59,12 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
               >
                 Delete Week
               </LinkButton>
-            </span>
+            </div>
           )}
-          <span className="mr-2">
+          <div>
             <LinkButton
               name="planner-add-week"
+              className="text-sm"
               onClick={() => {
                 props.dispatch(
                   lbProgram.p("weeks").recordModify((weeks) => [
@@ -79,10 +80,11 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
             >
               Add New Week
             </LinkButton>
-          </span>
-          <span className="mr-2">
+          </div>
+          <div>
             <LinkButton
               name="planner-duplicate-week"
+              className="text-sm"
               onClick={() => {
                 props.dispatch(
                   lbProgram.p("weeks").recordModify((weeks) => [
@@ -98,10 +100,11 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
             >
               Duplicate Week
             </LinkButton>
-          </span>
+          </div>
           {!showProgramDescription && (
-            <span>
+            <div>
               <LinkButton
+                className="text-sm"
                 name="planner-add-week-description"
                 onClick={() => {
                   props.dispatch(
@@ -112,7 +115,7 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
               >
                 Add Week Description
               </LinkButton>
-            </span>
+            </div>
           )}
         </div>
 
@@ -169,6 +172,7 @@ export function PlannerWeek(props: IPlannerWeekProps): JSX.Element {
         <div className="text-sm">
           <LinkButton
             name="planner-add-day"
+            className="text-sm"
             onClick={() => {
               props.dispatch(
                 lbProgram

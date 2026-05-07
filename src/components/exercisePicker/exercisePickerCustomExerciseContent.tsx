@@ -73,7 +73,8 @@ async function confirmAsync(message: string): Promise<boolean> {
 
 export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustomExerciseContentProps): JSX.Element {
   const appContext = useContext(AppContext);
-  const service = appContext.service ?? new Service(fetch);
+  const service =
+    appContext.service ?? (typeof window !== "undefined" ? new Service(fetch.bind(window)) : new Service(fetch));
   const editCustomExercise = props.exercise;
   const { notes, setNotes } = props;
   const isValid = editCustomExercise.name.trim().length ?? 0 > 0;
@@ -221,7 +222,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
               ) : (
                 <>
                   <IconAi color={Tailwind_semantic().icon.blue} />
-                  <Text className="ml-1">Autofill Muscles and Types</Text>
+                  <Text className="ml-1 text-sm">Autofill Muscles and Types</Text>
                 </>
               )}
             </View>
