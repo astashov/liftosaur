@@ -90,6 +90,7 @@ export const MonthCalendar = memo(
 
       return { months: result, selectedMonthIndex: selectedIdx };
     }, [props.firstDayOfWeeks, props.selectedFirstDayOfWeekIndex, props.startWeekFromMonday, props.history, props.prs]);
+    console.log("MOnths", months);
 
     useImperativeHandle(
       ref,

@@ -1,5 +1,5 @@
 import { JSX, ReactNode, useRef, useState } from "react";
-import { View, Pressable, Platform } from "react-native";
+import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
 import { Thunk_pullScreen } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
@@ -9,12 +9,11 @@ import { INavCommon, IState, updateState } from "../models/state";
 import { IconSpinner } from "./icons/iconSpinner";
 import { IconClose } from "./icons/iconClose";
 import { lb } from "lens-shmens";
-import { Modal } from "./modal";
-import { Link } from "./link";
 import { ObjectUtils_filter, ObjectUtils_values } from "../utils/object";
 import { navigationRef } from "../navigation/navigationRef";
 import { Tailwind_semantic, Tailwind_colors } from "../utils/tailwindConfig";
 import { ITourId } from "../models/state";
+import type { IHelpKey } from "./help/helpRegistry";
 
 interface INavbarCenterProps {
   title: ReactNode;
@@ -28,12 +27,10 @@ interface INavbarProps extends INavbarCenterProps {
   onBack?: () => boolean;
   navCommon: INavCommon;
   helpTourId?: ITourId;
-  helpContent?: ReactNode;
+  helpKey?: IHelpKey;
   isStatic?: boolean;
   showBack?: boolean;
 }
-
-const isWeb = Platform.OS === "web";
 
 export const NavbarView = (props: INavbarProps): JSX.Element => {
   const [showDebug, setShowDebug] = useState(0);
@@ -48,9 +45,8 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
 
   const isLoading = Object.keys(loadingKeys).length > 0;
   const numberOfLeftButtons = (showBackButton ? 1 : 0) + (isLoading ? 1 : 0);
-  const numberOfRightButtons = (props.rightButtons?.length ?? 0) + (props.helpContent || props.helpTourId ? 1 : 0);
+  const numberOfRightButtons = (props.rightButtons?.length ?? 0) + (props.helpKey || props.helpTourId ? 1 : 0);
   const numberOfButtons = Math.max(numberOfLeftButtons, numberOfRightButtons);
-  const [shouldShowModalHelp, setShouldShowModalHelp] = useState(false);
 
   return (
     <>
@@ -100,7 +96,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
         />
         <View className="flex-row items-center justify-end" style={{ minWidth: numberOfButtons * 40 }}>
           {props.rightButtons}
-          {(props.helpTourId || (props.helpContent && isWeb)) && (
+          {(props.helpTourId || props.helpKey) && (
             <Pressable
               className="p-2"
               onPress={() => {
@@ -110,8 +106,8 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
                     [lb<IState>().p("tour").record({ id: props.helpTourId, enforced: true })],
                     "Start tour from navbar"
                   );
-                } else {
-                  setShouldShowModalHelp(true);
+                } else if (props.helpKey) {
+                  navigationRef.navigate("helpModal", { helpKey: props.helpKey });
                 }
               }}
             >
@@ -149,24 +145,6 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
           </View>
         )}
       </View>
-      {props.helpContent && isWeb && (
-        <Modal
-          isHidden={!shouldShowModalHelp}
-          onClose={() => setShouldShowModalHelp(false)}
-          shouldShowClose={true}
-          isFullWidth
-        >
-          <View className="text-sm">
-            {props.helpContent}
-            <View className="w-full h-0 mt-4 mb-2 border-b border-border-neutral" />
-            <Text className="text-sm text-text-secondary">
-              If you still have questions, or if you encountered a bug, have a feature idea, or just want to share some
-              feedback - don't hesitate to <Link href="mailto:info@liftosaur.com">contact us</Link>! Or join our{" "}
-              <Link href="https://discord.com/invite/AAh3cvdBRs">Discord server</Link> and ask your question there.
-            </Text>
-          </View>
-        </Modal>
-      )}
     </>
   );
 };

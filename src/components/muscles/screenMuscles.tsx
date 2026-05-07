@@ -5,18 +5,19 @@ import { ISettings } from "../../types";
 import { MusclesView } from "./musclesView";
 import { useNavOptions } from "../../navigation/useNavOptions";
 import { INavCommon } from "../../models/state";
+import type { IHelpKey } from "../help/helpRegistry";
 
 interface IProps {
   dispatch: IDispatch;
   title: string;
-  helpContent: JSX.Element;
+  helpKey: IHelpKey;
   points: IPoints;
   settings: ISettings;
   navCommon: INavCommon;
 }
 
 export function ScreenMuscles(props: IProps): JSX.Element {
-  useNavOptions({ navTitle: "Muscles Map", navSubtitle: props.title, navHelpContent: props.helpContent });
+  useNavOptions({ navTitle: "Muscles Map", navSubtitle: props.title, navHelpKey: props.helpKey });
 
   return <MusclesView title={props.title} points={props.points} settings={props.settings} />;
 }

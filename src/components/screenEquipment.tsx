@@ -10,7 +10,6 @@ import { ILensRecordingPayload, lb } from "lens-shmens";
 import { ObjectUtils_keys } from "../utils/object";
 import { equipmentName } from "../models/exercise";
 import { useNavOptions } from "../navigation/useNavOptions";
-import { HelpPlates } from "./help/helpPlates";
 import { MenuItemEditable } from "./menuItemEditable";
 import { LinkButton } from "./linkButton";
 import { Thunk_pushScreen } from "../ducks/thunks";
@@ -69,7 +68,7 @@ export function ScreenEquipment(props: IProps): JSX.Element {
     );
   }, []);
 
-  useNavOptions({ navTitle: "Equipment Settings", navHelpContent: <HelpPlates /> });
+  useNavOptions({ navTitle: "Equipment Settings", navHelpKey: "plates" });
 
   const selectedGym = props.settings.gyms.find((g) => g.id === props.selectedGymId) ?? props.settings.gyms[0];
   const lensDispatch = useMemo(() => buildLensDispatch(props.dispatch), [props.dispatch]);

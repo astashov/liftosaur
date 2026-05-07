@@ -4,7 +4,6 @@ import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, IProgram, ISettings } from "../types";
 import { ExercisesList } from "./exercisesList";
 import { Program_fullProgram } from "../models/program";
-import { HelpExercises } from "./help/helpExercises";
 import { INavCommon } from "../models/state";
 import { useNavOptions } from "../navigation/useNavOptions";
 
@@ -17,7 +16,7 @@ interface IProps {
 }
 
 export function ScreenExercises(props: IProps): JSX.Element {
-  useNavOptions({ navTitle: "Exercises", navHelpContent: <HelpExercises /> });
+  useNavOptions({ navTitle: "Exercises", navHelpKey: "exercises" });
 
   return (
     <View className="px-4">

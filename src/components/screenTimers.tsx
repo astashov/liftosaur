@@ -6,7 +6,6 @@ import { MenuItemEditable } from "./menuItemEditable";
 import { ISettingsTimers, ISettings } from "../types";
 import { INavCommon } from "../models/state";
 import { useNavOptions } from "../navigation/useNavOptions";
-import { HelpTimers } from "./help/helpTimers";
 import { GroupHeader } from "./groupHeader";
 import {
   SendMessage_isIos,
@@ -30,7 +29,7 @@ export function ScreenTimers(props: IProps): JSX.Element {
     };
   };
 
-  useNavOptions({ navTitle: "Rest Timers", navHelpContent: <HelpTimers /> });
+  useNavOptions({ navTitle: "Rest Timers", navHelpKey: "timers" });
 
   return (
     <View className="px-4">

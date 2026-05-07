@@ -5,6 +5,7 @@ import { NavbarView } from "../components/navbar";
 import { useAppState } from "./StateContext";
 import { buildNavCommon } from "./utils";
 import type { ITourId } from "../models/state";
+import type { IHelpKey } from "../components/help/helpRegistry";
 
 export interface INavHeaderOptions {
   navTitle?: ReactNode;
@@ -13,7 +14,7 @@ export interface INavHeaderOptions {
   navOnBack?: () => boolean;
   navOnTitleClick?: () => void;
   navHelpTourId?: ITourId;
-  navHelpContent?: ReactNode;
+  navHelpKey?: IHelpKey;
   navHidden?: boolean;
   navIsScrolled?: boolean;
 }
@@ -51,7 +52,7 @@ export function NavHeader(props: IHeaderProps): JSX.Element | null {
         onBack={options.navOnBack}
         onTitleClick={options.navOnTitleClick}
         helpTourId={options.navHelpTourId}
-        helpContent={options.navHelpContent}
+        helpKey={options.navHelpKey}
       />
     </View>
   );

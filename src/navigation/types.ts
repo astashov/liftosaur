@@ -8,6 +8,7 @@ import type {
   IShortDayData,
   IStatsKey,
 } from "../types";
+import type { IHelpKey } from "../components/help/helpRegistry";
 
 export type IHomeStackParamList = {
   main: { historyRecordId?: number } | undefined;
@@ -160,6 +161,7 @@ export type IRootStackParamList = {
   exerciseMusclesPickerModal: undefined;
   exercisePickerSettingsModal: undefined;
   photoPickerModal: undefined;
+  helpModal: { helpKey: IHelpKey };
 };
 
 export type IRootLevelScreenParamList = {

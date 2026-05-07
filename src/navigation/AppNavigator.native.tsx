@@ -104,6 +104,7 @@ import { NavModalEditUpdateScript } from "./modals/NavModalEditUpdateScript";
 import { NavModalWorkoutShare } from "./modals/NavModalWorkoutShare";
 import { NavModalSocialShare } from "./modals/NavModalSocialShare";
 import { NavModalPhotoPicker } from "./modals/NavModalPhotoPicker";
+import { NavModalHelp } from "./modals/NavModalHelp";
 import { NavHeader } from "./NavHeader";
 
 const OnboardingStack = createNativeStackNavigator<IOnboardingStackParamList>();
@@ -389,6 +390,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
             />
             <RootStack.Screen name="photoPickerModal" component={NavModalPhotoPicker} />
             <RootStack.Screen name="tourModal" component={NavModalTour} />
+            <RootStack.Screen name="helpModal" component={NavModalHelp} options={{ sheetAllowedDetents: [0.85] }} />
           </RootStack.Group>
         </RootStack.Navigator>
       </CustomKeyboardProvider>

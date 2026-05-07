@@ -4,7 +4,6 @@ import { Muscle_normalizePoints, Muscle_getPointsForProgram } from "../../models
 import { ScreenMuscles } from "./screenMuscles";
 import { ISettings, IProgram } from "../../types";
 import { INavCommon } from "../../models/state";
-import { HelpMuscles } from "../help/helpMuscles";
 import { Program_evaluate } from "../../models/program";
 
 interface IProps {
@@ -26,7 +25,7 @@ export function ScreenMusclesProgram(props: IProps): JSX.Element {
       points={points}
       navCommon={props.navCommon}
       title={props.program.name}
-      helpContent={<HelpMuscles />}
+      helpKey="muscles"
     />
   );
 }

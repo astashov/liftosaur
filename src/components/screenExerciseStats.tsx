@@ -31,7 +31,6 @@ import { GraphExercise } from "./graphExercise";
 import { Collector } from "../utils/collector";
 import { Locker } from "./locker";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
-import { HelpExerciseStats } from "./help/helpExerciseStats";
 import { ExerciseDataSettings } from "./exerciseDataSettings";
 import { LinkButton } from "./linkButton";
 import { Thunk_pullScreen } from "../ducks/thunks";
@@ -84,7 +83,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
   const containerRef = useRef<{ clientHeight?: number }>(null);
   const showPrs = maxWeight.value > 0 || max1RM.value > 0;
 
-  useNavOptions({ navTitle: "Exercise Stats", navHelpContent: <HelpExerciseStats /> });
+  useNavOptions({ navTitle: "Exercise Stats", navHelpKey: "exerciseStats" });
 
   return (
     <View className="px-4">

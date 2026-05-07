@@ -11,7 +11,6 @@ import { getLengthDataForGraph, getPercentageDataForGraph, getWeightDataForGraph
 import { INavCommon } from "../models/state";
 import { useNavOptions } from "../navigation/useNavOptions";
 import { IconFilter } from "./icons/iconFilter";
-import { HelpGraphs } from "./help/helpGraphs";
 import { Collector } from "../utils/collector";
 import { GraphMuscleGroup } from "./graphMuscleGroup";
 import { CollectionUtils_sort } from "../utils/collection";
@@ -78,7 +77,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
 
   useNavOptions({
     navTitle: "Graphs",
-    navHelpContent: <HelpGraphs />,
+    navHelpKey: "graphs",
     navRightButtons: [
       <Pressable
         key="filter"

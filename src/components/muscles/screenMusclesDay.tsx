@@ -4,7 +4,6 @@ import { Muscle_normalizePoints, Muscle_getPointsForDay } from "../../models/mus
 import { ScreenMuscles } from "./screenMuscles";
 import { ISettings, IProgram } from "../../types";
 import { INavCommon } from "../../models/state";
-import { HelpMusclesDay } from "../help/helpMusclesDay";
 import { Program_evaluate, Program_getProgramDay } from "../../models/program";
 
 interface IProps {
@@ -31,7 +30,7 @@ export function ScreenMusclesDay(props: IProps): JSX.Element {
       settings={props.settings}
       points={points}
       title={programDay.name}
-      helpContent={<HelpMusclesDay />}
+      helpKey="musclesDay"
     />
   );
 }

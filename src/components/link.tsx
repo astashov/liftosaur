@@ -1,6 +1,7 @@
 import { JSX, ReactNode } from "react";
-import { Linking } from "react-native";
+import { Linking, Alert } from "react-native";
 import { Text } from "./primitives/text";
+import { ClipboardUtils_copy } from "../utils/clipboard";
 import {
   SendMessage_isIos,
   SendMessage_isAndroid,
@@ -31,7 +32,13 @@ export function Link(props: IProps): JSX.Element {
         } else if (SendMessage_isAndroid()) {
           SendMessage_toAndroid({ type: "openUrl", url: href });
         } else {
-          Linking.openURL(href);
+          Linking.openURL(href).catch(() => {
+            if (href.startsWith("mailto:")) {
+              const email = href.replace(/^mailto:/, "").split("?")[0];
+              ClipboardUtils_copy(email);
+              Alert.alert("Email copied", `${email} was copied to your clipboard.`);
+            }
+          });
         }
       }}
     >

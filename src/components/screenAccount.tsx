@@ -14,7 +14,6 @@ import {
 import { INavCommon } from "../models/state";
 import { useNavOptions } from "../navigation/useNavOptions";
 import { Button } from "./button";
-import { HelpAccount } from "./help/helpAccount";
 import { IAccount, Account_getAll } from "../models/account";
 import { IPartialStorage } from "../types";
 import { GroupHeader } from "./groupHeader";
@@ -73,7 +72,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
     }
   }, []);
 
-  useNavOptions({ navTitle: "Account", navHelpContent: <HelpAccount /> });
+  useNavOptions({ navTitle: "Account", navHelpKey: "account" });
 
   const googleShadow = Platform.select({
     ios: { shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 4 },

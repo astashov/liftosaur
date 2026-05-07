@@ -21,7 +21,6 @@ import { ImporterStorage } from "./importerStorage";
 import { ImporterProgram } from "./importerProgram";
 import { useNavOptions } from "../navigation/useNavOptions";
 import { GroupHeader } from "./groupHeader";
-import { HelpSettings } from "./help/helpSettings";
 import { StringUtils_truncate } from "../utils/string";
 import { IconDiscord } from "./icons/iconDiscord";
 import {
@@ -78,7 +77,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
     }
   }, []);
 
-  useNavOptions({ navTitle: "Me", navHelpContent: <HelpSettings /> });
+  useNavOptions({ navTitle: "Me", navHelpKey: "settings" });
 
   return (
     <View className="px-4">

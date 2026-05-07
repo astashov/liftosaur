@@ -117,6 +117,7 @@ import { NavModalExerciseImageLibrary } from "./modals/NavModalExerciseImageLibr
 import { NavModalExerciseCloneLibrary } from "./modals/NavModalExerciseCloneLibrary";
 import { NavModalExerciseTypesPicker } from "./modals/NavModalExerciseTypesPicker";
 import { NavModalExerciseMusclesPicker } from "./modals/NavModalExerciseMusclesPicker";
+import { NavModalHelp } from "./modals/NavModalHelp";
 
 const OnboardingStack = createStackNavigator<IOnboardingStackParamList>();
 const HomeStack = createStackNavigator<IHomeStackParamList>();
@@ -358,6 +359,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="exerciseCloneLibraryModal" component={NavModalExerciseCloneLibrary} />
           <RootStack.Screen name="exerciseTypesPickerModal" component={NavModalExerciseTypesPicker} />
           <RootStack.Screen name="exerciseMusclesPickerModal" component={NavModalExerciseMusclesPicker} />
+          <RootStack.Screen name="helpModal" component={NavModalHelp} />
         </RootStack.Group>
       </RootStack.Navigator>
     </InitialScreenContext.Provider>
