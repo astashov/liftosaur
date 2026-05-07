@@ -486,6 +486,50 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
     return false;
   }, []);
 
+  const handleDocumentClick = useCallback((target: HTMLElement | null): void => {
+    lg("kbd-doc-click-fired", {
+      sid: debugSessionRef.current,
+      focused: isFocusedRef.current ? 1 : 0,
+      tag: (target?.tagName ?? "null").toLowerCase(),
+      cls: (target?.className?.toString() ?? "").slice(0, 60),
+    });
+    if (!isFocusedRef.current) {
+      return;
+    }
+    if (target == null) {
+      return;
+    }
+    let cur: HTMLElement | null = target;
+    let foundOtherInput: HTMLElement | null = null;
+    let foundKeyboardClose = false;
+    let foundContainer = false;
+    while (cur) {
+      if (cur === containerRef.current || cur === keyboardRef.current) {
+        foundContainer = true;
+        break;
+      }
+      if (cur.classList?.contains("keyboard-close")) {
+        foundKeyboardClose = true;
+        break;
+      }
+      if (cur.classList?.contains("input-number") && cur !== containerRef.current) {
+        foundOtherInput = cur;
+        break;
+      }
+      if (cur === document.body) {
+        break;
+      }
+      cur = cur.parentElement;
+    }
+    lg("kbd-doc-click", {
+      sid: debugSessionRef.current,
+      tag: (target.tagName ?? "null").toLowerCase(),
+      switch: foundOtherInput ? 1 : 0,
+      kbdClose: foundKeyboardClose ? 1 : 0,
+      inside: foundContainer ? 1 : 0,
+    });
+  }, []);
+
   useEffect(() => {
     const touchHandler = (event: TouchEvent): void => {
       if (isCalculatorOpenRef.current) {
@@ -503,13 +547,22 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
       onClickTarget.current = target;
       commitValueIfOutside(target, "mousedown");
     };
+    const clickHandler = (event: MouseEvent): void => {
+      if (isCalculatorOpenRef.current) {
+        return;
+      }
+      const target = (event.target || event.currentTarget) as HTMLElement | null;
+      handleDocumentClick(target);
+    };
     document.addEventListener("touchstart", touchHandler);
     document.addEventListener("mousedown", mouseHandler);
+    document.addEventListener("click", clickHandler, true);
     return () => {
       document.removeEventListener("touchstart", touchHandler);
       document.removeEventListener("mousedown", mouseHandler);
+      document.removeEventListener("click", clickHandler, true);
     };
-  }, [commitValueIfOutside]);
+  }, [commitValueIfOutside, handleDocumentClick]);
 
   return (
     <div ref={containerRef} className="input-number">
