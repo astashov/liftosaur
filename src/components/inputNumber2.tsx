@@ -10,17 +10,6 @@ import { useModal } from "../navigation/ModalStateContext";
 import { IconBackspace } from "./icons/iconBackspace";
 import { lg } from "../utils/posthog";
 
-function activeElementInfo(prefix: string): Record<string, string | number> {
-  if (typeof document === "undefined") {
-    return {};
-  }
-  const el = document.activeElement as HTMLElement | null;
-  return {
-    [`${prefix}Tag`]: (el?.tagName ?? "null").toLowerCase(),
-    [`${prefix}Cls`]: (el?.className?.toString() ?? "").slice(0, 60),
-  };
-}
-
 export type IInputCommitMode = "live" | "debounced" | "blur";
 
 interface IInputNumber2Props {
@@ -157,6 +146,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
     padOwnerIdRef.current = nextPadOwnerId;
   }
   const debugSessionRef = useRef<number>(0);
+  const outsideTouchCountRef = useRef<number>(0);
 
   function resetKeyboardStyles(): void {
     if (activePadOwnerId !== padOwnerIdRef.current) {
@@ -185,44 +175,6 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
     valueRef.current = initialValue;
     setValue(initialValue);
   }, [props.value]);
-
-  useEffect(() => {
-    const focusableDiv = containerRef.current?.firstElementChild as HTMLElement | null;
-    if (!focusableDiv) {
-      return;
-    }
-    const handleNativeBlur = (event: FocusEvent): void => {
-      lg("kbd-native-blur", {
-        sid: debugSessionRef.current,
-        related: ((event.relatedTarget as HTMLElement | null)?.tagName ?? "null").toLowerCase(),
-        ...activeElementInfo("active"),
-      });
-    };
-    focusableDiv.addEventListener("blur", handleNativeBlur);
-    return () => focusableDiv.removeEventListener("blur", handleNativeBlur);
-  }, []);
-
-  useEffect(() => {
-    if (typeof document === "undefined") {
-      return;
-    }
-    const handleFocusOut = (event: FocusEvent): void => {
-      if (!isFocusedRef.current) {
-        return;
-      }
-      const focusableDiv = containerRef.current?.firstElementChild as HTMLElement | null;
-      if (event.target !== focusableDiv) {
-        return;
-      }
-      lg("kbd-doc-focusout", {
-        sid: debugSessionRef.current,
-        related: ((event.relatedTarget as HTMLElement | null)?.tagName ?? "null").toLowerCase(),
-        ...activeElementInfo("active"),
-      });
-    };
-    document.addEventListener("focusout", handleFocusOut);
-    return () => document.removeEventListener("focusout", handleFocusOut);
-  }, []);
 
   useEffect(() => {
     isFocusedRef.current = isFocused;
@@ -285,7 +237,20 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
 
   const blur = useCallback(
     (debugCaller: string = "unknown") => {
+      if (!isFocusedRef.current) {
+        return;
+      }
+      isFocusedRef.current = false;
       lg("kbd-blur-applied", { caller: debugCaller, sid: debugSessionRef.current });
+      const closedViaKbdClose = debugCaller === "keyboard-close-button" || debugCaller === "maybeBlur-keyboard-close";
+      if (closedViaKbdClose && outsideTouchCountRef.current >= 2) {
+        lg("kbd-frustration-close", {
+          sid: debugSessionRef.current,
+          outsideTaps: outsideTouchCountRef.current,
+          caller: debugCaller,
+        });
+      }
+      outsideTouchCountRef.current = 0;
       cancelPendingInput();
       setIsFocused(false);
       setIsTyping(false);
@@ -301,48 +266,21 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
     [cancelPendingInput]
   );
 
-  const commitValueIfOutside = useCallback((target: HTMLElement | null, eventType: string): void => {
-    if (!isFocusedRef.current || !isTypingRef.current) {
-      return;
+  const isTargetOutside = useCallback((target: HTMLElement | null): boolean => {
+    if (!isFocusedRef.current) {
+      return false;
     }
-    let reachedBody = false;
     let cur: HTMLElement | null = target;
     while (cur) {
       if (cur === containerRef.current || cur === keyboardRef.current) {
-        return;
+        return false;
       }
       if (cur === document.body) {
-        reachedBody = true;
-        break;
+        return true;
       }
       cur = cur.parentElement;
     }
-    const sid = debugSessionRef.current;
-    const tag = (target?.tagName ?? "null").toLowerCase();
-    const cls = (target?.className?.toString() ?? "").slice(0, 60);
-    lg("kbd-outside-commit", {
-      sid,
-      ev: eventType,
-      tag,
-      cls,
-      reachedBody: reachedBody ? 1 : 0,
-      ...activeElementInfo("active"),
-    });
-    setTimeout(() => {
-      if (isFocusedRef.current && debugSessionRef.current === sid) {
-        lg("kbd-stuck-open", { sid, ev: eventType, tag, cls, ...activeElementInfo("active") });
-      }
-    }, 250);
-    if (debounceTimerRef.current != null) {
-      clearTimeout(debounceTimerRef.current);
-      debounceTimerRef.current = null;
-    }
-    hasPendingInputRef.current = false;
-    pendingInputRef.current = undefined;
-    const newValueNum = clamp(valueRef.current, props.min, props.max);
-    if (onBlurRef.current) {
-      onBlurRef.current(newValueNum);
-    }
+    return true;
   }, []);
 
   useEffect(() => {
@@ -476,68 +414,52 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
       }
       return true;
     } else if (!foundCurrentInput) {
-      lg("kbd-maybeBlur-outside", {
-        sid: debugSessionRef.current,
-        reachedBody: reachedBody ? 1 : 0,
-      });
       blur(reachedBody ? "maybeBlur-outside" : "maybeBlur-detached");
       return true;
     }
     return false;
   }, []);
 
-  const handleDocumentClick = useCallback((target: HTMLElement | null): void => {
-    lg("kbd-doc-click-fired", {
-      sid: debugSessionRef.current,
-      focused: isFocusedRef.current ? 1 : 0,
-      tag: (target?.tagName ?? "null").toLowerCase(),
-      cls: (target?.className?.toString() ?? "").slice(0, 60),
-    });
-    if (!isFocusedRef.current) {
-      return;
-    }
-    if (target == null) {
-      return;
-    }
-    let cur: HTMLElement | null = target;
-    let foundOtherInput: HTMLElement | null = null;
-    let foundKeyboardClose = false;
-    let foundContainer = false;
-    while (cur) {
-      if (cur === containerRef.current || cur === keyboardRef.current) {
-        foundContainer = true;
-        break;
-      }
-      if (cur.classList?.contains("keyboard-close")) {
-        foundKeyboardClose = true;
-        break;
-      }
-      if (cur.classList?.contains("input-number") && cur !== containerRef.current) {
-        foundOtherInput = cur;
-        break;
-      }
-      if (cur === document.body) {
-        break;
-      }
-      cur = cur.parentElement;
-    }
-    lg("kbd-doc-click", {
-      sid: debugSessionRef.current,
-      tag: (target.tagName ?? "null").toLowerCase(),
-      switch: foundOtherInput ? 1 : 0,
-      kbdClose: foundKeyboardClose ? 1 : 0,
-      inside: foundContainer ? 1 : 0,
-    });
-  }, []);
-
   useEffect(() => {
+    let armedFinish: (() => void) | null = null;
+    const armDeferredBlur = (target: HTMLElement): void => {
+      if (armedFinish) return;
+      let done = false;
+      const finish = (viaFallback: boolean): void => {
+        if (done) return;
+        done = true;
+        document.removeEventListener("click", onClick, true);
+        clearTimeout(fallbackTimer);
+        armedFinish = null;
+        if (viaFallback && isFocusedRef.current) {
+          lg("kbd-click-suppressed", {
+            sid: debugSessionRef.current,
+            tag: (target.tagName ?? "null").toLowerCase(),
+            cls: (target.className?.toString() ?? "").slice(0, 60),
+          });
+        }
+        if (isFocusedRef.current) {
+          maybeBlur(target);
+        }
+      };
+      armedFinish = () => finish(false);
+      const onClick = (): void => {
+        requestAnimationFrame(() => finish(false));
+      };
+      document.addEventListener("click", onClick, true);
+      const fallbackTimer = setTimeout(() => finish(true), 250);
+    };
+
     const touchHandler = (event: TouchEvent): void => {
       if (isCalculatorOpenRef.current) {
         return;
       }
       const target = (event.target || event.currentTarget) as HTMLElement;
       onClickTarget.current = target;
-      commitValueIfOutside(target, "touchstart");
+      if (isTargetOutside(target)) {
+        outsideTouchCountRef.current += 1;
+        armDeferredBlur(target);
+      }
     };
     const mouseHandler = (event: MouseEvent): void => {
       if (isCalculatorOpenRef.current) {
@@ -545,24 +467,18 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
       }
       const target = (event.target || event.currentTarget) as HTMLElement;
       onClickTarget.current = target;
-      commitValueIfOutside(target, "mousedown");
-    };
-    const clickHandler = (event: MouseEvent): void => {
-      if (isCalculatorOpenRef.current) {
-        return;
+      if (isTargetOutside(target)) {
+        armDeferredBlur(target);
       }
-      const target = (event.target || event.currentTarget) as HTMLElement | null;
-      handleDocumentClick(target);
     };
     document.addEventListener("touchstart", touchHandler);
     document.addEventListener("mousedown", mouseHandler);
-    document.addEventListener("click", clickHandler, true);
     return () => {
       document.removeEventListener("touchstart", touchHandler);
       document.removeEventListener("mousedown", mouseHandler);
-      document.removeEventListener("click", clickHandler, true);
+      armedFinish?.();
     };
-  }, [commitValueIfOutside, handleDocumentClick]);
+  }, [isTargetOutside, maybeBlur]);
 
   return (
     <div ref={containerRef} className="input-number">
@@ -578,14 +494,9 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
           setIsFocused(true);
         }}
         onBlur={(event) => {
-          const sid = debugSessionRef.current;
-          const relatedTag = ((event.relatedTarget as HTMLElement | null)?.tagName ?? "null").toLowerCase();
-          const clickTag = (onClickTarget.current?.tagName ?? "null").toLowerCase();
-          lg("kbd-input-onblur", { sid, related: relatedTag, click: clickTag });
           setTimeout(() => {
             const target = (event.relatedTarget || onClickTarget.current) as HTMLElement | null;
             const result = maybeBlur(target);
-            lg("kbd-input-onblur-after", { sid, result: result ? 1 : 0 });
             if (!result) {
               const currentTarget = event.currentTarget || event.target;
               event.preventDefault();

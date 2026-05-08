@@ -117,6 +117,7 @@ function EventView(props: IEventViewProps): JSX.Element | null {
           <span className="text-text-success">W </span>
         )}
         {event.iOSVersion && <span className="text-text-secondary">A{event.iOSVersion} </span>}
+        {event.iOSOSVersion && <span className="text-text-secondary">V{event.iOSOSVersion} </span>}
         {event.androidVersion && <span className="text-text-secondary">G{event.androidVersion} </span>}
         <span className="text-xs text-text-secondary">{event.commithash?.slice(0, 4)} </span>
         <span className="text-text-secondary">{time}</span>: <span className="">{event.name}</span>
