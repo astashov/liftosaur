@@ -225,6 +225,18 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
     }
   }, [isNavReady, state.tour]);
 
+  const showCorruptedState = state.errors.corruptedstorage != null;
+  const prevShowCorruptedState = useRef(false);
+  useEffect(() => {
+    if (!isNavReady) {
+      return;
+    }
+    if (showCorruptedState && !prevShowCorruptedState.current) {
+      navigationRef.navigate("corruptedStateModal");
+    }
+    prevShowCorruptedState.current = showCorruptedState;
+  }, [isNavReady, showCorruptedState]);
+
   useEffect(() => {
     if (!isNavReady || !currentScreenName) {
       return;

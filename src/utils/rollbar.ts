@@ -3,6 +3,11 @@ import { Service } from "../api/service";
 import { IState } from "../models/state";
 import { UidFactory_generateUid } from "./generator";
 import { Encoder_encode } from "./encoder";
+import {
+  Diagnostics_getLastActions,
+  Diagnostics_getLastState,
+  Diagnostics_getLastValidationErrors,
+} from "./diagnostics";
 
 declare let __ENV__: string;
 declare let __FULL_COMMIT_HASH__: string;
@@ -112,12 +117,14 @@ export function RollbarUtils_config(payload?: object): RB.Configuration {
       pld.lftIosVersion = window.lftIosVersion;
       pld.lftIosAppVersion = window.lftIosAppVersion;
       pld.lftSystemDarkMode = window.lftSystemDarkMode;
-      const state = window.reducerLastState ?? window.state;
+      const state = Diagnostics_getLastState() ?? window.state;
+      const lastActions = Diagnostics_getLastActions();
+      const validationErrors = Diagnostics_getLastValidationErrors();
       const data = {
         userid: pld.person?.id ?? window.tempUserId,
         lastState: state ? JSON.stringify(state) : undefined,
-        lastActions: window.reducerLastActions ? JSON.stringify(window.reducerLastActions) : undefined,
-        validationErrors: window.lastValidationErrors ? JSON.stringify(window.lastValidationErrors) : undefined,
+        lastActions: lastActions.length > 0 ? JSON.stringify(lastActions) : undefined,
+        validationErrors: validationErrors ? JSON.stringify(validationErrors) : undefined,
       };
       console.log("Sending exception", data);
       const compressed = await Encoder_encode(JSON.stringify(data));

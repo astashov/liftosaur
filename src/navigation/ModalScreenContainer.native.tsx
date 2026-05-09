@@ -26,6 +26,7 @@ export function ModalScreenContainer(props: IProps): JSX.Element {
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="interactive"
       automaticallyAdjustKeyboardInsets
+      nestedScrollEnabled
       scrollEnabled={!props.overlay}
     >
       {props.children}

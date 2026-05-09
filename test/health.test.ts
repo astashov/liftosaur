@@ -4,14 +4,26 @@ import sinon from "sinon";
 import { Platform } from "react-native";
 import { lb } from "lens-shmens";
 import { SyncTestUtils_initTheApp, SyncTestUtils_mockDispatch } from "./utils/syncTestUtils";
-import { Thunk_saveMeasurementsToHealth, Thunk_saveWorkoutToHealth, Thunk_syncHealthKit } from "../src/ducks/thunks";
+import {
+  Thunk_requestHealthPermissions,
+  Thunk_saveMeasurementsToHealth,
+  Thunk_saveWorkoutToHealth,
+  Thunk_syncHealthKit,
+} from "../src/ducks/thunks";
 import { HealthIosAnchors_decode, HealthIosAnchors_encode } from "../src/utils/healthIosAnchors";
 import { HEALTH_ANDROID_PACKAGE_NAME, HealthAndroidFilter_isSelfOrigin } from "../src/utils/healthAndroidFilter";
 import { IEnv, IState } from "../src/models/state";
 import { IAction } from "../src/ducks/reducer";
 import { MockReducer } from "./utils/mockReducer";
+import { MockFetch } from "./utils/mockFetch";
 import * as encoder from "../src/utils/encoder";
 import { NodeEncoder_encode } from "../lambda/utils/nodeEncoder";
+
+function postedEventNames(mockFetch: MockFetch): string[] {
+  return mockFetch.logs
+    .filter((l) => l.request.url.includes("/api/event"))
+    .map((l) => (l.request.body as { name?: string }).name ?? "");
+}
 
 describe("Health", () => {
   let sandbox: sinon.SinonSandbox;
@@ -278,6 +290,66 @@ describe("Health", () => {
     expect(HealthAndroidFilter_isSelfOrigin({})).to.equal(false);
     expect(HealthAndroidFilter_isSelfOrigin(null)).to.equal(false);
     expect(HealthAndroidFilter_isSelfOrigin(undefined)).to.equal(false);
+  });
+
+  it("saveWorkoutToHealth: emits submit/storing/success postevents on success", async () => {
+    setIosPlatform();
+    const { mockReducer, mockFetch } = await SyncTestUtils_initTheApp("rn_ios_evt_ok");
+    await enableAppleHealth(mockReducer);
+
+    await mockReducer.run([
+      Thunk_saveWorkoutToHealth({
+        startMs: 1700000000000,
+        endMs: 1700000003600,
+        calories: 250,
+        intervals: [[1700000000000, 1700000001000]],
+      }),
+    ]);
+
+    const events = postedEventNames(mockFetch);
+    expect(events).to.include("submit-workout-apple-health");
+    expect(events).to.include("storing-workout-to-apple-health");
+    expect(events).to.include("success-workout-apple-health");
+    expect(events).to.not.include("fail-workout-apple-health");
+  });
+
+  it("saveWorkoutToHealth: emits fail postevent on adapter rejection (android)", async () => {
+    setAndroidPlatform();
+    const { mockReducer, mockFetch, healthAdapter } = await SyncTestUtils_initTheApp("rn_and_evt_fail");
+    await enableGoogleHealth(mockReducer);
+    sinon.stub(healthAdapter, "saveWorkout").rejects(new Error("permission denied"));
+
+    await mockReducer.run([
+      Thunk_saveWorkoutToHealth({
+        startMs: 1,
+        endMs: 2,
+        calories: 0,
+        intervals: [],
+      }),
+    ]);
+
+    const events = postedEventNames(mockFetch);
+    expect(events).to.include("submit-workout-google-health");
+    expect(events).to.include("fail-workout-google-health");
+    expect(events).to.not.include("success-workout-google-health");
+  });
+
+  it("Thunk_requestHealthPermissions: invokes adapter requestPermissions", async () => {
+    setAndroidPlatform();
+    const { mockReducer, healthAdapter } = await SyncTestUtils_initTheApp("rn_and_perm_req");
+
+    await mockReducer.run([Thunk_requestHealthPermissions()]);
+
+    expect(healthAdapter.requestPermissionsCalls).to.equal(1);
+  });
+
+  it("Thunk_requestHealthPermissions: swallows adapter rejection", async () => {
+    setAndroidPlatform();
+    const { mockReducer, healthAdapter } = await SyncTestUtils_initTheApp("rn_and_perm_req_fail");
+    sinon.stub(healthAdapter, "requestPermissions").rejects(new Error("user-cancel"));
+
+    await mockReducer.run([Thunk_requestHealthPermissions()]);
+    // no assertion needed — completing without unhandled rejection is the test
   });
 
   it("syncMeasurements: dedupes against existing stats by timestamp", async () => {

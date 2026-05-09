@@ -394,9 +394,17 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
             <RootStack.Screen name="photoPickerModal" component={NavModalPhotoPicker} />
             <RootStack.Screen name="tourModal" component={NavModalTour} />
             <RootStack.Screen name="helpModal" component={NavModalHelp} options={{ sheetAllowedDetents: [0.85] }} />
-            <RootStack.Screen name="affiliateModal" component={NavModalAffiliate} />
+            <RootStack.Screen
+              name="affiliateModal"
+              component={NavModalAffiliate}
+              options={{ sheetAllowedDetents: [0.9] }}
+            />
             <RootStack.Screen name="couponModal" component={NavModalCoupon} />
-            <RootStack.Screen name="corruptedStateModal" component={NavModalCorruptedState} />
+            <RootStack.Screen
+              name="corruptedStateModal"
+              component={NavModalCorruptedState}
+              options={{ gestureEnabled: false }}
+            />
           </RootStack.Group>
         </RootStack.Navigator>
       </CustomKeyboardProvider>

@@ -16,6 +16,7 @@ import { IHistoryRecord, IStorage, THistoryRecord, TStorage, IPartialStorage, ST
 import { CollectionUtils_groupByKeyUniq, CollectionUtils_compact } from "../utils/collection";
 import { IVersions, VersionTracker } from "./versionTracker";
 import { lg } from "../utils/posthog";
+import { Diagnostics_getLastActions, Diagnostics_setLastValidationErrors } from "../utils/diagnostics";
 
 declare let Rollbar: RB;
 
@@ -61,9 +62,9 @@ export function Storage_validateAndReport(
   const result = Storage_validate(data, type, name);
   if (!result.success) {
     const error = result.error;
-    lg("ls-corrupted-storage", { lastActions: JSON.stringify(window.reducerLastActions || []) });
-    if (Rollbar != null) {
-      window.lastValidationErrors = error;
+    lg("ls-corrupted-storage", { lastActions: JSON.stringify(Diagnostics_getLastActions()) });
+    Diagnostics_setLastValidationErrors(error);
+    if (typeof Rollbar !== "undefined" && Rollbar != null) {
       Rollbar.error(error.join("\n"), { state: JSON.stringify(data), type: name });
     }
     console.error(`Error decoding ${name}`);

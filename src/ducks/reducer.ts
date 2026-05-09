@@ -58,6 +58,7 @@ import { Thunk_sync2 } from "./thunks";
 import { CollectionUtils_uniqBy, CollectionUtils_compact } from "../utils/collection";
 import { Subscriptions_cleanupOutdatedGooglePurchaseTokens } from "../utils/subscriptions";
 import { UndoingFlag_set } from "../utils/undoingFlag";
+import { Diagnostics_getLastActions, Diagnostics_recordAction, Diagnostics_setLastState } from "../utils/diagnostics";
 import { Exercise_toKey } from "../models/exercise";
 import { NativeWorkoutBridge_discardWorkout } from "../utils/nativeWorkoutBridge";
 import { SendMessage_isIos } from "../utils/sendMessage";
@@ -359,7 +360,7 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
           lg("program-duplicate-ids", {
             programIds: JSON.stringify(newProgramIds),
             lastReducerActions: JSON.stringify(
-              (window.reducerLastActions || []).map((a) => [a.type, "desc" in a ? a.desc : undefined])
+              Diagnostics_getLastActions().map((a) => [a.type, "desc" in a ? a.desc : undefined])
             ),
           });
           const newPrograms = CollectionUtils_uniqBy(newState.storage.programs, "id");
@@ -497,33 +498,8 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
 export const reducerWrapper =
   (storeToLocalStorage: boolean): Reducer<IState, IAction> =>
   (state, action) => {
-    if (typeof window !== "undefined") {
-      window.reducerLastState = state;
-      window.reducerLastActions = [
-        { ...action, time: DateUtils_formatHHMMSS(Date.now(), true) },
-        ...(window.reducerLastActions || []).slice(0, 30),
-      ];
-      if (window.localStorage) {
-        const lastHistoryRecordStr = window.localStorage.getItem("lastHistoryRecord");
-        if (lastHistoryRecordStr) {
-          const { time, historyRecord } = JSON.parse(lastHistoryRecordStr);
-          const diffTime = Date.now() - time;
-          if (diffTime > 1000 * 10) {
-            window.localStorage.removeItem("lastHistoryRecord");
-            const fromHistory = state.storage.history.find((hr) => hr.id === historyRecord.id);
-            if (!fromHistory) {
-              lg("history-record-lost", {
-                lastActions: JSON.stringify(
-                  window.reducerLastActions.map((a) => [a.type, "desc" in a ? a.desc : undefined])
-                ),
-              });
-            } else {
-              lg("history-record-ok");
-            }
-          }
-        }
-      }
-    }
+    Diagnostics_setLastState(state);
+    Diagnostics_recordAction({ ...action, time: DateUtils_formatHHMMSS(Date.now(), true) });
     let newState = reducer(state, action);
     const isMergingStorage = isExternalStorageMerge(action);
     const t0Reducer = Date.now();
