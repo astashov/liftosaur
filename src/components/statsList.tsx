@@ -1,5 +1,7 @@
-import { JSX, useEffect, useState } from "react";
+import { JSX, memo as reactMemo, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { View, Pressable, TextInput, Image } from "react-native";
+import { NavScreenScrollContext } from "../navigation/NavScreenContent";
+import { useScrollProgressiveList } from "../utils/useScrollProgressiveList";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import {
@@ -78,7 +80,17 @@ export function StatsList(props: IProps): JSX.Element {
   ];
   const [selectedKey, setSelectedKey] = useState<IStatsKey>(props.initialKey || statsKeys[0] || "weight");
   const movingAverageWindowSize = props.settings.graphOptions[selectedKey]?.movingAverageWindowSize;
-  const values = getValues(props.stats, selectedKey);
+  const values = useMemo(() => getValues(props.stats, selectedKey), [props.stats, selectedKey]);
+  const { visibleItems: visibleValues, onScroll: onProgressiveScroll } = useScrollProgressiveList(values, {
+    batchSize: 10,
+  });
+  const navScrollCtx = useContext(NavScreenScrollContext);
+  useEffect(() => {
+    if (!navScrollCtx) {
+      return;
+    }
+    return navScrollCtx.addScrollListener(onProgressiveScroll);
+  }, [navScrollCtx, onProgressiveScroll]);
 
   if (statsKeys.length === 0) {
     return (
@@ -190,86 +202,101 @@ export function StatsList(props: IProps): JSX.Element {
       ) : (
         <>
           <GroupHeader name="List of measurements" topPadding={false} />
-          {values.map((value) => {
-            const convertedValue = Weight_is(value.value)
-              ? Weight_convertTo(value.value, props.settings.units)
-              : Length_is(value.value)
-                ? Length_convertTo(value.value, props.settings.lengthUnits)
-                : value.value;
-            const onChangeTimestamp = (ts: number): void => {
-              if (selectedKey === "weight") {
-                EditStats_changeStatWeightTimestamp(props.dispatch, selectedKey, value.index, ts);
-              } else if (selectedKey === "bodyfat") {
-                EditStats_changeStatPercentageTimestamp(props.dispatch, selectedKey, value.index, ts);
-              } else {
-                EditStats_changeStatLengthTimestamp(props.dispatch, selectedKey, value.index, ts);
-              }
-            };
-            const onChangeValue = (str: string): void => {
-              const num = parseFloat(str);
-              if (isNaN(num)) {
-                return;
-              }
-              if (selectedKey === "weight") {
-                EditStats_changeStatWeightValue(
-                  props.dispatch,
-                  selectedKey,
-                  value.index,
-                  Weight_build(num, props.settings.units)
-                );
-              } else if (selectedKey === "bodyfat") {
-                EditStats_changeStatPercentageValue(props.dispatch, selectedKey, value.index, {
-                  value: num,
-                  unit: "%",
-                });
-              } else {
-                EditStats_changeStatLengthValue(
-                  props.dispatch,
-                  selectedKey,
-                  value.index,
-                  Length_build(num, props.settings.lengthUnits)
-                );
-              }
-            };
-            return (
-              <MenuItemWrapper key={`${selectedKey}-${value.timestamp}`} name={`${selectedKey}-${value.timestamp}`}>
-                <View className="flex-row items-center">
-                  <View className="flex-1">
-                    <DatePicker testID="input-stats-date" value={value.timestamp} onChange={onChangeTimestamp} />
-                  </View>
-                  <View className="flex-row flex-1 items-center">
-                    <StatValueInput value={+convertedValue.value.toFixed(2)} onChange={onChangeValue} />
-                    <Text className="py-3 pl-1" data-testid="input-stats-unit">
-                      {units}
-                    </Text>
-                  </View>
-                  <Pressable
-                    className="p-3 nm-delete-stat"
-                    data-testid="delete-stat"
-                    testID="delete-stat"
-                    onPress={async () => {
-                      if (await Dialog_confirm("Are you sure?")) {
-                        if (selectedKey === "weight") {
-                          EditStats_deleteWeightStat(props.dispatch, selectedKey, value.index, value.timestamp);
-                        } else if (selectedKey === "bodyfat") {
-                          EditStats_deletePercentageStat(props.dispatch, selectedKey, value.index, value.timestamp);
-                        } else {
-                          EditStats_deleteLengthStat(props.dispatch, selectedKey, value.index, value.timestamp);
-                        }
-                      }
-                    }}
-                  >
-                    <IconTrash />
-                  </Pressable>
-                </View>
-              </MenuItemWrapper>
-            );
-          })}
+          {visibleValues.map((value) => (
+            <MeasurementRow
+              key={`${selectedKey}-${value.timestamp}`}
+              value={value}
+              selectedKey={selectedKey}
+              settings={props.settings}
+              units={units}
+              dispatch={props.dispatch}
+            />
+          ))}
         </>
       )}
     </View>
   );
 }
+
+interface IMeasurementRowProps {
+  value: IValue;
+  selectedKey: IStatsKey;
+  settings: ISettings;
+  units: string;
+  dispatch: IDispatch;
+}
+
+const MeasurementRow = reactMemo(function MeasurementRow(props: IMeasurementRowProps): JSX.Element {
+  const { value, selectedKey, settings, units, dispatch } = props;
+  const convertedValue = useMemo(() => {
+    return Weight_is(value.value)
+      ? Weight_convertTo(value.value, settings.units)
+      : Length_is(value.value)
+        ? Length_convertTo(value.value, settings.lengthUnits)
+        : value.value;
+  }, [value.value, settings.units, settings.lengthUnits]);
+
+  const onChangeTimestamp = useCallback(
+    (ts: number): void => {
+      if (selectedKey === "weight") {
+        EditStats_changeStatWeightTimestamp(dispatch, selectedKey, value.index, ts);
+      } else if (selectedKey === "bodyfat") {
+        EditStats_changeStatPercentageTimestamp(dispatch, selectedKey, value.index, ts);
+      } else {
+        EditStats_changeStatLengthTimestamp(dispatch, selectedKey, value.index, ts);
+      }
+    },
+    [dispatch, selectedKey, value.index]
+  );
+
+  const onChangeValue = useCallback(
+    (str: string): void => {
+      const num = parseFloat(str);
+      if (isNaN(num)) {
+        return;
+      }
+      if (selectedKey === "weight") {
+        EditStats_changeStatWeightValue(dispatch, selectedKey, value.index, Weight_build(num, settings.units));
+      } else if (selectedKey === "bodyfat") {
+        EditStats_changeStatPercentageValue(dispatch, selectedKey, value.index, { value: num, unit: "%" });
+      } else {
+        EditStats_changeStatLengthValue(dispatch, selectedKey, value.index, Length_build(num, settings.lengthUnits));
+      }
+    },
+    [dispatch, selectedKey, value.index, settings.units, settings.lengthUnits]
+  );
+
+  const onDelete = useCallback(async (): Promise<void> => {
+    if (await Dialog_confirm("Are you sure?")) {
+      if (selectedKey === "weight") {
+        EditStats_deleteWeightStat(dispatch, selectedKey, value.index, value.timestamp);
+      } else if (selectedKey === "bodyfat") {
+        EditStats_deletePercentageStat(dispatch, selectedKey, value.index, value.timestamp);
+      } else {
+        EditStats_deleteLengthStat(dispatch, selectedKey, value.index, value.timestamp);
+      }
+    }
+  }, [dispatch, selectedKey, value.index, value.timestamp]);
+
+  return (
+    <MenuItemWrapper name={`${selectedKey}-${value.timestamp}`}>
+      <View className="flex-row items-center">
+        <View className="flex-1">
+          <DatePicker testID="input-stats-date" value={value.timestamp} onChange={onChangeTimestamp} />
+        </View>
+        <View className="flex-row flex-1 items-center">
+          <StatValueInput value={+convertedValue.value.toFixed(2)} onChange={onChangeValue} />
+          <Text className="py-3 pl-1" data-testid="input-stats-unit">
+            {units}
+          </Text>
+        </View>
+        <Pressable className="p-3 nm-delete-stat" data-testid="delete-stat" testID="delete-stat" onPress={onDelete}>
+          <IconTrash />
+        </Pressable>
+      </View>
+    </MenuItemWrapper>
+  );
+});
 
 interface IStatValueInputProps {
   value: number;

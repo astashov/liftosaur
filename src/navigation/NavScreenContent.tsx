@@ -11,9 +11,12 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { useCustomKeyboardAnimatedHeight } from "./CustomKeyboardContext";
 
+export type INavScreenScrollListener = (e: NativeSyntheticEvent<NativeScrollEvent>) => void;
+
 export interface INavScreenScrollContextValue {
   scrollRef: RefObject<ScrollView | null>;
   scrollYRef: RefObject<number>;
+  addScrollListener: (listener: INavScreenScrollListener) => () => void;
 }
 
 export const NavScreenScrollContext = createContext<INavScreenScrollContextValue | null>(null);
@@ -27,6 +30,7 @@ export function NavScreenContent(props: {
   const isScrolledRef = useRef(false);
   const scrollRef = useRef<ScrollView>(null);
   const scrollYRef = useRef(0);
+  const scrollListenersRef = useRef<Set<INavScreenScrollListener>>(new Set());
   const animatedKeyboardHeight = useCustomKeyboardAnimatedHeight();
   const [footerHeight, setFooterHeight] = useState(0);
 
@@ -39,6 +43,7 @@ export function NavScreenContent(props: {
         isScrolledRef.current = isScrolled;
         navigation.setOptions({ navIsScrolled: isScrolled });
       }
+      scrollListenersRef.current.forEach((listener) => listener(e));
     },
     [navigation]
   );
@@ -47,7 +52,14 @@ export function NavScreenContent(props: {
     setFooterHeight(e.nativeEvent.layout.height);
   }, []);
 
-  const contextValue = useMemo(() => ({ scrollRef, scrollYRef }), []);
+  const addScrollListener = useCallback((listener: INavScreenScrollListener) => {
+    scrollListenersRef.current.add(listener);
+    return () => {
+      scrollListenersRef.current.delete(listener);
+    };
+  }, []);
+
+  const contextValue = useMemo(() => ({ scrollRef, scrollYRef, addScrollListener }), [addScrollListener]);
 
   const scrollView = (
     <ScrollView
