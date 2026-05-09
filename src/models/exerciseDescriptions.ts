@@ -4198,6 +4198,31 @@ export const exerciseDescriptions: Record<
       },
     ],
   },
+  machinepullover_leveragemachine: {
+    content:
+      "## Setup\n1. **Equipment**: Use a pullover machine.\n2. **Adjustment**: Set the seat height so your shoulders align with the machine's pivot point.\n\n## Starting Position\n1. **Seat**: Sit back firmly against the pad with feet flat on the floor.\n2. **Grip**: Hold the bar or handles with an overhand grip, arms extended overhead.\n3. **Pad Contact**: Press your elbows against the arm pads if available.\n\n## Execution\n1. **Engage**: Brace your core and retract your shoulder blades slightly.\n2. **Pull Down**: Drive your elbows down and forward in an arc, pulling the bar toward your hips.\n3. **Squeeze**: Pause briefly at the bottom and squeeze your lats.\n4. **Return**: Slowly raise the bar back overhead to the starting position.\n\n## Tips\n- **Lead with Elbows**: Think of driving your elbows down, not pulling with your hands.\n- **Full Stretch**: Allow a full stretch at the top to maximise lat engagement.\n- **Stay Seated**: Keep your back pressed into the pad throughout — avoid lifting your hips.\n\n## Breathing\n- **Inhale** as you return to the starting position.\n- **Exhale** as you pull down through the arc.\n\n## Common Mistakes\n- Shrugging the shoulders at the top of the movement.\n- Using momentum rather than a controlled arc.\n- Setting the seat too low, shifting stress off the lats.",
+    video: "II6A-3sne9M",
+    description:
+      "Isolate the lats and chest with the Machine Pullover, using a leverage machine to develop lat width and upper body pulling strength through a controlled arc of motion.",
+    howto: [
+      {
+        name: "Set Up the Machine",
+        text: "Adjust the seat so your shoulders align with the machine's pivot axis. Sit back firmly and grip the handles or bar with arms extended overhead.",
+      },
+      {
+        name: "Engage Before Pulling",
+        text: "Retract your shoulder blades slightly and brace your core. This keeps the movement focused on the lats rather than the lower back.",
+      },
+      {
+        name: "Pull Down in an Arc",
+        text: "Drive your elbows down and forward in a smooth arc toward your hips. Think elbows first — not hands. Squeeze your lats at the bottom of the movement.",
+      },
+      {
+        name: "Return with Control",
+        text: "Slowly guide the bar back overhead, allowing a full stretch at the top. Inhale on the way up and exhale as you pull down.",
+      },
+    ],
+  },
   muscleup_bodyweight: {
     content:
       "## Setup\n- **Equipment**: Use a sturdy pull-up bar or gymnastic rings.\n- **Grip**: Overhand grip, slightly wider than shoulder-width.\n\n## Steps\n\n1. **Start Position**:\n   - Hang from the bar/rings with arms fully extended and feet off the ground. Engage your shoulders.\n\n2. **Pull Up**:\n   - Initiate the movement by pulling your chest towards the bar. Focus on driving your elbows down and back.\n\n3. **Transition**:\n   - As your chin passes the bar, lean your torso forward. Shift your wrists over the bar/rings.\n\n4. **Push Up**:\n   - Transition into a dip by pressing down with your arms, keeping your elbows close to your body. Extend your arms fully at the top.\n\n5. **Finish**:\n   - Lock out your arms while keeping your body straight. Hold the top position briefly before lowering yourself back down.\n\n## Key Points\n- **Engagement**: Keep core tight throughout to maintain stability.\n- **Angles**: Lean forward during the transition phase to enable the push-up part.\n- **Practice**: Start with pull-ups and dips to build strength before attempting the muscle-up.\n\n## Safety Tips\n- **Warm Up**: Ensure shoulder and wrist mobility before training.\n- **Progress Gradually**: Use assisted variations if needed before attempting the full movement. \n\nAlways prioritize form to prevent injury.",
@@ -4371,6 +4396,31 @@ export const exerciseDescriptions: Record<
       {
         name: "Rise Back Up",
         text: "Drive through your heels to return to standing, keeping your knees aligned with your toes and the dumbbell stable overhead throughout.",
+      },
+    ],
+  },
+  pallofpress_cable: {
+    content:
+      "## Setup\n1. **Equipment**: Use a cable machine set to chest height.\n2. **Attachment**: Attach a single handle or rope to the cable.\n\n## Starting Position\n1. **Position**: Stand sideways to the cable machine, feet shoulder-width apart.\n2. **Grip**: Hold the handle with both hands at chest level, elbows bent.\n3. **Distance**: Step away from the machine until there is tension on the cable.\n\n## Execution\n1. **Engage Core**: Brace your core and glutes before initiating any movement.\n2. **Press Out**: Extend both arms straight out in front of your chest, resisting the cable's pull to rotate you.\n3. **Hold**: Pause for 1–2 seconds with arms fully extended.\n4. **Return**: Pull the handle back to your chest in a controlled manner.\n\n## Tips\n- **Resist Rotation**: The goal is to prevent your torso from rotating — the challenge is the anti-rotation, not the pressing motion.\n- **Stay Tall**: Keep your spine neutral and avoid leaning away from the machine.\n- **Feet Stable**: Do not let your feet shift or your hips rotate during the press.\n\n## Breathing\n- **Inhale** as you return the handle to your chest.\n- **Exhale** as you press out.\n\n## Common Mistakes\n- Allowing the torso to rotate toward the cable.\n- Using too much weight, causing loss of core control.\n- Letting the hips shift instead of staying square.",
+    video: "YWfioXCZCu0",
+    description:
+      "Build anti-rotation core strength with the Pallof Press, using a cable machine to resist rotational forces and develop deep core stability from a standing or kneeling position.",
+    howto: [
+      {
+        name: "Set Up the Cable at Chest Height",
+        text: "Attach a single handle to the cable machine at chest height. Stand sideways to the machine with feet shoulder-width apart, holding the handle with both hands at your chest.",
+      },
+      {
+        name: "Brace Before You Press",
+        text: "Engage your core and glutes fully before moving. Your hips and shoulders should stay square throughout the entire set.",
+      },
+      {
+        name: "Press Straight Out",
+        text: "Extend both arms directly in front of you at chest height. Resist the cable's rotational pull — the tension should be felt through your obliques and deep core, not your arms.",
+      },
+      {
+        name: "Hold and Return",
+        text: "Pause with arms fully extended for 1–2 seconds, then return the handle to your chest with control. Complete all reps on one side before switching.",
       },
     ],
   },
@@ -7967,6 +8017,31 @@ export const exerciseDescriptions: Record<
       {
         name: "Extend and Repeat",
         text: "Engage your triceps to straighten your arms back to the starting position. Exhale as you lift and keep movements slow and controlled.",
+      },
+    ],
+  },
+  tricepsextension_leveragemachine: {
+    content:
+      "## Setup\n1. **Equipment**: Use a triceps extension machine.\n2. **Adjustment**: Set the seat height so your elbows align with the machine's pivot point.\n\n## Starting Position\n1. **Seat**: Sit back firmly against the pad with feet flat on the floor.\n2. **Grip**: Grasp the handles with an overhand grip, elbows bent at roughly 90 degrees.\n3. **Upper Arms**: Keep your upper arms parallel to the floor and stationary throughout.\n\n## Execution\n1. **Engage**: Brace your core and press your back into the pad.\n2. **Extend**: Push the handles forward and down, fully extending your arms.\n3. **Squeeze**: Pause briefly at full extension and squeeze the triceps.\n4. **Return**: Slowly return to the starting position, maintaining control.\n\n## Tips\n- **Elbows Stable**: Keep your upper arms fixed — only your forearms should move.\n- **Full Extension**: Lock out fully at the bottom to maximise triceps activation.\n- **Avoid Momentum**: Use a slow, controlled tempo rather than bouncing through the movement.\n\n## Breathing\n- **Inhale** as you return to the starting position.\n- **Exhale** as you extend through the movement.\n\n## Common Mistakes\n- Letting the elbows drift forward or upward during the extension.\n- Using too much weight and losing control on the return.\n- Not fully extending at the bottom of the movement.",
+    video: "n6r2TNcAb7g",
+    description:
+      "Isolate and strengthen the triceps with the Leverage Machine Triceps Extension, using a fixed arc of motion to safely load all three heads of the triceps through full extension.",
+    howto: [
+      {
+        name: "Set Up the Machine",
+        text: "Adjust the seat so your elbows align with the machine's pivot point. Sit back firmly against the pad and grip the handles with elbows bent at roughly 90 degrees.",
+      },
+      {
+        name: "Brace and Keep Upper Arms Still",
+        text: "Press your back into the pad and brace your core. Your upper arms should remain stationary and parallel to the floor for the entire set.",
+      },
+      {
+        name: "Extend Fully",
+        text: "Push the handles forward and down in a smooth arc until your arms are fully extended. Squeeze your triceps hard at the bottom of the movement.",
+      },
+      {
+        name: "Return with Control",
+        text: "Slowly bring the handles back to the starting position. Inhale on the return and keep the weight under control — don't let it pull your arms back too fast.",
       },
     ],
   },
