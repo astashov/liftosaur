@@ -1,5 +1,6 @@
 import { SendMessage_isIos, SendMessage_isAndroid } from "./sendMessage";
 import { StringUtils_hashCode0To1 } from "./string";
+import { Platform } from "react-native";
 
 export interface IFeature {
   name: string;
@@ -11,7 +12,7 @@ export interface IFeature {
 const affiliates: IFeature = {
   name: "affiliates",
   rollout: 0.0,
-  userids: ["tiolnbjbleke", "txgxmqgyps", "gwwxznaz"],
+  userids: ["tiolnbjbleke", "txgxmqgyps", "gwwxznaz", "egedgruckx"],
 };
 
 export function Features_isEnabled(name: keyof typeof Features_features, userid?: string): boolean {
@@ -25,8 +26,8 @@ export function Features_isEnabled(name: keyof typeof Features_features, userid?
   }
   if (
     feature.platform &&
-    ((feature.platform === "ios" && !SendMessage_isIos()) ||
-      (feature.platform === "android" && !SendMessage_isAndroid()))
+    ((feature.platform === "ios" && !(SendMessage_isIos() || Platform.OS === "ios")) ||
+      (feature.platform === "android" && !(SendMessage_isAndroid() || Platform.OS === "android")))
   ) {
     return false;
   }

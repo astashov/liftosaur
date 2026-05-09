@@ -1,8 +1,11 @@
 import { JSX, useEffect } from "react";
+import { View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
 import { Button } from "../../components/button";
+import { Text } from "../../components/primitives/text";
+import { Link } from "../../components/link";
 import { IState, updateState } from "../../models/state";
 import { lb } from "lens-shmens";
 
@@ -34,40 +37,38 @@ export function NavModalCorruptedState(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onReset}>
-      <h3 className="pt-2 pb-4 text-lg font-bold text-center">🚨 Corrupted Storage 🚨</h3>
-      <p className="pb-4">
-        Something went <strong>terribly wrong</strong>, and your {corruptedstorage.local ? "local" : "remote"} storage
-        and history got corrupted. This should never happen, but it did.
-      </p>
+      <Text className="pt-2 pb-4 text-lg font-bold text-center">🚨 Corrupted Storage 🚨</Text>
+      <Text className="pb-4">
+        Something went <Text className="font-bold">terribly wrong</Text>, and your{" "}
+        {corruptedstorage.local ? "local" : "remote"} storage and history got corrupted. This should never happen, but
+        it did.
+      </Text>
       {corruptedstorage.backup ? (
-        <div className="pb-4 font-bold text-center text-text-success">
-          History was successfully backed up, user: <strong>{corruptedstorage.userid}</strong>
-        </div>
+        <Text className="pb-4 font-bold text-center text-text-success">
+          History was successfully backed up, user: <Text className="font-bold">{corruptedstorage.userid}</Text>
+        </Text>
       ) : (
-        <div className="pb-4 font-bold text-center text-text-error">Could not back up the history</div>
+        <Text className="pb-4 font-bold text-center text-text-error">Could not back up the history</Text>
       )}
-      <p className="pb-4">
+      <Text className="pb-4">
         Please contact the developer of this app, and he is going to look into this ASAP. You can contact us at{" "}
-        <a className="font-bold underline text-text-link" href="mailto:info@liftosaur.com">
-          info@liftosaur.com
-        </a>
-        .
-      </p>
+        <Link href="mailto:info@liftosaur.com">info@liftosaur.com</Link>.
+      </Text>
       {corruptedstorage.local ? (
-        <p className="pb-4">
+        <Text className="pb-4">
           You can either wait until this is fixed (and close the app for now), or start with the empty state (but your
           history and programs will be gone).
-        </p>
+        </Text>
       ) : (
-        <p className="pb-4">
+        <Text className="pb-4">
           We will log out for now, and won't sync the changes to the cloud, to avoid even bigger mess.
-        </p>
+        </Text>
       )}
-      <div className="text-center">
+      <View className="items-center">
         <Button name="corrupted-state-reset" kind="red" onClick={onReset}>
           {corruptedstorage.local ? "Reset and start from scratch" : "Continue"}
         </Button>
-      </div>
+      </View>
     </ModalScreenContainer>
   );
 }

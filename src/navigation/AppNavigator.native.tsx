@@ -105,6 +105,9 @@ import { NavModalWorkoutShare } from "./modals/NavModalWorkoutShare";
 import { NavModalSocialShare } from "./modals/NavModalSocialShare";
 import { NavModalPhotoPicker } from "./modals/NavModalPhotoPicker";
 import { NavModalHelp } from "./modals/NavModalHelp";
+import { NavModalAffiliate } from "./modals/NavModalAffiliate";
+import { NavModalCorruptedState } from "./modals/NavModalCorruptedState";
+import { NavModalCoupon } from "./modals/NavModalCoupon";
 import { NavHeader } from "./NavHeader";
 
 const OnboardingStack = createNativeStackNavigator<IOnboardingStackParamList>();
@@ -391,6 +394,9 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
             <RootStack.Screen name="photoPickerModal" component={NavModalPhotoPicker} />
             <RootStack.Screen name="tourModal" component={NavModalTour} />
             <RootStack.Screen name="helpModal" component={NavModalHelp} options={{ sheetAllowedDetents: [0.85] }} />
+            <RootStack.Screen name="affiliateModal" component={NavModalAffiliate} />
+            <RootStack.Screen name="couponModal" component={NavModalCoupon} />
+            <RootStack.Screen name="corruptedStateModal" component={NavModalCorruptedState} />
           </RootStack.Group>
         </RootStack.Navigator>
       </CustomKeyboardProvider>
