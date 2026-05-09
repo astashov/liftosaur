@@ -6,6 +6,7 @@ import { MenuItemEditable } from "./menuItemEditable";
 import { ISettings } from "../types";
 import { INavCommon } from "../models/state";
 import { useNavOptions } from "../navigation/useNavOptions";
+import { Thunk_requestHealthPermissions } from "../ducks/thunks";
 
 interface IProps {
   dispatch: IDispatch;
@@ -30,6 +31,9 @@ export function ScreenGoogleHealthSettings(props: IProps): JSX.Element {
               .record(newValue === "true"),
             desc: "Toggle Google Health workouts",
           });
+          if (newValue === "true") {
+            props.dispatch(Thunk_requestHealthPermissions());
+          }
         }}
       />
       <MenuItemEditable
@@ -58,6 +62,9 @@ export function ScreenGoogleHealthSettings(props: IProps): JSX.Element {
               .record(newValue === "true"),
             desc: "Toggle Google Health measurements",
           });
+          if (newValue === "true") {
+            props.dispatch(Thunk_requestHealthPermissions());
+          }
         }}
       />
     </View>

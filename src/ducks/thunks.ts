@@ -526,12 +526,19 @@ export function Thunk_saveWorkoutToHealth(args: {
     if (!env.health) {
       return;
     }
+    const platform = Platform.OS === "ios" ? "apple" : "google";
+    dispatch(Thunk_postevent(`submit-workout-${platform}-health`));
+    dispatch(
+      Thunk_postevent(`storing-workout-to-${platform}-health`, {
+        intervalsCount: args.intervals.length,
+      })
+    );
     try {
       await env.health.saveWorkout(args);
+      dispatch(Thunk_postevent(`success-workout-${platform}-health`));
     } catch (e) {
       console.warn("Failed to save workout to Health", e);
-      const platform = Platform.OS === "ios" ? "apple" : "google";
-      dispatch(Thunk_postevent(`${platform}-health-save-workout-error`, { error: (e as Error)?.message ?? "unknown" }));
+      dispatch(Thunk_postevent(`fail-workout-${platform}-health`, { error: (e as Error)?.message ?? "unknown" }));
       Dialog_alert(`Couldn't save workout to ${platform === "apple" ? "Apple Health" : "Google Health"}`);
     }
   };
@@ -561,6 +568,19 @@ export function Thunk_saveMeasurementsToHealth(args: {
         })
       );
       Dialog_alert(`Couldn't save measurements to ${platform === "apple" ? "Apple Health" : "Google Health"}`);
+    }
+  };
+}
+
+export function Thunk_requestHealthPermissions(): IThunk {
+  return async (_dispatch, _getState, env) => {
+    if (!env.health) {
+      return;
+    }
+    try {
+      await env.health.requestPermissions();
+    } catch (e) {
+      console.warn("Failed to request health permissions", e);
     }
   };
 }

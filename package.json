@@ -13,6 +13,7 @@
     "pod-install": "cd ios && RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static pod install",
     "android": "react-native run-android",
     "android-device": "react-native run-android --device 9p6tnjw889cu9pqg",
+    "android-device2": "react-native run-android --device 58060DLAQ003M0",
     "android-device-release": "react-native run-android --mode=release --device 9p6tnjw889cu9pqg",
     "rn:start": "react-native start",
     "build": "npm run ensure:localdomain && npm run build:prepare && npm run upload-source-maps",

@@ -59,8 +59,10 @@ export function EditStats_togglePercentageStats(
 
 export function EditStats_addWeightStats(
   dispatch: IDispatch,
-  payload: Partial<Record<keyof IStatsWeight, IWeight>>
+  payload: Partial<Record<keyof IStatsWeight, IWeight>>,
+  timestamp?: number
 ): void {
+  const sharedTime = timestamp ?? Date.now();
   dispatch({
     type: "UpdateState",
     lensRecording: [
@@ -71,9 +73,8 @@ export function EditStats_addWeightStats(
         .recordModify((st) => {
           return ObjectUtils_keys(payload).reduce(
             (memo, key) => {
-              const time = Date.now();
               memo[key] = [
-                { vtype: "stat", value: payload[key]!, timestamp: time, updatedAt: time },
+                { vtype: "stat", value: payload[key]!, timestamp: sharedTime, updatedAt: sharedTime },
                 ...(memo[key] || []),
               ];
               return memo;
@@ -88,8 +89,10 @@ export function EditStats_addWeightStats(
 
 export function EditStats_addLengthStats(
   dispatch: IDispatch,
-  payload: Partial<Record<keyof IStatsLength, ILength>>
+  payload: Partial<Record<keyof IStatsLength, ILength>>,
+  timestamp?: number
 ): void {
+  const sharedTime = timestamp ?? Date.now();
   dispatch({
     type: "UpdateState",
     lensRecording: [
@@ -100,9 +103,8 @@ export function EditStats_addLengthStats(
         .recordModify((st) => {
           return ObjectUtils_keys(payload).reduce(
             (memo, key) => {
-              const time = Date.now();
               memo[key] = [
-                { vtype: "stat", value: payload[key]!, timestamp: time, updatedAt: time },
+                { vtype: "stat", value: payload[key]!, timestamp: sharedTime, updatedAt: sharedTime },
                 ...(memo[key] || []),
               ];
               return memo;
@@ -117,8 +119,10 @@ export function EditStats_addLengthStats(
 
 export function EditStats_addPercentageStats(
   dispatch: IDispatch,
-  payload: Partial<Record<keyof IStatsPercentage, IPercentage>>
+  payload: Partial<Record<keyof IStatsPercentage, IPercentage>>,
+  timestamp?: number
 ): void {
+  const sharedTime = timestamp ?? Date.now();
   dispatch({
     type: "UpdateState",
     lensRecording: [
@@ -129,13 +133,12 @@ export function EditStats_addPercentageStats(
         .recordModify((st) => {
           return ObjectUtils_keys(payload).reduce(
             (memo, key) => {
-              const time = Date.now();
               memo[key] = [
                 {
                   vtype: "stat",
                   value: payload[key]!,
-                  timestamp: time,
-                  updatedAt: time,
+                  timestamp: sharedTime,
+                  updatedAt: sharedTime,
                 },
                 ...(memo[key] || []),
               ];

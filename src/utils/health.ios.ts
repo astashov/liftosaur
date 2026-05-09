@@ -56,6 +56,8 @@ function metaFor<T extends QuantityTypeIdentifierWriteable>(): MetadataForQuanti
 }
 
 export class HealthAdapter implements IHealthAdapter {
+  private askedReadThisSession = false;
+
   public async isAvailable(): Promise<boolean> {
     return isHealthDataAvailableAsync();
   }
@@ -65,7 +67,10 @@ export class HealthAdapter implements IHealthAdapter {
   }
 
   public async syncMeasurements(args: IHealthSyncArgs): Promise<IHealthSyncResult> {
-    await requestAuthorization({ toRead: READ_TYPES, toShare: [] });
+    if (!this.askedReadThisSession) {
+      this.askedReadThisSession = true;
+      await requestAuthorization({ toRead: READ_TYPES, toShare: [] });
+    }
     const prior = HealthIosAnchors_decode(args.anchor);
     try {
       return await this.querySamples(args, prior);
@@ -78,7 +83,6 @@ export class HealthAdapter implements IHealthAdapter {
   }
 
   public async saveWorkout(args: IHealthWorkoutPayload): Promise<void> {
-    await requestAuthorization({ toRead: [], toShare: WORKOUT_WRITE_TYPES });
     const start = new Date(args.startMs);
     const end = new Date(clampWorkoutEnd(args.startMs, args.endMs));
     if (start > end) {
@@ -122,44 +126,36 @@ export class HealthAdapter implements IHealthAdapter {
   }
 
   public async saveMeasurements(args: IHealthMeasurementsPayload): Promise<void> {
-    await requestAuthorization({ toRead: [], toShare: MEASUREMENT_WRITE_TYPES });
     const date = new Date(args.timestamp);
-    const tasks: Promise<unknown>[] = [];
+    const taskFns: (() => Promise<unknown>)[] = [];
+    const neededTypes: SampleTypeIdentifierWriteable[] = [];
     if (args.bodyweight) {
-      tasks.push(
-        saveQuantitySample(
-          BODY_MASS,
-          massUnitArg(args.bodyweight.unit as IUnit),
-          args.bodyweight.value,
-          date,
-          date,
-          metaFor<typeof BODY_MASS>()
-        )
+      const bw = args.bodyweight;
+      neededTypes.push(BODY_MASS);
+      taskFns.push(() =>
+        saveQuantitySample(BODY_MASS, massUnitArg(bw.unit as IUnit), bw.value, date, date, metaFor<typeof BODY_MASS>())
       );
     }
     if (args.bodyfat) {
-      tasks.push(saveQuantitySample(BODY_FAT, "%", args.bodyfat.value / 100, date, date, metaFor<typeof BODY_FAT>()));
+      const bf = args.bodyfat;
+      neededTypes.push(BODY_FAT);
+      taskFns.push(() => saveQuantitySample(BODY_FAT, "%", bf.value / 100, date, date, metaFor<typeof BODY_FAT>()));
     }
     if (args.waist) {
-      tasks.push(
-        saveQuantitySample(
-          WAIST,
-          lengthUnitArg(args.waist.unit as ILengthUnit),
-          args.waist.value,
-          date,
-          date,
-          metaFor<typeof WAIST>()
-        )
+      const w = args.waist;
+      neededTypes.push(WAIST);
+      taskFns.push(() =>
+        saveQuantitySample(WAIST, lengthUnitArg(w.unit as ILengthUnit), w.value, date, date, metaFor<typeof WAIST>())
       );
     }
-    if (tasks.length === 0) {
+    if (taskFns.length === 0) {
       return;
     }
     try {
-      await Promise.all(tasks);
+      await Promise.all(taskFns.map((fn) => fn()));
     } catch {
-      await requestAuthorization({ toRead: [], toShare: MEASUREMENT_WRITE_TYPES });
-      await Promise.all(tasks);
+      await requestAuthorization({ toRead: [], toShare: neededTypes });
+      await Promise.all(taskFns.map((fn) => fn()));
     }
   }
 
@@ -179,7 +175,8 @@ export class HealthAdapter implements IHealthAdapter {
         { metadata: sample.metadata, quantity: sample.quantity, startDate: sample.startDate, uuid: sample.uuid },
         "bodyweight",
         args.weightUnit,
-        args.lengthUnit
+        args.lengthUnit,
+        !prior.bodyMass
       );
       if (m) {
         added.push(m);
@@ -190,7 +187,8 @@ export class HealthAdapter implements IHealthAdapter {
         { metadata: sample.metadata, quantity: sample.quantity, startDate: sample.startDate, uuid: sample.uuid },
         "bodyfat",
         args.weightUnit,
-        args.lengthUnit
+        args.lengthUnit,
+        !prior.bodyFat
       );
       if (m) {
         added.push(m);
@@ -201,7 +199,8 @@ export class HealthAdapter implements IHealthAdapter {
         { metadata: sample.metadata, quantity: sample.quantity, startDate: sample.startDate, uuid: sample.uuid },
         "waist",
         args.weightUnit,
-        args.lengthUnit
+        args.lengthUnit,
+        !prior.waist
       );
       if (m) {
         added.push(m);
@@ -225,9 +224,13 @@ export class HealthAdapter implements IHealthAdapter {
     sample: { metadata: AnyMap; quantity: number; startDate: Date; uuid: string },
     type: "bodyweight" | "bodyfat" | "waist",
     weightUnit: IUnit,
-    lengthUnitVal: ILengthUnit
+    lengthUnitVal: ILengthUnit,
+    includeLiftosaurAuthored: boolean
   ): IHealthMeasurement | undefined {
-    if (sample.metadata?.liftosaur === true) {
+    const meta = sample.metadata as Record<string, unknown> | undefined;
+    const lft = meta?.liftosaur;
+    const isLiftosaur = lft === true || lft === 1 || lft === "1" || lft === "true";
+    if (isLiftosaur && !includeLiftosaurAuthored) {
       return undefined;
     }
     const timestamp = new Date(sample.startDate).getTime();

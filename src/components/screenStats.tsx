@@ -90,7 +90,7 @@ export function ScreenStats(props: IProps): JSX.Element {
 
   const valuesRef: IValuesRef = useRef<Partial<Record<IStatsKey, string>>>({});
 
-  function saveWeight(): Partial<Record<keyof IStatsWeight, IWeight>> {
+  function saveWeight(timestamp: number): Partial<Record<keyof IStatsWeight, IWeight>> {
     const payload = ObjectUtils_keys(statsEnabled.weight).reduce<Partial<Record<keyof IStatsWeight, IWeight>>>(
       (acc, key) => {
         const isEnabled = statsEnabled.weight[key];
@@ -107,11 +107,11 @@ export function ScreenStats(props: IProps): JSX.Element {
       },
       {}
     );
-    EditStats_addWeightStats(props.dispatch, payload);
+    EditStats_addWeightStats(props.dispatch, payload, timestamp);
     return payload;
   }
 
-  function saveLength(): Partial<Record<keyof IStatsLength, ILength>> {
+  function saveLength(timestamp: number): Partial<Record<keyof IStatsLength, ILength>> {
     const payload = ObjectUtils_keys(statsEnabled.length).reduce<Partial<Record<keyof IStatsLength, ILength>>>(
       (acc, key) => {
         const isEnabled = statsEnabled.length[key];
@@ -128,11 +128,11 @@ export function ScreenStats(props: IProps): JSX.Element {
       },
       {}
     );
-    EditStats_addLengthStats(props.dispatch, payload);
+    EditStats_addLengthStats(props.dispatch, payload, timestamp);
     return payload;
   }
 
-  function savePercentage(): Partial<Record<keyof IStatsPercentage, IPercentage>> {
+  function savePercentage(timestamp: number): Partial<Record<keyof IStatsPercentage, IPercentage>> {
     const payload = ObjectUtils_keys(statsEnabled.percentage).reduce<
       Partial<Record<keyof IStatsPercentage, IPercentage>>
     >((acc, key) => {
@@ -148,35 +148,35 @@ export function ScreenStats(props: IProps): JSX.Element {
       }
       return acc;
     }, {});
-    EditStats_addPercentageStats(props.dispatch, payload);
+    EditStats_addPercentageStats(props.dispatch, payload, timestamp);
     return payload;
   }
 
   function save(): void {
-    let updates: IUpdates = { ...saveWeight() };
-    updates = { ...updates, ...saveLength() };
-    updates = { ...updates, ...savePercentage() };
+    const timestamp = Date.now();
+    let updates: IUpdates = { ...saveWeight(timestamp) };
+    updates = { ...updates, ...saveLength(timestamp) };
+    updates = { ...updates, ...savePercentage(timestamp) };
     if (
       (HealthSync_eligibleForAppleHealth() && syncToAppleHealth) ||
       (HealthSync_eligibleForGoogleHealth() && syncToGoogleHealth)
     ) {
-      const updatesForHealthSync = getUpdatesForHealthSync(updates);
+      const updatesForHealthSync = getUpdatesForHealthSync(updates, timestamp);
       SendMessage_toIosAndAndroid({ type: "finishMeasurements", ...updatesForHealthSync });
       props.dispatch(
         Thunk_saveMeasurementsToHealth({
           bodyweight: updates.weight,
           bodyfat: updates.bodyfat,
           waist: updates.waist,
-          timestamp: Date.now(),
+          timestamp,
         })
       );
     }
     props.dispatch(Thunk_pullScreen());
   }
 
-  function getUpdatesForHealthSync(updates: IUpdates): IHealthUpdates {
+  function getUpdatesForHealthSync(updates: IUpdates, timestamp: number): IHealthUpdates {
     const healthSyncUpdates: IHealthUpdates = {};
-    const timestamp = Date.now();
     ObjectUtils_keys(updates).forEach((key) => {
       if (key === "weight") {
         healthSyncUpdates[key] = JSON.stringify({ value: updates[key], timestamp });

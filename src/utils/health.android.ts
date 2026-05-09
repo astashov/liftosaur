@@ -137,10 +137,6 @@ export class HealthAdapter implements IHealthAdapter {
     if (!(await ensureInitialized())) {
       return;
     }
-    const granted = await this.ensurePermissions(WORKOUT_WRITE_PERMISSIONS);
-    if (!granted) {
-      return;
-    }
     const [startMs, endMs] = workoutBounds(args.intervals, args.startMs, args.endMs);
     if (startMs > endMs) {
       return;
@@ -158,63 +154,54 @@ export class HealthAdapter implements IHealthAdapter {
         segments: [],
         metadata: { clientRecordId, clientRecordVersion: 0 },
       },
-      {
-        recordType: "ActiveCaloriesBurned",
-        startTime: startIso,
-        endTime: endIso,
-        energy: { value: calories, unit: "kilocalories" },
-        metadata: { clientRecordId, clientRecordVersion: 0 },
-      },
     ]);
+    if (calories > 0) {
+      await insertRecords([
+        {
+          recordType: "ActiveCaloriesBurned",
+          startTime: startIso,
+          endTime: endIso,
+          energy: { value: calories, unit: "kilocalories" },
+          metadata: { clientRecordId, clientRecordVersion: 0 },
+        },
+      ]);
+    }
   }
 
   public async saveMeasurements(args: IHealthMeasurementsPayload): Promise<void> {
     if (!(await ensureInitialized())) {
       return;
     }
-    const granted = await this.ensurePermissions(MEASUREMENT_WRITE_PERMISSIONS);
-    if (!granted) {
-      return;
-    }
     const time = new Date(args.timestamp).toISOString();
-    const records: Parameters<typeof insertRecords>[0] = [];
     if (args.bodyweight) {
-      records.push({
-        recordType: "Weight",
-        time,
-        weight: {
-          value: args.bodyweight.value,
-          unit: args.bodyweight.unit === "kg" ? "kilograms" : "pounds",
+      await insertRecords([
+        {
+          recordType: "Weight",
+          time,
+          weight: {
+            value: args.bodyweight.value,
+            unit: args.bodyweight.unit === "kg" ? "kilograms" : "pounds",
+          },
+          metadata: { clientRecordId: `${args.timestamp}-w`, clientRecordVersion: 0 },
         },
-        metadata: { clientRecordId: `${args.timestamp}-w`, clientRecordVersion: 0 },
-      });
+      ]);
     }
     if (args.bodyfat) {
-      records.push({
-        recordType: "BodyFat",
-        time,
-        percentage: args.bodyfat.value,
-        metadata: { clientRecordId: `${args.timestamp}-bf`, clientRecordVersion: 0 },
-      });
-    }
-    if (records.length > 0) {
-      await insertRecords(records);
+      await insertRecords([
+        {
+          recordType: "BodyFat",
+          time,
+          percentage: args.bodyfat.value,
+          metadata: { clientRecordId: `${args.timestamp}-bf`, clientRecordVersion: 0 },
+        },
+      ]);
     }
   }
 
   private async ensurePermissions(needed: Permission[]): Promise<boolean> {
     const granted = await getGrantedPermissions();
-    const hasAll = needed.every((n) =>
-      granted.some(
-        (g) => (g as Permission).accessType === n.accessType && (g as Permission).recordType === n.recordType
-      )
-    );
-    if (hasAll) {
-      return true;
-    }
-    const requested = await requestPermission(needed);
     return needed.every((n) =>
-      requested.some(
+      granted.some(
         (g) => (g as Permission).accessType === n.accessType && (g as Permission).recordType === n.recordType
       )
     );
@@ -230,9 +217,10 @@ export class HealthAdapter implements IHealthAdapter {
       this.readAllPages("BodyFat", filter),
     ]);
 
+    const includeSelfOrigin = !args.anchor;
     const added: IHealthMeasurement[] = [];
     for (const record of weights) {
-      if (HealthAndroidFilter_isSelfOrigin(record)) {
+      if (!includeSelfOrigin && HealthAndroidFilter_isSelfOrigin(record)) {
         continue;
       }
       const m = this.weightRecordToMeasurement(record as unknown as IWeightRecordResult, args.weightUnit);
@@ -241,7 +229,7 @@ export class HealthAdapter implements IHealthAdapter {
       }
     }
     for (const record of fats) {
-      if (HealthAndroidFilter_isSelfOrigin(record)) {
+      if (!includeSelfOrigin && HealthAndroidFilter_isSelfOrigin(record)) {
         continue;
       }
       const m = this.bodyFatRecordToMeasurement(record as unknown as IBodyFatRecordResult);
