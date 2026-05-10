@@ -211,7 +211,7 @@ function deserializeWorkoutRecord(
 
   return {
     vtype: "history_record",
-    date: dateStr,
+    date: parsedDate.toISOString(),
     programId,
     programName: programName || "Adhoc",
     day,
