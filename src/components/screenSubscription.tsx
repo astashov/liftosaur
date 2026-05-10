@@ -384,7 +384,9 @@ function Feature(props: IFeatureProps): JSX.Element {
       <View className="flex-1">
         <View>
           {props.onPress ? (
-            <LinkButton name="subscription-feature">{props.title}</LinkButton>
+            <LinkButton name="subscription-feature" onPress={props.onPress}>
+              {props.title}
+            </LinkButton>
           ) : (
             <Text className="text-base font-bold">{props.title}</Text>
           )}

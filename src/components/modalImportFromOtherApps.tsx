@@ -1,7 +1,8 @@
 import { JSX, useCallback } from "react";
+import { View } from "react-native";
+import { Text } from "./primitives/text";
 import { GroupHeader } from "./groupHeader";
 import { MenuItemWrapper } from "./menuItem";
-import { Importer } from "./importer";
 import { ImportFromHevy_convertHevyCsvToHistoryRecords } from "../utils/importFromHevy";
 import { IDispatch } from "../ducks/types";
 import { IState, updateState } from "../models/state";
@@ -10,6 +11,7 @@ import { CollectionUtils_sortBy, CollectionUtils_uniqBy } from "../utils/collect
 import RB from "rollbar";
 import { ICustomExercise, IHistoryRecord, ISettings } from "../types";
 import { Dialog_alert, Dialog_confirm } from "../utils/dialog";
+import { FileImport_pickFile } from "../utils/fileImport";
 
 declare let Rollbar: RB;
 
@@ -20,7 +22,11 @@ interface IModalImportFromOtherAppsContentProps {
 }
 
 export function ModalImportFromOtherAppsContent(props: IModalImportFromOtherAppsContentProps): JSX.Element {
-  const onFileSelect = useCallback(async (contents: string) => {
+  const onUploadHevy = useCallback(async () => {
+    const contents = await FileImport_pickFile("csv");
+    if (contents == null) {
+      return;
+    }
     let historyRecords: IHistoryRecord[];
     let customExercises: Record<string, ICustomExercise>;
     try {
@@ -62,20 +68,14 @@ export function ModalImportFromOtherAppsContent(props: IModalImportFromOtherApps
       }
     }
     props.onClose();
-  }, []);
+  }, [props.settings, props.dispatch, props.onClose]);
 
   return (
-    <>
+    <View>
       <GroupHeader size="large" name="Import history from other apps" />
-      <Importer onFileSelect={onFileSelect}>
-        {(onClick) => (
-          <div className="ls-import-hevy">
-            <MenuItemWrapper name="Upload CSV file from Hevy" onClick={onClick}>
-              <button className="py-3 nm-upload-csv-from-hevy">Upload CSV file from Hevy</button>
-            </MenuItemWrapper>
-          </div>
-        )}
-      </Importer>
-    </>
+      <MenuItemWrapper name="Upload CSV file from Hevy" onClick={onUploadHevy}>
+        <Text className="py-3">Upload CSV file from Hevy</Text>
+      </MenuItemWrapper>
+    </View>
   );
 }

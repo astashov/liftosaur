@@ -1,4 +1,5 @@
 import { JSX, useCallback, useEffect } from "react";
+import { View } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
@@ -57,7 +58,7 @@ export function NavModalEditMuscleGroups(): JSX.Element {
 
   return (
     <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
-      <div className="px-4 py-2">
+      <View className="px-4 py-2">
         <MuscleGroupsContent
           onCreate={(name) => {
             onNewSettings(
@@ -82,7 +83,7 @@ export function NavModalEditMuscleGroups(): JSX.Element {
           }}
           settings={settings}
         />
-      </div>
+      </View>
     </SheetScreenContainer>
   );
 }

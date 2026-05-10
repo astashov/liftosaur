@@ -61,7 +61,6 @@ import { NavModal1RM } from "./modals/NavModal1RM";
 import { NavModalEquipment } from "./modals/NavModalEquipment";
 import { NavModalWorkoutSuperset } from "./modals/NavModalWorkoutSuperset";
 import { NavModalPlaygroundEditExercise } from "./modals/NavModalPlaygroundEditExercise";
-import { NavModalExerciseInfo } from "./modals/NavModalExerciseInfo";
 import { NavModalCoupon } from "./modals/NavModalCoupon";
 import { NavModalNewGym } from "./modals/NavModalNewGym";
 import { NavModalNewEquipment } from "./modals/NavModalNewEquipment";
@@ -303,7 +302,6 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="equipmentModal" component={NavModalEquipment} />
           <RootStack.Screen name="supersetPickerModal" component={NavModalWorkoutSuperset} />
           <RootStack.Screen name="playgroundEditModal" component={NavModalPlaygroundEditExercise} />
-          <RootStack.Screen name="exerciseInfoModal" component={NavModalExerciseInfo} />
           <RootStack.Screen name="couponModal" component={NavModalCoupon} />
           <RootStack.Screen name="newGymModal" component={NavModalNewGym} />
           <RootStack.Screen name="newEquipmentModal" component={NavModalNewEquipment} />

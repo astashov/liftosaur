@@ -101,7 +101,6 @@ export type IRootStackParamList = {
   playgroundEditModal:
     | { context: "playground"; weekIndex: number; dayIndex: number }
     | { context: "preview"; programId: string };
-  exerciseInfoModal: { exerciseType: IExerciseType };
   couponModal: undefined;
   newGymModal: undefined;
   newEquipmentModal: undefined;

@@ -108,6 +108,13 @@ import { NavModalHelp } from "./modals/NavModalHelp";
 import { NavModalAffiliate } from "./modals/NavModalAffiliate";
 import { NavModalCorruptedState } from "./modals/NavModalCorruptedState";
 import { NavModalCoupon } from "./modals/NavModalCoupon";
+import { NavModalDebug } from "./modals/NavModalDebug";
+import { NavModalEditMuscleGroups } from "./modals/NavModalEditMuscleGroups";
+import { NavModalImportFromOtherApps } from "./modals/NavModalImportFromOtherApps";
+import { NavModalSignupRequest } from "./modals/NavModalSignupRequest";
+import { NavModalSubscriptionInfo } from "./modals/NavModalSubscriptionInfo";
+import { NavModalTextInput } from "./modals/NavModalTextInput";
+import { NavModalWhatsnew } from "./modals/NavModalWhatsnew";
 import { NavHeader } from "./NavHeader";
 
 const OnboardingStack = createNativeStackNavigator<IOnboardingStackParamList>();
@@ -400,6 +407,13 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
               options={{ sheetAllowedDetents: [0.9] }}
             />
             <RootStack.Screen name="couponModal" component={NavModalCoupon} />
+            <RootStack.Screen name="debugModal" component={NavModalDebug} />
+            <RootStack.Screen name="editMuscleGroupsModal" component={NavModalEditMuscleGroups} />
+            <RootStack.Screen name="importFromOtherAppsModal" component={NavModalImportFromOtherApps} />
+            <RootStack.Screen name="signupRequestModal" component={NavModalSignupRequest} />
+            <RootStack.Screen name="subscriptionInfoModal" component={NavModalSubscriptionInfo} />
+            <RootStack.Screen name="textInputModal" component={NavModalTextInput} />
+            <RootStack.Screen name="whatsnewModal" component={NavModalWhatsnew} />
             <RootStack.Screen
               name="corruptedStateModal"
               component={NavModalCorruptedState}

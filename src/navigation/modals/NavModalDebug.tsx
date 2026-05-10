@@ -1,7 +1,9 @@
 import type { JSX } from "react";
+import { View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { Text } from "../../components/primitives/text";
 import { Thunk_postDebug } from "../../ducks/thunks";
 import { CollectionUtils_sortBy, CollectionUtils_nonnull } from "../../utils/collection";
 import { DateUtils_formatHHMMSS } from "../../utils/date";
@@ -18,14 +20,14 @@ export function NavModalDebug(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={() => navigation.goBack()} isFullWidth>
-      <h3 className="pb-2 font-bold">Network calls</h3>
-      <ul>
+      <Text className="pb-2 font-bold">Network calls</Text>
+      <View>
         {items.map((item) => {
           const startTime = DateUtils_formatHHMMSS(item.startTime);
           const endTime = item.endTime || Date.now();
           const duration = endTime - item.startTime;
           const attempt = item.attempt || 0;
-          let color;
+          let color: string;
           if (item.error) {
             color = "text-text-error";
           } else if (item.endTime) {
@@ -34,26 +36,27 @@ export function NavModalDebug(): JSX.Element {
             color = "text-gray2-main";
           }
           return (
-            <li key={item.startTime} className={`${color} pb-1`}>
-              <div>
-                <strong>{startTime}</strong>: <span>{item.type}</span>
-                {attempt > 0 ? <span>({attempt + 1})</span> : <></>} - <span>{duration}ms</span>
-              </div>
-              {item.error && <div>{item.error}</div>}
-            </li>
+            <View key={item.startTime} className="pb-1">
+              <Text className={color}>
+                <Text className={`${color} font-bold`}>{startTime}</Text>: <Text className={color}>{item.type}</Text>
+                {attempt > 0 ? <Text className={color}>({attempt + 1})</Text> : null} -{" "}
+                <Text className={color}>{duration}ms</Text>
+              </Text>
+              {item.error && <Text className={color}>{item.error}</Text>}
+            </View>
           );
         })}
-      </ul>
-      <div className="mt-4 text-center">
+      </View>
+      <View className="items-center mt-4">
         <Button name="send-debug-info" kind="purple" onClick={() => dispatch(Thunk_postDebug())}>
           Send Debug Info
         </Button>
-      </div>
-      <div className="mt-4 text-center">
+      </View>
+      <View className="items-center mt-4">
         <Button name="share-device-logs" kind="purple" onClick={() => SendMessage_toIos({ type: "shareLog" })}>
           Share device logs
         </Button>
-      </div>
+      </View>
     </ModalScreenContainer>
   );
 }
