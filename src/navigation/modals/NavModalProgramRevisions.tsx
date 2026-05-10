@@ -2,7 +2,7 @@ import { JSX, useEffect, useMemo } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { useAppContext } from "../../components/appContext";
-import { ModalScreenContainer } from "../ModalScreenContainer";
+import { SheetScreenContainer } from "../SheetScreenContainer";
 import { ModalPlannerProgramRevisionsContent } from "../../pages/planner/modalPlannerProgramRevisions";
 import { IPlannerState } from "../../pages/planner/models/types";
 import { IState } from "../../models/state";
@@ -48,7 +48,7 @@ export function NavModalProgramRevisions(): JSX.Element {
   }
 
   return (
-    <ModalScreenContainer onClose={onClose} isFullWidth noPaddings innerClassName="flex flex-col">
+    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
       <ModalPlannerProgramRevisionsContent
         programId={programId}
         client={service.client}
@@ -64,6 +64,6 @@ export function NavModalProgramRevisions(): JSX.Element {
           onClose();
         }}
       />
-    </ModalScreenContainer>
+    </SheetScreenContainer>
   );
 }

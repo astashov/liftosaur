@@ -114,7 +114,6 @@ export type IRootStackParamList = {
   nextWorkoutModal: undefined;
   whatsnewModal: undefined;
   signupRequestModal: undefined;
-  thanks25Modal: undefined;
   corruptedStateModal: undefined;
   debugModal: undefined;
   workoutShareModal: { progressId: number };

@@ -315,7 +315,6 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="nextWorkoutModal" component={NavModalNextWorkout} />
           <RootStack.Screen name="whatsnewModal" component={NavModalWhatsnew} />
           <RootStack.Screen name="signupRequestModal" component={NavModalSignupRequest} />
-          <RootStack.Screen name="thanks25Modal" component={NavModalThanks25} />
           <RootStack.Screen name="corruptedStateModal" component={NavModalCorruptedState} />
           <RootStack.Screen name="debugModal" component={NavModalDebug} />
           <RootStack.Screen name="workoutShareModal" component={NavModalWorkoutShare} />

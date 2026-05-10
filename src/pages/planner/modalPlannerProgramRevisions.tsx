@@ -1,10 +1,12 @@
 import { JSX, useEffect, useState } from "react";
+import { View, ScrollView, useWindowDimensions } from "react-native";
 import { Service } from "../../api/service";
 import { Dialog_confirm } from "../../utils/dialog";
 import { Button } from "../../components/button";
 import { IconSpinner } from "../../components/icons/iconSpinner";
 import { LinkButton } from "../../components/linkButton";
 import { Modal } from "../../components/modal";
+import { Text } from "../../components/primitives/text";
 import { DateUtils_parseYYYYMMDDHHMM, DateUtils_formatWithTime } from "../../utils/date";
 import { IEither } from "../../utils/types";
 import { PlannerCodeBlock } from "./components/plannerCodeBlock";
@@ -56,15 +58,22 @@ export function ModalPlannerProgramRevisionsContent(props: IModalPlannerProgramR
   }, []);
 
   const programRevision = state[currentRevision];
+  const { width } = useWindowDimensions();
+  const isWide = width >= 640;
 
-  return (
-    <div className="flex flex-col flex-1 min-h-0 sm:flex-row">
-      <div
-        className="h-40 p-4 overflow-y-auto border-r min-h-40 bg-background-subtle border-border-neutral sm:h-auto sm:min-h-max"
-        style={{ borderRadius: "0.5rem 0 0 0.5rem", minWidth: "16rem" }}
-      >
-        <h3 className="mb-2 text-lg font-bold">Version History</h3>
-        <ul>
+  const sidebar = (
+    <View
+      className={
+        isWide
+          ? "bg-background-subtle border-r border-border-neutral w-64"
+          : "bg-background-subtle border-b border-border-neutral h-40"
+      }
+    >
+      <View className="flex-1">
+        <View className="p-4">
+          <Text className="text-lg font-bold">Version History</Text>
+        </View>
+        <ScrollView contentContainerClassName="px-4 pb-3">
           {props.revisions.map((revision) => {
             const date = DateUtils_parseYYYYMMDDHHMM(revision);
             if (!date) {
@@ -72,12 +81,11 @@ export function ModalPlannerProgramRevisionsContent(props: IModalPlannerProgramR
             }
             const text = DateUtils_formatWithTime(date);
             return (
-              <li key={revision} className="text-left">
+              <View key={revision} className="py-1">
                 {revision === currentRevision ? (
-                  <span className="font-bold">{text}</span>
+                  <Text className="font-bold">{text}</Text>
                 ) : (
                   <LinkButton
-                    className="text-left"
                     name="change-program-revision"
                     onClick={() => {
                       loadRevision(revision);
@@ -86,47 +94,57 @@ export function ModalPlannerProgramRevisionsContent(props: IModalPlannerProgramR
                     {text}
                   </LinkButton>
                 )}
-              </li>
+              </View>
             );
           })}
-        </ul>
-      </div>
-      <div className="flex flex-col flex-1 overflow-auto">
-        {!programRevision || programRevision.isLoading ? (
-          <div className="flex items-center justify-center h-full">
-            <IconSpinner width={40} height={40} />
-          </div>
-        ) : programRevision.result.success ? (
-          <>
-            <div className="flex-1 p-4 overflow-auto">
-              <div>
-                <PlannerCodeBlock script={programRevision.result.data} />
-              </div>
-            </div>
-            <div className="p-4 text-center border-t bg-background-subtle border-border-neutral">
-              <Button
-                name="restore-program-revision"
-                kind="purple"
-                onClick={async () => {
-                  if (
-                    programRevision.result.success &&
-                    (await Dialog_confirm(
-                      "Are you sure you want to restore this version? It'll overwrite your current changes."
-                    ))
-                  ) {
-                    props.onRestore(programRevision.result.data);
-                  }
-                }}
-              >
-                Restore
-              </Button>
-            </div>
-          </>
-        ) : (
-          <div>{programRevision.result.error}</div>
-        )}
-      </div>
-    </div>
+        </ScrollView>
+      </View>
+    </View>
+  );
+
+  const body = (
+    <View className="flex-1">
+      {!programRevision || programRevision.isLoading ? (
+        <View className="items-center justify-center flex-1">
+          <IconSpinner width={40} height={40} />
+        </View>
+      ) : programRevision.result.success ? (
+        <View className="flex-1">
+          <ScrollView className="flex-1" contentContainerClassName="p-4">
+            <PlannerCodeBlock script={programRevision.result.data} />
+          </ScrollView>
+          <View className="items-center p-4 border-t bg-background-subtle border-border-neutral">
+            <Button
+              name="restore-program-revision"
+              kind="purple"
+              onClick={async () => {
+                if (
+                  programRevision.result.success &&
+                  (await Dialog_confirm(
+                    "Are you sure you want to restore this version? It'll overwrite your current changes."
+                  ))
+                ) {
+                  props.onRestore(programRevision.result.data);
+                }
+              }}
+            >
+              Restore
+            </Button>
+          </View>
+        </View>
+      ) : (
+        <View className="p-4">
+          <Text>{programRevision.result.error}</Text>
+        </View>
+      )}
+    </View>
+  );
+
+  return (
+    <View className={isWide ? "flex-1 flex-row" : "flex-1 flex-col"}>
+      {sidebar}
+      {body}
+    </View>
   );
 }
 
@@ -135,6 +153,7 @@ export function ModalPlannerProgramRevisions(props: IModalPlannerProgramRevision
     <Modal
       innerClassName="flex flex-col"
       isFullWidth={true}
+      isFullHeight={true}
       onClose={props.onClose}
       shouldShowClose={true}
       noPaddings={true}
