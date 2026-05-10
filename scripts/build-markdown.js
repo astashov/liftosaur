@@ -6,6 +6,7 @@ const markdownFiles = [
   { input: "./llms/liftoscript.md", output: "./src/generated/liftoscriptDoc.ts" },
   { input: "./llms/liftoscript_examples.md", output: "./src/generated/liftoscriptExamples.ts" },
   { input: "./llms/exercises.md", output: "./src/generated/exercises.ts" },
+  { input: "./CHANGELOG.md", output: "./src/generated/whatsnew.ts" },
 ];
 
 // Grammar files to convert

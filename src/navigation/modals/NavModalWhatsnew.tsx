@@ -1,4 +1,5 @@
-import type { JSX } from "react";
+import { JSX, useEffect, useMemo } from "react";
+import { View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
@@ -6,40 +7,53 @@ import { IWhatsNew, WhatsNew_all } from "../../models/whatsnew";
 import { WhatsNew_updateStorage } from "../../models/whatsnewUtils";
 import { DateUtils_format, DateUtils_fromYYYYMMDDStr } from "../../utils/date";
 import { ObjectUtils_keys } from "../../utils/object";
+import { Text } from "../../components/primitives/text";
+import { SimpleMarkdown } from "../../components/simpleMarkdown";
+import { useScrollProgressiveList } from "../../utils/useScrollProgressiveList";
 
 export function NavModalWhatsnew(): JSX.Element {
   const { dispatch } = useAppState();
   const navigation = useNavigation();
 
+  useEffect(() => {
+    return navigation.addListener("beforeRemove", () => {
+      WhatsNew_updateStorage(dispatch);
+    });
+  }, [navigation, dispatch]);
+
   const onClose = (): void => {
-    WhatsNew_updateStorage(dispatch);
     navigation.goBack();
   };
 
-  const all = WhatsNew_all();
-  const sortedWhatsnewRecords = ObjectUtils_keys(all).reduce<[string, IWhatsNew][]>((memo, dateStr) => {
-    memo.push([dateStr, all[dateStr]]);
-    return memo;
+  const sortedWhatsnewRecords = useMemo(() => {
+    const all = WhatsNew_all();
+    const list = ObjectUtils_keys(all).reduce<[string, IWhatsNew][]>((memo, dateStr) => {
+      memo.push([dateStr, all[dateStr]]);
+      return memo;
+    }, []);
+    list.sort((a, b) => parseInt(b[0], 10) - parseInt(a[0], 10));
+    return list;
   }, []);
-  sortedWhatsnewRecords.sort((a, b) => parseInt(b[0], 10) - parseInt(a[0], 10));
+
+  const { visibleItems, onScroll } = useScrollProgressiveList(sortedWhatsnewRecords, { batchSize: 10 });
 
   return (
-    <ModalScreenContainer onClose={onClose}>
-      <h3 className="pb-2 text-xl font-bold text-center">What's new?</h3>
-      <ul className="text-sm">
-        {sortedWhatsnewRecords.map(([dateStr, whatsNewRecord]) => {
+    <ModalScreenContainer onClose={onClose} onScroll={onScroll}>
+      <View className="items-center justify-center pb-2">
+        <Text className="text-xl font-bold text-center">What's new?</Text>
+      </View>
+      <View>
+        {visibleItems.map(([dateStr, whatsNewRecord]) => {
           const date = DateUtils_format(DateUtils_fromYYYYMMDDStr(dateStr, ""), true);
           return (
-            <li key={dateStr} className="pb-6">
-              <div className="text-xs font-bold text-gray-500">{date}</div>
-              <div>
-                <h2 className="font-bold">{whatsNewRecord.title}</h2>
-                <div className="whatsnew">{whatsNewRecord.body}</div>
-              </div>
-            </li>
+            <View key={dateStr} className="pb-6">
+              <Text className="text-xs font-bold text-text-secondary">{date}</Text>
+              <Text className="text-sm font-bold">{whatsNewRecord.title}</Text>
+              <SimpleMarkdown value={whatsNewRecord.body} />
+            </View>
           );
         })}
-      </ul>
+      </View>
     </ModalScreenContainer>
   );
 }

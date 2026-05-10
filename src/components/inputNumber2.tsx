@@ -423,10 +423,14 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
   useEffect(() => {
     let armedFinish: (() => void) | null = null;
     const armDeferredBlur = (target: HTMLElement): void => {
-      if (armedFinish) return;
+      if (armedFinish) {
+        return;
+      }
       let done = false;
       const finish = (viaFallback: boolean): void => {
-        if (done) return;
+        if (done) {
+          return;
+        }
         done = true;
         document.removeEventListener("click", onClick, true);
         clearTimeout(fallbackTimer);

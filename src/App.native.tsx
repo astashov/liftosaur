@@ -125,6 +125,7 @@ import {
 } from "./ducks/thunks";
 import { IapAdapter } from "./utils/iap";
 import { HealthAdapter } from "./utils/health";
+import { WhatsNew_doesHaveNewUpdates } from "./models/whatsnew";
 
 GoogleSignin.configure({
   webClientId: "944666871420-p8kv124sgte8o0p6ev2ah6npudsl7e4f.apps.googleusercontent.com",
@@ -236,6 +237,18 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
     }
     prevShowCorruptedState.current = showCorruptedState;
   }, [isNavReady, showCorruptedState]);
+
+  const shouldShowWhatsNew = WhatsNew_doesHaveNewUpdates(state.storage.whatsNew) || state.showWhatsNew;
+  const prevShouldShowWhatsNew = useRef(false);
+  useEffect(() => {
+    if (!isNavReady) {
+      return;
+    }
+    if (shouldShowWhatsNew && state.storage.whatsNew != null && !prevShouldShowWhatsNew.current) {
+      navigationRef.navigate("whatsnewModal");
+    }
+    prevShouldShowWhatsNew.current = !!(shouldShowWhatsNew && state.storage.whatsNew != null);
+  }, [isNavReady, shouldShowWhatsNew, state.storage.whatsNew]);
 
   useEffect(() => {
     if (!isNavReady || !currentScreenName) {

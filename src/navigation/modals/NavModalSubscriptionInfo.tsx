@@ -91,7 +91,9 @@ export function NavModalSubscriptionInfo(): JSX.Element {
           imageUri="/images/notifs_subs.jpg"
           imageAlt="Notification screenshot"
           description={
-            <Text className="pb-4">When the rest timer runs out, you'll get a notification it's time to start a new set</Text>
+            <Text className="pb-4">
+              When the rest timer runs out, you'll get a notification it's time to start a new set
+            </Text>
           }
         />
       )}

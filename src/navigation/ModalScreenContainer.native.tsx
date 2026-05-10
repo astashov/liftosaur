@@ -1,6 +1,7 @@
 import { JSX, ReactNode } from "react";
 import { View, ScrollView, Animated, useWindowDimensions } from "react-native";
 import { useCustomKeyboardAnimatedHeight } from "./CustomKeyboardContext";
+import type { IScrollEventLike } from "../utils/useScrollProgressiveList";
 
 interface IProps {
   children: ReactNode;
@@ -15,6 +16,7 @@ interface IProps {
   zIndex?: number;
   overlay?: ReactNode;
   overlayDetent?: number;
+  onScroll?: (e: IScrollEventLike) => void;
 }
 
 export function ModalScreenContainer(props: IProps): JSX.Element {
@@ -28,6 +30,8 @@ export function ModalScreenContainer(props: IProps): JSX.Element {
       automaticallyAdjustKeyboardInsets
       nestedScrollEnabled
       scrollEnabled={!props.overlay}
+      onScroll={props.onScroll}
+      scrollEventThrottle={100}
     >
       {props.children}
       <Animated.View style={{ height: animatedKeyboardHeight }} />

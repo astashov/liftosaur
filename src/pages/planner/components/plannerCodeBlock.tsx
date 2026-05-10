@@ -6,6 +6,7 @@ import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 
 interface IPlannerCodeBlockProps {
   script: string;
+  className?: string;
 }
 
 function colorForClass(clazz: string | null): string | undefined {
@@ -53,11 +54,11 @@ export function PlannerCodeBlock(props: IPlannerCodeBlockProps): JSX.Element {
   const segments = PlannerHighlighter_segments(props.script);
   return (
     <View className="block">
-      <Text style={{ fontFamily: "Courier" }} className="whitespace-pre">
+      <Text style={{ fontFamily: "Courier" }} className={`${props.className} whitespace-pre`}>
         {segments.map((segment, i) => {
           const color = colorForClass(segment.clazz);
           return (
-            <Text key={i} style={color ? { color } : undefined}>
+            <Text key={i} className={props.className} style={color ? { color } : undefined}>
               {segment.text}
             </Text>
           );

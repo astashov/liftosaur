@@ -50,10 +50,9 @@ export function NavModalSignupRequest(): JSX.Element {
           />
         </View>
         <Text className="mt-4 text-center">
-          You finished{" "}
-          <Text className="font-bold text-text-error">{state.storage.history.length} workouts</Text> already! This is
-          awesome! Consider <Text className="font-bold">signing up</Text> so your workout history would be backed up in
-          the cloud.
+          You finished <Text className="font-bold text-text-error">{state.storage.history.length} workouts</Text>{" "}
+          already! This is awesome! Consider <Text className="font-bold">signing up</Text> so your workout history would
+          be backed up in the cloud.
         </Text>
         {SendMessage_isIos() && (
           <Text className="mt-4 text-center">

@@ -404,7 +404,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
             <RootStack.Screen
               name="affiliateModal"
               component={NavModalAffiliate}
-              options={{ sheetAllowedDetents: [0.9] }}
+              options={{ sheetAllowedDetents: [0.85] }}
             />
             <RootStack.Screen name="couponModal" component={NavModalCoupon} />
             <RootStack.Screen name="debugModal" component={NavModalDebug} />
@@ -413,7 +413,11 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
             <RootStack.Screen name="signupRequestModal" component={NavModalSignupRequest} />
             <RootStack.Screen name="subscriptionInfoModal" component={NavModalSubscriptionInfo} />
             <RootStack.Screen name="textInputModal" component={NavModalTextInput} />
-            <RootStack.Screen name="whatsnewModal" component={NavModalWhatsnew} />
+            <RootStack.Screen
+              name="whatsnewModal"
+              component={NavModalWhatsnew}
+              options={{ sheetAllowedDetents: [0.9] }}
+            />
             <RootStack.Screen
               name="corruptedStateModal"
               component={NavModalCorruptedState}
