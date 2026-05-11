@@ -33,6 +33,7 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
   const window = Dimensions.get("window");
   const frameWidth = window.width * 0.625;
   const sidePadding = window.width * 0.1875;
+  const carouselHeight = window.height * 0.6;
   const insets = useSafeAreaInsets();
 
   const openPhotoPicker = useModal("photoPickerModal", (result) => {
@@ -62,7 +63,7 @@ export function WorkoutSocialShareSheet(props: IWorkoutShareSheetProps): JSX.Ele
       className="relative flex-col flex-1 overflow-hidden"
     >
       <Text className="my-4 text-base font-bold text-center">{title}</Text>
-      <View className="flex-1">
+      <View style={{ height: carouselHeight }}>
         <ScrollView
           horizontal={true}
           showsHorizontalScrollIndicator={false}
