@@ -1303,7 +1303,7 @@ export async function Program_toUrl(
   const exportedProgram = Program_exportProgram(program, settings);
   const baseUrl = UrlUtils_build(
     "/planner",
-    typeof window !== "undefined" ? window.location.href : "https://www.liftosaur.com"
+    typeof window !== "undefined" && window.location?.href ? window.location.href : "https://www.liftosaur.com"
   );
   const json = JSON.stringify(exportedProgram);
   const hash = StringUtils_hashString(json);

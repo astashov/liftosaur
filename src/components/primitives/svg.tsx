@@ -119,3 +119,46 @@ export function ForeignObject(props: IForeignObjectProps): React.JSX.Element {
 export function SvgSymbol(props: ISymbolProps): React.JSX.Element {
   return React.createElement("symbol", props);
 }
+
+interface ISvgXmlProps {
+  xml: string;
+  width?: number | string;
+  height?: number | string;
+  style?: React.CSSProperties;
+  className?: string;
+}
+
+export function SvgXml(props: ISvgXmlProps): React.JSX.Element {
+  const { xml, width, height, style, className } = props;
+  return React.createElement("span", {
+    className,
+    style: {
+      display: "inline-block",
+      width,
+      height,
+      lineHeight: 0,
+      ...style,
+    },
+    dangerouslySetInnerHTML: { __html: xml },
+  });
+}
+
+interface ISvgUriProps {
+  uri: string;
+  width?: number | string;
+  height?: number | string;
+  style?: React.CSSProperties;
+  className?: string;
+}
+
+export function SvgUri(props: ISvgUriProps): React.JSX.Element {
+  const { uri, width, height, style, className } = props;
+  return React.createElement("img", {
+    src: uri,
+    width,
+    height,
+    className,
+    style,
+    alt: "",
+  });
+}

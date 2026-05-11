@@ -1,32 +1,43 @@
-import { JSX, useEffect, useRef } from "react";
+import { JSX, useEffect, useState } from "react";
+import { View } from "react-native";
 import QRCode from "qrcode";
+import { SvgXml } from "./primitives/svg";
+import { Text } from "./primitives/text";
 
 interface IProgramQrCodeProps {
   url: string;
-  size?: string;
+  size?: number;
   title?: string;
 }
 
-export function ProgramQrCode(props: IProgramQrCodeProps): JSX.Element {
+export function ProgramQrCode(props: IProgramQrCodeProps): JSX.Element | null {
+  const size = props.size ?? 160;
+  const [svg, setSvg] = useState<string | undefined>(undefined);
+
   useEffect(() => {
-    if (!ref.current) {
-      return;
-    }
-    QRCode.toCanvas(ref.current, props.url, function (error) {
-      if (error) {
+    let cancelled = false;
+    QRCode.toString(props.url, { type: "svg", margin: 1 })
+      .then((result) => {
+        if (!cancelled) {
+          setSvg(result);
+        }
+      })
+      .catch((error) => {
         console.error(error);
-      }
-      ref.current!.style.width = size;
-      ref.current!.style.height = size;
-    });
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [props.url]);
-  const ref = useRef<HTMLCanvasElement>(null);
-  const size = props.size ?? "10rem";
+
+  if (!svg) {
+    return null;
+  }
 
   return (
-    <div className="mt-1">
-      {props.title && <div className="text-xs text-text-secondary">{props.title}</div>}
-      <canvas ref={ref} className="inline-block" style={{ width: size, height: size }} />
-    </div>
+    <View className="mt-1">
+      {props.title && <Text className="text-xs text-text-secondary">{props.title}</Text>}
+      <SvgXml xml={svg} width={size} height={size} />
+    </View>
   );
 }

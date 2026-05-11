@@ -93,6 +93,7 @@ import { NavModalEditProgramMenu } from "./modals/NavModalEditProgramMenu";
 import { NavModalEditProgramExercisePicker } from "./modals/NavModalEditProgramExercisePicker";
 import { NavModalProgramNextDay } from "./modals/NavModalProgramNextDay";
 import { NavModalProgramRevisions } from "./modals/NavModalProgramRevisions";
+import { NavModalProgramImageExport } from "./modals/NavModalProgramImageExport";
 import { NavModalWeekStats } from "./modals/NavModalWeekStats";
 import { NavModalDayStats } from "./modals/NavModalDayStats";
 import { NavModalExerciseStats } from "./modals/NavModalExerciseStats";
@@ -305,6 +306,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
             <RootStack.Screen name="monthCalendarModal" component={NavModalMonthCalendar} />
             <RootStack.Screen name="changeNextDayModal" component={NavModalChangeNextDay} />
             <RootStack.Screen name="programRevisionsModal" component={NavModalProgramRevisions} />
+            <RootStack.Screen name="programImageExportModal" component={NavModalProgramImageExport} />
             <RootStack.Screen name="exercisePickerModal" component={NavModalExercisePicker} />
             <RootStack.Screen name="exerciseImageLibraryModal" component={NavModalExerciseImageLibrary} />
             <RootStack.Screen name="exerciseCloneLibraryModal" component={NavModalExerciseCloneLibrary} />

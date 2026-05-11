@@ -21,5 +21,7 @@ export {
   Image as SvgImage,
   ForeignObject,
   Symbol as SvgSymbol,
+  SvgXml,
+  SvgUri,
 } from "react-native-svg";
 export type { SvgProps } from "react-native-svg";

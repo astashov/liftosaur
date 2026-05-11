@@ -1,4 +1,6 @@
-import { JSX, ReactNode, Ref, forwardRef, useEffect, useRef } from "react";
+import { JSX, ReactNode, Ref, forwardRef, useState } from "react";
+import { View, LayoutChangeEvent } from "react-native";
+import { SvgUri } from "./primitives/svg";
 import { ISettings, IPlannerProgram, IPlannerProgramWeek, IPlannerProgramDay } from "../types";
 import { PlannerProgram_evaluate } from "../pages/planner/models/plannerProgram";
 import { StringUtils_pluralize } from "../utils/string";
@@ -15,6 +17,8 @@ import { Weight_print } from "../models/weight";
 import { CollectionUtils_compact, CollectionUtils_inGroupsOf } from "../utils/collection";
 import { ProgramQrCode } from "./programQrCode";
 import { Equipment_currentEquipment } from "../models/equipment";
+import { Text } from "./primitives/text";
+import { HostConfig_resolveUrl } from "../utils/hostConfig";
 
 export interface IProgramShareOutputOptions {
   showInfo: boolean;
@@ -34,141 +38,125 @@ interface IProgramShareOutputProps {
 
 function Card(props: { children: ReactNode }): JSX.Element {
   return (
-    <div
+    <View
       style={{
-        boxShadow: "0 0px 3px -1px rgba(0,0,0,.1),0 2px 1px -1px rgba(0,0,0,.06)",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 2,
       }}
       className="py-2 bg-background-default rounded-xl"
     >
       {props.children}
-    </div>
+    </View>
   );
 }
 
-export const ProgramShareOutput = forwardRef(
-  (props: IProgramShareOutputProps, ref: Ref<HTMLDivElement>): JSX.Element => {
-    const options = props.options;
-    const { evaluatedWeeks } = PlannerProgram_evaluate(props.program, props.settings);
-    const minDays = Math.min(...evaluatedWeeks.map((week) => week.length));
-    const maxDays = Math.max(...evaluatedWeeks.map((week) => week.length));
-    const contentRef = useRef<HTMLDivElement>(null);
-    const titleRef = useRef<HTMLDivElement>(null);
-    let dayIndex = 0;
+export const ProgramShareOutput = forwardRef((props: IProgramShareOutputProps, ref: Ref<View>): JSX.Element => {
+  const options = props.options;
+  const { evaluatedWeeks } = PlannerProgram_evaluate(props.program, props.settings);
+  const minDays = Math.min(...evaluatedWeeks.map((week) => week.length));
+  const maxDays = Math.max(...evaluatedWeeks.map((week) => week.length));
+  const [contentWidth, setContentWidth] = useState<number | undefined>(undefined);
+  let dayIndex = 0;
 
-    useEffect(() => {
-      if (contentRef.current && titleRef.current) {
-        titleRef.current.style.width = `${contentRef.current.clientWidth}px`;
-      }
-    });
+  const onContentLayout = (e: LayoutChangeEvent): void => {
+    setContentWidth(e.nativeEvent.layout.width);
+  };
 
-    useEffect(() => {
-      const handleResize = (): void => {
-        if (contentRef.current && titleRef.current) {
-          titleRef.current.style.width = `${contentRef.current.clientWidth}px`;
-        }
-      };
-      window.addEventListener("resize", handleResize);
-      return () => {
-        window.removeEventListener("resize", handleResize);
-      };
-    }, []);
-
-    return (
-      <div ref={ref}>
-        <div className="flex gap-2 px-2 pt-2 bg-background-subtle" ref={titleRef}>
-          <div className="flex-1">
-            {options.showInfo && (
-              <div className="flex items-center gap-2 px-1 pt-2">
-                <div className="text-5xl">🏋️</div>
-                <div className="flex-1">
-                  <div className="mb-1 text-xl font-bold">{props.program.name}</div>
-                  <div className="text-base text-text-secondary">
-                    {props.program.weeks.length > 1 && <span>{props.program.weeks.length} weeks, </span>}
-                    {minDays === maxDays ? (
-                      <span>
-                        {minDays} {StringUtils_pluralize("day", minDays)}
-                      </span>
-                    ) : (
-                      <span>
-                        {minDays}-{maxDays} days
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-          {props.url && options.showQRCode && <ProgramQrCode url={props.url} size="5rem" />}
-        </div>
-        <div className="p-2 bg-background-subtle" ref={contentRef} style={{ width: "max-content" }}>
-          {props.program.weeks.map((week, weekIndex) => {
-            let dayInWeekIndex = 0;
-            const visibleDays = CollectionUtils_compact(
-              week.days.map((day) => {
-                const shouldInclude = options.daysToShow.includes(dayIndex);
-                let result = undefined;
-                if (shouldInclude) {
-                  result = { day, dayIndex };
-                }
-                dayIndex += 1;
-                return result;
-              })
-            );
-            const groupedDays = CollectionUtils_inGroupsOf(options.columns, visibleDays);
-            return (
-              <div key={weekIndex} style={{ width: "max-content" }}>
-                {options.showWeekDescription && week.description && visibleDays.length > 0 && (
-                  <div className="mt-2">
-                    <Card>
-                      <div className="px-4 pt-1 text-sm">
-                        <Markdown value={week.description} />
-                      </div>
-                    </Card>
-                  </div>
-                )}
-                {groupedDays.map((days, gi) => {
-                  return (
-                    <div key={gi} className="flex gap-2">
-                      {days.map((day) => {
-                        const evaluatedDay = findDayInEvaluatedWeeks(evaluatedWeeks, day.dayIndex);
-                        if (evaluatedDay == null) {
-                          return <div />;
-                        }
-                        const item = (
-                          <div key={day.dayIndex} className="mt-2" style={{ width: "24rem" }}>
-                            <Workout
-                              isMultiweek={props.program.weeks.length > 1}
-                              week={week}
-                              day={day.day}
-                              exercises={evaluatedDay.filter((e) => !e.notused)}
-                              settings={props.settings}
-                              options={props.options}
-                            />
-                          </div>
-                        );
-                        dayInWeekIndex += 1;
-                        return item;
-                      })}
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })}
-          <div className="mt-1 text-sm text-right">
-            <img
-              className="inline mr-1 align-middle"
-              style={{ width: "2em", height: "2em" }}
-              src="/images/logo.svg"
-              alt="Liftosaur Logo"
-            />
-            <span className="font-bold align-middle">Liftosaur</span>
-          </div>
-        </div>
-      </div>
-    );
-  }
-);
+  return (
+    <View ref={ref} collapsable={false} style={{ alignSelf: "flex-start" }}>
+      <View
+        className="flex-row gap-2 px-2 pt-2 bg-background-subtle"
+        style={contentWidth ? { width: contentWidth } : undefined}
+      >
+        <View className="flex-1">
+          {options.showInfo && (
+            <View className="flex-row items-center gap-2 px-1 pt-2">
+              <Text className="text-4xl">🏋️</Text>
+              <View className="flex-1">
+                <Text className="mb-1 text-xl font-bold">{props.program.name}</Text>
+                <Text className="text-base text-text-secondary">
+                  {props.program.weeks.length > 1 && (
+                    <Text className="text-base text-text-secondary">{props.program.weeks.length} weeks, </Text>
+                  )}
+                  {minDays === maxDays ? (
+                    <Text className="text-base text-text-secondary">
+                      {minDays} {StringUtils_pluralize("day", minDays)}
+                    </Text>
+                  ) : (
+                    <Text className="text-base text-text-secondary">
+                      {minDays}-{maxDays} days
+                    </Text>
+                  )}
+                </Text>
+              </View>
+            </View>
+          )}
+        </View>
+        {props.url && options.showQRCode && <ProgramQrCode url={props.url} size={80} />}
+      </View>
+      <View className="p-2 bg-background-subtle" style={{ alignSelf: "flex-start" }} onLayout={onContentLayout}>
+        {props.program.weeks.map((week, weekIndex) => {
+          const visibleDays = CollectionUtils_compact(
+            week.days.map((day) => {
+              const shouldInclude = options.daysToShow.includes(dayIndex);
+              let result = undefined;
+              if (shouldInclude) {
+                result = { day, dayIndex };
+              }
+              dayIndex += 1;
+              return result;
+            })
+          );
+          const groupedDays = CollectionUtils_inGroupsOf(options.columns, visibleDays);
+          return (
+            <View key={weekIndex} style={{ alignSelf: "flex-start" }}>
+              {options.showWeekDescription && week.description && visibleDays.length > 0 && (
+                <View className="mt-2">
+                  <Card>
+                    <View className="px-4 pt-1">
+                      <Markdown value={week.description} />
+                    </View>
+                  </Card>
+                </View>
+              )}
+              {groupedDays.map((days, gi) => {
+                return (
+                  <View key={gi} className="flex-row gap-2">
+                    {days.map((day) => {
+                      const evaluatedDay = findDayInEvaluatedWeeks(evaluatedWeeks, day.dayIndex);
+                      if (evaluatedDay == null) {
+                        return null;
+                      }
+                      return (
+                        <View key={day.dayIndex} className="mt-2" style={{ width: 384 }}>
+                          <Workout
+                            isMultiweek={props.program.weeks.length > 1}
+                            week={week}
+                            day={day.day}
+                            exercises={evaluatedDay.filter((e) => !e.notused)}
+                            settings={props.settings}
+                            options={props.options}
+                          />
+                        </View>
+                      );
+                    })}
+                  </View>
+                );
+              })}
+            </View>
+          );
+        })}
+        <View className="flex-row items-center justify-end mt-1">
+          <SvgUri uri={HostConfig_resolveUrl("/images/logo.svg")} width={24} height={24} style={{ marginRight: 4 }} />
+          <Text className="text-sm font-bold">Liftosaur</Text>
+        </View>
+      </View>
+    </View>
+  );
+});
 
 function findDayInEvaluatedWeeks(
   evaluatedWeeks: IPlannerEvalResult[][],
@@ -204,21 +192,21 @@ function Workout(props: IWorkoutProps): JSX.Element {
     .reduce((a, b) => a + b, 0);
   return (
     <Card>
-      <div className="px-2">
-        <h2 className="px-2 py-1 text-lg font-bold">
+      <View className="px-2">
+        <Text className="px-2 py-1 text-lg font-bold">
           {props.isMultiweek ? `${week.name} ` : ""}
           {day.name}
-        </h2>
-      </div>
-      <div className="px-4 text-text-secondary">
+        </Text>
+      </View>
+      <Text className="px-4 text-base text-text-secondary">
         {exercises.length} {StringUtils_pluralize("exercise", exercises.length)}
         {" · "}
         {setsNumber} {StringUtils_pluralize("set", setsNumber)}
-      </div>
+      </Text>
       {day.description && (
-        <div className="px-2 py-1 mx-4 my-2 text-xs rounded-md bg-background-subtle text-text-secondary">
+        <View className="px-2 py-1 mx-4 my-2 rounded-md bg-background-subtle">
           <Markdown value={day.description} />
-        </div>
+        </View>
       )}
       {exercises.map((plannerProgramExercise, i) => {
         const { name, equipment } = PlannerExerciseEvaluator.extractNameParts(
@@ -229,7 +217,7 @@ function Workout(props: IWorkoutProps): JSX.Element {
         const nameAndEquipment = `${name}${equipment ? `, ${equipmentName(equipment, allEquipment)}` : ""}`;
         const exercise = Exercise_findByNameAndEquipment(nameAndEquipment, props.settings.exercises);
         if (!exercise) {
-          return <div />;
+          return null;
         }
         const descriptions = plannerProgramExercise.descriptions.values.filter((d) => d.isCurrent);
         if (descriptions.length === 0) {
@@ -240,33 +228,33 @@ function Workout(props: IWorkoutProps): JSX.Element {
         }
 
         return (
-          <div key={i} className={`mx-4 pb-4 ${i > 0 ? "pt-2 border-t border-border-neutral" : ""}`}>
-            <div className={`flex items-stretch pl-1`} style={{ paddingRight: "1px" }} key={Exercise_toKey(exercise)}>
-              <div className="flex items-center w-12 pr-2">
+          <View key={i} className={`mx-4 pb-4 ${i > 0 ? "pt-2 border-t border-border-neutral" : ""}`}>
+            <View className="flex-row items-stretch pl-1" style={{ paddingRight: 1 }} key={Exercise_toKey(exercise)}>
+              <View className="flex-row items-center w-12 pr-2">
                 <ExerciseImage suppressCustom={true} exerciseType={exercise} size="small" settings={props.settings} />
-              </div>
-              <div className={`flex-1 flex flex-col justify-center`}>
-                <div className={`flex gap-2 items-center w-full`}>
-                  <div className="flex-1 font-bold">{plannerProgramExercise.fullName}</div>
-                  <div className="pr-2">
+              </View>
+              <View className="flex-col justify-center flex-1">
+                <View className="flex-row items-center w-full gap-2">
+                  <Text className="flex-1 text-base font-bold">{plannerProgramExercise.fullName}</Text>
+                  <View className="flex-col pr-2">
                     {PlannerProgramExercise_sets(plannerProgramExercise).map((set, si) => {
                       return <Set key={si} set={set} />;
                     })}
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="text-sm">
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View>
               <Progression exercise={plannerProgramExercise} />
-            </div>
+            </View>
             {descriptions.length > 0 && (
-              <div className="px-2 py-1 mt-2 text-xs rounded-md bg-background-subtle text-text-secondary">
+              <View className="px-2 py-1 mt-2 rounded-md bg-background-subtle">
                 {descriptions.map((d) => (
                   <Markdown key={d.value} value={d.value} />
                 ))}
-              </div>
+              </View>
             )}
-          </div>
+          </View>
         );
       })}
     </Card>
@@ -277,58 +265,59 @@ interface ISetProps {
   set: IPlannerProgramExerciseSet;
 }
 
-function Set(props: ISetProps): JSX.Element {
+function Set(props: ISetProps): JSX.Element | null {
   const set = props.set;
   const repRange = set.repRange;
   if (!repRange) {
-    return <div />;
+    return null;
   }
   return (
-    <div className="text-base leading-4 text-right whitespace-nowrap text-text-secondary">
+    <Text className="text-base leading-4 text-right text-text-secondary">
       {repRange.numberOfSets > 1 && (
-        <span>
-          <span className="font-semibold text-text-purple">{repRange.numberOfSets}</span>{" "}
-          <span className="text-xs">×</span>{" "}
-        </span>
+        <Text className="text-base text-text-secondary">
+          <Text className="text-base font-semibold text-text-purple">{repRange.numberOfSets}</Text>
+          <Text className="text-xs text-text-secondary"> × </Text>
+        </Text>
       )}
       {repRange.minrep == null ? (
-        <span className="font-semibold text-text-primary">{repRange.maxrep}</span>
+        <Text className="text-base font-semibold text-text-primary">{repRange.maxrep}</Text>
       ) : (
-        <span>
-          <span className="font-semibold text-text-primary">{repRange.minrep}</span>-
-          <span className="font-semibold text-text-primary">{repRange.maxrep}</span>
-        </span>
+        <Text className="text-base text-text-secondary">
+          <Text className="text-base font-semibold text-text-primary">{repRange.minrep}</Text>
+          <Text className="text-base text-text-secondary">-</Text>
+          <Text className="text-base font-semibold text-text-primary">{repRange.maxrep}</Text>
+        </Text>
       )}
-      {repRange.isAmrap && <span className="font-semibold text-text-primary">+</span>}
+      {repRange.isAmrap && <Text className="text-base font-semibold text-text-primary">+</Text>}
       {set.weight ? (
-        <span>
-          {" "}
-          <span className="text-xs">×</span> <span className="text-text-primary">{set.weight.value}</span>
-          {set.askWeight && <span className="font-semibold text-text-primary">+</span>}
-          <span className="text-xs text-text-secondary">{set.weight.unit}</span>
-        </span>
+        <Text className="text-base text-text-secondary">
+          <Text className="text-xs text-text-secondary"> × </Text>
+          <Text className="text-base text-text-primary">{set.weight.value}</Text>
+          {set.askWeight && <Text className="text-base font-semibold text-text-primary">+</Text>}
+          <Text className="text-xs text-text-secondary">{set.weight.unit}</Text>
+        </Text>
       ) : set.percentage ? (
-        <span>
-          {" "}
-          <span className="text-xs">×</span> <span className="text-text-primary">{set.percentage}</span>
-          {set.askWeight && <span className="font-semibold text-text-primary">+</span>}
-          <span className="text-xs text-text-secondary">%</span>
-        </span>
-      ) : undefined}
+        <Text className="text-base text-text-secondary">
+          <Text className="text-xs text-text-secondary"> × </Text>
+          <Text className="text-base text-text-primary">{set.percentage}</Text>
+          {set.askWeight && <Text className="text-base font-semibold text-text-primary">+</Text>}
+          <Text className="text-xs text-text-secondary">%</Text>
+        </Text>
+      ) : null}
       {set.rpe != null && (
-        <span className="ml-1 text-greenv2-900">
-          <span className="text-xs">@</span>
-          <span className="text-sm">{set.rpe}</span>
-        </span>
+        <Text className="ml-1 text-base text-greenv2-900">
+          <Text className="text-xs text-greenv2-900">@</Text>
+          <Text className="text-sm text-greenv2-900">{set.rpe}</Text>
+        </Text>
       )}
-      {set.logRpe && <span className="text-greenv2-900">+</span>}
+      {set.logRpe && <Text className="text-base text-greenv2-900">+</Text>}
       {set.timer != null && (
-        <span className="ml-1 text-xs text-purplev2-900">
+        <Text className="ml-1 text-xs text-purplev2-900">
           {set.timer}
-          <span className="text-xs">s</span>
-        </span>
+          <Text className="text-xs text-purplev2-900">s</Text>
+        </Text>
       )}
-    </div>
+    </Text>
   );
 }
 
@@ -344,50 +333,62 @@ export function Progression(props: IProgressionProps): JSX.Element | null {
   switch (type.type) {
     case "linear":
       return (
-        <div>
-          <strong>Linear Progression:</strong>{" "}
-          <span className="font-bold text-text-success">+{Weight_print(type.increase)}</span>
+        <Text className="text-sm">
+          <Text className="text-sm font-bold">Linear Progression:</Text>
+          <Text className="text-sm"> </Text>
+          <Text className="text-sm font-bold text-text-success">+{Weight_print(type.increase)}</Text>
           {(type.successesRequired || 0 > 1) && (
-            <span>
-              {" "}
-              after <span className="font-bold text-text-success">{type.successesRequired}</span> successes
-            </span>
+            <Text className="text-sm">
+              <Text className="text-sm"> after </Text>
+              <Text className="text-sm font-bold text-text-success">{type.successesRequired}</Text>
+              <Text className="text-sm"> successes</Text>
+            </Text>
           )}
           {type.decrease != null && type.decrease.value > 0 && (
-            <span>
-              , <span className="font-bold text-text-error">{Weight_print(type.decrease)}</span>
-            </span>
+            <Text className="text-sm">
+              <Text className="text-sm">, </Text>
+              <Text className="text-sm font-bold text-text-error">{Weight_print(type.decrease)}</Text>
+            </Text>
           )}
           {type.decrease != null && type.decrease.value > 0 && (
-            <span>
-              {" "}
-              after <span className="font-bold text-text-error">{type.failuresRequired}</span> failures
-            </span>
+            <Text className="text-sm">
+              <Text className="text-sm"> after </Text>
+              <Text className="text-sm font-bold text-text-error">{type.failuresRequired}</Text>
+              <Text className="text-sm"> failures</Text>
+            </Text>
           )}
-          .
-        </div>
+          <Text className="text-sm">.</Text>
+        </Text>
       );
     case "double":
       return (
-        <div>
-          <strong>Double Progression</strong>:{" "}
-          <span className="font-bold text-text-success">+{Weight_print(type.increase)}</span> within{" "}
-          <span className="font-bold">{type.minReps}</span>-<span className="font-bold">{type.maxReps}</span> rep range.
-        </div>
+        <Text className="text-sm">
+          <Text className="text-sm font-bold">Double Progression</Text>
+          <Text className="text-sm">: </Text>
+          <Text className="text-sm font-bold text-text-success">+{Weight_print(type.increase)}</Text>
+          <Text className="text-sm"> within </Text>
+          <Text className="text-sm font-bold">{type.minReps}</Text>
+          <Text className="text-sm">-</Text>
+          <Text className="text-sm font-bold">{type.maxReps}</Text>
+          <Text className="text-sm"> rep range.</Text>
+        </Text>
       );
     case "sumreps":
       return (
-        <div>
-          <strong>Sum Reps Progression</strong>:{" "}
-          <span className="font-bold text-text-success">+{Weight_print(type.increase)}</span> if sum of all reps is at
-          least <span className="font-bold">{type.reps}</span>.
-        </div>
+        <Text className="text-sm">
+          <Text className="text-sm font-bold">Sum Reps Progression</Text>
+          <Text className="text-sm">: </Text>
+          <Text className="text-sm font-bold text-text-success">+{Weight_print(type.increase)}</Text>
+          <Text className="text-sm"> if sum of all reps is at least </Text>
+          <Text className="text-sm font-bold">{type.reps}</Text>
+          <Text className="text-sm">.</Text>
+        </Text>
       );
     case "custom":
       return (
-        <div>
-          <strong>Custom Progression</strong>
-        </div>
+        <Text className="text-sm">
+          <Text className="text-sm font-bold">Custom Progression</Text>
+        </Text>
       );
   }
 }

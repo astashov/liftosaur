@@ -2,7 +2,7 @@ import { JSX, useEffect } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { useAppContext } from "../../components/appContext";
-import { ModalScreenContainer } from "../ModalScreenContainer";
+import { SheetScreenContainer } from "../SheetScreenContainer";
 import { ModalPlannerPictureExportContent } from "../../pages/planner/components/modalPlannerPictureExport";
 import type { IRootStackParamList } from "../types";
 
@@ -36,7 +36,7 @@ export function NavModalProgramImageExport(): JSX.Element {
   }
 
   return (
-    <ModalScreenContainer onClose={onClose} noPaddings>
+    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
       <ModalPlannerPictureExportContent
         settings={state.storage.settings}
         userId={state.user?.id}
@@ -45,6 +45,6 @@ export function NavModalProgramImageExport(): JSX.Element {
         program={program}
         onClose={onClose}
       />
-    </ModalScreenContainer>
+    </SheetScreenContainer>
   );
 }

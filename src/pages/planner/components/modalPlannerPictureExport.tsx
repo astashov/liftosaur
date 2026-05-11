@@ -1,11 +1,11 @@
-import { JSX, RefObject, useEffect, useRef, useState } from "react";
+import { JSX, useEffect, useRef, useState } from "react";
+import { View, ScrollView, useWindowDimensions, LayoutChangeEvent } from "react-native";
 import { GroupHeader } from "../../../components/groupHeader";
 import { Dialog_alert } from "../../../utils/dialog";
 import { Modal } from "../../../components/modal";
 import { IPlannerProgram, IProgram, ISettings } from "../../../types";
 import { IProgramShareOutputOptions, ProgramShareOutput } from "../../../components/programShareOutput";
 import { Button } from "../../../components/button";
-import * as htmlToImage from "html-to-image";
 import { IconSpinner } from "../../../components/icons/iconSpinner";
 import { MenuItemEditable } from "../../../components/menuItemEditable";
 import { CollectionUtils_removeAll, CollectionUtils_remove } from "../../../utils/collection";
@@ -38,7 +38,8 @@ function getInitialDaysToShow(program: IPlannerProgram): number[] {
 }
 
 export function ModalPlannerPictureExportContent(props: IModalPlannerPictureExportProps): JSX.Element {
-  const sourceRef = useRef<HTMLDivElement>(null);
+  const sourceRef = useRef<View>(null);
+  const sourceSizeRef = useRef<{ width: number; height: number } | undefined>(undefined);
   const planner = props.program.planner!;
   const [url, setUrl] = useState(!props.isChanged && props.url ? props.url : undefined);
 
@@ -53,74 +54,88 @@ export function ModalPlannerPictureExportContent(props: IModalPlannerPictureExpo
   });
 
   useEffect(() => {
-    new Promise(async (resolve) => {
-      if (url == null) {
-        const url2 = await Program_toUrl(props.program, props.settings, props.client, props.userId);
+    if (url == null) {
+      Program_toUrl(props.program, props.settings, props.client, props.userId).then((url2) => {
         setUrl(url2);
-        resolve(undefined);
-      }
-    });
+      });
+    }
   }, []);
 
-  return (
-    <>
-      <div className="relative w-full h-px overflow-hidden">
-        <div className="absolute" style={{ top: "9999px", left: "9999px" }}>
-          <ProgramShareOutput ref={sourceRef} settings={props.settings} program={planner} options={config} url={url} />
-        </div>
-      </div>
-      <div className="relative z-0 block px-4 pt-2 sm:hidden" style={{ minWidth: "20rem" }}>
-        <ScrollableTabs
-          defaultIndex={0}
-          tabs={[
-            {
-              label: "Settings",
-              children: () => (
-                <div>
-                  <SettingsTab
-                    program={planner}
-                    initialDaysToShow={initialDaysToShow}
-                    sourceRef={sourceRef}
-                    config={config}
-                    setConfig={setConfig}
-                  />
-                </div>
-              ),
-            },
-            {
-              label: "Preview",
-              children: () => (
-                <div className="overflow-x-auto" style={{ marginLeft: "-1rem", marginRight: "-1rem" }}>
-                  <ProgramShareOutput settings={props.settings} program={planner} options={config} url={url} />
-                </div>
-              ),
-            },
-          ]}
-        />
-      </div>
-      <div className="hidden sm:flex">
-        <div
+  const { width } = useWindowDimensions();
+  const isWide = width >= 640;
+
+  const onSourceLayout = (e: LayoutChangeEvent): void => {
+    sourceSizeRef.current = { width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height };
+  };
+
+  const offscreenSource = (
+    <View
+      collapsable={false}
+      style={{ position: "absolute", left: 0, top: 0, opacity: 0 }}
+      pointerEvents="none"
+      onLayout={onSourceLayout}
+    >
+      <ProgramShareOutput ref={sourceRef} settings={props.settings} program={planner} options={config} url={url} />
+    </View>
+  );
+
+  const settingsTab = (
+    <SettingsTab
+      program={planner}
+      initialDaysToShow={initialDaysToShow}
+      sourceRef={sourceRef}
+      sourceSizeRef={sourceSizeRef}
+      programName={props.program.name}
+      config={config}
+      setConfig={setConfig}
+    />
+  );
+
+  const preview = <ProgramShareOutput settings={props.settings} program={planner} options={config} url={url} />;
+
+  if (isWide) {
+    return (
+      <View className="flex-row flex-1">
+        {offscreenSource}
+        <View
           className="p-4 border-r bg-background-subtle border-border-neutral"
-          style={{ borderRadius: "0.5rem 0 0 0.5rem", minWidth: "16rem" }}
+          style={{ borderTopLeftRadius: 8, borderBottomLeftRadius: 8, minWidth: 256 }}
         >
-          <SettingsTab
-            program={planner}
-            initialDaysToShow={initialDaysToShow}
-            sourceRef={sourceRef}
-            config={config}
-            setConfig={setConfig}
-          />
-        </div>
-        <div className="flex flex-col flex-1 overflow-auto" style={{ minWidth: "24rem" }}>
-          <div>
-            <div className="px-4 py-2">
+          <ScrollView>{settingsTab}</ScrollView>
+        </View>
+        <View className="flex-1" style={{ minWidth: 384 }}>
+          <ScrollView contentContainerClassName="pb-4">
+            <View className="px-4 py-2">
               <GroupHeader size="large" name="Preview" />
-            </div>
-            <ProgramShareOutput settings={props.settings} program={planner} options={config} url={url} />
-          </div>
-        </div>
-      </div>
-    </>
+            </View>
+            <ScrollView horizontal>{preview}</ScrollView>
+          </ScrollView>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View className="flex-1">
+      {offscreenSource}
+      <ScrollableTabs
+        defaultIndex={0}
+        tabs={[
+          {
+            label: "Settings",
+            children: () => <View className="px-4 pt-2">{settingsTab}</View>,
+          },
+          {
+            label: "Preview",
+            children: () => (
+              <ScrollView horizontal>
+                <View>{preview}</View>
+              </ScrollView>
+            ),
+          },
+        ]}
+      />
+    </View>
   );
 }
 
@@ -135,7 +150,9 @@ export function ModalPlannerPictureExport(props: IModalPlannerPictureExportProps
 interface ISettingsTabProps {
   program: IPlannerProgram;
   initialDaysToShow: number[];
-  sourceRef: RefObject<HTMLDivElement | null>;
+  sourceRef: React.RefObject<View | null>;
+  sourceSizeRef: React.RefObject<{ width: number; height: number } | undefined>;
+  programName: string;
   config: IProgramShareOutputOptions;
   setConfig: (config: IProgramShareOutputOptions) => void;
 }
@@ -154,43 +171,37 @@ function getWeekDayMapping(program: IPlannerProgram): Record<number, Record<numb
 
 function SettingsTab(props: ISettingsTabProps): JSX.Element {
   const [isLoading, setIsLoading] = useState(false);
-  const { config, setConfig, sourceRef } = props;
+  const { config, setConfig, sourceRef, sourceSizeRef } = props;
 
-  function save(): void {
+  async function save(): Promise<void> {
     const maxSize = 16384;
-    const width = sourceRef.current!.clientWidth;
-    const height = sourceRef.current!.clientHeight;
-    console.log(`${width}x${height}`);
-    if (width >= maxSize || height >= maxSize) {
+    const size = sourceSizeRef.current;
+    if (size && (size.width >= maxSize || size.height >= maxSize)) {
       Dialog_alert(
-        `The image is too large to generate - max size is 16384x16384, and the image would be ${width}x${height}. Try to set more columns, or disable some weeks/days.`
+        `The image is too large to generate - max size is 16384x16384, and the image would be ${size.width}x${size.height}. Try to set more columns, or disable some weeks/days.`
       );
       return;
     }
     setIsLoading(true);
-    htmlToImage
-      .toPng(sourceRef.current!, {
-        pixelRatio: 2,
-      })
-      .then((dataUrl) => {
-        setIsLoading(false);
-        const filename = StringUtils_dashcase(props.program.name) + ".png";
-        const imageShareUtils = new ImageShareUtils(dataUrl, filename);
-        imageShareUtils.shareOrDownload();
-      })
-      .catch((error) => {
-        setIsLoading(false);
-        console.error(error);
-        Dialog_alert(
-          "Unknown error happened. Likely because the image is too large to generate. Try to disable some weeks/days."
-        );
-      });
+    try {
+      const dataUrl = await ImageShareUtils.generateImageDataUrl(sourceRef);
+      const filename = StringUtils_dashcase(props.programName) + ".png";
+      const imageShareUtils = new ImageShareUtils(dataUrl, filename);
+      await imageShareUtils.shareOrDownload();
+    } catch (error) {
+      console.error(error);
+      Dialog_alert(
+        "Unknown error happened. Likely because the image is too large to generate. Try to disable some weeks/days."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   }
   const weekDayMapping = getWeekDayMapping(props.program);
 
   return (
-    <div>
-      <div className="flex flex-row items-center justify-center my-2">
+    <View>
+      <View className="flex-row items-center justify-center my-2">
         <Button
           disabled={isLoading}
           name="export-program-picture"
@@ -200,7 +211,7 @@ function SettingsTab(props: ISettingsTabProps): JSX.Element {
         >
           {isLoading ? <IconSpinner width={12} height={12} color="white" /> : "Generate image"}
         </Button>
-      </div>
+      </View>
       <GroupHeader size="large" name="Export program to image" />
       <MenuItemEditable
         name="Include program details"
@@ -237,8 +248,8 @@ function SettingsTab(props: ISettingsTabProps): JSX.Element {
         }}
       />
       <GroupHeader name="Days to show" topPadding={true} />
-      <div className="flex flex-row gap-2 text-sm">
-        <div>
+      <View className="flex-row gap-2">
+        <View>
           <LinkButton
             className="text-sm"
             name="select-all"
@@ -246,18 +257,18 @@ function SettingsTab(props: ISettingsTabProps): JSX.Element {
           >
             Select All
           </LinkButton>
-        </div>
-        <div>
+        </View>
+        <View>
           <LinkButton className="text-sm" name="deselect-all" onClick={() => setConfig({ ...config, daysToShow: [] })}>
             Deselect All
           </LinkButton>
-        </div>
-      </div>
+        </View>
+      </View>
       {props.program.weeks.map((week, weekIndex) => {
         const dayIndexes = week.days.map((_, i) => weekDayMapping[weekIndex][i]);
         const allDaysSelected = dayIndexes.every((di) => config.daysToShow.includes(di));
         return (
-          <div key={weekIndex}>
+          <View key={weekIndex}>
             <MenuItemEditable
               name={`Week ${weekIndex + 1}`}
               type="boolean"
@@ -276,7 +287,7 @@ function SettingsTab(props: ISettingsTabProps): JSX.Element {
               return (
                 <MenuItemEditable
                   key={dayIndex}
-                  prefix={<span className="inline-block w-4" />}
+                  prefix={<View className="w-4" />}
                   name={`• Day ${i + 1}`}
                   type="boolean"
                   value={daySelected ? "true" : "false"}
@@ -290,9 +301,9 @@ function SettingsTab(props: ISettingsTabProps): JSX.Element {
                 />
               );
             })}
-          </div>
+          </View>
         );
       })}
-    </div>
+    </View>
   );
 }

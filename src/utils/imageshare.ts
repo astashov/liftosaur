@@ -15,7 +15,8 @@ export class ImageShareUtils {
   ) {}
 
   public static async generateImageDataUrl(element: unknown): Promise<string> {
-    const el = element as HTMLElement;
+    const maybeRef = element as { current?: HTMLElement } | null;
+    const el = (maybeRef && "current" in maybeRef ? maybeRef.current : (element as HTMLElement)) as HTMLElement;
     await htmlToImage.toPng(el, { pixelRatio: 2 });
     await htmlToImage.toPng(el, { pixelRatio: 2 });
     return htmlToImage.toPng(el, { pixelRatio: 2 });
@@ -35,9 +36,9 @@ export class ImageShareUtils {
     });
   }
 
-  public shareOrDownload(): void {
+  public async shareOrDownload(): Promise<void> {
     if (this.canShareDataUrl()) {
-      this.shareDataURL();
+      await this.shareDataURL();
     } else if (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 20) {
       SendMessage_toAndroid({
         type: "share",
