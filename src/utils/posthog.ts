@@ -8,6 +8,7 @@ import {
   SendMessage_androidVersion,
   SendMessage_toIosAndAndroid,
 } from "./sendMessage";
+import { EventManager_isAvailable, EventManager_log } from "./eventManager";
 
 declare let __COMMIT_HASH__: string;
 
@@ -48,7 +49,8 @@ export function lg(
   name: string,
   extra?: Record<string, string | number>,
   service?: Service,
-  tempUserId?: string
+  tempUserId?: string,
+  timestamp?: number
 ): void {
   tempUserId =
     tempUserId ??
@@ -63,7 +65,7 @@ export function lg(
 
   const event: IEventPayload = {
     type: "event",
-    timestamp: Date.now(),
+    timestamp: timestamp ?? Date.now(),
     commithash: typeof __COMMIT_HASH__ !== "undefined" ? __COMMIT_HASH__ : "unknown",
     isMobile,
     iOSVersion: SendMessage_isIos() ? SendMessage_iosAppVersion() : undefined,
@@ -85,6 +87,11 @@ export function lg(
       commithash: event.commithash,
       userId: event.userId,
     });
+    return;
+  }
+
+  if (EventManager_isAvailable()) {
+    EventManager_log(JSON.stringify(event));
     return;
   }
 

@@ -112,6 +112,7 @@ import {
 } from "./utils/nativeWatchBridge";
 import { KeychainStore_getAuthToken, KeychainStore_clearAuthToken } from "./utils/keychainStore";
 import { lg } from "./utils/posthog";
+import { EventManager_initTelemetry } from "./utils/eventManager";
 import { WatchStorageFilter_filterJson } from "./utils/watchStorageFilter";
 import { lb } from "lens-shmens";
 import { updateState } from "./models/state";
@@ -204,6 +205,15 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
     Analytics_setUserId(personId);
     Rollbar.configure(RollbarUtils_config({ person: { id: personId, email: personEmail } }));
   }, [personId, personEmail]);
+
+  useEffect(() => {
+    if (!personId) {
+      return;
+    }
+    EventManager_initTelemetry((event) => {
+      lg(event.name, event.extra, undefined, personId, event.timestamp);
+    });
+  }, [personId]);
 
   useEffect(() => {
     const sub = AppState.addEventListener("change", (next) => {
