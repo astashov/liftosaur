@@ -27,13 +27,22 @@ import {
 
 const APPLE_KEY_IDENTIFIER = "CNHQ5ZL35U";
 
-function toIapPurchase(purchase: Purchase): IIapPurchase {
+interface IPriceCacheEntry {
+  price?: number;
+  currency?: string;
+}
+
+function toIapPurchase(purchase: Purchase, priceCache: Map<string, IPriceCacheEntry>): IIapPurchase {
   const token = (purchase as PurchaseAndroid).purchaseToken ?? purchase.purchaseToken ?? undefined;
+  const iosCurrency = (purchase as { currencyCodeIOS?: string | null }).currencyCodeIOS ?? undefined;
+  const cached = priceCache.get(purchase.productId);
   return {
     id: purchase.id,
     transactionId: purchase.transactionId ?? undefined,
     productId: purchase.productId,
     purchaseToken: token ?? undefined,
+    currency: iosCurrency ?? cached?.currency,
+    price: cached?.price,
   };
 }
 
@@ -76,6 +85,16 @@ function applePromoToWithOffer(promo: IIapApplePromoOffer | undefined): {
 
 export class IapAdapter implements IIapAdapter {
   private cachedSubscriptions: IIapSubscriptionProduct[] = [];
+  private readonly priceCache: Map<string, IPriceCacheEntry> = new Map();
+
+  private cachePrice(id: string, price: number | null | undefined, currency: string | null | undefined): void {
+    const numericPrice = typeof price === "number" ? price : undefined;
+    const c = typeof currency === "string" && currency.length > 0 ? currency : undefined;
+    if (numericPrice == null && c == null) {
+      return;
+    }
+    this.priceCache.set(id, { price: numericPrice, currency: c });
+  }
 
   public async initConnection(): Promise<void> {
     await initConnection();
@@ -87,6 +106,7 @@ export class IapAdapter implements IIapAdapter {
 
   public async fetchSubscriptions(skus: string[]): Promise<IIapSubscriptionProduct[]> {
     const result = (await fetchProducts({ skus, type: "subs" })) as ProductSubscription[] | null;
+    (result ?? []).forEach((p) => this.cachePrice(p.id, p.price, p.currency));
     const mapped = (result ?? []).map(toIapSubscriptionProduct);
     this.cachedSubscriptions = mapped;
     return mapped;
@@ -94,12 +114,16 @@ export class IapAdapter implements IIapAdapter {
 
   public async fetchInAppProducts(skus: string[]): Promise<IIapInAppProduct[]> {
     const result = (await fetchProducts({ skus, type: "in-app" })) as Product[] | null;
+    (result ?? []).forEach((p) => {
+      const currency = (p as { currency?: string | null }).currency ?? null;
+      this.cachePrice(p.id, (p as { price?: number | null }).price, currency);
+    });
     return (result ?? []).map(toIapInAppProduct);
   }
 
   public async getAvailablePurchases(): Promise<IIapPurchase[]> {
     const result = await getAvailablePurchases();
-    return (result ?? []).map(toIapPurchase);
+    return (result ?? []).map((p) => toIapPurchase(p, this.priceCache));
   }
 
   public async requestSubscription(args: IIapRequestSubscriptionArgs): Promise<void> {
@@ -166,7 +190,7 @@ export class IapAdapter implements IIapAdapter {
   public onPurchaseUpdated(handler: (purchase: IIapPurchase) => void | Promise<void>): () => void {
     const handled = new Set<string>();
     const sub = purchaseUpdatedListener(async (p) => {
-      const purchase = toIapPurchase(p);
+      const purchase = toIapPurchase(p, this.priceCache);
       const txnId = purchase.transactionId ?? purchase.id;
       if (txnId) {
         if (handled.has(txnId)) {

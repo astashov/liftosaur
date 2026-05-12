@@ -3,6 +3,9 @@ import React
 import React_RCTAppDelegate
 import ReactAppDependencyProvider
 import TikTokOpenSDKCore
+import RollbarNotifier
+import GoogleAdsOnDeviceConversion
+import AppsFlyerLib
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -15,6 +18,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
+    if let cachedUserId = UserDefaults.standard.string(forKey: "LiftosaurCachedUserId") {
+      let config = Rollbar.configuration().mutableCopy()
+      config.setPersonId(cachedUserId, username: nil, email: nil)
+      Rollbar.update(withConfiguration: config)
+    }
+
+    ConversionManager.sharedInstance.setFirstLaunchTime(Date())
+
     let delegate = ReactNativeDelegate()
     let factory = RCTReactNativeFactory(delegate: delegate)
     delegate.dependencyProvider = RCTAppDependencyProvider()
@@ -38,6 +49,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     open url: URL,
     options: [UIApplication.OpenURLOptionsKey: Any] = [:]
   ) -> Bool {
+    AppsFlyerLib.shared().handleOpen(url, options: options)
     if TikTokURLHandler.handleOpenURL(url) {
       return true
     }
@@ -49,6 +61,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     continue userActivity: NSUserActivity,
     restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
   ) -> Bool {
+    AppsFlyerLib.shared().continue(userActivity, restorationHandler: nil)
     if TikTokURLHandler.handleOpenURL(userActivity.webpageURL) {
       return true
     }

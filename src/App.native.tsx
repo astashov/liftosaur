@@ -1,6 +1,11 @@
 import React, { useMemo, useRef, useState, useEffect } from "react";
 import { ActivityIndicator, AppState, Platform, View } from "react-native";
 import { Client as RollbarClient } from "rollbar-react-native";
+import RB from "rollbar";
+import { Analytics_initialize, Analytics_setUserId } from "./utils/analytics";
+import { RollbarUtils_config } from "./utils/rollbar";
+
+declare let Rollbar: RB;
 
 declare let __HOST__: string;
 
@@ -173,6 +178,32 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
     dispatch(Thunk_fetchInitial());
     dispatch(Thunk_syncHealthKit());
   }, []);
+
+  useEffect(() => {
+    return Analytics_initialize({
+      userId: stateRef.current.user?.id ?? stateRef.current.storage.tempUserId,
+      onAttribution: (data) => {
+        if (data.isOrganic) {
+          return;
+        }
+        const referrer = `${data.mediaSource}_${data.campaign}`;
+        if (stateRef.current.storage.referrer === referrer) {
+          return;
+        }
+        updateState(dispatch, [lb<IState>().p("storage").p("referrer").record(referrer)], "Set Referrer");
+      },
+    });
+  }, [dispatch]);
+
+  const personId = state.user?.id ?? state.storage.tempUserId;
+  const personEmail = state.user ? state.storage.email : undefined;
+  useEffect(() => {
+    if (!personId) {
+      return;
+    }
+    Analytics_setUserId(personId);
+    Rollbar.configure(RollbarUtils_config({ person: { id: personId, email: personEmail } }));
+  }, [personId, personEmail]);
 
   useEffect(() => {
     const sub = AppState.addEventListener("change", (next) => {

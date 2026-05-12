@@ -3,6 +3,8 @@ export interface IIapPurchase {
   transactionId?: string;
   productId: string;
   purchaseToken?: string;
+  currency?: string;
+  price?: number;
 }
 
 export interface IIapPurchaseError {

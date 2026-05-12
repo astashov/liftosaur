@@ -9,7 +9,15 @@ PODS:
     - GoogleUtilities/Environment (~> 8.0)
     - GoogleUtilities/UserDefaults (~> 8.0)
     - PromisesObjC (~> 2.4)
+  - AppsFlyerFramework (6.17.9):
+    - AppsFlyerFramework/Main (= 6.17.9)
+  - AppsFlyerFramework/Main (6.17.9)
   - FBLazyVector (0.84.1)
+  - GoogleAdsOnDeviceConversion (3.4.0):
+    - GoogleUtilities/Environment (~> 8.1)
+    - GoogleUtilities/Logger (~> 8.1)
+    - GoogleUtilities/Network (~> 8.1)
+    - nanopb (~> 3.30910.0)
   - GoogleSignIn (9.1.0):
     - AppAuth (~> 2.0)
     - AppCheckCore (~> 11.0)
@@ -20,7 +28,17 @@ PODS:
   - GoogleUtilities/Logger (8.1.0):
     - GoogleUtilities/Environment
     - GoogleUtilities/Privacy
+  - GoogleUtilities/Network (8.1.0):
+    - GoogleUtilities/Logger
+    - "GoogleUtilities/NSData+zlib"
+    - GoogleUtilities/Privacy
+    - GoogleUtilities/Reachability
+  - "GoogleUtilities/NSData+zlib (8.1.0)":
+    - GoogleUtilities/Privacy
   - GoogleUtilities/Privacy (8.1.0)
+  - GoogleUtilities/Reachability (8.1.0):
+    - GoogleUtilities/Logger
+    - GoogleUtilities/Privacy
   - GoogleUtilities/UserDefaults (8.1.0):
     - GoogleUtilities/Logger
     - GoogleUtilities/Privacy
@@ -32,6 +50,11 @@ PODS:
     - hermes-engine/Pre-built (= 250829098.0.9)
   - hermes-engine/Pre-built (250829098.0.9)
   - MMKVCore (2.4.0)
+  - nanopb (3.30910.0):
+    - nanopb/decode (= 3.30910.0)
+    - nanopb/encode (= 3.30910.0)
+  - nanopb/decode (3.30910.0)
+  - nanopb/encode (3.30910.0)
   - NitroIap (15.2.0):
     - hermes-engine
     - NitroModules
@@ -1420,6 +1443,9 @@ PODS:
     - React-RCTFBReactNativeSpec
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
+  - react-native-appsflyer (6.17.9):
+    - AppsFlyerFramework (= 6.17.9)
+    - React
   - react-native-blur (4.4.1):
     - hermes-engine
     - RCTRequired
@@ -2444,6 +2470,7 @@ PODS:
 
 DEPENDENCIES:
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
+  - GoogleAdsOnDeviceConversion
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - NitroIap (from `../node_modules/react-native-iap`)
   - NitroMmkv (from `../node_modules/react-native-mmkv`)
@@ -2484,6 +2511,7 @@ DEPENDENCIES:
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
+  - react-native-appsflyer (from `../node_modules/react-native-appsflyer`)
   - "react-native-blur (from `../node_modules/@react-native-community/blur`)"
   - "react-native-document-picker (from `../node_modules/@react-native-documents/picker`)"
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
@@ -2551,11 +2579,14 @@ SPEC REPOS:
   trunk:
     - AppAuth
     - AppCheckCore
+    - AppsFlyerFramework
+    - GoogleAdsOnDeviceConversion
     - GoogleSignIn
     - GoogleUtilities
     - GTMAppAuth
     - GTMSessionFetcher
     - MMKVCore
+    - nanopb
     - openiap
     - PromisesObjC
     - RollbarCommon
@@ -2648,6 +2679,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   React-microtasksnativemodule:
     :path: "../node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
+  react-native-appsflyer:
+    :path: "../node_modules/react-native-appsflyer"
   react-native-blur:
     :path: "../node_modules/@react-native-community/blur"
   react-native-document-picker:
@@ -2770,13 +2803,16 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   AppAuth: 1c1a8afa7e12f2ec3a294d9882dfa5ab7d3cb063
   AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f
+  AppsFlyerFramework: 4f9a8237d40e9093941aef760cd77d606238aedd
   FBLazyVector: baf9d0492aa305444465c798e972f87e6a60dc69
+  GoogleAdsOnDeviceConversion: 98956ec5399cff7c0886cf757f4c8ca4716a5064
   GoogleSignIn: fcee2257188d5eda57a5e2b6a715550ffff9206d
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   GTMAppAuth: 217a876b249c3c585a54fd6f73e6b58c4f5c4238
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   hermes-engine: 641a858cdc566a5b3b4a763d9af3a0e628ffa62c
   MMKVCore: 3d16ce9f7d411e135020915fde98a056859a1efa
+  nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   NitroIap: 0e27696ff745e606edaa457619eb824a5ba70922
   NitroMmkv: ec5ea9bb8390e02653c2e46d7b87e307e9e360b6
   NitroModules: 8cb714abfae488c6a56470ef6c64137b5070010d
@@ -2817,6 +2853,7 @@ SPEC CHECKSUMS:
   React-logger: db24f470fd04e25062bba89d0f845f0bb06743f0
   React-Mapbuffer: 89665c9ad30549e2317c893f1e8cfff64f965de6
   React-microtasksnativemodule: 3da114dcb32a85c76f305b053687644cce36cfed
+  react-native-appsflyer: 7611f6b35b5637ec5fb260f02a49c8bdb4ab5605
   react-native-blur: 729b3a793cee9d8fea81544fbb16cb5778f46c28
   react-native-document-picker: 1d04114acd8b370f33d58f597dd4866586c6352a
   react-native-image-picker: adb86d86135d8d31009d027db361445c5a3db863
@@ -2884,6 +2921,6 @@ SPEC CHECKSUMS:
   TikTokOpenShareSDK: a7da017bc66c28d0aefea9342c0cfcc7e52ea2b7
   Yoga: 9e495ad6f457c4ff504a8328981496b5cf41dd7f
 
-PODFILE CHECKSUM: 6fa6e9c286a613f3d31f7b28facbd16ee91aaa34
+PODFILE CHECKSUM: 45883c15a9f3bb89905def79ebeda9b6ada748bd
 
 COCOAPODS: 1.16.2
