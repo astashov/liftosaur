@@ -6,9 +6,12 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="com.android.vending.BILLING" />
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
     <uses-permission android:name="android.permission.health.READ_WEIGHT" />
@@ -69,6 +72,23 @@
       <receiver
         android:name=".timer.TimerNotificationPublisher"
         android:exported="false" />
+      <receiver
+        android:name=".liveactivity.LiveUpdateActionReceiver"
+        android:exported="false">
+        <intent-filter>
+          <action android:name="com.liftosaur.www.twa.ACTION_COMPLETE_SET" />
+          <action android:name="com.liftosaur.www.twa.ACTION_ADJUST_TIMER_PLUS" />
+          <action android:name="com.liftosaur.www.twa.ACTION_ADJUST_TIMER_MINUS" />
+        </intent-filter>
+      </receiver>
+      <service
+        android:name=".liveactivity.WorkoutForegroundService"
+        android:foregroundServiceType="specialUse"
+        android:exported="false">
+        <property
+          android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+          android:value="workout_tracking" />
+      </service>
       <activity
         android:name=".HealthPermissionsRationaleActivity"
         android:exported="true"
