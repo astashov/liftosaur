@@ -54,6 +54,7 @@ export interface Spec extends TurboModule {
   updateLiveActivity(state: LiveActivityState): Promise<void>;
   endLiveActivity(): Promise<void>;
   isSupported(): boolean;
+  flushPendingActions(): Promise<void>;
 
   readonly onLiveActivityAction: EventEmitter<LiveActivityActionEvent>;
 }

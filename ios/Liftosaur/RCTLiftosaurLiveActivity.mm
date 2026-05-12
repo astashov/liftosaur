@@ -103,6 +103,11 @@ static NSDictionary *DictFromState(JS::NativeLiftosaurLiveActivity::LiveActivity
   return @([[LiftosaurLiveActivityImpl shared] isSupported]);
 }
 
+- (void)flushPendingActions:(RCTPromiseResolveBlock)resolve
+                     reject:(RCTPromiseRejectBlock)reject {
+  resolve(nil);
+}
+
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params {
   return std::make_shared<facebook::react::NativeLiftosaurLiveActivitySpecJSI>(params);

@@ -61,4 +61,4 @@ export interface Spec extends TurboModule {
   readonly onWatchEvent: EventEmitter<WatchEvent>;
 }
 
-export default TurboModuleRegistry.getEnforcing<Spec>("LiftosaurWatch");
+export default TurboModuleRegistry.get<Spec>("LiftosaurWatch");

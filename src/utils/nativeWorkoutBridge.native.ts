@@ -74,5 +74,6 @@ export function NativeWorkoutBridge_subscribeToLiveActivityActions(
   handler: (event: LiveActivityActionEvent) => void
 ): () => void {
   const subscription = NativeLiftosaurLiveActivity.onLiveActivityAction(handler);
+  NativeLiftosaurLiveActivity.flushPendingActions().catch(() => {});
   return () => subscription.remove();
 }

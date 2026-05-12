@@ -12,8 +12,8 @@ export function NativeWatchBridge_subscribeToWatchEvents(handler: (event: WatchE
   if (Platform.OS !== "ios") {
     return () => {};
   }
-  const subscription = NativeLiftosaurWatch.onWatchEvent(handler);
-  NativeLiftosaurWatch.flushPendingEvents().catch(() => {});
+  const subscription = NativeLiftosaurWatch!.onWatchEvent(handler);
+  NativeLiftosaurWatch!.flushPendingEvents().catch(() => {});
   return () => subscription.remove();
 }
 
@@ -21,61 +21,61 @@ export function NativeWatchBridge_sendStorageToWatch(filteredStorageJson: string
   if (Platform.OS !== "ios") {
     return;
   }
-  NativeLiftosaurWatch.sendStorageToWatch(filteredStorageJson).catch(() => {});
+  NativeLiftosaurWatch!.sendStorageToWatch(filteredStorageJson).catch(() => {});
 }
 
 export function NativeWatchBridge_sendAuthToWatch(auth: WatchAuth): void {
   if (Platform.OS !== "ios") {
     return;
   }
-  NativeLiftosaurWatch.sendAuthToWatch(auth).catch(() => {});
+  NativeLiftosaurWatch!.sendAuthToWatch(auth).catch(() => {});
 }
 
 export function NativeWatchBridge_sendNoAuthToWatch(): void {
   if (Platform.OS !== "ios") {
     return;
   }
-  NativeLiftosaurWatch.sendNoAuthToWatch().catch(() => {});
+  NativeLiftosaurWatch!.sendNoAuthToWatch().catch(() => {});
 }
 
 export function NativeWatchBridge_sendClearAuthToWatch(): void {
   if (Platform.OS !== "ios") {
     return;
   }
-  NativeLiftosaurWatch.sendClearAuthToWatch().catch(() => {});
+  NativeLiftosaurWatch!.sendClearAuthToWatch().catch(() => {});
 }
 
 export function NativeWatchBridge_clearWatchStorage(): void {
   if (Platform.OS !== "ios") {
     return;
   }
-  NativeLiftosaurWatch.clearWatchStorage().catch(() => {});
+  NativeLiftosaurWatch!.clearWatchStorage().catch(() => {});
 }
 
 export function NativeWatchBridge_sendFinishWorkoutToWatch(): Promise<boolean> {
   if (Platform.OS !== "ios") {
     return Promise.resolve(false);
   }
-  return NativeLiftosaurWatch.sendFinishWorkoutToWatch().catch(() => false);
+  return NativeLiftosaurWatch!.sendFinishWorkoutToWatch().catch(() => false);
 }
 
 export function NativeWatchBridge_sendDiscardWorkoutToWatch(): void {
   if (Platform.OS !== "ios") {
     return;
   }
-  NativeLiftosaurWatch.sendDiscardWorkoutToWatch().catch(() => {});
+  NativeLiftosaurWatch!.sendDiscardWorkoutToWatch().catch(() => {});
 }
 
 export function NativeWatchBridge_requestWatchLogs(): Promise<string> {
   if (Platform.OS !== "ios") {
     return Promise.resolve("");
   }
-  return NativeLiftosaurWatch.requestWatchLogs().catch(() => "");
+  return NativeLiftosaurWatch!.requestWatchLogs().catch(() => "");
 }
 
 export function NativeWatchBridge_isWatchPaired(): boolean {
   if (Platform.OS !== "ios") {
     return false;
   }
-  return NativeLiftosaurWatch.isWatchPaired();
+  return NativeLiftosaurWatch!.isWatchPaired();
 }
