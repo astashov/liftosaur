@@ -118,6 +118,7 @@ import { DeviceId_get } from "../utils/deviceId";
 import { LiveActivityManager_updateProgressLiveActivity } from "../utils/liveActivityManager";
 import { KeychainStore_setAuthToken, KeychainStore_clearAuthToken, IAuthToken } from "../utils/keychainStore";
 import { NativeWatchBridge_sendAuthToWatch, NativeWatchBridge_sendClearAuthToWatch } from "../utils/nativeWatchBridge";
+import { Analytics_trackPurchase, Analytics_trackSignUp } from "../utils/analytics";
 
 declare let Rollbar: RB;
 
@@ -1791,14 +1792,17 @@ async function handleLogin(
       }
       storage.tempUserId = result.user_id;
       storage.email = result.email;
-      if (result.is_new_user && oldUserId) {
-        try {
-          await service.postDebug(oldUserId, JSON.stringify(window.state || {}), {
-            new_userid: result.user_id,
-            email: result.email,
-          });
-        } catch (e) {
-          console.error("Failed to upload debug data for old user", e);
+      if (result.is_new_user) {
+        Analytics_trackSignUp();
+        if (oldUserId) {
+          try {
+            await service.postDebug(oldUserId, JSON.stringify(window.state || {}), {
+              new_userid: result.user_id,
+              email: result.email,
+            });
+          } catch (e) {
+            console.error("Failed to upload debug data for old user", e);
+          }
         }
       }
       if (oldUserId === result.user_id) {
@@ -1984,6 +1988,11 @@ export function Thunk_iapHandlePurchase(purchase: IIapPurchase): IThunk {
           dispatch(Thunk_setGooglePurchaseToken(purchase.productId, purchase.purchaseToken));
         }
       }
+      Analytics_trackPurchase({
+        productId: purchase.productId,
+        price: purchase.price ?? 0,
+        currency: purchase.currency || "USD",
+      });
     } finally {
       try {
         await env.iap.finishTransaction(purchase);

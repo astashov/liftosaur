@@ -2,6 +2,7 @@ import { AppState, AppStateStatus } from "react-native";
 import NativeLiftosaurLiveActivity, { LiveActivityActionEvent } from "../specs/NativeLiftosaurLiveActivity";
 import NativeLiftosaurTimer from "../specs/NativeLiftosaurTimer";
 import { ILiveActivityState } from "./liveActivityManager";
+import { Analytics_trackFinishWorkout } from "./analytics";
 
 export type INativeWorkoutBridgeLiveActivityAction = LiveActivityActionEvent;
 
@@ -52,7 +53,7 @@ export function NativeWorkoutBridge_finishWorkout(_opts: {
   NativeLiftosaurLiveActivity.endLiveActivity().catch(() => {});
   currentReminderDuration = null;
   NativeLiftosaurTimer.cancelReminder().catch(() => {});
-  // TODO: AppsFlyer track event, health sync, watch sync once those subsystems migrate
+  Analytics_trackFinishWorkout();
 }
 
 export function NativeWorkoutBridge_discardWorkout(): void {
