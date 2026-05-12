@@ -1,7 +1,9 @@
 import { AppState, AppStateStatus } from "react-native";
-import NativeLiftosaurLiveActivity from "../specs/NativeLiftosaurLiveActivity";
+import NativeLiftosaurLiveActivity, { LiveActivityActionEvent } from "../specs/NativeLiftosaurLiveActivity";
 import NativeLiftosaurTimer from "../specs/NativeLiftosaurTimer";
 import { ILiveActivityState } from "./liveActivityManager";
+
+export type INativeWorkoutBridgeLiveActivityAction = LiveActivityActionEvent;
 
 let currentReminderDuration: number | null = null;
 let appStateSubscribed = false;
@@ -66,4 +68,11 @@ export function NativeWorkoutBridge_updateLiveActivity(state: ILiveActivityState
     rest: state.restTimer,
     entry: state.historyEntryState,
   }).catch(() => {});
+}
+
+export function NativeWorkoutBridge_subscribeToLiveActivityActions(
+  handler: (event: LiveActivityActionEvent) => void
+): () => void {
+  const subscription = NativeLiftosaurLiveActivity.onLiveActivityAction(handler);
+  return () => subscription.remove();
 }

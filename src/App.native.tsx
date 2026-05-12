@@ -97,6 +97,7 @@ import { Service } from "./api/service";
 import { AudioInterface } from "./lib/audioInterface";
 import { Progress_getCurrentProgress, Progress_lbProgress } from "./models/progress";
 import { NativeTimerBridge_subscribeOnScheduled } from "./utils/nativeTimerBridge";
+import { NativeWorkoutBridge_subscribeToLiveActivityActions } from "./utils/nativeWorkoutBridge";
 import { lb } from "lens-shmens";
 import { updateState } from "./models/state";
 import { TourConfigs_findTourId } from "./components/tour/tourConfigs";
@@ -122,6 +123,8 @@ import {
   Thunk_iapFetchProducts,
   Thunk_iapHandlePurchase,
   Thunk_iapHandlePurchaseError,
+  Thunk_completeSetExternal,
+  Thunk_updateTimer,
 } from "./ducks/thunks";
 import { IapAdapter } from "./utils/iap";
 import { HealthAdapter } from "./utils/health";
@@ -208,6 +211,26 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
           [Progress_lbProgress().pi("ui", {}).p("nativeNotificationScheduled").record(true)],
           "Set native notification scheduled"
         );
+      }
+    });
+  }, [dispatch]);
+
+  useEffect(() => {
+    return NativeWorkoutBridge_subscribeToLiveActivityActions((event) => {
+      const entryIndex = event.entryIndex ?? 0;
+      const setIndex = event.setIndex ?? 0;
+      if (event.action === "completeSet") {
+        const progress = stateRef.current.storage.progress[0];
+        const restTimer = progress?.timer ?? 0;
+        const restTimerSince = progress?.timerSince ?? 0;
+        dispatch(Thunk_completeSetExternal(entryIndex, setIndex, restTimer, restTimerSince));
+      } else if (event.action === "addRestTime") {
+        const progress = stateRef.current.storage.progress[0];
+        if (progress == null) return;
+        const { timer, timerSince } = progress;
+        if (timer == null || timerSince == null) return;
+        const addSeconds = event.addSeconds ?? 0;
+        dispatch(Thunk_updateTimer(Math.max(0, timer + addSeconds), entryIndex, setIndex, false));
       }
     });
   }, [dispatch]);
