@@ -3,6 +3,11 @@ import NativeLiftosaurLiveActivity, { LiveActivityActionEvent } from "../specs/N
 import NativeLiftosaurTimer from "../specs/NativeLiftosaurTimer";
 import { ILiveActivityState } from "./liveActivityManager";
 import { Analytics_trackFinishWorkout } from "./analytics";
+import {
+  NativeWorkoutMirroring_startWatchWorkout,
+  NativeWorkoutMirroring_pauseWatchWorkout,
+  NativeWorkoutMirroring_resumeWatchWorkout,
+} from "./nativeWorkoutMirroringBridge";
 
 export type INativeWorkoutBridgeLiveActivityAction = LiveActivityActionEvent;
 
@@ -34,6 +39,7 @@ export function NativeWorkoutBridge_pauseWorkout(): void {
   NativeLiftosaurLiveActivity.endLiveActivity().catch(() => {});
   currentReminderDuration = null;
   NativeLiftosaurTimer.cancelReminder().catch(() => {});
+  NativeWorkoutMirroring_pauseWatchWorkout();
 }
 
 export function NativeWorkoutBridge_resumeWorkout(opts: {
@@ -43,6 +49,13 @@ export function NativeWorkoutBridge_resumeWorkout(opts: {
 }): void {
   ensureAppStateSubscription();
   currentReminderDuration = opts.reminder > 0 ? opts.reminder : null;
+  if (opts.hasSubscription) {
+    if (opts.isStart) {
+      NativeWorkoutMirroring_startWatchWorkout().catch(() => {});
+    } else {
+      NativeWorkoutMirroring_resumeWatchWorkout();
+    }
+  }
 }
 
 export function NativeWorkoutBridge_finishWorkout(_opts: {

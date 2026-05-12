@@ -99,6 +99,10 @@ private let kReasonUserTerminated = "user_terminated"
     ] as NSDictionary
   }
 
+  @objc public func logTelemetry(name: String, extra: [String: String]) {
+    emit(name: name, extra: extra)
+  }
+
   fileprivate func emit(name: String, extra: [String: String], timestamp: Int64? = nil) {
     let event: NSDictionary = [
       "name": name,

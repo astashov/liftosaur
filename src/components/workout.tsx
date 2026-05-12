@@ -42,6 +42,8 @@ import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth }
 import { SendMessage_isIos } from "../utils/sendMessage";
 import { History_calories, History_pauseWorkout } from "../models/history";
 import { NativeWorkoutBridge_finishWorkout, NativeWorkoutBridge_pauseWorkout } from "../utils/nativeWorkoutBridge";
+import { NativeWatchBridge_sendFinishWorkoutToWatch } from "../utils/nativeWatchBridge";
+import { NativeWorkoutMirroring_resetWatchWorkoutState } from "../utils/nativeWorkoutMirroringBridge";
 import { Dialog_confirm } from "../utils/dialog";
 import { useEqual } from "../utils/useEqual";
 import { NavScreenContent } from "../navigation/NavScreenContent";
@@ -365,7 +367,9 @@ function WorkoutHeaderInner(props: IWorkoutHeaderProps): JSX.Element {
         calories: History_calories(props.progress),
         intervals: JSON.stringify(intervals),
       });
-      if (shouldSyncToHealth) {
+      const watchSaved = shouldSyncToHealth ? await NativeWatchBridge_sendFinishWorkoutToWatch() : false;
+      NativeWorkoutMirroring_resetWatchWorkoutState();
+      if (shouldSyncToHealth && !watchSaved) {
         const validIntervals = intervals.filter((i): i is [number, number] => i[1] != null);
         const startMs = validIntervals[0]?.[0] ?? props.progress.startTime;
         const endMs = validIntervals[validIntervals.length - 1]?.[1] ?? Date.now();
@@ -377,6 +381,8 @@ function WorkoutHeaderInner(props: IWorkoutHeaderProps): JSX.Element {
             intervals,
           })
         );
+      } else if (watchSaved) {
+        props.dispatch(Thunk_postevent("skipped-phone-health-sync-watch-saved"));
       }
     }
   };

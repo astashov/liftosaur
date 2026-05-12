@@ -61,6 +61,8 @@ import { UndoingFlag_set } from "../utils/undoingFlag";
 import { Diagnostics_getLastActions, Diagnostics_recordAction, Diagnostics_setLastState } from "../utils/diagnostics";
 import { Exercise_toKey } from "../models/exercise";
 import { NativeWorkoutBridge_discardWorkout } from "../utils/nativeWorkoutBridge";
+import { NativeWatchBridge_sendDiscardWorkoutToWatch } from "../utils/nativeWatchBridge";
+import { NativeWorkoutMirroring_resetWatchWorkoutState } from "../utils/nativeWorkoutMirroringBridge";
 import { SendMessage_isIos } from "../utils/sendMessage";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
@@ -679,6 +681,8 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       const history = state.storage.history.filter((h) => h.id !== progress.id);
       if (Progress_isCurrent(progress)) {
         NativeWorkoutBridge_discardWorkout();
+        NativeWatchBridge_sendDiscardWorkoutToWatch();
+        NativeWorkoutMirroring_resetWatchWorkoutState();
       }
       return {
         ...state,
