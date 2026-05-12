@@ -841,12 +841,18 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
         }
 
         const session = JWT.sign({ userId: userId }, cookieSecret);
-        const resp = {
+        const isNativeClient = (event.headers["x-client"] || event.headers["X-Client"] || "").startsWith(
+          "liftosaur-native"
+        );
+        const resp: Record<string, unknown> = {
           email: email,
           user_id: userId,
           storage: user!.storage,
           is_new_user: isNewUser,
         };
+        if (isNativeClient) {
+          resp.session = session;
+        }
 
         return {
           statusCode: 200,
@@ -965,12 +971,16 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   }
 
   const session = JWT.sign({ userId: userId }, cookieSecret);
-  const resp = {
+  const isNativeClient = (event.headers["x-client"] || event.headers["X-Client"] || "").startsWith("liftosaur-native");
+  const resp: Record<string, unknown> = {
     email: openIdJson.email,
     user_id: userId,
     storage: user!.storage,
     is_new_user: isNewUser,
   };
+  if (isNativeClient) {
+    resp.session = session;
+  }
 
   return {
     statusCode: 200,
