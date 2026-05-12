@@ -18,6 +18,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
+    LiftosaurEventReporterImpl.shared.registerWithMetricKit()
+
     if let cachedUserId = UserDefaults.standard.string(forKey: "LiftosaurCachedUserId") {
       let config = Rollbar.configuration().mutableCopy()
       config.setPersonId(cachedUserId, username: nil, email: nil)
@@ -42,6 +44,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     )
 
     return true
+  }
+
+  func applicationWillTerminate(_ application: UIApplication) {
+    LiftosaurEventReporterImpl.shared.markGracefulTermination()
   }
 
   func application(
