@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -18,7 +18,6 @@
 		3AACC5082FB2A15E001C68AA /* LiftosaurWorkoutWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3AACC4F72FB2A15D001C68AA /* LiftosaurWorkoutWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		3AACC51A2FB2A4BF001C68AA /* SetInfoViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5172FB2A4BF001C68AA /* SetInfoViews.swift */; };
 		3AACC51B2FB2A4BF001C68AA /* WorkoutIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5182FB2A4BF001C68AA /* WorkoutIntents.swift */; };
-		3AACC51C2FB2A4BF001C68AA /* Logger+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5152FB2A4BF001C68AA /* Logger+Extension.swift */; };
 		3AACC51D2FB2A4BF001C68AA /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC50F2FB2A4BF001C68AA /* FlowLayout.swift */; };
 		3AACC51E2FB2A4BF001C68AA /* LiftosaurWorkoutWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5112FB2A4BF001C68AA /* LiftosaurWorkoutWidget.swift */; };
 		3AACC51F2FB2A4BF001C68AA /* LiftosaurWorkoutWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5122FB2A4BF001C68AA /* LiftosaurWorkoutWidgetBundle.swift */; };
@@ -62,10 +61,53 @@
 		3AACC5622FB2C941001C68AA /* Poppins-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC53C2FB2C92F001C68AA /* Poppins-SemiBold.ttf */; };
 		3AACC5632FB2C941001C68AA /* Poppins-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC5382FB2C92F001C68AA /* Poppins-LightItalic.ttf */; };
 		3AACC5642FB2C941001C68AA /* Poppins-ExtraLightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC5352FB2C92F001C68AA /* Poppins-ExtraLightItalic.ttf */; };
-		3AACC5652FB2D9C9001C68AA /* Logger+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5152FB2A4BF001C68AA /* Logger+Extension.swift */; };
 		3AACC5662FB2D9D8001C68AA /* WorkoutIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5182FB2A4BF001C68AA /* WorkoutIntents.swift */; };
+		3AACC5C72FB351D0001C68AA /* LiftosaurWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 3AACC5BC2FB351CF001C68AA /* LiftosaurWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		3AACC5EF2FB3526B001C68AA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC5E62FB3526B001C68AA /* Assets.xcassets */; };
+		3AACC5F22FB3526B001C68AA /* LiftosaurWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5EB2FB3526B001C68AA /* LiftosaurWatchApp.swift */; };
+		3AACC5F32FB3526B001C68AA /* WatchModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5D82FB3526B001C68AA /* WatchModels.swift */; };
+		3AACC5F42FB3526B001C68AA /* WatchLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5EC2FB3526B001C68AA /* WatchLayout.swift */; };
+		3AACC5F52FB3526B001C68AA /* WatchCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5CF2FB3526B001C68AA /* WatchCacheManager.swift */; };
+		3AACC5F62FB3526B001C68AA /* WatchCrashReporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5D12FB3526B001C68AA /* WatchCrashReporter.swift */; };
+		3AACC5F72FB3526B001C68AA /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5CC2FB3526B001C68AA /* HealthKitManager.swift */; };
+		3AACC5F82FB3526B001C68AA /* ScrollableInputFields.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5E22FB3526B001C68AA /* ScrollableInputFields.swift */; };
+		3AACC5F92FB3526B001C68AA /* LiftosaurEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5CE2FB3526B001C68AA /* LiftosaurEngine.swift */; };
+		3AACC5FA2FB3526B001C68AA /* AmrapModalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5DB2FB3526B001C68AA /* AmrapModalView.swift */; };
+		3AACC5FB2FB3526B001C68AA /* WatchEventManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5D22FB3526B001C68AA /* WatchEventManager.swift */; };
+		3AACC5FC2FB3526B001C68AA /* RestTimerScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5E12FB3526B001C68AA /* RestTimerScreen.swift */; };
+		3AACC5FD2FB3526B001C68AA /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5E72FB3526B001C68AA /* ContentView.swift */; };
+		3AACC5FE2FB3526B001C68AA /* ExerciseScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5DC2FB3526B001C68AA /* ExerciseScreen.swift */; };
+		3AACC5FF2FB3526B001C68AA /* FinishWorkoutScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5DD2FB3526B001C68AA /* FinishWorkoutScreen.swift */; };
+		3AACC6002FB3526B001C68AA /* HeartRateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5DE2FB3526B001C68AA /* HeartRateView.swift */; };
+		3AACC6012FB3526B001C68AA /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5CB2FB3526B001C68AA /* AuthManager.swift */; };
+		3AACC6022FB3526B001C68AA /* WatchConnectivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5D02FB3526B001C68AA /* WatchConnectivityManager.swift */; };
+		3AACC6032FB3526B001C68AA /* WatchSyncManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5D52FB3526B001C68AA /* WatchSyncManager.swift */; };
+		3AACC6042FB3526B001C68AA /* WatchMessageHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5D32FB3526B001C68AA /* WatchMessageHandler.swift */; };
+		3AACC6052FB3526B001C68AA /* WorkoutCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5E32FB3526B001C68AA /* WorkoutCardView.swift */; };
+		3AACC6062FB3526B001C68AA /* PremiumRequiredScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5E02FB3526B001C68AA /* PremiumRequiredScreen.swift */; };
+		3AACC6072FB3526B001C68AA /* LiftosaurColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5E92FB3526B001C68AA /* LiftosaurColor.swift */; };
+		3AACC6082FB3526B001C68AA /* ImageCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5CD2FB3526B001C68AA /* ImageCacheManager.swift */; };
+		3AACC6092FB3526B001C68AA /* HomeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5DF2FB3526B001C68AA /* HomeScreen.swift */; };
+		3AACC60A2FB3526B001C68AA /* WatchStorageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5D42FB3526B001C68AA /* WatchStorageManager.swift */; };
+		3AACC60B2FB3526B001C68AA /* WorkoutExercisesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5E42FB3526B001C68AA /* WorkoutExercisesScreen.swift */; };
+		3AACC60C2FB3526B001C68AA /* WorkoutManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5D62FB3526B001C68AA /* WorkoutManager.swift */; };
+		3AACC60F2FB35357001C68AA /* QuickJSCore in Frameworks */ = {isa = PBXBuildFile; productRef = 3AACC60E2FB35357001C68AA /* QuickJSCore */; };
+		3AACC6172FB355BA001C68AA /* EventManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC6102FB355BA001C68AA /* EventManager.swift */; };
+		3AACC6182FB355BA001C68AA /* SetInfoViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC6142FB355BA001C68AA /* SetInfoViews.swift */; };
+		3AACC6192FB355BA001C68AA /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC6132FB355BA001C68AA /* Notifications.swift */; };
+		3AACC61A2FB355BA001C68AA /* SharedMessageHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC6152FB355BA001C68AA /* SharedMessageHandler.swift */; };
+		3AACC61B2FB355BA001C68AA /* Logger+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC6122FB355BA001C68AA /* Logger+Extension.swift */; };
+		3AACC61C2FB355BA001C68AA /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC6112FB355BA001C68AA /* FlowLayout.swift */; };
+		3AACC61E2FB35653001C68AA /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC61D2FB35653001C68AA /* Settings.swift */; };
+		3AACC6272FB35CFD001C68AA /* RCTLiftosaurWatch.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC6262FB35CFD001C68AA /* RCTLiftosaurWatch.mm */; };
+		3AACC6282FB35CFD001C68AA /* LiftosaurWatchImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC6242FB35CFD001C68AA /* LiftosaurWatchImpl.swift */; };
+		3AACC6292FB35D3A001C68AA /* Logger+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC6122FB355BA001C68AA /* Logger+Extension.swift */; };
+		3AACC62A2FB35D68001C68AA /* Logger+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC6122FB355BA001C68AA /* Logger+Extension.swift */; };
+		3AACC62B2FB35DA2001C68AA /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC61D2FB35653001C68AA /* Settings.swift */; };
+		3AACC62C2FB35DA3001C68AA /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC61D2FB35653001C68AA /* Settings.swift */; };
 		438B6645A9C600CDF5BC2E07 /* RCTLiftosaurShare.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6932EE9394B77D111CEA7C57 /* RCTLiftosaurShare.mm */; };
 		5B4963F7D772C61DAC6997B6 /* LiftosaurLiveActivityImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B4BDC15E59DDB21DA61FB5B /* LiftosaurLiveActivityImpl.swift */; };
+		5C9210548D8DDE45FAA805DE /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		60DC71544F9AE60B9C0EE490 /* Pods_Liftosaur.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FCF7CDE82AE486C844F0851B /* Pods_Liftosaur.framework */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
@@ -81,6 +123,13 @@
 			remoteGlobalIDString = 3AACC4F62FB2A15D001C68AA;
 			remoteInfo = LiftosaurWorkoutWidgetExtensionExtension;
 		};
+		3AACC5C42FB351D0001C68AA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3AACC5BB2FB351CF001C68AA;
+			remoteInfo = "LiftosaurWatch Watch App";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -95,6 +144,17 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		3AACC5C62FB351D0001C68AA /* Embed Watch Content */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				3AACC5C72FB351D0001C68AA /* LiftosaurWatch.app in Embed Watch Content */,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
@@ -102,7 +162,7 @@
 		13B07F961A680F5B00A75B9A /* Liftosaur.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Liftosaur.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Liftosaur/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Liftosaur/Info.plist; sourceTree = "<group>"; };
-		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = Liftosaur/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = Liftosaur/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		3A606C422FAB8D1800799977 /* Store.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Store.storekit; sourceTree = "<group>"; };
 		3AACC4F72FB2A15D001C68AA /* LiftosaurWorkoutWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LiftosaurWorkoutWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		3AACC4F82FB2A15D001C68AA /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
@@ -114,7 +174,6 @@
 		3AACC5122FB2A4BF001C68AA /* LiftosaurWorkoutWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiftosaurWorkoutWidgetBundle.swift; sourceTree = "<group>"; };
 		3AACC5132FB2A4BF001C68AA /* LiftosaurWorkoutWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LiftosaurWorkoutWidgetExtension.entitlements; sourceTree = "<group>"; };
 		3AACC5142FB2A4BF001C68AA /* LiveActivityViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityViews.swift; sourceTree = "<group>"; };
-		3AACC5152FB2A4BF001C68AA /* Logger+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Logger+Extension.swift"; sourceTree = "<group>"; };
 		3AACC5162FB2A4BF001C68AA /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		3AACC5172FB2A4BF001C68AA /* SetInfoViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetInfoViews.swift; sourceTree = "<group>"; };
 		3AACC5182FB2A4BF001C68AA /* WorkoutIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutIntents.swift; sourceTree = "<group>"; };
@@ -137,6 +196,48 @@
 		3AACC53D2FB2C92F001C68AA /* Poppins-SemiBoldItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Poppins-SemiBoldItalic.ttf"; sourceTree = "<group>"; };
 		3AACC53E2FB2C92F001C68AA /* Poppins-Thin.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Poppins-Thin.ttf"; sourceTree = "<group>"; };
 		3AACC53F2FB2C92F001C68AA /* Poppins-ThinItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Poppins-ThinItalic.ttf"; sourceTree = "<group>"; };
+		3AACC5BC2FB351CF001C68AA /* LiftosaurWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LiftosaurWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3AACC5CB2FB3526B001C68AA /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+		3AACC5CC2FB3526B001C68AA /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
+		3AACC5CD2FB3526B001C68AA /* ImageCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCacheManager.swift; sourceTree = "<group>"; };
+		3AACC5CE2FB3526B001C68AA /* LiftosaurEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiftosaurEngine.swift; sourceTree = "<group>"; };
+		3AACC5CF2FB3526B001C68AA /* WatchCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchCacheManager.swift; sourceTree = "<group>"; };
+		3AACC5D02FB3526B001C68AA /* WatchConnectivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchConnectivityManager.swift; sourceTree = "<group>"; };
+		3AACC5D12FB3526B001C68AA /* WatchCrashReporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchCrashReporter.swift; sourceTree = "<group>"; };
+		3AACC5D22FB3526B001C68AA /* WatchEventManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchEventManager.swift; sourceTree = "<group>"; };
+		3AACC5D32FB3526B001C68AA /* WatchMessageHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchMessageHandler.swift; sourceTree = "<group>"; };
+		3AACC5D42FB3526B001C68AA /* WatchStorageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchStorageManager.swift; sourceTree = "<group>"; };
+		3AACC5D52FB3526B001C68AA /* WatchSyncManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchSyncManager.swift; sourceTree = "<group>"; };
+		3AACC5D62FB3526B001C68AA /* WorkoutManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutManager.swift; sourceTree = "<group>"; };
+		3AACC5D82FB3526B001C68AA /* WatchModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchModels.swift; sourceTree = "<group>"; };
+		3AACC5DB2FB3526B001C68AA /* AmrapModalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AmrapModalView.swift; sourceTree = "<group>"; };
+		3AACC5DC2FB3526B001C68AA /* ExerciseScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseScreen.swift; sourceTree = "<group>"; };
+		3AACC5DD2FB3526B001C68AA /* FinishWorkoutScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinishWorkoutScreen.swift; sourceTree = "<group>"; };
+		3AACC5DE2FB3526B001C68AA /* HeartRateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeartRateView.swift; sourceTree = "<group>"; };
+		3AACC5DF2FB3526B001C68AA /* HomeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeScreen.swift; sourceTree = "<group>"; };
+		3AACC5E02FB3526B001C68AA /* PremiumRequiredScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumRequiredScreen.swift; sourceTree = "<group>"; };
+		3AACC5E12FB3526B001C68AA /* RestTimerScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestTimerScreen.swift; sourceTree = "<group>"; };
+		3AACC5E22FB3526B001C68AA /* ScrollableInputFields.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollableInputFields.swift; sourceTree = "<group>"; };
+		3AACC5E32FB3526B001C68AA /* WorkoutCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutCardView.swift; sourceTree = "<group>"; };
+		3AACC5E42FB3526B001C68AA /* WorkoutExercisesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutExercisesScreen.swift; sourceTree = "<group>"; };
+		3AACC5E62FB3526B001C68AA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		3AACC5E72FB3526B001C68AA /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		3AACC5E82FB3526B001C68AA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		3AACC5E92FB3526B001C68AA /* LiftosaurColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiftosaurColor.swift; sourceTree = "<group>"; };
+		3AACC5EA2FB3526B001C68AA /* LiftosaurWatch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LiftosaurWatch.entitlements; sourceTree = "<group>"; };
+		3AACC5EB2FB3526B001C68AA /* LiftosaurWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiftosaurWatchApp.swift; sourceTree = "<group>"; };
+		3AACC5EC2FB3526B001C68AA /* WatchLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchLayout.swift; sourceTree = "<group>"; };
+		3AACC5ED2FB3526B001C68AA /* XCODE_SETUP.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = XCODE_SETUP.md; sourceTree = "<group>"; };
+		3AACC6102FB355BA001C68AA /* EventManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventManager.swift; sourceTree = "<group>"; };
+		3AACC6112FB355BA001C68AA /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
+		3AACC6122FB355BA001C68AA /* Logger+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Logger+Extension.swift"; sourceTree = "<group>"; };
+		3AACC6132FB355BA001C68AA /* Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
+		3AACC6142FB355BA001C68AA /* SetInfoViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetInfoViews.swift; sourceTree = "<group>"; };
+		3AACC6152FB355BA001C68AA /* SharedMessageHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedMessageHandler.swift; sourceTree = "<group>"; };
+		3AACC61D2FB35653001C68AA /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
+		3AACC6242FB35CFD001C68AA /* LiftosaurWatchImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LiftosaurWatchImpl.swift; path = Liftosaur/LiftosaurWatchImpl.swift; sourceTree = "<group>"; };
+		3AACC6252FB35CFD001C68AA /* RCTLiftosaurWatch.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTLiftosaurWatch.h; path = Liftosaur/RCTLiftosaurWatch.h; sourceTree = "<group>"; };
+		3AACC6262FB35CFD001C68AA /* RCTLiftosaurWatch.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTLiftosaurWatch.mm; path = Liftosaur/RCTLiftosaurWatch.mm; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-Liftosaur.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Liftosaur.debug.xcconfig"; path = "Target Support Files/Pods-Liftosaur/Pods-Liftosaur.debug.xcconfig"; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-Liftosaur.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Liftosaur.release.xcconfig"; path = "Target Support Files/Pods-Liftosaur/Pods-Liftosaur.release.xcconfig"; sourceTree = "<group>"; };
 		682B1C3E13634AA59A78E2F9 /* Poppins-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-Regular.ttf"; path = "../assets/fonts/Poppins-Regular.ttf"; sourceTree = "<group>"; };
@@ -179,6 +280,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		3AACC5B92FB351CF001C68AA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3AACC60F2FB35357001C68AA /* QuickJSCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -187,11 +296,13 @@
 			children = (
 				3AACC5242FB2A4FC001C68AA /* WorkoutAttributes.swift */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
+				3AACC6242FB35CFD001C68AA /* LiftosaurWatchImpl.swift */,
+				3AACC6252FB35CFD001C68AA /* RCTLiftosaurWatch.h */,
+				3AACC6262FB35CFD001C68AA /* RCTLiftosaurWatch.mm */,
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
-				3AACC5152FB2A4BF001C68AA /* Logger+Extension.swift */,
 				FD2FDC64C423B610A697466E /* RCTLiftosaurShare.h */,
 				6932EE9394B77D111CEA7C57 /* RCTLiftosaurShare.mm */,
 				E883E351A4F90F4F9BB4EFE5 /* LiftosaurShareImpl.swift */,
@@ -274,20 +385,98 @@
 			path = Fonts;
 			sourceTree = "<group>";
 		};
-		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
+		3AACC5D72FB3526B001C68AA /* Engine */ = {
+			isa = PBXGroup;
+			children = (
+				3AACC5CB2FB3526B001C68AA /* AuthManager.swift */,
+				3AACC5CC2FB3526B001C68AA /* HealthKitManager.swift */,
+				3AACC5CD2FB3526B001C68AA /* ImageCacheManager.swift */,
+				3AACC5CE2FB3526B001C68AA /* LiftosaurEngine.swift */,
+				3AACC5CF2FB3526B001C68AA /* WatchCacheManager.swift */,
+				3AACC5D02FB3526B001C68AA /* WatchConnectivityManager.swift */,
+				3AACC5D12FB3526B001C68AA /* WatchCrashReporter.swift */,
+				3AACC5D22FB3526B001C68AA /* WatchEventManager.swift */,
+				3AACC5D32FB3526B001C68AA /* WatchMessageHandler.swift */,
+				3AACC5D42FB3526B001C68AA /* WatchStorageManager.swift */,
+				3AACC5D52FB3526B001C68AA /* WatchSyncManager.swift */,
+				3AACC5D62FB3526B001C68AA /* WorkoutManager.swift */,
+			);
+			path = Engine;
+			sourceTree = "<group>";
+		};
+		3AACC5D92FB3526B001C68AA /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				3AACC5D82FB3526B001C68AA /* WatchModels.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		3AACC5DA2FB3526B001C68AA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
 			);
-			name = Libraries;
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		3AACC5E52FB3526B001C68AA /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				3AACC5DB2FB3526B001C68AA /* AmrapModalView.swift */,
+				3AACC5DC2FB3526B001C68AA /* ExerciseScreen.swift */,
+				3AACC5DD2FB3526B001C68AA /* FinishWorkoutScreen.swift */,
+				3AACC5DE2FB3526B001C68AA /* HeartRateView.swift */,
+				3AACC5DF2FB3526B001C68AA /* HomeScreen.swift */,
+				3AACC5E02FB3526B001C68AA /* PremiumRequiredScreen.swift */,
+				3AACC5E12FB3526B001C68AA /* RestTimerScreen.swift */,
+				3AACC5E22FB3526B001C68AA /* ScrollableInputFields.swift */,
+				3AACC5E32FB3526B001C68AA /* WorkoutCardView.swift */,
+				3AACC5E42FB3526B001C68AA /* WorkoutExercisesScreen.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		3AACC5EE2FB3526B001C68AA /* LiftosaurWatch */ = {
+			isa = PBXGroup;
+			children = (
+				3AACC5D72FB3526B001C68AA /* Engine */,
+				3AACC5D92FB3526B001C68AA /* Models */,
+				3AACC5DA2FB3526B001C68AA /* Resources */,
+				3AACC5E52FB3526B001C68AA /* Views */,
+				3AACC5E62FB3526B001C68AA /* Assets.xcassets */,
+				3AACC5E72FB3526B001C68AA /* ContentView.swift */,
+				3AACC5E82FB3526B001C68AA /* Info.plist */,
+				3AACC5E92FB3526B001C68AA /* LiftosaurColor.swift */,
+				3AACC5EA2FB3526B001C68AA /* LiftosaurWatch.entitlements */,
+				3AACC5EB2FB3526B001C68AA /* LiftosaurWatchApp.swift */,
+				3AACC5EC2FB3526B001C68AA /* WatchLayout.swift */,
+				3AACC5ED2FB3526B001C68AA /* XCODE_SETUP.md */,
+			);
+			path = LiftosaurWatch;
+			sourceTree = "<group>";
+		};
+		3AACC6162FB355BA001C68AA /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				3AACC61D2FB35653001C68AA /* Settings.swift */,
+				3AACC6102FB355BA001C68AA /* EventManager.swift */,
+				3AACC6112FB355BA001C68AA /* FlowLayout.swift */,
+				3AACC6122FB355BA001C68AA /* Logger+Extension.swift */,
+				3AACC6132FB355BA001C68AA /* Notifications.swift */,
+				3AACC6142FB355BA001C68AA /* SetInfoViews.swift */,
+				3AACC6152FB355BA001C68AA /* SharedMessageHandler.swift */,
+			);
+			path = Shared;
 			sourceTree = "<group>";
 		};
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
-				3AACC5402FB2C92F001C68AA /* Fonts */,
-				3AACC5192FB2A4BF001C68AA /* LiftosaurWorkoutWidgetExtension */,
 				13B07FAE1A68108700A75B9A /* Liftosaur */,
-				832341AE1AAA6A7D00B99B32 /* Libraries */,
+				3AACC5192FB2A4BF001C68AA /* LiftosaurWorkoutWidgetExtension */,
+				3AACC5EE2FB3526B001C68AA /* LiftosaurWatch */,
+				3AACC6162FB355BA001C68AA /* Shared */,
+				3AACC5402FB2C92F001C68AA /* Fonts */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
@@ -303,6 +492,7 @@
 			children = (
 				13B07F961A680F5B00A75B9A /* Liftosaur.app */,
 				3AACC4F72FB2A15D001C68AA /* LiftosaurWorkoutWidgetExtension.appex */,
+				3AACC5BC2FB351CF001C68AA /* LiftosaurWatch.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -331,11 +521,13 @@
 				00EEFC60759A1932668264C0 /* [CP] Embed Pods Frameworks */,
 				E235C05ADACE081382539298 /* [CP] Copy Pods Resources */,
 				3AACC5092FB2A15E001C68AA /* Embed Foundation Extensions */,
+				3AACC5C62FB351D0001C68AA /* Embed Watch Content */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 				3AACC5072FB2A15E001C68AA /* PBXTargetDependency */,
+				3AACC5C52FB351D0001C68AA /* PBXTargetDependency */,
 			);
 			name = Liftosaur;
 			productName = Liftosaur;
@@ -359,6 +551,26 @@
 			productReference = 3AACC4F72FB2A15D001C68AA /* LiftosaurWorkoutWidgetExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		3AACC5BB2FB351CF001C68AA /* LiftosaurWatch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3AACC5C82FB351D0001C68AA /* Build configuration list for PBXNativeTarget "LiftosaurWatch" */;
+			buildPhases = (
+				3AACC5B82FB351CF001C68AA /* Sources */,
+				3AACC5B92FB351CF001C68AA /* Frameworks */,
+				3AACC5BA2FB351CF001C68AA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LiftosaurWatch;
+			packageProductDependencies = (
+				3AACC60E2FB35357001C68AA /* QuickJSCore */,
+			);
+			productName = "LiftosaurWatch Watch App";
+			productReference = 3AACC5BC2FB351CF001C68AA /* LiftosaurWatch.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -374,6 +586,9 @@
 					3AACC4F62FB2A15D001C68AA = {
 						CreatedOnToolsVersion = 26.4;
 					};
+					3AACC5BB2FB351CF001C68AA = {
+						CreatedOnToolsVersion = 26.4;
+					};
 				};
 			};
 			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Liftosaur" */;
@@ -385,12 +600,16 @@
 				Base,
 			);
 			mainGroup = 83CBB9F61A601CBA00E9B192;
+			packageReferences = (
+				3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "QuickJSCore" */,
+			);
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				13B07F861A680F5B00A75B9A /* Liftosaur */,
 				3AACC4F62FB2A15D001C68AA /* LiftosaurWorkoutWidgetExtension */,
+				3AACC5BB2FB351CF001C68AA /* LiftosaurWatch */,
 			);
 		};
 /* End PBXProject section */
@@ -452,6 +671,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		3AACC5BA2FB351CF001C68AA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3AACC5EF2FB3526B001C68AA /* Assets.xcassets in Resources */,
+				5C9210548D8DDE45FAA805DE /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
@@ -479,13 +707,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -522,13 +746,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -542,11 +762,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3AACC6272FB35CFD001C68AA /* RCTLiftosaurWatch.mm in Sources */,
+				3AACC6292FB35D3A001C68AA /* Logger+Extension.swift in Sources */,
+				3AACC62B2FB35DA2001C68AA /* Settings.swift in Sources */,
+				3AACC6282FB35CFD001C68AA /* LiftosaurWatchImpl.swift in Sources */,
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
 				438B6645A9C600CDF5BC2E07 /* RCTLiftosaurShare.mm in Sources */,
 				ABAB4E16DB2DC920D7412751 /* LiftosaurShareImpl.swift in Sources */,
 				2CE4394B21A1DBBE08022D06 /* RCTLiftosaurTimer.mm in Sources */,
-				3AACC5652FB2D9C9001C68AA /* Logger+Extension.swift in Sources */,
 				3AACC5262FB2A4FC001C68AA /* WorkoutAttributes.swift in Sources */,
 				2B45EA7869F3FB4183C4A4CE /* LiftosaurTimerImpl.swift in Sources */,
 				3AACC5662FB2D9D8001C68AA /* WorkoutIntents.swift in Sources */,
@@ -560,13 +783,55 @@
 			buildActionMask = 2147483647;
 			files = (
 				3AACC51A2FB2A4BF001C68AA /* SetInfoViews.swift in Sources */,
+				3AACC62A2FB35D68001C68AA /* Logger+Extension.swift in Sources */,
 				3AACC51B2FB2A4BF001C68AA /* WorkoutIntents.swift in Sources */,
-				3AACC51C2FB2A4BF001C68AA /* Logger+Extension.swift in Sources */,
 				3AACC51D2FB2A4BF001C68AA /* FlowLayout.swift in Sources */,
 				3AACC5252FB2A4FC001C68AA /* WorkoutAttributes.swift in Sources */,
 				3AACC51E2FB2A4BF001C68AA /* LiftosaurWorkoutWidget.swift in Sources */,
+				3AACC62C2FB35DA3001C68AA /* Settings.swift in Sources */,
 				3AACC51F2FB2A4BF001C68AA /* LiftosaurWorkoutWidgetBundle.swift in Sources */,
 				3AACC5202FB2A4BF001C68AA /* LiveActivityViews.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3AACC5B82FB351CF001C68AA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3AACC5F22FB3526B001C68AA /* LiftosaurWatchApp.swift in Sources */,
+				3AACC5F32FB3526B001C68AA /* WatchModels.swift in Sources */,
+				3AACC5F42FB3526B001C68AA /* WatchLayout.swift in Sources */,
+				3AACC5F52FB3526B001C68AA /* WatchCacheManager.swift in Sources */,
+				3AACC5F62FB3526B001C68AA /* WatchCrashReporter.swift in Sources */,
+				3AACC5F72FB3526B001C68AA /* HealthKitManager.swift in Sources */,
+				3AACC5F82FB3526B001C68AA /* ScrollableInputFields.swift in Sources */,
+				3AACC5F92FB3526B001C68AA /* LiftosaurEngine.swift in Sources */,
+				3AACC5FA2FB3526B001C68AA /* AmrapModalView.swift in Sources */,
+				3AACC5FB2FB3526B001C68AA /* WatchEventManager.swift in Sources */,
+				3AACC6172FB355BA001C68AA /* EventManager.swift in Sources */,
+				3AACC6182FB355BA001C68AA /* SetInfoViews.swift in Sources */,
+				3AACC6192FB355BA001C68AA /* Notifications.swift in Sources */,
+				3AACC61A2FB355BA001C68AA /* SharedMessageHandler.swift in Sources */,
+				3AACC61B2FB355BA001C68AA /* Logger+Extension.swift in Sources */,
+				3AACC61C2FB355BA001C68AA /* FlowLayout.swift in Sources */,
+				3AACC5FC2FB3526B001C68AA /* RestTimerScreen.swift in Sources */,
+				3AACC5FD2FB3526B001C68AA /* ContentView.swift in Sources */,
+				3AACC5FE2FB3526B001C68AA /* ExerciseScreen.swift in Sources */,
+				3AACC5FF2FB3526B001C68AA /* FinishWorkoutScreen.swift in Sources */,
+				3AACC61E2FB35653001C68AA /* Settings.swift in Sources */,
+				3AACC6002FB3526B001C68AA /* HeartRateView.swift in Sources */,
+				3AACC6012FB3526B001C68AA /* AuthManager.swift in Sources */,
+				3AACC6022FB3526B001C68AA /* WatchConnectivityManager.swift in Sources */,
+				3AACC6032FB3526B001C68AA /* WatchSyncManager.swift in Sources */,
+				3AACC6042FB3526B001C68AA /* WatchMessageHandler.swift in Sources */,
+				3AACC6052FB3526B001C68AA /* WorkoutCardView.swift in Sources */,
+				3AACC6062FB3526B001C68AA /* PremiumRequiredScreen.swift in Sources */,
+				3AACC6072FB3526B001C68AA /* LiftosaurColor.swift in Sources */,
+				3AACC6082FB3526B001C68AA /* ImageCacheManager.swift in Sources */,
+				3AACC6092FB3526B001C68AA /* HomeScreen.swift in Sources */,
+				3AACC60A2FB3526B001C68AA /* WatchStorageManager.swift in Sources */,
+				3AACC60B2FB3526B001C68AA /* WorkoutExercisesScreen.swift in Sources */,
+				3AACC60C2FB3526B001C68AA /* WorkoutManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -577,6 +842,11 @@
 			isa = PBXTargetDependency;
 			target = 3AACC4F62FB2A15D001C68AA /* LiftosaurWorkoutWidgetExtension */;
 			targetProxy = 3AACC5062FB2A15E001C68AA /* PBXContainerItemProxy */;
+		};
+		3AACC5C52FB351D0001C68AA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3AACC5BB2FB351CF001C68AA /* LiftosaurWatch */;
+			targetProxy = 3AACC5C42FB351D0001C68AA /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -739,6 +1009,107 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		3AACC5C92FB351D0001C68AA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = LiftosaurWatch/LiftosaurWatch.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 7V6ZVS97Z2;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LiftosaurWatch/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = LiftosaurWatch;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "App will sync this data with Apple Health.";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.liftosaur.www;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.liftosaur.www.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.4;
+			};
+			name = Debug;
+		};
+		3AACC5CA2FB351D0001C68AA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = LiftosaurWatch/LiftosaurWatch.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 7V6ZVS97Z2;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LiftosaurWatch/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = LiftosaurWatch;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "App will sync this data with Apple Health.";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.liftosaur.www;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.liftosaur.www.watchkitapp;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 26.4;
 			};
 			name = Release;
 		};
@@ -965,6 +1336,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		3AACC5C82FB351D0001C68AA /* Build configuration list for PBXNativeTarget "LiftosaurWatch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3AACC5C92FB351D0001C68AA /* Debug */,
+				3AACC5CA2FB351D0001C68AA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Liftosaur" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -975,6 +1355,20 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "QuickJSCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/QuickJSCore;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		3AACC60E2FB35357001C68AA /* QuickJSCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = QuickJSCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 83CBB9F71A601CBA00E9B192 /* Project object */;
 }

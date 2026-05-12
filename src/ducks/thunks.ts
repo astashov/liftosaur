@@ -116,6 +116,8 @@ import { EditProgram_initPlannerProgramExerciseState } from "../models/editProgr
 import { ICollectionVersions } from "../models/versionTracker";
 import { DeviceId_get } from "../utils/deviceId";
 import { LiveActivityManager_updateProgressLiveActivity } from "../utils/liveActivityManager";
+import { KeychainStore_setAuthToken, KeychainStore_clearAuthToken, IAuthToken } from "../utils/keychainStore";
+import { NativeWatchBridge_sendAuthToWatch, NativeWatchBridge_sendClearAuthToWatch } from "../utils/nativeWatchBridge";
 
 declare let Rollbar: RB;
 
@@ -274,6 +276,12 @@ export function Thunk_logOut(cb?: () => void): IThunk {
       dispatch({ type: "Logout" });
       updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(undefined)], "Clear last sync on logout");
       SendMessage_toIos({ type: "accountLogout" });
+      try {
+        await KeychainStore_clearAuthToken();
+      } catch (e) {
+        lg("ls-keychain-clear-auth-fail", { error: e instanceof Error ? e.message : String(e) });
+      }
+      NativeWatchBridge_sendClearAuthToWatch();
     }
     if (cb) {
       cb();
@@ -1814,6 +1822,19 @@ async function handleLogin(
       }
       dispatch(Thunk_fetchInitial());
       SendMessage_toIos({ type: "authChanged", userId: result.user_id });
+      if (result.session) {
+        const auth: IAuthToken = {
+          token: result.session,
+          expiresAt: Math.floor(Date.now() / 1000) + 10 * 365 * 24 * 60 * 60,
+          userId: result.user_id,
+        };
+        try {
+          await KeychainStore_setAuthToken(auth);
+        } catch (e) {
+          lg("ls-keychain-set-auth-fail", { error: e instanceof Error ? e.message : String(e) });
+        }
+        NativeWatchBridge_sendAuthToWatch(auth);
+      }
     } else if (result.key) {
       updateState(
         dispatch,

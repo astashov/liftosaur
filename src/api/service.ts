@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import { IStorage, IHistoryRecord, ISettings, IUnit, IMuscleGeneratorResponse, IPlannerProgramWeek } from "../types";
 import { IAccount } from "../models/account";
 import { IEither } from "../utils/types";
@@ -7,6 +8,16 @@ import { IExportedProgram, IProgramIndexEntry } from "../models/program";
 import { CollectionUtils_uniqBy } from "../utils/collection";
 import { Encoder_encode } from "../utils/encoder";
 import { IAppleOffer, IGoogleOffer } from "../models/state";
+
+function Service_nativeClientHeaders(): Record<string, string> {
+  if (Platform.OS === "ios") {
+    return { "X-Client": "liftosaur-native-ios" };
+  }
+  if (Platform.OS === "android") {
+    return { "X-Client": "liftosaur-native-android" };
+  }
+  return {};
+}
 
 export interface IProgramDetail {
   fullDescription: string;
@@ -24,6 +35,7 @@ export interface IGetStorageResponse {
   user_id: string;
   is_new_user: boolean;
   key?: string;
+  session?: string;
 }
 
 export type IPostSyncResponse =
@@ -152,13 +164,20 @@ export class Service {
       method: "POST",
       body: body,
       credentials: "include",
+      headers: Service_nativeClientHeaders(),
     });
     const json: IGetStorageResponse = await response.json();
     json.storage.history = await this.getAllHistoryRecords({
       alreadyFetchedHistory: json.storage.history,
       historyLimit: historylimit,
     });
-    return { email: json.email, storage: json.storage, user_id: json.user_id, is_new_user: json.is_new_user };
+    return {
+      email: json.email,
+      storage: json.storage,
+      user_id: json.user_id,
+      is_new_user: json.is_new_user,
+      session: json.session,
+    };
   }
 
   public async getAllHistoryRecords(args: {
@@ -208,13 +227,20 @@ export class Service {
         historylimit,
       }),
       credentials: "include",
+      headers: Service_nativeClientHeaders(),
     });
     const json: IGetStorageResponse = await response.json();
     json.storage.history = await this.getAllHistoryRecords({
       alreadyFetchedHistory: json.storage.history,
       historyLimit: historylimit,
     });
-    return { email: json.email, storage: json.storage, user_id: json.user_id, is_new_user: json.is_new_user };
+    return {
+      email: json.email,
+      storage: json.storage,
+      user_id: json.user_id,
+      is_new_user: json.is_new_user,
+      session: json.session,
+    };
   }
 
   public async signout(): Promise<void> {

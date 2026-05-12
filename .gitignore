@@ -37,6 +37,9 @@ ios/build/
 ios/*.xcworkspace/xcuserdata/
 ios/Liftosaur.xcodeproj/xcuserdata/
 ios/Liftosaur.xcodeproj/project.xcworkspace/xcuserdata/
+ios/Packages/*/.build/
+ios/Packages/*/.swiftpm/
+ios/Packages/*/Package.resolved
 
 # React Native - Android
 android/.gradle/

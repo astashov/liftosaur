@@ -98,6 +98,16 @@ import { AudioInterface } from "./lib/audioInterface";
 import { Progress_getCurrentProgress, Progress_lbProgress } from "./models/progress";
 import { NativeTimerBridge_subscribeOnScheduled } from "./utils/nativeTimerBridge";
 import { NativeWorkoutBridge_subscribeToLiveActivityActions } from "./utils/nativeWorkoutBridge";
+import {
+  NativeWatchBridge_subscribeToWatchEvents,
+  NativeWatchBridge_sendStorageToWatch,
+  NativeWatchBridge_sendNoAuthToWatch,
+  NativeWatchBridge_sendAuthToWatch,
+  NativeWatchBridge_sendClearAuthToWatch,
+} from "./utils/nativeWatchBridge";
+import { KeychainStore_getAuthToken, KeychainStore_clearAuthToken } from "./utils/keychainStore";
+import { lg } from "./utils/posthog";
+import { WatchStorageFilter_filterJson } from "./utils/watchStorageFilter";
 import { lb } from "lens-shmens";
 import { updateState } from "./models/state";
 import { TourConfigs_findTourId } from "./components/tour/tourConfigs";
@@ -125,6 +135,8 @@ import {
   Thunk_iapHandlePurchaseError,
   Thunk_completeSetExternal,
   Thunk_updateTimer,
+  Thunk_handleWatchStorageMerge,
+  Thunk_reloadStorageFromDisk,
 } from "./ducks/thunks";
 import { IapAdapter } from "./utils/iap";
 import { HealthAdapter } from "./utils/health";
@@ -216,6 +228,76 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
   }, [dispatch]);
 
   useEffect(() => {
+    const filtered = WatchStorageFilter_filterJson(state.storage);
+    NativeWatchBridge_sendStorageToWatch(filtered);
+  }, [state.storage]);
+
+  useEffect(() => {
+    return NativeWatchBridge_subscribeToWatchEvents((event) => {
+      if (event.type === "watchStorageMerge" && event.storage) {
+        dispatch(Thunk_handleWatchStorageMerge(event.storage, !!event.isLiveActivity));
+      } else if (event.type === "liveActivityStorage" && event.storage) {
+        dispatch(Thunk_handleWatchStorageMerge(event.storage, true));
+      } else if (event.type === "reloadStorageFromDisk") {
+        dispatch(Thunk_reloadStorageFromDisk());
+      } else if (event.type === "requestStorage") {
+        const filtered = WatchStorageFilter_filterJson(stateRef.current.storage);
+        NativeWatchBridge_sendStorageToWatch(filtered);
+      } else if (event.type === "requestAuth") {
+        const currentUserId = stateRef.current.user?.id;
+        KeychainStore_getAuthToken()
+          .then((auth) => {
+            if (auth && auth.token && currentUserId && auth.userId === currentUserId) {
+              NativeWatchBridge_sendAuthToWatch(auth);
+            } else {
+              if (auth && auth.token && auth.userId !== currentUserId) {
+                lg("ls-keychain-stale-on-request", {
+                  storedUserId: auth.userId || "",
+                  currentUserId: currentUserId || "",
+                });
+                KeychainStore_clearAuthToken().catch((e) =>
+                  lg("ls-keychain-clear-stale-fail", { error: e instanceof Error ? e.message : String(e) })
+                );
+                NativeWatchBridge_sendClearAuthToWatch();
+              } else {
+                NativeWatchBridge_sendNoAuthToWatch();
+              }
+            }
+          })
+          .catch((e) => {
+            lg("ls-keychain-get-auth-fail", { error: e instanceof Error ? e.message : String(e) });
+            NativeWatchBridge_sendNoAuthToWatch();
+          });
+      }
+    });
+  }, [dispatch]);
+
+  useEffect(() => {
+    const currentUserId = stateRef.current.user?.id;
+    KeychainStore_getAuthToken()
+      .then((auth) => {
+        if (!auth || !auth.token) {
+          return;
+        }
+        if (currentUserId && auth.userId === currentUserId) {
+          NativeWatchBridge_sendAuthToWatch(auth);
+        } else {
+          lg("ls-keychain-stale-on-startup", {
+            storedUserId: auth.userId || "",
+            currentUserId: currentUserId || "",
+          });
+          KeychainStore_clearAuthToken().catch((e) =>
+            lg("ls-keychain-clear-stale-fail", { error: e instanceof Error ? e.message : String(e) })
+          );
+          NativeWatchBridge_sendClearAuthToWatch();
+        }
+      })
+      .catch((e) => {
+        lg("ls-keychain-get-auth-fail-startup", { error: e instanceof Error ? e.message : String(e) });
+      });
+  }, []);
+
+  useEffect(() => {
     return NativeWorkoutBridge_subscribeToLiveActivityActions((event) => {
       const entryIndex = event.entryIndex ?? 0;
       const setIndex = event.setIndex ?? 0;
@@ -226,9 +308,13 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
         dispatch(Thunk_completeSetExternal(entryIndex, setIndex, restTimer, restTimerSince));
       } else if (event.action === "addRestTime") {
         const progress = stateRef.current.storage.progress[0];
-        if (progress == null) return;
+        if (progress == null) {
+          return;
+        }
         const { timer, timerSince } = progress;
-        if (timer == null || timerSince == null) return;
+        if (timer == null || timerSince == null) {
+          return;
+        }
         const addSeconds = event.addSeconds ?? 0;
         dispatch(Thunk_updateTimer(Math.max(0, timer + addSeconds), entryIndex, setIndex, false));
       }
