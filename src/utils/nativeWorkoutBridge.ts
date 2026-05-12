@@ -1,6 +1,13 @@
 import { ILiveActivityState } from "./liveActivityManager";
 import { SendMessage_toIosAndAndroid } from "./sendMessage";
 
+export type INativeWorkoutBridgeLiveActivityAction = {
+  action: "completeSet" | "addRestTime" | "skipRest" | "openApp";
+  entryIndex?: number;
+  setIndex?: number;
+  addSeconds?: number;
+};
+
 export function NativeWorkoutBridge_pauseWorkout(): void {
   SendMessage_toIosAndAndroid({ type: "pauseWorkout" });
 }
@@ -38,4 +45,10 @@ export function NativeWorkoutBridge_discardWorkout(): void {
 
 export function NativeWorkoutBridge_updateLiveActivity(state: ILiveActivityState): void {
   SendMessage_toIosAndAndroid({ type: "updateLiveActivity", data: JSON.stringify(state) });
+}
+
+export function NativeWorkoutBridge_subscribeToLiveActivityActions(
+  _handler: (event: INativeWorkoutBridgeLiveActivityAction) => void
+): () => void {
+  return () => {};
 }

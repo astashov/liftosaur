@@ -8,25 +8,94 @@
 
 /* Begin PBXBuildFile section */
 		00A9D43BFF6350A3156888F5 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
-		0EB4999884BD4D5CBE1E225D /* Poppins-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 682B1C3E13634AA59A78E2F9 /* Poppins-Regular.ttf */; };
 		12F317DBE89387792B8C2788 /* notification.m4r in Resources */ = {isa = PBXBuildFile; fileRef = 91FAA5A7B2D2A2141783C9C5 /* notification.m4r */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
-		20B5F4CB47C44355A54273B2 /* Poppins-SemiBoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A95E3F373AF047269613648A /* Poppins-SemiBoldItalic.ttf */; };
-		2170D2ED8D0F43248D2DC335 /* Poppins-BoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9FBEDEE80EFF415DAB4E7192 /* Poppins-BoldItalic.ttf */; };
 		2B45EA7869F3FB4183C4A4CE /* LiftosaurTimerImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = B65E29D489BF686568C6787C /* LiftosaurTimerImpl.swift */; };
 		2CE4394B21A1DBBE08022D06 /* RCTLiftosaurTimer.mm in Sources */ = {isa = PBXBuildFile; fileRef = CAF9A9419BADC6FB0293A37D /* RCTLiftosaurTimer.mm */; };
 		3A606C432FAB8D1800799977 /* Store.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 3A606C422FAB8D1800799977 /* Store.storekit */; };
+		3AACC4F92FB2A15D001C68AA /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AACC4F82FB2A15D001C68AA /* WidgetKit.framework */; };
+		3AACC4FB2FB2A15D001C68AA /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AACC4FA2FB2A15D001C68AA /* SwiftUI.framework */; };
+		3AACC5082FB2A15E001C68AA /* LiftosaurWorkoutWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3AACC4F72FB2A15D001C68AA /* LiftosaurWorkoutWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		3AACC51A2FB2A4BF001C68AA /* SetInfoViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5172FB2A4BF001C68AA /* SetInfoViews.swift */; };
+		3AACC51B2FB2A4BF001C68AA /* WorkoutIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5182FB2A4BF001C68AA /* WorkoutIntents.swift */; };
+		3AACC51C2FB2A4BF001C68AA /* Logger+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5152FB2A4BF001C68AA /* Logger+Extension.swift */; };
+		3AACC51D2FB2A4BF001C68AA /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC50F2FB2A4BF001C68AA /* FlowLayout.swift */; };
+		3AACC51E2FB2A4BF001C68AA /* LiftosaurWorkoutWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5112FB2A4BF001C68AA /* LiftosaurWorkoutWidget.swift */; };
+		3AACC51F2FB2A4BF001C68AA /* LiftosaurWorkoutWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5122FB2A4BF001C68AA /* LiftosaurWorkoutWidgetBundle.swift */; };
+		3AACC5202FB2A4BF001C68AA /* LiveActivityViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5142FB2A4BF001C68AA /* LiveActivityViews.swift */; };
+		3AACC5232FB2A4BF001C68AA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC50E2FB2A4BF001C68AA /* Assets.xcassets */; };
+		3AACC5252FB2A4FC001C68AA /* WorkoutAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5242FB2A4FC001C68AA /* WorkoutAttributes.swift */; };
+		3AACC5262FB2A4FC001C68AA /* WorkoutAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5242FB2A4FC001C68AA /* WorkoutAttributes.swift */; };
+		3AACC5412FB2C939001C68AA /* Poppins-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC53C2FB2C92F001C68AA /* Poppins-SemiBold.ttf */; };
+		3AACC5422FB2C939001C68AA /* Poppins-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC5362FB2C92F001C68AA /* Poppins-Italic.ttf */; };
+		3AACC5432FB2C939001C68AA /* Poppins-ExtraBoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC5332FB2C92F001C68AA /* Poppins-ExtraBoldItalic.ttf */; };
+		3AACC5442FB2C939001C68AA /* Poppins-ExtraLightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC5352FB2C92F001C68AA /* Poppins-ExtraLightItalic.ttf */; };
+		3AACC5452FB2C939001C68AA /* Poppins-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC5372FB2C92F001C68AA /* Poppins-Light.ttf */; };
+		3AACC5462FB2C939001C68AA /* Poppins-SemiBoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC53D2FB2C92F001C68AA /* Poppins-SemiBoldItalic.ttf */; };
+		3AACC5472FB2C939001C68AA /* Poppins-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC53B2FB2C92F001C68AA /* Poppins-Regular.ttf */; };
+		3AACC5482FB2C939001C68AA /* Poppins-ThinItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC53F2FB2C92F001C68AA /* Poppins-ThinItalic.ttf */; };
+		3AACC5492FB2C939001C68AA /* Poppins-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC53A2FB2C92F001C68AA /* Poppins-MediumItalic.ttf */; };
+		3AACC54A2FB2C939001C68AA /* Poppins-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC53E2FB2C92F001C68AA /* Poppins-Thin.ttf */; };
+		3AACC54B2FB2C939001C68AA /* Poppins-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC5322FB2C92F001C68AA /* Poppins-ExtraBold.ttf */; };
+		3AACC54C2FB2C939001C68AA /* Poppins-Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC52E2FB2C92F001C68AA /* Poppins-Black.ttf */; };
+		3AACC54D2FB2C939001C68AA /* Poppins-BlackItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC52F2FB2C92F001C68AA /* Poppins-BlackItalic.ttf */; };
+		3AACC54E2FB2C939001C68AA /* Poppins-BoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC5312FB2C92F001C68AA /* Poppins-BoldItalic.ttf */; };
+		3AACC54F2FB2C939001C68AA /* Poppins-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC5302FB2C92F001C68AA /* Poppins-Bold.ttf */; };
+		3AACC5502FB2C939001C68AA /* Poppins-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC5392FB2C92F001C68AA /* Poppins-Medium.ttf */; };
+		3AACC5512FB2C939001C68AA /* Poppins-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC5382FB2C92F001C68AA /* Poppins-LightItalic.ttf */; };
+		3AACC5522FB2C939001C68AA /* Poppins-ExtraLight.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC5342FB2C92F001C68AA /* Poppins-ExtraLight.ttf */; };
+		3AACC5532FB2C941001C68AA /* Poppins-MediumItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC53A2FB2C92F001C68AA /* Poppins-MediumItalic.ttf */; };
+		3AACC5542FB2C941001C68AA /* Poppins-Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC52E2FB2C92F001C68AA /* Poppins-Black.ttf */; };
+		3AACC5552FB2C941001C68AA /* Poppins-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC5372FB2C92F001C68AA /* Poppins-Light.ttf */; };
+		3AACC5562FB2C941001C68AA /* Poppins-ExtraBoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC5332FB2C92F001C68AA /* Poppins-ExtraBoldItalic.ttf */; };
+		3AACC5572FB2C941001C68AA /* Poppins-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC53E2FB2C92F001C68AA /* Poppins-Thin.ttf */; };
+		3AACC5582FB2C941001C68AA /* Poppins-ExtraLight.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC5342FB2C92F001C68AA /* Poppins-ExtraLight.ttf */; };
+		3AACC5592FB2C941001C68AA /* Poppins-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC5302FB2C92F001C68AA /* Poppins-Bold.ttf */; };
+		3AACC55A2FB2C941001C68AA /* Poppins-SemiBoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC53D2FB2C92F001C68AA /* Poppins-SemiBoldItalic.ttf */; };
+		3AACC55B2FB2C941001C68AA /* Poppins-BlackItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC52F2FB2C92F001C68AA /* Poppins-BlackItalic.ttf */; };
+		3AACC55C2FB2C941001C68AA /* Poppins-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC53B2FB2C92F001C68AA /* Poppins-Regular.ttf */; };
+		3AACC55D2FB2C941001C68AA /* Poppins-ThinItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC53F2FB2C92F001C68AA /* Poppins-ThinItalic.ttf */; };
+		3AACC55E2FB2C941001C68AA /* Poppins-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC5322FB2C92F001C68AA /* Poppins-ExtraBold.ttf */; };
+		3AACC55F2FB2C941001C68AA /* Poppins-BoldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC5312FB2C92F001C68AA /* Poppins-BoldItalic.ttf */; };
+		3AACC5602FB2C941001C68AA /* Poppins-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC5362FB2C92F001C68AA /* Poppins-Italic.ttf */; };
+		3AACC5612FB2C941001C68AA /* Poppins-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC5392FB2C92F001C68AA /* Poppins-Medium.ttf */; };
+		3AACC5622FB2C941001C68AA /* Poppins-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC53C2FB2C92F001C68AA /* Poppins-SemiBold.ttf */; };
+		3AACC5632FB2C941001C68AA /* Poppins-LightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC5382FB2C92F001C68AA /* Poppins-LightItalic.ttf */; };
+		3AACC5642FB2C941001C68AA /* Poppins-ExtraLightItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3AACC5352FB2C92F001C68AA /* Poppins-ExtraLightItalic.ttf */; };
+		3AACC5652FB2D9C9001C68AA /* Logger+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5152FB2A4BF001C68AA /* Logger+Extension.swift */; };
+		3AACC5662FB2D9D8001C68AA /* WorkoutIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5182FB2A4BF001C68AA /* WorkoutIntents.swift */; };
 		438B6645A9C600CDF5BC2E07 /* RCTLiftosaurShare.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6932EE9394B77D111CEA7C57 /* RCTLiftosaurShare.mm */; };
 		5B4963F7D772C61DAC6997B6 /* LiftosaurLiveActivityImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B4BDC15E59DDB21DA61FB5B /* LiftosaurLiveActivityImpl.swift */; };
 		60DC71544F9AE60B9C0EE490 /* Pods_Liftosaur.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FCF7CDE82AE486C844F0851B /* Pods_Liftosaur.framework */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
-		8EFE71D162C843379CDF60BF /* Poppins-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DD99D9B7ADD2478880135CFC /* Poppins-Bold.ttf */; };
-		95F0D51DC4F74C228652158B /* Poppins-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F60F33A9AB274D44A20FC0C7 /* Poppins-SemiBold.ttf */; };
 		9CFD04038647D1D4AFBE4A93 /* RCTLiftosaurLiveActivity.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6CDE7A4672A3F2BF6A135AE9 /* RCTLiftosaurLiveActivity.mm */; };
 		ABAB4E16DB2DC920D7412751 /* LiftosaurShareImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = E883E351A4F90F4F9BB4EFE5 /* LiftosaurShareImpl.swift */; };
-		D8BA7CC7B32E4D7C8AAECA51 /* Poppins-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EF012FAFB85E47D99214AFCE /* Poppins-Italic.ttf */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		3AACC5062FB2A15E001C68AA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3AACC4F62FB2A15D001C68AA;
+			remoteInfo = LiftosaurWorkoutWidgetExtensionExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		3AACC5092FB2A15E001C68AA /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				3AACC5082FB2A15E001C68AA /* LiftosaurWorkoutWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		0C643222D97503FBA997CA59 /* RCTLiftosaurLiveActivity.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTLiftosaurLiveActivity.h; path = Liftosaur/RCTLiftosaurLiveActivity.h; sourceTree = "<group>"; };
@@ -35,6 +104,39 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Liftosaur/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = Liftosaur/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		3A606C422FAB8D1800799977 /* Store.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Store.storekit; sourceTree = "<group>"; };
+		3AACC4F72FB2A15D001C68AA /* LiftosaurWorkoutWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LiftosaurWorkoutWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		3AACC4F82FB2A15D001C68AA /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		3AACC4FA2FB2A15D001C68AA /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		3AACC50E2FB2A4BF001C68AA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		3AACC50F2FB2A4BF001C68AA /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
+		3AACC5102FB2A4BF001C68AA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		3AACC5112FB2A4BF001C68AA /* LiftosaurWorkoutWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiftosaurWorkoutWidget.swift; sourceTree = "<group>"; };
+		3AACC5122FB2A4BF001C68AA /* LiftosaurWorkoutWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiftosaurWorkoutWidgetBundle.swift; sourceTree = "<group>"; };
+		3AACC5132FB2A4BF001C68AA /* LiftosaurWorkoutWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LiftosaurWorkoutWidgetExtension.entitlements; sourceTree = "<group>"; };
+		3AACC5142FB2A4BF001C68AA /* LiveActivityViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityViews.swift; sourceTree = "<group>"; };
+		3AACC5152FB2A4BF001C68AA /* Logger+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Logger+Extension.swift"; sourceTree = "<group>"; };
+		3AACC5162FB2A4BF001C68AA /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		3AACC5172FB2A4BF001C68AA /* SetInfoViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetInfoViews.swift; sourceTree = "<group>"; };
+		3AACC5182FB2A4BF001C68AA /* WorkoutIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutIntents.swift; sourceTree = "<group>"; };
+		3AACC5242FB2A4FC001C68AA /* WorkoutAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = WorkoutAttributes.swift; path = Liftosaur/WorkoutAttributes.swift; sourceTree = "<group>"; };
+		3AACC52E2FB2C92F001C68AA /* Poppins-Black.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Poppins-Black.ttf"; sourceTree = "<group>"; };
+		3AACC52F2FB2C92F001C68AA /* Poppins-BlackItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Poppins-BlackItalic.ttf"; sourceTree = "<group>"; };
+		3AACC5302FB2C92F001C68AA /* Poppins-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Poppins-Bold.ttf"; sourceTree = "<group>"; };
+		3AACC5312FB2C92F001C68AA /* Poppins-BoldItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Poppins-BoldItalic.ttf"; sourceTree = "<group>"; };
+		3AACC5322FB2C92F001C68AA /* Poppins-ExtraBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Poppins-ExtraBold.ttf"; sourceTree = "<group>"; };
+		3AACC5332FB2C92F001C68AA /* Poppins-ExtraBoldItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Poppins-ExtraBoldItalic.ttf"; sourceTree = "<group>"; };
+		3AACC5342FB2C92F001C68AA /* Poppins-ExtraLight.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Poppins-ExtraLight.ttf"; sourceTree = "<group>"; };
+		3AACC5352FB2C92F001C68AA /* Poppins-ExtraLightItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Poppins-ExtraLightItalic.ttf"; sourceTree = "<group>"; };
+		3AACC5362FB2C92F001C68AA /* Poppins-Italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Poppins-Italic.ttf"; sourceTree = "<group>"; };
+		3AACC5372FB2C92F001C68AA /* Poppins-Light.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Poppins-Light.ttf"; sourceTree = "<group>"; };
+		3AACC5382FB2C92F001C68AA /* Poppins-LightItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Poppins-LightItalic.ttf"; sourceTree = "<group>"; };
+		3AACC5392FB2C92F001C68AA /* Poppins-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Poppins-Medium.ttf"; sourceTree = "<group>"; };
+		3AACC53A2FB2C92F001C68AA /* Poppins-MediumItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Poppins-MediumItalic.ttf"; sourceTree = "<group>"; };
+		3AACC53B2FB2C92F001C68AA /* Poppins-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Poppins-Regular.ttf"; sourceTree = "<group>"; };
+		3AACC53C2FB2C92F001C68AA /* Poppins-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Poppins-SemiBold.ttf"; sourceTree = "<group>"; };
+		3AACC53D2FB2C92F001C68AA /* Poppins-SemiBoldItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Poppins-SemiBoldItalic.ttf"; sourceTree = "<group>"; };
+		3AACC53E2FB2C92F001C68AA /* Poppins-Thin.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Poppins-Thin.ttf"; sourceTree = "<group>"; };
+		3AACC53F2FB2C92F001C68AA /* Poppins-ThinItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Poppins-ThinItalic.ttf"; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-Liftosaur.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Liftosaur.debug.xcconfig"; path = "Target Support Files/Pods-Liftosaur/Pods-Liftosaur.debug.xcconfig"; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-Liftosaur.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Liftosaur.release.xcconfig"; path = "Target Support Files/Pods-Liftosaur/Pods-Liftosaur.release.xcconfig"; sourceTree = "<group>"; };
 		682B1C3E13634AA59A78E2F9 /* Poppins-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-Regular.ttf"; path = "../assets/fonts/Poppins-Regular.ttf"; sourceTree = "<group>"; };
@@ -68,17 +170,28 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		3AACC4F42FB2A15D001C68AA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3AACC4FB2FB2A15D001C68AA /* SwiftUI.framework in Frameworks */,
+				3AACC4F92FB2A15D001C68AA /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		13B07FAE1A68108700A75B9A /* Liftosaur */ = {
 			isa = PBXGroup;
 			children = (
+				3AACC5242FB2A4FC001C68AA /* WorkoutAttributes.swift */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
+				3AACC5152FB2A4BF001C68AA /* Logger+Extension.swift */,
 				FD2FDC64C423B610A697466E /* RCTLiftosaurShare.h */,
 				6932EE9394B77D111CEA7C57 /* RCTLiftosaurShare.mm */,
 				E883E351A4F90F4F9BB4EFE5 /* LiftosaurShareImpl.swift */,
@@ -113,8 +226,52 @@
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				FCF7CDE82AE486C844F0851B /* Pods_Liftosaur.framework */,
+				3AACC4F82FB2A15D001C68AA /* WidgetKit.framework */,
+				3AACC4FA2FB2A15D001C68AA /* SwiftUI.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		3AACC5192FB2A4BF001C68AA /* LiftosaurWorkoutWidgetExtension */ = {
+			isa = PBXGroup;
+			children = (
+				3AACC50E2FB2A4BF001C68AA /* Assets.xcassets */,
+				3AACC50F2FB2A4BF001C68AA /* FlowLayout.swift */,
+				3AACC5102FB2A4BF001C68AA /* Info.plist */,
+				3AACC5112FB2A4BF001C68AA /* LiftosaurWorkoutWidget.swift */,
+				3AACC5122FB2A4BF001C68AA /* LiftosaurWorkoutWidgetBundle.swift */,
+				3AACC5132FB2A4BF001C68AA /* LiftosaurWorkoutWidgetExtension.entitlements */,
+				3AACC5142FB2A4BF001C68AA /* LiveActivityViews.swift */,
+				3AACC5162FB2A4BF001C68AA /* README.md */,
+				3AACC5172FB2A4BF001C68AA /* SetInfoViews.swift */,
+				3AACC5182FB2A4BF001C68AA /* WorkoutIntents.swift */,
+			);
+			path = LiftosaurWorkoutWidgetExtension;
+			sourceTree = "<group>";
+		};
+		3AACC5402FB2C92F001C68AA /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				3AACC52E2FB2C92F001C68AA /* Poppins-Black.ttf */,
+				3AACC52F2FB2C92F001C68AA /* Poppins-BlackItalic.ttf */,
+				3AACC5302FB2C92F001C68AA /* Poppins-Bold.ttf */,
+				3AACC5312FB2C92F001C68AA /* Poppins-BoldItalic.ttf */,
+				3AACC5322FB2C92F001C68AA /* Poppins-ExtraBold.ttf */,
+				3AACC5332FB2C92F001C68AA /* Poppins-ExtraBoldItalic.ttf */,
+				3AACC5342FB2C92F001C68AA /* Poppins-ExtraLight.ttf */,
+				3AACC5352FB2C92F001C68AA /* Poppins-ExtraLightItalic.ttf */,
+				3AACC5362FB2C92F001C68AA /* Poppins-Italic.ttf */,
+				3AACC5372FB2C92F001C68AA /* Poppins-Light.ttf */,
+				3AACC5382FB2C92F001C68AA /* Poppins-LightItalic.ttf */,
+				3AACC5392FB2C92F001C68AA /* Poppins-Medium.ttf */,
+				3AACC53A2FB2C92F001C68AA /* Poppins-MediumItalic.ttf */,
+				3AACC53B2FB2C92F001C68AA /* Poppins-Regular.ttf */,
+				3AACC53C2FB2C92F001C68AA /* Poppins-SemiBold.ttf */,
+				3AACC53D2FB2C92F001C68AA /* Poppins-SemiBoldItalic.ttf */,
+				3AACC53E2FB2C92F001C68AA /* Poppins-Thin.ttf */,
+				3AACC53F2FB2C92F001C68AA /* Poppins-ThinItalic.ttf */,
+			);
+			path = Fonts;
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -127,6 +284,8 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				3AACC5402FB2C92F001C68AA /* Fonts */,
+				3AACC5192FB2A4BF001C68AA /* LiftosaurWorkoutWidgetExtension */,
 				13B07FAE1A68108700A75B9A /* Liftosaur */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
@@ -143,6 +302,7 @@
 			isa = PBXGroup;
 			children = (
 				13B07F961A680F5B00A75B9A /* Liftosaur.app */,
+				3AACC4F72FB2A15D001C68AA /* LiftosaurWorkoutWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -170,15 +330,34 @@
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				00EEFC60759A1932668264C0 /* [CP] Embed Pods Frameworks */,
 				E235C05ADACE081382539298 /* [CP] Copy Pods Resources */,
+				3AACC5092FB2A15E001C68AA /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				3AACC5072FB2A15E001C68AA /* PBXTargetDependency */,
 			);
 			name = Liftosaur;
 			productName = Liftosaur;
 			productReference = 13B07F961A680F5B00A75B9A /* Liftosaur.app */;
 			productType = "com.apple.product-type.application";
+		};
+		3AACC4F62FB2A15D001C68AA /* LiftosaurWorkoutWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3AACC50D2FB2A15E001C68AA /* Build configuration list for PBXNativeTarget "LiftosaurWorkoutWidgetExtension" */;
+			buildPhases = (
+				3AACC4F32FB2A15D001C68AA /* Sources */,
+				3AACC4F42FB2A15D001C68AA /* Frameworks */,
+				3AACC4F52FB2A15D001C68AA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LiftosaurWorkoutWidgetExtension;
+			productName = LiftosaurWorkoutWidgetExtensionExtension;
+			productReference = 3AACC4F72FB2A15D001C68AA /* LiftosaurWorkoutWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -186,10 +365,14 @@
 		83CBB9F71A601CBA00E9B192 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 2640;
 				LastUpgradeCheck = 1210;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
 						LastSwiftMigration = 1120;
+					};
+					3AACC4F62FB2A15D001C68AA = {
+						CreatedOnToolsVersion = 26.4;
 					};
 				};
 			};
@@ -207,6 +390,7 @@
 			projectRoot = "";
 			targets = (
 				13B07F861A680F5B00A75B9A /* Liftosaur */,
+				3AACC4F62FB2A15D001C68AA /* LiftosaurWorkoutWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -219,14 +403,52 @@
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				00A9D43BFF6350A3156888F5 /* PrivacyInfo.xcprivacy in Resources */,
-				2170D2ED8D0F43248D2DC335 /* Poppins-BoldItalic.ttf in Resources */,
-				20B5F4CB47C44355A54273B2 /* Poppins-SemiBoldItalic.ttf in Resources */,
-				0EB4999884BD4D5CBE1E225D /* Poppins-Regular.ttf in Resources */,
-				8EFE71D162C843379CDF60BF /* Poppins-Bold.ttf in Resources */,
-				95F0D51DC4F74C228652158B /* Poppins-SemiBold.ttf in Resources */,
 				3A606C432FAB8D1800799977 /* Store.storekit in Resources */,
-				D8BA7CC7B32E4D7C8AAECA51 /* Poppins-Italic.ttf in Resources */,
 				12F317DBE89387792B8C2788 /* notification.m4r in Resources */,
+				3AACC5532FB2C941001C68AA /* Poppins-MediumItalic.ttf in Resources */,
+				3AACC5542FB2C941001C68AA /* Poppins-Black.ttf in Resources */,
+				3AACC5552FB2C941001C68AA /* Poppins-Light.ttf in Resources */,
+				3AACC5562FB2C941001C68AA /* Poppins-ExtraBoldItalic.ttf in Resources */,
+				3AACC5572FB2C941001C68AA /* Poppins-Thin.ttf in Resources */,
+				3AACC5582FB2C941001C68AA /* Poppins-ExtraLight.ttf in Resources */,
+				3AACC5592FB2C941001C68AA /* Poppins-Bold.ttf in Resources */,
+				3AACC55A2FB2C941001C68AA /* Poppins-SemiBoldItalic.ttf in Resources */,
+				3AACC55B2FB2C941001C68AA /* Poppins-BlackItalic.ttf in Resources */,
+				3AACC55C2FB2C941001C68AA /* Poppins-Regular.ttf in Resources */,
+				3AACC55D2FB2C941001C68AA /* Poppins-ThinItalic.ttf in Resources */,
+				3AACC55E2FB2C941001C68AA /* Poppins-ExtraBold.ttf in Resources */,
+				3AACC55F2FB2C941001C68AA /* Poppins-BoldItalic.ttf in Resources */,
+				3AACC5602FB2C941001C68AA /* Poppins-Italic.ttf in Resources */,
+				3AACC5612FB2C941001C68AA /* Poppins-Medium.ttf in Resources */,
+				3AACC5622FB2C941001C68AA /* Poppins-SemiBold.ttf in Resources */,
+				3AACC5632FB2C941001C68AA /* Poppins-LightItalic.ttf in Resources */,
+				3AACC5642FB2C941001C68AA /* Poppins-ExtraLightItalic.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3AACC4F52FB2A15D001C68AA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3AACC5232FB2A4BF001C68AA /* Assets.xcassets in Resources */,
+				3AACC5412FB2C939001C68AA /* Poppins-SemiBold.ttf in Resources */,
+				3AACC5422FB2C939001C68AA /* Poppins-Italic.ttf in Resources */,
+				3AACC5432FB2C939001C68AA /* Poppins-ExtraBoldItalic.ttf in Resources */,
+				3AACC5442FB2C939001C68AA /* Poppins-ExtraLightItalic.ttf in Resources */,
+				3AACC5452FB2C939001C68AA /* Poppins-Light.ttf in Resources */,
+				3AACC5462FB2C939001C68AA /* Poppins-SemiBoldItalic.ttf in Resources */,
+				3AACC5472FB2C939001C68AA /* Poppins-Regular.ttf in Resources */,
+				3AACC5482FB2C939001C68AA /* Poppins-ThinItalic.ttf in Resources */,
+				3AACC5492FB2C939001C68AA /* Poppins-MediumItalic.ttf in Resources */,
+				3AACC54A2FB2C939001C68AA /* Poppins-Thin.ttf in Resources */,
+				3AACC54B2FB2C939001C68AA /* Poppins-ExtraBold.ttf in Resources */,
+				3AACC54C2FB2C939001C68AA /* Poppins-Black.ttf in Resources */,
+				3AACC54D2FB2C939001C68AA /* Poppins-BlackItalic.ttf in Resources */,
+				3AACC54E2FB2C939001C68AA /* Poppins-BoldItalic.ttf in Resources */,
+				3AACC54F2FB2C939001C68AA /* Poppins-Bold.ttf in Resources */,
+				3AACC5502FB2C939001C68AA /* Poppins-Medium.ttf in Resources */,
+				3AACC5512FB2C939001C68AA /* Poppins-LightItalic.ttf in Resources */,
+				3AACC5522FB2C939001C68AA /* Poppins-ExtraLight.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -257,9 +479,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -296,9 +522,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -316,13 +546,39 @@
 				438B6645A9C600CDF5BC2E07 /* RCTLiftosaurShare.mm in Sources */,
 				ABAB4E16DB2DC920D7412751 /* LiftosaurShareImpl.swift in Sources */,
 				2CE4394B21A1DBBE08022D06 /* RCTLiftosaurTimer.mm in Sources */,
+				3AACC5652FB2D9C9001C68AA /* Logger+Extension.swift in Sources */,
+				3AACC5262FB2A4FC001C68AA /* WorkoutAttributes.swift in Sources */,
 				2B45EA7869F3FB4183C4A4CE /* LiftosaurTimerImpl.swift in Sources */,
+				3AACC5662FB2D9D8001C68AA /* WorkoutIntents.swift in Sources */,
 				9CFD04038647D1D4AFBE4A93 /* RCTLiftosaurLiveActivity.mm in Sources */,
 				5B4963F7D772C61DAC6997B6 /* LiftosaurLiveActivityImpl.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		3AACC4F32FB2A15D001C68AA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3AACC51A2FB2A4BF001C68AA /* SetInfoViews.swift in Sources */,
+				3AACC51B2FB2A4BF001C68AA /* WorkoutIntents.swift in Sources */,
+				3AACC51C2FB2A4BF001C68AA /* Logger+Extension.swift in Sources */,
+				3AACC51D2FB2A4BF001C68AA /* FlowLayout.swift in Sources */,
+				3AACC5252FB2A4FC001C68AA /* WorkoutAttributes.swift in Sources */,
+				3AACC51E2FB2A4BF001C68AA /* LiftosaurWorkoutWidget.swift in Sources */,
+				3AACC51F2FB2A4BF001C68AA /* LiftosaurWorkoutWidgetBundle.swift in Sources */,
+				3AACC5202FB2A4BF001C68AA /* LiveActivityViews.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		3AACC5072FB2A15E001C68AA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3AACC4F62FB2A15D001C68AA /* LiftosaurWorkoutWidgetExtension */;
+			targetProxy = 3AACC5062FB2A15E001C68AA /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
@@ -337,7 +593,7 @@
 				DEVELOPMENT_TEAM = 7V6ZVS97Z2;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Liftosaur/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -370,7 +626,7 @@
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = 7V6ZVS97Z2;
 				INFOPLIST_FILE = Liftosaur/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -388,6 +644,101 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Release;
+		};
+		3AACC50A2FB2A15E001C68AA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = LiftosaurWorkoutWidgetExtension/LiftosaurWorkoutWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 7V6ZVS97Z2;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LiftosaurWorkoutWidgetExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = LiftosaurWorkoutWidgetExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				OTHER_SWIFT_FLAGS = "-DWIDGET_EXTENSION";
+				PRODUCT_BUNDLE_IDENTIFIER = com.liftosaur.www.LiftosaurWorkoutWidgetExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		3AACC50B2FB2A15E001C68AA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = LiftosaurWorkoutWidgetExtension/LiftosaurWorkoutWidgetExtension.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 7V6ZVS97Z2;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = LiftosaurWorkoutWidgetExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = LiftosaurWorkoutWidgetExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				OTHER_SWIFT_FLAGS = "-DWIDGET_EXTENSION";
+				PRODUCT_BUNDLE_IDENTIFIER = com.liftosaur.www.LiftosaurWorkoutWidgetExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -463,7 +814,7 @@
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers",
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers/react/renderer/graphics/platform/ios",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					/usr/lib/swift,
 					"$(inherited)",
@@ -561,7 +912,7 @@
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers",
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers/react/renderer/graphics/platform/ios",
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					/usr/lib/swift,
 					"$(inherited)",
@@ -601,6 +952,15 @@
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
 				13B07F951A680F5B00A75B9A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3AACC50D2FB2A15E001C68AA /* Build configuration list for PBXNativeTarget "LiftosaurWorkoutWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3AACC50A2FB2A15E001C68AA /* Debug */,
+				3AACC50B2FB2A15E001C68AA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

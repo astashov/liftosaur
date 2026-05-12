@@ -3,12 +3,35 @@
 #import <React_RCTAppDelegate/RCTDefaultReactNativeFactoryDelegate.h>
 #import "Liftosaur-Swift.h"
 
-@implementation RCTLiftosaurLiveActivity
+static __weak RCTLiftosaurLiveActivity *gCodegenWiredInstance = nil;
+
+@implementation RCTLiftosaurLiveActivity {
+  BOOL _eventEmitterWired;
+}
 
 RCT_EXPORT_MODULE(LiftosaurLiveActivity)
 
+- (void)setEventEmitterCallback:(EventEmitterCallbackWrapper *)wrapper {
+  [super setEventEmitterCallback:wrapper];
+  gCodegenWiredInstance = self;
+  [self wireEventEmitterIfNeeded];
+}
+
 + (BOOL)requiresMainQueueSetup {
   return NO;
+}
+
+static NSArray *CompletedSetsArray(JS::NativeLiftosaurLiveActivity::LiveActivityEntry *entry) {
+  NSMutableArray *out = [NSMutableArray array];
+  auto sets = entry->completedSets();
+  for (size_t i = 0, n = sets.size(); i < n; i++) {
+    auto set = sets[i];
+    [out addObject:@{
+      @"status": set.status() ?: @"not-finished",
+      @"isWarmup": @(set.isWarmup()),
+    }];
+  }
+  return out;
 }
 
 static NSDictionary *DictFromState(JS::NativeLiftosaurLiveActivity::LiveActivityState &state) {
@@ -26,6 +49,7 @@ static NSDictionary *DictFromState(JS::NativeLiftosaurLiveActivity::LiveActivity
     e[@"exerciseName"] = entry->exerciseName();
     e[@"currentSet"] = @(entry->currentSet());
     e[@"totalSets"] = @(entry->totalSets());
+    e[@"completedSets"] = CompletedSetsArray(&entry.value());
     e[@"canCompleteFromLiveActivity"] = @(entry->canCompleteFromLiveActivity());
     e[@"isWarmup"] = @(entry->isWarmup());
     e[@"entryIndex"] = @(entry->entryIndex());
@@ -43,9 +67,20 @@ static NSDictionary *DictFromState(JS::NativeLiftosaurLiveActivity::LiveActivity
   return dict;
 }
 
+- (void)wireEventEmitterIfNeeded {
+  if (_eventEmitterWired) return;
+  _eventEmitterWired = YES;
+  [[LiftosaurLiveActivityImpl shared] setEventEmitter:^(NSDictionary *event) {
+    RCTLiftosaurLiveActivity *target = gCodegenWiredInstance;
+    if (target == nil) return;
+    [target emitOnLiveActivityAction:event];
+  }];
+}
+
 - (void)startLiveActivity:(JS::NativeLiftosaurLiveActivity::LiveActivityState &)state
                   resolve:(RCTPromiseResolveBlock)resolve
                    reject:(RCTPromiseRejectBlock)reject {
+  [self wireEventEmitterIfNeeded];
   [[LiftosaurLiveActivityImpl shared] startWithState:DictFromState(state)];
   resolve(nil);
 }
@@ -53,6 +88,7 @@ static NSDictionary *DictFromState(JS::NativeLiftosaurLiveActivity::LiveActivity
 - (void)updateLiveActivity:(JS::NativeLiftosaurLiveActivity::LiveActivityState &)state
                    resolve:(RCTPromiseResolveBlock)resolve
                     reject:(RCTPromiseRejectBlock)reject {
+  [self wireEventEmitterIfNeeded];
   [[LiftosaurLiveActivityImpl shared] updateWithState:DictFromState(state)];
   resolve(nil);
 }

@@ -54,6 +54,19 @@ target 'Liftosaur' do
       end
     end
 
+    # Bump every Pod target's deployment target to the Podfile's iOS minimum.
+    # Some podspecs (e.g. react-native-pager-view) ship with iOS 10 baked in, which
+    # breaks consumers of SwiftUIIntrospect (iOS 13+) and any modern SwiftUI module.
+    min_target = Gem::Version.new(min_ios_version_supported)
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        current = Gem::Version.new(config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] || '0')
+        if current < min_target
+          config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = min_ios_version_supported
+        end
+      end
+    end
+
     # Xcode 26 / iOS 26 SDK treats netinet6/in6.h as a private framework header.
     # RollbarNotifier 3.3.3 imports it redundantly (netinet/in.h already covers it).
     rollbar_file = File.join(__dir__, 'Pods', 'RollbarNotifier', 'RollbarNotifier',
