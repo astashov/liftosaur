@@ -19,6 +19,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
     LiftosaurEventReporterImpl.shared.registerWithMetricKit()
+    _ = LiftosaurWorkoutMirroringImpl.shared
 
     if let cachedUserId = UserDefaults.standard.string(forKey: "LiftosaurCachedUserId") {
       let config = Rollbar.configuration().mutableCopy()
