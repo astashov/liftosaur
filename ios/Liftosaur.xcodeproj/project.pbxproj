@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		00A9D43BFF6350A3156888F5 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
+		EE0011000000000000000011 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = EE0010000000000000000010 /* Expo.plist */; };
 		12F317DBE89387792B8C2788 /* notification.m4r in Resources */ = {isa = PBXBuildFile; fileRef = 91FAA5A7B2D2A2141783C9C5 /* notification.m4r */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		2B45EA7869F3FB4183C4A4CE /* LiftosaurTimerImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = B65E29D489BF686568C6787C /* LiftosaurTimerImpl.swift */; };
@@ -167,6 +168,7 @@
 		13B07F961A680F5B00A75B9A /* Liftosaur.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Liftosaur.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Liftosaur/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Liftosaur/Info.plist; sourceTree = "<group>"; };
+		EE0010000000000000000010 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Expo.plist; path = Liftosaur/Expo.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = Liftosaur/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		3A606C422FAB8D1800799977 /* Store.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Store.storekit; sourceTree = "<group>"; };
 		3AACC4F72FB2A15D001C68AA /* LiftosaurWorkoutWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LiftosaurWorkoutWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -313,6 +315,7 @@
 				3AACC6262FB35CFD001C68AA /* RCTLiftosaurWatch.mm */,
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
+				EE0010000000000000000010 /* Expo.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
 				FD2FDC64C423B610A697466E /* RCTLiftosaurShare.h */,
@@ -658,6 +661,7 @@
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				00A9D43BFF6350A3156888F5 /* PrivacyInfo.xcprivacy in Resources */,
+				EE0011000000000000000011 /* Expo.plist in Resources */,
 				3A606C432FAB8D1800799977 /* Store.storekit in Resources */,
 				12F317DBE89387792B8C2788 /* notification.m4r in Resources */,
 				3AACC5532FB2C941001C68AA /* Poppins-MediumItalic.ttf in Resources */,

@@ -3,6 +3,7 @@
 #import <React_RCTAppDelegate/RCTDefaultReactNativeFactoryDelegate.h>
 #import <WatchConnectivity/WatchConnectivity.h>
 #import <ExpoModulesCore/ExpoModulesCore-Swift.h>
+#import <Expo/Expo-Swift.h>
 #import "Liftosaur-Swift.h"
 
 static __weak RCTLiftosaurWatch *gCodegenWiredInstance = nil;

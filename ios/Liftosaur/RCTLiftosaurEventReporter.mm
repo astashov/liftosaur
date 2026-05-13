@@ -2,6 +2,7 @@
 #import <React/RCTBridgeModule.h>
 #import <React_RCTAppDelegate/RCTDefaultReactNativeFactoryDelegate.h>
 #import <ExpoModulesCore/ExpoModulesCore-Swift.h>
+#import <Expo/Expo-Swift.h>
 #import "Liftosaur-Swift.h"
 
 static __weak RCTLiftosaurEventReporter *gCodegenWiredInstance = nil;

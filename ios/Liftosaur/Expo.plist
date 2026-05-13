@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>EXUpdatesEnabled</key>
+	<true/>
+	<key>EXUpdatesURL</key>
+	<string>https://www.liftosaur.com/api/updates/manifest</string>
+	<key>EXUpdatesCheckOnLaunch</key>
+	<string>ALWAYS</string>
+	<key>EXUpdatesLaunchWaitMs</key>
+	<integer>0</integer>
+	<key>EXUpdatesScopeKey</key>
+	<string>com.liftosaur.www</string>
+	<key>EXUpdatesRuntimeVersion</key>
+	<string>file:fingerprint</string>
+	<key>EXUpdatesHasEmbeddedUpdate</key>
+	<true/>
+	<key>EXUpdatesRequestHeaders</key>
+	<dict/>
+</dict>
+</plist>
