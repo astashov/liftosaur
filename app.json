@@ -9,6 +9,15 @@
     },
     "android": {
       "package": "com.liftosaur.www.twa"
+    },
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://www.liftosaur.com/api/updates/manifest",
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
     }
   }
 }
