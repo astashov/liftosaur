@@ -1,6 +1,7 @@
 #import "RCTLiftosaurShare.h"
 #import <React/RCTBridgeModule.h>
 #import <React_RCTAppDelegate/RCTDefaultReactNativeFactoryDelegate.h>
+#import <ExpoModulesCore/ExpoModulesCore-Swift.h>
 #import "Liftosaur-Swift.h"
 
 @implementation RCTLiftosaurShare

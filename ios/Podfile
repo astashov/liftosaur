@@ -5,7 +5,13 @@ require Pod::Executable.execute_command('node', ['-p',
     {paths: [process.argv[1]]},
   )', __dir__]).strip
 
-platform :ios, min_ios_version_supported
+require Pod::Executable.execute_command('node', ['-p',
+  'require.resolve(
+    "expo/package.json",
+    {paths: [process.argv[1]]},
+  )', __dir__]).strip.sub(/package\.json$/, 'scripts/autolinking')
+
+platform :ios, '17.0'
 prepare_react_native_project!
 
 linkage = ENV['USE_FRAMEWORKS']
@@ -15,6 +21,7 @@ if linkage != nil
 end
 
 target 'Liftosaur' do
+  use_expo_modules!
   config = use_native_modules!
 
   # RollbarReport (Swift) depends on RollbarCrash (Obj-C without modules);
@@ -59,12 +66,14 @@ target 'Liftosaur' do
     # Bump every Pod target's deployment target to the Podfile's iOS minimum.
     # Some podspecs (e.g. react-native-pager-view) ship with iOS 10 baked in, which
     # breaks consumers of SwiftUIIntrospect (iOS 13+) and any modern SwiftUI module.
-    min_target = Gem::Version.new(min_ios_version_supported)
+    # ExpoModulesCore 56 requires iOS 16.4+; we target 17.0 to stay safely above.
+    min_target_version = '17.0'
+    min_target = Gem::Version.new(min_target_version)
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
         current = Gem::Version.new(config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] || '0')
         if current < min_target
-          config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = min_ios_version_supported
+          config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = min_target_version
         end
       end
     end

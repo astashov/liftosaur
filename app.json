@@ -1,4 +1,14 @@
 {
   "name": "Liftosaur",
-  "displayName": "Liftosaur"
+  "displayName": "Liftosaur",
+  "expo": {
+    "name": "Liftosaur",
+    "slug": "liftosaur",
+    "ios": {
+      "bundleIdentifier": "com.liftosaur.www"
+    },
+    "android": {
+      "package": "com.liftosaur.www.twa"
+    }
+  }
 }
