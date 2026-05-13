@@ -1,5 +1,5 @@
 import { JSX, useEffect, useState } from "react";
-import { View, Pressable, Linking } from "react-native";
+import { View, Pressable, Linking, Platform } from "react-native";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import { MenuItem, MenuItemWrapper } from "./menuItem";
@@ -296,7 +296,9 @@ export function ScreenSettings(props: IProps): JSX.Element {
         }}
       />
       {((SendMessage_isIos() && SendMessage_iosAppVersion() >= 6) ||
-        (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 13)) && (
+        Platform.OS === "ios" ||
+        (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 13) ||
+        Platform.OS === "android") && (
         <MenuItemEditable
           type="boolean"
           name="Always On Display"
@@ -335,7 +337,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
               <View className="mr-2">
                 <IconSpeaker />
               </View>
-              <View className="flex-1 flex-row">
+              <View className="flex-row flex-1">
                 <Slider
                   value={props.settings.volume}
                   min={0}
@@ -405,7 +407,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
             <Text className="text-xs">A</Text>
             <Text className="text-lg">A</Text>
           </View>
-          <View className="flex-1 flex-row">
+          <View className="flex-row flex-1">
             <Slider
               value={props.settings.textSize ?? 16}
               min={12}

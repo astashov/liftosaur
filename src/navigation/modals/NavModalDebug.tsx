@@ -9,7 +9,8 @@ import { CollectionUtils_sortBy, CollectionUtils_nonnull } from "../../utils/col
 import { DateUtils_formatHHMMSS } from "../../utils/date";
 import { ObjectUtils_values } from "../../utils/object";
 import { Button } from "../../components/button";
-import { SendMessage_toIos } from "../../utils/sendMessage";
+import { SendMessage_toIos, SendMessage_toAndroid } from "../../utils/sendMessage";
+import { ShareLog_share } from "../../utils/shareLog";
 
 export function NavModalDebug(): JSX.Element {
   const { state, dispatch } = useAppState();
@@ -53,7 +54,15 @@ export function NavModalDebug(): JSX.Element {
         </Button>
       </View>
       <View className="items-center mt-4">
-        <Button name="share-device-logs" kind="purple" onClick={() => SendMessage_toIos({ type: "shareLog" })}>
+        <Button
+          name="share-device-logs"
+          kind="purple"
+          onClick={() => {
+            SendMessage_toIos({ type: "shareLog" });
+            SendMessage_toAndroid({ type: "shareLog" });
+            ShareLog_share();
+          }}
+        >
           Share device logs
         </Button>
       </View>

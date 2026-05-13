@@ -132,6 +132,7 @@ import { TextSize_apply } from "./utils/textSize";
 import { AppContext } from "./components/appContext";
 import { ActionSheetHost } from "./components/actionSheetHost";
 import { SystemBars } from "react-native-edge-to-edge";
+import { activateKeepAwake, deactivateKeepAwake } from "@sayem314/react-native-keep-awake";
 import {
   Thunk_fetchInitial,
   Thunk_sync2,
@@ -179,6 +180,14 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
     dispatch(Thunk_fetchInitial());
     dispatch(Thunk_syncHealthKit());
   }, []);
+
+  useEffect(() => {
+    if (state.storage.settings.alwaysOnDisplay) {
+      activateKeepAwake();
+    } else {
+      deactivateKeepAwake();
+    }
+  }, [state.storage.settings.alwaysOnDisplay]);
 
   useEffect(() => {
     return Analytics_initialize({

@@ -112,11 +112,11 @@
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		9CFD04038647D1D4AFBE4A93 /* RCTLiftosaurLiveActivity.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6CDE7A4672A3F2BF6A135AE9 /* RCTLiftosaurLiveActivity.mm */; };
 		ABAB4E16DB2DC920D7412751 /* LiftosaurShareImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = E883E351A4F90F4F9BB4EFE5 /* LiftosaurShareImpl.swift */; };
-		C2E9A5DE4F76886C7D64C450 /* Pods_Liftosaur.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BDB2C825E4051C169460D367 /* Pods_Liftosaur.framework */; };
 		EE0003000000000000000003 /* RCTLiftosaurEventReporter.mm in Sources */ = {isa = PBXBuildFile; fileRef = EE0002000000000000000002 /* RCTLiftosaurEventReporter.mm */; };
 		EE0005000000000000000005 /* LiftosaurEventReporterImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0004000000000000000004 /* LiftosaurEventReporterImpl.swift */; };
 		EE0007000000000000000007 /* RCTLiftosaurWorkoutMirroring.mm in Sources */ = {isa = PBXBuildFile; fileRef = EE0006000000000000000006 /* RCTLiftosaurWorkoutMirroring.mm */; };
 		EE0009000000000000000009 /* LiftosaurWorkoutMirroringImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0008000000000000000008 /* LiftosaurWorkoutMirroringImpl.swift */; };
+		FE510CECF74A145495183B2A /* Pods_Liftosaur.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 971ABB2C96B7FBF70D8D6C7A /* Pods_Liftosaur.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -251,10 +251,10 @@
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Liftosaur/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		8B4BDC15E59DDB21DA61FB5B /* LiftosaurLiveActivityImpl.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LiftosaurLiveActivityImpl.swift; path = Liftosaur/LiftosaurLiveActivityImpl.swift; sourceTree = "<group>"; };
 		91FAA5A7B2D2A2141783C9C5 /* notification.m4r */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file; name = notification.m4r; path = Liftosaur/notification.m4r; sourceTree = "<group>"; };
+		971ABB2C96B7FBF70D8D6C7A /* Pods_Liftosaur.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Liftosaur.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9FBEDEE80EFF415DAB4E7192 /* Poppins-BoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-BoldItalic.ttf"; path = "../assets/fonts/Poppins-BoldItalic.ttf"; sourceTree = "<group>"; };
 		A95E3F373AF047269613648A /* Poppins-SemiBoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-SemiBoldItalic.ttf"; path = "../assets/fonts/Poppins-SemiBoldItalic.ttf"; sourceTree = "<group>"; };
 		B65E29D489BF686568C6787C /* LiftosaurTimerImpl.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LiftosaurTimerImpl.swift; path = Liftosaur/LiftosaurTimerImpl.swift; sourceTree = "<group>"; };
-		BDB2C825E4051C169460D367 /* Pods_Liftosaur.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Liftosaur.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CAF9A9419BADC6FB0293A37D /* RCTLiftosaurTimer.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTLiftosaurTimer.mm; path = Liftosaur/RCTLiftosaurTimer.mm; sourceTree = "<group>"; };
 		D504098807F3C847075A4F60 /* Liftosaur-Bridging-Header.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "Liftosaur-Bridging-Header.h"; path = "Liftosaur/Liftosaur-Bridging-Header.h"; sourceTree = "<group>"; };
 		DD9788074553024D2C5DC450 /* RCTLiftosaurTimer.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTLiftosaurTimer.h; path = Liftosaur/RCTLiftosaurTimer.h; sourceTree = "<group>"; };
@@ -277,7 +277,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C2E9A5DE4F76886C7D64C450 /* Pods_Liftosaur.framework in Frameworks */,
+				FE510CECF74A145495183B2A /* Pods_Liftosaur.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -354,7 +354,7 @@
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				3AACC4F82FB2A15D001C68AA /* WidgetKit.framework */,
 				3AACC4FA2FB2A15D001C68AA /* SwiftUI.framework */,
-				BDB2C825E4051C169460D367 /* Pods_Liftosaur.framework */,
+				971ABB2C96B7FBF70D8D6C7A /* Pods_Liftosaur.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";

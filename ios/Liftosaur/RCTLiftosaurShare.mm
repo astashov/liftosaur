@@ -52,6 +52,17 @@ RCT_EXPORT_MODULE(LiftosaurShare)
   }];
 }
 
+- (void)shareLog:(RCTPromiseResolveBlock)resolve
+           reject:(RCTPromiseRejectBlock)reject {
+  [[LiftosaurShareImpl shared] shareLogWithCompletion:^(NSString * _Nullable error) {
+    if (error) {
+      reject(@"share_log_failed", error, nil);
+    } else {
+      resolve(nil);
+    }
+  }];
+}
+
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params {
   return std::make_shared<facebook::react::NativeLiftosaurShareSpecJSI>(params);

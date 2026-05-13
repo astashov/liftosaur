@@ -23,6 +23,7 @@ import { getGoogleAccessToken } from "../utils/googleAccessToken";
 import { SignIn_google, SignIn_apple } from "../utils/signIn";
 import { Platform } from "react-native";
 import { Dialog_confirm, Dialog_alert } from "../utils/dialog";
+import { InAppReview_request } from "../utils/inAppReview";
 import {
   IApplePromotionalOffer,
   IEnv,
@@ -1074,6 +1075,7 @@ export function Thunk_maybeRequestReview(): IThunk {
         dispatch(Thunk_postevent("request-review"));
         SendMessage_toIos({ type: "requestReview" });
         SendMessage_toAndroid({ type: "requestReview" });
+        InAppReview_request();
       }
     } catch (error) {
       const e = error as Error;

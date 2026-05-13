@@ -150,6 +150,7 @@ PODS:
     - React-RCTText (= 0.84.1)
     - React-RCTVibration (= 0.84.1)
   - React-callinvoker (0.84.1)
+  - React-Codegen (0.1.0)
   - React-Core (0.84.1):
     - hermes-engine
     - RCTDeprecation
@@ -1509,6 +1510,15 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - react-native-in-app-review (4.4.2):
+    - React-Core
+  - react-native-keep-awake (1.4.0):
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Codegen
+    - React-Core
+    - React-RCTFabric
+    - ReactCommon/turbomodule/core
   - react-native-pager-view (8.0.1):
     - hermes-engine
     - RCTRequired
@@ -2515,6 +2525,8 @@ DEPENDENCIES:
   - "react-native-blur (from `../node_modules/@react-native-community/blur`)"
   - "react-native-document-picker (from `../node_modules/@react-native-documents/picker`)"
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
+  - react-native-in-app-review (from `../node_modules/react-native-in-app-review`)
+  - "react-native-keep-awake (from `../node_modules/@sayem314/react-native-keep-awake`)"
   - react-native-pager-view (from `../node_modules/react-native-pager-view`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
@@ -2589,6 +2601,7 @@ SPEC REPOS:
     - nanopb
     - openiap
     - PromisesObjC
+    - React-Codegen
     - RollbarCommon
     - RollbarCrash
     - RollbarNotifier
@@ -2687,6 +2700,10 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-documents/picker"
   react-native-image-picker:
     :path: "../node_modules/react-native-image-picker"
+  react-native-in-app-review:
+    :path: "../node_modules/react-native-in-app-review"
+  react-native-keep-awake:
+    :path: "../node_modules/@sayem314/react-native-keep-awake"
   react-native-pager-view:
     :path: "../node_modules/react-native-pager-view"
   react-native-safe-area-context:
@@ -2825,6 +2842,7 @@ SPEC CHECKSUMS:
   RCTTypeSafety: ee5b2343f1904b18c1c8b26f3e26a3550628a215
   React: 1ba7d364ade7d883a1ec055bfc3606f35fdee17b
   React-callinvoker: df4a74de3f8b09ce3c740a081f519dd227a64706
+  React-Codegen: 4b8b4817cea7a54b83851d4c1f91f79aa73de30a
   React-Core: aaab07916b31ed40a09c0c7c427f089072cfc631
   React-CoreModules: 14e94514898a5edbe7a91b5b498b361d1953b0e4
   React-cxxreact: cc083793ed18f97169924ede26732734e5337e16
@@ -2857,6 +2875,8 @@ SPEC CHECKSUMS:
   react-native-blur: 729b3a793cee9d8fea81544fbb16cb5778f46c28
   react-native-document-picker: 1d04114acd8b370f33d58f597dd4866586c6352a
   react-native-image-picker: adb86d86135d8d31009d027db361445c5a3db863
+  react-native-in-app-review: 1516ba69d60d58053b7eb3aaaf8d2a5a74af8b57
+  react-native-keep-awake: 129cb4bd75d0f304a479b4c4527d2994fe18e43c
   react-native-pager-view: 58cdd1bcb4a219738176542ebd57d37dc9421a77
   react-native-safe-area-context: 45435943d06e262f946fcc3f4c4de6bfd0c9cbe1
   react-native-slider: d3c62864af399014469359120d9a9a6cbbd9c6f7
