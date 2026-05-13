@@ -62,6 +62,16 @@
             <category android:name="android.intent.category.BROWSABLE" />
             <data android:scheme="com.liftosaur.www" android:host="apple-callback" />
         </intent-filter>
+        <intent-filter android:autoVerify="true">
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https" />
+            <data android:host="liftosaur.com" />
+            <data android:host="www.liftosaur.com" />
+            <data android:path="/program" />
+            <data android:pathPrefix="/p/" />
+        </intent-filter>
       </activity>
       <provider
         android:name="androidx.core.content.FileProvider"

@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState, useEffect } from "react";
-import { ActivityIndicator, AppState, Platform, View } from "react-native";
+import { ActivityIndicator, AppState, Linking, Platform, View } from "react-native";
 import { Client as RollbarClient } from "rollbar-react-native";
 import RB from "rollbar";
 import { Analytics_initialize, Analytics_setUserId } from "./utils/analytics";
@@ -133,6 +133,7 @@ import { AppContext } from "./components/appContext";
 import { ActionSheetHost } from "./components/actionSheetHost";
 import { SystemBars } from "react-native-edge-to-edge";
 import { activateKeepAwake, deactivateKeepAwake } from "@sayem314/react-native-keep-awake";
+import { ImportExporter_handleUniversalLink } from "./lib/importexporter";
 import {
   Thunk_fetchInitial,
   Thunk_sync2,
@@ -223,6 +224,30 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
       lg(event.name, event.extra, undefined, personId, event.timestamp);
     });
   }, [personId]);
+
+  useEffect(() => {
+    const handleLink = (url: string | null): void => {
+      if (!url) return;
+      let parsed: URL;
+      try {
+        parsed = new URL(url);
+      } catch {
+        return;
+      }
+      const isLiftosaurHost = parsed.host === "liftosaur.com" || parsed.host === "www.liftosaur.com";
+      if (!isLiftosaurHost) return;
+      const isImportPath =
+        (parsed.pathname === "/program" && parsed.searchParams.has("data")) ||
+        parsed.pathname.startsWith("/p/");
+      if (!isImportPath) return;
+      ImportExporter_handleUniversalLink(dispatch, url, fetch).catch(() => undefined);
+    };
+    Linking.getInitialURL()
+      .then(handleLink)
+      .catch(() => undefined);
+    const sub = Linking.addEventListener("url", ({ url }) => handleLink(url));
+    return () => sub.remove();
+  }, [dispatch]);
 
   useEffect(() => {
     const sub = AppState.addEventListener("change", (next) => {
