@@ -29,7 +29,7 @@ OUTPUT_DIR="dist-rn"
 echo "Publishing RN OTA: stage=$STAGE channel=$CHANNEL updateId=$UPDATE_ID"
 
 rm -rf "$OUTPUT_DIR"
-npx expo export --platform ios --platform android --output-dir "$OUTPUT_DIR" --non-interactive
+CI=1 npx expo export --platform ios --platform android --output-dir "$OUTPUT_DIR"
 
 for PLATFORM in ios android; do
   FINGERPRINT="$(npx expo-updates fingerprint:generate --platform "$PLATFORM" --json | jq -r '.hash')"
