@@ -22,7 +22,7 @@ if [ -z "$DISTRIBUTION_ID" ]; then
   exit 1
 fi
 
-UPDATE_ID="$(uuidgen | tr 'A-Z' 'a-z')"
+UPDATE_ID="$(node -e 'console.log(require("crypto").randomUUID())')"
 CREATED_AT="$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")"
 OUTPUT_DIR="dist-rn"
 
