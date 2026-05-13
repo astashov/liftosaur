@@ -32,7 +32,7 @@ rm -rf "$OUTPUT_DIR"
 CI=1 npx expo export --platform ios --platform android --output-dir "$OUTPUT_DIR"
 
 for PLATFORM in ios android; do
-  FINGERPRINT="$(npx expo-updates fingerprint:generate --platform "$PLATFORM" --json | jq -r '.hash')"
+  FINGERPRINT="$(npx expo-updates fingerprint:generate --platform "$PLATFORM" | jq -r '.hash')"
   if [ -z "$FINGERPRINT" ] || [ "$FINGERPRINT" = "null" ]; then
     echo "failed to compute fingerprint for $PLATFORM"
     exit 1
