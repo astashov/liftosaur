@@ -1139,6 +1139,7 @@ class LiftosaurPipelineStack extends cdk.Stack {
               "npm run build:prepare",
               "npm run build:lambda",
               `cdk deploy ${stackName} --require-approval never`,
+              `STAGE=${isDev ? "dev" : "prod"} npm run build:rn-bundle`,
             ],
           },
         },

@@ -9,7 +9,7 @@ export class ManifestSigner implements IManifestSigner {
   constructor(private readonly secrets: ISecretsUtil) {}
 
   public async sign(body: string): Promise<string | undefined> {
-    const key = await this.tryGetSigningKey();
+    const key = await this.secrets.getUpdatesPrivateKey();
     if (!key) {
       return undefined;
     }
@@ -18,19 +18,5 @@ export class ManifestSigner implements IManifestSigner {
     signer.end();
     const signature = signer.sign(key).toString("base64");
     return `sig="${signature}", keyid="main", alg="rsa-v1_5-sha256"`;
-  }
-
-  private async tryGetSigningKey(): Promise<string | undefined> {
-    const secretsWithUpdates = this.secrets as ISecretsUtil & {
-      getUpdatesPrivateKey?: () => Promise<string>;
-    };
-    if (typeof secretsWithUpdates.getUpdatesPrivateKey !== "function") {
-      return undefined;
-    }
-    try {
-      return await secretsWithUpdates.getUpdatesPrivateKey();
-    } catch {
-      return undefined;
-    }
   }
 }

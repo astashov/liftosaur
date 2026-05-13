@@ -18,5 +18,14 @@
 	<true/>
 	<key>EXUpdatesRequestHeaders</key>
 	<dict/>
+	<key>EXUpdatesCodeSigningCertificate</key>
+	<string>codesigning.pem</string>
+	<key>EXUpdatesCodeSigningMetadata</key>
+	<dict>
+		<key>alg</key>
+		<string>rsa-v1_5-sha256</string>
+		<key>keyid</key>
+		<string>main</string>
+	</dict>
 </dict>
 </plist>

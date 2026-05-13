@@ -57,4 +57,7 @@ export class MockSecretsUtil implements ISecretsUtil {
   public async getAnthropicKey(): Promise<string> {
     return "";
   }
+  public async getUpdatesPrivateKey(): Promise<string> {
+    return "";
+  }
 }

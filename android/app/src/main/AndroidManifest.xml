@@ -50,6 +50,8 @@
       <meta-data android:name="expo.modules.updates.EXPO_UPDATES_LAUNCH_WAIT_MS" android:value="0" />
       <meta-data android:name="expo.modules.updates.EXPO_RUNTIME_VERSION" android:value="file:fingerprint" />
       <meta-data android:name="expo.modules.updates.EXPO_SCOPE_KEY" android:value="com.liftosaur.www" />
+      <meta-data android:name="expo.modules.updates.CODE_SIGNING_CERTIFICATE" android:value="@string/updates_code_signing_certificate" />
+      <meta-data android:name="expo.modules.updates.CODE_SIGNING_METADATA" android:value="{&quot;alg&quot;:&quot;rsa-v1_5-sha256&quot;,&quot;keyid&quot;:&quot;main&quot;}" />
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"

@@ -31,6 +31,7 @@ interface IAllSecrets {
   anthropicApiKey: string;
   applePromotionalOfferKeyId: string;
   applePromotionalOfferPrivateKey: string;
+  updatesPrivateKey: string;
 }
 
 export interface ISecretsUtil {
@@ -48,6 +49,7 @@ export interface ISecretsUtil {
   getAnthropicKey(): Promise<string>;
   getApplePromotionalOfferKeyId(): Promise<string>;
   getApplePromotionalOfferPrivateKey(): Promise<string>;
+  getUpdatesPrivateKey(): Promise<string>;
 }
 
 export class SecretsUtil implements ISecretsUtil {
@@ -140,5 +142,15 @@ export class SecretsUtil implements ISecretsUtil {
 
   public async getAnthropicKey(): Promise<string> {
     return this.cache("anthropicApiKey", () => this.getSecret("anthropicApiKey"));
+  }
+
+  public async getUpdatesPrivateKey(): Promise<string> {
+    return this.cache("updatesPrivateKey", async () => {
+      try {
+        return await this.getSecret("updatesPrivateKey");
+      } catch {
+        return "";
+      }
+    });
   }
 }
