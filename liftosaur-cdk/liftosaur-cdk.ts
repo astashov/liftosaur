@@ -636,7 +636,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     // --- Static assets S3 bucket + CloudFront distribution ---
 
     const staticBucket = new s3.Bucket(this, `LftS3Static${suffix}`, {
-      bucketName: `lftstatic${suffix.toLowerCase()}`,
+      bucketName: `${LftS3Buckets.static}${suffix.toLowerCase()}`,
       publicReadAccess: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       websiteIndexDocument: "index.html",
@@ -647,6 +647,8 @@ export class LiftosaurCdkStack extends cdk.Stack {
         restrictPublicBuckets: false,
       }),
     });
+
+    staticBucket.grantRead(lambdaFunction, "updates-pointers/*");
 
     const stripStaticPrefix = new cloudfront.Function(this, `LftStripStaticPrefix${suffix}`, {
       functionName: `LftStripStaticPrefix${suffix}`,
@@ -819,6 +821,23 @@ export class LiftosaurCdkStack extends cdk.Stack {
       enableAcceptEncodingBrotli: true,
     });
 
+    const updatesManifestCachePolicy = new cloudfront.CachePolicy(this, `LftUpdatesManifestCachePolicy${suffix}`, {
+      cachePolicyName: `LftUpdatesManifestCachePolicy${suffix}`,
+      defaultTtl: cdk.Duration.hours(1),
+      maxTtl: cdk.Duration.hours(24),
+      minTtl: cdk.Duration.seconds(0),
+      headerBehavior: cloudfront.CacheHeaderBehavior.allowList(
+        "expo-runtime-version",
+        "expo-platform",
+        "expo-channel-name",
+        "expo-protocol-version"
+      ),
+      cookieBehavior: cloudfront.CacheCookieBehavior.none(),
+      queryStringBehavior: cloudfront.CacheQueryStringBehavior.none(),
+      enableAcceptEncodingGzip: true,
+      enableAcceptEncodingBrotli: true,
+    });
+
     const cachedPageWithDeviceCachePolicy = new cloudfront.CachePolicy(
       this,
       `LftCachedPageWithDeviceCachePolicy${suffix}`,
@@ -917,6 +936,13 @@ export class LiftosaurCdkStack extends cdk.Stack {
         "/main": cachedPageWithDeviceBehavior,
         "/exercises*": cachedPageBehavior,
         "/*rep-max-calculator": cachedPageBehavior,
+        "/api/updates/manifest": {
+          origin: apiOrigin,
+          cachePolicy: updatesManifestCachePolicy,
+          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        },
         "/static/*": {
           origin: s3Origin,
           cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,

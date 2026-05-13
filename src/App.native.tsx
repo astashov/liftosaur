@@ -228,7 +228,9 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
 
   useEffect(() => {
     const handleLink = (url: string | null): void => {
-      if (!url) return;
+      if (!url) {
+        return;
+      }
       let parsed: URL;
       try {
         parsed = new URL(url);
@@ -236,11 +238,14 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
         return;
       }
       const isLiftosaurHost = parsed.host === "liftosaur.com" || parsed.host === "www.liftosaur.com";
-      if (!isLiftosaurHost) return;
+      if (!isLiftosaurHost) {
+        return;
+      }
       const isImportPath =
-        (parsed.pathname === "/program" && parsed.searchParams.has("data")) ||
-        parsed.pathname.startsWith("/p/");
-      if (!isImportPath) return;
+        (parsed.pathname === "/program" && parsed.searchParams.has("data")) || parsed.pathname.startsWith("/p/");
+      if (!isImportPath) {
+        return;
+      }
       ImportExporter_handleUniversalLink(dispatch, url, fetch).catch(() => undefined);
     };
     Linking.getInitialURL()

@@ -14,10 +14,7 @@ import {
   useMeasuredKeyboardHeightRef,
   useOpenCustomKeyboard,
 } from "../navigation/CustomKeyboardContext";
-import {
-  FocusedInputFlush_register,
-  FocusedInputFlush_unregister,
-} from "../utils/focusedInputFlush";
+import { FocusedInputFlush_register, FocusedInputFlush_unregister } from "../utils/focusedInputFlush";
 
 export type IInputCommitMode = "live" | "debounced" | "blur";
 

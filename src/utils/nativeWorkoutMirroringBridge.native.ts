@@ -12,7 +12,9 @@ function getModule(): typeof NativeLiftosaurWorkoutMirroring {
 
 export async function NativeWorkoutMirroring_startWatchWorkout(): Promise<boolean> {
   const mod = getModule();
-  if (mod == null) return false;
+  if (mod == null) {
+    return false;
+  }
   try {
     return await mod.startWatchWorkout();
   } catch (e) {
@@ -23,39 +25,49 @@ export async function NativeWorkoutMirroring_startWatchWorkout(): Promise<boolea
 
 export function NativeWorkoutMirroring_pauseWatchWorkout(): void {
   const mod = getModule();
-  if (mod == null) return;
+  if (mod == null) {
+    return;
+  }
   mod.pauseWatchWorkout().catch(() => {});
 }
 
 export function NativeWorkoutMirroring_resumeWatchWorkout(): void {
   const mod = getModule();
-  if (mod == null) return;
+  if (mod == null) {
+    return;
+  }
   mod.resumeWatchWorkout().catch(() => {});
 }
 
 export function NativeWorkoutMirroring_endWatchWorkout(): void {
   const mod = getModule();
-  if (mod == null) return;
+  if (mod == null) {
+    return;
+  }
   mod.endWatchWorkout().catch(() => {});
 }
 
 export function NativeWorkoutMirroring_resetWatchWorkoutState(): void {
   const mod = getModule();
-  if (mod == null) return;
+  if (mod == null) {
+    return;
+  }
   mod.resetWatchWorkoutState().catch(() => {});
 }
 
 export function NativeWorkoutMirroring_isHealthKitAvailable(): boolean {
   const mod = getModule();
-  if (mod == null) return false;
+  if (mod == null) {
+    return false;
+  }
   return mod.isHealthKitAvailable();
 }
 
-export function NativeWorkoutMirroring_subscribe(
-  handler: (event: WorkoutMirroringEvent) => void
-): () => void {
+export function NativeWorkoutMirroring_subscribe(handler: (event: WorkoutMirroringEvent) => void): () => void {
   const mod = getModule();
-  if (mod == null) return () => {};
+  if (mod == null) {
+    return () => {};
+  }
   const subscription = mod.onMirroringEvent(handler);
   mod.flushPendingEvents().catch(() => {});
   return () => subscription.remove();

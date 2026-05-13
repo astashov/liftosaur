@@ -10,6 +10,7 @@ export const LftS3Buckets = {
   assets: "liftosaurassets",
   images: "liftosaurimages2",
   userimages: "liftosauruserimages",
+  static: "lftstatic",
 };
 
 export function getUserImagesPrefix(): string {

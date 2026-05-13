@@ -71,6 +71,7 @@ import { GooglePaymentProcessor } from "./utils/googlePaymentProcessor";
 import { GoogleWebhookHandler } from "./utils/googleWebhookHandler";
 import { CouponDao } from "./dao/couponDao";
 import { DebugDao } from "./dao/debugDao";
+import { Updates_handleManifest } from "./updates/manifestHandler";
 import { renderPlannerHtml } from "./planner";
 import { ExceptionDao } from "./dao/exceptionDao";
 import { UrlUtils_build, UrlUtils_buildSafe } from "../src/utils/url";
@@ -725,6 +726,16 @@ const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
     }
   }
   return ResponseUtils_json(200, event, { key });
+};
+
+const getUpdatesManifestEndpoint = Endpoint.build("/api/updates/manifest");
+const getUpdatesManifestHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getUpdatesManifestEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  return Updates_handleManifest(event, di);
 };
 
 const saveDebugEndpoint = Endpoint.build("/api/debug");
@@ -3070,6 +3081,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
 
     const request: IPayload = { event, di };
     let r = new Router<IPayload, APIGatewayProxyResult>(request)
+      .get(getUpdatesManifestEndpoint, getUpdatesManifestHandler)
       .get(getMainEndpoint, getMainHandler)
       .get(getStoreExceptionDataEndpoint, getStoreExceptionDataHandler)
       .post(postStoreExceptionDataEndpoint, postStoreExceptionDataHandler)
