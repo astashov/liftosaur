@@ -14,7 +14,7 @@
       "policy": "fingerprint"
     },
     "updates": {
-      "url": "https://www.liftosaur.com/api/updates/manifest",
+      "url": "https://stage.liftosaur.com/api/updates/manifest",
       "enabled": true,
       "checkAutomatically": "ON_LOAD",
       "fallbackToCacheTimeout": 0

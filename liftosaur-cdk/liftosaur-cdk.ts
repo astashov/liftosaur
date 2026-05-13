@@ -1136,6 +1136,7 @@ class LiftosaurPipelineStack extends cdk.Stack {
           build: {
             commands: [
               ...(isDev ? ["export STAGE=1"] : []),
+              `STAGE=${isDev ? "dev" : "prod"} npm run sync:updates-url`,
               "npm run build:prepare",
               "npm run build:lambda",
               `cdk deploy ${stackName} --require-approval never`,
@@ -1148,6 +1149,12 @@ class LiftosaurPipelineStack extends cdk.Stack {
         buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
         privileged: true,
         computeType: codebuild.ComputeType.MEDIUM,
+        environmentVariables: {
+          BUILD_RN_BUNDLE: { value: "1" },
+          [isDev ? "CDN_DISTRIBUTION_ID_DEV" : "CDN_DISTRIBUTION_ID_PROD"]: {
+            value: isDev ? "E1QH3BMF6M5P2O" : "E2B989E0V5D0DA",
+          },
+        },
       },
       timeout: cdk.Duration.minutes(30),
     });

@@ -56,6 +56,7 @@
     "cdk-synth": "cdk synth --no-staging LiftosaurStackDev > template.yaml",
     "upload-source-maps": "./uploadsourcemaps.sh",
     "build:rn-bundle": "./scripts/build-rn-bundle.sh",
+    "sync:updates-url": "TS_NODE_TRANSPILE_ONLY=1 ts-node scripts/syncUpdatesUrl.ts",
     "cdk-deploy": "npm run build:lambda && rm -rf ./dist-lambda/node_modules && cdk deploy --all",
     "test": "mocha -r ts-node/register --timeout 0 test/*.test.ts test/**/*.test.ts",
     "playwright": "playwright test --retries 3",
