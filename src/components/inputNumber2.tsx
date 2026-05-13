@@ -9,6 +9,7 @@ import { Mobile_isMobile } from "../../lambda/utils/mobile";
 import { useModal } from "../navigation/ModalStateContext";
 import { IconBackspace } from "./icons/iconBackspace";
 import { lg } from "../utils/posthog";
+import { FocusedInputFlush_register, FocusedInputFlush_unregister } from "../utils/focusedInputFlush";
 
 export type IInputCommitMode = "live" | "debounced" | "blur";
 
@@ -183,6 +184,8 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
     isCalculatorOpenRef.current = !!isCalculatorOpen;
   }, [isFocused, props.allowDot, props.allowNegative, isCalculatorOpen]);
 
+  const blurRef = useRef<((debugCaller?: string) => void) | null>(null);
+
   const handleInput = (key: string): void => {
     let newValue = valueRef.current;
     if (!isTypingRef.current) {
@@ -265,6 +268,23 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
     },
     [cancelPendingInput]
   );
+
+  useEffect(() => {
+    blurRef.current = blur;
+  }, [blur]);
+
+  useEffect(() => {
+    if (!isFocused) {
+      return;
+    }
+    const flush = (): void => {
+      blurRef.current?.("flush-from-outside");
+    };
+    FocusedInputFlush_register(flush);
+    return () => {
+      FocusedInputFlush_unregister(flush);
+    };
+  }, [isFocused]);
 
   const isTargetOutside = useCallback((target: HTMLElement | null): boolean => {
     if (!isFocusedRef.current) {

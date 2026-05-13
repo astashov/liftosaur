@@ -41,6 +41,7 @@ import {
   Weight_getOneRepMax,
 } from "../models/weight";
 import { Exercise_getIsUnilateral, Exercise_onerm } from "../models/exercise";
+import { FocusedInputFlush_flush } from "../utils/focusedInputFlush";
 
 export interface ISetColumnWidths {
   set: number;
@@ -204,6 +205,7 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
     [dispatch, lbSet]
   );
   const onCompleteSet = useCallback(() => {
+    FocusedInputFlush_flush();
     dispatch({
       type: "CompleteSetAction",
       setIndex,

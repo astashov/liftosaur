@@ -14,6 +14,10 @@ import {
   useMeasuredKeyboardHeightRef,
   useOpenCustomKeyboard,
 } from "../navigation/CustomKeyboardContext";
+import {
+  FocusedInputFlush_register,
+  FocusedInputFlush_unregister,
+} from "../utils/focusedInputFlush";
 
 export type IInputCommitMode = "live" | "debounced" | "blur";
 
@@ -169,26 +173,40 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
     return undefined;
   }, [isFocused, cursorOpacity]);
 
+  const commitLocalValue = useCallback(() => {
+    if (debounceTimerRef.current != null) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    hasPendingInputRef.current = false;
+    pendingInputRef.current = undefined;
+    setIsTyping(false);
+    isTypingRef.current = false;
+    const newValueNum = clamp(valueRef.current, minRef.current, maxRef.current);
+    valueRef.current = newValueNum != null ? newValueNum.toString() : "";
+    setValue(newValueNum != null ? newValueNum.toString() : "");
+    if (onBlurRef.current) {
+      onBlurRef.current(newValueNum);
+    }
+  }, []);
+
   const prevFocusedRef = useRef(isFocused);
   useEffect(() => {
     if (prevFocusedRef.current && !isFocused) {
-      if (debounceTimerRef.current != null) {
-        clearTimeout(debounceTimerRef.current);
-        debounceTimerRef.current = null;
-      }
-      hasPendingInputRef.current = false;
-      pendingInputRef.current = undefined;
-      setIsTyping(false);
-      isTypingRef.current = false;
-      const newValueNum = clamp(valueRef.current, minRef.current, maxRef.current);
-      valueRef.current = newValueNum != null ? newValueNum.toString() : "";
-      setValue(newValueNum != null ? newValueNum.toString() : "");
-      if (onBlurRef.current) {
-        onBlurRef.current(newValueNum);
-      }
+      commitLocalValue();
     }
     prevFocusedRef.current = isFocused;
-  }, [isFocused]);
+  }, [isFocused, commitLocalValue]);
+
+  useEffect(() => {
+    if (!isFocused) {
+      return;
+    }
+    FocusedInputFlush_register(commitLocalValue);
+    return () => {
+      FocusedInputFlush_unregister(commitLocalValue);
+    };
+  }, [isFocused, commitLocalValue]);
 
   const scrollIntoView = useCallback(() => {
     const scrollNode = scrollCtx?.scrollRef.current as ScrollView | null;
