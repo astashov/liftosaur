@@ -145,6 +145,7 @@ import {
   Thunk_updateTimer,
   Thunk_handleWatchStorageMerge,
   Thunk_reloadStorageFromDisk,
+  Thunk_postevent,
 } from "./ducks/thunks";
 import { IapAdapter } from "./utils/iap";
 import { HealthAdapter } from "./utils/health";
@@ -252,12 +253,16 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
   useEffect(() => {
     const sub = AppState.addEventListener("change", (next) => {
       if (next === "active") {
+        dispatch(Thunk_postevent("wake"));
+        env.queue.clearStaleOperations();
         dispatch(Thunk_sync2({ force: true }));
         dispatch(Thunk_syncHealthKit());
+      } else if (next === "background") {
+        dispatch(Thunk_postevent("sleep"));
       }
     });
     return () => sub.remove();
-  }, [dispatch]);
+  }, [dispatch, env]);
 
   useEffect(() => {
     const iap = env.iap;
