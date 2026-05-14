@@ -62,6 +62,9 @@ class AppDelegate: ExpoAppDelegate {
     if TikTokURLHandler.handleOpenURL(url) {
       return true
     }
+    if RCTLinkingManager.application(app, open: url, options: options) {
+      return true
+    }
     return super.application(app, open: url, options: options)
   }
 
@@ -72,6 +75,9 @@ class AppDelegate: ExpoAppDelegate {
   ) -> Bool {
     AppsFlyerLib.shared().continue(userActivity, restorationHandler: nil)
     if TikTokURLHandler.handleOpenURL(userActivity.webpageURL) {
+      return true
+    }
+    if RCTLinkingManager.application(application, continue: userActivity, restorationHandler: restorationHandler) {
       return true
     }
     return super.application(application, continue: userActivity, restorationHandler: restorationHandler)
