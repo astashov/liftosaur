@@ -39,7 +39,9 @@ for PLATFORM in ios android; do
       continue
     fi
     bundle_basename="$(basename "$bundle")"
-    minified_url="https://${HOST}/static/updates/${RUNTIME_VERSION}/${PLATFORM}/${UPDATE_ID}/_expo/static/js/${PLATFORM}/${bundle_basename}"
+    runtime_basename="${bundle_basename%.hbc}"
+    runtime_basename="${runtime_basename%.js}.bundle"
+    minified_url="https://${HOST}/static/updates/${RUNTIME_VERSION}/${PLATFORM}/${UPDATE_ID}/_expo/static/js/${PLATFORM}/${runtime_basename}"
     echo "Uploading RN sourcemap: platform=$PLATFORM map=$(basename "$mapfile") version=$FULL_COMMIT_HASH"
     curl -m "$CURL_TIMEOUT" "$ENDPOINT" \
       -F access_token="$ROLLBAR_POST_SERVER_ITEM" \
