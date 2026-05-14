@@ -23,6 +23,7 @@ if [ -z "${IOS_RUNTIME_VERSION:-}" ] || [ -z "${ANDROID_RUNTIME_VERSION:-}" ]; t
 fi
 
 shopt -s nullglob
+uploaded=0
 for PLATFORM in ios android; do
   if [ "$PLATFORM" = "ios" ]; then
     RUNTIME_VERSION="$IOS_RUNTIME_VERSION"
@@ -30,7 +31,9 @@ for PLATFORM in ios android; do
     RUNTIME_VERSION="$ANDROID_RUNTIME_VERSION"
   fi
   JS_DIR="$OUTPUT_DIR/_expo/static/js/$PLATFORM"
+  echo "Looking for sourcemaps in $JS_DIR"
   for mapfile in "$JS_DIR"/*.map; do
+    uploaded=$((uploaded + 1))
     bundle="${mapfile%.map}"
     if [ ! -f "$bundle" ]; then
       continue
@@ -46,3 +49,4 @@ for PLATFORM in ios android; do
     echo
   done
 done
+echo "Uploaded $uploaded RN sourcemap(s) to Rollbar"
