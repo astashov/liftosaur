@@ -46,7 +46,12 @@ echo "  iOS runtimeVersion (MARKETING_VERSION): $IOS_RUNTIME_VERSION"
 echo "  Android runtimeVersion (versionCode):   $ANDROID_RUNTIME_VERSION"
 
 rm -rf "$OUTPUT_DIR"
-CI=1 npx expo export --platform ios --platform android --output-dir "$OUTPUT_DIR"
+EXPORT_FLAGS=""
+if [ "${OTA_NO_BYTECODE:-0}" = "1" ]; then
+  echo "  (OTA_NO_BYTECODE=1) emitting plain JS bundle, no Hermes bytecode"
+  EXPORT_FLAGS="$EXPORT_FLAGS --no-bytecode"
+fi
+CI=1 npx expo export --platform ios --platform android --output-dir "$OUTPUT_DIR" $EXPORT_FLAGS
 
 for PLATFORM in ios android; do
   if [ "$PLATFORM" = "ios" ]; then

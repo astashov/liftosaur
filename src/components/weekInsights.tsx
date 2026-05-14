@@ -52,7 +52,7 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
         <View className="flex-row items-center h-8 gap-1" style={{ marginBottom: 3 }}>
           <IconCrown size={16} color={Tailwind_colors().yellow[600]} />
           <Text className="text-sm font-semibold text-icon-yellow" style={{ marginTop: 3 }}>
-            See Week Insights 2
+            See Week Insights
           </Text>
         </View>
       </Pressable>
