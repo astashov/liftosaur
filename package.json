@@ -7,8 +7,8 @@
     "*.css"
   ],
   "scripts": {
-    "ios": "RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --simulator='iPhone 17 RN'",
-    "ios-release": "RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --simulator='iPhone 17 RN' --mode Release",
+    "ios": "RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --simulator='iPhone 17e RNW'",
+    "ios-release": "RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --simulator='iPhone 17e RNW' --mode Release",
     "ios-device": "RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --device='Anton iPhone Air'",
     "ios-device-release": "RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --mode Release --device='Anton iPhone Air'",
     "pod-install": "cd ios && RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static pod install",
