@@ -39,6 +39,30 @@ globalAny.__FULL_COMMIT_HASH__ = RN_FULL_COMMIT_HASH;
 globalAny.__BUNDLE_VERSION_IOS__ = 1;
 globalAny.__BUNDLE_VERSION_ANDROID__ = 1;
 
+interface IRollbarFrame {
+  filename?: string;
+}
+interface IRollbarPayload {
+  body?: {
+    trace?: { frames?: IRollbarFrame[] };
+    trace_chain?: { frames?: IRollbarFrame[] }[];
+  };
+}
+
+function rewriteRollbarFrames(payload: IRollbarPayload): void {
+  const traces = [payload?.body?.trace, ...(payload?.body?.trace_chain ?? [])];
+  for (const trace of traces) {
+    const frames = trace?.frames;
+    if (!Array.isArray(frames)) continue;
+    for (const f of frames) {
+      if (typeof f?.filename !== "string") continue;
+      const m = f.filename.match(/index-([a-f0-9]+)\.bundle/);
+      if (!m) continue;
+      f.filename = `https://www.liftosaur.com/bundle/index-${m[1]}.bundle`;
+    }
+  }
+}
+
 const rollbarClient = new RollbarClient({
   accessToken: "f29180c0746c4922996ff41dfc2527d2",
   captureUncaught: true,
@@ -53,6 +77,7 @@ const rollbarClient = new RollbarClient({
       },
     },
   },
+  transform: rewriteRollbarFrames,
 });
 rollbarClient.captureUncaughtExceptions();
 rollbarClient.captureUnhandledRejections();
