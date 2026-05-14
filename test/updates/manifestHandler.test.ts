@@ -48,6 +48,7 @@ describe("Updates manifest handler", () => {
     const resp = await Updates_handleManifest(buildEvent(validHeaders()), di);
     expect(resp.statusCode).to.equal(200);
     expect(resp.headers?.["content-type"]).to.match(/^multipart\/mixed; boundary=/);
+    expect(resp.headers?.["expo-protocol-version"]).to.equal("1");
     expect(resp.body).to.include('"type":"noUpdateAvailable"');
     expect(resp.body).to.include('name="directive"');
   });

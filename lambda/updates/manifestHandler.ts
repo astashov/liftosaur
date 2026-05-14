@@ -39,7 +39,11 @@ async function buildDirectiveResponse(signer: ManifestSigner): Promise<APIGatewa
   const signature = await signer.sign(JSON.stringify(directive));
   const parts: IExpoMultipartPart[] = [{ name: "directive", body: { directive, signature } }];
   const { body, contentType } = ExpoUpdatesProtocol_serializeMultipart(parts);
-  return { statusCode: 200, body, headers: { "content-type": contentType } };
+  return {
+    statusCode: 200,
+    body,
+    headers: { "content-type": contentType, "expo-protocol-version": "1" },
+  };
 }
 
 async function buildManifestResponse(metadata: IExpoManifest, signer: ManifestSigner): Promise<APIGatewayProxyResult> {
@@ -55,5 +59,9 @@ async function buildManifestResponse(metadata: IExpoManifest, signer: ManifestSi
   const signature = await signer.sign(JSON.stringify(manifest));
   const parts: IExpoMultipartPart[] = [{ name: "manifest", body: { manifest, signature } }];
   const { body, contentType } = ExpoUpdatesProtocol_serializeMultipart(parts);
-  return { statusCode: 200, body, headers: { "content-type": contentType } };
+  return {
+    statusCode: 200,
+    body,
+    headers: { "content-type": contentType, "expo-protocol-version": "1" },
+  };
 }

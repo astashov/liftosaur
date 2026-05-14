@@ -8,8 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		00A9D43BFF6350A3156888F5 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
-		EE0011000000000000000011 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = EE0010000000000000000010 /* Expo.plist */; };
-		EE0021000000000000000021 /* codesigning.pem in Resources */ = {isa = PBXBuildFile; fileRef = EE0020000000000000000020 /* codesigning.pem */; };
 		12F317DBE89387792B8C2788 /* notification.m4r in Resources */ = {isa = PBXBuildFile; fileRef = 91FAA5A7B2D2A2141783C9C5 /* notification.m4r */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		2B45EA7869F3FB4183C4A4CE /* LiftosaurTimerImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = B65E29D489BF686568C6787C /* LiftosaurTimerImpl.swift */; };
@@ -119,6 +117,8 @@
 		EE0005000000000000000005 /* LiftosaurEventReporterImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0004000000000000000004 /* LiftosaurEventReporterImpl.swift */; };
 		EE0007000000000000000007 /* RCTLiftosaurWorkoutMirroring.mm in Sources */ = {isa = PBXBuildFile; fileRef = EE0006000000000000000006 /* RCTLiftosaurWorkoutMirroring.mm */; };
 		EE0009000000000000000009 /* LiftosaurWorkoutMirroringImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0008000000000000000008 /* LiftosaurWorkoutMirroringImpl.swift */; };
+		EE0011000000000000000011 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = EE0010000000000000000010 /* Expo.plist */; };
+		EE0021000000000000000021 /* codesigning.pem in Resources */ = {isa = PBXBuildFile; fileRef = EE0020000000000000000020 /* codesigning.pem */; };
 		FE510CECF74A145495183B2A /* Pods_Liftosaur.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 971ABB2C96B7FBF70D8D6C7A /* Pods_Liftosaur.framework */; };
 /* End PBXBuildFile section */
 
@@ -169,8 +169,6 @@
 		13B07F961A680F5B00A75B9A /* Liftosaur.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Liftosaur.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Liftosaur/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Liftosaur/Info.plist; sourceTree = "<group>"; };
-		EE0010000000000000000010 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Expo.plist; path = Liftosaur/Expo.plist; sourceTree = "<group>"; };
-		EE0020000000000000000020 /* codesigning.pem */ = {isa = PBXFileReference; lastKnownFileType = text; name = codesigning.pem; path = Liftosaur/certs/codesigning.pem; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = Liftosaur/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		3A606C422FAB8D1800799977 /* Store.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Store.storekit; sourceTree = "<group>"; };
 		3AACC4F72FB2A15D001C68AA /* LiftosaurWorkoutWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LiftosaurWorkoutWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -273,6 +271,8 @@
 		EE0006000000000000000006 /* RCTLiftosaurWorkoutMirroring.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTLiftosaurWorkoutMirroring.mm; path = Liftosaur/RCTLiftosaurWorkoutMirroring.mm; sourceTree = "<group>"; };
 		EE0008000000000000000008 /* LiftosaurWorkoutMirroringImpl.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LiftosaurWorkoutMirroringImpl.swift; path = Liftosaur/LiftosaurWorkoutMirroringImpl.swift; sourceTree = "<group>"; };
 		EE000A00000000000000000A /* RCTLiftosaurWorkoutMirroring.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTLiftosaurWorkoutMirroring.h; path = Liftosaur/RCTLiftosaurWorkoutMirroring.h; sourceTree = "<group>"; };
+		EE0010000000000000000010 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Expo.plist; path = Liftosaur/Expo.plist; sourceTree = "<group>"; };
+		EE0020000000000000000020 /* codesigning.pem */ = {isa = PBXFileReference; lastKnownFileType = text; name = codesigning.pem; path = Liftosaur/certs/codesigning.pem; sourceTree = "<group>"; };
 		EF012FAFB85E47D99214AFCE /* Poppins-Italic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-Italic.ttf"; path = "../assets/fonts/Poppins-Italic.ttf"; sourceTree = "<group>"; };
 		F60F33A9AB274D44A20FC0C7 /* Poppins-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-SemiBold.ttf"; path = "../assets/fonts/Poppins-SemiBold.ttf"; sourceTree = "<group>"; };
 		FD2FDC64C423B610A697466E /* RCTLiftosaurShare.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTLiftosaurShare.h; path = Liftosaur/RCTLiftosaurShare.h; sourceTree = "<group>"; };
@@ -559,6 +559,7 @@
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
+				EE0030000000000000000030 /* [Liftosaur] Sync EXUpdatesRuntimeVersion */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				00EEFC60759A1932668264C0 /* [CP] Embed Pods Frameworks */,
 				E235C05ADACE081382539298 /* [CP] Copy Pods Resources */,
@@ -643,7 +644,7 @@
 			);
 			mainGroup = 83CBB9F61A601CBA00E9B192;
 			packageReferences = (
-				3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "QuickJSCore" */,
+				3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "Packages/QuickJSCore" */,
 			);
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
 			projectDirPath = "";
@@ -751,9 +752,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -814,14 +819,33 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-resources.sh\"\n";
 			showEnvVarsInLog = 0;
+		};
+		EE0030000000000000000030 /* [Liftosaur] Sync EXUpdatesRuntimeVersion */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[Liftosaur] Sync EXUpdatesRuntimeVersion";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -euo pipefail\nPLIST=\"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Expo.plist\"\nif [ ! -f \"$PLIST\" ]; then\n  echo \"error: Expo.plist not found at $PLIST\" 1>&2\n  exit 1\nfi\necho \"Setting EXUpdatesRuntimeVersion = ${MARKETING_VERSION} in $PLIST\"\n/usr/libexec/PlistBuddy -c \"Set :EXUpdatesRuntimeVersion ${MARKETING_VERSION}\" \"$PLIST\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -1434,7 +1458,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "QuickJSCore" */ = {
+		3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "Packages/QuickJSCore" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/QuickJSCore;
 		};
