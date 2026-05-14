@@ -15,6 +15,7 @@ import {
 } from "../types";
 import { IconCheckCircle } from "./icons/iconCheckCircle";
 import { n } from "../utils/math";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { InputNumber2 } from "./inputNumber2";
 import { InputWeight2 } from "./inputWeight2";
 import { updateProgress } from "../models/state";
@@ -568,14 +569,15 @@ function RpeWeightHint(props: IRpeWeightHintProps): JSX.Element {
   const multiplier = Weight_rpeMultiplier(props.reps, props.rpe);
   const onerm = Exercise_onerm(props.exerciseType, props.settings);
   const weight = Weight_multiply(onerm, multiplier);
+  const semantic = Tailwind_semantic();
   return (
     <View>
       <Text className="text-xs text-text-secondary">
-        <Text className="text-xs font-bold" style={{ color: "#940" }}>
+        <Text className="text-xs font-bold" style={{ color: semantic.syntax.reps }}>
           {props.reps}
         </Text>{" "}
         ×{" "}
-        <Text className="text-xs font-bold" style={{ color: "#164" }}>
+        <Text className="text-xs font-bold" style={{ color: semantic.syntax.rpe }}>
           @{props.rpe}
         </Text>{" "}
         - <Text className="text-xs font-bold text-text-primary">{n(multiplier * 100, 0)}%</Text> of 1RM -{" "}

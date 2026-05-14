@@ -16,8 +16,24 @@ import { equipmentName } from "../models/exercise";
 import { ILensRecordingPayload, lb } from "lens-shmens";
 import { ObjectUtils_keys } from "../utils/object";
 import { HostConfig_resolveUrl } from "../utils/hostConfig";
+import { Tailwind_colors, Tailwind_semantic } from "../utils/tailwindConfig";
 import { ILensDispatch } from "../utils/useLensReducer";
 import { navigationRef } from "../navigation/navigationRef";
+
+function getFooterShadowStyle(): Record<string, unknown> {
+  const semantic = Tailwind_semantic();
+  const colors = Tailwind_colors();
+  return Platform.select({
+    ios: {
+      shadowColor: semantic.background.default === colors.black ? colors.white : colors.black,
+      shadowOffset: { width: 0, height: -2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+    },
+    android: { elevation: 4 },
+    default: { boxShadow: "0 0 4px 0 rgba(0, 0, 0, 0.2)" },
+  }) as Record<string, unknown>;
+}
 
 function buildLensDispatch(originalDispatch: IDispatch): ILensDispatch<IState> {
   return (lensRecording: ILensRecordingPayload<IState>[] | ILensRecordingPayload<IState>, desc: string) => {
@@ -127,14 +143,7 @@ export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Ele
       </ScrollView>
       <View
         className="bg-background-default"
-        style={[
-          { paddingBottom: insets.bottom || 8 },
-          Platform.select({
-            ios: { shadowColor: "#000", shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.1, shadowRadius: 4 },
-            android: { elevation: 4 },
-            default: { boxShadow: "0 0 4px 0 rgba(0, 0, 0, 0.2)" },
-          }),
-        ]}
+        style={[{ paddingBottom: insets.bottom || 8 }, getFooterShadowStyle()]}
       >
         <View className="flex-row px-4 pt-2 pb-2" style={{ gap: 8 }}>
           <Button
@@ -305,14 +314,7 @@ export function ScreenSetupPlates(props: IScreenSetupPlatesProps): JSX.Element {
       </ScrollView>
       <View
         className="absolute bottom-0 left-0 right-0 px-4 pt-4 bg-background-default"
-        style={[
-          { paddingBottom: insets.bottom || 16 },
-          Platform.select({
-            ios: { shadowColor: "#000", shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.1, shadowRadius: 4 },
-            android: { elevation: 4 },
-            default: { boxShadow: "0 0 4px 0 rgba(0, 0, 0, 0.2)" },
-          }),
-        ]}
+        style={[{ paddingBottom: insets.bottom || 16 }, getFooterShadowStyle()]}
       >
         <Button
           className="w-full"

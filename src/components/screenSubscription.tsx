@@ -3,7 +3,7 @@ import { View, Pressable, Platform } from "react-native";
 import { SvgUri } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "./primitives/text";
-import { Tailwind_semantic } from "../utils/tailwindConfig";
+import { Tailwind_colors, Tailwind_semantic } from "../utils/tailwindConfig";
 import { IDispatch } from "../ducks/types";
 import { Dialog_alert } from "../utils/dialog";
 import { NavScreenContent } from "../navigation/NavScreenContent";
@@ -59,9 +59,10 @@ function isNativeSubscriptionRuntime(): boolean {
 }
 
 function getFooterShadowStyle(semantic: ReturnType<typeof Tailwind_semantic>): Record<string, unknown> {
+  const colors = Tailwind_colors();
   return Platform.select({
     ios: {
-      shadowColor: semantic.background.default === "#000000" ? "#fff" : "#000",
+      shadowColor: semantic.background.default === colors.black ? colors.white : colors.black,
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: 0.2,
       shadowRadius: 4,

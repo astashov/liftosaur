@@ -167,11 +167,11 @@ function FirstSlide(): JSX.Element {
       />
       <Text className="px-8 pt-24 text-3xl font-bold text-text-alwayswhite" style={{ lineHeight: 35 }}>
         The most powerful weightlifting{" "}
-        <Text className="text-3xl" style={{ color: "#946AFF" }}>
+        <Text className="text-3xl" style={{ color: Tailwind_colors().purple[400] }}>
           planner
         </Text>{" "}
         and{" "}
-        <Text className="text-3xl" style={{ color: "#FF775D" }}>
+        <Text className="text-3xl" style={{ color: Tailwind_colors().red[400] }}>
           tracker
         </Text>{" "}
         app

@@ -33,9 +33,10 @@ function getHasErrorsInProgram(navCommon: INavCommon): boolean {
 }
 
 function getNativeShadowStyle(semantic: ReturnType<typeof Tailwind_semantic>): Record<string, unknown> {
+  const colors = Tailwind_colors();
   return Platform.select({
     ios: {
-      shadowColor: semantic.background.default === "#000000" ? "#fff" : "#000",
+      shadowColor: semantic.background.default === colors.black ? colors.white : colors.black,
       shadowOffset: { width: 0, height: 0 },
       shadowOpacity: 0.2,
       shadowRadius: 4,

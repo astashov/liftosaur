@@ -25,6 +25,7 @@ import { LinkButton } from "./linkButton";
 import { IconTrash } from "./icons/iconTrash";
 import { IconApple } from "./icons/iconApple";
 import { Dialog_confirm, Dialog_prompt, Dialog_alert } from "../utils/dialog";
+import { Tailwind_colors, Tailwind_semantic } from "../utils/tailwindConfig";
 
 declare let __HOST__: string;
 
@@ -74,8 +75,15 @@ export function ScreenAccount(props: IProps): JSX.Element {
 
   useNavOptions({ navTitle: "Account", navHelpKey: "account" });
 
+  const semantic = Tailwind_semantic();
+  const colors = Tailwind_colors();
   const googleShadow = Platform.select({
-    ios: { shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 4 },
+    ios: {
+      shadowColor: semantic.background.default === colors.black ? colors.white : colors.black,
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+    },
     android: { elevation: 2 },
     default: { boxShadow: "0 1px 4px 0 rgba(0,0,0,0.1)" },
   });
