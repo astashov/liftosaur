@@ -58,7 +58,7 @@ function rewriteRollbarFrames(payload: IRollbarPayload): void {
       if (typeof f?.filename !== "string") continue;
       const m = f.filename.match(/index-([a-f0-9]+)\.bundle/);
       if (!m) continue;
-      f.filename = `https://www.liftosaur.com/bundle/index-${m[1]}.bundle`;
+      f.filename = `https://www.liftosaur.com/bundle/index-${m[1]}.js`;
     }
   }
 }

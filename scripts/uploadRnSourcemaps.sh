@@ -39,9 +39,9 @@ for PLATFORM in ios android; do
       continue
     fi
     bundle_basename="$(basename "$bundle")"
-    runtime_basename="${bundle_basename%.hbc}"
-    runtime_basename="${runtime_basename%.js}.bundle"
-    minified_url="https://www.liftosaur.com/bundle/${runtime_basename}"
+    canonical_basename="${bundle_basename%.hbc}"
+    canonical_basename="${canonical_basename%.js}.js"
+    minified_url="https://www.liftosaur.com/bundle/${canonical_basename}"
     echo "Uploading RN sourcemap: platform=$PLATFORM map=$(basename "$mapfile") version=$FULL_COMMIT_HASH"
     curl -m "$CURL_TIMEOUT" "$ENDPOINT" \
       -F access_token="$ROLLBAR_POST_SERVER_ITEM" \
