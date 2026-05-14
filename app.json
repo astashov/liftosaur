@@ -4,6 +4,7 @@
   "expo": {
     "name": "Liftosaur",
     "slug": "liftosaur",
+    "version": "1.0",
     "ios": {
       "bundleIdentifier": "com.liftosaur.www"
     },
@@ -11,7 +12,7 @@
       "package": "com.liftosaur.www.twa"
     },
     "runtimeVersion": {
-      "policy": "fingerprint"
+      "policy": "appVersion"
     },
     "updates": {
       "url": "https://stage.liftosaur.com/api/updates/manifest",

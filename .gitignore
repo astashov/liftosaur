@@ -1,5 +1,6 @@
 /.vscode
 /dist
+/dist-rn
 /node_modules
 /yarn-error.log
 /build

@@ -94,6 +94,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 101
         versionName "1.0"
+        manifestPlaceholders = [expoRuntimeVersion: "${versionCode}"]
     }
     signingConfigs {
         debug {

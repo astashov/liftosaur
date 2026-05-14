@@ -11,9 +11,11 @@ fi
 
 if [ "$STAGE" = "dev" ]; then
   BUCKET="lftstaticdev"
+  HOST="stage.liftosaur.com"
   DISTRIBUTION_ID_VAR="CDN_DISTRIBUTION_ID_DEV"
 else
   BUCKET="lftstatic"
+  HOST="www.liftosaur.com"
   DISTRIBUTION_ID_VAR="CDN_DISTRIBUTION_ID_PROD"
 fi
 DISTRIBUTION_ID="${!DISTRIBUTION_ID_VAR:-}"
@@ -28,24 +30,38 @@ OUTPUT_DIR="dist-rn"
 
 echo "Publishing RN OTA: stage=$STAGE channel=$CHANNEL updateId=$UPDATE_ID"
 
+IOS_RUNTIME_VERSION="$(grep -m1 -E 'MARKETING_VERSION = ' ios/Liftosaur.xcodeproj/project.pbxproj | sed -E 's/.*MARKETING_VERSION = ([^;]+);.*/\1/' | xargs)"
+ANDROID_RUNTIME_VERSION="$(grep -m1 -E 'versionCode[[:space:]]+[0-9]+' android/app/build.gradle | grep -oE '[0-9]+')"
+
+if [ -z "$IOS_RUNTIME_VERSION" ]; then
+  echo "failed to read MARKETING_VERSION from ios/Liftosaur.xcodeproj/project.pbxproj"
+  exit 1
+fi
+if [ -z "$ANDROID_RUNTIME_VERSION" ]; then
+  echo "failed to read versionCode from android/app/build.gradle"
+  exit 1
+fi
+
+echo "  iOS runtimeVersion (MARKETING_VERSION): $IOS_RUNTIME_VERSION"
+echo "  Android runtimeVersion (versionCode):   $ANDROID_RUNTIME_VERSION"
+
 rm -rf "$OUTPUT_DIR"
 CI=1 npx expo export --platform ios --platform android --output-dir "$OUTPUT_DIR"
 
 for PLATFORM in ios android; do
-  FINGERPRINT="$(npx expo-updates fingerprint:generate --platform "$PLATFORM" | jq -r '.hash')"
-  if [ -z "$FINGERPRINT" ] || [ "$FINGERPRINT" = "null" ]; then
-    echo "failed to compute fingerprint for $PLATFORM"
-    exit 1
+  if [ "$PLATFORM" = "ios" ]; then
+    RUNTIME_VERSION="$IOS_RUNTIME_VERSION"
+  else
+    RUNTIME_VERSION="$ANDROID_RUNTIME_VERSION"
   fi
-  echo "  $PLATFORM fingerprint=$FINGERPRINT"
 
-  URL_PREFIX="https://www.liftosaur.com/static/updates/$FINGERPRINT/$PLATFORM/$UPDATE_ID"
-  S3_PREFIX="s3://$BUCKET/updates/$FINGERPRINT/$PLATFORM/$UPDATE_ID"
+  URL_PREFIX="https://$HOST/static/updates/$RUNTIME_VERSION/$PLATFORM/$UPDATE_ID"
+  S3_PREFIX="s3://$BUCKET/updates/$RUNTIME_VERSION/$PLATFORM/$UPDATE_ID"
   METADATA_FILE="$OUTPUT_DIR/metadata-$PLATFORM.json"
 
   TS_NODE_TRANSPILE_ONLY=1 npx ts-node scripts/buildRnBundle/buildMetadata.ts \
     --platform "$PLATFORM" \
-    --runtimeVersion "$FINGERPRINT" \
+    --runtimeVersion "$RUNTIME_VERSION" \
     --updateId "$UPDATE_ID" \
     --createdAt "$CREATED_AT" \
     --inputDir "$OUTPUT_DIR" \
@@ -60,7 +76,7 @@ for PLATFORM in ios android; do
     aws s3 cp "$OUTPUT_DIR/assets/" "$S3_PREFIX/assets/" --recursive
   fi
 
-  POINTER_KEY="updates-pointers/$FINGERPRINT/$PLATFORM/$CHANNEL.json"
+  POINTER_KEY="updates-pointers/$RUNTIME_VERSION/$PLATFORM/$CHANNEL.json"
   POINTER_TMP="$(mktemp)"
   printf '{"updateId":"%s","createdAt":"%s"}\n' "$UPDATE_ID" "$CREATED_AT" > "$POINTER_TMP"
   aws s3 cp "$POINTER_TMP" "s3://$BUCKET/$POINTER_KEY" --content-type application/json
