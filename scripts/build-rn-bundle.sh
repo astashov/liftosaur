@@ -28,7 +28,17 @@ UPDATE_ID="$(node -e 'console.log(require("crypto").randomUUID())')"
 CREATED_AT="$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")"
 OUTPUT_DIR="dist-rn"
 
-echo "Publishing RN OTA: stage=$STAGE channel=$CHANNEL updateId=$UPDATE_ID"
+FULL_COMMIT_HASH="$(git rev-parse HEAD)"
+COMMIT_HASH="$(git rev-parse --short HEAD)"
+
+echo "Publishing RN OTA: stage=$STAGE channel=$CHANNEL updateId=$UPDATE_ID commit=$COMMIT_HASH"
+
+cat > src/rnBuildInfo.ts <<EOF
+export const RN_COMMIT_HASH = "$COMMIT_HASH";
+export const RN_FULL_COMMIT_HASH = "$FULL_COMMIT_HASH";
+export const RN_UPDATE_ID = "$UPDATE_ID";
+EOF
+trap 'git checkout -- src/rnBuildInfo.ts 2>/dev/null || true' EXIT
 
 IOS_RUNTIME_VERSION="$(grep -m1 -E 'MARKETING_VERSION = ' ios/Liftosaur.xcodeproj/project.pbxproj | sed -E 's/.*MARKETING_VERSION = ([^;]+);.*/\1/' | xargs)"
 ANDROID_RUNTIME_VERSION="$(grep -m1 -E 'versionCode[[:space:]]+[0-9]+' android/app/build.gradle | grep -oE '[0-9]+')"
@@ -95,7 +105,13 @@ aws cloudfront create-invalidation \
   --paths "/api/updates/manifest*"
 
 if [ -n "${ROLLBAR_POST_SERVER_ITEM:-}" ]; then
-  UPDATE_ID="$UPDATE_ID" OUTPUT_DIR="$OUTPUT_DIR" ./scripts/uploadRnSourcemaps.sh
+  UPDATE_ID="$UPDATE_ID" \
+  OUTPUT_DIR="$OUTPUT_DIR" \
+  FULL_COMMIT_HASH="$FULL_COMMIT_HASH" \
+  HOST="$HOST" \
+  IOS_RUNTIME_VERSION="$IOS_RUNTIME_VERSION" \
+  ANDROID_RUNTIME_VERSION="$ANDROID_RUNTIME_VERSION" \
+  ./scripts/uploadRnSourcemaps.sh
 else
   echo "ROLLBAR_POST_SERVER_ITEM unset — skipping RN sourcemap upload"
 fi

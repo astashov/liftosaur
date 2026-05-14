@@ -1154,6 +1154,14 @@ class LiftosaurPipelineStack extends cdk.Stack {
           [isDev ? "CDN_DISTRIBUTION_ID_DEV" : "CDN_DISTRIBUTION_ID_PROD"]: {
             value: isDev ? "E1QH3BMF6M5P2O" : "E2B989E0V5D0DA",
           },
+          ROLLBAR_POST_SERVER_ITEM: {
+            type: codebuild.BuildEnvironmentVariableType.SECRETS_MANAGER,
+            value: `${
+              isDev
+                ? "arn:aws:secretsmanager:us-west-2:366191129585:secret:lftAppSecretsDev-RVo7cG"
+                : "arn:aws:secretsmanager:us-west-2:366191129585:secret:lftAppSecrets-cRCeI1"
+            }:rollbarPostServerItem`,
+          },
         },
       },
       timeout: cdk.Duration.minutes(30),

@@ -4,6 +4,7 @@ import { Client as RollbarClient } from "rollbar-react-native";
 import RB from "rollbar";
 import { Analytics_initialize, Analytics_setUserId } from "./utils/analytics";
 import { RollbarUtils_config } from "./utils/rollbar";
+import { RN_COMMIT_HASH, RN_FULL_COMMIT_HASH } from "./rnBuildInfo";
 
 declare let Rollbar: RB;
 
@@ -33,8 +34,8 @@ globalAny.__HOST__ = nativeHost;
 globalAny.__API_HOST__ = nativeApiHost;
 globalAny.__STREAMING_API_HOST__ = nativeStreamingApiHost;
 globalAny.__ENV__ = Platform.OS === "ios" ? "ios-rn" : "android-rn";
-globalAny.__COMMIT_HASH__ = "unknown";
-globalAny.__FULL_COMMIT_HASH__ = "unknown";
+globalAny.__COMMIT_HASH__ = RN_COMMIT_HASH;
+globalAny.__FULL_COMMIT_HASH__ = RN_FULL_COMMIT_HASH;
 globalAny.__BUNDLE_VERSION_IOS__ = 1;
 globalAny.__BUNDLE_VERSION_ANDROID__ = 1;
 
@@ -47,6 +48,8 @@ const rollbarClient = new RollbarClient({
     client: {
       javascript: {
         source_map_enabled: true,
+        code_version: RN_FULL_COMMIT_HASH,
+        guess_uncaught_frames: true,
       },
     },
   },

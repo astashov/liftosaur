@@ -2,7 +2,6 @@
 set -euo pipefail
 
 OUTPUT_DIR="${OUTPUT_DIR:-dist-rn}"
-UPDATE_ID="${UPDATE_ID:-$(git rev-parse HEAD)}"
 ENDPOINT="https://api.rollbar.com/api/1/sourcemap"
 CURL_TIMEOUT=30
 
@@ -10,9 +9,26 @@ if [ -z "${ROLLBAR_POST_SERVER_ITEM:-}" ]; then
   echo "ROLLBAR_POST_SERVER_ITEM is not set"
   exit 1
 fi
+if [ -z "${FULL_COMMIT_HASH:-}" ]; then
+  echo "FULL_COMMIT_HASH is not set"
+  exit 1
+fi
+if [ -z "${HOST:-}" ] || [ -z "${UPDATE_ID:-}" ]; then
+  echo "HOST and UPDATE_ID must be set"
+  exit 1
+fi
+if [ -z "${IOS_RUNTIME_VERSION:-}" ] || [ -z "${ANDROID_RUNTIME_VERSION:-}" ]; then
+  echo "IOS_RUNTIME_VERSION and ANDROID_RUNTIME_VERSION must be set"
+  exit 1
+fi
 
 shopt -s nullglob
 for PLATFORM in ios android; do
+  if [ "$PLATFORM" = "ios" ]; then
+    RUNTIME_VERSION="$IOS_RUNTIME_VERSION"
+  else
+    RUNTIME_VERSION="$ANDROID_RUNTIME_VERSION"
+  fi
   JS_DIR="$OUTPUT_DIR/_expo/static/js/$PLATFORM"
   for mapfile in "$JS_DIR"/*.map; do
     bundle="${mapfile%.map}"
@@ -20,12 +36,11 @@ for PLATFORM in ios android; do
       continue
     fi
     bundle_basename="$(basename "$bundle")"
-    version="${UPDATE_ID}-${PLATFORM}"
-    minified_url="https://www.liftosaur.com/static/updates/_/${PLATFORM}/_/_expo/static/js/${PLATFORM}/${bundle_basename}"
-    echo "Uploading RN sourcemap: platform=$PLATFORM map=$(basename "$mapfile") version=$version"
+    minified_url="https://${HOST}/static/updates/${RUNTIME_VERSION}/${PLATFORM}/${UPDATE_ID}/_expo/static/js/${PLATFORM}/${bundle_basename}"
+    echo "Uploading RN sourcemap: platform=$PLATFORM map=$(basename "$mapfile") version=$FULL_COMMIT_HASH"
     curl -m "$CURL_TIMEOUT" "$ENDPOINT" \
       -F access_token="$ROLLBAR_POST_SERVER_ITEM" \
-      -F version="$version" \
+      -F version="$FULL_COMMIT_HASH" \
       -F minified_url="$minified_url" \
       -F source_map=@"$mapfile"
     echo

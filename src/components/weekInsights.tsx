@@ -47,7 +47,9 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
     return (
       <Pressable
         className="w-full px-3 py-2 border border-border-cardyellow bg-background-cardyellow rounded-b-xl"
-        onPress={() => props.dispatch(Thunk_pushScreen("subscription"))}
+        onPress={() => {
+          throw new Error("RN OTA sourcemap test: See Week Insights tapped");
+        }}
       >
         <View className="flex-row items-center h-8 gap-1" style={{ marginBottom: 3 }}>
           <IconCrown size={16} color={Tailwind_colors().yellow[600]} />
