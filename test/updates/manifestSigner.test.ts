@@ -29,7 +29,9 @@ function parseSigHeader(header: string): { sig: string; keyid: string; alg: stri
   const parts: Record<string, string> = {};
   for (const token of header.split(",").map((s) => s.trim())) {
     const m = token.match(/^([^=]+)="(.*)"$/);
-    if (m) parts[m[1]] = m[2];
+    if (m) {
+      parts[m[1]] = m[2];
+    }
   }
   return { sig: parts.sig, keyid: parts.keyid, alg: parts.alg };
 }

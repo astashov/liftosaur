@@ -16,7 +16,7 @@ describe("buildMetadata", () => {
     fs.rmSync(tmp, { recursive: true, force: true });
   });
 
-  function seed(platformBundle: Record<string, string>) {
+  function seed(platformBundle: Record<string, string>): void {
     fs.mkdirSync(path.join(tmp, "_expo/static/js/ios"), { recursive: true });
     fs.mkdirSync(path.join(tmp, "_expo/static/js/android"), { recursive: true });
     fs.mkdirSync(path.join(tmp, "assets"), { recursive: true });
@@ -68,7 +68,11 @@ describe("buildMetadata", () => {
 
   it("throws when the platform is missing from expo metadata", () => {
     seed({
-      "metadata.json": JSON.stringify({ version: 0, bundler: "metro", fileMetadata: { ios: { bundle: "x", assets: [] } } }),
+      "metadata.json": JSON.stringify({
+        version: 0,
+        bundler: "metro",
+        fileMetadata: { ios: { bundle: "x", assets: [] } },
+      }),
     });
     expect(() =>
       BuildMetadata_build({

@@ -2,23 +2,35 @@ import * as fs from "fs";
 import * as path from "path";
 
 const HOSTS = {
-  prod: "www.liftosaur.com",
-  dev: "stage.liftosaur.com",
+  prod: {
+    host: "https://www.liftosaur.com",
+    apiHost: "https://api3.liftosaur.com",
+    streamingApiHost: "https://streaming-api.liftosaur.com",
+  },
+  dev: {
+    host: "https://stage.liftosaur.com",
+    apiHost: "https://api3-dev.liftosaur.com",
+    streamingApiHost: "https://streaming-api-dev.liftosaur.com",
+  },
 } as const;
 
 type IStage = keyof typeof HOSTS;
 
 function resolveStage(): IStage {
   const raw = (process.env.STAGE ?? "prod").toLowerCase();
-  if (raw === "1" || raw === "dev" || raw === "stage") return "dev";
-  if (raw === "0" || raw === "prod" || raw === "production") return "prod";
+  if (raw === "1" || raw === "dev" || raw === "stage") {
+    return "dev";
+  }
+  if (raw === "0" || raw === "prod" || raw === "production") {
+    return "prod";
+  }
   throw new Error(`unrecognized STAGE=${raw} (expected dev|prod|stage|production|1|0)`);
 }
 
-function syncFile(filePath: string, replacer: (contents: string, url: string) => string, url: string): void {
+function syncFile<T>(filePath: string, replacer: (contents: string, v: T) => string, value: T): void {
   const abs = path.resolve(__dirname, "..", filePath);
   const before = fs.readFileSync(abs, "utf8");
-  const after = replacer(before, url);
+  const after = replacer(before, value);
   if (before !== after) {
     fs.writeFileSync(abs, after);
     console.log(`updated ${filePath}`);
@@ -27,18 +39,25 @@ function syncFile(filePath: string, replacer: (contents: string, url: string) =>
   }
 }
 
+function replaceNativeHosts(contents: string, hosts: (typeof HOSTS)[IStage]): string {
+  return contents
+    .replace(/(const nativeHost = useLocal \? "[^"]+" : ")[^"]+(";)/, `$1${hosts.host}$2`)
+    .replace(/(const nativeApiHost = useLocal \? "[^"]+" : ")[^"]+(";)/, `$1${hosts.apiHost}$2`)
+    .replace(
+      /(const nativeStreamingApiHost = useLocal\s*\?\s*"[^"]+"\s*:\s*")[^"]+(";)/,
+      `$1${hosts.streamingApiHost}$2`
+    );
+}
+
 function main(): void {
   const stage = resolveStage();
-  const url = `https://${HOSTS[stage]}/api/updates/manifest`;
+  const hosts = HOSTS[stage];
+  const url = `${hosts.host}/api/updates/manifest`;
   console.log(`stage=${stage} → ${url}`);
 
   syncFile(
     "ios/Liftosaur/Expo.plist",
-    (contents, value) =>
-      contents.replace(
-        /(<key>EXUpdatesURL<\/key>\s*<string>)[^<]+(<\/string>)/,
-        `$1${value}$2`
-      ),
+    (contents, value) => contents.replace(/(<key>EXUpdatesURL<\/key>\s*<string>)[^<]+(<\/string>)/, `$1${value}$2`),
     url
   );
 
@@ -52,11 +71,9 @@ function main(): void {
     url
   );
 
-  syncFile(
-    "app.json",
-    (contents, value) => contents.replace(/("url":\s*")[^"]+(")/, `$1${value}$2`),
-    url
-  );
+  syncFile("app.json", (contents, value) => contents.replace(/("url":\s*")[^"]+(")/, `$1${value}$2`), url);
+
+  syncFile("src/App.native.tsx", replaceNativeHosts, hosts);
 }
 
 main();

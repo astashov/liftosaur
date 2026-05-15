@@ -141,10 +141,7 @@ export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Ele
           </View>
         </View>
       </ScrollView>
-      <View
-        className="bg-background-default"
-        style={[{ paddingBottom: insets.bottom || 8 }, getFooterShadowStyle()]}
-      >
+      <View className="bg-background-default" style={[{ paddingBottom: insets.bottom || 8 }, getFooterShadowStyle()]}>
         <View className="flex-row px-4 pt-2 pb-2" style={{ gap: 8 }}>
           <Button
             className="flex-1"

@@ -14,11 +14,11 @@ declare let __HOST__: string;
 // Metro doesn't have an equivalent, so we attach them to globalThis at module init.
 // Toggle the `useLocal` flag for local development vs production.
 const useLocal = __DEV__;
-const nativeHost = useLocal ? "https://local.liftosaur.com:8080" : "https://www.liftosaur.com";
-const nativeApiHost = useLocal ? "https://local-api.liftosaur.com:3000" : "https://api3.liftosaur.com";
+const nativeHost = useLocal ? "https://local.liftosaur.com:8080" : "https://stage.liftosaur.com";
+const nativeApiHost = useLocal ? "https://local-api.liftosaur.com:3000" : "https://api3-dev.liftosaur.com";
 const nativeStreamingApiHost = useLocal
   ? "https://local-streaming-api.liftosaur.com:3001"
-  : "https://streaming-api.liftosaur.com";
+  : "https://streaming-api-dev.liftosaur.com";
 
 const globalAny = globalThis as unknown as {
   __HOST__: string;
