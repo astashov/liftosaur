@@ -37,7 +37,7 @@ export function Multiselect(props: IMultiselectProps): JSX.Element {
           testID={`multiselect-${props.id}`}
           placeholder={props.placeholder}
           value={filter}
-          className="px-4 py-2 text-base border rounded-lg bg-background-default border-border-prominent"
+          className="px-4 py-2 text-base border rounded-lg bg-background-default border-border-prominent text-text-primary"
           onFocus={() => setShowValuesList(true)}
           onBlur={() => {
             setTimeout(() => setShowValuesList(false), 150);

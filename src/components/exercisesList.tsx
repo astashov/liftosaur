@@ -115,7 +115,7 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
         <TextInput
           data-testid="exercises-list-filter"
           testID="exercises-list-filter"
-          className="px-4 py-2 mb-2 text-base border rounded-lg bg-background-default border-border-neutral"
+          className="px-4 py-2 mb-2 text-base border rounded-lg bg-background-default border-border-neutral text-text-primary"
           value={filter}
           placeholder="Filter by name"
           onChangeText={(t) => setFilter(t.toLowerCase())}

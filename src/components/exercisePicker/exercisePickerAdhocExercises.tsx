@@ -206,6 +206,7 @@ const SearchAndFilter = memo(function SearchAndFilter(props: ISearchAndFilterPro
             placeholder="Search by name"
             placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
             className="flex-1 text-sm text-text-secondary"
+            style={{ paddingVertical: 0, includeFontPadding: false }}
             data-testid="exercise-filter-by-name"
             testID="exercise-filter-by-name"
             value={localSearch}

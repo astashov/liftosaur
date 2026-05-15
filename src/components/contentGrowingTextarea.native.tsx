@@ -1,5 +1,6 @@
 import { JSX, useEffect, useState } from "react";
 import { TextInput } from "react-native";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
 
 interface IContentGrowingTextareaProps {
   value: string;
@@ -34,9 +35,10 @@ export function ContentGrowingTextarea({ value, onInput, className = "" }: ICont
           }
         }
       }}
+      placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
       textAlignVertical="top"
       style={{ padding: 0, margin: 0 }}
-      className={`underline ${className}`}
+      className={`underline text-text-primary ${className}`}
     />
   );
 }

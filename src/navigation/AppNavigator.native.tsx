@@ -1,4 +1,5 @@
 import { createContext, JSX, useContext } from "react";
+import { Platform } from "react-native";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -128,10 +129,19 @@ const MeStack = createNativeStackNavigator<IMeStackParamList>();
 const Tab = createBottomTabNavigator<IRootTabParamList>();
 const RootStack = createNativeStackNavigator<IRootStackParamList>();
 
-const stackScreenOptions = { headerShown: false, animation: "slide_from_right" as const, freezeOnBlur: true };
+const pushAnimation = Platform.OS === "android" ? ("ios_from_right" as const) : ("slide_from_right" as const);
+const pushAnimationDuration = Platform.OS === "android" ? 350 : undefined;
+
+const stackScreenOptions = {
+  headerShown: false,
+  animation: pushAnimation,
+  animationDuration: pushAnimationDuration,
+  freezeOnBlur: true,
+};
 const navHeaderScreenOptions = {
   headerShown: true,
-  animation: "slide_from_right" as const,
+  animation: pushAnimation,
+  animationDuration: pushAnimationDuration,
   freezeOnBlur: true,
   header: NavHeader,
 };
@@ -373,11 +383,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
             <RootStack.Screen name="programNextDayModal" component={NavModalProgramNextDay} />
             <RootStack.Screen name="weekStatsModal" component={NavModalWeekStats} />
             <RootStack.Screen name="dayStatsModal" component={NavModalDayStats} />
-            <RootStack.Screen
-              name="exerciseStatsModal"
-              component={NavModalExerciseStats}
-              options={{ sheetAllowedDetents: [0.9] }}
-            />
+            <RootStack.Screen name="exerciseStatsModal" component={NavModalExerciseStats} />
             <RootStack.Screen name="editExerciseChangeModal" component={NavModalEditExerciseChange} />
             <RootStack.Screen name="editProgramExerciseSetModal" component={NavModalEditProgramExerciseSet} />
             <RootStack.Screen

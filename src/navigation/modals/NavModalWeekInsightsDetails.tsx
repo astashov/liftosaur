@@ -1,6 +1,4 @@
 import { JSX, useMemo } from "react";
-import { View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
@@ -22,7 +20,6 @@ export function NavModalWeekInsightsDetails(): JSX.Element {
   }>();
   const { selectedFirstDayOfWeek } = route.params;
   const settings = state.storage.settings;
-  const insets = useSafeAreaInsets();
 
   const sortedHistory = useMemo(
     () =>
@@ -48,7 +45,6 @@ export function NavModalWeekInsightsDetails(): JSX.Element {
           navigationRef.navigate("plannerSettingsModal", { context: "programHistory" });
         }}
       />
-      <View style={{ height: insets.bottom }} />
     </ModalScreenContainer>
   );
 }

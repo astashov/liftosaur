@@ -14,8 +14,8 @@ export function Switch(props: ISwitchProps): JSX.Element {
     <RNSwitch
       value={!!props.value}
       disabled={props.disabled}
-      trackColor={{ false: "#d1d5db", true: Tailwind_semantic().icon.purple }}
-      thumbColor={Platform.OS === "android" ? Tailwind_semantic().background.default : undefined}
+      trackColor={{ false: Tailwind_semantic().form.inputstroke, true: Tailwind_semantic().icon.purple }}
+      thumbColor={Platform.OS === "android" ? Tailwind_semantic().text.alwayswhite : undefined}
       onValueChange={props.onValueChange}
       testID={props.testID}
     />

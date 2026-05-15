@@ -61,14 +61,12 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
         {(isError || !doesExist) &&
           (props.useTextForCustomExercise ? (
             <View
-              className={`relative ${props.className} ${props.customClassName}`}
-              style={{ paddingBottom: "100%" as unknown as number }}
+              className={`items-start justify-center overflow-hidden bg-background-image ${props.className ?? ""} ${props.customClassName ?? ""}`}
+              style={{ aspectRatio: 1 }}
             >
-              <View className="absolute inset-0 items-start justify-center overflow-hidden bg-background-image">
-                <Text className="text-xs text-text-secondarysubtle" style={{ fontSize: 11, lineHeight: 13 }}>
-                  {Exercise_nameWithEquipment(exercise, props.settings)}
-                </Text>
-              </View>
+              <Text className="text-xs text-text-secondarysubtle" style={{ fontSize: 11, lineHeight: 13 }}>
+                {Exercise_nameWithEquipment(exercise, props.settings)}
+              </Text>
             </View>
           ) : (
             <View className={props.className}>

@@ -495,7 +495,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
         onPress={() => openExternal("https://discord.com/invite/AAh3cvdBRs")}
       >
         <View className="flex-row items-center">
-          <View className="mr-1">
+          <View className="pr-2">
             <IconDiscord />
           </View>
           <Text className="text-base text-text-primary">Discord Server</Text>

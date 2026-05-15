@@ -7,6 +7,7 @@ import { IDispatch } from "../ducks/types";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { Thunk_pushScreen } from "../ducks/thunks";
 import { ISubscription } from "../types";
+import { Tailwind_semantic, Tailwind_colors } from "../utils/tailwindConfig";
 
 interface IProps {
   dispatch: IDispatch;
@@ -21,14 +22,15 @@ function LockerInner(props: IProps): JSX.Element {
   if (isSubscribed) {
     return <></>;
   }
+  const isDark = Tailwind_semantic().background.default === Tailwind_colors().black;
   return (
     <View className="absolute inset-0 z-10 flex-col items-center justify-center overflow-hidden">
       <BlurView
         style={StyleSheet.absoluteFill}
-        blurType="light"
+        blurType={isDark ? "dark" : "light"}
         blurAmount={props.blur}
-        reducedTransparencyFallbackColor={Platform.OS === "ios" ? "white" : undefined}
-        overlayColor={Platform.OS === "android" ? "rgba(255,255,255,0.4)" : undefined}
+        reducedTransparencyFallbackColor={Platform.OS === "ios" ? (isDark ? "black" : "white") : undefined}
+        overlayColor={Platform.OS === "android" ? (isDark ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.4)") : undefined}
       />
       <View className="mx-auto text-center" style={{ maxWidth: 192 }}>
         <Text>

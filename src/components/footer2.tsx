@@ -34,16 +34,11 @@ function getHasErrorsInProgram(navCommon: INavCommon): boolean {
 
 function getNativeShadowStyle(semantic: ReturnType<typeof Tailwind_semantic>): Record<string, unknown> {
   const colors = Tailwind_colors();
-  return Platform.select({
-    ios: {
-      shadowColor: semantic.background.default === colors.black ? colors.white : colors.black,
-      shadowOffset: { width: 0, height: 0 },
-      shadowOpacity: 0.2,
-      shadowRadius: 4,
-    },
-    android: { elevation: 4 },
-    default: {},
-  }) as Record<string, unknown>;
+  const isDark = semantic.background.default === colors.black;
+  const shadowColor = isDark ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.2)";
+  return {
+    boxShadow: [{ offsetX: 0, offsetY: -2, blurRadius: 6, spreadDistance: 0, color: shadowColor }],
+  };
 }
 
 export function Footer2View(props: IFooterProps): JSX.Element {
