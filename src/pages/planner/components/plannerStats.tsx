@@ -1,5 +1,5 @@
-import { JSX } from "react";
-import { View } from "react-native";
+import { JSX, useState } from "react";
+import { Platform, View } from "react-native";
 import { Text } from "../../../components/primitives/text";
 import { IPlannerState, IPlannerUiFocusedExercise, ISetResults, ISetSplit } from "../models/types";
 import { ObjectUtils_keys } from "../../../utils/object";
@@ -12,6 +12,8 @@ import { IScreenMuscle, ISettings } from "../../../types";
 import { n } from "../../../utils/math";
 import { Muscle_getMuscleGroupName } from "../../../models/muscle";
 import { getNavigationRef } from "../../../navigation/navUtils";
+import { CollectionUtils_sort } from "../../../utils/collection";
+import { SendMessage_isIosOrAndroid } from "../../../utils/sendMessage";
 
 interface IPlannerWeekStatsProps {
   setResults: ISetResults;
@@ -187,6 +189,8 @@ export function PlannerSetSplit(props: {
   textSize?: string;
 }): JSX.Element {
   const { split, settings, shouldIncludeFrequency, muscle } = props;
+  const isDesktopWeb = Platform.OS === "web" && !SendMessage_isIosOrAndroid();
+  const [showTooltip, setShowTooltip] = useState(false);
   const total = split.strength + split.hypertrophy;
   const frequency = Object.keys(split.frequency).length;
   const setColor = muscle
@@ -206,7 +210,7 @@ export function PlannerSetSplit(props: {
   const frequencyColor = muscle ? colorThresholdValue(frequency, settings.planner.weeklyFrequency[muscle] ?? 0) : "";
 
   const handlePress =
-    split.exercises.length > 0
+    !isDesktopWeb && split.exercises.length > 0
       ? () =>
           getNavigationRef().then(({ navigationRef }) =>
             navigationRef.navigate("setSplitModal", { exercises: split.exercises })
@@ -215,12 +219,16 @@ export function PlannerSetSplit(props: {
 
   const textSize = props.textSize ?? "";
 
-  return (
-    <Text onPress={handlePress} className={textSize}>
-      <Text className={`${textSize} ${setColor}`.trim()}>
-        {n(total, 0)}
-        {setDirection}
-      </Text>{" "}
+  const totalNode = (
+    <Text className={`${textSize} ${setColor}`.trim()}>
+      {n(total, 0)}
+      {setDirection}
+    </Text>
+  );
+
+  const trailingNode = (
+    <>
+      {" "}
       {total > 0 && (
         <Text className={textSize}>
           ({split.strength > 0 && <Text className={textSize}>{n(split.strength, 0)}s</Text>}
@@ -231,7 +239,65 @@ export function PlannerSetSplit(props: {
       {shouldIncludeFrequency && frequency > 0 && (
         <Text className={`${textSize} ${frequencyColor}`.trim()}>, {Object.keys(split.frequency).length}d</Text>
       )}
+    </>
+  );
+
+  if (isDesktopWeb) {
+    const hasExercises = split.exercises.length > 0;
+    return (
+      <Text className={textSize}>
+        <span
+          className="relative"
+          onMouseEnter={() => hasExercises && setShowTooltip(true)}
+          onMouseLeave={() => setShowTooltip(false)}
+          onClick={() => hasExercises && setShowTooltip((v) => !v)}
+        >
+          {totalNode}
+          {showTooltip && hasExercises && <PlannerStatsTooltip split={split} />}
+        </span>
+        {trailingNode}
+      </Text>
+    );
+  }
+
+  return (
+    <Text onPress={handlePress} className={textSize}>
+      {totalNode}
+      {trailingNode}
     </Text>
+  );
+}
+
+function PlannerStatsTooltip(props: { split: ISetSplit }): JSX.Element | null {
+  const exercises = CollectionUtils_sort(props.split.exercises, (a, b) => {
+    if ((a.isSynergist && b.isSynergist) || (!a.isSynergist && !b.isSynergist)) {
+      return a.exerciseName.localeCompare(b.exerciseName);
+    } else if (a.isSynergist) {
+      return 1;
+    } else {
+      return -1;
+    }
+  });
+  if (exercises.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="absolute z-10 px-3 py-2 text-xs border bg-background-default border-grayv2-400 rounded-xl text-text-primary planner-stats-tooltip">
+      <ul style={{ minWidth: "14rem" }}>
+        {exercises.map((exercise) => {
+          const totalSets = exercise.strengthSets + exercise.hypertrophySets;
+          return (
+            <li
+              key={exercise.exerciseName}
+              className={`font-bold ${exercise.isSynergist ? "text-text-secondary" : "text-text-primary"}`}
+            >
+              {exercise.exerciseName}: {n(totalSets)} ({n(exercise.strengthSets)}s, {n(exercise.hypertrophySets)}h)
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 

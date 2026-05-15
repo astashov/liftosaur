@@ -74,7 +74,6 @@ import { NavModalDayFromAdhoc } from "./modals/NavModalDayFromAdhoc";
 import { NavModalNextWorkout } from "./modals/NavModalNextWorkout";
 import { NavModalWhatsnew } from "./modals/NavModalWhatsnew";
 import { NavModalSignupRequest } from "./modals/NavModalSignupRequest";
-import { NavModalThanks25 } from "./modals/NavModalThanks25";
 import { NavModalCorruptedState } from "./modals/NavModalCorruptedState";
 import { NavModalDebug } from "./modals/NavModalDebug";
 import { NavModalWorkoutShare } from "./modals/NavModalWorkoutShare";
