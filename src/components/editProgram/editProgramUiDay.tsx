@@ -1,4 +1,4 @@
-import type { JSX, ReactNode } from "react";
+import { JSX, memo, ReactNode } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "../primitives/text";
 import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
@@ -54,7 +54,7 @@ interface IEditProgramDayViewProps {
   dragHandle?: (children: ReactNode) => JSX.Element;
 }
 
-export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Element {
+export const EditProgramUiDayView = memo(function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Element {
   const lbPlannerDay = props.lbPlannerWeek.p("days").i(props.dayInWeekIndex);
   const ui = props.state.ui;
   const isCollapsed = ui.dayUi.collapsed.has(`${props.weekIndex}-${props.dayInWeekIndex}`);
@@ -229,7 +229,7 @@ export function EditProgramUiDayView(props: IEditProgramDayViewProps): JSX.Eleme
       )}
     </View>
   );
-}
+});
 
 interface IEditProgramDayContentViewProps {
   day: IPlannerProgramDay;
@@ -248,7 +248,9 @@ interface IEditProgramDayContentViewProps {
   evaluatedDay: IPlannerEvalResult;
 }
 
-function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JSX.Element {
+const EditProgramUiDayContentView = memo(function EditProgramUiDayContentView(
+  props: IEditProgramDayContentViewProps
+): JSX.Element {
   const { evaluatedDay } = props;
   const duration = TimeUtils_formatHOrMin(
     PlannerStatsUtils_dayApproxTimeMs(evaluatedDay.success ? evaluatedDay.data : [], props.settings.timers.workout || 0)
@@ -348,9 +350,10 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
                 );
               }}
               element={(exercise, exerciseIndex, dragHandle) => {
+                const exCollapseKey = `${exercise.key}-${exercise.dayData.week - 1}-${exercise.dayData.dayInWeek - 1}`;
                 return (
                   <EditProgramUiExerciseView
-                    ui={props.ui}
+                    isCollapsed={props.ui.exerciseUi.collapsed.has(exCollapseKey)}
                     plannerExercise={exercise}
                     evaluatedProgram={props.evaluatedProgram}
                     dispatch={props.dispatch}
@@ -365,21 +368,24 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
                 );
               }}
             />
-            {notUsedExercises.map((exercise, exerciseIndex) => (
-              <EditProgramUiExerciseView
-                key={exercise.key || exerciseIndex}
-                ui={props.ui}
-                plannerExercise={exercise}
-                evaluatedProgram={props.evaluatedProgram}
-                dispatch={props.dispatch}
-                programId={props.programId}
-                plannerDispatch={props.plannerDispatch}
-                weekIndex={props.weekIndex}
-                dayIndex={props.dayIndex}
-                exerciseIndex={exerciseIndex}
-                settings={props.settings}
-              />
-            ))}
+            {notUsedExercises.map((exercise, exerciseIndex) => {
+              const exCollapseKey = `${exercise.key}-${exercise.dayData.week - 1}-${exercise.dayData.dayInWeek - 1}`;
+              return (
+                <EditProgramUiExerciseView
+                  key={exercise.key || exerciseIndex}
+                  isCollapsed={props.ui.exerciseUi.collapsed.has(exCollapseKey)}
+                  plannerExercise={exercise}
+                  evaluatedProgram={props.evaluatedProgram}
+                  dispatch={props.dispatch}
+                  programId={props.programId}
+                  plannerDispatch={props.plannerDispatch}
+                  weekIndex={props.weekIndex}
+                  dayIndex={props.dayIndex}
+                  exerciseIndex={exerciseIndex}
+                  settings={props.settings}
+                />
+              );
+            })}
             <View className="py-1">
               <Button
                 kind="lightgrayv3"
@@ -428,4 +434,4 @@ function EditProgramUiDayContentView(props: IEditProgramDayContentViewProps): JS
       </View>
     </View>
   );
-}
+});

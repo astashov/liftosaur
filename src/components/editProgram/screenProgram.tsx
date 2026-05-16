@@ -1,14 +1,14 @@
-import { JSX, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { JSX, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { View, Pressable, ScrollView } from "react-native";
 import { Text } from "../primitives/text";
 import { IDispatch } from "../../ducks/types";
-import { INavCommon, IState } from "../../models/state";
+import { INavCommon, IState, updateState } from "../../models/state";
 import { IProgram, ISettings } from "../../types";
 import { useNavOptions } from "../../navigation/useNavOptions";
 import { ILensDispatch } from "../../utils/useLensReducer";
-import { lb } from "lens-shmens";
+import { ILensRecordingPayload, lb } from "lens-shmens";
 import { IPlannerState } from "../../pages/planner/models/types";
-import { useUndoRedo } from "../../pages/builder/utils/undoredo";
+import { undoRedoMiddleware, useUndoRedo } from "../../pages/builder/utils/undoredo";
 import {
   IEvaluatedProgram,
   Program_evaluate,
@@ -31,13 +31,21 @@ import { LinkButton } from "../linkButton";
 import { PlannerProgram_evaluate } from "../../pages/planner/models/plannerProgram";
 import { IconKebab } from "../icons/iconKebab";
 import { UidFactory_generateUid } from "../../utils/generator";
-import { buildPlannerDispatch } from "../../utils/plannerDispatch";
 import { navigationRef } from "../../navigation/navigationRef";
 import { ProgramPreview_buildWeeks, ProgramPreviewWeekContent } from "../preview/programPreviewTab";
 import { Nux } from "../nux";
 import { programTourConfig } from "../tour/programTourConfig";
 import { NavScreenContent } from "../../navigation/NavScreenContent";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
+
+const TAB_LABELS = ["Preview", "Edit", "Playground"] as const;
+const EMPTY_EVAL: ReturnType<typeof PlannerProgram_evaluate> = { evaluatedWeeks: [], exerciseFullNames: [] };
+const TAB_LABELS_RO: readonly string[] = TAB_LABELS;
+const PLAYGROUND_TABS_PROPS = {
+  topPadding: "0.25rem",
+  className: "gap-2 px-4",
+  type: "squares",
+} as const;
 
 interface IProps {
   originalProgram: IProgram;
@@ -53,12 +61,39 @@ interface IProps {
 
 export function ScreenProgram(props: IProps): JSX.Element {
   const plannerState = props.plannerState;
+  const dispatch = props.dispatch;
+  const programId = props.originalProgram.id;
 
-  const plannerDispatch: ILensDispatch<IPlannerState> = useCallback(
-    buildPlannerDispatch(props.dispatch, lb<IState>().p("editProgramStates").p(props.originalProgram.id), plannerState),
-    [plannerState]
-  );
+  const plannerStateRef = useRef(plannerState);
+  plannerStateRef.current = plannerState;
+
+  const lbBuilder = useMemo(() => lb<IState>().p("editProgramStates").p(programId), [programId]);
+
+  const plannerDispatch = useMemo<ILensDispatch<IPlannerState>>(() => {
+    const fn: ILensDispatch<IPlannerState> = (lensRecording, desc) => {
+      const recordings = Array.isArray(lensRecording)
+        ? (lensRecording as ILensRecordingPayload<IPlannerState>[])
+        : [lensRecording as ILensRecordingPayload<IPlannerState>];
+      updateState(
+        dispatch,
+        recordings.map((r) => r.prepend(lbBuilder)),
+        desc || "Update state"
+      );
+      const changesCurrent = recordings.some((r) => r.lens.from.some((f) => f === "current"));
+      const current = plannerStateRef.current;
+      if (desc !== "undo" && changesCurrent && current != null) {
+        undoRedoMiddleware(fn, current);
+      }
+    };
+    return fn;
+  }, [dispatch, lbBuilder]);
+
   useUndoRedo(plannerState, plannerDispatch);
+
+  const program: IProgram = plannerState.current.program;
+  const planner = program.planner!;
+  const evaluatedProgram = Program_evaluate(program, props.settings);
+  const ui = plannerState.ui;
 
   useLayoutEffect(() => {
     if (props.plannerState) {
@@ -71,64 +106,102 @@ export function ScreenProgram(props: IProps): JSX.Element {
     }
   });
 
-  const program: IProgram = plannerState.current.program;
-  const planner = program.planner!;
-  const evaluatedProgram = Program_evaluate(program, props.settings);
-  const { evaluatedWeeks, exerciseFullNames } = PlannerProgram_evaluate(planner, props.settings);
-  const ui = plannerState.ui;
-
   const exercisePickerUi = props.plannerState.ui.exercisePicker;
   const prevExercisePickerUi = useRef(exercisePickerUi);
   useEffect(() => {
     if (exercisePickerUi && !prevExercisePickerUi.current) {
       navigationRef.navigate("editProgramExercisePickerModal", {
         context: "editProgram",
-        programId: props.originalProgram.id,
+        programId,
         dayData: exercisePickerUi.dayData,
         change: exercisePickerUi.change,
         exerciseKey: exercisePickerUi.exerciseKey,
       });
     }
     prevExercisePickerUi.current = exercisePickerUi;
-  }, [exercisePickerUi]);
+  }, [exercisePickerUi, programId]);
 
-  useNavOptions({
-    navTitle: "Program",
-    navHelpTourId: programTourConfig.id,
-    navRightButtons: [
+  const navRightButtons = useMemo(
+    () => [
       <Pressable
         key="kebab"
         data-testid="navbar-3-dot"
         testID="navbar-3-dot"
         className="p-2 nm-edit-program-v2-navbar-kebab"
-        onPress={() => navigationRef.navigate("editProgramMenuModal", { programId: props.originalProgram.id })}
+        onPress={() => navigationRef.navigate("editProgramMenuModal", { programId })}
       >
         <IconKebab />
       </Pressable>,
     ],
-  });
+    [programId]
+  );
 
-  const tabLabels = ["Preview", "Edit", "Playground"] as const;
+  const navOptions = useMemo(
+    () => ({
+      navTitle: "Program",
+      navHelpTourId: programTourConfig.id,
+      navRightButtons,
+    }),
+    [navRightButtons]
+  );
+  useNavOptions(navOptions);
+
   const tabIndex = plannerState.ui.tabIndex ?? 0;
-  const activeTabLabel = tabLabels[tabIndex] ?? "Preview";
+  const activeTabLabel = TAB_LABELS[tabIndex] ?? "Preview";
 
-  const onChangeTab = (newTabIndex: number): void => {
-    plannerDispatch(lb<IPlannerState>().p("ui").p("tabIndex").record(newTabIndex), "Change tab");
-  };
+  const { evaluatedWeeks, exerciseFullNames } =
+    activeTabLabel === "Edit" ? PlannerProgram_evaluate(planner, props.settings) : EMPTY_EVAL;
+
+  const onChangeTab = useCallback(
+    (newTabIndex: number): void => {
+      plannerDispatch(lb<IPlannerState>().p("ui").p("tabIndex").record(newTabIndex), "Change tab");
+    },
+    [plannerDispatch]
+  );
 
   const [previewWeekIndex, setPreviewWeekIndex] = useState(0);
   const [playgroundWeekIndex, setPlaygroundWeekIndex] = useState(0);
   const editWeekIndex = ui.weekIndex ?? 0;
-  const setEditWeekIndex = (newIndex: number): void => {
-    plannerDispatch(lb<IPlannerState>().p("ui").p("weekIndex").record(newIndex), `Change week index to ${newIndex}`);
-  };
+  const setEditWeekIndex = useCallback(
+    (newIndex: number): void => {
+      plannerDispatch(lb<IPlannerState>().p("ui").p("weekIndex").record(newIndex), `Change week index to ${newIndex}`);
+    },
+    [plannerDispatch]
+  );
 
-  const previewWeeks = ProgramPreview_buildWeeks(program, props.settings, props.navCommon.stats);
+  const previewWeeks = useMemo(
+    () =>
+      activeTabLabel === "Preview" ? ProgramPreview_buildWeeks(program, props.settings, props.navCommon.stats) : [],
+    [activeTabLabel, program, props.settings, props.navCommon.stats]
+  );
   const safePreviewWeekIndex = Math.min(previewWeekIndex, Math.max(0, previewWeeks.length - 1));
-  const playgroundWeekNames = evaluatedProgram.weeks.map((w) => w.name);
+  const playgroundWeekNames = useMemo(
+    () => (activeTabLabel === "Playground" ? evaluatedProgram.weeks.map((w) => w.name) : []),
+    [activeTabLabel, evaluatedProgram]
+  );
   const safePlaygroundWeekIndex = Math.min(playgroundWeekIndex, Math.max(0, playgroundWeekNames.length - 1));
   const showEditWeekTabBar =
     activeTabLabel === "Edit" && (ui.mode === "ui" || ui.mode === "perday") && planner.weeks.length > 1;
+
+  const onChangeProgram = useCallback(() => {
+    dispatch(Thunk_pushScreen("programs"));
+  }, [dispatch]);
+  const onChangeDay = useCallback(() => {
+    navigationRef.navigate("programNextDayModal", { programId });
+  }, [programId]);
+  const onChangeName = useCallback(
+    (newValue: string) => {
+      EditProgram_setName(dispatch, props.originalProgram, newValue);
+      plannerDispatch(
+        [
+          lb<IPlannerState>().p("current").p("program").p("name").record(newValue),
+          lb<IPlannerState>().p("current").p("program").pi("planner").p("name").record(newValue),
+        ],
+        "Update program name"
+      );
+    },
+    [dispatch, plannerDispatch, props.originalProgram]
+  );
 
   let tabContent: JSX.Element;
   if (activeTabLabel === "Preview") {
@@ -138,11 +211,11 @@ export function ScreenProgram(props: IProps): JSX.Element {
         key="preview"
         week={currentWeek}
         program={program}
-        programId={props.originalProgram.id}
+        programId={programId}
         settings={props.settings}
         ui={ui}
         stats={props.navCommon.stats}
-        dispatch={props.dispatch}
+        dispatch={dispatch}
         plannerDispatch={plannerDispatch}
         totalWeeks={previewWeeks.length}
       />
@@ -157,9 +230,9 @@ export function ScreenProgram(props: IProps): JSX.Element {
         evaluatedWeeks={evaluatedWeeks}
         evaluatedProgram={evaluatedProgram}
         exerciseFullNames={exerciseFullNames}
-        dispatch={props.dispatch}
+        dispatch={dispatch}
         originalProgram={props.originalProgram}
-        programId={props.originalProgram.id}
+        programId={programId}
         settings={props.settings}
         plannerDispatch={plannerDispatch}
         state={plannerState}
@@ -168,7 +241,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
   } else {
     tabContent = (
       <View className="pb-4">
-        <Nux className="mx-4 my-2" id="Playground" helps={props.helps} dispatch={props.dispatch}>
+        <Nux className="mx-4 my-2" id="Playground" helps={props.helps} dispatch={dispatch}>
           <Text className="text-xs">
             Playground lets you test the program logic. You can finish workouts here and see how reps, weights, sets
             change. Everything you do here is ephemeral, and doesn't change any settings, workouts or programs.
@@ -176,11 +249,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
         </Nux>
         <ProgramPreviewPlayground
           key="playground"
-          scrollableTabsProps={{
-            topPadding: "0.25rem",
-            className: "gap-2 px-4",
-            type: "squares",
-          }}
+          scrollableTabsProps={PLAYGROUND_TABS_PROPS}
           isPlayground={true}
           program={program}
           settings={props.settings}
@@ -193,21 +262,29 @@ export function ScreenProgram(props: IProps): JSX.Element {
     );
   }
 
+  const editWeekLabels = useMemo(() => planner.weeks.map((w) => w.name), [planner.weeks]);
+  const editWeekInvalidIndices = useMemo(
+    () => planner.weeks.map((_, i) => evaluatedWeeks[i]?.some((day) => !day.success) ?? false),
+    [planner.weeks, evaluatedWeeks]
+  );
+  const previewWeekLabels = useMemo(() => previewWeeks.map((w) => w.name), [previewWeeks]);
+
   let perTabStickyHeader: JSX.Element;
   if (activeTabLabel === "Edit") {
     perTabStickyHeader = (
       <View className="bg-background-default">
         <EditProgramNavbar
-          dispatch={props.dispatch}
+          dispatch={dispatch}
           originalProgram={props.originalProgram}
           settings={props.settings}
           state={plannerState}
+          evaluatedWeeks={evaluatedWeeks}
           plannerDispatch={plannerDispatch}
         />
         {showEditWeekTabBar && (
           <WeekTabBar
-            labels={planner.weeks.map((w) => w.name)}
-            invalidIndices={planner.weeks.map((_, i) => evaluatedWeeks[i]?.some((day) => !day.success) ?? false)}
+            labels={editWeekLabels}
+            invalidIndices={editWeekInvalidIndices}
             activeIndex={editWeekIndex}
             onChange={setEditWeekIndex}
           />
@@ -217,11 +294,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
   } else if (activeTabLabel === "Preview" && previewWeeks.length > 1) {
     perTabStickyHeader = (
       <View className="bg-background-default">
-        <WeekTabBar
-          labels={previewWeeks.map((w) => w.name)}
-          activeIndex={safePreviewWeekIndex}
-          onChange={setPreviewWeekIndex}
-        />
+        <WeekTabBar labels={previewWeekLabels} activeIndex={safePreviewWeekIndex} onChange={setPreviewWeekIndex} />
       </View>
     );
   } else if (activeTabLabel === "Playground" && playgroundWeekNames.length > 1) {
@@ -239,33 +312,22 @@ export function ScreenProgram(props: IProps): JSX.Element {
   }
 
   return (
-    <NavScreenContent stickyHeaderIndices={[1, 2]}>
+    <NavScreenContent stickyHeaderIndices={STICKY_INDICES}>
       <EditProgramHeader
         evaluatedProgram={evaluatedProgram}
         settings={props.settings}
-        onChangeProgram={() => {
-          props.dispatch(Thunk_pushScreen("programs"));
-        }}
-        onChangeDay={() => {
-          navigationRef.navigate("programNextDayModal", { programId: props.originalProgram.id });
-        }}
-        onChangeName={(newValue) => {
-          EditProgram_setName(props.dispatch, props.originalProgram, newValue);
-          plannerDispatch(
-            [
-              lb<IPlannerState>().p("current").p("program").p("name").record(newValue),
-              lb<IPlannerState>().p("current").p("program").pi("planner").p("name").record(newValue),
-            ],
-            "Update program name"
-          );
-        }}
+        onChangeProgram={onChangeProgram}
+        onChangeDay={onChangeDay}
+        onChangeName={onChangeName}
       />
-      <OuterTabBar labels={tabLabels as readonly string[]} activeIndex={tabIndex} onChange={onChangeTab} />
+      <OuterTabBar labels={TAB_LABELS_RO} activeIndex={tabIndex} onChange={onChangeTab} />
       {perTabStickyHeader}
       {tabContent}
     </NavScreenContent>
   );
 }
+
+const STICKY_INDICES = [1, 2];
 
 interface IWeekTabBarProps {
   labels: string[];
@@ -274,7 +336,7 @@ interface IWeekTabBarProps {
   onChange: (index: number) => void;
 }
 
-function WeekTabBar(props: IWeekTabBarProps): JSX.Element {
+const WeekTabBar = memo(function WeekTabBar(props: IWeekTabBarProps): JSX.Element {
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} className="bg-background-default">
       <View className="flex-row gap-2 px-4 py-2">
@@ -303,7 +365,7 @@ function WeekTabBar(props: IWeekTabBarProps): JSX.Element {
       </View>
     </ScrollView>
   );
-}
+});
 
 interface IOuterTabBarProps {
   labels: readonly string[];
@@ -311,7 +373,7 @@ interface IOuterTabBarProps {
   onChange: (index: number) => void;
 }
 
-function OuterTabBar(props: IOuterTabBarProps): JSX.Element {
+const OuterTabBar = memo(function OuterTabBar(props: IOuterTabBarProps): JSX.Element {
   const activeColor = Tailwind_semantic().button.secondarystroke;
   return (
     <View className="flex-row pt-4 pb-2 bg-background-default">
@@ -334,7 +396,7 @@ function OuterTabBar(props: IOuterTabBarProps): JSX.Element {
       })}
     </View>
   );
-}
+});
 
 interface IEditProgramHeaderProps {
   evaluatedProgram: IEvaluatedProgram;
@@ -344,7 +406,7 @@ interface IEditProgramHeaderProps {
   settings: ISettings;
 }
 
-function EditProgramHeader(props: IEditProgramHeaderProps): JSX.Element {
+const EditProgramHeader = memo(function EditProgramHeader(props: IEditProgramHeaderProps): JSX.Element {
   const evaluatedProgram = props.evaluatedProgram;
   const time = Program_dayAverageTimeMs(evaluatedProgram, props.settings);
   const duration = TimeUtils_formatHOrMin(time);
@@ -405,4 +467,4 @@ function EditProgramHeader(props: IEditProgramHeaderProps): JSX.Element {
       </View>
     </View>
   );
-}
+});

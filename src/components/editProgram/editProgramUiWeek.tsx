@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import { JSX, memo } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "../primitives/text";
 import { IPlannerState } from "../../pages/planner/models/types";
@@ -34,7 +34,7 @@ interface IEditProgramViewProps {
   plannerDispatch: ILensDispatch<IPlannerState>;
 }
 
-export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element {
+export const EditProgramUiWeekView = memo(function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element {
   const ui = props.state.ui;
   const currentWeekIndex = ui.weekIndex;
 
@@ -258,4 +258,4 @@ export function EditProgramUiWeekView(props: IEditProgramViewProps): JSX.Element
       </View>
     </View>
   );
-}
+});

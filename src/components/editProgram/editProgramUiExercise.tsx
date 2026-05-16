@@ -1,8 +1,7 @@
-import type { ReactNode } from "react";
-import { JSX, Fragment } from "react";
+import { JSX, Fragment, memo, ReactNode } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "../primitives/text";
-import { IPlannerProgramExercise, IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
+import { IPlannerProgramExercise, IPlannerState } from "../../pages/planner/models/types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { ISettings } from "../../types";
 import { IconHandle } from "../icons/iconHandle";
@@ -42,7 +41,7 @@ import { navigationRef } from "../../navigation/navigationRef";
 interface IEditProgramUiExerciseViewProps {
   evaluatedProgram: IEvaluatedProgram;
   plannerExercise: IPlannerProgramExercise;
-  ui: IPlannerUi;
+  isCollapsed: boolean;
   exerciseIndex: number;
   weekIndex: number;
   dayIndex: number;
@@ -53,11 +52,10 @@ interface IEditProgramUiExerciseViewProps {
   dragHandle?: (children: ReactNode) => JSX.Element;
 }
 
-export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps): JSX.Element {
-  const { weekIndex, dayIndex, exerciseIndex } = props;
-  const isCollapsed = props.ui.exerciseUi.collapsed.has(
-    `${props.plannerExercise.key}-${props.plannerExercise.dayData.week - 1}-${props.plannerExercise.dayData.dayInWeek - 1}`
-  );
+export const EditProgramUiExerciseView = memo(function EditProgramUiExerciseView(
+  props: IEditProgramUiExerciseViewProps
+): JSX.Element {
+  const { weekIndex, dayIndex, exerciseIndex, isCollapsed } = props;
   const exercise = Exercise_findByName(props.plannerExercise.name, props.settings.exercises);
 
   const repeatStr = PlannerProgramExercise_repeatToRangeStr(props.plannerExercise);
@@ -210,7 +208,7 @@ export function EditProgramUiExerciseView(props: IEditProgramUiExerciseViewProps
       )}
     </View>
   );
-}
+});
 
 interface IEditProgramUiExerciseContentViewProps {
   exercise?: IExercise;
@@ -224,7 +222,9 @@ interface IEditProgramUiExerciseContentViewProps {
   plannerDispatch: ILensDispatch<IPlannerState>;
 }
 
-export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseContentViewProps): JSX.Element {
+export const EditProgramUiExerciseContentView = memo(function EditProgramUiExerciseContentView(
+  props: IEditProgramUiExerciseContentViewProps
+): JSX.Element {
   const plannerExercise = props.plannerExercise;
   const exercise = props.exercise;
   const exerciseType = exercise != null ? { id: exercise.id, equipment: props.plannerExercise.equipment } : undefined;
@@ -387,4 +387,4 @@ export function EditProgramUiExerciseContentView(props: IEditProgramUiExerciseCo
       </View>
     </View>
   );
-}
+});

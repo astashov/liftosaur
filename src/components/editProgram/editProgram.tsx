@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import { JSX, memo, useCallback, useMemo } from "react";
 import { View, Pressable } from "react-native";
 import { IconUndo } from "../icons/iconUndo";
 import { undo, canUndo, canRedo, redo } from "../../pages/builder/utils/undoredo";
@@ -36,14 +36,23 @@ interface IEditProgramViewProps {
   settings: ISettings;
 }
 
-export function EditProgramView(
+export const EditProgramView = memo(function EditProgramView(
   props: IEditProgramViewProps & { hideNavbar?: boolean; hideWeekTabBar?: boolean }
 ): JSX.Element {
   const ui = props.state.ui;
   const program = props.state.current.program;
   const planner = program.planner!;
-  const { evaluatedWeeks, exerciseFullNames } = props;
+  const { evaluatedWeeks, exerciseFullNames, plannerDispatch } = props;
   const weekIndex = ui.weekIndex ?? 0;
+
+  const onWeekTabChange = useCallback(
+    (newWeekIndex: number) =>
+      plannerDispatch(
+        lb<IPlannerState>().p("ui").p("weekIndex").record(newWeekIndex),
+        `Change week index to ${newWeekIndex}`
+      ),
+    [plannerDispatch]
+  );
 
   return (
     <View className="pb-6">
@@ -53,7 +62,8 @@ export function EditProgramView(
           originalProgram={props.originalProgram}
           settings={props.settings}
           state={props.state}
-          plannerDispatch={props.plannerDispatch}
+          evaluatedWeeks={evaluatedWeeks}
+          plannerDispatch={plannerDispatch}
         />
       )}
       {ui.mode === "reorder" ? (
@@ -88,12 +98,7 @@ export function EditProgramView(
           shouldNotExpand={true}
           defaultIndex={ui.weekIndex ?? 0}
           type="squares"
-          onChange={(newWeekIndex) =>
-            props.plannerDispatch(
-              lb<IPlannerState>().p("ui").p("weekIndex").record(newWeekIndex),
-              `Change week index to ${newWeekIndex}`
-            )
-          }
+          onChange={onWeekTabChange}
           tabs={planner.weeks.map((week, wi) => {
             return {
               label: week.name,
@@ -106,7 +111,7 @@ export function EditProgramView(
                   state={props.state}
                   exerciseFullNames={exerciseFullNames}
                   evaluatedWeeks={evaluatedWeeks}
-                  plannerDispatch={props.plannerDispatch}
+                  plannerDispatch={plannerDispatch}
                   settings={props.settings}
                 />
               ),
@@ -116,20 +121,24 @@ export function EditProgramView(
       )}
     </View>
   );
-}
+});
 
 interface IEditProgramNavbarProps {
   state: IPlannerState;
   originalProgram: IProgram;
   settings: ISettings;
+  evaluatedWeeks?: IPlannerEvalResult[][];
   dispatch: IDispatch;
   plannerDispatch: ILensDispatch<IPlannerState>;
 }
 
-export function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
+export const EditProgramNavbar = memo(function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
   const isValidFull = !props.state.ui.fullTextError;
   const planner = props.state.current.program.planner!;
-  const evaluatedWeeks = PlannerProgram_evaluate(planner, props.settings).evaluatedWeeks;
+  const evaluatedWeeks = useMemo(
+    () => props.evaluatedWeeks ?? PlannerProgram_evaluate(planner, props.settings).evaluatedWeeks,
+    [props.evaluatedWeeks, planner, props.settings]
+  );
   const isValidPerDay = evaluatedWeeks.every((week) => week.every((day) => day.success)) ?? true;
   const isValid = isValidFull && isValidPerDay;
 
@@ -234,7 +243,7 @@ export function EditProgramNavbar(props: IEditProgramNavbarProps): JSX.Element {
       </View>
     </View>
   );
-}
+});
 
 interface IEditProgramModeSwitchButtonProps {
   isSelected: boolean;
@@ -244,7 +253,9 @@ interface IEditProgramModeSwitchButtonProps {
   onClick: () => void;
 }
 
-function EditProgramModeSwitchButton(props: IEditProgramModeSwitchButtonProps): JSX.Element {
+const EditProgramModeSwitchButton = memo(function EditProgramModeSwitchButton(
+  props: IEditProgramModeSwitchButtonProps
+): JSX.Element {
   const isSelected = props.isSelected;
   return (
     <Pressable
@@ -261,4 +272,4 @@ function EditProgramModeSwitchButton(props: IEditProgramModeSwitchButtonProps): 
       {props.children(isSelected ? Tailwind_semantic().icon.purple : Tailwind_semantic().icon.neutral)}
     </Pressable>
   );
-}
+});
