@@ -5,7 +5,7 @@
 	<key>EXUpdatesEnabled</key>
 	<true/>
 	<key>EXUpdatesURL</key>
-	<string>https://stage.liftosaur.com/api/updates/manifest</string>
+	<string>https://www.liftosaur.com/api/updates/manifest</string>
 	<key>EXUpdatesCheckOnLaunch</key>
 	<string>ALWAYS</string>
 	<key>EXUpdatesLaunchWaitMs</key>
