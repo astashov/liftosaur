@@ -127,40 +127,40 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
             FocusedInputFlush_flush();
             setTimeout(() => {
               const updatedProgram = stateRef.current.current.program;
-            if (stateRef.current.ui.fromWorkout) {
-              const lensUpdates = [
-                lb<IState>()
-                  .p("storage")
-                  .p("programs")
-                  .recordModify((programs) => {
-                    return CollectionUtils_setBy(programs, "id", updatedProgram.id, updatedProgram);
-                  }),
-              ];
-              if (editProgramStateRef.current) {
-                lensUpdates.push(
+              if (stateRef.current.ui.fromWorkout) {
+                const lensUpdates = [
                   lb<IState>()
-                    .p("editProgramStates")
-                    .p(props.programId)
-                    .p("current")
-                    .p("program")
-                    .record(updatedProgram)
+                    .p("storage")
+                    .p("programs")
+                    .recordModify((programs) => {
+                      return CollectionUtils_setBy(programs, "id", updatedProgram.id, updatedProgram);
+                    }),
+                ];
+                if (editProgramStateRef.current) {
+                  lensUpdates.push(
+                    lb<IState>()
+                      .p("editProgramStates")
+                      .p(props.programId)
+                      .p("current")
+                      .p("program")
+                      .record(updatedProgram)
+                  );
+                }
+                updateState(props.dispatch, lensUpdates, "Save program changes");
+              } else {
+                updateState(
+                  props.dispatch,
+                  [
+                    lb<IState>()
+                      .p("editProgramStates")
+                      .p(props.programId)
+                      .p("current")
+                      .p("program")
+                      .record(updatedProgram),
+                  ],
+                  "Update program from edit exercise"
                 );
               }
-              updateState(props.dispatch, lensUpdates, "Save program changes");
-            } else {
-              updateState(
-                props.dispatch,
-                [
-                  lb<IState>()
-                    .p("editProgramStates")
-                    .p(props.programId)
-                    .p("current")
-                    .p("program")
-                    .record(updatedProgram),
-                ],
-                "Update program from edit exercise"
-              );
-            }
               props.dispatch(Thunk_pullScreen());
             }, 50);
           }}

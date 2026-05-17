@@ -327,13 +327,13 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
                   const weight = evaluatedWeight
                     ? Weight_roundConvertTo(evaluatedWeight, settings, evaluatedWeight.unit, exerciseType)
                     : undefined;
-                  const reps =
-                    freshSet.minReps != null && freshSet.reps == null ? freshSet.minReps : freshSet.reps;
-                  const minReps =
-                    freshSet.minReps != null && freshSet.reps == null ? undefined : freshSet.minReps;
+                  const reps = freshSet.minReps != null && freshSet.reps == null ? freshSet.minReps : freshSet.reps;
+                  const minReps = freshSet.minReps != null && freshSet.reps == null ? undefined : freshSet.minReps;
                   const newSet = { ...freshSet, weight, reps, minReps };
                   const newEntries = progress.entries.map((entry, i) => {
-                    if (i !== entryIndex) return entry;
+                    if (i !== entryIndex) {
+                      return entry;
+                    }
                     const newSets = entry.sets.map((s, j) => (j === setIndex ? newSet : s));
                     return { ...entry, sets: newSets };
                   });

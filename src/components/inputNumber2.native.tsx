@@ -372,7 +372,9 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
   }, [scrollIntoView, openKeyboard, buildKeyboardConfig]);
 
   useEffect(() => {
-    if (!isFocused) return;
+    if (!isFocused) {
+      return;
+    }
     openKeyboard(buildKeyboardConfig());
   }, [isFocused, buildKeyboardConfig, openKeyboard]);
 
