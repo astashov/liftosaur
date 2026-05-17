@@ -1,4 +1,4 @@
-import { JSX, ReactNode, useCallback } from "react";
+import { JSX, memo, ReactNode, useCallback, useMemo } from "react";
 import { View, Pressable, Platform, LayoutChangeEvent } from "react-native";
 import { Text } from "./primitives/text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -39,14 +39,23 @@ const keyboardShadowStyle = Platform.select({
   default: {},
 });
 
-export function NativeCustomKeyboard(props: INativeCustomKeyboardProps): JSX.Element {
+const semanticColors = Tailwind_semantic();
+const keyButtonPressedBg = semanticColors.background.neutral;
+const keyButtonDefaultBg = semanticColors.background.default;
+
+export const NativeCustomKeyboard = memo(function NativeCustomKeyboard(props: INativeCustomKeyboardProps): JSX.Element {
   const insets = useSafeAreaInsets();
   const applySafeAreaBottom = props.applySafeAreaBottom !== false;
   const bottomPadding = applySafeAreaBottom ? insets.bottom : 0;
   const setKeyboardHeight = useSetCustomKeyboardHeight();
   const measuredHeightRef = useMeasuredKeyboardHeightRef();
 
-  const lastRow = [props.allowNegative ? "-" : "", "0", props.allowDot ? "." : ""];
+  const lastRow = useMemo(
+    () => [props.allowNegative ? "-" : "", "0", props.allowDot ? "." : ""],
+    [props.allowDot, props.allowNegative]
+  );
+
+  const handleBackspace = useCallback(() => props.onInput("⌫"), [props.onInput]);
 
   const onLayout = useCallback(
     (e: LayoutChangeEvent) => {
@@ -87,14 +96,14 @@ export function NativeCustomKeyboard(props: INativeCustomKeyboardProps): JSX.Ele
           {KEY_ROWS.map((row, rowIndex) => (
             <View key={rowIndex} className="flex-row gap-2">
               {row.map((key) => (
-                <KeyButton key={key} label={key} onPress={() => props.onInput(key)} />
+                <KeyButton key={key} label={key} onPress={props.onInput} />
               ))}
             </View>
           ))}
           <View className="flex-row gap-2">
             {lastRow.map((key, i) =>
               key ? (
-                <KeyButton key={key} label={key} onPress={() => props.onInput(key)} />
+                <KeyButton key={key} label={key} onPress={props.onInput} />
               ) : (
                 <View key={`empty-${i}`} className="flex-1" />
               )
@@ -134,19 +143,12 @@ export function NativeCustomKeyboard(props: INativeCustomKeyboardProps): JSX.Ele
           {props.enableUnits && props.selectedUnit ? (
             <View className="flex-row items-center h-10 gap-2 mt-4">
               {props.enableUnits.map((unit) => (
-                <Pressable
+                <UnitButton
                   key={unit}
-                  testID={`keyboard-unit-${unit}`}
-                  data-testid={`keyboard-unit-${unit}`}
-                  onPress={() => props.onChangeUnits?.(unit)}
-                  className={`flex-1 aspect-square border rounded items-center justify-center ${
-                    unit === props.selectedUnit
-                      ? "border-border-prominent bg-background-cardpurpleselected"
-                      : "border-border-cardpurple bg-background-cardpurple"
-                  }`}
-                >
-                  <Text className="text-icon-neutral">{unit}</Text>
-                </Pressable>
+                  unit={unit}
+                  selected={unit === props.selectedUnit}
+                  onPress={props.onChangeUnits}
+                />
               ))}
             </View>
           ) : (
@@ -156,7 +158,7 @@ export function NativeCustomKeyboard(props: INativeCustomKeyboardProps): JSX.Ele
           <Pressable
             testID="keyboard-backspace"
             data-testid="keyboard-backspace"
-            onPress={() => props.onInput("⌫")}
+            onPress={handleBackspace}
             className="w-full h-10 mt-4 border rounded border-border-cardpurple bg-background-cardpurple items-center justify-center"
           >
             <IconBackspace />
@@ -165,21 +167,47 @@ export function NativeCustomKeyboard(props: INativeCustomKeyboardProps): JSX.Ele
       </View>
     </View>
   );
-}
+});
 
-function KeyButton(props: { label: string; onPress: () => void }): JSX.Element {
-  const semantic = Tailwind_semantic();
+const keyButtonStyle = ({ pressed }: { pressed: boolean }): { backgroundColor: string } => ({
+  backgroundColor: pressed ? keyButtonPressedBg : keyButtonDefaultBg,
+});
+
+const KeyButton = memo(function KeyButton(props: { label: string; onPress: (label: string) => void }): JSX.Element {
+  const onPress = useCallback(() => props.onPress(props.label), [props.onPress, props.label]);
   return (
     <Pressable
       testID={`keyboard-button-${props.label}`}
       data-testid={`keyboard-button-${props.label}`}
-      onPress={props.onPress}
+      onPress={onPress}
       className="flex-1 p-2 items-center rounded"
-      style={({ pressed }) => ({
-        backgroundColor: pressed ? semantic.background.neutral : semantic.background.default,
-      })}
+      style={keyButtonStyle}
     >
       <Text className="text-2xl text-text-primary">{props.label}</Text>
     </Pressable>
   );
+});
+
+interface IUnitButtonProps {
+  unit: IUnit | IPercentageUnit;
+  selected: boolean;
+  onPress?: (unit: IUnit | IPercentageUnit) => void;
 }
+
+const UnitButton = memo(function UnitButton(props: IUnitButtonProps): JSX.Element {
+  const onPress = useCallback(() => props.onPress?.(props.unit), [props.onPress, props.unit]);
+  return (
+    <Pressable
+      testID={`keyboard-unit-${props.unit}`}
+      data-testid={`keyboard-unit-${props.unit}`}
+      onPress={onPress}
+      className={`flex-1 aspect-square border rounded items-center justify-center ${
+        props.selected
+          ? "border-border-prominent bg-background-cardpurpleselected"
+          : "border-border-cardpurple bg-background-cardpurple"
+      }`}
+    >
+      <Text className="text-icon-neutral">{props.unit}</Text>
+    </Pressable>
+  );
+});

@@ -81,6 +81,7 @@ export function Screen1RM(props: IScreen1RMProps): JSX.Element {
                         data-testid="onerm-weight"
                         testID="onerm-weight"
                         units={["lb", "kg"] as const}
+                        inputCommitMode="blur"
                         onInput={(v) => {
                           if (v != null && !Weight_isPct(v)) {
                             Settings_setOneRM(props.dispatch, exerciseType, v, props.settings);

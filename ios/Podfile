@@ -11,6 +11,8 @@ require Pod::Executable.execute_command('node', ['-p',
     {paths: [process.argv[1]]},
   )', __dir__]).strip.sub(/package\.json$/, 'scripts/autolinking')
 
+ENV['EX_UPDATES_NATIVE_DEBUG'] ||= '1'
+
 platform :ios, '17.0'
 prepare_react_native_project!
 

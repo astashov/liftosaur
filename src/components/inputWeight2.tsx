@@ -1,4 +1,4 @@
-import { JSX, memo, useEffect, useRef, useState } from "react";
+import { JSX, memo, useCallback, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
 import { IExerciseType, IPercentage, IPercentageUnit, ISettings, ISubscription, IUnit, IWeight } from "../types";
@@ -51,15 +51,113 @@ function InputWeight2Inner(props: IInputWeight2Props): JSX.Element {
       Equipment_getUnitOrDefaultForExerciseType(props.settings, props.exerciseType)
   );
   const unitRef = useRef(unit);
-  useEffect(() => {
-    unitRef.current = unit;
-  }, [unit]);
+  unitRef.current = unit;
+  const onInputPropRef = useRef(props.onInput);
+  const onBlurPropRef = useRef(props.onBlur);
+  const settingsRef = useRef(props.settings);
+  const exerciseTypeRef = useRef(props.exerciseType);
+  const commitModeRef = useRef<IInputCommitMode | undefined>(props.inputCommitMode);
+  onInputPropRef.current = props.onInput;
+  onBlurPropRef.current = props.onBlur;
+  settingsRef.current = props.settings;
+  exerciseTypeRef.current = props.exerciseType;
+  commitModeRef.current = props.inputCommitMode;
+
   const [value, setValue] = useState(props.value);
+  const draftValueRef = useRef<number | undefined>(props.value?.value);
+  draftValueRef.current = value?.value;
   const initialValue = value ?? props.initialValue;
-  const evaluatedWeight =
-    initialValue && props.exerciseType
-      ? Weight_evaluateWeight(initialValue, props.exerciseType, props.settings)
-      : undefined;
+  const evaluatedWeight = useMemo(
+    () =>
+      initialValue && props.exerciseType
+        ? Weight_evaluateWeight(initialValue, props.exerciseType, props.settings)
+        : undefined,
+    [initialValue, props.exerciseType, props.settings]
+  );
+
+  const onNext = useCallback((current: number | undefined): number => {
+    const u = unitRef.current;
+    if (u === "%") {
+      return current != null ? current + 1 : 0;
+    }
+    const weight = current != null ? Weight_build(current, u) : Weight_build(0, u);
+    const newWeight = Weight_increment(weight, settingsRef.current, exerciseTypeRef.current);
+    return newWeight.value;
+  }, []);
+
+  const onPrev = useCallback((current: number | undefined): number => {
+    const u = unitRef.current;
+    if (u === "%") {
+      return current != null ? current - 1 : 0;
+    }
+    const weight = current != null ? Weight_build(current, u) : Weight_build(0, u);
+    const newWeight = Weight_decrement(weight, settingsRef.current, exerciseTypeRef.current);
+    return newWeight.value;
+  }, []);
+
+  const onChangeUnits = useCallback((newUnit: IUnit | IPercentageUnit) => {
+    setUnit(newUnit);
+    const draft = draftValueRef.current;
+    const weight = draft != null ? Weight_buildAny(draft, newUnit) : undefined;
+    setValue(weight);
+    if (commitModeRef.current !== "blur") {
+      const cb = onInputPropRef.current;
+      if (cb) {
+        cb(weight);
+      }
+    }
+  }, []);
+
+  const onBlur = useCallback((v: number | undefined) => {
+    draftValueRef.current = v;
+    const weight = v != null ? Weight_buildAny(v, unitRef.current) : undefined;
+    setValue(weight);
+    const cb = onBlurPropRef.current;
+    if (cb) {
+      cb(weight);
+    }
+  }, []);
+
+  const onInput = useCallback((newValue: number | undefined) => {
+    draftValueRef.current = newValue;
+    const weight = newValue != null ? Weight_buildAny(newValue, unitRef.current) : undefined;
+    setValue(weight);
+    const cb = onInputPropRef.current;
+    if (cb) {
+      cb(weight);
+    }
+  }, []);
+
+  const onPreview = useCallback((newValue: number | undefined) => {
+    draftValueRef.current = newValue;
+    const weight = newValue != null ? Weight_buildAny(newValue, unitRef.current) : undefined;
+    setValue(weight);
+  }, []);
+
+  const showPlates =
+    props.subscription &&
+    props.exerciseType &&
+    Subscriptions_hasSubscription(props.subscription) &&
+    evaluatedWeight &&
+    Weight_is(evaluatedWeight);
+
+  const keyboardAddon = useMemo(() => {
+    if (!showPlates && !props.addOn) {
+      return undefined;
+    }
+    return (
+      <View className="py-2">
+        {showPlates && (
+          <PlatesCalculator
+            weight={evaluatedWeight as IWeight}
+            settings={props.settings}
+            exerciseType={props.exerciseType!}
+          />
+        )}
+        {props.addOn ? <View>{props.addOn()}</View> : undefined}
+      </View>
+    );
+  }, [showPlates, evaluatedWeight, props.settings, props.exerciseType, props.addOn]);
 
   return (
     <View>
@@ -73,72 +171,22 @@ function InputWeight2Inner(props: IInputWeight2Props): JSX.Element {
         allowNegative={true}
         min={props.min}
         max={props.max}
-        keyboardAddon={
-          (props.subscription && Subscriptions_hasSubscription(props.subscription)) || props.addOn ? (
-            <View className="py-2">
-              {props.subscription &&
-                props.exerciseType &&
-                Subscriptions_hasSubscription(props.subscription) &&
-                evaluatedWeight &&
-                Weight_is(evaluatedWeight) && (
-                  <PlatesCalculator
-                    weight={evaluatedWeight}
-                    settings={props.settings}
-                    exerciseType={props.exerciseType}
-                  />
-                )}
-              {props.addOn ? <View>{props.addOn()}</View> : undefined}
-            </View>
-          ) : undefined
-        }
-        onNext={(current) => {
-          if (unit === "%") {
-            return current != null ? current + 1 : 0;
-          } else {
-            const weight = current != null ? Weight_build(current, unit) : Weight_build(0, unit);
-            const newWeight = Weight_increment(weight, props.settings, props.exerciseType);
-            return newWeight.value;
-          }
-        }}
-        onPrev={(current) => {
-          if (unit === "%") {
-            return current != null ? current - 1 : 0;
-          } else {
-            const weight = current != null ? Weight_build(current, unit) : Weight_build(0, unit);
-            const newWeight = Weight_decrement(weight, props.settings, props.exerciseType);
-            return newWeight.value;
-          }
-        }}
+        keyboardAddon={keyboardAddon}
+        onNext={onNext}
+        onPrev={onPrev}
         value={props.value?.value}
         initialValue={props.initialValue?.value}
         name={props.name}
         enableUnits={props.units}
         selectedUnit={unit}
         showUnitInside={props.showUnitInside}
-        onChangeUnits={(newUnit) => {
-          setUnit(newUnit);
-          const weight = props.value != null ? Weight_buildAny(props.value.value, newUnit) : undefined;
-          setValue(weight);
-          if (props.onInput) {
-            props.onInput(weight);
-          }
-        }}
+        onChangeUnits={onChangeUnits}
         enableCalculator={true}
         inputCommitMode={props.inputCommitMode}
         inputDebounceMs={props.inputDebounceMs}
-        onBlur={(v) => {
-          if (props.onBlur) {
-            const weight = v != null ? Weight_buildAny(v, unitRef.current) : undefined;
-            props.onBlur(weight);
-          }
-        }}
-        onInput={(newValue) => {
-          const weight = newValue != null ? Weight_buildAny(newValue, unitRef.current) : undefined;
-          setValue(weight);
-          if (props.onInput) {
-            props.onInput(weight);
-          }
-        }}
+        onBlur={onBlur}
+        onInput={onInput}
+        onPreview={onPreview}
       />
     </View>
   );
@@ -152,7 +200,7 @@ interface IPlatesCalculatorProps {
   exerciseType: IExerciseType;
 }
 
-function PlatesCalculator(props: IPlatesCalculatorProps): JSX.Element {
+const PlatesCalculator = memo(function PlatesCalculator(props: IPlatesCalculatorProps): JSX.Element {
   const { plates, totalWeight: weight } = Weight_calculatePlates(
     props.weight,
     props.settings,
@@ -178,4 +226,4 @@ function PlatesCalculator(props: IPlatesCalculatorProps): JSX.Element {
       </View>
     </View>
   );
-}
+});

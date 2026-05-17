@@ -14,6 +14,7 @@ import { lb } from "lens-shmens";
 import { updateProgress } from "../models/state";
 import { Weight_build, Weight_evaluateWeight, Weight_roundConvertTo } from "../models/weight";
 import { Button } from "./button";
+import { FocusedInputFlush_flush } from "../utils/focusedInputFlush";
 
 interface IBottomSheetEditTargetProps {
   isHidden: boolean;
@@ -120,6 +121,7 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
                 name="target-weight"
                 subscription={props.subscription}
                 exerciseType={props.editSetModal.exerciseType}
+                inputCommitMode="blur"
                 onBlur={(value) => {
                   if (savedRef.current) {
                     return;
@@ -305,35 +307,42 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
           testID="edit-set-target-save"
           className="w-full"
           onClick={() => {
+            FocusedInputFlush_flush();
             savedRef.current = true;
-            const evaluatedWeight = set.originalWeight
-              ? Weight_evaluateWeight(
-                  set.originalWeight,
-                  props.editSetModal.exerciseType ?? { id: "squat" },
-                  props.settings
-                )
-              : undefined;
-            const weight = evaluatedWeight
-              ? Weight_roundConvertTo(
-                  evaluatedWeight,
-                  props.settings,
-                  evaluatedWeight.unit,
-                  props.editSetModal.exerciseType
-                )
-              : undefined;
-            const reps = set.minReps != null && set.reps == null ? set.minReps : set.reps;
-            const minReps = set.minReps != null && set.reps == null ? undefined : set.minReps;
-            const newSet = { ...set, weight, reps, minReps };
+            const entryIndex = props.editSetModal.entryIndex;
+            const setIndex = props.editSetModal.setIndex ?? 0;
+            const exerciseType = props.editSetModal.exerciseType;
+            const settings = props.settings;
             updateProgress(
               props.dispatch,
               [
-                lb<IHistoryRecord>()
-                  .p("entries")
-                  .i(props.editSetModal.entryIndex)
-                  .p("sets")
-                  .i(props.editSetModal.setIndex ?? 0)
-                  .record(newSet),
-                lb<IHistoryRecord>().pi("ui", {}).p("editSetModal").record(undefined),
+                lb<IHistoryRecord>().recordModify((progress) => {
+                  const freshSet = progress.ui?.editSetModal?.set ?? progress.entries[entryIndex]?.sets[setIndex];
+                  if (!freshSet) {
+                    return progress;
+                  }
+                  const evaluatedWeight = freshSet.originalWeight
+                    ? Weight_evaluateWeight(freshSet.originalWeight, exerciseType ?? { id: "squat" }, settings)
+                    : undefined;
+                  const weight = evaluatedWeight
+                    ? Weight_roundConvertTo(evaluatedWeight, settings, evaluatedWeight.unit, exerciseType)
+                    : undefined;
+                  const reps =
+                    freshSet.minReps != null && freshSet.reps == null ? freshSet.minReps : freshSet.reps;
+                  const minReps =
+                    freshSet.minReps != null && freshSet.reps == null ? undefined : freshSet.minReps;
+                  const newSet = { ...freshSet, weight, reps, minReps };
+                  const newEntries = progress.entries.map((entry, i) => {
+                    if (i !== entryIndex) return entry;
+                    const newSets = entry.sets.map((s, j) => (j === setIndex ? newSet : s));
+                    return { ...entry, sets: newSets };
+                  });
+                  return {
+                    ...progress,
+                    entries: newEntries,
+                    ui: { ...(progress.ui ?? {}), editSetModal: undefined },
+                  };
+                }),
               ],
               "save-target"
             );

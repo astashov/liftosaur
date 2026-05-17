@@ -320,6 +320,7 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
                 width={weightInputWidth}
                 name="set-weight"
                 exerciseType={props.exerciseType}
+                inputCommitMode="blur"
                 onBlur={onBlurWeight}
                 onInput={onInputWeight}
                 addOn={

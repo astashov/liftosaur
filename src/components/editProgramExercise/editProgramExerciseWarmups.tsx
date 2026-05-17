@@ -224,45 +224,42 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                             <Text>×</Text>
                           </View>
                           <View className="items-center justify-center flex-1 py-2">
-                            <View className="flex-row items-center">
-                              <InputWeight2
-                                name="set-weight"
-                                exerciseType={plannerExercise.exerciseType}
-                                data-testid="weight-value"
-                                testID="weight-value"
-                                units={["lb", "kg", "%"] as const}
-                                onBlur={(value) => {
-                                  if (value != null) {
-                                    props.plannerDispatch(
-                                      lbProgram.recordModify((program) => {
-                                        return changeWeight(program, props.settings, plannerExercise, setIndex, value);
-                                      }),
-                                      "Change warmup weight"
-                                    );
-                                  }
-                                }}
-                                onInput={(value) => {
-                                  if (value != null) {
-                                    props.plannerDispatch(
-                                      lbProgram.recordModify((program) => {
-                                        return changeWeight(program, props.settings, plannerExercise, setIndex, value);
-                                      }),
-                                      "Change warmup weight"
-                                    );
-                                  }
-                                }}
-                                subscription={undefined}
-                                value={
-                                  set.weight ? set.weight : set.percentage ? Weight_buildPct(set.percentage) : undefined
+                            <InputWeight2
+                              name="set-weight"
+                              exerciseType={plannerExercise.exerciseType}
+                              data-testid="weight-value"
+                              testID="weight-value"
+                              units={["lb", "kg", "%"] as const}
+                              inputCommitMode="blur"
+                              showUnitInside={true}
+                              onBlur={(value) => {
+                                if (value != null) {
+                                  props.plannerDispatch(
+                                    lbProgram.recordModify((program) => {
+                                      return changeWeight(program, props.settings, plannerExercise, setIndex, value);
+                                    }),
+                                    "Change warmup weight"
+                                  );
                                 }
-                                max={9999}
-                                min={-9999}
-                                settings={props.settings}
-                              />
-                              <Text className="ml-1 text-xs">
-                                {set.weight ? set.weight.unit : set.percentage != null ? "%" : ""}
-                              </Text>
-                            </View>
+                              }}
+                              onInput={(value) => {
+                                if (value != null) {
+                                  props.plannerDispatch(
+                                    lbProgram.recordModify((program) => {
+                                      return changeWeight(program, props.settings, plannerExercise, setIndex, value);
+                                    }),
+                                    "Change warmup weight"
+                                  );
+                                }
+                              }}
+                              subscription={undefined}
+                              value={
+                                set.weight ? set.weight : set.percentage ? Weight_buildPct(set.percentage) : undefined
+                              }
+                              max={9999}
+                              min={-9999}
+                              settings={props.settings}
+                            />
                           </View>
                         </View>
                         <View

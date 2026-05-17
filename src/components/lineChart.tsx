@@ -151,11 +151,7 @@ function clipSeriesToViewport(
   return out;
 }
 
-function buildPath(
-  points: [number, number][],
-  xToPx: (x: number) => number,
-  yToPx: (y: number) => number
-): string {
+function buildPath(points: [number, number][], xToPx: (x: number) => number, yToPx: (y: number) => number): string {
   let d = "";
   for (let i = 0; i < points.length; i++) {
     const [t, v] = points[i];

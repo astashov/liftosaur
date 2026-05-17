@@ -207,6 +207,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                         data-testid="weight-value"
                         testID="weight-value"
                         units={["lb", "kg", "%"] as const}
+                        inputCommitMode="blur"
                         onBlur={(value) => {
                           if (value != null) {
                             changeSet((s) => (s.weight = value));

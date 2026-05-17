@@ -1,4 +1,4 @@
-import React, { JSX, RefObject, forwardRef, useCallback, useEffect, useRef, useState } from "react";
+import React, { JSX, RefObject, forwardRef, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { StringUtils_dashcase } from "../utils/string";
 import { IconKeyboardClose } from "./icons/iconKeyboardClose";
@@ -27,6 +27,7 @@ interface IInputNumber2Props {
   onNext?: (value: number | undefined) => number;
   onPrev?: (value: number | undefined) => number;
   onInput?: (value: number | undefined) => void;
+  onPreview?: (value: number | undefined) => void;
   onBlur?: (value: number | undefined) => void;
   keyboardAddon?: JSX.Element;
   after?: () => JSX.Element | undefined;
@@ -57,7 +58,7 @@ function clamp(value: string | number, min?: number, max?: number): number | und
 let nextPadOwnerId = 1;
 let activePadOwnerId: number | null = null;
 
-export function InputNumber2(props: IInputNumber2Props): JSX.Element {
+function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
   const initialValue = props.value != null ? n(props.value) : "";
   const [value, setValue] = useState(initialValue);
   const [isFocused, setIsFocused] = useState(false);
@@ -86,6 +87,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
     const newValue = clamp(weightValue, props.min, props.max);
     valueRef.current = newValue?.toString() ?? "";
     setValue(newValue?.toString() ?? "");
+    onPreviewRef.current?.(newValue);
     if (props.onBlur) {
       props.onBlur(newValue);
     }
@@ -93,6 +95,15 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
   });
   const onBlurRef = useRef<((v: number | undefined) => void) | undefined>(props.onBlur);
   const onInputRef = useRef<((v: number | undefined) => void) | undefined>(props.onInput);
+  const onPreviewRef = useRef<((v: number | undefined) => void) | undefined>(props.onPreview);
+  const onNextRef = useRef<((v: number | undefined) => number) | undefined>(props.onNext);
+  const onPrevRef = useRef<((v: number | undefined) => number) | undefined>(props.onPrev);
+  const onChangeUnitsRef = useRef<((u: IUnit | IPercentageUnit) => void) | undefined>(props.onChangeUnits);
+  const minRef = useRef(props.min);
+  const maxRef = useRef(props.max);
+  const stepRef = useRef(props.step);
+  const selectedUnitRef = useRef(props.selectedUnit);
+  const initialValueRef = useRef(props.initialValue);
   const commitMode: IInputCommitMode = props.inputCommitMode ?? "debounced";
   const debounceMs = props.inputDebounceMs ?? 150;
   const commitModeRef = useRef(commitMode);
@@ -100,17 +111,22 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingInputRef = useRef<number | undefined>(undefined);
   const hasPendingInputRef = useRef(false);
+  onBlurRef.current = props.onBlur;
+  onInputRef.current = props.onInput;
+  onPreviewRef.current = props.onPreview;
+  onNextRef.current = props.onNext;
+  onPrevRef.current = props.onPrev;
+  onChangeUnitsRef.current = props.onChangeUnits;
+  minRef.current = props.min;
+  maxRef.current = props.max;
+  stepRef.current = props.step;
+  selectedUnitRef.current = props.selectedUnit;
+  initialValueRef.current = props.initialValue;
+  commitModeRef.current = commitMode;
+  debounceMsRef.current = debounceMs;
   useEffect(() => {
     setIsMobile(Mobile_isMobile(window.navigator?.userAgent || ""));
   }, []);
-  useEffect(() => {
-    onBlurRef.current = props.onBlur;
-    onInputRef.current = props.onInput;
-  }, [props.onBlur, props.onInput]);
-  useEffect(() => {
-    commitModeRef.current = commitMode;
-    debounceMsRef.current = debounceMs;
-  }, [commitMode, debounceMs]);
 
   const flushPendingInput = useCallback(() => {
     if (debounceTimerRef.current != null) {
@@ -135,10 +151,16 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
   }, []);
 
   useEffect(() => {
-    return () => flushPendingInput();
+    return () => {
+      flushPendingInput();
+      if (isFocusedRef.current) {
+        const newValueNum = clamp(valueRef.current, minRef.current, maxRef.current);
+        if (onBlurRef.current) {
+          onBlurRef.current(newValueNum);
+        }
+      }
+    };
   }, [flushPendingInput]);
-
-  const maxLength = (props.max?.toString().length ?? 5) + (props.allowDot ? 3 : 0) + (props.allowNegative ? 1 : 0);
 
   const paddedScrollerRef = useRef<HTMLElement | null>(null);
   const padOwnerIdRef = useRef<number>(0);
@@ -177,20 +199,22 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
     setValue(initialValue);
   }, [props.value]);
 
-  useEffect(() => {
-    isFocusedRef.current = isFocused;
-    allowDotRef.current = !!props.allowDot;
-    allowNegativeRef.current = !!props.allowNegative;
-    isCalculatorOpenRef.current = !!isCalculatorOpen;
-  }, [isFocused, props.allowDot, props.allowNegative, isCalculatorOpen]);
+  isFocusedRef.current = isFocused;
+  allowDotRef.current = !!props.allowDot;
+  allowNegativeRef.current = !!props.allowNegative;
+  isCalculatorOpenRef.current = !!isCalculatorOpen;
 
   const blurRef = useRef<((debugCaller?: string) => void) | null>(null);
+  const openCalculatorRef = useRef(openCalculator);
+  openCalculatorRef.current = openCalculator;
 
-  const handleInput = (key: string): void => {
+  const handleInput = useCallback((key: string): void => {
     let newValue = valueRef.current;
     if (!isTypingRef.current) {
       newValue = "";
     }
+    const dynMaxLength =
+      (maxRef.current?.toString().length ?? 5) + (allowDotRef.current ? 3 : 0) + (allowNegativeRef.current ? 1 : 0);
     if (key === "⌫") {
       newValue = newValue.slice(0, -1);
     } else if (key === "-") {
@@ -205,7 +229,7 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
       if (allowDotRef.current && !newValue.includes(".")) {
         newValue += key;
       }
-    } else if (newValue.length < maxLength) {
+    } else if (newValue.length < dynMaxLength) {
       newValue += key;
     }
     if (!isTypingRef.current) {
@@ -214,29 +238,32 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
     }
     valueRef.current = newValue;
     setValue(newValue);
-    if (onInputRef.current && !newValue.endsWith(".")) {
-      const newValueNum = clamp(newValue, props.min, props.max);
-      const mode = commitModeRef.current;
-      if (mode === "live") {
-        onInputRef.current(newValueNum);
-      } else if (mode === "debounced") {
-        pendingInputRef.current = newValueNum;
-        hasPendingInputRef.current = true;
-        if (debounceTimerRef.current != null) {
-          clearTimeout(debounceTimerRef.current);
-        }
-        debounceTimerRef.current = setTimeout(() => {
-          debounceTimerRef.current = null;
-          if (hasPendingInputRef.current && onInputRef.current) {
-            const v = pendingInputRef.current;
-            hasPendingInputRef.current = false;
-            pendingInputRef.current = undefined;
-            onInputRef.current(v);
+    if (!newValue.endsWith(".")) {
+      const newValueNum = clamp(newValue, minRef.current, maxRef.current);
+      onPreviewRef.current?.(newValueNum);
+      if (onInputRef.current) {
+        const mode = commitModeRef.current;
+        if (mode === "live") {
+          onInputRef.current(newValueNum);
+        } else if (mode === "debounced") {
+          pendingInputRef.current = newValueNum;
+          hasPendingInputRef.current = true;
+          if (debounceTimerRef.current != null) {
+            clearTimeout(debounceTimerRef.current);
           }
-        }, debounceMsRef.current);
+          debounceTimerRef.current = setTimeout(() => {
+            debounceTimerRef.current = null;
+            if (hasPendingInputRef.current && onInputRef.current) {
+              const v = pendingInputRef.current;
+              hasPendingInputRef.current = false;
+              pendingInputRef.current = undefined;
+              onInputRef.current(v);
+            }
+          }, debounceMsRef.current);
+        }
       }
     }
-  };
+  }, []);
 
   const blur = useCallback(
     (debugCaller: string = "unknown") => {
@@ -258,9 +285,10 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
       setIsFocused(false);
       setIsTyping(false);
       isTypingRef.current = false;
-      const newValueNum = clamp(valueRef.current, props.min, props.max);
+      const newValueNum = clamp(valueRef.current, minRef.current, maxRef.current);
       valueRef.current = newValueNum != null ? newValueNum.toString() : "";
       setValue(newValueNum != null ? newValueNum.toString() : "");
+      onPreviewRef.current?.(newValueNum);
       if (onBlurRef.current) {
         onBlurRef.current(newValueNum);
       }
@@ -272,6 +300,49 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
   useEffect(() => {
     blurRef.current = blur;
   }, [blur]);
+
+  const onKeyboardClose = useCallback(() => {
+    blurRef.current?.("keyboard-close-button");
+  }, []);
+
+  const onPlus = useCallback(() => {
+    cancelPendingInput();
+    const current = valueRef.current === "" ? (initialValueRef.current ?? 0) : Number(valueRef.current);
+    const nextValue = onNextRef.current ? onNextRef.current(current) : current + (stepRef.current ?? 1);
+    const newValue = clamp(nextValue, minRef.current, maxRef.current);
+    valueRef.current = newValue != null ? newValue.toString() : "";
+    setValue(newValue != null ? newValue.toString() : "");
+    onPreviewRef.current?.(newValue);
+    if (commitModeRef.current !== "blur" && onInputRef.current) {
+      onInputRef.current(newValue);
+    }
+  }, [cancelPendingInput]);
+
+  const onMinus = useCallback(() => {
+    cancelPendingInput();
+    const current = valueRef.current === "" ? (initialValueRef.current ?? 0) : Number(valueRef.current);
+    const prevValue = onPrevRef.current ? onPrevRef.current(current) : current - (stepRef.current ?? 1);
+    const newValue = clamp(prevValue, minRef.current, maxRef.current);
+    valueRef.current = newValue != null ? newValue.toString() : "";
+    setValue(newValue != null ? newValue.toString() : "");
+    onPreviewRef.current?.(newValue);
+    if (commitModeRef.current !== "blur" && onInputRef.current) {
+      onInputRef.current(newValue);
+    }
+  }, [cancelPendingInput]);
+
+  const onShowCalculator = useCallback(() => {
+    blurRef.current?.("show-calculator");
+    setIsCalculatorOpen(true);
+    const unit = selectedUnitRef.current;
+    if (unit && unit !== "%") {
+      openCalculatorRef.current({ unit });
+    }
+  }, []);
+
+  const onChangeUnits = useCallback((unit: IUnit | IPercentageUnit) => {
+    onChangeUnitsRef.current?.(unit);
+  }, []);
 
   useEffect(() => {
     if (!isFocused) {
@@ -564,47 +635,23 @@ export function InputNumber2(props: IInputNumber2Props): JSX.Element {
           onInput={handleInput}
           inputRef={inputRef}
           keyboardAddon={props.keyboardAddon}
-          onBlur={() => blur("keyboard-close-button")}
-          onPlus={() => {
-            cancelPendingInput();
-            const nextValue = props.onNext ? props.onNext(Number(value)) : Number(value) + (props.step ?? 1);
-            const newValue = clamp(nextValue, props.min, props.max);
-            valueRef.current = newValue != null ? newValue.toString() : "";
-            setValue(newValue != null ? newValue.toString() : "");
-            if (props.onInput) {
-              props.onInput(newValue);
-            }
-          }}
-          onMinus={() => {
-            cancelPendingInput();
-            const prevValue = props.onPrev ? props.onPrev(Number(value)) : Number(value) - (props.step ?? 1);
-            const newValue = clamp(prevValue, props.min, props.max);
-            valueRef.current = newValue != null ? newValue.toString() : "";
-            setValue(newValue != null ? newValue.toString() : "");
-            if (props.onInput) {
-              props.onInput(newValue);
-            }
-          }}
+          onBlur={onKeyboardClose}
+          onPlus={onPlus}
+          onMinus={onMinus}
           allowDot={props.allowDot}
           allowNegative={props.allowNegative}
-          isNegative={value[0] === "-"}
-          withDot={value.includes(".")}
           enableCalculator={props.enableCalculator}
-          onShowCalculator={() => {
-            blur("show-calculator");
-            setIsCalculatorOpen(true);
-            if (props.selectedUnit && props.selectedUnit !== "%") {
-              openCalculator({ unit: props.selectedUnit });
-            }
-          }}
+          onShowCalculator={onShowCalculator}
           enableUnits={props.enableUnits}
-          onChangeUnits={props.onChangeUnits}
+          onChangeUnits={onChangeUnits}
           selectedUnit={props.selectedUnit}
         />
       )}
     </div>
   );
 }
+
+export const InputNumber2 = memo(InputNumber2Inner);
 
 interface ICustomKeyboardProps {
   onInput: (value: string) => void;
@@ -613,9 +660,7 @@ interface ICustomKeyboardProps {
   onMinus: () => void;
   allowDot?: boolean;
   allowNegative?: boolean;
-  isNegative: boolean;
   inputRef: RefObject<HTMLInputElement | null>;
-  withDot: boolean;
   keyboardAddon?: JSX.Element;
 
   enableCalculator?: boolean;
@@ -626,8 +671,34 @@ interface ICustomKeyboardProps {
   selectedUnit?: IUnit | IPercentageUnit;
 }
 
-const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: React.ForwardedRef<HTMLDivElement>) => {
-  const containerRef = typeof window !== "undefined" ? window.document.querySelector("#keyboard") : undefined;
+interface IKeyboardButtonProps {
+  label: string;
+  onPress: (label: string) => void;
+}
+
+const KeyboardButton = memo(function KeyboardButton(props: IKeyboardButtonProps): JSX.Element {
+  const onClick = useCallback(() => props.onPress(props.label), [props.onPress, props.label]);
+  return (
+    <button
+      data-testid={`keyboard-button-${props.label}`}
+      className="p-2 text-2xl bg-background-default active:bg-background-neutral touch-manipulation text-text-primary"
+      onClick={onClick}
+    >
+      {props.label}
+    </button>
+  );
+});
+
+const CustomKeyboardInner = forwardRef((props: ICustomKeyboardProps, ref: React.ForwardedRef<HTMLDivElement>) => {
+  const containerRef = useMemo(
+    () => (typeof window !== "undefined" ? window.document.querySelector("#keyboard") : undefined),
+    []
+  );
+  const keys = useMemo<string[]>(
+    () => ["1", "2", "3", "4", "5", "6", "7", "8", "9", props.allowNegative ? "-" : "", "0", props.allowDot ? "." : ""],
+    [props.allowDot, props.allowNegative]
+  );
+  const handleBackspace = useCallback(() => props.onInput("⌫"), [props.onInput]);
 
   const element = (
     <div
@@ -656,35 +727,9 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: React.Forwa
         </div>
         <div className="flex w-full gap-4 p-4 bg-background-default">
           <div className="grid flex-1 grid-cols-3 gap-2">
-            {[
-              "1",
-              "2",
-              "3",
-              "4",
-              "5",
-              "6",
-              "7",
-              "8",
-              "9",
-              props.allowNegative ? "-" : "",
-              "0",
-              props.allowDot ? "." : "",
-            ].map((key, i) => {
-              if (key) {
-                return (
-                  <button
-                    data-testid={`keyboard-button-${key}`}
-                    key={key}
-                    className="p-2 text-2xl bg-background-default active:bg-background-neutral touch-manipulation text-text-primary"
-                    onClick={() => props.onInput(key)}
-                  >
-                    {key}
-                  </button>
-                );
-              } else {
-                return <div key={`empty-${i}`} />;
-              }
-            })}
+            {keys.map((key, i) =>
+              key ? <KeyboardButton key={key} label={key} onPress={props.onInput} /> : <div key={`empty-${i}`} />
+            )}
           </div>
           <div className="w-24 mt-2">
             <div className="mb-4">
@@ -740,7 +785,7 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: React.Forwa
               <button
                 className="flex items-center justify-center w-full h-10 border rounded touch-manipulation border-border-cardpurple bg-background-cardpurple"
                 data-testid={`keyboard-backspace`}
-                onClick={() => props.onInput("⌫")}
+                onClick={handleBackspace}
               >
                 <IconBackspace />
               </button>
@@ -753,3 +798,5 @@ const CustomKeyboard = forwardRef((props: ICustomKeyboardProps, ref: React.Forwa
 
   return containerRef ? createPortal(element, containerRef) : element;
 });
+
+const CustomKeyboard = memo(CustomKeyboardInner);

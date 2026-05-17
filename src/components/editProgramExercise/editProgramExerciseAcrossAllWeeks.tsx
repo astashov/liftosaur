@@ -406,6 +406,7 @@ function WeightsValue(props: IValueProps): JSX.Element {
           data-testid="weight-value"
           testID="weight-value"
           units={["lb", "kg", "%"] as const}
+          inputCommitMode="blur"
           onBlur={(value) => change(group, (s) => (s.weight = value))}
           showUnitInside={true}
           subscription={undefined}

@@ -7,11 +7,11 @@
     "*.css"
   ],
   "scripts": {
-    "ios": "RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --simulator='iPhone 17e RNW'",
+    "ios": "EX_UPDATES_NATIVE_DEBUG=1 RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --simulator='iPhone 17e RNW'",
     "ios-release": "RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --simulator='iPhone 17e RNW' --mode Release",
-    "ios-device": "RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --device='Anton iPhone Air'",
+    "ios-device": "EX_UPDATES_NATIVE_DEBUG=1 RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --device='Anton iPhone Air'",
     "ios-device-release": "RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --mode Release --device='Anton iPhone Air'",
-    "pod-install": "cd ios && RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static pod install",
+    "pod-install": "cd ios && EX_UPDATES_NATIVE_DEBUG=1 RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static pod install",
     "android": "react-native run-android",
     "android-release": "react-native run-android --mode=release",
     "android-device": "react-native run-android --device 9p6tnjw889cu9pqg",
@@ -136,7 +136,6 @@
     "eslint": "^9.22.0",
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-prettier": "^5.2.3",
-    "expo-dev-client": "^56.0.11",
     "globals": "^16.3.0",
     "googleapis": "^161.0.0",
     "gray-matter": "^4.0.3",

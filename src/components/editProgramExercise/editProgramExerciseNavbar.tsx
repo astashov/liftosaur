@@ -15,7 +15,7 @@ import { ExerciseImage } from "../exerciseImage";
 import { equipmentName, Exercise_get } from "../../models/exercise";
 import { ISettings } from "../../types";
 import { IconSwap } from "../icons/iconSwap";
-import { delayfn } from "../../utils/throttler";
+import { FocusedInputFlush_flush } from "../../utils/focusedInputFlush";
 import { ReactUtils_usePropToRef } from "../../utils/react";
 import { pickerStateFromPlannerExercise } from "../editProgram/editProgramUtils";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
@@ -123,8 +123,10 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
           className="keyboard-close"
           data-testid="save-program-exercise"
           testID="save-program-exercise"
-          onClick={delayfn(() => {
-            const updatedProgram = stateRef.current.current.program;
+          onClick={() => {
+            FocusedInputFlush_flush();
+            setTimeout(() => {
+              const updatedProgram = stateRef.current.current.program;
             if (stateRef.current.ui.fromWorkout) {
               const lensUpdates = [
                 lb<IState>()
@@ -159,8 +161,9 @@ export function EditProgramExerciseNavbar(props: IEditProgramExerciseNavbarProps
                 "Update program from edit exercise"
               );
             }
-            props.dispatch(Thunk_pullScreen());
-          }, 50)}
+              props.dispatch(Thunk_pullScreen());
+            }, 50);
+          }}
         >
           Save
         </Button>

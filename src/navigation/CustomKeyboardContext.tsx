@@ -114,17 +114,18 @@ export function CustomKeyboardProvider(props: { children: ReactNode; applySafeAr
     setHeight(0);
   }, []);
 
+  const activeId = activeConfig?.id ?? null;
   const value = useMemo(
     () => ({
       height,
       animatedHeight,
       measuredHeightRef,
-      activeId: activeConfig?.id ?? null,
+      activeId,
       setHeight,
       openKeyboard,
       closeKeyboard,
     }),
-    [height, animatedHeight, activeConfig, openKeyboard, closeKeyboard]
+    [height, animatedHeight, activeId, openKeyboard, closeKeyboard]
   );
 
   return (

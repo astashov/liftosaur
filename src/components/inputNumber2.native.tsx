@@ -32,6 +32,7 @@ interface IInputNumber2Props {
   onNext?: (value: number | undefined) => number;
   onPrev?: (value: number | undefined) => number;
   onInput?: (value: number | undefined) => void;
+  onPreview?: (value: number | undefined) => void;
   onBlur?: (value: number | undefined) => void;
   keyboardAddon?: JSX.Element;
   after?: () => JSX.Element | undefined;
@@ -77,6 +78,7 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
   const isTypingRef = useRef(isTyping);
   const onBlurRef = useRef(props.onBlur);
   const onInputRef = useRef(props.onInput);
+  const onPreviewRef = useRef(props.onPreview);
   const onNextRef = useRef(props.onNext);
   const onPrevRef = useRef(props.onPrev);
   const allowDotRef = useRef(!!props.allowDot);
@@ -112,37 +114,25 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
     const newValue = clamp(weightValue, minRef.current, maxRef.current);
     valueRef.current = newValue?.toString() ?? "";
     setValue(newValue?.toString() ?? "");
+    onPreviewRef.current?.(newValue);
     if (onBlurRef.current) {
       onBlurRef.current(newValue);
     }
   });
 
-  useEffect(() => {
-    onBlurRef.current = props.onBlur;
-    onInputRef.current = props.onInput;
-    onNextRef.current = props.onNext;
-    onPrevRef.current = props.onPrev;
-  }, [props.onBlur, props.onInput, props.onNext, props.onPrev]);
-
-  useEffect(() => {
-    allowDotRef.current = !!props.allowDot;
-    allowNegativeRef.current = !!props.allowNegative;
-    minRef.current = props.min;
-    maxRef.current = props.max;
-    stepRef.current = props.step;
-    initialValueRef.current = props.initialValue;
-    commitModeRef.current = commitMode;
-    debounceMsRef.current = debounceMs;
-  }, [
-    props.allowDot,
-    props.allowNegative,
-    props.min,
-    props.max,
-    props.step,
-    props.initialValue,
-    commitMode,
-    debounceMs,
-  ]);
+  onBlurRef.current = props.onBlur;
+  onInputRef.current = props.onInput;
+  onPreviewRef.current = props.onPreview;
+  onNextRef.current = props.onNext;
+  onPrevRef.current = props.onPrev;
+  allowDotRef.current = !!props.allowDot;
+  allowNegativeRef.current = !!props.allowNegative;
+  minRef.current = props.min;
+  maxRef.current = props.max;
+  stepRef.current = props.step;
+  initialValueRef.current = props.initialValue;
+  commitModeRef.current = commitMode;
+  debounceMsRef.current = debounceMs;
 
   useEffect(() => {
     if (initialValue === valueRef.current) {
@@ -182,6 +172,7 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
     const newValueNum = clamp(valueRef.current, minRef.current, maxRef.current);
     valueRef.current = newValueNum != null ? newValueNum.toString() : "";
     setValue(newValueNum != null ? newValueNum.toString() : "");
+    onPreviewRef.current?.(newValueNum);
     if (onBlurRef.current) {
       onBlurRef.current(newValueNum);
     }
@@ -269,26 +260,29 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
     }
     valueRef.current = newValue;
     setValue(newValue);
-    if (onInputRef.current && !newValue.endsWith(".")) {
+    if (!newValue.endsWith(".")) {
       const newValueNum = clamp(newValue, minRef.current, maxRef.current);
-      const mode = commitModeRef.current;
-      if (mode === "live") {
-        onInputRef.current(newValueNum);
-      } else if (mode === "debounced") {
-        pendingInputRef.current = newValueNum;
-        hasPendingInputRef.current = true;
-        if (debounceTimerRef.current != null) {
-          clearTimeout(debounceTimerRef.current);
-        }
-        debounceTimerRef.current = setTimeout(() => {
-          debounceTimerRef.current = null;
-          if (hasPendingInputRef.current && onInputRef.current) {
-            const v = pendingInputRef.current;
-            hasPendingInputRef.current = false;
-            pendingInputRef.current = undefined;
-            onInputRef.current(v);
+      onPreviewRef.current?.(newValueNum);
+      if (onInputRef.current) {
+        const mode = commitModeRef.current;
+        if (mode === "live") {
+          onInputRef.current(newValueNum);
+        } else if (mode === "debounced") {
+          pendingInputRef.current = newValueNum;
+          hasPendingInputRef.current = true;
+          if (debounceTimerRef.current != null) {
+            clearTimeout(debounceTimerRef.current);
           }
-        }, debounceMsRef.current);
+          debounceTimerRef.current = setTimeout(() => {
+            debounceTimerRef.current = null;
+            if (hasPendingInputRef.current && onInputRef.current) {
+              const v = pendingInputRef.current;
+              hasPendingInputRef.current = false;
+              pendingInputRef.current = undefined;
+              onInputRef.current(v);
+            }
+          }, debounceMsRef.current);
+        }
       }
     }
   }, []);
@@ -306,7 +300,8 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
     const newValue = clamp(nextValue, minRef.current, maxRef.current);
     valueRef.current = newValue != null ? newValue.toString() : "";
     setValue(newValue != null ? newValue.toString() : "");
-    if (onInputRef.current) {
+    onPreviewRef.current?.(newValue);
+    if (commitModeRef.current !== "blur" && onInputRef.current) {
       onInputRef.current(newValue);
     }
   }, []);
@@ -324,14 +319,14 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
     const newValue = clamp(prevValue, minRef.current, maxRef.current);
     valueRef.current = newValue != null ? newValue.toString() : "";
     setValue(newValue != null ? newValue.toString() : "");
-    if (onInputRef.current) {
+    onPreviewRef.current?.(newValue);
+    if (commitModeRef.current !== "blur" && onInputRef.current) {
       onInputRef.current(newValue);
     }
   }, []);
 
-  const focusSelf = useCallback(() => {
-    scrollIntoView();
-    const config: IKeyboardConfig = {
+  const buildKeyboardConfig = useCallback((): IKeyboardConfig => {
+    return {
       id: myId,
       onInput: handleInput,
       onBlur: closeKeyboard,
@@ -354,15 +349,12 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
       enableUnits: props.enableUnits,
       selectedUnit: props.selectedUnit,
     };
-    openKeyboard(config);
   }, [
     myId,
-    scrollIntoView,
     handleInput,
     handlePlus,
     handleMinus,
     closeKeyboard,
-    openKeyboard,
     openCalculator,
     flushPendingInput,
     props.allowDot,
@@ -374,6 +366,16 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
     props.onChangeUnits,
   ]);
 
+  const focusSelf = useCallback(() => {
+    scrollIntoView();
+    openKeyboard(buildKeyboardConfig());
+  }, [scrollIntoView, openKeyboard, buildKeyboardConfig]);
+
+  useEffect(() => {
+    if (!isFocused) return;
+    openKeyboard(buildKeyboardConfig());
+  }, [isFocused, buildKeyboardConfig, openKeyboard]);
+
   useEffect(() => {
     return () => {
       flushPendingInput();
@@ -382,6 +384,10 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
         debounceTimerRef.current = null;
       }
       if (prevFocusedRef.current) {
+        const newValueNum = clamp(valueRef.current, minRef.current, maxRef.current);
+        if (onBlurRef.current) {
+          onBlurRef.current(newValueNum);
+        }
         closeKeyboard();
       }
     };
