@@ -28,6 +28,7 @@ import { ProgramToPlanner } from "../../models/programToPlanner";
 import { WebWorkoutModals } from "./webWorkoutModals";
 import { useAppState } from "../../navigation/StateContext";
 import { IState, updateState } from "../../models/state";
+import { useProgressiveItems } from "../../utils/useProgressiveItems";
 
 function buildDayDispatch(
   playgroundDispatch: ILensDispatch<IProgramPreviewPlaygroundState>,
@@ -232,17 +233,25 @@ interface IProgramPreviewPlaygroundInnerProps {
   evaluatedProgram: IEvaluatedProgram;
 }
 
-function renderWeekContent(
-  week: { name: string; days: IProgramPreviewPlaygroundDaySetupWithProgress[] },
-  weekIndex: number,
-  state: IProgramPreviewPlaygroundState,
-  props: IProgramPreviewPlaygroundProps,
-  dispatch: ILensDispatch<IProgramPreviewPlaygroundState>,
-  evaluatedProgram: IEvaluatedProgram,
-  handleProgressChange: (wIndex: number, dayIndex: number, newProgress: IHistoryRecord) => void,
-  handleFinish: (wIndex: number, dayIndex: number) => void
-): JSX.Element {
+interface IPlaygroundWeekContentProps {
+  week: { name: string; days: IProgramPreviewPlaygroundDaySetupWithProgress[] };
+  weekIndex: number;
+  state: IProgramPreviewPlaygroundState;
+  props: IProgramPreviewPlaygroundProps;
+  dispatch: ILensDispatch<IProgramPreviewPlaygroundState>;
+  evaluatedProgram: IEvaluatedProgram;
+  handleProgressChange: (wIndex: number, dayIndex: number, newProgress: IHistoryRecord) => void;
+  handleFinish: (wIndex: number, dayIndex: number) => void;
+}
+
+function PlaygroundWeekContent(p: IPlaygroundWeekContentProps): JSX.Element {
+  const { week, weekIndex, state, props, dispatch, evaluatedProgram, handleProgressChange, handleFinish } = p;
   const programWeekDescription = evaluatedProgram.weeks[weekIndex]?.description;
+  const visibleDays = useProgressiveItems(week.days, {
+    initialBatch: 2,
+    batchSize: 2,
+    debugLabel: `Playground/week-${weekIndex}`,
+  });
   return (
     <View>
       {programWeekDescription && (
@@ -251,7 +260,7 @@ function renderWeekContent(
         </View>
       )}
       <View className="flex-row flex-wrap justify-center mt-4" style={{ gap: 24 }}>
-        {week.days.map((d: IProgramPreviewPlaygroundDaySetupWithProgress, i) => {
+        {visibleDays.map((d: IProgramPreviewPlaygroundDaySetupWithProgress, i) => {
           return (
             <View key={i} style={{ maxWidth: 384, minWidth: 288 }} className="flex-1">
               <ProgramPreviewPlaygroundDay
@@ -333,18 +342,18 @@ function ProgramPreviewPlaygroundInner(p: IProgramPreviewPlaygroundInnerProps): 
       headerContent={props.headerContent}
       weekNames={state.progresses.map((w) => w.name)}
       singleWeek={state.progresses.length <= 1}
-      renderWeekContent={(weekIndex) =>
-        renderWeekContent(
-          state.progresses[weekIndex],
-          weekIndex,
-          state,
-          props,
-          dispatch,
-          evaluatedProgram,
-          handleProgressChange,
-          handleFinish
-        )
-      }
+      renderWeekContent={(weekIndex) => (
+        <PlaygroundWeekContent
+          week={state.progresses[weekIndex]}
+          weekIndex={weekIndex}
+          state={state}
+          props={props}
+          dispatch={dispatch}
+          evaluatedProgram={evaluatedProgram}
+          handleProgressChange={handleProgressChange}
+          handleFinish={handleFinish}
+        />
+      )}
       scrollableTabsProps={props.scrollableTabsProps}
       hasNavbar={props.hasNavbar}
       scrollTabZIndex={props.scrollTabZIndex}

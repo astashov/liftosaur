@@ -22,6 +22,7 @@ import { applyChangesInEditor } from "./editProgramUtils";
 import { IDispatch } from "../../ducks/types";
 import { EditProgramUiHelpers_onDaysChange } from "./editProgramUi/editProgramUiHelpers";
 import { navigationRef } from "../../navigation/navigationRef";
+import { useProgressiveItems } from "../../utils/useProgressiveItems";
 
 interface IEditProgramViewProps {
   state: IPlannerState;
@@ -55,6 +56,11 @@ export const EditProgramUiWeekView = memo(function EditProgramUiWeekView(props: 
   const dayIndexOffset = Program_getDayNumber(planner, currentWeekIndex + 1, 1);
   const allDaysCollapsed = Array.from(currentWeek.days).every((d, i) => {
     return ui.dayUi.collapsed.has(`${currentWeekIndex}-${i}`);
+  });
+  const visibleDays = useProgressiveItems(currentWeek.days, {
+    initialBatch: 2,
+    batchSize: 2,
+    debugLabel: `Edit/week-${currentWeekIndex}-days`,
   });
 
   return (
@@ -166,7 +172,7 @@ export const EditProgramUiWeekView = memo(function EditProgramUiWeekView(props: 
         </View>
       </View>
       <DraggableList2
-        items={currentWeek.days}
+        items={visibleDays}
         mode="vertical"
         onDragEnd={(startIndex, endIndex) => {
           applyChangesInEditor(props.plannerDispatch, () => {

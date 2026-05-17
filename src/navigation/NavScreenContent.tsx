@@ -1,4 +1,4 @@
-import { createContext, JSX, ReactNode, RefObject, useCallback, useMemo, useRef, useState } from "react";
+import { JSX, ReactNode, useCallback, useMemo, useRef, useState } from "react";
 import {
   ScrollView,
   NativeSyntheticEvent,
@@ -10,16 +10,10 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useCustomKeyboardAnimatedHeight } from "./CustomKeyboardContext";
+import { INavScreenScrollListener, NavScreenScrollContext } from "./NavScreenScrollContext";
 
-export type INavScreenScrollListener = (e: NativeSyntheticEvent<NativeScrollEvent>) => void;
-
-export interface INavScreenScrollContextValue {
-  scrollRef: RefObject<ScrollView | null>;
-  scrollYRef: RefObject<number>;
-  addScrollListener: (listener: INavScreenScrollListener) => () => void;
-}
-
-export const NavScreenScrollContext = createContext<INavScreenScrollContextValue | null>(null);
+export { NavScreenScrollContext } from "./NavScreenScrollContext";
+export type { INavScreenScrollListener, INavScreenScrollContextValue } from "./NavScreenScrollContext";
 
 export function NavScreenContent(props: {
   children: ReactNode;
