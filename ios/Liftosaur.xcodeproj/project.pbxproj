@@ -11,6 +11,7 @@
 		12F317DBE89387792B8C2788 /* notification.m4r in Resources */ = {isa = PBXBuildFile; fileRef = 91FAA5A7B2D2A2141783C9C5 /* notification.m4r */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		2B45EA7869F3FB4183C4A4CE /* LiftosaurTimerImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = B65E29D489BF686568C6787C /* LiftosaurTimerImpl.swift */; };
+		2C22A34FB039FEBA75BBB641 /* Pods_Liftosaur.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0880623F1BFA46C212C4C21F /* Pods_Liftosaur.framework */; };
 		2CE4394B21A1DBBE08022D06 /* RCTLiftosaurTimer.mm in Sources */ = {isa = PBXBuildFile; fileRef = CAF9A9419BADC6FB0293A37D /* RCTLiftosaurTimer.mm */; };
 		3A606C432FAB8D1800799977 /* Store.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 3A606C422FAB8D1800799977 /* Store.storekit */; };
 		3AACC4F92FB2A15D001C68AA /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AACC4F82FB2A15D001C68AA /* WidgetKit.framework */; };
@@ -119,7 +120,6 @@
 		EE0009000000000000000009 /* LiftosaurWorkoutMirroringImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0008000000000000000008 /* LiftosaurWorkoutMirroringImpl.swift */; };
 		EE0011000000000000000011 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = EE0010000000000000000010 /* Expo.plist */; };
 		EE0021000000000000000021 /* codesigning.pem in Resources */ = {isa = PBXBuildFile; fileRef = EE0020000000000000000020 /* codesigning.pem */; };
-		FE510CECF74A145495183B2A /* Pods_Liftosaur.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 971ABB2C96B7FBF70D8D6C7A /* Pods_Liftosaur.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -165,6 +165,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0880623F1BFA46C212C4C21F /* Pods_Liftosaur.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Liftosaur.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0C643222D97503FBA997CA59 /* RCTLiftosaurLiveActivity.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTLiftosaurLiveActivity.h; path = Liftosaur/RCTLiftosaurLiveActivity.h; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* Liftosaur.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Liftosaur.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Liftosaur/Images.xcassets; sourceTree = "<group>"; };
@@ -255,7 +256,6 @@
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Liftosaur/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		8B4BDC15E59DDB21DA61FB5B /* LiftosaurLiveActivityImpl.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LiftosaurLiveActivityImpl.swift; path = Liftosaur/LiftosaurLiveActivityImpl.swift; sourceTree = "<group>"; };
 		91FAA5A7B2D2A2141783C9C5 /* notification.m4r */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file; name = notification.m4r; path = Liftosaur/notification.m4r; sourceTree = "<group>"; };
-		971ABB2C96B7FBF70D8D6C7A /* Pods_Liftosaur.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Liftosaur.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		9FBEDEE80EFF415DAB4E7192 /* Poppins-BoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-BoldItalic.ttf"; path = "../assets/fonts/Poppins-BoldItalic.ttf"; sourceTree = "<group>"; };
 		A95E3F373AF047269613648A /* Poppins-SemiBoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-SemiBoldItalic.ttf"; path = "../assets/fonts/Poppins-SemiBoldItalic.ttf"; sourceTree = "<group>"; };
 		B65E29D489BF686568C6787C /* LiftosaurTimerImpl.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LiftosaurTimerImpl.swift; path = Liftosaur/LiftosaurTimerImpl.swift; sourceTree = "<group>"; };
@@ -283,7 +283,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				FE510CECF74A145495183B2A /* Pods_Liftosaur.framework in Frameworks */,
+				2C22A34FB039FEBA75BBB641 /* Pods_Liftosaur.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -362,7 +362,7 @@
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				3AACC4F82FB2A15D001C68AA /* WidgetKit.framework */,
 				3AACC4FA2FB2A15D001C68AA /* SwiftUI.framework */,
-				971ABB2C96B7FBF70D8D6C7A /* Pods_Liftosaur.framework */,
+				0880623F1BFA46C212C4C21F /* Pods_Liftosaur.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -644,7 +644,7 @@
 			);
 			mainGroup = 83CBB9F61A601CBA00E9B192;
 			packageReferences = (
-				3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "Packages/QuickJSCore" */,
+				3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "QuickJSCore" */,
 			);
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
 			projectDirPath = "";
@@ -752,13 +752,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -819,13 +815,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1458,7 +1450,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "Packages/QuickJSCore" */ = {
+		3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "QuickJSCore" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/QuickJSCore;
 		};

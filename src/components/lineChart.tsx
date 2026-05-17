@@ -107,29 +107,61 @@ function timeTicks(minSec: number, maxSec: number, targetCount: number): number[
   return ticks;
 }
 
-function buildPath(
+function clipSeriesToViewport(
   timestamps: (number | null)[],
   values: (number | null)[],
-  xToPx: (x: number) => number,
-  yToPx: (y: number) => number
-): string {
-  let d = "";
-  let penDown = false;
+  xMin: number,
+  xMax: number
+): [number, number][] {
+  const pts: [number, number][] = [];
   for (let i = 0; i < timestamps.length; i++) {
     const t = timestamps[i];
     const v = values[i];
     if (t == null || v == null || !isFinite(v)) {
-      penDown = false;
       continue;
     }
+    pts.push([t, v]);
+  }
+  const interpAt = (a: [number, number], b: [number, number], xAt: number): [number, number] => {
+    const r = (xAt - a[0]) / (b[0] - a[0]);
+    return [xAt, a[1] + (b[1] - a[1]) * r];
+  };
+  const out: [number, number][] = [];
+  if (pts.length > 0 && pts[0][0] >= xMin && pts[0][0] <= xMax) {
+    out.push(pts[0]);
+  }
+  for (let i = 1; i < pts.length; i++) {
+    const p1 = pts[i - 1];
+    const p2 = pts[i];
+    if (p2[0] < xMin) {
+      continue;
+    }
+    if (p1[0] > xMax) {
+      break;
+    }
+    if (p1[0] < xMin && p2[0] >= xMin) {
+      out.push(interpAt(p1, p2, xMin));
+    }
+    if (p2[0] > xMax) {
+      out.push(interpAt(p1, p2, xMax));
+      break;
+    }
+    out.push(p2);
+  }
+  return out;
+}
+
+function buildPath(
+  points: [number, number][],
+  xToPx: (x: number) => number,
+  yToPx: (y: number) => number
+): string {
+  let d = "";
+  for (let i = 0; i < points.length; i++) {
+    const [t, v] = points[i];
     const px = xToPx(t);
     const py = yToPx(v);
-    if (!penDown) {
-      d += `M${px.toFixed(2)} ${py.toFixed(2)}`;
-      penDown = true;
-    } else {
-      d += `L${px.toFixed(2)} ${py.toFixed(2)}`;
-    }
+    d += (i === 0 ? "M" : "L") + `${px.toFixed(2)} ${py.toFixed(2)}`;
   }
   return d;
 }
@@ -203,23 +235,20 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
   const { xMin, xMax } = viewport;
   const xRange = Math.max(1, xMax - xMin);
 
+  const clippedSeries = useMemo(() => {
+    return props.series.map((s, i) => {
+      if (!s.show) {
+        return [] as [number, number][];
+      }
+      return clipSeriesToViewport(timestamps, props.data[i + 1] || [], xMin, xMax);
+    });
+  }, [props.series, props.data, xMin, xMax, timestamps]);
+
   const { yMin, yMax } = useMemo(() => {
     let lo = Infinity;
     let hi = -Infinity;
-    for (let s = 0; s < props.series.length; s++) {
-      if (!props.series[s].show) {
-        continue;
-      }
-      const values = props.data[s + 1] || [];
-      for (let i = 0; i < timestamps.length; i++) {
-        const t = timestamps[i];
-        const v = values[i];
-        if (t == null || v == null || !isFinite(v)) {
-          continue;
-        }
-        if (t < xMin || t > xMax) {
-          continue;
-        }
+    for (const points of clippedSeries) {
+      for (const [, v] of points) {
         if (v < lo) {
           lo = v;
         }
@@ -237,7 +266,7 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
     }
     const pad = (hi - lo) * 0.1;
     return { yMin: lo - pad, yMax: hi + pad };
-  }, [props.series, props.data, xMin, xMax, timestamps]);
+  }, [clippedSeries]);
 
   const yRange = Math.max(1e-9, yMax - yMin);
 
@@ -451,8 +480,7 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
                 if (!s.show) {
                   return null;
                 }
-                const values = props.data[i + 1] || [];
-                const d = buildPath(timestamps, values, xToPx, yToPx);
+                const d = buildPath(clippedSeries[i], xToPx, yToPx);
                 if (!d) {
                   return null;
                 }

@@ -103,6 +103,15 @@ function getData(
     [number[], (number | null)[], (number | null)[], (number | null)[], (number | null)[], (number | null)[]]
   >(
     (acc, i) => {
+      const lastIdx = acc[0].length - 1;
+      if (lastIdx >= 0 && acc[0][lastIdx] === i[0]) {
+        acc[1][lastIdx] = acc[1][lastIdx] ?? i[1];
+        acc[2][lastIdx] = acc[2][lastIdx] ?? i[2];
+        acc[3][lastIdx] = acc[3][lastIdx] ?? i[3];
+        acc[4][lastIdx] = acc[4][lastIdx] ?? i[4];
+        acc[5][lastIdx] = acc[5][lastIdx] ?? i[5];
+        return acc;
+      }
       acc[0].push(i[0]);
       acc[1].push(i[1]);
       acc[2].push(i[2]);

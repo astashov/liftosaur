@@ -9,6 +9,7 @@ import { Button } from "./button";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import StorySlider from "./storySlider";
 import { IconKettlebell } from "./icons/iconKettlebell";
+import { Svg, Defs, LinearGradient, Stop, Rect } from "./primitives/svg";
 import { Tailwind_colors } from "../utils/tailwindConfig";
 import { IconWorkoutProgress } from "./icons/iconWorkoutProgress";
 import { IconEditor } from "./icons/iconEditor";
@@ -210,11 +211,23 @@ interface IRestSlideProps {
 }
 
 function RestSlide(props: IRestSlideProps): JSX.Element {
+  const gradientId = `slide-gradient-${props.image}`;
   return (
     <View
-      className={`flex flex-col w-full h-full overflow-hidden border ${props.borderColor} rounded-2xl ${props.bgColor}`}
+      className={`relative flex flex-col w-full h-full overflow-hidden border ${props.borderColor} rounded-2xl ${props.bgColor}`}
     >
-      <View className="h-12 px-8" style={{ backgroundColor: props.bgColorHexFrom }} />
+      <View pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, height: 80 }}>
+        <Svg width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 100 100">
+          <Defs>
+            <LinearGradient id={gradientId} x1="0" y1="0" x2="0" y2="100" gradientUnits="userSpaceOnUse">
+              <Stop offset="0%" stopColor={props.bgColorHexFrom} stopOpacity={0.8} />
+              <Stop offset="100%" stopColor={props.bgColorHexFrom} stopOpacity={0} />
+            </LinearGradient>
+          </Defs>
+          <Rect x="0" y="0" width="100" height="100" fill={`url(#${gradientId})`} />
+        </Svg>
+      </View>
+      <View className="h-12 px-8" />
       <View className="px-8">{props.header}</View>
       <Text className="px-8 py-6 text-xl font-semibold text-center text-black">{props.bodyText}</Text>
       <View className="items-center justify-center flex-1 w-full">
