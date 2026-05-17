@@ -10,12 +10,14 @@ import { StringUtils_pluralize } from "../../src/utils/string";
 import { IEither } from "../../src/utils/types";
 import { Tailwind_semantic } from "../../src/utils/tailwindConfig";
 
+declare const __non_webpack_require__: NodeRequire;
+
 let resvgInitialized = false;
 async function initResvgWasm(): Promise<void> {
   if (resvgInitialized) {
     return;
   }
-  const wasmPath = require.resolve("@resvg/resvg-wasm/index_bg.wasm");
+  const wasmPath = __non_webpack_require__.resolve("@resvg/resvg-wasm/index_bg.wasm");
   const wasmBuf = await fs.promises.readFile(wasmPath);
   await initWasm(wasmBuf);
   resvgInitialized = true;
