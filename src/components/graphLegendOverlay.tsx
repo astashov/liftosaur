@@ -19,6 +19,7 @@ export function GraphLegendOverlay(props: IGraphLegendOverlayProps): JSX.Element
   return (
     <View
       className="absolute border rounded-lg left-2 right-2 border-border-cardpurple"
+      dataSet={{ graphLegend: "true" }}
       style={{
         top: -60,
         zIndex: 10,

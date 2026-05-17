@@ -2,6 +2,17 @@ import { JSX, ReactNode, useCallback, useEffect, useRef, useState } from "react"
 import { View, StyleProp, ViewStyle } from "react-native";
 import { SendMessage_isIosOrAndroid } from "../utils/sendMessage";
 
+function targetIsInsideGraphLegend(target: Node): boolean {
+  let el: Node | null = target;
+  while (el) {
+    if (el instanceof HTMLElement && el.dataset && el.dataset.graphLegend === "true") {
+      return true;
+    }
+    el = el.parentNode;
+  }
+  return false;
+}
+
 export interface ILineChartGesturesArgs {
   plotWidth: number;
   padLeft: number;
@@ -129,6 +140,9 @@ export function useLineChartGestures(args: ILineChartGesturesArgs): ILineChartGe
       }
       const target = e.target as Node | null;
       if (target && node.contains(target)) {
+        return;
+      }
+      if (target && targetIsInsideGraphLegend(target)) {
         return;
       }
       setFrozen(false);
@@ -313,6 +327,9 @@ export function useLineChartGestures(args: ILineChartGesturesArgs): ILineChartGe
       }
       const target = e.target as Node | null;
       if (target && node.contains(target)) {
+        return;
+      }
+      if (target && targetIsInsideGraphLegend(target)) {
         return;
       }
       setFrozen(false);
