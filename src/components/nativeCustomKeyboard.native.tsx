@@ -1,5 +1,6 @@
 import { JSX, memo, ReactNode, useCallback, useMemo } from "react";
 import { View, Pressable, Platform, LayoutChangeEvent } from "react-native";
+import ReactNativeHapticFeedback from "react-native-haptic-feedback";
 import { Text } from "./primitives/text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { IconKeyboardClose } from "./icons/iconKeyboardClose";
@@ -42,6 +43,8 @@ const keyboardShadowStyle = Platform.select({
 const semanticColors = Tailwind_semantic();
 const keyButtonPressedBg = semanticColors.background.neutral;
 const keyButtonDefaultBg = semanticColors.background.default;
+
+const HAPTIC_OPTIONS = { enableVibrateFallback: false, ignoreAndroidSystemSettings: false };
 
 export const NativeCustomKeyboard = memo(function NativeCustomKeyboard(props: INativeCustomKeyboardProps): JSX.Element {
   const insets = useSafeAreaInsets();
@@ -195,7 +198,10 @@ interface IUnitButtonProps {
 }
 
 const UnitButton = memo(function UnitButton(props: IUnitButtonProps): JSX.Element {
-  const onPress = useCallback(() => props.onPress?.(props.unit), [props.onPress, props.unit]);
+  const onPress = useCallback(() => {
+    ReactNativeHapticFeedback.trigger("impactLight", HAPTIC_OPTIONS);
+    props.onPress?.(props.unit);
+  }, [props.onPress, props.unit]);
   return (
     <Pressable
       testID={`keyboard-unit-${props.unit}`}

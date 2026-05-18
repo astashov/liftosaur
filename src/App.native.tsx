@@ -162,6 +162,7 @@ import { IEnv, IState } from "./models/state";
 import { AsyncQueue } from "./utils/asyncQueue";
 import { StateContext } from "./navigation/StateContext";
 import { ModalStateProvider } from "./navigation/ModalStateContext";
+import { CustomKeyboardProvider } from "./navigation/CustomKeyboardContext";
 import { AppNavigator } from "./navigation/AppNavigator";
 import { navigationRef } from "./navigation/navigationRef";
 import { getCurrentScreenData } from "./navigation/navigationService";
@@ -499,30 +500,32 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
     <AppContext.Provider value={{ service, isApp: true }}>
       <StateContext.Provider value={{ state, dispatch }}>
         <ModalStateProvider>
-          <SystemBars style="auto" />
-          <NavigationContainer
-            ref={navigationRef}
-            onStateChange={() => {
-              const route = navigationRef.getCurrentRoute();
-              setCurrentScreenName(route?.name as IScreen | undefined);
-            }}
-            onReady={() => {
-              const route = navigationRef.getCurrentRoute();
-              setCurrentScreenName(route?.name as IScreen | undefined);
-              setIsNavReady(true);
-            }}
-          >
-            <AppNavigator initialScreen={initialScreen} />
-          </NavigationContainer>
-          {progress && currentScreenName && screensWithoutTimer.indexOf(currentScreenName) === -1 && (
-            <RestTimer
-              progress={progress}
-              dispatch={dispatch}
-              settings={state.storage.settings}
-              subscription={state.storage.subscription}
-            />
-          )}
-          <ActionSheetHost />
+          <CustomKeyboardProvider>
+            <SystemBars style="auto" />
+            <NavigationContainer
+              ref={navigationRef}
+              onStateChange={() => {
+                const route = navigationRef.getCurrentRoute();
+                setCurrentScreenName(route?.name as IScreen | undefined);
+              }}
+              onReady={() => {
+                const route = navigationRef.getCurrentRoute();
+                setCurrentScreenName(route?.name as IScreen | undefined);
+                setIsNavReady(true);
+              }}
+            >
+              <AppNavigator initialScreen={initialScreen} />
+            </NavigationContainer>
+            {progress && currentScreenName && screensWithoutTimer.indexOf(currentScreenName) === -1 && (
+              <RestTimer
+                progress={progress}
+                dispatch={dispatch}
+                settings={state.storage.settings}
+                subscription={state.storage.subscription}
+              />
+            )}
+            <ActionSheetHost />
+          </CustomKeyboardProvider>
         </ModalStateProvider>
       </StateContext.Provider>
     </AppContext.Provider>

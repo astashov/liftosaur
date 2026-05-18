@@ -1,6 +1,7 @@
-import { JSX, useEffect, useRef, useState } from "react";
-import { View, Pressable, Platform } from "react-native";
+import { JSX, useEffect, useMemo, useRef, useState } from "react";
+import { View, Pressable, Platform, Animated } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useCustomKeyboardAnimatedHeight } from "../navigation/CustomKeyboardContext";
 import { Text } from "./primitives/text";
 import { TimeUtils_formatMMSS } from "../utils/time";
 import { IDispatch } from "../ducks/types";
@@ -31,6 +32,12 @@ export function RestTimer(props: IProps): JSX.Element | null {
   const [, setTick] = useState<number>(0);
   const [isExpanded, setIsExpanded] = useState(false);
   const insets = useSafeAreaInsets();
+  const keyboardAnimatedHeight = useCustomKeyboardAnimatedHeight();
+  const baseBottom = insets.bottom + 80;
+  const animatedBottom = useMemo(
+    () => Animated.add(keyboardAnimatedHeight, baseBottom),
+    [keyboardAnimatedHeight, baseBottom]
+  );
   const { progress } = props;
   const { timer, timerSince } = progress;
 
@@ -86,11 +93,12 @@ export function RestTimer(props: IProps): JSX.Element | null {
     progress.timerEntryIndex != null && progress.timerMode != null
       ? Reps_findNextEntryAndSetIndex(progress, progress.timerEntryIndex, progress.timerMode)
       : undefined;
-  const bottom = insets.bottom + 80;
-
   if (isExpanded) {
     return (
-      <View style={[{ position: "absolute", left: 16, right: 16, bottom, zIndex: 30 }]} pointerEvents="box-none">
+      <Animated.View
+        style={[{ position: "absolute", left: 16, right: 16, bottom: animatedBottom, zIndex: 30 }]}
+        pointerEvents="box-none"
+      >
         <View className={`flex-row ${bgClass} rounded-lg`} style={shadowStyle}>
           <Pressable
             data-testid="rest-timer-minus"
@@ -156,12 +164,15 @@ export function RestTimer(props: IProps): JSX.Element | null {
             <Text className="font-bold text-text-alwayswhite">+15s</Text>
           </Pressable>
         </View>
-      </View>
+      </Animated.View>
     );
   }
 
   return (
-    <View style={[{ position: "absolute", right: 16, bottom, zIndex: 30 }]} pointerEvents="box-none">
+    <Animated.View
+      style={[{ position: "absolute", right: 16, bottom: animatedBottom, zIndex: 30 }]}
+      pointerEvents="box-none"
+    >
       <Pressable
         data-testid="rest-timer-collapsed"
         testID="rest-timer-collapsed"
@@ -176,6 +187,6 @@ export function RestTimer(props: IProps): JSX.Element | null {
           {TimeUtils_formatMMSS(timer * 1000)}
         </Text>
       </Pressable>
-    </View>
+    </Animated.View>
   );
 }

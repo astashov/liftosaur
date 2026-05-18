@@ -51,7 +51,6 @@ import {
   NavScreenApiKeys,
 } from "./screens/NavScreenMe";
 import { Footer2Wrapper } from "./screens/NavScreenFooter2";
-import { CustomKeyboardProvider } from "./CustomKeyboardContext";
 import { NavModalMonthCalendar } from "./modals/NavModalMonthCalendar";
 import { NavModalTour } from "./modals/NavModalTour";
 import { NavModalChangeNextDay } from "./modals/NavModalChangeNextDay";
@@ -294,8 +293,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
   const isOnboarding = initialScreen ? onboardingScreens.includes(initialScreen) : false;
   return (
     <InitialScreenContext.Provider value={initialScreen}>
-      <CustomKeyboardProvider>
-        <RootStack.Navigator
+      <RootStack.Navigator
           screenOptions={{ headerShown: false, animation: "none", freezeOnBlur: true }}
           initialRouteName={isOnboarding ? "onboarding" : "mainTabs"}
         >
@@ -435,7 +433,6 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
             />
           </RootStack.Group>
         </RootStack.Navigator>
-      </CustomKeyboardProvider>
     </InitialScreenContext.Provider>
   );
 }

@@ -65,6 +65,8 @@ export function CustomKeyboardProvider(props: { children: ReactNode; applySafeAr
   const [shouldMount, setShouldMount] = useState(false);
   const slideY = useRef(new Animated.Value(400)).current;
   const prevActiveRef = useRef<IKeyboardConfig | null>(null);
+  const touchStartRef = useRef<{ x: number; y: number; openGen: number } | null>(null);
+  const openGenRef = useRef(0);
   const insets = useSafeAreaInsets();
   const bottomOverflow = props.applySafeAreaBottom === false ? insets.bottom : 0;
 
@@ -103,6 +105,7 @@ export function CustomKeyboardProvider(props: { children: ReactNode; applySafeAr
   }, [activeConfig, slideY]);
 
   const openKeyboard = useCallback((config: IKeyboardConfig) => {
+    openGenRef.current += 1;
     setActiveConfig(config);
     if (measuredHeightRef.current > 0) {
       setHeight(measuredHeightRef.current);
@@ -130,7 +133,43 @@ export function CustomKeyboardProvider(props: { children: ReactNode; applySafeAr
 
   return (
     <CustomKeyboardContext.Provider value={value}>
-      {props.children}
+      <View
+        style={{ flex: 1 }}
+        onTouchStart={(e) => {
+          if (activeConfig == null) {
+            return;
+          }
+          const t = e.nativeEvent.touches[0];
+          if (!t) {
+            return;
+          }
+          touchStartRef.current = { x: t.pageX, y: t.pageY, openGen: openGenRef.current };
+        }}
+        onTouchEnd={(e) => {
+          const start = touchStartRef.current;
+          touchStartRef.current = null;
+          if (!start || activeConfig == null) {
+            return;
+          }
+          if (openGenRef.current !== start.openGen) {
+            return;
+          }
+          const t = e.nativeEvent.changedTouches[0];
+          if (!t) {
+            return;
+          }
+          const dx = t.pageX - start.x;
+          const dy = t.pageY - start.y;
+          if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+            closeKeyboard();
+          }
+        }}
+        onTouchCancel={() => {
+          touchStartRef.current = null;
+        }}
+      >
+        {props.children}
+      </View>
       {shouldMount && (
         <View pointerEvents="box-none" style={[StyleSheet.absoluteFill, { bottom: -bottomOverflow }]}>
           <View pointerEvents="box-none" className="flex-1 justify-end">

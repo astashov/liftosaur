@@ -12,6 +12,7 @@ import {
   IKeyboardConfig,
   useCloseCustomKeyboard,
   useCustomKeyboardActiveId,
+  useCustomKeyboardHeight,
   useMeasuredKeyboardHeightRef,
   useOpenCustomKeyboard,
 } from "../navigation/CustomKeyboardContext";
@@ -101,6 +102,7 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
   const pressableRef = useRef<View>(null);
   const scrollCtx = useContext(NavScreenScrollContext);
   const measuredKeyboardHeightRef = useMeasuredKeyboardHeightRef();
+  const keyboardHeight = useCustomKeyboardHeight();
   const openKeyboard = useOpenCustomKeyboard();
   const closeKeyboard = useCloseCustomKeyboard();
   const activeId = useCustomKeyboardActiveId();
@@ -206,8 +208,13 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
     if (!scrollNode || !scrollYRef || !pressableNode) {
       return;
     }
-    const keyboardHeight = measuredKeyboardHeightRef.current > 0 ? measuredKeyboardHeightRef.current : 260;
-    const visibleBottom = windowHeight - keyboardHeight - 16;
+    const kh =
+      keyboardHeight > 0
+        ? keyboardHeight
+        : measuredKeyboardHeightRef.current > 0
+          ? measuredKeyboardHeightRef.current
+          : 260;
+    const visibleBottom = windowHeight - kh - 16;
     pressableNode.measure((_fx, _fy, _w, pressH, _pageX, pressPageY) => {
       const pressBottom = pressPageY + pressH;
       if (pressBottom <= visibleBottom) {
@@ -216,7 +223,7 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
       const delta = pressBottom - visibleBottom;
       scrollNode.scrollTo({ y: Math.max(0, scrollYRef.current + delta), animated: true });
     });
-  }, [scrollCtx, windowHeight, measuredKeyboardHeightRef]);
+  }, [scrollCtx, windowHeight, keyboardHeight, measuredKeyboardHeightRef]);
 
   const flushPendingInput = useCallback(() => {
     if (debounceTimerRef.current != null) {
@@ -382,6 +389,13 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
   }, [isFocused, buildKeyboardConfig, openKeyboard]);
 
   useEffect(() => {
+    if (!isFocused || keyboardHeight <= 0) {
+      return;
+    }
+    scrollIntoView();
+  }, [isFocused, keyboardHeight, scrollIntoView]);
+
+  useEffect(() => {
     return () => {
       flushPendingInput();
       if (debounceTimerRef.current != null) {
@@ -418,6 +432,7 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
     <View ref={pressableRef} collapsable={false}>
       <Pressable
         onPress={focusSelf}
+        hitSlop={12}
         testID={`input-${StringUtils_dashcase(props.name)}-field`}
         data-testid={`input-${StringUtils_dashcase(props.name)}-field`}
         className={fieldClassName}
