@@ -1,4 +1,4 @@
-import { ILensRecordingPayload, LensBuilder } from "lens-shmens";
+import { ILensRecordingPayload, LensBuilder, LensError } from "lens-shmens";
 import { IState, updateState } from "../models/state";
 import { IDispatch } from "../ducks/types";
 import { ILensDispatch } from "./useLensReducer";
@@ -14,11 +14,20 @@ export function buildPlannerDispatch<T, S extends IUndoRedoState<T>, O = never>(
     desc: string
   ): void => {
     const lensRecordings = Array.isArray(lensRecording) ? lensRecording : [lensRecording];
-    updateState(
-      dispatch,
-      lensRecordings.map((recording) => recording.prepend(lensBuilder)),
-      desc || "Update state"
-    );
+    try {
+      updateState(
+        dispatch,
+        lensRecordings.map((recording) => recording.prepend(lensBuilder)),
+        desc || "Update state"
+      );
+    } catch (e) {
+      // Screen may have been removed from the stack by the time a delayed dispatch fires
+      // (e.g. InputNumber2 onBlur setTimeout racing with PullScreen)
+      if (e instanceof LensError) {
+        return;
+      }
+      throw e;
+    }
     const changesCurrent = lensRecordings.some((recording) => recording.lens.from.some((f) => f === "current"));
     if (!(desc === "undo") && changesCurrent && plannerState != null) {
       undoRedoMiddleware(plannerDispatch, plannerState);
