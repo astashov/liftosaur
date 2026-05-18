@@ -1104,6 +1104,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
       distributionPaths: ["/*"],
       memoryLimit: 1024,
       ephemeralStorageSize: cdk.Size.mebibytes(1024),
+      prune: false,
       cacheControl: [s3Deployment.CacheControl.maxAge(cdk.Duration.hours(24)), s3Deployment.CacheControl.setPublic()],
     });
 

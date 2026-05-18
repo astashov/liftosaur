@@ -154,6 +154,7 @@ const mainConfig = {
   },
   output: {
     filename: "[name].js",
+    chunkFilename: "[name].[contenthash].js",
     publicPath: "/",
     path: path.resolve(__dirname, "dist"),
   },
