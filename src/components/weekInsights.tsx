@@ -16,7 +16,7 @@ import { PersonalRecords } from "./personalRecords";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { IconCrown } from "./icons/iconCrown";
 import { IDispatch } from "../ducks/types";
-// import { Thunk_pushScreen } from "../ducks/thunks";
+import { Thunk_pushScreen } from "../ducks/thunks";
 import { DateUtils_firstDayOfWeekTimestamp, DateUtils_formatRange } from "../utils/date";
 import { Muscle_getMuscleGroupName } from "../models/muscle";
 import { navigationRef } from "../navigation/navigationRef";
@@ -48,8 +48,7 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
       <Pressable
         className="w-full px-3 py-2 border border-border-cardyellow bg-background-cardyellow rounded-b-xl"
         onPress={() => {
-          throw new Error("OTA check");
-          // props.dispatch(Thunk_pushScreen("subscription"));
+          props.dispatch(Thunk_pushScreen("subscription"));
         }}
       >
         <View className="flex-row items-center h-8 gap-1" style={{ marginBottom: 3 }}>
