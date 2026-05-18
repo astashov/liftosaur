@@ -11,6 +11,8 @@ import com.liftosaur.www.twa.eventreporter.EventReporterDispatcher
 import com.liftosaur.www.twa.eventreporter.EventReporterTombstone
 import com.liftosaur.www.twa.eventreporter.LastTerminationHolder
 import com.liftosaur.www.twa.eventreporter.LiftosaurEventReporterPackage
+import com.liftosaur.www.twa.lftupdater.LftUpdaterPackage
+import com.liftosaur.www.twa.lftupdater.LftUpdaterPath
 import com.liftosaur.www.twa.liveactivity.LiftosaurLiveActivityPackage
 import com.liftosaur.www.twa.share.LiftosaurSharePackage
 import com.liftosaur.www.twa.timer.LiftosaurTimerPackage
@@ -27,13 +29,25 @@ class MainApplication : Application(), ReactApplication {
           add(LiftosaurTimerPackage())
           add(LiftosaurLiveActivityPackage())
           add(LiftosaurEventReporterPackage())
+          add(LftUpdaterPackage())
         },
       jsMainModulePath = "index",
+      jsBundleFilePath = LftUpdaterPath.effectiveBundleFilePath(this),
     )
   }
 
   override fun onCreate() {
     super.onCreate()
+    val prefs = getSharedPreferences("LftUpdater", MODE_PRIVATE)
+    if (prefs.getBoolean("launchInProgress", false)) {
+      val count = prefs.getInt("crashCount", 0) + 1
+      prefs.edit().putInt("crashCount", count).apply()
+      if (count >= 3) {
+        LftUpdaterPath.revertToEmbedded(this)
+        prefs.edit().putInt("crashCount", 0).apply()
+      }
+    }
+    prefs.edit().putBoolean("launchInProgress", true).apply()
     LastTerminationHolder.set(EventReporterTombstone.consumeAndArm(this))
     RollbarReactNative.init(this, "f29180c0746c4922996ff41dfc2527d2", "android-rn")
     loadReactNative(this)

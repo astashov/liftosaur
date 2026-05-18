@@ -18,6 +18,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
+    let defaults = UserDefaults.standard
+    if defaults.bool(forKey: "LftUpdater.launchInProgress") {
+      let count = defaults.integer(forKey: "LftUpdater.crashCount") + 1
+      defaults.set(count, forKey: "LftUpdater.crashCount")
+      if count >= 3 {
+        LftUpdaterPath.revertToEmbedded()
+        defaults.set(0, forKey: "LftUpdater.crashCount")
+      }
+    }
+    defaults.set(true, forKey: "LftUpdater.launchInProgress")
+
     LiftosaurEventReporterImpl.shared.registerWithMetricKit()
     _ = LiftosaurWorkoutMirroringImpl.shared
 
@@ -91,7 +102,7 @@ class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
 #if DEBUG
     RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
 #else
-    Bundle.main.url(forResource: "main", withExtension: "jsbundle")
+    LftUpdaterPath.effectiveBundleURL()
 #endif
   }
 }

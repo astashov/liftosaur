@@ -118,6 +118,9 @@
 		EE0007000000000000000007 /* RCTLiftosaurWorkoutMirroring.mm in Sources */ = {isa = PBXBuildFile; fileRef = EE0006000000000000000006 /* RCTLiftosaurWorkoutMirroring.mm */; };
 		EE0009000000000000000009 /* LiftosaurWorkoutMirroringImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0008000000000000000008 /* LiftosaurWorkoutMirroringImpl.swift */; };
 		EE0021000000000000000021 /* codesigning.pem in Resources */ = {isa = PBXBuildFile; fileRef = EE0020000000000000000020 /* codesigning.pem */; };
+		EE0042000000000000000042 /* RCTLftUpdater.mm in Sources */ = {isa = PBXBuildFile; fileRef = EE0041000000000000000041 /* RCTLftUpdater.mm */; };
+		EE0044000000000000000044 /* LftUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0043000000000000000043 /* LftUpdater.swift */; };
+		EE0046000000000000000046 /* LftUpdaterPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0045000000000000000045 /* LftUpdaterPath.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -269,6 +272,10 @@
 		EE0008000000000000000008 /* LiftosaurWorkoutMirroringImpl.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LiftosaurWorkoutMirroringImpl.swift; path = Liftosaur/LiftosaurWorkoutMirroringImpl.swift; sourceTree = "<group>"; };
 		EE000A00000000000000000A /* RCTLiftosaurWorkoutMirroring.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTLiftosaurWorkoutMirroring.h; path = Liftosaur/RCTLiftosaurWorkoutMirroring.h; sourceTree = "<group>"; };
 		EE0020000000000000000020 /* codesigning.pem */ = {isa = PBXFileReference; lastKnownFileType = text; name = codesigning.pem; path = Liftosaur/certs/codesigning.pem; sourceTree = "<group>"; };
+		EE0040000000000000000040 /* RCTLftUpdater.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTLftUpdater.h; path = Liftosaur/LftUpdater/RCTLftUpdater.h; sourceTree = "<group>"; };
+		EE0041000000000000000041 /* RCTLftUpdater.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTLftUpdater.mm; path = Liftosaur/LftUpdater/RCTLftUpdater.mm; sourceTree = "<group>"; };
+		EE0043000000000000000043 /* LftUpdater.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LftUpdater.swift; path = Liftosaur/LftUpdater/LftUpdater.swift; sourceTree = "<group>"; };
+		EE0045000000000000000045 /* LftUpdaterPath.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LftUpdaterPath.swift; path = Liftosaur/LftUpdater/LftUpdaterPath.swift; sourceTree = "<group>"; };
 		EF012FAFB85E47D99214AFCE /* Poppins-Italic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-Italic.ttf"; path = "../assets/fonts/Poppins-Italic.ttf"; sourceTree = "<group>"; };
 		F60F33A9AB274D44A20FC0C7 /* Poppins-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-SemiBold.ttf"; path = "../assets/fonts/Poppins-SemiBold.ttf"; sourceTree = "<group>"; };
 		FD2FDC64C423B610A697466E /* RCTLiftosaurShare.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTLiftosaurShare.h; path = Liftosaur/RCTLiftosaurShare.h; sourceTree = "<group>"; };
@@ -333,6 +340,10 @@
 				EE000A00000000000000000A /* RCTLiftosaurWorkoutMirroring.h */,
 				EE0006000000000000000006 /* RCTLiftosaurWorkoutMirroring.mm */,
 				EE0008000000000000000008 /* LiftosaurWorkoutMirroringImpl.swift */,
+				EE0040000000000000000040 /* RCTLftUpdater.h */,
+				EE0041000000000000000041 /* RCTLftUpdater.mm */,
+				EE0043000000000000000043 /* LftUpdater.swift */,
+				EE0045000000000000000045 /* LftUpdaterPath.swift */,
 				91FAA5A7B2D2A2141783C9C5 /* notification.m4r */,
 			);
 			name = Liftosaur;
@@ -799,6 +810,9 @@
 				EE0005000000000000000005 /* LiftosaurEventReporterImpl.swift in Sources */,
 				EE0007000000000000000007 /* RCTLiftosaurWorkoutMirroring.mm in Sources */,
 				EE0009000000000000000009 /* LiftosaurWorkoutMirroringImpl.swift in Sources */,
+				EE0042000000000000000042 /* RCTLftUpdater.mm in Sources */,
+				EE0044000000000000000044 /* LftUpdater.swift in Sources */,
+				EE0046000000000000000046 /* LftUpdaterPath.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
