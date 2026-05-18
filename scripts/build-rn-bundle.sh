@@ -56,21 +56,80 @@ echo "  iOS runtimeVersion (MARKETING_VERSION): $IOS_RUNTIME_VERSION"
 echo "  Android runtimeVersion (versionCode):   $ANDROID_RUNTIME_VERSION"
 
 rm -rf "$OUTPUT_DIR"
-EXPORT_FLAGS=""
-if [ "${OTA_NO_BYTECODE:-0}" = "1" ]; then
-  echo "  (OTA_NO_BYTECODE=1) emitting plain JS bundle, no Hermes bytecode"
-  EXPORT_FLAGS="$EXPORT_FLAGS --no-bytecode"
+mkdir -p "$OUTPUT_DIR/ios" "$OUTPUT_DIR/android"
+
+HERMESC=""
+COMPOSE_MAPS="node_modules/react-native/scripts/compose-source-maps.js"
+if [ "${OTA_NO_BYTECODE:-0}" != "1" ]; then
+  case "$(uname -s)" in
+    Darwin) HERMESC="node_modules/hermes-compiler/hermesc/osx-bin/hermesc" ;;
+    Linux)  HERMESC="node_modules/hermes-compiler/hermesc/linux64-bin/hermesc" ;;
+    *)
+      echo "Unsupported host OS for hermesc: $(uname -s)"
+      exit 1
+      ;;
+  esac
+  if [ ! -x "$HERMESC" ]; then
+    echo "hermesc not found at $HERMESC"
+    exit 1
+  fi
+  if [ ! -f "$COMPOSE_MAPS" ]; then
+    echo "compose-source-maps.js not found at $COMPOSE_MAPS"
+    exit 1
+  fi
+else
+  echo "  (OTA_NO_BYTECODE=1) shipping plain JS, no Hermes bytecode"
 fi
-CI=1 npx expo export --platform ios --platform android --source-maps --output-dir "$OUTPUT_DIR" $EXPORT_FLAGS
+
+bundle_platform() {
+  local PLATFORM="$1"
+  local BUNDLE_NAME
+  if [ "$PLATFORM" = "ios" ]; then
+    BUNDLE_NAME="main.jsbundle"
+  else
+    BUNDLE_NAME="index.android.bundle"
+  fi
+
+  local PLATFORM_DIR="$OUTPUT_DIR/$PLATFORM"
+  local BUNDLE_PATH="$PLATFORM_DIR/$BUNDLE_NAME"
+  local MAP_PATH="$BUNDLE_PATH.map"
+
+  echo "  bundling $PLATFORM…"
+  npx react-native bundle \
+    --platform "$PLATFORM" \
+    --entry-file index.js \
+    --bundle-output "$BUNDLE_PATH" \
+    --assets-dest "$PLATFORM_DIR" \
+    --dev false \
+    --minify true \
+    --sourcemap-output "$MAP_PATH"
+
+  if [ -n "$HERMESC" ]; then
+    echo "  Hermes-compiling $PLATFORM bundle…"
+    local HBC_PATH="$BUNDLE_PATH.hbc"
+    local HBC_MAP_PATH="$HBC_PATH.map"
+    "$HERMESC" -emit-binary -O -output-source-map -out "$HBC_PATH" "$BUNDLE_PATH"
+    mv "$HBC_PATH" "$BUNDLE_PATH"
+    node "$COMPOSE_MAPS" "$MAP_PATH" "$HBC_MAP_PATH" -o "$MAP_PATH"
+    rm -f "$HBC_MAP_PATH"
+  fi
+}
+
+bundle_platform ios
+bundle_platform android
 
 for PLATFORM in ios android; do
   if [ "$PLATFORM" = "ios" ]; then
     RUNTIME_VERSION="$IOS_RUNTIME_VERSION"
+    BUNDLE_NAME="main.jsbundle"
   else
     RUNTIME_VERSION="$ANDROID_RUNTIME_VERSION"
+    BUNDLE_NAME="index.android.bundle"
   fi
 
-  URL_PREFIX="https://$HOST/static/updates/$RUNTIME_VERSION/$PLATFORM/$UPDATE_ID"
+  PLATFORM_DIR="$OUTPUT_DIR/$PLATFORM"
+  BUNDLE_PATH="$PLATFORM_DIR/$BUNDLE_NAME"
+  BUNDLE_URL="https://$HOST/static/updates/$RUNTIME_VERSION/$PLATFORM/$UPDATE_ID/$BUNDLE_NAME"
   S3_PREFIX="s3://$BUCKET/updates/$RUNTIME_VERSION/$PLATFORM/$UPDATE_ID"
   METADATA_FILE="$OUTPUT_DIR/metadata-$PLATFORM.json"
 
@@ -79,17 +138,12 @@ for PLATFORM in ios android; do
     --runtimeVersion "$RUNTIME_VERSION" \
     --updateId "$UPDATE_ID" \
     --createdAt "$CREATED_AT" \
-    --inputDir "$OUTPUT_DIR" \
-    --urlPrefix "$URL_PREFIX" \
+    --bundlePath "$BUNDLE_PATH" \
+    --bundleUrl "$BUNDLE_URL" \
     --outputFile "$METADATA_FILE"
 
   aws s3 cp "$METADATA_FILE" "$S3_PREFIX/metadata.json" --content-type application/json
-  if [ -d "$OUTPUT_DIR/_expo/static/js/$PLATFORM" ]; then
-    aws s3 cp "$OUTPUT_DIR/_expo/static/js/$PLATFORM/" "$S3_PREFIX/_expo/static/js/$PLATFORM/" --recursive
-  fi
-  if [ -d "$OUTPUT_DIR/assets" ]; then
-    aws s3 cp "$OUTPUT_DIR/assets/" "$S3_PREFIX/assets/" --recursive
-  fi
+  aws s3 cp "$BUNDLE_PATH" "$S3_PREFIX/$BUNDLE_NAME" --content-type application/javascript
 
   POINTER_KEY="updates-pointers/$RUNTIME_VERSION/$PLATFORM/$CHANNEL.json"
   POINTER_TMP="$(mktemp)"

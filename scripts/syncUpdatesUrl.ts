@@ -52,26 +52,7 @@ function replaceNativeHosts(contents: string, hosts: (typeof HOSTS)[IStage]): st
 function main(): void {
   const stage = resolveStage();
   const hosts = HOSTS[stage];
-  const url = `${hosts.host}/api/updates/manifest`;
-  console.log(`stage=${stage} → ${url}`);
-
-  syncFile(
-    "ios/Liftosaur/Expo.plist",
-    (contents, value) => contents.replace(/(<key>EXUpdatesURL<\/key>\s*<string>)[^<]+(<\/string>)/, `$1${value}$2`),
-    url
-  );
-
-  syncFile(
-    "android/app/src/main/AndroidManifest.xml",
-    (contents, value) =>
-      contents.replace(
-        /(android:name="expo\.modules\.updates\.EXPO_UPDATE_URL" android:value=")[^"]+(")/,
-        `$1${value}$2`
-      ),
-    url
-  );
-
-  syncFile("app.json", (contents, value) => contents.replace(/("url":\s*")[^"]+(")/, `$1${value}$2`), url);
+  console.log(`stage=${stage} → ${hosts.host}`);
 
   syncFile("src/App.native.tsx", replaceNativeHosts, hosts);
 }
