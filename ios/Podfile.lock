@@ -12,118 +12,6 @@ PODS:
   - AppsFlyerFramework (6.17.9):
     - AppsFlyerFramework/Main (= 6.17.9)
   - AppsFlyerFramework/Main (6.17.9)
-  - EASClient (56.0.1):
-    - ExpoModulesCore
-  - EXConstants (56.0.9):
-    - ExpoModulesCore
-  - EXJSONUtils (56.0.0)
-  - EXManifests (56.0.3):
-    - ExpoModulesCore
-  - Expo (56.0.0-preview.10):
-    - ExpoModulesCore
-    - ExpoModulesJSI
-    - hermes-engine
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-jsi
-    - React-NativeModulesApple
-    - React-RCTAppDelegate
-    - React-RCTFabric
-    - React-renderercss
-    - React-rendererdebug
-    - React-utils
-    - ReactAppDependencyProvider
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - ReactNativeDependencies
-    - Yoga
-  - ExpoAdapterGoogleSignIn (16.1.2):
-    - ExpoModulesCore
-    - GoogleSignIn (~> 9.0)
-    - React-Core
-  - ExpoAsset (56.0.8):
-    - ExpoModulesCore
-  - ExpoDomWebView (56.0.4):
-    - ExpoModulesCore
-  - ExpoFileSystem (56.0.4):
-    - ExpoModulesCore
-  - ExpoFont (56.0.3):
-    - ExpoModulesCore
-  - ExpoKeepAwake (56.0.3):
-    - ExpoModulesCore
-  - ExpoLogBox (56.0.8):
-    - React-Core
-  - ExpoModulesCore (56.0.7):
-    - ExpoModulesJSI
-    - hermes-engine
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-jsi
-    - React-jsinspector
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-renderercss
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - ReactNativeDependencies
-    - Yoga
-  - ExpoModulesJSI (56.0.3):
-    - React-Core
-    - ReactCommon
-  - ExpoModulesWorklets (56.0.7):
-    - ExpoModulesCore
-    - ExpoModulesJSI
-  - ExpoModulesWorkletsAdapter (56.0.7):
-    - ExpoModulesCore
-    - ExpoModulesJSI
-    - ExpoModulesWorklets
-    - RNWorklets
-  - EXStructuredHeaders (56.0.0)
-  - EXUpdates (56.0.10):
-    - EASClient
-    - EXManifests
-    - ExpoModulesCore
-    - EXStructuredHeaders
-    - EXUpdatesInterface
-    - hermes-engine
-    - RCTRequired
-    - RCTTypeSafety
-    - ReachabilitySwift
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-jsi
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-renderercss
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - ReactNativeDependencies
-    - Yoga
-  - EXUpdatesInterface (56.0.2):
-    - ExpoModulesCore
   - FBLazyVector (0.84.1)
   - GoogleAdsOnDeviceConversion (3.4.0):
     - GoogleUtilities/Environment (~> 8.1)
@@ -248,7 +136,6 @@ PODS:
     - FBLazyVector (= 0.84.1)
     - RCTRequired (= 0.84.1)
     - React-Core (= 0.84.1)
-  - ReachabilitySwift (5.2.4)
   - React (0.84.1):
     - React-Core (= 0.84.1)
     - React-Core/DevSupport (= 0.84.1)
@@ -2592,25 +2479,6 @@ PODS:
   - Yoga (0.0.0)
 
 DEPENDENCIES:
-  - EASClient (from `../node_modules/expo-eas-client/ios`)
-  - EXConstants (from `../node_modules/expo-constants/ios`)
-  - EXJSONUtils (from `../node_modules/expo-json-utils/ios`)
-  - EXManifests (from `../node_modules/expo-manifests/ios`)
-  - Expo (from `../node_modules/expo`)
-  - "ExpoAdapterGoogleSignIn (from `../node_modules/@react-native-google-signin/google-signin/expo/ios`)"
-  - ExpoAsset (from `../node_modules/expo-asset/ios`)
-  - "ExpoDomWebView (from `../node_modules/@expo/dom-webview/ios`)"
-  - ExpoFileSystem (from `../node_modules/expo-file-system/ios`)
-  - ExpoFont (from `../node_modules/expo-font/ios`)
-  - ExpoKeepAwake (from `../node_modules/expo-keep-awake/ios`)
-  - "ExpoLogBox (from `../node_modules/@expo/log-box`)"
-  - ExpoModulesCore (from `../node_modules/expo-modules-core`)
-  - ExpoModulesJSI (from `../node_modules/expo-modules-jsi/apple`)
-  - ExpoModulesWorklets (from `../node_modules/expo-modules-core`)
-  - ExpoModulesWorkletsAdapter (from `../node_modules/expo-modules-core`)
-  - EXStructuredHeaders (from `../node_modules/expo-structured-headers/ios`)
-  - EXUpdates (from `../node_modules/expo-updates/ios`)
-  - EXUpdatesInterface (from `../node_modules/expo-updates-interface/ios`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - GoogleAdsOnDeviceConversion
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
@@ -2733,7 +2601,6 @@ SPEC REPOS:
     - nanopb
     - openiap
     - PromisesObjC
-    - ReachabilitySwift
     - React-Codegen
     - RollbarCommon
     - RollbarCrash
@@ -2744,44 +2611,6 @@ SPEC REPOS:
     - TikTokOpenShareSDK
 
 EXTERNAL SOURCES:
-  EASClient:
-    :path: "../node_modules/expo-eas-client/ios"
-  EXConstants:
-    :path: "../node_modules/expo-constants/ios"
-  EXJSONUtils:
-    :path: "../node_modules/expo-json-utils/ios"
-  EXManifests:
-    :path: "../node_modules/expo-manifests/ios"
-  Expo:
-    :path: "../node_modules/expo"
-  ExpoAdapterGoogleSignIn:
-    :path: "../node_modules/@react-native-google-signin/google-signin/expo/ios"
-  ExpoAsset:
-    :path: "../node_modules/expo-asset/ios"
-  ExpoDomWebView:
-    :path: "../node_modules/@expo/dom-webview/ios"
-  ExpoFileSystem:
-    :path: "../node_modules/expo-file-system/ios"
-  ExpoFont:
-    :path: "../node_modules/expo-font/ios"
-  ExpoKeepAwake:
-    :path: "../node_modules/expo-keep-awake/ios"
-  ExpoLogBox:
-    :path: "../node_modules/@expo/log-box"
-  ExpoModulesCore:
-    :path: "../node_modules/expo-modules-core"
-  ExpoModulesJSI:
-    :path: "../node_modules/expo-modules-jsi/apple"
-  ExpoModulesWorklets:
-    :path: "../node_modules/expo-modules-core"
-  ExpoModulesWorkletsAdapter:
-    :path: "../node_modules/expo-modules-core"
-  EXStructuredHeaders:
-    :path: "../node_modules/expo-structured-headers/ios"
-  EXUpdates:
-    :path: "../node_modules/expo-updates/ios"
-  EXUpdatesInterface:
-    :path: "../node_modules/expo-updates-interface/ios"
   FBLazyVector:
     :path: "../node_modules/react-native/Libraries/FBLazyVector"
   hermes-engine:
@@ -2992,25 +2821,6 @@ SPEC CHECKSUMS:
   AppAuth: 1c1a8afa7e12f2ec3a294d9882dfa5ab7d3cb063
   AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f
   AppsFlyerFramework: 4f9a8237d40e9093941aef760cd77d606238aedd
-  EASClient: 2321f8d99fa86c710a6f68e017f3b54366baed9f
-  EXConstants: 98c1080d565bbb5d69f9c28627b0a0ee25f7e1c5
-  EXJSONUtils: dba2755f4e24009eaf87a876b2d615ea06c16e42
-  EXManifests: 67869a6d8efa7cb53a7b8b53f451d378c124073f
-  Expo: 8a8e314762fdef9d4541e3eedced5a431358648a
-  ExpoAdapterGoogleSignIn: ab4d9fc38cb91077a4138d178395525ec65d0c2e
-  ExpoAsset: cd59c97de137fe4af1efe5033d2c660f85f0442d
-  ExpoDomWebView: 6061a678d7b9a4d3e9b456b651cd2031b4186f56
-  ExpoFileSystem: 16e678f837808810b2bc562570976b04414eda67
-  ExpoFont: 8b9b7b0fe8a5e563a69e7b132749e50a85afb6e4
-  ExpoKeepAwake: 359c47a1d9ccc3a3c519bca6e39562cce230c5bb
-  ExpoLogBox: f5bb088ecceacdaf4adc5813b93f4cd6459fb27b
-  ExpoModulesCore: 197c69cb671c84d075e4a406ed1a02828b19ffaf
-  ExpoModulesJSI: bef2cecf9180ffd4f974a30c6c246c3b9de16b43
-  ExpoModulesWorklets: d7a299391940073b848863bfe6b3d4be3541a83c
-  ExpoModulesWorkletsAdapter: ae75a0cf9edf0a5ccd9b81741a36ce0b96f89fbf
-  EXStructuredHeaders: 9e89bcdd636ae2ecb59995cfba3230f5d7547c08
-  EXUpdates: cc004de21ba624318e255f8a4b264ae20f9a4790
-  EXUpdatesInterface: 25408a97d682355eb9fb37e5aa6e22caece1881f
   FBLazyVector: baf9d0492aa305444465c798e972f87e6a60dc69
   GoogleAdsOnDeviceConversion: 98956ec5399cff7c0886cf757f4c8ca4716a5064
   GoogleSignIn: fcee2257188d5eda57a5e2b6a715550ffff9206d
@@ -3030,7 +2840,6 @@ SPEC CHECKSUMS:
   RCTSwiftUI: afc0a0a635860da1040a0b894bfd529da06d7810
   RCTSwiftUIWrapper: 3197c020094f3b2151bb2d1223f7276787be8166
   RCTTypeSafety: ee5b2343f1904b18c1c8b26f3e26a3550628a215
-  ReachabilitySwift: 32793e867593cfc1177f5d16491e3a197d2fccda
   React: 1ba7d364ade7d883a1ec055bfc3606f35fdee17b
   React-callinvoker: df4a74de3f8b09ce3c740a081f519dd227a64706
   React-Codegen: 4b8b4817cea7a54b83851d4c1f91f79aa73de30a
@@ -3132,6 +2941,6 @@ SPEC CHECKSUMS:
   TikTokOpenShareSDK: a7da017bc66c28d0aefea9342c0cfcc7e52ea2b7
   Yoga: 9e495ad6f457c4ff504a8328981496b5cf41dd7f
 
-PODFILE CHECKSUM: bb49abd9aec2ce0642f762de4e68cabd67dc8609
+PODFILE CHECKSUM: 5f8ce6433da45e26c61e2091c9b55fd882d2b984
 
 COCOAPODS: 1.16.2

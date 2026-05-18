@@ -1,24 +1,4 @@
 {
   "name": "Liftosaur",
-  "displayName": "Liftosaur",
-  "expo": {
-    "name": "Liftosaur",
-    "slug": "liftosaur",
-    "version": "1.0",
-    "ios": {
-      "bundleIdentifier": "com.liftosaur.www"
-    },
-    "android": {
-      "package": "com.liftosaur.www.twa"
-    },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
-    "updates": {
-      "url": "https://www.liftosaur.com/api/updates/manifest",
-      "enabled": true,
-      "checkAutomatically": "ON_LOAD",
-      "fallbackToCacheTimeout": 0
-    }
-  }
+  "displayName": "Liftosaur"
 }

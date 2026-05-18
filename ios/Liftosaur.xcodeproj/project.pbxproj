@@ -111,14 +111,12 @@
 		5C9210548D8DDE45FAA805DE /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
-		83F28A98F1AF114A43ECBDFE /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 811436F222FCECF95DD3CBB8 /* ExpoModulesProvider.swift */; };
 		9CFD04038647D1D4AFBE4A93 /* RCTLiftosaurLiveActivity.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6CDE7A4672A3F2BF6A135AE9 /* RCTLiftosaurLiveActivity.mm */; };
 		ABAB4E16DB2DC920D7412751 /* LiftosaurShareImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = E883E351A4F90F4F9BB4EFE5 /* LiftosaurShareImpl.swift */; };
 		EE0003000000000000000003 /* RCTLiftosaurEventReporter.mm in Sources */ = {isa = PBXBuildFile; fileRef = EE0002000000000000000002 /* RCTLiftosaurEventReporter.mm */; };
 		EE0005000000000000000005 /* LiftosaurEventReporterImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0004000000000000000004 /* LiftosaurEventReporterImpl.swift */; };
 		EE0007000000000000000007 /* RCTLiftosaurWorkoutMirroring.mm in Sources */ = {isa = PBXBuildFile; fileRef = EE0006000000000000000006 /* RCTLiftosaurWorkoutMirroring.mm */; };
 		EE0009000000000000000009 /* LiftosaurWorkoutMirroringImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0008000000000000000008 /* LiftosaurWorkoutMirroringImpl.swift */; };
-		EE0011000000000000000011 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = EE0010000000000000000010 /* Expo.plist */; };
 		EE0021000000000000000021 /* codesigning.pem in Resources */ = {isa = PBXBuildFile; fileRef = EE0020000000000000000020 /* codesigning.pem */; };
 /* End PBXBuildFile section */
 
@@ -252,7 +250,6 @@
 		6932EE9394B77D111CEA7C57 /* RCTLiftosaurShare.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTLiftosaurShare.mm; path = Liftosaur/RCTLiftosaurShare.mm; sourceTree = "<group>"; };
 		6CDE7A4672A3F2BF6A135AE9 /* RCTLiftosaurLiveActivity.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTLiftosaurLiveActivity.mm; path = Liftosaur/RCTLiftosaurLiveActivity.mm; sourceTree = "<group>"; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = Liftosaur/AppDelegate.swift; sourceTree = "<group>"; };
-		811436F222FCECF95DD3CBB8 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-Liftosaur/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Liftosaur/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		8B4BDC15E59DDB21DA61FB5B /* LiftosaurLiveActivityImpl.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LiftosaurLiveActivityImpl.swift; path = Liftosaur/LiftosaurLiveActivityImpl.swift; sourceTree = "<group>"; };
 		91FAA5A7B2D2A2141783C9C5 /* notification.m4r */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file; name = notification.m4r; path = Liftosaur/notification.m4r; sourceTree = "<group>"; };
@@ -271,7 +268,6 @@
 		EE0006000000000000000006 /* RCTLiftosaurWorkoutMirroring.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTLiftosaurWorkoutMirroring.mm; path = Liftosaur/RCTLiftosaurWorkoutMirroring.mm; sourceTree = "<group>"; };
 		EE0008000000000000000008 /* LiftosaurWorkoutMirroringImpl.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LiftosaurWorkoutMirroringImpl.swift; path = Liftosaur/LiftosaurWorkoutMirroringImpl.swift; sourceTree = "<group>"; };
 		EE000A00000000000000000A /* RCTLiftosaurWorkoutMirroring.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTLiftosaurWorkoutMirroring.h; path = Liftosaur/RCTLiftosaurWorkoutMirroring.h; sourceTree = "<group>"; };
-		EE0010000000000000000010 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Expo.plist; path = Liftosaur/Expo.plist; sourceTree = "<group>"; };
 		EE0020000000000000000020 /* codesigning.pem */ = {isa = PBXFileReference; lastKnownFileType = text; name = codesigning.pem; path = Liftosaur/certs/codesigning.pem; sourceTree = "<group>"; };
 		EF012FAFB85E47D99214AFCE /* Poppins-Italic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-Italic.ttf"; path = "../assets/fonts/Poppins-Italic.ttf"; sourceTree = "<group>"; };
 		F60F33A9AB274D44A20FC0C7 /* Poppins-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-SemiBold.ttf"; path = "../assets/fonts/Poppins-SemiBold.ttf"; sourceTree = "<group>"; };
@@ -317,7 +313,6 @@
 				3AACC6262FB35CFD001C68AA /* RCTLiftosaurWatch.mm */,
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
-				EE0010000000000000000010 /* Expo.plist */,
 				EE0020000000000000000020 /* codesigning.pem */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
@@ -493,14 +488,6 @@
 			path = Shared;
 			sourceTree = "<group>";
 		};
-		4A74923ACB65A40C9BE9895D /* ExpoModulesProviders */ = {
-			isa = PBXGroup;
-			children = (
-				9A87ABB4E457466A55ADD0C1 /* Liftosaur */,
-			);
-			name = ExpoModulesProviders;
-			sourceTree = "<group>";
-		};
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
@@ -513,7 +500,6 @@
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
 				29B51CE5376F4659B249EDA8 /* Resources */,
-				4A74923ACB65A40C9BE9895D /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -528,14 +514,6 @@
 				3AACC5BC2FB351CF001C68AA /* LiftosaurWatch.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		9A87ABB4E457466A55ADD0C1 /* Liftosaur */ = {
-			isa = PBXGroup;
-			children = (
-				811436F222FCECF95DD3CBB8 /* ExpoModulesProvider.swift */,
-			);
-			name = Liftosaur;
 			sourceTree = "<group>";
 		};
 		BBD78D7AC51CEA395F1C20DB /* Pods */ = {
@@ -555,11 +533,9 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Liftosaur" */;
 			buildPhases = (
 				C38B50BA6285516D6DCD4F65 /* [CP] Check Pods Manifest.lock */,
-				2783E077E049390D32AB0BA8 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
-				EE0030000000000000000030 /* [Liftosaur] Sync EXUpdatesRuntimeVersion */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				00EEFC60759A1932668264C0 /* [CP] Embed Pods Frameworks */,
 				E235C05ADACE081382539298 /* [CP] Copy Pods Resources */,
@@ -665,7 +641,6 @@
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				00A9D43BFF6350A3156888F5 /* PrivacyInfo.xcprivacy in Resources */,
-				EE0011000000000000000011 /* Expo.plist in Resources */,
 				EE0021000000000000000021 /* codesigning.pem in Resources */,
 				3A606C432FAB8D1800799977 /* Store.storekit in Resources */,
 				12F317DBE89387792B8C2788 /* notification.m4r in Resources */,
@@ -761,30 +736,6 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		2783E077E049390D32AB0BA8 /* [Expo] Configure project */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"$(SRCROOT)/.xcode.env",
-				"$(SRCROOT)/.xcode.env.local",
-				"$(SRCROOT)/Liftosaur/Liftosaur.entitlements",
-				"$(SRCROOT)/Pods/Target Support Files/Pods-Liftosaur/expo-configure-project.sh",
-			);
-			name = "[Expo] Configure project";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(SRCROOT)/Pods/Target Support Files/Pods-Liftosaur/ExpoModulesProvider.swift",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-Liftosaur/expo-configure-project.sh\"\n";
-		};
 		C38B50BA6285516D6DCD4F65 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -824,21 +775,6 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		EE0030000000000000000030 /* [Liftosaur] Sync EXUpdatesRuntimeVersion */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[Liftosaur] Sync EXUpdatesRuntimeVersion";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "set -euo pipefail\nPLIST=\"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/Expo.plist\"\nif [ ! -f \"$PLIST\" ]; then\n  echo \"error: Expo.plist not found at $PLIST\" 1>&2\n  exit 1\nfi\necho \"Setting EXUpdatesRuntimeVersion = ${MARKETING_VERSION} in $PLIST\"\n/usr/libexec/PlistBuddy -c \"Set :EXUpdatesRuntimeVersion ${MARKETING_VERSION}\" \"$PLIST\"\n";
-		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -863,7 +799,6 @@
 				EE0005000000000000000005 /* LiftosaurEventReporterImpl.swift in Sources */,
 				EE0007000000000000000007 /* RCTLiftosaurWorkoutMirroring.mm in Sources */,
 				EE0009000000000000000009 /* LiftosaurWorkoutMirroringImpl.swift in Sources */,
-				83F28A98F1AF114A43ECBDFE /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

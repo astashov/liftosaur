@@ -1,4 +1,3 @@
-internal import Expo
 import UIKit
 import React
 import React_RCTAppDelegate
@@ -9,13 +8,13 @@ import GoogleAdsOnDeviceConversion
 import AppsFlyerLib
 
 @main
-class AppDelegate: ExpoAppDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate {
   var window: UIWindow?
 
   var reactNativeDelegate: ReactNativeDelegate?
   var reactNativeFactory: RCTReactNativeFactory?
 
-  override func application(
+  func application(
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
@@ -31,7 +30,7 @@ class AppDelegate: ExpoAppDelegate {
     ConversionManager.sharedInstance.setFirstLaunchTime(Date())
 
     let delegate = ReactNativeDelegate()
-    let factory = ExpoReactNativeFactory(delegate: delegate)
+    let factory = RCTReactNativeFactory(delegate: delegate)
     delegate.dependencyProvider = RCTAppDependencyProvider()
 
     reactNativeDelegate = delegate
@@ -45,15 +44,14 @@ class AppDelegate: ExpoAppDelegate {
       launchOptions: launchOptions
     )
 
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    return true
   }
 
-  override func applicationWillTerminate(_ application: UIApplication) {
+  func applicationWillTerminate(_ application: UIApplication) {
     LiftosaurEventReporterImpl.shared.markGracefulTermination()
-    super.applicationWillTerminate(application)
   }
 
-  override func application(
+  func application(
     _ app: UIApplication,
     open url: URL,
     options: [UIApplication.OpenURLOptionsKey: Any] = [:]
@@ -65,10 +63,10 @@ class AppDelegate: ExpoAppDelegate {
     if RCTLinkingManager.application(app, open: url, options: options) {
       return true
     }
-    return super.application(app, open: url, options: options)
+    return false
   }
 
-  override func application(
+  func application(
     _ application: UIApplication,
     continue userActivity: NSUserActivity,
     restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
@@ -80,11 +78,11 @@ class AppDelegate: ExpoAppDelegate {
     if RCTLinkingManager.application(application, continue: userActivity, restorationHandler: restorationHandler) {
       return true
     }
-    return super.application(application, continue: userActivity, restorationHandler: restorationHandler)
+    return false
   }
 }
 
-class ReactNativeDelegate: ExpoReactNativeFactoryDelegate {
+class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
   override func sourceURL(for bridge: RCTBridge) -> URL? {
     self.bundleURL()
   }

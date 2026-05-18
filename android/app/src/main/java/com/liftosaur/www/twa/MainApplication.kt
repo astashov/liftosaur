@@ -6,6 +6,7 @@ import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
+import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.liftosaur.www.twa.eventreporter.EventReporterDispatcher
 import com.liftosaur.www.twa.eventreporter.EventReporterTombstone
 import com.liftosaur.www.twa.eventreporter.LastTerminationHolder
@@ -14,8 +15,6 @@ import com.liftosaur.www.twa.liveactivity.LiftosaurLiveActivityPackage
 import com.liftosaur.www.twa.share.LiftosaurSharePackage
 import com.liftosaur.www.twa.timer.LiftosaurTimerPackage
 import com.rollbar.RollbarReactNative
-import expo.modules.ApplicationLifecycleDispatcher
-import expo.modules.ExpoReactHostFactory.getDefaultReactHost
 
 class MainApplication : Application(), ReactApplication {
 
@@ -37,7 +36,6 @@ class MainApplication : Application(), ReactApplication {
     super.onCreate()
     LastTerminationHolder.set(EventReporterTombstone.consumeAndArm(this))
     RollbarReactNative.init(this, "f29180c0746c4922996ff41dfc2527d2", "android-rn")
-    ApplicationLifecycleDispatcher.onApplicationCreate(this)
     loadReactNative(this)
   }
 
