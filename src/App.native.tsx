@@ -4,6 +4,7 @@ import { Client as RollbarClient } from "rollbar-react-native";
 import RB from "rollbar";
 import { Analytics_initialize, Analytics_setUserId } from "./utils/analytics";
 import { RollbarUtils_config } from "./utils/rollbar";
+import { Ota_init, Ota_activeBundleIdSync } from "./utils/ota";
 import { RN_COMMIT_HASH, RN_FULL_COMMIT_HASH } from "./rnBuildInfo";
 
 declare let Rollbar: RB;
@@ -49,7 +50,14 @@ interface IRollbarPayload {
   };
 }
 
+// Rollbar source-map matching: sourcemaps are uploaded as bundle/<updateId>-<platform>.js
+// (see scripts/uploadRnSourcemaps.sh). Rewrite any frame whose filename looks like our
+// JS bundle to that canonical URL. Falls back to "embedded" when no OTA bundle is active.
+const BUNDLE_FRAME_PATTERN = /main\.jsbundle|index\.android\.bundle|\/updates\/[^/]+\/[^/]+\/[^/]+\//;
+
 function rewriteRollbarFrames(payload: IRollbarPayload): void {
+  const updateId = Ota_activeBundleIdSync() ?? "embedded";
+  const canonical = `https://www.liftosaur.com/bundle/${updateId}-${Platform.OS}.js`;
   const traces = [payload?.body?.trace, ...(payload?.body?.trace_chain ?? [])];
   for (const trace of traces) {
     const frames = trace?.frames;
@@ -60,11 +68,10 @@ function rewriteRollbarFrames(payload: IRollbarPayload): void {
       if (typeof f?.filename !== "string") {
         continue;
       }
-      const m = f.filename.match(/index-([a-f0-9]+)\.bundle/);
-      if (!m) {
+      if (!BUNDLE_FRAME_PATTERN.test(f.filename)) {
         continue;
       }
-      f.filename = `https://www.liftosaur.com/bundle/index-${m[1]}.js`;
+      f.filename = canonical;
     }
   }
 }
@@ -539,6 +546,7 @@ export function App(): React.JSX.Element {
       setInitialState(state);
     }
     load();
+    Ota_init();
   }, []);
 
   if (!initialState) {

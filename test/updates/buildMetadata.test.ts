@@ -31,9 +31,7 @@ describe("buildMetadata", () => {
 
     expect(metadata.id).to.equal("u1");
     expect(metadata.runtimeVersion).to.equal("rv1");
-    expect(metadata.launchAsset.url).to.equal(
-      "https://www.liftosaur.com/static/updates/rv1/ios/u1/main.jsbundle"
-    );
+    expect(metadata.launchAsset.url).to.equal("https://www.liftosaur.com/static/updates/rv1/ios/u1/main.jsbundle");
     expect(metadata.launchAsset.contentType).to.equal("application/javascript");
     expect(metadata.launchAsset.fileExtension).to.equal(".bundle");
     expect(metadata.launchAsset.hash).to.match(/^[A-Za-z0-9_-]+$/);
