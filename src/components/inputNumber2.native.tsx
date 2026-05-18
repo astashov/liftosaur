@@ -1,5 +1,6 @@
 import { JSX, memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { View, Pressable, Animated, ScrollView, useWindowDimensions, Vibration } from "react-native";
+import { View, Pressable, Animated, ScrollView, useWindowDimensions } from "react-native";
+import ReactNativeHapticFeedback from "react-native-haptic-feedback";
 import { Text } from "./primitives/text";
 import { StringUtils_dashcase } from "../utils/string";
 import { n, MathUtils_clamp } from "../utils/math";
@@ -17,6 +18,8 @@ import {
 import { FocusedInputFlush_register, FocusedInputFlush_unregister } from "../utils/focusedInputFlush";
 
 export type IInputCommitMode = "live" | "debounced" | "blur";
+
+const HAPTIC_OPTIONS = { enableVibrateFallback: false, ignoreAndroidSystemSettings: false };
 
 interface IInputNumber2Props {
   name: string;
@@ -229,7 +232,7 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
   }, []);
 
   const handleInput = useCallback((key: string) => {
-    Vibration.vibrate(10);
+    ReactNativeHapticFeedback.trigger("impactLight", HAPTIC_OPTIONS);
     let newValue = valueRef.current;
     if (!isTypingRef.current) {
       newValue = "";
@@ -288,7 +291,7 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
   }, []);
 
   const handlePlus = useCallback(() => {
-    Vibration.vibrate(10);
+    ReactNativeHapticFeedback.trigger("impactMedium", HAPTIC_OPTIONS);
     if (debounceTimerRef.current != null) {
       clearTimeout(debounceTimerRef.current);
       debounceTimerRef.current = null;
@@ -307,7 +310,7 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
   }, []);
 
   const handleMinus = useCallback(() => {
-    Vibration.vibrate(10);
+    ReactNativeHapticFeedback.trigger("impactMedium", HAPTIC_OPTIONS);
     if (debounceTimerRef.current != null) {
       clearTimeout(debounceTimerRef.current);
       debounceTimerRef.current = null;

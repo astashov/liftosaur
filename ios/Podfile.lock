@@ -2208,6 +2208,27 @@ PODS:
     - ReactNativeDependencies
     - RNWorklets
     - Yoga
+  - RNReactNativeHapticFeedback (3.0.0):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - RNReanimated (4.3.0):
     - hermes-engine
     - RCTRequired
@@ -2576,6 +2597,7 @@ DEPENDENCIES:
   - RNInAppBrowser (from `../node_modules/react-native-inappbrowser-reborn`)
   - RNKeychain (from `../node_modules/react-native-keychain`)
   - "RNLiveMarkdown (from `../node_modules/@expensify/react-native-live-markdown`)"
+  - RNReactNativeHapticFeedback (from `../node_modules/react-native-haptic-feedback`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNShare (from `../node_modules/react-native-share`)
@@ -2802,6 +2824,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-keychain"
   RNLiveMarkdown:
     :path: "../node_modules/@expensify/react-native-live-markdown"
+  RNReactNativeHapticFeedback:
+    :path: "../node_modules/react-native-haptic-feedback"
   RNReanimated:
     :path: "../node_modules/react-native-reanimated"
   RNScreens:
@@ -2926,6 +2950,7 @@ SPEC CHECKSUMS:
   RNInAppBrowser: 904d24dc75e8e6c6c98a3160329192608946f9df
   RNKeychain: 1fdd8401d8c8d05da80a9e1843d837ccfb947ea2
   RNLiveMarkdown: f9c15ca2025f59e999736ca354cd49ebdfaf20f3
+  RNReactNativeHapticFeedback: ab7ef0c4befc540f5431166f98d74edfc70001f7
   RNReanimated: 160413ac24aa8876337bbdc53c03276e3a5765ab
   RNScreens: d0b84395f70841b48de7af26e45704ed4a24c62e
   RNShare: 4db97500d742393e28dbf603c5e858b76222653b
