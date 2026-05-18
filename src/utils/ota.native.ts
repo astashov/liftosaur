@@ -2,21 +2,12 @@ import { Platform } from "react-native";
 import NativeLftUpdater from "../specs/NativeLftUpdater";
 
 interface IRollbarShim {
-  info?: (msg: string, extra?: unknown) => void;
   warning?: (msg: string, extra?: unknown) => void;
   warn?: (msg: string, extra?: unknown) => void;
 }
 
-function getRollbar(): IRollbarShim | undefined {
-  return (globalThis as unknown as { Rollbar?: IRollbarShim }).Rollbar;
-}
-
-function logRollbarInfo(msg: string, extra?: unknown): void {
-  getRollbar()?.info?.(msg, extra);
-}
-
 function logRollbarWarn(msg: string, extra?: unknown): void {
-  const r = getRollbar();
+  const r = (globalThis as unknown as { Rollbar?: IRollbarShim }).Rollbar;
   (r?.warning ?? r?.warn)?.(msg, extra);
 }
 
@@ -47,10 +38,7 @@ export async function Ota_init(): Promise<void> {
 
   try {
     const result = await NativeLftUpdater.checkAndDownload();
-    const status = result?.status ?? "unknown";
-    if (status === "updated") {
-      logRollbarInfo("OTA bundle downloaded", { updateId: result.updateId, platform: Platform.OS });
-    } else if (status === "error") {
+    if (result?.status === "error") {
       logRollbarWarn("OTA check failed", { error: result.error, platform: Platform.OS });
     }
   } catch (e) {

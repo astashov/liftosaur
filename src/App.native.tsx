@@ -92,8 +92,6 @@ const rollbarClient = new RollbarClient({
   },
   transform: rewriteRollbarFrames,
 });
-rollbarClient.captureUncaughtExceptions();
-rollbarClient.captureUnhandledRejections();
 
 const rollbarShim = {
   error: (obj: unknown, extra?: unknown) => rollbarClient.error(obj as never, extra as never),
