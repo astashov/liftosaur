@@ -24,13 +24,13 @@ if [ -z "$ROLLBAR_POST_SERVER_ITEM" ]; then
     exit 1
 fi
 
-for jsfile in $DIST_DIR/*.js; do
+while IFS= read -r jsfile; do
     mapfile="${jsfile}.map"
     if [[ -f "$mapfile" ]]; then
-        jsfilename=$(basename $jsfile)
-        
+        relpath="${jsfile#$DIST_DIR/}"
+
         echo ""
-        echo "Uploading $jsfilename source map, version $VERSION"
+        echo "Uploading $relpath source map, version $VERSION"
 
         (
             for ((i=1; i<=MAX_RETRIES; i++)); do
@@ -38,23 +38,23 @@ for jsfile in $DIST_DIR/*.js; do
                 curl -m $CURL_TIMEOUT $ENDPOINT \
                     -F access_token=$ROLLBAR_POST_SERVER_ITEM \
                     -F version=$VERSION \
-                    -F minified_url="$URL_PREFIX/$jsfilename" \
+                    -F minified_url="$URL_PREFIX/$relpath" \
                     -F source_map=@$mapfile
                 if [ $? -eq 0 ]; then
                     echo "\\nUploading for liftosaur://"
                     curl -m $CURL_TIMEOUT $ENDPOINT \
                         -F access_token=$ROLLBAR_POST_SERVER_ITEM \
                         -F version=$VERSION \
-                        -F minified_url="liftosaur:$URL_PREFIX/$jsfilename" \
+                        -F minified_url="liftosaur:$URL_PREFIX/$relpath" \
                         -F source_map=@$mapfile
                     if [ $? -eq 0 ]; then
                         break
                     else
-                        echo "Retry $i for $jsfilename..."
+                        echo "Retry $i for $relpath..."
                         sleep 2
                     fi
                 else
-                    echo "Retry $i for $jsfilename..."
+                    echo "Retry $i for $relpath..."
                     sleep 2
                 fi
             done
@@ -62,6 +62,6 @@ for jsfile in $DIST_DIR/*.js; do
 
         limit_jobs
     fi
-done
+done < <(find "$DIST_DIR" -type f -name "*.js")
 
 wait

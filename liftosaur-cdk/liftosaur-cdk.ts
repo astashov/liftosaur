@@ -1097,8 +1097,22 @@ export class LiftosaurCdkStack extends cdk.Stack {
       },
     });
 
-    new s3Deployment.BucketDeployment(this, `LftDeployStatic${suffix}`, {
-      sources: [s3Deployment.Source.asset("dist")],
+    const deployChunks = new s3Deployment.BucketDeployment(this, `LftDeployChunks${suffix}`, {
+      sources: [s3Deployment.Source.asset("dist/chunks")],
+      destinationBucket: staticBucket,
+      destinationKeyPrefix: "chunks",
+      memoryLimit: 1024,
+      ephemeralStorageSize: cdk.Size.mebibytes(1024),
+      prune: false,
+      cacheControl: [
+        s3Deployment.CacheControl.maxAge(cdk.Duration.days(365)),
+        s3Deployment.CacheControl.setPublic(),
+        s3Deployment.CacheControl.fromString("immutable"),
+      ],
+    });
+
+    const deployStatic = new s3Deployment.BucketDeployment(this, `LftDeployStatic${suffix}`, {
+      sources: [s3Deployment.Source.asset("dist", { exclude: ["chunks/**"] })],
       destinationBucket: staticBucket,
       distribution: mainDistribution,
       distributionPaths: ["/*"],
@@ -1107,6 +1121,8 @@ export class LiftosaurCdkStack extends cdk.Stack {
       prune: false,
       cacheControl: [s3Deployment.CacheControl.maxAge(cdk.Duration.hours(24)), s3Deployment.CacheControl.setPublic()],
     });
+
+    deployStatic.node.addDependency(deployChunks);
 
     new cdk.CfnOutput(this, `MainDistributionDomain${suffix}`, {
       value: mainDistribution.distributionDomainName,
@@ -1139,6 +1155,7 @@ class LiftosaurPipelineStack extends cdk.Stack {
               ...(isDev ? ["export STAGE=1"] : []),
               `STAGE=${isDev ? "dev" : "prod"} npm run sync:updates-url`,
               "npm run build:prepare",
+              "npm run upload-source-maps",
               "npm run build:lambda",
               `cdk deploy ${stackName} --require-approval never`,
               `STAGE=${isDev ? "dev" : "prod"} npm run build:rn-bundle`,

@@ -154,7 +154,7 @@ const mainConfig = {
   },
   output: {
     filename: "[name].js",
-    chunkFilename: "[name].[contenthash].js",
+    chunkFilename: "chunks/[name].[contenthash].js",
     publicPath: "/",
     path: path.resolve(__dirname, "dist"),
   },
@@ -212,7 +212,7 @@ const mainConfig = {
     new NormalModuleReplacementPlugin(/react-native-css-interop\/dist\/doctor/, require.resolve("./empty-module.js")),
     lftMarkerPlugin,
     new SourceMapDevToolPlugin({
-      append: `\n//# sourceMappingURL=[name].js.map?version=${commitHash}`,
+      append: `\n//# sourceMappingURL=[url]?version=${commitHash}`,
       filename: "[file].map",
     }),
     new MiniCssExtractPlugin({ filename: "[name].css" }),
