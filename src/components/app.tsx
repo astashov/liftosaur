@@ -39,7 +39,6 @@ import { AsyncQueue } from "../utils/asyncQueue";
 import { useLoopCatcher } from "../utils/useLoopCatcher";
 import RB from "rollbar";
 import { exceptionIgnores } from "../utils/rollbar";
-import { ImagePreloader_preload, ImagePreloader_dynocoach } from "../utils/imagePreloader";
 import { Settings_applyTheme } from "../models/settings";
 import { TextSize_apply } from "../utils/textSize";
 import { AppContext } from "./appContext";
@@ -390,10 +389,6 @@ export function AppView(props: IProps): JSX.Element | null {
       Dialog_alert(
         "You're using OLD STYLE programs, which won't be supported, and WILL STOP WORKING starting from Feb 3, 2025! Please go to Program screen, and migrate the program to the new style"
       );
-    }
-
-    if (state.storage.history.length === 0) {
-      ImagePreloader_preload(ImagePreloader_dynocoach);
     }
 
     Settings_applyTheme(state.storage.settings.theme || (window.lftSystemDarkMode ? "dark" : "light"));

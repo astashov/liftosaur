@@ -1,6 +1,7 @@
 import { JSX, useState } from "react";
 import { View, Pressable, Platform } from "react-native";
-import { SvgUri } from "react-native-svg";
+import { SvgUri, SvgXml } from "react-native-svg";
+import { BundledImages_svgXml } from "../utils/bundledImages";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import { Dialog_alert } from "../utils/dialog";
@@ -96,7 +97,11 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
     <>
       <View className="px-4 pb-6">
         <View className="flex-row items-center justify-center pb-2">
-          <SvgUri uri={HostConfig_resolveUrl(ImagePreloader_dynohappy)} width={170} height={150} />
+          {Platform.OS === "web" ? (
+            <SvgUri uri={HostConfig_resolveUrl(ImagePreloader_dynohappy)} width={170} height={150} />
+          ) : (
+            <SvgXml xml={BundledImages_svgXml(ImagePreloader_dynohappy) ?? ""} width={170} height={150} />
+          )}
         </View>
         <View className="items-center px-4 pb-2">
           <Text className="text-sm text-text-secondary">{record.programName}</Text>

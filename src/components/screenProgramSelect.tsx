@@ -14,7 +14,7 @@ import { IconLink } from "./icons/iconLink";
 import { emptyProgramId, Program_selectProgram } from "../models/program";
 import { IconEquipmentKettlebell } from "./icons/iconEquipmentKettlebell";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
-import { HostConfig_resolveUrl } from "../utils/hostConfig";
+import { ImagePreloader_uri } from "../utils/imagePreloader";
 
 interface IScreenProgramSelectProps {
   dispatch: IDispatch;
@@ -72,7 +72,7 @@ export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Eleme
       <View className="flex-1 px-4 pt-8 pb-4">
         <View className="items-center p-4">
           <Image
-            source={{ uri: HostConfig_resolveUrl("/images/dinoprogramselect.png") }}
+            source={{ uri: ImagePreloader_uri("/images/dinoprogramselect.png") }}
             style={{ width: 208, height: 208 }}
             resizeMode="cover"
           />

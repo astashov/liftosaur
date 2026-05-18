@@ -24,3 +24,11 @@ export function TourConfigs_findTourId(state: IState, checkSeen?: boolean): ITou
   }
   return undefined;
 }
+
+export function TourConfigs_imagesForCurrentScreen(state: IState): string[] {
+  const tourId = TourConfigs_findTourId(state, true);
+  if (!tourId) {
+    return [];
+  }
+  return tourConfigs[tourId].steps.map((s) => `/images/${s.dino}`);
+}

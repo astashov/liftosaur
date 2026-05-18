@@ -13,6 +13,12 @@ export function ImagePreloader_preload(url: string): Promise<HTMLImageElement> {
   });
 }
 
+export function ImagePreloader_uri(path: string): string {
+  return path;
+}
+
+export function ImagePreloader_clear(): void {}
+
 export const ImagePreloader_dynocoach: string = "/images/dinocoach.svg";
 
 export const ImagePreloader_dynoflex: string = "/images/dinoflex.svg";

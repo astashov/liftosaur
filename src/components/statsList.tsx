@@ -1,5 +1,5 @@
 import { JSX, memo as reactMemo, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { View, Pressable, TextInput, Image } from "react-native";
+import { View, Pressable, TextInput, Image, Platform } from "react-native";
 import { NavScreenScrollContext } from "../navigation/NavScreenContent";
 import { useScrollProgressiveList } from "../utils/useScrollProgressiveList";
 import { Text } from "./primitives/text";
@@ -33,6 +33,8 @@ import { lb } from "lens-shmens";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { ImagePreloader_dynoflex } from "../utils/imagePreloader";
 import { HostConfig_resolveUrl } from "../utils/hostConfig";
+import { BundledImages_svgXml } from "../utils/bundledImages";
+import { SvgXml } from "./primitives/svg";
 import { Dialog_confirm } from "../utils/dialog";
 import { DatePicker } from "./datePicker";
 
@@ -96,7 +98,14 @@ export function StatsList(props: IProps): JSX.Element {
     return (
       <View>
         <View className="flex-row items-center justify-center pt-16">
-          <Image source={{ uri: HostConfig_resolveUrl(ImagePreloader_dynoflex) }} style={{ width: 180, height: 232 }} />
+          {Platform.OS === "web" ? (
+            <Image
+              source={{ uri: HostConfig_resolveUrl(ImagePreloader_dynoflex) }}
+              style={{ width: 180, height: 232 }}
+            />
+          ) : (
+            <SvgXml xml={BundledImages_svgXml(ImagePreloader_dynoflex) ?? ""} width={180} height={232} />
+          )}
         </View>
         <Text className="pt-4 pb-6 text-sm text-center text-text-secondary">No measurements added yet</Text>
         <View className="items-center">

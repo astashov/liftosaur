@@ -126,6 +126,7 @@ interface ISvgXmlProps {
   height?: number | string;
   style?: React.CSSProperties;
   className?: string;
+  preserveAspectRatio?: string;
 }
 
 export function SvgXml(props: ISvgXmlProps): React.JSX.Element {

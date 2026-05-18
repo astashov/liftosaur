@@ -15,7 +15,7 @@ import { Equipment_getCurrentGym, Equipment_getEquipmentData, Equipment_getEquip
 import { equipmentName } from "../models/exercise";
 import { ILensRecordingPayload, lb } from "lens-shmens";
 import { ObjectUtils_keys } from "../utils/object";
-import { HostConfig_resolveUrl } from "../utils/hostConfig";
+import { ImagePreloader_uri } from "../utils/imagePreloader";
 import { Tailwind_colors, Tailwind_semantic } from "../utils/tailwindConfig";
 import { ILensDispatch } from "../utils/useLensReducer";
 import { navigationRef } from "../navigation/navigationRef";
@@ -65,7 +65,7 @@ export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Ele
       <ScrollView className="flex-1 px-4 pt-8 pb-4">
         <View className="items-center p-4">
           <Image
-            source={{ uri: HostConfig_resolveUrl("/images/dinoequipment.png") }}
+            source={{ uri: ImagePreloader_uri("/images/dinoequipment.png") }}
             className="h-60"
             style={{ width: 240, height: 240 }}
             resizeMode="contain"
@@ -210,7 +210,7 @@ export function ScreenSetupPlates(props: IScreenSetupPlatesProps): JSX.Element {
   children.push(
     <View key="image" className="items-center p-4">
       <Image
-        source={{ uri: HostConfig_resolveUrl("/images/dinoplates.png") }}
+        source={{ uri: ImagePreloader_uri("/images/dinoplates.png") }}
         style={{ width: 220, height: 208 }}
         resizeMode="contain"
       />

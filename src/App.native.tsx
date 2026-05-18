@@ -155,7 +155,8 @@ import { EventManager_initTelemetry } from "./utils/eventManager";
 import { WatchStorageFilter_filterJson } from "./utils/watchStorageFilter";
 import { lb } from "lens-shmens";
 import { updateState } from "./models/state";
-import { TourConfigs_findTourId } from "./components/tour/tourConfigs";
+import { TourConfigs_findTourId, TourConfigs_imagesForCurrentScreen } from "./components/tour/tourConfigs";
+import { ImagePreloader_preload } from "./utils/imagePreloader";
 import { RestTimer } from "./components/restTimer";
 import { IScreen } from "./models/screen";
 import { IEnv, IState } from "./models/state";
@@ -493,6 +494,15 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
       updateState(dispatch, [lb<IState>().p("tour").record({ id: tourId, enforced: false })], "Auto-start a tour");
     }
   }, [isNavReady, currentScreenName, dispatch]);
+
+  useEffect(() => {
+    if (!isNavReady || !currentScreenName) {
+      return;
+    }
+    for (const path of TourConfigs_imagesForCurrentScreen(stateRef.current)) {
+      ImagePreloader_preload(path);
+    }
+  }, [isNavReady, currentScreenName]);
   const progress = Progress_getCurrentProgress(state);
   const screensWithoutTimer: IScreen[] = ["subscription"];
 

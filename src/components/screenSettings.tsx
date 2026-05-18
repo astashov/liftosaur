@@ -1,4 +1,4 @@
-import { JSX, useEffect, useState } from "react";
+import { JSX, useState } from "react";
 import { View, Pressable, Linking, Platform } from "react-native";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
@@ -37,9 +37,8 @@ import { navigationRef } from "../navigation/navigationRef";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
 import { INavCommon } from "../models/state";
-import { Stats_getCurrentBodyweight, Stats_getCurrentBodyfat, Stats_isEmpty } from "../models/stats";
+import { Stats_getCurrentBodyweight, Stats_getCurrentBodyfat } from "../models/stats";
 import { Weight_print } from "../models/weight";
-import { ImagePreloader_preload, ImagePreloader_dynoflex } from "../utils/imagePreloader";
 import { Settings_getTheme, Settings_applyTheme } from "../models/settings";
 import { TextSize_apply } from "../utils/textSize";
 import { Features_isEnabled } from "../utils/features";
@@ -70,12 +69,6 @@ export function ScreenSettings(props: IProps): JSX.Element {
   const [isCopied, setIsCopied] = useState<boolean>(false);
   const currentBodyweight = Stats_getCurrentBodyweight(props.stats);
   const currentBodyfat = Stats_getCurrentBodyfat(props.stats);
-
-  useEffect(() => {
-    if (Stats_isEmpty(props.stats)) {
-      ImagePreloader_preload(ImagePreloader_dynoflex);
-    }
-  }, []);
 
   useNavOptions({ navTitle: "Me", navHelpKey: "settings" });
 

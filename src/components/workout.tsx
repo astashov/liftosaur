@@ -36,7 +36,6 @@ import { Markdown } from "./markdown";
 import { DraggableList2 } from "./draggableList2";
 import { LinkButton } from "./linkButton";
 import { Button } from "./button";
-import { ImagePreloader_preload, ImagePreloader_dynohappy } from "../utils/imagePreloader";
 import { navigationRef } from "../navigation/navigationRef";
 import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
 import { SendMessage_isIos } from "../utils/sendMessage";
@@ -102,7 +101,6 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
   }, [currentEntryIndex]);
 
   useEffect(() => {
-    ImagePreloader_preload(ImagePreloader_dynohappy);
     if (props.program && Program_isEmpty(props.program) && props.progress.entries.length === 0) {
       updateState(
         props.dispatch,

@@ -1,6 +1,5 @@
 import { JSX, ReactNode, useEffect, useRef } from "react";
 import { View, Image, Platform, Animated, Easing } from "react-native";
-import { SvgUri } from "react-native-svg";
 import { Text } from "./primitives/text";
 import { Thunk_pushScreen } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
@@ -9,14 +8,14 @@ import { Button } from "./button";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import StorySlider from "./storySlider";
 import { IconKettlebell } from "./icons/iconKettlebell";
-import { Svg, Defs, LinearGradient, Stop, Rect } from "./primitives/svg";
+import { Svg, Defs, LinearGradient, Stop, Rect, SvgXml } from "./primitives/svg";
 import { Tailwind_colors } from "../utils/tailwindConfig";
 import { IconWorkoutProgress } from "./icons/iconWorkoutProgress";
 import { IconEditor } from "./icons/iconEditor";
 import { IconTracker } from "./icons/iconTracker";
 import { ImagePreloader_preload } from "../utils/imagePreloader";
 import { navigationRef } from "../navigation/navigationRef";
-import { HostConfig_resolveUrl } from "../utils/hostConfig";
+import { BundledImages_resolve, BundledImages_svgXml } from "../utils/bundledImages";
 
 interface IProps {
   dispatch: IDispatch;
@@ -162,7 +161,7 @@ function FirstSlide(): JSX.Element {
   return (
     <View className="relative flex flex-col w-full h-full overflow-hidden bg-white rounded-2xl">
       <Image
-        source={{ uri: HostConfig_resolveUrl("/images/slide-1-bg.jpg") }}
+        source={BundledImages_resolve("/images/slide-1-bg.jpg")}
         className="absolute top-0 bottom-0 left-0 right-0 w-full h-full"
         resizeMode="cover"
       />
@@ -189,8 +188,8 @@ function FirstSlide(): JSX.Element {
             style={{ alignSelf: "flex-end" }}
           />
         ) : (
-          <SvgUri
-            uri={HostConfig_resolveUrl("/images/logo.svg")}
+          <SvgXml
+            xml={BundledImages_svgXml("/images/logo.svg") ?? ""}
             width="100%"
             height="100%"
             preserveAspectRatio="xMidYMax meet"
@@ -232,7 +231,7 @@ function RestSlide(props: IRestSlideProps): JSX.Element {
       <Text className="px-8 py-6 text-xl font-semibold text-center text-black">{props.bodyText}</Text>
       <View className="items-center justify-center flex-1 w-full">
         <Image
-          source={{ uri: HostConfig_resolveUrl(`/images/${props.image}.png`) }}
+          source={BundledImages_resolve(`/images/${props.image}.png`)}
           className="w-full h-full"
           resizeMode="contain"
         />

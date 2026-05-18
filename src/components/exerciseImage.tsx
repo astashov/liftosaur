@@ -11,6 +11,7 @@ import {
 } from "../models/exerciseImage";
 import { Exercise_get, Exercise_nameWithEquipment } from "../models/exercise";
 import { HostConfig_resolveUrl } from "../utils/hostConfig";
+import { ImageCache_initialUri, ImageCache_markMissing, ImageCache_download } from "../utils/imageCache";
 
 interface IProps {
   exerciseType: IExerciseType;
@@ -32,14 +33,46 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
     equipment: props.exerciseType.equipment || exercise.defaultEquipment,
   };
 
+  const rawSrc = ExerciseImageUtils_url(exerciseType, size, props.settings);
+  const remoteSrc = rawSrc ? HostConfig_resolveUrl(rawSrc) : undefined;
+  const initialUri = remoteSrc ? ImageCache_initialUri(remoteSrc) : undefined;
+
+  const [prevRemote, setPrevRemote] = useState<string | undefined>(remoteSrc);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isError, setIsError] = useState<boolean>(false);
   const [aspectRatio, setAspectRatio] = useState<number>(4 / 3);
-  const rawSrc = ExerciseImageUtils_url(exerciseType, size, props.settings);
-  const src = rawSrc ? HostConfig_resolveUrl(rawSrc) : undefined;
+  const [src, setSrc] = useState<string | undefined>(initialUri);
+  const [usingRemote, setUsingRemote] = useState<boolean>(initialUri === remoteSrc);
+
+  if (prevRemote !== remoteSrc) {
+    setPrevRemote(remoteSrc);
+    setSrc(initialUri);
+    setUsingRemote(initialUri === remoteSrc);
+    setIsLoading(true);
+    setIsError(false);
+    setAspectRatio(4 / 3);
+  }
+
   const doesExist =
     ExerciseImageUtils_exists(exerciseType, size) ||
     ExerciseImageUtils_existsCustom(exerciseType, size, !!props.suppressCustom, props.settings);
+
+  const onCachedError = (): void => {
+    if (!usingRemote && remoteSrc) {
+      ImageCache_markMissing(remoteSrc);
+      setUsingRemote(true);
+      setSrc(remoteSrc);
+    } else {
+      setIsError(true);
+    }
+  };
+
+  const onCachedLoad = (): void => {
+    setIsLoading(false);
+    if (usingRemote && remoteSrc) {
+      ImageCache_download(remoteSrc);
+    }
+  };
 
   if (size === "small") {
     const w = props.width || 32;
@@ -53,8 +86,8 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
             className={props.className}
             source={{ uri: src }}
             style={imgStyle}
-            onLoad={() => setIsLoading(false)}
-            onError={() => setIsError(true)}
+            onLoad={onCachedLoad}
+            onError={onCachedError}
             accessibilityLabel={Exercise_nameWithEquipment(exercise, props.settings)}
           />
         )}
@@ -86,13 +119,13 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
           resizeMode="contain"
           style={{ width: "100%", aspectRatio }}
           onLoad={(e) => {
-            setIsLoading(false);
+            onCachedLoad();
             const source = (e?.nativeEvent as { source?: { width?: number; height?: number } } | undefined)?.source;
             if (source?.width && source?.height) {
               setAspectRatio(source.width / source.height);
             }
           }}
-          onError={() => setIsError(true)}
+          onError={onCachedError}
           accessibilityLabel={Exercise_nameWithEquipment(exercise, props.settings)}
         />
         <ExerciseImageAuxiliary size={props.size} isError={isError} isLoading={isLoading} />

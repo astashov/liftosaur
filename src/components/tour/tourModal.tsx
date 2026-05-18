@@ -1,14 +1,15 @@
 import { JSX, useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, Image } from "react-native";
 import { SvgUri } from "react-native-svg";
-import { Svg, Path } from "../primitives/svg";
+import { Svg, Path, SvgXml } from "../primitives/svg";
 import { Tour_stepHelpFlag } from "./tourTypes";
 import { Button } from "../button";
 import { IState, IStateTour } from "../../models/state";
 import { IconCloseCircleOutline } from "../icons/iconCloseCircleOutline";
 import { tourConfigs } from "./tourConfigs";
-import { ImagePreloader_preload } from "../../utils/imagePreloader";
+import { ImagePreloader_preload, ImagePreloader_uri } from "../../utils/imagePreloader";
 import { HostConfig_resolveUrl } from "../../utils/hostConfig";
+import { BundledImages_svgXml } from "../../utils/bundledImages";
 
 interface ITourModalProps {
   stateTour: IStateTour;
@@ -29,11 +30,15 @@ function isStepActive(
 }
 
 function DinoImage({ filename, height }: { filename: string; height: number }): JSX.Element {
-  const uri = HostConfig_resolveUrl(`/images/${filename}`);
+  const path = `/images/${filename}`;
   if (filename.endsWith(".svg")) {
-    return <SvgUri uri={uri} width={200} height={height} />;
+    const bundledXml = BundledImages_svgXml(path);
+    if (bundledXml) {
+      return <SvgXml xml={bundledXml} width={200} height={height} />;
+    }
+    return <SvgUri uri={HostConfig_resolveUrl(path)} width={200} height={height} />;
   }
-  return <Image source={{ uri }} style={{ height, width: 200, resizeMode: "contain" }} />;
+  return <Image source={{ uri: ImagePreloader_uri(path) }} style={{ height, width: 200, resizeMode: "contain" }} />;
 }
 
 export function TourModalContent(props: ITourModalProps): JSX.Element | null {

@@ -8,7 +8,7 @@ import { ISettings } from "../types";
 import { useNavOptions } from "../navigation/useNavOptions";
 import { Thunk_pushScreen } from "../ducks/thunks";
 import { lb } from "lens-shmens";
-import { HostConfig_resolveUrl } from "../utils/hostConfig";
+import { ImagePreloader_uri } from "../utils/imagePreloader";
 
 interface IProps {
   dispatch: IDispatch;
@@ -27,7 +27,7 @@ export function ScreenUnitSelector(props: IProps): JSX.Element {
         <View className="w-full h-full border border-border-cardyellow rounded-2xl bg-background-cardyellow">
           <View className="items-center p-4">
             <Image
-              source={{ uri: HostConfig_resolveUrl("/images/dinounit.png") }}
+              source={{ uri: ImagePreloader_uri("/images/dinounit.png") }}
               style={{ width: 240, height: 192 }}
               resizeMode="contain"
             />
