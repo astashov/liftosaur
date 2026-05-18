@@ -1,19 +1,27 @@
 import Foundation
 import CryptoKit
+import OSLog
 
 @objc class LftUpdater: NSObject {
   @objc static let shared = LftUpdater()
 
-  private static let manifestURL = "https://www.liftosaur.com/api/updates/manifest"
+  private static let fallbackManifestURL = "https://www.liftosaur.com/api/updates/manifest"
   private static let channel = "production"
 
+  private static var manifestURL: String {
+    (Bundle.main.infoDictionary?["LftUpdatesManifestURL"] as? String) ?? fallbackManifestURL
+  }
+
   @objc func checkAndDownload(completion: @escaping (String) -> Void) {
+    Logger.ota.info("checkAndDownload called (active=\(LftUpdaterPath.activeUpdateId() ?? "<none>"))")
     Task {
       do {
         let dict = try await self.performCheckAndDownload()
         let data = try JSONSerialization.data(withJSONObject: dict, options: [])
+        Logger.ota.info("checkAndDownload result: \(String(data: data, encoding: .utf8) ?? "{}")")
         completion(String(data: data, encoding: .utf8) ?? "{}")
       } catch {
+        Logger.ota.error("checkAndDownload threw: \(error.localizedDescription)")
         let payload: [String: Any] = ["status": "error", "error": error.localizedDescription]
         let data = (try? JSONSerialization.data(withJSONObject: payload, options: [])) ?? Data()
         completion(String(data: data, encoding: .utf8) ?? "{}")
@@ -23,8 +31,10 @@ import CryptoKit
 
   @objc func markLaunchSuccessful() {
     let d = UserDefaults.standard
+    let hadCount = d.integer(forKey: "LftUpdater.crashCount")
     d.set(false, forKey: "LftUpdater.launchInProgress")
     d.set(0, forKey: "LftUpdater.crashCount")
+    Logger.ota.info("markLaunchSuccessful (crashCount was \(hadCount))")
   }
 
   @objc func activeBundleId() -> String? {
@@ -32,6 +42,7 @@ import CryptoKit
   }
 
   @objc func revertToEmbedded() {
+    Logger.ota.warning("revertToEmbedded called (was active=\(LftUpdaterPath.activeUpdateId() ?? "<none>"))")
     LftUpdaterPath.revertToEmbedded()
   }
 
@@ -57,6 +68,7 @@ import CryptoKit
 
   private func performCheckAndDownload() async throws -> [String: Any] {
     let runtimeVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
+    Logger.ota.info("fetching manifest: url=\(Self.manifestURL) platform=ios rv=\(runtimeVersion) channel=\(Self.channel)")
     var req = URLRequest(url: URL(string: Self.manifestURL)!)
     req.httpMethod = "GET"
     req.setValue("1", forHTTPHeaderField: "expo-protocol-version")
@@ -69,6 +81,7 @@ import CryptoKit
     guard let http = response as? HTTPURLResponse else {
       throw err("not an http response")
     }
+    Logger.ota.info("manifest http=\(http.statusCode) bytes=\(data.count)")
     guard http.statusCode == 200 else {
       throw err("manifest http \(http.statusCode)")
     }
@@ -78,12 +91,15 @@ import CryptoKit
     }
 
     let parts = try Self.parseMultipart(body: data, boundary: boundary)
+    Logger.ota.info("parsed multipart: parts=\(parts.count) names=\(parts.map { $0.name }.joined(separator: ","))")
     guard let first = parts.first else { throw err("empty multipart") }
     let signature = try Self.parseSignatureHeader(first.headers["expo-signature"] ?? "")
     try Self.verifyRSASHA256(body: first.body, signatureBase64: signature)
+    Logger.ota.info("signature verified for part name=\(first.name)")
 
     if first.name == "directive" {
       let directive = try JSONDecoder().decode(Directive.self, from: first.body)
+      Logger.ota.info("directive: \(directive.type)")
       if directive.type == "rollBackToEmbedded" {
         LftUpdaterPath.revertToEmbedded()
       }
@@ -91,14 +107,18 @@ import CryptoKit
     }
 
     let manifest = try JSONDecoder().decode(Manifest.self, from: first.body)
+    Logger.ota.info("manifest decoded: id=\(manifest.id) rv=\(manifest.runtimeVersion) launchAsset.url=\(manifest.launchAsset.url) hash=\(manifest.launchAsset.hash)")
     if manifest.id == LftUpdaterPath.activeUpdateId() {
+      Logger.ota.info("manifest id matches active bundle; skipping download")
       return ["status": "no-update"]
     }
 
+    Logger.ota.info("downloading bundle: \(manifest.launchAsset.url)")
     let bundleData = try await Self.downloadAndVerify(
       urlString: manifest.launchAsset.url,
       expectedHashBase64Url: manifest.launchAsset.hash
     )
+    Logger.ota.info("bundle downloaded: bytes=\(bundleData.count) hash ok")
     let tmpDir = FileManager.default.temporaryDirectory
       .appendingPathComponent("ota-staging-\(UUID().uuidString)")
     try FileManager.default.createDirectory(at: tmpDir, withIntermediateDirectories: true)
@@ -107,6 +127,7 @@ import CryptoKit
 
     try LftUpdaterPath.setActive(updateId: manifest.id, bundleFile: tmpBundle)
     try? FileManager.default.removeItem(at: tmpDir)
+    Logger.ota.info("active bundle swapped to id=\(manifest.id)")
     return ["status": "updated", "updateId": manifest.id]
   }
 

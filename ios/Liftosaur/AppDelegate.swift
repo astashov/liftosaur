@@ -1,4 +1,5 @@
 import UIKit
+import OSLog
 import React
 import React_RCTAppDelegate
 import ReactAppDependencyProvider
@@ -19,13 +20,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
   ) -> Bool {
     let defaults = UserDefaults.standard
-    if defaults.bool(forKey: "LftUpdater.launchInProgress") {
+    let priorInProgress = defaults.bool(forKey: "LftUpdater.launchInProgress")
+    if priorInProgress {
       let count = defaults.integer(forKey: "LftUpdater.crashCount") + 1
       defaults.set(count, forKey: "LftUpdater.crashCount")
+      Logger.ota.warning("previous launch did not complete; crashCount=\(count) activeId=\(LftUpdaterPath.activeUpdateId() ?? "<none>")")
       if count >= 3 {
+        Logger.ota.error("crashCount reached \(count), reverting to embedded bundle")
         LftUpdaterPath.revertToEmbedded()
         defaults.set(0, forKey: "LftUpdater.crashCount")
       }
+    } else {
+      Logger.ota.info("launch starting, activeId=\(LftUpdaterPath.activeUpdateId() ?? "<none>")")
     }
     defaults.set(true, forKey: "LftUpdater.launchInProgress")
 

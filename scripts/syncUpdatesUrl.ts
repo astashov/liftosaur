@@ -49,12 +49,23 @@ function replaceNativeHosts(contents: string, hosts: (typeof HOSTS)[IStage]): st
     );
 }
 
+function replaceIosManifestURL(contents: string, manifestUrl: string): string {
+  return contents.replace(/(<key>LftUpdatesManifestURL<\/key>\s*<string>)[^<]+(<\/string>)/, `$1${manifestUrl}$2`);
+}
+
+function replaceAndroidManifestURL(contents: string, manifestUrl: string): string {
+  return contents.replace(/(<string name="lft_updates_manifest_url">)[^<]+(<\/string>)/, `$1${manifestUrl}$2`);
+}
+
 function main(): void {
   const stage = resolveStage();
   const hosts = HOSTS[stage];
-  console.log(`stage=${stage} → ${hosts.host}`);
+  const manifestUrl = `${hosts.host}/api/updates/manifest`;
+  console.log(`stage=${stage} host=${hosts.host} manifest=${manifestUrl}`);
 
   syncFile("src/App.native.tsx", replaceNativeHosts, hosts);
+  syncFile("ios/Liftosaur/Info.plist", replaceIosManifestURL, manifestUrl);
+  syncFile("android/app/src/main/res/values/strings.xml", replaceAndroidManifestURL, manifestUrl);
 }
 
 main();

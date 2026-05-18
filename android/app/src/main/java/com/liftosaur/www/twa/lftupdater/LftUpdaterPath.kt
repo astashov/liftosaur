@@ -2,9 +2,11 @@ package com.liftosaur.www.twa.lftupdater
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import java.io.File
 
 object LftUpdaterPath {
+    private const val TAG = "LftUpdater"
     private const val PREFS_NAME = "LftUpdater"
     private const val KEY_ACTIVE_UPDATE_ID = "activeUpdateId"
     const val BUNDLE_NAME = "index.android.bundle"
@@ -15,7 +17,13 @@ object LftUpdaterPath {
 
     fun effectiveBundleFilePath(context: Context): String? {
         val f = activeBundleFile(context)
-        return if (f.exists()) f.absolutePath else null
+        return if (f.exists()) {
+            Log.i(TAG, "effectiveBundleFilePath: using OTA bundle at ${f.absolutePath} (id=${activeUpdateId(context) ?: "<none>"})")
+            f.absolutePath
+        } else {
+            Log.i(TAG, "effectiveBundleFilePath: using embedded bundle")
+            null
+        }
     }
 
     private fun prefs(context: Context): SharedPreferences =
@@ -35,18 +43,22 @@ object LftUpdaterPath {
         val dst = File(staging, BUNDLE_NAME)
         srcBundle.copyTo(dst, overwrite = true)
         val active = activeDir(context)
-        if (active.exists() && !active.deleteRecursively()) {
+        val hadPrevious = active.exists()
+        if (hadPrevious && !active.deleteRecursively()) {
             throw IllegalStateException("can't remove previous active bundle")
         }
         if (!staging.renameTo(active)) {
             throw IllegalStateException("atomic rename failed")
         }
         prefs(context).edit().putString(KEY_ACTIVE_UPDATE_ID, updateId).apply()
+        Log.i(TAG, "setActive: id=$updateId replacedPrevious=$hadPrevious path=${active.absolutePath}")
     }
 
     fun revertToEmbedded(context: Context) {
         val active = activeDir(context)
-        if (active.exists()) active.deleteRecursively()
+        val hadActive = active.exists()
+        if (hadActive) active.deleteRecursively()
         prefs(context).edit().remove(KEY_ACTIVE_UPDATE_ID).apply()
+        Log.i(TAG, "revertToEmbedded: hadActive=$hadActive")
     }
 }

@@ -2,6 +2,7 @@ package com.liftosaur.www.twa.lftupdater
 
 import android.content.Context
 import android.util.Base64
+import android.util.Log
 import com.liftosaur.www.twa.BuildConfig
 import com.liftosaur.www.twa.R
 import org.json.JSONObject
@@ -17,34 +18,54 @@ import java.security.cert.X509Certificate
 import java.util.UUID
 
 object LftUpdater {
-    private const val MANIFEST_URL = "https://www.liftosaur.com/api/updates/manifest"
+    private const val TAG = "LftUpdater"
+    private const val FALLBACK_MANIFEST_URL = "https://www.liftosaur.com/api/updates/manifest"
     private const val CHANNEL = "production"
 
-    fun checkAndDownload(context: Context): Map<String, Any?> = try {
-        performCheck(context)
-    } catch (e: Exception) {
-        mapOf("status" to "error", "error" to (e.message ?: e.javaClass.simpleName))
+    private fun manifestUrl(context: Context): String =
+        runCatching { context.getString(R.string.lft_updates_manifest_url) }
+            .getOrDefault(FALLBACK_MANIFEST_URL)
+
+    fun checkAndDownload(context: Context): Map<String, Any?> {
+        Log.i(TAG, "checkAndDownload called (active=${LftUpdaterPath.activeUpdateId(context) ?: "<none>"})")
+        return try {
+            val result = performCheck(context)
+            Log.i(TAG, "checkAndDownload result: $result")
+            result
+        } catch (e: Exception) {
+            Log.e(TAG, "checkAndDownload threw", e)
+            mapOf("status" to "error", "error" to (e.message ?: e.javaClass.simpleName))
+        }
     }
 
     fun markLaunchSuccessful(context: Context) {
-        context.getSharedPreferences("LftUpdater", Context.MODE_PRIVATE).edit()
+        val prefs = context.getSharedPreferences("LftUpdater", Context.MODE_PRIVATE)
+        val had = prefs.getInt("crashCount", 0)
+        prefs.edit()
             .putBoolean("launchInProgress", false)
             .putInt("crashCount", 0)
             .apply()
+        Log.i(TAG, "markLaunchSuccessful (crashCount was $had)")
     }
 
     private fun performCheck(context: Context): Map<String, Any?> {
         val runtimeVersion = BuildConfig.VERSION_CODE.toString()
-        val (body, contentType) = httpGetManifest(runtimeVersion)
+        val manifestEndpoint = manifestUrl(context)
+        Log.i(TAG, "fetching manifest: url=$manifestEndpoint platform=android rv=$runtimeVersion channel=$CHANNEL")
+        val (body, contentType) = httpGetManifest(manifestEndpoint, runtimeVersion)
+        Log.i(TAG, "manifest http=200 bytes=${body.size}")
         val boundary = extractBoundary(contentType)
             ?: throw IllegalStateException("invalid content-type: $contentType")
-        val part = parseMultipart(body, boundary).firstOrNull()
-            ?: throw IllegalStateException("empty multipart")
+        val parts = parseMultipart(body, boundary)
+        Log.i(TAG, "parsed multipart: parts=${parts.size} names=${parts.joinToString(",") { it.name }}")
+        val part = parts.firstOrNull() ?: throw IllegalStateException("empty multipart")
         val signature = parseSignatureHeader(part.headers["expo-signature"] ?: "")
         verifyRsaSha256(context, part.body, signature)
+        Log.i(TAG, "signature verified for part name=${part.name}")
 
         if (part.name == "directive") {
             val type = JSONObject(String(part.body, Charsets.UTF_8)).optString("type")
+            Log.i(TAG, "directive: $type")
             if (type == "rollBackToEmbedded") {
                 LftUpdaterPath.revertToEmbedded(context)
             }
@@ -53,14 +74,18 @@ object LftUpdater {
 
         val json = JSONObject(String(part.body, Charsets.UTF_8))
         val id = json.getString("id")
-        if (id == LftUpdaterPath.activeUpdateId(context)) {
-            return mapOf("status" to "no-update")
-        }
         val launchAsset = json.getJSONObject("launchAsset")
         val url = launchAsset.getString("url")
         val expectedHash = launchAsset.getString("hash")
+        Log.i(TAG, "manifest decoded: id=$id rv=${json.optString("runtimeVersion")} launchAsset.url=$url hash=$expectedHash")
+        if (id == LftUpdaterPath.activeUpdateId(context)) {
+            Log.i(TAG, "manifest id matches active bundle; skipping download")
+            return mapOf("status" to "no-update")
+        }
 
+        Log.i(TAG, "downloading bundle: $url")
         val bundleBytes = downloadAndVerify(url, expectedHash)
+        Log.i(TAG, "bundle downloaded: bytes=${bundleBytes.size} hash ok")
         val tmpDir = File(context.cacheDir, "ota-staging-${UUID.randomUUID()}")
         if (!tmpDir.mkdirs()) throw IllegalStateException("can't create staging dir")
         try {
@@ -70,11 +95,12 @@ object LftUpdater {
         } finally {
             tmpDir.deleteRecursively()
         }
+        Log.i(TAG, "active bundle swapped to id=$id")
         return mapOf("status" to "updated", "updateId" to id)
     }
 
-    private fun httpGetManifest(runtimeVersion: String): Pair<ByteArray, String> {
-        val conn = (URL(MANIFEST_URL).openConnection() as HttpURLConnection).apply {
+    private fun httpGetManifest(manifestUrl: String, runtimeVersion: String): Pair<ByteArray, String> {
+        val conn = (URL(manifestUrl).openConnection() as HttpURLConnection).apply {
             requestMethod = "GET"
             setRequestProperty("expo-protocol-version", "1")
             setRequestProperty("expo-platform", "android")

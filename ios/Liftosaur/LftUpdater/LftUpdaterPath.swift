@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 
 @objc class LftUpdaterPath: NSObject {
   private static let activeUpdateIdKey = "LftUpdater.activeUpdateId"
@@ -14,9 +15,12 @@ import Foundation
   @objc static func effectiveBundleURL() -> URL? {
     let active = activeBundleURL
     if FileManager.default.fileExists(atPath: active.path) {
+      Logger.ota.info("effectiveBundleURL: using OTA bundle at \(active.path) (id=\(activeUpdateId() ?? "<none>"))")
       return active
     }
-    return Bundle.main.url(forResource: "main", withExtension: "jsbundle")
+    let embedded = Bundle.main.url(forResource: "main", withExtension: "jsbundle")
+    Logger.ota.info("effectiveBundleURL: using embedded bundle (\(embedded?.lastPathComponent ?? "<missing>"))")
+    return embedded
   }
 
   @objc static func activeUpdateId() -> String? {
@@ -33,19 +37,23 @@ import Foundation
     try fm.createDirectory(at: staging, withIntermediateDirectories: true)
     let dest = staging.appendingPathComponent("main.jsbundle")
     try fm.copyItem(at: bundleFile, to: dest)
-    if fm.fileExists(atPath: active.path) {
+    let hadPrevious = fm.fileExists(atPath: active.path)
+    if hadPrevious {
       try fm.removeItem(at: active)
     }
     try fm.moveItem(at: staging, to: active)
     UserDefaults.standard.set(updateId, forKey: activeUpdateIdKey)
+    Logger.ota.info("setActive: id=\(updateId) replacedPrevious=\(hadPrevious) path=\(active.path)")
   }
 
   @objc static func revertToEmbedded() {
     let fm = FileManager.default
     let active = otaRoot.appendingPathComponent("active")
-    if fm.fileExists(atPath: active.path) {
+    let hadActive = fm.fileExists(atPath: active.path)
+    if hadActive {
       try? fm.removeItem(at: active)
     }
     UserDefaults.standard.removeObject(forKey: activeUpdateIdKey)
+    Logger.ota.info("revertToEmbedded: hadActive=\(hadActive)")
   }
 }

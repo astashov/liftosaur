@@ -94,7 +94,7 @@ bundle_platform() {
   local BUNDLE_PATH="$PLATFORM_DIR/$BUNDLE_NAME"
   local MAP_PATH="$BUNDLE_PATH.map"
 
-  echo "  bundling $PLATFORM…"
+  echo "  bundling $PLATFORM..."
   npx react-native bundle \
     --platform "$PLATFORM" \
     --entry-file index.js \
@@ -105,7 +105,7 @@ bundle_platform() {
     --sourcemap-output "$MAP_PATH"
 
   if [ -n "$HERMESC" ]; then
-    echo "  Hermes-compiling $PLATFORM bundle…"
+    echo "  Hermes-compiling $PLATFORM bundle..."
     local HBC_PATH="$BUNDLE_PATH.hbc"
     local HBC_MAP_PATH="$HBC_PATH.map"
     "$HERMESC" -emit-binary -O -output-source-map -out "$HBC_PATH" "$BUNDLE_PATH"

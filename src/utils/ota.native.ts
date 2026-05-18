@@ -35,7 +35,9 @@ export function Ota_activeBundleIdSync(): string | null {
 }
 
 export async function Ota_init(): Promise<void> {
-  if (__DEV__) return;
+  if (__DEV__) {
+    return;
+  }
 
   cachedActiveBundleId = await NativeLftUpdater.activeBundleId();
 

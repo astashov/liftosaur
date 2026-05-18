@@ -280,6 +280,8 @@
 	<true/>
 	<key>RCTNewArchEnabled</key>
 	<true/>
+	<key>LftUpdatesManifestURL</key>
+	<string>https://stage.liftosaur.com/api/updates/manifest</string>
 	<key>LftUpdatesSigningCertificate</key>
 	<string>-----BEGIN CERTIFICATE-----
 MIIDUTCCAjmgAwIBAgIUHLl2tunW/kUgZ2/XE72t+3fZoV0wDQYJKoZIhvcNAQEL

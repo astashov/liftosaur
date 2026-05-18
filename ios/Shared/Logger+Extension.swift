@@ -288,7 +288,7 @@ struct DualLogger {
     }
 
     private func logToFile(level: String, message: String) {
-        let logMessage = "[\(timestamp())] [\(deviceTag)] [\(level)] \(message)"
+        let logMessage = "[\(timestamp())] [\(deviceTag)] [\(category)] [\(level)] \(message)"
         LogFileManager.shared.write(logMessage)
     }
 
@@ -303,7 +303,7 @@ struct DualLogger {
     }
 
     func debug(_ message: String) {
-        logger.debug("[\(deviceTag)] [DEBUG] \(message)")
+        logger.debug("[\(deviceTag)] [\(category)] [DEBUG] \(message)")
         logToFile(level: "DEBUG", message: message)
         if isSyncCategory {
             logToSyncFile(level: "DEBUG", message: message)
@@ -312,7 +312,7 @@ struct DualLogger {
     }
 
     func info(_ message: String) {
-        logger.info("[\(deviceTag)] [INFO] \(message)")
+        logger.info("[\(deviceTag)] [\(category)] [INFO] \(message)")
         logToFile(level: "INFO", message: message)
         if isSyncCategory {
             logToSyncFile(level: "INFO", message: message)
@@ -321,7 +321,7 @@ struct DualLogger {
     }
 
     func warning(_ message: String) {
-        logger.warning("[\(deviceTag)] [WARNING] \(message)")
+        logger.warning("[\(deviceTag)] [\(category)] [WARNING] \(message)")
         logToFile(level: "WARNING", message: message)
         if isSyncCategory {
             logToSyncFile(level: "WARNING", message: message)
@@ -330,7 +330,7 @@ struct DualLogger {
     }
 
     func error(_ message: String) {
-        logger.error("[\(deviceTag)] [ERROR] \(message)")
+        logger.error("[\(deviceTag)] [\(category)] [ERROR] \(message)")
         logToFile(level: "ERROR", message: message)
         if isSyncCategory {
             logToSyncFile(level: "ERROR", message: message)
@@ -339,7 +339,7 @@ struct DualLogger {
     }
 
     func fault(_ message: String) {
-        logger.fault("[\(deviceTag)] [FAULT] \(message)")
+        logger.fault("[\(deviceTag)] [\(category)] [FAULT] \(message)")
         logToFile(level: "FAULT", message: message)
         if isSyncCategory {
             logToSyncFile(level: "FAULT", message: message)
@@ -361,6 +361,7 @@ extension Logger {
     static let purchases = DualLogger(subsystem: subsystem, category: "purchases")
     static let notifications = DualLogger(subsystem: subsystem, category: "notifications")
     static let liveActivity = DualLogger(subsystem: subsystem, category: "liveactivity")
+    static let ota = DualLogger(subsystem: subsystem, category: "ota")
 
     // Sync-related categories (write to shared sync log file)
     static let wc = DualLogger(subsystem: subsystem, category: "wc", isSyncCategory: true)
