@@ -1,7 +1,7 @@
 import { JSX, memo, useCallback, useMemo, useRef } from "react";
 import { View, Pressable, ScrollView } from "react-native";
 import { Text } from "../primitives/text";
-import { IEvaluatedProgram, IEvaluatedProgramWeek } from "../../models/program";
+import { IEvaluatedProgramWeek } from "../../models/program";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { ObjectUtils_keys } from "../../utils/object";
 import { ExerciseImage } from "../exerciseImage";
@@ -19,18 +19,24 @@ import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { Switch } from "../primitives/switch";
 
 interface IProps {
-  evaluatedProgram: IEvaluatedProgram;
-  state: IExercisePickerState;
+  mode: IExercisePickerState["mode"];
+  exerciseType?: IExerciseType;
+  selectedExercises: IExercisePickerState["selectedExercises"];
+  label?: string;
   usedExerciseTypes: IExerciseType[];
   dispatch: ILensDispatch<IExercisePickerState>;
   settings: ISettings;
   week: IEvaluatedProgramWeek;
 }
 
-export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
-  console.log("[render] ExercisePickerAllProgramExercises");
-  const { state, dispatch, settings, week, usedExerciseTypes } = props;
-  const isMultiselect = useMemo(() => ExercisePickerUtils_getIsMultiselect(state), [state.mode, state.exerciseType]);
+export const ExercisePickerAllProgramExercises = memo(function ExercisePickerAllProgramExercises(
+  props: IProps
+): JSX.Element {
+  const { mode, exerciseType, selectedExercises, label, dispatch, settings, week, usedExerciseTypes } = props;
+  const isMultiselect = useMemo(
+    () => ExercisePickerUtils_getIsMultiselect({ mode, exerciseType }),
+    [mode, exerciseType]
+  );
 
   const exercisesToDays = useMemo(() => {
     return week.days.reduce<Record<string, IPlannerProgramExercise[]>>((acc, day) => {
@@ -48,29 +54,29 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
 
   const selectedProgramKeys = useMemo(() => {
     const keys = new Set<string>();
-    state.selectedExercises.forEach((ex) => {
+    selectedExercises.forEach((ex) => {
       if (ex.type === "program") {
         keys.add(`${Exercise_toKey(ex.exerciseType)}_${ex.week}_${ex.dayInWeek}`);
       }
     });
     return keys;
-  }, [state.selectedExercises]);
+  }, [selectedExercises]);
 
   const selectedAnyKeys = useMemo(() => {
     const keys = new Set<string>();
-    state.selectedExercises.forEach((ex) => {
+    selectedExercises.forEach((ex) => {
       if ("exerciseType" in ex) {
         keys.add(Exercise_toKey(ex.exerciseType));
       }
     });
     return keys;
-  }, [state.selectedExercises]);
+  }, [selectedExercises]);
 
-  const stateRef = useRef(state);
-  stateRef.current = state;
+  const chooseCtxRef = useRef({ mode, exerciseType, selectedExercises, label });
+  chooseCtxRef.current = { mode, exerciseType, selectedExercises, label };
   const onChooseProgram = useCallback(
-    (exerciseType: IExerciseType, weekIndex: number, dayInWeek: number) => {
-      ExercisePickerUtils_chooseProgramExercise(dispatch, exerciseType, weekIndex, dayInWeek, stateRef.current);
+    (exerciseTypeArg: IExerciseType, weekIndex: number, dayInWeek: number) => {
+      ExercisePickerUtils_chooseProgramExercise(dispatch, exerciseTypeArg, weekIndex, dayInWeek, chooseCtxRef.current);
     },
     [dispatch]
   );
@@ -79,8 +85,8 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
     <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 16 }}>
       {ObjectUtils_keys(exercisesToDays).map((exerciseKey) => {
         const exercises = exercisesToDays[exerciseKey];
-        const exerciseType = exercises[0].exerciseType;
-        if (exerciseType == null) {
+        const groupExerciseType = exercises[0].exerciseType;
+        if (groupExerciseType == null) {
           return null;
         }
         const isAllDisabled = exercises.every((exercise) => {
@@ -104,7 +110,7 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
           >
             <View className="pl-1">
               <View className="p-1 rounded-lg bg-background-image">
-                <ExerciseImage settings={settings} exerciseType={exerciseType} size="small" className="w-10" />
+                <ExerciseImage settings={settings} exerciseType={groupExerciseType} size="small" className="w-10" />
               </View>
             </View>
             <View className="flex-1 pt-1">
@@ -143,7 +149,7 @@ export function ExercisePickerAllProgramExercises(props: IProps): JSX.Element {
       })}
     </ScrollView>
   );
-}
+});
 
 interface IProgramExerciseRowProps {
   exercise: IPlannerProgramExercise;
@@ -157,9 +163,6 @@ interface IProgramExerciseRowProps {
 }
 
 const ProgramExerciseRow = memo(function ProgramExerciseRow(props: IProgramExerciseRowProps): JSX.Element {
-  console.log(
-    `[render] ProgramExerciseRow ${props.exercise.key}@${props.exercise.dayData.week}:${props.exercise.dayData.dayInWeek}`
-  );
   const { exercise, exerciseType, isMultiselect, isSelected, isItemDisabled, isAllDisabled, settings, onChoose } =
     props;
   const choose = useCallback(() => {

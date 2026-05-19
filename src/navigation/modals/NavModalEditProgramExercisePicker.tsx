@@ -1,4 +1,4 @@
-import { JSX, useCallback, useEffect } from "react";
+import { JSX, useCallback, useEffect, useMemo, useRef } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
@@ -24,7 +24,14 @@ import {
   EditProgramUiHelpers_getChangedKeys,
 } from "../../components/editProgram/editProgramUi/editProgramUiHelpers";
 import type { IRootStackParamList } from "../types";
-import type { IExercisePickerSelectedExercise, IPlannerProgram, ISettings, IShortDayData } from "../../types";
+import type {
+  ICustomExercise,
+  IExercisePickerSelectedExercise,
+  IPlannerProgram,
+  ISettings,
+  IShortDayData,
+} from "../../types";
+import type { IExercisePickerSettings } from "../../components/exercisePicker/exercisePickerSettings";
 import type { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import type { ILensDispatch } from "../../utils/useLensReducer";
 
@@ -137,12 +144,15 @@ export function NavModalEditProgramExercisePicker(): JSX.Element {
       ? Program_getProgramExerciseForKeyAndShortDayData(evaluatedProgram, dayData, exerciseKey)
       : undefined;
 
-  const { programPlannerDispatch, pickerDispatch, stopIsUndoing } = useCallback(() => {
+  const plannerStateRef = useRef(plannerState);
+  plannerStateRef.current = plannerState;
+
+  const { programPlannerDispatch, pickerDispatch, stopIsUndoing } = useMemo(() => {
     if (isEditProgram) {
       const base = buildPlannerDispatch(
         dispatch,
         lb<IState>().p("editProgramStates").p(programId),
-        plannerState as IPlannerState
+        () => plannerStateRef.current as IPlannerState
       );
       return {
         programPlannerDispatch: buildCustomLensDispatch(
@@ -165,7 +175,7 @@ export function NavModalEditProgramExercisePicker(): JSX.Element {
       const base = buildPlannerDispatch(
         dispatch,
         lb<IState>().p("editProgramExerciseStates").p(exerciseStateKey!),
-        plannerState as IPlannerExerciseState
+        () => plannerStateRef.current as IPlannerExerciseState
       );
       return {
         programPlannerDispatch: buildCustomLensDispatch(
@@ -185,41 +195,54 @@ export function NavModalEditProgramExercisePicker(): JSX.Element {
         },
       };
     }
-  }, [plannerState])();
+  }, [dispatch, programId, exerciseStateKey, isEditProgram]);
 
-  const onNewKey =
-    !isEditProgram && exerciseStateKey
-      ? (newKey: string): void => {
-          const oldStateKey = exerciseStateKey;
-          const newStateKey = `${programId}_${newKey}`;
-          updateState(
-            dispatch,
-            [
-              lb<IState>()
-                .p("editProgramExerciseStates")
-                .recordModify((states) => {
-                  const currentState = states[oldStateKey];
-                  if (!currentState) {
-                    return states;
-                  }
-                  return {
-                    ...states,
-                    [oldStateKey]: { ...currentState, ui: { ...currentState.ui, pendingNewKey: newKey } },
-                    [newStateKey]: { ...currentState, ui: { ...currentState.ui, exercisePickerState: undefined } },
-                  };
-                }),
-            ],
-            "Update exercise key"
-          );
-        }
-      : undefined;
+  const onNewKey = useCallback(
+    (newKey: string): void => {
+      if (isEditProgram || !exerciseStateKey) {
+        return;
+      }
+      const oldStateKey = exerciseStateKey;
+      const newStateKey = `${programId}_${newKey}`;
+      updateState(
+        dispatch,
+        [
+          lb<IState>()
+            .p("editProgramExerciseStates")
+            .recordModify((states) => {
+              const currentState = states[oldStateKey];
+              if (!currentState) {
+                return states;
+              }
+              return {
+                ...states,
+                [oldStateKey]: { ...currentState, ui: { ...currentState.ui, pendingNewKey: newKey } },
+                [newStateKey]: { ...currentState, ui: { ...currentState.ui, exercisePickerState: undefined } },
+              };
+            }),
+        ],
+        "Update exercise key"
+      );
+    },
+    [dispatch, isEditProgram, exerciseStateKey, programId]
+  );
+  const onNewKeyOrUndefined = !isEditProgram && exerciseStateKey ? onNewKey : undefined;
 
-  const onClose = (): void => {
+  const settingsRef = useRef(state.storage.settings);
+  settingsRef.current = state.storage.settings;
+  const programRef = useRef(program);
+  programRef.current = program;
+  const plannerRef = useRef(planner);
+  plannerRef.current = planner;
+  const plannerExerciseRef = useRef(plannerExercise);
+  plannerExerciseRef.current = plannerExercise;
+
+  const onClose = useCallback((): void => {
     if (isEditProgram) {
       const base = buildPlannerDispatch(
         dispatch,
         lb<IState>().p("editProgramStates").p(programId),
-        plannerState as IPlannerState
+        () => plannerStateRef.current as IPlannerState
       );
       base(lb<IPlannerState>().p("ui").p("exercisePicker").record(undefined), "Close exercise picker");
     } else if (exerciseStateKey) {
@@ -243,7 +266,48 @@ export function NavModalEditProgramExercisePicker(): JSX.Element {
       );
     }
     navigation.goBack();
-  };
+  }, [dispatch, isEditProgram, exerciseStateKey, programId, navigation]);
+
+  const onChoose = useCallback(
+    (selectedExercises: IExercisePickerSelectedExercise[]) => {
+      const currentPlanner = plannerRef.current;
+      if (!currentPlanner) {
+        return;
+      }
+      onChangeExercise(
+        currentPlanner,
+        settingsRef.current,
+        selectedExercises,
+        plannerExerciseRef.current,
+        dayData,
+        change,
+        programPlannerDispatch,
+        stopIsUndoing,
+        onNewKeyOrUndefined
+      );
+      onClose();
+    },
+    [dayData, change, programPlannerDispatch, stopIsUndoing, onNewKeyOrUndefined, onClose]
+  );
+
+  const onChangeCustomExercise = useCallback(
+    (action: "upsert" | "delete", exercise: ICustomExercise, notes?: string) => {
+      Exercise_handleCustomExerciseChange(dispatch, action, exercise, notes, settingsRef.current, programRef.current);
+    },
+    [dispatch]
+  );
+
+  const onStar = useCallback((key: string) => Settings_toggleStarredExercise(dispatch, key), [dispatch]);
+  const onChangeSettings = useCallback(
+    (pickerSettings: IExercisePickerSettings) => Settings_changePickerSettings(dispatch, pickerSettings),
+    [dispatch]
+  );
+
+  const usedExerciseTypes = useMemo(
+    () =>
+      evaluatedProgram ? Program_getExerciseTypesForWeekDay(evaluatedProgram, dayData.week, dayData.dayInWeek) : [],
+    [evaluatedProgram, dayData.week, dayData.dayInWeek]
+  );
 
   const shouldGoBack = !plannerState || !exercisePickerState || !evaluatedProgram || !planner || !program;
   useEffect(() => {
@@ -262,28 +326,13 @@ export function NavModalEditProgramExercisePicker(): JSX.Element {
         settings={state.storage.settings}
         isLoggedIn={!!state.user?.id}
         exercisePicker={exercisePickerState}
-        usedExerciseTypes={Program_getExerciseTypesForWeekDay(evaluatedProgram, dayData.week, dayData.dayInWeek)}
+        usedExerciseTypes={usedExerciseTypes}
         evaluatedProgram={evaluatedProgram}
         dispatch={pickerDispatch}
-        onChoose={(selectedExercises) => {
-          onChangeExercise(
-            planner,
-            state.storage.settings,
-            selectedExercises,
-            plannerExercise,
-            dayData,
-            change,
-            programPlannerDispatch,
-            stopIsUndoing,
-            onNewKey
-          );
-          onClose();
-        }}
-        onChangeCustomExercise={(action, exercise, notes) => {
-          Exercise_handleCustomExerciseChange(dispatch, action, exercise, notes, state.storage.settings, program);
-        }}
-        onStar={(key) => Settings_toggleStarredExercise(dispatch, key)}
-        onChangeSettings={(pickerSettings) => Settings_changePickerSettings(dispatch, pickerSettings)}
+        onChoose={onChoose}
+        onChangeCustomExercise={onChangeCustomExercise}
+        onStar={onStar}
+        onChangeSettings={onChangeSettings}
         onClose={onClose}
       />
     </SheetScreenContainer>

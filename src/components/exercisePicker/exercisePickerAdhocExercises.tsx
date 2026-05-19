@@ -36,15 +36,33 @@ import { ExercisePickerExerciseItem } from "./exercisePickerExerciseItem";
 interface IProps {
   settings: ISettings;
   onStar: (key: string) => void;
-  state: IExercisePickerState;
+  mode: IExercisePickerState["mode"];
+  search?: string;
+  filters: IExercisePickerState["filters"];
+  sort: IExercisePickerState["sort"];
+  showMuscles?: boolean;
+  exerciseType?: IExerciseType;
+  selectedExercises: IExercisePickerState["selectedExercises"];
+  label?: string;
   usedExerciseTypes: IExerciseType[];
   dispatch: ILensDispatch<IExercisePickerState>;
 }
 
-export function ExercisePickerAdhocExercises(props: IProps): JSX.Element {
-  console.log("[render] ExercisePickerAdhocExercises");
-  const { state, settings, dispatch, usedExerciseTypes, onStar } = props;
-  const { search, filters, sort, showMuscles, exerciseType, selectedExercises } = state;
+export const ExercisePickerAdhocExercises = memo(function ExercisePickerAdhocExercises(props: IProps): JSX.Element {
+  const {
+    settings,
+    dispatch,
+    usedExerciseTypes,
+    onStar,
+    mode,
+    search,
+    filters,
+    sort,
+    showMuscles,
+    exerciseType,
+    selectedExercises,
+    label,
+  } = props;
 
   const builtinExercises = useMemo(() => {
     let result = Exercise_allExpanded({});
@@ -55,17 +73,20 @@ export function ExercisePickerAdhocExercises(props: IProps): JSX.Element {
     if (filters.isStarred) {
       result = result.filter((e) => settings.starredExercises?.[Exercise_toKey(e)]);
     }
-    result = ExercisePickerUtils_sortExercises(result, settings, state);
+    result = ExercisePickerUtils_sortExercises(result, settings, { filters, sort, exerciseType });
     return result;
   }, [search, filters, sort, settings, exerciseType]);
 
-  const isMultiselect = useMemo(() => ExercisePickerUtils_getIsMultiselect(state), [state.mode, state.exerciseType]);
+  const isMultiselect = useMemo(
+    () => ExercisePickerUtils_getIsMultiselect({ mode, exerciseType }),
+    [mode, exerciseType]
+  );
 
-  const stateRef = useRef(state);
-  stateRef.current = state;
+  const chooseCtxRef = useRef({ mode, exerciseType, selectedExercises, label });
+  chooseCtxRef.current = { mode, exerciseType, selectedExercises, label };
   const onChoose = useCallback(
     (key: string) => {
-      ExercisePickerUtils_chooseAdhocExercise(dispatch, key, stateRef.current);
+      ExercisePickerUtils_chooseAdhocExercise(dispatch, key, chooseCtxRef.current);
     },
     [dispatch]
   );
@@ -100,7 +121,11 @@ export function ExercisePickerAdhocExercises(props: IProps): JSX.Element {
         dispatch={dispatch}
         onStar={onStar}
         settings={settings}
-        state={state}
+        search={search}
+        filters={filters}
+        sort={sort}
+        showMuscles={showMuscles}
+        exerciseType={exerciseType}
         onChoose={onChoose}
         isMultiselect={isMultiselect}
       />
@@ -138,7 +163,7 @@ export function ExercisePickerAdhocExercises(props: IProps): JSX.Element {
       })}
     </ScrollView>
   );
-}
+});
 
 interface ISearchAndFilterProps {
   dispatch: ILensDispatch<IExercisePickerState>;
@@ -149,7 +174,6 @@ interface ISearchAndFilterProps {
 }
 
 const SearchAndFilter = memo(function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
-  console.log("[render] SearchAndFilter");
   const { dispatch, search, sort, filters, settings } = props;
   const filterNames = useMemo(() => ExercisePickerUtils_getAllFilterNames(filters, settings), [filters, settings]);
   const isFiltered = filterNames.length > 0;
@@ -259,7 +283,11 @@ const SearchAndFilter = memo(function SearchAndFilter(props: ISearchAndFilterPro
 interface ICustomExercisesProps {
   settings: ISettings;
   dispatch: ILensDispatch<IExercisePickerState>;
-  state: IExercisePickerState;
+  search?: string;
+  filters: IExercisePickerState["filters"];
+  sort: IExercisePickerState["sort"];
+  showMuscles?: boolean;
+  exerciseType?: IExerciseType;
   usedKeys: Set<string>;
   selectedAdhocKeys: Set<string>;
   selectedAnyKeys: Set<string>;
@@ -268,11 +296,22 @@ interface ICustomExercisesProps {
   isMultiselect: boolean;
 }
 
-function CustomExercises(props: ICustomExercisesProps): JSX.Element {
-  console.log("[render] CustomExercises");
-  const { settings, dispatch, state, usedKeys, selectedAdhocKeys, selectedAnyKeys, onStar, onChoose, isMultiselect } =
-    props;
-  const { search, filters, sort, showMuscles, exerciseType } = state;
+const CustomExercises = memo(function CustomExercises(props: ICustomExercisesProps): JSX.Element {
+  const {
+    settings,
+    dispatch,
+    search,
+    filters,
+    sort,
+    showMuscles,
+    exerciseType,
+    usedKeys,
+    selectedAdhocKeys,
+    selectedAnyKeys,
+    onStar,
+    onChoose,
+    isMultiselect,
+  } = props;
 
   const exercisesList = useMemo(() => {
     let exercises = settings.exercises;
@@ -285,8 +324,12 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
       list = list.filter((e) => settings.starredExercises?.[Exercise_toKey(e)]);
     }
     list = list.filter((e) => !e.isDeleted);
-    list = ExercisePickerUtils_sortCustomExercises(list, settings, state);
-    return list;
+    list = ExercisePickerUtils_sortCustomExercises(list, settings, { filters, sort, exerciseType });
+    return list.map((raw) => ({
+      raw,
+      key: Exercise_toKey(raw),
+      exercise: Exercise_get({ id: raw.id }, settings.exercises),
+    }));
   }, [settings, search, filters, sort, exerciseType]);
 
   const onCreatePress = useCallback(() => {
@@ -307,7 +350,6 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
     <View className="py-2">
       <GroupHeader
         isExpanded={true}
-        expandOnIconClick={true}
         leftExpandIcon={true}
         name="Custom Exercises"
         headerClassName="mx-4"
@@ -323,17 +365,15 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
           </LinkButton>
         }
       >
-        {exercisesList.map((e) => {
-          const key = Exercise_toKey(e);
-          const ex = Exercise_get({ id: e.id }, settings.exercises);
+        {exercisesList.map(({ raw, key, exercise }) => {
           const isSelectedAlready = selectedAnyKeys.has(key);
           const isUsedForDay = usedKeys.has(key);
           const isSelected = selectedAdhocKeys.has(key);
           return (
             <CustomExerciseRow
               key={key}
-              exercise={ex}
-              rawExercise={e}
+              exercise={exercise}
+              rawExercise={raw}
               isSelected={isSelected}
               isEnabled={!isUsedForDay && (!isMultiselect || !isSelectedAlready)}
               isMultiselect={isMultiselect}
@@ -349,7 +389,7 @@ function CustomExercises(props: ICustomExercisesProps): JSX.Element {
       </GroupHeader>
     </View>
   );
-}
+});
 
 interface ICustomExerciseRowProps {
   exercise: ReturnType<typeof Exercise_get>;
@@ -366,7 +406,6 @@ interface ICustomExerciseRowProps {
 }
 
 const CustomExerciseRow = memo(function CustomExerciseRow(props: ICustomExerciseRowProps): JSX.Element {
-  console.log(`[render] CustomExerciseRow ${props.rawExercise.id}`);
   const { rawExercise, dispatch } = props;
   const onEdit = useCallback(() => {
     dispatch(

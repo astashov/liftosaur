@@ -1,4 +1,4 @@
-import { JSX, useEffect } from "react";
+import { JSX, useCallback, useEffect, useMemo, useRef } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
@@ -23,9 +23,10 @@ import { Settings_toggleStarredExercise, Settings_changePickerSettings } from ".
 import { Exercise_handleCustomExerciseChange } from "../../models/exercise";
 import { updateState, updateProgress } from "../../models/state";
 import { buildCustomDispatch } from "../../ducks/types";
-import { IHistoryRecord } from "../../types";
+import { ICustomExercise, IExercisePickerSelectedExercise, IHistoryRecord } from "../../types";
 import { lb } from "lens-shmens";
 import type { IRootStackParamList } from "../types";
+import type { IExercisePickerSettings } from "../../components/exercisePicker/exercisePickerSettings";
 
 export function NavModalExercisePicker(): JSX.Element {
   const { state, dispatch } = useAppState();
@@ -53,19 +54,132 @@ export function NavModalExercisePicker(): JSX.Element {
       ? Program_evaluate(currentProgram, state.storage.settings)
       : evaluatedProgram;
 
-  const pickerDispatch = buildCustomDispatch(
-    dispatch,
-    Progress_lbProgress(progressId).pi("ui", {}).pi("exercisePicker").pi("state")
+  const pickerDispatch = useMemo(
+    () => buildCustomDispatch(dispatch, Progress_lbProgress(progressId).pi("ui", {}).pi("exercisePicker").pi("state")),
+    [dispatch, progressId]
   );
 
-  const onClose = (): void => {
+  const settingsRef = useRef(state.storage.settings);
+  settingsRef.current = state.storage.settings;
+  const statsRef = useRef(state.storage.stats);
+  statsRef.current = state.storage.stats;
+  const programRef = useRef(program);
+  programRef.current = program;
+  const evaluatedCurrentProgramRef = useRef(evaluatedCurrentProgram);
+  evaluatedCurrentProgramRef.current = evaluatedCurrentProgram;
+  const progressRef = useRef(progress);
+  progressRef.current = progress;
+  const exercisePickerStateRef = useRef(exercisePickerState);
+  exercisePickerStateRef.current = exercisePickerState;
+
+  const onClose = useCallback((): void => {
     updateState(
       dispatch,
       [Progress_lbProgress(progressId).pi("ui", {}).p("exercisePicker").record(undefined)],
       "Close exercise picker"
     );
     navigation.goBack();
-  };
+  }, [dispatch, progressId, navigation]);
+
+  const onChoose = useCallback(
+    (selectedExercises: IExercisePickerSelectedExercise[]) => {
+      const currentProgress = progressRef.current;
+      const currentPickerState = exercisePickerStateRef.current;
+      const currentSettings = settingsRef.current;
+      const currentEvaluatedProgram = evaluatedCurrentProgramRef.current;
+      if (!currentProgress || !currentPickerState) {
+        return;
+      }
+      for (const exercise of selectedExercises) {
+        if (exercise.type === "adhoc") {
+          if (currentPickerState.entryIndex == null) {
+            Progress_addExercise(dispatch, exercise.exerciseType, currentProgress.entries.length);
+          } else {
+            Progress_changeExercise(
+              dispatch,
+              currentSettings,
+              currentProgress.id,
+              exercise.exerciseType,
+              currentPickerState.entryIndex,
+              !!currentSettings.workoutSettings.shouldKeepProgramExerciseId
+            );
+          }
+        } else if (exercise.type === "program" && currentEvaluatedProgram) {
+          const programExercise = Program_getProgramExerciseByTypeWeekAndDay(
+            currentEvaluatedProgram,
+            exercise.exerciseType,
+            exercise.week,
+            exercise.dayInWeek
+          );
+          if (programExercise && programExercise.exerciseType) {
+            if (currentPickerState.entryIndex == null) {
+              const newEntryIndex = currentProgress.entries.length;
+              updateProgress(
+                dispatch,
+                [
+                  lb<IHistoryRecord>()
+                    .p("entries")
+                    .recordModify((entries) => {
+                      const nextHistoryEntry = Program_nextHistoryEntry(
+                        currentEvaluatedProgram,
+                        Program_getDayData(currentEvaluatedProgram, currentEvaluatedProgram.nextDay),
+                        entries.length,
+                        { ...programExercise, exerciseType: exercise.exerciseType },
+                        statsRef.current,
+                        currentSettings
+                      );
+                      return [...entries, nextHistoryEntry].map((e, i) => ({ ...e, index: i }));
+                    }),
+                  lb<IHistoryRecord>().pi("ui", {}).p("currentEntryIndex").record(newEntryIndex),
+                ],
+                "add-exercise"
+              );
+            } else {
+              const nextHistoryEntry = Program_nextHistoryEntry(
+                currentEvaluatedProgram,
+                Program_getDayData(currentEvaluatedProgram, currentEvaluatedProgram.nextDay),
+                currentPickerState.entryIndex,
+                { ...programExercise, exerciseType: exercise.exerciseType },
+                statsRef.current,
+                currentSettings
+              );
+              updateProgress(
+                dispatch,
+                [lb<IHistoryRecord>().p("entries").i(currentPickerState.entryIndex).record(nextHistoryEntry)],
+                "change-program-exercise"
+              );
+            }
+          }
+        }
+      }
+      updateState(
+        dispatch,
+        [Progress_lbProgress(progressId).pi("ui", {}).p("exercisePicker").record(undefined)],
+        "Close exercise picker"
+      );
+      setTimeout(() => {
+        Progress_forceUpdateEntryIndex(dispatch);
+      }, 0);
+      navigation.goBack();
+    },
+    [dispatch, progressId, navigation]
+  );
+
+  const onChangeCustomExercise = useCallback(
+    (action: "upsert" | "delete", exercise: ICustomExercise, notes?: string) => {
+      Exercise_handleCustomExerciseChange(dispatch, action, exercise, notes, settingsRef.current, programRef.current);
+    },
+    [dispatch]
+  );
+
+  const onStar = useCallback((key: string) => Settings_toggleStarredExercise(dispatch, key), [dispatch]);
+  const onChangeSettings = useCallback(
+    (pickerSettings: IExercisePickerSettings) => Settings_changePickerSettings(dispatch, pickerSettings),
+    [dispatch]
+  );
+
+  const entries = progress?.entries;
+  const usedExerciseTypes = useMemo(() => (entries ? entries.map((e) => e.exercise) : []), [entries]);
 
   const shouldGoBack = !progress || !exercisePickerState;
   useEffect(() => {
@@ -84,87 +198,13 @@ export function NavModalExercisePicker(): JSX.Element {
         settings={state.storage.settings}
         isLoggedIn={!!state.user?.id}
         exercisePicker={exercisePickerState}
-        usedExerciseTypes={progress.entries.map((e) => e.exercise)}
+        usedExerciseTypes={usedExerciseTypes}
         evaluatedProgram={evaluatedCurrentProgram}
         dispatch={pickerDispatch}
-        onChoose={(selectedExercises) => {
-          for (const exercise of selectedExercises) {
-            if (exercise.type === "adhoc") {
-              if (exercisePickerState.entryIndex == null) {
-                Progress_addExercise(dispatch, exercise.exerciseType, progress.entries.length);
-              } else {
-                Progress_changeExercise(
-                  dispatch,
-                  state.storage.settings,
-                  progress.id,
-                  exercise.exerciseType,
-                  exercisePickerState.entryIndex,
-                  !!state.storage.settings.workoutSettings.shouldKeepProgramExerciseId
-                );
-              }
-            } else if (exercise.type === "program" && evaluatedCurrentProgram) {
-              const programExercise = Program_getProgramExerciseByTypeWeekAndDay(
-                evaluatedCurrentProgram,
-                exercise.exerciseType,
-                exercise.week,
-                exercise.dayInWeek
-              );
-              if (programExercise && programExercise.exerciseType) {
-                if (exercisePickerState.entryIndex == null) {
-                  const newEntryIndex = progress.entries.length;
-                  updateProgress(
-                    dispatch,
-                    [
-                      lb<IHistoryRecord>()
-                        .p("entries")
-                        .recordModify((entries) => {
-                          const nextHistoryEntry = Program_nextHistoryEntry(
-                            evaluatedCurrentProgram,
-                            Program_getDayData(evaluatedCurrentProgram, evaluatedCurrentProgram.nextDay),
-                            entries.length,
-                            { ...programExercise, exerciseType: exercise.exerciseType },
-                            state.storage.stats,
-                            state.storage.settings
-                          );
-                          return [...entries, nextHistoryEntry].map((e, i) => ({ ...e, index: i }));
-                        }),
-                      lb<IHistoryRecord>().pi("ui", {}).p("currentEntryIndex").record(newEntryIndex),
-                    ],
-                    "add-exercise"
-                  );
-                } else {
-                  const nextHistoryEntry = Program_nextHistoryEntry(
-                    evaluatedCurrentProgram,
-                    Program_getDayData(evaluatedCurrentProgram, evaluatedCurrentProgram.nextDay),
-                    exercisePickerState.entryIndex,
-                    { ...programExercise, exerciseType: exercise.exerciseType },
-                    state.storage.stats,
-                    state.storage.settings
-                  );
-                  updateProgress(
-                    dispatch,
-                    [lb<IHistoryRecord>().p("entries").i(exercisePickerState.entryIndex).record(nextHistoryEntry)],
-                    "change-program-exercise"
-                  );
-                }
-              }
-            }
-          }
-          updateState(
-            dispatch,
-            [Progress_lbProgress(progressId).pi("ui", {}).p("exercisePicker").record(undefined)],
-            "Close exercise picker"
-          );
-          setTimeout(() => {
-            Progress_forceUpdateEntryIndex(dispatch);
-          }, 0);
-          navigation.goBack();
-        }}
-        onChangeCustomExercise={(action, exercise, notes) => {
-          Exercise_handleCustomExerciseChange(dispatch, action, exercise, notes, state.storage.settings, program);
-        }}
-        onStar={(key) => Settings_toggleStarredExercise(dispatch, key)}
-        onChangeSettings={(pickerSettings) => Settings_changePickerSettings(dispatch, pickerSettings)}
+        onChoose={onChoose}
+        onChangeCustomExercise={onChangeCustomExercise}
+        onStar={onStar}
+        onChangeSettings={onChangeSettings}
         onClose={onClose}
       />
     </SheetScreenContainer>

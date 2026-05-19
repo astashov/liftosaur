@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import { JSX, memo } from "react";
 import { View } from "react-native";
 import { Text } from "../primitives/text";
 import { IEvaluatedProgram } from "../../models/program";
@@ -8,14 +8,17 @@ import { IExercisePickerState, IExerciseType, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 
 interface IProps {
-  state: IExercisePickerState;
+  mode: IExercisePickerState["mode"];
+  exerciseType?: IExerciseType;
+  selectedExercises: IExercisePickerState["selectedExercises"];
+  label?: string;
   dispatch: ILensDispatch<IExercisePickerState>;
   usedExerciseTypes: IExerciseType[];
   evaluatedProgram: IEvaluatedProgram;
   settings: ISettings;
 }
 
-export function ExercisePickerFromProgram(props: IProps): JSX.Element {
+export const ExercisePickerFromProgram = memo(function ExercisePickerFromProgram(props: IProps): JSX.Element {
   const weeks = props.evaluatedProgram.weeks;
   if (weeks.length > 1) {
     return (
@@ -26,17 +29,19 @@ export function ExercisePickerFromProgram(props: IProps): JSX.Element {
         shouldNotExpand={true}
         fillHeight={true}
         type="squares"
-        tabs={weeks.map((week, weekIndex) => {
+        tabs={weeks.map((week) => {
           return {
             label: week.name,
             children: () => {
               return (
                 <ExercisePickerAllProgramExercises
                   dispatch={props.dispatch}
-                  state={props.state}
+                  mode={props.mode}
+                  exerciseType={props.exerciseType}
+                  selectedExercises={props.selectedExercises}
+                  label={props.label}
                   usedExerciseTypes={props.usedExerciseTypes}
                   settings={props.settings}
-                  evaluatedProgram={props.evaluatedProgram}
                   week={week}
                 />
               );
@@ -49,10 +54,12 @@ export function ExercisePickerFromProgram(props: IProps): JSX.Element {
     return (
       <ExercisePickerAllProgramExercises
         dispatch={props.dispatch}
-        state={props.state}
+        mode={props.mode}
+        exerciseType={props.exerciseType}
+        selectedExercises={props.selectedExercises}
+        label={props.label}
         usedExerciseTypes={props.usedExerciseTypes}
         settings={props.settings}
-        evaluatedProgram={props.evaluatedProgram}
         week={props.evaluatedProgram.weeks[0]}
       />
     );
@@ -63,4 +70,4 @@ export function ExercisePickerFromProgram(props: IProps): JSX.Element {
       </View>
     );
   }
-}
+});

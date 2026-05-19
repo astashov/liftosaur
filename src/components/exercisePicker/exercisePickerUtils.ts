@@ -126,25 +126,27 @@ export function ExercisePickerUtils_getSelectedMuscleGroups(
   });
 }
 
+export type IExercisePickerSortCtx = Pick<IExercisePickerState, "filters" | "sort" | "exerciseType">;
+
 export function ExercisePickerUtils_sortExercises(
   exercises: IExercise[],
   settings: ISettings,
-  state: IExercisePickerState
+  ctx: IExercisePickerSortCtx
 ): IExercise[] {
   return CollectionUtils_sort(exercises, (a, b) => {
-    return ExercisePickerUtils_getSortRating(a, b, settings, state);
+    return ExercisePickerUtils_getSortRating(a, b, settings, ctx);
   });
 }
 
 export function ExercisePickerUtils_sortCustomExercises(
   customExercises: ICustomExercise[],
   settings: ISettings,
-  state: IExercisePickerState
+  ctx: IExercisePickerSortCtx
 ): ICustomExercise[] {
   return CollectionUtils_sort(customExercises, (aE, bE) => {
     const a = Exercise_get(aE, settings.exercises);
     const b = Exercise_get(bE, settings.exercises);
-    return ExercisePickerUtils_getSortRating(a, b, settings, state);
+    return ExercisePickerUtils_getSortRating(a, b, settings, ctx);
   });
 }
 
@@ -152,11 +154,11 @@ export function ExercisePickerUtils_getSortRating(
   a: IExercise,
   b: IExercise,
   settings: ISettings,
-  state: IExercisePickerState
+  ctx: IExercisePickerSortCtx
 ): number {
-  const filters = state.filters;
-  const sort = state.sort;
-  const currentExerciseType = state.exerciseType;
+  const filters = ctx.filters;
+  const sort = ctx.sort;
+  const currentExerciseType = ctx.exerciseType;
   const exerciseType = currentExerciseType;
   if (sort === "similar_muscles" && exerciseType) {
     const aRating = Exercise_similarRating(exerciseType, a, settings);
@@ -215,10 +217,10 @@ export function ExercisePickerUtils_chooseProgramExercise(
   exerciseType: IExerciseType,
   week: number,
   dayInWeek: number,
-  state: IExercisePickerState
+  ctx: IExercisePickerChooseCtx
 ): void {
-  const isMultiselect = ExercisePickerUtils_getIsMultiselect(state);
-  const isInExercises = state.selectedExercises.some((e) => {
+  const isMultiselect = ExercisePickerUtils_getIsMultiselect(ctx);
+  const isInExercises = ctx.selectedExercises.some((e) => {
     return (
       "exerciseType" in e &&
       Exercise_eq(e.exerciseType, exerciseType) &&
@@ -255,17 +257,23 @@ export function ExercisePickerUtils_chooseProgramExercise(
   );
 }
 
-export function ExercisePickerUtils_getIsMultiselect(state: IExercisePickerState): boolean {
-  return state.mode === "workout" && !state.exerciseType;
+export type IExercisePickerMultiselectCtx = Pick<IExercisePickerState, "mode" | "exerciseType">;
+export type IExercisePickerChooseCtx = Pick<
+  IExercisePickerState,
+  "mode" | "exerciseType" | "selectedExercises" | "label"
+>;
+
+export function ExercisePickerUtils_getIsMultiselect(ctx: IExercisePickerMultiselectCtx): boolean {
+  return ctx.mode === "workout" && !ctx.exerciseType;
 }
 
 export function ExercisePickerUtils_chooseAdhocExercise(
   dispatch: ILensDispatch<IExercisePickerState>,
   key: string,
-  state: IExercisePickerState
+  ctx: IExercisePickerChooseCtx
 ): void {
-  const selectedExercises = state.selectedExercises;
-  const isMultiselect = ExercisePickerUtils_getIsMultiselect(state);
+  const selectedExercises = ctx.selectedExercises;
+  const isMultiselect = ExercisePickerUtils_getIsMultiselect(ctx);
   const exerciseType = Exercise_fromKey(key);
   const isInProgramExercises = selectedExercises.some(
     (e) => e.type === "program" && Exercise_eq(e.exerciseType, exerciseType)
@@ -281,9 +289,9 @@ export function ExercisePickerUtils_chooseAdhocExercise(
           return exercises.filter((e) => e.type !== "adhoc" || !Exercise_eq(e.exerciseType, exerciseType));
         } else {
           if (isMultiselect) {
-            return [...exercises, { type: "adhoc", exerciseType, label: state.label }];
+            return [...exercises, { type: "adhoc", exerciseType, label: ctx.label }];
           } else {
-            return [{ type: "adhoc", exerciseType, label: state.label }];
+            return [{ type: "adhoc", exerciseType, label: ctx.label }];
           }
         }
       }),

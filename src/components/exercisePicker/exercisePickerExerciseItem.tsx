@@ -36,9 +36,6 @@ interface IExerciseItemProps {
 export const ExercisePickerExerciseItem = memo(function ExercisePickerExerciseItem(
   props: IExerciseItemProps
 ): JSX.Element {
-  console.log(
-    `[render] ExercisePickerExerciseItem ${props.exercise.id}${props.exercise.equipment ? `/${props.exercise.equipment}` : ""}`
-  );
   const { exercise: e } = props;
   const exerciseType = { id: e.id, equipment: e.equipment || e.defaultEquipment };
   const key = Exercise_toKey(e);

@@ -36,41 +36,49 @@ interface IProps {
 }
 
 export function ExercisePickerMain(props: IProps): JSX.Element {
-  console.log("[render] ExercisePickerMain");
   const { evaluatedProgram, state, dispatch, settings, onStar, onChoose, usedExerciseTypes } = props;
-  const isStarred = !!state.filters.isStarred;
-  const showMuscles = !!state.showMuscles;
+  const { mode, search, filters, sort, showMuscles, exerciseType, selectedExercises, label, templateName } = state;
+  const isStarred = !!filters.isStarred;
   const title =
-    state.mode === "workout"
-      ? state.exerciseType
+    mode === "workout"
+      ? exerciseType
         ? "Swap Exercise"
         : "Add Exercises"
-      : state.exerciseType || state.templateName
+      : exerciseType || templateName
         ? "Edit Exercise"
         : "Add Exercise";
-
   const tabs = useMemo(() => {
     const result: { label: string; children: () => JSX.Element }[] = [
       {
-        label: state.mode === "workout" ? "Ad-hoc Exercise" : "Exercise",
+        label: mode === "workout" ? "Ad-hoc Exercise" : "Exercise",
         children: () => (
           <ExercisePickerAdhocExercises
             onStar={onStar}
             usedExerciseTypes={usedExerciseTypes}
-            state={state}
+            mode={mode}
+            search={search}
+            filters={filters}
+            sort={sort}
+            showMuscles={showMuscles}
+            exerciseType={exerciseType}
+            selectedExercises={selectedExercises}
+            label={label}
             settings={settings}
             dispatch={dispatch}
           />
         ),
       },
     ];
-    if (state.mode === "workout" && evaluatedProgram) {
+    if (mode === "workout" && evaluatedProgram) {
       result.push({
         label: "From Program",
         children: () => (
           <ExercisePickerFromProgram
             usedExerciseTypes={usedExerciseTypes}
-            state={state}
+            mode={mode}
+            exerciseType={exerciseType}
+            selectedExercises={selectedExercises}
+            label={label}
             dispatch={dispatch}
             settings={settings}
             evaluatedProgram={evaluatedProgram}
@@ -78,14 +86,29 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
         ),
       });
     }
-    if (state.mode === "program") {
+    if (mode === "program") {
       result.push({
         label: "Template",
-        children: () => <ExercisePickerTemplate dispatch={dispatch} templateName={state.templateName} />,
+        children: () => <ExercisePickerTemplate dispatch={dispatch} templateName={templateName} />,
       });
     }
     return result;
-  }, [state, evaluatedProgram, settings, dispatch, onStar, usedExerciseTypes]);
+  }, [
+    mode,
+    search,
+    filters,
+    sort,
+    showMuscles,
+    exerciseType,
+    selectedExercises,
+    label,
+    templateName,
+    evaluatedProgram,
+    settings,
+    dispatch,
+    onStar,
+    usedExerciseTypes,
+  ]);
 
   const onSettingsPress = useCallback(async () => {
     if (Platform.OS === "web") {
@@ -246,7 +269,6 @@ interface IBottomButtonProps {
 }
 
 function BottomButton(props: IBottomButtonProps): JSX.Element {
-  console.log("[render] BottomButton");
   const { state, settings, evaluatedProgram } = props;
   const selectedExercises = useMemo(
     () =>

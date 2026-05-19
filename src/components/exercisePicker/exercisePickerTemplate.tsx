@@ -1,4 +1,4 @@
-import { JSX, useState } from "react";
+import { JSX, memo, useState } from "react";
 import { View, TextInput } from "react-native";
 import { Text } from "../primitives/text";
 import { IExercisePickerState } from "../../types";
@@ -10,7 +10,7 @@ interface IProps {
   dispatch: ILensDispatch<IExercisePickerState>;
 }
 
-export function ExercisePickerTemplate(props: IProps): JSX.Element {
+export const ExercisePickerTemplate = memo(function ExercisePickerTemplate(props: IProps): JSX.Element {
   const [nameError, setNameError] = useState<string | undefined>(undefined);
 
   return (
@@ -24,7 +24,7 @@ export function ExercisePickerTemplate(props: IProps): JSX.Element {
           testID="exercise-template-name"
           defaultValue={props.templateName ?? ""}
           placeholder="My Awesome Template"
-          className="px-4 py-2 mt-1 text-base border rounded-lg bg-background-default border-border-prominent"
+          className="px-4 py-2 mt-1 text-base leading-5 border rounded-lg min-h-10 bg-background-default border-border-prominent"
           onChangeText={(rawValue) => {
             const value = rawValue?.trim() || "";
             if (!value) {
@@ -57,4 +57,4 @@ export function ExercisePickerTemplate(props: IProps): JSX.Element {
       </Text>
     </View>
   );
-}
+});

@@ -1,4 +1,4 @@
-import React, { JSX, useCallback, useLayoutEffect, useRef, useState } from "react";
+import React, { JSX, useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { LayoutChangeEvent, Platform, View } from "react-native";
 import Animated, { useSharedValue, useAnimatedStyle, runOnJS, withTiming } from "react-native-reanimated";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
@@ -114,6 +114,27 @@ function DraggableItem<T>(props: IDraggableItemProps<T>): JSX.Element {
   const isDragging = useSharedValue(false);
   const isHorizontal = props.mode === "horizontal";
 
+  const callbacksRef = useRef({
+    onDragStart: props.onDragStart,
+    onDragUpdate: props.onDragUpdate,
+    onDragEnd: props.onDragEnd,
+  });
+  callbacksRef.current = {
+    onDragStart: props.onDragStart,
+    onDragUpdate: props.onDragUpdate,
+    onDragEnd: props.onDragEnd,
+  };
+
+  const handleDragStart = useCallback((): void => {
+    callbacksRef.current.onDragStart();
+  }, []);
+  const handleDragUpdate = useCallback((t: number): void => {
+    callbacksRef.current.onDragUpdate(t);
+  }, []);
+  const handleDragEnd = useCallback((t: number): void => {
+    callbacksRef.current.onDragEnd(t);
+  }, []);
+
   const onLayout = useCallback(
     (e: LayoutChangeEvent) => {
       const size = isHorizontal ? e.nativeEvent.layout.width : e.nativeEvent.layout.height;
@@ -142,29 +163,42 @@ function DraggableItem<T>(props: IDraggableItemProps<T>): JSX.Element {
     shift.value = withTiming(next, { duration: 150 });
   }, [activeIndex, targetIndex, activeSize, index, shift, translate, isDragging]);
 
-  const pan = Gesture.Pan()
-    .activateAfterLongPress(props.delayMs ?? 150)
-    .enabled(!props.isDisabled)
-    .onStart(() => {
-      isDragging.value = true;
-      runOnJS(props.onDragStart)();
-    })
-    .onUpdate((e) => {
-      const t = isHorizontal ? e.translationX : e.translationY;
-      translate.value = t;
-      runOnJS(props.onDragUpdate)(t);
-    })
-    .onEnd((e) => {
-      const t = isHorizontal ? e.translationX : e.translationY;
-      isDragging.value = false;
-      runOnJS(props.onDragEnd)(t);
-    })
-    .onFinalize(() => {
-      if (isDragging.value) {
-        isDragging.value = false;
-        runOnJS(props.onDragEnd)(0);
-      }
-    });
+  const pan = useMemo(
+    () =>
+      Gesture.Pan()
+        .activateAfterLongPress(props.delayMs ?? 150)
+        .enabled(!props.isDisabled)
+        .onStart(() => {
+          isDragging.value = true;
+          runOnJS(handleDragStart)();
+        })
+        .onUpdate((e) => {
+          const t = isHorizontal ? e.translationX : e.translationY;
+          translate.value = t;
+          runOnJS(handleDragUpdate)(t);
+        })
+        .onEnd((e) => {
+          const t = isHorizontal ? e.translationX : e.translationY;
+          isDragging.value = false;
+          runOnJS(handleDragEnd)(t);
+        })
+        .onFinalize(() => {
+          if (isDragging.value) {
+            isDragging.value = false;
+            runOnJS(handleDragEnd)(0);
+          }
+        }),
+    [
+      isHorizontal,
+      props.delayMs,
+      props.isDisabled,
+      isDragging,
+      translate,
+      handleDragStart,
+      handleDragUpdate,
+      handleDragEnd,
+    ]
+  );
 
   const animatedStyle = useAnimatedStyle(() => {
     const value = isDragging.value ? translate.value : shift.value;

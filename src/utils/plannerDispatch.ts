@@ -7,8 +7,10 @@ import { IUndoRedoState, undoRedoMiddleware } from "../pages/builder/utils/undor
 export function buildPlannerDispatch<T, S extends IUndoRedoState<T>, O = never>(
   dispatch: IDispatch,
   lensBuilder: LensBuilder<IState, S, {}, O>,
-  plannerState: S
+  plannerStateOrGetter: S | (() => S | undefined)
 ): ILensDispatch<S> {
+  const getPlannerState = (): S | undefined =>
+    typeof plannerStateOrGetter === "function" ? (plannerStateOrGetter as () => S | undefined)() : plannerStateOrGetter;
   const plannerDispatch = (
     lensRecording: ILensRecordingPayload<S> | ILensRecordingPayload<S>[],
     desc: string
@@ -20,8 +22,11 @@ export function buildPlannerDispatch<T, S extends IUndoRedoState<T>, O = never>(
       desc || "Update state"
     );
     const changesCurrent = lensRecordings.some((recording) => recording.lens.from.some((f) => f === "current"));
-    if (!(desc === "undo") && changesCurrent && plannerState != null) {
-      undoRedoMiddleware(plannerDispatch, plannerState);
+    if (!(desc === "undo") && changesCurrent) {
+      const current = getPlannerState();
+      if (current != null) {
+        undoRedoMiddleware(plannerDispatch, current);
+      }
     }
   };
   return plannerDispatch;
