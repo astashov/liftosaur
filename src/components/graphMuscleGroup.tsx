@@ -5,6 +5,7 @@ import { Select } from "./primitives/select";
 import { ISettings, IVolumeSelectedType } from "../types";
 import { StringUtils_capitalize } from "../utils/string";
 import { DateUtils_format } from "../utils/date";
+import { MathUtils_formatCompact } from "../utils/math";
 import { Tailwind_colors } from "../utils/tailwindConfig";
 import { Muscle_getMuscleGroupName } from "../models/muscle";
 import { LineChart, ILineChartSeries } from "./lineChart";
@@ -40,13 +41,6 @@ export function GraphMuscleGroup(props: IGraphMuscleGroupProps): JSX.Element {
     ],
     [selectedType]
   );
-
-  const yAxisFormatter = useMemo(() => {
-    if (selectedType === "volume") {
-      return (v: number) => `${Math.round(v / 1000)}k`;
-    }
-    return (v: number) => `${Math.round(v)}`;
-  }, [selectedType]);
 
   const title = `${Muscle_getMuscleGroupName(props.muscleGroup, props.settings)} Weekly ${StringUtils_capitalize(
     selectedType
@@ -84,7 +78,7 @@ export function GraphMuscleGroup(props: IGraphMuscleGroupProps): JSX.Element {
             height={320}
             programLines={props.programChangeTimes}
             onCursorChange={handleCursorChange}
-            yAxisFormatter={yAxisFormatter}
+            yAxisFormatter={(v) => MathUtils_formatCompact(v)}
           />
           <GraphLegendOverlay visible={overlayVisible} onClose={onCloseOverlay}>
             {timestamp != null && selectedType === "volume" && volume != null && (

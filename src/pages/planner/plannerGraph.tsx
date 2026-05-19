@@ -1,8 +1,12 @@
-import { JSX, useEffect, useRef } from "react";
-import UPlot from "uplot";
-import { GraphsPlugins_zoom } from "../../utils/graphsPlugins";
+import { JSX, useMemo } from "react";
+import { View } from "react-native";
+import { LineChart, ILineChartSeries } from "../../components/lineChart";
+import { GraphLegendOverlay, useGraphActiveCursor } from "../../components/graphLegendOverlay";
+import { MathUtils_formatCompact } from "../../utils/math";
+import { Text } from "../../components/primitives/text";
 
 interface IPlannerGraphProps {
+  id: string;
   title: string;
   yAxisLabel: string;
   color: string;
@@ -10,82 +14,60 @@ interface IPlannerGraphProps {
   data: [number[], number[]];
 }
 
+function parseHeight(height?: string): number {
+  if (!height) {
+    return 160;
+  }
+  const match = height.match(/^([\d.]+)(em|rem|px)?$/);
+  if (!match) {
+    return 160;
+  }
+  const value = parseFloat(match[1]);
+  const unit = match[2] || "px";
+  if (unit === "em" || unit === "rem") {
+    return value * 16;
+  }
+  return value;
+}
+
 export function PlannerGraph(props: IPlannerGraphProps): JSX.Element {
-  const graphRef = useRef<HTMLDivElement>(null);
-  const legendRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!graphRef.current) {
-      return;
-    }
-    const rect = graphRef.current.getBoundingClientRect();
-    const opts: UPlot.Options = {
-      class: "planner-exercise-graph",
-      width: rect.width,
-      height: rect.height,
-      cursor: {
-        y: false,
-        lock: true,
-      },
-      legend: {
-        show: true,
-      },
-      series: [
-        {
-          label: "Week",
-        },
-        {
-          label: props.yAxisLabel,
-          value: (self, rawValue) => rawValue,
-          stroke: props.color,
-          width: 1,
-          spanGaps: true,
-        },
-      ],
-      plugins: [GraphsPlugins_zoom()],
-      scales: {
-        x: {
-          time: false,
-        },
-      },
-      axes: [
-        {
-          space: 20,
-          incrs: [1],
-        },
-      ],
-    };
+  const height = parseHeight(props.height);
+  const series: ILineChartSeries[] = useMemo(
+    () => [{ label: props.yAxisLabel, color: props.color, show: true }],
+    [props.yAxisLabel, props.color]
+  );
+  const xAxisTicks = useMemo(() => props.data[0], [props.data]);
+  const { cursorIdx, chartRef, handleCursorChange, onCloseOverlay, overlayVisible } = useGraphActiveCursor(props.id);
 
-    const data = props.data;
-    const uplot = new UPlot(opts, data, graphRef.current!);
-
-    const underEl = graphRef.current!.querySelector(".over");
-    const underRect = underEl?.getBoundingClientRect();
-
-    function handler(): void {
-      function onMove(event: TouchEvent): void {
-        const offset = window.pageYOffset;
-        const touch = event.touches[0];
-        uplot.setCursor({ left: touch.clientX - underRect!.left, top: touch.clientY - underRect!.top + offset });
-      }
-
-      function onEnd(): void {
-        window.removeEventListener("touchmove", onMove);
-        window.removeEventListener("touchend", onEnd);
-      }
-
-      window.addEventListener("touchmove", onMove);
-      window.addEventListener("touchend", onEnd);
-    }
-
-    if (underEl != null) {
-      underEl.addEventListener("touchstart", handler);
-    }
-  }, []);
+  const week = cursorIdx != null ? props.data[0][cursorIdx] : null;
+  const value = cursorIdx != null ? props.data[1][cursorIdx] : null;
 
   return (
-    <div className="relative z-0" data-testid="graph">
-      <div className="w-full" data-testid="graph-data" style={{ height: props.height || "10em" }} ref={graphRef}></div>
-      <div data-testid="graph-legend" className="box-content px-8 text-sm" ref={legendRef}></div>
-    </div>
+    <View className="relative" testID="graph" data-testid="graph">
+      <View testID="graph-data" data-testid="graph-data">
+        <View className="items-center pt-1">
+          <Text className="text-xs text-text-primary">{props.title}</Text>
+        </View>
+        <LineChart
+          ref={chartRef}
+          data={props.data}
+          series={series}
+          height={height}
+          xMode="linear"
+          xAxisTicks={xAxisTicks}
+          xAxisFormatter={(v) => `${v}`}
+          yAxisFormatter={(v) => MathUtils_formatCompact(v)}
+          yAxisWidth={32}
+          onCursorChange={handleCursorChange}
+        />
+        <GraphLegendOverlay visible={overlayVisible} onClose={onCloseOverlay}>
+          {week != null && value != null && (
+            <Text className="text-sm">
+              Week {week}, {props.yAxisLabel}: <Text className="text-sm font-bold">{value}</Text>
+            </Text>
+          )}
+        </GraphLegendOverlay>
+      </View>
+    </View>
   );
 }

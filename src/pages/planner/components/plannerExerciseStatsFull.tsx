@@ -1,6 +1,7 @@
-import type { JSX } from "react";
+import { useMemo, useState, type JSX } from "react";
 import { lb } from "lens-shmens";
 import { LinkButton } from "../../../components/linkButton";
+import { ActiveGraphContext, IActiveGraphContext } from "../../../components/activeGraphContext";
 import { Exercise_findByName, Exercise_find } from "../../../models/exercise";
 import { Weight_evaluateWeight, Weight_build, Weight_multiply } from "../../../models/weight";
 import { ISettings } from "../../../types";
@@ -50,68 +51,78 @@ export function PlannerExerciseStatsFull(props: IPlannerExerciseStatsFullProps):
   const volumeGraphData = getVolumePerWeeks(props.evaluatedWeeks, props.dayIndex, exercise.name, props.settings);
   const intensityKey = JSON.stringify(intensityGraphData);
   const volumeKey = JSON.stringify(volumeGraphData);
+  const [activeGraphId, setActiveGraphId] = useState<string | null>(null);
+  const activeGraphValue = useMemo<IActiveGraphContext>(
+    () => ({ activeId: activeGraphId, setActive: setActiveGraphId }),
+    [activeGraphId]
+  );
+  const graphIdBase = `planner-stats-full-${exercise.id}-${props.dayIndex}-${props.exerciseLine}`;
 
   return (
-    <div className="py-1 bg-background-default shadow-xs" style={{ borderRadius: "8px 8px 0 0" }}>
-      <div className="px-4 pb-2">
-        <LinkButton
-          name="planner-swap-exercise"
-          data-testid="planner-swap-exercise"
-          testID="planner-swap-exercise"
-          onClick={() => {
-            const exerciseKey = PlannerKey_fromPlannerExercise(evaluatedExercise, props.settings);
-            props.dispatch(
-              [
-                lb<IPlannerState>()
-                  .pi("ui")
-                  .p("modalExercise")
-                  .record({
-                    focusedExercise: {
-                      weekIndex: 0,
-                      dayIndex: 0,
-                      exerciseLine: 0,
-                    },
-                    types: [],
-                    muscleGroups: [],
-                    exerciseType: exercise,
-                    exerciseKey,
-                  }),
-                lb<IPlannerState>().pi("ui").p("showExerciseStats").record(undefined),
-              ],
-              "Swap exercise"
-            );
-          }}
-        >
-          Swap Exercise
-        </LinkButton>
+    <ActiveGraphContext.Provider value={activeGraphValue}>
+      <div className="py-1 bg-background-default shadow-xs" style={{ borderRadius: "8px 8px 0 0" }}>
+        <div className="px-4 pb-2">
+          <LinkButton
+            name="planner-swap-exercise"
+            data-testid="planner-swap-exercise"
+            testID="planner-swap-exercise"
+            onClick={() => {
+              const exerciseKey = PlannerKey_fromPlannerExercise(evaluatedExercise, props.settings);
+              props.dispatch(
+                [
+                  lb<IPlannerState>()
+                    .pi("ui")
+                    .p("modalExercise")
+                    .record({
+                      focusedExercise: {
+                        weekIndex: 0,
+                        dayIndex: 0,
+                        exerciseLine: 0,
+                      },
+                      types: [],
+                      muscleGroups: [],
+                      exerciseType: exercise,
+                      exerciseKey,
+                    }),
+                  lb<IPlannerState>().pi("ui").p("showExerciseStats").record(undefined),
+                ],
+                "Swap exercise"
+              );
+            }}
+          >
+            Swap Exercise
+          </LinkButton>
+        </div>
+        <div className="flex mb-2">
+          {intensityGraphData[0].length > 1 && (
+            <div className="flex-1" style={{ marginTop: "-14px" }}>
+              <PlannerGraph
+                key={intensityKey}
+                id={`${graphIdBase}-intensity`}
+                title="Intensity w/w"
+                color="red"
+                height="8rem"
+                yAxisLabel="Intensity"
+                data={intensityGraphData}
+              />
+            </div>
+          )}
+          {volumeGraphData[0].length > 1 && (
+            <div className="flex-1" style={{ marginTop: "-14px" }}>
+              <PlannerGraph
+                key={volumeKey}
+                id={`${graphIdBase}-volume`}
+                title="Volume w/w"
+                color="orange"
+                height="8rem"
+                yAxisLabel="Volume"
+                data={volumeGraphData}
+              />
+            </div>
+          )}
+        </div>
       </div>
-      <div className="flex mb-2">
-        {intensityGraphData[0].length > 1 && (
-          <div className="flex-1" style={{ marginTop: "-14px" }}>
-            <PlannerGraph
-              key={intensityKey}
-              title="Intensity w/w"
-              color="red"
-              height="8rem"
-              yAxisLabel="Intensity"
-              data={intensityGraphData}
-            />
-          </div>
-        )}
-        {volumeGraphData[0].length > 1 && (
-          <div className="flex-1" style={{ marginTop: "-14px" }}>
-            <PlannerGraph
-              key={volumeKey}
-              title="Volume w/w"
-              color="orange"
-              height="8rem"
-              yAxisLabel="Volume"
-              data={volumeGraphData}
-            />
-          </div>
-        )}
-      </div>
-    </div>
+    </ActiveGraphContext.Provider>
   );
 }
 

@@ -75,3 +75,25 @@ export function MathUtils_parse(value?: string): number | undefined {
 export function n(value: number, precision: number = 2): string {
   return `${MathUtils_roundFloat(value, precision)}`;
 }
+
+export function MathUtils_formatCompact(value: number, fractionDigits: number = 1): string {
+  if (!isFinite(value)) {
+    return `${value}`;
+  }
+  const abs = Math.abs(value);
+  const sign = value < 0 ? "-" : "";
+  const trim = (num: number): string => {
+    const fixed = num.toFixed(fractionDigits);
+    return fixed.replace(/\.?0+$/, "");
+  };
+  if (abs >= 1e9) {
+    return `${sign}${trim(abs / 1e9)}b`;
+  }
+  if (abs >= 1e6) {
+    return `${sign}${trim(abs / 1e6)}m`;
+  }
+  if (abs >= 1e3) {
+    return `${sign}${trim(abs / 1e3)}k`;
+  }
+  return `${sign}${trim(abs)}`;
+}

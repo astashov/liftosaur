@@ -3,6 +3,7 @@ import { View, LayoutChangeEvent, Platform } from "react-native";
 import { Svg, Path, Line, G, SvgText, Circle, Rect, Defs, ClipPath } from "./primitives/svg";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { DateUtils_format } from "../utils/date";
+import { MathUtils_formatCompact } from "../utils/math";
 import { useLineChartGestures } from "./lineChartGestures";
 
 const IS_WEB = Platform.OS === "web";
@@ -20,6 +21,9 @@ interface ILineChartProps {
   height: number;
   xMin?: number;
   xMax?: number;
+  xMode?: "time" | "linear";
+  xAxisFormatter?: (value: number) => string;
+  xAxisTicks?: number[];
   programLines?: [number, string][];
   onCursorChange?: (idx: number | null) => void;
   yAxisFormatter?: (value: number) => string;
@@ -191,10 +195,21 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
   const [width, setWidth] = useState<number>(0);
   const timestamps = props.data[0] || [];
 
+  const xMode = props.xMode ?? "time";
   const dataMaxX = timestamps.length > 0 ? (timestamps[timestamps.length - 1] as number) : 0;
-  const dataMinX = timestamps.length > 0 ? Math.max(timestamps[0] as number, dataMaxX - YEAR_SECONDS) : 0;
+  const dataMinX =
+    timestamps.length > 0
+      ? xMode === "time"
+        ? Math.max(timestamps[0] as number, dataMaxX - YEAR_SECONDS)
+        : (timestamps[0] as number)
+      : 0;
 
-  const initialMin = props.xMin != null ? Math.max(props.xMin, (props.xMax ?? dataMaxX) - YEAR_SECONDS) : dataMinX;
+  const initialMin =
+    props.xMin != null
+      ? xMode === "time"
+        ? Math.max(props.xMin, (props.xMax ?? dataMaxX) - YEAR_SECONDS)
+        : props.xMin
+      : dataMinX;
   const initialMax = props.xMax != null ? props.xMax : dataMaxX;
 
   const [userViewport, setUserViewport] = useState<{ xMin: number; xMax: number } | null>(null);
@@ -280,7 +295,21 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
   );
 
   const yTicks = useMemo(() => niceTicks(yMin, yMax, 5), [yMin, yMax]);
-  const xTicks = useMemo(() => timeTicks(xMin, xMax, Math.max(2, Math.floor(plotWidth / 80))), [xMin, xMax, plotWidth]);
+  const xTicks = useMemo(() => {
+    const targetCount = Math.max(2, Math.floor(plotWidth / 80));
+    if (props.xAxisTicks) {
+      const visible = props.xAxisTicks.filter((t) => t >= xMin && t <= xMax);
+      if (visible.length <= targetCount) {
+        return visible;
+      }
+      const step = Math.ceil(visible.length / targetCount);
+      return visible.filter((_, i) => i % step === 0);
+    }
+    if (xMode === "linear") {
+      return niceTicks(xMin, xMax, targetCount);
+    }
+    return timeTicks(xMin, xMax, targetCount);
+  }, [xMin, xMax, plotWidth, xMode, props.xAxisTicks]);
 
   const onLayout = useCallback((e: LayoutChangeEvent) => {
     setWidth(e.nativeEvent.layout.width);
@@ -399,6 +428,32 @@ export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function 
                   <G key={`x-${i}`}>
                     <Line x1={px} x2={px} y1={padTop} y2={padTop + plotHeight} stroke={colors.grid} strokeWidth={0.5} />
                     {(() => {
+                      if (props.xAxisFormatter) {
+                        return (
+                          <SvgText
+                            x={px}
+                            y={padTop + plotHeight + 14}
+                            fill={colors.axisText}
+                            fontSize={10}
+                            textAnchor="middle"
+                          >
+                            {props.xAxisFormatter(t)}
+                          </SvgText>
+                        );
+                      }
+                      if (xMode === "linear") {
+                        return (
+                          <SvgText
+                            x={px}
+                            y={padTop + plotHeight + 14}
+                            fill={colors.axisText}
+                            fontSize={10}
+                            textAnchor="middle"
+                          >
+                            {MathUtils_formatCompact(t)}
+                          </SvgText>
+                        );
+                      }
                       const d = new Date(t * 1000);
                       const showYear = d.getFullYear() !== new Date().getFullYear();
                       return (

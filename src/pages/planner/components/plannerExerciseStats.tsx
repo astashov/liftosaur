@@ -1,5 +1,6 @@
-import type { JSX } from "react";
+import { useMemo, useState, type JSX } from "react";
 import { Linking, Pressable, View } from "react-native";
+import { ActiveGraphContext, IActiveGraphContext } from "../../../components/activeGraphContext";
 import { Text } from "../../../components/primitives/text";
 import { ExerciseImage } from "../../../components/exerciseImage";
 import {
@@ -107,145 +108,164 @@ export function PlannerExerciseStats(props: IPlannerExerciseStatsProps): JSX.Ele
   const intensityKey = JSON.stringify(intensityGraphData);
   const volumeKey = JSON.stringify(volumeGraphData);
   const rem = useRem();
+  const [activeGraphId, setActiveGraphId] = useState<string | null>(null);
+  const activeGraphValue = useMemo<IActiveGraphContext>(
+    () => ({ activeId: activeGraphId, setActive: setActiveGraphId }),
+    [activeGraphId]
+  );
+  const graphIdBase = `planner-stats-${exercise.id}-${props.dayIndex}-${props.exerciseLine}`;
 
   return (
-    <View>
-      <View className="flex-row gap-4 mb-2">
-        <View className="w-12">
-          <ExerciseImage exerciseType={exercise} size="small" width={rem * 3} />
-        </View>
-        <View className="flex-1">
-          {ExerciseImageUtils_exists(exercise, "small") ? (
-            <Pressable
-              className="flex-row items-center mb-2"
-              onPress={() => {
-                const url = Exercise_toExternalUrl(exercise);
-                if (SendMessage_isIos()) {
-                  SendMessage_toIos({ type: "openUrl", url });
-                } else if (SendMessage_isAndroid()) {
-                  SendMessage_toAndroid({ type: "openUrl", url });
-                } else {
-                  Linking.openURL(url).catch(() => undefined);
-                }
-              }}
-            >
-              <Text className="text-lg font-bold underline text-text-link">{evaluatedExercise.name}</Text>
-              <View className="mb-1 ml-1">
-                <IconExternalLink size={16} color="#607284" />
-              </View>
-            </Pressable>
-          ) : (
-            <Text className="mb-2 text-lg font-bold">{evaluatedExercise.name}</Text>
-          )}
-          {!props.hideSwap && (
-            <View>
-              <LinkButton
-                name="planner-swap-exercise"
-                className="text-xs"
-                data-testid="planner-swap-exercise"
-                testID="planner-swap-exercise"
-                onClick={() => {
-                  const exerciseKey = PlannerKey_fromPlannerExercise(evaluatedExercise, props.settings);
-                  props.dispatch(
-                    [
-                      lb<IPlannerState>()
-                        .pi("ui")
-                        .p("modalExercise")
-                        .record({
-                          focusedExercise: {
-                            weekIndex: 0,
-                            dayIndex: 0,
-                            exerciseLine: 0,
-                          },
-                          types: [],
-                          muscleGroups: [],
-                          exerciseType: exercise,
-                          exerciseKey,
-                        }),
-                      lb<IPlannerState>().pi("ui").p("showExerciseStats").record(undefined),
-                    ],
-                    "Swap exercise"
-                  );
+    <ActiveGraphContext.Provider value={activeGraphValue}>
+      <View>
+        <View className="flex-row gap-4 mb-2">
+          <View className="w-12">
+            <ExerciseImage exerciseType={exercise} size="small" width={rem * 3} />
+          </View>
+          <View className="flex-1">
+            {ExerciseImageUtils_exists(exercise, "small") ? (
+              <Pressable
+                className="flex-row items-center mb-2"
+                onPress={() => {
+                  const url = Exercise_toExternalUrl(exercise);
+                  if (SendMessage_isIos()) {
+                    SendMessage_toIos({ type: "openUrl", url });
+                  } else if (SendMessage_isAndroid()) {
+                    SendMessage_toAndroid({ type: "openUrl", url });
+                  } else {
+                    Linking.openURL(url).catch(() => undefined);
+                  }
                 }}
               >
-                Swap Exercise
-              </LinkButton>
-            </View>
-          )}
-          <Text className="text-xs">
-            <Text className="text-xs text-text-secondary">Sets this day: </Text>
-            <Text className="text-xs">{PlannerProgramExercise_numberOfSets(evaluatedExercise)}</Text>
-          </Text>
-          <Text className="text-xs">
-            <Text className="text-xs text-text-secondary">Sets this week: </Text>
+                <Text className="text-lg font-bold underline text-text-link">{evaluatedExercise.name}</Text>
+                <View className="mb-1 ml-1">
+                  <IconExternalLink size={16} color="#607284" />
+                </View>
+              </Pressable>
+            ) : (
+              <Text className="mb-2 text-lg font-bold">{evaluatedExercise.name}</Text>
+            )}
+            {!props.hideSwap && (
+              <View>
+                <LinkButton
+                  name="planner-swap-exercise"
+                  className="text-xs"
+                  data-testid="planner-swap-exercise"
+                  testID="planner-swap-exercise"
+                  onClick={() => {
+                    const exerciseKey = PlannerKey_fromPlannerExercise(evaluatedExercise, props.settings);
+                    props.dispatch(
+                      [
+                        lb<IPlannerState>()
+                          .pi("ui")
+                          .p("modalExercise")
+                          .record({
+                            focusedExercise: {
+                              weekIndex: 0,
+                              dayIndex: 0,
+                              exerciseLine: 0,
+                            },
+                            types: [],
+                            muscleGroups: [],
+                            exerciseType: exercise,
+                            exerciseKey,
+                          }),
+                        lb<IPlannerState>().pi("ui").p("showExerciseStats").record(undefined),
+                      ],
+                      "Swap exercise"
+                    );
+                  }}
+                >
+                  Swap Exercise
+                </LinkButton>
+              </View>
+            )}
             <Text className="text-xs">
-              {PlannerProgramExercise_numberOfSetsThisWeek(evaluatedExercise.name, evaluatedWeek)}
+              <Text className="text-xs text-text-secondary">Sets this day: </Text>
+              <Text className="text-xs">{PlannerProgramExercise_numberOfSets(evaluatedExercise)}</Text>
             </Text>
-          </Text>
+            <Text className="text-xs">
+              <Text className="text-xs text-text-secondary">Sets this week: </Text>
+              <Text className="text-xs">
+                {PlannerProgramExercise_numberOfSetsThisWeek(evaluatedExercise.name, evaluatedWeek)}
+              </Text>
+            </Text>
+          </View>
         </View>
-      </View>
-      <Text className="mt-1 text-xs">
-        <Text className="text-xs text-text-secondary">Target Muscles: </Text>
-        <Text className="text-xs font-bold">{targetMuscles.join(", ")}</Text>
-      </Text>
-      <Text className="text-xs">
-        <Text className="text-xs text-text-secondary">Synergist Muscles: </Text>
-        <Text className="text-xs font-bold">{synergeticMuscles.join(", ")}</Text>
-      </Text>
-      <View>
-        <LinkButton
-          name="edit-muscle-groups"
-          className="text-xs"
-          onClick={() => {
-            if (props.onEditMuscleGroupsOverride) {
-              props.onEditMuscleGroupsOverride(exercise);
-            } else {
+        <Text className="mt-1 text-xs">
+          <Text className="text-xs text-text-secondary">Target Muscles: </Text>
+          <Text className="text-xs font-bold">{targetMuscles.join(", ")}</Text>
+        </Text>
+        <Text className="text-xs">
+          <Text className="text-xs text-text-secondary">Synergist Muscles: </Text>
+          <Text className="text-xs font-bold">{synergeticMuscles.join(", ")}</Text>
+        </Text>
+        <View>
+          <LinkButton
+            name="edit-muscle-groups"
+            className="text-xs"
+            onClick={() => {
+              if (props.onEditMuscleGroupsOverride) {
+                props.onEditMuscleGroupsOverride(exercise);
+              } else {
+                props.dispatch(
+                  [lb<IPlannerState>().pi("ui").p("showMuscleGroupsOverride").record(exercise)],
+                  "Edit muscle groups"
+                );
+              }
+            }}
+          >
+            Edit Exercise Muscles
+          </LinkButton>
+        </View>
+        <Text className="mt-1 text-xs">
+          <Text className="text-xs text-text-secondary">Target Muscles Groups: </Text>
+          <Text className="text-xs font-bold">{targetMuscleGroups.join(", ")}</Text>
+        </Text>
+        <Text className="text-xs">
+          <Text className="text-xs text-text-secondary">Synergist Muscle Groups: </Text>
+          <Text className="text-xs font-bold">{synergeticMuscleGroups.join(", ")}</Text>
+        </Text>
+        <View>
+          <LinkButton
+            name="edit-muscle-groups"
+            className="text-xs"
+            onClick={() => {
               props.dispatch(
-                [lb<IPlannerState>().pi("ui").p("showMuscleGroupsOverride").record(exercise)],
+                [lb<IPlannerState>().pi("ui").p("showEditMuscleGroups").record(true)],
                 "Edit muscle groups"
               );
-            }
-          }}
-        >
-          Edit Exercise Muscles
-        </LinkButton>
-      </View>
-      <Text className="mt-1 text-xs">
-        <Text className="text-xs text-text-secondary">Target Muscles Groups: </Text>
-        <Text className="text-xs font-bold">{targetMuscleGroups.join(", ")}</Text>
-      </Text>
-      <Text className="text-xs">
-        <Text className="text-xs text-text-secondary">Synergist Muscle Groups: </Text>
-        <Text className="text-xs font-bold">{synergeticMuscleGroups.join(", ")}</Text>
-      </Text>
-      <View>
-        <LinkButton
-          name="edit-muscle-groups"
-          className="text-xs"
-          onClick={() => {
-            props.dispatch([lb<IPlannerState>().pi("ui").p("showEditMuscleGroups").record(true)], "Edit muscle groups");
-          }}
-        >
-          Edit Muscle Groups
-        </LinkButton>
-      </View>
-      {intensityGraphData[0].length > 1 && (
-        <View style={{ marginTop: -14 }}>
-          <PlannerGraph
-            key={intensityKey}
-            title="Intensity w/w"
-            color="red"
-            yAxisLabel="Intensity"
-            data={intensityGraphData}
-          />
+            }}
+          >
+            Edit Muscle Groups
+          </LinkButton>
         </View>
-      )}
-      {volumeGraphData[0].length > 1 && (
-        <View style={{ marginTop: -14 }}>
-          <PlannerGraph key={volumeKey} title="Volume w/w" color="orange" yAxisLabel="Volume" data={volumeGraphData} />
-        </View>
-      )}
-    </View>
+        {intensityGraphData[0].length > 1 && (
+          <View>
+            <PlannerGraph
+              key={intensityKey}
+              id={`${graphIdBase}-intensity`}
+              title="Intensity w/w"
+              color="red"
+              yAxisLabel="Intensity"
+              data={intensityGraphData}
+            />
+          </View>
+        )}
+        {volumeGraphData[0].length > 1 && (
+          <View>
+            <PlannerGraph
+              key={volumeKey}
+              id={`${graphIdBase}-volume`}
+              title="Volume w/w"
+              color="orange"
+              yAxisLabel="Volume"
+              data={volumeGraphData}
+            />
+          </View>
+        )}
+      </View>
+    </ActiveGraphContext.Provider>
   );
 }
 
