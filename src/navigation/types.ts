@@ -66,6 +66,7 @@ export type IMeStackParamList = {
   programs: undefined;
   programPreview: undefined;
   progress: { id?: number } | undefined;
+  onerms: undefined;
 };
 
 export type IRootTabParamList = {

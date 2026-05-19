@@ -1,5 +1,6 @@
 import { JSX, useState } from "react";
 import { View, Pressable, TextInput } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import { IHistoryRecord, IProgram, ISettings } from "../types";
@@ -133,8 +134,12 @@ interface IFooterProps {
 }
 
 function Footer(props: IFooterProps): JSX.Element {
+  const insets = useSafeAreaInsets();
   return (
-    <View className="flex-row items-stretch justify-around px-2 py-4 border-t border-border-neutral bg-background-default">
+    <View
+      className="flex-row items-stretch justify-around gap-2 px-2 pt-4 border-t border-border-neutral bg-background-default"
+      style={{ paddingBottom: insets.bottom + 16 }}
+    >
       <Pressable
         className="items-center justify-center flex-1"
         data-testid="create-program"

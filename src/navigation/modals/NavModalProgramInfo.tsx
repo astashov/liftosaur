@@ -50,12 +50,14 @@ export function NavModalProgramInfo(): JSX.Element {
         }}
         onSelect={() => {
           Program_cloneProgram(dispatch, program!, settings);
-          if (Settings_doesProgramHaveUnset1RMs(program!, settings)) {
-            dispatch(Thunk_pushScreen("onerms"));
-          } else {
-            dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }));
-          }
           onClose();
+          setTimeout(() => {
+            if (Settings_doesProgramHaveUnset1RMs(program!, settings)) {
+              dispatch(Thunk_pushScreen("onerms"));
+            } else {
+              dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }));
+            }
+          }, 50);
         }}
       />
     </ModalScreenContainer>

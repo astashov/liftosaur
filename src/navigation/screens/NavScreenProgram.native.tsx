@@ -2,7 +2,6 @@ import React from "react";
 import { View } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import type { IDayData } from "../../types";
-import { Text } from "../../components/primitives/text";
 import { useAppState } from "../StateContext";
 import { buildNavCommon } from "../utils";
 import { NavScreenContent } from "../NavScreenContent";
@@ -11,6 +10,8 @@ import { ScreenEditProgram as ScreenEditProgramComponent } from "../../component
 import { ScreenEditProgramExercise as ScreenEditProgramExerciseComponent } from "../../components/editProgramExercise/screenEditProgramExercise";
 import { ScreenMusclesProgram } from "../../components/muscles/screenMusclesProgram";
 import { ScreenMusclesDay } from "../../components/muscles/screenMusclesDay";
+import { Screen1RM } from "../../components/screen1RM";
+import { ScreenProgramSelect as ScreenProgramSelectComponent } from "../../components/screenProgramSelect";
 import { ScreenProgramPreview as ScreenProgramPreviewComponent } from "../../components/screenProgramPreview";
 import { Program_getProgram, Program_fullProgram } from "../../models/program";
 import { Progress_getCurrentProgress } from "../../models/progress";
@@ -149,18 +150,24 @@ export function NavScreenMuscles(): React.JSX.Element {
 }
 
 export function NavScreenOnerms(): React.JSX.Element {
+  const { state, dispatch } = useAppState();
+  const navCommon = buildNavCommon(state);
+  const currentProgram =
+    state.storage.currentProgramId != null ? Program_getProgram(state, state.storage.currentProgramId) : undefined;
+  if (currentProgram == null) {
+    throw new Error("Opened 'onerms' screen, but 'currentProgram' is null");
+  }
   return (
-    <View className="flex-1 justify-center items-center bg-background-default">
-      <Text className="text-2xl font-bold text-icon-neutral">1 Rep Maxes</Text>
-    </View>
+    <Screen1RM navCommon={navCommon} dispatch={dispatch} program={currentProgram} settings={state.storage.settings} />
   );
 }
 
 export function NavScreenProgramSelect(): React.JSX.Element {
+  const { state, dispatch } = useAppState();
   return (
-    <View className="flex-1 justify-center items-center bg-background-default">
-      <Text className="text-2xl font-bold text-icon-neutral">Select Program</Text>
-    </View>
+    <NavScreenContent>
+      <ScreenProgramSelectComponent dispatch={dispatch} settings={state.storage.settings} />
+    </NavScreenContent>
   );
 }
 

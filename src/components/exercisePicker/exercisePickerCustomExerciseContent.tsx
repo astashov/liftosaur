@@ -152,7 +152,8 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
             testID="custom-exercise-name-input"
             defaultValue={editCustomExercise.name}
             placeholder="Super Squat"
-            className="px-4 py-2 text-base border rounded-lg bg-background-default border-border-prominent text-text-primary"
+            style={{ minHeight: 40 }}
+            className="px-4 py-2 text-base leading-5 border rounded-lg bg-background-default border-border-prominent text-text-primary"
             onChangeText={(text) => {
               props.dispatch(lb<ICustomExercise>().p("name").record(text), "Update custom exercise name");
             }}

@@ -161,9 +161,7 @@ export function NavScreenOnerms(): JSX.Element {
     throw new Error("Opened 'onerms' screen, but 'currentProgram' is null");
   }
   return (
-    <NavScreenContent>
-      <Screen1RM navCommon={navCommon} dispatch={dispatch} program={currentProgram} settings={state.storage.settings} />
-    </NavScreenContent>
+    <Screen1RM navCommon={navCommon} dispatch={dispatch} program={currentProgram} settings={state.storage.settings} />
   );
 }
 

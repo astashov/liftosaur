@@ -69,7 +69,13 @@ export function ExercisePickerCustomExercise(props: IExercisePickerCustomExercis
           </View>
         </View>
       </SheetDragHandle>
-      <ScrollView className="flex-1 pb-4">
+      <ScrollView
+        className="flex-1 pb-4"
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
+        automaticallyAdjustKeyboardInsets
+        contentContainerStyle={{ paddingBottom: 24 }}
+      >
         <View className="px-4">
           <ExercisePickerCustomExerciseContent
             onGoBack={props.onGoBack}
