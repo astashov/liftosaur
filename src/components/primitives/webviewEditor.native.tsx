@@ -201,6 +201,7 @@ export function WebviewEditor(props: IWebviewEditorProps): React.JSX.Element {
           hideKeyboardAccessoryView={false}
           automaticallyAdjustContentInsets={false}
           androidLayerType="hardware"
+          webviewDebuggingEnabled={__DEV__}
           style={{ backgroundColor: "transparent", flex: 1 }}
         />
       </View>

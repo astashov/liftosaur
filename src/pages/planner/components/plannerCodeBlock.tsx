@@ -1,8 +1,15 @@
 import type { JSX } from "react";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 import { Text } from "../../../components/primitives/text";
 import { PlannerHighlighter_segments } from "../plannerHighlighter";
 import { Tailwind_semantic } from "../../../utils/tailwindConfig";
+
+const MONO_FONT_FAMILY = Platform.select({
+  web: "Iosevka Web, Iosevka, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+  ios: "Iosevka",
+  android: "Iosevka-Regular",
+  default: "monospace",
+});
 
 interface IPlannerCodeBlockProps {
   script: string;
@@ -53,8 +60,8 @@ function colorForClass(clazz: string | null): string | undefined {
 export function PlannerCodeBlock(props: IPlannerCodeBlockProps): JSX.Element {
   const segments = PlannerHighlighter_segments(props.script);
   return (
-    <View className="block">
-      <Text style={{ fontFamily: "Courier" }} className={`${props.className} whitespace-pre`}>
+    <View className="block code">
+      <Text style={{ fontFamily: MONO_FONT_FAMILY }} className={`${props.className} whitespace-pre`}>
         {segments.map((segment, i) => {
           const color = colorForClass(segment.clazz);
           return (

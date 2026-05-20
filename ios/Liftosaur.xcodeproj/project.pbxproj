@@ -121,6 +121,9 @@
 		EE0042000000000000000042 /* RCTLftUpdater.mm in Sources */ = {isa = PBXBuildFile; fileRef = EE0041000000000000000041 /* RCTLftUpdater.mm */; };
 		EE0044000000000000000044 /* LftUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0043000000000000000043 /* LftUpdater.swift */; };
 		EE0046000000000000000046 /* LftUpdaterPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0045000000000000000045 /* LftUpdaterPath.swift */; };
+		95D0C1ECBFE44A7CB61734C1 /* Iosevka-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1A72802BA6B84B4A91C55832 /* Iosevka-Regular.ttf */; };
+		52AA6CA5D70F4173BBE269EC /* Iosevka-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1A72802BA6B84B4A91C55832 /* Iosevka-Regular.ttf */; };
+		4595B7D1B70E4BDEB49B3E2F /* Iosevka-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1A72802BA6B84B4A91C55832 /* Iosevka-Regular.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -279,6 +282,7 @@
 		EF012FAFB85E47D99214AFCE /* Poppins-Italic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-Italic.ttf"; path = "../assets/fonts/Poppins-Italic.ttf"; sourceTree = "<group>"; };
 		F60F33A9AB274D44A20FC0C7 /* Poppins-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-SemiBold.ttf"; path = "../assets/fonts/Poppins-SemiBold.ttf"; sourceTree = "<group>"; };
 		FD2FDC64C423B610A697466E /* RCTLiftosaurShare.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTLiftosaurShare.h; path = Liftosaur/RCTLiftosaurShare.h; sourceTree = "<group>"; };
+		1A72802BA6B84B4A91C55832 /* Iosevka-Regular.ttf */ = {isa = PBXFileReference; name = "Iosevka-Regular.ttf"; path = "../assets/fonts/Iosevka-Regular.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -358,6 +362,7 @@
 				DD99D9B7ADD2478880135CFC /* Poppins-Bold.ttf */,
 				F60F33A9AB274D44A20FC0C7 /* Poppins-SemiBold.ttf */,
 				EF012FAFB85E47D99214AFCE /* Poppins-Italic.ttf */,
+				1A72802BA6B84B4A91C55832 /* Iosevka-Regular.ttf */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -673,6 +678,7 @@
 				3AACC5622FB2C941001C68AA /* Poppins-SemiBold.ttf in Resources */,
 				3AACC5632FB2C941001C68AA /* Poppins-LightItalic.ttf in Resources */,
 				3AACC5642FB2C941001C68AA /* Poppins-ExtraLightItalic.ttf in Resources */,
+				95D0C1ECBFE44A7CB61734C1 /* Iosevka-Regular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -699,6 +705,7 @@
 				3AACC5502FB2C939001C68AA /* Poppins-Medium.ttf in Resources */,
 				3AACC5512FB2C939001C68AA /* Poppins-LightItalic.ttf in Resources */,
 				3AACC5522FB2C939001C68AA /* Poppins-ExtraLight.ttf in Resources */,
+				52AA6CA5D70F4173BBE269EC /* Iosevka-Regular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -708,6 +715,7 @@
 			files = (
 				3AACC5EF2FB3526B001C68AA /* Assets.xcassets in Resources */,
 				5C9210548D8DDE45FAA805DE /* PrivacyInfo.xcprivacy in Resources */,
+				4595B7D1B70E4BDEB49B3E2F /* Iosevka-Regular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

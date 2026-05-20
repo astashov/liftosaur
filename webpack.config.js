@@ -611,6 +611,10 @@ const editorWebviewConfig = {
         ],
       },
       {
+        test: /\.woff2?$/,
+        type: "asset/inline",
+      },
+      {
         test: /\.tsx?$/,
         exclude: /node_modules/,
         use: {

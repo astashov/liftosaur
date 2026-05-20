@@ -14,5 +14,9 @@
 	<array>
 		<string>workout-processing</string>
 	</array>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Iosevka-Regular.ttf</string>
+	</array>
 </dict>
 </plist>

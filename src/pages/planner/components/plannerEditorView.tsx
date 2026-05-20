@@ -86,7 +86,7 @@ export function PlannerEditorView(props: IProps): JSX.Element {
   }
 
   return (
-    <div className="planner-editor-view" style={{ fontFamily: "Iosevka Web" }}>
+    <div className="planner-editor-view" style={{ fontFamily: "Iosevka Web, Iosevka" }}>
       <div className={props.lineNumbers ? "planner-editor-error sticky bg-background-darkred z-30" : ""}>
         {props.error && (
           <EvalResult redTheme={props.lineNumbers} error={props.error} onCustomErrorCta={props.onCustomErrorCta} />

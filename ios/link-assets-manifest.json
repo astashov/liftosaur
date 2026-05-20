@@ -2,6 +2,10 @@
   "migIndex": 1,
   "data": [
     {
+      "path": "assets/fonts/Iosevka-Regular.ttf",
+      "sha1": "c5e30f4ae27edc7acbe683d888bb73691efcf310"
+    },
+    {
       "path": "assets/fonts/Poppins-Bold.ttf",
       "sha1": "875cf0cecd647bcf22e79d633d868c1b1ec98dfa"
     },

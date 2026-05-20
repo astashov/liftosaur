@@ -1,11 +1,34 @@
+@font-face {
+  font-family: "Iosevka Bundled";
+  font-display: swap;
+  font-weight: 400;
+  font-stretch: normal;
+  font-style: normal;
+  src: url("../../../../fonts/iosevka-regular.woff2") format("woff2");
+}
+
 html,
-body,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: transparent;
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  font-size: 16px;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
 #editor {
   margin: 0;
   padding: 0;
   height: 100%;
   background: transparent;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-size: 16px;
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
@@ -27,7 +50,7 @@ body.dark {
 }
 
 .planner-editor-view {
-  font-family: "Iosevka Web", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: "Iosevka Bundled", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 .planner-editor-view .cm-editor {
@@ -37,6 +60,7 @@ body.dark {
 
 .planner-editor-view .cm-scroller {
   min-height: 6rem;
+  font-family: inherit;
 }
 
 html.auto-height,
@@ -190,7 +214,7 @@ body.dark .planner-editor-view .cm-tooltip-autocomplete ul li[aria-selected] {
 }
 
 .function-completion-description code {
-  font-family: "Iosevka Web", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+  font-family: "Iosevka Bundled", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
 }
 
 .equipment-completion {
