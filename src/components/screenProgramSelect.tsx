@@ -11,7 +11,7 @@ import { IconDoc } from "./icons/iconDoc";
 import { navigationRef } from "../navigation/navigationRef";
 import { IconEditSquare } from "./icons/iconEditSquare";
 import { IconLink } from "./icons/iconLink";
-import { emptyProgramId, Program_selectProgram } from "../models/program";
+import { emptyProgramId, Program_selectProgramAndGoHome } from "../models/program";
 import { IconEquipmentKettlebell } from "./icons/iconEquipmentKettlebell";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { ImagePreloader_uri } from "../utils/imagePreloader";
@@ -60,7 +60,7 @@ export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Eleme
       icon: <IconEquipmentKettlebell size={24} />,
       title: "Go without program",
       description: "You can run adhoc workouts, and build the program along the way",
-      onClick: () => Program_selectProgram(props.dispatch, emptyProgramId),
+      onClick: () => Program_selectProgramAndGoHome(props.dispatch, emptyProgramId),
     },
   ];
 

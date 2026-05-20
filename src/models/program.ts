@@ -778,6 +778,10 @@ export function Program_cloneProgram(dispatch: IDispatch, program: IProgram, set
 
 export function Program_selectProgram(dispatch: IDispatch, programId: string): void {
   updateState(dispatch, [lb<IState>().p("storage").p("currentProgramId").record(programId)], "Select program");
+}
+
+export function Program_selectProgramAndGoHome(dispatch: IDispatch, programId: string): void {
+  Program_selectProgram(dispatch, programId);
   dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }));
 }
 

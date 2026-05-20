@@ -317,7 +317,6 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           }}
         >
           <RootStack.Screen name="monthCalendarModal" component={NavModalMonthCalendar} />
-          <RootStack.Screen name="changeNextDayModal" component={NavModalChangeNextDay} />
           <RootStack.Screen name="programRevisionsModal" component={NavModalProgramRevisions} />
           <RootStack.Screen name="programImageExportModal" component={NavModalProgramImageExport} />
           <RootStack.Screen name="exercisePickerModal" component={NavModalExercisePicker} />
@@ -437,6 +436,11 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
             options={{ gestureEnabled: false }}
           />
         </RootStack.Group>
+        <RootStack.Screen
+          name="changeNextDayModal"
+          component={NavModalChangeNextDay}
+          options={{ presentation: "modal", headerShown: false, animation: "slide_from_bottom" }}
+        />
       </RootStack.Navigator>
     </InitialScreenContext.Provider>
   );

@@ -10,7 +10,7 @@ import {
   Program_getAllUsedProgramExercises,
   Program_dayAverageTimeMs,
   Program_editAction,
-  Program_selectProgram,
+  Program_selectProgramAndGoHome,
   Program_daysRange,
   Program_exerciseRange,
 } from "../models/program";
@@ -144,7 +144,7 @@ function CustomProgram(props: ICustomProgramProps): JSX.Element {
           if (props.program.planner == null) {
             Dialog_alert("Old-style programs are not supported anymore");
           } else {
-            Program_selectProgram(props.dispatch, props.program.id);
+            Program_selectProgramAndGoHome(props.dispatch, props.program.id);
           }
         }}
       >

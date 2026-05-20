@@ -8,7 +8,7 @@ import { INavCommon } from "../models/state";
 import { useNavOptions } from "../navigation/useNavOptions";
 import { BuiltinProgramsList } from "./builtinProgramsList";
 import { CustomProgramsList } from "./customProgramsList";
-import { emptyProgramId, IProgramIndexEntry, Program_selectProgram } from "../models/program";
+import { emptyProgramId, IProgramIndexEntry, Program_selectProgramAndGoHome } from "../models/program";
 import { IconMagnifyingGlass } from "./icons/iconMagnifyingGlass";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { LinkButton } from "./linkButton";
@@ -110,7 +110,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
           <Footer
             onCreate={() => navigationRef.navigate("createProgramModal")}
             onEmpty={() => {
-              Program_selectProgram(props.dispatch, emptyProgramId);
+              Program_selectProgramAndGoHome(props.dispatch, emptyProgramId);
             }}
           />
         </>
