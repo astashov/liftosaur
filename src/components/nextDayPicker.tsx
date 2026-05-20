@@ -37,24 +37,27 @@ interface INextDayPickerDayProps {
 
 function NextDayPickerDayImpl(props: INextDayPickerDayProps): JSX.Element | null {
   const { evaluatedProgram, dayIndex, settings, stats, onSelect } = props;
-  const day = useMemo(
-    () => Program_getProgramDay(evaluatedProgram, dayIndex + 1),
-    [evaluatedProgram, dayIndex]
-  );
+  const day = useMemo(() => Program_getProgramDay(evaluatedProgram, dayIndex + 1), [evaluatedProgram, dayIndex]);
   const exerciseTypes = useMemo(() => {
-    if (!day) return [];
+    if (!day) {
+      return [];
+    }
     return CollectionUtils_compact(
-      Program_getProgramDayUsedExercises(day).map((exercise) => Exercise_find(exercise.exerciseType, settings.exercises))
+      Program_getProgramDayUsedExercises(day).map((exercise) =>
+        Exercise_find(exercise.exerciseType, settings.exercises)
+      )
     );
   }, [day, settings.exercises]);
   const muscleData = useMemo(() => {
-    if (!day) return {};
+    if (!day) {
+      return {};
+    }
     const points = Muscle_normalizeUnifiedPoints(Muscle_getUnifiedPointsForDay(evaluatedProgram, day, stats, settings));
     return ObjectUtils_keys(points.screenMusclePoints).reduce<Partial<Record<IScreenMuscle, IMuscleStyle>>>(
-      (memo, key) => {
+      (acc, key) => {
         const value = points.screenMusclePoints[key];
-        memo[key] = { opacity: value, fill: "#28839F" };
-        return memo;
+        acc[key] = { opacity: value, fill: "#28839F" };
+        return acc;
       },
       {}
     );
@@ -111,7 +114,8 @@ export function NextDayPicker(props: INextDayPickerProps): JSX.Element {
   const [currentProgramId, setCurrentProgramId] = useState(props.initialCurrentProgramId);
   const programsValues = useMemo<[string, string][]>(() => allPrograms.map((p) => [p.id, p.name]), [allPrograms]);
   const currentProgram = useMemo(
-    () => (currentProgramId ? CollectionUtils_findBy(allPrograms, "id", currentProgramId) : undefined) ?? allPrograms[0],
+    () =>
+      (currentProgramId ? CollectionUtils_findBy(allPrograms, "id", currentProgramId) : undefined) ?? allPrograms[0],
     [currentProgramId, allPrograms]
   );
   const evaluatedProgram = useMemo(

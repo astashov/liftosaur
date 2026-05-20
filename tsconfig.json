@@ -22,7 +22,6 @@
     "pretty": true,
     "strict": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "nativewind",
     "skipLibCheck": true,
     "noEmit": true,
     "outDir": "out",
@@ -30,6 +29,9 @@
     "paths": {
       "react-native": [
         "./node_modules/react-native-web"
+      ],
+      "uniwind": [
+        "./node_modules/uniwind/dist/module/index.d.ts"
       ]
     }
   },
@@ -45,6 +47,6 @@
     "index.native.ts",
     "devserver.ts",
     "playwright.config.ts",
-    "nativewind-env.d.ts"
+    "uniwind-types.d.ts"
   ]
 }

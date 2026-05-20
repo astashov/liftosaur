@@ -1,8 +1,8 @@
-/* purgecss start ignore */
-@import "~uplot/dist/uPlot.min.css";
+@import "tailwindcss";
+@import "../theme.generated.css";
 
-@tailwind base;
-@tailwind components;
+@custom-variant light (&:where(.light, .light *, :not(.dark, .dark *)));
+@custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
   html,
@@ -11,8 +11,7 @@
   }
 }
 
-@import "~prismjs/themes/prism.css";
-@import "fonts.css";
+@import "./fonts.css";
 
 .ptr--refresh {
   margin-top: 3.5rem;
@@ -54,14 +53,16 @@ html.liftosaur-app #app {
   flex-direction: column;
 }
 
-body {
-  background: var(--color-white);
-  color: var(--color-blackv2);
-  font-family: Poppins, sans-serif !important;
-}
+@layer base {
+  body {
+    background: var(--color-background-default);
+    color: var(--color-text-primary);
+    font-family: Poppins, sans-serif !important;
+  }
 
-* {
-  font-family: inherit !important;
+  * {
+    font-family: inherit !important;
+  }
 }
 
 .safe-area-inset-top {
@@ -1063,6 +1064,3 @@ iframe#exercise-youtube-player {
   }
 }
 
-/* purgecss end ignore */
-
-@tailwind utilities;

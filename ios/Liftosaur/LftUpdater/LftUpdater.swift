@@ -13,6 +13,10 @@ import OSLog
   }
 
   @objc func checkAndDownload(completion: @escaping (String) -> Void) {
+#if DISABLE_OTA
+    Logger.ota.info("OTA disabled at build time; checkAndDownload is a no-op")
+    completion("{\"status\":\"no-update\"}")
+#else
     Logger.ota.info("checkAndDownload called (active=\(LftUpdaterPath.activeUpdateId() ?? "<none>"))")
     Task {
       do {
@@ -27,6 +31,7 @@ import OSLog
         completion(String(data: data, encoding: .utf8) ?? "{}")
       }
     }
+#endif
   }
 
   @objc func markLaunchSuccessful() {

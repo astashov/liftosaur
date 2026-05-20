@@ -1,11 +1,12 @@
-const path = require("path");
+const { execSync } = require("child_process");
 const { getDefaultConfig } = require("@react-native/metro-config");
-const { withNativeWind } = require("nativewind/metro");
+const { withUniwindConfig } = require("uniwind/metro");
+
+execSync("node scripts/generate-theme-css.js", { cwd: __dirname, stdio: "inherit" });
 
 const config = getDefaultConfig(__dirname);
 
-module.exports = withNativeWind(config, {
-  input: path.resolve(__dirname, "global.css"),
-  configPath: path.resolve(__dirname, "tailwind.config.native.js"),
-  inlineRem: false,
+module.exports = withUniwindConfig(config, {
+  cssEntryFile: "./global.css",
+  dtsFile: "./uniwind-types.d.ts",
 });

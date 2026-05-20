@@ -107,6 +107,8 @@ class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
   override func bundleURL() -> URL? {
 #if DEBUG
     RCTBundleURLProvider.sharedSettings().jsBundleURL(forBundleRoot: "index")
+#elseif DISABLE_OTA
+    Bundle.main.url(forResource: "main", withExtension: "jsbundle")
 #else
     LftUpdaterPath.effectiveBundleURL()
 #endif

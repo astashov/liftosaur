@@ -47,10 +47,13 @@ function buildScriptEditor(args: IEditorInitArgs): ScriptEditor {
 }
 
 function applyTheme(theme?: string): void {
+  const root = document.documentElement;
   if (theme === "dark") {
-    document.body.classList.add("dark");
+    root.classList.add("dark");
+    root.classList.remove("light");
   } else {
-    document.body.classList.remove("dark");
+    root.classList.add("light");
+    root.classList.remove("dark");
   }
 }
 

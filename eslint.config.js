@@ -208,6 +208,7 @@ module.exports = defineConfig([
     "**/worktrees",
     "codemods",
     "nativewind-env.d.ts",
+    "uniwind-types.d.ts",
     "codemods",
     "**/*.generated.ts",
     "**/*.generated.tsx",

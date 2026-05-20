@@ -1,3 +1,4 @@
+import "../global.css";
 import React, { useMemo, useRef, useState, useEffect } from "react";
 import { ActivityIndicator, AppState, Linking, Platform, View } from "react-native";
 import { Client as RollbarClient } from "rollbar-react-native";

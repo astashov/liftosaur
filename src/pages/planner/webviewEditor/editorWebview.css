@@ -39,7 +39,7 @@ body {
   background: var(--bg, #ffffff);
 }
 
-body.dark {
+.dark {
   color: var(--fg-dark, #e7e7e7);
   background: var(--bg-dark, #0e0f10);
 }
@@ -95,7 +95,7 @@ html.auto-height #editor,
   overflow: hidden;
 }
 
-body.dark .planner-editor-view .cm-tooltip {
+.dark .planner-editor-view .cm-tooltip {
   background: #1c1d1f;
   border-color: #3a3d42;
   color: #e7e7e7;
@@ -118,7 +118,7 @@ body.dark .planner-editor-view .cm-tooltip {
   color: #171718;
 }
 
-body.dark .planner-editor-view .cm-tooltip-autocomplete ul li[aria-selected] {
+.dark .planner-editor-view .cm-tooltip-autocomplete ul li[aria-selected] {
   background: #2a2d31;
   color: #e7e7e7;
 }

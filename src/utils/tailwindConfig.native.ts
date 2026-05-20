@@ -1,4 +1,4 @@
-import { colorScheme } from "nativewind";
+import { Uniwind } from "uniwind";
 import baseColors from "../../tailwind.colors.json";
 import semanticColors from "../../tailwind.semantic.generated.json";
 
@@ -10,6 +10,6 @@ export function Tailwind_colors(): IBaseColors {
 }
 
 export function Tailwind_semantic(): ISemanticColors["light"] {
-  const theme = colorScheme.get() === "dark" ? "dark" : "light";
+  const theme = Uniwind.currentTheme === "dark" ? "dark" : "light";
   return semanticColors[theme];
 }

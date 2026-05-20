@@ -12,6 +12,25 @@ try {
 
 const isStage = !!process.env.STAGE;
 
+const uniwindRnRewrite = new NormalModuleReplacementPlugin(/^react-native$/, (resource) => {
+  const issuer = (resource.contextInfo && resource.contextInfo.issuer) || resource.context || "";
+  if (issuer.includes(`${path.sep}uniwind${path.sep}`)) {
+    resource.request = "react-native-web";
+  } else {
+    resource.request = "uniwind/components";
+  }
+});
+
+const uniwindStyleSheetRewrite = new NormalModuleReplacementPlugin(
+  /createOrderedCSSStyleSheet$/,
+  (resource) => {
+    const issuer = (resource.contextInfo && resource.contextInfo.issuer) || resource.context || "";
+    if (issuer.includes(`${path.sep}react-native-web${path.sep}dist${path.sep}exports${path.sep}StyleSheet${path.sep}`)) {
+      resource.request = path.resolve(__dirname, "node_modules/uniwind/dist/module/components/web/createOrderedCSSStyleSheet.js");
+    }
+  }
+);
+
 module.exports = {
   entry: {
     run: "./lambda/run.ts",
@@ -53,7 +72,7 @@ module.exports = {
           presets: [
             ["@babel/preset-env", { targets: { node: "24" }, modules: false }],
             ["@babel/preset-typescript", { isTSX: true, allExtensions: true }],
-            ["@babel/preset-react", { runtime: "automatic", importSource: "nativewind" }],
+            ["@babel/preset-react", { runtime: "automatic" }],
           ],
         },
       },
@@ -63,17 +82,23 @@ module.exports = {
         type: "javascript/auto",
         resolve: { fullySpecified: false },
       },
+      {
+        test: /\.css$/,
+        type: "asset/source",
+        generator: { emit: false },
+      },
     ],
   },
   resolve: {
     extensions: [".web.tsx", ".web.ts", ".web.js", ".tsx", ".ts", ".js"],
     mainFields: ["main", "module"],
     alias: {
-      "react-native$": "react-native-web",
+      "uniwind/components$": path.resolve(__dirname, "node_modules/uniwind/dist/module/components/web/index.js"),
     },
   },
   plugins: [
-    new NormalModuleReplacementPlugin(/react-native-css-interop\/dist\/doctor/, require.resolve("./empty-module.js")),
+    uniwindRnRewrite,
+    uniwindStyleSheetRewrite,
     new SourceMapDevToolPlugin({
       filename: "[file].map",
       moduleFilenameTemplate: (info) => path.relative(__dirname, info.absoluteResourcePath),

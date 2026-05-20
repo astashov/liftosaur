@@ -38,6 +38,25 @@ const local = `https://${localdomain}.liftosaur.com:${localport}/`;
 
 const isDev = process.env.NODE_ENV !== "production";
 
+const uniwindRnRewrite = new NormalModuleReplacementPlugin(/^react-native$/, (resource) => {
+  const issuer = (resource.contextInfo && resource.contextInfo.issuer) || resource.context || "";
+  if (issuer.includes(`${require("path").sep}uniwind${require("path").sep}`)) {
+    resource.request = "react-native-web";
+  } else {
+    resource.request = "uniwind/components";
+  }
+});
+
+const uniwindStyleSheetRewrite = new NormalModuleReplacementPlugin(
+  /createOrderedCSSStyleSheet$/,
+  (resource) => {
+    const issuer = (resource.contextInfo && resource.contextInfo.issuer) || resource.context || "";
+    if (issuer.includes(`${require("path").sep}react-native-web${require("path").sep}dist${require("path").sep}exports${require("path").sep}StyleSheet${require("path").sep}`)) {
+      resource.request = require("path").resolve(__dirname, "node_modules/uniwind/dist/module/components/web/createOrderedCSSStyleSheet.js");
+    }
+  }
+);
+
 const lftMarkerPlugin = {
   apply(compiler) {
     compiler.hooks.compilation.tap("LftMarkerPlugin", (compilation) => {
@@ -98,10 +117,12 @@ const watchConfig = {
   resolve: {
     extensions: [".ts", ".tsx", ".js"],
     alias: {
-      "react-native$": "react-native-web",
+      "uniwind/components$": path.resolve(__dirname, "node_modules/uniwind/dist/module/components/web/index.js"),
     },
   },
   plugins: [
+    uniwindRnRewrite,
+    uniwindStyleSheetRewrite,
     lftMarkerPlugin,
     new DefinePlugin({
       window: "globalThis",
@@ -173,7 +194,7 @@ const mainConfig = {
           compact: false,
           presets: [
             ["@babel/preset-typescript", { isTSX: true, allExtensions: true }],
-            ["@babel/preset-react", { runtime: "automatic", importSource: "nativewind" }],
+            ["@babel/preset-react", { runtime: "automatic" }],
           ],
         },
       },
@@ -205,11 +226,12 @@ const mainConfig = {
   resolve: {
     extensions: [".web.tsx", ".web.ts", ".web.js", ".tsx", ".ts", ".js", ".css"],
     alias: {
-      "react-native$": "react-native-web",
+      "uniwind/components$": path.resolve(__dirname, "node_modules/uniwind/dist/module/components/web/index.js"),
     },
   },
   plugins: [
-    new NormalModuleReplacementPlugin(/react-native-css-interop\/dist\/doctor/, require.resolve("./empty-module.js")),
+    uniwindRnRewrite,
+    uniwindStyleSheetRewrite,
     lftMarkerPlugin,
     new SourceMapDevToolPlugin({
       append: `\n//# sourceMappingURL=[url]?version=${commitHash}`,
@@ -653,7 +675,7 @@ const editorWebviewConfig = {
       "react-native-web": false,
       "@react-navigation/native": false,
       "@react-navigation/native-stack": false,
-      nativewind: false,
+      uniwind: false,
       "react-native-reanimated": false,
       "react-native-gesture-handler": false,
       "react-native-mmkv": false,
