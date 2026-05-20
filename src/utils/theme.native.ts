@@ -1,5 +1,5 @@
-import { colorScheme } from "nativewind";
+import { Uniwind } from "uniwind";
 
 export function Theme_apply(theme: "dark" | "light"): void {
-  colorScheme.set(theme);
+  Uniwind.setTheme(theme);
 }

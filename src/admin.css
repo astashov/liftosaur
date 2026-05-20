@@ -1,7 +1,7 @@
-/* purgecss start ignore */
+@import "tailwindcss";
+@import "../theme.generated.css";
 
-@tailwind base;
-@tailwind components;
+@custom-variant dark (&:where(.dark, .dark *));
 
 body {
   font-size: 16px;
@@ -144,6 +144,3 @@ h1 {
   margin-left: 20px;
 }
 
-/* purgecss end ignore */
-
-@tailwind utilities;

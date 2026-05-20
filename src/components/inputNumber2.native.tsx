@@ -6,7 +6,7 @@ import { StringUtils_dashcase } from "../utils/string";
 import { n, MathUtils_clamp } from "../utils/math";
 import { IPercentageUnit, IUnit } from "../types";
 import { useModal } from "../navigation/ModalStateContext";
-import { rem } from "nativewind";
+import { useRem } from "../utils/useRem";
 import { NavScreenScrollContext } from "../navigation/NavScreenContent";
 import {
   IKeyboardConfig,
@@ -412,7 +412,7 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
     };
   }, [closeKeyboard, flushPendingInput]);
 
-  const remValue = rem.get();
+  const remValue = useRem();
   const fieldWidth = (props.width ?? 4) * remValue;
 
   const fieldClassName = useMemo(

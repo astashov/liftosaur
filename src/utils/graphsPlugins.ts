@@ -1,4 +1,5 @@
 import UPlot from "uplot";
+import "uplot/dist/uPlot.min.css";
 import { Tailwind_semantic } from "./tailwindConfig";
 
 interface IFromTo {

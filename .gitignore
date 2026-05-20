@@ -61,3 +61,7 @@ android/app/*.keystore
 .tmp/
 worktrees/
 logs/
+
+# Uniwind generated types
+/uniwind-types.d.ts
+/theme.generated.css
