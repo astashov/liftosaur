@@ -79,6 +79,9 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
   });
   const [pageHeights, setPageHeights] = useState<Record<number, number>>({});
   const onPageLayout = useCallback((entryIndex: number, height: number) => {
+    if (height <= 0) {
+      return;
+    }
     setPageHeights((prev) => {
       if (prev[entryIndex] === height) {
         return prev;

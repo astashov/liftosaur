@@ -1,5 +1,6 @@
 import { JSX } from "react";
 import { View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { ModalScreenContainer } from "../ModalScreenContainer";
 import { Text } from "../../components/primitives/text";
@@ -17,6 +18,7 @@ export function NavModalHelp(): JSX.Element {
   const { helpKey } = route.params;
   const Component = HelpComponents[helpKey];
   const onClose = (): void => navigation.goBack();
+  const insets = useSafeAreaInsets();
 
   return (
     <ModalScreenContainer onClose={onClose} shouldShowClose={true} isFullWidth={true}>
@@ -34,6 +36,7 @@ export function NavModalHelp(): JSX.Element {
         </Link>{" "}
         and ask your question there.
       </Text>
+      <View style={{ height: insets.bottom }} />
     </ModalScreenContainer>
   );
 }
