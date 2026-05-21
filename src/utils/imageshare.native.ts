@@ -10,11 +10,17 @@ export class ImageShareUtils {
     private readonly fileName: string
   ) {}
 
-  public static async generateImageDataUrl(ref: unknown): Promise<string> {
+  public static async generateImageDataUrl(
+    ref: unknown,
+    options?: { width?: number; height?: number; useRenderInContext?: boolean }
+  ): Promise<string> {
     const path = await captureRef(ref as Parameters<typeof captureRef>[0], {
       format: "png",
       quality: 1,
       result: "tmpfile",
+      useRenderInContext: options?.useRenderInContext ?? true,
+      ...(options?.width != null ? { width: options.width } : null),
+      ...(options?.height != null ? { height: options.height } : null),
     });
     return path.startsWith("file://") ? path : `file://${path}`;
   }

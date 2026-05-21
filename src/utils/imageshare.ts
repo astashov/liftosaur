@@ -14,7 +14,10 @@ export class ImageShareUtils {
     private readonly fileName: string
   ) {}
 
-  public static async generateImageDataUrl(element: unknown): Promise<string> {
+  public static async generateImageDataUrl(
+    element: unknown,
+    _options?: { width?: number; height?: number }
+  ): Promise<string> {
     const maybeRef = element as { current?: HTMLElement } | null;
     const el = (maybeRef && "current" in maybeRef ? maybeRef.current : (element as HTMLElement)) as HTMLElement;
     await htmlToImage.toPng(el, { pixelRatio: 2 });

@@ -1,5 +1,5 @@
 import { JSX, useEffect, useRef, useState } from "react";
-import { View, ScrollView, useWindowDimensions, LayoutChangeEvent } from "react-native";
+import { View, ScrollView, useWindowDimensions, LayoutChangeEvent, PixelRatio } from "react-native";
 import { GroupHeader } from "../../../components/groupHeader";
 import { Dialog_alert } from "../../../utils/dialog";
 import { Modal } from "../../../components/modal";
@@ -40,8 +40,10 @@ function getInitialDaysToShow(program: IPlannerProgram): number[] {
 export function ModalPlannerPictureExportContent(props: IModalPlannerPictureExportProps): JSX.Element {
   const sourceRef = useRef<View>(null);
   const sourceSizeRef = useRef<{ width: number; height: number } | undefined>(undefined);
+  const layoutResolveRef = useRef<(() => void) | null>(null);
   const planner = props.program.planner!;
   const [url, setUrl] = useState(!props.isChanged && props.url ? props.url : undefined);
+  const [isCapturing, setIsCapturing] = useState(false);
 
   const initialDaysToShow = getInitialDaysToShow(planner);
   const [config, setConfig] = useState<IProgramShareOutputOptions>({
@@ -66,18 +68,33 @@ export function ModalPlannerPictureExportContent(props: IModalPlannerPictureExpo
 
   const onSourceLayout = (e: LayoutChangeEvent): void => {
     sourceSizeRef.current = { width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height };
+    const resolve = layoutResolveRef.current;
+    layoutResolveRef.current = null;
+    resolve?.();
   };
 
-  const offscreenSource = (
+  const waitForSourceLayout = (): Promise<void> => {
+    return new Promise<void>((resolve) => {
+      layoutResolveRef.current = resolve;
+      setTimeout(() => {
+        if (layoutResolveRef.current === resolve) {
+          layoutResolveRef.current = null;
+          resolve();
+        }
+      }, 3000);
+    });
+  };
+
+  const offscreenSource = isCapturing ? (
     <View
       collapsable={false}
-      style={{ position: "absolute", left: 0, top: 0, opacity: 0 }}
+      style={{ position: "absolute", left: -100000, top: 0 }}
       pointerEvents="none"
       onLayout={onSourceLayout}
     >
       <ProgramShareOutput ref={sourceRef} settings={props.settings} program={planner} options={config} url={url} />
     </View>
-  );
+  ) : null;
 
   const settingsTab = (
     <SettingsTab
@@ -88,12 +105,13 @@ export function ModalPlannerPictureExportContent(props: IModalPlannerPictureExpo
       programName={props.program.name}
       config={config}
       setConfig={setConfig}
+      setIsCapturing={setIsCapturing}
+      waitForSourceLayout={waitForSourceLayout}
     />
   );
 
-  const preview = <ProgramShareOutput settings={props.settings} program={planner} options={config} url={url} />;
-
   if (isWide) {
+    const preview = <ProgramShareOutput settings={props.settings} program={planner} options={config} url={url} />;
     return (
       <View className="flex-row flex-1">
         {offscreenSource}
@@ -120,16 +138,21 @@ export function ModalPlannerPictureExportContent(props: IModalPlannerPictureExpo
       {offscreenSource}
       <ScrollableTabs
         defaultIndex={0}
+        fillHeight={true}
         tabs={[
           {
             label: "Settings",
-            children: () => <View className="px-4 pt-2">{settingsTab}</View>,
+            children: () => <ScrollView contentContainerClassName="px-4 pt-2 pb-8">{settingsTab}</ScrollView>,
           },
           {
             label: "Preview",
             children: () => (
-              <ScrollView horizontal>
-                <View>{preview}</View>
+              <ScrollView contentContainerClassName="pb-8">
+                <ScrollView horizontal>
+                  <View>
+                    <ProgramShareOutput settings={props.settings} program={planner} options={config} url={url} />
+                  </View>
+                </ScrollView>
               </ScrollView>
             ),
           },
@@ -155,6 +178,8 @@ interface ISettingsTabProps {
   programName: string;
   config: IProgramShareOutputOptions;
   setConfig: (config: IProgramShareOutputOptions) => void;
+  setIsCapturing: (v: boolean) => void;
+  waitForSourceLayout: () => Promise<void>;
 }
 
 function getWeekDayMapping(program: IPlannerProgram): Record<number, Record<number, number>> {
@@ -171,29 +196,59 @@ function getWeekDayMapping(program: IPlannerProgram): Record<number, Record<numb
 
 function SettingsTab(props: ISettingsTabProps): JSX.Element {
   const [isLoading, setIsLoading] = useState(false);
-  const { config, setConfig, sourceRef, sourceSizeRef } = props;
+  const { config, setConfig, sourceRef, sourceSizeRef, setIsCapturing, waitForSourceLayout } = props;
 
   async function save(): Promise<void> {
     const maxSize = 16384;
-    const size = sourceSizeRef.current;
-    if (size && (size.width >= maxSize || size.height >= maxSize)) {
-      Dialog_alert(
-        `The image is too large to generate - max size is 16384x16384, and the image would be ${size.width}x${size.height}. Try to set more columns, or disable some weeks/days.`
-      );
-      return;
-    }
     setIsLoading(true);
+    setIsCapturing(true);
+    const pixelRatio = PixelRatio.get();
     try {
-      const dataUrl = await ImageShareUtils.generateImageDataUrl(sourceRef);
+      await waitForSourceLayout();
+      const size = sourceSizeRef.current;
+      const pixelW = size ? Math.round(size.width * pixelRatio) : 0;
+      const pixelH = size ? Math.round(size.height * pixelRatio) : 0;
+      console.log(
+        `[picture-export] size points=${size?.width}x${size?.height} pixelRatio=${pixelRatio} pixels=${pixelW}x${pixelH}`
+      );
+      if (size && (size.width >= maxSize || size.height >= maxSize)) {
+        Dialog_alert(
+          `The image is too large to generate - max size is 16384x16384 points, and the image would be ${size.width}x${size.height} points (${pixelW}x${pixelH} px). Try to set more columns, or disable some weeks/days.`
+        );
+        return;
+      }
+      const maxPixelDimension = 8192;
+      let captureWidth = size?.width;
+      let captureHeight = size?.height;
+      if (size) {
+        const longest = Math.max(size.width, size.height);
+        if (longest > maxPixelDimension) {
+          const scale = maxPixelDimension / longest;
+          captureWidth = Math.floor(size.width * scale);
+          captureHeight = Math.floor(size.height * scale);
+        }
+      }
+      console.log(`[picture-export] capturing at ${captureWidth}x${captureHeight} px`);
+      const t0 = Date.now();
+      const dataUrl = await ImageShareUtils.generateImageDataUrl(sourceRef, {
+        width: captureWidth,
+        height: captureHeight,
+      });
+      console.log(`[picture-export] captureRef ok in ${Date.now() - t0}ms -> ${dataUrl.slice(0, 80)}`);
       const filename = StringUtils_dashcase(props.programName) + ".png";
       const imageShareUtils = new ImageShareUtils(dataUrl, filename);
       await imageShareUtils.shareOrDownload();
     } catch (error) {
-      console.error(error);
+      const err = error as { message?: string; stack?: string; name?: string };
+      console.error("[picture-export] capture failed", err?.name, err?.message, err?.stack);
+      const size = sourceSizeRef.current;
+      const pixelW = size ? Math.round(size.width * pixelRatio) : 0;
+      const pixelH = size ? Math.round(size.height * pixelRatio) : 0;
       Dialog_alert(
-        "Unknown error happened. Likely because the image is too large to generate. Try to disable some weeks/days."
+        `Failed to generate image (${pixelW}x${pixelH} px @${pixelRatio}x). ${err?.message ?? "Unknown error"}. Likely too large for the device — try more columns or fewer days.`
       );
     } finally {
+      setIsCapturing(false);
       setIsLoading(false);
     }
   }
