@@ -56,7 +56,11 @@ const CustomKeyboardContext = createContext<ICustomKeyboardContextValue>({
   closeKeyboard: () => undefined,
 });
 
-export function CustomKeyboardProvider(props: { children: ReactNode; applySafeAreaBottom?: boolean }): JSX.Element {
+export function CustomKeyboardProvider(props: {
+  children: ReactNode;
+  applySafeAreaBottom?: boolean;
+  inline?: boolean;
+}): JSX.Element {
   const [height, setHeight] = useState(0);
   const animatedHeight = useRef(new Animated.Value(0)).current;
   const measuredHeightRef = useRef(0);
@@ -131,10 +135,32 @@ export function CustomKeyboardProvider(props: { children: ReactNode; applySafeAr
     [height, animatedHeight, activeId, openKeyboard, closeKeyboard]
   );
 
+  const inlineOnAndroid = props.inline && Platform.OS === "android";
+
+  const keyboardNode = renderedConfig && (
+    <NativeCustomKeyboard
+      onInput={renderedConfig.onInput}
+      onBlur={renderedConfig.onBlur}
+      onPlus={renderedConfig.onPlus}
+      onMinus={renderedConfig.onMinus}
+      onShowCalculator={renderedConfig.onShowCalculator}
+      onChangeUnits={renderedConfig.onChangeUnits}
+      allowDot={renderedConfig.allowDot}
+      allowNegative={renderedConfig.allowNegative}
+      isNegative={renderedConfig.isNegative}
+      withDot={renderedConfig.withDot}
+      keyboardAddon={renderedConfig.keyboardAddon}
+      enableCalculator={renderedConfig.enableCalculator}
+      enableUnits={renderedConfig.enableUnits}
+      selectedUnit={renderedConfig.selectedUnit}
+      applySafeAreaBottom={props.applySafeAreaBottom}
+    />
+  );
+
   return (
     <CustomKeyboardContext.Provider value={value}>
       <View
-        style={{ flex: 1 }}
+        style={inlineOnAndroid ? undefined : { flex: 1 }}
         onTouchStart={(e) => {
           if (activeConfig == null) {
             return;
@@ -170,33 +196,21 @@ export function CustomKeyboardProvider(props: { children: ReactNode; applySafeAr
       >
         {props.children}
       </View>
-      {shouldMount && (
-        <View pointerEvents="box-none" style={[StyleSheet.absoluteFill, { bottom: -bottomOverflow }]}>
-          <View pointerEvents="box-none" className="flex-1 justify-end">
-            <Animated.View style={{ transform: [{ translateY: slideY }] }}>
-              {renderedConfig && (
-                <NativeCustomKeyboard
-                  onInput={renderedConfig.onInput}
-                  onBlur={renderedConfig.onBlur}
-                  onPlus={renderedConfig.onPlus}
-                  onMinus={renderedConfig.onMinus}
-                  onShowCalculator={renderedConfig.onShowCalculator}
-                  onChangeUnits={renderedConfig.onChangeUnits}
-                  allowDot={renderedConfig.allowDot}
-                  allowNegative={renderedConfig.allowNegative}
-                  isNegative={renderedConfig.isNegative}
-                  withDot={renderedConfig.withDot}
-                  keyboardAddon={renderedConfig.keyboardAddon}
-                  enableCalculator={renderedConfig.enableCalculator}
-                  enableUnits={renderedConfig.enableUnits}
-                  selectedUnit={renderedConfig.selectedUnit}
-                  applySafeAreaBottom={props.applySafeAreaBottom}
-                />
-              )}
-            </Animated.View>
+      {shouldMount &&
+        (inlineOnAndroid ? (
+          <View>
+            <Animated.View style={{ height: animatedHeight }} />
+            <View style={{ position: "absolute", left: 0, right: 0, bottom: 0 }}>
+              <Animated.View style={{ transform: [{ translateY: slideY }] }}>{keyboardNode}</Animated.View>
+            </View>
           </View>
-        </View>
-      )}
+        ) : (
+          <View pointerEvents="box-none" style={[StyleSheet.absoluteFill, { bottom: -bottomOverflow }]}>
+            <View pointerEvents="box-none" className="flex-1 justify-end">
+              <Animated.View style={{ transform: [{ translateY: slideY }] }}>{keyboardNode}</Animated.View>
+            </View>
+          </View>
+        ))}
     </CustomKeyboardContext.Provider>
   );
 }

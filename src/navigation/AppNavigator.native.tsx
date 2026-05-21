@@ -354,7 +354,11 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="inputSelectModal" component={NavModalInputSelect} />
           <RootStack.Screen name="playgroundEditModal" component={NavModalPlaygroundEditExercise} />
           <RootStack.Screen name="amrapModal" component={NavModalAmrap} />
-          <RootStack.Screen name="editSetTargetModal" component={NavModalEditTarget} />
+          <RootStack.Screen
+            name="editSetTargetModal"
+            component={NavModalEditTarget}
+            options={{ sheetResizeAnimationEnabled: false }}
+          />
           <RootStack.Screen
             name="programPreviewMusclesModal"
             component={NavModalProgramPreviewMuscles}

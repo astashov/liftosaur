@@ -87,7 +87,7 @@ export function NavModalEditTarget(): JSX.Element {
   }
 
   const content = (
-    <CustomKeyboardProvider applySafeAreaBottom={false}>
+    <CustomKeyboardProvider applySafeAreaBottom={false} inline>
       <View className="bg-background-default">
         <BottomSheetEditTargetContent
           editSetModal={editSetModal}
@@ -115,5 +115,8 @@ export function NavModalEditTarget(): JSX.Element {
 
 function KeyboardSpacer(): JSX.Element {
   const animatedHeight = useCustomKeyboardAnimatedHeight();
+  if (Platform.OS === "android") {
+    return <></>;
+  }
   return <Animated.View style={{ height: animatedHeight }} />;
 }
