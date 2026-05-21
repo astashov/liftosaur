@@ -1,4 +1,4 @@
-import { JSX, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { JSX, memo, useCallback, useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
 import { ActiveGraphContext, IActiveGraphContext } from "./activeGraphContext";
 import { IDispatch } from "../ducks/types";
@@ -69,7 +69,6 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
   }, [props.history, exerciseType, props.settings]);
   const showPrs = maxWeight.value > 0 || max1RM.value > 0;
   const status = Reps_setsStatus(props.entry.sets);
-  const surfaceRef = useRef<{ clientHeight?: number } | null>(null);
 
   const [isHeavyContentReady, setIsHeavyContentReady] = useState(false);
   useEffect(() => {
@@ -170,7 +169,6 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
       {history.length > 0 && isHeavyContentReady && (
         <View className="mx-4 mt-2">
           <ExerciseHistory
-            surfaceRef={surfaceRef}
             exerciseType={exerciseType}
             settings={props.settings}
             dispatch={props.dispatch}

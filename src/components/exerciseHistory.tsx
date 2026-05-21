@@ -1,4 +1,4 @@
-import { JSX, Fragment, RefObject, memo, useCallback, useEffect, useMemo, useState } from "react";
+import { JSX, Fragment, memo, useCallback, useMemo, useState } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
 import { Pressable } from "react-native";
@@ -7,7 +7,7 @@ import { IExerciseType, IHistoryRecord, ISettings } from "../types";
 import { Weight_print, Weight_is, Weight_isPct, Weight_display } from "../models/weight";
 import { DateUtils_format } from "../utils/date";
 import { MenuItemWrapper } from "./menuItem";
-import { useGradualList } from "../utils/useGradualList";
+import { useProgressiveItems } from "../utils/useProgressiveItems";
 import { Exercise_get, Exercise_fullName, Exercise_eq, Exercise_toKey, IExercise } from "../models/exercise";
 import { Reps_volume } from "../models/set";
 import { History_getPersonalRecords, IPersonalRecords } from "../models/history";
@@ -23,7 +23,6 @@ import { Thunk_editHistoryRecord } from "../ducks/thunks";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 
 interface IExerciseHistoryProps {
-  surfaceRef: RefObject<{ clientHeight?: number } | null>;
   exerciseType: IExerciseType;
   settings: ISettings;
   dispatch: IDispatch;
@@ -31,14 +30,6 @@ interface IExerciseHistoryProps {
 }
 
 export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element => {
-  const { visibleRecords, loadMoreVisibleRecords } = useGradualList(props.history, 0, 5, props.surfaceRef, () => {});
-  useEffect(() => {
-    if (props.history.length > 5) {
-      const t = setTimeout(() => loadMoreVisibleRecords(15), 300);
-      return () => clearTimeout(t);
-    }
-    return undefined;
-  }, [props.history.length, loadMoreVisibleRecords]);
   const fullExercise = useMemo(
     () => Exercise_get(props.exerciseType, props.settings.exercises),
     [props.exerciseType, props.settings.exercises]
@@ -61,6 +52,11 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
       return result;
     });
   }
+  const visibleHistory = useProgressiveItems(history, {
+    initialBatch: 5,
+    batchSize: 15,
+    debugLabel: "ExerciseHistory",
+  });
 
   return (
     <View data-testid="exercise-stats-history">
@@ -128,7 +124,7 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
           />
         </View>
       )}
-      {history.slice(0, visibleRecords).map((historyRecord) => (
+      {visibleHistory.map((historyRecord) => (
         <ExerciseHistoryRecord
           key={historyRecord.id}
           historyRecord={historyRecord}

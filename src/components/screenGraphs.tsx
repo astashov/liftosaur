@@ -16,6 +16,7 @@ import { GraphMuscleGroup } from "./graphMuscleGroup";
 import { CollectionUtils_sort } from "../utils/collection";
 import { Exercise_fromKey } from "../models/exercise";
 import { navigationRef } from "../navigation/navigationRef";
+import { useProgressiveItems } from "../utils/useProgressiveItems";
 
 interface IProps {
   dispatch: IDispatch;
@@ -94,6 +95,12 @@ export function ScreenGraphs(props: IProps): JSX.Element {
   const [activeId, setActiveId] = useState<string | null>(null);
   const activeGraphValue = useMemo<IActiveGraphContext>(() => ({ activeId, setActive: setActiveId }), [activeId]);
 
+  const visibleGraphs = useProgressiveItems(props.settings.graphs.graphs, {
+    initialBatch: 3,
+    batchSize: 3,
+    debugLabel: "Graphs",
+  });
+
   if (props.settings.graphs.graphs.length === 0) {
     return (
       <View className="p-8">
@@ -107,7 +114,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
   return (
     <ActiveGraphContext.Provider value={activeGraphValue}>
       <View className="pt-4 pb-4">
-        {props.settings.graphs.graphs.map((graph, i) => {
+        {visibleGraphs.map((graph, i) => {
           const id = `${graph.type}-${graph.id}-${i}`;
           if (graph.type === "exercise") {
             return (

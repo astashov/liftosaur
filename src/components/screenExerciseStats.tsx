@@ -1,4 +1,4 @@
-import { JSX, useRef, useState } from "react";
+import { JSX, useState } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
@@ -80,7 +80,6 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
     return props.settings.exerciseStatsSettings.ascendingSort ? a.startTime - b.startTime : b.startTime - a.startTime;
   });
 
-  const containerRef = useRef<{ clientHeight?: number }>(null);
   const showPrs = maxWeight.value > 0 || max1RM.value > 0;
 
   useNavOptions({ navTitle: "Exercise Stats", navHelpKey: "exerciseStats" });
@@ -204,7 +203,6 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
         </View>
       )}
       <ExerciseHistory
-        surfaceRef={containerRef}
         exerciseType={exerciseType}
         settings={props.settings}
         dispatch={props.dispatch}
