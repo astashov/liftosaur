@@ -22,6 +22,8 @@ body {
   font-size: 16px;
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 #editor {
@@ -61,6 +63,7 @@ body {
 .planner-editor-view .cm-scroller {
   min-height: 6rem;
   font-family: inherit;
+  overscroll-behavior: none;
 }
 
 html.auto-height,
@@ -76,7 +79,6 @@ html.auto-height #editor,
 
 .planner-editor-view.auto-height .cm-scroller {
   min-height: 0;
-  overflow: visible;
 }
 
 .planner-editor-view .cm-line {
