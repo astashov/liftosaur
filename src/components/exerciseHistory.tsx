@@ -3,7 +3,7 @@ import { View } from "react-native";
 import { Text } from "./primitives/text";
 import { Pressable } from "react-native";
 import { IDispatch } from "../ducks/types";
-import { IExerciseType, IHistoryRecord, ISettings } from "../types";
+import { IExerciseType, IHistoryRecord, ISettings, IUnit } from "../types";
 import { Weight_print, Weight_is, Weight_isPct, Weight_display } from "../models/weight";
 import { DateUtils_format } from "../utils/date";
 import { MenuItemWrapper } from "./menuItem";
@@ -34,42 +34,70 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
     () => Exercise_get(props.exerciseType, props.settings.exercises),
     [props.exerciseType, props.settings.exercises]
   );
-  const allPrs = History_getPersonalRecords(props.history);
+  const allPrs = useMemo(() => History_getPersonalRecords(props.history), [props.history]);
   const [showFilters, setShowFilters] = useState(false);
-  let history = props.history;
-  if (
-    props.settings.exerciseStatsSettings.hideWithoutExerciseNotes ||
-    props.settings.exerciseStatsSettings.hideWithoutWorkoutNotes
-  ) {
-    history = history.filter((hr) => {
+  const { hideWithoutExerciseNotes, hideWithoutWorkoutNotes, ascendingSort } = props.settings.exerciseStatsSettings;
+  const history = useMemo(() => {
+    if (!hideWithoutExerciseNotes && !hideWithoutWorkoutNotes) {
+      return props.history;
+    }
+    return props.history.filter((hr) => {
       let result = true;
-      if (props.settings.exerciseStatsSettings.hideWithoutExerciseNotes) {
+      if (hideWithoutExerciseNotes) {
         result = result && hr.entries.some((e) => e.notes);
       }
-      if (props.settings.exerciseStatsSettings.hideWithoutWorkoutNotes) {
+      if (hideWithoutWorkoutNotes) {
         result = result && !!hr.notes;
       }
       return result;
     });
-  }
+  }, [props.history, hideWithoutExerciseNotes, hideWithoutWorkoutNotes]);
   const visibleHistory = useProgressiveItems(history, {
     initialBatch: 5,
     batchSize: 15,
     debugLabel: "ExerciseHistory",
+    resetKey: `${hideWithoutExerciseNotes ? 1 : 0}|${hideWithoutWorkoutNotes ? 1 : 0}|${ascendingSort ? 1 : 0}`,
   });
+  const dispatch = props.dispatch;
+  const onToggleFilters = useCallback(() => setShowFilters((s) => !s), []);
+  const onToggleAscending = useCallback(() => {
+    updateSettings(
+      dispatch,
+      lb<ISettings>().p("exerciseStatsSettings").p("ascendingSort").record(!ascendingSort),
+      "Toggle sort order"
+    );
+  }, [dispatch, ascendingSort]);
+  const onToggleHideExerciseNotes = useCallback(() => {
+    updateSettings(
+      dispatch,
+      lb<ISettings>().p("exerciseStatsSettings").p("hideWithoutExerciseNotes").record(!hideWithoutExerciseNotes),
+      "Toggle exercise notes filter"
+    );
+  }, [dispatch, hideWithoutExerciseNotes]);
+  const onToggleHideWorkoutNotes = useCallback(() => {
+    updateSettings(
+      dispatch,
+      lb<ISettings>().p("exerciseStatsSettings").p("hideWithoutWorkoutNotes").record(!hideWithoutWorkoutNotes),
+      "Toggle workout notes filter"
+    );
+  }, [dispatch, hideWithoutWorkoutNotes]);
+  const headerName = useMemo(
+    () => `${Exercise_fullName(fullExercise, props.settings)} History`,
+    [fullExercise, props.settings]
+  );
 
   return (
     <View data-testid="exercise-stats-history">
       <GroupHeader
         topPadding={true}
-        name={`${Exercise_fullName(fullExercise, props.settings)} History`}
+        name={headerName}
         rightAddOn={
           <Pressable
             className="p-2"
             data-testid="exercise-stats-history-filter"
             testID="exercise-stats-history-filter"
             style={{ marginRight: -8, marginTop: -8 }}
-            onPress={() => setShowFilters(!showFilters)}
+            onPress={onToggleFilters}
           >
             <IconFilter />
           </Pressable>
@@ -80,47 +108,20 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
           <MenuItemEditable
             type="boolean"
             name="Ascending sort by date"
-            value={!!props.settings.exerciseStatsSettings.ascendingSort ? "true" : "false"}
-            onChange={() => {
-              updateSettings(
-                props.dispatch,
-                lb<ISettings>()
-                  .p("exerciseStatsSettings")
-                  .p("ascendingSort")
-                  .record(!props.settings.exerciseStatsSettings.ascendingSort),
-                "Toggle sort order"
-              );
-            }}
+            value={!!ascendingSort ? "true" : "false"}
+            onChange={onToggleAscending}
           />
           <MenuItemEditable
             type="boolean"
             name="Hide entries without exercise notes"
-            value={!!props.settings.exerciseStatsSettings.hideWithoutExerciseNotes ? "true" : "false"}
-            onChange={() => {
-              updateSettings(
-                props.dispatch,
-                lb<ISettings>()
-                  .p("exerciseStatsSettings")
-                  .p("hideWithoutExerciseNotes")
-                  .record(!props.settings.exerciseStatsSettings.hideWithoutExerciseNotes),
-                "Toggle exercise notes filter"
-              );
-            }}
+            value={!!hideWithoutExerciseNotes ? "true" : "false"}
+            onChange={onToggleHideExerciseNotes}
           />
           <MenuItemEditable
             type="boolean"
             name="Hide entries without workout notes"
-            value={!!props.settings.exerciseStatsSettings.hideWithoutWorkoutNotes ? "true" : "false"}
-            onChange={() => {
-              updateSettings(
-                props.dispatch,
-                lb<ISettings>()
-                  .p("exerciseStatsSettings")
-                  .p("hideWithoutWorkoutNotes")
-                  .record(!props.settings.exerciseStatsSettings.hideWithoutWorkoutNotes),
-                "Toggle workout notes filter"
-              );
-            }}
+            value={!!hideWithoutWorkoutNotes ? "true" : "false"}
+            onChange={onToggleHideWorkoutNotes}
           />
         </View>
       )}
@@ -129,7 +130,7 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
           key={historyRecord.id}
           historyRecord={historyRecord}
           fullExercise={fullExercise}
-          settings={props.settings}
+          units={props.settings.units}
           prs={allPrs[historyRecord.id]}
           dispatch={props.dispatch}
         />
@@ -141,13 +142,13 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
 interface IExerciseHistoryRecordProps {
   historyRecord: IHistoryRecord;
   fullExercise: IExercise;
-  settings: ISettings;
+  units: IUnit;
   prs: IPersonalRecords[string];
   dispatch: IDispatch;
 }
 
 const ExerciseHistoryRecord = memo((props: IExerciseHistoryRecordProps): JSX.Element => {
-  const { historyRecord, fullExercise, settings, prs, dispatch } = props;
+  const { historyRecord, fullExercise, units, prs, dispatch } = props;
   const exerciseEntries = historyRecord.entries.filter((e) => Exercise_eq(e.exercise, fullExercise));
   const exerciseNotes = exerciseEntries.map((e) => e.notes).filter((e) => e);
   const onClick = useCallback(() => {
@@ -173,7 +174,7 @@ const ExerciseHistoryRecord = memo((props: IExerciseHistoryRecordProps): JSX.Ele
                   const name = { rm1: "1 Rep Max" }[key] || key;
                   state[name] = vars[key];
                 }
-                const volume = Reps_volume(entry.sets, settings.units);
+                const volume = Reps_volume(entry.sets, units);
                 return (
                   <View key={ei} className="pt-1">
                     <View className="items-end">
@@ -181,7 +182,7 @@ const ExerciseHistoryRecord = memo((props: IExerciseHistoryRecordProps): JSX.Ele
                         showPrDetails={true}
                         prs={entryPrs}
                         sets={entry.sets}
-                        settings={settings}
+                        units={units}
                         isNext={false}
                       />
                     </View>

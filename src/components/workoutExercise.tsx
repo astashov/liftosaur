@@ -60,13 +60,13 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
       .addFn(History_collectAllHistoryRecordsOfExerciseType(exerciseType))
       .addFn(History_collectMinAndMaxTime())
       .addFn(History_collectWeightPersonalRecord(exerciseType, props.settings.units))
-      .addFn(History_collect1RMPersonalRecord(exerciseType, props.settings))
+      .addFn(History_collect1RMPersonalRecord(exerciseType, props.settings.units))
       .run();
     results[0] = CollectionUtils_sort(results[0], (a, b) => {
       return props.settings.exerciseStatsSettings.ascendingSort ? a.startTime - b.startTime : b.startTime - a.startTime;
     });
     return results;
-  }, [props.history, exerciseType, props.settings]);
+  }, [props.history, exerciseType, props.settings.units, props.settings.exerciseStatsSettings.ascendingSort]);
   const showPrs = maxWeight.value > 0 || max1RM.value > 0;
   const status = Reps_setsStatus(props.entry.sets);
 

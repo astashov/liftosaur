@@ -1,4 +1,4 @@
-import { JSX, ReactNode, useState } from "react";
+import { JSX, ReactNode, memo, useState } from "react";
 import { View, Image } from "react-native";
 import { Text } from "./primitives/text";
 import { IconSpinner } from "./icons/iconSpinner";
@@ -25,7 +25,22 @@ interface IProps {
   width?: number;
 }
 
-export function ExerciseImage(props: IProps): JSX.Element | null {
+function areExerciseImagePropsEqual(prev: IProps, next: IProps): boolean {
+  return (
+    prev.size === next.size &&
+    prev.useTextForCustomExercise === next.useTextForCustomExercise &&
+    prev.useBorderForCustomExercise === next.useBorderForCustomExercise &&
+    prev.suppressCustom === next.suppressCustom &&
+    prev.className === next.className &&
+    prev.customClassName === next.customClassName &&
+    prev.width === next.width &&
+    prev.exerciseType.id === next.exerciseType.id &&
+    prev.exerciseType.equipment === next.exerciseType.equipment &&
+    prev.settings?.exercises === next.settings?.exercises
+  );
+}
+
+export const ExerciseImage = memo(function ExerciseImage(props: IProps): JSX.Element | null {
   const { size } = props;
   const exercise = Exercise_get(props.exerciseType, props.settings?.exercises || {});
   const exerciseType = {
@@ -136,7 +151,7 @@ export function ExerciseImage(props: IProps): JSX.Element | null {
       </ExerciseNoImage>
     );
   }
-}
+}, areExerciseImagePropsEqual);
 
 function ExerciseImageAuxiliary(props: {
   size: "large" | "small";

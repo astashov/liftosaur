@@ -34,7 +34,7 @@ export const RepsAndWeight = memo((props: IRepsWeightsProps): JSX.Element => {
   });
   return (
     <div>
-      <HistoryRecordSetsView sets={sets} isNext={true} settings={props.settings} />
+      <HistoryRecordSetsView sets={sets} isNext={true} units={props.settings.units} />
     </div>
   );
 });

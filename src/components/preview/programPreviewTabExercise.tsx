@@ -181,7 +181,7 @@ export const ProgramPreviewTabExercise = memo(function ProgramPreviewTabExercise
           )}
         </View>
         <View className="mt-1 ml-1">
-          <HistoryRecordSetsView sets={props.entry.sets} settings={props.settings} isNext={true} />
+          <HistoryRecordSetsView sets={props.entry.sets} units={props.settings.units} isNext={true} />
         </View>
       </View>
       {!!exerciseNotes && (

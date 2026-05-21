@@ -399,7 +399,7 @@ export function History_collectWeightPersonalRecord(
 
 export function History_collect1RMPersonalRecord(
   exerciseType: IExerciseType,
-  settings: ISettings
+  unit: IUnit
 ): ICollectorFn<IHistoryRecord, { max1RM: IWeight; max1RMHistoryRecord?: IHistoryRecord; max1RMSet?: ISet }> {
   return {
     fn: (acc, hr) => {
@@ -407,7 +407,7 @@ export function History_collect1RMPersonalRecord(
       const allSets = entries.flatMap((e) => e.sets);
       const all1RMs = allSets.map<[ISet, IWeight]>((s) => [
         s,
-        Weight_getOneRepMax(s.completedWeight ?? s.weight ?? Weight_build(0, settings.units), s.completedReps || 0),
+        Weight_getOneRepMax(s.completedWeight ?? s.weight ?? Weight_build(0, unit), s.completedReps || 0),
       ]);
       const max1RM = CollectionUtils_sort(all1RMs, (a, b) => Weight_compare(b[1], a[1]))[0];
       if (max1RM != null && Weight_gt(max1RM[1], acc.max1RM)) {
@@ -415,7 +415,7 @@ export function History_collect1RMPersonalRecord(
       }
       return acc;
     },
-    initial: { max1RM: Weight_build(0, settings.units) },
+    initial: { max1RM: Weight_build(0, unit) },
   };
 }
 

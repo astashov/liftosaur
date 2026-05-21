@@ -2,7 +2,7 @@ import { JSX, memo, useMemo } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
 import { IDisplaySet, Reps_group, Reps_setToDisplaySet } from "../models/set";
-import { ISet, ISettings } from "../types";
+import { ISet, IUnit } from "../types";
 import { CollectionUtils_compact } from "../utils/collection";
 import { ObjectUtils_keys } from "../utils/object";
 import { IHistoryEntryPersonalRecords } from "../models/history";
@@ -17,16 +17,16 @@ interface IHistoryRecordSetsProps {
   showPrDetails?: boolean;
   sets: ISet[];
   isNext: boolean;
-  settings: ISettings;
+  units: IUnit;
   prs?: IHistoryEntryPersonalRecords;
 }
 
 export const HistoryRecordSetsView = memo(function HistoryRecordSetsView(props: IHistoryRecordSetsProps): JSX.Element {
-  const { sets, isNext, settings } = props;
+  const { sets, isNext, units } = props;
   const displayGroups = useMemo(() => {
     const groups = Reps_group(sets, isNext);
-    return groups.map((g) => g.map((set) => Reps_setToDisplaySet(set, isNext, settings)));
-  }, [sets, isNext, settings]);
+    return groups.map((g) => g.map((set) => Reps_setToDisplaySet(set, isNext, units)));
+  }, [sets, isNext, units]);
   return (
     <View className="text-sm" style={{ alignItems: "flex-end" }}>
       {displayGroups.map((g, i) => (
@@ -36,7 +36,7 @@ export const HistoryRecordSetsView = memo(function HistoryRecordSetsView(props: 
           prs={props.prs}
           isNext={props.isNext}
           showPrDetails={props.showPrDetails}
-          settings={props.settings}
+          units={props.units}
         />
       ))}
     </View>
@@ -45,13 +45,13 @@ export const HistoryRecordSetsView = memo(function HistoryRecordSetsView(props: 
 
 interface IHistoryRecordSet2Props {
   prs?: IHistoryEntryPersonalRecords;
-  settings: ISettings;
+  units: IUnit;
   showPrDetails?: boolean;
   sets: IDisplaySet[];
   isNext: boolean;
 }
 
-export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
+export const HistoryRecordSet = memo(function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
   const { isNext } = props;
   const group = props.sets;
   const set = group[0];
@@ -64,7 +64,7 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
       if (!prset) {
         return undefined;
       }
-      const displayPrSet = Reps_setToDisplaySet(prset, isNext, props.settings);
+      const displayPrSet = Reps_setToDisplaySet(prset, isNext, props.units);
       return isSameDisplaySet(set, displayPrSet)
         ? k === "max1RMSet"
           ? "e1RM"
@@ -144,4 +144,4 @@ export function HistoryRecordSet(props: IHistoryRecordSet2Props): JSX.Element {
       </Text>
     </View>
   );
-}
+});

@@ -57,7 +57,7 @@ export function EditProgramUiExerciseSetVariations(props: IEditProgramUiExercise
               <View className="flex-row">
                 <View>
                   {displayGroups.map((g, gi) => (
-                    <HistoryRecordSet key={gi} sets={g} isNext={true} settings={props.settings} />
+                    <HistoryRecordSet key={gi} sets={g} isNext={true} units={props.settings.units} />
                   ))}
                 </View>
               </View>

@@ -181,7 +181,7 @@ const ProgramExerciseRow = memo(function ProgramExerciseRow(props: IProgramExerc
     <View>
       <Text className="px-1 pb-1 text-xs text-text-secondary">Day {exercise.dayData.dayInWeek}</Text>
       {displayGroups.map((g, gi) => (
-        <HistoryRecordSet key={gi} sets={g} isNext={true} settings={settings} />
+        <HistoryRecordSet key={gi} sets={g} isNext={true} units={settings.units} />
       ))}
     </View>
   );

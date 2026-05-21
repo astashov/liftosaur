@@ -136,7 +136,7 @@ export function ProgramDetailsExerciseExample(props: IProgramDetailsExerciseExam
                           {week.label}
                         </div>
                         <div className="flex flex-no-wrap justify-center">
-                          <HistoryRecordSetsView sets={week.entry.sets} isNext={true} settings={props.settings} />
+                          <HistoryRecordSetsView sets={week.entry.sets} isNext={true} units={props.settings.units} />
                         </div>
                       </div>
                     </Fragment>

@@ -134,7 +134,7 @@ function ProgramPreviewHistoryRecordSets(props: IProgramPreviewHistoryRecordSets
           {equipment && <Text className="text-sm text-text-secondary">{equipmentName(equipment)}</Text>}
         </View>
         <View className="mt-1 ml-1">
-          <HistoryRecordSetsView sets={props.entry.sets} settings={props.settings} isNext={true} />
+          <HistoryRecordSetsView sets={props.entry.sets} units={props.settings.units} isNext={true} />
         </View>
       </View>
       {description && (

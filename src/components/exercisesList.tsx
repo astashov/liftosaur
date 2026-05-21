@@ -1,4 +1,4 @@
-import { JSX, useState } from "react";
+import { JSX, memo, useMemo, useState } from "react";
 import { View, TextInput } from "react-native";
 import { Text } from "./primitives/text";
 import { Thunk_pushExerciseStatsScreen } from "../ducks/thunks";
@@ -23,7 +23,7 @@ import { GroupHeader } from "./groupHeader";
 import { MenuItemWrapper } from "./menuItem";
 import { Multiselect } from "./multiselect";
 import { IHistoryRecord } from "../types";
-import { Weight_print } from "../models/weight";
+import { Weight_eqeq, Weight_print } from "../models/weight";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import { LinkButton } from "./linkButton";
 import { ObjectUtils_values } from "../utils/object";
@@ -31,6 +31,7 @@ import { Settings_activeCustomExercises } from "../models/settings";
 import { Program_evaluate, Program_getAllUsedProgramExercises } from "../models/program";
 import { Muscle_getAvailableMuscleGroups, Muscle_getMuscleGroupName } from "../models/muscle";
 import { navigationRef } from "../navigation/navigationRef";
+import { useProgressiveItems } from "../utils/useProgressiveItems";
 
 interface IExercisesListProps {
   dispatch: IDispatch;
@@ -61,53 +62,100 @@ function buildExercises(exerciseTypes: IExerciseType[], settings: ISettings): IE
 }
 
 export function ExercisesList(props: IExercisesListProps): JSX.Element {
-  const evaluatedProgram = Program_evaluate(props.program, props.settings);
+  const { settings, program, history, dispatch } = props;
   const [filter, setFilter] = useState<string>("");
   const [filterTypes, setFilterTypes] = useState<string[]>([]);
 
-  let programExercises = buildExercises(
-    CollectionUtils_uniqByExpr(Program_getAllUsedProgramExercises(evaluatedProgram), (e) =>
-      Exercise_toKey(e.exerciseType)
-    ).map((e) => e.exerciseType),
-    props.settings
-  );
-  const programExercisesKeys = new Set(programExercises.map((e) => Exercise_toKey(e)));
-  let historyExercises = buildExercises(
-    CollectionUtils_uniqByExpr(
-      props.history
-        .flatMap((hr) => hr.entries.map((e) => e.exercise))
-        .filter(
-          (e) => !programExercisesKeys.has(Exercise_toKey(e)) && !Exercise_isCustom(e.id, props.settings.exercises)
-        ),
-      (e) => Exercise_toKey(e)
-    ),
-    props.settings
-  );
-  let customExercises = buildExercises(
-    CollectionUtils_compact(ObjectUtils_values(Settings_activeCustomExercises(props.settings))),
-    props.settings
+  const evaluatedProgram = useMemo(() => Program_evaluate(program, settings), [program, settings]);
+
+  const allBuilt = useMemo(() => {
+    const programExs = buildExercises(
+      CollectionUtils_uniqByExpr(Program_getAllUsedProgramExercises(evaluatedProgram), (e) =>
+        Exercise_toKey(e.exerciseType)
+      ).map((e) => e.exerciseType),
+      settings
+    );
+    const programKeys = new Set(programExs.map((e) => Exercise_toKey(e)));
+    const historyExs = buildExercises(
+      CollectionUtils_uniqByExpr(
+        history
+          .flatMap((hr) => hr.entries.map((e) => e.exercise))
+          .filter((e) => !programKeys.has(Exercise_toKey(e)) && !Exercise_isCustom(e.id, settings.exercises)),
+        (e) => Exercise_toKey(e)
+      ),
+      settings
+    );
+    const customExs = buildExercises(
+      CollectionUtils_compact(ObjectUtils_values(Settings_activeCustomExercises(settings))),
+      settings
+    );
+    programExs.sort((a, b) => a.name.localeCompare(b.name));
+    historyExs.sort((a, b) => a.name.localeCompare(b.name));
+    customExs.sort((a, b) => a.name.localeCompare(b.name));
+    return { programExs, historyExs, customExs };
+  }, [
+    evaluatedProgram,
+    history,
+    settings.exercises,
+    settings.exerciseData,
+    settings.gyms,
+    settings.currentGymId,
+    settings.units,
+  ]);
+
+  const filterOptions = useMemo(
+    () => [
+      ...equipments.map((e) => equipmentName(e)),
+      ...exerciseKinds.map(StringUtils_capitalize),
+      ...Muscle_getAvailableMuscleGroups(settings).map((mg) => Muscle_getMuscleGroupName(mg, settings)),
+    ],
+    [settings]
   );
 
-  const filterOptions = [
-    ...equipments.map((e) => equipmentName(e)),
-    ...exerciseKinds.map(StringUtils_capitalize),
-    ...Muscle_getAvailableMuscleGroups(props.settings).map((mg) => Muscle_getMuscleGroupName(mg, props.settings)),
-  ];
+  const { programExercises, historyExercises, customExercises } = useMemo(() => {
+    let p = allBuilt.programExs;
+    let h = allBuilt.historyExs;
+    let c = allBuilt.customExs;
+    if (filter) {
+      p = Exercise_filterExercises(p, filter);
+      h = Exercise_filterExercises(h, filter);
+      c = Exercise_filterExercises(c, filter);
+    }
+    if (filterTypes && filterTypes.length > 0) {
+      p = Exercise_filterExercisesByType(p, filterTypes, settings);
+      h = Exercise_filterExercisesByType(h, filterTypes, settings);
+      c = Exercise_filterExercisesByType(c, filterTypes, settings);
+    }
+    return { programExercises: p, historyExercises: h, customExercises: c };
+  }, [allBuilt, filter, filterTypes, settings]);
 
-  if (filter) {
-    programExercises = Exercise_filterExercises(programExercises, filter);
-    historyExercises = Exercise_filterExercises(historyExercises, filter);
-    customExercises = Exercise_filterExercises(customExercises, filter);
-  }
-  if (filterTypes && filterTypes.length > 0) {
-    programExercises = Exercise_filterExercisesByType(programExercises, filterTypes, props.settings);
-    historyExercises = Exercise_filterExercisesByType(historyExercises, filterTypes, props.settings);
-    customExercises = Exercise_filterExercisesByType(customExercises, filterTypes, props.settings);
-  }
-
-  programExercises.sort((a, b) => a.name.localeCompare(b.name));
-  historyExercises.sort((a, b) => a.name.localeCompare(b.name));
-  customExercises.sort((a, b) => a.name.localeCompare(b.name));
+  type ISection = "custom" | "program" | "history";
+  const allExercises = useMemo<{ section: ISection; exercise: IExercisesListExercise }[]>(
+    () => [
+      ...customExercises.map((e) => ({ section: "custom" as const, exercise: e })),
+      ...programExercises.map((e) => ({ section: "program" as const, exercise: e })),
+      ...historyExercises.map((e) => ({ section: "history" as const, exercise: e })),
+    ],
+    [customExercises, programExercises, historyExercises]
+  );
+  const visibleExercises = useProgressiveItems(allExercises, {
+    initialBatch: 10,
+    batchSize: 20,
+    debugLabel: "ExercisesList",
+    resetKey: `${filter}|${filterTypes.join(",")}`,
+  });
+  const visibleCustom = useMemo(
+    () => visibleExercises.filter((x) => x.section === "custom").map((x) => x.exercise),
+    [visibleExercises]
+  );
+  const visibleProgram = useMemo(
+    () => visibleExercises.filter((x) => x.section === "program").map((x) => x.exercise),
+    [visibleExercises]
+  );
+  const visibleHistoryEx = useMemo(
+    () => visibleExercises.filter((x) => x.section === "history").map((x) => x.exercise),
+    [visibleExercises]
+  );
 
   return (
     <View className="pb-8">
@@ -135,33 +183,18 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
         </LinkButton>
       </View>
 
-      {customExercises.length > 0 && <GroupHeader name="Custom Exercises" topPadding={true} />}
-      {customExercises.map((exercise) => (
-        <ExerciseItem
-          key={Exercise_toKey(exercise)}
-          dispatch={props.dispatch}
-          settings={props.settings}
-          exercise={exercise}
-        />
+      {visibleCustom.length > 0 && <GroupHeader name="Custom Exercises" topPadding={true} />}
+      {visibleCustom.map((exercise) => (
+        <ExerciseItem key={Exercise_toKey(exercise)} dispatch={dispatch} settings={settings} exercise={exercise} />
       ))}
 
-      {programExercises.length > 0 && <GroupHeader name="Current program exercises" topPadding={true} />}
-      {programExercises.map((exercise) => (
-        <ExerciseItem
-          key={Exercise_toKey(exercise)}
-          dispatch={props.dispatch}
-          settings={props.settings}
-          exercise={exercise}
-        />
+      {visibleProgram.length > 0 && <GroupHeader name="Current program exercises" topPadding={true} />}
+      {visibleProgram.map((exercise) => (
+        <ExerciseItem key={Exercise_toKey(exercise)} dispatch={dispatch} settings={settings} exercise={exercise} />
       ))}
-      {historyExercises.length > 0 && <GroupHeader name="Exercises from history" topPadding={true} />}
-      {historyExercises.map((exercise) => (
-        <ExerciseItem
-          key={Exercise_toKey(exercise)}
-          dispatch={props.dispatch}
-          settings={props.settings}
-          exercise={exercise}
-        />
+      {visibleHistoryEx.length > 0 && <GroupHeader name="Exercises from history" topPadding={true} />}
+      {visibleHistoryEx.map((exercise) => (
+        <ExerciseItem key={Exercise_toKey(exercise)} dispatch={dispatch} settings={settings} exercise={exercise} />
       ))}
     </View>
   );
@@ -173,7 +206,26 @@ interface IExerciseItemProps {
   exercise: IExercisesListExercise;
 }
 
-function ExerciseItem(props: IExerciseItemProps): JSX.Element {
+function areExerciseItemPropsEqual(prev: IExerciseItemProps, next: IExerciseItemProps): boolean {
+  if (prev.dispatch !== next.dispatch) {
+    return false;
+  }
+  if (prev.settings.exercises !== next.settings.exercises) {
+    return false;
+  }
+  const a = prev.exercise;
+  const b = next.exercise;
+  return (
+    a.id === b.id &&
+    a.equipment === b.equipment &&
+    a.name === b.name &&
+    a.equipmentName === b.equipmentName &&
+    a.defaultRounding === b.defaultRounding &&
+    Weight_eqeq(a.rm1, b.rm1)
+  );
+}
+
+const ExerciseItem = memo(function ExerciseItem(props: IExerciseItemProps): JSX.Element {
   return (
     <MenuItemWrapper
       name={props.exercise.name}
@@ -217,4 +269,4 @@ function ExerciseItem(props: IExerciseItemProps): JSX.Element {
       </View>
     </MenuItemWrapper>
   );
-}
+}, areExerciseItemPropsEqual);

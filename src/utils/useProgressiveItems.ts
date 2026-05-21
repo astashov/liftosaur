@@ -21,6 +21,7 @@ interface IProgressiveOptions {
   threshold?: number;
   rateLimitMs?: number;
   debugLabel?: string;
+  resetKey?: unknown;
 }
 
 export function useProgressiveCount(total: number, options?: IProgressiveOptions): number {
@@ -29,10 +30,19 @@ export function useProgressiveCount(total: number, options?: IProgressiveOptions
   const threshold = options?.threshold ?? 600;
   const rateLimitMs = options?.rateLimitMs ?? 200;
   const debugLabel = options?.debugLabel;
+  const resetKey = options?.resetKey;
 
   const [count, setCount] = useState(() => Math.min(initialBatch, total));
-  const countRef = useRef(count);
-  countRef.current = count;
+  const [prevResetKey, setPrevResetKey] = useState<unknown>(resetKey);
+  let effectiveCount = count;
+  if (resetKey !== prevResetKey) {
+    setPrevResetKey(resetKey);
+    effectiveCount = Math.min(initialBatch, total);
+    setCount(effectiveCount);
+    dbg(debugLabel, `reset → ${effectiveCount}/${total} (resetKey changed)`);
+  }
+  const countRef = useRef(effectiveCount);
+  countRef.current = effectiveCount;
   const lastBumpRef = useRef(0);
 
   const mountedRef = useRef(false);
@@ -91,7 +101,7 @@ export function useProgressiveCount(total: number, options?: IProgressiveOptions
     return () => clearTimeout(handle);
   }, [count, total, batchSize, debugLabel]);
 
-  return Math.min(count, total);
+  return Math.min(effectiveCount, total);
 }
 
 export function useProgressiveItems<T>(items: T[], options?: IProgressiveOptions): T[] {

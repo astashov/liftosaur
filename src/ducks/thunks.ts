@@ -932,7 +932,7 @@ export function Thunk_pushToEditProgram(dayData?: Required<IDayData>, key?: stri
     const currentProgram =
       state.storage.currentProgramId != null ? Program_getProgram(state, state.storage.currentProgramId) : undefined;
     if (Program_isEmpty(currentProgram)) {
-      dispatch(Thunk_pushScreen("programs"));
+      dispatch(Thunk_pushScreen("programs", undefined, { tab: "program" }));
     } else if (currentProgram) {
       Program_editAction(dispatch, currentProgram, dayData, key, { tab: "program" });
     }

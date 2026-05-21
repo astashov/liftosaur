@@ -144,7 +144,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
           </View>
           <View>
             {displayWarmupSets.map((g, i) => (
-              <HistoryRecordSet key={i} sets={g} isNext={true} settings={props.settings} />
+              <HistoryRecordSet key={i} sets={g} isNext={true} units={props.settings.units} />
             ))}
           </View>
         </View>

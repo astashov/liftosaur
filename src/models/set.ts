@@ -10,7 +10,7 @@ import {
   Weight_convertTo,
   Weight_add,
 } from "./weight";
-import { ISet, IHistoryRecord, IHistoryEntry, IWeight, IUnit, ISettings } from "../types";
+import { ISet, IHistoryRecord, IHistoryEntry, IWeight, IUnit } from "../types";
 import { ObjectUtils_clone } from "../utils/object";
 import { UidFactory_generateUid } from "../utils/generator";
 import { Progress_getNextEntry } from "./progress";
@@ -57,7 +57,7 @@ export function Reps_groupDisplaySets(displaySets: IDisplaySet[]): IDisplaySet[]
   });
 }
 
-export function Reps_setToDisplaySet(set: ISet, isNext: boolean, settings: ISettings): IDisplaySet {
+export function Reps_setToDisplaySet(set: ISet, isNext: boolean, units: IUnit): IDisplaySet {
   const completedOrRequiredWeight = set.completedWeight ?? set.weight;
   return {
     reps: isNext ? Reps_displayReps(set) : Reps_displayCompletedReps(set),
@@ -69,7 +69,7 @@ export function Reps_setToDisplaySet(set: ISet, isNext: boolean, settings: ISett
       : completedOrRequiredWeight
         ? Weight_display(completedOrRequiredWeight, false)
         : undefined,
-    unit: completedOrRequiredWeight?.unit ?? settings.units,
+    unit: completedOrRequiredWeight?.unit ?? units,
     askWeight: set.askWeight,
     isCompleted: Reps_isCompletedSet(set),
     isRpeFailed: set.completedRpe != null && set.completedRpe > (set.rpe ?? 0),

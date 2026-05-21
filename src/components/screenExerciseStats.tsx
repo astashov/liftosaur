@@ -1,4 +1,4 @@
-import { JSX, useState } from "react";
+import { JSX, memo, useCallback, useMemo, useState } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
@@ -56,17 +56,34 @@ interface IProps {
 
 export function ScreenExerciseStats(props: IProps): JSX.Element {
   const exerciseType = props.exerciseType;
-  const evaluatedProgram = props.currentProgram ? Program_evaluate(props.currentProgram, props.settings) : undefined;
-  const programExerciseIds = evaluatedProgram
-    ? Program_getProgramExercisesFromExerciseType(evaluatedProgram, exerciseType).map((pe) => pe.key)
-    : [];
-  const fullExercise = Exercise_get(props.exerciseType, props.settings.exercises);
-  const historyCollector = Collector.build(props.history)
-    .addFn(History_collectMinAndMaxTime())
-    .addFn(History_collectAllUsedExerciseTypes())
-    .addFn(History_collectAllHistoryRecordsOfExerciseType(exerciseType))
-    .addFn(History_collectWeightPersonalRecord(exerciseType, props.settings.units))
-    .addFn(History_collect1RMPersonalRecord(exerciseType, props.settings));
+  const { settings, dispatch, history: rawHistory, currentProgram } = props;
+
+  const evaluatedProgram = useMemo(
+    () => (currentProgram ? Program_evaluate(currentProgram, settings) : undefined),
+    [currentProgram, settings]
+  );
+  const programExerciseIds = useMemo(
+    () =>
+      evaluatedProgram
+        ? Program_getProgramExercisesFromExerciseType(evaluatedProgram, exerciseType).map((pe) => pe.key)
+        : [],
+    [evaluatedProgram, exerciseType]
+  );
+  const fullExercise = useMemo(
+    () => Exercise_get(exerciseType, settings.exercises),
+    [exerciseType, settings.exercises]
+  );
+
+  const units = settings.units;
+  const collectorResult = useMemo(() => {
+    const historyCollector = Collector.build(rawHistory)
+      .addFn(History_collectMinAndMaxTime())
+      .addFn(History_collectAllUsedExerciseTypes())
+      .addFn(History_collectAllHistoryRecordsOfExerciseType(exerciseType))
+      .addFn(History_collectWeightPersonalRecord(exerciseType, units))
+      .addFn(History_collect1RMPersonalRecord(exerciseType, units));
+    return historyCollector.run();
+  }, [rawHistory, exerciseType, units]);
 
   const [
     { maxTime: maxX, minTime: minX },
@@ -74,37 +91,90 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
     unsortedHistory,
     { maxWeight, maxWeightHistoryRecord },
     { max1RM, max1RMHistoryRecord, max1RMSet },
-  ] = historyCollector.run();
-  let history = unsortedHistory;
-  history = CollectionUtils_sort(history, (a, b) => {
-    return props.settings.exerciseStatsSettings.ascendingSort ? a.startTime - b.startTime : b.startTime - a.startTime;
-  });
+  ] = collectorResult;
+
+  const ascendingSort = settings.exerciseStatsSettings.ascendingSort;
+  const history = useMemo(
+    () =>
+      CollectionUtils_sort(unsortedHistory, (a, b) =>
+        ascendingSort ? a.startTime - b.startTime : b.startTime - a.startTime
+      ),
+    [unsortedHistory, ascendingSort]
+  );
 
   const showPrs = maxWeight.value > 0 || max1RM.value > 0;
 
   useNavOptions({ navTitle: "Exercise Stats", navHelpKey: "exerciseStats" });
 
+  const onOverrideMuscles = useCallback(() => {
+    navigationRef.navigate("musclesOverrideModal", { exerciseType });
+  }, [exerciseType]);
+
+  const onEditCustomExercise = useCallback(() => {
+    navigationRef.navigate("customExerciseModal", { exerciseId: exerciseType.id });
+  }, [exerciseType.id]);
+
+  const onDeleteCustomExercise = useCallback(async () => {
+    if (await Dialog_confirm("Are you sure you want to delete this exercise?")) {
+      updateSettings(
+        dispatch,
+        lb<ISettings>()
+          .p("exercises")
+          .recordModify((exercises) => {
+            const exercise = exercises[fullExercise.id];
+            return exercise != null ? { ...exercises, [fullExercise.id]: { ...exercise, isDeleted: true } } : exercises;
+          }),
+        "Delete custom exercise"
+      );
+      dispatch(Thunk_pullScreen());
+    }
+  }, [dispatch, fullExercise.id]);
+
+  const onNotesChange = useCallback(
+    (v: string) => {
+      updateSettings(
+        dispatch,
+        lb<ISettings>()
+          .p("exerciseData")
+          .recordModify((data) => {
+            const key = Exercise_toKey(exerciseType);
+            return { ...data, [key]: { ...data[key], notes: v } };
+          }),
+        "Update exercise notes"
+      );
+    },
+    [dispatch, exerciseType]
+  );
+
+  const notesValue = useMemo(() => Exercise_getNotes(exerciseType, settings), [exerciseType, settings.exerciseData]);
+  const isCustom = useMemo(
+    () => Exercise_isCustom(fullExercise.id, settings.exercises),
+    [fullExercise.id, settings.exercises]
+  );
+  const exerciseKey = useMemo(() => Exercise_toKey(exerciseType), [exerciseType]);
+  const fullName = useMemo(() => Exercise_fullName(fullExercise, settings), [fullExercise, settings]);
+  const isInteractive = useMemo(() => Subscriptions_hasSubscription(props.subscription), [props.subscription]);
+
+  const maxWeightProp = useMemo(
+    () => (maxWeight ? { weight: maxWeight, historyRecord: maxWeightHistoryRecord } : undefined),
+    [maxWeight, maxWeightHistoryRecord]
+  );
+  const max1RMProp = useMemo(
+    () => (max1RM ? { weight: max1RM, historyRecord: max1RMHistoryRecord, set: max1RMSet } : undefined),
+    [max1RM, max1RMHistoryRecord, max1RMSet]
+  );
+
   return (
     <View className="px-4">
-      <Text className="text-xl font-bold">{Exercise_fullName(fullExercise, props.settings)}</Text>
-      <Text className="text-xs text-text-secondary">
-        {Exercise_isCustom(fullExercise.id, props.settings.exercises) ? "Custom exercise" : "Built-in exercise"}
-      </Text>
+      <Text className="text-xl font-bold">{fullName}</Text>
+      <Text className="text-xs text-text-secondary">{isCustom ? "Custom exercise" : "Built-in exercise"}</Text>
       <View className="py-2">
-        <MuscleGroupsView
-          exercise={fullExercise}
-          settings={props.settings}
-          onOverride={() => navigationRef.navigate("musclesOverrideModal", { exerciseType })}
-        />
+        <MuscleGroupsView exercise={fullExercise} settings={settings} onOverride={onOverrideMuscles} />
       </View>
-      {Exercise_isCustom(fullExercise.id, props.settings.exercises) && (
+      {isCustom && (
         <View className="flex-row mb-2">
           <View className="flex-1">
-            <LinkButton
-              className="text-sm"
-              name="edit-custom-exercise-stats"
-              onClick={() => navigationRef.navigate("customExerciseModal", { exerciseId: exerciseType.id })}
-            >
+            <LinkButton className="text-sm" name="edit-custom-exercise-stats" onClick={onEditCustomExercise}>
               Edit
             </LinkButton>
           </View>
@@ -112,23 +182,7 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
             <LinkButton
               name="edit-custom-exercise-stats"
               className="text-sm text-text-error"
-              onClick={async () => {
-                if (await Dialog_confirm("Are you sure you want to delete this exercise?")) {
-                  updateSettings(
-                    props.dispatch,
-                    lb<ISettings>()
-                      .p("exercises")
-                      .recordModify((exercises) => {
-                        const exercise = exercises[fullExercise.id];
-                        return exercise != null
-                          ? { ...exercises, [fullExercise.id]: { ...exercise, isDeleted: true } }
-                          : exercises;
-                      }),
-                    "Delete custom exercise"
-                  );
-                  props.dispatch(Thunk_pullScreen());
-                }
-              }}
+              onClick={onDeleteCustomExercise}
             >
               Delete Exercise
             </LinkButton>
@@ -140,97 +194,83 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
       <View style={{ marginHorizontal: -4 }}>
         <MarkdownEditorBorderless
           debounceMs={500}
-          value={Exercise_getNotes(exerciseType, props.settings)}
+          value={notesValue}
           placeholder={`Exercise notes in Markdown...`}
-          onChange={(v) => {
-            updateSettings(
-              props.dispatch,
-              lb<ISettings>()
-                .p("exerciseData")
-                .recordModify((data) => {
-                  const key = Exercise_toKey(exerciseType);
-                  return { ...data, [key]: { ...data[key], notes: v } };
-                }),
-              "Update exercise notes"
-            );
-          }}
+          onChange={onNotesChange}
         />
       </View>
 
       <ExerciseDataSettings
         fullExercise={fullExercise}
         programExerciseIds={programExerciseIds}
-        settings={props.settings}
-        dispatch={props.dispatch}
+        settings={settings}
+        dispatch={dispatch}
         show1RM={true}
       />
 
       <View data-testid="exercise-stats-image" testID="exercise-stats-image">
-        <ExerciseImage
-          settings={props.settings}
-          key={Exercise_toKey(exerciseType)}
-          exerciseType={exerciseType}
-          size="large"
-        />
+        <ExerciseImage settings={settings} key={exerciseKey} exerciseType={exerciseType} size="large" />
       </View>
       {history.length > 1 && (
         <View data-testid="exercise-stats-graph" testID="exercise-stats-graph" className="relative">
-          <Locker topic="Graphs" dispatch={props.dispatch} blur={8} subscription={props.subscription} />
+          <Locker topic="Graphs" dispatch={dispatch} blur={8} subscription={props.subscription} />
           <GraphExercise
             isSameXAxis={false}
             minX={Math.round(minX / 1000)}
             maxX={Math.round(maxX / 1000)}
             isWithOneRm={true}
-            key={Exercise_toKey(exerciseType)}
-            settings={props.settings}
+            key={exerciseKey}
+            settings={settings}
             isWithProgramLines={true}
-            history={props.history}
+            history={rawHistory}
             exercise={exerciseType}
-            initialType={props.settings.graphsSettings.defaultType}
-            dispatch={props.dispatch}
-            isInteractive={Subscriptions_hasSubscription(props.subscription)}
+            initialType={settings.graphsSettings.defaultType}
+            dispatch={dispatch}
+            isInteractive={isInteractive}
           />
         </View>
       )}
       {showPrs && (
         <View className="mt-8">
-          <ExerciseAllTimePRs
-            maxWeight={maxWeight ? { weight: maxWeight, historyRecord: maxWeightHistoryRecord } : undefined}
-            max1RM={max1RM ? { weight: max1RM, historyRecord: max1RMHistoryRecord, set: max1RMSet } : undefined}
-            settings={props.settings}
-            dispatch={props.dispatch}
-          />
+          <ExerciseAllTimePRs maxWeight={maxWeightProp} max1RM={max1RMProp} settings={settings} dispatch={dispatch} />
         </View>
       )}
-      <ExerciseHistory
-        exerciseType={exerciseType}
-        settings={props.settings}
-        dispatch={props.dispatch}
-        history={history}
-      />
+      <ExerciseHistory exerciseType={exerciseType} settings={settings} dispatch={dispatch} history={history} />
     </View>
   );
 }
 
-export function MuscleGroupsView(props: {
+interface IMuscleGroupsViewProps {
   exercise: IExercise;
   settings: ISettings;
   onOverride: () => void;
-}): JSX.Element {
+}
+
+export const MuscleGroupsView = memo(function MuscleGroupsView(props: IMuscleGroupsViewProps): JSX.Element {
   const { exercise, settings } = props;
-  const targetMuscles = Exercise_targetMuscles(exercise, settings);
-  const synergistMuscles = Exercise_synergistMuscleMultipliers(exercise, settings)
-    .filter((m) => targetMuscles.indexOf(m.muscle) === -1)
-    .map((m) => `${m.muscle}${m.multiplier !== settings.planner.synergistMultiplier ? `:${m.multiplier}` : ""}`);
-  const targetMuscleGroups = Exercise_targetMusclesGroups(exercise, settings).map((m) =>
-    Muscle_getMuscleGroupName(m, settings)
+  const targetMuscles = useMemo(() => Exercise_targetMuscles(exercise, settings), [exercise, settings]);
+  const synergistMuscles = useMemo(
+    () =>
+      Exercise_synergistMuscleMultipliers(exercise, settings)
+        .filter((m) => targetMuscles.indexOf(m.muscle) === -1)
+        .map((m) => `${m.muscle}${m.multiplier !== settings.planner.synergistMultiplier ? `:${m.multiplier}` : ""}`),
+    [exercise, settings, targetMuscles]
   );
-  const synergistMuscleGroups = Exercise_synergistMusclesGroups(exercise, settings)
-    .map((m) => Muscle_getMuscleGroupName(m, settings))
-    .filter((m) => targetMuscleGroups.indexOf(m) === -1);
+  const targetMuscleGroups = useMemo(
+    () => Exercise_targetMusclesGroups(exercise, settings).map((m) => Muscle_getMuscleGroupName(m, settings)),
+    [exercise, settings]
+  );
+  const synergistMuscleGroups = useMemo(
+    () =>
+      Exercise_synergistMusclesGroups(exercise, settings)
+        .map((m) => Muscle_getMuscleGroupName(m, settings))
+        .filter((m) => targetMuscleGroups.indexOf(m) === -1),
+    [exercise, settings, targetMuscleGroups]
+  );
   const [showMuscles, setShowMuscles] = useState(false);
 
-  const types = exercise.types.map((t) => StringUtils_capitalize(t));
+  const types = useMemo(() => exercise.types.map((t) => StringUtils_capitalize(t)), [exercise.types]);
+  const onToggleMuscles = useCallback(() => setShowMuscles((s) => !s), []);
 
   return (
     <View>
@@ -240,12 +280,12 @@ export function MuscleGroupsView(props: {
           testID="override-exercise-muscles"
           name="override-exercise-muscles"
           className="text-xs"
-          onClick={() => props.onOverride()}
+          onClick={props.onOverride}
         >
           Override Muscles
         </LinkButton>
       </View>
-      <Pressable onPress={() => setShowMuscles(!showMuscles)}>
+      <Pressable onPress={onToggleMuscles}>
         {types.length > 0 && (
           <View>
             <Text className="text-xs">
@@ -277,4 +317,4 @@ export function MuscleGroupsView(props: {
       </Pressable>
     </View>
   );
-}
+});

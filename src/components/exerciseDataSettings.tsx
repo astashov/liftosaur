@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import { JSX, memo } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
 import { lb } from "lens-shmens";
@@ -32,7 +32,7 @@ interface IExerciseDataSettingsProps {
   show1RM: boolean;
 }
 
-export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Element {
+function ExerciseDataSettingsInner(props: IExerciseDataSettingsProps): JSX.Element {
   const fullExercise = props.fullExercise;
 
   return (
@@ -132,3 +132,5 @@ export function ExerciseDataSettings(props: IExerciseDataSettingsProps): JSX.Ele
     </View>
   );
 }
+
+export const ExerciseDataSettings = memo(ExerciseDataSettingsInner);

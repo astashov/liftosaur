@@ -82,7 +82,7 @@ export function WorkoutShareOutput(props: IWorkoutShareOutputProps): JSX.Element
                 <Text className="font-bold">{`${exercise.name}${hasPrs ? " 🏆" : ""}`}</Text>
               </View>
               <View className="items-end">
-                <HistoryRecordSetsView sets={entry.sets} prs={prs} settings={settings} isNext={false} />
+                <HistoryRecordSetsView sets={entry.sets} prs={prs} units={settings.units} isNext={false} />
               </View>
             </View>
           );

@@ -63,7 +63,7 @@ export const HistoryEntryView = memo((props: IHistoryEntryProps): JSX.Element =>
                     : set.weight,
               }))}
               prs={props.prs}
-              settings={props.settings}
+              units={props.settings.units}
               isNext={isNext}
             />
           </View>

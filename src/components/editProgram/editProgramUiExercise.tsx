@@ -268,7 +268,7 @@ export const EditProgramUiExerciseContentView = memo(function EditProgramUiExerc
                         <View>
                           <View>
                             {displayWarmupSets.map((g, gi) => (
-                              <HistoryRecordSet key={gi} sets={g} isNext={true} settings={props.settings} />
+                              <HistoryRecordSet key={gi} sets={g} isNext={true} units={props.settings.units} />
                             ))}
                           </View>
                         </View>
