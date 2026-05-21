@@ -27,6 +27,10 @@ object LftUpdater {
             .getOrDefault(FALLBACK_MANIFEST_URL)
 
     fun checkAndDownload(context: Context): Map<String, Any?> {
+        if (BuildConfig.DISABLE_OTA) {
+            Log.i(TAG, "OTA disabled at build time; checkAndDownload is a no-op")
+            return mapOf("status" to "no-update")
+        }
         Log.i(TAG, "checkAndDownload called (active=${LftUpdaterPath.activeUpdateId(context) ?: "<none>"})")
         return try {
             val result = performCheck(context)

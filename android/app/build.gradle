@@ -82,6 +82,8 @@ repositories {
     maven { url 'https://artifact.bytedance.com/repository/AwemeOpenSDK' }
 }
 
+def disableOta = (System.getenv("DISABLE_OTA") ?: "").toBoolean()
+
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -94,6 +96,10 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 101
         versionName "1.0"
+        buildConfigField "boolean", "DISABLE_OTA", "${disableOta}"
+    }
+    buildFeatures {
+        buildConfig true
     }
     signingConfigs {
         debug {

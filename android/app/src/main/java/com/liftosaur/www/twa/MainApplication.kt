@@ -33,7 +33,7 @@ class MainApplication : Application(), ReactApplication {
           add(LftUpdaterPackage())
         },
       jsMainModulePath = "index",
-      jsBundleFilePath = LftUpdaterPath.effectiveBundleFilePath(this),
+      jsBundleFilePath = if (BuildConfig.DISABLE_OTA) null else LftUpdaterPath.effectiveBundleFilePath(this),
     )
   }
 
