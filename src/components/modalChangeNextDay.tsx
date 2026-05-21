@@ -8,7 +8,7 @@ import { LinkButton } from "./linkButton";
 import { emptyProgramId, Program_evaluate, Program_getListOfDays } from "../models/program";
 import { CollectionUtils_findBy } from "../utils/collection";
 import { MenuItemEditable } from "./menuItemEditable";
-import { useProgressiveItems } from "../utils/useProgressiveItems";
+import { useProgressiveCount, useProgressiveItems } from "../utils/useProgressiveItems";
 import { INavScreenScrollListener, NavScreenScrollContext } from "../navigation/NavScreenScrollContext";
 
 interface IModalChangeNextDayProps {
@@ -45,6 +45,7 @@ export function ModalChangeNextDayContent(props: IModalChangeNextDayProps): JSX.
   );
 
   const visibleDays = useProgressiveItems(days, { initialBatch: 12, batchSize: 8 });
+  const visibleMuscleCount = useProgressiveCount(visibleDays.length, { initialBatch: 4, batchSize: 4 });
 
   const scrollRef = useRef<ScrollView>(null);
   const scrollYRef = useRef(0);
@@ -139,6 +140,7 @@ export function ModalChangeNextDayContent(props: IModalChangeNextDayProps): JSX.
             highlightedDay={highlightedDay}
             stats={stats}
             settings={settings}
+            renderMuscles={index < visibleMuscleCount}
             onSelect={handleSelect}
           />
         ))}

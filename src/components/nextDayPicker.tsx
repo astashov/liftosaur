@@ -1,6 +1,6 @@
 import { JSX, memo, useCallback, useMemo, useState } from "react";
 import { View } from "react-native";
-import { useProgressiveItems } from "../utils/useProgressiveItems";
+import { useProgressiveCount, useProgressiveItems } from "../utils/useProgressiveItems";
 import { Text } from "./primitives/text";
 import { Exercise_find } from "../models/exercise";
 import { Muscle_normalizeUnifiedPoints, Muscle_getUnifiedPointsForDay } from "../models/muscle";
@@ -23,31 +23,16 @@ import { FrontMusclesSvg } from "./muscles/images/frontMusclesSvg";
 
 const MUSCLE_CONTOUR = { fill: "#28839F" };
 const MUSCLE_COLUMN_STYLE = { width: 48 };
+const MUSCLE_SVG_ASPECT = { aspectRatio: 112 / 234 };
 
-interface INextDayPickerDayProps {
+interface IMusclesColumnProps {
   evaluatedProgram: IEvaluatedProgram;
-  dayId: string;
-  dayName: string;
-  dayIndex: number;
-  highlightedDay?: number;
+  day: ReturnType<typeof Program_getProgramDay>;
   stats: IStats;
   settings: ISettings;
-  onSelect: (programId: string, day: number) => void;
 }
 
-function NextDayPickerDayImpl(props: INextDayPickerDayProps): JSX.Element | null {
-  const { evaluatedProgram, dayIndex, settings, stats, onSelect } = props;
-  const day = useMemo(() => Program_getProgramDay(evaluatedProgram, dayIndex + 1), [evaluatedProgram, dayIndex]);
-  const exerciseTypes = useMemo(() => {
-    if (!day) {
-      return [];
-    }
-    return CollectionUtils_compact(
-      Program_getProgramDayUsedExercises(day).map((exercise) =>
-        Exercise_find(exercise.exerciseType, settings.exercises)
-      )
-    );
-  }, [day, settings.exercises]);
+function MusclesColumn({ evaluatedProgram, day, stats, settings }: IMusclesColumnProps): JSX.Element | null {
   const muscleData = useMemo(() => {
     if (!day) {
       return {};
@@ -62,6 +47,46 @@ function NextDayPickerDayImpl(props: INextDayPickerDayProps): JSX.Element | null
       {}
     );
   }, [day, evaluatedProgram, stats, settings]);
+  if (!day) {
+    return null;
+  }
+  return (
+    <>
+      <View className="relative flex-1">
+        <BackMusclesSvg muscles={muscleData} contour={MUSCLE_CONTOUR} />
+      </View>
+      <View className="relative flex-1">
+        <FrontMusclesSvg muscles={muscleData} contour={MUSCLE_CONTOUR} />
+      </View>
+    </>
+  );
+}
+
+interface INextDayPickerDayProps {
+  evaluatedProgram: IEvaluatedProgram;
+  dayId: string;
+  dayName: string;
+  dayIndex: number;
+  highlightedDay?: number;
+  stats: IStats;
+  settings: ISettings;
+  renderMuscles?: boolean;
+  onSelect: (programId: string, day: number) => void;
+}
+
+function NextDayPickerDayImpl(props: INextDayPickerDayProps): JSX.Element | null {
+  const { evaluatedProgram, dayIndex, settings, stats, onSelect, renderMuscles = true } = props;
+  const day = useMemo(() => Program_getProgramDay(evaluatedProgram, dayIndex + 1), [evaluatedProgram, dayIndex]);
+  const exerciseTypes = useMemo(() => {
+    if (!day) {
+      return [];
+    }
+    return CollectionUtils_compact(
+      Program_getProgramDayUsedExercises(day).map((exercise) =>
+        Exercise_find(exercise.exerciseType, settings.exercises)
+      )
+    );
+  }, [day, settings.exercises]);
   const handlePress = useCallback(() => {
     onSelect(evaluatedProgram.id, dayIndex + 1);
   }, [onSelect, evaluatedProgram.id, dayIndex]);
@@ -83,12 +108,14 @@ function NextDayPickerDayImpl(props: INextDayPickerDayProps): JSX.Element | null
             </View>
           </View>
           <View className="flex-row items-center" style={MUSCLE_COLUMN_STYLE}>
-            <View className="relative flex-1">
-              <BackMusclesSvg muscles={muscleData} contour={MUSCLE_CONTOUR} />
-            </View>
-            <View className="relative flex-1">
-              <FrontMusclesSvg muscles={muscleData} contour={MUSCLE_CONTOUR} />
-            </View>
+            {renderMuscles ? (
+              <MusclesColumn evaluatedProgram={evaluatedProgram} day={day} stats={stats} settings={settings} />
+            ) : (
+              <>
+                <View className="flex-1" style={MUSCLE_SVG_ASPECT} />
+                <View className="flex-1" style={MUSCLE_SVG_ASPECT} />
+              </>
+            )}
           </View>
           <View className="flex-row items-center py-2 pl-2">
             <IconArrowRight color="#a0aec0" />
@@ -127,6 +154,7 @@ export function NextDayPicker(props: INextDayPickerProps): JSX.Element {
     [evaluatedProgram]
   );
   const visibleDays = useProgressiveItems(days, { initialBatch: 12, batchSize: 8 });
+  const visibleMuscleCount = useProgressiveCount(visibleDays.length, { initialBatch: 4, batchSize: 4 });
   const handleProgramChange = useCallback((value?: string) => {
     if (value) {
       setCurrentProgramId(value);
@@ -163,6 +191,7 @@ export function NextDayPicker(props: INextDayPickerProps): JSX.Element {
             highlightedDay={currentProgram.nextDay}
             stats={props.stats}
             settings={props.settings}
+            renderMuscles={dayIndex < visibleMuscleCount}
             onSelect={props.onSelect}
           />
         ))}
