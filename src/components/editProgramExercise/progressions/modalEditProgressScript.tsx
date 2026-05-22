@@ -42,7 +42,7 @@ export function ModalEditProgressScriptContent(props: IModalEditProgressScriptPr
   );
 
   return (
-    <>
+    <View className="flex-1 px-4 py-4 bg-background-default">
       <Text className="mb-1 text-lg font-bold text-center">Progress Script</Text>
       <Text className="mb-2 text-xs text-text-secondary">
         It's executed when you finish a workout, and it can modify the program text.
@@ -73,7 +73,7 @@ export function ModalEditProgressScriptContent(props: IModalEditProgressScriptPr
           Save
         </Button>
       </View>
-    </>
+    </View>
   );
 }
 

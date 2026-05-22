@@ -2,6 +2,7 @@ import { JSX, useCallback, useEffect } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { ExerciseRM } from "../../components/exerciseRm";
 import { Exercise_get, Exercise_toKey } from "../../models/exercise";
 import { Weight_build } from "../../models/weight";
@@ -44,28 +45,30 @@ function NavModal1RMWorkout(props: { progressId: number }): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose} isFullWidth>
-      <ExerciseRM
-        name="1 Rep Max"
-        rmKey="rm1"
-        exercise={exercise}
-        settings={state.storage.settings}
-        onEditVariable={(value) => {
-          updateState(
-            dispatch,
-            [
-              lb<IState>()
-                .p("storage")
-                .p("settings")
-                .p("exerciseData")
-                .recordModify((data) => {
-                  const k = Exercise_toKey(exercise);
-                  return { ...data, [k]: { ...data[k], rm1: Weight_build(value, state.storage.settings.units) } };
-                }),
-            ],
-            "Update 1RM from modal"
-          );
-        }}
-      />
+      <FormSheet>
+        <ExerciseRM
+          name="1 Rep Max"
+          rmKey="rm1"
+          exercise={exercise}
+          settings={state.storage.settings}
+          onEditVariable={(value) => {
+            updateState(
+              dispatch,
+              [
+                lb<IState>()
+                  .p("storage")
+                  .p("settings")
+                  .p("exerciseData")
+                  .recordModify((data) => {
+                    const k = Exercise_toKey(exercise);
+                    return { ...data, [k]: { ...data[k], rm1: Weight_build(value, state.storage.settings.units) } };
+                  }),
+              ],
+              "Update 1RM from modal"
+            );
+          }}
+        />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }
@@ -111,28 +114,30 @@ function NavModal1RMPreview(props: { programId: string }): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose} isFullWidth>
-      <ExerciseRM
-        name="1 Rep Max"
-        rmKey="rm1"
-        exercise={exercise}
-        settings={state.storage.settings}
-        onEditVariable={(value) => {
-          updateState(
-            dispatch,
-            [
-              lb<IState>()
-                .p("storage")
-                .p("settings")
-                .p("exerciseData")
-                .recordModify((data) => {
-                  const k = Exercise_toKey(exercise);
-                  return { ...data, [k]: { ...data[k], rm1: Weight_build(value, state.storage.settings.units) } };
-                }),
-            ],
-            "Update 1RM from modal"
-          );
-        }}
-      />
+      <FormSheet>
+        <ExerciseRM
+          name="1 Rep Max"
+          rmKey="rm1"
+          exercise={exercise}
+          settings={state.storage.settings}
+          onEditVariable={(value) => {
+            updateState(
+              dispatch,
+              [
+                lb<IState>()
+                  .p("storage")
+                  .p("settings")
+                  .p("exerciseData")
+                  .recordModify((data) => {
+                    const k = Exercise_toKey(exercise);
+                    return { ...data, [k]: { ...data[k], rm1: Weight_build(value, state.storage.settings.units) } };
+                  }),
+              ],
+              "Update 1RM from modal"
+            );
+          }}
+        />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

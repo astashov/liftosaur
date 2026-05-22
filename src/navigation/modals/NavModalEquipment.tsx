@@ -1,9 +1,8 @@
 import { JSX, useCallback, useEffect } from "react";
-import { View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { ModalEquipmentContent } from "../../components/modalEquipment";
 import { Progress_lbProgress } from "../../models/progress";
 import { IState, updateState } from "../../models/state";
@@ -15,7 +14,6 @@ import type { IRootStackParamList } from "../types";
 function NavModalEquipmentWorkout(props: { progressId: number }): JSX.Element {
   const { state, dispatch } = useAppState();
   const navigation = useNavigation();
-  const insets = useSafeAreaInsets();
   const { progressId } = props;
 
   const progress = progressId === 0 ? state.storage.progress?.[0] : state.progress[progressId];
@@ -43,7 +41,7 @@ function NavModalEquipmentWorkout(props: { progressId: number }): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose} isFullWidth>
-      <View style={{ paddingBottom: insets.bottom }}>
+      <FormSheet>
         <ModalEquipmentContent
           settings={state.storage.settings}
           stats={state.storage.stats}
@@ -51,7 +49,7 @@ function NavModalEquipmentWorkout(props: { progressId: number }): JSX.Element {
           entries={progress.entries}
           dispatch={dispatch}
         />
-      </View>
+      </FormSheet>
     </ModalScreenContainer>
   );
 }
@@ -59,7 +57,6 @@ function NavModalEquipmentWorkout(props: { progressId: number }): JSX.Element {
 function NavModalEquipmentPreview(props: { programId: string }): JSX.Element {
   const { state, dispatch } = useAppState();
   const navigation = useNavigation();
-  const insets = useSafeAreaInsets();
   const { programId } = props;
 
   const plannerState = state.editProgramStates?.[programId];
@@ -96,7 +93,7 @@ function NavModalEquipmentPreview(props: { programId: string }): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose} isFullWidth>
-      <View style={{ paddingBottom: insets.bottom }}>
+      <FormSheet>
         <ModalEquipmentContent
           settings={state.storage.settings}
           stats={state.storage.stats}
@@ -104,7 +101,7 @@ function NavModalEquipmentPreview(props: { programId: string }): JSX.Element {
           entries={[]}
           dispatch={dispatch}
         />
-      </View>
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

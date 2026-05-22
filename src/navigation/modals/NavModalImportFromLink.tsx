@@ -2,6 +2,7 @@ import { JSX } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { ModalImportFromLinkContent } from "../../components/modalImportFromLink";
 import { Thunk_importFromLink } from "../../ducks/thunks";
 
@@ -15,14 +16,16 @@ export function NavModalImportFromLink(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose}>
-      <ModalImportFromLinkContent
-        onSubmit={(link) => {
-          if (link) {
-            dispatch(Thunk_importFromLink(link));
-          }
-          onClose();
-        }}
-      />
+      <FormSheet>
+        <ModalImportFromLinkContent
+          onSubmit={(link) => {
+            if (link) {
+              dispatch(Thunk_importFromLink(link));
+            }
+            onClose();
+          }}
+        />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

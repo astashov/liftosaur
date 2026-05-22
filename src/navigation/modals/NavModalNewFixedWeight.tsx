@@ -2,6 +2,7 @@ import { JSX } from "react";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { ModalNewFixedWeightContent } from "../../components/modalNewFixedWeight";
 import { IState, updateState } from "../../models/state";
 import { lb } from "lens-shmens";
@@ -34,39 +35,41 @@ export function NavModalNewFixedWeight(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose}>
-      <ModalNewFixedWeightContent
-        units={units}
-        name={name}
-        onClose={onClose}
-        onSelect={(value) => {
-          if (selectedGym && equipmentData) {
-            const newWeight = Weight_build(value, units);
-            const existing = equipmentData.fixed.filter((p) => p.unit === units);
-            if (existing.every((p) => !Weight_eqeq(p, newWeight))) {
-              updateState(
-                dispatch,
-                [
-                  lb<IState>()
-                    .p("storage")
-                    .p("settings")
-                    .p("gyms")
-                    .findBy("id", selectedGym.id)
-                    .p("equipment")
-                    .recordModify((all: IAllEquipment) => {
-                      const current = all[equipment];
-                      if (!current) {
-                        return all;
-                      }
-                      return { ...all, [equipment]: { ...current, fixed: [...current.fixed, newWeight] } };
-                    }),
-                ],
-                "Add fixed weight"
-              );
+      <FormSheet>
+        <ModalNewFixedWeightContent
+          units={units}
+          name={name}
+          onClose={onClose}
+          onSelect={(value) => {
+            if (selectedGym && equipmentData) {
+              const newWeight = Weight_build(value, units);
+              const existing = equipmentData.fixed.filter((p) => p.unit === units);
+              if (existing.every((p) => !Weight_eqeq(p, newWeight))) {
+                updateState(
+                  dispatch,
+                  [
+                    lb<IState>()
+                      .p("storage")
+                      .p("settings")
+                      .p("gyms")
+                      .findBy("id", selectedGym.id)
+                      .p("equipment")
+                      .recordModify((all: IAllEquipment) => {
+                        const current = all[equipment];
+                        if (!current) {
+                          return all;
+                        }
+                        return { ...all, [equipment]: { ...current, fixed: [...current.fixed, newWeight] } };
+                      }),
+                  ],
+                  "Add fixed weight"
+                );
+              }
             }
-          }
-          onClose();
-        }}
-      />
+            onClose();
+          }}
+        />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

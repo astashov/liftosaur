@@ -2,6 +2,7 @@ import { JSX, useEffect } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { ModalDayFromAdhocContent } from "../../components/modalDayFromAdhoc";
 import type { IRootStackParamList } from "../types";
 
@@ -34,15 +35,17 @@ export function NavModalDayFromAdhoc(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose} isFullWidth isFullHeight noPaddings>
-      <ModalDayFromAdhocContent
-        initialCurrentProgramId={progress.programId}
-        stats={state.storage.stats}
-        record={progress}
-        dispatch={dispatch}
-        allPrograms={state.storage.programs}
-        settings={state.storage.settings}
-        onClose={onClose}
-      />
+      <FormSheet>
+        <ModalDayFromAdhocContent
+          initialCurrentProgramId={progress.programId}
+          stats={state.storage.stats}
+          record={progress}
+          dispatch={dispatch}
+          allPrograms={state.storage.programs}
+          settings={state.storage.settings}
+          onClose={onClose}
+        />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

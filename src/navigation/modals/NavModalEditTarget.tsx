@@ -3,13 +3,14 @@ import { View, Animated, Platform } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { BottomSheetEditTargetContent } from "../../components/bottomSheetEditTarget";
-import { BottomSheet } from "../../components/bottomSheet";
 import { lb } from "lens-shmens";
 import { IHistoryRecord } from "../../types";
 import { IState, updateState } from "../../models/state";
 import { buildPlaygroundDispatch, getPlaygroundProgress } from "./navModalPlaygroundUtils";
 import type { IRootStackParamList } from "../types";
 import { CustomKeyboardProvider, useCustomKeyboardAnimatedHeight } from "../CustomKeyboardContext";
+import { SheetScreenContainer } from "../SheetScreenContainer";
+import { FormSheet } from "../FormSheet";
 
 export function NavModalEditTarget(): JSX.Element {
   const { state, dispatch } = useAppState();
@@ -102,15 +103,11 @@ export function NavModalEditTarget(): JSX.Element {
     </CustomKeyboardProvider>
   );
 
-  if (Platform.OS === "web") {
-    return (
-      <BottomSheet shouldShowClose={true} onClose={onClose} isHidden={false}>
-        {content}
-      </BottomSheet>
-    );
-  }
-
-  return content;
+  return (
+    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
+      <FormSheet>{content}</FormSheet>
+    </SheetScreenContainer>
+  );
 }
 
 function KeyboardSpacer(): JSX.Element {

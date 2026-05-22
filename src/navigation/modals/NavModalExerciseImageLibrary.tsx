@@ -2,6 +2,7 @@ import { JSX, useContext } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
+import { TransparentModal } from "../TransparentModal";
 import { ExerciseImageLibraryContent } from "../../components/exercisePicker/bottomSheetExerciseImageLibrary";
 import { AppContext } from "../../components/appContext";
 import { Service } from "../../api/service";
@@ -21,17 +22,19 @@ export function NavModalExerciseImageLibrary(): JSX.Element {
 
   return (
     <SheetScreenContainer onClose={onClose}>
-      <ExerciseImageLibraryContent
-        settings={state.storage.settings}
-        isLoggedIn={!!state.user?.id}
-        service={service}
-        onClose={onClose}
-        onSelect={(smallImageUrl, largeImageUrl) => {
-          Modal_setResult(modalDispatch, "exerciseImageLibraryModal", { smallImageUrl, largeImageUrl });
-          Modal_clear(modalDispatch, "exerciseImageLibraryModal");
-          navigation.goBack();
-        }}
-      />
+      <TransparentModal onClose={onClose}>
+        <ExerciseImageLibraryContent
+          settings={state.storage.settings}
+          isLoggedIn={!!state.user?.id}
+          service={service}
+          onClose={onClose}
+          onSelect={(smallImageUrl, largeImageUrl) => {
+            Modal_setResult(modalDispatch, "exerciseImageLibraryModal", { smallImageUrl, largeImageUrl });
+            Modal_clear(modalDispatch, "exerciseImageLibraryModal");
+            navigation.goBack();
+          }}
+        />
+      </TransparentModal>
     </SheetScreenContainer>
   );
 }

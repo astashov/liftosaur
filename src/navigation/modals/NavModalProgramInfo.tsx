@@ -2,6 +2,7 @@ import { JSX, useEffect } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { ModalProgramInfoContent } from "../../components/modalProgramInfo";
 import { Program_cloneProgram, Program_previewProgram } from "../../models/program";
 import { Settings_doesProgramHaveUnset1RMs } from "../../models/settings";
@@ -37,29 +38,31 @@ export function NavModalProgramInfo(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose} shouldShowClose={true}>
-      <ModalProgramInfoContent
-        program={program!}
-        hasCustomPrograms={hasCustomPrograms}
-        settings={settings}
-        onClose={onClose}
-        onPreview={() => {
-          onClose();
-          setTimeout(() => {
-            Program_previewProgram(dispatch, program!.id, false);
-          }, 50);
-        }}
-        onSelect={() => {
-          Program_cloneProgram(dispatch, program!, settings);
-          onClose();
-          setTimeout(() => {
-            if (Settings_doesProgramHaveUnset1RMs(program!, settings)) {
-              dispatch(Thunk_pushScreen("onerms"));
-            } else {
-              dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }));
-            }
-          }, 50);
-        }}
-      />
+      <FormSheet>
+        <ModalProgramInfoContent
+          program={program!}
+          hasCustomPrograms={hasCustomPrograms}
+          settings={settings}
+          onClose={onClose}
+          onPreview={() => {
+            onClose();
+            setTimeout(() => {
+              Program_previewProgram(dispatch, program!.id, false);
+            }, 50);
+          }}
+          onSelect={() => {
+            Program_cloneProgram(dispatch, program!, settings);
+            onClose();
+            setTimeout(() => {
+              if (Settings_doesProgramHaveUnset1RMs(program!, settings)) {
+                dispatch(Thunk_pushScreen("onerms"));
+              } else {
+                dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }));
+              }
+            }, 50);
+          }}
+        />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

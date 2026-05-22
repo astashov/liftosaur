@@ -29,7 +29,7 @@ export function ModalCreateStateVariableContent(props: IModalCreateStateVariable
   const nameIsValid = /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name);
 
   return (
-    <View className="items-center">
+    <View className="items-center px-4 py-4 bg-background-default">
       <Text className="mb-1 text-lg font-bold text-center">Add New State Variable</Text>
       <Text className="mb-2 text-xs text-text-secondary">
         You can use state variables to store values between workouts, or parameterize your progress scripts. Use them

@@ -2,6 +2,7 @@ import { JSX, useCallback, useEffect } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { PlannerExerciseStats } from "../../pages/planner/components/plannerExerciseStats";
 import { IState } from "../../models/state";
 import { lb } from "lens-shmens";
@@ -54,19 +55,21 @@ export function NavModalExerciseStats(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose} shouldShowClose={true} isFullWidth={true}>
-      <PlannerExerciseStats
-        dispatch={plannerDispatch}
-        settings={settings}
-        evaluatedWeeks={evaluatedWeeks}
-        weekIndex={focusedExercise!.weekIndex}
-        dayIndex={focusedExercise!.dayIndex}
-        exerciseLine={focusedExercise!.exerciseLine}
-        hideSwap={true}
-        onEditMuscleGroupsOverride={(exercise) => {
-          onClose();
-          navigationRef.navigate("musclesOverrideModal", { exerciseType: exercise });
-        }}
-      />
+      <FormSheet>
+        <PlannerExerciseStats
+          dispatch={plannerDispatch}
+          settings={settings}
+          evaluatedWeeks={evaluatedWeeks}
+          weekIndex={focusedExercise!.weekIndex}
+          dayIndex={focusedExercise!.dayIndex}
+          exerciseLine={focusedExercise!.exerciseLine}
+          hideSwap={true}
+          onEditMuscleGroupsOverride={(exercise) => {
+            onClose();
+            navigationRef.navigate("musclesOverrideModal", { exerciseType: exercise });
+          }}
+        />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

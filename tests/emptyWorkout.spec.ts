@@ -126,6 +126,8 @@ test("Empty Workout", async ({ page }) => {
     "Squat, Barbell"
   );
 
+  await page.getByTestId("bottom-sheet-close").click();
+  await page.getByTestId("footer-home").click();
   await page.getByTestId("history-record").nth(1).click();
   await page.getByTestId("save-to-program").click();
   await page.getByTestId("create-program-from-adhoc").click();

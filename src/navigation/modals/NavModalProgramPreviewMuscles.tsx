@@ -1,9 +1,10 @@
 import { JSX } from "react";
-import { ScrollView } from "react-native";
+import { ScrollView, View, useWindowDimensions } from "react-native";
 import { Text } from "../../components/primitives/text";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { MusclesView } from "../../components/muscles/musclesView";
 import { Locker } from "../../components/locker";
 import { Subscriptions_hasSubscription } from "../../utils/subscriptions";
@@ -19,6 +20,7 @@ import type { IRootStackParamList } from "../types";
 export function NavModalProgramPreviewMuscles(): JSX.Element {
   const { state, dispatch } = useAppState();
   const navigation = useNavigation();
+  const { height: windowHeight } = useWindowDimensions();
   const route = useRoute<{
     key: string;
     name: "programPreviewMusclesModal";
@@ -64,16 +66,16 @@ export function NavModalProgramPreviewMuscles(): JSX.Element {
   const isLocked = !Subscriptions_hasSubscription(subscription);
 
   return (
-    <ModalScreenContainer
-      onClose={() => navigation.goBack()}
-      shouldShowClose={true}
-      overlay={isLocked ? <Locker topic="Muscles" dispatch={dispatch} blur={8} subscription={subscription} /> : null}
-      overlayDetent={0.85}
-    >
-      <Text className="pb-2 text-xl font-bold text-center">{title}</Text>
-      <ScrollView scrollEnabled={!isLocked}>
-        <MusclesView settings={settings} points={points} title={evaluatedProgram.name} />
-      </ScrollView>
+    <ModalScreenContainer onClose={() => navigation.goBack()} shouldShowClose={true} overflowHidden isFullHeight>
+      <FormSheet>
+        <View style={{ height: windowHeight * 0.85 }}>
+          <Text className="pb-2 text-xl font-bold text-center">{title}</Text>
+          <ScrollView className="flex-1" scrollEnabled={!isLocked}>
+            <MusclesView settings={settings} points={points} title={evaluatedProgram.name} />
+          </ScrollView>
+          {isLocked && <Locker topic="Muscles" dispatch={dispatch} blur={8} subscription={subscription} />}
+        </View>
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

@@ -8,6 +8,7 @@ import { exerciseKinds, IExerciseKind } from "../../types";
 import { StringUtils_capitalize } from "../../utils/string";
 import { ObjectUtils_keys, ObjectUtils_mapValues } from "../../utils/object";
 import { useModalData, useModalDispatch, Modal_setResult, Modal_clear } from "../ModalStateContext";
+import { FormSheet } from "../FormSheet";
 
 export function NavModalExerciseTypesPicker(): JSX.Element {
   const navigation = useNavigation();
@@ -40,7 +41,7 @@ export function NavModalExerciseTypesPicker(): JSX.Element {
   }
 
   return (
-    <>
+    <FormSheet>
       <View collapsable={false} className="flex-row items-center px-4 my-6">
         <Text className="flex-1 text-base font-semibold leading-6 text-center">Types</Text>
         <View className="absolute right-4">
@@ -64,6 +65,6 @@ export function NavModalExerciseTypesPicker(): JSX.Element {
           }}
         />
       </ScrollView>
-    </>
+    </FormSheet>
   );
 }

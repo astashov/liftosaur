@@ -1,8 +1,8 @@
 import { JSX, useEffect } from "react";
-import { View, Platform } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { BottomSheetWorkoutSupersetContent } from "../../components/bottomSheetWorkoutSuperset";
 import { IHistoryRecord } from "../../types";
 import { updateProgress } from "../../models/state";
@@ -58,13 +58,9 @@ export function NavModalWorkoutSuperset(): JSX.Element {
     />
   );
 
-  if (Platform.OS === "web") {
-    return (
-      <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
-        {content}
-      </SheetScreenContainer>
-    );
-  }
-
-  return <View className="bg-background-default flex-1">{content}</View>;
+  return (
+    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
+      <FormSheet>{content}</FormSheet>
+    </SheetScreenContainer>
+  );
 }

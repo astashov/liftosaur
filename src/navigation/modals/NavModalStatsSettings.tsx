@@ -2,6 +2,7 @@ import { JSX } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { ModalStatsContent } from "../../components/modalStats";
 
 export function NavModalStatsSettings(): JSX.Element {
@@ -14,7 +15,9 @@ export function NavModalStatsSettings(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose} shouldShowClose={true} isFullWidth={true}>
-      <ModalStatsContent isHidden={false} settings={state.storage.settings} dispatch={dispatch} onClose={onClose} />
+      <FormSheet>
+        <ModalStatsContent isHidden={false} settings={state.storage.settings} dispatch={dispatch} onClose={onClose} />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

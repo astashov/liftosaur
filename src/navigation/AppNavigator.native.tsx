@@ -341,11 +341,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen
             name="muscleGroupMusclePickerModal"
             component={NavModalMuscleGroupMusclePicker}
-            options={{
-              sheetAllowedDetents: [0.9],
-              headerShown: true,
-              title: "Choose Muscles",
-            }}
+            options={{ sheetAllowedDetents: [0.9] }}
           />
           <RootStack.Screen name="accountModal" component={NavModalAccount} />
           <RootStack.Screen name="createProgramModal" component={NavModalCreateProgram} />
@@ -370,7 +366,11 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="rm1Modal" component={NavModal1RM} />
           <RootStack.Screen name="repMaxCalculatorModal" component={NavModalRepMaxCalculator} />
           <RootStack.Screen name="dayFromAdhocModal" component={NavModalDayFromAdhoc} />
-          <RootStack.Screen name="equipmentModal" component={NavModalEquipment} />
+          <RootStack.Screen
+            name="equipmentModal"
+            component={NavModalEquipment}
+            options={{ sheetAllowedDetents: [0.9] }}
+          />
           <RootStack.Screen name="dateModal" component={NavModalDate} />
           <RootStack.Screen name="supersetPickerModal" component={NavModalWorkoutSuperset} />
           <RootStack.Screen name="exerciseImageSourceModal" component={NavModalExerciseImageSource} />
@@ -439,12 +439,12 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
             component={NavModalCorruptedState}
             options={{ gestureEnabled: false }}
           />
+          <RootStack.Screen
+            name="changeNextDayModal"
+            component={NavModalChangeNextDay}
+            options={{ sheetAllowedDetents: [0.9] }}
+          />
         </RootStack.Group>
-        <RootStack.Screen
-          name="changeNextDayModal"
-          component={NavModalChangeNextDay}
-          options={{ presentation: "modal", headerShown: false, animation: "slide_from_bottom" }}
-        />
       </RootStack.Navigator>
     </InitialScreenContext.Provider>
   );

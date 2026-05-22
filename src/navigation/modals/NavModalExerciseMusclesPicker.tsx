@@ -1,5 +1,5 @@
 import { JSX, useState } from "react";
-import { View, ScrollView, Platform } from "react-native";
+import { View, ScrollView } from "react-native";
 import { Text } from "../../components/primitives/text";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
@@ -8,6 +8,7 @@ import { ExercisePickerOptionsMuscles } from "../../components/exercisePicker/ex
 import { IMuscle } from "../../types";
 import { useModalData, useModalDispatch, Modal_setResult, Modal_clear } from "../ModalStateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
+import { FormSheet } from "../FormSheet";
 
 export function NavModalExerciseMusclesPicker(): JSX.Element {
   const { state } = useAppState();
@@ -63,13 +64,9 @@ export function NavModalExerciseMusclesPicker(): JSX.Element {
     </>
   );
 
-  if (Platform.OS === "web") {
-    return (
-      <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
-        {content}
-      </SheetScreenContainer>
-    );
-  }
-
-  return content;
+  return (
+    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
+      <FormSheet>{content}</FormSheet>
+    </SheetScreenContainer>
+  );
 }

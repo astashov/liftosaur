@@ -3,6 +3,7 @@ import { View } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { MuscleGroupsContent } from "../../components/muscleGroupsContent";
 import { IState, updateState } from "../../models/state";
 import { lb } from "lens-shmens";
@@ -56,34 +57,38 @@ export function NavModalEditMuscleGroups(): JSX.Element {
     return <></>;
   }
 
+  const content = (
+    <View className="px-4 py-2">
+      <MuscleGroupsContent
+        onCreate={(name) => {
+          onNewSettings(
+            lf(settings)
+              .p("muscleGroups")
+              .modify((muscleGroups) => Muscle_createMuscleGroup(muscleGroups, name))
+          );
+        }}
+        onDelete={(muscleGroup) => {
+          onNewSettings(
+            lf(settings)
+              .p("muscleGroups")
+              .modify((muscleGroups) => Muscle_deleteMuscleGroup(muscleGroups, muscleGroup))
+          );
+        }}
+        onRestore={(muscleGroup) => {
+          onNewSettings(
+            lf(settings)
+              .p("muscleGroups")
+              .modify((muscleGroups) => Muscle_restoreMuscleGroup(muscleGroups, muscleGroup))
+          );
+        }}
+        settings={settings}
+      />
+    </View>
+  );
+
   return (
     <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
-      <View className="px-4 py-2">
-        <MuscleGroupsContent
-          onCreate={(name) => {
-            onNewSettings(
-              lf(settings)
-                .p("muscleGroups")
-                .modify((muscleGroups) => Muscle_createMuscleGroup(muscleGroups, name))
-            );
-          }}
-          onDelete={(muscleGroup) => {
-            onNewSettings(
-              lf(settings)
-                .p("muscleGroups")
-                .modify((muscleGroups) => Muscle_deleteMuscleGroup(muscleGroups, muscleGroup))
-            );
-          }}
-          onRestore={(muscleGroup) => {
-            onNewSettings(
-              lf(settings)
-                .p("muscleGroups")
-                .modify((muscleGroups) => Muscle_restoreMuscleGroup(muscleGroups, muscleGroup))
-            );
-          }}
-          settings={settings}
-        />
-      </View>
+      <FormSheet>{content}</FormSheet>
     </SheetScreenContainer>
   );
 }

@@ -2,6 +2,7 @@ import { JSX, useCallback, useEffect } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { PlannerDayStats } from "../../pages/planner/components/plannerDayStats";
 import { IState } from "../../models/state";
 import { lb } from "lens-shmens";
@@ -54,11 +55,13 @@ export function NavModalDayStats(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose} shouldShowClose={true} isFullWidth={true}>
-      <PlannerDayStats
-        dispatch={plannerDispatch}
-        settings={settings}
-        evaluatedDay={evaluatedWeeks[weekIndex][dayIndex!]}
-      />
+      <FormSheet>
+        <PlannerDayStats
+          dispatch={plannerDispatch}
+          settings={settings}
+          evaluatedDay={evaluatedWeeks[weekIndex][dayIndex!]}
+        />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

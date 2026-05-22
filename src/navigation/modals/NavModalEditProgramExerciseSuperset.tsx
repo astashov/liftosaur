@@ -1,8 +1,8 @@
 import { JSX, useEffect, useMemo } from "react";
-import { View, Platform } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { BottomSheetEditProgramExerciseSupersetContent } from "../../components/editProgramExercise/bottomSheetEditProgramExerciseSuperset";
 import { IPlannerExerciseState } from "../../pages/planner/models/types";
 import { Program_evaluate, Program_getFirstProgramExercise } from "../../models/program";
@@ -76,13 +76,9 @@ export function NavModalEditProgramExerciseSuperset(): JSX.Element {
     />
   );
 
-  if (Platform.OS === "web") {
-    return (
-      <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
-        {content}
-      </SheetScreenContainer>
-    );
-  }
-
-  return <View className="bg-background-default flex-1">{content}</View>;
+  return (
+    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
+      <FormSheet>{content}</FormSheet>
+    </SheetScreenContainer>
+  );
 }

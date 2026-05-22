@@ -2,6 +2,7 @@ import { JSX, useEffect } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { ModalAmrapContent } from "../../components/modalAmrap";
 import { Progress_isCurrent, Progress_forceUpdateEntryIndex } from "../../models/progress";
 import {
@@ -104,21 +105,23 @@ export function NavModalAmrap(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose} maxWidth="480px" isFullWidth>
-      <ModalAmrapContent
-        progress={progress}
-        dispatch={modalDispatch}
-        isPlayground={isPlayground}
-        settings={state.storage.settings}
-        amrapModal={amrapModal}
-        programExercise={programExercise}
-        otherStates={evaluatedProgram?.states}
-        onDone={() => {
-          if (!isPlayground) {
-            Progress_forceUpdateEntryIndex(dispatch);
-          }
-          navigation.goBack();
-        }}
-      />
+      <FormSheet>
+        <ModalAmrapContent
+          progress={progress}
+          dispatch={modalDispatch}
+          isPlayground={isPlayground}
+          settings={state.storage.settings}
+          amrapModal={amrapModal}
+          programExercise={programExercise}
+          otherStates={evaluatedProgram?.states}
+          onDone={() => {
+            if (!isPlayground) {
+              Progress_forceUpdateEntryIndex(dispatch);
+            }
+            navigation.goBack();
+          }}
+        />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

@@ -26,7 +26,7 @@ export function BottomSheetWorkoutSupersetContent(props: IBottomSheetWorkoutSupe
   });
 
   return (
-    <View>
+    <View className="bg-background-default flex-1">
       <View className="py-2 mt-2">
         <Text className="text-lg font-semibold text-center">Select Superset Group</Text>
       </View>

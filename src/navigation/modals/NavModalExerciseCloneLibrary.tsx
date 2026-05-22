@@ -2,6 +2,7 @@ import { JSX } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
+import { TransparentModal } from "../TransparentModal";
 import { ExerciseCloneLibraryContent } from "../../components/exercisePicker/bottomSheetExerciseCloneLibrary";
 import { Exercise_targetMuscles, Exercise_synergistMuscles } from "../../models/exercise";
 import { ExerciseImageUtils_url } from "../../models/exerciseImage";
@@ -21,32 +22,34 @@ export function NavModalExerciseCloneLibrary(): JSX.Element {
 
   return (
     <SheetScreenContainer onClose={onClose}>
-      <ExerciseCloneLibraryContent
-        showMuscles={true}
-        settings={settings}
-        onClose={onClose}
-        onSelect={(exercise) => {
-          const customExercise = settings.exercises[exercise.id];
-          const smallImageUrl = customExercise
-            ? customExercise.smallImageUrl
-            : ExerciseImageUtils_url(exercise, "small");
-          const largeImageUrl = customExercise
-            ? customExercise.largeImageUrl
-            : ExerciseImageUtils_url(exercise, "large");
-          const targetMuscles = ObjectUtils_clone(Exercise_targetMuscles(exercise, settings));
-          const synergistMuscles = ObjectUtils_clone(Exercise_synergistMuscles(exercise, settings));
-          const types = ObjectUtils_clone(exercise.types);
-          Modal_setResult(modalDispatch, "exerciseCloneLibraryModal", {
-            smallImageUrl,
-            largeImageUrl,
-            targetMuscles,
-            synergistMuscles,
-            types,
-          });
-          Modal_clear(modalDispatch, "exerciseCloneLibraryModal");
-          navigation.goBack();
-        }}
-      />
+      <TransparentModal onClose={onClose}>
+        <ExerciseCloneLibraryContent
+          showMuscles={true}
+          settings={settings}
+          onClose={onClose}
+          onSelect={(exercise) => {
+            const customExercise = settings.exercises[exercise.id];
+            const smallImageUrl = customExercise
+              ? customExercise.smallImageUrl
+              : ExerciseImageUtils_url(exercise, "small");
+            const largeImageUrl = customExercise
+              ? customExercise.largeImageUrl
+              : ExerciseImageUtils_url(exercise, "large");
+            const targetMuscles = ObjectUtils_clone(Exercise_targetMuscles(exercise, settings));
+            const synergistMuscles = ObjectUtils_clone(Exercise_synergistMuscles(exercise, settings));
+            const types = ObjectUtils_clone(exercise.types);
+            Modal_setResult(modalDispatch, "exerciseCloneLibraryModal", {
+              smallImageUrl,
+              largeImageUrl,
+              targetMuscles,
+              synergistMuscles,
+              types,
+            });
+            Modal_clear(modalDispatch, "exerciseCloneLibraryModal");
+            navigation.goBack();
+          }}
+        />
+      </TransparentModal>
     </SheetScreenContainer>
   );
 }

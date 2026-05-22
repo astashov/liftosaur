@@ -2,6 +2,7 @@ import { JSX } from "react";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { ModalPlatesContent } from "../../components/modalPlates";
 import { IState, updateState } from "../../models/state";
 import { lb } from "lens-shmens";
@@ -26,41 +27,43 @@ export function NavModalPlates(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose}>
-      <ModalPlatesContent
-        units={units}
-        onClose={onClose}
-        onSelect={(value) => {
-          if (selectedGym && equipmentData) {
-            const newWeight = Weight_build(value, units);
-            const existingPlates = equipmentData.plates.filter((p) => p.weight.unit === units);
-            if (existingPlates.every((p) => !Weight_eqeq(p.weight, newWeight))) {
-              updateState(
-                dispatch,
-                [
-                  lb<IState>()
-                    .p("storage")
-                    .p("settings")
-                    .p("gyms")
-                    .findBy("id", selectedGym.id)
-                    .p("equipment")
-                    .recordModify((all: IAllEquipment) => {
-                      const current = all[equipment];
-                      if (!current) {
-                        return all;
-                      }
-                      return {
-                        ...all,
-                        [equipment]: { ...current, plates: [...current.plates, { weight: newWeight, num: 2 }] },
-                      };
-                    }),
-                ],
-                "Add plate"
-              );
+      <FormSheet>
+        <ModalPlatesContent
+          units={units}
+          onClose={onClose}
+          onSelect={(value) => {
+            if (selectedGym && equipmentData) {
+              const newWeight = Weight_build(value, units);
+              const existingPlates = equipmentData.plates.filter((p) => p.weight.unit === units);
+              if (existingPlates.every((p) => !Weight_eqeq(p.weight, newWeight))) {
+                updateState(
+                  dispatch,
+                  [
+                    lb<IState>()
+                      .p("storage")
+                      .p("settings")
+                      .p("gyms")
+                      .findBy("id", selectedGym.id)
+                      .p("equipment")
+                      .recordModify((all: IAllEquipment) => {
+                        const current = all[equipment];
+                        if (!current) {
+                          return all;
+                        }
+                        return {
+                          ...all,
+                          [equipment]: { ...current, plates: [...current.plates, { weight: newWeight, num: 2 }] },
+                        };
+                      }),
+                  ],
+                  "Add plate"
+                );
+              }
             }
-          }
-          onClose();
-        }}
-      />
+            onClose();
+          }}
+        />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

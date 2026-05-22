@@ -2,6 +2,7 @@ import { JSX } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
+import { TransparentModal } from "../TransparentModal";
 import { BottomSheetMusclesOverrideContent } from "../../components/bottomSheetMusclesOverride";
 import { ISettings } from "../../types";
 import { updateSettings } from "../../models/state";
@@ -24,20 +25,22 @@ export function NavModalMusclesOverride(): JSX.Element {
 
   return (
     <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
-      <BottomSheetMusclesOverrideContent
-        exerciseType={exerciseType}
-        settings={state.storage.settings}
-        helps={state.storage.helps}
-        onNewExerciseData={(newExerciseData) => {
-          updateSettings(
-            dispatch,
-            lb<ISettings>().p("exerciseData").record(newExerciseData),
-            "Update exercise muscle override"
-          );
-        }}
-        onClose={onClose}
-        dispatch={dispatch}
-      />
+      <TransparentModal onClose={onClose}>
+        <BottomSheetMusclesOverrideContent
+          exerciseType={exerciseType}
+          settings={state.storage.settings}
+          helps={state.storage.helps}
+          onNewExerciseData={(newExerciseData) => {
+            updateSettings(
+              dispatch,
+              lb<ISettings>().p("exerciseData").record(newExerciseData),
+              "Update exercise muscle override"
+            );
+          }}
+          onClose={onClose}
+          dispatch={dispatch}
+        />
+      </TransparentModal>
     </SheetScreenContainer>
   );
 }

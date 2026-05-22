@@ -2,6 +2,7 @@ import { JSX } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { ModalAffiliateContent } from "../../components/modalAffiliate";
 
 export function NavModalAffiliate(): JSX.Element {
@@ -14,11 +15,13 @@ export function NavModalAffiliate(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose} isFullWidth>
-      <ModalAffiliateContent
-        onClose={onClose}
-        isAffiliateEnabled={!!state.storage.settings.affiliateEnabled}
-        dispatch={dispatch}
-      />
+      <FormSheet>
+        <ModalAffiliateContent
+          onClose={onClose}
+          isAffiliateEnabled={!!state.storage.settings.affiliateEnabled}
+          dispatch={dispatch}
+        />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

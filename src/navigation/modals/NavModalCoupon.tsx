@@ -2,6 +2,7 @@ import { JSX } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { ModalCouponContent } from "../../components/modalCoupon";
 
 export function NavModalCoupon(): JSX.Element {
@@ -14,7 +15,9 @@ export function NavModalCoupon(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose}>
-      <ModalCouponContent dispatch={dispatch} onClose={onClose} />
+      <FormSheet>
+        <ModalCouponContent dispatch={dispatch} onClose={onClose} />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

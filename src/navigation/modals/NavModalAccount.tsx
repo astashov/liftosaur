@@ -3,6 +3,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { useAppContext } from "../../components/appContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { Account } from "../../components/account";
 import { Account_getFromStorage } from "../../models/account";
 import { IState } from "../../models/state";
@@ -29,7 +30,9 @@ export function NavModalAccount(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose} shouldShowClose={true}>
-      <Account account={account} client={service.client} dispatch={dispatch} onSignIn={onSignIn} />
+      <FormSheet>
+        <Account account={account} client={service.client} dispatch={dispatch} onSignIn={onSignIn} />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

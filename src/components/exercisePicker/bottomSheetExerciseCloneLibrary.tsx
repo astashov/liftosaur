@@ -8,7 +8,7 @@ import { IconMagnifyingGlass } from "../icons/iconMagnifyingGlass";
 import { StringUtils_fuzzySearch } from "../../utils/string";
 import { ExercisePickerExerciseItem } from "./exercisePickerExerciseItem";
 import { BottomSheetOrModal } from "../bottomSheetOrModal";
-import { SheetDragHandle } from "../../navigation/SheetScreenContainer";
+import { SheetDragHandle } from "../../navigation/TransparentModal";
 
 interface IProps {
   isHidden: boolean;

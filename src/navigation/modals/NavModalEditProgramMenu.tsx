@@ -9,7 +9,7 @@ import { ClipboardUtils_copy } from "../../utils/clipboard";
 import { navigationRef } from "../navigationRef";
 import type { IRootStackParamList } from "../types";
 import { SheetScreenContainer } from "../SheetScreenContainer";
-import { Platform } from "react-native";
+import { FormSheet } from "../FormSheet";
 import { Dialog_alert } from "../../utils/dialog";
 
 declare let __HOST__: string;
@@ -66,5 +66,9 @@ export function NavModalEditProgramMenu(): JSX.Element {
       onClose={onClose}
     />
   );
-  return Platform.OS === "web" ? <SheetScreenContainer onClose={onClose}>{content}</SheetScreenContainer> : content;
+  return (
+    <SheetScreenContainer onClose={onClose}>
+      <FormSheet>{content}</FormSheet>
+    </SheetScreenContainer>
+  );
 }

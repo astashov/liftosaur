@@ -43,7 +43,7 @@ export function ModalEditUpdateScriptContent(props: IModalEditUpdateScriptProps)
   );
 
   return (
-    <>
+    <View className="flex-1 px-4 py-4 bg-background-default">
       <Text className="mb-1 text-lg font-bold text-center">Update Script</Text>
       <Text className="mb-2 text-xs text-text-secondary">
         It's executed after each set completion. Use <Text className="font-bold">setIndex</Text> variable to distinguish
@@ -75,7 +75,7 @@ export function ModalEditUpdateScriptContent(props: IModalEditUpdateScriptProps)
           Save
         </Button>
       </View>
-    </>
+    </View>
   );
 }
 

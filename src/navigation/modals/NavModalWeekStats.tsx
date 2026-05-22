@@ -2,6 +2,7 @@ import { JSX, useCallback, useEffect } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { PlannerWeekStats } from "../../pages/planner/components/plannerWeekStats";
 import { IState } from "../../models/state";
 import { lb } from "lens-shmens";
@@ -54,14 +55,16 @@ export function NavModalWeekStats(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose} shouldShowClose={true} isFullWidth={true}>
-      <PlannerWeekStats
-        dispatch={plannerDispatch}
-        onEditSettings={() => {
-          navigationRef.navigate("plannerSettingsModal", { context: "editProgram", programId });
-        }}
-        evaluatedDays={evaluatedWeeks[weekIndex!]}
-        settings={settings}
-      />
+      <FormSheet>
+        <PlannerWeekStats
+          dispatch={plannerDispatch}
+          onEditSettings={() => {
+            navigationRef.navigate("plannerSettingsModal", { context: "editProgram", programId });
+          }}
+          evaluatedDays={evaluatedWeeks[weekIndex!]}
+          settings={settings}
+        />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

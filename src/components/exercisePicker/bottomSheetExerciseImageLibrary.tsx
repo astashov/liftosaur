@@ -20,7 +20,7 @@ import { IconSpinner } from "../icons/iconSpinner";
 import { UidFactory_generateUid } from "../../utils/generator";
 import { ExerciseImageUtils_url } from "../../models/exerciseImage";
 import { BottomSheetOrModal } from "../bottomSheetOrModal";
-import { SheetDragHandle } from "../../navigation/SheetScreenContainer";
+import { SheetDragHandle } from "../../navigation/TransparentModal";
 
 interface IProps {
   isHidden: boolean;

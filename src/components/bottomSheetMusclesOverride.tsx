@@ -24,7 +24,7 @@ import { useModal } from "../navigation/ModalStateContext";
 import { Muscle_getScreenMusclesFromMuscle, Muscle_getMuscleGroupName } from "../models/muscle";
 import { ObjectUtils_keys, ObjectUtils_clone, ObjectUtils_isEqual } from "../utils/object";
 import { BottomSheetOrModal } from "./bottomSheetOrModal";
-import { SheetDragHandle } from "../navigation/SheetScreenContainer";
+import { SheetDragHandle } from "../navigation/TransparentModal";
 
 interface IBottomSheetMusclesOverrideProps {
   exerciseType: IExerciseType;

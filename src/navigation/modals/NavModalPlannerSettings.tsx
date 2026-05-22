@@ -2,6 +2,7 @@ import { JSX, useCallback, useEffect } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { ModalPlannerSettingsContent } from "../../pages/planner/components/modalPlannerSettings";
 import { IState, updateState } from "../../models/state";
 import { lb, ILensRecordingPayload } from "lens-shmens";
@@ -59,15 +60,17 @@ export function NavModalPlannerSettings(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose} shouldShowClose={true}>
-      <ModalPlannerSettingsContent
-        inApp={true}
-        settings={settings}
-        dispatch={settingsDispatch}
-        onShowEditMuscleGroups={() => {
-          navigationRef.navigate("editMuscleGroupsModal", params);
-        }}
-        onClose={onClose}
-      />
+      <FormSheet>
+        <ModalPlannerSettingsContent
+          inApp={true}
+          settings={settings}
+          dispatch={settingsDispatch}
+          onShowEditMuscleGroups={() => {
+            navigationRef.navigate("editMuscleGroupsModal", params);
+          }}
+          onClose={onClose}
+        />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

@@ -1,8 +1,8 @@
 import { JSX, useEffect, useMemo } from "react";
-import { View, Platform } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { BottomSheetEditProgramExerciseSetContent } from "../../components/editProgramExercise/bottomSheetEditProgramExerciseSet";
 import { IPlannerExerciseState } from "../../pages/planner/models/types";
 import { Program_evaluate } from "../../models/program";
@@ -66,13 +66,9 @@ export function NavModalEditProgramExerciseSet(): JSX.Element {
     />
   );
 
-  if (Platform.OS === "web") {
-    return (
-      <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
-        {content}
-      </SheetScreenContainer>
-    );
-  }
-
-  return <View className="bg-background-default pb-4">{content}</View>;
+  return (
+    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
+      <FormSheet>{content}</FormSheet>
+    </SheetScreenContainer>
+  );
 }

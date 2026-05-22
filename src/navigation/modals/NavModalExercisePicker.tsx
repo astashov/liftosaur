@@ -2,6 +2,7 @@ import { JSX, useCallback, useEffect, useMemo, useRef } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
+import { TransparentModal } from "../TransparentModal";
 import { ExercisePickerContent } from "../../components/exercisePicker/bottomSheetExercisePicker";
 import {
   Progress_lbProgress,
@@ -194,19 +195,21 @@ export function NavModalExercisePicker(): JSX.Element {
 
   return (
     <SheetScreenContainer onClose={onClose}>
-      <ExercisePickerContent
-        settings={state.storage.settings}
-        isLoggedIn={!!state.user?.id}
-        exercisePicker={exercisePickerState}
-        usedExerciseTypes={usedExerciseTypes}
-        evaluatedProgram={evaluatedCurrentProgram}
-        dispatch={pickerDispatch}
-        onChoose={onChoose}
-        onChangeCustomExercise={onChangeCustomExercise}
-        onStar={onStar}
-        onChangeSettings={onChangeSettings}
-        onClose={onClose}
-      />
+      <TransparentModal onClose={onClose}>
+        <ExercisePickerContent
+          settings={state.storage.settings}
+          isLoggedIn={!!state.user?.id}
+          exercisePicker={exercisePickerState}
+          usedExerciseTypes={usedExerciseTypes}
+          evaluatedProgram={evaluatedCurrentProgram}
+          dispatch={pickerDispatch}
+          onChoose={onChoose}
+          onChangeCustomExercise={onChangeCustomExercise}
+          onStar={onStar}
+          onChangeSettings={onChangeSettings}
+          onClose={onClose}
+        />
+      </TransparentModal>
     </SheetScreenContainer>
   );
 }

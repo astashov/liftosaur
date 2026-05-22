@@ -56,7 +56,7 @@ export function BottomSheetEditProgramExerciseSetContent(props: IBottomSheetEdit
   }
 
   return (
-    <>
+    <View className="bg-background-default pb-4">
       {set && (
         <View>
           <Text className="px-4 pt-1 text-base font-bold">Edit Set</Text>
@@ -131,6 +131,6 @@ export function BottomSheetEditProgramExerciseSetContent(props: IBottomSheetEdit
           </View>
         </View>
       )}
-    </>
+    </View>
   );
 }

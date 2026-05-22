@@ -9,7 +9,7 @@ import { IconClose2 } from "../icons/iconClose2";
 import { ObjectUtils_isEqual } from "../../utils/object";
 import { ExercisePickerCustomExerciseContent } from "./exercisePickerCustomExerciseContent";
 import { Exercise_getNotes } from "../../models/exercise";
-import { SheetDragHandle } from "../../navigation/SheetScreenContainer";
+import { SheetDragHandle } from "../../navigation/TransparentModal";
 
 interface IExercisePickerCustomExercise2Props {
   settings: ISettings;

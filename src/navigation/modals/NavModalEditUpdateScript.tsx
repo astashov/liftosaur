@@ -1,8 +1,8 @@
 import { JSX, useEffect, useMemo } from "react";
-import { View, Platform } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { ModalEditUpdateScriptContent } from "../../components/editProgramExercise/progressions/modalEditUpdateScript";
 import { IPlannerExerciseState } from "../../pages/planner/models/types";
 import { Program_evaluate, Program_getFirstProgramExercise } from "../../models/program";
@@ -91,13 +91,9 @@ export function NavModalEditUpdateScript(): JSX.Element {
     />
   );
 
-  if (Platform.OS === "web") {
-    return (
-      <ModalScreenContainer onClose={onClose} isFullWidth isFullHeight>
-        {content}
-      </ModalScreenContainer>
-    );
-  }
-
-  return <View className="bg-background-default flex-1 px-4 py-4">{content}</View>;
+  return (
+    <ModalScreenContainer onClose={onClose} isFullWidth isFullHeight>
+      <FormSheet>{content}</FormSheet>
+    </ModalScreenContainer>
+  );
 }

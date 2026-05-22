@@ -2,6 +2,7 @@ import { JSX, useMemo } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { ModalGraphsContent } from "../../components/modalGraphs";
 import { History_findAllMaxSetsPerId } from "../../models/history";
 import { ObjectUtils_keys } from "../../utils/object";
@@ -26,15 +27,17 @@ export function NavModalGraphs(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose} shouldShowClose={true} isFullWidth={true}>
-      <ModalGraphsContent
-        settings={settings}
-        isHidden={false}
-        exerciseTypes={exerciseTypes}
-        stats={state.storage.stats}
-        graphs={settings.graphs.graphs}
-        onClose={onClose}
-        dispatch={dispatch}
-      />
+      <FormSheet>
+        <ModalGraphsContent
+          settings={settings}
+          isHidden={false}
+          exerciseTypes={exerciseTypes}
+          stats={state.storage.stats}
+          graphs={settings.graphs.graphs}
+          onClose={onClose}
+          dispatch={dispatch}
+        />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

@@ -3,6 +3,7 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { useAppContext } from "../../components/appContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
+import { TransparentModal } from "../TransparentModal";
 import { ModalPlannerPictureExportContent } from "../../pages/planner/components/modalPlannerPictureExport";
 import type { IRootStackParamList } from "../types";
 
@@ -37,14 +38,16 @@ export function NavModalProgramImageExport(): JSX.Element {
 
   return (
     <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
-      <ModalPlannerPictureExportContent
-        settings={state.storage.settings}
-        userId={state.user?.id}
-        client={service.client}
-        isChanged={false}
-        program={program}
-        onClose={onClose}
-      />
+      <TransparentModal onClose={onClose}>
+        <ModalPlannerPictureExportContent
+          settings={state.storage.settings}
+          userId={state.user?.id}
+          client={service.client}
+          isChanged={false}
+          program={program}
+          onClose={onClose}
+        />
+      </TransparentModal>
     </SheetScreenContainer>
   );
 }

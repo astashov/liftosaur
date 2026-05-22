@@ -1,5 +1,5 @@
 import { JSX, useContext, useState } from "react";
-import { View, Platform } from "react-native";
+import { View } from "react-native";
 import { Text } from "../../components/primitives/text";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
@@ -13,6 +13,7 @@ import { Service } from "../../api/service";
 import { ImageUploader } from "../../utils/imageUploader";
 import { ImagePicker_pick } from "../../utils/imagePicker";
 import { SheetScreenContainer } from "../SheetScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { Dialog_alert } from "../../utils/dialog";
 
 export function NavModalExerciseImageSource(): JSX.Element {
@@ -87,13 +88,9 @@ export function NavModalExerciseImageSource(): JSX.Element {
     </View>
   );
 
-  if (Platform.OS === "web") {
-    return (
-      <SheetScreenContainer onClose={onCloseSheet} shouldShowClose={true}>
-        {content}
-      </SheetScreenContainer>
-    );
-  }
-
-  return content;
+  return (
+    <SheetScreenContainer onClose={onCloseSheet} shouldShowClose={true}>
+      <FormSheet>{content}</FormSheet>
+    </SheetScreenContainer>
+  );
 }

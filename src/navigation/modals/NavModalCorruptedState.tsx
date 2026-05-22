@@ -3,6 +3,7 @@ import { View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { Button } from "../../components/button";
 import { Text } from "../../components/primitives/text";
 import { Link } from "../../components/link";
@@ -49,48 +50,50 @@ export function NavModalCorruptedState(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onReset}>
-      <View>
-        <Text className="pt-2 pb-4 text-lg font-bold text-center">🚨 Corrupted Storage 🚨</Text>
-      </View>
-      <View className="pb-4">
-        <Text>
-          Something went <Text className="font-bold">terribly wrong</Text>, and your{" "}
-          {corruptedstorage.local ? "local" : "remote"} storage and history got corrupted. This should never happen, but
-          it did.
-        </Text>
-      </View>
-      <View className="pb-4">
-        {corruptedstorage.backup ? (
-          <Text className="font-bold text-center text-text-success">
-            History was successfully backed up, user: <Text className="font-bold">{corruptedstorage.userid}</Text>
-          </Text>
-        ) : (
-          <Text className="font-bold text-center text-text-error">Could not back up the history</Text>
-        )}
-      </View>
-      <View className="pb-4">
-        <Text>
-          Please contact the developer of this app, and he is going to look into this ASAP. You can contact us at{" "}
-          <Link href="mailto:info@liftosaur.com">info@liftosaur.com</Link>.
-        </Text>
-      </View>
-      <View className="pb-4">
-        {corruptedstorage.local ? (
+      <FormSheet>
+        <View>
+          <Text className="pt-2 pb-4 text-lg font-bold text-center">🚨 Corrupted Storage 🚨</Text>
+        </View>
+        <View className="pb-4">
           <Text>
-            You can either wait until this is fixed (and close the app for now), or start with the empty state (but your
-            history and programs will be gone).
+            Something went <Text className="font-bold">terribly wrong</Text>, and your{" "}
+            {corruptedstorage.local ? "local" : "remote"} storage and history got corrupted. This should never happen,
+            but it did.
           </Text>
-        ) : (
-          <Text className="pb-4">
-            We will log out for now, and won't sync the changes to the cloud, to avoid even bigger mess.
+        </View>
+        <View className="pb-4">
+          {corruptedstorage.backup ? (
+            <Text className="font-bold text-center text-text-success">
+              History was successfully backed up, user: <Text className="font-bold">{corruptedstorage.userid}</Text>
+            </Text>
+          ) : (
+            <Text className="font-bold text-center text-text-error">Could not back up the history</Text>
+          )}
+        </View>
+        <View className="pb-4">
+          <Text>
+            Please contact the developer of this app, and he is going to look into this ASAP. You can contact us at{" "}
+            <Link href="mailto:info@liftosaur.com">info@liftosaur.com</Link>.
           </Text>
-        )}
-      </View>
-      <View className="items-center">
-        <Button name="corrupted-state-reset" kind="red" onClick={onReset}>
-          {corruptedstorage.local ? "Reset and start from scratch" : "Continue"}
-        </Button>
-      </View>
+        </View>
+        <View className="pb-4">
+          {corruptedstorage.local ? (
+            <Text>
+              You can either wait until this is fixed (and close the app for now), or start with the empty state (but
+              your history and programs will be gone).
+            </Text>
+          ) : (
+            <Text className="pb-4">
+              We will log out for now, and won't sync the changes to the cloud, to avoid even bigger mess.
+            </Text>
+          )}
+        </View>
+        <View className="items-center">
+          <Button name="corrupted-state-reset" kind="red" onClick={onReset}>
+            {corruptedstorage.local ? "Reset and start from scratch" : "Continue"}
+          </Button>
+        </View>
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

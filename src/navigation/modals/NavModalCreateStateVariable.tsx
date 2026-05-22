@@ -1,8 +1,8 @@
 import { JSX, useEffect, useMemo } from "react";
-import { View, Platform } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { ModalCreateStateVariableContent } from "../../components/editProgramExercise/progressions/modalCreateStateVariable";
 import { IPlannerExerciseState } from "../../pages/planner/models/types";
 import { Program_evaluate, Program_getFirstProgramExercise } from "../../models/program";
@@ -94,9 +94,9 @@ export function NavModalCreateStateVariable(): JSX.Element {
     />
   );
 
-  if (Platform.OS === "web") {
-    return <ModalScreenContainer onClose={onClose}>{content}</ModalScreenContainer>;
-  }
-
-  return <View className="bg-background-default px-4 py-4">{content}</View>;
+  return (
+    <ModalScreenContainer onClose={onClose}>
+      <FormSheet>{content}</FormSheet>
+    </ModalScreenContainer>
+  );
 }

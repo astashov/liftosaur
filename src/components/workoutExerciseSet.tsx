@@ -240,8 +240,8 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
           <View className={`flex-row items-center border-b ${borderColor}`}>
             <View className="items-center justify-center py-1" style={{ width: props.columnWidths.set }}>
               <View
-                className={`w-6 h-6 items-center justify-center rounded-full${
-                  props.isNext ? " bg-button-primarybackground" : ""
+                className={`w-6 h-6 items-center justify-center rounded-full ${
+                  props.isNext ? "bg-button-primarybackground" : ""
                 }`}
               >
                 {props.type === "warmup" ? (

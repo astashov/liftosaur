@@ -2,6 +2,7 @@ import { JSX, useState } from "react";
 import { View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { SheetScreenContainer } from "../SheetScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { BottomSheetItem } from "../../components/bottomSheetItem";
 import { IconCamera } from "../../components/icons/iconCamera";
 import { IconPicture } from "../../components/icons/iconPicture";
@@ -28,25 +29,29 @@ export function NavModalPhotoPicker(): JSX.Element {
     navigation.goBack();
   };
 
+  const content = (
+    <View className="p-4">
+      <BottomSheetItem
+        title="From Camera"
+        name="from-camera"
+        icon={isLoading ? <IconSpinner width={18} height={18} /> : <IconCamera size={24} />}
+        isFirst={true}
+        description="Take a photo"
+        onClick={() => pickPhoto("camera")}
+      />
+      <BottomSheetItem
+        title="From Photo Library"
+        name="from-photo-library"
+        icon={isLoading ? <IconSpinner width={18} height={18} /> : <IconPicture size={24} />}
+        description="Pick photo from your photo library"
+        onClick={() => pickPhoto("photo-library")}
+      />
+    </View>
+  );
+
   return (
     <SheetScreenContainer onClose={onClose} shouldShowClose={true} fitContent={true}>
-      <View className="p-4">
-        <BottomSheetItem
-          title="From Camera"
-          name="from-camera"
-          icon={isLoading ? <IconSpinner width={18} height={18} /> : <IconCamera size={24} />}
-          isFirst={true}
-          description="Take a photo"
-          onClick={() => pickPhoto("camera")}
-        />
-        <BottomSheetItem
-          title="From Photo Library"
-          name="from-photo-library"
-          icon={isLoading ? <IconSpinner width={18} height={18} /> : <IconPicture size={24} />}
-          description="Pick photo from your photo library"
-          onClick={() => pickPhoto("photo-library")}
-        />
-      </View>
+      <FormSheet>{content}</FormSheet>
     </SheetScreenContainer>
   );
 }

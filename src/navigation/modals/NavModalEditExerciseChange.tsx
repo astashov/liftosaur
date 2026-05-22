@@ -3,6 +3,7 @@ import { View } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { Text } from "../../components/primitives/text";
 import { Button } from "../../components/button";
 import { IState } from "../../models/state";
@@ -54,63 +55,65 @@ export function NavModalEditExerciseChange(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose} shouldShowClose={true}>
-      <View className="mb-2 text-center">
-        <Text className="text-lg font-semibold text-center">Change Exercise</Text>
-      </View>
-      <View className="flex-row w-full" style={{ gap: 16 }}>
-        <View className="flex-1">
-          <Button
-            className="text-center"
-            name="edit-exercise-change-one"
-            data-testid="edit-exercise-change-one"
-            testID="edit-exercise-change-one"
-            kind="purple"
-            onClick={() => {
-              plannerDispatch(
-                [
-                  lbUi.p("editExerciseModal").record(undefined),
-                  lbUi.p("exercisePicker").record({
-                    state: pickerStateFromPlannerExercise(settings, editExerciseModal!.plannerExercise),
-                    exerciseKey: editExerciseModal!.plannerExercise.key,
-                    dayData: editExerciseModal!.plannerExercise.dayData,
-                    change: "one",
-                  }),
-                ],
-                "Change exercise for one instance"
-              );
-              navigation.goBack();
-            }}
-          >
-            Change only for this week/day
-          </Button>
+      <FormSheet>
+        <View className="mb-2 text-center">
+          <Text className="text-lg font-semibold text-center">Change Exercise</Text>
         </View>
-        <View className="flex-1">
-          <Button
-            className="text-center"
-            name="edit-exercise-change-all"
-            data-testid="edit-exercise-change-all"
-            testID="edit-exercise-change-all"
-            kind="purple"
-            onClick={() => {
-              plannerDispatch(
-                [
-                  lbUi.p("editExerciseModal").record(undefined),
-                  lbUi.p("exercisePicker").record({
-                    state: pickerStateFromPlannerExercise(settings, editExerciseModal!.plannerExercise),
-                    exerciseKey: editExerciseModal!.plannerExercise.key,
-                    dayData: editExerciseModal!.plannerExercise.dayData,
-                    change: "all",
-                  }),
-                ],
-                "Change exercise for all instances"
-              );
-              navigation.goBack();
-            }}
-          >
-            Change across whole program
-          </Button>
+        <View className="flex-row w-full" style={{ gap: 16 }}>
+          <View className="flex-1">
+            <Button
+              className="text-center"
+              name="edit-exercise-change-one"
+              data-testid="edit-exercise-change-one"
+              testID="edit-exercise-change-one"
+              kind="purple"
+              onClick={() => {
+                plannerDispatch(
+                  [
+                    lbUi.p("editExerciseModal").record(undefined),
+                    lbUi.p("exercisePicker").record({
+                      state: pickerStateFromPlannerExercise(settings, editExerciseModal!.plannerExercise),
+                      exerciseKey: editExerciseModal!.plannerExercise.key,
+                      dayData: editExerciseModal!.plannerExercise.dayData,
+                      change: "one",
+                    }),
+                  ],
+                  "Change exercise for one instance"
+                );
+                navigation.goBack();
+              }}
+            >
+              Change only for this week/day
+            </Button>
+          </View>
+          <View className="flex-1">
+            <Button
+              className="text-center"
+              name="edit-exercise-change-all"
+              data-testid="edit-exercise-change-all"
+              testID="edit-exercise-change-all"
+              kind="purple"
+              onClick={() => {
+                plannerDispatch(
+                  [
+                    lbUi.p("editExerciseModal").record(undefined),
+                    lbUi.p("exercisePicker").record({
+                      state: pickerStateFromPlannerExercise(settings, editExerciseModal!.plannerExercise),
+                      exerciseKey: editExerciseModal!.plannerExercise.key,
+                      dayData: editExerciseModal!.plannerExercise.dayData,
+                      change: "all",
+                    }),
+                  ],
+                  "Change exercise for all instances"
+                );
+                navigation.goBack();
+              }}
+            >
+              Change across whole program
+            </Button>
+          </View>
         </View>
-      </View>
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

@@ -20,7 +20,7 @@ import { Input, IValidationError } from "../input";
 import { IEither } from "../../utils/types";
 import { ExercisePickerTemplate } from "./exercisePickerTemplate";
 import { IconFilter } from "../icons/iconFilter";
-import { SheetDragHandle } from "../../navigation/SheetScreenContainer";
+import { SheetDragHandle } from "../../navigation/TransparentModal";
 import { getNavigationRef } from "../../navigation/navUtils";
 
 interface IProps {

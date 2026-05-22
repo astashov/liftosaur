@@ -2,6 +2,7 @@ import { JSX, useMemo } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
+import { TransparentModal } from "../TransparentModal";
 import { BottomSheetMonthCalendarContent } from "../../components/bottomSheetMonthCalendar";
 import { History_getPersonalRecords } from "../../models/history";
 import { CollectionUtils_sort } from "../../utils/collection";
@@ -43,22 +44,24 @@ export function NavModalMonthCalendar(): JSX.Element {
 
   return (
     <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
-      <BottomSheetMonthCalendarContent
-        prs={prs}
-        firstDayOfWeeks={firstDayOfWeeks}
-        history={sortedHistory}
-        startWeekFromMonday={startWeekFromMonday}
-        selectedFirstDayOfWeek={selectedFirstDayOfWeek}
-        visibleRecords={sortedHistory.length}
-        onClick={(historyRecord) => {
-          updateState(
-            dispatch,
-            [lb<IState>().p("scrollToHistoryRecordId").record(historyRecord.id)],
-            "Scroll to history record from calendar"
-          );
-          onClose();
-        }}
-      />
+      <TransparentModal onClose={onClose}>
+        <BottomSheetMonthCalendarContent
+          prs={prs}
+          firstDayOfWeeks={firstDayOfWeeks}
+          history={sortedHistory}
+          startWeekFromMonday={startWeekFromMonday}
+          selectedFirstDayOfWeek={selectedFirstDayOfWeek}
+          visibleRecords={sortedHistory.length}
+          onClick={(historyRecord) => {
+            updateState(
+              dispatch,
+              [lb<IState>().p("scrollToHistoryRecordId").record(historyRecord.id)],
+              "Scroll to history record from calendar"
+            );
+            onClose();
+          }}
+        />
+      </TransparentModal>
     </SheetScreenContainer>
   );
 }

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
 const React = require("react");
 const RNW = require("react-native-web");
 

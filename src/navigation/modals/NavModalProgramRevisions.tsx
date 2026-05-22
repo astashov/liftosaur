@@ -3,6 +3,7 @@ import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { useAppContext } from "../../components/appContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
+import { TransparentModal } from "../TransparentModal";
 import { ModalPlannerProgramRevisionsContent } from "../../pages/planner/modalPlannerProgramRevisions";
 import { IPlannerState } from "../../pages/planner/models/types";
 import { IState } from "../../models/state";
@@ -49,21 +50,23 @@ export function NavModalProgramRevisions(): JSX.Element {
 
   return (
     <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
-      <ModalPlannerProgramRevisionsContent
-        programId={programId}
-        client={service.client}
-        revisions={revisions}
-        onClose={onClose}
-        onRestore={(text) => {
-          window.isUndoing = true;
-          const weeks = PlannerProgram_evaluateText(text);
-          plannerDispatch(
-            lb<IPlannerState>().p("current").p("program").pi("planner").p("weeks").record(weeks),
-            "stop-is-undoing"
-          );
-          onClose();
-        }}
-      />
+      <TransparentModal onClose={onClose}>
+        <ModalPlannerProgramRevisionsContent
+          programId={programId}
+          client={service.client}
+          revisions={revisions}
+          onClose={onClose}
+          onRestore={(text) => {
+            window.isUndoing = true;
+            const weeks = PlannerProgram_evaluateText(text);
+            plannerDispatch(
+              lb<IPlannerState>().p("current").p("program").pi("planner").p("weeks").record(weeks),
+              "stop-is-undoing"
+            );
+            onClose();
+          }}
+        />
+      </TransparentModal>
     </SheetScreenContainer>
   );
 }

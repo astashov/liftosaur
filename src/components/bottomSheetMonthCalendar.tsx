@@ -5,7 +5,7 @@ import { MonthCalendar, IMonthCalendarRef } from "./monthCalendar";
 import { LinkButton } from "./linkButton";
 import { IHistoryRecord } from "../types";
 import { IPersonalRecords } from "../models/history";
-import { SheetDragHandle } from "../navigation/SheetScreenContainer";
+import { SheetDragHandle } from "../navigation/TransparentModal";
 
 export interface IBottomSheetMonthCalendarContentProps {
   firstDayOfWeeks: number[];

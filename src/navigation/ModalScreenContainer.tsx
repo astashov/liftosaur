@@ -1,7 +1,6 @@
-import { JSX, ReactNode, UIEvent, useEffect, useState } from "react";
+import { JSX, ReactNode, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { IconCloseCircleOutline } from "../components/icons/iconCloseCircleOutline";
-import type { IScrollEventLike } from "../utils/useScrollProgressiveList";
 
 interface IProps {
   children: ReactNode;
@@ -14,9 +13,6 @@ interface IProps {
   innerClassName?: string;
   shouldShowClose?: boolean;
   zIndex?: number;
-  overlay?: ReactNode;
-  overlayDetent?: number;
-  onScroll?: (e: IScrollEventLike) => void;
 }
 
 export function ModalScreenContainer(props: IProps): JSX.Element {
@@ -52,27 +48,12 @@ export function ModalScreenContainer(props: IProps): JSX.Element {
         }}
       >
         <div
-          className={`relative h-full ${props.noPaddings ? "" : "px-6"} ${
-            props.overflowHidden || props.overlay ? "overflow-hidden" : "overflow-auto"
+          className={`relative h-full flex flex-col ${props.noPaddings ? "" : "px-6"} ${
+            props.overflowHidden ? "overflow-hidden" : "overflow-auto"
           } ${props.innerClassName ?? ""}`}
-          onScroll={
-            props.onScroll
-              ? (e: UIEvent<HTMLDivElement>) => {
-                  const t = e.currentTarget;
-                  props.onScroll!({
-                    nativeEvent: {
-                      contentOffset: { y: t.scrollTop },
-                      contentSize: { height: t.scrollHeight },
-                      layoutMeasurement: { height: t.clientHeight },
-                    },
-                  });
-                }
-              : undefined
-          }
         >
           {props.children}
         </div>
-        {props.overlay}
         {props.shouldShowClose !== false && (
           <button
             data-testid="modal-close"

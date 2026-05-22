@@ -2,6 +2,7 @@ import { JSX } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { ModalNewEquipmentContent } from "../../components/modalNewEquipment";
 import { IState, updateState } from "../../models/state";
 import { IAllEquipment } from "../../types";
@@ -22,30 +23,32 @@ export function NavModalNewEquipment(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose}>
-      <ModalNewEquipmentContent
-        onClose={onClose}
-        onSelect={(name) => {
-          if (selectedGym) {
-            updateState(
-              dispatch,
-              [
-                lb<IState>()
-                  .p("storage")
-                  .p("settings")
-                  .p("gyms")
-                  .findBy("id", selectedGym.id)
-                  .p("equipment")
-                  .recordModify((oldEquipment: IAllEquipment) => {
-                    const id = `equipment-${UidFactory_generateUid(8)}`;
-                    return { ...oldEquipment, [id]: Equipment_build(name) };
-                  }),
-              ],
-              "Add new equipment"
-            );
-          }
-          onClose();
-        }}
-      />
+      <FormSheet>
+        <ModalNewEquipmentContent
+          onClose={onClose}
+          onSelect={(name) => {
+            if (selectedGym) {
+              updateState(
+                dispatch,
+                [
+                  lb<IState>()
+                    .p("storage")
+                    .p("settings")
+                    .p("gyms")
+                    .findBy("id", selectedGym.id)
+                    .p("equipment")
+                    .recordModify((oldEquipment: IAllEquipment) => {
+                      const id = `equipment-${UidFactory_generateUid(8)}`;
+                      return { ...oldEquipment, [id]: Equipment_build(name) };
+                    }),
+                ],
+                "Add new equipment"
+              );
+            }
+            onClose();
+          }}
+        />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

@@ -2,6 +2,7 @@ import { JSX, useMemo } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
+import { TransparentModal } from "../TransparentModal";
 import { BottomSheetCustomExerciseContent } from "../../components/bottomSheetCustomExercise";
 import { Exercise_handleCustomExerciseChange, Exercise_createCustomExercise } from "../../models/exercise";
 import { Program_getProgram } from "../../models/program";
@@ -29,16 +30,18 @@ export function NavModalCustomExercise(): JSX.Element {
 
   return (
     <SheetScreenContainer onClose={onClose}>
-      <BottomSheetCustomExerciseContent
-        settings={state.storage.settings}
-        isLoggedIn={!!state.user?.id}
-        exercise={exercise}
-        dispatch={dispatch}
-        onChange={(action, ex, notes) => {
-          Exercise_handleCustomExerciseChange(dispatch, action, ex, notes, state.storage.settings, currentProgram);
-        }}
-        onClose={onClose}
-      />
+      <TransparentModal onClose={onClose}>
+        <BottomSheetCustomExerciseContent
+          settings={state.storage.settings}
+          isLoggedIn={!!state.user?.id}
+          exercise={exercise}
+          dispatch={dispatch}
+          onChange={(action, ex, notes) => {
+            Exercise_handleCustomExerciseChange(dispatch, action, ex, notes, state.storage.settings, currentProgram);
+          }}
+          onClose={onClose}
+        />
+      </TransparentModal>
     </SheetScreenContainer>
   );
 }

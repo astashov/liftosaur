@@ -2,6 +2,7 @@ import { JSX, useCallback, useEffect, useMemo } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { ProgramPreviewPlaygroundExerciseEditContent } from "../../components/preview/programPreviewPlaygroundExerciseEditModal";
 import {
   Program_evaluate,
@@ -108,46 +109,48 @@ function NavModalPlaygroundEditExercisePlayground(props: { weekIndex: number; da
 
   return (
     <ModalScreenContainer onClose={onClose}>
-      <ProgramPreviewPlaygroundExerciseEditContent
-        programExercise={programExercise!}
-        settings={playgroundState!.settings}
-        onClose={onClose}
-        onEditStateVariable={(stateKey, newValue) => {
-          const dayData = Program_getDayData(evaluatedProgram!, day!);
-          const lensRecording = EditProgramLenses_properlyUpdateStateVariable(
-            lb<IEvaluatedProgram>()
-              .p("weeks")
-              .i(dayData.week - 1)
-              .p("days")
-              .i(dayData.dayInWeek - 1)
-              .p("exercises")
-              .find((e) => e.key === editModal!.programExerciseId),
-            {
-              [stateKey]: Program_stateValue(PlannerProgramExercise_getState(programExercise!), stateKey, newValue),
+      <FormSheet>
+        <ProgramPreviewPlaygroundExerciseEditContent
+          programExercise={programExercise!}
+          settings={playgroundState!.settings}
+          onClose={onClose}
+          onEditStateVariable={(stateKey, newValue) => {
+            const dayData = Program_getDayData(evaluatedProgram!, day!);
+            const lensRecording = EditProgramLenses_properlyUpdateStateVariable(
+              lb<IEvaluatedProgram>()
+                .p("weeks")
+                .i(dayData.week - 1)
+                .p("days")
+                .i(dayData.dayInWeek - 1)
+                .p("exercises")
+                .find((e) => e.key === editModal!.programExerciseId),
+              {
+                [stateKey]: Program_stateValue(PlannerProgramExercise_getState(programExercise!), stateKey, newValue),
+              }
+            );
+            const newEvalProgram = lensRecording.reduce((acc, lens) => lens.fn(acc), evaluatedProgram!);
+            playgroundOnProgramChange(playgroundDispatch, newEvalProgram, state.storage.stats, playgroundState!);
+          }}
+          onEditVariable={(variableKey, newValue) => {
+            if (!programExercise!.exerciseType) {
+              return;
             }
-          );
-          const newEvalProgram = lensRecording.reduce((acc, lens) => lens.fn(acc), evaluatedProgram!);
-          playgroundOnProgramChange(playgroundDispatch, newEvalProgram, state.storage.stats, playgroundState!);
-        }}
-        onEditVariable={(variableKey, newValue) => {
-          if (!programExercise!.exerciseType) {
-            return;
-          }
-          const exerciseType = Exercise_toKey(programExercise!.exerciseType);
-          const currentSettings = playgroundState!.settings;
-          const newSettings = {
-            ...currentSettings,
-            exerciseData: {
-              ...currentSettings.exerciseData,
-              [exerciseType]: {
-                ...currentSettings.exerciseData[exerciseType],
-                [variableKey]: Weight_build(newValue, currentSettings.units),
+            const exerciseType = Exercise_toKey(programExercise!.exerciseType);
+            const currentSettings = playgroundState!.settings;
+            const newSettings = {
+              ...currentSettings,
+              exerciseData: {
+                ...currentSettings.exerciseData,
+                [exerciseType]: {
+                  ...currentSettings.exerciseData[exerciseType],
+                  [variableKey]: Weight_build(newValue, currentSettings.units),
+                },
               },
-            },
-          };
-          playgroundOnSettingsChange(playgroundDispatch, newSettings, state.storage.stats, evaluatedProgram!);
-        }}
-      />
+            };
+            playgroundOnSettingsChange(playgroundDispatch, newSettings, state.storage.stats, evaluatedProgram!);
+          }}
+        />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }
@@ -216,34 +219,36 @@ function NavModalPreviewExerciseEditContent(props: {
   const { programExercise, settings, evaluatedProgram, day, plannerDispatch, onClose } = props;
   return (
     <ModalScreenContainer onClose={onClose}>
-      <ProgramPreviewPlaygroundExerciseEditContent
-        hideVariables={true}
-        programExercise={programExercise}
-        settings={settings}
-        onClose={onClose}
-        onEditStateVariable={(stateKey, newValue) => {
-          const dayData = Program_getDayData(evaluatedProgram, day);
-          const lensRecording = EditProgramLenses_properlyUpdateStateVariable(
-            lb<IEvaluatedProgram>()
-              .p("weeks")
-              .i(dayData.week - 1)
-              .p("days")
-              .i(dayData.dayInWeek - 1)
-              .p("exercises")
-              .find((e) => e.key === programExercise.key),
-            {
-              [stateKey]: Program_stateValue(PlannerProgramExercise_getState(programExercise), stateKey, newValue),
-            }
-          );
-          const newEvaluatedProgram = lensRecording.reduce((acc, lens) => lens.fn(acc), evaluatedProgram);
-          const newPlanner = new ProgramToPlanner(newEvaluatedProgram, settings).convertToPlanner();
-          plannerDispatch(
-            lb<IPlannerState>().p("current").p("program").p("planner").record(newPlanner),
-            "Update state variables from preview exercise modal"
-          );
-        }}
-        onEditVariable={() => {}}
-      />
+      <FormSheet>
+        <ProgramPreviewPlaygroundExerciseEditContent
+          hideVariables={true}
+          programExercise={programExercise}
+          settings={settings}
+          onClose={onClose}
+          onEditStateVariable={(stateKey, newValue) => {
+            const dayData = Program_getDayData(evaluatedProgram, day);
+            const lensRecording = EditProgramLenses_properlyUpdateStateVariable(
+              lb<IEvaluatedProgram>()
+                .p("weeks")
+                .i(dayData.week - 1)
+                .p("days")
+                .i(dayData.dayInWeek - 1)
+                .p("exercises")
+                .find((e) => e.key === programExercise.key),
+              {
+                [stateKey]: Program_stateValue(PlannerProgramExercise_getState(programExercise), stateKey, newValue),
+              }
+            );
+            const newEvaluatedProgram = lensRecording.reduce((acc, lens) => lens.fn(acc), evaluatedProgram);
+            const newPlanner = new ProgramToPlanner(newEvaluatedProgram, settings).convertToPlanner();
+            plannerDispatch(
+              lb<IPlannerState>().p("current").p("program").p("planner").record(newPlanner),
+              "Update state variables from preview exercise modal"
+            );
+          }}
+          onEditVariable={() => {}}
+        />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

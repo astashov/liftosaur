@@ -32,7 +32,9 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
 
   useEffect(() => {
     const regen = PlannerProgram_generateFullText(props.plannerProgram.weeks);
-    if (regen === expectedRegenRef.current) return;
+    if (regen === expectedRegenRef.current) {
+      return;
+    }
     expectedRegenRef.current = regen;
     setFulltext(regen);
   }, [props.plannerProgram.weeks]);
@@ -60,19 +62,11 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
           customExercises={props.settings.exercises}
           exerciseFullNames={exerciseFullNames}
           error={
-            props.ui.fullTextError
-              ? props.ui.fullTextError
-              : evaluatedWeeks.success
-                ? undefined
-                : evaluatedWeeks.error
+            props.ui.fullTextError ? props.ui.fullTextError : evaluatedWeeks.success ? undefined : evaluatedWeeks.error
           }
           value={fulltext}
           onCustomErrorCta={(err) => (
-            <EditProgramCustomErrorCta
-              dayData={{ week: 1, dayInWeek: 1 }}
-              dispatch={props.plannerDispatch}
-              err={err}
-            />
+            <EditProgramCustomErrorCta dayData={{ week: 1, dayInWeek: 1 }} dispatch={props.plannerDispatch} err={err} />
           )}
           onChange={(text) => {
             setFulltext(text);

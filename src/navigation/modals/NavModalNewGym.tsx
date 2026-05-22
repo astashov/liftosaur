@@ -2,6 +2,7 @@ import { JSX } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { ModalNewGymContent } from "../../components/modalNewGym";
 import { IState, updateState } from "../../models/state";
 import { lb } from "lens-shmens";
@@ -18,26 +19,28 @@ export function NavModalNewGym(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose}>
-      <ModalNewGymContent
-        onClose={onClose}
-        onSelect={(name) => {
-          updateState(
-            dispatch,
-            [
-              lb<IState>()
-                .p("storage")
-                .p("settings")
-                .p("gyms")
-                .recordModify((oldGyms) => {
-                  const id = `gym-${UidFactory_generateUid(8)}`;
-                  return [...oldGyms, { vtype: "gym" as const, id, name, equipment: Settings_defaultEquipment() }];
-                }),
-            ],
-            "Add new gym"
-          );
-          onClose();
-        }}
-      />
+      <FormSheet>
+        <ModalNewGymContent
+          onClose={onClose}
+          onSelect={(name) => {
+            updateState(
+              dispatch,
+              [
+                lb<IState>()
+                  .p("storage")
+                  .p("settings")
+                  .p("gyms")
+                  .recordModify((oldGyms) => {
+                    const id = `gym-${UidFactory_generateUid(8)}`;
+                    return [...oldGyms, { vtype: "gym" as const, id, name, equipment: Settings_defaultEquipment() }];
+                  }),
+              ],
+              "Add new gym"
+            );
+            onClose();
+          }}
+        />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

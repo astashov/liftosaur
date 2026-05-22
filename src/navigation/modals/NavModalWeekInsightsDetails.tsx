@@ -2,6 +2,7 @@ import { JSX, useMemo } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { WeekInsightsDetails } from "../../components/weekInsights";
 import { History_getPersonalRecords } from "../../models/history";
 import { CollectionUtils_sort } from "../../utils/collection";
@@ -36,15 +37,17 @@ export function NavModalWeekInsightsDetails(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose} shouldShowClose={true} isFullWidth={true}>
-      <WeekInsightsDetails
-        thisWeekHistory={thisWeekHistory}
-        prs={prs}
-        setResults={setResults}
-        settings={settings}
-        onOpenPlannerSettings={() => {
-          navigationRef.navigate("plannerSettingsModal", { context: "programHistory" });
-        }}
-      />
+      <FormSheet>
+        <WeekInsightsDetails
+          thisWeekHistory={thisWeekHistory}
+          prs={prs}
+          setResults={setResults}
+          settings={settings}
+          onOpenPlannerSettings={() => {
+            navigationRef.navigate("plannerSettingsModal", { context: "programHistory" });
+          }}
+        />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

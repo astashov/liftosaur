@@ -29,12 +29,15 @@ export function ModalDayFromAdhocContent(props: IModalChangeNextDayProps): JSX.E
 
   return (
     <>
-      <Text className="mt-4 mb-3 text-lg font-semibold text-center">Program day from Adhoc workout</Text>
-      <View className="mx-4 mb-2">
+      <View className="items-center justify-center mx-4 my-2">
+        <Text className="text-lg font-semibold text-center">Program day from Adhoc workout</Text>
+      </View>
+      <View className="justify-center mx-4 mb-2">
         <LinkButton
           name="create-program-from-adhoc"
           data-testid="create-program-from-adhoc"
           testID="create-program-from-adhoc"
+          className="text-sm text-center"
           onClick={() => {
             setShowCreateProgramModal(true);
           }}
@@ -42,7 +45,9 @@ export function ModalDayFromAdhocContent(props: IModalChangeNextDayProps): JSX.E
           Create a new program with this workout
         </LinkButton>
       </View>
-      <Text className="mx-4 mb-1 text-sm">or select day to add after in the existing program:</Text>
+      <View className="items-center justify-center mx-4 mb-1">
+        <Text className="text-sm">or select day to add after in the existing program:</Text>
+      </View>
       <NextDayPicker
         initialCurrentProgramId={props.initialCurrentProgramId}
         stats={props.stats}

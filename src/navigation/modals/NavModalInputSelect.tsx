@@ -1,8 +1,9 @@
 import { JSX } from "react";
-import { View, Pressable, Platform } from "react-native";
+import { View, Pressable } from "react-native";
 import { Text } from "../../components/primitives/text";
 import { useNavigation } from "@react-navigation/native";
 import { SheetScreenContainer } from "../SheetScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { useModalData, useModalDispatch, Modal_setResult, Modal_clear } from "../ModalStateContext";
 
 export function NavModalInputSelect(): JSX.Element {
@@ -20,7 +21,7 @@ export function NavModalInputSelect(): JSX.Element {
   }
 
   const content = (
-    <>
+    <View className="bg-background-default">
       {data.hint && (
         <View className="pt-4 pl-2 pr-8">
           <Text className="text-xs text-text-secondary">{data.hint}</Text>
@@ -63,16 +64,12 @@ export function NavModalInputSelect(): JSX.Element {
           </Pressable>
         ))}
       </View>
-    </>
+    </View>
   );
 
-  if (Platform.OS === "web") {
-    return (
-      <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
-        {content}
-      </SheetScreenContainer>
-    );
-  }
-
-  return <View className="bg-background-default">{content}</View>;
+  return (
+    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
+      <FormSheet>{content}</FormSheet>
+    </SheetScreenContainer>
+  );
 }

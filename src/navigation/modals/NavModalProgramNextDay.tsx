@@ -2,6 +2,7 @@ import { JSX } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { ModalProgramNextDayContent } from "../../components/modalProgramNextDay";
 import { Program_getProgram } from "../../models/program";
 import { IState, updateState } from "../../models/state";
@@ -33,31 +34,33 @@ export function NavModalProgramNextDay(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose} isFullWidth noPaddings>
-      <ModalProgramNextDayContent
-        stats={state.storage.stats}
-        initialCurrentProgramId={program.id}
-        allPrograms={[program]}
-        settings={state.storage.settings}
-        onSelect={(_, day) => {
-          updateState(
-            dispatch,
-            [lb<IState>().p("storage").p("programs").findBy("id", program.id).p("nextDay").record(day)],
-            `Select program day ${program.name} - ${day}`
-          );
-          if (plannerState) {
-            const plannerDispatch = buildPlannerDispatch(
+      <FormSheet>
+        <ModalProgramNextDayContent
+          stats={state.storage.stats}
+          initialCurrentProgramId={program.id}
+          allPrograms={[program]}
+          settings={state.storage.settings}
+          onSelect={(_, day) => {
+            updateState(
               dispatch,
-              lb<IState>().p("editProgramStates").p(programId),
-              plannerState
-            );
-            plannerDispatch(
-              [lb<IPlannerState>().p("current").p("program").p("nextDay").record(day)],
+              [lb<IState>().p("storage").p("programs").findBy("id", program.id).p("nextDay").record(day)],
               `Select program day ${program.name} - ${day}`
             );
-          }
-        }}
-        onClose={onClose}
-      />
+            if (plannerState) {
+              const plannerDispatch = buildPlannerDispatch(
+                dispatch,
+                lb<IState>().p("editProgramStates").p(programId),
+                plannerState
+              );
+              plannerDispatch(
+                [lb<IPlannerState>().p("current").p("program").p("nextDay").record(day)],
+                `Select program day ${program.name} - ${day}`
+              );
+            }
+          }}
+          onClose={onClose}
+        />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

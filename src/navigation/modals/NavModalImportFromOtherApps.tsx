@@ -2,6 +2,7 @@ import { JSX } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { ModalImportFromOtherAppsContent } from "../../components/modalImportFromOtherApps";
 
 export function NavModalImportFromOtherApps(): JSX.Element {
@@ -14,7 +15,9 @@ export function NavModalImportFromOtherApps(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose} isFullWidth>
-      <ModalImportFromOtherAppsContent settings={state.storage.settings} dispatch={dispatch} onClose={onClose} />
+      <FormSheet>
+        <ModalImportFromOtherAppsContent settings={state.storage.settings} dispatch={dispatch} onClose={onClose} />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

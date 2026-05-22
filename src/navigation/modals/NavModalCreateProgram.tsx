@@ -2,6 +2,7 @@ import { JSX } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { ModalCreateProgramContent } from "../../components/modalCreateProgram";
 import { EditProgram_create } from "../../models/editProgram";
 
@@ -15,13 +16,15 @@ export function NavModalCreateProgram(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose}>
-      <ModalCreateProgramContent
-        onSelect={(name) => {
-          EditProgram_create(dispatch, name);
-          onClose();
-        }}
-        onClose={onClose}
-      />
+      <FormSheet>
+        <ModalCreateProgramContent
+          onSelect={(name) => {
+            EditProgram_create(dispatch, name);
+            onClose();
+          }}
+          onClose={onClose}
+        />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

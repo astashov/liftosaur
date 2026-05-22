@@ -2,6 +2,7 @@ import { JSX, useEffect } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
+import { FormSheet } from "../FormSheet";
 import { ModalDateContent } from "../../components/modalDate";
 import type { IRootStackParamList } from "../types";
 
@@ -32,12 +33,14 @@ export function NavModalDate(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose}>
-      <ModalDateContent
-        dispatch={dispatch}
-        date={dateModal.date ?? ""}
-        time={dateModal.time ?? 0}
-        onDone={() => navigation.goBack()}
-      />
+      <FormSheet>
+        <ModalDateContent
+          dispatch={dispatch}
+          date={dateModal.date ?? ""}
+          time={dateModal.time ?? 0}
+          onDone={() => navigation.goBack()}
+        />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }
