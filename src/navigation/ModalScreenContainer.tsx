@@ -8,7 +8,6 @@ interface IProps {
   maxWidth?: string;
   isFullWidth?: boolean;
   isFullHeight?: boolean;
-  noPaddings?: boolean;
   overflowHidden?: boolean;
   innerClassName?: string;
   shouldShowClose?: boolean;
@@ -39,7 +38,7 @@ export function ModalScreenContainer(props: IProps): JSX.Element {
       <div
         data-name="modal"
         data-testid="modal"
-        className={`relative z-20 flex flex-col ${props.noPaddings ? "" : "py-6"} bg-background-default rounded-lg shadow-lg text-text-primary`}
+        className={`relative z-20 flex flex-col bg-background-default rounded-lg shadow-lg text-text-primary`}
         style={{
           maxWidth: props.maxWidth ?? "92%",
           maxHeight: "90%",
@@ -47,13 +46,7 @@ export function ModalScreenContainer(props: IProps): JSX.Element {
           height: props.isFullHeight ? "90%" : "auto",
         }}
       >
-        <div
-          className={`relative h-full flex flex-col ${props.noPaddings ? "" : "px-6"} ${
-            props.overflowHidden ? "overflow-hidden" : "overflow-auto"
-          } ${props.innerClassName ?? ""}`}
-        >
-          {props.children}
-        </div>
+        <div className={`relative h-full flex flex-col min-h-0 ${props.innerClassName ?? ""}`}>{props.children}</div>
         {props.shouldShowClose !== false && (
           <button
             data-testid="modal-close"

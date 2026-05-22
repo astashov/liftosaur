@@ -222,7 +222,7 @@ export function ModalPlannerSettingsContent(props: IModalPlannerSettingsProps): 
   );
 
   return (
-    <View className="pt-4 pb-6">
+    <View className="pb-4">
       <GroupHeader size="large" name="Muscle Settings" />
       <View className="mt-2" style={!props.inApp ? { minWidth: 512 } : undefined}>
         {!props.inApp && (

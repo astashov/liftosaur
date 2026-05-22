@@ -332,6 +332,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
             headerShown: false,
             animation: "default",
             sheetAllowedDetents: "fitToContents",
+            sheetGrabberVisible: true,
             contentStyle: { backgroundColor: Tailwind_semantic().background.default },
           }}
         >
