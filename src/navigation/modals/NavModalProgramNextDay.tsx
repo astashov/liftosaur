@@ -33,7 +33,7 @@ export function NavModalProgramNextDay(): JSX.Element {
   }
 
   return (
-    <ModalScreenContainer onClose={onClose} isFullWidth noPaddings>
+    <ModalScreenContainer onClose={onClose} isFullWidth>
       <FormSheet>
         <ModalProgramNextDayContent
           stats={state.storage.stats}

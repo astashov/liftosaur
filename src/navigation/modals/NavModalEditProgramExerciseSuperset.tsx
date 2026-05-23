@@ -78,7 +78,7 @@ export function NavModalEditProgramExerciseSuperset(): JSX.Element {
 
   return (
     <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
-      <FormSheet>{content}</FormSheet>
+      <FormSheet header="Select Superset Group">{content}</FormSheet>
     </SheetScreenContainer>
   );
 }

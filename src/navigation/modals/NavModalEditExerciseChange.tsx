@@ -55,11 +55,14 @@ export function NavModalEditExerciseChange(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={onClose} shouldShowClose={true}>
-      <FormSheet>
-        <View className="mb-2 text-center">
-          <Text className="text-lg font-semibold text-center">Change Exercise</Text>
-        </View>
-        <View className="flex-row w-full" style={{ gap: 16 }}>
+      <FormSheet
+        header={
+          <View className="py-2 text-center">
+            <Text className="text-lg font-semibold text-center">Change Exercise</Text>
+          </View>
+        }
+      >
+        <View className="flex-row w-full py-2" style={{ gap: 16 }}>
           <View className="flex-1">
             <Button
               className="text-center"

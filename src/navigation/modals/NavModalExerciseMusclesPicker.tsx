@@ -1,5 +1,5 @@
 import { JSX, useState } from "react";
-import { View, ScrollView } from "react-native";
+import { View } from "react-native";
 import { Text } from "../../components/primitives/text";
 import { useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
@@ -27,24 +27,27 @@ export function NavModalExerciseMusclesPicker(): JSX.Element {
     return <></>;
   }
 
-  const content = (
-    <>
-      <View collapsable={false} className="flex-row items-center px-4 my-6">
-        <Text className="flex-1 text-base font-semibold leading-6 text-center">{data.title}</Text>
-        <View className="absolute right-4">
-          <Button
-            kind="purple"
-            data-testid="done-selecting-muscles"
-            testID="done-selecting-muscles"
-            name="done-selecting-muscles"
-            buttonSize="md"
-            onPress={onClose}
-          >
-            Done
-          </Button>
-        </View>
+  const header = (
+    <View collapsable={false} className="flex-row items-center py-4">
+      <Text className="flex-1 text-base font-semibold leading-6 text-center">{data.title}</Text>
+      <View className="absolute right-4">
+        <Button
+          kind="purple"
+          data-testid="done-selecting-muscles"
+          testID="done-selecting-muscles"
+          name="done-selecting-muscles"
+          buttonSize="md"
+          onPress={onClose}
+        >
+          Done
+        </Button>
       </View>
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}>
+    </View>
+  );
+
+  return (
+    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
+      <FormSheet header={header}>
         <ExercisePickerOptionsMuscles
           selectedValues={selectedMuscles}
           onSelect={(muscle) => {
@@ -60,13 +63,7 @@ export function NavModalExerciseMusclesPicker(): JSX.Element {
           }}
           settings={state.storage.settings}
         />
-      </ScrollView>
-    </>
-  );
-
-  return (
-    <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
-      <FormSheet>{content}</FormSheet>
+      </FormSheet>
     </SheetScreenContainer>
   );
 }

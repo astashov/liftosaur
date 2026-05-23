@@ -32,7 +32,7 @@ function Bullet(props: IBulletProps): JSX.Element {
 
 export function ModalAffiliateContent(props: IModalAffiliateContentProps): JSX.Element {
   return (
-    <View className="px-4 pb-4">
+    <View className="pb-6">
       <GroupHeader size="large" name="Affiliate Program" />
       <View className="mb-6">
         <Text className="mb-3 text-lg font-semibold">How the Affiliate Program Works</Text>

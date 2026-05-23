@@ -67,14 +67,13 @@ export function NavModalProgramPreviewMuscles(): JSX.Element {
 
   return (
     <ModalScreenContainer onClose={() => navigation.goBack()} shouldShowClose={true} overflowHidden isFullHeight>
-      <FormSheet>
-        <View style={{ height: windowHeight * 0.85 }}>
-          <Text className="pb-2 text-xl font-bold text-center">{title}</Text>
-          <ScrollView className="flex-1" scrollEnabled={!isLocked}>
-            <MusclesView settings={settings} points={points} title={evaluatedProgram.name} />
-          </ScrollView>
-          {isLocked && <Locker topic="Muscles" dispatch={dispatch} blur={8} subscription={subscription} />}
-        </View>
+      <FormSheet
+        noPadding
+        scrollEnabled={!isLocked}
+        header={<Text className="px-4 pt-4 pb-2 text-xl font-bold text-center">{title}</Text>}
+      >
+        <MusclesView settings={settings} points={points} title={evaluatedProgram.name} />
+        {isLocked && <Locker topic="Muscles" dispatch={dispatch} blur={8} subscription={subscription} />}
       </FormSheet>
     </ModalScreenContainer>
   );

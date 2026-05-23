@@ -36,7 +36,7 @@ interface IBottomSheetMusclesOverrideProps {
   dispatch?: IDispatch;
 }
 
-function getMultiplierValue(multiplier: number | string | undefined): number {
+export function getMultiplierValue(multiplier: number | string | undefined): number {
   if (multiplier == null) {
     return 0;
   } else {
@@ -51,15 +51,17 @@ function getMultiplierValue(multiplier: number | string | undefined): number {
   }
 }
 
-type IMuscleAndMultiplierOpt = Omit<IMuscleMultiplier, "multiplier"> & { multiplier: number | string | undefined };
+export type IMuscleAndMultiplierOpt = Omit<IMuscleMultiplier, "multiplier"> & {
+  multiplier: number | string | undefined;
+};
 
-function getDefaultMusclesAndMultipliers(exercise: IExercise, settings: ISettings): IMuscleAndMultiplierOpt[] {
+export function getDefaultMusclesAndMultipliers(exercise: IExercise, settings: ISettings): IMuscleAndMultiplierOpt[] {
   const targets = Exercise_defaultTargetMuscles(exercise, settings).map((m) => ({ muscle: m, multiplier: 1 }));
   const synergists = Exercise_defaultSynergistMuscleMultipliers(exercise, settings);
   return CollectionUtils_sort([...targets, ...synergists], (a, b) => a.muscle.localeCompare(b.muscle));
 }
 
-function getDefaultMusclesAndMultipliersAsObject(
+export function getDefaultMusclesAndMultipliersAsObject(
   exercise: IExercise,
   settings: ISettings
 ): Partial<Record<string, number>> {
@@ -70,7 +72,7 @@ function getDefaultMusclesAndMultipliersAsObject(
   return result;
 }
 
-function getInitialMusclesAndMultipliers(exercise: IExercise, settings: ISettings): IMuscleAndMultiplierOpt[] {
+export function getInitialMusclesAndMultipliers(exercise: IExercise, settings: ISettings): IMuscleAndMultiplierOpt[] {
   const muscleMultipliers = settings.exerciseData[Exercise_toKey(exercise)]?.muscleMultipliers;
   if (muscleMultipliers != null) {
     return ObjectUtils_keys(muscleMultipliers).map((muscle) => ({
@@ -185,7 +187,7 @@ export function BottomSheetMusclesOverrideContent(props: IBottomSheetMusclesOver
   );
 }
 
-function MusclesOverrideList(props: {
+export function MusclesOverrideList(props: {
   musclesAndMultipliers: IMuscleAndMultiplierOpt[];
   setMusclesAndMultipliers: React.Dispatch<React.SetStateAction<IMuscleAndMultiplierOpt[]>>;
   helps: string[];

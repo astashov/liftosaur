@@ -63,37 +63,35 @@ export function NavModalEditUpdateScript(): JSX.Element {
     return <></>;
   }
 
-  const content = (
-    <ModalEditUpdateScriptContent
-      settings={state.storage.settings}
-      plannerExercise={plannerExercise!}
-      onClose={onClose}
-      onChange={(script) => {
-        plannerDispatch!(
-          lbProgram.recordModify((program) => {
-            return EditProgramUiHelpers_changeFirstInstance(
-              program,
-              plannerExercise!,
-              state.storage.settings,
-              true,
-              (e) => {
-                e.update = {
-                  ...e.update,
-                  type: "custom",
-                  script: script,
-                };
-              }
-            );
-          }),
-          "Update script"
-        );
-      }}
-    />
-  );
-
   return (
     <ModalScreenContainer onClose={onClose} isFullWidth isFullHeight>
-      <FormSheet>{content}</FormSheet>
+      <FormSheet header="Update Script">
+        <ModalEditUpdateScriptContent
+          settings={state.storage.settings}
+          plannerExercise={plannerExercise!}
+          onClose={onClose}
+          onChange={(script) => {
+            plannerDispatch!(
+              lbProgram.recordModify((program) => {
+                return EditProgramUiHelpers_changeFirstInstance(
+                  program,
+                  plannerExercise!,
+                  state.storage.settings,
+                  true,
+                  (e) => {
+                    e.update = {
+                      ...e.update,
+                      type: "custom",
+                      script: script,
+                    };
+                  }
+                );
+              }),
+              "Update script"
+            );
+          }}
+        />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

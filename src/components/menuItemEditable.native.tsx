@@ -1,5 +1,5 @@
 import { JSX, Dispatch, ReactNode, SetStateAction, useRef, useEffect, RefObject } from "react";
-import { View, Pressable, TextInput } from "react-native";
+import { View, Pressable, TextInput, Platform } from "react-native";
 import { Text } from "./primitives/text";
 import { Switch } from "./primitives/switch";
 import { MenuItemWrapper } from "./menuItem";
@@ -176,7 +176,15 @@ function NativeTextValue(props: {
       onBlur={() => props.onChange?.(currentValueRef.current)}
       keyboardType={props.keyboardType}
       maxLength={props.maxLength}
-      selectTextOnFocus
+      selectTextOnFocus={Platform.OS === "ios"}
+      onFocus={() => {
+        if (Platform.OS === "android") {
+          const len = currentValueRef.current.length;
+          if (len > 0) {
+            ref.current?.setNativeProps({ selection: { start: 0, end: len } });
+          }
+        }
+      }}
     />
   );
 }

@@ -5,6 +5,7 @@ import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
 import { DateUtils_formatYYYYMMDD } from "../utils/date";
 import { Input } from "./input";
+import { DatePicker } from "./datePicker";
 import { MathUtils_clamp } from "../utils/math";
 
 interface IModalDateContentProps {
@@ -16,29 +17,19 @@ interface IModalDateContentProps {
 
 export function ModalDateContent(props: IModalDateContentProps): JSX.Element {
   const initialDate = new Date(Date.parse(props.date));
-  const formattedDate = DateUtils_formatYYYYMMDD(initialDate);
   const hours = Math.floor(props.time / 3600000);
   const hoursStr = hours.toString().padStart(2, "0");
   const minutes = Math.floor((props.time % 3600000) / 60000);
   const minutesStr = minutes.toString().padStart(2, "0");
 
-  const [dateValue, setDateValue] = useState(formattedDate);
+  const [dateTimestamp, setDateTimestamp] = useState(initialDate.getTime());
   const [hoursValue, setHoursValue] = useState(hoursStr);
   const [minutesValue, setMinutesValue] = useState(minutesStr);
 
   return (
     <View>
       <Text className="pb-2 font-bold">Please enter new date</Text>
-      <Input
-        type="date"
-        placeholder="YYYY-MM-DD"
-        value={dateValue}
-        changeHandler={(e) => {
-          if (e.success) {
-            setDateValue(e.data);
-          }
-        }}
-      />
+      <DatePicker testID="modal-date-picker" value={dateTimestamp} onChange={setDateTimestamp} />
       <Text className="pt-2 font-bold">Please enter workout length</Text>
       <Text className="pb-2 text-xs text-text-secondary">(in hh:mm)</Text>
       <View className="flex-row items-center">
@@ -49,6 +40,7 @@ export function ModalDateContent(props: IModalDateContentProps): JSX.Element {
             value={hoursValue}
             inputSize="sm"
             labelSize="xs"
+            changeType="oninput"
             changeHandler={(e) => {
               if (e.success) {
                 setHoursValue(e.data);
@@ -66,6 +58,7 @@ export function ModalDateContent(props: IModalDateContentProps): JSX.Element {
             value={minutesValue}
             inputSize="sm"
             labelSize="xs"
+            changeType="oninput"
             changeHandler={(e) => {
               if (e.success) {
                 setMinutesValue(e.data);
@@ -74,7 +67,7 @@ export function ModalDateContent(props: IModalDateContentProps): JSX.Element {
           />
         </View>
       </View>
-      <View className="flex-row justify-end mt-4">
+      <View className="flex-row justify-between mt-4">
         <Button
           name="modal-date-cancel"
           kind="grayv2"
@@ -96,7 +89,11 @@ export function ModalDateContent(props: IModalDateContentProps): JSX.Element {
               isNaN(newHoursValue) || isNaN(newMinutesValue)
                 ? props.time
                 : MathUtils_clamp(newHoursValue, 0, 99) * 3600000 + MathUtils_clamp(newMinutesValue, 0, 60) * 60000;
-            props.dispatch({ type: "ConfirmDate", date: dateValue, time: newTime });
+            props.dispatch({
+              type: "ConfirmDate",
+              date: DateUtils_formatYYYYMMDD(new Date(dateTimestamp)),
+              time: newTime,
+            });
             props.onDone?.();
           }}
         >

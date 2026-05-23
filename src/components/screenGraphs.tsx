@@ -113,7 +113,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
 
   return (
     <ActiveGraphContext.Provider value={activeGraphValue}>
-      <View className="pt-4 pb-4">
+      <View className="pt-8 pb-4">
         {visibleGraphs.map((graph, i) => {
           const id = `${graph.type}-${graph.id}-${i}`;
           if (graph.type === "exercise") {

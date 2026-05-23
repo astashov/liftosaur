@@ -34,8 +34,8 @@ export function NavModalDayFromAdhoc(): JSX.Element {
   }
 
   return (
-    <ModalScreenContainer onClose={onClose} isFullWidth isFullHeight noPaddings>
-      <FormSheet>
+    <ModalScreenContainer onClose={onClose} isFullWidth isFullHeight>
+      <FormSheet header="Program day from Adhoc workout">
         <ModalDayFromAdhocContent
           initialCurrentProgramId={progress.programId}
           stats={state.storage.stats}

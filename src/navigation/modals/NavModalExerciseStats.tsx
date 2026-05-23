@@ -68,6 +68,10 @@ export function NavModalExerciseStats(): JSX.Element {
             onClose();
             navigationRef.navigate("musclesOverrideModal", { exerciseType: exercise });
           }}
+          onEditMuscleGroups={() => {
+            onClose();
+            navigationRef.navigate("editMuscleGroupsModal", { context: "editProgram", programId });
+          }}
         />
       </FormSheet>
     </ModalScreenContainer>

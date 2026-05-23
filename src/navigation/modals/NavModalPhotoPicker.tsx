@@ -30,7 +30,7 @@ export function NavModalPhotoPicker(): JSX.Element {
   };
 
   const content = (
-    <View className="p-4">
+    <View className="pb-4">
       <BottomSheetItem
         title="From Camera"
         name="from-camera"

@@ -323,7 +323,6 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="exerciseImageLibraryModal" component={NavModalExerciseImageLibrary} />
           <RootStack.Screen name="exerciseCloneLibraryModal" component={NavModalExerciseCloneLibrary} />
           <RootStack.Screen name="customExerciseModal" component={NavModalCustomExercise} />
-          <RootStack.Screen name="musclesOverrideModal" component={NavModalMusclesOverride} />
           <RootStack.Screen name="editProgramExercisePickerModal" component={NavModalEditProgramExercisePicker} />
         </RootStack.Group>
         <RootStack.Group
@@ -352,22 +351,14 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
             component={NavModalEditTarget}
             options={{ sheetResizeAnimationEnabled: false }}
           />
-          <RootStack.Screen
-            name="programPreviewMusclesModal"
-            component={NavModalProgramPreviewMuscles}
-            options={{ sheetAllowedDetents: [0.85] }}
-          />
+          <RootStack.Screen name="programPreviewMusclesModal" component={NavModalProgramPreviewMuscles} />
           <RootStack.Screen name="nextWorkoutModal" component={NavModalNextWorkout} />
           <RootStack.Screen name="graphsModal" component={NavModalGraphs} options={{ sheetAllowedDetents: [0.9] }} />
           <RootStack.Screen name="statsSettingsModal" component={NavModalStatsSettings} />
           <RootStack.Screen name="rm1Modal" component={NavModal1RM} />
           <RootStack.Screen name="repMaxCalculatorModal" component={NavModalRepMaxCalculator} />
           <RootStack.Screen name="dayFromAdhocModal" component={NavModalDayFromAdhoc} />
-          <RootStack.Screen
-            name="equipmentModal"
-            component={NavModalEquipment}
-            options={{ sheetAllowedDetents: [0.9] }}
-          />
+          <RootStack.Screen name="equipmentModal" component={NavModalEquipment} />
           <RootStack.Screen name="dateModal" component={NavModalDate} />
           <RootStack.Screen name="supersetPickerModal" component={NavModalWorkoutSuperset} />
           <RootStack.Screen name="exerciseImageSourceModal" component={NavModalExerciseImageSource} />
@@ -377,23 +368,16 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="newEquipmentModal" component={NavModalNewEquipment} />
           <RootStack.Screen name="newPlateModal" component={NavModalPlates} />
           <RootStack.Screen name="newFixedWeightModal" component={NavModalNewFixedWeight} />
-          <RootStack.Screen
-            name="exerciseMusclesPickerModal"
-            component={NavModalExerciseMusclesPicker}
-            options={{ sheetAllowedDetents: [0.9] }}
-          />
+          <RootStack.Screen name="exerciseMusclesPickerModal" component={NavModalExerciseMusclesPicker} />
           <RootStack.Screen name="editProgramMenuModal" component={NavModalEditProgramMenu} />
+          <RootStack.Screen name="musclesOverrideModal" component={NavModalMusclesOverride} />
           <RootStack.Screen name="programNextDayModal" component={NavModalProgramNextDay} />
           <RootStack.Screen name="weekStatsModal" component={NavModalWeekStats} />
           <RootStack.Screen name="dayStatsModal" component={NavModalDayStats} />
           <RootStack.Screen name="exerciseStatsModal" component={NavModalExerciseStats} />
           <RootStack.Screen name="editExerciseChangeModal" component={NavModalEditExerciseChange} />
           <RootStack.Screen name="editProgramExerciseSetModal" component={NavModalEditProgramExerciseSet} />
-          <RootStack.Screen
-            name="editProgramExerciseSupersetModal"
-            component={NavModalEditProgramExerciseSuperset}
-            options={{ sheetAllowedDetents: [0.6] }}
-          />
+          <RootStack.Screen name="editProgramExerciseSupersetModal" component={NavModalEditProgramExerciseSuperset} />
           <RootStack.Screen name="createStateVariableModal" component={NavModalCreateStateVariable} />
           <RootStack.Screen
             name="editProgressScriptModal"
@@ -413,12 +397,8 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           />
           <RootStack.Screen name="photoPickerModal" component={NavModalPhotoPicker} />
           <RootStack.Screen name="tourModal" component={NavModalTour} />
-          <RootStack.Screen name="helpModal" component={NavModalHelp} options={{ sheetAllowedDetents: [0.85] }} />
-          <RootStack.Screen
-            name="affiliateModal"
-            component={NavModalAffiliate}
-            options={{ sheetAllowedDetents: [0.85] }}
-          />
+          <RootStack.Screen name="helpModal" component={NavModalHelp} />
+          <RootStack.Screen name="affiliateModal" component={NavModalAffiliate} />
           <RootStack.Screen name="couponModal" component={NavModalCoupon} />
           <RootStack.Screen name="debugModal" component={NavModalDebug} />
           <RootStack.Screen name="editMuscleGroupsModal" component={NavModalEditMuscleGroups} />
@@ -436,11 +416,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
             component={NavModalCorruptedState}
             options={{ gestureEnabled: false }}
           />
-          <RootStack.Screen
-            name="changeNextDayModal"
-            component={NavModalChangeNextDay}
-            options={{ sheetAllowedDetents: [0.9] }}
-          />
+          <RootStack.Screen name="changeNextDayModal" component={NavModalChangeNextDay} />
         </RootStack.Group>
       </RootStack.Navigator>
     </InitialScreenContext.Provider>

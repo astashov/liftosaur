@@ -55,15 +55,16 @@ export function UsersContent(props: IUsersContentProps): JSX.Element {
                 <td className="px-2 align-top">{user.email}</td>
                 <td className="px-2 align-top">{user.programs.join(", ")}</td>
                 <td className="px-2 align-top">{user.totalHistory}</td>
-                <td className="px-2 align-top">
+                <td className="px-2 px-4 align-top">
                   {user.history.map((record) => (
-                    <HistoryRecordView
-                      key={record.id}
-                      isOngoing={false}
-                      historyRecord={record}
-                      settings={user.settings}
-                      dispatch={() => undefined}
-                    />
+                    <div className="pb-6" key={record.id}>
+                      <HistoryRecordView
+                        isOngoing={false}
+                        historyRecord={record}
+                        settings={user.settings}
+                        dispatch={() => undefined}
+                      />
+                    </div>
                   ))}
                 </td>
               </tr>

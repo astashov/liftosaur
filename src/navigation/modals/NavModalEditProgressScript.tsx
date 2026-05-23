@@ -63,39 +63,37 @@ export function NavModalEditProgressScript(): JSX.Element {
     return <></>;
   }
 
-  const content = (
-    <ModalEditProgressScriptContent
-      settings={state.storage.settings}
-      plannerExercise={plannerExercise!}
-      onClose={onClose}
-      onChange={(script) => {
-        plannerDispatch!(
-          lbProgram.recordModify((program) => {
-            return EditProgramUiHelpers_changeFirstInstance(
-              program,
-              plannerExercise!,
-              state.storage.settings,
-              true,
-              (e) => {
-                e.progress = {
-                  ...e.progress,
-                  type: "custom",
-                  state: e.progress?.state ?? {},
-                  stateMetadata: e.progress?.stateMetadata ?? {},
-                  script: script,
-                };
-              }
-            );
-          }),
-          "Update progress script"
-        );
-      }}
-    />
-  );
-
   return (
     <ModalScreenContainer onClose={onClose} isFullWidth isFullHeight>
-      <FormSheet>{content}</FormSheet>
+      <FormSheet header="Progress Script">
+        <ModalEditProgressScriptContent
+          settings={state.storage.settings}
+          plannerExercise={plannerExercise!}
+          onClose={onClose}
+          onChange={(script) => {
+            plannerDispatch!(
+              lbProgram.recordModify((program) => {
+                return EditProgramUiHelpers_changeFirstInstance(
+                  program,
+                  plannerExercise!,
+                  state.storage.settings,
+                  true,
+                  (e) => {
+                    e.progress = {
+                      ...e.progress,
+                      type: "custom",
+                      state: e.progress?.state ?? {},
+                      stateMetadata: e.progress?.stateMetadata ?? {},
+                      script: script,
+                    };
+                  }
+                );
+              }),
+              "Update progress script"
+            );
+          }}
+        />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

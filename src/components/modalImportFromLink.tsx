@@ -22,7 +22,7 @@ export function ModalImportFromLinkContent(props: { onSubmit: (value?: string) =
         changeHandler={setResult}
         handleRef={inputHandle}
       />
-      <View className="flex-row justify-end mt-4" style={{ gap: 12 }}>
+      <View className="flex-row justify-between mt-4" style={{ gap: 12 }}>
         <Button name="modal-import-from-link-cancel" kind="grayv2" onClick={() => props.onSubmit(undefined)}>
           Cancel
         </Button>

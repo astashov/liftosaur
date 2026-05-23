@@ -52,7 +52,7 @@ export function NavModalCorruptedState(): JSX.Element {
     <ModalScreenContainer onClose={onReset}>
       <FormSheet>
         <View>
-          <Text className="pt-2 pb-4 text-lg font-bold text-center">🚨 Corrupted Storage 🚨</Text>
+          <Text className="pb-4 text-lg font-bold text-center">🚨 Corrupted Storage 🚨</Text>
         </View>
         <View className="pb-4">
           <Text>

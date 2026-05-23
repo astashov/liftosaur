@@ -20,7 +20,6 @@ import { BottomSheetMuscleGroupMusclePicker } from "./bottomSheetMuscleGroupMusc
 import { StringUtils_dashcase } from "../utils/string";
 import { useModal } from "../navigation/ModalStateContext";
 import { getNavigationRef } from "../navigation/navUtils";
-import { Dialog_prompt } from "../utils/dialog";
 
 interface IProps {
   settings: ISettings;
@@ -37,24 +36,20 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
   const [showMusclePicker, setShowMusclePicker] = useState<IScreenMuscle | undefined>(undefined);
 
   const openTextInput = useModal("textInputModal", (name) => {
-    props.onCreate(name);
+    const trimmed = name.trim();
+    if (trimmed) {
+      props.onCreate(trimmed);
+    }
   });
 
-  const handleAddMuscleGroup = async (): Promise<void> => {
-    if (Platform.OS === "web") {
-      openTextInput({
-        title: "Enter new group name",
-        inputLabel: "Name",
-        placeholder: "My Group Name",
-        submitLabel: "Add",
-        dataCyPrefix: "modal-new-muscle-group",
-      });
-    } else {
-      const name = await Dialog_prompt("Enter new group name");
-      if (name && name.trim()) {
-        props.onCreate(name.trim());
-      }
-    }
+  const handleAddMuscleGroup = (): void => {
+    openTextInput({
+      title: "Enter new group name",
+      inputLabel: "Name",
+      placeholder: "My Group Name",
+      submitLabel: "Add",
+      dataCyPrefix: "modal-new-muscle-group",
+    });
   };
 
   return (
@@ -109,7 +104,7 @@ export function MuscleGroupsContent(props: IProps): JSX.Element {
           </MenuItemWrapper>
         );
       })}
-      <View className="pb-4">
+      <View className="pb-8">
         <LinkButton
           name="add-muscle-group"
           data-testid="add-muscle-group"

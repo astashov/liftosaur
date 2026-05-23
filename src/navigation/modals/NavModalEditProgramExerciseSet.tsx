@@ -57,18 +57,16 @@ export function NavModalEditProgramExerciseSet(): JSX.Element {
     return <></>;
   }
 
-  const content = (
-    <BottomSheetEditProgramExerciseSetContent
-      ui={plannerState!.ui}
-      evaluatedProgram={evaluatedProgram!}
-      plannerDispatch={plannerDispatch!}
-      settings={state.storage.settings}
-    />
-  );
-
   return (
     <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
-      <FormSheet>{content}</FormSheet>
+      <FormSheet header="Edit Set">
+        <BottomSheetEditProgramExerciseSetContent
+          ui={plannerState!.ui}
+          evaluatedProgram={evaluatedProgram!}
+          plannerDispatch={plannerDispatch!}
+          settings={state.storage.settings}
+        />
+      </FormSheet>
     </SheetScreenContainer>
   );
 }

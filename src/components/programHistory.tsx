@@ -164,16 +164,17 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
 
   const renderItem = useCallback(
     ({ item }: { item: IHistoryRecord }) => (
-      <HistoryRecordView
-        key={item.id}
-        isOngoing={isOngoing}
-        showTitle={true}
-        programDay={programDay}
-        prs={prs}
-        settings={props.settings}
-        historyRecord={item}
-        dispatch={dispatch}
-      />
+      <View key={item.id} className="mx-4 mb-6">
+        <HistoryRecordView
+          isOngoing={isOngoing}
+          showTitle={true}
+          programDay={programDay}
+          prs={prs}
+          settings={props.settings}
+          historyRecord={item}
+          dispatch={dispatch}
+        />
+      </View>
     ),
     [isOngoing, programDay, prs, props.settings, dispatch]
   );

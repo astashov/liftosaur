@@ -28,7 +28,7 @@ export function ModalNewGymContent(props: IProps): JSX.Element {
         className="px-4 py-3 text-base border rounded-lg border-border-neutral bg-background-default"
         style={{ fontFamily: "Poppins" }}
       />
-      <View className="flex-row justify-end gap-3 mt-4">
+      <View className="flex-row justify-between gap-3 mt-4">
         <Button name="add-gym-cancel" kind="grayv2" onClick={props.onClose}>
           Cancel
         </Button>

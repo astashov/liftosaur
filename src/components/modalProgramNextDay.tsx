@@ -17,7 +17,7 @@ interface IModalProgramNextDayProps {
 export function ModalProgramNextDayContent(props: IModalProgramNextDayProps): JSX.Element {
   return (
     <>
-      <View className="mt-4 mb-1 text-center">
+      <View className="mb-1 text-center">
         <Text className="text-lg font-semibold text-center">Change Next Day</Text>
       </View>
       <NextDayPicker

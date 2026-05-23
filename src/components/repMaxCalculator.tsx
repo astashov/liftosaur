@@ -13,11 +13,11 @@ interface IRepMaxCalculatorProps {
 }
 
 export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
-  const [knownRepsValue, setKnownRepsValue] = useState<number>(5);
-  const [knownRpeValue, setKnownRpeValue] = useState<number>(10);
-  const [knownWeightValue, setKnownWeightValue] = useState<number>(200);
-  const [targetRepsValue, setTargetRepsValue] = useState<number>(1);
-  const [targetRpeValue, setTargetRpeValue] = useState<number>(10);
+  const [knownReps, setKnownReps] = useState<string>("5");
+  const [knownRpe, setKnownRpe] = useState<string>("10");
+  const [knownWeight, setKnownWeight] = useState<string>("200");
+  const [targetReps, setTargetReps] = useState<string>("1");
+  const [targetRpe, setTargetRpe] = useState<string>("10");
 
   function parseAndClamp(raw: string, type: "int" | "float", min: number, max: number): number {
     const num = type === "int" ? parseInt(raw, 10) : parseFloat(raw);
@@ -26,11 +26,11 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
   }
 
   const weight = Weight_calculateRepMax(
-    knownRepsValue,
-    knownRpeValue,
-    knownWeightValue,
-    targetRepsValue,
-    targetRpeValue
+    parseAndClamp(knownReps, "int", 1, 24),
+    parseAndClamp(knownRpe, "float", 1, 10),
+    parseAndClamp(knownWeight, "float", 1, 9999),
+    parseAndClamp(targetReps, "int", 1, 24),
+    parseAndClamp(targetRpe, "float", 1, 10)
   );
 
   return (
@@ -45,13 +45,14 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
             data-testid="rep-max-calculator-known-reps"
             testID="rep-max-calculator-known-reps"
             identifier="rep-max-calculator-known-reps"
-            value={knownRepsValue}
+            value={knownReps}
             maxLength={2}
             min={1}
             max={24}
+            changeType="oninput"
             changeHandler={(e) => {
               if (e.success) {
-                setKnownRepsValue(parseAndClamp(e.data, "int", 1, 24));
+                setKnownReps(e.data);
               }
             }}
           />
@@ -61,7 +62,7 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
           <Input
             type="number"
             label="RPE"
-            value={knownRpeValue}
+            value={knownRpe}
             maxLength={4}
             data-testid="rep-max-calculator-known-rpe"
             testID="rep-max-calculator-known-rpe"
@@ -69,9 +70,10 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
             min={1}
             max={10}
             step="0.5"
+            changeType="oninput"
             changeHandler={(e) => {
               if (e.success) {
-                setKnownRpeValue(parseAndClamp(e.data, "float", 1, 10));
+                setKnownRpe(e.data);
               }
             }}
           />
@@ -84,13 +86,14 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
             data-testid="rep-max-calculator-known-weight"
             testID="rep-max-calculator-known-weight"
             identifier="rep-max-calculator-known-weight"
-            value={knownWeightValue}
+            value={knownWeight}
             maxLength={8}
             max={99999}
             min={0}
+            changeType="oninput"
             changeHandler={(e) => {
               if (e.success) {
-                setKnownWeightValue(parseAndClamp(e.data, "float", 1, 9999));
+                setKnownWeight(e.data);
               }
             }}
           />
@@ -105,13 +108,14 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
             data-testid="rep-max-calculator-target-reps"
             testID="rep-max-calculator-target-reps"
             identifier="rep-max-calculator-target-reps"
-            value={targetRepsValue}
+            value={targetReps}
             label="Reps"
             min={1}
             max={24}
+            changeType="oninput"
             changeHandler={(e) => {
               if (e.success) {
-                setTargetRepsValue(parseAndClamp(e.data, "int", 1, 24));
+                setTargetReps(e.data);
               }
             }}
           />
@@ -124,13 +128,14 @@ export function RepMaxCalculator(props: IRepMaxCalculatorProps): JSX.Element {
             testID="rep-max-calculator-target-rpe"
             identifier="rep-max-calculator-target-rpe"
             label="RPE"
-            value={targetRpeValue}
+            value={targetRpe}
             min={1}
             max={10}
             step="0.5"
+            changeType="oninput"
             changeHandler={(e) => {
               if (e.success) {
-                setTargetRpeValue(parseAndClamp(e.data, "float", 1, 10));
+                setTargetRpe(e.data);
               }
             }}
           />

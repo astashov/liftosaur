@@ -41,9 +41,6 @@ export function BottomSheetEditProgramExerciseSupersetContent(
 
   return (
     <View className="bg-background-default flex-1">
-      <View className="relative py-2 mt-2">
-        <Text className="text-lg font-semibold text-center">Select Superset Group</Text>
-      </View>
       <View className="flex-1 pb-4">
         <Pressable
           key="none"

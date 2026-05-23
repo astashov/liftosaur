@@ -10,8 +10,8 @@ export function NavModalExercisePickerSettings(): JSX.Element {
   const { state, dispatch } = useAppState();
   return (
     <FormSheet>
-      <View className="px-4 pb-4 bg-background-default">
-        <Text className="pt-4 pb-3 text-base font-semibold text-center">Exercise Picker Settings</Text>
+      <View className="pb-4 bg-background-default">
+        <Text className="pb-3 text-base font-semibold text-center">Exercise Picker Settings</Text>
         <MenuItemEditable
           type="boolean"
           name="Keep existing program exercise logic when pick adhoc exercise"

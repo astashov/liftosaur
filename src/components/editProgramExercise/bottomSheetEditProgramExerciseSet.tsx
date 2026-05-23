@@ -1,6 +1,5 @@
 import type { JSX } from "react";
 import { View } from "react-native";
-import { Text } from "../primitives/text";
 import {
   IPlannerExerciseState,
   IPlannerExerciseUi,
@@ -56,80 +55,77 @@ export function BottomSheetEditProgramExerciseSetContent(props: IBottomSheetEdit
   }
 
   return (
-    <View className="bg-background-default pb-4">
+    <View className="bg-background-default">
       {set && (
-        <View>
-          <Text className="px-4 pt-1 text-base font-bold">Edit Set</Text>
-          <View className="px-4 py-2">
-            <MenuItemEditable
-              type="text"
-              name="Label"
-              value={set.label}
-              maxLength={8}
-              onChange={(value) => {
-                changeSet((s) => {
-                  s.label = value;
-                });
-              }}
-            />
-            <MenuItemEditable
-              type="boolean"
-              name="Reps Range"
-              value={set.minrep != null ? "true" : "false"}
-              onChange={(value) => {
-                changeSet((s) => {
-                  if (value === "true") {
-                    s.minrep = Math.min(s.maxrep ?? 5, s.minrep ?? 3);
-                  } else {
-                    s.minrep = undefined;
-                  }
-                });
-              }}
-            />
-            <MenuItemEditable
-              type="boolean"
-              name="Weight"
-              value={set.weight != null ? "true" : "false"}
-              onChange={(value) => {
-                changeSet((s) => {
-                  if (value === "true") {
-                    s.weight = s.weight ?? Weight_build(0, props.settings.units);
-                  } else {
-                    s.weight = undefined;
-                  }
-                });
-              }}
-            />
-            <MenuItemEditable
-              type="boolean"
-              name="RPE"
-              value={set.rpe != null ? "true" : "false"}
-              onChange={(value) => {
-                changeSet((s) => {
-                  if (value === "true") {
-                    s.rpe = s.rpe ?? 8;
-                  } else {
-                    s.rpe = undefined;
-                  }
-                });
-              }}
-            />
-            <MenuItemEditable
-              type="boolean"
-              name="Timer"
-              value={set.timer != null ? "true" : "false"}
-              onChange={(value) => {
-                changeSet((s) => {
-                  if (value === "true") {
-                    s.timer = s.timer ?? 120;
-                  } else {
-                    s.timer = undefined;
-                  }
-                });
-              }}
-            />
-          </View>
-        </View>
+        <>
+          <MenuItemEditable
+            type="text"
+            name="Label"
+            value={set.label}
+            maxLength={8}
+            onChange={(value) => {
+              changeSet((s) => {
+                s.label = value;
+              });
+            }}
+          />
+          <MenuItemEditable
+            type="boolean"
+            name="Reps Range"
+            value={set.minrep != null ? "true" : "false"}
+            onChange={(value) => {
+              changeSet((s) => {
+                if (value === "true") {
+                  s.minrep = Math.min(s.maxrep ?? 5, s.minrep ?? 3);
+                } else {
+                  s.minrep = undefined;
+                }
+              });
+            }}
+          />
+          <MenuItemEditable
+            type="boolean"
+            name="Weight"
+            value={set.weight != null ? "true" : "false"}
+            onChange={(value) => {
+              changeSet((s) => {
+                if (value === "true") {
+                  s.weight = s.weight ?? Weight_build(0, props.settings.units);
+                } else {
+                  s.weight = undefined;
+                }
+              });
+            }}
+          />
+          <MenuItemEditable
+            type="boolean"
+            name="RPE"
+            value={set.rpe != null ? "true" : "false"}
+            onChange={(value) => {
+              changeSet((s) => {
+                if (value === "true") {
+                  s.rpe = s.rpe ?? 8;
+                } else {
+                  s.rpe = undefined;
+                }
+              });
+            }}
+          />
+          <MenuItemEditable
+            type="boolean"
+            name="Timer"
+            value={set.timer != null ? "true" : "false"}
+            onChange={(value) => {
+              changeSet((s) => {
+                if (value === "true") {
+                  s.timer = s.timer ?? 120;
+                } else {
+                  s.timer = undefined;
+                }
+              });
+            }}
+          />
+        </>
       )}
     </View>
   );

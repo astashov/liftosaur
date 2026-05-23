@@ -201,7 +201,7 @@ function WorkoutShareImage(props: IWorkoutShareImageProps): JSX.Element {
 
   return (
     <View
-      className="absolute top-0 left-0 right-0 bottom-0"
+      className="absolute top-0 bottom-0 left-0 right-0"
       onLayout={(e) => {
         const { width: w, height: h } = e.nativeEvent.layout;
         if ((w !== parentSize.width || h !== parentSize.height) && w > 0 && h > 0) {
@@ -217,7 +217,7 @@ function WorkoutShareImage(props: IWorkoutShareImageProps): JSX.Element {
         {effectiveBgUri ? (
           <Image
             source={{ uri: effectiveBgUri }}
-            className="absolute top-0 left-0 right-0 bottom-0"
+            className="absolute top-0 bottom-0 left-0 right-0"
             resizeMode="cover"
           />
         ) : null}

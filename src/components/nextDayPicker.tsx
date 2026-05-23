@@ -94,7 +94,7 @@ function NextDayPickerDayImpl(props: INextDayPickerDayProps): JSX.Element | null
     return null;
   }
   return (
-    <View className="px-2">
+    <View>
       <MenuItemWrapper name={`next-day-picker-${dayIndex + 1}`} onClick={handlePress}>
         <View
           className={`flex-row px-2 py-2 ${dayIndex + 1 === props.highlightedDay ? "bg-background-purpledark" : ""}`}

@@ -67,7 +67,7 @@ export const HistoryRecordView = memo((props: IProps): JSX.Element => {
   };
 
   return (
-    <View data-testid="history-record" testID="history-record" className="pt-2 mx-4 mb-6">
+    <View data-testid="history-record" testID="history-record" className="pt-2">
       {props.showTitle && (
         <Text
           data-testid="history-record-date"

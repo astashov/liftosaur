@@ -403,7 +403,8 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
       scrollableContainer = scrollableContainer ?? document.documentElement;
 
       const contentEl = scrollableContainer.firstElementChild as HTMLElement | null;
-      if (scrollableContainer !== document.documentElement && contentEl) {
+      const insideShiftedSheet = scrollableContainer.closest(".bottom-sticked") != null;
+      if (scrollableContainer !== document.documentElement && contentEl && !insideShiftedSheet) {
         contentEl.style.paddingBottom = `${keyboardHeight}px`;
         paddedScrollerRef.current = contentEl;
       }

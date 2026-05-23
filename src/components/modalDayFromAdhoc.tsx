@@ -29,10 +29,7 @@ export function ModalDayFromAdhocContent(props: IModalChangeNextDayProps): JSX.E
 
   return (
     <>
-      <View className="items-center justify-center mx-4 my-2">
-        <Text className="text-lg font-semibold text-center">Program day from Adhoc workout</Text>
-      </View>
-      <View className="justify-center mx-4 mb-2">
+      <View className="justify-center pb-2">
         <LinkButton
           name="create-program-from-adhoc"
           data-testid="create-program-from-adhoc"

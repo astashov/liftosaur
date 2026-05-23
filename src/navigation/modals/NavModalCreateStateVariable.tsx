@@ -65,38 +65,36 @@ export function NavModalCreateStateVariable(): JSX.Element {
     return <></>;
   }
 
-  const content = (
-    <ModalCreateStateVariableContent
-      onClose={onClose}
-      onCreate={(name, type, isUserPrompted) => {
-        plannerDispatch!(
-          lbProgram.recordModify((program) => {
-            return EditProgramUiHelpers_changeFirstInstance(
-              program,
-              plannerExercise!,
-              state.storage.settings,
-              true,
-              (e) => {
-                const st = e.progress?.state;
-                const stateMetadata = e.progress?.stateMetadata;
-                if (st) {
-                  st[name] = type === "number" ? 0 : Weight_buildAny(0, type);
-                }
-                if (stateMetadata && isUserPrompted) {
-                  stateMetadata[name] = { userPrompted: true };
-                }
-              }
-            );
-          }),
-          "Add state variable"
-        );
-      }}
-    />
-  );
-
   return (
     <ModalScreenContainer onClose={onClose}>
-      <FormSheet>{content}</FormSheet>
+      <FormSheet header="Add New State Variable">
+        <ModalCreateStateVariableContent
+          onClose={onClose}
+          onCreate={(name, type, isUserPrompted) => {
+            plannerDispatch!(
+              lbProgram.recordModify((program) => {
+                return EditProgramUiHelpers_changeFirstInstance(
+                  program,
+                  plannerExercise!,
+                  state.storage.settings,
+                  true,
+                  (e) => {
+                    const st = e.progress?.state;
+                    const stateMetadata = e.progress?.stateMetadata;
+                    if (st) {
+                      st[name] = type === "number" ? 0 : Weight_buildAny(0, type);
+                    }
+                    if (stateMetadata && isUserPrompted) {
+                      stateMetadata[name] = { userPrompted: true };
+                    }
+                  }
+                );
+              }),
+              "Add state variable"
+            );
+          }}
+        />
+      </FormSheet>
     </ModalScreenContainer>
   );
 }

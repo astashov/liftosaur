@@ -66,7 +66,7 @@ export function NavModalWorkoutShare(): JSX.Element {
   const shouldShowHealthSync = HealthSync_eligibleForAppleHealth() || HealthSync_eligibleForGoogleHealth();
 
   const content = (
-    <View className="p-4">
+    <View className="pb-4">
       {isMobile && (
         <>
           <BottomSheetItem

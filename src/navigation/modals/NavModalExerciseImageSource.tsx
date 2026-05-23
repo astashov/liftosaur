@@ -60,7 +60,7 @@ export function NavModalExerciseImageSource(): JSX.Element {
   };
 
   const content = (
-    <View className="p-4 bg-background-default">
+    <View className="bg-background-default">
       <View>
         <Text className="text-xs text-center text-text-secondary">Prefer 2:3 aspect ratio</Text>
         <BottomSheetItem

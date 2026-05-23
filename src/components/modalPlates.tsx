@@ -29,7 +29,7 @@ export function ModalPlatesContent(props: IProps): JSX.Element {
         changeHandler={setResult}
         handleRef={inputHandle}
       />
-      <View className="flex-row justify-end gap-3 mt-4">
+      <View className="flex-row justify-between gap-3 mt-4">
         <Button name="modal-new-plate-weight-cancel" kind="grayv2" onClick={props.onClose}>
           Cancel
         </Button>

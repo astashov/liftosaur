@@ -30,7 +30,7 @@ export function NavModalTour(): JSX.Element {
   }
 
   return (
-    <ModalScreenContainer onClose={onClose} noPaddings shouldShowClose={false}>
+    <ModalScreenContainer onClose={onClose} shouldShowClose={false}>
       <FormSheet noPadding={true}>
         <TourModalContent
           stateTour={stateTour}

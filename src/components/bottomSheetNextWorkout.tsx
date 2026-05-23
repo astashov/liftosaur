@@ -17,6 +17,7 @@ import { Tailwind_colors } from "../utils/tailwindConfig";
 import { IconPlus2 } from "./icons/iconPlus2";
 import { Thunk_startProgramDay } from "../ducks/thunks";
 import { navigationRef } from "../navigation/navigationRef";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export interface IBottomSheetNextWorkoutContentProps {
   currentProgram?: IProgram;
@@ -42,14 +43,14 @@ export function BottomSheetNextWorkoutContent(props: IBottomSheetNextWorkoutCont
 
   return (
     <View>
-      <Text className="pt-3 pb-4 text-lg font-semibold text-center">New Workout</Text>
+      <Text className="pb-4 text-lg font-semibold text-center">New Workout</Text>
       {doesProgressNotMatchProgram && (
-        <Text className="mx-4 mb-1 text-xs text-center text-text-secondary">
+        <Text className="mb-1 text-xs text-center text-text-secondary">
           You currently have ongoing workout. Finish it first to see newly chosen program or a different day.
         </Text>
       )}
       {Program_isEmpty(props.currentProgram) && (
-        <Text className="mx-4 mb-1 text-xs text-center text-text-secondary">No program currently selected.</Text>
+        <Text className="mb-1 text-xs text-center text-text-secondary">No program currently selected.</Text>
       )}
       {programDay && nextHistoryRecord && (
         <HistoryRecordView
@@ -60,7 +61,7 @@ export function BottomSheetNextWorkoutContent(props: IBottomSheetNextWorkoutCont
           dispatch={props.dispatch}
         />
       )}
-      <View className="flex-row justify-between px-4 pb-4 bg-background-default">
+      <View className="flex-row justify-between pt-6 pb-4 bg-background-default">
         <LinkButton
           name="change-next-day"
           data-testid="change-next-day"

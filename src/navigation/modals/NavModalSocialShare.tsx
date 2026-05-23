@@ -31,7 +31,7 @@ export function NavModalSocialShare(): JSX.Element {
 
   return (
     <SheetScreenContainer onClose={() => navigation.goBack()} shouldShowClose={true}>
-      <FormSheet>{content}</FormSheet>
+      <FormSheet noPadding>{content}</FormSheet>
     </SheetScreenContainer>
   );
 }

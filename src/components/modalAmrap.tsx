@@ -208,7 +208,7 @@ export function ModalAmrapContent(props: IModalAmrapContentProps): JSX.Element {
           }}
         />
       )}
-      <View className="flex-row justify-end gap-3 mt-4">
+      <View className="flex-row justify-between gap-3 mt-4">
         <Button
           name="modal-amrap-clear"
           data-testid="modal-amrap-clear"

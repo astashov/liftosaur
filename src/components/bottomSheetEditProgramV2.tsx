@@ -24,7 +24,7 @@ export type IBottomSheetEditProgramV2ContentProps = Omit<IProps, "isHidden">;
 
 export function BottomSheetEditProgramV2Content(props: IBottomSheetEditProgramV2ContentProps): JSX.Element {
   return (
-    <View className="p-4">
+    <>
       <BottomSheetItem
         isFirst={true}
         name="copy-link"
@@ -75,6 +75,6 @@ export function BottomSheetEditProgramV2Content(props: IBottomSheetEditProgramV2
           />
         </>
       )}
-    </View>
+    </>
   );
 }

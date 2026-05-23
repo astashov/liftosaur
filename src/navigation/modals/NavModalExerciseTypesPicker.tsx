@@ -1,5 +1,5 @@
 import { JSX, useState } from "react";
-import { View, ScrollView } from "react-native";
+import { View } from "react-native";
 import { Text } from "../../components/primitives/text";
 import { useNavigation } from "@react-navigation/native";
 import { Button } from "../../components/button";
@@ -40,31 +40,32 @@ export function NavModalExerciseTypesPicker(): JSX.Element {
     return <></>;
   }
 
-  return (
-    <FormSheet>
-      <View collapsable={false} className="flex-row items-center px-4 my-6">
-        <Text className="flex-1 text-base font-semibold leading-6 text-center">Types</Text>
-        <View className="absolute right-4">
-          <Button kind="purple" name="done-selecting-types" buttonSize="md" onPress={onClose}>
-            Done
-          </Button>
-        </View>
+  const header = (
+    <View collapsable={false} className="flex-row items-center mb-4">
+      <Text className="flex-1 text-base font-semibold leading-6 text-center">Types</Text>
+      <View className="absolute right-4">
+        <Button kind="purple" name="done-selecting-types" buttonSize="md" onPress={onClose}>
+          Done
+        </Button>
       </View>
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}>
-        <ExercisePickerOptions
-          values={typeValues}
-          onSelect={(key) => {
-            setTypeValues(
-              ObjectUtils_mapValues(typeValues, (type: IFilterValue, k: IExerciseKind) => {
-                if (k === key) {
-                  return { ...type, isSelected: !type.isSelected };
-                }
-                return type;
-              })
-            );
-          }}
-        />
-      </ScrollView>
+    </View>
+  );
+
+  return (
+    <FormSheet header={header}>
+      <ExercisePickerOptions
+        values={typeValues}
+        onSelect={(key) => {
+          setTypeValues(
+            ObjectUtils_mapValues(typeValues, (type: IFilterValue, k: IExerciseKind) => {
+              if (k === key) {
+                return { ...type, isSelected: !type.isSelected };
+              }
+              return type;
+            })
+          );
+        }}
+      />
     </FormSheet>
   );
 }
