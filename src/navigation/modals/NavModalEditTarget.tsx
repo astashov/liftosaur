@@ -88,7 +88,7 @@ export function NavModalEditTarget(): JSX.Element {
   }
 
   const content = (
-    <CustomKeyboardProvider applySafeAreaBottom={false} inline>
+    <CustomKeyboardProvider applySafeAreaBottom={false} inline noShadow>
       <View className="bg-background-default">
         <BottomSheetEditTargetContent
           editSetModal={editSetModal}
@@ -105,7 +105,7 @@ export function NavModalEditTarget(): JSX.Element {
 
   return (
     <SheetScreenContainer onClose={onClose} shouldShowClose={true}>
-      <FormSheet>{content}</FormSheet>
+      <FormSheet noPadding>{content}</FormSheet>
     </SheetScreenContainer>
   );
 }

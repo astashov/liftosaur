@@ -20,7 +20,7 @@ export function ModalCreateProgramContent(props: Omit<IProps, "isHidden">): JSX.
 
   return (
     <View>
-      <Text className="py-2 text-xl font-bold text-center">Create Program</Text>
+      <Text className="pb-2 text-xl font-bold text-center">Create Program</Text>
       <Input
         identifier="modal-create-program"
         label="Program Name"

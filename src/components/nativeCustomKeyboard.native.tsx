@@ -1,5 +1,5 @@
-import { JSX, memo, ReactNode, useCallback, useMemo } from "react";
-import { View, Pressable, Platform, LayoutChangeEvent } from "react-native";
+import { JSX, memo, ReactNode, useCallback, useMemo, useRef } from "react";
+import { View, Pressable, Platform, LayoutChangeEvent, StyleSheet } from "react-native";
 import ReactNativeHapticFeedback from "react-native-haptic-feedback";
 import { Text } from "./primitives/text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -8,7 +8,11 @@ import { IconBackspace } from "./icons/iconBackspace";
 import { IconCalculator } from "./icons/iconCalculator";
 import { IPercentageUnit, IUnit } from "../types";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
-import { useMeasuredKeyboardHeightRef, useSetCustomKeyboardHeight } from "../navigation/CustomKeyboardContext";
+import {
+  useCustomKeyboardActiveId,
+  useMeasuredKeyboardHeightRef,
+  useSetCustomKeyboardHeight,
+} from "../navigation/CustomKeyboardContext";
 
 export interface INativeCustomKeyboardProps {
   onInput: (value: string) => void;
@@ -26,6 +30,7 @@ export interface INativeCustomKeyboardProps {
   onChangeUnits?: (unit: IUnit | IPercentageUnit) => void;
   selectedUnit?: IUnit | IPercentageUnit;
   applySafeAreaBottom?: boolean;
+  noShadow?: boolean;
 }
 
 const KEY_ROWS = [
@@ -40,10 +45,6 @@ const keyboardShadowStyle = Platform.select({
   default: {},
 });
 
-const semanticColors = Tailwind_semantic();
-const keyButtonPressedBg = semanticColors.background.neutral;
-const keyButtonDefaultBg = semanticColors.background.default;
-
 const HAPTIC_OPTIONS = { enableVibrateFallback: false, ignoreAndroidSystemSettings: false };
 
 export const NativeCustomKeyboard = memo(function NativeCustomKeyboard(props: INativeCustomKeyboardProps): JSX.Element {
@@ -52,6 +53,17 @@ export const NativeCustomKeyboard = memo(function NativeCustomKeyboard(props: IN
   const bottomPadding = applySafeAreaBottom ? insets.bottom : 0;
   const setKeyboardHeight = useSetCustomKeyboardHeight();
   const measuredHeightRef = useMeasuredKeyboardHeightRef();
+  const activeId = useCustomKeyboardActiveId();
+  const activeIdRef = useRef(activeId);
+  activeIdRef.current = activeId;
+  const colors = Tailwind_semantic();
+  const keyboardTopBorderStyle = {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border.neutral,
+  };
+  const cardPressedStyle = ({ pressed }: { pressed: boolean }): { backgroundColor?: string } => ({
+    backgroundColor: pressed ? colors.background.cardpurpleselected : undefined,
+  });
 
   const lastRow = useMemo(
     () => [props.allowNegative ? "-" : "", "0", props.allowDot ? "." : ""],
@@ -65,7 +77,9 @@ export const NativeCustomKeyboard = memo(function NativeCustomKeyboard(props: IN
       const h = e.nativeEvent.layout.height;
       if (h > 0) {
         measuredHeightRef.current = h;
-        setKeyboardHeight(h);
+        if (activeIdRef.current != null) {
+          setKeyboardHeight(h);
+        }
       }
     },
     [setKeyboardHeight, measuredHeightRef]
@@ -75,7 +89,7 @@ export const NativeCustomKeyboard = memo(function NativeCustomKeyboard(props: IN
     <View
       onLayout={onLayout}
       className="bg-background-default"
-      style={[{ paddingBottom: bottomPadding }, keyboardShadowStyle]}
+      style={[{ paddingBottom: bottomPadding }, props.noShadow ? keyboardTopBorderStyle : keyboardShadowStyle]}
     >
       {(props.keyboardAddon || props.enableCalculator) && (
         <View className="flex-row items-center gap-2 px-4 bg-background-subtle">
@@ -85,7 +99,8 @@ export const NativeCustomKeyboard = memo(function NativeCustomKeyboard(props: IN
               testID="keyboard-rm-calculator"
               data-testid="keyboard-rm-calculator"
               onPress={props.onShowCalculator}
-              className="flex-row items-center justify-center w-24 px-2 py-1 border rounded border-border-cardpurple bg-background-cardpurple my-2"
+              className="flex-row items-center justify-center w-24 px-2 py-1 my-2 border rounded border-border-cardpurple bg-background-cardpurple"
+              style={cardPressedStyle}
             >
               <Text className="mr-2">RM</Text>
               <IconCalculator size={14} />
@@ -119,7 +134,8 @@ export const NativeCustomKeyboard = memo(function NativeCustomKeyboard(props: IN
             testID="keyboard-close"
             data-testid="keyboard-close"
             onPress={props.onBlur}
-            className="w-full pt-2 pb-1 border rounded border-border-cardpurple bg-background-cardpurple items-center justify-center mb-4"
+            className="items-center justify-center w-full pt-2 pb-1 mb-4 border rounded border-border-cardpurple bg-background-cardpurple"
+            style={cardPressedStyle}
           >
             <IconKeyboardClose />
           </Pressable>
@@ -129,7 +145,8 @@ export const NativeCustomKeyboard = memo(function NativeCustomKeyboard(props: IN
               testID="keyboard-minus"
               data-testid="keyboard-minus"
               onPress={props.onMinus}
-              className="flex-1 p-2 border rounded rounded-r-none border-border-cardpurple bg-background-cardpurple items-center justify-center"
+              className="items-center justify-center flex-1 p-2 border rounded rounded-r-none border-border-cardpurple bg-background-cardpurple"
+              style={cardPressedStyle}
             >
               <Text className="text-icon-neutral">-</Text>
             </Pressable>
@@ -137,7 +154,8 @@ export const NativeCustomKeyboard = memo(function NativeCustomKeyboard(props: IN
               testID="keyboard-plus"
               data-testid="keyboard-plus"
               onPress={props.onPlus}
-              className="flex-1 p-2 border rounded rounded-l-none border-border-cardpurple bg-background-cardpurple items-center justify-center"
+              className="items-center justify-center flex-1 p-2 border rounded rounded-l-none border-border-cardpurple bg-background-cardpurple"
+              style={cardPressedStyle}
             >
               <Text className="text-icon-neutral">+</Text>
             </Pressable>
@@ -162,7 +180,8 @@ export const NativeCustomKeyboard = memo(function NativeCustomKeyboard(props: IN
             testID="keyboard-backspace"
             data-testid="keyboard-backspace"
             onPress={handleBackspace}
-            className="w-full h-10 mt-4 border rounded border-border-cardpurple bg-background-cardpurple items-center justify-center"
+            className="items-center justify-center w-full h-10 mt-4 border rounded border-border-cardpurple bg-background-cardpurple"
+            style={cardPressedStyle}
           >
             <IconBackspace />
           </Pressable>
@@ -172,18 +191,18 @@ export const NativeCustomKeyboard = memo(function NativeCustomKeyboard(props: IN
   );
 });
 
-const keyButtonStyle = ({ pressed }: { pressed: boolean }): { backgroundColor: string } => ({
-  backgroundColor: pressed ? keyButtonPressedBg : keyButtonDefaultBg,
-});
-
 const KeyButton = memo(function KeyButton(props: { label: string; onPress: (label: string) => void }): JSX.Element {
   const onPress = useCallback(() => props.onPress(props.label), [props.onPress, props.label]);
+  const colors = Tailwind_semantic();
+  const keyButtonStyle = ({ pressed }: { pressed: boolean }): { backgroundColor: string } => ({
+    backgroundColor: pressed ? colors.background.neutral : colors.background.default,
+  });
   return (
     <Pressable
       testID={`keyboard-button-${props.label}`}
       data-testid={`keyboard-button-${props.label}`}
       onPress={onPress}
-      className="flex-1 p-2 items-center rounded"
+      className="items-center flex-1 p-2 rounded"
       style={keyButtonStyle}
     >
       <Text className="text-2xl text-text-primary">{props.label}</Text>
@@ -202,6 +221,10 @@ const UnitButton = memo(function UnitButton(props: IUnitButtonProps): JSX.Elemen
     ReactNativeHapticFeedback.trigger("impactLight", HAPTIC_OPTIONS);
     props.onPress?.(props.unit);
   }, [props.onPress, props.unit]);
+  const colors = Tailwind_semantic();
+  const pressedStyle = ({ pressed }: { pressed: boolean }): { backgroundColor?: string } => ({
+    backgroundColor: pressed && !props.selected ? colors.background.cardpurpleselected : undefined,
+  });
   return (
     <Pressable
       testID={`keyboard-unit-${props.unit}`}
@@ -212,6 +235,7 @@ const UnitButton = memo(function UnitButton(props: IUnitButtonProps): JSX.Elemen
           ? "border-border-prominent bg-background-cardpurpleselected"
           : "border-border-cardpurple bg-background-cardpurple"
       }`}
+      style={pressedStyle}
     >
       <Text className="text-icon-neutral">{props.unit}</Text>
     </Pressable>

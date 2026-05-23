@@ -11,7 +11,7 @@ export function ModalImportFromLinkContent(props: { onSubmit: (value?: string) =
 
   return (
     <View>
-      <Text className="my-2 text-lg font-bold">Paste link from /program web editor</Text>
+      <Text className="mb-2 text-lg font-bold">Paste link from /program web editor</Text>
       <Input
         required={true}
         requiredMessage="Please paste a link"

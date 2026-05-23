@@ -24,7 +24,10 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
   const testId = `input-${StringUtils_dashcase(label || "")}`;
 
   useEffect(() => {
-    setText(String(value));
+    const parsed = Number(text);
+    if (isNaN(parsed) || parsed !== value) {
+      setText(String(value));
+    }
   }, [value]);
 
   function getNumericValue(t: string): number {
@@ -56,7 +59,12 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
             value={text}
             testID={props.testID || `${testId}-field`}
             data-testid={props.testID || `${testId}-field`}
-            onChangeText={setText}
+            onChangeText={(t) => {
+              setText(t);
+              if (t !== "" && !isNaN(Number(t))) {
+                onUpdate(getNumericValue(t));
+              }
+            }}
             onBlur={() => {
               const v = getNumericValue(text);
               setText(String(v));

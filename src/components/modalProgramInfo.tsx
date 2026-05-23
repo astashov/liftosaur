@@ -46,7 +46,7 @@ export function ModalProgramInfoContent(props: IProps): JSX.Element {
         </View>
       )}
       <SimpleMarkdown value={props.program.description} className="mt-4 text-sm" />
-      <View className="flex-row justify-center gap-3 mt-6">
+      <View className="flex-row justify-center gap-3 mt-4 mb-2">
         <Button
           name="preview-program"
           data-testid="preview-program"

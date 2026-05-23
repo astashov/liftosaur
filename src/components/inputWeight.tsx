@@ -26,7 +26,10 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
   const availableUnits = props.units ?? (["kg", "lb", "%"] as const);
 
   useEffect(() => {
-    setText(String(props.value.value));
+    const parsed = Number(text);
+    if (isNaN(parsed) || parsed !== props.value.value) {
+      setText(String(props.value.value));
+    }
     setUnit(props.value.unit);
   }, [props.value.value, props.value.unit]);
 
@@ -83,7 +86,12 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
               value={text}
               data-testid={testId}
               testID={testId}
-              onChangeText={setText}
+              onChangeText={(t) => {
+                setText(t);
+                if (t !== "" && !isNaN(Number(t))) {
+                  props.onUpdate(buildWeight(Number(t), unit));
+                }
+              }}
               onBlur={() => {
                 const value = getValue();
                 if (value != null) {

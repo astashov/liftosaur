@@ -38,7 +38,7 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
   const savedRef = useRef(false);
 
   return (
-    <View className="px-4 pb-4">
+    <View className="px-4 pt-2 pb-4">
       <Text className="py-2 text-base font-semibold text-center">Edit Set Target</Text>
       <MenuItemWrapper name="edit-set-target-reps">
         <View className="flex-row items-center py-2">

@@ -23,12 +23,12 @@ export function NavModalInputSelect(): JSX.Element {
   const content = (
     <View className="bg-background-default">
       {data.hint && (
-        <View className="pt-4 pl-2 pr-8">
+        <View className="pt-4 pr-6">
           <Text className="text-xs text-text-secondary">{data.hint}</Text>
         </View>
       )}
       <View
-        className="flex-col px-2 py-2"
+        className="flex-col py-2"
         data-testid={data.name ? `select-options-${data.name}` : undefined}
         testID={data.name ? `select-options-${data.name}` : undefined}
       >

@@ -60,6 +60,7 @@ export function CustomKeyboardProvider(props: {
   children: ReactNode;
   applySafeAreaBottom?: boolean;
   inline?: boolean;
+  noShadow?: boolean;
 }): JSX.Element {
   const [height, setHeight] = useState(0);
   const animatedHeight = useRef(new Animated.Value(0)).current;
@@ -154,6 +155,7 @@ export function CustomKeyboardProvider(props: {
       enableUnits={renderedConfig.enableUnits}
       selectedUnit={renderedConfig.selectedUnit}
       applySafeAreaBottom={props.applySafeAreaBottom}
+      noShadow={props.noShadow}
     />
   );
 
