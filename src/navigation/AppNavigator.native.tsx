@@ -339,11 +339,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="weekInsightsDetailsModal" component={NavModalWeekInsightsDetails} />
           <RootStack.Screen name="setSplitModal" component={NavModalSetSplit} />
           <RootStack.Screen name="plannerSettingsModal" component={NavModalPlannerSettings} />
-          <RootStack.Screen
-            name="muscleGroupMusclePickerModal"
-            component={NavModalMuscleGroupMusclePicker}
-            options={{ sheetAllowedDetents: [0.9] }}
-          />
+          <RootStack.Screen name="muscleGroupMusclePickerModal" component={NavModalMuscleGroupMusclePicker} />
           <RootStack.Screen name="accountModal" component={NavModalAccount} />
           <RootStack.Screen name="createProgramModal" component={NavModalCreateProgram} />
           <RootStack.Screen name="importFromLinkModal" component={NavModalImportFromLink} />
