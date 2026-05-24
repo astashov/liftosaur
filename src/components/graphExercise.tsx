@@ -185,7 +185,7 @@ function GraphExerciseInner(props: IGraphProps): JSX.Element {
   return (
     <View className="relative" testID="graph" data-testid="graph">
       <View testID="graph-data" data-testid="graph-data">
-        <View className="flex-row items-center flex-1 mb-1">
+        <View className="flex-row items-center mb-1">
           <View className="flex-1">
             <View>
               <Text className="text-lg font-semibold leading-6 text-left u-title">{props.title || exercise.name}</Text>
