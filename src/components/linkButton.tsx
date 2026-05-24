@@ -37,6 +37,7 @@ export function LinkButton(props: IProps): JSX.Element {
       testID={testID}
       data-testid={testID}
       disabled={props.disabled}
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
     >
       {containsString(children) ? <Text className={textCn}>{children}</Text> : children}
     </Pressable>
