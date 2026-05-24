@@ -20,7 +20,7 @@ import {
   Program_exportProgramToLink,
 } from "../models/program";
 import { getGoogleAccessToken } from "../utils/googleAccessToken";
-import { SignIn_google, SignIn_apple } from "../utils/signIn";
+import { SignIn_google, SignIn_apple, SignOut_google } from "../utils/signIn";
 import { Platform } from "react-native";
 import { Dialog_confirm, Dialog_alert } from "../utils/dialog";
 import { InAppReview_request } from "../utils/inAppReview";
@@ -283,6 +283,7 @@ export function Thunk_logOut(cb?: () => void): IThunk {
       } catch (e) {
         lg("ls-keychain-clear-auth-fail", { error: e instanceof Error ? e.message : String(e) });
       }
+      await SignOut_google();
       NativeWatchBridge_sendClearAuthToWatch();
     }
     if (cb) {

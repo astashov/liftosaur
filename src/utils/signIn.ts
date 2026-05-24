@@ -12,6 +12,10 @@ export async function SignIn_google(): Promise<IGoogleSignInResult | undefined> 
   throw new Error("SignIn_google is only supported on native platforms");
 }
 
+export async function SignOut_google(): Promise<void> {
+  // no-op on web
+}
+
 export async function SignIn_apple(): Promise<IAppleSignInResult | undefined> {
   throw new Error("SignIn_apple is only supported on native platforms");
 }

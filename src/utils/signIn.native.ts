@@ -22,9 +22,18 @@ const APPLE_SERVICE_ID = "com.liftosaur.www.signinapple";
 const APPLE_REDIRECT_URI = "https://www.liftosaur.com/appleauthcallback-mobile.html";
 const APPLE_DEEP_LINK_SCHEME = "com.liftosaur.www://apple-callback";
 
+export async function SignOut_google(): Promise<void> {
+  try {
+    await GoogleSignin.signOut();
+  } catch (e) {
+    // ignore — caller has already cleared local auth
+  }
+}
+
 export async function SignIn_google(): Promise<IGoogleSignInResult | undefined> {
   try {
     await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+    await GoogleSignin.signOut();
     const response = await GoogleSignin.signIn();
     if (isSuccessResponse(response)) {
       const tokens = await GoogleSignin.getTokens();
