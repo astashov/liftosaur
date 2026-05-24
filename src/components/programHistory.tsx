@@ -13,7 +13,7 @@ import { HistoryRecordsNullState } from "./historyRecordsNullState";
 import { CollectionUtils_sort } from "../utils/collection";
 import { Progress_isCurrent } from "../models/progress";
 import { Program_nextHistoryRecord } from "../models/program";
-import { navigationRef } from "../navigation/navigationRef";
+import { navigateToModal } from "../navigation/navigationService";
 import { useAppState } from "../navigation/StateContext";
 import { HistoryRecordView } from "./historyRecord";
 import { Program_evaluate, Program_getProgramDay } from "../models/program";
@@ -192,7 +192,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
           firstDayOfWeeks={firstDayOfWeeks}
           isLoading={isLoading}
           selectedFirstDayOfWeek={selectedFirstDayOfWeek}
-          onClick={() => navigationRef.navigate("monthCalendarModal")}
+          onClick={() => navigateToModal("monthCalendarModal")}
           onSelectFirstDayOfWeek={(firstDayOfWeek) => {
             setSelectedWeekCalendarFirstDayOfWeek(firstDayOfWeek);
           }}

@@ -33,7 +33,7 @@ import {
 } from "./editProgramUi/editProgramUiHelpers";
 import { IDispatch } from "../../ducks/types";
 import { IEvaluatedProgram } from "../../models/program";
-import { navigationRef } from "../../navigation/navigationRef";
+import { navigateToModal } from "../../navigation/navigationService";
 
 interface IEditProgramDayViewProps {
   state: IPlannerState;
@@ -102,7 +102,7 @@ export const EditProgramUiDayView = memo(function EditProgramUiDayView(props: IE
                   lb<IPlannerState>().p("ui").p("showDayStats").record(props.dayInWeekIndex),
                   "Show day stats"
                 );
-                navigationRef.navigate("dayStatsModal", { programId: props.programId });
+                navigateToModal("dayStatsModal", { programId: props.programId });
               }}
             >
               <IconMusclesD size={20} />

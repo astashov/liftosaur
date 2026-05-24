@@ -8,7 +8,7 @@ import { History_getPersonalRecords } from "../../models/history";
 import { CollectionUtils_sort } from "../../utils/collection";
 import { getWeekHistory } from "../../components/programHistory";
 import { WeekInsightsUtils_calculateSetResults } from "../../utils/weekInsightsUtils";
-import { navigationRef } from "../navigationRef";
+import { navigateToModal } from "../navigationService";
 import type { IRootStackParamList } from "../types";
 
 export function NavModalWeekInsightsDetails(): JSX.Element {
@@ -44,7 +44,7 @@ export function NavModalWeekInsightsDetails(): JSX.Element {
           setResults={setResults}
           settings={settings}
           onOpenPlannerSettings={() => {
-            navigationRef.navigate("plannerSettingsModal", { context: "programHistory" });
+            navigateToModal("plannerSettingsModal", { context: "programHistory" });
           }}
         />
       </FormSheet>

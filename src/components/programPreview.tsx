@@ -8,7 +8,7 @@ import { IPoints, Muscle_normalizePoints, Muscle_getPointsForProgram, Muscle_get
 import { Modal } from "./modal";
 import { MusclesView } from "./muscles/musclesView";
 import { Locker } from "./locker";
-import { navigationRef } from "../navigation/navigationRef";
+import { navigateToModal } from "../navigation/navigationService";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import {
   IEvaluatedProgram,
@@ -82,7 +82,7 @@ export function ProgramPreview(props: IProps): JSX.Element {
                 if (isWeb) {
                   setMusclesModal({ type: "program" });
                 } else {
-                  navigationRef.navigate("programPreviewMusclesModal", { type: "program" });
+                  navigateToModal("programPreviewMusclesModal", { type: "program" });
                 }
               }}
             >

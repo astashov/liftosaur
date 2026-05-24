@@ -14,7 +14,7 @@ import { IconWorkoutProgress } from "./icons/iconWorkoutProgress";
 import { IconEditor } from "./icons/iconEditor";
 import { IconTracker } from "./icons/iconTracker";
 import { ImagePreloader_preload } from "../utils/imagePreloader";
-import { navigationRef } from "../navigation/navigationRef";
+import { navigateToModal } from "../navigation/navigationService";
 import { BundledImages_resolve, BundledImages_svgXml } from "../utils/bundledImages";
 
 interface IProps {
@@ -116,7 +116,7 @@ export function ScreenFirst(props: IProps): JSX.Element {
             className="w-full"
             name="see-how-it-works"
             kind="transparent-purple"
-            onClick={() => navigationRef.navigate("accountModal")}
+            onClick={() => navigateToModal("accountModal")}
           >
             I have an account
           </Button>

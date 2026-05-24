@@ -51,7 +51,7 @@ import { n } from "../utils/math";
 import { Muscle_getMuscleGroupName } from "../models/muscle";
 import { IconDoc } from "./icons/iconDoc";
 import { LiftohistorySerializer_serialize } from "../liftohistory/liftohistorySerializer";
-import { navigationRef } from "../navigation/navigationRef";
+import { navigateToModal } from "../navigation/navigationService";
 
 interface IProps {
   history: IHistoryRecord[];
@@ -246,7 +246,7 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
         <View className="items-center">
           <Pressable
             className="nm-finishday-share-igstory"
-            onPress={() => navigationRef.navigate("socialShareModal", { type: "igstory" })}
+            onPress={() => navigateToModal("socialShareModal", { type: "igstory" })}
           >
             <IconInstagram />
           </Pressable>
@@ -255,7 +255,7 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
         <View className="items-center">
           <Pressable
             className="nm-finishday-share-igfeed"
-            onPress={() => navigationRef.navigate("socialShareModal", { type: "igfeed" })}
+            onPress={() => navigateToModal("socialShareModal", { type: "igfeed" })}
           >
             <IconInstagram />
           </Pressable>
@@ -264,7 +264,7 @@ function MobileShare(props: IMobileShareProps): JSX.Element {
         <View className="items-center">
           <Pressable
             className="nm-finishday-share-tiktok"
-            onPress={() => navigationRef.navigate("socialShareModal", { type: "tiktok" })}
+            onPress={() => navigateToModal("socialShareModal", { type: "tiktok" })}
           >
             <IconTiktok />
           </Pressable>

@@ -68,31 +68,43 @@ export function useLineChartGestures(args: ILineChartGesturesArgs): ILineChartGe
     argsRef.current.setViewport({ xMin: newXMin, xMax: newXMin + newRange });
   }, []);
 
-  const onPanStart = useCallback((focalX: number) => {
-    ensureSession(focalX);
-  }, [ensureSession]);
+  const onPanStart = useCallback(
+    (focalX: number) => {
+      ensureSession(focalX);
+    },
+    [ensureSession]
+  );
 
-  const onPanUpdate = useCallback((focalX: number) => {
-    const s = sessionRef.current;
-    if (!s) {
-      return;
-    }
-    s.focalX = focalX;
-    applyTransform();
-  }, [applyTransform]);
+  const onPanUpdate = useCallback(
+    (focalX: number) => {
+      const s = sessionRef.current;
+      if (!s) {
+        return;
+      }
+      s.focalX = focalX;
+      applyTransform();
+    },
+    [applyTransform]
+  );
 
-  const onPinchStart = useCallback((focalX: number) => {
-    ensureSession(focalX);
-  }, [ensureSession]);
+  const onPinchStart = useCallback(
+    (focalX: number) => {
+      ensureSession(focalX);
+    },
+    [ensureSession]
+  );
 
-  const onPinchUpdate = useCallback((scale: number) => {
-    const s = sessionRef.current;
-    if (!s) {
-      return;
-    }
-    s.scale = scale;
-    applyTransform();
-  }, [applyTransform]);
+  const onPinchUpdate = useCallback(
+    (scale: number) => {
+      const s = sessionRef.current;
+      if (!s) {
+        return;
+      }
+      s.scale = scale;
+      applyTransform();
+    },
+    [applyTransform]
+  );
 
   const onTwoFingerEnd = useCallback(() => {
     sessionRef.current = null;

@@ -7,7 +7,7 @@ import { IDispatch } from "../../ducks/types";
 import { IDayData, ISettings } from "../../types";
 import { INavCommon, IState } from "../../models/state";
 import { lb } from "lens-shmens";
-import { navigationRef } from "../../navigation/navigationRef";
+import { navigateToModal } from "../../navigation/navigationService";
 import { useUndoRedo } from "../../pages/builder/utils/undoredo";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { useNavOptions } from "../../navigation/useNavOptions";
@@ -72,7 +72,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
   const prevExercisePickerState = useRef(exercisePickerState);
   useEffect(() => {
     if (exercisePickerState && !prevExercisePickerState.current) {
-      navigationRef.navigate("editProgramExercisePickerModal", {
+      navigateToModal("editProgramExercisePickerModal", {
         context: "editProgramExercise",
         programId: props.programId,
         exerciseStateKey: props.exerciseStateKey,

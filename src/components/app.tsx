@@ -47,6 +47,7 @@ import { NavigationContainer, DefaultTheme, type NavigationState } from "@react-
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { navigationRef } from "../navigation/navigationRef";
+import { navigateToModal } from "../navigation/navigationService";
 import { getCurrentScreenData } from "../navigation/navigationService";
 import { StateContext } from "../navigation/StateContext";
 import { AppNavigator } from "../navigation/AppNavigator";
@@ -124,7 +125,7 @@ export function AppView(props: IProps): JSX.Element | null {
       return;
     }
     if (shouldShowWhatsNew && state.storage.whatsNew != null && !prevShouldShowWhatsNew.current) {
-      navigationRef.navigate("whatsnewModal");
+      navigateToModal("whatsnewModal");
     }
     prevShouldShowWhatsNew.current = !!(shouldShowWhatsNew && state.storage.whatsNew != null);
   }, [isNavReady, shouldShowWhatsNew, state.storage.whatsNew]);
@@ -136,7 +137,7 @@ export function AppView(props: IProps): JSX.Element | null {
       return;
     }
     if (showCorruptedState && !prevShowCorruptedState.current) {
-      navigationRef.navigate("corruptedStateModal");
+      navigateToModal("corruptedStateModal");
     }
     prevShowCorruptedState.current = showCorruptedState;
   }, [isNavReady, showCorruptedState]);
@@ -147,7 +148,7 @@ export function AppView(props: IProps): JSX.Element | null {
       return;
     }
     if (state.showSignupRequest && !prevShowSignupRequest.current) {
-      navigationRef.navigate("signupRequestModal");
+      navigateToModal("signupRequestModal");
     }
     prevShowSignupRequest.current = !!state.showSignupRequest;
   }, [isNavReady, state.showSignupRequest]);
@@ -157,7 +158,7 @@ export function AppView(props: IProps): JSX.Element | null {
       return;
     }
     if (state.tour) {
-      navigationRef.navigate("tourModal");
+      navigateToModal("tourModal");
     }
   }, [isNavReady, state.tour]);
 

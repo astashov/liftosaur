@@ -15,7 +15,7 @@ import { InputNumber2 } from "../../inputNumber2";
 import { EditProgramUiHelpers_changeFirstInstance } from "../../editProgram/editProgramUi/editProgramUiHelpers";
 import { InputWeight2 } from "../../inputWeight2";
 import { Button } from "../../button";
-import { navigationRef } from "../../../navigation/navigationRef";
+import { navigateToModal } from "../../../navigation/navigationService";
 
 import { IconTrash } from "../../icons/iconTrash";
 import { ScriptRunner } from "../../../parser";
@@ -170,7 +170,7 @@ export function CustomProgressSettings(props: ICustomProgressSettingsProps): JSX
             className="w-full text-sm"
             onClick={() => {
               props.plannerDispatch(lbUi.p("showAddStateVariableModal").record(true), "Show add state variable modal");
-              navigationRef.navigate("createStateVariableModal", {
+              navigateToModal("createStateVariableModal", {
                 exerciseStateKey: props.exerciseStateKey,
                 programId: props.programId,
               });

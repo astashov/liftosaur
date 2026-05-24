@@ -8,7 +8,7 @@ import { IState, updateState } from "../../models/state";
 import { lb, ILensRecordingPayload } from "lens-shmens";
 import { IPlannerState } from "../../pages/planner/models/types";
 import { buildPlannerDispatch } from "../../utils/plannerDispatch";
-import { navigationRef } from "../navigationRef";
+import { navigateToModal } from "../navigationService";
 import type { IRootStackParamList } from "../types";
 import { ISettings } from "../../types";
 
@@ -66,7 +66,7 @@ export function NavModalPlannerSettings(): JSX.Element {
           settings={settings}
           dispatch={settingsDispatch}
           onShowEditMuscleGroups={() => {
-            navigationRef.navigate("editMuscleGroupsModal", params);
+            navigateToModal("editMuscleGroupsModal", params);
           }}
           onClose={onClose}
         />

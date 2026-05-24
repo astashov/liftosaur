@@ -31,7 +31,7 @@ import { LinkButton } from "../linkButton";
 import { PlannerProgram_evaluate } from "../../pages/planner/models/plannerProgram";
 import { IconKebab } from "../icons/iconKebab";
 import { UidFactory_generateUid } from "../../utils/generator";
-import { navigationRef } from "../../navigation/navigationRef";
+import { navigateToModal } from "../../navigation/navigationService";
 import { ProgramPreview_buildWeeks, ProgramPreviewWeekContent } from "../preview/programPreviewTab";
 import { Nux } from "../nux";
 import { programTourConfig } from "../tour/programTourConfig";
@@ -110,7 +110,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
   const prevExercisePickerUi = useRef(exercisePickerUi);
   useEffect(() => {
     if (exercisePickerUi && !prevExercisePickerUi.current) {
-      navigationRef.navigate("editProgramExercisePickerModal", {
+      navigateToModal("editProgramExercisePickerModal", {
         context: "editProgram",
         programId,
         dayData: exercisePickerUi.dayData,
@@ -128,7 +128,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
         data-testid="navbar-3-dot"
         testID="navbar-3-dot"
         className="p-2 nm-edit-program-v2-navbar-kebab"
-        onPress={() => navigationRef.navigate("editProgramMenuModal", { programId })}
+        onPress={() => navigateToModal("editProgramMenuModal", { programId })}
       >
         <IconKebab />
       </Pressable>,
@@ -187,7 +187,7 @@ export function ScreenProgram(props: IProps): JSX.Element {
     dispatch(Thunk_pushScreen("programs"));
   }, [dispatch]);
   const onChangeDay = useCallback(() => {
-    navigationRef.navigate("programNextDayModal", { programId });
+    navigateToModal("programNextDayModal", { programId });
   }, [programId]);
   const onChangeName = useCallback(
     (newValue: string) => {

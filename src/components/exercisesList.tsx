@@ -30,7 +30,7 @@ import { ObjectUtils_values } from "../utils/object";
 import { Settings_activeCustomExercises } from "../models/settings";
 import { Program_evaluate, Program_getAllUsedProgramExercises } from "../models/program";
 import { Muscle_getAvailableMuscleGroups, Muscle_getMuscleGroupName } from "../models/muscle";
-import { navigationRef } from "../navigation/navigationRef";
+import { navigateToModal } from "../navigation/navigationService";
 import { useProgressiveItems } from "../utils/useProgressiveItems";
 
 interface IExercisesListProps {
@@ -178,7 +178,7 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
         />
       </View>
       <View className="items-end">
-        <LinkButton name="create-custom-exercise" onClick={() => navigationRef.navigate("customExerciseModal", {})}>
+        <LinkButton name="create-custom-exercise" onClick={() => navigateToModal("customExerciseModal", {})}>
           Create custom exercise
         </LinkButton>
       </View>

@@ -16,7 +16,7 @@ import { InputWeight2 } from "../inputWeight2";
 import { lb } from "lens-shmens";
 import { EditProgramUiHelpers_changeCurrentInstance2 } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { CollectionUtils_removeAt } from "../../utils/collection";
-import { navigationRef } from "../../navigation/navigationRef";
+import { navigateToModal } from "../../navigation/navigationService";
 
 export interface IEditSetColumnSpec {
   width?: number;
@@ -347,7 +347,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                   }),
                   "Open edit set bottom sheet"
                 );
-                navigationRef.navigate("editProgramExerciseSetModal", {
+                navigateToModal("editProgramExerciseSetModal", {
                   exerciseStateKey: props.exerciseStateKey,
                   programId: props.programId,
                 });

@@ -21,7 +21,7 @@ import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
 import { IEvaluatedProgram } from "../../models/program";
 import { IDispatch } from "../../ducks/types";
-import { navigationRef } from "../../navigation/navigationRef";
+import { navigateToModal } from "../../navigation/navigationService";
 import { Thunk_pushExerciseStatsScreen } from "../../ducks/thunks";
 import { ProgramExercise_doesUse1RM } from "../../models/programExercise";
 import { Weight_print } from "../../models/weight";
@@ -135,7 +135,7 @@ export const ProgramPreviewTabExercise = memo(function ProgramPreviewTabExercise
                     .record({ plannerExercise: props.programExercise }),
                   "Open preview equipment modal"
                 );
-                navigationRef.navigate("equipmentModal", { context: "preview", programId: props.programId });
+                navigateToModal("equipmentModal", { context: "preview", programId: props.programId });
               }}
             >
               {currentEquipmentName || "None"}
@@ -162,7 +162,7 @@ export const ProgramPreviewTabExercise = memo(function ProgramPreviewTabExercise
                       .record({ plannerExercise: props.programExercise }),
                     "Open preview 1RM modal"
                   );
-                  navigationRef.navigate("rm1Modal", { context: "preview", programId: props.programId });
+                  navigateToModal("rm1Modal", { context: "preview", programId: props.programId });
                 }}
               >
                 {Weight_print(onerm)}
@@ -230,7 +230,7 @@ function ProgramPreviewTabExerciseTopBar(props: IProgramPreviewTabExerciseTopBar
                 .record({ plannerExercise: props.programExercise, day: props.day }),
               "Open preview exercise modal"
             );
-            navigationRef.navigate("playgroundEditModal", { context: "preview", programId: props.programId });
+            navigateToModal("playgroundEditModal", { context: "preview", programId: props.programId });
           }}
         >
           <IconEditSquare color={Tailwind_semantic().icon.neutralsubtle} />

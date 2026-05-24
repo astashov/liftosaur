@@ -36,7 +36,7 @@ import { EditProgramUiUpdate } from "./editProgramUiUpdate";
 import { EditProgramUiExerciseSetVariations } from "./editProgramUiExerciseSetVariations";
 import { EditProgramUiExerciseDescriptions } from "./editProgramUiExerciseDescriptions";
 import { pickerStateFromPlannerExercise } from "./editProgramUtils";
-import { navigationRef } from "../../navigation/navigationRef";
+import { navigateToModal } from "../../navigation/navigationService";
 
 interface IEditProgramUiExerciseViewProps {
   evaluatedProgram: IEvaluatedProgram;
@@ -120,7 +120,7 @@ export const EditProgramUiExerciseView = memo(function EditProgramUiExerciseView
                   }),
                   "Open edit exercise modal"
                 );
-                navigationRef.navigate("editExerciseChangeModal", { programId: props.programId });
+                navigateToModal("editExerciseChangeModal", { programId: props.programId });
               } else {
                 props.plannerDispatch(
                   lb<IPlannerState>()
@@ -160,7 +160,7 @@ export const EditProgramUiExerciseView = memo(function EditProgramUiExerciseView
                 ],
                 "Show exercise stats"
               );
-              navigationRef.navigate("exerciseStatsModal", { programId: props.programId });
+              navigateToModal("exerciseStatsModal", { programId: props.programId });
             }}
           >
             <IconGraphsE width={16} height={19} />

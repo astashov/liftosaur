@@ -21,7 +21,7 @@ import { Thunk_updateLiveActivity, Thunk_deleteProgress } from "../ducks/thunks"
 import { Reps_findNextSetIndex } from "../models/set";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { workoutTourConfig } from "./tour/workoutTourConfig";
-import { navigationRef } from "../navigation/navigationRef";
+import { navigateToModal } from "../navigation/navigationService";
 import { Dialog_confirm } from "../utils/dialog";
 
 interface IScreenWorkoutProps {
@@ -64,7 +64,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
         ],
         "Open exercise picker on workout start"
       );
-      navigationRef.navigate("exercisePickerModal", { progressId: progress.id });
+      navigateToModal("exercisePickerModal", { progressId: progress.id });
     }
   }, []);
 
@@ -73,7 +73,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
   useEffect(() => {
     if (amrapModal && amrapModal.nonce !== prevAmrapNonce.current) {
       prevAmrapNonce.current = amrapModal.nonce;
-      navigationRef.navigate("amrapModal", { ...amrapModal, context: "workout", progressId: progress.id });
+      navigateToModal("amrapModal", { ...amrapModal, context: "workout", progressId: progress.id });
     }
   }, [amrapModal]);
 
@@ -81,7 +81,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
   const prevExercisePickerState = useRef<typeof exercisePickerState>(undefined);
   useEffect(() => {
     if (exercisePickerState && !prevExercisePickerState.current) {
-      navigationRef.navigate("exercisePickerModal", { progressId: progress.id });
+      navigateToModal("exercisePickerModal", { progressId: progress.id });
     }
     prevExercisePickerState.current = exercisePickerState;
   }, [exercisePickerState]);
@@ -90,7 +90,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
   const prevEditSetModal = useRef<typeof editSetModal>(undefined);
   useEffect(() => {
     if (editSetModal && !prevEditSetModal.current) {
-      navigationRef.navigate("editSetTargetModal", { context: "workout", progressId: progress.id });
+      navigateToModal("editSetTargetModal", { context: "workout", progressId: progress.id });
     }
     prevEditSetModal.current = editSetModal;
   }, [editSetModal]);
@@ -116,7 +116,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
       date: progress.date,
       time: History_workoutTime(progress),
     });
-    navigationRef.navigate("dateModal", { progressId: progress.id });
+    navigateToModal("dateModal", { progressId: progress.id });
   }, [dispatch, progress]);
 
   const onPauseResume = useCallback(() => {
@@ -165,7 +165,7 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
   const progressId = progress.id;
   const onShare = useCallback(() => {
     if (!isCurrent) {
-      navigationRef.navigate("workoutShareModal", { progressId });
+      navigateToModal("workoutShareModal", { progressId });
     }
   }, [isCurrent, progressId]);
 

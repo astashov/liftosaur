@@ -15,7 +15,7 @@ import { Collector } from "../utils/collector";
 import { GraphMuscleGroup } from "./graphMuscleGroup";
 import { CollectionUtils_sort } from "../utils/collection";
 import { Exercise_fromKey } from "../models/exercise";
-import { navigationRef } from "../navigation/navigationRef";
+import { navigateToModal } from "../navigation/navigationService";
 import { useProgressiveItems } from "../utils/useProgressiveItems";
 
 interface IProps {
@@ -85,7 +85,7 @@ export function ScreenGraphs(props: IProps): JSX.Element {
         data-testid="graphs-modify"
         testID="graphs-modify"
         className="p-2 nm-graphs-navbar-filter"
-        onPress={() => navigationRef.navigate("graphsModal")}
+        onPress={() => navigateToModal("graphsModal")}
       >
         <IconFilter />
       </Pressable>,

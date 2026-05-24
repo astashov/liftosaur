@@ -14,7 +14,7 @@ import { lb } from "lens-shmens";
 import { EditProgramUiHelpers_changeFirstInstance } from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { ObjectUtils_entries } from "../../utils/object";
 import { EditProgramUiUpdate } from "../editProgram/editProgramUiUpdate";
-import { navigationRef } from "../../navigation/navigationRef";
+import { navigateToModal } from "../../navigation/navigationService";
 import { CollectionUtils_uniqBy } from "../../utils/collection";
 
 interface IEditProgramExerciseUpdateProps {
@@ -71,7 +71,7 @@ export function EditProgramExerciseUpdate(props: IEditProgramExerciseUpdateProps
                   lbUi.p("showEditUpdateScriptModal").record(true),
                   "Show edit update script modal"
                 );
-                navigationRef.navigate("editUpdateScriptModal", {
+                navigateToModal("editUpdateScriptModal", {
                   exerciseStateKey: props.exerciseStateKey,
                   programId: props.programId,
                 });

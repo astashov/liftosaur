@@ -13,7 +13,7 @@ import { ILensDispatch } from "../utils/useLensReducer";
 import { LinkButton } from "./linkButton";
 import { IconTrash } from "./icons/iconTrash";
 import { equipmentName } from "../models/exercise";
-import { navigationRef } from "../navigation/navigationRef";
+import { navigateToModal } from "../navigation/navigationService";
 import { IDispatch } from "../ducks/types";
 import { IState } from "../models/state";
 import { IconArrowUp } from "./icons/iconArrowUp";
@@ -122,11 +122,7 @@ export function EquipmentSettings<T>(props: IProps<T>): JSX.Element {
         </View>
       )}
       <View className="m-4">
-        <LinkButton
-          className="text-sm"
-          name="add-new-equipment"
-          onClick={() => navigationRef.navigate("newEquipmentModal")}
-        >
+        <LinkButton className="text-sm" name="add-new-equipment" onClick={() => navigateToModal("newEquipmentModal")}>
           Add New Equipment Type
         </LinkButton>
       </View>
@@ -471,7 +467,7 @@ function EquipmentSettingsFixed<T>(props: IEquipmentSettingsFixedProps<T>): JSX.
       <LinkButton
         className="text-xs"
         name="add-new-fixed-weight"
-        onClick={() => navigationRef.navigate("newFixedWeightModal", { equipment: props.name })}
+        onClick={() => navigateToModal("newFixedWeightModal", { equipment: props.name })}
       >
         Add New Fixed Weight
       </LinkButton>
@@ -626,7 +622,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
       <LinkButton
         className="text-sm"
         name="add-new-plate-weight"
-        onClick={() => navigationRef.navigate("newPlateModal", { equipment: props.name })}
+        onClick={() => navigateToModal("newPlateModal", { equipment: props.name })}
       >
         Add New Plate Weight
       </LinkButton>

@@ -18,7 +18,7 @@ import { ObjectUtils_keys } from "../utils/object";
 import { ImagePreloader_uri } from "../utils/imagePreloader";
 import { Tailwind_colors, Tailwind_semantic } from "../utils/tailwindConfig";
 import { ILensDispatch } from "../utils/useLensReducer";
-import { navigationRef } from "../navigation/navigationRef";
+import { navigateToModal } from "../navigation/navigationService";
 
 function getFooterShadowStyle(): Record<string, unknown> {
   const semantic = Tailwind_semantic();
@@ -300,11 +300,7 @@ export function ScreenSetupPlates(props: IScreenSetupPlatesProps): JSX.Element {
           </View>
         )}
         <View className="m-4">
-          <LinkButton
-            className="text-sm"
-            name="add-new-equipment"
-            onClick={() => navigationRef.navigate("newEquipmentModal")}
-          >
+          <LinkButton className="text-sm" name="add-new-equipment" onClick={() => navigateToModal("newEquipmentModal")}>
             Add New Equipment Type
           </LinkButton>
         </View>

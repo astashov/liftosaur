@@ -33,7 +33,7 @@ import {
 } from "../utils/sendMessage";
 import { IconSpeaker } from "./icons/iconSpeaker";
 import { ImporterLiftosaurCsv } from "./importerLiftosaurCsv";
-import { navigationRef } from "../navigation/navigationRef";
+import { navigateToModal } from "../navigation/navigationService";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
 import { INavCommon } from "../models/state";
@@ -438,7 +438,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
           <MenuItem
             expandName={true}
             name="Affiliate Program"
-            onClick={() => navigationRef.navigate("affiliateModal")}
+            onClick={() => navigateToModal("affiliateModal")}
             value={props.settings.affiliateEnabled ? "On" : "Off"}
             shouldShowRightArrow={true}
           />
@@ -468,7 +468,7 @@ export function ScreenSettings(props: IProps): JSX.Element {
       <ImporterProgram dispatch={props.dispatch} />
       <MenuItemWrapper
         name="Import history from other apps"
-        onClick={() => navigationRef.navigate("importFromOtherAppsModal")}
+        onClick={() => navigateToModal("importFromOtherAppsModal")}
       >
         <View className="py-3">
           <Text className="text-base text-text-primary">Import history from other apps</Text>

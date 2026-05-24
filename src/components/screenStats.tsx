@@ -21,7 +21,7 @@ import { Button } from "./button";
 import { ObjectUtils_keys } from "../utils/object";
 import { Weight_convertTo, Weight_build } from "../models/weight";
 import { Length_convertTo, Length_build } from "../models/length";
-import { navigationRef } from "../navigation/navigationRef";
+import { navigateToModal } from "../navigation/navigationService";
 import { EditStats_addWeightStats, EditStats_addLengthStats, EditStats_addPercentageStats } from "../models/editStats";
 import { StringUtils_dashcase } from "../utils/string";
 import { INavCommon } from "../models/state";
@@ -198,7 +198,7 @@ export function ScreenStats(props: IProps): JSX.Element {
         className="p-2 nm-modify-stats"
         data-testid="modify-stats"
         testID="modify-stats"
-        onPress={() => navigationRef.navigate("statsSettingsModal")}
+        onPress={() => navigateToModal("statsSettingsModal")}
       >
         <IconFilter />
       </Pressable>,

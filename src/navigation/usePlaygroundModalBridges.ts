@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { IState } from "../models/state";
-import { navigationRef } from "./navigationRef";
+import { navigateToModal } from "./navigationService";
 
 interface IPlaygroundModalState {
   editSetModal: boolean;
@@ -45,7 +45,7 @@ export function usePlaygroundModalBridges(state: IState): void {
 
   useEffect(() => {
     if (active?.modal.editSetModal && !prevEditSetModal.current) {
-      navigationRef.navigate("editSetTargetModal", {
+      navigateToModal("editSetTargetModal", {
         context: "playground",
         weekIndex: active.weekIndex,
         dayIndex: active.dayIndex,
@@ -59,7 +59,7 @@ export function usePlaygroundModalBridges(state: IState): void {
       const progress = state.playgroundState?.progresses[active.weekIndex]?.days[active.dayIndex]?.progress;
       const amrapModal = progress?.ui?.amrapModal;
       if (amrapModal) {
-        navigationRef.navigate("amrapModal", {
+        navigateToModal("amrapModal", {
           ...amrapModal,
           context: "playground",
           weekIndex: active.weekIndex,
@@ -72,7 +72,7 @@ export function usePlaygroundModalBridges(state: IState): void {
 
   useEffect(() => {
     if (active?.modal.editModal && !prevEditModal.current) {
-      navigationRef.navigate("playgroundEditModal", {
+      navigateToModal("playgroundEditModal", {
         context: "playground",
         weekIndex: active.weekIndex,
         dayIndex: active.dayIndex,

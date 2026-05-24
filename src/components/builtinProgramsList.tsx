@@ -21,7 +21,7 @@ import { IconKettlebellSmall } from "./icons/iconKettlebellSmall";
 import { IconWatch } from "./icons/iconWatch";
 import { equipmentName } from "../models/exercise";
 import { Equipment_currentEquipment } from "../models/equipment";
-import { navigationRef } from "../navigation/navigationRef";
+import { navigateToModal } from "../navigation/navigationService";
 import { SimpleMarkdown } from "./simpleMarkdown";
 
 interface IProps {
@@ -149,7 +149,7 @@ const BuiltInProgram = memo(function BuiltInProgram(props: IBuiltInProgramProps)
   const exercisesRange = entry.exercisesRange;
   const numberOfWeeks = entry.weeksCount ?? 0;
   const onPress = useCallback(() => {
-    navigationRef.navigate("programInfoModal", { programId: entry.id, hasCustomPrograms });
+    navigateToModal("programInfoModal", { programId: entry.id, hasCustomPrograms });
   }, [entry.id, hasCustomPrograms]);
   const visibleExercises = useMemo(() => exercises.filter((e) => ExerciseImageUtils_exists(e, "small")), [exercises]);
 

@@ -11,7 +11,7 @@ import { lb } from "lens-shmens";
 import { IScreenMuscle, ISettings } from "../../../types";
 import { n } from "../../../utils/math";
 import { Muscle_getMuscleGroupName } from "../../../models/muscle";
-import { getNavigationRef } from "../../../navigation/navUtils";
+import { getNavigationService } from "../../../navigation/navUtils";
 import { CollectionUtils_sort } from "../../../utils/collection";
 import { SendMessage_isIosOrAndroid } from "../../../utils/sendMessage";
 
@@ -212,8 +212,8 @@ export function PlannerSetSplit(props: {
   const handlePress =
     !isDesktopWeb && split.exercises.length > 0
       ? () =>
-          getNavigationRef().then(({ navigationRef }) =>
-            navigationRef.navigate("setSplitModal", { exercises: split.exercises })
+          getNavigationService().then(({ navigateToModal }) =>
+            navigateToModal("setSplitModal", { exercises: split.exercises })
           )
       : undefined;
 

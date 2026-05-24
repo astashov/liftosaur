@@ -12,7 +12,7 @@ import { emptyProgramId, IProgramIndexEntry, Program_selectProgramAndGoHome } fr
 import { IconMagnifyingGlass } from "./icons/iconMagnifyingGlass";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { LinkButton } from "./linkButton";
-import { navigationRef } from "../navigation/navigationRef";
+import { navigateToModal } from "../navigation/navigationService";
 
 interface IProps {
   dispatch: IDispatch;
@@ -38,7 +38,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
             key="import"
             className="px-2 text-sm no-underline"
             name="import-program"
-            onClick={() => navigationRef.navigate("importFromLinkModal")}
+            onClick={() => navigateToModal("importFromLinkModal")}
           >
             Import
           </LinkButton>,
@@ -108,7 +108,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
             />
           )}
           <Footer
-            onCreate={() => navigationRef.navigate("createProgramModal")}
+            onCreate={() => navigateToModal("createProgramModal")}
             onEmpty={() => {
               Program_selectProgramAndGoHome(props.dispatch, emptyProgramId);
             }}

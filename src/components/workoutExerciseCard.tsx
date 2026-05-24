@@ -49,7 +49,7 @@ import { PlannerProgramExercise_currentDescription } from "../pages/planner/mode
 import { Collector } from "../utils/collector";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { IconReorder } from "./icons/iconReorder";
-import { navigationRef } from "../navigation/navigationRef";
+import { navigateToModal } from "../navigation/navigationService";
 import { Dialog_confirm } from "../utils/dialog";
 
 interface IWorkoutExerciseCardProps {
@@ -126,7 +126,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
       [lb<IHistoryRecord>().pi("ui", {}).p("equipmentModal").record({ exerciseType: entryExercise })],
       "change-equipment"
     );
-    navigationRef.navigate("equipmentModal", { context: "workout", progressId });
+    navigateToModal("equipmentModal", { context: "workout", progressId });
   }, [dispatch, entryExercise, progressId]);
 
   const openSupersetPicker = useCallback((): void => {
@@ -135,7 +135,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
       [lb<IHistoryRecord>().pi("ui", {}).p("showSupersetPicker").record(entry)],
       "change-superset"
     );
-    navigationRef.navigate("supersetPickerModal", { progressId });
+    navigateToModal("supersetPickerModal", { progressId });
   }, [dispatch, entry, progressId]);
 
   const openRm1Modal = useCallback((): void => {
@@ -144,7 +144,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
       [lb<IHistoryRecord>().pi("ui", {}).p("rm1Modal").record({ exerciseType: entryExercise })],
       "change-rm1"
     );
-    navigationRef.navigate("rm1Modal", { context: "workout", progressId });
+    navigateToModal("rm1Modal", { context: "workout", progressId });
   }, [dispatch, entryExercise, progressId]);
 
   const swapExercise = useCallback((): void => {
@@ -176,7 +176,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
       [lb<IHistoryRecord>().pi("ui", {}).p("showSupersetPicker").record(entry)],
       "kebab-edit-superset"
     );
-    navigationRef.navigate("supersetPickerModal", { progressId });
+    navigateToModal("supersetPickerModal", { progressId });
   }, [dispatch, entry, progressId]);
 
   const removeExercise = useCallback(async (): Promise<void> => {

@@ -88,6 +88,38 @@ async function requestToProxyEvent(request: http.IncomingMessage): Promise<APIGa
 
 const handler = getHandler(() => buildDi(new LogUtil(), fetch));
 
+const PERF_DATA_DIR = path.join(__dirname, "perfdata");
+
+function setPerfCorsHeaders(res: http.ServerResponse): void {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+}
+
+async function handlePerfRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
+  setPerfCorsHeaders(res);
+  if (req.method === "OPTIONS") {
+    res.statusCode = 204;
+    res.end();
+    return;
+  }
+  if (req.method !== "POST") {
+    res.statusCode = 405;
+    res.end();
+    return;
+  }
+  const body = await getBody(req);
+  const sessionMatch = body.match(/"session":"([^"]+)"/);
+  const session = sessionMatch?.[1] ?? "unknown";
+  // Reject obvious path-traversal attempts to keep this safe even though it's dev-only.
+  const safeSession = /^[A-Za-z0-9_\-]+$/.test(session) ? session : "unknown";
+  const file = path.join(PERF_DATA_DIR, `${safeSession}.jsonl`);
+  fs.mkdirSync(PERF_DATA_DIR, { recursive: true });
+  fs.appendFileSync(file, body.endsWith("\n") ? body : body + "\n");
+  res.statusCode = 200;
+  res.end();
+}
+
 // Main API server
 const server = https.createServer(
   {
@@ -96,6 +128,10 @@ const server = https.createServer(
   },
   async (req, res) => {
     try {
+      if (req.url === "/api/_dev/perf") {
+        await handlePerfRequest(req, res);
+        return;
+      }
       // Handle regular API Gateway endpoints
       const result = (await handler(
         await requestToProxyEvent(req),

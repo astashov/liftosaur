@@ -2,9 +2,25 @@ import { CommonActions, type NavigationState, type PartialState } from "@react-n
 import { navigationRef } from "./navigationRef";
 import { Screen_tab, IScreen } from "../models/screen";
 import type { ITab, IScreenData } from "../models/screen";
-import type { IAllScreenParamList } from "./types";
+import type { IAllScreenParamList, IRootStackParamList } from "./types";
+import { PerfNavTracker_recordTap } from "../utils/perfNavTracker";
 
 export type IRootStack = "onboarding" | "mainTabs" | "subscription";
+
+export type IModalScreen = Exclude<keyof IRootStackParamList, "onboarding" | "mainTabs" | "subscription">;
+
+export function navigateToModal<T extends IModalScreen>(
+  ...args: undefined extends IRootStackParamList[T]
+    ? [name: T] | [name: T, params: IRootStackParamList[T]]
+    : [name: T, params: IRootStackParamList[T]]
+): void {
+  const [name, params] = args;
+  if (!navigationRef.isReady()) {
+    return;
+  }
+  PerfNavTracker_recordTap(name);
+  navigationRef.navigate(name as never, params as never);
+}
 
 export function getCurrentTab(): ITab | undefined {
   if (!navigationRef.isReady()) {
@@ -46,6 +62,7 @@ export function navigateTo<T extends IScreen>(screen: T, params?: IAllScreenPara
   if (!navigationRef.isReady()) {
     return;
   }
+  PerfNavTracker_recordTap(screen);
 
   if (opts?.stack === "subscription") {
     navigationRef.dispatch(CommonActions.navigate({ name: "subscription", params: params as object | undefined }));

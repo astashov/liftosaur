@@ -10,7 +10,7 @@ import { IconSpinner } from "./icons/iconSpinner";
 import { IconClose } from "./icons/iconClose";
 import { lb } from "lens-shmens";
 import { ObjectUtils_filter, ObjectUtils_values } from "../utils/object";
-import { navigationRef } from "../navigation/navigationRef";
+import { navigateToModal } from "../navigation/navigationService";
 import { Tailwind_semantic, Tailwind_colors } from "../utils/tailwindConfig";
 import { ITourId } from "../models/state";
 import type { IHelpKey } from "./help/helpRegistry";
@@ -84,7 +84,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
               setShowDebug(newCount);
               if (newCount > 4) {
                 setShowDebug(0);
-                navigationRef.navigate("debugModal");
+                navigateToModal("debugModal");
               }
               timerRef.current = setTimeout(() => {
                 if (newCount <= 3) {
@@ -107,7 +107,7 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
                     "Start tour from navbar"
                   );
                 } else if (props.helpKey) {
-                  navigationRef.navigate("helpModal", { helpKey: props.helpKey });
+                  navigateToModal("helpModal", { helpKey: props.helpKey });
                 }
               }}
             >

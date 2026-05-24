@@ -15,7 +15,7 @@ import { CollectionUtils_removeBy } from "../utils/collection";
 import { UidFactory_generateUid } from "../utils/generator";
 import { ObjectUtils_clone } from "../utils/object";
 import { Thunk_pushScreen } from "../ducks/thunks";
-import { navigationRef } from "../navigation/navigationRef";
+import { navigateToModal } from "../navigation/navigationService";
 import { LinkButton } from "./linkButton";
 import { Dialog_confirm } from "../utils/dialog";
 
@@ -126,7 +126,7 @@ export function ScreenGyms(props: IProps): JSX.Element {
         );
       })}
       <View className="mt-1">
-        <LinkButton name="new-gym" onClick={() => navigationRef.navigate("newGymModal")}>
+        <LinkButton name="new-gym" onClick={() => navigateToModal("newGymModal")}>
           Add Gym
         </LinkButton>
       </View>

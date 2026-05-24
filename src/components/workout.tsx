@@ -36,7 +36,7 @@ import { Markdown } from "./markdown";
 import { DraggableList2 } from "./draggableList2";
 import { LinkButton } from "./linkButton";
 import { Button } from "./button";
-import { navigationRef } from "../navigation/navigationRef";
+import { navigateToModal } from "../navigation/navigationService";
 import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
 import { SendMessage_isIos } from "../utils/sendMessage";
 import { History_calories, History_pauseWorkout } from "../models/history";
@@ -163,7 +163,7 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
 
   const progressId = props.progress.id;
   const onConvertToProgram = useCallback(() => {
-    navigationRef.navigate("dayFromAdhocModal", { progressId });
+    navigateToModal("dayFromAdhocModal", { progressId });
   }, [progressId]);
 
   const onToggleReorder = useCallback(() => {

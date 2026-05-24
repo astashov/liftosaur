@@ -16,7 +16,7 @@ import { IconSwap } from "./icons/iconSwap";
 import { Tailwind_colors } from "../utils/tailwindConfig";
 import { IconPlus2 } from "./icons/iconPlus2";
 import { Thunk_startProgramDay } from "../ducks/thunks";
-import { navigationRef } from "../navigation/navigationRef";
+import { navigateToModal } from "../navigation/navigationService";
 
 export interface IBottomSheetNextWorkoutContentProps {
   currentProgram?: IProgram;
@@ -65,7 +65,7 @@ export function BottomSheetNextWorkoutContent(props: IBottomSheetNextWorkoutCont
           name="change-next-day"
           data-testid="change-next-day"
           testID="change-next-day"
-          onClick={() => navigationRef.navigate("changeNextDayModal")}
+          onClick={() => navigateToModal("changeNextDayModal")}
         >
           <View className="flex-row items-center">
             <IconSwap color={Tailwind_colors().blue[400]} size={16} />

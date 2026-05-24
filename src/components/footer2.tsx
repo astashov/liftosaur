@@ -15,7 +15,7 @@ import { INavCommon } from "../models/state";
 import { IconBarbell2 } from "./icons/iconBarbell2";
 import { ObjectUtils_values } from "../utils/object";
 import { Program_evaluate } from "../models/program";
-import { navigationRef } from "../navigation/navigationRef";
+import { navigateToModal } from "../navigation/navigationService";
 
 interface IFooterProps {
   dispatch: IDispatch;
@@ -86,7 +86,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
               if (!!props.navCommon.progress) {
                 props.dispatch(Thunk_startProgramDay());
               } else {
-                navigationRef.navigate("nextWorkoutModal");
+                navigateToModal("nextWorkoutModal");
               }
             }}
           >

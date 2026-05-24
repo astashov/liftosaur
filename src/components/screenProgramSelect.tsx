@@ -8,7 +8,7 @@ import { ISettings } from "../types";
 import { useNavOptions } from "../navigation/useNavOptions";
 import { Thunk_pushScreen } from "../ducks/thunks";
 import { IconDoc } from "./icons/iconDoc";
-import { navigationRef } from "../navigation/navigationRef";
+import { navigateToModal } from "../navigation/navigationService";
 import { IconEditSquare } from "./icons/iconEditSquare";
 import { IconLink } from "./icons/iconLink";
 import { emptyProgramId, Program_selectProgramAndGoHome } from "../models/program";
@@ -46,14 +46,14 @@ export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Eleme
       icon: <IconEditSquare />,
       title: "Create a program",
       description: "Build your own custom routine from scratch",
-      onClick: () => navigationRef.navigate("createProgramModal"),
+      onClick: () => navigateToModal("createProgramModal"),
     },
     {
       key: "import",
       icon: <IconLink size={24} />,
       title: "Import from link",
       description: "Paste a link from the program web editor",
-      onClick: () => navigationRef.navigate("importFromLinkModal"),
+      onClick: () => navigateToModal("importFromLinkModal"),
     },
     {
       key: "adhoc",

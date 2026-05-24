@@ -33,7 +33,7 @@ import {
   Thunk_redeemCouponIOS,
 } from "../ducks/thunks";
 import { IconClose } from "./icons/iconClose";
-import { navigationRef } from "../navigation/navigationRef";
+import { navigateToModal } from "../navigation/navigationService";
 import { ObjectUtils_entries, ObjectUtils_keys } from "../utils/object";
 import { lg } from "../utils/posthog";
 import { IconW } from "./icons/iconW";
@@ -277,7 +277,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
               } else if (Platform.OS === "ios") {
                 props.dispatch(Thunk_redeemCouponIOS());
               } else {
-                navigationRef.navigate("couponModal");
+                navigateToModal("couponModal");
               }
             }}
             className="text-sm font-bold"
@@ -325,25 +325,25 @@ export function ScreenSubscription(props: IProps): JSX.Element {
             icon={<IconBarbell />}
             title="Plates Calculator"
             description="What plates to add to each side of a bar to get the necessary weight"
-            onPress={() => navigationRef.navigate("subscriptionInfoModal", { type: "platesCalculator" })}
+            onPress={() => navigateToModal("subscriptionInfoModal", { type: "platesCalculator" })}
           />
           <Feature
             icon={<IconGraphs />}
             title="Graphs"
             description="So you could visualize your progress over time"
-            onPress={() => navigationRef.navigate("subscriptionInfoModal", { type: "graphs" })}
+            onPress={() => navigateToModal("subscriptionInfoModal", { type: "graphs" })}
           />
           <Feature
             icon={<IconBell />}
             title="Rest Timer Notifications"
             description="When it's about to start a new set, you'll get a notification."
-            onPress={() => navigationRef.navigate("subscriptionInfoModal", { type: "notifications" })}
+            onPress={() => navigateToModal("subscriptionInfoModal", { type: "notifications" })}
           />
           <Feature
             icon={<IconW />}
             title="Week Insights"
             description="Weekly stats about your performance"
-            onPress={() => navigationRef.navigate("subscriptionInfoModal", { type: "weekInsights" })}
+            onPress={() => navigateToModal("subscriptionInfoModal", { type: "weekInsights" })}
           />
           <Feature icon={<IconWatch />} title="Apple Watch App" description="Track workouts directly from your wrist" />
           <Feature

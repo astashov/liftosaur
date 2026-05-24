@@ -21,7 +21,7 @@ import { IEvaluatedProgram, Program_getDayNumber } from "../../models/program";
 import { applyChangesInEditor } from "./editProgramUtils";
 import { IDispatch } from "../../ducks/types";
 import { EditProgramUiHelpers_onDaysChange } from "./editProgramUi/editProgramUiHelpers";
-import { navigationRef } from "../../navigation/navigationRef";
+import { navigateToModal } from "../../navigation/navigationService";
 import { useProgressiveItems } from "../../utils/useProgressiveItems";
 
 interface IEditProgramViewProps {
@@ -88,7 +88,7 @@ export const EditProgramUiWeekView = memo(function EditProgramUiWeekView(props: 
                   lb<IPlannerState>().pi("ui").p("showWeekStats").record(currentWeekIndex),
                   "Show week stats"
                 );
-                navigationRef.navigate("weekStatsModal", { programId: props.programId });
+                navigateToModal("weekStatsModal", { programId: props.programId });
               }}
             >
               <IconMusclesW size={20} />

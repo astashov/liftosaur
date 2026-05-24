@@ -19,7 +19,7 @@ import { IDispatch } from "../ducks/types";
 import { Thunk_pushScreen } from "../ducks/thunks";
 import { DateUtils_firstDayOfWeekTimestamp, DateUtils_formatRange } from "../utils/date";
 import { Muscle_getMuscleGroupName } from "../models/muscle";
-import { navigationRef } from "../navigation/navigationRef";
+import { navigateToModal } from "../navigation/navigationService";
 
 interface IWeekInsightsProps {
   prs: IPersonalRecords;
@@ -81,7 +81,7 @@ export function WeekInsights(props: IWeekInsightsProps): JSX.Element {
               name="toggle-week-insights"
               className="text-sm"
               onPress={() =>
-                navigationRef.navigate("weekInsightsDetailsModal", {
+                navigateToModal("weekInsightsDetailsModal", {
                   selectedFirstDayOfWeek: props.selectedFirstDayOfWeek,
                 })
               }

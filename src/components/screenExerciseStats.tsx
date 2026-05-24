@@ -41,7 +41,7 @@ import { MarkdownEditorBorderless } from "./markdownEditorBorderless";
 import { GroupHeader } from "./groupHeader";
 import { StringUtils_capitalize } from "../utils/string";
 import { Muscle_getMuscleGroupName } from "../models/muscle";
-import { navigationRef } from "../navigation/navigationRef";
+import { navigateToModal } from "../navigation/navigationService";
 import { Dialog_confirm } from "../utils/dialog";
 
 interface IProps {
@@ -107,11 +107,11 @@ export function ScreenExerciseStats(props: IProps): JSX.Element {
   useNavOptions({ navTitle: "Exercise Stats", navHelpKey: "exerciseStats" });
 
   const onOverrideMuscles = useCallback(() => {
-    navigationRef.navigate("musclesOverrideModal", { exerciseType });
+    navigateToModal("musclesOverrideModal", { exerciseType });
   }, [exerciseType]);
 
   const onEditCustomExercise = useCallback(() => {
-    navigationRef.navigate("customExerciseModal", { exerciseId: exerciseType.id });
+    navigateToModal("customExerciseModal", { exerciseId: exerciseType.id });
   }, [exerciseType.id]);
 
   const onDeleteCustomExercise = useCallback(async () => {

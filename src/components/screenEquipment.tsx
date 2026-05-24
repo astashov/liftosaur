@@ -13,7 +13,7 @@ import { useNavOptions } from "../navigation/useNavOptions";
 import { MenuItemEditable } from "./menuItemEditable";
 import { LinkButton } from "./linkButton";
 import { Thunk_pushScreen } from "../ducks/thunks";
-import { navigationRef } from "../navigation/navigationRef";
+import { navigateToModal } from "../navigation/navigationService";
 import { NavScreenContent, NavScreenScrollContext } from "../navigation/NavScreenContent";
 
 interface IProps {
@@ -196,11 +196,7 @@ export function ScreenEquipment(props: IProps): JSX.Element {
         </View>
       )}
       <View className="m-4">
-        <LinkButton
-          className="text-sm"
-          name="add-new-equipment"
-          onClick={() => navigationRef.navigate("newEquipmentModal")}
-        >
+        <LinkButton className="text-sm" name="add-new-equipment" onClick={() => navigateToModal("newEquipmentModal")}>
           Add New Equipment Type
         </LinkButton>
       </View>

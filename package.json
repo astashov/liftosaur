@@ -18,6 +18,7 @@
     "android-device2": "react-native run-android --device 58060DLAQ003M0",
     "android-device-release": "react-native run-android --mode=release --device 9p6tnjw889cu9pqg",
     "android-device2-release": "react-native run-android --mode=release --device 58060DLAQ003M0",
+    "build:android-aab": "cd android && ./gradlew bundleRelease && echo '\\nAAB: android/app/build/outputs/bundle/release/app-release.aab'",
     "rn:start": "npm run build:theme && react-native start",
     "build": "npm run ensure:localdomain && npm run build:prepare && npm run upload-source-maps",
     "build:prepare": "npm run ensure:localdomain && npm run build:theme && npm run build:markdown && npm run build:programs && npm run build:exercises && npm run plannerhighlighter && npm run blog && npm run docs && npm run sitemap && NODE_ENV=production npm run build:dev",

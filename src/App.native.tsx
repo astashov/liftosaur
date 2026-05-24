@@ -167,6 +167,7 @@ import { ModalStateProvider } from "./navigation/ModalStateContext";
 import { CustomKeyboardProvider } from "./navigation/CustomKeyboardContext";
 import { AppNavigator } from "./navigation/AppNavigator";
 import { navigationRef } from "./navigation/navigationRef";
+import { navigateToModal } from "./navigation/navigationService";
 import { getCurrentScreenData } from "./navigation/navigationService";
 import { IndexedDBUtils_initializeForSafari, IndexedDBUtils_get } from "./utils/indexeddb";
 import { Settings_applyTheme, Settings_getTheme } from "./models/settings";
@@ -192,6 +193,9 @@ import {
 import { IapAdapter } from "./utils/iap";
 import { HealthAdapter } from "./utils/health";
 import { WhatsNew_doesHaveNewUpdates } from "./models/whatsnew";
+import { PerfLongTasks_start } from "./utils/perfLongTasks";
+import { usePerfFrameSampling } from "./utils/perfFrameCallback";
+import { PerfNavTracker_handleStateChange } from "./utils/perfNavTracker";
 
 GoogleSignin.configure({
   webClientId: "944666871420-p8kv124sgte8o0p6ev2ah6npudsl7e4f.apps.googleusercontent.com",
@@ -224,6 +228,12 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
     dispatch(Thunk_fetchInitial());
     dispatch(Thunk_syncHealthKit());
   }, []);
+
+  useEffect(() => {
+    return PerfLongTasks_start(() => getCurrentScreenData()?.name);
+  }, []);
+
+  usePerfFrameSampling(true, () => getCurrentScreenData()?.name);
 
   useEffect(() => {
     if (state.storage.settings.alwaysOnDisplay) {
@@ -458,7 +468,7 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
       return;
     }
     if (state.tour) {
-      navigationRef.navigate("tourModal");
+      navigateToModal("tourModal");
     }
   }, [isNavReady, state.tour]);
 
@@ -469,7 +479,7 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
       return;
     }
     if (showCorruptedState && !prevShowCorruptedState.current) {
-      navigationRef.navigate("corruptedStateModal");
+      navigateToModal("corruptedStateModal");
     }
     prevShowCorruptedState.current = showCorruptedState;
   }, [isNavReady, showCorruptedState]);
@@ -481,7 +491,7 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
       return;
     }
     if (shouldShowWhatsNew && state.storage.whatsNew != null && !prevShouldShowWhatsNew.current) {
-      navigationRef.navigate("whatsnewModal");
+      navigateToModal("whatsnewModal");
     }
     prevShouldShowWhatsNew.current = !!(shouldShowWhatsNew && state.storage.whatsNew != null);
   }, [isNavReady, shouldShowWhatsNew, state.storage.whatsNew]);
@@ -518,11 +528,13 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
               onStateChange={() => {
                 const route = navigationRef.getCurrentRoute();
                 setCurrentScreenName(route?.name as IScreen | undefined);
+                PerfNavTracker_handleStateChange(route?.name);
               }}
               onReady={() => {
                 const route = navigationRef.getCurrentRoute();
                 setCurrentScreenName(route?.name as IScreen | undefined);
                 setIsNavReady(true);
+                PerfNavTracker_handleStateChange(route?.name);
               }}
             >
               <AppNavigator initialScreen={initialScreen} />

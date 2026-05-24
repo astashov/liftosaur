@@ -21,7 +21,7 @@ import { IEither } from "../../utils/types";
 import { ExercisePickerTemplate } from "./exercisePickerTemplate";
 import { IconFilter } from "../icons/iconFilter";
 import { SheetDragHandle } from "../../navigation/TransparentModal";
-import { getNavigationRef } from "../../navigation/navUtils";
+import { getNavigationService } from "../../navigation/navUtils";
 
 interface IProps {
   isHidden: boolean;
@@ -119,8 +119,8 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
         "Navigate to settings picker screen"
       );
     } else {
-      const { navigationRef } = await getNavigationRef();
-      navigationRef.navigate("exercisePickerSettingsModal");
+      const { navigateToModal } = await getNavigationService();
+      navigateToModal("exercisePickerSettingsModal");
     }
   }, [dispatch]);
 

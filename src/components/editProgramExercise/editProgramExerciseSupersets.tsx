@@ -4,7 +4,7 @@ import { Text } from "../primitives/text";
 import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { IEvaluatedProgram, Program_getSupersetExercises } from "../../models/program";
 import { LinkButton } from "../linkButton";
-import { navigationRef } from "../../navigation/navigationRef";
+import { navigateToModal } from "../../navigation/navigationService";
 
 interface IEditProgramExerciseSupersetsProps {
   plannerExercise: IPlannerProgramExercise;
@@ -17,7 +17,7 @@ export function EditProgramExerciseSupersets(props: IEditProgramExerciseSuperset
   const superset = props.plannerExercise.superset;
   const supersetExercises = Program_getSupersetExercises(props.evaluatedProgram, props.plannerExercise);
   const openSupersetModal = (): void => {
-    navigationRef.navigate("editProgramExerciseSupersetModal", {
+    navigateToModal("editProgramExerciseSupersetModal", {
       exerciseStateKey: props.exerciseStateKey,
       programId: props.programId,
       exerciseKey: props.plannerExercise.key,

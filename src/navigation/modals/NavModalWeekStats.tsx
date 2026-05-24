@@ -9,7 +9,7 @@ import { lb } from "lens-shmens";
 import { IPlannerState } from "../../pages/planner/models/types";
 import { buildPlannerDispatch } from "../../utils/plannerDispatch";
 import { PlannerProgram_evaluate } from "../../pages/planner/models/plannerProgram";
-import { navigationRef } from "../navigationRef";
+import { navigateToModal } from "../navigationService";
 import type { IRootStackParamList } from "../types";
 
 export function NavModalWeekStats(): JSX.Element {
@@ -59,7 +59,7 @@ export function NavModalWeekStats(): JSX.Element {
         <PlannerWeekStats
           dispatch={plannerDispatch}
           onEditSettings={() => {
-            navigationRef.navigate("plannerSettingsModal", { context: "editProgram", programId });
+            navigateToModal("plannerSettingsModal", { context: "editProgram", programId });
           }}
           evaluatedDays={evaluatedWeeks[weekIndex!]}
           settings={settings}

@@ -32,7 +32,7 @@ import { DoubleProgressSettings } from "./progressions/doubleProgressSettings";
 import { SumRepsProgressSettings } from "./progressions/sumRepsProgressSettings";
 import { CustomProgressSettings } from "./progressions/customProgressSettings";
 import { CollectionUtils_uniqByExpr } from "../../utils/collection";
-import { navigationRef } from "../../navigation/navigationRef";
+import { navigateToModal } from "../../navigation/navigationService";
 import { EditProgramUiProgress } from "../editProgram/editProgramUiProgress";
 import { ObjectUtils_entries } from "../../utils/object";
 
@@ -90,7 +90,7 @@ export function EditProgramExerciseProgress(props: IEditProgramExerciseProgressP
                   lbUi.p("showEditProgressScriptModal").record(true),
                   "Show edit progress script modal"
                 );
-                navigationRef.navigate("editProgressScriptModal", {
+                navigateToModal("editProgressScriptModal", {
                   exerciseStateKey: props.exerciseStateKey,
                   programId: props.programId,
                 });

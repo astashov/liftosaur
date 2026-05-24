@@ -6,7 +6,7 @@ import { Program_getProgram } from "../../models/program";
 import { Thunk_generateAndCopyLink, Thunk_fetchRevisions } from "../../ducks/thunks";
 import { UrlUtils_build } from "../../utils/url";
 import { ClipboardUtils_copy } from "../../utils/clipboard";
-import { navigationRef } from "../navigationRef";
+import { navigateToModal } from "../navigationService";
 import type { IRootStackParamList } from "../types";
 import { SheetScreenContainer } from "../SheetScreenContainer";
 import { FormSheet } from "../FormSheet";
@@ -53,13 +53,13 @@ export function NavModalEditProgramMenu(): JSX.Element {
       }}
       onGenerateProgramImage={() => {
         onClose();
-        navigationRef.navigate("programImageExportModal", { programId });
+        navigateToModal("programImageExportModal", { programId });
       }}
       onLoadRevisions={() => {
         dispatch(
           Thunk_fetchRevisions(programId, () => {
             onClose();
-            navigationRef.navigate("programRevisionsModal", { programId });
+            navigateToModal("programRevisionsModal", { programId });
           })
         );
       }}
