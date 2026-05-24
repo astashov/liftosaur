@@ -1,7 +1,7 @@
 import React from "react";
 import { View } from "react-native";
 import { useRoute } from "@react-navigation/native";
-import { useAppState } from "../StateContext";
+import { useTrackedState, useTrackedDispatch, untrack } from "../TrackedStateContext";
 import { buildNavCommon } from "../utils";
 import { NavScreenContent } from "../NavScreenContent";
 import { ScreenSettings as ScreenSettingsComponent } from "../../components/screenSettings";
@@ -25,20 +25,21 @@ import { useAppContext } from "../../components/appContext";
 import type { IStatsKey } from "../../types";
 
 export function NavScreenSettings(): React.JSX.Element {
-  const { state, dispatch } = useAppState();
-  const navCommon = buildNavCommon(state);
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  const navCommon = untrack(buildNavCommon(state));
   return (
     <View className="flex-1 bg-background-default">
       <NavScreenContent>
         <ScreenSettingsComponent
-          stats={state.storage.stats}
+          stats={untrack(state.storage.stats)}
           tempUserId={state.storage.tempUserId}
           navCommon={navCommon}
-          subscription={state.storage.subscription}
+          subscription={untrack(state.storage.subscription)}
           dispatch={dispatch}
-          user={state.user}
+          user={untrack(state.user)}
           currentProgramName={Program_getProgram(state, state.storage.currentProgramId)?.name || ""}
-          settings={state.storage.settings}
+          settings={untrack(state.storage.settings)}
         />
       </NavScreenContent>
     </View>
@@ -46,8 +47,9 @@ export function NavScreenSettings(): React.JSX.Element {
 }
 
 export function NavScreenAccount(): React.JSX.Element {
-  const { state, dispatch } = useAppState();
-  const navCommon = buildNavCommon(state);
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  const navCommon = untrack(buildNavCommon(state));
   return (
     <View className="flex-1 bg-background-default">
       <NavScreenContent>
@@ -56,7 +58,7 @@ export function NavScreenAccount(): React.JSX.Element {
           dispatch={dispatch}
           email={state.user?.email}
           userId={state.user?.id}
-          storage={state.storage}
+          storage={untrack(state.storage)}
         />
       </NavScreenContent>
     </View>
@@ -64,47 +66,54 @@ export function NavScreenAccount(): React.JSX.Element {
 }
 
 export function NavScreenTimers(): React.JSX.Element {
-  const { state, dispatch } = useAppState();
-  const navCommon = buildNavCommon(state);
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  const navCommon = untrack(buildNavCommon(state));
   return (
     <View className="flex-1 bg-background-default">
       <NavScreenContent>
-        <ScreenTimersComponent navCommon={navCommon} dispatch={dispatch} timers={state.storage.settings.timers} />
+        <ScreenTimersComponent
+          navCommon={navCommon}
+          dispatch={dispatch}
+          timers={untrack(state.storage.settings.timers)}
+        />
       </NavScreenContent>
     </View>
   );
 }
 
 export function NavScreenPlates(): React.JSX.Element {
-  const { state, dispatch } = useAppState();
-  const navCommon = buildNavCommon(state);
-  const allEquipment = Equipment_getEquipmentOfGym(state.storage.settings, state.selectedGymId);
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  const navCommon = untrack(buildNavCommon(state));
+  const allEquipment = untrack(Equipment_getEquipmentOfGym(state.storage.settings, state.selectedGymId));
   return (
     <View className="flex-1 bg-background-default">
       <ScreenEquipment
-        stats={state.storage.stats}
+        stats={untrack(state.storage.stats)}
         navCommon={navCommon}
         allEquipment={allEquipment}
-        expandedEquipment={state.defaultEquipmentExpanded}
+        expandedEquipment={untrack(state.defaultEquipmentExpanded)}
         selectedGymId={state.selectedGymId}
         dispatch={dispatch}
-        settings={state.storage.settings}
+        settings={untrack(state.storage.settings)}
       />
     </View>
   );
 }
 
 export function NavScreenGyms(): React.JSX.Element {
-  const { state, dispatch } = useAppState();
-  const navCommon = buildNavCommon(state);
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  const navCommon = untrack(buildNavCommon(state));
   return (
     <View className="flex-1 bg-background-default">
       <NavScreenContent>
         <ScreenGymsComponent
           navCommon={navCommon}
-          expandedEquipment={state.defaultEquipmentExpanded}
+          expandedEquipment={untrack(state.defaultEquipmentExpanded)}
           dispatch={dispatch}
-          settings={state.storage.settings}
+          settings={untrack(state.storage.settings)}
         />
       </NavScreenContent>
     </View>
@@ -112,10 +121,12 @@ export function NavScreenGyms(): React.JSX.Element {
 }
 
 export function NavScreenExercises(): React.JSX.Element {
-  const { state, dispatch } = useAppState();
-  const navCommon = buildNavCommon(state);
-  const currentProgram =
-    state.storage.currentProgramId != null ? Program_getProgram(state, state.storage.currentProgramId) : undefined;
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  const navCommon = untrack(buildNavCommon(state));
+  const currentProgram = untrack(
+    state.storage.currentProgramId != null ? Program_getProgram(state, state.storage.currentProgramId) : undefined
+  );
   if (currentProgram == null) {
     throw new Error("Opened 'exercises' screen, but 'currentProgram' is null");
   }
@@ -124,10 +135,10 @@ export function NavScreenExercises(): React.JSX.Element {
       <NavScreenContent>
         <ScreenExercisesComponent
           navCommon={navCommon}
-          settings={state.storage.settings}
+          settings={untrack(state.storage.settings)}
           dispatch={dispatch}
           program={currentProgram}
-          history={state.storage.history}
+          history={untrack(state.storage.history)}
         />
       </NavScreenContent>
     </View>
@@ -135,15 +146,16 @@ export function NavScreenExercises(): React.JSX.Element {
 }
 
 export function NavScreenAppleHealth(): React.JSX.Element {
-  const { state, dispatch } = useAppState();
-  const navCommon = buildNavCommon(state);
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  const navCommon = untrack(buildNavCommon(state));
   return (
     <View className="flex-1 bg-background-default">
       <NavScreenContent>
         <ScreenAppleHealthSettingsComponent
           navCommon={navCommon}
           dispatch={dispatch}
-          settings={state.storage.settings}
+          settings={untrack(state.storage.settings)}
         />
       </NavScreenContent>
     </View>
@@ -151,15 +163,16 @@ export function NavScreenAppleHealth(): React.JSX.Element {
 }
 
 export function NavScreenGoogleHealth(): React.JSX.Element {
-  const { state, dispatch } = useAppState();
-  const navCommon = buildNavCommon(state);
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  const navCommon = untrack(buildNavCommon(state));
   return (
     <View className="flex-1 bg-background-default">
       <NavScreenContent>
         <ScreenGoogleHealthSettingsComponent
           navCommon={navCommon}
           dispatch={dispatch}
-          settings={state.storage.settings}
+          settings={untrack(state.storage.settings)}
         />
       </NavScreenContent>
     </View>
@@ -167,28 +180,34 @@ export function NavScreenGoogleHealth(): React.JSX.Element {
 }
 
 export function NavScreenMuscleGroups(): React.JSX.Element {
-  const { state, dispatch } = useAppState();
-  const navCommon = buildNavCommon(state);
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  const navCommon = untrack(buildNavCommon(state));
   return (
     <View className="flex-1 bg-background-default">
       <NavScreenContent>
-        <ScreenMuscleGroupsComponent navCommon={navCommon} dispatch={dispatch} settings={state.storage.settings} />
+        <ScreenMuscleGroupsComponent
+          navCommon={navCommon}
+          dispatch={dispatch}
+          settings={untrack(state.storage.settings)}
+        />
       </NavScreenContent>
     </View>
   );
 }
 
 export function NavScreenStats(): React.JSX.Element {
-  const { state, dispatch } = useAppState();
-  const navCommon = buildNavCommon(state);
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  const navCommon = untrack(buildNavCommon(state));
   return (
     <View className="flex-1 bg-background-default">
       <NavScreenContent>
         <ScreenStatsComponent
           navCommon={navCommon}
           dispatch={dispatch}
-          settings={state.storage.settings}
-          stats={state.storage.stats}
+          settings={untrack(state.storage.settings)}
+          stats={untrack(state.storage.stats)}
         />
       </NavScreenContent>
     </View>
@@ -196,18 +215,19 @@ export function NavScreenStats(): React.JSX.Element {
 }
 
 export function NavScreenMeasurements(): React.JSX.Element {
-  const { state, dispatch } = useAppState();
-  const navCommon = buildNavCommon(state);
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  const navCommon = untrack(buildNavCommon(state));
   const route = useRoute<{ key: string; name: "measurements"; params?: { key?: IStatsKey } }>();
   return (
     <View className="flex-1 bg-background-default">
       <NavScreenContent>
         <ScreenMeasurementsComponent
           navCommon={navCommon}
-          subscription={state.storage.subscription}
+          subscription={untrack(state.storage.subscription)}
           dispatch={dispatch}
-          settings={state.storage.settings}
-          stats={state.storage.stats}
+          settings={untrack(state.storage.settings)}
+          stats={untrack(state.storage.stats)}
           initialKey={route.params?.key}
         />
       </NavScreenContent>
@@ -216,13 +236,15 @@ export function NavScreenMeasurements(): React.JSX.Element {
 }
 
 export function NavScreenExerciseStats(): React.JSX.Element {
-  const { state, dispatch } = useAppState();
-  const navCommon = buildNavCommon(state);
-  const currentProgram =
-    state.storage.currentProgramId != null ? Program_getProgram(state, state.storage.currentProgramId) : undefined;
-  const exercise = state.viewExerciseType
-    ? Exercise_find(state.viewExerciseType, state.storage.settings.exercises)
-    : undefined;
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  const navCommon = untrack(buildNavCommon(state));
+  const currentProgram = untrack(
+    state.storage.currentProgramId != null ? Program_getProgram(state, state.storage.currentProgramId) : undefined
+  );
+  const exercise = untrack(
+    state.viewExerciseType ? Exercise_find(state.viewExerciseType, state.storage.settings.exercises) : undefined
+  );
   if (exercise == null) {
     setTimeout(() => dispatch(Thunk_pullScreen()), 0);
     return (
@@ -240,11 +262,11 @@ export function NavScreenExerciseStats(): React.JSX.Element {
           navCommon={navCommon}
           currentProgram={currentProgram}
           key={Exercise_toKey(exercise)}
-          history={state.storage.history}
+          history={untrack(state.storage.history)}
           dispatch={dispatch}
           exerciseType={exercise}
-          settings={state.storage.settings}
-          subscription={state.storage.subscription}
+          settings={untrack(state.storage.settings)}
+          subscription={untrack(state.storage.subscription)}
         />
       </NavScreenContent>
     </View>
@@ -252,9 +274,10 @@ export function NavScreenExerciseStats(): React.JSX.Element {
 }
 
 export function NavScreenApiKeys(): React.JSX.Element {
-  const { state, dispatch } = useAppState();
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
   const { service } = useAppContext();
-  const navCommon = buildNavCommon(state);
+  const navCommon = untrack(buildNavCommon(state));
   return (
     <View className="flex-1 bg-background-default">
       <NavScreenContent>
@@ -262,7 +285,7 @@ export function NavScreenApiKeys(): React.JSX.Element {
           navCommon={navCommon}
           dispatch={dispatch}
           service={service}
-          subscription={state.storage.subscription}
+          subscription={untrack(state.storage.subscription)}
           userId={state.user?.id}
         />
       </NavScreenContent>

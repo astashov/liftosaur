@@ -237,6 +237,7 @@
     "react-native-web": "^0.21.2",
     "react-native-webview": "^13.16.1",
     "react-native-worklets": "^0.8.1",
+    "react-tracked": "^2.0.1",
     "rollbar": "^2.26.2",
     "rollbar-react-native": "^1.0.1",
     "rsa-pem-from-mod-exp": "^0.8.5",

@@ -18,6 +18,22 @@ export type IPerfEvent =
       phase: "mount" | "commit" | "interactive" | "loaded";
       ts: number;
       loaded_source?: "auto" | "explicit";
+    }
+  | {
+      type: "render_count";
+      session: string;
+      component: string;
+      delta: number;
+      total: number;
+      window_ms: number;
+      ts: number;
+    }
+  | {
+      type: "memo_timing";
+      session: string;
+      label: string;
+      duration_ms: number;
+      ts: number;
     };
 
 export function PerfTracker_mark(_name: string, _screen?: string): void {}

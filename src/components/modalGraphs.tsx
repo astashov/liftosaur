@@ -1,10 +1,12 @@
-import { JSX, Fragment } from "react";
+import { JSX, Fragment, memo, useMemo } from "react";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
 
 import { equipmentName, Exercise_toKey, Exercise_get, Exercise_fromKey } from "../models/exercise";
 import { StringUtils_capitalize, StringUtils_dashcase } from "../utils/string";
-import { IDispatch } from "../ducks/types";
+import { useTrackedState, useTrackedDispatch, untrack } from "../navigation/TrackedStateContext";
+import { usePerfRenderCount } from "../utils/usePerfRenderCount";
+import { History_findAllMaxSetsPerId } from "../models/history";
 import { GroupHeader } from "./groupHeader";
 import { DraggableList2 } from "./draggableList2";
 import { IconHandle } from "./icons/iconHandle";
@@ -20,14 +22,11 @@ import {
 import {
   graphExerciseSelectedTypes,
   IExerciseId,
-  IGraph,
   ISettings,
-  IStats,
   IStatsKey,
   IGraphExerciseSelectedType,
   graphMuscleGroupSelectedTypes,
   IGraphMuscleGroupSelectedType,
-  IExerciseType,
 } from "../types";
 import { MenuItem } from "./menuItem";
 import { Stats_name } from "../models/stats";
@@ -42,42 +41,71 @@ import { Muscle_getAvailableMuscleGroups, Muscle_getMuscleGroupName } from "../m
 
 interface IModalGraphsProps {
   isHidden: boolean;
-  exerciseTypes: IExerciseType[];
-  graphs: IGraph[];
-  stats: IStats;
-  settings: ISettings;
-  dispatch: IDispatch;
   onClose: (value?: IExerciseId) => void;
 }
 
 export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
-  const graphs = props.graphs;
-  const exercises = CollectionUtils_sort(
-    props.exerciseTypes
-      .filter((et) => !graphs.some((g) => g.type === "exercise" && g.id === Exercise_toKey(et)))
-      .map((et) => Exercise_get(et, props.settings.exercises)),
-    (a, b) => a.name.localeCompare(b.name)
+  usePerfRenderCount("ModalGraphsContent");
+  const trackedState = useTrackedState();
+  const dispatch = useTrackedDispatch();
+
+  const settings = untrack(trackedState.storage.settings);
+  const stats = untrack(trackedState.storage.stats);
+  const history = untrack(trackedState.storage.history);
+
+  const graphs = settings.graphs.graphs;
+
+  const exerciseTypes = useMemo(() => {
+    const maxSets = History_findAllMaxSetsPerId(history);
+    const extypes = ObjectUtils_keys(maxSets).map(Exercise_fromKey);
+    return extypes.filter((e) => !settings.exercises[e.id] || !settings.exercises[e.id]?.isDeleted);
+  }, [history, settings.exercises]);
+
+  const exercises = useMemo(
+    () =>
+      CollectionUtils_sort(
+        exerciseTypes
+          .filter((et) => !graphs.some((g) => g.type === "exercise" && g.id === Exercise_toKey(et)))
+          .map((et) => Exercise_get(et, settings.exercises)),
+        (a, b) => a.name.localeCompare(b.name)
+      ),
+    [exerciseTypes, graphs, settings.exercises]
   );
-  const usedStats = graphs.reduce<Set<IStatsKey>>((memo, g) => {
-    if (g.type === "statsWeight" || g.type === "statsLength" || g.type === "statsPercentage") {
-      memo.add(g.id);
-    }
-    return memo;
-  }, new Set());
-  const settings = props.settings;
+
+  const usedStats = useMemo(
+    () =>
+      graphs.reduce<Set<IStatsKey>>((acc, g) => {
+        if (g.type === "statsWeight" || g.type === "statsLength" || g.type === "statsPercentage") {
+          acc.add(g.id);
+        }
+        return acc;
+      }, new Set()),
+    [graphs]
+  );
+
   const hasBodyweight = settings.graphs.graphs.some((g) => g.id === "weight");
-  const statsWeightKeys = ObjectUtils_keys(props.stats.weight).filter(
-    (k) => !usedStats.has(k) && (props.stats.weight[k] || []).length > 0
+
+  const statsWeightKeys = useMemo(
+    () => ObjectUtils_keys(stats.weight).filter((k) => !usedStats.has(k) && (stats.weight[k] || []).length > 0),
+    [stats.weight, usedStats]
   );
-  const statsLengthKeys = ObjectUtils_keys(props.stats.length).filter(
-    (k) => !usedStats.has(k) && (props.stats.length[k] || []).length > 0
+  const statsLengthKeys = useMemo(
+    () => ObjectUtils_keys(stats.length).filter((k) => !usedStats.has(k) && (stats.length[k] || []).length > 0),
+    [stats.length, usedStats]
   );
-  const statsPercentageKeys = ObjectUtils_keys(props.stats.percentage).filter(
-    (k) => !usedStats.has(k) && (props.stats.percentage[k] || []).length > 0
+  const statsPercentageKeys = useMemo(
+    () => ObjectUtils_keys(stats.percentage).filter((k) => !usedStats.has(k) && (stats.percentage[k] || []).length > 0),
+    [stats.percentage, usedStats]
   );
-  const availableMuscleGroups = [...Muscle_getAvailableMuscleGroups(props.settings), "total"].filter(
-    (m) => !graphs.some((g) => g.type === "muscleGroup" && g.id === m)
+
+  const availableMuscleGroups = useMemo(
+    () =>
+      [...Muscle_getAvailableMuscleGroups(settings), "total"].filter(
+        (m) => !graphs.some((g) => g.type === "muscleGroup" && g.id === m)
+      ),
+    [settings, graphs]
   );
+
   const hasAvailableStats = statsLengthKeys.length > 0 || statsWeightKeys.length > 0 || statsPercentageKeys.length > 0;
 
   return (
@@ -91,7 +119,7 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
           onChange={(v) => {
             if (v) {
               updateSettings(
-                props.dispatch,
+                dispatch,
                 lb<ISettings>()
                   .p("graphsSettings")
                   .p("defaultType")
@@ -109,7 +137,7 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
           onChange={(v) => {
             if (v) {
               updateSettings(
-                props.dispatch,
+                dispatch,
                 lb<ISettings>()
                   .p("graphsSettings")
                   .p("defaultMuscleGroupType")
@@ -125,7 +153,7 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
           value={settings.graphsSettings.isSameXAxis ? "true" : "false"}
           onChange={(v) =>
             updateSettings(
-              props.dispatch,
+              dispatch,
               lb<ISettings>()
                 .p("graphsSettings")
                 .p("isSameXAxis")
@@ -141,7 +169,7 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
             value={settings.graphsSettings.isWithBodyweight ? "true" : "false"}
             onChange={(v) =>
               updateSettings(
-                props.dispatch,
+                dispatch,
                 lb<ISettings>()
                   .p("graphsSettings")
                   .p("isWithBodyweight")
@@ -157,7 +185,7 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
           value={settings.graphsSettings.isWithOneRm ? "true" : "false"}
           onChange={(v) =>
             updateSettings(
-              props.dispatch,
+              dispatch,
               lb<ISettings>()
                 .p("graphsSettings")
                 .p("isWithOneRm")
@@ -172,7 +200,7 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
           value={settings.graphsSettings.isWithProgramLines ? "true" : "false"}
           onChange={(v) =>
             updateSettings(
-              props.dispatch,
+              dispatch,
               lb<ISettings>()
                 .p("graphsSettings")
                 .p("isWithProgramLines")
@@ -202,9 +230,9 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
                     )}
                   </View>
                   {graph.type === "exercise" ? (
-                    <ExercisePreview exerciseKey={graph.id} settings={props.settings} />
+                    <ExercisePreview exerciseKey={graph.id} settings={settings} />
                   ) : graph.type === "muscleGroup" ? (
-                    <MuscleGroupPreview muscleGroup={graph.id} settings={props.settings} />
+                    <MuscleGroupPreview muscleGroup={graph.id} settings={settings} />
                   ) : (
                     <StatsPreview stats={graph.id} />
                   )}
@@ -212,7 +240,7 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
                     data-testid="remove-graph"
                     testID="remove-graph"
                     className="p-1 nm-remove-graph"
-                    onPress={() => EditGraphs_removeGraph(props.dispatch, graph)}
+                    onPress={() => EditGraphs_removeGraph(dispatch, graph)}
                   >
                     <IconCloseCircle />
                   </Pressable>
@@ -222,7 +250,7 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
           }}
           onDragEnd={(startIndex, endIndex) => {
             if (startIndex !== endIndex) {
-              EditGraphs_reorderGraphs(props.dispatch, startIndex, endIndex);
+              EditGraphs_reorderGraphs(dispatch, startIndex, endIndex);
             }
           }}
         />
@@ -236,9 +264,9 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
                   data-testid={`item-graph-${StringUtils_dashcase(e.name)}`}
                   testID={`item-graph-${StringUtils_dashcase(e.name)}`}
                   className="flex-row w-full px-2 py-1 border-b border-border-neutral"
-                  onPress={() => EditGraphs_addExerciseGraph(props.dispatch, e)}
+                  onPress={() => EditGraphs_addExerciseGraph(dispatch, e)}
                 >
-                  <ExercisePreview exerciseKey={Exercise_toKey(e)} settings={props.settings} />
+                  <ExercisePreview exerciseKey={Exercise_toKey(e)} settings={settings} />
                 </Pressable>
               );
             })}
@@ -254,9 +282,9 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
                   data-testid={`item-graph-${muscleGroup}`}
                   testID={`item-graph-${muscleGroup}`}
                   className="flex-row w-full px-2 py-1 border-b border-border-neutral"
-                  onPress={() => EditGraphs_addMuscleGroupGraph(props.dispatch, muscleGroup)}
+                  onPress={() => EditGraphs_addMuscleGroupGraph(dispatch, muscleGroup)}
                 >
-                  <MuscleGroupPreview muscleGroup={muscleGroup} settings={props.settings} />
+                  <MuscleGroupPreview muscleGroup={muscleGroup} settings={settings} />
                 </Pressable>
               );
             })}
@@ -268,7 +296,7 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
             <MenuItem
               key={statsKey}
               name={Stats_name(statsKey)}
-              onClick={() => EditGraphs_addStatsWeightGraph(props.dispatch, statsKey)}
+              onClick={() => EditGraphs_addStatsWeightGraph(dispatch, statsKey)}
             />
           );
         })}
@@ -277,7 +305,7 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
             <MenuItem
               key={statsKey}
               name={Stats_name(statsKey)}
-              onClick={() => EditGraphs_addStatsPercentageGraph(props.dispatch, statsKey)}
+              onClick={() => EditGraphs_addStatsPercentageGraph(dispatch, statsKey)}
             />
           );
         })}
@@ -286,7 +314,7 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
             <MenuItem
               key={statsKey}
               name={Stats_name(statsKey)}
-              onClick={() => EditGraphs_addStatsLengthGraph(props.dispatch, statsKey)}
+              onClick={() => EditGraphs_addStatsLengthGraph(dispatch, statsKey)}
             />
           );
         })}
@@ -300,7 +328,10 @@ export function ModalGraphsContent(props: IModalGraphsProps): JSX.Element {
   );
 }
 
-function ExercisePreview(props: { exerciseKey: string; settings: ISettings }): JSX.Element {
+const ExercisePreview = memo(function ExercisePreviewInner(props: {
+  exerciseKey: string;
+  settings: ISettings;
+}): JSX.Element {
   const e = Exercise_get(Exercise_fromKey(props.exerciseKey), props.settings.exercises);
   return (
     <Fragment>
@@ -313,20 +344,23 @@ function ExercisePreview(props: { exerciseKey: string; settings: ISettings }): J
       </View>
     </Fragment>
   );
-}
+});
 
-function StatsPreview(props: { stats: IStatsKey }): JSX.Element {
+const StatsPreview = memo(function StatsPreviewInner(props: { stats: IStatsKey }): JSX.Element {
   return (
     <View className="flex-1 py-3">
       <Text className="text-sm">{Stats_name(props.stats)}</Text>
     </View>
   );
-}
+});
 
-function MuscleGroupPreview(props: { muscleGroup: string; settings: ISettings }): JSX.Element {
+const MuscleGroupPreview = memo(function MuscleGroupPreviewInner(props: {
+  muscleGroup: string;
+  settings: ISettings;
+}): JSX.Element {
   return (
     <View className="flex-1 py-3">
       <Text className="text-sm">{Muscle_getMuscleGroupName(props.muscleGroup, props.settings)} Weekly Volume</Text>
     </View>
   );
-}
+});

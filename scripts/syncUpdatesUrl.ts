@@ -1,5 +1,13 @@
 import * as fs from "fs";
 import * as path from "path";
+import {
+  localdomain,
+  localapidomain,
+  localstreamingapidomain,
+  localport,
+  localapiport,
+  localstreamingapiport,
+} from "../src/localdomain";
 
 const HOSTS = {
   prod: {
@@ -12,11 +20,19 @@ const HOSTS = {
     apiHost: "https://api3-dev.liftosaur.com",
     streamingApiHost: "https://streaming-api-dev.liftosaur.com",
   },
+  local: {
+    host: `https://${localdomain}.liftosaur.com:${localport}`,
+    apiHost: `https://${localapidomain}.liftosaur.com:${localapiport}`,
+    streamingApiHost: `https://${localstreamingapidomain}.liftosaur.com:${localstreamingapiport}`,
+  },
 } as const;
 
 type IStage = keyof typeof HOSTS;
 
 function resolveStage(): IStage {
+  if ((process.env.LOCAL ?? "").toLowerCase() === "1") {
+    return "local";
+  }
   const raw = (process.env.STAGE ?? "prod").toLowerCase();
   if (raw === "1" || raw === "dev" || raw === "stage") {
     return "dev";

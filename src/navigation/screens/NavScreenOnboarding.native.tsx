@@ -1,6 +1,6 @@
 import React from "react";
 import { View } from "react-native";
-import { useAppState } from "../StateContext";
+import { useTrackedState, useTrackedDispatch, untrack } from "../TrackedStateContext";
 import { NavScreenContent } from "../NavScreenContent";
 import { buildNavCommon } from "../utils";
 import { ScreenFirst as ScreenFirstComponent } from "../../components/screenFirst";
@@ -17,7 +17,7 @@ import {
 } from "../../components/screenSetupEquipment";
 
 export function NavScreenFirst(): React.JSX.Element {
-  const { dispatch } = useAppState();
+  const dispatch = useTrackedDispatch();
   return (
     <NavScreenContent>
       <ScreenFirstComponent dispatch={dispatch} />
@@ -26,70 +26,78 @@ export function NavScreenFirst(): React.JSX.Element {
 }
 
 export function NavScreenUnits(): React.JSX.Element {
-  const { state, dispatch } = useAppState();
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
   return (
     <NavScreenContent>
-      <ScreenUnitSelector settings={state.storage.settings} dispatch={dispatch} />
+      <ScreenUnitSelector settings={untrack(state.storage.settings)} dispatch={dispatch} />
     </NavScreenContent>
   );
 }
 
 export function NavScreenSetupEquipment(): React.JSX.Element {
-  const { state, dispatch } = useAppState();
-  const navCommon = buildNavCommon(state);
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  const navCommon = untrack(buildNavCommon(state));
   return (
     <ScreenSetupEquipmentComponent
-      stats={state.storage.stats}
+      stats={untrack(state.storage.stats)}
       navCommon={navCommon}
       dispatch={dispatch}
-      settings={state.storage.settings}
+      settings={untrack(state.storage.settings)}
     />
   );
 }
 
 export function NavScreenSetupPlates(): React.JSX.Element {
-  const { state, dispatch } = useAppState();
-  const navCommon = buildNavCommon(state);
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  const navCommon = untrack(buildNavCommon(state));
   return (
     <ScreenSetupPlatesComponent
-      stats={state.storage.stats}
+      stats={untrack(state.storage.stats)}
       navCommon={navCommon}
       dispatch={dispatch}
-      settings={state.storage.settings}
+      settings={untrack(state.storage.settings)}
     />
   );
 }
 
 export function NavScreenProgramSelectOnboarding(): React.JSX.Element {
-  const { state, dispatch } = useAppState();
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
   return (
     <NavScreenContent>
-      <ScreenProgramSelectComponent dispatch={dispatch} settings={state.storage.settings} />
+      <ScreenProgramSelectComponent dispatch={dispatch} settings={untrack(state.storage.settings)} />
     </NavScreenContent>
   );
 }
 
 export function NavScreenProgramsOnboarding(): React.JSX.Element {
-  const { state, dispatch } = useAppState();
-  const navCommon = buildNavCommon(state);
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  const navCommon = untrack(buildNavCommon(state));
+  const progress = untrack(Progress_getCurrentProgress(state));
   return (
     <ChooseProgramView
       navCommon={navCommon}
-      settings={state.storage.settings}
+      settings={untrack(state.storage.settings)}
       dispatch={dispatch}
-      progress={Progress_getCurrentProgress(state)}
-      programs={state.programs || []}
-      programsIndex={state.programsIndex || []}
-      customPrograms={state.storage.programs || []}
-      editProgramId={Progress_getCurrentProgress(state)?.programId}
+      progress={progress}
+      programs={untrack(state.programs || [])}
+      programsIndex={untrack(state.programsIndex || [])}
+      customPrograms={untrack(state.storage.programs || [])}
+      editProgramId={progress?.programId}
     />
   );
 }
 
 export function NavScreenProgramPreviewOnboarding(): React.JSX.Element {
-  const { state, dispatch } = useAppState();
-  const navCommon = buildNavCommon(state);
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  const navCommon = untrack(buildNavCommon(state));
 
+  // Pass tracked state so playgroundState reads register subscriptions and the modal opens.
   usePlaygroundModalBridges(state);
 
   if (state.previewProgram?.id == null) {
@@ -100,10 +108,10 @@ export function NavScreenProgramPreviewOnboarding(): React.JSX.Element {
     <ScreenProgramPreviewComponent
       navCommon={navCommon}
       dispatch={dispatch}
-      settings={state.storage.settings}
+      settings={untrack(state.storage.settings)}
       selectedProgramId={state.previewProgram.id}
-      programs={state.previewProgram.showCustomPrograms ? state.storage.programs : state.programs}
-      subscription={state.storage.subscription}
+      programs={untrack(state.previewProgram.showCustomPrograms ? state.storage.programs : state.programs)}
+      subscription={untrack(state.storage.subscription)}
     />
   );
 }

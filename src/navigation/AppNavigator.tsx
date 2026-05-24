@@ -1,7 +1,7 @@
 import { JSX, createContext, useContext } from "react";
 import { createStackNavigator } from "@react-navigation/stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { useAppState } from "./StateContext";
+import { useTrackedState } from "./TrackedStateContext";
 import type {
   IOnboardingStackParamList,
   IHomeStackParamList,
@@ -128,7 +128,11 @@ const RootStack = createStackNavigator<IRootStackParamList>();
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function useStackScreenOptions() {
-  useAppState();
+  // Tailwind_semantic reads theme from the DOM (set by side effect on settings.theme).
+  // Narrow subscription to theme so options re-evaluate only on theme toggle, not every dispatch.
+  const trackedState = useTrackedState();
+
+  const _theme = trackedState.storage.settings.theme;
   return {
     header: NavHeader,
     animationEnabled: false,
@@ -242,7 +246,9 @@ const tabScreenOptions = {
 };
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function useRootScreenOptions() {
-  useAppState();
+  const trackedState = useTrackedState();
+
+  const _theme = trackedState.storage.settings.theme;
   return {
     headerShown: false,
     animationEnabled: false,

@@ -1,26 +1,13 @@
-import { JSX, useMemo } from "react";
+import { JSX } from "react";
 import { useNavigation } from "@react-navigation/native";
-import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
 import { FormSheet } from "../FormSheet";
 import { ModalGraphsContent } from "../../components/modalGraphs";
-import { History_findAllMaxSetsPerId } from "../../models/history";
-import { ObjectUtils_keys } from "../../utils/object";
-import { Exercise_fromKey } from "../../models/exercise";
+import { usePerfRenderCount } from "../../utils/usePerfRenderCount";
 
 export function NavModalGraphs(): JSX.Element {
-  const { state, dispatch } = useAppState();
+  usePerfRenderCount("NavModalGraphs");
   const navigation = useNavigation();
-  const settings = state.storage.settings;
-
-  const exerciseTypes = useMemo(() => {
-    const maxSets = History_findAllMaxSetsPerId(state.storage.history);
-    const extypes = ObjectUtils_keys(maxSets).map(Exercise_fromKey);
-    return extypes.filter((e) => {
-      return !settings.exercises[e.id] || !settings.exercises[e.id]?.isDeleted;
-    });
-  }, [state.storage.history]);
-
   const onClose = (): void => {
     navigation.goBack();
   };
@@ -28,15 +15,7 @@ export function NavModalGraphs(): JSX.Element {
   return (
     <ModalScreenContainer onClose={onClose} shouldShowClose={true} isFullWidth={true}>
       <FormSheet>
-        <ModalGraphsContent
-          settings={settings}
-          isHidden={false}
-          exerciseTypes={exerciseTypes}
-          stats={state.storage.stats}
-          graphs={settings.graphs.graphs}
-          onClose={onClose}
-          dispatch={dispatch}
-        />
+        <ModalGraphsContent isHidden={false} onClose={onClose} />
       </FormSheet>
     </ModalScreenContainer>
   );

@@ -1,8 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useFrameCallback, runOnJS } from "react-native-reanimated";
 import { PerfTracker_recordEvent, PerfTracker_getSessionId } from "./perfTracker";
-
-declare let __DEV__: boolean;
+import { PerfEnabled_isEnabled } from "./perfEnabled";
 
 const EXPECTED_FRAME_MS_60HZ = 16.67;
 const DROP_THRESHOLD_MULTIPLIER = 1.5;
@@ -38,7 +37,7 @@ export function usePerfFrameSampling(active: boolean, getCurrentScreen: () => st
   }, false);
 
   useEffect(() => {
-    if (!__DEV__) {
+    if (!PerfEnabled_isEnabled()) {
       return;
     }
     frameCallback.setActive(active);

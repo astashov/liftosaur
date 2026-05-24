@@ -50,6 +50,7 @@ import { navigationRef } from "../navigation/navigationRef";
 import { navigateToModal } from "../navigation/navigationService";
 import { getCurrentScreenData } from "../navigation/navigationService";
 import { StateContext } from "../navigation/StateContext";
+import { TrackedStateProvider } from "../navigation/TrackedStateContext";
 import { AppNavigator } from "../navigation/AppNavigator";
 import type { IScreen } from "../models/screen";
 
@@ -438,19 +439,21 @@ export function AppView(props: IProps): JSX.Element | null {
           }}
         />
         <StateContext.Provider value={{ state, dispatch }}>
-          <ModalStateProvider>
-            <AppContext.Provider value={{ service, isApp: true }}>
-              <NavigationContainer
-                ref={navigationRef}
-                onReady={() => setIsNavReady(true)}
-                onStateChange={onNavigationStateChange}
-                documentTitle={{ enabled: false }}
-                theme={{ ...DefaultTheme, colors: { ...DefaultTheme.colors, background: "transparent" } }}
-              >
-                <AppNavigator initialScreen={initialScreen} />
-              </NavigationContainer>
-            </AppContext.Provider>
-          </ModalStateProvider>
+          <TrackedStateProvider state={state} dispatch={dispatch}>
+            <ModalStateProvider>
+              <AppContext.Provider value={{ service, isApp: true }}>
+                <NavigationContainer
+                  ref={navigationRef}
+                  onReady={() => setIsNavReady(true)}
+                  onStateChange={onNavigationStateChange}
+                  documentTitle={{ enabled: false }}
+                  theme={{ ...DefaultTheme, colors: { ...DefaultTheme.colors, background: "transparent" } }}
+                >
+                  <AppNavigator initialScreen={initialScreen} />
+                </NavigationContainer>
+              </AppContext.Provider>
+            </ModalStateProvider>
+          </TrackedStateProvider>
         </StateContext.Provider>
         {progress && currentScreenName && screensWithoutTimer.indexOf(currentScreenName) === -1 && (
           <RestTimer

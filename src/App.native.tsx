@@ -1,6 +1,6 @@
 import "../global.css";
 import React, { useMemo, useRef, useState, useEffect } from "react";
-import { ActivityIndicator, AppState, Linking, Platform, View } from "react-native";
+import { ActivityIndicator, AppState, InteractionManager, Linking, Platform, View } from "react-native";
 import { Client as RollbarClient } from "rollbar-react-native";
 import RB from "rollbar";
 import { Analytics_initialize, Analytics_setUserId } from "./utils/analytics";
@@ -163,6 +163,7 @@ import { IScreen } from "./models/screen";
 import { IEnv, IState } from "./models/state";
 import { AsyncQueue } from "./utils/asyncQueue";
 import { StateContext } from "./navigation/StateContext";
+import { TrackedStateProvider } from "./navigation/TrackedStateContext";
 import { ModalStateProvider } from "./navigation/ModalStateContext";
 import { CustomKeyboardProvider } from "./navigation/CustomKeyboardContext";
 import { AppNavigator } from "./navigation/AppNavigator";
@@ -193,6 +194,7 @@ import {
 import { IapAdapter } from "./utils/iap";
 import { HealthAdapter } from "./utils/health";
 import { WhatsNew_doesHaveNewUpdates } from "./models/whatsnew";
+import { History_getGraphsAggregates } from "./models/history";
 import { PerfLongTasks_start } from "./utils/perfLongTasks";
 import { usePerfFrameSampling } from "./utils/perfFrameCallback";
 import { PerfNavTracker_handleStateChange } from "./utils/perfNavTracker";
@@ -234,6 +236,20 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
   }, []);
 
   usePerfFrameSampling(true, () => getCurrentScreenData()?.name);
+
+  // Warm the Graphs aggregates cache during idle time so first-visit Graphs is fast.
+  // Re-runs when history or settings change to keep the cache fresh.
+  useEffect(() => {
+    const history = state.storage.history;
+    const settings = state.storage.settings;
+    if (history.length === 0) {
+      return undefined;
+    }
+    const handle = InteractionManager.runAfterInteractions(() => {
+      History_getGraphsAggregates(history, settings);
+    });
+    return () => handle.cancel();
+  }, [state.storage.history, state.storage.settings]);
 
   useEffect(() => {
     if (state.storage.settings.alwaysOnDisplay) {
@@ -520,36 +536,38 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
   return (
     <AppContext.Provider value={{ service, isApp: true }}>
       <StateContext.Provider value={{ state, dispatch }}>
-        <ModalStateProvider>
-          <CustomKeyboardProvider>
-            <SystemBars style="auto" />
-            <NavigationContainer
-              ref={navigationRef}
-              onStateChange={() => {
-                const route = navigationRef.getCurrentRoute();
-                setCurrentScreenName(route?.name as IScreen | undefined);
-                PerfNavTracker_handleStateChange(route?.name);
-              }}
-              onReady={() => {
-                const route = navigationRef.getCurrentRoute();
-                setCurrentScreenName(route?.name as IScreen | undefined);
-                setIsNavReady(true);
-                PerfNavTracker_handleStateChange(route?.name);
-              }}
-            >
-              <AppNavigator initialScreen={initialScreen} />
-            </NavigationContainer>
-            {progress && currentScreenName && screensWithoutTimer.indexOf(currentScreenName) === -1 && (
-              <RestTimer
-                progress={progress}
-                dispatch={dispatch}
-                settings={state.storage.settings}
-                subscription={state.storage.subscription}
-              />
-            )}
-            <ActionSheetHost />
-          </CustomKeyboardProvider>
-        </ModalStateProvider>
+        <TrackedStateProvider state={state} dispatch={dispatch}>
+          <ModalStateProvider>
+            <CustomKeyboardProvider>
+              <SystemBars style="auto" />
+              <NavigationContainer
+                ref={navigationRef}
+                onStateChange={() => {
+                  const route = navigationRef.getCurrentRoute();
+                  setCurrentScreenName(route?.name as IScreen | undefined);
+                  PerfNavTracker_handleStateChange(route?.name);
+                }}
+                onReady={() => {
+                  const route = navigationRef.getCurrentRoute();
+                  setCurrentScreenName(route?.name as IScreen | undefined);
+                  setIsNavReady(true);
+                  PerfNavTracker_handleStateChange(route?.name);
+                }}
+              >
+                <AppNavigator initialScreen={initialScreen} />
+              </NavigationContainer>
+              {progress && currentScreenName && screensWithoutTimer.indexOf(currentScreenName) === -1 && (
+                <RestTimer
+                  progress={progress}
+                  dispatch={dispatch}
+                  settings={state.storage.settings}
+                  subscription={state.storage.subscription}
+                />
+              )}
+              <ActionSheetHost />
+            </CustomKeyboardProvider>
+          </ModalStateProvider>
+        </TrackedStateProvider>
       </StateContext.Provider>
     </AppContext.Provider>
   );

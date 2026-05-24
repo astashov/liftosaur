@@ -1,4 +1,4 @@
-import { JSX, useMemo } from "react";
+import { JSX, memo, useMemo } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
 import { CollectionUtils_sort } from "../utils/collection";
@@ -55,7 +55,7 @@ export function getPercentageDataForGraph(coll: IStatsPercentageValue[], setting
   });
 }
 
-export function GraphStats(props: IGraphStatsProps): JSX.Element {
+function GraphStatsInner(props: IGraphStatsProps): JSX.Element {
   const { cursorIdx, chartRef, handleCursorChange, onCloseOverlay, overlayVisible } = useGraphActiveCursor(props.id);
   const movingAverageWindowSize = props.movingAverageWindowSize;
 
@@ -151,3 +151,5 @@ export function GraphStats(props: IGraphStatsProps): JSX.Element {
     </View>
   );
 }
+
+export const GraphStats = memo(GraphStatsInner);

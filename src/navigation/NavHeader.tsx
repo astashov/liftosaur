@@ -2,7 +2,7 @@ import { JSX, ReactNode } from "react";
 import { View, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { NavbarView } from "../components/navbar";
-import { useAppState } from "./StateContext";
+import { useTrackedState, useTrackedDispatch, untrack } from "./TrackedStateContext";
 import { buildNavCommon } from "./utils";
 import type { ITourId } from "../models/state";
 import type { IHelpKey } from "../components/help/helpRegistry";
@@ -26,8 +26,12 @@ interface IHeaderProps {
 
 export function NavHeader(props: IHeaderProps): JSX.Element | null {
   const options = props.options as INavHeaderOptions;
-  const { state, dispatch } = useAppState();
-  const navCommon = buildNavCommon(state);
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  // buildNavCommon reads many state slices via the proxy → header re-renders only when
+  // those specific slices change. untrack at the boundary so downstream NavbarView
+  // doesn't receive a proxy object.
+  const navCommon = untrack(buildNavCommon(state));
   const insets = useSafeAreaInsets();
   if (options.navHidden) {
     return null;

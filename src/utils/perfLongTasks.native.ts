@@ -1,6 +1,5 @@
 import { PerfTracker_recordEvent, PerfTracker_getSessionId } from "./perfTracker";
-
-declare let __DEV__: boolean;
+import { PerfEnabled_isEnabled } from "./perfEnabled";
 
 declare const PerformanceObserver: {
   prototype: { observe: (options: { entryTypes: string[] }) => void; disconnect: () => void };
@@ -13,7 +12,7 @@ declare const PerformanceObserver: {
 declare const performance: { now: () => number } | undefined;
 
 export function PerfLongTasks_start(getCurrentScreen: () => string | undefined): () => void {
-  if (!__DEV__) {
+  if (!PerfEnabled_isEnabled()) {
     return () => undefined;
   }
   if (typeof PerformanceObserver === "undefined") {

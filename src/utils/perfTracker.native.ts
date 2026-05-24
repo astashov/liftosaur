@@ -1,11 +1,11 @@
 import { Platform } from "react-native";
 import { PerfTrackerStore_create, PerfTrackerStore_generateSessionId } from "./perfTrackerStore";
 import type { IPerfEvent } from "./perfTracker";
+import { PerfEnabled_isEnabled } from "./perfEnabled";
 
 export type { IPerfEvent };
 
 declare let __API_HOST__: string;
-declare let __DEV__: boolean;
 
 const BATCH_INTERVAL_MS = 1500;
 const BATCH_MAX_SIZE = 50;
@@ -70,7 +70,7 @@ export function PerfTracker_mark(_name: string, _screen?: string): void {
 }
 
 export function PerfTracker_recordEvent(event: IPerfEvent): void {
-  if (!__DEV__) {
+  if (!PerfEnabled_isEnabled()) {
     return;
   }
   ensureSessionStart();
@@ -91,7 +91,7 @@ export function PerfTracker_getSessionId(): string {
 }
 
 export function PerfTracker_flush(): Promise<void> {
-  if (!__DEV__) {
+  if (!PerfEnabled_isEnabled()) {
     return Promise.resolve();
   }
   if (flushTimer != null) {

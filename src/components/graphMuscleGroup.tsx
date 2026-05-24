@@ -1,4 +1,4 @@
-import { JSX, useMemo, useState } from "react";
+import { JSX, memo, useMemo, useState } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
 import { Select } from "./primitives/select";
@@ -20,7 +20,7 @@ interface IGraphMuscleGroupProps {
   initialType?: IVolumeSelectedType;
 }
 
-export function GraphMuscleGroup(props: IGraphMuscleGroupProps): JSX.Element {
+function GraphMuscleGroupInner(props: IGraphMuscleGroupProps): JSX.Element {
   const [selectedType, setSelectedType] = useState<IVolumeSelectedType>(props.initialType || "volume");
   const { cursorIdx, chartRef, handleCursorChange, onCloseOverlay, overlayVisible } = useGraphActiveCursor(props.id);
 
@@ -100,3 +100,5 @@ export function GraphMuscleGroup(props: IGraphMuscleGroupProps): JSX.Element {
     </View>
   );
 }
+
+export const GraphMuscleGroup = memo(GraphMuscleGroupInner);

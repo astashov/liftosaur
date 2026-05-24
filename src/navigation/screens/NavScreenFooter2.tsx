@@ -1,7 +1,7 @@
 import { JSX } from "react";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import type { NavigationState } from "@react-navigation/native";
-import { useAppState } from "../StateContext";
+import { useTrackedState, useTrackedDispatch, untrack } from "../TrackedStateContext";
 import { buildNavCommon } from "../utils";
 import { Footer2View } from "../../components/footer2";
 import type { IScreen } from "../../models/screen";
@@ -25,11 +25,12 @@ function getScreenFromTabProps(tabState: BottomTabBarProps["state"]): IScreen {
 }
 
 export function Footer2Wrapper(props: BottomTabBarProps): JSX.Element | null {
-  const { state, dispatch } = useAppState();
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
   const currentScreen = getScreenFromTabProps(props.state);
   if (screensWithoutFooter.includes(currentScreen)) {
     return null;
   }
-  const navCommon = buildNavCommon(state);
+  const navCommon = untrack(buildNavCommon(state));
   return <Footer2View dispatch={dispatch} navCommon={navCommon} screen={currentScreen} />;
 }
