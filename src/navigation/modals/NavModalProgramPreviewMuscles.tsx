@@ -1,5 +1,4 @@
 import { JSX } from "react";
-import { ScrollView, View, useWindowDimensions } from "react-native";
 import { Text } from "../../components/primitives/text";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
@@ -20,7 +19,6 @@ import type { IRootStackParamList } from "../types";
 export function NavModalProgramPreviewMuscles(): JSX.Element {
   const { state, dispatch } = useAppState();
   const navigation = useNavigation();
-  const { height: windowHeight } = useWindowDimensions();
   const route = useRoute<{
     key: string;
     name: "programPreviewMusclesModal";

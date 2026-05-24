@@ -111,7 +111,7 @@ export function ScreenFirst(props: IProps): JSX.Element {
             <AnimatedArrow />
           </View>
         </Button>
-        <View className="mt-2">
+        <View className="pb-4 mt-2">
           <Button
             className="w-full"
             name="see-how-it-works"

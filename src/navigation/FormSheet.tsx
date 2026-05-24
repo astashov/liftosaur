@@ -43,11 +43,7 @@ export function FormSheet(props: IProps): JSX.Element {
   return (
     <div className="flex flex-col" style={{ maxHeight: "85vh" }}>
       {hasHeader && <div className="shrink-0">{headerNode}</div>}
-      <div
-        className={`overflow-y-auto min-h-0 ${scrollPadding}`}
-        style={{ flex: "0 1 auto" }}
-        onScroll={handleScroll}
-      >
+      <div className={`overflow-y-auto min-h-0 ${scrollPadding}`} style={{ flex: "0 1 auto" }} onScroll={handleScroll}>
         {props.children}
       </div>
     </div>

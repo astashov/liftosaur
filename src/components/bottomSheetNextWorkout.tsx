@@ -17,7 +17,6 @@ import { Tailwind_colors } from "../utils/tailwindConfig";
 import { IconPlus2 } from "./icons/iconPlus2";
 import { Thunk_startProgramDay } from "../ducks/thunks";
 import { navigationRef } from "../navigation/navigationRef";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export interface IBottomSheetNextWorkoutContentProps {
   currentProgram?: IProgram;

@@ -1,7 +1,6 @@
 import { JSX, ReactNode, useCallback, useEffect, useRef } from "react";
 import { NativeScrollEvent, NativeSyntheticEvent } from "react-native";
-import { ScrollView, Gesture, GestureDetector } from "react-native-gesture-handler";
-import { WorkoutScrollGestureContext } from "./workoutScrollGestureContext";
+import { ScrollView } from "react-native-gesture-handler";
 
 interface IWorkoutExercisePagerProps {
   currentEntryIndex: number;
@@ -15,7 +14,6 @@ interface IWorkoutExercisePagerProps {
 
 export function WorkoutExercisePager(props: IWorkoutExercisePagerProps): JSX.Element {
   const scrollRef = useRef<ScrollView>(null);
-  const scrollGesture = useRef(Gesture.Native()).current;
   const { currentEntryIndex, windowWidth, forceUpdateEntryIndex, onIndexChange, pageHeight } = props;
 
   useEffect(() => {
@@ -38,20 +36,16 @@ export function WorkoutExercisePager(props: IWorkoutExercisePagerProps): JSX.Ele
   );
 
   return (
-    <WorkoutScrollGestureContext.Provider value={scrollGesture}>
-      <GestureDetector gesture={scrollGesture}>
-        <ScrollView
-          ref={scrollRef}
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onScroll={onScroll}
-          scrollEventThrottle={16}
-          style={pageHeight != null ? { height: pageHeight } : undefined}
-        >
-          {props.children}
-        </ScrollView>
-      </GestureDetector>
-    </WorkoutScrollGestureContext.Provider>
+    <ScrollView
+      ref={scrollRef}
+      horizontal
+      pagingEnabled
+      showsHorizontalScrollIndicator={false}
+      onScroll={onScroll}
+      scrollEventThrottle={16}
+      style={pageHeight != null ? { height: pageHeight } : undefined}
+    >
+      {props.children}
+    </ScrollView>
   );
 }

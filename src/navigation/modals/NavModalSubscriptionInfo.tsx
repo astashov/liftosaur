@@ -54,7 +54,7 @@ export function NavModalSubscriptionInfo(): JSX.Element {
   };
 
   return (
-    <ModalScreenContainer onClose={onClose} shouldShowClose={true} noPaddings={true}>
+    <ModalScreenContainer onClose={onClose} shouldShowClose={true}>
       <FormSheet>
         {type === "platesCalculator" && (
           <Section

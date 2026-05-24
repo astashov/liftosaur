@@ -6,7 +6,6 @@ interface IProps {
   maxWidth?: string;
   isFullWidth?: boolean;
   isFullHeight?: boolean;
-  noPaddings?: boolean;
   overflowHidden?: boolean;
   innerClassName?: string;
   shouldShowClose?: boolean;
