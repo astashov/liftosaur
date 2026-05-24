@@ -133,7 +133,7 @@ if (__DEV__) {
   console.info = wrap(console.info.bind(console));
 }
 import { NavigationContainer } from "@react-navigation/native";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { SafeAreaProvider, initialWindowMetrics } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { reducerWrapper, defaultOnActions, getInitialState, getIdbKey, IAction } from "./ducks/reducer";
@@ -564,7 +564,7 @@ export function App(): React.JSX.Element {
   if (!initialState) {
     return (
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaProvider>
+        <SafeAreaProvider initialMetrics={initialWindowMetrics}>
           <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
             <ActivityIndicator size="large" />
           </View>
@@ -575,7 +575,7 @@ export function App(): React.JSX.Element {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
+      <SafeAreaProvider initialMetrics={initialWindowMetrics}>
         <AppInner initialState={initialState} />
       </SafeAreaProvider>
     </GestureHandlerRootView>
