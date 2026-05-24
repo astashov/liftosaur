@@ -1,15 +1,19 @@
 import { JSX, useEffect, useState } from "react";
-import { View, ScrollView, useWindowDimensions } from "react-native";
+import { View, ScrollView, Pressable, Platform } from "react-native";
 import { Service } from "../../api/service";
 import { Dialog_confirm } from "../../utils/dialog";
+import { ActionSheet_show } from "../../utils/actionSheet";
 import { Button } from "../../components/button";
 import { IconSpinner } from "../../components/icons/iconSpinner";
+import { IconArrowDown2 } from "../../components/icons/iconArrowDown2";
+import { IconArrowUp } from "../../components/icons/iconArrowUp";
 import { LinkButton } from "../../components/linkButton";
 import { Modal } from "../../components/modal";
 import { Text } from "../../components/primitives/text";
 import { DateUtils_parseYYYYMMDDHHMM, DateUtils_formatWithTime } from "../../utils/date";
 import { IEither } from "../../utils/types";
 import { PlannerCodeBlock } from "./components/plannerCodeBlock";
+import { SheetDragHandle } from "../../navigation/TransparentModal";
 
 interface IModalPlannerProgramRevisionsProps {
   client: Window["fetch"];
@@ -58,92 +62,102 @@ export function ModalPlannerProgramRevisionsContent(props: IModalPlannerProgramR
   }, []);
 
   const programRevision = state[currentRevision];
-  const { width } = useWindowDimensions();
-  const isWide = width >= 640;
+  const [isPickerExpanded, setIsPickerExpanded] = useState(false);
 
-  const sidebar = (
-    <View
-      className={
-        isWide
-          ? "bg-background-subtle border-r border-border-neutral w-64"
-          : "bg-background-subtle border-b border-border-neutral h-40"
+  const revisionLabels = props.revisions.map((revision) => {
+    const date = DateUtils_parseYYYYMMDDHHMM(revision);
+    return date ? DateUtils_formatWithTime(date) : revision;
+  });
+  const currentLabel = revisionLabels[props.revisions.indexOf(currentRevision)] ?? currentRevision;
+
+  function openPicker(): void {
+    if (Platform.OS === "web") {
+      setIsPickerExpanded((v) => !v);
+      return;
+    }
+    const options = [...revisionLabels, "Cancel"];
+    ActionSheet_show({ title: "Version History", options, cancelButtonIndex: options.length - 1 }, (buttonIndex) => {
+      if (buttonIndex != null && buttonIndex < props.revisions.length) {
+        loadRevision(props.revisions[buttonIndex]);
       }
-    >
-      <View className="flex-1">
-        <View className="p-4">
-          <Text className="text-lg font-bold">Version History</Text>
-        </View>
-        <ScrollView contentContainerClassName="px-4 pb-3">
-          {props.revisions.map((revision) => {
-            const date = DateUtils_parseYYYYMMDDHHMM(revision);
-            if (!date) {
-              return null;
-            }
-            const text = DateUtils_formatWithTime(date);
-            return (
+    });
+  }
+
+  const picker = (
+    <View className="border-b bg-background-subtle border-border-neutral">
+      <SheetDragHandle>
+        <Pressable className="flex-row items-center justify-between p-4" onPress={openPicker}>
+          <View className="flex-1 pr-3">
+            <Text className="text-xs text-text-secondary">Version</Text>
+            <Text className="font-bold">{currentLabel}</Text>
+          </View>
+          {Platform.OS === "web" && isPickerExpanded ? <IconArrowUp /> : <IconArrowDown2 />}
+        </Pressable>
+      </SheetDragHandle>
+      {Platform.OS === "web" && isPickerExpanded && (
+        <View className="px-4 pb-3" style={{ maxHeight: 220 }}>
+          <ScrollView>
+            {props.revisions.map((revision, i) => (
               <View key={revision} className="py-1">
                 {revision === currentRevision ? (
-                  <Text className="font-bold">{text}</Text>
+                  <Text className="font-bold">{revisionLabels[i]}</Text>
                 ) : (
                   <LinkButton
                     name="change-program-revision"
                     onClick={() => {
                       loadRevision(revision);
+                      setIsPickerExpanded(false);
                     }}
                   >
-                    {text}
+                    {revisionLabels[i]}
                   </LinkButton>
                 )}
               </View>
-            );
-          })}
-        </ScrollView>
-      </View>
-    </View>
-  );
-
-  const body = (
-    <View className="flex-1">
-      {!programRevision || programRevision.isLoading ? (
-        <View className="items-center justify-center flex-1">
-          <IconSpinner width={40} height={40} />
-        </View>
-      ) : programRevision.result.success ? (
-        <View className="flex-1">
-          <ScrollView className="flex-1" contentContainerClassName="p-4">
-            <PlannerCodeBlock script={programRevision.result.data} />
+            ))}
           </ScrollView>
-          <View className="items-center p-4 border-t bg-background-subtle border-border-neutral">
-            <Button
-              name="restore-program-revision"
-              kind="purple"
-              onClick={async () => {
-                if (
-                  programRevision.result.success &&
-                  (await Dialog_confirm(
-                    "Are you sure you want to restore this version? It'll overwrite your current changes."
-                  ))
-                ) {
-                  props.onRestore(programRevision.result.data);
-                }
-              }}
-            >
-              Restore
-            </Button>
-          </View>
-        </View>
-      ) : (
-        <View className="p-4">
-          <Text>{programRevision.result.error}</Text>
         </View>
       )}
     </View>
   );
 
   return (
-    <View className={isWide ? "flex-1 flex-row" : "flex-1 flex-col"}>
-      {sidebar}
-      {body}
+    <View className="flex-col flex-1">
+      {picker}
+      <View className="flex-1">
+        {!programRevision || programRevision.isLoading ? (
+          <View className="items-center justify-center flex-1">
+            <IconSpinner width={40} height={40} />
+          </View>
+        ) : programRevision.result.success ? (
+          <View className="flex-1">
+            <ScrollView className="flex-1" contentContainerClassName="p-4">
+              <PlannerCodeBlock script={programRevision.result.data} />
+            </ScrollView>
+            <View className="items-center p-4 border-t bg-background-subtle border-border-neutral">
+              <Button
+                name="restore-program-revision"
+                kind="purple"
+                onClick={async () => {
+                  if (
+                    programRevision.result.success &&
+                    (await Dialog_confirm(
+                      "Are you sure you want to restore this version? It'll overwrite your current changes."
+                    ))
+                  ) {
+                    props.onRestore(programRevision.result.data);
+                  }
+                }}
+              >
+                Restore
+              </Button>
+            </View>
+          </View>
+        ) : (
+          <View className="p-4">
+            <Text>{programRevision.result.error}</Text>
+          </View>
+        )}
+      </View>
     </View>
   );
 }
