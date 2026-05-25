@@ -1,4 +1,4 @@
-import { JSX, ReactNode, useState } from "react";
+import { JSX, ReactNode, useEffect, useState } from "react";
 import {
   View,
   ScrollView,
@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "../components/primitives/text";
+import { useReportSheetHeight } from "./ActiveSheetHeightContext";
 
 interface IProps {
   children: ReactNode;
@@ -38,14 +39,20 @@ export function FormSheet(props: IProps): JSX.Element {
 
   const [contentH, setContentH] = useState(0);
   const [frameH, setFrameH] = useState(0);
+  const [headerH, setHeaderH] = useState(0);
   const needsScroll = contentH > frameH + 1;
   const scrollEnabled = !props.disableScroll || (isAndroid ? needsScroll : true);
   const nestedScrollEnabled = isAndroid && needsScroll;
 
+  const reportSheetHeight = useReportSheetHeight();
+  useEffect(() => {
+    reportSheetHeight(headerH + frameH);
+  }, [headerH, frameH, reportSheetHeight]);
+
   return (
     <>
       {hasHeaderArea && (
-        <View collapsable={false}>
+        <View collapsable={false} onLayout={(e: LayoutChangeEvent) => setHeaderH(e.nativeEvent.layout.height)}>
           {isAndroid && (
             <View className="items-center pt-2 pb-1">
               <View className="rounded-full bg-text-disabled" style={{ width: 36, height: 5 }} />

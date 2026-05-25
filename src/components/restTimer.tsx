@@ -1,7 +1,8 @@
 import { JSX, useEffect, useMemo, useRef, useState } from "react";
-import { View, Pressable, Platform, Animated } from "react-native";
+import { View, Pressable, Platform, Animated, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCustomKeyboardAnimatedHeight } from "../navigation/CustomKeyboardContext";
+import { useActiveSheetHeight } from "../navigation/ActiveSheetHeightContext";
 import { Text } from "./primitives/text";
 import { TimeUtils_formatMMSS } from "../utils/time";
 import { IDispatch } from "../ducks/types";
@@ -33,10 +34,36 @@ export function RestTimer(props: IProps): JSX.Element | null {
   const [isExpanded, setIsExpanded] = useState(false);
   const insets = useSafeAreaInsets();
   const keyboardAnimatedHeight = useCustomKeyboardAnimatedHeight();
+  const { height: windowHeight } = useWindowDimensions();
+  const activeSheetHeight = useActiveSheetHeight();
+  const sheetHidesTimer = activeSheetHeight > windowHeight * 0.5;
   const baseBottom = insets.bottom + 80;
+  const targetBottom = Math.max(baseBottom, activeSheetHeight > 0 ? activeSheetHeight + 16 : 0);
+  const animatedTargetBottom = useRef(new Animated.Value(targetBottom)).current;
+  const animatedOpacity = useRef(new Animated.Value(1)).current;
+  const wasHiddenRef = useRef(false);
+  useEffect(() => {
+    if (sheetHidesTimer) {
+      animatedTargetBottom.setValue(targetBottom);
+      animatedOpacity.setValue(0);
+      wasHiddenRef.current = true;
+    } else if (wasHiddenRef.current) {
+      animatedTargetBottom.setValue(targetBottom);
+      animatedOpacity.setValue(0);
+      Animated.timing(animatedOpacity, { toValue: 1, duration: 200, useNativeDriver: false }).start();
+      wasHiddenRef.current = false;
+    } else {
+      animatedOpacity.setValue(1);
+      Animated.timing(animatedTargetBottom, {
+        toValue: targetBottom,
+        duration: 200,
+        useNativeDriver: false,
+      }).start();
+    }
+  }, [sheetHidesTimer, targetBottom, animatedTargetBottom, animatedOpacity]);
   const animatedBottom = useMemo(
-    () => Animated.add(keyboardAnimatedHeight, baseBottom),
-    [keyboardAnimatedHeight, baseBottom]
+    () => Animated.add(keyboardAnimatedHeight, animatedTargetBottom),
+    [keyboardAnimatedHeight, animatedTargetBottom]
   );
   const { progress } = props;
   const { timer, timerSince } = progress;
@@ -84,6 +111,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
   if (timer == null || timerSince == null) {
     return null;
   }
+  const pointerEventsMode = sheetHidesTimer ? "none" : "box-none";
 
   const timeDifference = Date.now() - timerSince;
   const isTimeOut = timeDifference > timer * 1000;
@@ -96,8 +124,10 @@ export function RestTimer(props: IProps): JSX.Element | null {
   if (isExpanded) {
     return (
       <Animated.View
-        style={[{ position: "absolute", left: 16, right: 16, bottom: animatedBottom, zIndex: 30 }]}
-        pointerEvents="box-none"
+        style={[
+          { position: "absolute", left: 16, right: 16, bottom: animatedBottom, zIndex: 30, opacity: animatedOpacity },
+        ]}
+        pointerEvents={pointerEventsMode}
       >
         <View className={`flex-row ${bgClass} rounded-lg`} style={shadowStyle}>
           <Pressable
@@ -170,8 +200,8 @@ export function RestTimer(props: IProps): JSX.Element | null {
 
   return (
     <Animated.View
-      style={[{ position: "absolute", right: 16, bottom: animatedBottom, zIndex: 30 }]}
-      pointerEvents="box-none"
+      style={[{ position: "absolute", right: 16, bottom: animatedBottom, zIndex: 30, opacity: animatedOpacity }]}
+      pointerEvents={pointerEventsMode}
     >
       <Pressable
         data-testid="rest-timer-collapsed"

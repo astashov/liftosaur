@@ -1,5 +1,6 @@
 import { JSX, useEffect, useMemo, useRef, useCallback, useState } from "react";
 import { ModalStateProvider } from "../navigation/ModalStateContext";
+import { ActiveSheetHeightProvider } from "../navigation/ActiveSheetHeightContext";
 import { reducerWrapper, defaultOnActions, IAction } from "../ducks/reducer";
 import { Dialog_alert } from "../utils/dialog";
 import { Program_getProgram } from "../models/program";
@@ -441,17 +442,19 @@ export function AppView(props: IProps): JSX.Element | null {
         <StateContext.Provider value={{ state, dispatch }}>
           <TrackedStateProvider state={state} dispatch={dispatch}>
             <ModalStateProvider>
-              <AppContext.Provider value={{ service, isApp: true }}>
-                <NavigationContainer
-                  ref={navigationRef}
-                  onReady={() => setIsNavReady(true)}
-                  onStateChange={onNavigationStateChange}
-                  documentTitle={{ enabled: false }}
-                  theme={{ ...DefaultTheme, colors: { ...DefaultTheme.colors, background: "transparent" } }}
-                >
-                  <AppNavigator initialScreen={initialScreen} />
-                </NavigationContainer>
-              </AppContext.Provider>
+              <ActiveSheetHeightProvider>
+                <AppContext.Provider value={{ service, isApp: true }}>
+                  <NavigationContainer
+                    ref={navigationRef}
+                    onReady={() => setIsNavReady(true)}
+                    onStateChange={onNavigationStateChange}
+                    documentTitle={{ enabled: false }}
+                    theme={{ ...DefaultTheme, colors: { ...DefaultTheme.colors, background: "transparent" } }}
+                  >
+                    <AppNavigator initialScreen={initialScreen} />
+                  </NavigationContainer>
+                </AppContext.Provider>
+              </ActiveSheetHeightProvider>
             </ModalStateProvider>
           </TrackedStateProvider>
         </StateContext.Provider>

@@ -170,6 +170,7 @@ import { AsyncQueue } from "./utils/asyncQueue";
 import { StateContext } from "./navigation/StateContext";
 import { TrackedStateProvider } from "./navigation/TrackedStateContext";
 import { ModalStateProvider } from "./navigation/ModalStateContext";
+import { ActiveSheetHeightProvider } from "./navigation/ActiveSheetHeightContext";
 import { CustomKeyboardProvider } from "./navigation/CustomKeyboardContext";
 import { AppNavigator } from "./navigation/AppNavigator";
 import { navigationRef } from "./navigation/navigationRef";
@@ -544,35 +545,37 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
       <StateContext.Provider value={{ state, dispatch }}>
         <TrackedStateProvider state={state} dispatch={dispatch}>
           <ModalStateProvider>
-            <CustomKeyboardProvider>
-              <SystemBars style="auto" />
-              <NavigationContainer
-                ref={navigationRef}
-                theme={transparentNavTheme}
-                onStateChange={() => {
-                  const route = navigationRef.getCurrentRoute();
-                  setCurrentScreenName(route?.name as IScreen | undefined);
-                  PerfNavTracker_handleStateChange(route?.name);
-                }}
-                onReady={() => {
-                  const route = navigationRef.getCurrentRoute();
-                  setCurrentScreenName(route?.name as IScreen | undefined);
-                  setIsNavReady(true);
-                  PerfNavTracker_handleStateChange(route?.name);
-                }}
-              >
-                <AppNavigator initialScreen={initialScreen} />
-              </NavigationContainer>
-              {progress && currentScreenName && screensWithoutTimer.indexOf(currentScreenName) === -1 && (
-                <RestTimer
-                  progress={progress}
-                  dispatch={dispatch}
-                  settings={state.storage.settings}
-                  subscription={state.storage.subscription}
-                />
-              )}
-              <ActionSheetHost />
-            </CustomKeyboardProvider>
+            <ActiveSheetHeightProvider>
+              <CustomKeyboardProvider>
+                <SystemBars style="auto" />
+                <NavigationContainer
+                  ref={navigationRef}
+                  theme={transparentNavTheme}
+                  onStateChange={() => {
+                    const route = navigationRef.getCurrentRoute();
+                    setCurrentScreenName(route?.name as IScreen | undefined);
+                    PerfNavTracker_handleStateChange(route?.name);
+                  }}
+                  onReady={() => {
+                    const route = navigationRef.getCurrentRoute();
+                    setCurrentScreenName(route?.name as IScreen | undefined);
+                    setIsNavReady(true);
+                    PerfNavTracker_handleStateChange(route?.name);
+                  }}
+                >
+                  <AppNavigator initialScreen={initialScreen} />
+                </NavigationContainer>
+                {progress && currentScreenName && screensWithoutTimer.indexOf(currentScreenName) === -1 && (
+                  <RestTimer
+                    progress={progress}
+                    dispatch={dispatch}
+                    settings={state.storage.settings}
+                    subscription={state.storage.subscription}
+                  />
+                )}
+                <ActionSheetHost />
+              </CustomKeyboardProvider>
+            </ActiveSheetHeightProvider>
           </ModalStateProvider>
         </TrackedStateProvider>
       </StateContext.Provider>
