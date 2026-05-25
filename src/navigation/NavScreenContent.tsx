@@ -71,6 +71,7 @@ export function NavScreenContent(props: {
       onScrollEndDrag={scrollMarkers.onScrollEndDrag}
       onMomentumScrollEnd={scrollMarkers.onMomentumScrollEnd}
       stickyHeaderIndices={props.stickyHeaderIndices}
+      removeClippedSubviews={false}
       style={
         Platform.OS === "web"
           ? ({ WebkitOverflowScrolling: "touch", overscrollBehavior: "contain" } as object)

@@ -566,7 +566,7 @@ function WorkoutThumbnailsStripInner(props: IWorkoutThumbnailsStripProps): JSX.E
     [dispatch, onClick]
   );
   return (
-    <View className="py-1 border-b bg-background-default border-background-subtle">
+    <View collapsable={false} className="py-1 border-b bg-background-default border-background-subtle">
       <Scroller ref={thumbScrollerRef}>
         <View className="flex-row items-center gap-1 px-4">
           <DraggableList2
