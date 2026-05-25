@@ -1,5 +1,6 @@
 import { JSX, useEffect, useMemo, useState, useCallback } from "react";
-import { View, TextInput, FlatList, ListRenderItem, Image } from "react-native";
+import { View, TextInput, Image } from "react-native";
+import { LegendList } from "@legendapp/list";
 import { Text } from "../primitives/text";
 import { ISettings } from "../../types";
 import {
@@ -75,8 +76,8 @@ export function ExerciseImageLibraryContent(props: IExerciseImageLibraryContentP
       });
 
   const keyExtractor = useCallback((exercise: IExercise) => Exercise_toKey(exercise), []);
-  const renderBuiltinItem: ListRenderItem<IExercise> = useCallback(
-    ({ item: exercise }) => (
+  const renderBuiltinItem = useCallback(
+    ({ item: exercise }: { item: IExercise }) => (
       <MenuItemWrapper
         name={exercise.name}
         onClick={() => {
@@ -158,16 +159,12 @@ export function ExerciseImageLibraryContent(props: IExerciseImageLibraryContentP
     </SheetDragHandle>
   );
   const list = (
-    <FlatList
+    <LegendList
       data={exercises}
       keyExtractor={keyExtractor}
       renderItem={renderBuiltinItem}
       ListHeaderComponent={ListHeader}
       contentContainerStyle={{ paddingHorizontal: 16 }}
-      initialNumToRender={6}
-      maxToRenderPerBatch={10}
-      windowSize={5}
-      removeClippedSubviews
       keyboardShouldPersistTaps="handled"
     />
   );

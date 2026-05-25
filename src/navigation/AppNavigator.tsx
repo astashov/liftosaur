@@ -132,7 +132,8 @@ function useStackScreenOptions() {
   // Narrow subscription to theme so options re-evaluate only on theme toggle, not every dispatch.
   const trackedState = useTrackedState();
 
-  const _theme = trackedState.storage.settings.theme;
+  // eslint-disable-next-line no-void
+  void trackedState.storage.settings.theme;
   return {
     header: NavHeader,
     animationEnabled: false,
@@ -248,7 +249,8 @@ const tabScreenOptions = {
 function useRootScreenOptions() {
   const trackedState = useTrackedState();
 
-  const _theme = trackedState.storage.settings.theme;
+  // eslint-disable-next-line no-void
+  void trackedState.storage.settings.theme;
   return {
     headerShown: false,
     animationEnabled: false,

@@ -2,6 +2,10 @@ const path = require("path");
 const Module = require("module");
 const origResolve = Module._resolveFilename;
 
+if (typeof global.__DEV__ === "undefined") {
+  global.__DEV__ = false;
+}
+
 const gestureHandlerStub = path.join(__dirname, "src/utils/rnStubs/gestureHandler.js");
 const reanimatedStub = path.join(__dirname, "src/utils/rnStubs/reanimated.js");
 const uniwindShim = path.join(__dirname, "src/utils/uniwindSsrShim.js");

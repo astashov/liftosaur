@@ -1,7 +1,8 @@
 import { JSX, useCallback, useEffect, useRef, useState } from "react";
 import { useTimedMemo } from "../utils/useTimedMemo";
 import { usePerfScrollMarkers } from "../utils/usePerfScrollMarkers";
-import { View, FlatList } from "react-native";
+import { View } from "react-native";
+import { LegendList, LegendListRef } from "@legendapp/list";
 import { IDispatch } from "../ducks/types";
 import { IProgram, IHistoryRecord, ISettings, ISubscription } from "../types";
 import { INavCommon, IState, updateState } from "../models/state";
@@ -95,7 +96,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   );
   const isOngoing = !!(props.progress && Progress_isCurrent(props.progress));
 
-  const flatListRef = useRef<FlatList>(null);
+  const flatListRef = useRef<LegendListRef>(null);
   const historyRecordDateToFirstDayOfWeekRef = useRef(historyRecordDateToFirstDayOfWeek);
   historyRecordDateToFirstDayOfWeekRef.current = historyRecordDateToFirstDayOfWeek;
   const selectedFirstDayOfWeekRef = useRef(selectedFirstDayOfWeek);
@@ -139,20 +140,7 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
 
   useNavOptions({ navHidden: true });
 
-  const itemLayouts = useTimedMemo(
-    "programHistory.itemLayouts",
-    () => {
-      const layouts: { length: number; offset: number }[] = [];
-      let offset = 0;
-      for (const record of sortedHistory) {
-        const length = estimateRecordHeight(record);
-        layouts.push({ length, offset });
-        offset += length;
-      }
-      return layouts;
-    },
-    [sortedHistory]
-  );
+  const getEstimatedItemSize = useCallback((_index: number, item: IHistoryRecord) => estimateRecordHeight(item), []);
 
   const renderItem = useCallback(
     ({ item }: { item: IHistoryRecord }) => (
@@ -216,15 +204,12 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   return (
     <View className="flex-1">
       {stickyHeader}
-      <FlatList
+      <LegendList
         ref={flatListRef}
         data={sortedHistory}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
-        initialNumToRender={3}
-        maxToRenderPerBatch={6}
-        windowSize={5}
-        getItemLayout={(_: unknown, index: number) => ({ ...itemLayouts[index], index })}
+        getEstimatedItemSize={getEstimatedItemSize}
         onViewableItemsChanged={onViewableItemsChanged}
         onScrollBeginDrag={scrollMarkers.onScrollBeginDrag}
         onScrollEndDrag={scrollMarkers.onScrollEndDrag}

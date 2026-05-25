@@ -170,6 +170,7 @@
     "@expensify/react-native-live-markdown": "^0.1.325",
     "@invertase/react-native-apple-authentication": "^2.5.1",
     "@kingstinct/react-native-healthkit": "^14.0.0",
+    "@legendapp/list": "^2.0.19",
     "@lezer/highlight": "^1.1.6",
     "@lezer/lr": "^1.3.7",
     "@react-native-clipboard/clipboard": "^1.16.3",

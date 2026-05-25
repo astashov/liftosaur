@@ -1,5 +1,6 @@
 import { JSX, useState, useMemo, useCallback } from "react";
-import { View, TextInput, Pressable, FlatList, ListRenderItem } from "react-native";
+import { View, TextInput, Pressable } from "react-native";
+import { LegendList } from "@legendapp/list";
 import { Text } from "../primitives/text";
 import { ISettings } from "../../types";
 import { IExercise, Exercise_allExpanded, Exercise_toKey } from "../../models/exercise";
@@ -34,8 +35,8 @@ export function ExerciseCloneLibraryContent(props: IExerciseCloneLibraryContentP
   }, [trimmedSearch, props.settings.exercises]);
 
   const keyExtractor = useCallback((e: IExercise) => Exercise_toKey(e), []);
-  const renderItem: ListRenderItem<IExercise> = useCallback(
-    ({ item: ex }) => (
+  const renderItem = useCallback(
+    ({ item: ex }: { item: IExercise }) => (
       <Pressable onPress={() => props.onSelect(ex)}>
         <ExercisePickerExerciseItem isEnabled={true} showMuscles={true} settings={props.settings} exercise={ex} />
       </Pressable>
@@ -64,15 +65,11 @@ export function ExerciseCloneLibraryContent(props: IExerciseCloneLibraryContentP
     </SheetDragHandle>
   );
   const list = (
-    <FlatList
+    <LegendList
       data={exercises}
       keyExtractor={keyExtractor}
       renderItem={renderItem}
       contentContainerStyle={{ paddingHorizontal: 16 }}
-      initialNumToRender={8}
-      maxToRenderPerBatch={10}
-      windowSize={5}
-      removeClippedSubviews
       keyboardShouldPersistTaps="handled"
     />
   );

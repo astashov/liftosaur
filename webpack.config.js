@@ -144,6 +144,12 @@ const watchConfig = {
 };
 
 const mainConfig = {
+  ignoreWarnings: [
+    {
+      module: /@legendapp\/list/,
+      message: /unstable_batchedUpdates/,
+    },
+  ],
   entry: {
     main: ["./src/main.tsx", "./src/index.css"],
     login: ["./src/login.tsx", "./src/index.css"],

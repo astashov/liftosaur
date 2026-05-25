@@ -1,5 +1,6 @@
 import { JSX, useCallback, useMemo } from "react";
-import { View, Pressable, FlatList } from "react-native";
+import { View, Pressable } from "react-native";
+import { LegendList } from "@legendapp/list";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import { IEquipment, IHistoryRecord, IProgram, ISettings } from "../types";
@@ -59,14 +60,11 @@ export function CustomProgramsList(props: IProps): JSX.Element {
   const keyExtractor = useCallback((item: IProgram) => item.id, []);
 
   return (
-    <FlatList
+    <LegendList
       data={programs}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
       contentContainerStyle={{ paddingHorizontal: 16 }}
-      initialNumToRender={4}
-      maxToRenderPerBatch={6}
-      windowSize={5}
     />
   );
 }

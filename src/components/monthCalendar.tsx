@@ -1,5 +1,6 @@
 import { JSX, memo, useCallback, useMemo, useRef, forwardRef, useImperativeHandle } from "react";
-import { View, Pressable, FlatList } from "react-native";
+import { View, Pressable } from "react-native";
+import { LegendList, LegendListRef } from "@legendapp/list";
 import { Text } from "./primitives/text";
 import { DateUtils_formatYYYYMMDD, DateUtils_firstDayOfWeekTimestamp } from "../utils/date";
 import { IHistoryRecord } from "../types";
@@ -33,7 +34,7 @@ interface IMonthData {
 
 export const MonthCalendar = memo(
   forwardRef<IMonthCalendarRef, IMonthCalendarProps>((props, ref) => {
-    const flatListRef = useRef<FlatList>(null);
+    const flatListRef = useRef<LegendListRef>(null);
 
     const { months, selectedMonthIndex } = useMemo(() => {
       const start = new Date(Math.max(props.firstDayOfWeeks[0], new Date(2015, 1, 1).getTime()));
@@ -73,9 +74,7 @@ export const MonthCalendar = memo(
         current.setMonth(current.getMonth() + 1);
       }
 
-      result.reverse();
-
-      let selectedIdx = 0;
+      let selectedIdx = result.length - 1;
       const selectedFirstDayOfWeekTs = props.firstDayOfWeeks[props.selectedFirstDayOfWeekIndex];
       if (selectedFirstDayOfWeekTs != null) {
         const selectedDate = new Date(selectedFirstDayOfWeekTs);
@@ -90,7 +89,6 @@ export const MonthCalendar = memo(
 
       return { months: result, selectedMonthIndex: selectedIdx };
     }, [props.firstDayOfWeeks, props.selectedFirstDayOfWeekIndex, props.startWeekFromMonday, props.history, props.prs]);
-    console.log("MOnths", months);
 
     useImperativeHandle(
       ref,
@@ -123,15 +121,12 @@ export const MonthCalendar = memo(
     const keyExtractor = useCallback((item: IMonthData) => item.key, []);
 
     return (
-      <FlatList
+      <LegendList
         ref={flatListRef}
         data={months}
         renderItem={renderMonth}
         keyExtractor={keyExtractor}
-        inverted
-        initialNumToRender={3}
-        maxToRenderPerBatch={3}
-        windowSize={2}
+        initialScrollIndex={selectedMonthIndex}
       />
     );
   })

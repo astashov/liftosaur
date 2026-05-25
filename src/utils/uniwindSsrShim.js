@@ -1,4 +1,5 @@
 const React = require("react");
+const ReactDOM = require("react-dom");
 const RNW = require("react-native-web");
 
 function toRNWClassName(className) {
@@ -48,6 +49,7 @@ const wrappedComponentNames = [
 ];
 
 const exportsObj = { ...RNW };
+exportsObj.unstable_batchedUpdates = ReactDOM.unstable_batchedUpdates || ((cb) => cb());
 for (const name of wrappedComponentNames) {
   if (RNW[name] != null) {
     exportsObj[name] = wrapWithClassName(RNW[name]);
