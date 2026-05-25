@@ -1,20 +1,20 @@
-import { JSX, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { JSX, useCallback, useEffect, useRef, useState } from "react";
+import { useTimedMemo } from "../utils/useTimedMemo";
+import { usePerfScrollMarkers } from "../utils/usePerfScrollMarkers";
 import { View, FlatList } from "react-native";
 import { IDispatch } from "../ducks/types";
 import { IProgram, IHistoryRecord, ISettings, ISubscription } from "../types";
 import { INavCommon, IState, updateState } from "../models/state";
 import { useNavOptions } from "../navigation/useNavOptions";
-import { DateUtils_firstDayOfWeekTimestamp } from "../utils/date";
-import { History_getHistoryRecordsForTimerange, History_getPersonalRecords } from "../models/history";
+import { History_getHistoryRecordsForTimerange, History_getHomeAggregates } from "../models/history";
 import { WeekInsights } from "./weekInsights";
 import { lb } from "lens-shmens";
 import { WeekCalendar } from "./weekCalendar";
 import { HistoryRecordsNullState } from "./historyRecordsNullState";
-import { CollectionUtils_sort } from "../utils/collection";
 import { Progress_isCurrent } from "../models/progress";
 import { Program_nextHistoryRecord } from "../models/program";
 import { navigateToModal } from "../navigation/navigationService";
-import { useAppState } from "../navigation/StateContext";
+import { useTrackedState } from "../navigation/TrackedStateContext";
 import { HistoryRecordView } from "./historyRecord";
 import { Program_evaluate, Program_getProgramDay } from "../models/program";
 import { Reps_group } from "../models/set";
@@ -30,39 +30,6 @@ interface IProps {
   initialHistoryRecordId?: number;
 }
 
-interface IWeekData {
-  firstDayOfWeeks: number[];
-  firstDayOfWeekToHistoryRecord: Partial<Record<number, IHistoryRecord>>;
-  historyRecordDateToFirstDayOfWeek: Partial<Record<number, number>>;
-}
-
-function getWeeksData(history: IHistoryRecord[], startWeekFromMonday?: boolean): IWeekData {
-  const firstDayOfWeeksSet: Set<number> = new Set();
-  const historyRecordDateToFirstDayOfWeek: Partial<Record<number, number>> = {};
-  const firstDayOfWeekToHistoryRecord: Partial<Record<number, IHistoryRecord>> = {};
-  for (const record of history) {
-    if (!Progress_isCurrent(record)) {
-      const firstDayOfWeek = DateUtils_firstDayOfWeekTimestamp(record.endTime ?? record.startTime, startWeekFromMonday);
-      if (firstDayOfWeekToHistoryRecord[firstDayOfWeek] == null) {
-        firstDayOfWeekToHistoryRecord[firstDayOfWeek] = record;
-      }
-      firstDayOfWeeksSet.add(firstDayOfWeek);
-      historyRecordDateToFirstDayOfWeek[record.id] = firstDayOfWeek;
-    }
-  }
-  if (firstDayOfWeeksSet.size === 0) {
-    const today = new Date();
-    const firstDayOfWeek = DateUtils_firstDayOfWeekTimestamp(today.getTime(), startWeekFromMonday);
-    firstDayOfWeeksSet.add(firstDayOfWeek);
-  }
-  const firstDayOfWeeks = CollectionUtils_sort(Array.from(firstDayOfWeeksSet));
-  return {
-    firstDayOfWeeks,
-    historyRecordDateToFirstDayOfWeek,
-    firstDayOfWeekToHistoryRecord,
-  };
-}
-
 export function getWeekHistory(
   history: IHistoryRecord[],
   firstDayOfWeek: number,
@@ -73,38 +40,59 @@ export function getWeekHistory(
 
 export function ProgramHistoryView(props: IProps): JSX.Element {
   const dispatch = props.dispatch;
-  const sortedHistory = useMemo(() => {
-    const history = CollectionUtils_sort(props.history, (a, b) => {
-      return new Date(Date.parse(b.date)).getTime() - new Date(Date.parse(a.date)).getTime();
-    });
-    if (props.progress) {
-      history.unshift(props.progress);
-    } else if (props.program && history.length > 0) {
-      const nextHistoryRecord = Program_nextHistoryRecord(props.program, props.settings, props.navCommon.stats);
-      history.unshift(nextHistoryRecord);
-    }
-    return history;
-  }, [props.history, props.progress, props.program, props.settings]);
-
-  const { firstDayOfWeeks, historyRecordDateToFirstDayOfWeek, firstDayOfWeekToHistoryRecord } = getWeeksData(
-    sortedHistory,
-    props.settings.startWeekFromMonday
+  const aggregates = useTimedMemo(
+    "programHistory.aggregates",
+    () => History_getHomeAggregates(props.history, !!props.settings.startWeekFromMonday),
+    [props.history, props.settings.startWeekFromMonday]
   );
+  const { sortedHistoryDesc, weeksData, prs } = aggregates;
+  const { firstDayOfWeeks, historyRecordDateToFirstDayOfWeek, firstDayOfWeekToHistoryRecord } = weeksData;
+
+  const sortedHistory = useTimedMemo(
+    "programHistory.sortedHistory",
+    () => {
+      if (!props.progress && (!props.program || sortedHistoryDesc.length === 0)) {
+        return sortedHistoryDesc;
+      }
+      const arr = sortedHistoryDesc.slice();
+      if (props.progress) {
+        arr.unshift(props.progress);
+      } else if (props.program) {
+        arr.unshift(Program_nextHistoryRecord(props.program, props.settings, props.navCommon.stats));
+      }
+      return arr;
+    },
+    [sortedHistoryDesc, props.progress, props.program, props.settings, props.navCommon.stats]
+  );
+
   const [selectedFirstDayOfWeek, setSelectedWeekFirstDay] = useState(firstDayOfWeeks[firstDayOfWeeks.length - 1]);
   const previousWeekFirstDayDate = new Date(selectedFirstDayOfWeek);
   previousWeekFirstDayDate.setDate(previousWeekFirstDayDate.getDate() - 7);
   const previousWeekFirstDay = previousWeekFirstDayDate.getTime();
   const [selectedWeekCalendarFirstDayOfWeek, setSelectedWeekCalendarFirstDayOfWeek] = useState(selectedFirstDayOfWeek);
 
-  const prs = History_getPersonalRecords(props.history);
-  const thisWeekHistory = getWeekHistory(sortedHistory, selectedFirstDayOfWeek, props.settings.startWeekFromMonday);
-  const lastWeekHistory = getWeekHistory(sortedHistory, previousWeekFirstDay, props.settings.startWeekFromMonday);
+  const thisWeekHistory = useTimedMemo(
+    "programHistory.thisWeekHistory",
+    () => getWeekHistory(sortedHistory, selectedFirstDayOfWeek, props.settings.startWeekFromMonday),
+    [sortedHistory, selectedFirstDayOfWeek, props.settings.startWeekFromMonday]
+  );
+  const lastWeekHistory = useTimedMemo(
+    "programHistory.lastWeekHistory",
+    () => getWeekHistory(sortedHistory, previousWeekFirstDay, props.settings.startWeekFromMonday),
+    [sortedHistory, previousWeekFirstDay, props.settings.startWeekFromMonday]
+  );
   const loadingItems = props.navCommon.loading.items;
   const loadingKeys = Object.keys(loadingItems).filter((k) => loadingItems[k]?.endTime == null);
   const isLoading = Object.keys(loadingKeys).length > 0;
 
-  const program = Program_evaluate(props.program, props.settings);
-  const programDay = Program_getProgramDay(program, program.nextDay);
+  const programDay = useTimedMemo(
+    "programHistory.programDay",
+    () => {
+      const program = Program_evaluate(props.program, props.settings);
+      return Program_getProgramDay(program, program.nextDay);
+    },
+    [props.program, props.settings]
+  );
   const isOngoing = !!(props.progress && Progress_isCurrent(props.progress));
 
   const flatListRef = useRef<FlatList>(null);
@@ -134,8 +122,8 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
     }
   }, [initialHistoryRecordId]);
 
-  const { state: appState } = useAppState();
-  const scrollToRecordId = appState.scrollToHistoryRecordId;
+  const trackedState = useTrackedState();
+  const scrollToRecordId = trackedState.scrollToHistoryRecordId;
   useEffect(() => {
     if (scrollToRecordId != null) {
       updateState(props.dispatch, [lb<IState>().p("scrollToHistoryRecordId").record(undefined)], "Clear scroll target");
@@ -151,16 +139,20 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
 
   useNavOptions({ navHidden: true });
 
-  const itemLayouts = useMemo(() => {
-    const layouts: { length: number; offset: number }[] = [];
-    let offset = 0;
-    for (const record of sortedHistory) {
-      const length = estimateRecordHeight(record);
-      layouts.push({ length, offset });
-      offset += length;
-    }
-    return layouts;
-  }, [sortedHistory]);
+  const itemLayouts = useTimedMemo(
+    "programHistory.itemLayouts",
+    () => {
+      const layouts: { length: number; offset: number }[] = [];
+      let offset = 0;
+      for (const record of sortedHistory) {
+        const length = estimateRecordHeight(record);
+        layouts.push({ length, offset });
+        offset += length;
+      }
+      return layouts;
+    },
+    [sortedHistory]
+  );
 
   const renderItem = useCallback(
     ({ item }: { item: IHistoryRecord }) => (
@@ -219,6 +211,8 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
     );
   }
 
+  const scrollMarkers = usePerfScrollMarkers("ProgramHistoryView");
+
   return (
     <View className="flex-1">
       {stickyHeader}
@@ -232,6 +226,9 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
         windowSize={5}
         getItemLayout={(_: unknown, index: number) => ({ ...itemLayouts[index], index })}
         onViewableItemsChanged={onViewableItemsChanged}
+        onScrollBeginDrag={scrollMarkers.onScrollBeginDrag}
+        onScrollEndDrag={scrollMarkers.onScrollEndDrag}
+        onMomentumScrollEnd={scrollMarkers.onMomentumScrollEnd}
       />
     </View>
   );

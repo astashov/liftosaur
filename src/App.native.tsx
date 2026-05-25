@@ -194,7 +194,7 @@ import {
 import { IapAdapter } from "./utils/iap";
 import { HealthAdapter } from "./utils/health";
 import { WhatsNew_doesHaveNewUpdates } from "./models/whatsnew";
-import { History_getGraphsAggregates } from "./models/history";
+import { History_getGraphsAggregates, History_getHomeAggregates } from "./models/history";
 import { PerfLongTasks_start } from "./utils/perfLongTasks";
 import { usePerfFrameSampling } from "./utils/perfFrameCallback";
 import { PerfNavTracker_handleStateChange } from "./utils/perfNavTracker";
@@ -237,7 +237,7 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
 
   usePerfFrameSampling(true, () => getCurrentScreenData()?.name);
 
-  // Warm the Graphs aggregates cache during idle time so first-visit Graphs is fast.
+  // Warm aggregates caches during idle time so first-visit of Graphs/Home is fast.
   // Re-runs when history or settings change to keep the cache fresh.
   useEffect(() => {
     const history = state.storage.history;
@@ -247,6 +247,7 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
     }
     const handle = InteractionManager.runAfterInteractions(() => {
       History_getGraphsAggregates(history, settings);
+      History_getHomeAggregates(history, !!settings.startWeekFromMonday);
     });
     return () => handle.cancel();
   }, [state.storage.history, state.storage.settings]);
@@ -585,6 +586,10 @@ export function App(): React.JSX.Element {
       const state = await getInitialState(fetch, { rawStorage: rawStorage as string | undefined, url });
       Settings_applyTheme(Settings_getTheme(state.storage.settings));
       TextSize_apply(state.storage.settings.textSize ?? 16);
+      if (state.storage.history.length > 0) {
+        History_getHomeAggregates(state.storage.history, !!state.storage.settings.startWeekFromMonday);
+        History_getGraphsAggregates(state.storage.history, state.storage.settings);
+      }
       setInitialState(state);
     }
     load();

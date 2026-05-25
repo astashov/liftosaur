@@ -11,6 +11,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { useCustomKeyboardAnimatedHeight } from "./CustomKeyboardContext";
 import { INavScreenScrollListener, NavScreenScrollContext } from "./NavScreenScrollContext";
+import { usePerfScrollMarkers } from "../utils/usePerfScrollMarkers";
 
 export { NavScreenScrollContext } from "./NavScreenScrollContext";
 export type { INavScreenScrollListener, INavScreenScrollContextValue } from "./NavScreenScrollContext";
@@ -55,6 +56,8 @@ export function NavScreenContent(props: {
 
   const contextValue = useMemo(() => ({ scrollRef, scrollYRef, addScrollListener }), [addScrollListener]);
 
+  const scrollMarkers = usePerfScrollMarkers("NavScreenContent");
+
   const scrollView = (
     <ScrollView
       ref={scrollRef}
@@ -64,6 +67,9 @@ export function NavScreenContent(props: {
       contentContainerStyle={{ flexGrow: 1, paddingBottom: props.footer != null ? footerHeight : 0 }}
       onScroll={onScroll}
       scrollEventThrottle={16}
+      onScrollBeginDrag={scrollMarkers.onScrollBeginDrag}
+      onScrollEndDrag={scrollMarkers.onScrollEndDrag}
+      onMomentumScrollEnd={scrollMarkers.onMomentumScrollEnd}
       stickyHeaderIndices={props.stickyHeaderIndices}
       style={
         Platform.OS === "web"

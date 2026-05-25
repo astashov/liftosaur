@@ -895,3 +895,53 @@ export const History_getGraphsAggregates = memoize(
   },
   { maxSize: 5 }
 );
+
+export interface IHomeWeekData {
+  firstDayOfWeeks: number[];
+  firstDayOfWeekToHistoryRecord: Partial<Record<number, IHistoryRecord>>;
+  historyRecordDateToFirstDayOfWeek: Partial<Record<number, number>>;
+}
+
+function buildHomeWeekData(history: IHistoryRecord[], startWeekFromMonday: boolean): IHomeWeekData {
+  const firstDayOfWeeksSet: Set<number> = new Set();
+  const historyRecordDateToFirstDayOfWeek: Partial<Record<number, number>> = {};
+  const firstDayOfWeekToHistoryRecord: Partial<Record<number, IHistoryRecord>> = {};
+  for (const record of history) {
+    if (!Progress_isCurrent(record)) {
+      const firstDayOfWeek = DateUtils_firstDayOfWeekTimestamp(record.endTime ?? record.startTime, startWeekFromMonday);
+      if (firstDayOfWeekToHistoryRecord[firstDayOfWeek] == null) {
+        firstDayOfWeekToHistoryRecord[firstDayOfWeek] = record;
+      }
+      firstDayOfWeeksSet.add(firstDayOfWeek);
+      historyRecordDateToFirstDayOfWeek[record.id] = firstDayOfWeek;
+    }
+  }
+  if (firstDayOfWeeksSet.size === 0) {
+    const today = new Date();
+    const firstDayOfWeek = DateUtils_firstDayOfWeekTimestamp(today.getTime(), startWeekFromMonday);
+    firstDayOfWeeksSet.add(firstDayOfWeek);
+  }
+  return {
+    firstDayOfWeeks: CollectionUtils_sort(Array.from(firstDayOfWeeksSet)),
+    historyRecordDateToFirstDayOfWeek,
+    firstDayOfWeekToHistoryRecord,
+  };
+}
+
+export interface IHomeAggregates {
+  sortedHistoryDesc: IHistoryRecord[];
+  weeksData: IHomeWeekData;
+  prs: IPersonalRecords;
+}
+
+export const History_getHomeAggregates = memoize(
+  (history: IHistoryRecord[], startWeekFromMonday: boolean): IHomeAggregates => {
+    const sortedHistoryDesc = CollectionUtils_sort(history, (a, b) => {
+      return new Date(Date.parse(b.date)).getTime() - new Date(Date.parse(a.date)).getTime();
+    });
+    const weeksData = buildHomeWeekData(sortedHistoryDesc, startWeekFromMonday);
+    const prs = History_getPersonalRecords(history);
+    return { sortedHistoryDesc, weeksData, prs };
+  },
+  { maxSize: 3 }
+);

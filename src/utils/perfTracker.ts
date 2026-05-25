@@ -34,6 +34,13 @@ export type IPerfEvent =
       label: string;
       duration_ms: number;
       ts: number;
+    }
+  | {
+      type: "scroll_start" | "scroll_end";
+      session: string;
+      screen?: string;
+      label?: string;
+      ts: number;
     };
 
 export function PerfTracker_mark(_name: string, _screen?: string): void {}
