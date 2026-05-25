@@ -19,7 +19,7 @@ export function navigateToModal<T extends IModalScreen>(
     return;
   }
   PerfNavTracker_recordTap(name);
-  navigationRef.navigate(name as never, params as never);
+  navigationRef.dispatch(CommonActions.navigate({ name: name as string, params: params as object | undefined }));
 }
 
 export function getCurrentTab(): ITab | undefined {

@@ -6,24 +6,21 @@ const PENDING_TAP_TTL_MS = 1000;
 
 let lastScreen: string | undefined;
 let pendingTapTs: number | null = null;
-let pendingTapTarget: string | undefined;
 let pendingTapTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
 function clearPendingTap(): void {
   pendingTapTs = null;
-  pendingTapTarget = undefined;
   if (pendingTapTimeoutId != null) {
     clearTimeout(pendingTapTimeoutId);
     pendingTapTimeoutId = null;
   }
 }
 
-export function PerfNavTracker_recordTap(targetScreen: string): void {
+export function PerfNavTracker_recordTap(_targetScreen: string): void {
   if (!__DEV__) {
     return;
   }
   pendingTapTs = Date.now();
-  pendingTapTarget = targetScreen;
   if (pendingTapTimeoutId != null) {
     clearTimeout(pendingTapTimeoutId);
   }
