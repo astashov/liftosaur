@@ -1,6 +1,5 @@
-import { JSX, forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from "react";
-import { View, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent } from "react-native";
-import { LegendList, LegendListRef } from "@legendapp/list";
+import { JSX, forwardRef, useCallback, useImperativeHandle, useRef, useState } from "react";
+import { View, FlatList, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent } from "react-native";
 
 export interface IWeekCalendarPagerHandle {
   scrollToIndex: (index: number, animated?: boolean) => void;
@@ -16,7 +15,7 @@ export interface IWeekCalendarPagerProps {
 export const WeekCalendarPager = forwardRef<IWeekCalendarPagerHandle, IWeekCalendarPagerProps>(
   function WeekCalendarPager(props, ref) {
     const { data, initialIndex, onPageChange, renderPage } = props;
-    const flatListRef = useRef<LegendListRef>(null);
+    const flatListRef = useRef<FlatList<number>>(null);
     const [pageWidth, setPageWidth] = useState(0);
     const pageWidthRef = useRef(0);
     pageWidthRef.current = pageWidth;
@@ -48,7 +47,14 @@ export const WeekCalendarPager = forwardRef<IWeekCalendarPagerHandle, IWeekCalen
       }
     }, []);
 
-    const snapToIndices = useMemo(() => data.map((_, i) => i), [data]);
+    const getItemLayout = useCallback(
+      (_data: ArrayLike<number> | null | undefined, index: number) => ({
+        length: pageWidth,
+        offset: pageWidth * index,
+        index,
+      }),
+      [pageWidth]
+    );
 
     const handleScrollEnd = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const width = pageWidthRef.current;
@@ -72,7 +78,7 @@ export const WeekCalendarPager = forwardRef<IWeekCalendarPagerHandle, IWeekCalen
     return (
       <View onLayout={handleLayout}>
         {pageWidth > 0 && (
-          <LegendList
+          <FlatList
             ref={flatListRef}
             data={data}
             renderItem={renderItem}
@@ -80,11 +86,14 @@ export const WeekCalendarPager = forwardRef<IWeekCalendarPagerHandle, IWeekCalen
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
-            estimatedItemSize={pageWidth}
-            snapToIndices={snapToIndices}
+            getItemLayout={getItemLayout}
             initialScrollIndex={initialIndex >= 0 ? initialIndex : undefined}
+            initialNumToRender={2}
+            windowSize={3}
+            maxToRenderPerBatch={3}
             onMomentumScrollEnd={handleScrollEnd}
             onScrollEndDrag={handleScrollEnd}
+            onScrollToIndexFailed={() => {}}
           />
         )}
       </View>
