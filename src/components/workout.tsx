@@ -45,6 +45,7 @@ import { NativeWatchBridge_sendFinishWorkoutToWatch } from "../utils/nativeWatch
 import { NativeWorkoutMirroring_resetWatchWorkoutState } from "../utils/nativeWorkoutMirroringBridge";
 import { Dialog_confirm } from "../utils/dialog";
 import { useEqual } from "../utils/useEqual";
+import { usePerfRenderCount } from "../utils/usePerfRenderCount";
 import { NavScreenContent } from "../navigation/NavScreenContent";
 
 interface IWorkoutViewProps {
@@ -63,6 +64,7 @@ interface IWorkoutViewProps {
 }
 
 function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
+  usePerfRenderCount("Workout");
   const selectedEntry = props.progress.entries[props.progress.ui?.currentEntryIndex ?? 0];
   const description = props.programDay?.description;
   const forceUpdateEntryIndex = !!props.progress.ui?.forceUpdateEntryIndex;
@@ -278,6 +280,7 @@ interface IWorkoutExercisePageProps {
 }
 
 function WorkoutExercisePageInner(props: IWorkoutExercisePageProps): JSX.Element {
+  usePerfRenderCount("WorkoutExercisePage");
   const { entryIndex, onPageLayout } = props;
   const onLayout = useCallback(
     (e: LayoutChangeEvent) => onPageLayout(entryIndex, e.nativeEvent.layout.height),
@@ -331,16 +334,17 @@ interface IWorkoutHeaderProps {
 }
 
 function WorkoutHeaderInner(props: IWorkoutHeaderProps): JSX.Element {
-  const { program } = props;
-  const currentProgram = props.allPrograms.find((p) => p.id === props.program?.id);
-  const isEligibleForProgramDay =
-    !Progress_isCurrent(props.progress) && props.allPrograms.every((p) => p.id !== props.progress.programId);
+  usePerfRenderCount("WorkoutHeader");
+  const { program, allPrograms, progress } = props;
+  const currentProgram = allPrograms.find((p) => p.id === program?.id);
+  const isCurrent = Progress_isCurrent(progress);
+  const isEligibleForProgramDay = !isCurrent && allPrograms.every((p) => p.id !== progress.programId);
 
   const onFinish = async (): Promise<void> => {
-    const isFullyFinished = Progress_isCurrent(props.progress) && Progress_isFullyFinishedSet(props.progress);
+    const isFullyFinished = isCurrent && Progress_isFullyFinishedSet(props.progress);
     if (!isFullyFinished) {
       const confirmed = await Dialog_confirm(
-        Progress_isCurrent(props.progress)
+        isCurrent
           ? "Are you sure you want to FINISH this workout? Some sets are not marked as completed."
           : "Are you sure you want to SAVE this PAST workout?"
       );
@@ -350,7 +354,7 @@ function WorkoutHeaderInner(props: IWorkoutHeaderProps): JSX.Element {
     }
     NativeWorkoutBridge_pauseWorkout();
     props.dispatch(Thunk_finishProgramDay());
-    if (Progress_isCurrent(props.progress)) {
+    if (isCurrent) {
       props.dispatch(Thunk_postevent("finish-workout", { workout: JSON.stringify(props.progress) }));
       const isIos = Platform.OS === "ios" || SendMessage_isIos();
       const healthName = isIos ? "Apple Health" : "Google Health";
@@ -410,7 +414,7 @@ function WorkoutHeaderInner(props: IWorkoutHeaderProps): JSX.Element {
               Create Program Day
             </Button>
           )}
-          {!Progress_isCurrent(props.progress) && (
+          {!isCurrent && (
             <ButtonIcon name="past-workout-share" onClick={() => props.onShare?.()}>
               <IconShare />
             </ButtonIcon>
@@ -446,17 +450,17 @@ function WorkoutHeaderInner(props: IWorkoutHeaderProps): JSX.Element {
             </ButtonIcon>
           )}
           <Button
-            name={Progress_isCurrent(props.progress) ? "finish-workout" : "save-history-record"}
+            name={isCurrent ? "finish-workout" : "save-history-record"}
             kind="purple"
             buttonSize="md"
             data-testid="finish-workout"
             testID="finish-workout"
-            className={Progress_isCurrent(props.progress) ? "ls-finish-workout" : "ls-save-history-record"}
+            className={isCurrent ? "ls-finish-workout" : "ls-save-history-record"}
             onClick={() => {
               onFinish().catch(() => undefined);
             }}
           >
-            {Progress_isCurrent(props.progress) ? "Finish" : "Save"}
+            {isCurrent ? "Finish" : "Save"}
           </Button>
         </View>
       </View>
@@ -496,6 +500,7 @@ interface IWorkoutThumbnailsStripProps {
 }
 
 function WorkoutThumbnailsStripInner(props: IWorkoutThumbnailsStripProps): JSX.Element {
+  usePerfRenderCount("WorkoutThumbnailsStrip");
   const { enableReorder, onClick, dispatch } = props;
   const progressId = props.progress.id;
   const colorToSupersetGroup = useEqual(

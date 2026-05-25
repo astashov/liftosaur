@@ -132,7 +132,12 @@ if (__DEV__) {
 
   console.info = wrap(console.info.bind(console));
 }
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
+
+const transparentNavTheme = {
+  ...DefaultTheme,
+  colors: { ...DefaultTheme.colors, background: "transparent" },
+};
 import { SafeAreaProvider, initialWindowMetrics } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
@@ -543,6 +548,7 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
               <SystemBars style="auto" />
               <NavigationContainer
                 ref={navigationRef}
+                theme={transparentNavTheme}
                 onStateChange={() => {
                   const route = navigationRef.getCurrentRoute();
                   setCurrentScreenName(route?.name as IScreen | undefined);

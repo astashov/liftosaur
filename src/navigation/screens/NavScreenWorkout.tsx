@@ -1,4 +1,4 @@
-import { JSX } from "react";
+import { JSX, useMemo } from "react";
 import { useRoute } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { buildNavCommon } from "../utils";
@@ -15,34 +15,55 @@ export function NavScreenProgress(): JSX.Element {
   const { state, dispatch } = useAppState();
   const route = useRoute<{ key: string; name: string; params?: { id?: number } }>();
   const progressId = route.params?.id ?? 0;
-  const navCommon = buildNavCommon(state);
   const subscription = useEqual(state.storage.subscription);
+  const settings = state.storage.settings;
+  const stats = state.storage.stats;
+  const helps = state.storage.helps;
+  const history = state.storage.history;
+  const allPrograms = state.storage.programs;
+  const loading = state.loading;
+  const userId = state.user?.id;
   const currentProgram =
     state.storage.currentProgramId != null ? Program_getProgram(state, state.storage.currentProgramId) : undefined;
   const progress = progressId === 0 ? state.storage.progress?.[0] : state.progress[progressId];
   const program = progress
     ? Progress_isCurrent(progress)
       ? Program_getFullProgram(state, progress.programId) ||
-        (currentProgram ? Program_fullProgram(currentProgram, state.storage.settings) : undefined)
+        (currentProgram ? Program_fullProgram(currentProgram, settings) : undefined)
       : undefined
     : undefined;
+  const navCommon = useMemo(
+    () => ({
+      subscription,
+      doesHaveWorkouts: history.length > 0,
+      helps,
+      loading,
+      currentProgram,
+      allPrograms,
+      settings,
+      progress,
+      stats,
+      userId,
+    }),
+    [subscription, history, helps, loading, currentProgram, allPrograms, settings, progress, stats, userId]
+  );
 
   return (
     <FallbackScreen state={{ progress }} dispatch={dispatch}>
       {({ progress: progress2 }) => (
         <ScreenWorkout
           navCommon={navCommon}
-          stats={state.storage.stats}
-          helps={state.storage.helps}
-          history={state.storage.history}
+          stats={stats}
+          helps={helps}
+          history={history}
           subscription={subscription}
-          userId={state.user?.id}
+          userId={userId}
           progress={progress2}
-          allPrograms={state.storage.programs}
+          allPrograms={allPrograms}
           program={program}
           currentProgram={currentProgram}
           dispatch={dispatch}
-          settings={state.storage.settings}
+          settings={settings}
         />
       )}
     </FallbackScreen>

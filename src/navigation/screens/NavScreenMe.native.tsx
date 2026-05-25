@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { useTrackedState, useTrackedDispatch, untrack } from "../TrackedStateContext";
@@ -27,19 +27,58 @@ import type { IStatsKey } from "../../types";
 export function NavScreenSettings(): React.JSX.Element {
   const state = useTrackedState();
   const dispatch = useTrackedDispatch();
-  const navCommon = untrack(buildNavCommon(state));
+  const subscription = untrack(state.storage.subscription);
+  const settings = untrack(state.storage.settings);
+  const stats = untrack(state.storage.stats);
+  const helps = untrack(state.storage.helps);
+  const history = untrack(state.storage.history);
+  const allPrograms = untrack(state.storage.programs);
+  const loading = untrack(state.loading);
+  const user = untrack(state.user);
+  const tempUserId = state.storage.tempUserId;
+  const currentProgramId = state.storage.currentProgramId;
+  const currentProgram = untrack(
+    currentProgramId != null ? Program_getProgram(state, currentProgramId) : undefined
+  );
+  const currentProgressForNav = untrack(state.storage.progress?.[0]);
+  const navCommon = useMemo(
+    () => ({
+      subscription,
+      doesHaveWorkouts: history.length > 0,
+      helps,
+      loading,
+      currentProgram,
+      allPrograms,
+      settings,
+      progress: currentProgressForNav,
+      stats,
+      userId: user?.id,
+    }),
+    [
+      subscription,
+      history,
+      helps,
+      loading,
+      currentProgram,
+      allPrograms,
+      settings,
+      currentProgressForNav,
+      stats,
+      user,
+    ]
+  );
   return (
     <View className="flex-1 bg-background-default">
       <NavScreenContent>
         <ScreenSettingsComponent
-          stats={untrack(state.storage.stats)}
-          tempUserId={state.storage.tempUserId}
+          stats={stats}
+          tempUserId={tempUserId}
           navCommon={navCommon}
-          subscription={untrack(state.storage.subscription)}
+          subscription={subscription}
           dispatch={dispatch}
-          user={untrack(state.user)}
-          currentProgramName={Program_getProgram(state, state.storage.currentProgramId)?.name || ""}
-          settings={untrack(state.storage.settings)}
+          user={user}
+          currentProgramName={currentProgram?.name || ""}
+          settings={settings}
         />
       </NavScreenContent>
     </View>

@@ -1,4 +1,4 @@
-import { JSX, useCallback, useEffect, useMemo, useRef } from "react";
+import { JSX, memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { Pressable } from "react-native";
 import { IHistoryRecord, IProgram, ISettings, IStats, ISubscription } from "../types";
 import { IDispatch } from "../ducks/types";
@@ -23,6 +23,7 @@ import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { workoutTourConfig } from "./tour/workoutTourConfig";
 import { navigateToModal } from "../navigation/navigationService";
 import { Dialog_confirm } from "../utils/dialog";
+import { usePerfRenderCount } from "../utils/usePerfRenderCount";
 
 interface IScreenWorkoutProps {
   progress: IHistoryRecord;
@@ -39,9 +40,15 @@ interface IScreenWorkoutProps {
   navCommon: INavCommon;
 }
 
-export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
+function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
+  usePerfRenderCount("ScreenWorkout");
   const progress = props.progress;
-  const evaluatedProgram = props.program ? Program_evaluate(props.program, props.settings) : undefined;
+  const program = props.program;
+  const settings = props.settings;
+  const evaluatedProgram = useMemo(
+    () => (program ? Program_evaluate(program, settings) : undefined),
+    [program, settings]
+  );
   const programDay = evaluatedProgram ? Program_getProgramDay(evaluatedProgram, progress.day) : undefined;
 
   useEffect(() => {
@@ -190,3 +197,5 @@ export function ScreenWorkout(props: IScreenWorkoutProps): JSX.Element | null {
     return null;
   }
 }
+
+export const ScreenWorkout = memo(ScreenWorkoutInner);

@@ -51,6 +51,7 @@ import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { IconReorder } from "./icons/iconReorder";
 import { navigateToModal } from "../navigation/navigationService";
 import { Dialog_confirm } from "../utils/dialog";
+import { usePerfRenderCount } from "../utils/usePerfRenderCount";
 
 interface IWorkoutExerciseCardProps {
   entry: IHistoryEntry;
@@ -77,6 +78,7 @@ interface IWorkoutExerciseCardProps {
 type IKebabAction = "edit" | "swap" | "superset" | "remove";
 
 function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element {
+  usePerfRenderCount("WorkoutExerciseCard");
   const programExerciseId = props.entry.programExerciseId;
   const programExercise = useMemo(
     () =>
@@ -86,12 +88,13 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
     [props.program, props.day, programExerciseId]
   );
   const exerciseType = props.entry.exercise;
-  const exercise = Exercise_get(exerciseType, props.settings.exercises);
-  const currentEquipmentName = Equipment_getEquipmentNameForExerciseType(props.settings, exercise);
-  const currentEquipmentNotes = Equipment_getEquipmentDataForExerciseType(props.settings, exercise)?.notes;
-  const exerciseNotes = Exercise_getNotes(exerciseType, props.settings);
+  const settings = props.settings;
+  const exercise = Exercise_get(exerciseType, settings.exercises);
+  const currentEquipmentName = Equipment_getEquipmentNameForExerciseType(settings, exercise);
+  const currentEquipmentNotes = Equipment_getEquipmentDataForExerciseType(settings, exercise)?.notes;
+  const exerciseNotes = Exercise_getNotes(exerciseType, settings);
   const description = programExercise ? PlannerProgramExercise_currentDescription(programExercise) : undefined;
-  const onerm = Exercise_onerm(exercise, props.settings);
+  const onerm = Exercise_onerm(exercise, settings);
   const nextSet = useMemo(
     () => [...props.entry.warmupSets, ...props.entry.sets].filter((s) => !s.isCompleted)[0],
     [props.entry.warmupSets, props.entry.sets]
@@ -115,7 +118,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
   const supersetEntry = props.supersetEntry;
   const supersetExercise = supersetEntry ? Exercise_get(supersetEntry.exercise, props.settings.exercises) : undefined;
 
-  const { dispatch, entry, entryIndex, progressId, settings } = props;
+  const { dispatch, entry, entryIndex, progressId } = props;
   const entryExercise = entry.exercise;
   const entryId = entry.id;
   const pickerSort = settings.workoutSettings.pickerSort;

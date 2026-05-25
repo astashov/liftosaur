@@ -1,4 +1,4 @@
-import { JSX } from "react";
+import { JSX, useMemo } from "react";
 import { useRoute } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { buildNavCommon } from "../utils";
@@ -24,18 +24,44 @@ import { useAppContext } from "../../components/appContext";
 
 export function NavScreenSettings(): JSX.Element {
   const { state, dispatch } = useAppState();
-  const navCommon = buildNavCommon(state);
+  const subscription = state.storage.subscription;
+  const settings = state.storage.settings;
+  const stats = state.storage.stats;
+  const helps = state.storage.helps;
+  const history = state.storage.history;
+  const allPrograms = state.storage.programs;
+  const loading = state.loading;
+  const user = state.user;
+  const tempUserId = state.storage.tempUserId;
+  const currentProgram =
+    state.storage.currentProgramId != null ? Program_getProgram(state, state.storage.currentProgramId) : undefined;
+  const currentProgress = state.storage.progress?.[0];
+  const navCommon = useMemo(
+    () => ({
+      subscription,
+      doesHaveWorkouts: history.length > 0,
+      helps,
+      loading,
+      currentProgram,
+      allPrograms,
+      settings,
+      progress: currentProgress,
+      stats,
+      userId: user?.id,
+    }),
+    [subscription, history, helps, loading, currentProgram, allPrograms, settings, currentProgress, stats, user]
+  );
   return (
     <NavScreenContent>
       <ScreenSettingsComponent
-        stats={state.storage.stats}
-        tempUserId={state.storage.tempUserId}
+        stats={stats}
+        tempUserId={tempUserId}
         navCommon={navCommon}
-        subscription={state.storage.subscription}
+        subscription={subscription}
         dispatch={dispatch}
-        user={state.user}
-        currentProgramName={Program_getProgram(state, state.storage.currentProgramId)?.name || ""}
-        settings={state.storage.settings}
+        user={user}
+        currentProgramName={currentProgram?.name || ""}
+        settings={settings}
       />
     </NavScreenContent>
   );

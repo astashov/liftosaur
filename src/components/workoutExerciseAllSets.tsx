@@ -29,6 +29,7 @@ import { ProgressStateChanges } from "./progressStateChanges";
 import { IEvaluatedProgram } from "../models/program";
 import { Exercise_getIsUnilateral } from "../models/exercise";
 import { memo, useCallback, useMemo } from "react";
+import { usePerfRenderCount } from "../utils/usePerfRenderCount";
 
 interface IWorkoutExerciseAllSets {
   day: number;
@@ -67,6 +68,7 @@ function getTargetColumnLabel(targetType: ITargetType): string {
 }
 
 function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Element {
+  usePerfRenderCount("WorkoutExerciseAllSets");
   const warmupSets = props.entry.warmupSets;
   const sets = props.entry.sets;
   const buttonBgColor = WorkoutExerciseUtils_getBgColor100(sets, false);

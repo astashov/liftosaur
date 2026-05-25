@@ -70,6 +70,26 @@ export function navigateTo<T extends IScreen>(screen: T, params?: IAllScreenPara
   }
 
   if (opts?.tab) {
+    const rootState = navigationRef.getRootState();
+    const onMainTabs = rootState?.routes[rootState.index ?? 0]?.name === "mainTabs";
+    const mainTabsRoute = rootState?.routes.find((r) => r.name === "mainTabs");
+    const tabsState = mainTabsRoute?.state as NavigationState | undefined;
+
+    if (onMainTabs && tabsState?.key) {
+      const targetTabRoute = tabsState.routes.find((r) => r.name === opts.tab);
+      const innerState = targetTabRoute?.state as NavigationState | undefined;
+      const currentTopOfTargetTab = innerState?.routes[innerState.index ?? innerState.routes.length - 1]?.name;
+      const canSkipInnerNav = params === undefined && currentTopOfTargetTab === screen;
+      const navPayload = canSkipInnerNav
+        ? { name: opts.tab as string }
+        : { name: opts.tab as string, params: { screen, params, initial: false } };
+      navigationRef.dispatch({
+        ...CommonActions.navigate(navPayload),
+        target: tabsState.key,
+      });
+      return;
+    }
+
     const resetState: PartialState<NavigationState> = {
       index: 0,
       routes: [

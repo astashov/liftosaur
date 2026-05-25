@@ -1,4 +1,4 @@
-import { JSX } from "react";
+import { JSX, useMemo } from "react";
 import { useRoute } from "@react-navigation/native";
 import { useTrackedState, useTrackedDispatch, untrack } from "../TrackedStateContext";
 import { buildNavCommon } from "../utils";
@@ -16,11 +16,16 @@ export function NavScreenProgress(): JSX.Element {
   const dispatch = useTrackedDispatch();
   const route = useRoute<{ key: string; name: string; params?: { id?: number } }>();
   const progressId = route.params?.id ?? 0;
-  const navCommon = untrack(buildNavCommon(state));
   const subscription = useEqual(untrack(state.storage.subscription));
   const settings = untrack(state.storage.settings);
+  const stats = untrack(state.storage.stats);
+  const helps = untrack(state.storage.helps);
+  const history = untrack(state.storage.history);
+  const allPrograms = untrack(state.storage.programs);
+  const currentProgramId = state.storage.currentProgramId;
+  const userId = state.user?.id;
   const currentProgram = untrack(
-    state.storage.currentProgramId != null ? Program_getProgram(state, state.storage.currentProgramId) : undefined
+    currentProgramId != null ? Program_getProgram(state, currentProgramId) : undefined
   );
   const progress = untrack(progressId === 0 ? state.storage.progress?.[0] : state.progress[progressId]);
   const program = untrack(
@@ -31,19 +36,35 @@ export function NavScreenProgress(): JSX.Element {
         : undefined
       : undefined
   );
+  const loading = untrack(state.loading);
+  const navCommon = useMemo(
+    () => ({
+      subscription,
+      doesHaveWorkouts: history.length > 0,
+      helps,
+      loading,
+      currentProgram,
+      allPrograms,
+      settings,
+      progress,
+      stats,
+      userId,
+    }),
+    [subscription, history, helps, loading, currentProgram, allPrograms, settings, progress, stats, userId]
+  );
 
   return (
     <FallbackScreen state={{ progress }} dispatch={dispatch}>
       {({ progress: progress2 }) => (
         <ScreenWorkout
           navCommon={navCommon}
-          stats={untrack(state.storage.stats)}
-          helps={untrack(state.storage.helps)}
-          history={untrack(state.storage.history)}
+          stats={stats}
+          helps={helps}
+          history={history}
           subscription={subscription}
-          userId={state.user?.id}
+          userId={userId}
           progress={progress2}
-          allPrograms={untrack(state.storage.programs)}
+          allPrograms={allPrograms}
           program={program}
           currentProgram={currentProgram}
           dispatch={dispatch}

@@ -1,4 +1,4 @@
-import { JSX, useState } from "react";
+import { JSX, memo, useState } from "react";
 import { View, Pressable, Linking, Platform } from "react-native";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
@@ -43,6 +43,7 @@ import { Settings_getTheme, Settings_applyTheme } from "../models/settings";
 import { TextSize_apply } from "../utils/textSize";
 import { Features_isEnabled } from "../utils/features";
 import { Slider } from "./primitives/slider";
+import { usePerfRenderCount } from "../utils/usePerfRenderCount";
 
 interface IProps {
   dispatch: IDispatch;
@@ -65,7 +66,8 @@ function openExternal(url: string): void {
   }
 }
 
-export function ScreenSettings(props: IProps): JSX.Element {
+function ScreenSettingsInner(props: IProps): JSX.Element {
+  usePerfRenderCount("ScreenSettings");
   const [isCopied, setIsCopied] = useState<boolean>(false);
   const currentBodyweight = Stats_getCurrentBodyweight(props.stats);
   const currentBodyfat = Stats_getCurrentBodyfat(props.stats);
@@ -533,3 +535,5 @@ export function ScreenSettings(props: IProps): JSX.Element {
     </View>
   );
 }
+
+export const ScreenSettings = memo(ScreenSettingsInner);

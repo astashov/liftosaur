@@ -24,6 +24,7 @@ import { ExerciseAllTimePRs } from "./exerciseAllTimePRs";
 import { ExerciseHistory } from "./exerciseHistory";
 import { Reps_setsStatus } from "../models/set";
 import { WorkoutExerciseCard } from "./workoutExerciseCard";
+import { usePerfRenderCount } from "../utils/usePerfRenderCount";
 
 interface IWorkoutExerciseProps {
   day: number;
@@ -48,6 +49,7 @@ interface IWorkoutExerciseProps {
 }
 
 function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
+  usePerfRenderCount("WorkoutExercise");
   const exerciseType = props.entry.exercise;
 
   const [
