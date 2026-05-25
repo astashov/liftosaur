@@ -23,12 +23,12 @@ interface IProps {
 export function RecordContent(props: IProps): JSX.Element {
   const { record } = props.data;
   return (
-    <section className="px-4 text-gray-900">
+    <section className="px-4 text-text-primary">
       <div className="px-4">
         <h2 className="text-xl font-bold">
           {record.programName}, {record.dayName}
         </h2>
-        <p className="text-sm text-gray-600">{DateUtils_format(record.date)}</p>
+        <p className="text-sm text-text-secondary">{DateUtils_format(record.date)}</p>
       </div>
       <PersonalRecords data={props.data} />
       <MaxWeights data={props.data} />
@@ -53,7 +53,7 @@ function PersonalRecords(props: IPersonalRecordsProps): JSX.Element | null {
 
   if (prs.size > 0) {
     return (
-      <section className="p-4 my-6 bg-orange-100 border border-orange-800 rounded-lg">
+      <section className="p-4 my-6 bg-background-cardyellow border border-border-cardyellow rounded-lg">
         <h3 className="text-lg font-bold" dangerouslySetInnerHTML={{ __html: "&#x1F3C6 New Personal Records" }} />
         <ul>
           {Array.from(prs.keys()).map((exerciseType) => {
@@ -118,7 +118,7 @@ function Entry(props: IEntryProps): JSX.Element {
   const totalReps = History_totalEntryReps(props.entry);
 
   return (
-    <section className="p-4 my-2 bg-gray-100 border border-gray-600 rounded-lg">
+    <section className="p-4 my-2 bg-background-subtle border border-border-prominent rounded-lg">
       <h4 className="text-lg font-bold">{exercise.name}</h4>
       <div className="flex flex-col sm:flex-row">
         <div className="flex-1">

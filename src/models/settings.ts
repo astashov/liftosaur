@@ -437,7 +437,7 @@ export function Settings_getTheme(settings: ISettings): "dark" | "light" {
 }
 
 export function Settings_applyTheme(theme?: "dark" | "light"): void {
-  const resolved = theme === "dark" ? "dark" : "light";
+  const resolved = theme ?? (typeof window !== "undefined" && window.lftSystemDarkMode ? "dark" : "light");
   Theme_apply(resolved);
   SendMessage_toIosAndAndroid({ type: "theme", value: resolved });
 }

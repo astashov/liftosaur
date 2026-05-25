@@ -7,7 +7,8 @@ export class DocDao {
   private readonly docsDir: string;
 
   constructor() {
-    this.docsDir = path.join(__dirname, "..", "docs", "content");
+    const bundled = path.join(__dirname, "..", "docs", "content");
+    this.docsDir = fs.existsSync(bundled) ? bundled : path.join(__dirname, "..", "..", "docs", "content");
   }
 
   public getIndex(): IDocIndexEntry[] {

@@ -127,7 +127,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
           <Pressable
             data-testid="rest-timer-expanded"
             testID="rest-timer-expanded"
-            className="flex-1 items-center justify-center"
+            className="items-center justify-center flex-1"
             onPress={() => setIsExpanded(false)}
           >
             <Text data-testid="rest-timer-current" className="font-bold text-text-alwayswhite">
@@ -180,10 +180,10 @@ export function RestTimer(props: IProps): JSX.Element | null {
         className={`${bgClass} items-center px-2 py-2 rounded-lg`}
         style={[{ width: 64 }, shadowStyle]}
       >
-        <Text data-testid="rest-timer-current" className="font-bold text-text-alwayswhite">
+        <Text data-testid="rest-timer-current" className="font-bold text-text-alwayswhite whitespace-nowrap">
           {TimeUtils_formatMMSS(timeDifference)}
         </Text>
-        <Text data-testid="rest-timer-total" className={`text-xs ${totalColorClass}`}>
+        <Text data-testid="rest-timer-total" className={`text-xs ${totalColorClass} whitespace-nowrap`}>
           {TimeUtils_formatMMSS(timer * 1000)}
         </Text>
       </Pressable>

@@ -14,8 +14,8 @@ export function EditOnDesktop(): JSX.Element {
                 Program Web Editor
               </span>
             </div>
-            <h2 className="mb-6 text-3xl font-semibold text-white md:text-4xl">Edit programs on desktop</h2>
-            <p className="mb-2 text-base leading-relaxed text-white md:mb-6">
+            <h2 className="mb-6 text-3xl font-semibold text-text-alwayswhite md:text-4xl">Edit programs on desktop</h2>
+            <p className="mb-2 text-base leading-relaxed text-text-alwayswhite md:mb-6">
               Typing your program on a phone can indeed be tedious. To ease this process, there is a web editor
               available. Edit programs from your account, or generate a link to a program, and share with other people.
               And you can import those links into the app.

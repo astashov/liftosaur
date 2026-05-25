@@ -24,9 +24,7 @@ export function NavScreenProgress(): JSX.Element {
   const allPrograms = untrack(state.storage.programs);
   const currentProgramId = state.storage.currentProgramId;
   const userId = state.user?.id;
-  const currentProgram = untrack(
-    currentProgramId != null ? Program_getProgram(state, currentProgramId) : undefined
-  );
+  const currentProgram = untrack(currentProgramId != null ? Program_getProgram(state, currentProgramId) : undefined);
   const progress = untrack(progressId === 0 ? state.storage.progress?.[0] : state.progress[progressId]);
   const program = untrack(
     progress

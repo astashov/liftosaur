@@ -36,7 +36,7 @@ export function CreateYourOwn(): JSX.Element {
       <h2 className="px-4 mb-4 text-3xl font-bold text-center md:text-4xl">Create your own programs</h2>
       <p className="px-4 mx-auto mb-8 text-base leading-relaxed text-left md:text-center" style={{ maxWidth: "40rem" }}>
         Write your weightlifting program in plain text with{" "}
-        <a href="/doc" target="_blank" className="font-semibold text-purple-600 underline">
+        <a href="/doc" target="_blank" className="font-semibold text-text-purple underline">
           Liftoscript
         </a>
         ! Specify exercises by week/day, sets, and progressive overload rules — and use optional scripting to build
@@ -146,17 +146,17 @@ Bench Press / 3x8 100lb / progress: dp(5lb, 8, 12)
       />
       <div className="flex-1">
         {evaluatedDay.success && (
-          <div className="px-0 pt-0 overflow-auto bg-transparent md:pt-10 md:px-12 md:bg-purple-75 h-96 md:rounded-3xl rounded-t-3xl rounded-w-3xl ">
+          <div className="px-0 pt-0 overflow-auto bg-transparent md:pt-10 md:px-12 md:bg-background-cardpurple h-96 md:rounded-3xl rounded-t-3xl rounded-w-3xl ">
             <div
-              className="overflow-hidden border-purple-300"
+              className="overflow-hidden border-color-purple300"
               style={{ borderWidth: "3px 3px 0 3px", borderRadius: "48px 48px 0 0" }}
             >
               <div
-                className="flex bg-purple-200 border-purple-200"
+                className="flex bg-color-purple200 border-color-purple200"
                 style={{ borderWidth: "10px 10px 0 10px", borderRadius: "42px 42px 0 0" }}
               >
                 <div
-                  className="flex-1 w-full p-4 overflow-hidden bg-white"
+                  className="flex-1 w-full p-4 overflow-hidden bg-background-default"
                   style={{ borderRadius: "34px 34px 0 0", width: "360px" }}
                 >
                   <MainPlayground key={text} planner={planner} settings={settings} />
@@ -175,7 +175,7 @@ function EditorInfoText(): JSX.Element {
     <div className="mt-4 leading-relaxed">
       Custom progressions, myo-reps, drop sets, manipulating weight, reps, RPE or even rest timer via scripts — anything
       is possible.{" "}
-      <a href="/doc" target="_blank" className="font-semibold text-purple-600 underline">
+      <a href="/doc" target="_blank" className="font-semibold text-text-purple underline">
         Check the docs
       </a>{" "}
       to learn more about Liftoscript.

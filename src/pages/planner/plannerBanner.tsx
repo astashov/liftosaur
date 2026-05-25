@@ -16,7 +16,7 @@ interface IPlannerBannerProps {
 
 export function PlannerBanner(props: IPlannerBannerProps): JSX.Element {
   return (
-    <div className="flex flex-col items-center px-8 py-4 mb-4 text-sm border border-orange-400 rounded-lg bg-yellow-50 sm:mr-64 sm:flex-row">
+    <div className="flex flex-col items-center px-8 py-4 mb-4 text-sm border rounded-lg border-border-cardyellow bg-background-cardyellow sm:mr-64 sm:flex-row">
       {props.account ? (
         <LoggedInGuideBanner isBannerLoading={props.isBannerLoading} onAddProgram={props.onAddProgram} />
       ) : (
@@ -67,7 +67,7 @@ function LoggedOutGuideBanner(props: { userAgent?: string }): JSX.Element {
         </ul>
       </div>
       <div className="flex items-center mt-2 ml-4">
-        <div className="flex justify-center md:justify-start">
+        <div className="flex justify-center gap-2 md:justify-start">
           {!isMobile && (
             <div style={{ marginTop: "-7px", marginLeft: "-7px" }}>
               <img

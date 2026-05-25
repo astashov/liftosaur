@@ -37,9 +37,7 @@ export function NavScreenSettings(): React.JSX.Element {
   const user = untrack(state.user);
   const tempUserId = state.storage.tempUserId;
   const currentProgramId = state.storage.currentProgramId;
-  const currentProgram = untrack(
-    currentProgramId != null ? Program_getProgram(state, currentProgramId) : undefined
-  );
+  const currentProgram = untrack(currentProgramId != null ? Program_getProgram(state, currentProgramId) : undefined);
   const currentProgressForNav = untrack(state.storage.progress?.[0]);
   const navCommon = useMemo(
     () => ({
@@ -54,18 +52,7 @@ export function NavScreenSettings(): React.JSX.Element {
       stats,
       userId: user?.id,
     }),
-    [
-      subscription,
-      history,
-      helps,
-      loading,
-      currentProgram,
-      allPrograms,
-      settings,
-      currentProgressForNav,
-      stats,
-      user,
-    ]
+    [subscription, history, helps, loading, currentProgram, allPrograms, settings, currentProgressForNav, stats, user]
   );
   return (
     <View className="flex-1 bg-background-default">

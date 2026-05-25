@@ -50,6 +50,7 @@ export function DocDetailsHtml(props: IProps): JSX.Element {
       jsonLd={jsonLd}
       data={data}
       client={client}
+      preloadMono
       url="/doc"
     >
       <DocDetailsContent {...data} />

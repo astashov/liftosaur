@@ -6,7 +6,7 @@ import { IconCalculator } from "../../../components/icons/iconCalculator";
 import { IconCalendarSmall } from "../../../components/icons/iconCalendarSmall";
 import { IconMuscles2 } from "../../../components/icons/iconMuscles2";
 import { IconTracker } from "../../../components/icons/iconTracker";
-import { Tailwind_semantic, Tailwind_colors } from "../../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 
 interface IAccordionItem {
   icon: (color: string) => JSX.Element;
@@ -75,7 +75,7 @@ export function TrackProgress(): JSX.Element {
       </div>
       <h2 className="px-4 mb-4 text-3xl font-bold text-center md:text-4xl">Track your progress</h2>
       <p
-        className="px-4 mx-auto mb-10 text-base leading-relaxed text-center text-gray-600"
+        className="px-4 mx-auto mb-10 text-base leading-relaxed text-center text-text-secondary"
         style={{ maxWidth: "40rem" }}
       >
         Log every set and rep, monitor body stats, and visualize your progress with detailed graphs. All your data is
@@ -83,14 +83,14 @@ export function TrackProgress(): JSX.Element {
       </p>
       <div className="flex gap-8">
         <div className="flex-1">
-          <div className="overflow-hidden bg-white border border-gray-200 divide-y divide-gray-200 rounded-2xl">
+          <div className="overflow-hidden border bg-background-default border-border-neutral rounded-2xl">
             {items.map((item, i) => {
               const isOpen = openIndex === i;
-              const iconColor = isOpen ? Tailwind_colors().red[500] : Tailwind_semantic().text.primary;
+              const iconColor = isOpen ? Tailwind_semantic().icon.red : Tailwind_semantic().text.primary;
               return (
                 <button
                   key={i}
-                  className="block w-full px-4 text-left cursor-pointer md:px-6"
+                  className="block w-full px-4 text-left cursor-pointer md:px-6 border-t border-border-neutral first:border-t-0"
                   style={{
                     backgroundColor: isOpen
                       ? Tailwind_semantic().background.default
@@ -103,7 +103,7 @@ export function TrackProgress(): JSX.Element {
                     <div className="flex-shrink-0">{item.icon(iconColor)}</div>
                     <div className="flex-1 text-lg font-bold">{item.title}</div>
                     <div
-                      className="flex-shrink-0 text-2xl text-gray-400"
+                      className="flex-shrink-0 text-2xl text-text-secondarysubtle"
                       style={{
                         transition: "transform 300ms ease",
                         transform: isOpen ? "rotate(45deg)" : "rotate(0deg)",
@@ -121,7 +121,7 @@ export function TrackProgress(): JSX.Element {
                   >
                     <div style={{ overflow: "hidden" }}>
                       <div className="pb-5 -mt-1">
-                        <p className="text-sm leading-relaxed text-gray-600">{item.description}</p>
+                        <p className="text-sm leading-relaxed text-text-secondary">{item.description}</p>
                       </div>
                     </div>
                   </div>
@@ -142,7 +142,7 @@ export function TrackProgress(): JSX.Element {
                   style={{ backgroundImage: "url(/images/iphoneframe.png)", width: "271px", height: "555px" }}
                 />
                 <div
-                  className="absolute bg-white rounded-2xl"
+                  className="absolute bg-background-default rounded-2xl"
                   style={{ width: "248px", height: "535px", top: "10px", left: "12px" }}
                 />
                 {items.map((item, i) => (

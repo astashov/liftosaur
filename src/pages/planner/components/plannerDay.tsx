@@ -187,7 +187,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
             props.evaluatedWeeks,
             props.settings
           ) && (
-            <div className="p-4 mt-2 border border-yellow-800 rounded-lg bg-yellow-50">
+            <div className="p-4 mt-2 border border-border-cardyellow rounded-lg bg-background-cardyellow">
               <PlannerExerciseStats
                 settings={props.settings}
                 evaluatedWeeks={props.evaluatedWeeks}

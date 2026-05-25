@@ -241,7 +241,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps, _ref): JSX.Element
         <p className="text-xs italic">Similar exercises are sorted by the same muscles as the current one.</p>
       )}
       {exercise && (
-        <div className="px-4 py-2 mb-2 bg-purple-100 rounded-2xl">
+        <div className="px-4 py-2 mb-2 bg-background-cardpurple rounded-2xl">
           <GroupHeader name="Current" />
           <ExerciseItem
             shouldAddExternalLinks={props.shouldAddExternalLinks}
@@ -254,7 +254,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps, _ref): JSX.Element
       )}
       <input
         ref={textInput}
-        className="block w-full px-4 py-2 mb-2 text-base leading-normal border border-gray-300 rounded-lg appearance-none bg-background-default focus:outline-none focus:shadow-outline"
+        className="block w-full px-4 py-2 mb-2 text-base leading-normal border rounded-lg appearance-none border-border-neutral bg-background-default focus:outline-none focus:shadow-outline"
         type="text"
         value={filter}
         data-testid="exercise-filter-by-name"
@@ -284,7 +284,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps, _ref): JSX.Element
                 <section
                   key={id}
                   data-testid={`menu-item-${StringUtils_dashcase(e.name)}`}
-                  className="w-full px-2 py-1 text-left border-b border-gray-200"
+                  className="w-full px-2 py-1 text-left border-b border-border-neutral"
                   onClick={(event) => {
                     if (!HtmlUtils_classInParents(event.target as Element, "button")) {
                       const labelValue = props.labelRef?.current?.validationMessage
@@ -355,7 +355,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps, _ref): JSX.Element
             data-testid={`menu-item-${StringUtils_dashcase(e.name)}${
               e.equipment ? `-${StringUtils_dashcase(e.equipment)}` : ""
             }`}
-            className="w-full px-2 py-1 text-left border-b border-gray-200"
+            className="w-full px-2 py-1 text-left border-b border-border-neutral"
             onClick={() => {
               const labelValue = props.labelRef?.current?.validationMessage
                 ? undefined

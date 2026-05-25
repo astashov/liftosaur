@@ -43,6 +43,7 @@ export function ProgramDetailsHtml(props: IProps): JSX.Element {
       }
       client={client}
       isLoggedIn={!!props.isLoggedIn}
+      preloadMono
     >
       <ProgramDetailsContent {...props} client={props.client} />
     </Page>

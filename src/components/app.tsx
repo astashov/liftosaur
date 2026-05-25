@@ -393,7 +393,7 @@ export function AppView(props: IProps): JSX.Element | null {
       );
     }
 
-    Settings_applyTheme(state.storage.settings.theme || (window.lftSystemDarkMode ? "dark" : "light"));
+    Settings_applyTheme(state.storage.settings.theme);
 
     return () => {
       window.removeEventListener("error", onerror);

@@ -3,6 +3,7 @@ import { IconInstagramFlat } from "./icons/iconInstagramFlat";
 import { IconYoutube } from "./icons/iconYoutube";
 import { IconReddit } from "./icons/iconReddit";
 import { IconDiscord } from "./icons/iconDiscord";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
 
 interface IProps {
   maxWidth?: number;
@@ -33,27 +34,27 @@ export function FooterPage(props: IProps): JSX.Element {
             </div>
 
             <div className="shrink-0">
-              <div className="pt-8 text-3xl font-bold text-white md:pt-0">Liftosaur</div>
+              <div className="pt-8 text-3xl font-bold text-text-alwayswhite md:pt-0">Liftosaur</div>
               <div className="flex items-center gap-4 mt-5">
-                <span className="text-sm text-white">Follow us:</span>
+                <span className="text-sm text-text-alwayswhite">Follow us:</span>
                 <a
                   href="https://www.instagram.com/liftosaurapp"
                   target="_blank"
                   className="opacity-80 hover:opacity-100"
                 >
-                  <IconInstagramFlat size={28} color="#fff" />
+                  <IconInstagramFlat size={28} color={Tailwind_semantic().text.alwayswhite} />
                 </a>
                 <a href="https://www.youtube.com/@Liftosaur" target="_blank" className="opacity-80 hover:opacity-100">
-                  <IconYoutube size={28} color="#fff" secondaryColor="#28204B" />
+                  <IconYoutube size={28} color={Tailwind_semantic().text.alwayswhite} secondaryColor="#28204B" />
                 </a>
                 <a href="https://www.reddit.com/r/liftosaur" target="_blank" className="opacity-80 hover:opacity-100">
-                  <IconReddit size={28} color="#fff" secondaryColor="#28204B" />
+                  <IconReddit size={28} color={Tailwind_semantic().text.alwayswhite} secondaryColor="#28204B" />
                 </a>
                 <a href="https://discord.gg/AAh3cvdBRs" target="_blank" className="opacity-80 hover:opacity-100">
-                  <IconDiscord size={28} color="#fff" />
+                  <IconDiscord size={28} color={Tailwind_semantic().text.alwayswhite} />
                 </a>
               </div>
-              <div className="mt-4 text-sm text-white">
+              <div className="mt-4 text-sm text-text-alwayswhite">
                 Questions?{" "}
                 <a href="mailto:info@liftosaur.com" className="text-purple-300 underline">
                   info@liftosaur.com
@@ -66,7 +67,7 @@ export function FooterPage(props: IProps): JSX.Element {
                 {footerLinks.map(([text, link]) => (
                   <a
                     key={text}
-                    className="text-sm text-gray-300 no-underline hover:text-white"
+                    className="text-sm text-gray-300 no-underline hover:text-text-alwayswhite"
                     href={link}
                     target={link.startsWith("http") ? "_blank" : undefined}
                   >

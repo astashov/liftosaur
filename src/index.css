@@ -228,7 +228,7 @@ html.liftosaur-app #app {
 .program-details-description a {
   font-weight: bold;
   text-decoration: underline;
-  color: #28839f;
+  color: var(--color-text-link);
 }
 
 .program-details-description ul {
@@ -270,18 +270,18 @@ html.liftosaur-app #app {
 
 .program-details-description th,
 .program-details-description td {
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-border-prominent);
   padding: 0.5rem 0.75rem;
   text-align: left;
 }
 
 .program-details-description th {
-  background-color: #f3f4f6;
+  background-color: var(--color-background-neutral);
   font-weight: 600;
 }
 
 .program-details-description tr:nth-child(even) {
-  background-color: #f9fafb;
+  background-color: var(--color-background-subtle);
 }
 
 .program-details-description strong {
@@ -289,15 +289,15 @@ html.liftosaur-app #app {
 }
 
 .program-details-description code {
-  background-color: #f3f4f6;
+  background-color: var(--color-background-neutral);
   padding: 0.125rem 0.375rem;
   border-radius: 0.25rem;
   font-size: 0.875em;
 }
 
 .program-details-description pre {
-  background-color: #f3f4f6;
-  color: #1f2937;
+  background-color: var(--color-background-neutral);
+  color: var(--color-text-primary);
   padding: 1rem;
   border-radius: 0.5rem;
   overflow-x: auto;
@@ -315,8 +315,8 @@ html.liftosaur-app #app {
 }
 
 .program-details-description .md-liftoscript-block .code.block {
-  background-color: #f3f4f6;
-  color: #1f2937;
+  background-color: var(--color-background-neutral);
+  color: var(--color-text-primary);
   padding: 1rem;
   border-radius: 0.5rem;
   overflow-x: auto;
@@ -804,15 +804,15 @@ iframe#exercise-youtube-player {
 }
 
 .planner-editor-view .cm-editor .cm-tooltip {
-  border: 1px solid #bac4cd;
-  background: white;
+  border: 1px solid var(--color-border-prominent);
+  background: var(--color-background-default);
   border-radius: 0 8px 8px 8px;
   overflow: hidden;
 }
 
 .planner-editor-view .cm-errorLineGutter {
-  background-color: #e53e3e;
-  color: white;
+  background-color: var(--color-background-error);
+  color: var(--color-text-alwayswhite);
 }
 
 .planner-editor-view .cm-panels-top {
@@ -821,7 +821,7 @@ iframe#exercise-youtube-player {
 
 .planner-editor-view .cm-editor .cm-tooltip-autocomplete ul {
   border: none;
-  color: #171718;
+  color: var(--color-text-primary);
   font-family: Poppins, sans-serif;
   max-height: 25rem;
 }
@@ -833,8 +833,8 @@ iframe#exercise-youtube-player {
 }
 
 .planner-editor-view .cm-editor .cm-tooltip-autocomplete ul li[aria-selected] {
-  background: #e9ecef;
-  color: #171718;
+  background: var(--color-background-neutral);
+  color: var(--color-text-primary);
 }
 
 .planner-editor-view .cm-editor .cm-tooltip-autocomplete img {
@@ -1063,4 +1063,3 @@ iframe#exercise-youtube-player {
     grid-template-columns: repeat(3, 1fr);
   }
 }
-

@@ -3,7 +3,7 @@ import { ITestimonial } from "../testimonitals";
 import { IconStar } from "../../../components/icons/iconStar";
 import { IconHeart } from "../../../components/icons/iconHeart";
 import { IconArrowRight } from "../../../components/icons/iconArrowRight";
-import { Tailwind_colors, Tailwind_semantic } from "../../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 import { Markdown } from "../../../components/markdown";
 
 function applyHighlight(text: string, highlight?: [number, number]): string {
@@ -142,25 +142,25 @@ export function TestimonialsView(props: { testimonials: ITestimonial[] }): JSX.E
     <div className="relative py-12 mx-0 md:mx-auto md:py-20" style={{ maxWidth: 1000 }}>
       <div className="flex items-center justify-center gap-3 px-4 mb-4">
         <h2 className="text-3xl font-bold md:text-4xl">Athletes</h2>
-        <IconHeart size={32} color={Tailwind_colors().red[500]} />
+        <IconHeart size={32} color={Tailwind_semantic().icon.red} />
         <h2 className="text-3xl font-bold md:text-4xl">Liftosaur</h2>
       </div>
       <div className="flex justify-center gap-2 px-4 mb-8">
         <button
-          className="px-4 py-2 text-sm font-semibold transition-colors rounded-full cursor-pointer hover:bg-purple-50 active:bg-purple-200"
+          className="px-4 py-2 text-sm font-semibold transition-colors rounded-full cursor-pointer hover:bg-background-subtlecardpurple active:bg-color-purple200"
           style={{
-            backgroundColor: tab === "stores" ? Tailwind_colors().purple[100] : undefined,
-            color: tab === "stores" ? Tailwind_colors().purple[700] : Tailwind_semantic().text.secondary,
+            backgroundColor: tab === "stores" ? Tailwind_semantic().background.cardpurple : undefined,
+            color: tab === "stores" ? Tailwind_semantic().text.purple : Tailwind_semantic().text.secondary,
           }}
           onClick={() => handleTabChange("stores")}
         >
           App Stores
         </button>
         <button
-          className="px-4 py-2 text-sm font-semibold transition-colors rounded-full cursor-pointer hover:bg-purple-50 active:bg-purple-200"
+          className="px-4 py-2 text-sm font-semibold transition-colors rounded-full cursor-pointer hover:bg-background-subtlecardpurple active:bg-color-purple200"
           style={{
-            backgroundColor: tab === "reddit" ? Tailwind_colors().purple[100] : undefined,
-            color: tab === "reddit" ? Tailwind_colors().purple[700] : Tailwind_semantic().text.secondary,
+            backgroundColor: tab === "reddit" ? Tailwind_semantic().background.cardpurple : undefined,
+            color: tab === "reddit" ? Tailwind_semantic().text.purple : Tailwind_semantic().text.secondary,
           }}
           onClick={() => handleTabChange("reddit")}
         >
@@ -177,7 +177,7 @@ export function TestimonialsView(props: { testimonials: ITestimonial[] }): JSX.E
         >
           <div className="flex gap-2">
             <button
-              className="flex items-center justify-center w-10 h-10 transition-colors border rounded-full cursor-pointer border-border-prominent hover:bg-gray-100 active:bg-gray-200"
+              className="flex items-center justify-center w-10 h-10 transition-colors border rounded-full cursor-pointer border-border-prominent hover:bg-background-subtle active:bg-background-neutral"
               onClick={handlePrev}
               style={{ opacity: page === 0 ? 0.5 : 1 }}
               disabled={page === 0}
@@ -187,7 +187,7 @@ export function TestimonialsView(props: { testimonials: ITestimonial[] }): JSX.E
               </div>
             </button>
             <button
-              className="flex items-center justify-center w-10 h-10 transition-colors border rounded-full cursor-pointer border-border-prominent hover:bg-gray-100 active:bg-gray-200"
+              className="flex items-center justify-center w-10 h-10 transition-colors border rounded-full cursor-pointer border-border-prominent hover:bg-background-subtle active:bg-background-neutral"
               style={{ opacity: page >= maxPage ? 0.5 : 1 }}
               onClick={handleNext}
               disabled={page >= maxPage}
@@ -224,10 +224,13 @@ export function TestimonialsView(props: { testimonials: ITestimonial[] }): JSX.E
             >
               {pageItems.map((t) => {
                 const stars = Array.from({ length: t.rating || 0 }, (__, si) => (
-                  <IconStar key={si} isSelected={true} color={Tailwind_colors().yellow[500]} />
+                  <IconStar key={si} isSelected={true} color={Tailwind_semantic().graph.yellow} />
                 ));
                 return (
-                  <div key={t.author} className="flex-1 p-6 border border-yellow-200 md:p-8 rounded-2xl bg-yellow-50">
+                  <div
+                    key={t.author}
+                    className="flex-1 p-6 border border-border-cardyellow md:p-8 rounded-2xl bg-background-cardyellow"
+                  >
                     {t.source === "reddit" ? (
                       <div
                         className="mb-6 text-base leading-relaxed"
@@ -245,7 +248,7 @@ export function TestimonialsView(props: { testimonials: ITestimonial[] }): JSX.E
                             {t.text.slice(0, t.highlight[0])}
                             <strong
                               style={{
-                                backgroundColor: Tailwind_colors().yellow[200],
+                                backgroundColor: Tailwind_semantic().color.yellow200,
                                 boxDecorationBreak: "clone",
                                 WebkitBoxDecorationBreak: "clone",
                               }}

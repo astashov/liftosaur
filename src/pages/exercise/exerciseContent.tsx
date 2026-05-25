@@ -301,7 +301,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps, ref: Ref<HTMLDivEl
       <form data-testid="exercises-list" onSubmit={(e) => e.preventDefault()}>
         <input
           ref={textInput}
-          className="block w-full px-4 py-2 mb-2 text-base leading-normal border border-gray-300 rounded-lg appearance-none bg-background-default focus:outline-none focus:shadow-outline"
+          className="block w-full px-4 py-2 mb-2 text-base leading-normal border border-border-prominent rounded-lg appearance-none bg-background-default focus:outline-none focus:shadow-outline"
           type="text"
           value={filter}
           placeholder="Filter by name"
@@ -332,7 +332,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps, ref: Ref<HTMLDivEl
       </form>
 
       {props.isSubstitute && (
-        <div className="px-4 py-2 mb-2 bg-purple-100 rounded-2xl">
+        <div className="px-4 py-2 mb-2 bg-background-cardpurple rounded-2xl">
           <GroupHeader name="Current" />
           <ExerciseItem
             showMuscles={props.isSubstitute}
@@ -351,7 +351,7 @@ const ExercisesList = forwardRef((props: IExercisesListProps, ref: Ref<HTMLDivEl
             <a
               href={buildExerciseUrl(exercise, filterTypes)}
               className={`block px-2 rounded-lg hover:bg-background-subtle border ${
-                key === currentKey ? "bg-orange-100 border-orange-200" : "border-transparent"
+                key === currentKey ? "bg-background-cardyellow border-border-cardyellow" : "border-transparent"
               }`}
               key={key}
               onClick={(e) => {

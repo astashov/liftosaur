@@ -27,12 +27,7 @@ export const Scroller = forwardRef(function Scroller(props: IProps, ref: Ref<ISc
 
   if (!isWeb) {
     return (
-      <ScrollView
-        ref={scrollRef}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        removeClippedSubviews={false}
-      >
+      <ScrollView ref={scrollRef} horizontal showsHorizontalScrollIndicator={false} removeClippedSubviews={false}>
         {props.children}
       </ScrollView>
     );

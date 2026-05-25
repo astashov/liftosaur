@@ -4,6 +4,7 @@ import { Text } from "./primitives/text";
 import { ObjectUtils_keys } from "../utils/object";
 import { useIsModalAvailable, useModal } from "../navigation/ModalStateContext";
 import { DropdownMenu, DropdownMenuItem } from "./dropdownMenu";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
 
 interface ISelectLinkProps<T extends string | number> {
   values: Record<T, string>;
@@ -82,7 +83,7 @@ export function SelectLink<T extends string | number>(props: ISelectLinkProps<T>
           leftOffset="0"
           topOffset="calc(100% + 8px)"
           maxWidth="16rem"
-          bgColor="white"
+          bgColor={Tailwind_semantic().background.default}
           tipClassName="add-tip-up"
           textAlign="left"
           onClose={() => setShowOptions(false)}

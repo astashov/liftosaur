@@ -135,7 +135,7 @@ export function AiContent(props: IAiContentProps): JSX.Element {
     <section className="flex flex-col h-screen max-w-full mx-auto">
       <div className="px-4 py-6 border-b">
         <h1 className="text-2xl font-bold">Liftoscript AI generator</h1>
-        <p className="mt-2 text-gray-600">Convert your program description to Liftoscript using AI</p>
+        <p className="mt-2 text-text-secondary">Convert your program description to Liftoscript using AI</p>
       </div>
 
       <div className="flex flex-col flex-1 overflow-hidden md:flex-row">
@@ -149,7 +149,7 @@ export function AiContent(props: IAiContentProps): JSX.Element {
             disabled={isLoading}
           />
           {input.trim().match(/^https?:\/\//) && (
-            <div className="mt-2 text-sm text-blue-600">
+            <div className="mt-2 text-sm text-text-link">
               URL detected - will fetch content from: {input.trim().split(/[?#]/)[0]}
             </div>
           )}
@@ -174,7 +174,7 @@ export function AiContent(props: IAiContentProps): JSX.Element {
         <div className="flex flex-col flex-1 p-4">
           <label className="mb-2 font-semibold">Liftoscript Output</label>
           {error && (
-            <div className="p-3 mb-4 text-red-700 bg-red-100 border border-red-400 rounded">
+            <div className="p-3 mb-4 border rounded text-text-error bg-background-lighterror border-color-red200">
               <div className="flex items-center justify-between">
                 <div>{error}</div>
                 {!isLoading && (
@@ -186,7 +186,7 @@ export function AiContent(props: IAiContentProps): JSX.Element {
             </div>
           )}
           {validationErrors.length > 0 && !isLoading && (
-            <div className="p-3 mb-4 text-orange-700 bg-orange-100 border border-orange-400 rounded">
+            <div className="p-3 mb-4 border rounded text-text-primary bg-background-cardyellow border-border-cardyellow">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-semibold">Validation errors found</div>
@@ -209,14 +209,16 @@ export function AiContent(props: IAiContentProps): JSX.Element {
             </div>
           )}
           {retryCount > 0 && (
-            <div className="p-2 mb-2 text-sm text-blue-700 border border-blue-200 rounded bg-blue-50">
+            <div className="p-2 mb-2 text-sm border rounded text-text-link border-border-neutral bg-background-subtle">
               Retry attempt {retryCount}
             </div>
           )}
           {progress && (
-            <div className="p-2 mb-2 text-sm text-gray-600 bg-gray-100 border border-gray-200 rounded">{progress}</div>
+            <div className="p-2 mb-2 text-sm border rounded text-text-secondary bg-background-subtle border-border-neutral">
+              {progress}
+            </div>
           )}
-          <pre className="flex-1 w-full p-3 overflow-auto font-mono text-sm whitespace-pre-wrap border rounded-lg bg-gray-50">
+          <pre className="flex-1 w-full p-3 overflow-auto font-mono text-sm whitespace-pre-wrap border rounded-lg border-border-neutral bg-background-subtle">
             {output || (!isLoading ? "Output will appear here..." : "")}
           </pre>
           {output && (

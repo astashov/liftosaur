@@ -1,7 +1,7 @@
 import { JSX, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ITestimonial, Testimonials_getHighRatingTitles } from "../testimonitals";
 import { IconStar } from "../../../components/icons/iconStar";
-import { Tailwind_colors } from "../../../utils/tailwindConfig";
+import { Tailwind_semantic } from "../../../utils/tailwindConfig";
 import { Onelink } from "../../../components/onelink";
 import { track } from "../../../utils/posthog";
 
@@ -19,7 +19,7 @@ export function Hero(props: { deviceType?: "ios" | "android" | "desktop"; testim
             </div>
             <h1 className="mb-6 text-3xl font-bold md:text-5xl lg:text-5xl" style={{ lineHeight: 1.2 }}>
               The most powerful weightlifting <span className="text-text-purple">planner</span> and{" "}
-              <span className="text-red-500">tracker</span> app
+              <span className="text-text-error">tracker</span> app
             </h1>
             <p className="mb-6 text-base md:text-lg" style={{ maxWidth: "28rem" }}>
               It's like having <strong>Google Sheets</strong> and <strong>Strong</strong> in the same app! Create custom
@@ -94,7 +94,7 @@ function TopTestimonials(props: { testimonials: ITestimonial[] }): JSX.Element {
     <IconStar
       key={i}
       isSelected={true}
-      color={Tailwind_colors().yellow[500]}
+      color={Tailwind_semantic().graph.yellow}
       style={{ marginLeft: i !== 0 ? "-0.25rem" : 0 }}
     />
   ));
@@ -174,8 +174,8 @@ function StoresLinks(props: { deviceType?: "ios" | "android" | "desktop" }): JSX
         </div>
       </div>
       <div className="mt-2 text-sm">
-        <span className="text-gray-500">or</span>{" "}
-        <a href="/app" target="_blank" className="font-bold text-purple-600 underline">
+        <span className="text-text-secondary">or</span>{" "}
+        <a href="/app" target="_blank" className="font-bold text-text-purple underline">
           use as a web app
         </a>
       </div>

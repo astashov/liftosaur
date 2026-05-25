@@ -26,7 +26,7 @@ export function BuiltinPrograms(): JSX.Element {
   return (
     <div
       id="programs"
-      className="px-4 py-10 mx-auto md:px-12 bg-purple-75 md:py-14 rounded-3xl"
+      className="px-4 py-10 mx-auto md:px-12 bg-background-cardpurple md:py-14 rounded-3xl"
       style={{ maxWidth: 1000 }}
     >
       <div className="flex justify-center w-full mb-6">
@@ -38,7 +38,7 @@ export function BuiltinPrograms(): JSX.Element {
         </div>
       </div>
       <h2 className="mb-4 text-3xl font-bold text-center md:text-4xl">Follow free built-in programs</h2>
-      <p className="mx-auto mb-8 text-base text-center text-gray-600" style={{ maxWidth: "40rem" }}>
+      <p className="mx-auto mb-8 text-base text-center text-text-secondary" style={{ maxWidth: "40rem" }}>
         Start with a trusted program. All are built with Liftoscript, making them fully customizable to match your goals
         and preferences.
       </p>
@@ -48,7 +48,7 @@ export function BuiltinPrograms(): JSX.Element {
             key={name}
             href={link}
             target="_blank"
-            className="inline-block px-3 py-2 text-xs font-semibold no-underline bg-white border border-purple-200 rounded-full md:text-sm md:py-3 md:px-6 hover:bg-purple-50"
+            className="inline-block px-3 py-2 text-xs font-semibold no-underline bg-background-default border border-border-cardpurple rounded-full md:text-sm md:py-3 md:px-6 hover:bg-background-subtlecardpurple"
           >
             {name}
           </a>

@@ -14,7 +14,7 @@ export function ProgramDetailsUpsell(props: IProgramDetailsUpsellProps): JSX.Ele
   const isMobile = isiOS || isAndroid;
   return (
     <div
-      className="flex flex-col items-center px-8 py-4 mx-auto mb-4 bg-yellow-100 border border-orange-400 rounded-lg sm:flex-row"
+      className="flex flex-col items-center px-8 py-4 mx-auto mb-4 border rounded-lg bg-background-cardyellow border-border-cardyellow sm:flex-row"
       style={{ maxWidth: props.maxWidth }}
     >
       <div className="flex-1">
@@ -31,7 +31,7 @@ export function ProgramDetailsUpsell(props: IProgramDetailsUpsellProps): JSX.Ele
         </ul>
       </div>
       <div className="flex items-center mt-2 ml-4">
-        <div className="flex justify-center md:justify-start">
+        <div className="flex justify-center gap-2 md:justify-start">
           {!isMobile && (
             <div style={{ marginTop: "-7px", marginLeft: "-7px" }}>
               <img

@@ -61,7 +61,7 @@ export function AiPromptContent(props: IAiPromptContentProps): JSX.Element {
 
   return (
     <section className="flex flex-col max-w-full mx-auto">
-      <div className="px-4 py-6 border-b">
+      <div className="px-4 py-6 border-b border-border-neutral">
         <h1 className="text-2xl font-bold">Liftoscript Prompt Generator</h1>
         <p className="mt-2 text-text-secondary">
           Generate a prompt to convert workout programs to Liftoscript using any LLM
@@ -81,7 +81,7 @@ export function AiPromptContent(props: IAiPromptContentProps): JSX.Element {
       </div>
 
       <div className="flex flex-col flex-1 overflow-hidden md:flex-row">
-        <div className="flex flex-col flex-1 p-4 overflow-y-auto border-b md:border-r md:border-b-0 md:overflow-hidden">
+        <div className="flex flex-col flex-1 p-4 overflow-y-auto border-b border-border-neutral md:border-r md:border-b-0 md:overflow-hidden">
           <label className="mb-2 font-semibold">Input Program (paste text or provide URL)</label>
           <textarea
             ref={textareaRef}
@@ -112,7 +112,7 @@ export function AiPromptContent(props: IAiPromptContentProps): JSX.Element {
         <div className="flex flex-col flex-1 p-4 overflow-y-auto">
           <label className="flex-shrink-0 mb-2 font-semibold">Generated Prompt for LLM</label>
           {error && (
-            <div className="p-3 mb-4 border rounded text-redv3-700 bg-background-error border-redv3-200">
+            <div className="p-3 mb-4 border rounded text-text-error bg-background-lighterror border-color-red200">
               <div>{error}</div>
             </div>
           )}
