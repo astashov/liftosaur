@@ -23,6 +23,7 @@ import {
 } from "./programPreviewPlaygroundSetup";
 import deepmerge from "deepmerge";
 import { SimpleMarkdown } from "../simpleMarkdown";
+import { usePerfRenderCount } from "../../utils/usePerfRenderCount";
 import { ObjectUtils_filter } from "../../utils/object";
 import { ProgramToPlanner } from "../../models/programToPlanner";
 import { WebWorkoutModals } from "./webWorkoutModals";
@@ -248,8 +249,8 @@ function PlaygroundWeekContent(p: IPlaygroundWeekContentProps): JSX.Element {
   const { week, weekIndex, state, props, dispatch, evaluatedProgram, handleProgressChange, handleFinish } = p;
   const programWeekDescription = evaluatedProgram.weeks[weekIndex]?.description;
   const visibleDays = useProgressiveItems(week.days, {
-    initialBatch: 2,
-    batchSize: 2,
+    initialBatch: 1,
+    batchSize: 1,
     debugLabel: `Playground/week-${weekIndex}`,
   });
   return (
@@ -440,6 +441,7 @@ function ProgramPreviewPlaygroundNav(props: IProgramPreviewPlaygroundProps): JSX
 // --- Entry point ---
 
 export const ProgramPreviewPlayground = memo((props: IProgramPreviewPlaygroundProps): JSX.Element => {
+  usePerfRenderCount("ProgramPreviewPlayground");
   if (props.useNavModals) {
     return <ProgramPreviewPlaygroundNav {...props} />;
   }

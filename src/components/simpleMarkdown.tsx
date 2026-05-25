@@ -21,8 +21,11 @@ interface IProps {
 }
 
 export function SimpleMarkdown(props: IProps): JSX.Element {
-  const tokens = useMemo(() => md.parse(props.value, {}), [props.value]);
-  return <View className={props.className}>{renderBlocks(tokens, 0, tokens.length).elements}</View>;
+  const rendered = useMemo(() => {
+    const tokens = md.parse(props.value, {});
+    return renderBlocks(tokens, 0, tokens.length).elements;
+  }, [props.value]);
+  return <View className={props.className}>{rendered}</View>;
 }
 
 interface IBlockResult {

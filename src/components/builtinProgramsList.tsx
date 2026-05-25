@@ -1,4 +1,6 @@
 import { JSX, memo, useState, useCallback, useMemo } from "react";
+import { useTimedMemo } from "../utils/useTimedMemo";
+import { usePerfScrollMarkers } from "../utils/usePerfScrollMarkers";
 import { View, Pressable } from "react-native";
 import { LegendList } from "@legendapp/list";
 import { Text } from "./primitives/text";
@@ -38,11 +40,13 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
   const [filter, setFilter] = useState<IProgramFilter>({});
   const [sort, setSort] = useState<IProgramSort>(undefined);
   const searchLower = (props.search || "").toLowerCase();
-  const filtered = useMemo(
+  const filtered = useTimedMemo(
+    "builtinPrograms.filtered",
     () => ProgramFilter_sort(ProgramFilter_filter(props.programsIndex, filter), sort),
     [props.programsIndex, filter, sort]
   );
-  const entries = useMemo(
+  const entries = useTimedMemo(
+    "builtinPrograms.searched",
     () => (searchLower ? filtered.filter((e) => e.name.toLowerCase().includes(searchLower)) : filtered),
     [filtered, searchLower]
   );
@@ -118,6 +122,7 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
     </View>
   );
 
+  const scrollMarkers = usePerfScrollMarkers("BuiltinProgramsList");
   return (
     <LegendList
       data={entries}
@@ -126,6 +131,9 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
       ListHeaderComponent={listHeader}
       ListEmptyComponent={listEmpty}
       contentContainerStyle={{ paddingHorizontal: 16 }}
+      onScrollBeginDrag={scrollMarkers.onScrollBeginDrag}
+      onScrollEndDrag={scrollMarkers.onScrollEndDrag}
+      onMomentumScrollEnd={scrollMarkers.onMomentumScrollEnd}
     />
   );
 }
@@ -138,7 +146,6 @@ interface IBuiltInProgramProps {
 
 const BuiltInProgram = memo(function BuiltInProgram(props: IBuiltInProgramProps): JSX.Element {
   const { entry, hasCustomPrograms } = props;
-  const exercises = entry.exercises ?? [];
   const allEquipment = useMemo(() => Equipment_currentEquipment(props.settings), [props.settings]);
   const equipment = useMemo(
     () => (entry.equipment ?? []).map((e) => equipmentName(e, allEquipment)),
@@ -149,7 +156,10 @@ const BuiltInProgram = memo(function BuiltInProgram(props: IBuiltInProgramProps)
   const onPress = useCallback(() => {
     navigateToModal("programInfoModal", { programId: entry.id, hasCustomPrograms });
   }, [entry.id, hasCustomPrograms]);
-  const visibleExercises = useMemo(() => exercises.filter((e) => ExerciseImageUtils_exists(e, "small")), [exercises]);
+  const visibleExercises = useMemo(
+    () => (entry.exercises ?? []).filter((e) => ExerciseImageUtils_exists(e, "small")),
+    [entry.exercises]
+  );
 
   return (
     <Pressable

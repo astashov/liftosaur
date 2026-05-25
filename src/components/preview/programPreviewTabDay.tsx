@@ -9,6 +9,7 @@ import { ProgramPreviewTabExercise } from "./programPreviewTabExercise";
 import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { IDispatch } from "../../ducks/types";
+import { useProgressiveItems } from "../../utils/useProgressiveItems";
 
 interface IProgramPreviewTabDayProps {
   program: IEvaluatedProgram;
@@ -27,6 +28,12 @@ export const ProgramPreviewTabDay = memo((props: IProgramPreviewTabDayProps): JS
   const programDay = Program_getProgramDay(props.program, props.day)!;
   const index = props.progress.ui?.currentEntryIndex ?? 0;
   const programExercises = programDay ? Program_getProgramDayUsedExercises(programDay) : [];
+  const visibleExercises = useProgressiveItems(programExercises, {
+    initialBatch: 3,
+    batchSize: 10,
+    debugLabel: `Preview/day-${props.day}-exercises`,
+    resetKey: props.day,
+  });
 
   return (
     <View
@@ -42,7 +49,7 @@ export const ProgramPreviewTabDay = memo((props: IProgramPreviewTabDayProps): JS
           <Markdown className="text-sm" value={programDay.description} />
         </View>
       )}
-      {(programExercises ?? []).map((programExercise) => {
+      {visibleExercises.map((programExercise) => {
         const anEntry = props.progress.entries.find((e) => e.programExerciseId === programExercise.key);
         if (!anEntry) {
           return null;

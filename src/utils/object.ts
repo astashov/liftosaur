@@ -36,6 +36,9 @@ export function ObjectUtils_isEqual<T extends Record<string, any>>(
   obj2: T,
   ignoreKeys: string[] = []
 ): boolean {
+  if (obj1 === obj2) {
+    return true;
+  }
   // Create a stack for comparing objects
   const stack: Array<[any, any]> = [[obj1, obj2]];
 

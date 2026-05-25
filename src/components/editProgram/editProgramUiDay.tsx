@@ -33,6 +33,7 @@ import {
 } from "./editProgramUi/editProgramUiHelpers";
 import { IDispatch } from "../../ducks/types";
 import { IEvaluatedProgram } from "../../models/program";
+import { useProgressiveItems } from "../../utils/useProgressiveItems";
 import { navigateToModal } from "../../navigation/navigationService";
 
 interface IEditProgramDayViewProps {
@@ -264,6 +265,12 @@ const EditProgramUiDayContentView = memo(function EditProgramUiDayContentView(
     : false;
   const usedExercises = evaluatedDay.success ? evaluatedDay.data.filter((d) => !d.notused) : [];
   const notUsedExercises = evaluatedDay.success ? evaluatedDay.data.filter((d) => d.notused) : [];
+  const visibleUsedExercises = useProgressiveItems(usedExercises, {
+    initialBatch: 3,
+    batchSize: 10,
+    debugLabel: `Edit/day-${props.weekIndex}-${props.dayIndex}-exercises`,
+    resetKey: `${weekIndex}-${dayIndex}`,
+  });
   return (
     <View className="px-1">
       <View className="px-1">
@@ -331,7 +338,7 @@ const EditProgramUiDayContentView = memo(function EditProgramUiDayContentView(
         {props.ui.mode === "ui" && props.isValidProgram && evaluatedDay.success ? (
           <View>
             <DraggableList2
-              items={usedExercises}
+              items={visibleUsedExercises}
               mode="vertical"
               onDragEnd={(startIndex, endIndex) => {
                 props.plannerDispatch(

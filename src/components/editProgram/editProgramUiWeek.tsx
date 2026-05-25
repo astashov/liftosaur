@@ -58,9 +58,10 @@ export const EditProgramUiWeekView = memo(function EditProgramUiWeekView(props: 
     return ui.dayUi.collapsed.has(`${currentWeekIndex}-${i}`);
   });
   const visibleDays = useProgressiveItems(currentWeek.days, {
-    initialBatch: 2,
-    batchSize: 2,
+    initialBatch: 1,
+    batchSize: 1,
     debugLabel: `Edit/week-${currentWeekIndex}-days`,
+    resetKey: currentWeekIndex,
   });
 
   return (

@@ -23,6 +23,7 @@ import { updateState, IState } from "../../models/state";
 import { CollectionUtils_setBy } from "../../utils/collection";
 import { IDispatch } from "../../ducks/types";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
+import { usePerfRenderCount } from "../../utils/usePerfRenderCount";
 
 interface IEditProgramViewProps {
   evaluatedWeeks: IPlannerEvalResult[][];
@@ -39,6 +40,7 @@ interface IEditProgramViewProps {
 export const EditProgramView = memo(function EditProgramView(
   props: IEditProgramViewProps & { hideNavbar?: boolean; hideWeekTabBar?: boolean }
 ): JSX.Element {
+  usePerfRenderCount("EditProgramView");
   const ui = props.state.ui;
   const program = props.state.current.program;
   const planner = program.planner!;

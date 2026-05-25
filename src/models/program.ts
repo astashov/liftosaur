@@ -1483,7 +1483,12 @@ export const Program_fullProgram = memoize(
   { maxSize: 10 }
 );
 
-export const Program_evaluate = memoize(Program_forceEvaluate, { maxSize: 10 });
+export const Program_evaluate = memoize(Program_forceEvaluate, {
+  maxSize: 10,
+  isEqual: (a, b) => {
+    return ObjectUtils_isEqual(a, b);
+  },
+});
 
 export function Program_getDiffState(
   state: IProgramState,

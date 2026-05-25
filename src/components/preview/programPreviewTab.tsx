@@ -15,6 +15,7 @@ import { IDispatch } from "../../ducks/types";
 import { IPlannerState, IPlannerUi } from "../../pages/planner/models/types";
 import { ProgramPreviewTabDay } from "./programPreviewTabDay";
 import { useProgressiveItems } from "../../utils/useProgressiveItems";
+import { usePerfRenderCount } from "../../utils/usePerfRenderCount";
 
 interface IProgramPreviewWeek {
   name: string;
@@ -46,6 +47,7 @@ export function ProgramPreview_buildWeeks(
 
 interface IProgramPreviewWeekContentProps {
   week: IProgramPreviewWeek;
+  weekIndex: number;
   program: IProgram;
   programId: string;
   settings: ISettings;
@@ -59,12 +61,14 @@ interface IProgramPreviewWeekContentProps {
 export const ProgramPreviewWeekContent = memo(function ProgramPreviewWeekContent(
   props: IProgramPreviewWeekContentProps
 ): JSX.Element {
+  usePerfRenderCount("ProgramPreviewWeekContent");
   const evaluatedProgram = Program_evaluate(props.program, props.settings);
   const { week, totalWeeks } = props;
   const visibleDays = useProgressiveItems(week.days, {
-    initialBatch: 2,
-    batchSize: 2,
-    debugLabel: `Preview/${week.name}`,
+    initialBatch: 1,
+    batchSize: 1,
+    debugLabel: `Preview/week-${props.weekIndex}`,
+    resetKey: props.weekIndex,
   });
   return (
     <View>
@@ -113,11 +117,12 @@ export const ProgramPreviewTab = memo((props: IProgramPreviewTabProps): JSX.Elem
 
   const tabs = useMemo(
     () =>
-      weeks.map((week) => ({
+      weeks.map((week, weekIndex) => ({
         label: week.name,
         children: () => (
           <ProgramPreviewWeekContent
             week={week}
+            weekIndex={weekIndex}
             program={props.program}
             programId={props.programId}
             settings={props.settings}

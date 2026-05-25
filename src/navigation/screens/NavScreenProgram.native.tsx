@@ -6,6 +6,9 @@ import { useTrackedState, useTrackedDispatch, untrack } from "../TrackedStateCon
 import { buildNavCommon } from "../utils";
 import { NavScreenContent } from "../NavScreenContent";
 import { ChooseProgramView } from "../../components/chooseProgram";
+import { useScreenPerf } from "../../utils/useScreenPerf";
+import { usePerfRenderCount } from "../../utils/usePerfRenderCount";
+import { usePerfRenderTrace } from "../../utils/usePerfRenderTrace";
 import { ScreenEditProgram as ScreenEditProgramComponent } from "../../components/screenEditProgram";
 import { ScreenEditProgramExercise as ScreenEditProgramExerciseComponent } from "../../components/editProgramExercise/screenEditProgramExercise";
 import { ScreenMusclesProgram } from "../../components/muscles/screenMusclesProgram";
@@ -19,8 +22,13 @@ import { FallbackScreen } from "../../components/fallbackScreen";
 import { Thunk_pullScreen } from "../../ducks/thunks";
 import { useAppContext } from "../../components/appContext";
 import { usePlaygroundModalBridges } from "../usePlaygroundModalBridges";
+import { useEqual } from "../../utils/useEqual";
+
+const EMPTY_REVISIONS: string[] = [];
 
 export function NavScreenPrograms(): React.JSX.Element {
+  useScreenPerf("programs");
+  usePerfRenderCount("NavScreenPrograms");
   const state = useTrackedState();
   const dispatch = useTrackedDispatch();
   const navCommon = untrack(buildNavCommon(state));
@@ -40,12 +48,15 @@ export function NavScreenPrograms(): React.JSX.Element {
 }
 
 export function NavScreenEditProgram(): React.JSX.Element {
+  useScreenPerf("editProgram");
+  usePerfRenderCount("NavScreenEditProgram");
+  usePerfRenderTrace("NavScreenEditProgram");
   const state = useTrackedState();
   const dispatch = useTrackedDispatch();
   const { service } = useAppContext();
   // Pass tracked state so playgroundState reads register subscriptions and the modal opens.
   usePlaygroundModalBridges(state);
-  const navCommon = untrack(buildNavCommon(state));
+  const navCommon = useEqual(untrack(buildNavCommon(state)));
   const route = useRoute<{ key: string; name: "editProgram"; params: { programId: string } }>();
   const programId = route.params.programId;
   const plannerState = untrack(state.editProgramStates[programId]);
@@ -55,20 +66,24 @@ export function NavScreenEditProgram(): React.JSX.Element {
       plannerState ? plannerState.current.program.id : Progress_getCurrentProgress(state)?.programId
     )
   );
+  const helps = untrack(state.storage.helps);
+  const subscription = untrack(state.storage.subscription);
+  const settings = untrack(state.storage.settings);
+  const isLoggedIn = state.user != null;
   return (
     <FallbackScreen state={{ plannerState, editProgram }} dispatch={dispatch}>
       {({ plannerState: plannerState2, editProgram: editProgram2 }) => (
         <ScreenEditProgramComponent
           client={service.client}
-          helps={untrack(state.storage.helps)}
+          helps={helps}
           navCommon={navCommon}
-          subscription={untrack(state.storage.subscription)}
-          settings={untrack(state.storage.settings)}
+          subscription={subscription}
+          settings={settings}
           dispatch={dispatch}
           originalProgram={editProgram2}
           plannerState={plannerState2}
-          revisions={untrack((state.revisions || {})[editProgram2.id] || [])}
-          isLoggedIn={state.user != null}
+          revisions={untrack(state.revisions?.[editProgram2.id]) ?? EMPTY_REVISIONS}
+          isLoggedIn={isLoggedIn}
         />
       )}
     </FallbackScreen>

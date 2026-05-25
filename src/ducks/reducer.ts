@@ -73,6 +73,8 @@ import { lg, lgDebug } from "../utils/posthog";
 import { Equipment_getCurrentGym, Equipment_getEquipmentIdForExerciseType } from "../models/equipment";
 import { Stats_getCurrentMovingAverageBodyweight } from "../models/stats";
 import { Weight_build, Weight_eq } from "../models/weight";
+import { PerfTracker_recordEvent, PerfTracker_getSessionId } from "../utils/perfTracker";
+import { PerfEnabled_isEnabled } from "../utils/perfEnabled";
 
 declare let __COMMIT_HASH__: string;
 
@@ -502,6 +504,17 @@ export const reducerWrapper =
   (state, action) => {
     Diagnostics_setLastState(state);
     Diagnostics_recordAction({ ...action, time: DateUtils_formatHHMMSS(Date.now(), true) });
+    if (PerfEnabled_isEnabled()) {
+      const actionType = "type" in action ? action.type : "thunk";
+      const desc = "type" in action && action.type === "UpdateState" ? action.desc : undefined;
+      PerfTracker_recordEvent({
+        type: "action",
+        session: PerfTracker_getSessionId(),
+        action: actionType,
+        desc,
+        ts: Date.now(),
+      });
+    }
     let newState = reducer(state, action);
     const isMergingStorage = isExternalStorageMerge(action);
     const t0Reducer = Date.now();

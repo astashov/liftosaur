@@ -97,7 +97,7 @@ export function EditProgram_initPlannerState(
 ): IPlannerState {
   return {
     id,
-    current: { program: { ...program } },
+    current: { program },
     ui: {
       weekIndex: focusedDay?.week != null ? focusedDay.week - 1 : 0,
       focusedDay: focusedDay ? { ...focusedDay, key } : undefined,
@@ -120,7 +120,7 @@ export function EditProgram_initPlannerProgramExerciseState(
   const evaluatedProgram = Program_evaluate(program, settings);
   const programExercise = Program_getFirstProgramExercise(evaluatedProgram, key);
   return {
-    current: { program: ObjectUtils_clone(program) },
+    current: { program },
     history: { past: [], future: [] },
     ui: {
       weekIndex: dayData.week - 1,

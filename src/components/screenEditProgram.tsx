@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import { JSX, memo } from "react";
 import { IDispatch } from "../ducks/types";
 import { EditProgramDaysList } from "./editProgram/editProgramDaysList";
 import { IProgram, ISettings, ISubscription } from "../types";
@@ -20,7 +20,7 @@ interface IProps {
   navCommon: INavCommon;
 }
 
-export function ScreenEditProgram(props: IProps): JSX.Element {
+export const ScreenEditProgram = memo(function ScreenEditProgram(props: IProps): JSX.Element {
   const originalProgram = props.originalProgram;
   const plannerState = props.plannerState;
 
@@ -50,4 +50,4 @@ export function ScreenEditProgram(props: IProps): JSX.Element {
       </NavScreenContent>
     );
   }
-}
+});

@@ -1,4 +1,4 @@
-import { JSX, useCallback, useMemo } from "react";
+import { JSX, memo, useCallback } from "react";
 import { View, Pressable } from "react-native";
 import { LegendList } from "@legendapp/list";
 import { Text } from "./primitives/text";
@@ -28,6 +28,8 @@ import { Dialog_alert, Dialog_confirm } from "../utils/dialog";
 import { IconEditSquare } from "./icons/iconEditSquare";
 import { IconTrash } from "./icons/iconTrash";
 import { EditProgram_deleteProgram } from "../models/editProgram";
+import { useTimedMemo } from "../utils/useTimedMemo";
+import { usePerfScrollMarkers } from "../utils/usePerfScrollMarkers";
 
 interface IProps {
   programs: IProgram[];
@@ -39,25 +41,33 @@ interface IProps {
 
 export function CustomProgramsList(props: IProps): JSX.Element {
   const searchLower = (props.search || "").toLowerCase();
-  const programs = useMemo(() => {
-    const sorted = CollectionUtils_sort(props.programs, (a, b) => a.name.localeCompare(b.name));
-    return searchLower ? sorted.filter((p) => p.name.toLowerCase().includes(searchLower)) : sorted;
-  }, [props.programs, searchLower]);
+  const sortedPrograms = useTimedMemo(
+    "customPrograms.sorted",
+    () => CollectionUtils_sort(props.programs, (a, b) => a.name.localeCompare(b.name)),
+    [props.programs]
+  );
+  const programs = useTimedMemo(
+    "customPrograms.filtered",
+    () => (searchLower ? sortedPrograms.filter((p) => p.name.toLowerCase().includes(searchLower)) : sortedPrograms),
+    [sortedPrograms, searchLower]
+  );
 
+  const { settings, progress, dispatch } = props;
   const renderItem = useCallback(
     ({ item }: { item: IProgram }) => (
       <CustomProgram
-        programs={programs}
-        settings={props.settings}
-        progress={props.progress}
+        programs={sortedPrograms}
+        settings={settings}
+        progress={progress}
         program={item}
-        dispatch={props.dispatch}
+        dispatch={dispatch}
       />
     ),
-    [programs, props.settings, props.progress, props.dispatch]
+    [sortedPrograms, settings, progress, dispatch]
   );
 
   const keyExtractor = useCallback((item: IProgram) => item.id, []);
+  const scrollMarkers = usePerfScrollMarkers("CustomProgramsList");
 
   return (
     <LegendList
@@ -65,6 +75,9 @@ export function CustomProgramsList(props: IProps): JSX.Element {
       renderItem={renderItem}
       keyExtractor={keyExtractor}
       contentContainerStyle={{ paddingHorizontal: 16 }}
+      onScrollBeginDrag={scrollMarkers.onScrollBeginDrag}
+      onScrollEndDrag={scrollMarkers.onScrollEndDrag}
+      onMomentumScrollEnd={scrollMarkers.onMomentumScrollEnd}
     />
   );
 }
@@ -78,24 +91,34 @@ interface ICustomProgramProps {
   dispatch: IDispatch;
 }
 
-function CustomProgram(props: ICustomProgramProps): JSX.Element {
-  const exerciseObj: Partial<Record<string, IExercise>> = {};
-  const equipmentSet: Set<IEquipment | undefined> = new Set();
-  const evaluatedProgram = Program_evaluate(props.program, props.settings);
-  const allExercises = Program_getAllUsedProgramExercises(evaluatedProgram);
-  for (const ex of allExercises) {
-    const exercise = Exercise_find(ex.exerciseType, props.settings.exercises);
-    if (exercise) {
-      exerciseObj[Exercise_toKey(ex.exerciseType)] = exercise;
-      if (exercise.equipment !== "bodyweight") {
-        equipmentSet.add(exercise.equipment);
+const CustomProgram = memo(function CustomProgram(props: ICustomProgramProps): JSX.Element {
+  const { program, settings } = props;
+  const aggregates = useTimedMemo(
+    "customPrograms.row",
+    () => {
+      const exerciseObj: Partial<Record<string, IExercise>> = {};
+      const equipmentSet: Set<IEquipment | undefined> = new Set();
+      const evaluatedProgram = Program_evaluate(program, settings);
+      const allExercises = Program_getAllUsedProgramExercises(evaluatedProgram);
+      for (const ex of allExercises) {
+        const exercise = Exercise_find(ex.exerciseType, settings.exercises);
+        if (exercise) {
+          exerciseObj[Exercise_toKey(ex.exerciseType)] = exercise;
+          if (exercise.equipment !== "bodyweight") {
+            equipmentSet.add(exercise.equipment);
+          }
+        }
       }
-    }
-  }
-  const exercises = CollectionUtils_nonnull(ObjectUtils_values(exerciseObj));
-  const equipment = CollectionUtils_nonnull(Array.from(equipmentSet));
-  const time = Program_dayAverageTimeMs(evaluatedProgram, props.settings);
-  const formattedTime = time > 0 ? TimeUtils_formatHHMM(time) : undefined;
+      const exercises = CollectionUtils_nonnull(ObjectUtils_values(exerciseObj));
+      const equipment = CollectionUtils_nonnull(Array.from(equipmentSet));
+      const time = Program_dayAverageTimeMs(evaluatedProgram, settings);
+      const formattedTime = time > 0 ? TimeUtils_formatHHMM(time) : undefined;
+      const visibleExercises = exercises.filter((e) => ExerciseImageUtils_exists(e, "small"));
+      return { evaluatedProgram, exercises, equipment, formattedTime, visibleExercises };
+    },
+    [program, settings]
+  );
+  const { evaluatedProgram, equipment, formattedTime, visibleExercises } = aggregates;
 
   return (
     <View className="relative">
@@ -157,17 +180,15 @@ function CustomProgram(props: ICustomProgramProps): JSX.Element {
             )}
           </View>
           <View className="flex-row flex-wrap py-3">
-            {exercises
-              .filter((e) => ExerciseImageUtils_exists(e, "small"))
-              .map((e) => (
-                <ExerciseImage
-                  key={Exercise_toKey(e)}
-                  settings={props.settings}
-                  exerciseType={e}
-                  size="small"
-                  className="w-6 mr-1"
-                />
-              ))}
+            {visibleExercises.map((e) => (
+              <ExerciseImage
+                key={Exercise_toKey(e)}
+                settings={props.settings}
+                exerciseType={e}
+                size="small"
+                className="w-6 mr-1"
+              />
+            ))}
           </View>
           <View className="flex-row items-center mb-1">
             <IconCalendarSmall color={Tailwind_colors().lightgray[600]} className="mr-1" />
@@ -185,4 +206,4 @@ function CustomProgram(props: ICustomProgramProps): JSX.Element {
       </Pressable>
     </View>
   );
-}
+});

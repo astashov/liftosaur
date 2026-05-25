@@ -1,5 +1,7 @@
-import { JSX, Fragment, memo, ReactNode } from "react";
+import { JSX, Fragment, memo, Profiler, ReactNode } from "react";
 import { View, Pressable } from "react-native";
+import { PerfTracker_recordEvent, PerfTracker_getSessionId } from "../../utils/perfTracker";
+import { PerfEnabled_isEnabled } from "../../utils/perfEnabled";
 import { Text } from "../primitives/text";
 import { IPlannerProgramExercise, IPlannerState } from "../../pages/planner/models/types";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -38,6 +40,29 @@ import { EditProgramUiExerciseDescriptions } from "./editProgramUiExerciseDescri
 import { pickerStateFromPlannerExercise } from "./editProgramUtils";
 import { navigateToModal } from "../../navigation/navigationService";
 
+function onExerciseProfile(
+  id: string,
+  phase: "mount" | "update" | "nested-update",
+  actualDuration: number,
+  baseDuration: number
+): void {
+  if (!PerfEnabled_isEnabled()) {
+    return;
+  }
+  if (actualDuration < 1) {
+    return;
+  }
+  PerfTracker_recordEvent({
+    type: "profile",
+    session: PerfTracker_getSessionId(),
+    id,
+    phase,
+    actual_ms: actualDuration,
+    base_ms: baseDuration,
+    ts: Date.now(),
+  });
+}
+
 interface IEditProgramUiExerciseViewProps {
   evaluatedProgram: IEvaluatedProgram;
   plannerExercise: IPlannerProgramExercise;
@@ -63,150 +88,158 @@ export const EditProgramUiExerciseView = memo(function EditProgramUiExerciseView
   const orderAndRepeat = [order, repeatStr].filter((s) => s).join(", ");
 
   return (
-    <View
-      data-testid={`exercise-${props.plannerExercise.key}`}
-      testID={`exercise-${props.plannerExercise.key}`}
-      className="my-1 overflow-hidden border bg-background-cardpurple rounded-xl border-border-cardpurple"
-    >
-      <View className="flex-row items-center">
-        {props.dragHandle ? (
-          <>
-            {props.dragHandle(
-              <View className="p-2">
-                <IconHandle />
+    <Profiler id="ExerciseView" onRender={onExerciseProfile}>
+      <View
+        data-testid={`exercise-${props.plannerExercise.key}`}
+        testID={`exercise-${props.plannerExercise.key}`}
+        className="my-1 overflow-hidden border bg-background-cardpurple rounded-xl border-border-cardpurple"
+      >
+        <View className="flex-row items-center">
+          {props.dragHandle ? (
+            <>
+              {props.dragHandle(
+                <View className="p-2">
+                  <IconHandle />
+                </View>
+              )}
+              <View className="mr-2">
+                <SetNumber size="sm" setIndex={props.exerciseIndex} />
+              </View>
+            </>
+          ) : (
+            <View className="w-16" />
+          )}
+          <View
+            className="flex-row items-center flex-1"
+            data-testid="planner-ui-exercise-name"
+            testID="planner-ui-exercise-name"
+          >
+            <View className="flex-1">
+              <Text className="text-base font-bold">
+                {props.plannerExercise.label ? `${props.plannerExercise.label}: ` : ""}
+                {props.plannerExercise.name}
+                {props.plannerExercise.equipment != null &&
+                  props.plannerExercise.equipment !== exercise?.defaultEquipment && (
+                    <Text className="text-base font-bold">, {equipmentName(props.plannerExercise.equipment)}</Text>
+                  )}
+                {orderAndRepeat ? (
+                  <Text className="text-sm font-normal text-text-primary"> [{orderAndRepeat}]</Text>
+                ) : (
+                  ""
+                )}
+              </Text>
+            </View>
+            {props.plannerExercise.notused && (
+              <View className="px-1 ml-3 rounded bg-background-darkgray">
+                <Text className="text-xs font-bold text-text-alwayswhite">UNUSED</Text>
               </View>
             )}
-            <View className="mr-2">
-              <SetNumber size="sm" setIndex={props.exerciseIndex} />
-            </View>
-          </>
-        ) : (
-          <View className="w-16" />
-        )}
-        <View
-          className="flex-row items-center flex-1"
-          data-testid="planner-ui-exercise-name"
-          testID="planner-ui-exercise-name"
-        >
-          <View className="flex-1">
-            <Text className="text-base font-bold">
-              {props.plannerExercise.label ? `${props.plannerExercise.label}: ` : ""}
-              {props.plannerExercise.name}
-              {props.plannerExercise.equipment != null &&
-                props.plannerExercise.equipment !== exercise?.defaultEquipment && (
-                  <Text className="text-base font-bold">, {equipmentName(props.plannerExercise.equipment)}</Text>
-                )}
-              {orderAndRepeat ? <Text className="text-sm font-normal text-text-primary"> [{orderAndRepeat}]</Text> : ""}
-            </Text>
-          </View>
-          {props.plannerExercise.notused && (
-            <View className="px-1 ml-3 rounded bg-background-darkgray">
-              <Text className="text-xs font-bold text-text-alwayswhite">UNUSED</Text>
-            </View>
-          )}
-          <Pressable
-            className="p-2"
-            data-testid="edit-exercise-swap"
-            testID="edit-exercise-swap"
-            onPress={() => {
-              const numberOfExerciseInstances = Program_getNumberOfExerciseInstances(
-                props.evaluatedProgram,
-                props.plannerExercise.key
-              );
-              if (numberOfExerciseInstances > 1) {
-                props.plannerDispatch(
-                  lb<IPlannerState>().p("ui").p("editExerciseModal").record({
-                    plannerExercise: props.plannerExercise,
-                  }),
-                  "Open edit exercise modal"
+            <Pressable
+              className="p-2"
+              data-testid="edit-exercise-swap"
+              testID="edit-exercise-swap"
+              onPress={() => {
+                const numberOfExerciseInstances = Program_getNumberOfExerciseInstances(
+                  props.evaluatedProgram,
+                  props.plannerExercise.key
                 );
-                navigateToModal("editExerciseChangeModal", { programId: props.programId });
-              } else {
+                if (numberOfExerciseInstances > 1) {
+                  props.plannerDispatch(
+                    lb<IPlannerState>().p("ui").p("editExerciseModal").record({
+                      plannerExercise: props.plannerExercise,
+                    }),
+                    "Open edit exercise modal"
+                  );
+                  navigateToModal("editExerciseChangeModal", { programId: props.programId });
+                } else {
+                  props.plannerDispatch(
+                    lb<IPlannerState>()
+                      .p("ui")
+                      .p("exercisePicker")
+                      .record({
+                        dayData: {
+                          week: props.plannerExercise.dayData.week,
+                          dayInWeek: props.plannerExercise.dayData.dayInWeek,
+                        },
+                        state: pickerStateFromPlannerExercise(props.settings, props.plannerExercise),
+                        exerciseKey: props.plannerExercise.key,
+                        change: "one",
+                      }),
+                    "Open exercise picker modal"
+                  );
+                }
+              }}
+            >
+              <IconSwap size={12} />
+            </Pressable>
+          </View>
+          <View>
+            <Pressable
+              className="p-2"
+              data-testid="show-exercise-stats"
+              testID="show-exercise-stats"
+              onPress={() => {
+                props.plannerDispatch(
+                  [
+                    lb<IPlannerState>().p("ui").p("focusedExercise").record({
+                      weekIndex,
+                      dayIndex,
+                      exerciseLine: props.plannerExercise.line,
+                    }),
+                    lb<IPlannerState>().p("ui").p("showExerciseStats").record(true),
+                  ],
+                  "Show exercise stats"
+                );
+                navigateToModal("exerciseStatsModal", { programId: props.programId });
+              }}
+            >
+              <IconGraphsE width={16} height={19} />
+            </Pressable>
+          </View>
+          <View className="py-4 border-l bg-background-default border-border-cardpurple">
+            <Pressable
+              className="items-center w-10 px-2 nm-edit-exercise-expand-collapse"
+              onPress={() => {
                 props.plannerDispatch(
                   lb<IPlannerState>()
                     .p("ui")
-                    .p("exercisePicker")
-                    .record({
-                      dayData: {
-                        week: props.plannerExercise.dayData.week,
-                        dayInWeek: props.plannerExercise.dayData.dayInWeek,
-                      },
-                      state: pickerStateFromPlannerExercise(props.settings, props.plannerExercise),
-                      exerciseKey: props.plannerExercise.key,
-                      change: "one",
+                    .p("exerciseUi")
+                    .p("collapsed")
+                    .recordModify((collapsed) => {
+                      const newCollapsed = new Set(Array.from(collapsed));
+                      const exKey = `${props.plannerExercise.key}-${props.plannerExercise.dayData.week - 1}-${props.plannerExercise.dayData.dayInWeek - 1}`;
+                      if (newCollapsed.has(exKey)) {
+                        newCollapsed.delete(exKey);
+                      } else {
+                        newCollapsed.add(exKey);
+                      }
+                      return newCollapsed;
                     }),
-                  "Open exercise picker modal"
+                  "Toggle exercise collapse"
                 );
-              }
-            }}
-          >
-            <IconSwap size={12} />
-          </Pressable>
+              }}
+            >
+              {isCollapsed ? <IconArrowRight /> : <IconArrowDown2 />}
+            </Pressable>
+          </View>
         </View>
-        <View>
-          <Pressable
-            className="p-2"
-            data-testid="show-exercise-stats"
-            testID="show-exercise-stats"
-            onPress={() => {
-              props.plannerDispatch(
-                [
-                  lb<IPlannerState>().p("ui").p("focusedExercise").record({
-                    weekIndex,
-                    dayIndex,
-                    exerciseLine: props.plannerExercise.line,
-                  }),
-                  lb<IPlannerState>().p("ui").p("showExerciseStats").record(true),
-                ],
-                "Show exercise stats"
-              );
-              navigateToModal("exerciseStatsModal", { programId: props.programId });
-            }}
-          >
-            <IconGraphsE width={16} height={19} />
-          </Pressable>
-        </View>
-        <View className="py-4 border-l bg-background-default border-border-cardpurple">
-          <Pressable
-            className="items-center w-10 px-2 nm-edit-exercise-expand-collapse"
-            onPress={() => {
-              props.plannerDispatch(
-                lb<IPlannerState>()
-                  .p("ui")
-                  .p("exerciseUi")
-                  .p("collapsed")
-                  .recordModify((collapsed) => {
-                    const newCollapsed = new Set(Array.from(collapsed));
-                    const exKey = `${props.plannerExercise.key}-${props.plannerExercise.dayData.week - 1}-${props.plannerExercise.dayData.dayInWeek - 1}`;
-                    if (newCollapsed.has(exKey)) {
-                      newCollapsed.delete(exKey);
-                    } else {
-                      newCollapsed.add(exKey);
-                    }
-                    return newCollapsed;
-                  }),
-                "Toggle exercise collapse"
-              );
-            }}
-          >
-            {isCollapsed ? <IconArrowRight /> : <IconArrowDown2 />}
-          </Pressable>
-        </View>
+        {!isCollapsed && (
+          <Profiler id="ExerciseView.content" onRender={onExerciseProfile}>
+            <EditProgramUiExerciseContentView
+              weekIndex={weekIndex}
+              dayIndex={dayIndex}
+              evaluatedProgram={props.evaluatedProgram}
+              exerciseIndex={exerciseIndex}
+              exercise={exercise}
+              plannerExercise={props.plannerExercise}
+              settings={props.settings}
+              dispatch={props.dispatch}
+              plannerDispatch={props.plannerDispatch}
+            />
+          </Profiler>
+        )}
       </View>
-      {!isCollapsed && (
-        <EditProgramUiExerciseContentView
-          weekIndex={weekIndex}
-          dayIndex={dayIndex}
-          evaluatedProgram={props.evaluatedProgram}
-          exerciseIndex={exerciseIndex}
-          exercise={exercise}
-          plannerExercise={props.plannerExercise}
-          settings={props.settings}
-          dispatch={props.dispatch}
-          plannerDispatch={props.plannerDispatch}
-        />
-      )}
-    </View>
+    </Profiler>
   );
 });
 
@@ -279,7 +312,9 @@ export const EditProgramUiExerciseContentView = memo(function EditProgramUiExerc
                   <View data-testid="ui-workout-sets" testID="ui-workout-sets">
                     <Text className="pb-1 text-xs text-left text-text-secondary">Workout</Text>
                     {reusingSets && <Text className="pb-1 text-xs text-text-secondary">Reusing {reusingSets}</Text>}
-                    <EditProgramUiExerciseSetVariations plannerExercise={plannerExercise} settings={props.settings} />
+                    <Profiler id="ExerciseView.setVariations" onRender={onExerciseProfile}>
+                      <EditProgramUiExerciseSetVariations plannerExercise={plannerExercise} settings={props.settings} />
+                    </Profiler>
                   </View>
                 </View>
               </View>
@@ -307,11 +342,15 @@ export const EditProgramUiExerciseContentView = memo(function EditProgramUiExerc
             </View>
           )}
           <View className="px-3 pb-2">
-            <EditProgramUiProgress evaluatedProgram={props.evaluatedProgram} exercise={props.plannerExercise} />
+            <Profiler id="ExerciseView.progress" onRender={onExerciseProfile}>
+              <EditProgramUiProgress evaluatedProgram={props.evaluatedProgram} exercise={props.plannerExercise} />
+            </Profiler>
           </View>
           {props.plannerExercise.update && (
             <View className="px-3 pb-2">
-              <EditProgramUiUpdate evaluatedProgram={props.evaluatedProgram} exercise={props.plannerExercise} />
+              <Profiler id="ExerciseView.update" onRender={onExerciseProfile}>
+                <EditProgramUiUpdate evaluatedProgram={props.evaluatedProgram} exercise={props.plannerExercise} />
+              </Profiler>
             </View>
           )}
         </View>

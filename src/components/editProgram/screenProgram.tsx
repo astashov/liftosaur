@@ -1,4 +1,4 @@
-import { JSX, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { JSX, memo, Profiler, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { View, Pressable, ScrollView } from "react-native";
 import { Text } from "../primitives/text";
 import { IDispatch } from "../../ducks/types";
@@ -37,6 +37,34 @@ import { Nux } from "../nux";
 import { programTourConfig } from "../tour/programTourConfig";
 import { NavScreenContent } from "../../navigation/NavScreenContent";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
+import { useTimedMemo } from "../../utils/useTimedMemo";
+import { usePerfRenderCount } from "../../utils/usePerfRenderCount";
+import { usePerfRenderTrace } from "../../utils/usePerfRenderTrace";
+import { PerfTracker_recordEvent, PerfTracker_getSessionId } from "../../utils/perfTracker";
+import { PerfEnabled_isEnabled } from "../../utils/perfEnabled";
+
+function onProfile(
+  id: string,
+  phase: "mount" | "update" | "nested-update",
+  actualDuration: number,
+  baseDuration: number
+): void {
+  if (!PerfEnabled_isEnabled()) {
+    return;
+  }
+  if (actualDuration < 1) {
+    return;
+  }
+  PerfTracker_recordEvent({
+    type: "profile",
+    session: PerfTracker_getSessionId(),
+    id,
+    phase,
+    actual_ms: actualDuration,
+    base_ms: baseDuration,
+    ts: Date.now(),
+  });
+}
 
 const TAB_LABELS = ["Preview", "Edit", "Playground"] as const;
 const EMPTY_EVAL: ReturnType<typeof PlannerProgram_evaluate> = { evaluatedWeeks: [], exerciseFullNames: [] };
@@ -59,7 +87,9 @@ interface IProps {
   navCommon: INavCommon;
 }
 
-export function ScreenProgram(props: IProps): JSX.Element {
+export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Element {
+  usePerfRenderCount("ScreenProgram");
+  usePerfRenderTrace("ScreenProgram");
   const plannerState = props.plannerState;
   const dispatch = props.dispatch;
   const programId = props.originalProgram.id;
@@ -92,19 +122,21 @@ export function ScreenProgram(props: IProps): JSX.Element {
 
   const program: IProgram = plannerState.current.program;
   const planner = program.planner!;
-  const evaluatedProgram = Program_evaluate(program, props.settings);
+  const evaluatedProgram = useTimedMemo(
+    "editProgram.evaluatedProgram",
+    () => Program_evaluate(program, props.settings),
+    [program, props.settings]
+  );
   const ui = plannerState.ui;
 
   useLayoutEffect(() => {
-    if (props.plannerState) {
-      for (const week of planner.weeks) {
-        week.id = week.id ?? UidFactory_generateUid(8);
-        for (const day of week.days) {
-          day.id = day.id ?? UidFactory_generateUid(8);
-        }
+    for (const week of planner.weeks) {
+      week.id = week.id ?? UidFactory_generateUid(8);
+      for (const day of week.days) {
+        day.id = day.id ?? UidFactory_generateUid(8);
       }
     }
-  });
+  }, [planner]);
 
   const exercisePickerUi = props.plannerState.ui.exercisePicker;
   const prevExercisePickerUi = useRef(exercisePickerUi);
@@ -149,8 +181,12 @@ export function ScreenProgram(props: IProps): JSX.Element {
   const tabIndex = plannerState.ui.tabIndex ?? 0;
   const activeTabLabel = TAB_LABELS[tabIndex] ?? "Preview";
 
-  const { evaluatedWeeks, exerciseFullNames } =
-    activeTabLabel === "Edit" ? PlannerProgram_evaluate(planner, props.settings) : EMPTY_EVAL;
+  const plannerEval = useTimedMemo(
+    "editProgram.plannerEval",
+    () => (activeTabLabel === "Edit" ? PlannerProgram_evaluate(planner, props.settings) : EMPTY_EVAL),
+    [activeTabLabel, planner, props.settings]
+  );
+  const { evaluatedWeeks, exerciseFullNames } = plannerEval;
 
   const onChangeTab = useCallback(
     (newTabIndex: number): void => {
@@ -169,7 +205,8 @@ export function ScreenProgram(props: IProps): JSX.Element {
     [plannerDispatch]
   );
 
-  const previewWeeks = useMemo(
+  const previewWeeks = useTimedMemo(
+    "editProgram.previewWeeks",
     () =>
       activeTabLabel === "Preview" ? ProgramPreview_buildWeeks(program, props.settings, props.navCommon.stats) : [],
     [activeTabLabel, program, props.settings, props.navCommon.stats]
@@ -207,58 +244,65 @@ export function ScreenProgram(props: IProps): JSX.Element {
   if (activeTabLabel === "Preview") {
     const currentWeek = previewWeeks[safePreviewWeekIndex];
     tabContent = currentWeek ? (
-      <ProgramPreviewWeekContent
-        key="preview"
-        week={currentWeek}
-        program={program}
-        programId={programId}
-        settings={props.settings}
-        ui={ui}
-        stats={props.navCommon.stats}
-        dispatch={dispatch}
-        plannerDispatch={plannerDispatch}
-        totalWeeks={previewWeeks.length}
-      />
+      <Profiler id="tab.Preview" onRender={onProfile}>
+        <ProgramPreviewWeekContent
+          key="preview"
+          week={currentWeek}
+          weekIndex={safePreviewWeekIndex}
+          program={program}
+          programId={programId}
+          settings={props.settings}
+          ui={ui}
+          stats={props.navCommon.stats}
+          dispatch={dispatch}
+          plannerDispatch={plannerDispatch}
+          totalWeeks={previewWeeks.length}
+        />
+      </Profiler>
     ) : (
       <View />
     );
   } else if (activeTabLabel === "Edit") {
     tabContent = (
-      <EditProgramView
-        hideNavbar
-        hideWeekTabBar={showEditWeekTabBar}
-        evaluatedWeeks={evaluatedWeeks}
-        evaluatedProgram={evaluatedProgram}
-        exerciseFullNames={exerciseFullNames}
-        dispatch={dispatch}
-        originalProgram={props.originalProgram}
-        programId={programId}
-        settings={props.settings}
-        plannerDispatch={plannerDispatch}
-        state={plannerState}
-      />
+      <Profiler id="tab.Edit" onRender={onProfile}>
+        <EditProgramView
+          hideNavbar
+          hideWeekTabBar={showEditWeekTabBar}
+          evaluatedWeeks={evaluatedWeeks}
+          evaluatedProgram={evaluatedProgram}
+          exerciseFullNames={exerciseFullNames}
+          dispatch={dispatch}
+          originalProgram={props.originalProgram}
+          programId={programId}
+          settings={props.settings}
+          plannerDispatch={plannerDispatch}
+          state={plannerState}
+        />
+      </Profiler>
     );
   } else {
     tabContent = (
-      <View className="pb-4">
-        <Nux className="mx-4 my-2" id="Playground" helps={props.helps} dispatch={dispatch}>
-          <Text className="text-xs">
-            Playground lets you test the program logic. You can finish workouts here and see how reps, weights, sets
-            change. Everything you do here is ephemeral, and doesn't change any settings, workouts or programs.
-          </Text>
-        </Nux>
-        <ProgramPreviewPlayground
-          key="playground"
-          scrollableTabsProps={PLAYGROUND_TABS_PROPS}
-          isPlayground={true}
-          program={program}
-          settings={props.settings}
-          stats={props.navCommon.stats}
-          useNavModals={true}
-          hideWeekTabBar={true}
-          externalWeekIndex={safePlaygroundWeekIndex}
-        />
-      </View>
+      <Profiler id="tab.Playground" onRender={onProfile}>
+        <View className="pb-4">
+          <Nux className="mx-4 my-2" id="Playground" helps={props.helps} dispatch={dispatch}>
+            <Text className="text-xs">
+              Playground lets you test the program logic. You can finish workouts here and see how reps, weights, sets
+              change. Everything you do here is ephemeral, and doesn't change any settings, workouts or programs.
+            </Text>
+          </Nux>
+          <ProgramPreviewPlayground
+            key="playground"
+            scrollableTabsProps={PLAYGROUND_TABS_PROPS}
+            isPlayground={true}
+            program={program}
+            settings={props.settings}
+            stats={props.navCommon.stats}
+            useNavModals={true}
+            hideWeekTabBar={true}
+            externalWeekIndex={safePlaygroundWeekIndex}
+          />
+        </View>
+      </Profiler>
     );
   }
 
@@ -312,20 +356,26 @@ export function ScreenProgram(props: IProps): JSX.Element {
   }
 
   return (
-    <NavScreenContent stickyHeaderIndices={STICKY_INDICES}>
-      <EditProgramHeader
-        evaluatedProgram={evaluatedProgram}
-        settings={props.settings}
-        onChangeProgram={onChangeProgram}
-        onChangeDay={onChangeDay}
-        onChangeName={onChangeName}
-      />
-      <OuterTabBar labels={TAB_LABELS_RO} activeIndex={tabIndex} onChange={onChangeTab} />
-      {perTabStickyHeader}
-      {tabContent}
-    </NavScreenContent>
+    <Profiler id="ScreenProgram.shell" onRender={onProfile}>
+      <NavScreenContent stickyHeaderIndices={STICKY_INDICES}>
+        <Profiler id="ScreenProgram.header" onRender={onProfile}>
+          <EditProgramHeader
+            evaluatedProgram={evaluatedProgram}
+            settings={props.settings}
+            onChangeProgram={onChangeProgram}
+            onChangeDay={onChangeDay}
+            onChangeName={onChangeName}
+          />
+        </Profiler>
+        <OuterTabBar labels={TAB_LABELS_RO} activeIndex={tabIndex} onChange={onChangeTab} />
+        <Profiler id="ScreenProgram.stickyHeader" onRender={onProfile}>
+          {perTabStickyHeader}
+        </Profiler>
+        {tabContent}
+      </NavScreenContent>
+    </Profiler>
   );
-}
+});
 
 const STICKY_INDICES = [1, 2];
 

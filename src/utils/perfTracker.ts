@@ -41,6 +41,28 @@ export type IPerfEvent =
       screen?: string;
       label?: string;
       ts: number;
+    }
+  | {
+      type: "action";
+      session: string;
+      action: string;
+      desc?: string;
+      ts: number;
+    }
+  | {
+      type: "render_trace";
+      session: string;
+      component: string;
+      ts: number;
+    }
+  | {
+      type: "profile";
+      session: string;
+      id: string;
+      phase: "mount" | "update" | "nested-update";
+      actual_ms: number;
+      base_ms: number;
+      ts: number;
     };
 
 export function PerfTracker_mark(_name: string, _screen?: string): void {}
