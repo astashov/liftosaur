@@ -206,8 +206,15 @@ export function NavScreenProgramPreview(): React.JSX.Element {
   // Pass tracked state so playgroundState reads register subscriptions and the modal opens.
   usePlaygroundModalBridges(state);
 
-  if (state.previewProgram?.id == null) {
-    setTimeout(() => dispatch(Thunk_pullScreen()), 0);
+  const previewProgram = state.previewProgram;
+  const shouldGoBack = previewProgram?.id == null;
+  React.useEffect(() => {
+    if (!shouldGoBack) return;
+    const t = setTimeout(() => dispatch(Thunk_pullScreen()), 150);
+    return () => clearTimeout(t);
+  }, [shouldGoBack, dispatch]);
+
+  if (shouldGoBack || !previewProgram) {
     return <View className="flex-1 bg-background-default" />;
   }
   return (
@@ -215,8 +222,8 @@ export function NavScreenProgramPreview(): React.JSX.Element {
       navCommon={navCommon}
       dispatch={dispatch}
       settings={untrack(state.storage.settings)}
-      selectedProgramId={state.previewProgram.id}
-      programs={untrack(state.previewProgram.showCustomPrograms ? state.storage.programs : state.programs)}
+      selectedProgramId={previewProgram.id}
+      programs={untrack(previewProgram.showCustomPrograms ? state.storage.programs : state.programs)}
       subscription={untrack(state.storage.subscription)}
     />
   );

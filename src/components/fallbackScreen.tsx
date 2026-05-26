@@ -1,5 +1,6 @@
 import { JSX, useLayoutEffect } from "react";
 import { View } from "react-native";
+import { useIsFocused } from "@react-navigation/native";
 import { IDispatch } from "../ducks/types";
 import { Thunk_pushScreen } from "../ducks/thunks";
 
@@ -15,11 +16,12 @@ interface IProps<T extends Record<string, unknown | undefined>> {
 
 export function FallbackScreen<T extends Record<string, unknown>>(props: IProps<T>): JSX.Element {
   const hasAnyNulls = Object.values(props.state).some((value) => value == null);
+  const isFocused = useIsFocused();
   useLayoutEffect(() => {
-    if (hasAnyNulls) {
+    if (hasAnyNulls && isFocused) {
       props.dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }));
     }
-  }, [hasAnyNulls]);
+  }, [hasAnyNulls, isFocused]);
 
   if (hasAnyNulls) {
     return <View />;

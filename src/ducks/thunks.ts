@@ -1004,21 +1004,12 @@ export function Thunk_pushScreen<T extends IScreen>(
 ): IThunk {
   return async (dispatch, getState, env) => {
     dispatch(Thunk_postevent("navigate-to-" + screen));
-    if (opts?.tab || opts?.stack) {
-      const currentScreen = env.getCurrentScreenData?.();
-      const confirmation = currentScreen ? Screen_shouldConfirmNavigation(getState(), currentScreen) : undefined;
-      if (confirmation) {
-        if (await Dialog_confirm(confirmation)) {
-          const progressId = currentScreen?.name === "progress" ? (currentScreen.params?.id ?? 0) : 0;
-          cleanup(dispatch, getState(), progressId);
-        } else {
-          return;
-        }
-      } else {
-        const progressId = currentScreen?.name === "progress" ? (currentScreen.params?.id ?? 0) : 0;
-        if (progressId !== 0) {
-          cleanup(dispatch, getState(), progressId);
-        }
+    const isCrossNav = !!(opts?.tab || opts?.stack);
+    const previousScreen = isCrossNav ? env.getCurrentScreenData?.() : undefined;
+    if (isCrossNav && previousScreen) {
+      const confirmation = Screen_shouldConfirmNavigation(getState(), previousScreen);
+      if (confirmation && !(await Dialog_confirm(confirmation))) {
+        return;
       }
     }
     if (
@@ -1046,6 +1037,12 @@ export function Thunk_pushScreen<T extends IScreen>(
     }
     const { navigateTo } = await getNavigationService();
     navigateTo(screen, params as IAllScreenParamList[typeof screen], opts);
+    if (isCrossNav && previousScreen) {
+      const progressId = previousScreen.name === "progress" ? (previousScreen.params?.id ?? 0) : 0;
+      if (progressId !== 0) {
+        cleanup(dispatch, getState(), progressId);
+      }
+    }
     if (typeof window !== "undefined" && window.scroll) {
       window.scroll(0, 0);
     }
