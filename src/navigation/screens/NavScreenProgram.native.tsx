@@ -209,7 +209,9 @@ export function NavScreenProgramPreview(): React.JSX.Element {
   const previewProgram = state.previewProgram;
   const shouldGoBack = previewProgram?.id == null;
   React.useEffect(() => {
-    if (!shouldGoBack) return;
+    if (!shouldGoBack) {
+      return;
+    }
     const t = setTimeout(() => dispatch(Thunk_pullScreen()), 150);
     return () => clearTimeout(t);
   }, [shouldGoBack, dispatch]);
