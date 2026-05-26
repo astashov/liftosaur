@@ -1,5 +1,6 @@
 import { JSX, memo, useCallback } from "react";
-import { View, Pressable } from "react-native";
+import { View } from "react-native";
+import { Pressable } from "./primitives/pressable";
 import { Text } from "./primitives/text";
 import { Exercise_get } from "../models/exercise";
 import { Reps_setsStatus } from "../models/set";

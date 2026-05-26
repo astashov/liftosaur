@@ -1,5 +1,6 @@
 import { JSX, ReactNode } from "react";
 import { GestureResponderEvent, Pressable } from "react-native";
+import { Pressable as StickyPressable } from "./primitives/pressable";
 import { Text } from "./primitives/text";
 import { useTrackClick } from "../utils/clickTracking";
 
@@ -27,6 +28,7 @@ interface IProps {
   title?: string;
   style?: Record<string, unknown>;
   tabIndex?: number;
+  sticky?: boolean;
 }
 
 export function Button(props: IProps): JSX.Element {
@@ -109,8 +111,9 @@ export function Button(props: IProps): JSX.Element {
     trackClick(props.name, props.className);
     userOnPress?.(e);
   };
+  const PressableComponent = props.sticky ? StickyPressable : Pressable;
   return (
-    <Pressable
+    <PressableComponent
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       className={containerCn}
@@ -120,6 +123,6 @@ export function Button(props: IProps): JSX.Element {
       data-testid={testID}
     >
       {containsString(children) ? <Text className={textCn}>{children}</Text> : children}
-    </Pressable>
+    </PressableComponent>
   );
 }

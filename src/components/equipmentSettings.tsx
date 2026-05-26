@@ -1,5 +1,6 @@
 import { JSX, Fragment, Ref, useState } from "react";
-import { View, Pressable, Platform, LayoutAnimation, UIManager } from "react-native";
+import { View, Platform, LayoutAnimation, UIManager } from "react-native";
+import { Pressable } from "./primitives/pressable";
 import { Text } from "./primitives/text";
 import { ILensRecordingPayload, lb, Lens } from "lens-shmens";
 import { Weight_build, Weight_eqeq, Weight_compare, Weight_display, Weight_print } from "../models/weight";

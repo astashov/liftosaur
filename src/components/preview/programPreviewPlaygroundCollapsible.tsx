@@ -1,5 +1,6 @@
 import { JSX, ReactNode, useCallback, useRef, useState } from "react";
-import { View, ScrollView, Pressable, LayoutChangeEvent, useWindowDimensions } from "react-native";
+import { View, ScrollView, LayoutChangeEvent, useWindowDimensions } from "react-native";
+import { Pressable } from "../primitives/pressable";
 import PagerView from "react-native-pager-view";
 import Animated, {
   useAnimatedStyle,

@@ -1,5 +1,6 @@
 import { JSX, memo, useCallback, useMemo } from "react";
-import { View, Pressable } from "react-native";
+import { View } from "react-native";
+import { Pressable } from "../primitives/pressable";
 import { IconUndo } from "../icons/iconUndo";
 import { undo, canUndo, canRedo, redo } from "../../pages/builder/utils/undoredo";
 import { IPlannerState } from "../../pages/planner/models/types";
@@ -217,6 +218,7 @@ export const EditProgramNavbar = memo(function EditProgramNavbar(props: IEditPro
       </View>
       <View className="flex-row items-center">
         <Button
+          sticky
           disabled={!isValid}
           name="save-program"
           kind="purple"

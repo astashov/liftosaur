@@ -1,5 +1,6 @@
 import { JSX, memo, Profiler, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { View, Pressable, ScrollView } from "react-native";
+import { View, ScrollView } from "react-native";
+import { Pressable } from "../primitives/pressable";
 import { Text } from "../primitives/text";
 import { IDispatch } from "../../ducks/types";
 import { INavCommon, IState, updateState } from "../../models/state";

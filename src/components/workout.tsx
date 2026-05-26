@@ -1,5 +1,6 @@
 import { JSX, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { View, Pressable, LayoutChangeEvent, Platform, useWindowDimensions } from "react-native";
+import { View, LayoutChangeEvent, Platform, useWindowDimensions } from "react-native";
+import { Pressable as StickyPressable } from "./primitives/pressable";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import { IHistoryEntry, IHistoryRecord, IProgram, IProgramState, ISettings, IStats, ISubscription } from "../types";
@@ -591,14 +592,14 @@ function WorkoutThumbnailsStripInner(props: IWorkoutThumbnailsStripProps): JSX.E
             }}
             onDragEnd={onDragEnd}
           />
-          <Pressable
+          <StickyPressable
             testID="add-exercise-button"
             data-testid="add-exercise-button"
             className="p-2"
             onPress={onAddExercise}
           >
             <IconPlus2 size={15} color={Tailwind_colors().lightgray[600]} />
-          </Pressable>
+          </StickyPressable>
         </View>
       </Scroller>
     </View>

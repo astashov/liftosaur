@@ -1,5 +1,6 @@
 import { JSX, ReactNode, useState } from "react";
-import { View, ScrollView, Pressable, Platform, LayoutChangeEvent } from "react-native";
+import { View, ScrollView, Platform, LayoutChangeEvent } from "react-native";
+import { Pressable } from "./primitives/pressable";
 import { Text } from "./primitives/text";
 import { StringUtils_dashcase } from "../utils/string";
 import { Scroller } from "./scroller";
