@@ -71,19 +71,22 @@ export function NavModalEditExerciseChange(): JSX.Element {
               testID="edit-exercise-change-one"
               kind="purple"
               onClick={() => {
-                plannerDispatch(
-                  [
-                    lbUi.p("editExerciseModal").record(undefined),
-                    lbUi.p("exercisePicker").record({
-                      state: pickerStateFromPlannerExercise(settings, editExerciseModal!.plannerExercise),
-                      exerciseKey: editExerciseModal!.plannerExercise.key,
-                      dayData: editExerciseModal!.plannerExercise.dayData,
-                      change: "one",
-                    }),
-                  ],
-                  "Change exercise for one instance"
-                );
+                const plannerExercise = editExerciseModal!.plannerExercise;
                 navigation.goBack();
+                setTimeout(() => {
+                  plannerDispatch(
+                    [
+                      lbUi.p("editExerciseModal").record(undefined),
+                      lbUi.p("exercisePicker").record({
+                        state: pickerStateFromPlannerExercise(settings, plannerExercise),
+                        exerciseKey: plannerExercise.key,
+                        dayData: plannerExercise.dayData,
+                        change: "one",
+                      }),
+                    ],
+                    "Change exercise for one instance"
+                  );
+                }, 50);
               }}
             >
               Change only for this week/day
@@ -97,19 +100,22 @@ export function NavModalEditExerciseChange(): JSX.Element {
               testID="edit-exercise-change-all"
               kind="purple"
               onClick={() => {
-                plannerDispatch(
-                  [
-                    lbUi.p("editExerciseModal").record(undefined),
-                    lbUi.p("exercisePicker").record({
-                      state: pickerStateFromPlannerExercise(settings, editExerciseModal!.plannerExercise),
-                      exerciseKey: editExerciseModal!.plannerExercise.key,
-                      dayData: editExerciseModal!.plannerExercise.dayData,
-                      change: "all",
-                    }),
-                  ],
-                  "Change exercise for all instances"
-                );
+                const plannerExercise = editExerciseModal!.plannerExercise;
                 navigation.goBack();
+                setTimeout(() => {
+                  plannerDispatch(
+                    [
+                      lbUi.p("editExerciseModal").record(undefined),
+                      lbUi.p("exercisePicker").record({
+                        state: pickerStateFromPlannerExercise(settings, plannerExercise),
+                        exerciseKey: plannerExercise.key,
+                        dayData: plannerExercise.dayData,
+                        change: "all",
+                      }),
+                    ],
+                    "Change exercise for all instances"
+                  );
+                }, 50);
               }}
             >
               Change across whole program

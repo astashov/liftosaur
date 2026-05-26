@@ -1,27 +1,74 @@
-import { JSX, Fragment, useCallback, useMemo } from "react";
-import { View, Pressable, Platform } from "react-native";
+import { JSX, Fragment, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { View, Pressable, Platform, TextInput } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  interpolate,
+  Extrapolation,
+} from "react-native-reanimated";
+import { AnimatedLegendList } from "@legendapp/list/reanimated";
 import { Text } from "../primitives/text";
 import { IconMuscles2 } from "../icons/iconMuscles2";
 import { IconStar } from "../icons/iconStar";
-import { Tailwind_semantic } from "../../utils/tailwindConfig";
-import { ScrollableTabs } from "../scrollableTabs";
-import { ExercisePickerFromProgram } from "./exercisePickerFromProgram";
-import { IEvaluatedProgram } from "../../models/program";
-import { IExercisePickerSelectedExercise, IExercisePickerState, IExerciseType, ISettings } from "../../types";
-import { ExercisePickerAdhocExercises } from "./exercisePickerAdhocExercises";
+import { IconFilter } from "../icons/iconFilter";
+import { IconFilter2 } from "../icons/iconFilter2";
+import { IconMagnifyingGlass } from "../icons/iconMagnifyingGlass";
+import { Tailwind_colors, Tailwind_semantic } from "../../utils/tailwindConfig";
+import { IEvaluatedProgram, IEvaluatedProgramWeek } from "../../models/program";
+import {
+  ICustomExercise,
+  IExercisePickerSelectedExercise,
+  IExercisePickerState,
+  IExerciseType,
+  ISettings,
+} from "../../types";
+import { IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { Button } from "../button";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
-import { Exercise_get, Exercise_fullName } from "../../models/exercise";
-import { ExercisePickerUtils_getProgramExercisefullName } from "./exercisePickerUtils";
+import {
+  Exercise_get,
+  Exercise_fullName,
+  Exercise_toKey,
+  Exercise_filterCustomExercises,
+  Exercise_createCustomExercise,
+  Exercise_allExpanded,
+  Exercise_filterExercises,
+  IExercise,
+} from "../../models/exercise";
+import {
+  ExercisePickerUtils_getProgramExercisefullName,
+  ExercisePickerUtils_getAllFilterNames,
+  ExercisePickerUtils_filterCustomExercises,
+  ExercisePickerUtils_sortCustomExercises,
+  ExercisePickerUtils_getIsMultiselect,
+  ExercisePickerUtils_chooseAdhocExercise,
+  ExercisePickerUtils_chooseProgramExercise,
+  ExercisePickerUtils_filterExercises,
+  ExercisePickerUtils_sortExercises,
+} from "./exercisePickerUtils";
 import { CollectionUtils_compact } from "../../utils/collection";
+import { ObjectUtils_values, ObjectUtils_clone, ObjectUtils_keys } from "../../utils/object";
+import { StringUtils_dashcase } from "../../utils/string";
 import { ExercisePickerCurrentExercise } from "./exercisePickerCurrentExercise";
+import { ExercisePickerTemplate } from "./exercisePickerTemplate";
+import { ExercisePickerExerciseItem } from "./exercisePickerExerciseItem";
 import { Input, IValidationError } from "../input";
 import { IEither } from "../../utils/types";
-import { ExercisePickerTemplate } from "./exercisePickerTemplate";
-import { IconFilter } from "../icons/iconFilter";
 import { SheetDragHandle } from "../../navigation/TransparentModal";
 import { getNavigationService } from "../../navigation/navUtils";
+import { GroupHeader } from "../groupHeader";
+import { LinkButton } from "../linkButton";
+import { ExerciseImage } from "../exerciseImage";
+import { HistoryRecordSet } from "../historyRecordSets";
+import {
+  PlannerProgramExercise_currentEvaluatedSetVariation,
+  PlannerProgramExercise_evaluatedSetsToDisplaySets,
+} from "../../pages/planner/models/plannerProgramExercise";
+import { IconCheckCircle } from "../icons/iconCheckCircle";
+import { exercisePickerSortNames } from "./exercisePickerFilter";
+import { Scroller } from "../scroller";
 
 interface IProps {
   isHidden: boolean;
@@ -35,10 +82,40 @@ interface IProps {
   onClose: () => void;
 }
 
+interface IProgramGroup {
+  exerciseKey: string;
+  exerciseType: IExerciseType;
+  name: string;
+  exercises: IPlannerProgramExercise[];
+}
+
+type IListItem =
+  | { kind: "title" }
+  | { kind: "labelInput" }
+  | { kind: "currentExercise"; exerciseType: IExerciseType }
+  | { kind: "tabs" }
+  | { kind: "weekTabs" }
+  | { kind: "searchFilter" }
+  | { kind: "stickyChrome"; showTabs: boolean; sub: "search" | "weeks" | null }
+  | { kind: "customHeader" }
+  | { kind: "customExercise"; raw: ICustomExercise; exercise: IExercise; key: string }
+  | { kind: "builtinHeader" }
+  | { kind: "builtinExercise"; exercise: IExercise; key: string }
+  | { kind: "programGroup"; group: IProgramGroup }
+  | { kind: "programEmpty" }
+  | { kind: "templateForm" };
+
+interface ITabDef {
+  label: string;
+  index: number;
+}
+
 export function ExercisePickerMain(props: IProps): JSX.Element {
   const { evaluatedProgram, state, dispatch, settings, onStar, onChoose, usedExerciseTypes } = props;
   const { mode, search, filters, sort, showMuscles, exerciseType, selectedExercises, label, templateName } = state;
   const isStarred = !!filters.isStarred;
+  const selectedTab = state.selectedTab ?? 0;
+
   const title =
     mode === "workout"
       ? exerciseType
@@ -47,68 +124,140 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
       : exerciseType || templateName
         ? "Edit Exercise"
         : "Add Exercise";
-  const tabs = useMemo(() => {
-    const result: { label: string; children: () => JSX.Element }[] = [
-      {
-        label: mode === "workout" ? "Ad-hoc Exercise" : "Exercise",
-        children: () => (
-          <ExercisePickerAdhocExercises
-            onStar={onStar}
-            usedExerciseTypes={usedExerciseTypes}
-            mode={mode}
-            search={search}
-            filters={filters}
-            sort={sort}
-            showMuscles={showMuscles}
-            exerciseType={exerciseType}
-            selectedExercises={selectedExercises}
-            label={label}
-            settings={settings}
-            dispatch={dispatch}
-          />
-        ),
-      },
+
+  const tabs = useMemo<ITabDef[]>(() => {
+    if (mode === "workout") {
+      const result: ITabDef[] = [{ label: "Ad-hoc Exercise", index: 0 }];
+      if (evaluatedProgram) {
+        result.push({ label: "From Program", index: 1 });
+      }
+      return result;
+    }
+    return [
+      { label: "Exercise", index: 0 },
+      { label: "Template", index: 1 },
     ];
-    if (mode === "workout" && evaluatedProgram) {
-      result.push({
-        label: "From Program",
-        children: () => (
-          <ExercisePickerFromProgram
-            usedExerciseTypes={usedExerciseTypes}
-            mode={mode}
-            exerciseType={exerciseType}
-            selectedExercises={selectedExercises}
-            label={label}
-            dispatch={dispatch}
-            settings={settings}
-            evaluatedProgram={evaluatedProgram}
-          />
-        ),
-      });
+  }, [mode, evaluatedProgram]);
+
+  const weeks = evaluatedProgram?.weeks ?? [];
+  const [currentWeekIndex, setCurrentWeekIndex] = useState(0);
+  useEffect(() => {
+    if (currentWeekIndex >= weeks.length) {
+      setCurrentWeekIndex(0);
     }
-    if (mode === "program") {
-      result.push({
-        label: "Template",
-        children: () => <ExercisePickerTemplate dispatch={dispatch} templateName={templateName} />,
-      });
+  }, [weeks.length, currentWeekIndex]);
+
+  const isMultiselect = useMemo(
+    () => ExercisePickerUtils_getIsMultiselect({ mode, exerciseType }),
+    [mode, exerciseType]
+  );
+
+  const builtinExercises = useMemo(() => {
+    let result = Exercise_allExpanded({});
+    if (search) {
+      result = Exercise_filterExercises(result, search);
     }
+    result = ExercisePickerUtils_filterExercises(result, filters, settings);
+    if (filters.isStarred) {
+      result = result.filter((e) => settings.starredExercises?.[Exercise_toKey(e)]);
+    }
+    result = ExercisePickerUtils_sortExercises(result, settings, { filters, sort, exerciseType });
     return result;
-  }, [
-    mode,
-    search,
-    filters,
-    sort,
-    showMuscles,
-    exerciseType,
-    selectedExercises,
-    label,
-    templateName,
-    evaluatedProgram,
-    settings,
-    dispatch,
-    onStar,
-    usedExerciseTypes,
-  ]);
+  }, [search, filters, sort, settings, exerciseType]);
+
+  const customExercises = useMemo(() => {
+    let exercises = settings.exercises;
+    if (search) {
+      exercises = Exercise_filterCustomExercises(exercises, search);
+    }
+    exercises = ExercisePickerUtils_filterCustomExercises(exercises, filters);
+    let list = CollectionUtils_compact(ObjectUtils_values(exercises));
+    if (filters.isStarred) {
+      list = list.filter((e) => settings.starredExercises?.[Exercise_toKey(e)]);
+    }
+    list = list.filter((e) => !e.isDeleted);
+    list = ExercisePickerUtils_sortCustomExercises(list, settings, { filters, sort, exerciseType });
+    return list.map((raw) => ({
+      raw,
+      key: Exercise_toKey(raw),
+      exercise: Exercise_get({ id: raw.id }, settings.exercises),
+    }));
+  }, [settings, search, filters, sort, exerciseType]);
+
+  const currentWeek: IEvaluatedProgramWeek | undefined = weeks[currentWeekIndex] ?? weeks[0];
+  const programGroups = useMemo<IProgramGroup[]>(() => {
+    if (!currentWeek) {
+      return [];
+    }
+    const grouped: Record<string, IPlannerProgramExercise[]> = {};
+    for (const day of currentWeek.days) {
+      for (const ex of day.exercises) {
+        if (!grouped[ex.key]) {
+          grouped[ex.key] = [];
+        }
+        grouped[ex.key].push(ex);
+      }
+    }
+    return ObjectUtils_keys(grouped)
+      .map((key) => {
+        const exs = grouped[key];
+        const first = exs[0];
+        if (first.exerciseType == null) {
+          return undefined;
+        }
+        return {
+          exerciseKey: key,
+          exerciseType: first.exerciseType,
+          name: first.name,
+          exercises: exs,
+        };
+      })
+      .filter((g): g is IProgramGroup => g != null);
+  }, [currentWeek]);
+
+  const usedKeys = useMemo(() => new Set(usedExerciseTypes.map((et) => Exercise_toKey(et))), [usedExerciseTypes]);
+
+  const selectedAdhocKeys = useMemo(
+    () => new Set(selectedExercises.filter((ex) => ex.type === "adhoc").map((ex) => Exercise_toKey(ex.exerciseType))),
+    [selectedExercises]
+  );
+
+  const selectedProgramKeys = useMemo(() => {
+    const keys = new Set<string>();
+    selectedExercises.forEach((ex) => {
+      if (ex.type === "program") {
+        keys.add(`${Exercise_toKey(ex.exerciseType)}_${ex.week}_${ex.dayInWeek}`);
+      }
+    });
+    return keys;
+  }, [selectedExercises]);
+
+  const selectedAnyKeys = useMemo(
+    () =>
+      new Set(
+        selectedExercises
+          .filter((ex) => "exerciseType" in ex)
+          .map((ex) => Exercise_toKey((ex as { exerciseType: IExerciseType }).exerciseType))
+      ),
+    [selectedExercises]
+  );
+
+  const chooseCtxRef = useRef({ mode, exerciseType, selectedExercises, label });
+  chooseCtxRef.current = { mode, exerciseType, selectedExercises, label };
+
+  const onChooseAdhoc = useCallback(
+    (key: string) => {
+      ExercisePickerUtils_chooseAdhocExercise(dispatch, key, chooseCtxRef.current);
+    },
+    [dispatch]
+  );
+
+  const onChooseProgram = useCallback(
+    (et: IExerciseType, week: number, dayInWeek: number) => {
+      ExercisePickerUtils_chooseProgramExercise(dispatch, et, week, dayInWeek, chooseCtxRef.current);
+    },
+    [dispatch]
+  );
 
   const onSettingsPress = useCallback(async () => {
     if (Platform.OS === "web") {
@@ -173,6 +322,20 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
     [dispatch]
   );
 
+  const onCreateCustom = useCallback(() => {
+    dispatch(
+      [
+        lb<IExercisePickerState>()
+          .p("editCustomExercise")
+          .record(Exercise_createCustomExercise("", [], [], [])),
+        lb<IExercisePickerState>()
+          .p("screenStack")
+          .recordModify((stack) => [...stack, "customExercise"]),
+      ],
+      "Navigate to create custom exercise screen"
+    );
+  }, [dispatch]);
+
   const onBottomClick = useCallback(() => {
     const isTemplateSave = state.mode === "program" && state.selectedTab === 1;
     if (isTemplateSave && state.templateName) {
@@ -188,36 +351,231 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
     }
   }, [state.mode, state.selectedTab, state.templateName, state.label, state.selectedExercises, onChoose]);
 
-  const bottomShadowStyle = useMemo(
-    () =>
-      Platform.select({
-        ios: { shadowColor: "#000", shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.05, shadowRadius: 4 },
-        android: { elevation: 4 },
-        default: { boxShadow: "0 -4px 4px 0 rgba(0, 0, 0, 0.05)" },
-      }),
+  const items = useMemo<IListItem[]>(() => {
+    const result: IListItem[] = [{ kind: "title" }];
+    if (mode === "program") {
+      result.push({ kind: "labelInput" });
+    }
+    if (exerciseType) {
+      result.push({ kind: "currentExercise", exerciseType });
+    }
+
+    const isAdhocTab = selectedTab === 0;
+    const isFromProgramTab = mode === "workout" && selectedTab === 1 && evaluatedProgram != null;
+    const isTemplateTab = mode === "program" && selectedTab === 1;
+    const showTabs = tabs.length > 1;
+
+    if (mode === "workout") {
+      const sub: "search" | "weeks" | null = isAdhocTab
+        ? "search"
+        : isFromProgramTab && weeks.length > 1
+          ? "weeks"
+          : null;
+      if (showTabs || sub != null) {
+        result.push({ kind: "stickyChrome", showTabs, sub });
+      }
+    } else {
+      if (showTabs) {
+        result.push({ kind: "tabs" });
+      }
+      if (isAdhocTab) {
+        result.push({ kind: "searchFilter" });
+      }
+    }
+
+    if (isFromProgramTab) {
+      if (weeks.length === 0) {
+        result.push({ kind: "programEmpty" });
+      } else {
+        for (const g of programGroups) {
+          result.push({ kind: "programGroup", group: g });
+        }
+      }
+    } else if (isTemplateTab) {
+      result.push({ kind: "templateForm" });
+    } else if (isAdhocTab) {
+      result.push({ kind: "customHeader" });
+      for (const c of customExercises) {
+        result.push({ kind: "customExercise", raw: c.raw, exercise: c.exercise, key: c.key });
+      }
+      result.push({ kind: "builtinHeader" });
+      for (const e of builtinExercises) {
+        result.push({ kind: "builtinExercise", exercise: e, key: Exercise_toKey(e) });
+      }
+    }
+    return result;
+  }, [
+    mode,
+    exerciseType,
+    tabs.length,
+    selectedTab,
+    evaluatedProgram,
+    weeks.length,
+    programGroups,
+    customExercises,
+    builtinExercises,
+  ]);
+
+  const stickyIndices = useMemo<number[] | undefined>(() => {
+    if (Platform.OS === "web") {
+      return undefined;
+    }
+    if (mode === "workout") {
+      const idx = items.findIndex((it) => it.kind === "stickyChrome");
+      return idx !== -1 ? [idx] : undefined;
+    }
+    if (mode === "program" && selectedTab === 0) {
+      const idx = items.findIndex((it) => it.kind === "searchFilter");
+      return idx !== -1 ? [idx] : undefined;
+    }
+    return undefined;
+  }, [items, mode, selectedTab]);
+
+  const keyExtractor = useCallback((item: IListItem) => {
+    switch (item.kind) {
+      case "title":
+        return "title";
+      case "labelInput":
+        return "labelInput";
+      case "currentExercise":
+        return "currentExercise";
+      case "tabs":
+        return "tabs";
+      case "weekTabs":
+        return "weekTabs";
+      case "searchFilter":
+        return "searchFilter";
+      case "stickyChrome":
+        return "stickyChrome";
+      case "customHeader":
+        return "customHeader";
+      case "customExercise":
+        return `custom-${item.raw.id}`;
+      case "builtinHeader":
+        return "builtinHeader";
+      case "builtinExercise":
+        return `builtin-${item.key}`;
+      case "programGroup":
+        return `programGroup-${item.group.exerciseKey}`;
+      case "programEmpty":
+        return "programEmpty";
+      case "templateForm":
+        return "templateForm";
+    }
+  }, []);
+
+  const getItemType = useCallback((item: IListItem) => item.kind, []);
+
+  const getEstimatedItemSize = useCallback((_index: number, item: IListItem) => {
+    switch (item.kind) {
+      case "title":
+        return 44;
+      case "labelInput":
+        return 64;
+      case "currentExercise":
+        return 100;
+      case "tabs":
+        return 44;
+      case "weekTabs":
+        return 48;
+      case "searchFilter":
+        return 92;
+      case "stickyChrome": {
+        const tabsHeight = item.showTabs ? 44 : 0;
+        const subHeight = item.sub === "search" ? 92 : item.sub === "weeks" ? 48 : 0;
+        return tabsHeight + subHeight || 44;
+      }
+      case "customHeader":
+      case "builtinHeader":
+        return 44;
+      case "customExercise":
+      case "builtinExercise":
+        return 72;
+      case "programGroup":
+        return 140;
+      case "programEmpty":
+        return 60;
+      case "templateForm":
+        return 220;
+    }
+  }, []);
+
+  const scrollY = useSharedValue(0);
+  const titleHeight = useSharedValue(0);
+  const labelHeight = useSharedValue(0);
+  const currentExHeight = useSharedValue(0);
+  const tabsHeight = useSharedValue(0);
+  const onAnimatedScroll = useAnimatedScrollHandler({
+    onScroll: (e) => {
+      scrollY.value = e.contentOffset.y;
+    },
+  });
+  const captureHeight = useCallback(
+    (sv: typeof scrollY) => (e: { nativeEvent: { layout: { height: number } } }) => {
+      sv.value = e.nativeEvent.layout.height;
+    },
     []
   );
+  const onTitleLayout = useMemo(() => captureHeight(titleHeight), [captureHeight, titleHeight]);
+  const onLabelLayout = useMemo(() => captureHeight(labelHeight), [captureHeight, labelHeight]);
+  const onCurrentExLayout = useMemo(() => captureHeight(currentExHeight), [captureHeight, currentExHeight]);
+  const onTabsLayout = useMemo(() => captureHeight(tabsHeight), [captureHeight, tabsHeight]);
+  const stickyShadowStyle = useAnimatedStyle(() => {
+    const top = titleHeight.value + labelHeight.value + currentExHeight.value + tabsHeight.value;
+    const t = top > 0 ? interpolate(scrollY.value, [top - 4, top + 4], [0, 1], Extrapolation.CLAMP) : 0;
+    if (Platform.OS === "ios") {
+      return { shadowOpacity: t * 0.12 };
+    }
+    if (Platform.OS === "android") {
+      return { elevation: t * 4 };
+    }
+    return { opacity: 1 };
+  });
+  const stickyLabelStyle = useAnimatedStyle(() => {
+    if (currentExHeight.value === 0) {
+      return { opacity: 0, transform: [{ translateY: 0 }] };
+    }
+    const cardTop = titleHeight.value + labelHeight.value;
+    const cardBottom = cardTop + currentExHeight.value;
+    const t = interpolate(scrollY.value, [cardTop, cardBottom], [0, 1], Extrapolation.CLAMP);
+    return { opacity: t, transform: [{ translateY: (1 - t) * 6 }] };
+  });
 
-  return (
-    <View className="flex-1">
-      <SheetDragHandle>
-        <View className="relative py-1">
-          <Text className="px-4 py-2 font-bold text-center">{title}</Text>
-          <View className="absolute flex-row top-3 left-4">
-            <Pressable className="px-2" onPress={onSettingsPress}>
-              <IconFilter />
-            </Pressable>
-          </View>
-          <View className="absolute flex-row items-center top-3 right-4">
-            <Pressable className="px-2" onPress={onToggleMuscles}>
-              <IconMuscles2 color={Tailwind_semantic().icon.purple} isSelected={showMuscles} />
-            </Pressable>
-            <Pressable className="px-2" onPress={onToggleStarred}>
-              <IconStar isSelected={isStarred} color={Tailwind_semantic().icon.purple} />
-            </Pressable>
-          </View>
-          {state.mode === "program" && (
-            <View className="px-4 pb-1">
+  const currentExerciseName = useMemo(() => {
+    if (!exerciseType) {
+      return "";
+    }
+    const ex = Exercise_get(exerciseType, settings.exercises);
+    return Exercise_fullName(ex, settings);
+  }, [exerciseType, settings]);
+
+  const renderItem = useCallback(
+    ({ item }: { item: IListItem }) => {
+      switch (item.kind) {
+        case "title":
+          return (
+            <SheetDragHandle>
+              <View className="relative py-1" onLayout={onTitleLayout}>
+                <Text className="px-4 py-2 font-bold text-center">{title}</Text>
+                <View className="absolute flex-row top-3 left-4">
+                  <Pressable className="px-2" onPress={onSettingsPress}>
+                    <IconFilter />
+                  </Pressable>
+                </View>
+                <View className="absolute flex-row items-center top-3 right-4">
+                  <Pressable className="px-2" onPress={onToggleMuscles}>
+                    <IconMuscles2 color={Tailwind_semantic().icon.purple} isSelected={showMuscles} />
+                  </Pressable>
+                  <Pressable className="px-2" onPress={onToggleStarred}>
+                    <IconStar isSelected={isStarred} color={Tailwind_semantic().icon.purple} />
+                  </Pressable>
+                </View>
+              </View>
+            </SheetDragHandle>
+          );
+        case "labelInput":
+          return (
+            <View className="px-4 pb-1" onLayout={onLabelLayout}>
               <Input
                 label="Label"
                 defaultValue={state.label}
@@ -230,33 +588,652 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
                 changeHandler={onLabelChange}
               />
             </View>
-          )}
-          {state.exerciseType && (
-            <View className="pt-2">
-              <ExercisePickerCurrentExercise state={state} exerciseType={state.exerciseType} settings={settings} />
+          );
+        case "currentExercise":
+          return (
+            <View className="pt-2" onLayout={onCurrentExLayout}>
+              <ExercisePickerCurrentExercise state={state} exerciseType={item.exerciseType} settings={settings} />
             </View>
-          )}
-        </View>
-      </SheetDragHandle>
+          );
+        case "tabs":
+          return (
+            <View onLayout={onTabsLayout}>
+              <TabsRow tabs={tabs} selectedTab={selectedTab} onTabChange={onTabChange} />
+            </View>
+          );
+        case "weekTabs":
+          return <WeekTabsRow weeks={weeks} currentWeekIndex={currentWeekIndex} onChange={setCurrentWeekIndex} />;
+        case "searchFilter":
+          return (
+            <Animated.View
+              className="bg-background-default"
+              style={[
+                Platform.select({
+                  ios: { shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowRadius: 4 },
+                  android: {},
+                  default: {},
+                }),
+                stickyShadowStyle,
+              ]}
+            >
+              {exerciseType != null && (
+                <Animated.View
+                  pointerEvents="none"
+                  style={[{ height: 18, justifyContent: "flex-end" }, stickyLabelStyle]}
+                >
+                  <Text numberOfLines={1} className="px-4 text-xs text-center text-text-secondary">
+                    <Text className="text-xs text-text-secondary">Current Exercise: </Text>
+                    <Text className="text-xs font-bold">{currentExerciseName}</Text>
+                  </Text>
+                </Animated.View>
+              )}
+              <SearchAndFilter dispatch={dispatch} search={search} sort={sort} filters={filters} settings={settings} />
+            </Animated.View>
+          );
+        case "stickyChrome":
+          return (
+            <Animated.View
+              className="bg-background-default"
+              style={[
+                Platform.select({
+                  ios: { shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowRadius: 4 },
+                  android: {},
+                  default: {},
+                }),
+                stickyShadowStyle,
+              ]}
+            >
+              {exerciseType != null && (
+                <Animated.View
+                  pointerEvents="none"
+                  style={[{ height: 18, justifyContent: "flex-end" }, stickyLabelStyle]}
+                >
+                  <Text numberOfLines={1} className="px-4 text-xs text-center text-text-secondary">
+                    <Text className="text-xs text-text-secondary">Current Exercise: </Text>
+                    <Text className="text-xs font-bold">{currentExerciseName}</Text>
+                  </Text>
+                </Animated.View>
+              )}
+              {item.showTabs && <TabsRow tabs={tabs} selectedTab={selectedTab} onTabChange={onTabChange} />}
+              {item.sub === "search" && (
+                <SearchAndFilter
+                  dispatch={dispatch}
+                  search={search}
+                  sort={sort}
+                  filters={filters}
+                  settings={settings}
+                />
+              )}
+              {item.sub === "weeks" && (
+                <WeekTabsRow weeks={weeks} currentWeekIndex={currentWeekIndex} onChange={setCurrentWeekIndex} />
+              )}
+            </Animated.View>
+          );
+        case "customHeader":
+          return (
+            <View className="py-2">
+              <GroupHeader
+                isExpanded={true}
+                leftExpandIcon={true}
+                name="Custom Exercises"
+                headerClassName="mx-4"
+                rightAddOn={
+                  <LinkButton
+                    className="text-xs"
+                    data-testid="custom-exercise-create"
+                    testID="custom-exercise-create"
+                    name="create-custom-exercise"
+                    onPress={onCreateCustom}
+                  >
+                    Create
+                  </LinkButton>
+                }
+              />
+            </View>
+          );
+        case "customExercise": {
+          const isSelectedAlready = selectedAnyKeys.has(item.key);
+          const isUsedForDay = usedKeys.has(item.key);
+          const isSelected = selectedAdhocKeys.has(item.key);
+          return (
+            <CustomExerciseRow
+              rawExercise={item.raw}
+              exercise={item.exercise}
+              isSelected={isSelected}
+              isEnabled={!isUsedForDay && (!isMultiselect || !isSelectedAlready)}
+              isMultiselect={isMultiselect}
+              showMuscles={showMuscles}
+              currentExerciseType={exerciseType}
+              settings={settings}
+              dispatch={dispatch}
+              onChoose={onChooseAdhoc}
+              onStar={onStar}
+            />
+          );
+        }
+        case "builtinHeader":
+          return (
+            <View className="py-2">
+              <GroupHeader isExpanded={true} leftExpandIcon={true} name="Built-in Exercises" headerClassName="mx-4" />
+            </View>
+          );
+        case "builtinExercise": {
+          const e = item.exercise;
+          const key = item.key;
+          const isUsedForDay = usedKeys.has(key);
+          const isSelectedAlready = selectedAnyKeys.has(key);
+          const isSelected = selectedAdhocKeys.has(key);
+          const testId = `menu-item-${StringUtils_dashcase(e.name)}${
+            e.equipment ? `-${StringUtils_dashcase(e.equipment)}` : ""
+          }`;
+          return (
+            <View
+              data-testid={testId}
+              testID={testId}
+              className={`w-full py-1 pl-4 pr-2 border-b border-border-neutral ${
+                isSelected ? "bg-background-purpledark" : ""
+              }`}
+            >
+              <ExercisePickerExerciseItem
+                onStar={onStar}
+                isMultiselect={isMultiselect}
+                isEnabled={!isUsedForDay && (!isMultiselect || !isSelectedAlready)}
+                isSelected={isSelected}
+                onChoose={onChooseAdhoc}
+                showMuscles={showMuscles}
+                settings={settings}
+                currentExerciseType={exerciseType}
+                exercise={e}
+              />
+            </View>
+          );
+        }
+        case "programGroup":
+          return (
+            <ProgramExerciseGroupCard
+              group={item.group}
+              isMultiselect={isMultiselect}
+              selectedProgramKeys={selectedProgramKeys}
+              selectedAnyKeys={selectedAnyKeys}
+              usedKeys={usedKeys}
+              settings={settings}
+              onChoose={onChooseProgram}
+            />
+          );
+        case "programEmpty":
+          return (
+            <View className="px-4 py-6">
+              <Text className="text-sm text-center text-text-secondary">No weeks available in the program.</Text>
+            </View>
+          );
+        case "templateForm":
+          return <ExercisePickerTemplate dispatch={dispatch} templateName={templateName} />;
+      }
+    },
+    [
+      title,
+      onSettingsPress,
+      onToggleMuscles,
+      onToggleStarred,
+      showMuscles,
+      isStarred,
+      state,
+      onLabelChange,
+      settings,
+      tabs,
+      selectedTab,
+      onTabChange,
+      weeks,
+      currentWeekIndex,
+      dispatch,
+      search,
+      sort,
+      filters,
+      onCreateCustom,
+      selectedAnyKeys,
+      usedKeys,
+      selectedAdhocKeys,
+      isMultiselect,
+      exerciseType,
+      onChooseAdhoc,
+      onStar,
+      selectedProgramKeys,
+      onChooseProgram,
+      templateName,
+      stickyShadowStyle,
+      stickyLabelStyle,
+      currentExerciseName,
+      onTitleLayout,
+      onLabelLayout,
+      onCurrentExLayout,
+      onTabsLayout,
+    ]
+  );
+
+  const bottomShadowStyle = useMemo(
+    () =>
+      Platform.select({
+        ios: { shadowColor: "#000", shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.05, shadowRadius: 4 },
+        android: { elevation: 4 },
+        default: { boxShadow: "0 -4px 4px 0 rgba(0, 0, 0, 0.05)" },
+      }),
+    []
+  );
+
+  const listExtraData = useMemo(
+    () => ({
+      selectedAdhocKeys,
+      selectedProgramKeys,
+      selectedAnyKeys,
+      usedKeys,
+      isMultiselect,
+      showMuscles,
+      currentExerciseName,
+    }),
+    [selectedAdhocKeys, selectedProgramKeys, selectedAnyKeys, usedKeys, isMultiselect, showMuscles, currentExerciseName]
+  );
+
+  return (
+    <View className="flex-1">
       <View className="flex-1">
-        {tabs.length > 1 ? (
-          <ScrollableTabs
-            topPadding="0rem"
-            shouldNotExpand={true}
-            fillHeight={true}
-            defaultIndex={state.selectedTab ?? 0}
-            nonSticky={true}
-            onChange={onTabChange}
-            color="purple"
-            tabs={tabs}
-          />
-        ) : (
-          <View className="flex-1">{tabs[0].children()}</View>
-        )}
+        <AnimatedLegendList
+          data={items}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
+          getItemType={getItemType}
+          getEstimatedItemSize={getEstimatedItemSize}
+          stickyIndices={stickyIndices}
+          extraData={listExtraData}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingBottom: 16 }}
+          onScroll={onAnimatedScroll}
+        />
       </View>
       <View className="w-full px-4 pt-2 pb-2" style={bottomShadowStyle}>
         <BottomButton state={state} evaluatedProgram={evaluatedProgram} onClick={onBottomClick} settings={settings} />
       </View>
+    </View>
+  );
+}
+
+interface ITabsRowProps {
+  tabs: ITabDef[];
+  selectedTab: number;
+  onTabChange: (tab: number) => void;
+}
+
+const TabsRow = memo(function TabsRow(props: ITabsRowProps): JSX.Element {
+  const { tabs, selectedTab, onTabChange } = props;
+  const activeColor = Tailwind_semantic().button.secondarystroke;
+  return (
+    <View className="flex-row bg-background-default">
+      {tabs.map((tab) => {
+        const isSelected = selectedTab === tab.index;
+        const nameClass = `tab-${StringUtils_dashcase(tab.label.toLowerCase())}`;
+        return (
+          <View
+            key={tab.label}
+            className="items-center border-b border-border-neutral"
+            style={{ flexGrow: 1, flexShrink: 0, flexBasis: "auto" }}
+          >
+            <Pressable
+              className="px-4 pb-1 pt-2"
+              style={isSelected ? { borderBottomWidth: 2, borderBottomColor: activeColor } : undefined}
+              data-testid={nameClass}
+              testID={nameClass}
+              onPress={() => onTabChange(tab.index)}
+            >
+              <Text numberOfLines={1} className={`text-base ${isSelected ? "text-text-purple" : ""}`}>
+                {tab.label}
+              </Text>
+            </Pressable>
+          </View>
+        );
+      })}
+    </View>
+  );
+});
+
+interface IWeekTabsRowProps {
+  weeks: IEvaluatedProgramWeek[];
+  currentWeekIndex: number;
+  onChange: (index: number) => void;
+}
+
+const WeekTabsRow = memo(function WeekTabsRow(props: IWeekTabsRowProps): JSX.Element {
+  const { weeks, currentWeekIndex, onChange } = props;
+  return (
+    <View className="bg-background-default">
+      <Scroller>
+        <View className="flex-row gap-2 px-4 py-2">
+          {weeks.map((week, i) => {
+            const isSelected = currentWeekIndex === i;
+            const nameClass = `week-tab-${StringUtils_dashcase(week.name.toLowerCase())}`;
+            return (
+              <Pressable
+                key={`${i}-${week.name}`}
+                className={`px-3 py-2 rounded ${
+                  isSelected
+                    ? "bg-background-default border border-button-primarybackground"
+                    : "bg-background-subtle border border-background-default"
+                }`}
+                data-testid={nameClass}
+                testID={nameClass}
+                onPress={() => onChange(i)}
+              >
+                <Text className={`text-sm ${isSelected ? "text-text-purple" : "text-text-secondary"}`}>
+                  {week.name}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </Scroller>
+    </View>
+  );
+});
+
+interface ISearchAndFilterProps {
+  dispatch: ILensDispatch<IExercisePickerState>;
+  settings: ISettings;
+  search?: string;
+  sort: IExercisePickerState["sort"];
+  filters: IExercisePickerState["filters"];
+}
+
+const SearchAndFilter = memo(function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
+  const { dispatch, search, sort, filters, settings } = props;
+  const filterNames = useMemo(() => ExercisePickerUtils_getAllFilterNames(filters, settings), [filters, settings]);
+  const isFiltered = filterNames.length > 0;
+
+  const [localSearch, setLocalSearch] = useState<string>(search ?? "");
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+  useEffect(() => {
+    if (timeoutRef.current == null && (search ?? "") !== localSearch) {
+      setLocalSearch(search ?? "");
+    }
+  }, [search, localSearch]);
+
+  const onChangeText = useCallback(
+    (value: string) => {
+      setLocalSearch(value);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        dispatch(lb<IExercisePickerState>().p("search").record(value), "Update search input");
+        timeoutRef.current = null;
+      }, 200);
+    },
+    [dispatch]
+  );
+
+  const onFilterPress = useCallback(() => {
+    dispatch(
+      lb<IExercisePickerState>()
+        .p("screenStack")
+        .recordModify((stack) => [...stack, "filter"]),
+      "Navigate to filter picker screen"
+    );
+  }, [dispatch]);
+
+  const onClearFilters = useCallback(
+    () => dispatch(lb<IExercisePickerState>().p("filters").record({}), "Clear filters"),
+    [dispatch]
+  );
+
+  return (
+    <View className="my-1">
+      <View className="flex-row items-center gap-2 mx-4">
+        <View className="flex-row items-center flex-1 gap-2 p-2 rounded-lg bg-background-neutral">
+          <IconMagnifyingGlass size={18} color={Tailwind_colors().lightgray[600]} />
+          <TextInput
+            placeholder="Search by name"
+            placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
+            className="flex-1 text-sm text-text-secondary"
+            style={{ paddingVertical: 0, includeFontPadding: false }}
+            data-testid="exercise-filter-by-name"
+            testID="exercise-filter-by-name"
+            value={localSearch}
+            onChangeText={onChangeText}
+          />
+        </View>
+        <Pressable
+          className={`flex-row items-center gap-1 py-1 border rounded-lg ${
+            isFiltered ? "border-button-secondarystroke px-2" : "px-4 border-border-neutral"
+          }`}
+          onPress={onFilterPress}
+        >
+          {isFiltered && (
+            <View
+              className="items-center justify-center rounded-full bg-button-primarybackground"
+              style={{ width: 20, height: 20 }}
+            >
+              <Text className="text-xs font-semibold text-text-alwayswhite">{filterNames.length}</Text>
+            </View>
+          )}
+          <IconFilter2 color={isFiltered ? Tailwind_semantic().icon.purple : Tailwind_semantic().icon.neutral} />
+        </Pressable>
+      </View>
+      <View className="mx-4">
+        <Text className="text-xs text-text-secondary">
+          <Text className="text-xs text-text-secondary">Sorted by: </Text>
+          <Text className="text-xs font-bold text-text-secondary">{exercisePickerSortNames[sort]}</Text>
+          {filterNames.length > 0 && (
+            <Text className="text-xs text-text-secondary">
+              {", Filters: "}
+              {filterNames.map((f, i) => (
+                <Fragment key={i}>
+                  {i > 0 ? ", " : ""}
+                  <Text className="text-xs font-bold text-text-secondary">{f}</Text>
+                </Fragment>
+              ))}
+            </Text>
+          )}
+        </Text>
+        {filterNames.length > 0 && (
+          <LinkButton name="clear-filters" className="text-xs" onPress={onClearFilters}>
+            Clear
+          </LinkButton>
+        )}
+      </View>
+    </View>
+  );
+});
+
+interface ICustomExerciseRowProps {
+  rawExercise: ICustomExercise;
+  exercise: IExercise;
+  isSelected: boolean;
+  isEnabled: boolean;
+  isMultiselect: boolean;
+  showMuscles?: boolean;
+  currentExerciseType?: IExerciseType;
+  settings: ISettings;
+  dispatch: ILensDispatch<IExercisePickerState>;
+  onChoose: (key: string) => void;
+  onStar: (key: string) => void;
+}
+
+const CustomExerciseRow = memo(function CustomExerciseRow(props: ICustomExerciseRowProps): JSX.Element {
+  const { rawExercise, dispatch } = props;
+  const onEdit = useCallback(() => {
+    dispatch(
+      [
+        lb<IExercisePickerState>()
+          .p("screenStack")
+          .recordModify((stack) => [...stack, "customExercise"]),
+        lb<IExercisePickerState>().p("editCustomExercise").record(ObjectUtils_clone(rawExercise)),
+      ],
+      `Navigate to edit custom exercise screen for ${rawExercise.name}`
+    );
+  }, [dispatch, rawExercise]);
+
+  return (
+    <View
+      data-testid={`menu-item-${rawExercise.id}`}
+      testID={`menu-item-${rawExercise.id}`}
+      className={`w-full py-1 pl-4 pr-2 border-b border-border-neutral ${
+        props.isSelected ? "bg-background-purpledark" : ""
+      }`}
+    >
+      <ExercisePickerExerciseItem
+        onStar={props.onStar}
+        isMultiselect={props.isMultiselect}
+        isEnabled={props.isEnabled}
+        showMuscles={props.showMuscles}
+        settings={props.settings}
+        currentExerciseType={props.currentExerciseType}
+        exercise={props.exercise}
+        isSelected={props.isSelected}
+        onChoose={props.onChoose}
+        onEdit={onEdit}
+      />
+    </View>
+  );
+});
+
+interface IProgramGroupCardProps {
+  group: IProgramGroup;
+  isMultiselect: boolean;
+  selectedProgramKeys: Set<string>;
+  selectedAnyKeys: Set<string>;
+  usedKeys: Set<string>;
+  settings: ISettings;
+  onChoose: (et: IExerciseType, week: number, dayInWeek: number) => void;
+}
+
+const ProgramExerciseGroupCard = memo(function ProgramExerciseGroupCard(props: IProgramGroupCardProps): JSX.Element {
+  const { group, isMultiselect, selectedProgramKeys, selectedAnyKeys, usedKeys, settings, onChoose } = props;
+  const isAllDisabled = group.exercises.every((exercise) => {
+    const et = exercise.exerciseType;
+    if (et == null) {
+      return true;
+    }
+    const key = Exercise_toKey(et);
+    const selKey = `${key}_${exercise.dayData.week}_${exercise.dayData.dayInWeek}`;
+    const isSelected = selectedProgramKeys.has(selKey);
+    const isDisabled = selectedAnyKeys.has(key);
+    const isUsedForDay = usedKeys.has(key);
+    return isMultiselect ? isUsedForDay || (isDisabled && !isSelected) : isUsedForDay;
+  });
+
+  return (
+    <View
+      className={`flex-row gap-2 px-2 pb-2 mb-4 border-b border-background-subtle ${isAllDisabled ? "opacity-40" : ""}`}
+    >
+      <View className="pl-1">
+        <View className="p-1 rounded-lg bg-background-image">
+          <ExerciseImage settings={settings} exerciseType={group.exerciseType} size="small" className="w-10" />
+        </View>
+      </View>
+      <View className="flex-1 pt-1">
+        <Text className="text-base font-semibold">{group.name}</Text>
+      </View>
+      <View>
+        {group.exercises.map((exercise) => {
+          const et = exercise.exerciseType;
+          if (et == null) {
+            return null;
+          }
+          const key = Exercise_toKey(et);
+          const selKey = `${key}_${exercise.dayData.week}_${exercise.dayData.dayInWeek}`;
+          const isSelected = selectedProgramKeys.has(selKey);
+          const isDisabled = selectedAnyKeys.has(key);
+          const isUsedForDay = usedKeys.has(key);
+          const isItemDisabled = isMultiselect ? isUsedForDay || (isDisabled && !isSelected) : isUsedForDay;
+          const rowKey = `${exercise.key}_${exercise.dayData.week}_${exercise.dayData.dayInWeek}`;
+          return (
+            <ProgramExerciseRow
+              key={rowKey}
+              exercise={exercise}
+              exerciseType={et}
+              isMultiselect={isMultiselect}
+              isSelected={isSelected}
+              isItemDisabled={isItemDisabled}
+              isAllDisabled={isAllDisabled}
+              settings={settings}
+              onChoose={onChoose}
+            />
+          );
+        })}
+      </View>
+    </View>
+  );
+});
+
+interface IProgramExerciseRowProps {
+  exercise: IPlannerProgramExercise;
+  exerciseType: IExerciseType;
+  isMultiselect: boolean;
+  isSelected: boolean;
+  isItemDisabled: boolean;
+  isAllDisabled: boolean;
+  settings: ISettings;
+  onChoose: (et: IExerciseType, week: number, dayInWeek: number) => void;
+}
+
+const ProgramExerciseRow = memo(function ProgramExerciseRow(props: IProgramExerciseRowProps): JSX.Element {
+  const { exercise, exerciseType, isMultiselect, isSelected, isItemDisabled, isAllDisabled, settings, onChoose } =
+    props;
+  const choose = useCallback(() => {
+    onChoose(exerciseType, exercise.dayData.week, exercise.dayData.dayInWeek);
+  }, [onChoose, exerciseType, exercise.dayData.week, exercise.dayData.dayInWeek]);
+
+  const displayGroups = useMemo(() => {
+    const currentSetVariation = PlannerProgramExercise_currentEvaluatedSetVariation(exercise);
+    return PlannerProgramExercise_evaluatedSetsToDisplaySets(currentSetVariation.sets, settings);
+  }, [exercise, settings]);
+
+  const testId = `exercise-picker-program-${StringUtils_dashcase(exercise.name)}-${exercise.dayData.week}-${exercise.dayData.dayInWeek}`;
+  const rowClassName = `justify-end flex-row pb-1 ${isItemDisabled && !isAllDisabled ? "opacity-40" : ""}`;
+
+  const dayContent = (
+    <View>
+      <Text className="px-1 pb-1 text-xs text-text-secondary">Day {exercise.dayData.dayInWeek}</Text>
+      {displayGroups.map((g, gi) => (
+        <HistoryRecordSet key={gi} sets={g} isNext={true} units={settings.units} />
+      ))}
+    </View>
+  );
+
+  if (isMultiselect) {
+    return (
+      <View className={rowClassName} data-testid={testId} testID={testId}>
+        <Pressable className="flex-row" disabled={isItemDisabled} onPress={choose}>
+          {dayContent}
+        </Pressable>
+        <Pressable className="items-center justify-center p-2" disabled={isItemDisabled} onPress={choose}>
+          <IconCheckCircle isChecked={isSelected} />
+        </Pressable>
+      </View>
+    );
+  }
+  return (
+    <Pressable className={rowClassName} disabled={isItemDisabled} data-testid={testId} testID={testId} onPress={choose}>
+      {dayContent}
+      <View className="items-center justify-center p-2">
+        <RadioIndicator checked={isSelected} />
+      </View>
+    </Pressable>
+  );
+});
+
+function RadioIndicator(props: { checked: boolean }): JSX.Element {
+  const color = Tailwind_semantic().icon.purple;
+  return (
+    <View
+      className="items-center justify-center border-2 rounded-full"
+      style={{ width: 20, height: 20, borderColor: props.checked ? color : Tailwind_semantic().border.prominent }}
+    >
+      {props.checked && <View className="rounded-full" style={{ width: 10, height: 10, backgroundColor: color }} />}
     </View>
   );
 }

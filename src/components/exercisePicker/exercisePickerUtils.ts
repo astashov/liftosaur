@@ -50,7 +50,7 @@ export function ExercisePickerUtils_getSelectedMuscleGroupNames(
 ): string[] {
   const currentGroups = Muscle_getAvailableMuscleGroups(settings).filter((muscleGroup) => {
     const muscles = Muscle_getMusclesFromScreenMuscle(muscleGroup, settings);
-    return muscles.every((muscle) => selectedValues.includes(muscle));
+    return muscles.length > 0 && muscles.every((muscle) => selectedValues.includes(muscle));
   });
   const currentMuscles = selectedValues.filter((muscle) => {
     const group = Muscle_getScreenMusclesFromMuscle(muscle, settings)?.[0];

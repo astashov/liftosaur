@@ -114,7 +114,9 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
   const initialHistoryRecordId = props.initialHistoryRecordId;
 
   const [initialScrollIndex, setInitialScrollIndex] = useState(() => {
-    if (initialHistoryRecordId == null) return 0;
+    if (initialHistoryRecordId == null) {
+      return 0;
+    }
     const idx = sortedHistory.findIndex((record) => record.id === initialHistoryRecordId);
     return idx >= 0 ? idx : 0;
   });

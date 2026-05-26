@@ -8,7 +8,9 @@ export function useTrackClick(): (name: string, className?: string) => void {
   const dispatch = useContext(ClickTrackingContext);
   return useCallback(
     (name: string, className?: string) => {
-      if (!dispatch) return;
+      if (!dispatch) {
+        return;
+      }
       const lsClass = className?.split(/\s+/).find((c) => c.startsWith("ls-"));
       const eventName = lsClass || `nm-${name}`;
       dispatch(Thunk_postevent("click-" + eventName));

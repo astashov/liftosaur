@@ -17,8 +17,8 @@ import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { ExerciseImage } from "../exerciseImage";
 import { IconEdit2 } from "../icons/iconEdit2";
 import { IconStar } from "../icons/iconStar";
+import { IconCheckCircle } from "../icons/iconCheckCircle";
 import { Muscle_getMusclesFromScreenMuscle, Muscle_getMuscleGroupName } from "../../models/muscle";
-import { Switch } from "../primitives/switch";
 
 interface IExerciseItemProps {
   exercise: IExercise;
@@ -113,17 +113,15 @@ export const ExercisePickerExerciseItem = memo(function ExercisePickerExerciseIt
         )}
         {onChoose &&
           (props.isMultiselect ? (
-            <View
+            <Pressable
               className="p-2"
+              disabled={isDisabled}
               data-testid={`menu-item-${StringUtils_dashcase(e.name)}`}
               testID={`menu-item-${StringUtils_dashcase(e.name)}`}
+              onPress={() => onChoose(Exercise_toKey(e))}
             >
-              <Switch
-                value={!!props.isSelected}
-                disabled={isDisabled}
-                onValueChange={() => onChoose(Exercise_toKey(e))}
-              />
-            </View>
+              <IconCheckCircle isChecked={!!props.isSelected} />
+            </Pressable>
           ) : (
             <Pressable
               className="p-2"

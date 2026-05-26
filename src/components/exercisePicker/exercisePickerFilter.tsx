@@ -10,6 +10,7 @@ import {
   IExercisePickerState,
   IScreenMuscle,
   ISettings,
+  screenMuscles,
 } from "../../types";
 import { IconBack } from "../icons/iconBack";
 import { ObjectUtils_values, ObjectUtils_entries } from "../../utils/object";
@@ -21,7 +22,11 @@ import { equipmentName } from "../../models/exercise";
 import { CollectionUtils_remove } from "../../utils/collection";
 import { StringUtils_capitalize } from "../../utils/string";
 import { ScrollableTabs } from "../scrollableTabs";
-import { Muscle_getAvailableMuscleGroups, Muscle_getMusclesFromScreenMuscle } from "../../models/muscle";
+import {
+  Muscle_getAvailableMuscleGroups,
+  Muscle_getMuscleGroupName,
+  Muscle_getMusclesFromScreenMuscle,
+} from "../../models/muscle";
 import { ExercisePickerUtils_getSelectedMuscleGroupNames } from "./exercisePickerUtils";
 import { ExercisePickerOptionsMuscles } from "./exercisePickerOptionsMuscles";
 import { ExercisePickerOptions } from "./exercisePickerOptions";
@@ -249,43 +254,53 @@ function FilterMuscles(props: IFilterMusclesProps): JSX.Element {
                 >(
                   (memo, muscleGroup) => {
                     const muscles = Muscle_getMusclesFromScreenMuscle(muscleGroup, props.settings);
+                    if (muscles.length === 0) {
+                      return memo;
+                    }
                     const isSelected = muscles.every((muscle) => selectedValues.includes(muscle));
-                    memo[muscleGroup] = { label: StringUtils_capitalize(muscleGroup), isSelected };
+                    memo[muscleGroup] = { label: Muscle_getMuscleGroupName(muscleGroup, props.settings), isSelected };
                     return memo;
                   },
                   {} as Record<IScreenMuscle, IFilterValue>
                 );
                 return (
                   <View className="flex-row flex-wrap mt-2" style={{ gap: 16 }}>
-                    {ObjectUtils_entries(muscleGroups).map(([key, value]) => (
-                      <Pressable
-                        key={key}
-                        className={`flex-row items-center gap-2 h-12 overflow-hidden rounded-lg bg-background-subtle ${
-                          value.isSelected ? "border-button-secondarystroke" : "border-border-neutral"
-                        }`}
-                        style={{ width: "47%", borderWidth: value.isSelected ? 2 : 1 }}
-                        onPress={() => {
-                          props.dispatch(
-                            lb<IExercisePickerState>()
-                              .p("filters")
-                              .p("muscles")
-                              .recordModify((muscles) => {
-                                const musclesOfMuscleGroup = Muscle_getMusclesFromScreenMuscle(key, props.settings);
-                                const isIncluded = musclesOfMuscleGroup.some((m) => selectedValues.includes(m));
-                                if (isIncluded) {
-                                  return muscles?.filter((muscle) => !musclesOfMuscleGroup.includes(muscle)) || [];
-                                } else {
-                                  return [...(muscles || []), ...musclesOfMuscleGroup];
-                                }
-                              }),
-                            `Set muscle group filter in exercise picker to ${key}`
-                          );
-                        }}
-                      >
-                        <MuscleGroupImage muscleGroup={key} size={61} />
-                        <Text className={`flex-1 ${value.isSelected ? "text-text-purple" : ""}`}>{value.label}</Text>
-                      </Pressable>
-                    ))}
+                    {ObjectUtils_entries(muscleGroups).map(([key, value]) => {
+                      const customMuscleGroup = !(screenMuscles as readonly string[]).includes(key);
+                      return (
+                        <Pressable
+                          key={key}
+                          className={`flex-row items-center gap-2 h-12 overflow-hidden rounded-lg bg-background-subtle ${
+                            value.isSelected ? "border-button-secondarystroke" : "border-border-neutral"
+                          }`}
+                          style={{ width: "47%", borderWidth: value.isSelected ? 2 : 1 }}
+                          onPress={() => {
+                            props.dispatch(
+                              lb<IExercisePickerState>()
+                                .p("filters")
+                                .p("muscles")
+                                .recordModify((muscles) => {
+                                  const musclesOfMuscleGroup = Muscle_getMusclesFromScreenMuscle(key, props.settings);
+                                  const isIncluded = musclesOfMuscleGroup.some((m) => selectedValues.includes(m));
+                                  if (isIncluded) {
+                                    return muscles?.filter((muscle) => !musclesOfMuscleGroup.includes(muscle)) || [];
+                                  } else {
+                                    return [...(muscles || []), ...musclesOfMuscleGroup];
+                                  }
+                                }),
+                              `Set muscle group filter in exercise picker to ${key}`
+                            );
+                          }}
+                        >
+                          {customMuscleGroup ? (
+                            <View style={{ width: 61 }} />
+                          ) : (
+                            <MuscleGroupImage muscleGroup={key} size={61} />
+                          )}
+                          <Text className={`flex-1 ${value.isSelected ? "text-text-purple" : ""}`}>{value.label}</Text>
+                        </Pressable>
+                      );
+                    })}
                   </View>
                 );
               },

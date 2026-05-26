@@ -1,5 +1,5 @@
 import { JSX, memo, useCallback, useEffect, useMemo, useRef } from "react";
-import { Pressable } from "react-native";
+import { Pressable, InteractionManager } from "react-native";
 import { IHistoryRecord, IProgram, ISettings, IStats, ISubscription } from "../types";
 import { IDispatch } from "../ducks/types";
 import { Program_evaluate, Program_getProgramDay } from "../models/program";
@@ -71,7 +71,6 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
         ],
         "Open exercise picker on workout start"
       );
-      navigateToModal("exercisePickerModal", { progressId: progress.id });
     }
   }, []);
 
@@ -88,10 +87,16 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
   const prevExercisePickerState = useRef<typeof exercisePickerState>(undefined);
   useEffect(() => {
     if (exercisePickerState && !prevExercisePickerState.current) {
-      navigateToModal("exercisePickerModal", { progressId: progress.id });
+      const progressId = progress.id;
+      const handle = InteractionManager.runAfterInteractions(() => {
+        navigateToModal("exercisePickerModal", { progressId });
+      });
+      prevExercisePickerState.current = exercisePickerState;
+      return () => handle.cancel();
     }
     prevExercisePickerState.current = exercisePickerState;
-  }, [exercisePickerState]);
+    return undefined;
+  }, [exercisePickerState, progress.id]);
 
   const editSetModal = progress.ui?.editSetModal;
   const prevEditSetModal = useRef<typeof editSetModal>(undefined);
