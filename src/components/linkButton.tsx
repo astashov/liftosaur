@@ -1,6 +1,7 @@
 import { JSX, ReactNode } from "react";
 import { GestureResponderEvent, Pressable } from "react-native";
 import { Text } from "./primitives/text";
+import { useTrackClick } from "../utils/clickTracking";
 
 interface IProps {
   name: string;
@@ -29,11 +30,17 @@ export function LinkButton(props: IProps): JSX.Element {
   const isNoUnderline = className?.includes("no-underline");
   const textCn = `text-text-link ${!isFontNormal ? "font-bold" : ""} ${!isNoUnderline ? "underline" : ""} ${className || ""}`;
   const accessibilityLabel = typeof children === "string" ? children : undefined;
+  const trackClick = useTrackClick();
+  const userOnPress = props.onPress || props.onClick;
+  const onPress = (e: GestureResponderEvent): void => {
+    trackClick(props.name, props.className);
+    userOnPress?.(e);
+  };
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      onPress={props.onPress || props.onClick}
+      onPress={onPress}
       testID={testID}
       data-testid={testID}
       disabled={props.disabled}

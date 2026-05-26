@@ -52,6 +52,7 @@ import { navigateToModal } from "../navigation/navigationService";
 import { getCurrentScreenData } from "../navigation/navigationService";
 import { StateContext } from "../navigation/StateContext";
 import { TrackedStateProvider } from "../navigation/TrackedStateContext";
+import { ClickTrackingContext } from "../utils/clickTracking";
 import { AppNavigator } from "../navigation/AppNavigator";
 import type { IScreen } from "../models/screen";
 
@@ -441,21 +442,23 @@ export function AppView(props: IProps): JSX.Element | null {
         />
         <StateContext.Provider value={{ state, dispatch }}>
           <TrackedStateProvider state={state} dispatch={dispatch}>
-            <ModalStateProvider>
-              <ActiveSheetHeightProvider>
-                <AppContext.Provider value={{ service, isApp: true }}>
-                  <NavigationContainer
-                    ref={navigationRef}
-                    onReady={() => setIsNavReady(true)}
-                    onStateChange={onNavigationStateChange}
-                    documentTitle={{ enabled: false }}
-                    theme={{ ...DefaultTheme, colors: { ...DefaultTheme.colors, background: "transparent" } }}
-                  >
-                    <AppNavigator initialScreen={initialScreen} />
-                  </NavigationContainer>
-                </AppContext.Provider>
-              </ActiveSheetHeightProvider>
-            </ModalStateProvider>
+            <ClickTrackingContext.Provider value={dispatch}>
+              <ModalStateProvider>
+                <ActiveSheetHeightProvider>
+                  <AppContext.Provider value={{ service, isApp: true }}>
+                    <NavigationContainer
+                      ref={navigationRef}
+                      onReady={() => setIsNavReady(true)}
+                      onStateChange={onNavigationStateChange}
+                      documentTitle={{ enabled: false }}
+                      theme={{ ...DefaultTheme, colors: { ...DefaultTheme.colors, background: "transparent" } }}
+                    >
+                      <AppNavigator initialScreen={initialScreen} />
+                    </NavigationContainer>
+                  </AppContext.Provider>
+                </ActiveSheetHeightProvider>
+              </ModalStateProvider>
+            </ClickTrackingContext.Provider>
           </TrackedStateProvider>
         </StateContext.Provider>
         {progress && currentScreenName && screensWithoutTimer.indexOf(currentScreenName) === -1 && (

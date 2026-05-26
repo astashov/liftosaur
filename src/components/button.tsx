@@ -1,6 +1,7 @@
 import { JSX, ReactNode } from "react";
 import { GestureResponderEvent, Pressable } from "react-native";
 import { Text } from "./primitives/text";
+import { useTrackClick } from "../utils/clickTracking";
 
 function containsString(children: ReactNode): boolean {
   if (typeof children === "string" || typeof children === "number") {
@@ -102,12 +103,18 @@ export function Button(props: IProps): JSX.Element {
   containerCn += ` nm-${props.name}`;
 
   const accessibilityLabel = typeof children === "string" ? children : undefined;
+  const trackClick = useTrackClick();
+  const userOnPress = props.onPress || props.onClick;
+  const onPress = (e: GestureResponderEvent): void => {
+    trackClick(props.name, props.className);
+    userOnPress?.(e);
+  };
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       className={containerCn}
-      onPress={props.onPress || props.onClick}
+      onPress={onPress}
       disabled={disabled}
       testID={testID}
       data-testid={testID}

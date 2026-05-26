@@ -170,6 +170,7 @@ import { AsyncQueue } from "./utils/asyncQueue";
 import { StateContext } from "./navigation/StateContext";
 import { TrackedStateProvider } from "./navigation/TrackedStateContext";
 import { ModalStateProvider } from "./navigation/ModalStateContext";
+import { ClickTrackingContext } from "./utils/clickTracking";
 import { ActiveSheetHeightProvider } from "./navigation/ActiveSheetHeightContext";
 import { CustomKeyboardProvider } from "./navigation/CustomKeyboardContext";
 import { AppNavigator } from "./navigation/AppNavigator";
@@ -544,39 +545,41 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
     <AppContext.Provider value={{ service, isApp: true }}>
       <StateContext.Provider value={{ state, dispatch }}>
         <TrackedStateProvider state={state} dispatch={dispatch}>
-          <ModalStateProvider>
-            <ActiveSheetHeightProvider>
-              <CustomKeyboardProvider>
-                <SystemBars style="auto" />
-                <NavigationContainer
-                  ref={navigationRef}
-                  theme={transparentNavTheme}
-                  onStateChange={() => {
-                    const route = navigationRef.getCurrentRoute();
-                    setCurrentScreenName(route?.name as IScreen | undefined);
-                    PerfNavTracker_handleStateChange(route?.name);
-                  }}
-                  onReady={() => {
-                    const route = navigationRef.getCurrentRoute();
-                    setCurrentScreenName(route?.name as IScreen | undefined);
-                    setIsNavReady(true);
-                    PerfNavTracker_handleStateChange(route?.name);
-                  }}
-                >
-                  <AppNavigator initialScreen={initialScreen} />
-                </NavigationContainer>
-                {progress && currentScreenName && screensWithoutTimer.indexOf(currentScreenName) === -1 && (
-                  <RestTimer
-                    progress={progress}
-                    dispatch={dispatch}
-                    settings={state.storage.settings}
-                    subscription={state.storage.subscription}
-                  />
-                )}
-                <ActionSheetHost />
-              </CustomKeyboardProvider>
-            </ActiveSheetHeightProvider>
-          </ModalStateProvider>
+          <ClickTrackingContext.Provider value={dispatch}>
+            <ModalStateProvider>
+              <ActiveSheetHeightProvider>
+                <CustomKeyboardProvider>
+                  <SystemBars style="auto" />
+                  <NavigationContainer
+                    ref={navigationRef}
+                    theme={transparentNavTheme}
+                    onStateChange={() => {
+                      const route = navigationRef.getCurrentRoute();
+                      setCurrentScreenName(route?.name as IScreen | undefined);
+                      PerfNavTracker_handleStateChange(route?.name);
+                    }}
+                    onReady={() => {
+                      const route = navigationRef.getCurrentRoute();
+                      setCurrentScreenName(route?.name as IScreen | undefined);
+                      setIsNavReady(true);
+                      PerfNavTracker_handleStateChange(route?.name);
+                    }}
+                  >
+                    <AppNavigator initialScreen={initialScreen} />
+                  </NavigationContainer>
+                  {progress && currentScreenName && screensWithoutTimer.indexOf(currentScreenName) === -1 && (
+                    <RestTimer
+                      progress={progress}
+                      dispatch={dispatch}
+                      settings={state.storage.settings}
+                      subscription={state.storage.subscription}
+                    />
+                  )}
+                  <ActionSheetHost />
+                </CustomKeyboardProvider>
+              </ActiveSheetHeightProvider>
+            </ModalStateProvider>
+          </ClickTrackingContext.Provider>
         </TrackedStateProvider>
       </StateContext.Provider>
     </AppContext.Provider>
