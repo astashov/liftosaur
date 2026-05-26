@@ -183,6 +183,11 @@ function HomeStackScreen(): JSX.Element {
         getId={({ params }) => String(params?.id ?? 0)}
         options={{ headerShown: true, header: NavHeader }}
       />
+      <ProgramStack.Screen
+        name="exerciseStats"
+        component={NavScreenExerciseStats}
+        options={{ headerShown: true, header: NavHeader }}
+      />
     </HomeStack.Navigator>
   );
 }
@@ -279,7 +284,11 @@ const tabScreenOptions = { headerShown: false, animation: "fade" as const };
 
 function MainTabsScreen(): JSX.Element {
   return (
-    <Tab.Navigator screenOptions={tabScreenOptions} tabBar={(tabProps) => <Footer2Wrapper {...tabProps} />}>
+    <Tab.Navigator
+      screenOptions={tabScreenOptions}
+      tabBar={(tabProps) => <Footer2Wrapper {...tabProps} />}
+      initialRouteName="home"
+    >
       <Tab.Screen name="home" component={HomeStackScreen} />
       <Tab.Screen name="program" component={ProgramStackScreen} />
       <Tab.Screen name="workout" component={WorkoutStackScreen} />

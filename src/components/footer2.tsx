@@ -4,7 +4,7 @@ import { Text } from "./primitives/text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Thunk_pushScreen, Thunk_pushToEditProgram, Thunk_startProgramDay } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
-import { IScreen, Screen_tab } from "../models/screen";
+import { ITab } from "../models/screen";
 import { FooterButton } from "./footerButton";
 import { IconGraphs } from "./icons/iconGraphs";
 import { IconHome } from "./icons/iconHome";
@@ -20,7 +20,7 @@ import { navigateToModal } from "../navigation/navigationService";
 interface IFooterProps {
   dispatch: IDispatch;
   navCommon: INavCommon;
-  screen: IScreen;
+  currentTab: ITab;
 }
 
 function getHasErrorsInProgram(navCommon: INavCommon): boolean {
@@ -45,7 +45,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
   const semantic = Tailwind_semantic();
   const activeColor = semantic.icon.purple;
   const inactiveColor = semantic.icon.neutral;
-  const screen = props.screen;
+  const currentTab = props.currentTab;
   const isUserLoading = ObjectUtils_values(props.navCommon.loading.items).some(
     (i) => i?.type === "fetchStorage" && !i.endTime
   );
@@ -61,20 +61,18 @@ export function Footer2View(props: IFooterProps): JSX.Element {
         <View className="flex-row justify-around flex-1">
           <FooterButton
             name="home"
-            screen={screen}
+            currentTab={currentTab}
             icon={(isActive) => <IconHome size={20} isSelected={isActive} />}
             text="Home"
             onClick={() => props.dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }))}
           />
           <FooterButton
             name="program"
-            screen={screen}
+            currentTab={currentTab}
             icon={(isActive) => <IconDoc2 isSelected={isActive} />}
             hasDot={hasErrorsInProgram}
             text="Program"
-            onClick={() => {
-              props.dispatch(Thunk_pushToEditProgram());
-            }}
+            onClick={() => props.dispatch(Thunk_pushToEditProgram())}
           />
         </View>
         <View className="items-center w-20">
@@ -90,10 +88,10 @@ export function Footer2View(props: IFooterProps): JSX.Element {
               }
             }}
           >
-            <CreateButton isActive={Screen_tab(screen) === "workout"} />
+            <CreateButton isActive={currentTab === "workout"} />
           </Pressable>
           <Text
-            className={`text-[0.625rem] pt-0.5 ${Screen_tab(screen) === "workout" ? "text-text-purple" : "text-text-secondary"}`}
+            className={`text-[0.625rem] pt-0.5 ${currentTab === "workout" ? "text-text-purple" : "text-text-secondary"}`}
           >
             Workout
           </Text>
@@ -101,14 +99,14 @@ export function Footer2View(props: IFooterProps): JSX.Element {
         <View className="flex-row justify-around flex-1">
           <FooterButton
             name="graphs"
-            screen={screen}
+            currentTab={currentTab}
             icon={(isActive) => <IconGraphs color={isActive ? activeColor : inactiveColor} />}
             text="Graphs"
             onClick={() => props.dispatch(Thunk_pushScreen("graphsList", undefined, { tab: "graphs" }))}
           />
           <FooterButton
             name="me"
-            screen={screen}
+            currentTab={currentTab}
             icon={(isActive) => {
               const color = isActive
                 ? undefined

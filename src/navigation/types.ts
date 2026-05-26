@@ -13,6 +13,7 @@ import type { IHelpKey } from "../components/help/helpRegistry";
 export type IHomeStackParamList = {
   main: { historyRecordId?: number } | undefined;
   progress: { id?: number } | undefined;
+  exerciseStats: undefined;
 };
 
 export type IOnboardingStackParamList = {

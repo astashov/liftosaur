@@ -165,6 +165,7 @@ function HomeStackScreen(): JSX.Element {
     <HomeStack.Navigator screenOptions={screenOptions}>
       <HomeStack.Screen name="main" component={NavScreenMain} />
       <HomeStack.Screen name="progress" component={NavScreenProgress} getId={({ params }) => String(params?.id ?? 0)} />
+      <HomeStack.Screen name="exerciseStats" component={NavScreenExerciseStats} />
     </HomeStack.Navigator>
   );
 }
