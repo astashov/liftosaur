@@ -208,12 +208,20 @@ export function RestTimer(props: IProps): JSX.Element | null {
         testID="rest-timer-collapsed"
         onPress={() => setIsExpanded(true)}
         className={`${bgClass} items-center px-2 py-2 rounded-lg`}
-        style={[{ width: 64 }, shadowStyle]}
+        style={[{ minWidth: 64 }, shadowStyle]}
       >
-        <Text data-testid="rest-timer-current" className="font-bold text-text-alwayswhite whitespace-nowrap">
+        <Text
+          data-testid="rest-timer-current"
+          numberOfLines={1}
+          className="font-bold text-text-alwayswhite whitespace-nowrap"
+        >
           {TimeUtils_formatMMSS(timeDifference)}
         </Text>
-        <Text data-testid="rest-timer-total" className={`text-xs ${totalColorClass} whitespace-nowrap`}>
+        <Text
+          data-testid="rest-timer-total"
+          numberOfLines={1}
+          className={`text-xs ${totalColorClass} whitespace-nowrap`}
+        >
           {TimeUtils_formatMMSS(timer * 1000)}
         </Text>
       </Pressable>
