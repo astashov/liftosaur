@@ -280,7 +280,7 @@ function MeStackScreen(): JSX.Element {
   );
 }
 
-const tabScreenOptions = { headerShown: false, animation: "fade" as const };
+const tabScreenOptions = { headerShown: false, animation: "none" as const };
 
 function MainTabsScreen(): JSX.Element {
   return (

@@ -239,7 +239,7 @@ export function MusclesOverrideList(props: {
                   <TextInput
                     testID={`muscle-multiplier-${StringUtils_dashcase(mm.muscle)}-input`}
                     data-testid={`muscle-multiplier-${StringUtils_dashcase(mm.muscle)}-input`}
-                    className="px-2 py-2 text-base leading-5 text-center border rounded-md bg-background-default border-border-prominent"
+                    className="px-2 py-2 text-base leading-5 text-center border rounded-md bg-background-default border-border-prominent text-text-primary"
                     keyboardType="decimal-pad"
                     value={mm.multiplier != null ? String(mm.multiplier) : ""}
                     onChangeText={(text) => {

@@ -43,11 +43,11 @@ export function TextareaAutogrow(props: IProps): JSX.Element {
       ref={inputRef}
       defaultValue={currentValueRef.current}
       placeholder={props.placeholder}
-      placeholderTextColor={semantic.text.secondary}
+      placeholderTextColor={semantic.text.secondarysubtle}
       maxLength={props.maxLength}
       multiline={true}
       textAlignVertical="top"
-      className={props.className}
+      className={`text-text-primary ${props.className ?? ""}`}
       testID={props.testID ?? props.id}
       style={styles.input}
       onChangeText={(text) => {

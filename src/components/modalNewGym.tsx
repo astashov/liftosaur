@@ -25,7 +25,7 @@ export function ModalNewGymContent(props: IProps): JSX.Element {
         placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
         value={value}
         onChangeText={setValue}
-        className="px-4 py-3 text-base border rounded-lg border-border-neutral bg-background-default"
+        className="px-4 py-3 text-base border rounded-lg border-border-neutral bg-background-default text-text-primary"
         style={{ fontFamily: "Poppins" }}
       />
       <View className="flex-row justify-between gap-3 mt-4">

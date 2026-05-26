@@ -54,7 +54,7 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
         </Pressable>
         <View className="flex-row items-center flex-1">
           <TextInput
-            className="w-full h-10 px-4 text-base leading-5 border rounded-lg bg-background-default border-border-prominent"
+            className="w-full h-10 px-4 text-base leading-5 border rounded-lg bg-background-default border-border-prominent text-text-primary"
             keyboardType="numeric"
             value={text}
             testID={props.testID || `${testId}-field`}

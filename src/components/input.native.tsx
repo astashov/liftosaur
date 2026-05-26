@@ -2,6 +2,7 @@ import { JSX, Ref, forwardRef, memo, useEffect, useImperativeHandle, useRef, use
 import { TextInput, Pressable, View } from "react-native";
 import { Text } from "./primitives/text";
 import { IEither } from "../utils/types";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
 
 export function InputAccessoryDone(): null {
   return null;
@@ -160,6 +161,7 @@ export const Input = memo(
             style={{ minHeight: size === "md" ? 40 : 32 }}
             defaultValue={currentValueRef.current}
             placeholder={props.placeholder}
+            placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
             autoCapitalize={props.autoCapitalize}
             autoCorrect={props.autoCorrect}
             onChangeText={(text) => {

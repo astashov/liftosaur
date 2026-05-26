@@ -54,7 +54,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
             <IconMagnifyingGlass color={Tailwind_semantic().icon.neutralsubtle} size={16} />
           </View>
           <TextInput
-            className="w-full py-2 pr-4 text-sm border rounded-lg pl-9 border-border-neutral bg-background-default"
+            className="w-full py-2 pr-4 text-sm border rounded-lg pl-9 border-border-neutral bg-background-default text-text-primary"
             style={{ fontSize: 15 }}
             placeholder="Search by name"
             placeholderTextColor={Tailwind_semantic().text.secondarysubtle}

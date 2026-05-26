@@ -4,6 +4,7 @@ import { Text } from "../primitives/text";
 import { IExercisePickerState } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
+import { Tailwind_semantic } from "../../utils/tailwindConfig";
 
 interface IProps {
   templateName?: string;
@@ -24,7 +25,8 @@ export const ExercisePickerTemplate = memo(function ExercisePickerTemplate(props
           testID="exercise-template-name"
           defaultValue={props.templateName ?? ""}
           placeholder="My Awesome Template"
-          className="px-4 py-2 mt-1 text-base leading-5 border rounded-lg min-h-10 bg-background-default border-border-prominent"
+          placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
+          className="px-4 py-2 mt-1 text-base leading-5 border rounded-lg min-h-10 bg-background-default border-border-prominent text-text-primary"
           onChangeText={(rawValue) => {
             const value = rawValue?.trim() || "";
             if (!value) {

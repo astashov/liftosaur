@@ -2,6 +2,7 @@ import { JSX, useState } from "react";
 import { View, Pressable, TextInput, ScrollView } from "react-native";
 import { Text } from "./primitives/text";
 import { StringUtils_dashcase } from "../utils/string";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
 
 interface IMultiselectProps {
   readonly values: Readonly<string[]>;
@@ -36,6 +37,7 @@ export function Multiselect(props: IMultiselectProps): JSX.Element {
           data-testid={`multiselect-${props.id}`}
           testID={`multiselect-${props.id}`}
           placeholder={props.placeholder}
+          placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
           value={filter}
           className="px-4 py-2 text-base border rounded-lg bg-background-default border-border-prominent text-text-primary"
           onFocus={() => setShowValuesList(true)}

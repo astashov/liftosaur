@@ -1,5 +1,6 @@
 import { JSX, memo, useMemo, useState } from "react";
 import { View, TextInput } from "react-native";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { Text } from "./primitives/text";
 import { Thunk_pushExerciseStatsScreen } from "../ducks/thunks";
 import { IDispatch } from "../ducks/types";
@@ -166,6 +167,7 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
           className="px-4 py-2 mb-2 text-base border rounded-lg bg-background-default border-border-neutral text-text-primary"
           value={filter}
           placeholder="Filter by name"
+          placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
           onChangeText={(t) => setFilter(t.toLowerCase())}
         />
         <Multiselect

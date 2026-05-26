@@ -81,7 +81,7 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
         <View className="flex-row items-center flex-1 gap-2">
           <View className="flex-1">
             <TextInput
-              className="w-full px-4 py-2 text-base border rounded-lg bg-background-default border-border-prominent"
+              className="w-full px-4 py-2 text-base border rounded-lg bg-background-default border-border-prominent text-text-primary"
               keyboardType="numeric"
               value={text}
               data-testid={testId}
