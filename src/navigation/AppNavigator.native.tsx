@@ -280,15 +280,11 @@ function MeStackScreen(): JSX.Element {
   );
 }
 
-const tabScreenOptions = { headerShown: false, animation: "none" as const };
+const tabScreenOptions = { headerShown: false };
 
 function MainTabsScreen(): JSX.Element {
   return (
-    <Tab.Navigator
-      screenOptions={tabScreenOptions}
-      tabBar={(tabProps) => <Footer2Wrapper {...tabProps} />}
-      initialRouteName="home"
-    >
+    <Tab.Navigator screenOptions={tabScreenOptions} tabBar={(tabProps) => <Footer2Wrapper {...tabProps} />}>
       <Tab.Screen name="home" component={HomeStackScreen} />
       <Tab.Screen name="program" component={ProgramStackScreen} />
       <Tab.Screen name="workout" component={WorkoutStackScreen} />

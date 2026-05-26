@@ -41,11 +41,7 @@ export function EditProgramUiExerciseDescriptions(props: IEditProgramUiExerciseD
                 />
               )}
             </View>
-            <Markdown
-              className="text-xs markdown"
-              truncate={2}
-              value={plannerExercise.descriptions.values[i].value}
-            />
+            <Markdown className="text-xs markdown" truncate={2} value={plannerExercise.descriptions.values[i].value} />
           </View>
         );
       })}

@@ -944,19 +944,18 @@ export function Thunk_startProgramDay(programId?: string): IThunk {
   return async (dispatch, getState) => {
     const state = getState();
     const progress = Progress_getCurrentProgress(state);
-    if (progress == null) {
-      if (state.storage.currentProgramId == null) {
-        return;
-      }
+    if (progress != null) {
+      dispatch(Thunk_pushScreen("progress", { id: progress.id }, { tab: "workout" }));
+    } else if (state.storage.currentProgramId != null) {
       const program = Program_getProgram(state, programId ?? state.storage.currentProgramId);
-      if (program == null) {
+      if (program != null) {
+        const newProgress = Program_nextHistoryRecord(program, state.storage.settings, state.storage.stats);
+        updateState(dispatch, [lb<IState>().p("storage").p("progress").record([newProgress])], "Create new progress");
+        dispatch(Thunk_pushScreen("progress", { id: newProgress.id }, { tab: "workout" }));
+      } else {
         Dialog_alert("No currently selected program");
-        return;
       }
-      const newProgress = Program_nextHistoryRecord(program, state.storage.settings, state.storage.stats);
-      updateState(dispatch, [lb<IState>().p("storage").p("progress").record([newProgress])], "Create new progress");
     }
-    dispatch(Thunk_pushScreen("progress", undefined, { tab: "workout" }));
   };
 }
 
@@ -1005,12 +1004,21 @@ export function Thunk_pushScreen<T extends IScreen>(
 ): IThunk {
   return async (dispatch, getState, env) => {
     dispatch(Thunk_postevent("navigate-to-" + screen));
-    const isCrossNav = !!(opts?.tab || opts?.stack);
-    const previousScreen = isCrossNav ? env.getCurrentScreenData?.() : undefined;
-    if (isCrossNav && previousScreen) {
-      const confirmation = Screen_shouldConfirmNavigation(getState(), previousScreen);
-      if (confirmation && !(await Dialog_confirm(confirmation))) {
-        return;
+    if (opts?.tab || opts?.stack) {
+      const currentScreen = env.getCurrentScreenData?.();
+      const confirmation = currentScreen ? Screen_shouldConfirmNavigation(getState(), currentScreen) : undefined;
+      if (confirmation) {
+        if (await Dialog_confirm(confirmation)) {
+          const progressId = currentScreen?.name === "progress" ? (currentScreen.params?.id ?? 0) : 0;
+          cleanup(dispatch, getState(), progressId);
+        } else {
+          return;
+        }
+      } else {
+        const progressId = currentScreen?.name === "progress" ? (currentScreen.params?.id ?? 0) : 0;
+        if (progressId !== 0) {
+          cleanup(dispatch, getState(), progressId);
+        }
       }
     }
     if (
@@ -1038,14 +1046,6 @@ export function Thunk_pushScreen<T extends IScreen>(
     }
     const { navigateTo } = await getNavigationService();
     navigateTo(screen, params as IAllScreenParamList[typeof screen], opts);
-    if (isCrossNav && previousScreen) {
-      const progressId = previousScreen.name === "progress" ? (previousScreen.params?.id ?? 0) : 0;
-      if (progressId !== 0) {
-        // switchTabAndReset defers the tab focus change to next frame; if we cleanup synchronously
-        // the old (still-focused) progress screen sees null data and FallbackScreen redirects home.
-        setTimeout(() => cleanup(dispatch, getState(), progressId), 50);
-      }
-    }
     if (typeof window !== "undefined" && window.scroll) {
       window.scroll(0, 0);
     }
