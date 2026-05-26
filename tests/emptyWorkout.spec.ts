@@ -114,20 +114,32 @@ test("Empty Workout", async ({ page }) => {
   await expect(page.getByTestId("menu-item-next-day-picker-3")).toContainText("Day 3");
   await page.getByTestId("menu-item-next-day-picker-3").click();
 
-  await expect(page.getByTestId("history-record").nth(0).getByTestId("history-record-program")).toContainText("Day 3");
-  await expect(page.getByTestId("history-record").nth(0).getByTestId("history-record-program")).toContainText(
-    "Basic Beginner Routine"
-  );
+  await expect(
+    page.getByTestId("bottom-sheet").getByTestId("history-record").nth(0).getByTestId("history-record-program")
+  ).toContainText("Day 3");
+  await expect(
+    page.getByTestId("bottom-sheet").getByTestId("history-record").nth(0).getByTestId("history-record-program")
+  ).toContainText("Basic Beginner Routine");
 
-  await expect(page.getByTestId("history-record").nth(0).getByTestId("history-entry-exercise-name").nth(0)).toHaveText(
-    "Bench Press, Barbell"
-  );
-  await expect(page.getByTestId("history-record").nth(0).getByTestId("history-entry-exercise-name").nth(1)).toHaveText(
-    "Squat, Barbell"
-  );
+  await expect(
+    page
+      .getByTestId("bottom-sheet")
+      .getByTestId("history-record")
+      .nth(0)
+      .getByTestId("history-entry-exercise-name")
+      .nth(0)
+  ).toHaveText("Bench Press, Barbell");
+  await expect(
+    page
+      .getByTestId("bottom-sheet")
+      .getByTestId("history-record")
+      .nth(0)
+      .getByTestId("history-entry-exercise-name")
+      .nth(1)
+  ).toHaveText("Squat, Barbell");
 
   await page.getByTestId("bottom-sheet-close").click();
-  await page.getByTestId("footer-home").click();
+  await page.getByTestId("navbar-back").click();
   await page.getByTestId("history-record").nth(1).click();
   await page.getByTestId("save-to-program").click();
   await page.getByTestId("create-program-from-adhoc").click();
