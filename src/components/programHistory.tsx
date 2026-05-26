@@ -18,7 +18,6 @@ import { navigateToModal } from "../navigation/navigationService";
 import { useTrackedState } from "../navigation/TrackedStateContext";
 import { HistoryRecordView } from "./historyRecord";
 import { Program_evaluate, Program_getProgramDay } from "../models/program";
-import { Reps_group } from "../models/set";
 
 interface IProps {
   program: IProgram;
@@ -114,14 +113,12 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
 
   const initialHistoryRecordId = props.initialHistoryRecordId;
 
-  useEffect(() => {
-    if (initialHistoryRecordId != null && flatListRef.current) {
-      const index = sortedHistory.findIndex((record) => record.id === initialHistoryRecordId);
-      if (index >= 0) {
-        flatListRef.current.scrollToIndex({ index, animated: false });
-      }
-    }
-  }, [initialHistoryRecordId]);
+  const [initialScrollIndex, setInitialScrollIndex] = useState(() => {
+    if (initialHistoryRecordId == null) return 0;
+    const idx = sortedHistory.findIndex((record) => record.id === initialHistoryRecordId);
+    return idx >= 0 ? idx : 0;
+  });
+  const [listRemountKey, setListRemountKey] = useState(0);
 
   const trackedState = useTrackedState();
   const scrollToRecordId = trackedState.scrollToHistoryRecordId;
@@ -129,18 +126,14 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
     if (scrollToRecordId != null) {
       updateState(props.dispatch, [lb<IState>().p("scrollToHistoryRecordId").record(undefined)], "Clear scroll target");
       const index = sortedHistory.findIndex((record) => record.id === scrollToRecordId);
-      if (index >= 0 && flatListRef.current) {
-        flatListRef.current.scrollToIndex({ index, animated: false });
-        setTimeout(() => {
-          flatListRef.current?.scrollToIndex({ index, animated: false });
-        }, 200);
+      if (index >= 0) {
+        setInitialScrollIndex(index);
+        setListRemountKey((k) => k + 1);
       }
     }
   }, [scrollToRecordId]);
 
   useNavOptions({ navHidden: true });
-
-  const getEstimatedItemSize = useCallback((_index: number, item: IHistoryRecord) => estimateRecordHeight(item), []);
 
   const renderItem = useCallback(
     ({ item }: { item: IHistoryRecord }) => (
@@ -205,11 +198,14 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
     <View className="flex-1">
       {stickyHeader}
       <LegendList
+        key={listRemountKey}
         ref={flatListRef}
         data={sortedHistory}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
-        getEstimatedItemSize={getEstimatedItemSize}
+        estimatedItemSize={300}
+        initialScrollIndex={initialScrollIndex}
+        waitForInitialLayout={true}
         onViewableItemsChanged={onViewableItemsChanged}
         onScrollBeginDrag={scrollMarkers.onScrollBeginDrag}
         onScrollEndDrag={scrollMarkers.onScrollEndDrag}
@@ -217,24 +213,4 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
       />
     </View>
   );
-}
-
-function estimateRecordHeight(record: IHistoryRecord): number {
-  const isCurrent = Progress_isCurrent(record);
-  // pt-2(8) + title(26) + mb-6(24) = 58
-  const outerHeight = 58;
-  // py-4(32) + program name section pb-2(42) + border(2) = 76
-  const cardBase = 76;
-  // Stats row or Start/Continue button
-  const bottomSection = isCurrent ? 52 : 44;
-
-  let entriesHeight = 0;
-  for (const entry of record.entries) {
-    const setGroups = Reps_group(entry.sets, isCurrent).length;
-    // py-2(16) + max(image 36, content). Content = set groups stacked at ~18px each, min 32px
-    const contentHeight = Math.max(36, setGroups * 18);
-    entriesHeight += 16 + contentHeight;
-  }
-
-  return outerHeight + cardBase + entriesHeight + bottomSection;
 }
