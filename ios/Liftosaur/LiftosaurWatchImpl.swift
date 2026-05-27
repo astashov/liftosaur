@@ -281,16 +281,6 @@ extension LiftosaurWatchImpl {
       enqueueEvent(["type": "endWorkout"])
       replyHandler?(["success": true])
 
-    case "syncRestTimer":
-      let restTimerSince = (message["restTimerSince"] as? Int) ?? 0
-      let restTimer = (message["restTimer"] as? Int) ?? 0
-      enqueueEvent(["type": "syncRestTimer", "restTimerSince": restTimerSince, "restTimer": restTimer])
-      replyHandler?(["success": true])
-
-    case "stopRestTimer":
-      enqueueEvent(["type": "stopRestTimer"])
-      replyHandler?(["success": true])
-
     case "watchCrashReport":
       var payload: [String: Any] = ["type": "watchCrashReport"]
       for key in ["crashType", "lastBreadcrumb", "breadcrumbs", "exceptionInfo", "deviceModel", "watchOSVersion", "bundleVersion", "lastLogs"] {

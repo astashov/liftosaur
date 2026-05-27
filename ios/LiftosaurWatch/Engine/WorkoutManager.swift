@@ -321,14 +321,6 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         isCompletingSet = false
         guard result != nil else { return }
         await loadActiveWorkout()
-
-        // Send rest timer to phone so it can schedule notification
-        if let timer = restTimer {
-            WatchConnectivityManager.shared.sendSyncRestTimer(
-                restTimerSince: Int64(timer.timerSince),
-                restTimer: timer.timer
-            )
-        }
     }
 
     func getNextEntryAndSetIndex(entryIndex: Int, setIndex: Int) async -> WatchNextEntryAndSetIndex? {
@@ -392,14 +384,6 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
             operationName: "adjust rest timer"
         ) != nil else { return }
         await loadRestTimer()
-
-        // Send updated timer to phone to sync Live Activity
-        if let timer = restTimer {
-            WatchConnectivityManager.shared.sendSyncRestTimer(
-                restTimerSince: Int64(timer.timerSince),
-                restTimer: timer.timer
-            )
-        }
     }
 
     func stopRestTimer() async {
@@ -410,9 +394,6 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
             operationName: "stop rest timer"
         ) != nil else { return }
         await loadRestTimer()
-
-        // Notify phone to cancel notification
-        WatchConnectivityManager.shared.sendStopRestTimer()
     }
 
     func loadWorkoutStatus() async {
@@ -614,14 +595,6 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         isCompletingSet = false
         guard result != nil else { return }
         await loadActiveWorkout()
-
-        // Send rest timer to phone so it can schedule notification
-        if let timer = restTimer {
-            WatchConnectivityManager.shared.sendSyncRestTimer(
-                restTimerSince: Int64(timer.timerSince),
-                restTimer: timer.timer
-            )
-        }
     }
 
     // MARK: - Private Helpers

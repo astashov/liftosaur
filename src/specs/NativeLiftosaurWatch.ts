@@ -10,8 +10,6 @@ export type WatchEvent = {
     | "liveActivityStorage"
     | "updateLiveActivity"
     | "endWorkout"
-    | "syncRestTimer"
-    | "stopRestTimer"
     | "requestStorage"
     | "requestAuth"
     | "watchCrashReport";
@@ -22,9 +20,6 @@ export type WatchEvent = {
   forceUpdateEntryIndex?: boolean;
 
   data?: string;
-
-  restTimerSince?: number;
-  restTimer?: number;
 
   crashType?: string;
   lastBreadcrumb?: string;

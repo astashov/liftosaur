@@ -95,7 +95,9 @@ import {
   Progress_getCurrentProgress,
   Progress_isCurrent,
   Progress_stop,
+  Progress_scheduleTimerNotification,
 } from "../models/progress";
+import { NativeTimerBridge_stopTimer } from "../utils/nativeTimerBridge";
 import { IImportLinkData, ImportFromLink_importFromLink } from "../utils/importFromLink";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 import { LogUtils_log } from "../utils/log";
@@ -115,7 +117,10 @@ import {
 import { Weight_oppositeUnit } from "../models/weight";
 import { ICollectionVersions } from "../models/versionTracker";
 import { DeviceId_get } from "../utils/deviceId";
-import { LiveActivityManager_updateProgressLiveActivity } from "../utils/liveActivityManager";
+import {
+  LiveActivityManager_updateProgressLiveActivity,
+  LiveActivityManager_updateLiveActivityForNextEntry,
+} from "../utils/liveActivityManager";
 import { KeychainStore_setAuthToken, KeychainStore_clearAuthToken, IAuthToken } from "../utils/keychainStore";
 import { NativeWatchBridge_sendAuthToWatch, NativeWatchBridge_sendClearAuthToWatch } from "../utils/nativeWatchBridge";
 import { Analytics_trackPurchase, Analytics_trackSignUp } from "../utils/analytics";
@@ -844,6 +849,55 @@ export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivit
           "Merge watch storage"
         );
         SendMessage_print("handleWatchStorageMerge: successfully merged watch storage");
+
+        const beforeProgress = state.storage.progress?.[0];
+        const afterProgress = mergedStorage.progress?.[0];
+        const timerChanged =
+          beforeProgress?.timer !== afterProgress?.timer || beforeProgress?.timerSince !== afterProgress?.timerSince;
+        if (timerChanged) {
+          if (
+            afterProgress?.timer != null &&
+            afterProgress.timerSince != null &&
+            afterProgress.timerEntryIndex != null &&
+            afterProgress.timerMode != null &&
+            Subscriptions_hasSubscription(mergedStorage.subscription)
+          ) {
+            const remaining = afterProgress.timer - (Date.now() - afterProgress.timerSince) / 1000;
+            if (remaining > 0) {
+              Progress_scheduleTimerNotification(
+                afterProgress,
+                afterProgress.timerEntryIndex,
+                afterProgress.timerMode,
+                mergedStorage.settings,
+                remaining
+              );
+            } else {
+              NativeTimerBridge_stopTimer();
+            }
+          } else {
+            NativeTimerBridge_stopTimer();
+          }
+        }
+
+        if (afterProgress != null && beforeProgress !== afterProgress) {
+          const entryIndex = afterProgress.timerEntryIndex ?? 0;
+          const mode = afterProgress.timerMode ?? "workout";
+          const program = Program_getProgram(getState(), afterProgress.programId);
+          const evaluatedProgram = program ? Program_evaluate(program, mergedStorage.settings) : undefined;
+          const entry = afterProgress.entries[entryIndex];
+          const programExercise =
+            evaluatedProgram && entry
+              ? Program_getProgramExercise(afterProgress.day, evaluatedProgram, entry.programExerciseId)
+              : undefined;
+          LiveActivityManager_updateLiveActivityForNextEntry(
+            afterProgress,
+            entryIndex,
+            mode,
+            programExercise,
+            mergedStorage.settings,
+            mergedStorage.subscription
+          );
+        }
 
         // If we were on the progress screen and progress is now empty (workout finished on watch),
         // navigate back to the main screen to avoid showing an empty/broken workout screen

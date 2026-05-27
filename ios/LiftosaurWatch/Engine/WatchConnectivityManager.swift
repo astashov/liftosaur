@@ -105,49 +105,6 @@ class WatchConnectivityManager: NSObject, ObservableObject {
         }
     }
 
-    func sendSyncRestTimer(restTimerSince: Int64, restTimer: Int) {
-        guard let session = session else {
-            Logger.wc.info(" sendSyncRestTimer: no session")
-            return
-        }
-
-        let message: [String: Any] = [
-            "type": "syncRestTimer",
-            "restTimerSince": restTimerSince,
-            "restTimer": restTimer
-        ]
-
-        if self.isReachable {
-            Logger.wc.info(" sending syncRestTimer to phone: \(restTimer)s since \(restTimerSince)")
-            session.sendMessage(message, replyHandler: nil, errorHandler: { error in
-                Logger.wc.info(" failed to send syncRestTimer: \(error)")
-            })
-        } else {
-            // Queue for later via transferUserInfo so phone updates live activity when it wakes
-            Logger.wc.info(" phone not reachable, queuing syncRestTimer")
-            session.transferUserInfo(message)
-        }
-    }
-
-    func sendStopRestTimer() {
-        guard let session = session else {
-            Logger.wc.info(" sendStopRestTimer: no session")
-            return
-        }
-
-        let message: [String: Any] = ["type": "stopRestTimer"]
-
-        if self.isReachable {
-            Logger.wc.info(" sending stopRestTimer to phone")
-            session.sendMessage(message, replyHandler: nil, errorHandler: { error in
-                Logger.wc.info(" failed to send stopRestTimer: \(error)")
-            })
-        } else {
-            Logger.wc.info(" phone not reachable, queuing stopRestTimer")
-            session.transferUserInfo(message)
-        }
-    }
-
     func sendCrashReport(_ report: [String: String]) {
         guard let session = session else { return }
         guard session.activationState == .activated else {

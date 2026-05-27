@@ -490,6 +490,51 @@ export function Progress_isCurrent(progress: IHistoryRecord | undefined): boolea
   return progress?.id === 0;
 }
 
+export function Progress_scheduleTimerNotification(
+  progress: IHistoryRecord,
+  entryIndex: number,
+  mode: IProgressMode,
+  settings: ISettings,
+  duration: number
+): void {
+  const title = "It's time for the next set!";
+  let subtitle = "";
+  let body = "Time to lift!";
+  let subtitleHeader = "";
+  let bodyHeader = "The rest is over";
+  const nextEntryAndSet = Reps_findNextEntryAndSet(progress, entryIndex, mode);
+  if (nextEntryAndSet != null) {
+    const { entry: nextEntry, set: aSet } = nextEntryAndSet;
+    const exercise = Exercise_get(nextEntry.exercise, settings.exercises);
+    if (exercise) {
+      subtitleHeader = "Next Set";
+      subtitle = CollectionUtils_compact([
+        exercise.name,
+        aSet.reps != null ? `${aSet.reps}${aSet.isAmrap ? "+" : ""} reps` : undefined,
+        aSet.weight != null ? Weight_display(aSet.weight) : undefined,
+      ]).join(", ");
+      if (aSet.weight != null) {
+        const { plates } = Weight_calculatePlates(aSet.weight, settings, aSet.weight.unit, nextEntry.exercise);
+        const formattedPlates = plates.length > 0 ? Weight_formatOneSide(settings, plates, exercise) : "None";
+        bodyHeader = "Plates per side";
+        body = formattedPlates;
+      }
+    }
+  }
+  SendMessage_print(`Scheduling timer notification, volume: ${settings.volume}`);
+  NativeTimerBridge_startTimer({
+    duration,
+    title,
+    subtitleHeader,
+    subtitle,
+    bodyHeader,
+    body,
+    ignoreDoNotDisturb: !!settings.ignoreDoNotDisturb,
+    vibration: !!settings.vibration,
+    volume: settings.volume,
+  });
+}
+
 export function Progress_startTimer(
   progress: IHistoryRecord,
   timestamp: number,
@@ -527,42 +572,7 @@ export function Progress_startTimer(
   }
   if (subscription && Subscriptions_hasSubscription(subscription)) {
     const timerForPush = timer - Math.round((Date.now() - timestamp) / 1000);
-    const title = "It's time for the next set!";
-    let subtitle = "";
-    let body = "Time to lift!";
-    let subtitleHeader = "";
-    let bodyHeader = "The rest is over";
-    const nextEntryAndSet = Reps_findNextEntryAndSet(progress, entryIndex, mode);
-    if (nextEntryAndSet != null) {
-      const { entry: nextEntry, set: aSet } = nextEntryAndSet;
-      const exercise = Exercise_get(nextEntry.exercise, settings.exercises);
-      if (exercise) {
-        subtitleHeader = "Next Set";
-        subtitle = CollectionUtils_compact([
-          exercise.name,
-          aSet.reps != null ? `${aSet.reps}${aSet.isAmrap ? "+" : ""} reps` : undefined,
-          aSet.weight != null ? Weight_display(aSet.weight) : undefined,
-        ]).join(", ");
-        if (aSet.weight != null) {
-          const { plates } = Weight_calculatePlates(aSet.weight, settings, aSet.weight.unit, nextEntry.exercise);
-          const formattedPlates = plates.length > 0 ? Weight_formatOneSide(settings, plates, exercise) : "None";
-          bodyHeader = "Plates per side";
-          body = formattedPlates;
-        }
-      }
-    }
-    SendMessage_print(`Scheduling timer notification, volume: ${settings.volume}`);
-    NativeTimerBridge_startTimer({
-      duration: timerForPush,
-      title,
-      subtitleHeader,
-      subtitle,
-      bodyHeader,
-      body,
-      ignoreDoNotDisturb: !!settings.ignoreDoNotDisturb,
-      vibration: !!settings.vibration,
-      volume: settings.volume,
-    });
+    Progress_scheduleTimerNotification(progress, entryIndex, mode, settings, timerForPush);
   }
   const newProgress: IHistoryRecord = {
     ...progress,

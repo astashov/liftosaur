@@ -146,8 +146,14 @@ import { useThunkReducer } from "./utils/useThunkReducer";
 import { Service } from "./api/service";
 import { AudioInterface } from "./lib/audioInterface";
 import { Progress_getCurrentProgress, Progress_lbProgress } from "./models/progress";
-import { NativeTimerBridge_subscribeOnScheduled } from "./utils/nativeTimerBridge";
-import { NativeWorkoutBridge_subscribeToLiveActivityActions } from "./utils/nativeWorkoutBridge";
+import { NativeTimerBridge_subscribeOnScheduled, NativeTimerBridge_stopTimer } from "./utils/nativeTimerBridge";
+import {
+  NativeWorkoutBridge_subscribeToLiveActivityActions,
+  NativeWorkoutBridge_updateLiveActivity,
+  NativeWorkoutBridge_discardWorkout,
+} from "./utils/nativeWorkoutBridge";
+import { ILiveActivityState } from "./utils/liveActivityManager";
+import { SendMessage_print } from "./utils/sendMessage";
 import {
   NativeWatchBridge_subscribeToWatchEvents,
   NativeWatchBridge_sendStorageToWatch,
@@ -399,6 +405,16 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
         dispatch(Thunk_handleWatchStorageMerge(event.storage, !!event.isLiveActivity));
       } else if (event.type === "liveActivityStorage" && event.storage) {
         dispatch(Thunk_handleWatchStorageMerge(event.storage, true));
+      } else if (event.type === "updateLiveActivity" && event.data) {
+        try {
+          const liveActivityState: ILiveActivityState = JSON.parse(event.data);
+          NativeWorkoutBridge_updateLiveActivity(liveActivityState);
+        } catch (e) {
+          SendMessage_print(`Failed to parse updateLiveActivity payload: ${e}`);
+        }
+      } else if (event.type === "endWorkout") {
+        NativeWorkoutBridge_discardWorkout();
+        NativeTimerBridge_stopTimer();
       } else if (event.type === "reloadStorageFromDisk") {
         dispatch(Thunk_reloadStorageFromDisk());
       } else if (event.type === "requestStorage") {

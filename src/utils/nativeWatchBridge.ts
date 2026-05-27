@@ -5,8 +5,6 @@ export type INativeWatchEvent = {
     | "liveActivityStorage"
     | "updateLiveActivity"
     | "endWorkout"
-    | "syncRestTimer"
-    | "stopRestTimer"
     | "requestStorage"
     | "requestAuth"
     | "watchCrashReport";
@@ -15,8 +13,6 @@ export type INativeWatchEvent = {
   isLiveActivity?: boolean;
   forceUpdateEntryIndex?: boolean;
   data?: string;
-  restTimerSince?: number;
-  restTimer?: number;
 };
 
 export type INativeWatchAuth = {
