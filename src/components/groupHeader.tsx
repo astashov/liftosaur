@@ -19,29 +19,38 @@ interface IProps {
   expandOnIconClick?: boolean;
   topPadding?: boolean;
   highlighted?: boolean;
+  onToggle?: () => void;
 }
 
 export function GroupHeader(props: IProps): JSX.Element {
   const { name } = props;
-  const [isExpanded, setIsExpanded] = useState<boolean>(!!props.isExpanded);
+  const isControlled = props.onToggle != null;
+  const [internalExpanded, setInternalExpanded] = useState<boolean>(!!props.isExpanded);
+  const isExpanded = isControlled ? !!props.isExpanded : internalExpanded;
+  const hasToggle = isControlled || !!props.children;
   const [isHelpShown, setIsHelpShown] = useState<boolean>(false);
   const size = props.size || "small";
   const testId = `group-header-${StringUtils_dashcase(name)}`;
 
   function onClick(): void {
-    if (props.children) {
-      if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
-        UIManager.setLayoutAnimationEnabledExperimental(true);
-      }
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-      setIsExpanded(!isExpanded);
+    if (!hasToggle) {
+      return;
+    }
+    if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+      UIManager.setLayoutAnimationEnabledExperimental(true);
+    }
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    if (isControlled) {
+      props.onToggle!();
+    } else {
+      setInternalExpanded(!isExpanded);
     }
   }
 
   const wrapperClassName = `flex-row items-center pb-1 ${props.topPadding ? "mt-6 pt-4" : ""} ${props.headerClassName || ""}`;
   const inner = (
     <>
-      {props.children && props.leftExpandIcon && (
+      {hasToggle && props.leftExpandIcon && (
         <Pressable
           className="flex items-center justify-center mr-2"
           onPress={props.expandOnIconClick ? onClick : undefined}
@@ -66,14 +75,14 @@ export function GroupHeader(props: IProps): JSX.Element {
             <IconHelp size={20} color="#607284" />
           </Pressable>
         )}
-        {props.children && !props.leftExpandIcon ? isExpanded ? <IconArrowUp /> : <IconArrowDown2 /> : null}
+        {hasToggle && !props.leftExpandIcon ? isExpanded ? <IconArrowUp /> : <IconArrowDown2 /> : null}
       </View>
     </>
   );
 
   return (
     <Fragment>
-      {props.children ? (
+      {hasToggle ? (
         <Pressable
           testID={testId}
           data-testid={testId}

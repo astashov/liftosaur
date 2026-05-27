@@ -149,6 +149,9 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
     }
   }, [weeks.length, currentWeekIndex]);
 
+  const [isCustomCollapsed, setIsCustomCollapsed] = useState(false);
+  const [isBuiltinCollapsed, setIsBuiltinCollapsed] = useState(false);
+
   const isMultiselect = useMemo(
     () => ExercisePickerUtils_getIsMultiselect({ mode, exerciseType }),
     [mode, exerciseType]
@@ -409,12 +412,16 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
       result.push({ kind: "templateForm" });
     } else if (isAdhocTab) {
       result.push({ kind: "customHeader" });
-      for (const c of customExercises) {
-        result.push({ kind: "customExercise", raw: c.raw, exercise: c.exercise, key: c.key });
+      if (!isCustomCollapsed) {
+        for (const c of customExercises) {
+          result.push({ kind: "customExercise", raw: c.raw, exercise: c.exercise, key: c.key });
+        }
       }
       result.push({ kind: "builtinHeader" });
-      for (const e of builtinExercises) {
-        result.push({ kind: "builtinExercise", exercise: e, key: Exercise_toKey(e) });
+      if (!isBuiltinCollapsed) {
+        for (const e of builtinExercises) {
+          result.push({ kind: "builtinExercise", exercise: e, key: Exercise_toKey(e) });
+        }
       }
     }
     return result;
@@ -428,6 +435,8 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
     programGroups,
     customExercises,
     builtinExercises,
+    isCustomCollapsed,
+    isBuiltinCollapsed,
   ]);
 
   const stickyIndices = useMemo<number[] | undefined>(() => {
@@ -687,7 +696,8 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
           return (
             <View className="py-2">
               <GroupHeader
-                isExpanded={true}
+                isExpanded={!isCustomCollapsed}
+                onToggle={() => setIsCustomCollapsed((v) => !v)}
                 leftExpandIcon={true}
                 name="Custom Exercises"
                 headerClassName="mx-4"
@@ -728,7 +738,13 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
         case "builtinHeader":
           return (
             <View className="py-2">
-              <GroupHeader isExpanded={true} leftExpandIcon={true} name="Built-in Exercises" headerClassName="mx-4" />
+              <GroupHeader
+                isExpanded={!isBuiltinCollapsed}
+                onToggle={() => setIsBuiltinCollapsed((v) => !v)}
+                leftExpandIcon={true}
+                name="Built-in Exercises"
+                headerClassName="mx-4"
+              />
             </View>
           );
         case "builtinExercise": {
@@ -821,6 +837,8 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
       onLabelLayout,
       onCurrentExLayout,
       onTabsLayout,
+      isCustomCollapsed,
+      isBuiltinCollapsed,
     ]
   );
 
