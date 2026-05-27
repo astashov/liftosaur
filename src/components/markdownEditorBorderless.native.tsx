@@ -1,5 +1,5 @@
 import { JSX, useMemo, useCallback, useState } from "react";
-import { StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 import MarkdownTextInput from "@expensify/react-native-live-markdown/src/MarkdownTextInput";
 import type { MarkdownStyle } from "@expensify/react-native-live-markdown/src/MarkdownTextInput";
 import type { MarkdownRange } from "@expensify/react-native-live-markdown/src/commonTypes";
@@ -148,19 +148,35 @@ const markdownStyle: MarkdownStyle = {
 };
 
 const styles = StyleSheet.create({
+  wrapper: {
+    padding: 8,
+  },
   input: {
     fontFamily: "Poppins",
     fontSize: 14,
     lineHeight: 20,
     color: "#000",
-    padding: 8,
-    minHeight: 60,
+    padding: 0,
+    margin: 0,
     textAlignVertical: "top" as const,
+    includeFontPadding: false,
   },
 });
 
+const CHARS_PER_LINE = 40;
+const LINE_HEIGHT = 20;
+const VERTICAL_PADDING = 0;
+const MIN_HEIGHT = 60;
+
+function estimateHeight(value: string, widthChars: number = CHARS_PER_LINE): number {
+  const lines = value.split("\n").reduce((sum, line) => sum + Math.max(1, Math.ceil(line.length / widthChars)), 0);
+  return Math.max(MIN_HEIGHT, lines * LINE_HEIGHT + VERTICAL_PADDING);
+}
+
 export function MarkdownEditorBorderless(props: IProps): JSX.Element {
   const [text, setText] = useState(props.value ?? "");
+  const initialEstimatedHeight = useMemo(() => estimateHeight(props.value ?? ""), []);
+  const [minHeight, setMinHeight] = useState(initialEstimatedHeight);
 
   const debouncedOnChange = useMemo(() => {
     if (props.onChange && props.debounceMs) {
@@ -177,16 +193,25 @@ export function MarkdownEditorBorderless(props: IProps): JSX.Element {
     [debouncedOnChange]
   );
 
+  const handleContentSizeChange = useCallback((e: { nativeEvent: { contentSize: { height: number } } }) => {
+    const measured = e.nativeEvent.contentSize.height;
+    setMinHeight((prev) => (measured > prev ? measured : prev));
+  }, []);
+
   return (
-    <MarkdownTextInput
-      multiline
-      value={text}
-      placeholder={props.placeholder}
-      placeholderTextColor="#9ca3af"
-      onChangeText={handleChangeText}
-      parser={parseMarkdownWorklet}
-      markdownStyle={markdownStyle}
-      style={styles.input}
-    />
+    <View style={styles.wrapper}>
+      <MarkdownTextInput
+        multiline
+        scrollEnabled={false}
+        value={text}
+        placeholder={props.placeholder}
+        placeholderTextColor="#9ca3af"
+        onChangeText={handleChangeText}
+        onContentSizeChange={handleContentSizeChange}
+        parser={parseMarkdownWorklet}
+        markdownStyle={markdownStyle}
+        style={[styles.input, { minHeight }]}
+      />
+    </View>
   );
 }
