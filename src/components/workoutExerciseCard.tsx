@@ -209,11 +209,12 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
     );
   }, [dispatch, entryIndex, entryId]);
 
+  const programIdForEdit = props.program?.id;
   const editProgramExercise = useCallback((): void => {
     if (programExercise) {
-      dispatch(Thunk_pushToEditProgramExercise(programExercise.key, programExercise.dayData, true));
+      dispatch(Thunk_pushToEditProgramExercise(programExercise.key, programExercise.dayData, programIdForEdit));
     }
-  }, [dispatch, programExercise]);
+  }, [dispatch, programExercise, programIdForEdit]);
 
   const runKebabAction = useCallback(
     (action: IKebabAction): void => {

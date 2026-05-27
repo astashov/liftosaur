@@ -26,7 +26,10 @@ export type IScreenData =
   | { name: "appleHealth"; params?: Record<string, never> }
   | { name: "googleHealth"; params?: Record<string, never> }
   | { name: "editProgram"; params: { programId: string } }
-  | { name: "editProgramExercise"; params: { programId: string; key: string; dayData: Required<IDayData> } }
+  | {
+      name: "editProgramExercise";
+      params: { programId: string; key: string; dayData: Required<IDayData>; fromWorkout?: boolean };
+    }
   | { name: "measurements"; params?: { key: IStatsKey } }
   | { name: "subscription"; params?: Record<string, never> }
   | { name: "exerciseStats"; params?: Record<string, never> }

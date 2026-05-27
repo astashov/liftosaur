@@ -30,7 +30,7 @@ export type IOnboardingStackParamList = {
 export type IProgramStackParamList = {
   programs: undefined;
   editProgram: { programId: string };
-  editProgramExercise: { programId: string; key: string; dayData: Required<IDayData> };
+  editProgramExercise: { programId: string; key: string; dayData: Required<IDayData>; fromWorkout?: boolean };
   onerms: undefined;
   programselect: undefined;
   programPreview: undefined;
@@ -40,7 +40,7 @@ export type IProgramStackParamList = {
 export type IWorkoutStackParamList = {
   progress: { id?: number } | undefined;
   finishDay: { id: number } | undefined;
-  editProgramExercise: { programId: string; key: string; dayData: Required<IDayData> };
+  editProgramExercise: { programId: string; key: string; dayData: Required<IDayData>; fromWorkout?: boolean };
   muscles: undefined;
   exerciseStats: undefined;
 };

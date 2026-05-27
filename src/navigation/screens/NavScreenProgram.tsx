@@ -1,4 +1,5 @@
-import { JSX, useEffect } from "react";
+import { JSX, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { View } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import type { IDayData } from "../../types";
 import { useAppState } from "../StateContext";
@@ -12,12 +13,15 @@ import { ScreenMusclesDay } from "../../components/muscles/screenMusclesDay";
 import { Screen1RM } from "../../components/screen1RM";
 import { ScreenProgramSelect as ScreenProgramSelectComponent } from "../../components/screenProgramSelect";
 import { ScreenProgramPreview as ScreenProgramPreviewComponent } from "../../components/screenProgramPreview";
-import { Program_getProgram, Program_fullProgram } from "../../models/program";
+import { Program_getProgram, Program_fullProgram, Program_isEmpty } from "../../models/program";
 import { Progress_getCurrentProgress } from "../../models/progress";
 import { FallbackScreen } from "../../components/fallbackScreen";
-import { Thunk_pullScreen } from "../../ducks/thunks";
+import { Thunk_pullScreen, Thunk_pushScreen } from "../../ducks/thunks";
 import { useAppContext } from "../../components/appContext";
 import { usePlaygroundModalBridges } from "../usePlaygroundModalBridges";
+import { EditProgram_initPlannerProgramExerciseState } from "../../models/editProgram";
+import { updateState, type IState } from "../../models/state";
+import { lb } from "lens-shmens";
 
 export function NavScreenPrograms(): JSX.Element {
   const { state, dispatch } = useAppState();
@@ -77,12 +81,57 @@ export function NavScreenEditProgramExercise(): JSX.Element {
   const route = useRoute<{
     key: string;
     name: "editProgramExercise";
-    params: { programId: string; key: string; dayData: Required<IDayData> };
+    params: { programId: string; key: string; dayData: Required<IDayData>; fromWorkout?: boolean };
   }>();
-  const { programId, key: exerciseKey, dayData } = route.params;
+  const { programId, key: exerciseKey, dayData, fromWorkout } = route.params;
   const exerciseStateKey = `${programId}_${exerciseKey}`;
   const plannerState = state.editProgramExerciseStates[exerciseStateKey];
   const editProgramState = state.editProgramStates[programId];
+  const [didInit, setDidInit] = useState(false);
+  const ownedKeysRef = useRef<Set<string>>(new Set());
+  ownedKeysRef.current.add(exerciseStateKey);
+
+  useLayoutEffect(() => {
+    const isFromWorkout = fromWorkout ?? editProgramState == null;
+    const program = isFromWorkout
+      ? Program_getProgram(state, programId)
+      : (editProgramState?.current.program ?? Program_getProgram(state, programId));
+    if (!program || Program_isEmpty(program)) {
+      dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }));
+      return;
+    }
+    const newPlannerState = EditProgram_initPlannerProgramExerciseState(
+      program,
+      state.storage.settings,
+      exerciseKey,
+      dayData,
+      isFromWorkout
+    );
+    updateState(
+      dispatch,
+      [lb<IState>().p("editProgramExerciseStates").p(exerciseStateKey).record(newPlannerState)],
+      "Init edit exercise state"
+    );
+    setDidInit(true);
+    return () => {
+      const keysToClear = Array.from(ownedKeysRef.current);
+      updateState(
+        dispatch,
+        [
+          lb<IState>()
+            .p("editProgramExerciseStates")
+            .recordModify((states) => {
+              const next = { ...states };
+              for (const k of keysToClear) {
+                delete next[k];
+              }
+              return next;
+            }),
+        ],
+        "Clear edit exercise state"
+      );
+    };
+  }, []);
 
   const pendingNewKey = plannerState?.ui.pendingNewKey;
   useEffect(() => {
@@ -91,23 +140,27 @@ export function NavScreenEditProgramExercise(): JSX.Element {
     }
   }, [pendingNewKey]);
 
+  if (!didInit || plannerState == null) {
+    return (
+      <NavScreenContent>
+        <View />
+      </NavScreenContent>
+    );
+  }
+
   return (
     <NavScreenContent>
-      <FallbackScreen state={{ plannerState, exerciseKey, dayData }} dispatch={dispatch}>
-        {({ plannerState: plannerState2, exerciseKey: exerciseKey2, dayData: dayData2 }) => (
-          <ScreenEditProgramExerciseComponent
-            plannerState={plannerState2}
-            exerciseKey={exerciseKey2}
-            exerciseStateKey={exerciseStateKey}
-            programId={programId}
-            dayData={dayData2}
-            dispatch={dispatch}
-            settings={state.storage.settings}
-            navCommon={navCommon}
-            editProgramState={editProgramState}
-          />
-        )}
-      </FallbackScreen>
+      <ScreenEditProgramExerciseComponent
+        plannerState={plannerState}
+        exerciseKey={exerciseKey}
+        exerciseStateKey={exerciseStateKey}
+        programId={programId}
+        dayData={dayData}
+        dispatch={dispatch}
+        settings={state.storage.settings}
+        navCommon={navCommon}
+        editProgramState={editProgramState}
+      />
     </NavScreenContent>
   );
 }

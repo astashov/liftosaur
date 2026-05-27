@@ -113,7 +113,6 @@ import {
   PlannerProgram_switchToUnit,
 } from "../pages/planner/models/plannerProgram";
 import { Weight_oppositeUnit } from "../models/weight";
-import { EditProgram_initPlannerProgramExerciseState } from "../models/editProgram";
 import { ICollectionVersions } from "../models/versionTracker";
 import { DeviceId_get } from "../utils/deviceId";
 import { LiveActivityManager_updateProgressLiveActivity } from "../utils/liveActivityManager";
@@ -962,35 +961,22 @@ export function Thunk_startProgramDay(programId?: string): IThunk {
 export function Thunk_pushToEditProgramExercise(
   key: string,
   dayData: Required<IDayData>,
-  fromWorkout?: boolean
+  workoutProgramId?: string
 ): IThunk {
   return async (dispatch, getState) => {
     const state = getState();
+    const isFromWorkout = workoutProgramId != null;
     const editProgramIds = Object.keys(state.editProgramStates);
-    const programId = editProgramIds[0] ?? state.storage.currentProgramId;
+    const programId = isFromWorkout ? workoutProgramId : (editProgramIds[0] ?? state.storage.currentProgramId);
     const editProgramState = programId ? state.editProgramStates[programId] : undefined;
-    const isFromWorkout = fromWorkout ?? !editProgramState;
     const currentProgram = isFromWorkout
       ? programId != null
         ? Program_getProgram(state, programId)
         : undefined
       : editProgramState?.current.program || (programId != null ? Program_getProgram(state, programId) : undefined);
     if (currentProgram && !Program_isEmpty(currentProgram) && programId) {
-      const exerciseStateKey = `${programId}_${key}`;
-      const plannerState = EditProgram_initPlannerProgramExerciseState(
-        currentProgram,
-        state.storage.settings,
-        key,
-        dayData,
-        isFromWorkout
-      );
-      updateState(
-        dispatch,
-        [lb<IState>().p("editProgramExerciseStates").p(exerciseStateKey).record(plannerState)],
-        "Set edit exercise state"
-      );
       const { navigateTo } = await getNavigationService();
-      navigateTo("editProgramExercise", { programId, key, dayData });
+      navigateTo("editProgramExercise", { programId, key, dayData, fromWorkout: isFromWorkout });
     } else {
       dispatch(Thunk_pushScreen("main"));
     }
