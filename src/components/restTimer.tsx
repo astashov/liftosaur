@@ -142,7 +142,9 @@ export function RestTimer(props: IProps): JSX.Element | null {
             }
           >
             <View className="absolute inset-0 rounded-lg bg-background-default" style={{ opacity: 0.2 }} />
-            <Text className="font-bold text-text-alwayswhite">-15s</Text>
+            <Text numberOfLines={1} className="font-bold text-text-alwayswhite">
+              -15s
+            </Text>
           </Pressable>
           <Pressable
             data-testid="rest-timer-cancel"
@@ -160,10 +162,10 @@ export function RestTimer(props: IProps): JSX.Element | null {
             className="items-center justify-center flex-1"
             onPress={() => setIsExpanded(false)}
           >
-            <Text data-testid="rest-timer-current" className="font-bold text-text-alwayswhite">
+            <Text numberOfLines={1} data-testid="rest-timer-current" className="font-bold text-text-alwayswhite">
               {TimeUtils_formatMMSS(timeDifference)}
             </Text>
-            <Text data-testid="rest-timer-total" className={`text-xs ${totalColorClass}`}>
+            <Text numberOfLines={1} data-testid="rest-timer-total" className={`text-xs ${totalColorClass}`}>
               {TimeUtils_formatMMSS(timer * 1000)}
             </Text>
           </Pressable>
@@ -191,7 +193,9 @@ export function RestTimer(props: IProps): JSX.Element | null {
             }
           >
             <View className="absolute inset-0 rounded-lg bg-background-default" style={{ opacity: 0.2 }} />
-            <Text className="font-bold text-text-alwayswhite">+15s</Text>
+            <Text numberOfLines={1} className="font-bold text-text-alwayswhite">
+              +15s
+            </Text>
           </Pressable>
         </View>
       </Animated.View>
