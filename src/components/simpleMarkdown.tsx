@@ -140,7 +140,7 @@ function renderInline(tokens: Token[]): (JSX.Element | string)[] {
       pushTextWithIcons(elements, token.content, `t${i}`);
       i += 1;
     } else if (token.type === "softbreak") {
-      elements.push("\n");
+      elements.push(" ");
       i += 1;
     } else if (token.type === "hardbreak") {
       elements.push("\n");
