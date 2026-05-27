@@ -72,6 +72,7 @@ export function NavScreenProgress(): JSX.Element {
 
 export function NavScreenFinishDay(): JSX.Element {
   const { state, dispatch } = useAppState();
+  const route = useRoute<{ key: string; name: string; params?: { id?: number } }>();
   const navCommon = buildNavCommon(state);
   return (
     <NavScreenContent>
@@ -80,6 +81,7 @@ export function NavScreenFinishDay(): JSX.Element {
         settings={state.storage.settings}
         dispatch={dispatch}
         history={state.storage.history}
+        historyRecordId={route.params?.id}
         userId={state.user?.id}
       />
     </NavScreenContent>

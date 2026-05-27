@@ -39,7 +39,7 @@ export type IProgramStackParamList = {
 
 export type IWorkoutStackParamList = {
   progress: { id?: number } | undefined;
-  finishDay: undefined;
+  finishDay: { id: number } | undefined;
   editProgramExercise: { programId: string; key: string; dayData: Required<IDayData> };
   muscles: undefined;
   exerciseStats: undefined;

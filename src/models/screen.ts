@@ -18,7 +18,7 @@ export type IScreenData =
   | { name: "programs"; params?: Record<string, never> }
   | { name: "progress"; params?: { id?: number } }
   | { name: "graphsList"; params?: Record<string, never> }
-  | { name: "finishDay"; params?: Record<string, never> }
+  | { name: "finishDay"; params?: { id?: number } }
   | { name: "muscles"; params?: Record<string, never> }
   | { name: "muscleGroups"; params?: Record<string, never> }
   | { name: "stats"; params?: Record<string, never> }

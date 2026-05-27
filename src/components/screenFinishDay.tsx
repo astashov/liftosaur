@@ -55,6 +55,7 @@ import { navigateToModal } from "../navigation/navigationService";
 
 interface IProps {
   history: IHistoryRecord[];
+  historyRecordId?: number;
   settings: ISettings;
   userId?: string;
   dispatch: IDispatch;
@@ -62,7 +63,9 @@ interface IProps {
 }
 
 export function ScreenFinishDay(props: IProps): JSX.Element {
-  const record = props.history[0];
+  const recordById =
+    props.historyRecordId != null ? props.history.find((h) => h.id === props.historyRecordId) : undefined;
+  const record = recordById ?? props.history[0];
 
   const allPrs = History_getPersonalRecords(props.history);
   const totalWeight = History_totalRecordWeight(record, props.settings.units);

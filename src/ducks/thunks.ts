@@ -1165,7 +1165,7 @@ export function Thunk_finishProgramDay(): IThunk {
     // Navigate before dispatch so the progress screen unmounts before
     // FallbackScreen can detect null progress and redirect to home
     if (isCurrent) {
-      navigateTo("finishDay", undefined, { tab: "workout" });
+      navigateTo("finishDay", progress ? { id: progress.startTime } : undefined, { tab: "workout" });
     } else {
       goBack();
     }
