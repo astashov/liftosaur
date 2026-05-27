@@ -9,8 +9,12 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.media.AudioAttributes
+import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.provider.Settings
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
@@ -27,6 +31,7 @@ class LiftosaurTimerModule(reactContext: ReactApplicationContext) :
     NativeLiftosaurTimerSpec(reactContext) {
 
     private var channelsCreated = false
+    private var audioPlayer: MediaPlayer? = null
 
     private fun ensureChannels() {
         if (channelsCreated) return
@@ -153,7 +158,69 @@ class LiftosaurTimerModule(reactContext: ReactApplicationContext) :
     }
 
     override fun playSound(volume: Double, vibration: Boolean, promise: Promise) {
-        promise.resolve(null)
+        try {
+            if (volume <= 0 && !vibration) {
+                promise.resolve(null)
+                return
+            }
+            val ctx = reactApplicationContext
+            if (vibration) {
+                val vibrator: Vibrator? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    (ctx.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager)?.defaultVibrator
+                } else {
+                    @Suppress("DEPRECATION")
+                    ctx.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+                }
+                if (vibrator != null && vibrator.hasVibrator()) {
+                    vibrator.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE))
+                }
+            }
+            if (volume <= 0) {
+                promise.resolve(null)
+                return
+            }
+            audioPlayer?.let {
+                try { it.release() } catch (_: Exception) {}
+            }
+            audioPlayer = null
+            val player = MediaPlayer()
+            try {
+                player.setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .build()
+                )
+                ctx.resources.openRawResourceFd(R.raw.notif)?.use { afd ->
+                    player.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+                } ?: run {
+                    player.release()
+                    promise.resolve(null)
+                    return
+                }
+                val clamped = volume.coerceIn(0.0, 1.0).toFloat()
+                player.setVolume(clamped, clamped)
+                player.setOnCompletionListener {
+                    it.release()
+                    if (audioPlayer === it) audioPlayer = null
+                }
+                player.setOnErrorListener { mp, _, _ ->
+                    mp.release()
+                    if (audioPlayer === mp) audioPlayer = null
+                    true
+                }
+                player.prepare()
+                player.start()
+                audioPlayer = player
+            } catch (e: Exception) {
+                try { player.release() } catch (_: Exception) {}
+                throw e
+            }
+            promise.resolve(null)
+        } catch (e: Exception) {
+            android.util.Log.e("LftTimer", "Android playSound failed", e)
+            promise.resolve(null)
+        }
     }
 
     override fun getNotificationPermission(promise: Promise) {
