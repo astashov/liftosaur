@@ -98,6 +98,7 @@ import {
   Progress_scheduleTimerNotification,
 } from "../models/progress";
 import { NativeTimerBridge_stopTimer } from "../utils/nativeTimerBridge";
+import { NativeWorkoutBridge_discardWorkout } from "../utils/nativeWorkoutBridge";
 import { IImportLinkData, ImportFromLink_importFromLink } from "../utils/importFromLink";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 import { LogUtils_log } from "../utils/log";
@@ -899,9 +900,15 @@ export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivit
           );
         }
 
-        // If we were on the progress screen and progress is now empty (workout finished on watch),
-        // navigate back to the main screen to avoid showing an empty/broken workout screen
+        // If progress went from active to empty, the workout ended on the watch.
+        // Run the same JS-side cleanup as a phone-side finish/discard so the
+        // module-level reminder duration in nativeWorkoutBridge gets cleared.
+        // Without this, the AppState listener can schedule a phantom "ongoing
+        // workout" reminder the next time the phone backgrounds.
         const progressIsNowEmpty = !mergedStorage.progress || mergedStorage.progress.length === 0;
+        if (hadProgress && progressIsNowEmpty) {
+          NativeWorkoutBridge_discardWorkout();
+        }
         if (wasOnProgressScreen && hadProgress && progressIsNowEmpty) {
           SendMessage_print("handleWatchStorageMerge: workout finished on watch, navigating to main screen");
           dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }));

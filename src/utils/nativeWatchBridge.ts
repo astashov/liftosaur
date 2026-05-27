@@ -3,7 +3,6 @@ export type INativeWatchEvent = {
     | "watchStorageMerge"
     | "reloadStorageFromDisk"
     | "liveActivityStorage"
-    | "updateLiveActivity"
     | "endWorkout"
     | "requestStorage"
     | "requestAuth"

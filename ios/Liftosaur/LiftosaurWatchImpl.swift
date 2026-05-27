@@ -235,6 +235,17 @@ import WatchConnectivity
   private func clearPending() {
     UserDefaults.standard.removeObject(forKey: pendingEventsKey)
   }
+
+  // ILiveActivityState (from watch JS) uses `restTimer`/`historyEntryState`;
+  // LiftosaurLiveActivityImpl expects `rest`/`entry`. Map between them.
+  fileprivate static func liveActivityNativeState(from jsState: [String: Any]) -> [String: Any] {
+    var native: [String: Any] = [:]
+    if let ts = jsState["workoutStartTimestamp"] { native["workoutStartTimestamp"] = ts }
+    if let dnd = jsState["ignoreDoNotDisturb"] { native["ignoreDoNotDisturb"] = dnd }
+    if let rest = jsState["restTimer"] { native["rest"] = rest }
+    if let entry = jsState["historyEntryState"] { native["entry"] = entry }
+    return native
+  }
 }
 
 extension LiftosaurWatchImpl {
@@ -272,12 +283,29 @@ extension LiftosaurWatchImpl {
       replyHandler?(["success": true])
 
     case "updateLiveActivity":
-      if let dataJson = message["data"] as? String {
-        enqueueEvent(["type": "updateLiveActivity", "data": dataJson])
+      // Apply directly via the native LA impl so the lock-screen widget refreshes
+      // even when the JS runtime is suspended (backgrounded phone).
+      if let dataJson = message["data"] as? String,
+         let data = dataJson.data(using: .utf8),
+         let jsState = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+        let nativeState = Self.liveActivityNativeState(from: jsState)
+        DispatchQueue.main.async {
+          LiftosaurLiveActivityImpl.shared.update(state: nativeState as NSDictionary)
+        }
       }
       replyHandler?(["success": true])
 
     case "endWorkout":
+      // Native side: end LA + cancel timer/reminder immediately so cleanup
+      // happens even when the JS runtime is suspended.
+      DispatchQueue.main.async {
+        LiftosaurLiveActivityImpl.shared.end()
+        LiftosaurTimerImpl.shared.stopTimer()
+        LiftosaurTimerImpl.shared.cancelReminder()
+      }
+      // JS side: enqueue an event so JS module state (e.g. currentReminderDuration
+      // in nativeWorkoutBridge) gets cleared. This is independent of the storage
+      // merge, which isn't guaranteed in every code path on the watch.
       enqueueEvent(["type": "endWorkout"])
       replyHandler?(["success": true])
 

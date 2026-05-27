@@ -8,7 +8,6 @@ export type WatchEvent = {
     | "watchStorageMerge"
     | "reloadStorageFromDisk"
     | "liveActivityStorage"
-    | "updateLiveActivity"
     | "endWorkout"
     | "requestStorage"
     | "requestAuth"
