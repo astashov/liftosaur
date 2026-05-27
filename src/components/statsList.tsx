@@ -328,7 +328,7 @@ function StatValueInput(props: IStatValueInputProps): JSX.Element {
       value={text}
       onChangeText={setText}
       onBlur={() => props.onChange(text)}
-      selectTextOnFocus
+      selectTextOnFocus={Platform.OS === "ios"}
     />
   );
 }

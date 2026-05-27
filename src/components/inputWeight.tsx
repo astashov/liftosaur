@@ -1,5 +1,5 @@
 import { JSX, useEffect, useState } from "react";
-import { View, Pressable, TextInput } from "react-native";
+import { View, Pressable, TextInput, Platform } from "react-native";
 import { Text } from "./primitives/text";
 import { Weight_buildPct, Weight_build, Weight_decrement, Weight_increment } from "../models/weight";
 import { IExerciseType, IPercentage, ISettings, IUnit, IWeight } from "../types";
@@ -98,7 +98,7 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
                   props.onUpdate(value);
                 }
               }}
-              selectTextOnFocus
+              selectTextOnFocus={Platform.OS === "ios"}
             />
           </View>
           <InputWeightUnit

@@ -1,5 +1,5 @@
 import { JSX, Ref, forwardRef, memo, useEffect, useImperativeHandle, useRef, useState } from "react";
-import { TextInput, Pressable, View } from "react-native";
+import { TextInput, Pressable, View, Platform } from "react-native";
 import { Text } from "./primitives/text";
 import { IEither } from "../utils/types";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
@@ -175,7 +175,7 @@ export const Input = memo(
               runValidation({ applyClamp: true, displayMode: "snapshot" });
             }}
             keyboardType={props.type === "number" ? "numeric" : "default"}
-            selectTextOnFocus
+            selectTextOnFocus={Platform.OS === "ios"}
             testID={props.identifier}
           />
         </Pressable>

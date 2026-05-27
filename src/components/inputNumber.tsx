@@ -1,5 +1,5 @@
 import { JSX, useEffect, useState } from "react";
-import { View, Pressable, TextInput } from "react-native";
+import { View, Pressable, TextInput, Platform } from "react-native";
 import { Text } from "./primitives/text";
 import { MathUtils_clamp } from "../utils/math";
 import { StringUtils_dashcase } from "../utils/string";
@@ -70,7 +70,7 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
               setText(String(v));
               onUpdate(v);
             }}
-            selectTextOnFocus
+            selectTextOnFocus={Platform.OS === "ios"}
           />
         </View>
         <Pressable
