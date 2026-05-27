@@ -397,6 +397,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
               className="px-4 py-2"
               style={{ marginRight: -12 }}
               onPress={onKebabPress}
+              hitSlop={16}
             >
               <IconKebab />
             </Pressable>

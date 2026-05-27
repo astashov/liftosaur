@@ -614,9 +614,11 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
           );
         case "currentExercise":
           return (
-            <View className="pt-2" onLayout={onCurrentExLayout}>
-              <ExercisePickerCurrentExercise state={state} exerciseType={item.exerciseType} settings={settings} />
-            </View>
+            <SheetDragHandle>
+              <View className="pt-2" onLayout={onCurrentExLayout}>
+                <ExercisePickerCurrentExercise state={state} exerciseType={item.exerciseType} settings={settings} />
+              </View>
+            </SheetDragHandle>
           );
         case "tabs":
           return (
@@ -879,6 +881,8 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingBottom: 16 }}
           onScroll={onAnimatedScroll}
+          bounces={false}
+          overScrollMode="never"
         />
       </View>
       <View className="w-full px-4 pt-2 pb-2" style={bottomShadowStyle}>
