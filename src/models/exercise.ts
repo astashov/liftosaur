@@ -4424,6 +4424,147 @@ export function Exercise_filterExercises<T extends { name: string }>(allExercise
   return allExercises.filter((e) => StringUtils_fuzzySearch(filter.toLowerCase(), e.name.toLowerCase()));
 }
 
+function scoreTokenAgainstWords(
+  token: string,
+  words: string[],
+  fullText: string,
+  weights: [number, number, number]
+): number {
+  if (words.indexOf(token) !== -1) {
+    return weights[0];
+  }
+  for (const w of words) {
+    if (w.startsWith(token)) {
+      return weights[1];
+    }
+  }
+  if (fullText.indexOf(token) !== -1) {
+    return weights[2];
+  }
+  return 0;
+}
+
+function tokenizeQuery(query: string): { normalized: string; tokens: string[] } | undefined {
+  const tokens = query
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((t) => t.length > 0);
+  if (tokens.length === 0) {
+    return undefined;
+  }
+  return { normalized: tokens.join(" "), tokens };
+}
+
+function scoreExerciseAgainstTokens(
+  name: string,
+  equipment: string,
+  isDefaultEquipment: boolean,
+  normalizedQuery: string,
+  tokens: string[]
+): number | undefined {
+  const nameWords = name.split(/[\s,]+/).filter((w) => w.length > 0);
+  const equipmentWords = equipment.split(/[\s,]+/).filter((w) => w.length > 0);
+  const normalizedFullName = equipment ? `${nameWords.join(" ")} ${equipmentWords.join(" ")}` : nameWords.join(" ");
+
+  let totalScore = 0;
+  for (const token of tokens) {
+    const nameScore = scoreTokenAgainstWords(token, nameWords, name, [1000, 500, 200]);
+    const equipmentScore = equipment ? scoreTokenAgainstWords(token, equipmentWords, equipment, [800, 400, 150]) : 0;
+    const best = Math.max(nameScore, equipmentScore);
+    if (best === 0) {
+      return undefined;
+    }
+    totalScore += best;
+  }
+
+  if (name === normalizedQuery || normalizedFullName === normalizedQuery) {
+    totalScore += 10000;
+  }
+  if (name.startsWith(normalizedQuery)) {
+    totalScore += 300;
+  }
+  if (tokens.indexOf(name) !== -1) {
+    totalScore += 1000;
+  }
+  if (equipment && isDefaultEquipment) {
+    totalScore += 50;
+  }
+  return totalScore;
+}
+
+export function Exercise_matchesQuery<T extends { name: string; equipment?: IEquipment }>(
+  exercise: T,
+  query: string
+): boolean {
+  const parsed = tokenizeQuery(query);
+  if (!parsed) {
+    return true;
+  }
+  const name = exercise.name.toLowerCase();
+  const equipment = exercise.equipment ? equipmentName(exercise.equipment).toLowerCase() : "";
+  return scoreExerciseAgainstTokens(name, equipment, false, parsed.normalized, parsed.tokens) != null;
+}
+
+export function Exercise_filterAndRankByQuery<
+  T extends { name: string; equipment?: IEquipment; defaultEquipment?: IEquipment },
+>(allExercises: T[], query: string): T[] {
+  const parsed = tokenizeQuery(query);
+  if (!parsed) {
+    return allExercises;
+  }
+  const { normalized, tokens } = parsed;
+
+  const scored: Array<{ exercise: T; score: number; name: string; fullName: string }> = [];
+  for (const e of allExercises) {
+    const name = e.name.toLowerCase();
+    const equipment = e.equipment ? equipmentName(e.equipment).toLowerCase() : "";
+    const isDefaultEquipment = !!e.equipment && !!e.defaultEquipment && e.equipment === e.defaultEquipment;
+    const score = scoreExerciseAgainstTokens(name, equipment, isDefaultEquipment, normalized, tokens);
+    if (score == null) {
+      continue;
+    }
+    const fullName = equipment ? `${name}, ${equipment}` : name;
+    scored.push({ exercise: e, score, name, fullName });
+  }
+
+  scored.sort((a, b) => {
+    if (b.score !== a.score) {
+      return b.score - a.score;
+    }
+    const byName = a.name.localeCompare(b.name);
+    if (byName !== 0) {
+      return byName;
+    }
+    return a.fullName.localeCompare(b.fullName);
+  });
+  return scored.map((s) => s.exercise);
+}
+
+export function Exercise_filterAndRankCustomByQuery(
+  customExercises: IAllCustomExercises,
+  query: string
+): ICustomExercise[] {
+  const list = CollectionUtils_compact(ObjectUtils_values(customExercises)).filter((e) => !e.isDeleted);
+  const parsed = tokenizeQuery(query);
+  if (!parsed) {
+    return list;
+  }
+  const { normalized, tokens } = parsed;
+
+  const scored: Array<{ exercise: ICustomExercise; score: number; name: string }> = [];
+  for (const e of list) {
+    const name = e.name.toLowerCase();
+    const score = scoreExerciseAgainstTokens(name, "", false, normalized, tokens);
+    if (score == null) {
+      continue;
+    }
+    scored.push({ exercise: e, score, name });
+  }
+
+  scored.sort((a, b) => (b.score !== a.score ? b.score - a.score : a.name.localeCompare(b.name)));
+  return scored.map((s) => s.exercise);
+}
+
 export function Exercise_sortExercises(
   allExercises: IExercise[],
   isSubstitute: boolean,

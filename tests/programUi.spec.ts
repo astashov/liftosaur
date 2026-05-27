@@ -17,6 +17,7 @@ test("Warmups", async ({ page }) => {
 
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("add-exercise").click();
+  await page.getByTestId("exercise-filter-by-name").fill("Bench Press");
   await page.getByTestId("menu-item-bench-press-barbell").click();
   await page.getByTestId("exercise-picker-confirm").click();
   await page.getByTestId("edit-exercise").click();
@@ -61,6 +62,7 @@ test("Sets", async ({ page }) => {
   await PlaywrightUtils_createProgram(page, "My Program");
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("add-exercise").click();
+  await page.getByTestId("exercise-filter-by-name").fill("Bench Press");
   await page.getByTestId("menu-item-bench-press-barbell").click();
   await page.getByTestId("exercise-picker-confirm").click();
   await page.getByTestId("edit-exercise").click();
@@ -118,14 +120,17 @@ test("Change exercise", async ({ page }) => {
   await PlaywrightUtils_createProgram(page, "My Program");
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("add-exercise").click();
+  await page.getByTestId("exercise-filter-by-name").fill("arnold press");
   await page.getByTestId("menu-item-arnold-press-dumbbell").click();
   await page.getByTestId("exercise-picker-confirm").click();
   await page.getByTestId("add-day").click();
   await page.getByTestId("add-exercise").nth(1).click();
+  await page.getByTestId("exercise-filter-by-name").fill("arnold press");
   await page.getByTestId("menu-item-arnold-press-dumbbell").click();
   await page.getByTestId("exercise-picker-confirm").click();
   await page.getByTestId("edit-exercise-swap").first().click();
   await page.getByTestId("edit-exercise-change-one").first().click();
+  await page.getByTestId("exercise-filter-by-name").fill("around");
   await page.getByTestId("menu-item-around-the-world-dumbbell").first().click();
   await page.getByTestId("exercise-picker-confirm").click();
   await expect(page.getByTestId("exercise-aroundtheworld_dumbbell")).toContainText("Around The World");
@@ -135,6 +140,7 @@ test("Change exercise", async ({ page }) => {
   await page.getByTestId("exercise-picker-confirm").click();
   await page.getByTestId("edit-exercise-swap").first().click();
   await page.getByTestId("edit-exercise-change-all").first().click();
+  await page.getByTestId("exercise-filter-by-name").fill("bench press");
   await page.getByTestId("menu-item-bench-press-barbell").click();
   await page.getByTestId("exercise-picker-confirm").click();
   await expect(page.getByTestId("planner-ui-exercise-name").nth(0)).toContainText("Bench Press");

@@ -31,10 +31,11 @@ import {
   Exercise_get,
   Exercise_fullName,
   Exercise_toKey,
-  Exercise_filterCustomExercises,
   Exercise_createCustomExercise,
   Exercise_allExpanded,
-  Exercise_filterExercises,
+  Exercise_filterAndRankByQuery,
+  Exercise_filterAndRankCustomByQuery,
+  Exercise_matchesQuery,
   IExercise,
 } from "../../models/exercise";
 import {
@@ -114,7 +115,6 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
   const { evaluatedProgram, state, dispatch, settings, onStar, onChoose, usedExerciseTypes } = props;
   const { mode, search, filters, sort, showMuscles, exerciseType, selectedExercises, label, templateName } = state;
   const isStarred = !!filters.isStarred;
-  const selectedTab = state.selectedTab ?? 0;
 
   const title =
     mode === "workout"
@@ -139,6 +139,8 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
     ];
   }, [mode, evaluatedProgram]);
 
+  const selectedTab = Math.min(state.selectedTab ?? 0, tabs.length - 1);
+
   const weeks = evaluatedProgram?.weeks ?? [];
   const [currentWeekIndex, setCurrentWeekIndex] = useState(0);
   useEffect(() => {
@@ -152,37 +154,49 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
     [mode, exerciseType]
   );
 
+  const useRankOrdering = !!search && !(sort === "similar_muscles" && exerciseType);
+
   const builtinExercises = useMemo(() => {
     let result = Exercise_allExpanded({});
-    if (search) {
-      result = Exercise_filterExercises(result, search);
-    }
     result = ExercisePickerUtils_filterExercises(result, filters, settings);
     if (filters.isStarred) {
       result = result.filter((e) => settings.starredExercises?.[Exercise_toKey(e)]);
     }
-    result = ExercisePickerUtils_sortExercises(result, settings, { filters, sort, exerciseType });
+    if (search) {
+      result = useRankOrdering
+        ? Exercise_filterAndRankByQuery(result, search)
+        : result.filter((e) => Exercise_matchesQuery(e, search));
+    }
+    if (!useRankOrdering) {
+      result = ExercisePickerUtils_sortExercises(result, settings, { filters, sort, exerciseType });
+    }
     return result;
-  }, [search, filters, sort, settings, exerciseType]);
+  }, [search, useRankOrdering, filters, sort, settings, exerciseType]);
 
   const customExercises = useMemo(() => {
-    let exercises = settings.exercises;
+    const exercises = ExercisePickerUtils_filterCustomExercises(settings.exercises, filters);
+    let list: ICustomExercise[];
     if (search) {
-      exercises = Exercise_filterCustomExercises(exercises, search);
+      list = useRankOrdering
+        ? Exercise_filterAndRankCustomByQuery(exercises, search)
+        : CollectionUtils_compact(ObjectUtils_values(exercises))
+            .filter((e) => !e.isDeleted)
+            .filter((e) => Exercise_matchesQuery(e, search));
+    } else {
+      list = CollectionUtils_compact(ObjectUtils_values(exercises)).filter((e) => !e.isDeleted);
     }
-    exercises = ExercisePickerUtils_filterCustomExercises(exercises, filters);
-    let list = CollectionUtils_compact(ObjectUtils_values(exercises));
+    if (!useRankOrdering) {
+      list = ExercisePickerUtils_sortCustomExercises(list, settings, { filters, sort, exerciseType });
+    }
     if (filters.isStarred) {
       list = list.filter((e) => settings.starredExercises?.[Exercise_toKey(e)]);
     }
-    list = list.filter((e) => !e.isDeleted);
-    list = ExercisePickerUtils_sortCustomExercises(list, settings, { filters, sort, exerciseType });
     return list.map((raw) => ({
       raw,
       key: Exercise_toKey(raw),
       exercise: Exercise_get({ id: raw.id }, settings.exercises),
     }));
-  }, [settings, search, filters, sort, exerciseType]);
+  }, [settings, search, useRankOrdering, filters, sort, exerciseType]);
 
   const currentWeek: IEvaluatedProgramWeek | undefined = weeks[currentWeekIndex] ?? weeks[0];
   const programGroups = useMemo<IProgramGroup[]>(() => {
@@ -877,7 +891,7 @@ const TabsRow = memo(function TabsRow(props: ITabsRowProps): JSX.Element {
             style={{ flexGrow: 1, flexShrink: 0, flexBasis: "auto" }}
           >
             <Pressable
-              className="px-4 pb-1 pt-2"
+              className="px-4 pt-2 pb-1"
               style={isSelected ? { borderBottomWidth: 2, borderBottomColor: activeColor } : undefined}
               data-testid={nameClass}
               testID={nameClass}
@@ -908,7 +922,7 @@ const WeekTabsRow = memo(function WeekTabsRow(props: IWeekTabsRowProps): JSX.Ele
         <View className="flex-row gap-2 px-4 py-2">
           {weeks.map((week, i) => {
             const isSelected = currentWeekIndex === i;
-            const nameClass = `week-tab-${StringUtils_dashcase(week.name.toLowerCase())}`;
+            const nameClass = `tab-${StringUtils_dashcase(week.name.toLowerCase())}`;
             return (
               <Pressable
                 key={`${i}-${week.name}`}

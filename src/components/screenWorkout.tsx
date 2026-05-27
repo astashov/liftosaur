@@ -1,5 +1,5 @@
 import { JSX, memo, useCallback, useEffect, useMemo, useRef } from "react";
-import { Pressable, InteractionManager } from "react-native";
+import { Pressable, Platform, InteractionManager } from "react-native";
 import { IHistoryRecord, IProgram, ISettings, IStats, ISubscription } from "../types";
 import { IDispatch } from "../ducks/types";
 import { Program_evaluate, Program_getProgramDay } from "../models/program";
@@ -88,6 +88,11 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
   useEffect(() => {
     if (exercisePickerState && !prevExercisePickerState.current) {
       const progressId = progress.id;
+      if (Platform.OS === "web") {
+        navigateToModal("exercisePickerModal", { progressId });
+        prevExercisePickerState.current = exercisePickerState;
+        return undefined;
+      }
       const handle = InteractionManager.runAfterInteractions(() => {
         navigateToModal("exercisePickerModal", { progressId });
       });
