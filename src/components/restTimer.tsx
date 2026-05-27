@@ -134,7 +134,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
             data-testid="rest-timer-minus"
             testID="rest-timer-minus"
             className="relative items-center justify-center m-2"
-            style={{ width: 40, minHeight: 40 }}
+            style={{ minWidth: 40, minHeight: 40 }}
             onPress={() =>
               props.dispatch(
                 Thunk_updateTimer(timer - 15, nextEntryAndSetIndex?.entryIndex, nextEntryAndSetIndex?.setIndex, false)
@@ -150,7 +150,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
             data-testid="rest-timer-cancel"
             testID="rest-timer-cancel"
             className="relative items-center justify-center my-2"
-            style={{ width: 40, minHeight: 40 }}
+            style={{ minWidth: 40, minHeight: 40 }}
             onPress={() => props.dispatch({ type: "StopTimer" })}
           >
             <View className="absolute inset-0 rounded-lg bg-background-default" style={{ opacity: 0.2 }} />
@@ -173,7 +173,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
             data-testid="rest-timer-back"
             testID="rest-timer-back"
             className="relative items-center justify-center my-2"
-            style={{ width: 40, minHeight: 40 }}
+            style={{ minWidth: 40, minHeight: 40 }}
             onPress={() => setIsExpanded(false)}
           >
             <View className="absolute inset-0 rounded-lg bg-background-default" style={{ opacity: 0.2 }} />
@@ -185,7 +185,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
             data-testid="rest-timer-plus"
             testID="rest-timer-plus"
             className="relative items-center justify-center m-2"
-            style={{ width: 40, minHeight: 40 }}
+            style={{ minWidth: 40, minHeight: 40 }}
             onPress={() =>
               props.dispatch(
                 Thunk_updateTimer(timer + 15, nextEntryAndSetIndex?.entryIndex, nextEntryAndSetIndex?.setIndex, false)
