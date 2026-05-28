@@ -37,20 +37,18 @@ export function IndexedDBUtils_initializeForSafari(): Promise<void> {
 }
 
 export async function IndexedDBUtils_getAllKeys(): Promise<string[]> {
-  const keys = mmkv.getAllKeys();
-  if (keys.length > 0) {
-    return keys;
-  }
+  const keys = new Set(mmkv.getAllKeys());
   try {
-    const exists = await RNFS.exists(legacyStorageDir);
-    if (!exists) {
-      return [];
+    if (await RNFS.exists(legacyStorageDir)) {
+      const files = await RNFS.readDir(legacyStorageDir);
+      for (const f of files) {
+        if (f.isFile() && f.name.endsWith(".json")) {
+          keys.add(f.name.replace(/\.json$/, ""));
+        }
+      }
     }
-    const files = await RNFS.readDir(legacyStorageDir);
-    return files.filter((f) => f.isFile() && f.name.endsWith(".json")).map((f) => f.name.replace(/\.json$/, ""));
-  } catch {
-    return [];
-  }
+  } catch {}
+  return Array.from(keys);
 }
 
 export async function IndexedDBUtils_get(key: string): Promise<unknown> {
