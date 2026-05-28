@@ -343,7 +343,8 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
         }
       }
       const writeKey = (key: string, value: unknown): void => {
-        if (key in fullRecord && fullRecord[key] === value) {
+        const current = result ?? fullRecord;
+        if (key in current && current[key] === value) {
           return;
         }
         ensureResult()[key] = value;

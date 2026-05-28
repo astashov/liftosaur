@@ -240,6 +240,58 @@ describe("mergeByVersions", () => {
     });
   });
 
+  it("should preserve nested dictionary item when stale item diff loses against full version despite tombstone", () => {
+    const fullObj = {
+      settings: {
+        exercises: {
+          squat: { rm1: 150, notes: "keep full" },
+        },
+      },
+    };
+
+    const fullVersions: IVersions<any> = {
+      settings: {
+        exercises: {
+          items: {
+            squat: {
+              rm1: 3000,
+              notes: 3000,
+            },
+          },
+          deleted: {
+            squat: 4000,
+          },
+        },
+      },
+    };
+
+    const versionDiff: IVersions<any> = {
+      settings: {
+        exercises: {
+          items: {
+            squat: {
+              rm1: 2000,
+            },
+          },
+        },
+      },
+    };
+
+    const extractedObj = {
+      settings: {
+        exercises: {
+          squat: { rm1: 180 },
+        },
+      },
+    };
+
+    const merged = versionTracker.mergeByVersions(fullObj, fullVersions, versionDiff, extractedObj);
+
+    expect(merged.settings.exercises).to.deep.equal({
+      squat: { rm1: 150, notes: "keep full" },
+    });
+  });
+
   it("should handle missing full versions", () => {
     const fullObj = {
       name: "John",
