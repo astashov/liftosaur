@@ -13,7 +13,7 @@ import { ObjectUtils_isEqual, ObjectUtils_values } from "../utils/object";
 import { DateUtils_formatYYYYMMDD } from "../utils/date";
 import { IStorageUpdate, IStorageUpdate2 } from "../utils/sync";
 import { IHistoryRecord, IStorage, THistoryRecord, TStorage, IPartialStorage, STORAGE_VERSION_TYPES } from "../types";
-import { CollectionUtils_groupByKeyUniq, CollectionUtils_compact } from "../utils/collection";
+import { CollectionUtils_groupByKeyUniq, CollectionUtils_compact, CollectionUtils_immutableSort } from "../utils/collection";
 import { IVersions, VersionTracker } from "./versionTracker";
 import { lg } from "../utils/posthog";
 import { Diagnostics_getLastActions, Diagnostics_setLastValidationErrors } from "../utils/diagnostics";
@@ -255,11 +255,41 @@ export function Storage_mergeStorage(oldStorage: IStorage, newStorage: IStorage,
     originalId: Math.max(newOriginalId ?? 0, oldOriginalId ?? 0),
     _versions: updatedVersions,
   };
-  updatedStorage.progress?.[0]?.entries?.sort((a, b) => a.index - b.index);
-  for (const entries of updatedStorage.progress?.[0]?.entries || []) {
-    entries.sets.sort((a, b) => a.index - b.index);
+  const sortedProgress = sortProgressByIndex(updatedStorage.progress);
+  return sortedProgress === updatedStorage.progress ? updatedStorage : { ...updatedStorage, progress: sortedProgress };
+}
+
+function sortProgressByIndex(progress: undefined): undefined;
+function sortProgressByIndex(progress: IHistoryRecord[]): IHistoryRecord[];
+function sortProgressByIndex(progress: IHistoryRecord[] | undefined): IHistoryRecord[] | undefined;
+function sortProgressByIndex(progress: IHistoryRecord[] | undefined): IHistoryRecord[] | undefined {
+  if (!progress || progress.length === 0) {
+    return progress;
   }
-  return updatedStorage;
+  const head = progress[0];
+  if (!head.entries || head.entries.length === 0) {
+    return progress;
+  }
+
+  const byIndex = (a: { index: number }, b: { index: number }): number => a.index - b.index;
+
+  let entriesWithSortedSets = head.entries;
+  for (let i = 0; i < head.entries.length; i++) {
+    const entry = head.entries[i];
+    const sortedSets = CollectionUtils_immutableSort(entry.sets, byIndex);
+    if (sortedSets !== entry.sets) {
+      if (entriesWithSortedSets === head.entries) {
+        entriesWithSortedSets = head.entries.slice();
+      }
+      entriesWithSortedSets[i] = { ...entry, sets: sortedSets };
+    }
+  }
+
+  const sortedEntries = CollectionUtils_immutableSort(entriesWithSortedSets, byIndex);
+  if (sortedEntries === head.entries) {
+    return progress;
+  }
+  return [{ ...head, entries: sortedEntries }, ...progress.slice(1)];
 }
 
 export function Storage_applyStorageUpdate2(storage: IStorage, update: IStorageUpdate2, deviceId?: string): IStorage {
@@ -284,12 +314,8 @@ export function Storage_applyStorageUpdate2(storage: IStorage, update: IStorageU
     _versions: mergedVersions,
   };
 
-  updatedStorage.progress?.[0]?.entries?.sort((a, b) => a.index - b.index);
-  for (const entries of updatedStorage.progress?.[0]?.entries || []) {
-    entries.sets.sort((a, b) => a.index - b.index);
-  }
-
-  return updatedStorage;
+  const sortedProgress = sortProgressByIndex(updatedStorage.progress);
+  return sortedProgress === updatedStorage.progress ? updatedStorage : { ...updatedStorage, progress: sortedProgress };
 }
 
 export function Storage_applyUpdate(storage: IPartialStorage, updateWithStats: IStorageUpdate): IPartialStorage {

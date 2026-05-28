@@ -172,6 +172,15 @@ export function CollectionUtils_sort<T>(arr: T[], compareFn?: (a: T, b: T) => nu
   return arrCopy;
 }
 
+export function CollectionUtils_immutableSort<T>(arr: T[], compare: (a: T, b: T) => number): T[] {
+  for (let i = 1; i < arr.length; i++) {
+    if (compare(arr[i - 1], arr[i]) > 0) {
+      return arr.slice().sort(compare);
+    }
+  }
+  return arr;
+}
+
 export function CollectionUtils_reorder<T>(arr: T[], start: number, end: number): T[] {
   const newDays = [...arr];
   const [daysToMove] = newDays.splice(start, 1);

@@ -10,7 +10,7 @@ import {
   IVectorClock,
 } from "../../src/models/versionTracker";
 import { IAtomicType, IControlledType, ISubscriptionReceipt, STORAGE_VERSION_TYPES } from "../../src/types";
-import { Storage_getDefault, Storage_mergeStorage } from "../../src/models/storage";
+import { Storage_applyStorageUpdate2, Storage_getDefault, Storage_mergeStorage } from "../../src/models/storage";
 import { IStorage, IProgram, IHistoryRecord, ICustomExercise, IHistoryEntry } from "../../src/types";
 import { ObjectUtils_clone } from "../../src/utils/object";
 import { UidFactory_generateUid } from "../../src/utils/generator";
@@ -1542,6 +1542,100 @@ describe("VersionTracker", () => {
       const merged = Storage_mergeStorage(phoneStorage, watchStorageToSend, "ios_phone");
 
       expect(merged.progress[0].intervals).to.deep.equal([[5000, 7000]]);
+    });
+  });
+
+  describe("merge result must not mutate input storage", () => {
+    function buildStorageWithUnsortedSets(): IStorage {
+      const sets = [
+        {
+          vtype: "set" as const,
+          index: 2,
+          id: "s-second",
+          isAmrap: false,
+          isUnilateral: false,
+          askWeight: false,
+          isCompleted: false,
+        },
+        {
+          vtype: "set" as const,
+          index: 1,
+          id: "s-first",
+          isAmrap: false,
+          isUnilateral: false,
+          askWeight: false,
+          isCompleted: false,
+        },
+      ];
+      const entry: IHistoryEntry = {
+        id: "entry-A",
+        vtype: "history_entry",
+        exercise: { id: "squat" },
+        sets,
+        warmupSets: [],
+        index: 0,
+      };
+      const base = Storage_getDefault();
+      const progress: IHistoryRecord = {
+        vtype: "progress",
+        startTime: 1000,
+        entries: [entry],
+        date: "2024-01-01",
+        programId: "p",
+        programName: "P",
+        day: 1,
+        dayName: "D",
+        id: 5000,
+      };
+      const tracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "phone" });
+      const storage: IStorage = { ...base, progress: [progress] };
+      storage._versions = tracker.fillVersions(storage, {}, 1000);
+      return storage;
+    }
+
+    it("Storage_mergeStorage leaves input progress arrays untouched when merge is a no-op", () => {
+      const phone = buildStorageWithUnsortedSets();
+      const watch = ObjectUtils_clone(phone);
+
+      const phoneSetsRef = phone.progress[0].entries[0].sets;
+      const phoneEntriesRef = phone.progress[0].entries;
+      const snapshotSetIds = phoneSetsRef.map((s) => s.id);
+
+      const merged = Storage_mergeStorage(phone, watch, "phone");
+
+      expect(phoneSetsRef.map((s) => s.id)).to.deep.equal(snapshotSetIds);
+      expect(phone.progress[0].entries[0].sets).to.equal(phoneSetsRef);
+      expect(phone.progress[0].entries).to.equal(phoneEntriesRef);
+      // Returned merged storage should still be sorted (s-first before s-second by index)
+      expect(merged.progress[0].entries[0].sets.map((s) => s.id)).to.deep.equal(["s-first", "s-second"]);
+    });
+
+    it("Storage_applyStorageUpdate2 leaves input progress arrays untouched when update loses by version", () => {
+      const phone = buildStorageWithUnsortedSets();
+
+      const phoneSetsRef = phone.progress[0].entries[0].sets;
+      const snapshotSetIds = phoneSetsRef.map((s) => s.id);
+
+      const tracker = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "watch" });
+      // Build an update whose only field is settings.units, with a version older than phone's.
+      // mergeByVersions should keep phone's settings → no real change.
+      const olderUnitsVersions = tracker.fillVersions(
+        { settings: { units: "lb" } } as Partial<IStorage> as IStorage,
+        {},
+        500
+      );
+      Storage_applyStorageUpdate2(
+        phone,
+        {
+          version: phone.version,
+          storage: { settings: { ...phone.settings, units: "lb" } },
+          versions: olderUnitsVersions,
+        },
+        "phone"
+      );
+
+      expect(phoneSetsRef.map((s) => s.id)).to.deep.equal(snapshotSetIds);
+      expect(phone.progress[0].entries[0].sets).to.equal(phoneSetsRef);
     });
   });
 });
