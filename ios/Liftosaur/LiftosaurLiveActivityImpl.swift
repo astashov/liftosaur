@@ -1,6 +1,7 @@
 import Foundation
 import ActivityKit
 import OSLog
+import UIKit
 
 private let kAppGroup = "group.com.liftosaur.workout"
 
@@ -17,6 +18,24 @@ private let liveActivityLogger = Logger(subsystem: Bundle.main.bundleIdentifier 
     if #available(iOS 16.2, *) { return LiveActivityManager.shared }
     return nil
   }()
+
+  override init() {
+    super.init()
+    // iOS only allows Activity.request from the foreground. When the watch
+    // sends an updateLiveActivity while the phone app is backgrounded, the
+    // start attempt fails with .visibility and the state is queued. Drain
+    // that queue as soon as the app comes back to the foreground.
+    NotificationCenter.default.addObserver(
+      self,
+      selector: #selector(handleDidBecomeActive),
+      name: UIApplication.didBecomeActiveNotification,
+      object: nil
+    )
+  }
+
+  @objc private func handleDidBecomeActive() {
+    processPendingWorkout()
+  }
 
   @objc public func isSupported() -> Bool {
     if #available(iOS 16.2, *) { return true }
@@ -95,8 +114,17 @@ private let liveActivityLogger = Logger(subsystem: Bundle.main.bundleIdentifier 
   }
 
   @objc public func processPendingWorkout() {
-    if #available(iOS 16.2, *) {
-      Task { await LiveActivityManager.shared.processPendingWorkout() }
+    guard #available(iOS 16.2, *) else { return }
+    Task { [weak self] in
+      guard let self = self else { return }
+      guard let pending = await LiveActivityManager.shared.takePendingState() else { return }
+      // Route the replay through the impl wrapper so image caching and the
+      // tick-polling timer get (re-)kicked. The background cache attempt may
+      // have failed or been suspended, and polling is what delivers LA
+      // button taps once the activity is back up.
+      self.cacheExerciseImageIfNeeded(pending.historyEntryState?.exerciseImageUrl)
+      self.startPollingIfNeeded()
+      await LiveActivityManager.shared.update(contentState: pending)
     }
   }
 
@@ -211,8 +239,18 @@ actor LiveActivityManager {
   private var updateTask: Task<Void, Never>?
   private var currentActivityID: Activity<WorkoutAttributes>.ID?
   private var pendingState: WorkoutAttributes.ContentState?
+  // Tombstone the most recently ended workout's start timestamp so a stale
+  // updateLiveActivity (e.g., delivered out-of-order via transferUserInfo
+  // after endWorkout) can't resurrect it.
+  private var lastEndedWorkoutStartTimestamp: Int = 0
 
   private init() {}
+
+  func takePendingState() -> WorkoutAttributes.ContentState? {
+    let s = pendingState
+    pendingState = nil
+    return s
+  }
 
   private var currentActivity: Activity<WorkoutAttributes>? {
     if let currentActivityID,
@@ -254,6 +292,11 @@ actor LiveActivityManager {
   }
 
   func update(contentState: WorkoutAttributes.ContentState) async {
+    if contentState.workoutStartTimestamp > 0,
+       contentState.workoutStartTimestamp == lastEndedWorkoutStartTimestamp {
+      liveActivityLogger.info("Ignoring update for ended workout (ts=\(contentState.workoutStartTimestamp))")
+      return
+    }
     updateTask?.cancel()
     await updateTask?.value
 
@@ -341,19 +384,26 @@ actor LiveActivityManager {
   }
 
   func endWorkout() async {
-    guard let activity = currentActivity else { return }
-    liveActivityLogger.info("Ending Live Activity (id=\(activity.id))")
+    // Always clear local state — including pendingState — so a workout that
+    // ended before the phone foregrounded doesn't get replayed as a ghost LA
+    // by processPendingWorkout on the next didBecomeActive. Record the
+    // ended workout's start timestamp so a late updateLiveActivity for the
+    // same workout (e.g., delivered after endWorkout via transferUserInfo)
+    // gets ignored instead of resurrecting it.
+    let endedTs = currentState?.workoutStartTimestamp ?? pendingState?.workoutStartTimestamp ?? 0
+    if endedTs > 0 {
+      lastEndedWorkoutStartTimestamp = endedTs
+    }
+    pendingState = nil
     restTimerTask?.cancel(); restTimerTask = nil
     workoutTimerTask?.cancel(); workoutTimerTask = nil
     currentState = nil
+    guard let activity = currentActivity else {
+      currentActivityID = nil
+      return
+    }
+    liveActivityLogger.info("Ending Live Activity (id=\(activity.id))")
     currentActivityID = nil
     await activity.end(nil, dismissalPolicy: .immediate)
-  }
-
-  func processPendingWorkout() async {
-    guard let state = pendingState else { return }
-    liveActivityLogger.info("Processing pending Live Activity")
-    pendingState = nil
-    await update(contentState: state)
   }
 }
