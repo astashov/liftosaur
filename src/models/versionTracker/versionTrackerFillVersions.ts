@@ -1,4 +1,4 @@
-import { ObjectUtils_clone, ObjectUtils_keys } from "../../utils/object";
+import { ObjectUtils_keys } from "../../utils/object";
 import {
   IVersionTypes,
   ITypedObject,
@@ -34,7 +34,7 @@ export class VersionTrackerFillVersions<TAtomicType extends string, TControlledT
   }
 
   public run<T extends Record<string, unknown>>(fullObj: T, versions: IVersions<T>, timestamp: number): IVersions<T> {
-    const result = ObjectUtils_clone(versions);
+    const result = { ...versions };
     const resultObj = VersionTrackerUtils_asVersionsObject(result);
     const keys = ObjectUtils_keys(fullObj).filter((key) => key !== "_versions");
 

@@ -1,4 +1,3 @@
-import { ObjectUtils_clone } from "../../utils/object";
 import { CollectionUtils_uniqByExpr } from "../../utils/collection";
 import {
   IVersionTypes,
@@ -35,7 +34,25 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
     versionDiff: IVersions<T>,
     extractedObj: Partial<T>
   ): T {
-    const result: Record<string, unknown> = ObjectUtils_clone(fullObj);
+    let result: Record<string, unknown> | null = null;
+    const writeKey = (key: string, value: unknown): void => {
+      if (fullObj[key] === value) {
+        return;
+      }
+      if (result == null) {
+        result = { ...fullObj };
+      }
+      result[key] = value;
+    };
+    const deleteKey = (key: string): void => {
+      if (!(key in fullObj)) {
+        return;
+      }
+      if (result == null) {
+        result = { ...fullObj };
+      }
+      delete result[key];
+    };
 
     for (const key of Object.keys(versionDiff)) {
       const diffVersion = versionDiff[key];
@@ -43,29 +60,29 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
       const extractedValue = extractedObj[key as keyof T];
 
       if (extractedValue !== undefined) {
-        const mergedValue = this.mergeFieldByVersion(result[key], fullVersion, diffVersion, extractedValue, key);
+        const mergedValue = this.mergeFieldByVersion(fullObj[key], fullVersion, diffVersion, extractedValue, key);
         if (mergedValue !== undefined) {
-          result[key] = mergedValue;
+          writeKey(key, mergedValue);
         }
       } else if (isFieldVersion(diffVersion)) {
         if (fullVersion === undefined || !isFieldVersion(fullVersion)) {
-          delete result[key];
+          deleteKey(key);
         } else {
           const comparison = VersionTrackerUtils_compareVersions(diffVersion, fullVersion);
           if (comparison === "a_newer") {
-            delete result[key];
+            deleteKey(key);
           } else if (comparison === "concurrent") {
             const diffNorm = VersionTrackerUtils_normalizeVersion(diffVersion);
             const fullNorm = VersionTrackerUtils_normalizeVersion(fullVersion);
             if (diffNorm.t > fullNorm.t) {
-              delete result[key];
+              deleteKey(key);
             }
           }
         }
       }
     }
 
-    return result as T;
+    return (result ?? fullObj) as T;
   }
 
   private mergeFieldByVersion(
@@ -141,12 +158,22 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
         const controlledFields = this.versionTypes.controlledFields[extractedValue.vtype] || [];
         const controlledFieldSet = new Set(controlledFields);
 
-        const mergedItem: Record<string, unknown> = VersionTrackerUtils_isRecord(fullValue) ? { ...fullValue } : {};
+        const fullIsRecord = VersionTrackerUtils_isRecord(fullValue);
+        const fullRecord = fullIsRecord ? (fullValue as Record<string, unknown>) : undefined;
+        let mergedItem: Record<string, unknown> | null = fullIsRecord ? null : {};
+        const writeField = (field: string, value: unknown): void => {
+          if (fullRecord && fullRecord[field] === value) {
+            return;
+          }
+          if (mergedItem == null) {
+            mergedItem = { ...fullRecord };
+          }
+          mergedItem[field] = value;
+        };
 
-        // Copy non-controlled fields from extractedValue if they don't exist in mergedItem
         for (const field in extractedValue) {
-          if (!controlledFieldSet.has(field) && !(field in mergedItem)) {
-            mergedItem[field] = extractedValue[field];
+          if (!controlledFieldSet.has(field) && (!fullRecord || !(field in fullRecord))) {
+            writeField(field, extractedValue[field]);
           }
         }
 
@@ -154,45 +181,50 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
           if (field in diffVersion) {
             const diffFieldVersion = diffVersion[field];
             const fullFieldVersion = fullVersionObj?.[field];
-            const fullFieldValue = VersionTrackerUtils_isRecord(fullValue) ? fullValue[field] : undefined;
+            const fullFieldValue = fullRecord ? fullRecord[field] : undefined;
             const extractedFieldValue = extractedValue[field];
 
             if (isFieldVersion(diffFieldVersion)) {
               if (fullFieldVersion === undefined || !isFieldVersion(fullFieldVersion)) {
-                mergedItem[field] = extractedFieldValue;
+                writeField(field, extractedFieldValue);
               } else {
                 const comparison = VersionTrackerUtils_compareVersions(diffFieldVersion, fullFieldVersion);
                 if (comparison === "a_newer") {
-                  mergedItem[field] = extractedFieldValue;
+                  writeField(field, extractedFieldValue);
                 } else if (comparison === "concurrent") {
                   const diffNorm = VersionTrackerUtils_normalizeVersion(diffFieldVersion);
                   const fullNorm = VersionTrackerUtils_normalizeVersion(fullFieldVersion);
                   if (diffNorm.t > fullNorm.t) {
-                    mergedItem[field] = extractedFieldValue;
+                    writeField(field, extractedFieldValue);
                   }
                 }
               }
             } else if (isCollectionVersions(diffFieldVersion)) {
               const fullCollection = isCollectionVersions(fullFieldVersion) ? fullFieldVersion : undefined;
-              mergedItem[field] = this.mergeCollectionByVersion(
+              const merged = this.mergeCollectionByVersion(
                 fullFieldValue,
                 fullCollection,
                 diffFieldVersion,
                 extractedFieldValue
               );
+              writeField(field, merged);
             } else if (isVersionsObject(diffFieldVersion) && VersionTrackerUtils_isRecord(extractedFieldValue)) {
-              mergedItem[field] = this.mergeFieldByVersion(
+              const merged = this.mergeFieldByVersion(
                 fullFieldValue,
                 fullFieldVersion,
                 diffFieldVersion,
                 extractedFieldValue,
                 `${path}.${field}`
               );
+              writeField(field, merged);
             }
           }
         }
 
-        // Validate merged controlled type - if invalid, revert to fullValue
+        if (mergedItem == null) {
+          return fullValue;
+        }
+
         const validator = this.versionTypes.typeValidators?.[extractedValue.vtype];
         if (validator && !validator.is(mergedItem)) {
           console.log(`[MERGE_DEBUG] Validator REJECTED merged ${extractedValue.vtype}, reverting to fullValue`);
@@ -233,8 +265,19 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
       const dedupedExtracted = CollectionUtils_uniqByExpr(extractedValue, (item) =>
         VersionTrackerUtils_getId(item, this.versionTypes)
       );
+      if (dedupedExtracted.length === 0 && deletedKeys.size === 0 && dedupedFull.length === fullValue.length) {
+        return fullValue;
+      }
       const result: unknown[] = [];
       const processedIds = new Set<string>();
+      let allSame = true;
+      const pushItem = (item: unknown): void => {
+        const idx = result.length;
+        result.push(item);
+        if (allSame && (idx >= fullValue.length || fullValue[idx] !== item)) {
+          allSame = false;
+        }
+      };
 
       for (const extractedItem of dedupedExtracted) {
         const itemId = VersionTrackerUtils_getId(extractedItem, this.versionTypes);
@@ -258,15 +301,11 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
               extractedItem,
               `item:${itemId}`
             );
-            result.push(mergedItem);
+            pushItem(mergedItem);
           } else if (this.shouldTakeExtractedItem(diffItemVersion, fullItemVersion)) {
-            result.push(extractedItem);
+            pushItem(extractedItem);
           } else {
-            if (fullItem) {
-              result.push(fullItem);
-            } else {
-              result.push(extractedItem);
-            }
+            pushItem(fullItem ?? extractedItem);
           }
         }
       }
@@ -274,24 +313,46 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
       for (const fullItem of dedupedFull) {
         const itemId = VersionTrackerUtils_getId(fullItem, this.versionTypes);
         if (itemId && !processedIds.has(itemId) && !deletedKeys.has(itemId)) {
-          result.push(fullItem);
+          pushItem(fullItem);
         }
       }
 
+      if (allSame && result.length === fullValue.length) {
+        return fullValue;
+      }
       return result;
     } else if (VersionTrackerUtils_isRecord(fullValue) && VersionTrackerUtils_isRecord(extractedValue)) {
-      const result: Record<string, unknown> = {};
-
-      for (const [key, value] of Object.entries(fullValue)) {
-        if (!deletedKeys.has(key)) {
-          result[key] = value;
+      if (Object.keys(extractedValue).length === 0 && deletedKeys.size === 0) {
+        return fullValue;
+      }
+      const fullRecord = fullValue;
+      let result: Record<string, unknown> | null = null;
+      const ensureResult = (): Record<string, unknown> => {
+        if (result == null) {
+          result = { ...fullRecord };
+          for (const dk of deletedKeys) {
+            delete result[dk as string];
+          }
+        }
+        return result;
+      };
+      for (const dk of deletedKeys) {
+        if ((dk as string) in fullRecord) {
+          ensureResult();
+          break;
         }
       }
+      const writeKey = (key: string, value: unknown): void => {
+        if (key in fullRecord && fullRecord[key] === value) {
+          return;
+        }
+        ensureResult()[key] = value;
+      };
 
       for (const [key, value] of Object.entries(extractedValue)) {
         const diffItemVersion = diffVersion?.items?.[key];
         const fullItemVersion = fullVersion?.items?.[key];
-        const fullItem = fullValue[key];
+        const fullItem = fullRecord[key];
 
         if (
           isVersionsObject(diffItemVersion) &&
@@ -300,13 +361,13 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
           VersionTrackerUtils_isRecord(value)
         ) {
           const mergedItem = this.mergeFieldByVersion(fullItem, fullItemVersion, diffItemVersion, value, `item:${key}`);
-          result[key] = mergedItem;
+          writeKey(key, mergedItem);
         } else if (!deletedKeys.has(key) && this.shouldTakeExtractedItem(diffItemVersion, fullItemVersion)) {
-          result[key] = value;
+          writeKey(key, value);
         }
       }
 
-      return result;
+      return result ?? fullRecord;
     }
 
     return extractedValue;

@@ -1,4 +1,4 @@
-import { ObjectUtils_clone, ObjectUtils_keys } from "../../utils/object";
+import { ObjectUtils_keys } from "../../utils/object";
 import {
   IVersionTypes,
   IVersionsObject,
@@ -27,7 +27,7 @@ export class VersionTrackerMergeVersions<TAtomicType extends string, TControlled
   }
 
   public run<T>(fullVersions: IVersions<T>, versionDiff: IVersions<T>): IVersions<T> {
-    const result = ObjectUtils_clone(fullVersions);
+    const result = { ...fullVersions };
     const resultObj = VersionTrackerUtils_asVersionsObject(result);
     const diffObj = VersionTrackerUtils_asVersionsObject(versionDiff);
 
