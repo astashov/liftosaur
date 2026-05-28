@@ -17,9 +17,8 @@ import {
 import { Button } from "./button";
 import { Weight_display } from "../models/weight";
 import { Confetti } from "./confetti";
-import { IHistoryRecord, IScreenMuscle, ISettings } from "../types";
+import { IHistoryRecord, IProgram, IScreenMuscle, ISettings, IStats } from "../types";
 import { useNavOptions } from "../navigation/useNavOptions";
-import { INavCommon } from "../models/state";
 import { Thunk_maybeRequestReview, Thunk_maybeRequestSignup, Thunk_pushScreen } from "../ducks/thunks";
 import { GroupHeader } from "./groupHeader";
 import { HistoryEntryView } from "./historyEntry";
@@ -59,7 +58,9 @@ interface IProps {
   settings: ISettings;
   userId?: string;
   dispatch: IDispatch;
-  navCommon: INavCommon;
+  stats: IStats;
+  allPrograms: IProgram[];
+  currentProgramId?: string;
 }
 
 export function ScreenFinishDay(props: IProps): JSX.Element {
@@ -86,7 +87,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
   muscleGroups.sort((a, b) => b[1] - a[1]);
   const muscleGroupsGrouped = CollectionUtils_splitIntoNGroups(muscleGroups, 2);
   const [showCreateProgramDay, setShowCreateProgramDay] = useState(false);
-  const eligibleForCreateProgramDay = props.navCommon.allPrograms.every((p) => p.id !== record.programId);
+  const eligibleForCreateProgramDay = props.allPrograms.every((p) => p.id !== record.programId);
 
   const isMobile =
     Platform.OS === "ios" ||
@@ -222,9 +223,9 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
       <Confetti />
       {showCreateProgramDay && (
         <ModalDayFromAdhoc
-          stats={props.navCommon.stats}
-          initialCurrentProgramId={props.navCommon.currentProgram?.id}
-          allPrograms={props.navCommon.allPrograms}
+          stats={props.stats}
+          initialCurrentProgramId={props.currentProgramId}
+          allPrograms={props.allPrograms}
           settings={props.settings}
           dispatch={props.dispatch}
           record={record}

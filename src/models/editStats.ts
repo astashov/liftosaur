@@ -400,8 +400,15 @@ export function EditStats_uploadHealthStats(
     }
   }
 
-  const applyValues = <T extends { timestamp: number }>(st: T[] | undefined, values: T[]): T[] => {
-    return CollectionUtils_sortBy(CollectionUtils_uniqBy([...(st || []), ...values], "timestamp"), "timestamp", true);
+  const applyValues = <T extends { timestamp: number }>(st: T[] | undefined, values: T[]): T[] | undefined => {
+    if (values.length === 0) {
+      return st;
+    }
+    const merged = CollectionUtils_uniqBy([...(st || []), ...values], "timestamp");
+    if (st != null && merged.length === st.length) {
+      return st;
+    }
+    return CollectionUtils_sortBy(merged, "timestamp", true);
   };
 
   dispatch({

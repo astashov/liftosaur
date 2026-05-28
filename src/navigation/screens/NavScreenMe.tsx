@@ -27,29 +27,22 @@ export function NavScreenSettings(): JSX.Element {
   const subscription = state.storage.subscription;
   const settings = state.storage.settings;
   const stats = state.storage.stats;
-  const helps = state.storage.helps;
-  const history = state.storage.history;
-  const allPrograms = state.storage.programs;
   const loading = state.loading;
   const user = state.user;
   const tempUserId = state.storage.tempUserId;
   const currentProgram =
     state.storage.currentProgramId != null ? Program_getProgram(state, state.storage.currentProgramId) : undefined;
-  const currentProgress = state.storage.progress?.[0];
+  const isOngoingProgress = (state.storage.progress?.length ?? 0) > 0;
   const navCommon = useMemo(
     () => ({
-      subscription,
-      doesHaveWorkouts: history.length > 0,
-      helps,
       loading,
       currentProgram,
-      allPrograms,
       settings,
-      progress: currentProgress,
+      isOngoingProgress,
       stats,
       userId: user?.id,
     }),
-    [subscription, history, helps, loading, currentProgram, allPrograms, settings, currentProgress, stats, user]
+    [loading, currentProgram, settings, isOngoingProgress, stats, user]
   );
   return (
     <NavScreenContent>

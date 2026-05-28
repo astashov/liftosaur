@@ -368,12 +368,12 @@ export function Settings_toggleStarredExercise(dispatch: IDispatch, key: string)
       .p("starredExercises")
       .recordModify((starred) => {
         if (starred?.[key]) {
-          delete starred[key];
+          const next = { ...starred };
+          delete next[key];
+          return next;
         } else {
-          starred = starred || {};
-          starred[key] = true;
+          return { ...starred, [key]: true };
         }
-        return starred;
       }),
     `Toggle starred exercise ${key}`
   );

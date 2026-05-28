@@ -81,7 +81,7 @@ export function Footer2View(props: IFooterProps): JSX.Element {
             testID="footer-workout"
             className="mt-[-1.5rem]"
             onPress={() => {
-              if (!!props.navCommon.progress) {
+              if (props.navCommon.isOngoingProgress) {
                 props.dispatch(Thunk_startProgramDay());
               } else {
                 navigateToModal("nextWorkoutModal");

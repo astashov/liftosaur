@@ -32,20 +32,17 @@ export function NavScreenProgress(): JSX.Element {
         (currentProgram ? Program_fullProgram(currentProgram, settings) : undefined)
       : undefined
     : undefined;
+  const isOngoingProgress = (state.storage.progress?.length ?? 0) > 0;
   const navCommon = useMemo(
     () => ({
-      subscription,
-      doesHaveWorkouts: history.length > 0,
-      helps,
       loading,
       currentProgram,
-      allPrograms,
       settings,
-      progress,
+      isOngoingProgress,
       stats,
       userId,
     }),
-    [subscription, history, helps, loading, currentProgram, allPrograms, settings, progress, stats, userId]
+    [loading, currentProgram, settings, isOngoingProgress, stats, userId]
   );
 
   return (
@@ -73,11 +70,12 @@ export function NavScreenProgress(): JSX.Element {
 export function NavScreenFinishDay(): JSX.Element {
   const { state, dispatch } = useAppState();
   const route = useRoute<{ key: string; name: string; params?: { id?: number } }>();
-  const navCommon = buildNavCommon(state);
   return (
     <NavScreenContent>
       <ScreenFinishDayComponent
-        navCommon={navCommon}
+        stats={state.storage.stats}
+        allPrograms={state.storage.programs}
+        currentProgramId={state.storage.currentProgramId}
         settings={state.storage.settings}
         dispatch={dispatch}
         history={state.storage.history}

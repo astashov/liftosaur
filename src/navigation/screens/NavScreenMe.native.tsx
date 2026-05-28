@@ -30,29 +30,22 @@ export function NavScreenSettings(): React.JSX.Element {
   const subscription = untrack(state.storage.subscription);
   const settings = untrack(state.storage.settings);
   const stats = untrack(state.storage.stats);
-  const helps = untrack(state.storage.helps);
-  const history = untrack(state.storage.history);
-  const allPrograms = untrack(state.storage.programs);
   const loading = untrack(state.loading);
   const user = untrack(state.user);
   const tempUserId = state.storage.tempUserId;
   const currentProgramId = state.storage.currentProgramId;
   const currentProgram = untrack(currentProgramId != null ? Program_getProgram(state, currentProgramId) : undefined);
-  const currentProgressForNav = untrack(state.storage.progress?.[0]);
+  const isOngoingProgress = (state.storage.progress?.length ?? 0) > 0;
   const navCommon = useMemo(
     () => ({
-      subscription,
-      doesHaveWorkouts: history.length > 0,
-      helps,
       loading,
       currentProgram,
-      allPrograms,
       settings,
-      progress: currentProgressForNav,
+      isOngoingProgress,
       stats,
       userId: user?.id,
     }),
-    [subscription, history, helps, loading, currentProgram, allPrograms, settings, currentProgressForNav, stats, user]
+    [loading, currentProgram, settings, isOngoingProgress, stats, user]
   );
   return (
     <View className="flex-1 bg-background-default">

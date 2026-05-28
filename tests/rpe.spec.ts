@@ -46,7 +46,7 @@ Squat / 1x5 135lb @8+, 1x5 135lb @8, 1x5 135lb, 1x5 135lb @7+ / progress: custom
   await expect(page.getByTestId("workout-set-target").nth(6)).toHaveText("5 × 135lb @7+");
 
   await page.getByTestId("complete-set").nth(3).click();
-  await page.getByTestId("modal-rpe-input").type("7.5");
+  await page.getByTestId("modal-rpe-input").fill("7.5");
   await page.getByTestId("modal-amrap-submit").click();
 
   await expect(page.getByTestId("rpe-value")).toHaveCount(1);
@@ -57,7 +57,7 @@ Squat / 1x5 135lb @8+, 1x5 135lb @8, 1x5 135lb, 1x5 135lb @7+ / progress: custom
 
   await page.getByTestId("complete-set").nth(5).click();
   await page.getByTestId("complete-set").nth(6).click();
-  await page.getByTestId("modal-rpe-input").type("11");
+  await page.getByTestId("modal-rpe-input").fill("11");
   await page.getByTestId("modal-amrap-submit").click();
 
   await expect(page.getByTestId("rpe-value")).toHaveCount(2);

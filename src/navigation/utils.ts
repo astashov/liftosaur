@@ -1,6 +1,5 @@
 import type { INavCommon, IState } from "../models/state";
 import { Program_getProgram } from "../models/program";
-import { Progress_getCurrentProgress } from "../models/progress";
 import type { IScreen } from "../models/screen";
 import type { NavigationState } from "@react-navigation/native";
 
@@ -8,14 +7,10 @@ export function buildNavCommon(state: IState): INavCommon {
   const currentProgram =
     state.storage.currentProgramId != null ? Program_getProgram(state, state.storage.currentProgramId) : undefined;
   return {
-    subscription: state.storage.subscription,
-    doesHaveWorkouts: state.storage.history.length > 0,
-    helps: state.storage.helps,
     loading: state.loading,
     currentProgram,
-    allPrograms: state.storage.programs,
     settings: state.storage.settings,
-    progress: Progress_getCurrentProgress(state),
+    isOngoingProgress: (state.storage.progress?.length ?? 0) > 0,
     stats: state.storage.stats,
     userId: state.user?.id,
   };
