@@ -251,10 +251,16 @@ export function ObjectUtils_clone<T>(obj: T): T {
     return obj;
   }
   if (typeof window !== "undefined" && window.structuredClone) {
-    return window.structuredClone(obj);
-  } else {
-    return JSON.parse(JSON.stringify(obj));
+    try {
+      return window.structuredClone(obj);
+    } catch (e) {
+      if ((e as { name?: string } | null)?.name === "DataCloneError") {
+        return JSON.parse(JSON.stringify(obj));
+      }
+      throw e;
+    }
   }
+  return JSON.parse(JSON.stringify(obj));
 }
 
 export function ObjectUtils_fromArray<K extends string, V>(arr: Array<[K, V]>): Record<K, V> {
