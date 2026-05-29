@@ -1,6 +1,5 @@
 import { runMigrations } from "../migrations/runner";
-import * as t from "io-ts";
-import { PathReporter } from "io-ts/lib/PathReporter";
+import * as v from "valibot";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 import { UidFactory_generateUid } from "../utils/generator";
 import { Settings_build } from "../models/settings";
@@ -12,35 +11,69 @@ import { IDispatch } from "../ducks/types";
 import { ObjectUtils_isEqual, ObjectUtils_values } from "../utils/object";
 import { DateUtils_formatYYYYMMDD } from "../utils/date";
 import { IStorageUpdate, IStorageUpdate2 } from "../utils/sync";
-import { IHistoryRecord, IStorage, THistoryRecord, TStorage, IPartialStorage, STORAGE_VERSION_TYPES } from "../types";
-import { CollectionUtils_groupByKeyUniq, CollectionUtils_compact, CollectionUtils_immutableSort } from "../utils/collection";
+import { IHistoryRecord, IStorage, IPartialStorage, STORAGE_VERSION_TYPES, VStorage, VHistoryRecord } from "../types";
+import {
+  CollectionUtils_groupByKeyUniq,
+  CollectionUtils_compact,
+  CollectionUtils_immutableSort,
+} from "../utils/collection";
 import { IVersions, VersionTracker } from "./versionTracker";
 import { lg } from "../utils/posthog";
 import { Diagnostics_getLastActions, Diagnostics_setLastValidationErrors } from "../utils/diagnostics";
 
 declare let Rollbar: RB;
 
-export function Storage_validate(
-  data: Record<string, unknown>,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  type: t.Type<any, any, any>,
-  name: string
-): IEither<IStorage, string[]> {
-  const decoded = type.decode(data);
-  if ("left" in decoded) {
-    const error = PathReporter.report(decoded);
-    return { success: false, error };
-  } else {
-    return { success: true, data: decoded.right };
+function formatIssuePath(issue: v.GenericIssue): string {
+  if (!issue.path || issue.path.length === 0) {
+    return "";
   }
+  return issue.path
+    .map((segment) => {
+      const key = (segment as { key: unknown }).key;
+      if (typeof key === "number") {
+        return `[${key}]`;
+      }
+      return String(key);
+    })
+    .reduce((acc, part) => {
+      if (part.startsWith("[")) {
+        return `${acc}${part}`;
+      }
+      return acc ? `${acc}.${part}` : part;
+    }, "");
+}
+
+export function Storage_validate<T>(data: unknown, schema: v.GenericSchema<T>, name: string): IEither<T, string[]> {
+  const result = v.safeParse(schema, data, { abortEarly: false });
+  if (result.success) {
+    // Return the input as T (not result.output) so unknown fields are preserved at every
+    // nesting level — valibot's v.object strips unknown keys; io-ts did not, and storage may
+    // carry forward-compatible fields we do not want to silently drop. Trade-off: any
+    // v.transform / coercion added to schemas in the future will run but be discarded here.
+    return { success: true, data: data as T };
+  }
+  const errors = result.issues.map((issue) => {
+    const path = formatIssuePath(issue);
+    const head = path ? `${name}.${path}` : name;
+    return `${head}: ${issue.message}`;
+  });
+  return { success: false, error: errors };
 }
 
 export function Storage_validateStorage(data: Record<string, unknown>): IEither<IStorage, string[]> {
-  return Storage_validate(data, TStorage, "storage");
+  const result = Storage_validate(data, VStorage, "storage");
+  if (result.success) {
+    return { success: true, data: result.data as unknown as IStorage };
+  }
+  return result;
 }
 
 export function Storage_validateAndReportStorage(data: Record<string, unknown>): IEither<IStorage, string[]> {
-  return Storage_validateAndReport(data, TStorage, "storage");
+  const result = Storage_validateAndReport(data, VStorage, "storage");
+  if (result.success) {
+    return { success: true, data: result.data as unknown as IStorage };
+  }
+  return result;
 }
 
 export function Storage_fillVersions<T extends IPartialStorage | IStorage>(storage: T, deviceId?: string): T {
@@ -53,13 +86,12 @@ export function Storage_fillVersions<T extends IPartialStorage | IStorage>(stora
   };
 }
 
-export function Storage_validateAndReport(
-  data: Record<string, unknown>,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  type: t.Type<any, any, any>,
+export function Storage_validateAndReport<T>(
+  data: unknown,
+  schema: v.GenericSchema<T>,
   name: string
-): IEither<IStorage, string[]> {
-  const result = Storage_validate(data, type, name);
+): IEither<T, string[]> {
+  const result = Storage_validate(data, schema, name);
   if (!result.success) {
     const error = result.error;
     lg("ls-corrupted-storage", { lastActions: JSON.stringify(Diagnostics_getLastActions()) });
@@ -80,14 +112,17 @@ export function Storage_get(
 ): IEither<IStorage, string[]> {
   if (maybeStorage) {
     let finalStorage = runMigrations(maybeStorage as IStorage);
-    const firstValidateResult = Storage_validate(finalStorage, TStorage, "storage");
+    const firstValidateResult = Storage_validate(finalStorage, VStorage, "storage");
     if (!firstValidateResult.success) {
       maybeStorage.version = "20250322014249";
       finalStorage = runMigrations(maybeStorage as IStorage);
     }
     const result = shouldReportError
-      ? Storage_validateAndReport(finalStorage, TStorage, "storage")
-      : Storage_validate(finalStorage, TStorage, "storage");
+      ? Storage_validateAndReport(finalStorage, VStorage, "storage")
+      : Storage_validate(finalStorage, VStorage, "storage");
+    if (result.success) {
+      return { success: true, data: result.data as unknown as IStorage };
+    }
     return result;
   } else {
     return { success: false, error: ["Provided data is empty"] };
@@ -107,8 +142,8 @@ export function Storage_getHistoryRecord(
     return { success: false, error: ["Failed to migrate history record"] };
   }
   const result = shouldReportError
-    ? Storage_validateAndReport(migratedRecord as unknown as Record<string, unknown>, THistoryRecord, "progress")
-    : Storage_validate(migratedRecord as unknown as Record<string, unknown>, THistoryRecord, "progress");
+    ? Storage_validateAndReport(migratedRecord as unknown as Record<string, unknown>, VHistoryRecord, "progress")
+    : Storage_validate(migratedRecord as unknown as Record<string, unknown>, VHistoryRecord, "progress");
   if (result.success) {
     return { success: true, data: migratedRecord };
   }

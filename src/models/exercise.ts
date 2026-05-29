@@ -4026,7 +4026,7 @@ export function Exercise_defaultTargetMuscles(type: IExerciseType, settings: ISe
 export function Exercise_targetMuscles(type: IExerciseType, settings: ISettings): IMuscle[] {
   const muscleMultipliers = settings.exerciseData[Exercise_toKey(type)]?.muscleMultipliers;
   if (muscleMultipliers) {
-    return ObjectUtils_keys(muscleMultipliers).filter((m) => muscleMultipliers[m] === 1);
+    return (ObjectUtils_keys(muscleMultipliers) as IMuscle[]).filter((m) => muscleMultipliers[m] === 1);
   } else {
     return Exercise_defaultTargetMuscles(type, settings);
   }
@@ -4083,7 +4083,7 @@ export function Exercise_defaultSynergistMuscles(type: IExerciseType, settings: 
 export function Exercise_synergistMuscleMultipliers(type: IExerciseType, settings: ISettings): IMuscleMultiplier[] {
   const muscleMultipliers = settings.exerciseData[Exercise_toKey(type)]?.muscleMultipliers;
   if (muscleMultipliers) {
-    return ObjectUtils_keys(muscleMultipliers)
+    return (ObjectUtils_keys(muscleMultipliers) as IMuscle[])
       .filter((m) => (muscleMultipliers[m] ?? 0) < 1)
       .map((m) => ({ muscle: m, multiplier: muscleMultipliers[m] ?? 0 }));
   } else {
@@ -4094,7 +4094,7 @@ export function Exercise_synergistMuscleMultipliers(type: IExerciseType, setting
 export function Exercise_synergistMuscles(type: IExerciseType, settings: ISettings): IMuscle[] {
   const muscleMultipliers = settings.exerciseData[Exercise_toKey(type)]?.muscleMultipliers;
   if (muscleMultipliers) {
-    return ObjectUtils_keys(muscleMultipliers).filter((m) => (muscleMultipliers[m] ?? 0) < 1);
+    return (ObjectUtils_keys(muscleMultipliers) as IMuscle[]).filter((m) => (muscleMultipliers[m] ?? 0) < 1);
   } else {
     return Exercise_defaultSynergistMuscles(type, settings);
   }

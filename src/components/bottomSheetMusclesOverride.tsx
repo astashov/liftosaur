@@ -9,7 +9,7 @@ import {
   Exercise_toKey,
   Exercise_get,
 } from "../models/exercise";
-import { IExerciseType, IMuscleMultiplier, ISettings } from "../types";
+import { IExerciseType, IMuscle, IMuscleMultiplier, ISettings } from "../types";
 import { Button } from "./button";
 import { Nux } from "./nux";
 import { CollectionUtils_sort } from "../utils/collection";
@@ -75,7 +75,7 @@ export function getDefaultMusclesAndMultipliersAsObject(
 export function getInitialMusclesAndMultipliers(exercise: IExercise, settings: ISettings): IMuscleAndMultiplierOpt[] {
   const muscleMultipliers = settings.exerciseData[Exercise_toKey(exercise)]?.muscleMultipliers;
   if (muscleMultipliers != null) {
-    return ObjectUtils_keys(muscleMultipliers).map((muscle) => ({
+    return (ObjectUtils_keys(muscleMultipliers) as IMuscle[]).map((muscle) => ({
       muscle,
       multiplier: muscleMultipliers[muscle],
     }));

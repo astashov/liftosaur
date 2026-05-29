@@ -1,5 +1,5 @@
-import { PathReporter } from "io-ts/lib/PathReporter";
-import { IMuscleGeneratorResponse, TMuscleGeneratorResponse } from "../../src/types";
+import * as v from "valibot";
+import { IMuscleGeneratorResponse, VMuscleGeneratorResponse } from "../../src/types";
 import { IDI } from "./di";
 import { LlmMuscles } from "./llms/llmMuscles";
 
@@ -22,13 +22,13 @@ export class MuscleGenerator {
       }
       response = response.trim().replace(/^[\s\S]*?(\{[\s\S]*\})[\s\S]*?$/, "$1");
       const json = JSON.parse(response);
-      const decoded = TMuscleGeneratorResponse.decode(json);
-      if ("left" in decoded) {
-        const error = PathReporter.report(decoded);
+      const decoded = v.safeParse(VMuscleGeneratorResponse, json, { abortEarly: false });
+      if (!decoded.success) {
+        const error = decoded.issues.map((i) => i.message);
         this.di.log.log("Failed to decode muscle generator response:", error, "Response was:", response);
         return undefined;
       } else {
-        return decoded.right;
+        return decoded.output;
       }
     } catch (err) {
       this.di.log.log("Exception during muscle generation:", err);

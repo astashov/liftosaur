@@ -20,12 +20,12 @@ import {
   IMuscle,
   IExerciseKind,
   ICustomExercise,
-  TMuscle,
-  TExerciseKind,
+  VMuscle,
+  VExerciseKind,
   availableMuscles,
   exerciseKinds,
 } from "../../src/types";
-import * as t from "io-ts";
+import * as v from "valibot";
 import { UidFactory_generateUid } from "./generator";
 import {
   Program_evaluate,
@@ -560,14 +560,14 @@ function validateExerciseFields(
   synergistMuscles: unknown[],
   types: unknown[]
 ): IApiError | undefined {
-  if (t.array(TMuscle).decode([...targetMuscles, ...synergistMuscles])._tag === "Left") {
+  if (!v.safeParse(v.array(VMuscle), [...targetMuscles, ...synergistMuscles]).success) {
     return {
       status: 400,
       code: "invalid_input",
       message: `Invalid muscle name(s). Valid muscles: ${availableMuscles.join(", ")}`,
     };
   }
-  if (t.array(TExerciseKind).decode(types)._tag === "Left") {
+  if (!v.safeParse(v.array(VExerciseKind), types).success) {
     return {
       status: 400,
       code: "invalid_input",
