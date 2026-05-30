@@ -121,7 +121,7 @@ function clipSeriesToViewport(
   for (let i = 0; i < timestamps.length; i++) {
     const t = timestamps[i];
     const v = values[i];
-    if (t == null || v == null || !isFinite(v)) {
+    if (t == null || v == null || !isFinite(t) || !isFinite(v)) {
       continue;
     }
     pts.push([t, v]);
@@ -157,11 +157,17 @@ function clipSeriesToViewport(
 
 function buildPath(points: [number, number][], xToPx: (x: number) => number, yToPx: (y: number) => number): string {
   let d = "";
+  let started = false;
   for (let i = 0; i < points.length; i++) {
     const [t, v] = points[i];
     const px = xToPx(t);
     const py = yToPx(v);
-    d += (i === 0 ? "M" : "L") + `${px.toFixed(2)} ${py.toFixed(2)}`;
+    // react-native-svg's native Android PathParser throws on a non-numeric "NaN" in the path string
+    if (!isFinite(px) || !isFinite(py)) {
+      continue;
+    }
+    d += (started ? "L" : "M") + `${px.toFixed(2)} ${py.toFixed(2)}`;
+    started = true;
   }
   return d;
 }
@@ -193,15 +199,17 @@ function findNearestIdx(
 
 export const LineChart = forwardRef<ILineChartHandle, ILineChartProps>(function LineChart(props, ref): JSX.Element {
   const [width, setWidth] = useState<number>(0);
-  const timestamps = props.data[0] || [];
+  const rawTimestamps = props.data[0] || [];
+  const timestamps = useMemo(() => rawTimestamps.map((t) => (t != null && isFinite(t) ? t : null)), [rawTimestamps]);
 
   const xMode = props.xMode ?? "time";
-  const dataMaxX = timestamps.length > 0 ? (timestamps[timestamps.length - 1] as number) : 0;
+  const finiteTimestamps = useMemo(() => timestamps.filter((t): t is number => t != null), [timestamps]);
+  const dataMaxX = finiteTimestamps.length > 0 ? (finiteTimestamps[finiteTimestamps.length - 1] as number) : 0;
   const dataMinX =
-    timestamps.length > 0
+    finiteTimestamps.length > 0
       ? xMode === "time"
-        ? Math.max(timestamps[0] as number, dataMaxX - YEAR_SECONDS)
-        : (timestamps[0] as number)
+        ? Math.max(finiteTimestamps[0] as number, dataMaxX - YEAR_SECONDS)
+        : (finiteTimestamps[0] as number)
       : 0;
 
   const initialMin =
