@@ -6,6 +6,7 @@ import { IExerciseType, IPercentage, ISettings, IUnit, IWeight } from "../types"
 import { IconCalculator } from "./icons/iconCalculator";
 import { useModal } from "../navigation/ModalStateContext";
 import { StringUtils_dashcase } from "../utils/string";
+import { MathUtils_normalizeNumStr } from "../utils/math";
 import { InputWeightUnit } from "./inputWeightUnit";
 
 interface IInputWeightProps {
@@ -87,9 +88,10 @@ export function InputWeight(props: IInputWeightProps): JSX.Element {
               data-testid={testId}
               testID={testId}
               onChangeText={(t) => {
-                setText(t);
-                if (t !== "" && !isNaN(Number(t))) {
-                  props.onUpdate(buildWeight(Number(t), unit));
+                const normalized = MathUtils_normalizeNumStr(t);
+                setText(normalized);
+                if (normalized !== "" && !isNaN(Number(normalized))) {
+                  props.onUpdate(buildWeight(Number(normalized), unit));
                 }
               }}
               onBlur={() => {

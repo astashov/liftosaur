@@ -72,6 +72,11 @@ export function MathUtils_parse(value?: string): number | undefined {
   return isNaN(num) ? undefined : num;
 }
 
+// Non-US iOS/Android keyboards use "," as the decimal separator, but Number()/parseFloat() only accept "."
+export function MathUtils_normalizeNumStr(value: string): string {
+  return value.replace(/,/g, ".");
+}
+
 export function n(value: number, precision: number = 2): string {
   return `${MathUtils_roundFloat(value, precision)}`;
 }

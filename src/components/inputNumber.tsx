@@ -1,7 +1,7 @@
 import { JSX, useEffect, useState } from "react";
 import { View, Pressable, TextInput, Platform } from "react-native";
 import { Text } from "./primitives/text";
-import { MathUtils_clamp } from "../utils/math";
+import { MathUtils_clamp, MathUtils_normalizeNumStr } from "../utils/math";
 import { StringUtils_dashcase } from "../utils/string";
 
 interface IInputNumberProps {
@@ -61,9 +61,10 @@ export function InputNumber(props: IInputNumberProps): JSX.Element {
             testID={props.testID || `${testId}-field`}
             data-testid={props.testID || `${testId}-field`}
             onChangeText={(t) => {
-              setText(t);
-              if (t !== "" && !isNaN(Number(t))) {
-                onUpdate(getNumericValue(t));
+              const normalized = MathUtils_normalizeNumStr(t);
+              setText(normalized);
+              if (normalized !== "" && !isNaN(Number(normalized))) {
+                onUpdate(getNumericValue(normalized));
               }
             }}
             onBlur={() => {

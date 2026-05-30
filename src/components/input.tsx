@@ -2,6 +2,7 @@ import React, { JSX, Ref, forwardRef, useCallback, useEffect, useImperativeHandl
 import { UidFactory_generateUid } from "../utils/generator";
 import { StringUtils_dashcase } from "../utils/string";
 import { IEither } from "../utils/types";
+import { MathUtils_normalizeNumStr } from "../utils/math";
 
 export const inputClassName =
   "inline-block w-full px-4 text-base py-2 leading-normal bg-background-default border border-border-prominent rounded-lg appearance-none focus:outline-none focus:shadow-outline text-base";
@@ -111,6 +112,12 @@ export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement> | Ref
 
   const validateTarget = useCallback(
     (target: HTMLInputElement, displayMode: "clear-only" | "snapshot") => {
+      if (props.type === "number") {
+        const normalized = MathUtils_normalizeNumStr(target.value);
+        if (normalized !== target.value) {
+          target.value = normalized;
+        }
+      }
       const errors = new Set<IValidationError>();
       if (target.validity.patternMismatch) {
         errors.add("pattern-mismatch");
@@ -139,7 +146,7 @@ export const Input = forwardRef((props: IProps, ref: Ref<HTMLInputElement> | Ref
         }
       }
     },
-    [changeHandler]
+    [changeHandler, props.type]
   );
 
   const onInputHandler = useCallback(

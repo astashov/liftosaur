@@ -3,6 +3,7 @@ import { TextInput, Pressable, View, Platform } from "react-native";
 import { Text } from "./primitives/text";
 import { IEither } from "../utils/types";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
+import { MathUtils_normalizeNumStr } from "../utils/math";
 
 export function InputAccessoryDone(): null {
   return null;
@@ -86,7 +87,9 @@ export const Input = memo(
       }
       let result = trimmed;
       if (trimmed !== "" && props.type === "number") {
-        const num = parseFloat(trimmed);
+        const normalized = MathUtils_normalizeNumStr(trimmed);
+        result = normalized;
+        const num = Number(normalized);
         if (isNaN(num)) {
           errors.add("pattern-mismatch");
         } else if (opts.applyClamp) {

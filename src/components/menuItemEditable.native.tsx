@@ -5,6 +5,7 @@ import { Switch } from "./primitives/switch";
 import { MenuItemWrapper } from "./menuItem";
 import { IconTrash } from "./icons/iconTrash";
 import { StringUtils_dashcase } from "../utils/string";
+import { MathUtils_normalizeNumStr } from "../utils/math";
 import { ActionSheet_show } from "../utils/actionSheet";
 
 type IMenuItemType = "text" | "number" | "select" | "boolean" | "desktop-select" | "select2";
@@ -154,6 +155,7 @@ function NativeTextValue(props: {
   const localRef = useRef<TextInput>(null);
   const ref = props.inputRef ?? localRef;
   const currentValueRef = useRef(props.value ?? "");
+  const isNumeric = props.keyboardType === "numeric";
 
   useEffect(() => {
     const newStr = props.value ?? "";
@@ -170,10 +172,16 @@ function NativeTextValue(props: {
       style={{ minWidth: 80, fontFamily: "Poppins" }}
       defaultValue={currentValueRef.current}
       onChangeText={(text) => {
-        currentValueRef.current = text;
-        props.onInput?.(text);
+        const newValue = isNumeric ? MathUtils_normalizeNumStr(text) : text;
+        currentValueRef.current = newValue;
+        props.onInput?.(newValue);
       }}
-      onBlur={() => props.onChange?.(currentValueRef.current)}
+      onBlur={() => {
+        if (isNumeric) {
+          ref.current?.setNativeProps({ text: currentValueRef.current });
+        }
+        props.onChange?.(currentValueRef.current);
+      }}
       keyboardType={props.keyboardType}
       maxLength={props.maxLength}
       selectTextOnFocus={Platform.OS === "ios"}

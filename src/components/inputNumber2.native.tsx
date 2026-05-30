@@ -257,9 +257,9 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
           newValue = `-${newValue}`;
         }
       }
-    } else if (key === ".") {
+    } else if (key === "." || key === ",") {
       if (allowDotRef.current && !newValue.includes(".")) {
-        newValue += key;
+        newValue += ".";
       }
     } else if (newValue.length < dynMaxLength) {
       newValue += key;

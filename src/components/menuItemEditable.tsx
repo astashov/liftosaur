@@ -5,6 +5,7 @@ import { ScrollBarrell } from "./scrollBarrell";
 import { IconTrash } from "./icons/iconTrash";
 import { SendMessage_isIos } from "../utils/sendMessage";
 import { lg } from "../utils/posthog";
+import { MathUtils_normalizeNumStr } from "../utils/math";
 
 type IMenuItemType = "text" | "number" | "select" | "boolean" | "desktop-select" | "select2";
 
@@ -203,7 +204,12 @@ export function MenuItemValue(
         <input
           data-testid={`menu-item-value-${StringUtils_dashcase(props.name)}`}
           key={props.value}
-          onBlur={handleChange(props.onChange, props.setPatternError)}
+          onBlur={(e) => {
+            if (e.target instanceof HTMLInputElement) {
+              e.target.value = MathUtils_normalizeNumStr(e.target.value);
+            }
+            handleChange(props.onChange, props.setPatternError)(e);
+          }}
           type={SendMessage_isIos() ? "number" : "tel"}
           step="0.01"
           onFocus={(e) => {

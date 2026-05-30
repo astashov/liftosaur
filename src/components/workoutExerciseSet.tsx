@@ -60,7 +60,7 @@ function computeRpeColumnWidth(rpeLabel: string, remValue: number): number {
   let units = 0.3;
   for (const ch of rpeLabel) {
     if (ch === ".") {
-      units += 0.2;
+      units += 0.5;
     } else if (ch === "@") {
       units += 0.5;
     } else {
@@ -351,7 +351,12 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
             {props.columnWidths.rpe > 0 ? (
               <View className="items-start justify-center py-2 ml-1" style={{ width: props.columnWidths.rpe }}>
                 {completedRpeValue != null ? (
-                  <Text data-testid="rpe-value" testID="rpe-value" className="text-xs font-semibold text-text-success">
+                  <Text
+                    numberOfLines={1}
+                    data-testid="rpe-value"
+                    testID="rpe-value"
+                    className="text-xs font-semibold text-text-success"
+                  >
                     @{n(completedRpeValue)}
                   </Text>
                 ) : null}
