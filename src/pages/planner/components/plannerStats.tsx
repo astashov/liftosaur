@@ -283,7 +283,7 @@ function PlannerStatsTooltip(props: { split: ISetSplit }): JSX.Element | null {
   }
 
   return (
-    <div className="absolute z-10 px-3 py-2 text-xs border bg-background-default border-grayv2-400 rounded-xl text-text-primary planner-stats-tooltip">
+    <div className="absolute z-10 px-3 py-2 text-xs border bg-background-default border-border-neutral rounded-xl text-text-primary planner-stats-tooltip">
       <ul style={{ minWidth: "14rem" }}>
         {exercises.map((exercise) => {
           const totalSets = exercise.strengthSets + exercise.hypertrophySets;
