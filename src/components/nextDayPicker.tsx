@@ -2,7 +2,7 @@ import { JSX, memo, useCallback, useMemo, useState } from "react";
 import { View } from "react-native";
 import { useProgressiveCount, useProgressiveItems } from "../utils/useProgressiveItems";
 import { Text } from "./primitives/text";
-import { Exercise_find } from "../models/exercise";
+import { Exercise_find, Exercise_toKey } from "../models/exercise";
 import { Muscle_normalizeUnifiedPoints, Muscle_getUnifiedPointsForDay } from "../models/muscle";
 import {
   Program_evaluate,
@@ -12,7 +12,7 @@ import {
 } from "../models/program";
 import { IProgram, ISettings, IScreenMuscle, IStats } from "../types";
 import type { IEvaluatedProgram } from "../models/program";
-import { CollectionUtils_findBy, CollectionUtils_compact } from "../utils/collection";
+import { CollectionUtils_findBy, CollectionUtils_compact, CollectionUtils_uniqByExpr } from "../utils/collection";
 import { ObjectUtils_keys } from "../utils/object";
 import { ExerciseImage } from "./exerciseImage";
 import { IconArrowRight } from "./icons/iconArrowRight";
@@ -81,11 +81,12 @@ function NextDayPickerDayImpl(props: INextDayPickerDayProps): JSX.Element | null
     if (!day) {
       return [];
     }
-    return CollectionUtils_compact(
+    const found = CollectionUtils_compact(
       Program_getProgramDayUsedExercises(day).map((exercise) =>
         Exercise_find(exercise.exerciseType, settings.exercises)
       )
     );
+    return CollectionUtils_uniqByExpr(found, (e) => Exercise_toKey(e));
   }, [day, settings.exercises]);
   const handlePress = useCallback(() => {
     onSelect(evaluatedProgram.id, dayIndex + 1);
@@ -103,7 +104,13 @@ function NextDayPickerDayImpl(props: INextDayPickerDayProps): JSX.Element | null
             <Text>{props.dayName}</Text>
             <View className="flex-row flex-wrap">
               {exerciseTypes.map((e) => (
-                <ExerciseImage key={e.id} settings={settings} exerciseType={e} size="small" className="w-6 mr-1" />
+                <ExerciseImage
+                  key={Exercise_toKey(e)}
+                  settings={settings}
+                  exerciseType={e}
+                  size="small"
+                  className="w-6 mr-1"
+                />
               ))}
             </View>
           </View>

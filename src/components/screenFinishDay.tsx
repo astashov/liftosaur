@@ -43,7 +43,6 @@ import { InternalLink } from "../internalLink";
 import { LinkButton } from "./linkButton";
 import { IconTiktok } from "./icons/iconTiktok";
 import { PersonalRecords } from "./personalRecords";
-import { ModalDayFromAdhoc } from "./modalDayFromAdhoc";
 import { ImagePreloader_dynohappy } from "../utils/imagePreloader";
 import { HostConfig_resolveUrl } from "../utils/hostConfig";
 import { n } from "../utils/math";
@@ -86,7 +85,6 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
   }, []);
   muscleGroups.sort((a, b) => b[1] - a[1]);
   const muscleGroupsGrouped = CollectionUtils_splitIntoNGroups(muscleGroups, 2);
-  const [showCreateProgramDay, setShowCreateProgramDay] = useState(false);
   const eligibleForCreateProgramDay = props.allPrograms.every((p) => p.id !== record.programId);
 
   const isMobile =
@@ -196,7 +194,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
                 className="w-36"
                 testID="create-program-day"
                 onPress={() => {
-                  setShowCreateProgramDay(true);
+                  navigateToModal("dayFromAdhocModal", { historyRecordId: record.id });
                 }}
               >
                 Create Program Day
@@ -221,17 +219,6 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
         </View>
       </View>
       <Confetti />
-      {showCreateProgramDay && (
-        <ModalDayFromAdhoc
-          stats={props.stats}
-          initialCurrentProgramId={props.currentProgramId}
-          allPrograms={props.allPrograms}
-          settings={props.settings}
-          dispatch={props.dispatch}
-          record={record}
-          onClose={() => setShowCreateProgramDay(false)}
-        />
-      )}
     </>
   );
 }

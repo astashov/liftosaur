@@ -108,11 +108,11 @@ export type IRootStackParamList = {
   newEquipmentModal: undefined;
   newPlateModal: { equipment: IEquipment };
   newFixedWeightModal: { equipment: IEquipment };
-  createProgramModal: undefined;
+  createProgramModal: { adhocProgressId?: number; adhocHistoryRecordId?: number } | undefined;
   importFromLinkModal: undefined;
   affiliateModal: undefined;
   importFromOtherAppsModal: undefined;
-  dayFromAdhocModal: { progressId: number };
+  dayFromAdhocModal: { progressId?: number; historyRecordId?: number };
   nextWorkoutModal: undefined;
   whatsnewModal: undefined;
   signupRequestModal: undefined;

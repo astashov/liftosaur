@@ -1,32 +1,27 @@
-import { JSX, useState } from "react";
+import { JSX } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
-import { Modal } from "./modal";
 import { IHistoryRecord, IProgram, ISettings, IStats } from "../types";
 import { NextDayPicker } from "./nextDayPicker";
 import { LinkButton } from "./linkButton";
-import { ModalCreateProgram } from "./modalCreateProgram";
 import { IDispatch } from "../ducks/types";
-import { lb } from "lens-shmens";
 import { EditProgram_updateProgram } from "../models/editProgram";
-import { Program_addDayFromHistoryRecord, Program_createFromHistoryRecord } from "../models/program";
-import { updateState, IState } from "../models/state";
+import { Program_addDayFromHistoryRecord } from "../models/program";
 import { CollectionUtils_findBy } from "../utils/collection";
 import { Dialog_alert } from "../utils/dialog";
 
-interface IModalChangeNextDayProps {
+interface IModalDayFromAdhocContentProps {
   initialCurrentProgramId?: string;
   allPrograms: IProgram[];
   settings: ISettings;
   stats: IStats;
   record: IHistoryRecord;
   dispatch: IDispatch;
+  onCreateProgram: () => void;
   onClose: () => void;
 }
 
-export function ModalDayFromAdhocContent(props: IModalChangeNextDayProps): JSX.Element {
-  const [showCreateProgramModal, setShowCreateProgramModal] = useState(false);
-
+export function ModalDayFromAdhocContent(props: IModalDayFromAdhocContentProps): JSX.Element {
   return (
     <>
       <View className="justify-center pb-2">
@@ -35,9 +30,7 @@ export function ModalDayFromAdhocContent(props: IModalChangeNextDayProps): JSX.E
           data-testid="create-program-from-adhoc"
           testID="create-program-from-adhoc"
           className="text-sm text-center"
-          onClick={() => {
-            setShowCreateProgramModal(true);
-          }}
+          onClick={props.onCreateProgram}
         >
           Create a new program with this workout
         </LinkButton>
@@ -74,36 +67,6 @@ export function ModalDayFromAdhocContent(props: IModalChangeNextDayProps): JSX.E
           props.onClose();
         }}
       />
-      {showCreateProgramModal && (
-        <ModalCreateProgram
-          isHidden={!showCreateProgramModal}
-          onClose={() => setShowCreateProgramModal(false)}
-          onSelect={(name) => {
-            setShowCreateProgramModal(false);
-            const program = Program_createFromHistoryRecord(name, props.record, props.settings);
-            updateState(
-              props.dispatch,
-              [
-                lb<IState>()
-                  .p("storage")
-                  .p("programs")
-                  .recordModify((pgms) => [...pgms, program]),
-              ],
-              "Create program from adhoc"
-            );
-            Dialog_alert(`Created new program '${program.name}' with this workout`);
-            props.onClose();
-          }}
-        />
-      )}
     </>
-  );
-}
-
-export function ModalDayFromAdhoc(props: IModalChangeNextDayProps): JSX.Element {
-  return (
-    <Modal noPaddings zIndex={60} shouldShowClose onClose={props.onClose} isFullWidth isFullHeight>
-      <ModalDayFromAdhocContent {...props} />
-    </Modal>
   );
 }

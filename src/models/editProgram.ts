@@ -5,11 +5,13 @@ import {
   Program_evaluate,
   Program_getFirstProgramExercise,
   Program_create,
+  Program_createFromHistoryRecord,
 } from "./program";
 import { IDispatch } from "../ducks/types";
 import { ObjectUtils_diff, ObjectUtils_keys, ObjectUtils_clone, ObjectUtils_entries } from "../utils/object";
 import { updateState, IState } from "./state";
-import { IProgram, IDayData, IProgramState, ISettings } from "../types";
+import { IProgram, IDayData, IProgramState, ISettings, IHistoryRecord } from "../types";
+import { Dialog_alert } from "../utils/dialog";
 import { updateStateVariable } from "./editProgramLenses";
 import { IPlannerProgramExercise, IPlannerExerciseState, IPlannerState } from "../pages/planner/models/types";
 import { PP_iterate2 } from "./pp";
@@ -155,6 +157,26 @@ export function EditProgram_create(dispatch: IDispatch, name: string): void {
     "Create program"
   );
   dispatch(Thunk_pushToEditProgram());
+}
+
+export function EditProgram_createFromHistoryRecord(
+  dispatch: IDispatch,
+  name: string,
+  record: IHistoryRecord,
+  settings: ISettings
+): void {
+  const program = Program_createFromHistoryRecord(name, record, settings);
+  updateState(
+    dispatch,
+    [
+      lb<IState>()
+        .p("storage")
+        .p("programs")
+        .recordModify((pgms) => [...pgms, program]),
+    ],
+    "Create program from adhoc"
+  );
+  Dialog_alert(`Created new program '${program.name}' with this workout`);
 }
 
 export function EditProgram_updateProgram(dispatch: IDispatch, program: IProgram): void {

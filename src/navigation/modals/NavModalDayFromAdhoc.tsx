@@ -4,6 +4,8 @@ import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
 import { FormSheet } from "../FormSheet";
 import { ModalDayFromAdhocContent } from "../../components/modalDayFromAdhoc";
+import { navigateToModal } from "../navigationService";
+import { resolveAdhocRecord } from "../utils";
 import type { IRootStackParamList } from "../types";
 
 export function NavModalDayFromAdhoc(): JSX.Element {
@@ -14,22 +16,22 @@ export function NavModalDayFromAdhoc(): JSX.Element {
     name: "dayFromAdhocModal";
     params: IRootStackParamList["dayFromAdhocModal"];
   }>();
-  const { progressId } = route.params;
+  const { progressId, historyRecordId } = route.params;
 
-  const progress = progressId === 0 ? state.storage.progress?.[0] : state.progress[progressId];
+  const record = resolveAdhocRecord(state, { progressId, historyRecordId });
 
   const onClose = (): void => {
     navigation.goBack();
   };
 
-  const shouldGoBack = !progress;
+  const shouldGoBack = !record;
   useEffect(() => {
     if (shouldGoBack) {
       navigation.goBack();
     }
   }, [shouldGoBack]);
 
-  if (shouldGoBack || !progress) {
+  if (shouldGoBack || !record) {
     return <></>;
   }
 
@@ -37,12 +39,18 @@ export function NavModalDayFromAdhoc(): JSX.Element {
     <ModalScreenContainer onClose={onClose} isFullWidth isFullHeight>
       <FormSheet header="Program day from Adhoc workout">
         <ModalDayFromAdhocContent
-          initialCurrentProgramId={progress.programId}
+          initialCurrentProgramId={record.programId}
           stats={state.storage.stats}
-          record={progress}
+          record={record}
           dispatch={dispatch}
           allPrograms={state.storage.programs}
           settings={state.storage.settings}
+          onCreateProgram={() =>
+            navigateToModal("createProgramModal", {
+              adhocProgressId: progressId,
+              adhocHistoryRecordId: historyRecordId,
+            })
+          }
           onClose={onClose}
         />
       </FormSheet>
