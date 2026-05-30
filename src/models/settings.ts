@@ -330,8 +330,8 @@ export function Settings_applyExportedProgram(settings: ISettings, exportedProgr
     units: settings.units || exportedProgram.settings.units,
     timers: {
       ...settings.timers,
-      workout: settings.timers.workout || exportedProgram.settings.timers?.workout,
-      warmup: settings.timers.warmup || exportedProgram.settings.timers?.warmup,
+      workout: settings.timers.workout ?? exportedProgram.settings.timers?.workout,
+      warmup: settings.timers.warmup ?? exportedProgram.settings.timers?.warmup,
     },
     planner: settings.planner || exportedProgram.settings.planner,
     muscleGroups: settings.muscleGroups || exportedProgram.settings.muscleGroups,
