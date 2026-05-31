@@ -310,7 +310,9 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
         />
       )}
       {((SendMessage_isIos() && SendMessage_iosAppVersion() >= 7) ||
-        (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 14)) && (
+        Platform.OS === "ios" ||
+        (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 14) ||
+        Platform.OS === "android") && (
         <View>
           <GroupHeader name="Sound" topPadding={true} />
           <MenuItemEditable
@@ -350,8 +352,7 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
             </View>
           </MenuItemWrapper>
           {Subscriptions_hasSubscription(props.subscription) &&
-            SendMessage_isAndroid() &&
-            SendMessage_androidAppVersion() >= 17 && (
+            ((SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 17) || Platform.OS === "android") && (
               <MenuItemEditable
                 type="boolean"
                 name="Ignore Do Not Disturb"
