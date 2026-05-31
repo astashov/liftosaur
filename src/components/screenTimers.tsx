@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 import { IDispatch } from "../ducks/types";
 import { Lens, lb } from "lens-shmens";
 import { MenuItemEditable } from "./menuItemEditable";
@@ -56,7 +56,9 @@ export function ScreenTimers(props: IProps): JSX.Element {
         onChange={onChange("superset")}
       />
       {((SendMessage_isIos() && SendMessage_iosVersion() >= 10) ||
-        (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 19)) && (
+        Platform.OS === "ios" ||
+        (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 19) ||
+        Platform.OS === "android") && (
         <>
           <GroupHeader name="Reminders" topPadding={true} />
           <MenuItemEditable
