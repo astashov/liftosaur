@@ -47,7 +47,18 @@ class Notification(private val context: Context, private val activity: Activity?
 
     fun cancel(id: Int) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        startedIntents[id]?.let { alarmManager.cancel(it) }
+        // setAlarmClock alarms survive process death, but `startedIntents` does not. Rebuild a
+        // filterEquals-matching PendingIntent (extras are ignored when matching) so the alarm is
+        // cancelled even after a kill/restart wiped the in-memory map; otherwise a stale rest-timer
+        // would still fire after the workout was finished or discarded.
+        val intent = Intent(context, TimerNotificationPublisher::class.java)
+        PendingIntent.getBroadcast(
+            context,
+            id,
+            intent,
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+        )?.let { alarmManager.cancel(it) }
+        startedIntents.remove(id)?.let { alarmManager.cancel(it) }
     }
 
     fun send(
