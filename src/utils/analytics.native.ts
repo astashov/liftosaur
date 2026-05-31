@@ -49,7 +49,6 @@ export function Analytics_initialize(opts: IAnalyticsInitOptions): () => void {
       isDebug: false,
       onInstallConversionDataListener: true,
       onDeepLinkListener: false,
-      timeToWaitForATTUserAuthorization: 10,
       manualStart: true,
     },
     () => {

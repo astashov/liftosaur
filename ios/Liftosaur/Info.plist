@@ -69,8 +69,6 @@
 	<string>Liftosaur needs access to your photo library to pick photos for use as workout share backgrounds.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string/>
-	<key>NSUserTrackingUsageDescription</key>
-	<string>Liftosaur uses this identifier to help measure ad performance and improve the app experience.</string>
 	<key>NSAdvertisingAttributionReportEndpoint</key>
 	<string>https://appsflyer-skadnetwork.com/</string>
 	<key>SKAdNetworkItems</key>
