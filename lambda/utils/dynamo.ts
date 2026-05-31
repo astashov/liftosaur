@@ -266,8 +266,13 @@ export class DynamoUtil implements IDynamoUtil {
 
   public async put(args: { tableName: string; item: Record<string, NativeAttributeValue> }): Promise<void> {
     const startTime = Date.now();
+    const clampedPaths: string[] = [];
+    const item = DynamoUtil_sanitizeNumbers(args.item, clampedPaths);
+    if (clampedPaths.length > 0) {
+      this.log.log(`Dynamo put: clamped out-of-range numbers in ${args.tableName}: `, clampedPaths);
+    }
     try {
-      await this.dynamo.send(new PutCommand({ TableName: args.tableName, Item: args.item }));
+      await this.dynamo.send(new PutCommand({ TableName: args.tableName, Item: item }));
     } catch (error) {
       const e = error as Error;
       this.log.log(`FAILED Dynamo put: ${args.tableName} - `, args.item, ` - ${Date.now() - startTime}ms`);
@@ -285,6 +290,11 @@ export class DynamoUtil implements IDynamoUtil {
     sortKey?: string;
   }): Promise<boolean> {
     const startTime = Date.now();
+    const clampedPaths: string[] = [];
+    const item = DynamoUtil_sanitizeNumbers(args.item, clampedPaths);
+    if (clampedPaths.length > 0) {
+      this.log.log(`Dynamo putIfNotExists: clamped out-of-range numbers in ${args.tableName}: `, clampedPaths);
+    }
     try {
       let conditionExpression = `attribute_not_exists(#pk)`;
       const expressionAttributeNames: Record<string, string> = {
@@ -299,7 +309,7 @@ export class DynamoUtil implements IDynamoUtil {
       await this.dynamo.send(
         new PutCommand({
           TableName: args.tableName,
-          Item: args.item,
+          Item: item,
           ConditionExpression: conditionExpression,
           ExpressionAttributeNames: expressionAttributeNames,
         })
@@ -336,6 +346,11 @@ export class DynamoUtil implements IDynamoUtil {
     values?: Partial<Record<string, NativeAttributeValue>>;
   }): Promise<void> {
     const startTime = Date.now();
+    const clampedPaths: string[] = [];
+    const values = DynamoUtil_sanitizeNumbers(args.values, clampedPaths);
+    if (clampedPaths.length > 0) {
+      this.log.log(`Dynamo update: clamped out-of-range numbers in ${args.tableName}: `, clampedPaths);
+    }
     try {
       await this.dynamo.send(
         new UpdateCommand({
@@ -343,7 +358,7 @@ export class DynamoUtil implements IDynamoUtil {
           Key: args.key,
           UpdateExpression: args.expression,
           ExpressionAttributeNames: args.attrs,
-          ExpressionAttributeValues: args.values,
+          ExpressionAttributeValues: values,
         })
       );
     } catch (e) {
@@ -429,8 +444,13 @@ export class DynamoUtil implements IDynamoUtil {
     if (args.items.length === 0) {
       return;
     }
+    const clampedPaths: string[] = [];
+    const sanitizedItems = args.items.map((item) => DynamoUtil_sanitizeNumbers(item, clampedPaths));
+    if (clampedPaths.length > 0) {
+      this.log.log(`Dynamo batch put: clamped out-of-range numbers in ${args.tableName}: `, clampedPaths);
+    }
     await Promise.all(
-      CollectionUtils_inGroupsOf(25, args.items).map(async (group) => {
+      CollectionUtils_inGroupsOf(25, sanitizedItems).map(async (group) => {
         const startTime = Date.now();
         try {
           await this.dynamo.send(
@@ -484,6 +504,44 @@ export class DynamoUtil implements IDynamoUtil {
       })
     );
   }
+}
+
+// The AWS SDK throws when marshalling a finite number outside the IEEE-safe integer range
+// (or a NaN/Infinity), which would brick an entire write if a single corrupt value (e.g. a
+// runaway equipment plate count) leaks into storage. Clamp such values so one bad number can't
+// fail the whole put. We only descend into plain objects and arrays (the shapes our JSON storage
+// uses); any other object is returned as-is so we don't mangle a value the DocumentClient marshals
+// specially (e.g. a Set/Map into NS/SS or a typed array into binary).
+export function DynamoUtil_sanitizeNumbers<T>(value: T, clampedPaths: string[] = [], path = ""): T {
+  if (typeof value === "number") {
+    if (Number.isFinite(value) && Math.abs(value) <= Number.MAX_SAFE_INTEGER) {
+      return value;
+    }
+    clampedPaths.push(`${path || "<root>"}=${value}`);
+    if (Number.isNaN(value)) {
+      return 0 as unknown as T;
+    }
+    return (value > 0 ? Number.MAX_SAFE_INTEGER : -Number.MAX_SAFE_INTEGER) as unknown as T;
+  }
+  if (Array.isArray(value)) {
+    return value.map((v, i) => DynamoUtil_sanitizeNumbers(v, clampedPaths, `${path}[${i}]`)) as unknown as T;
+  }
+  if (value != null && typeof value === "object") {
+    const proto = Object.getPrototypeOf(value);
+    if (proto !== Object.prototype && proto !== null) {
+      return value;
+    }
+    const result: Record<string, unknown> = {};
+    for (const key of Object.keys(value as Record<string, unknown>)) {
+      result[key] = DynamoUtil_sanitizeNumbers(
+        (value as Record<string, unknown>)[key],
+        clampedPaths,
+        path ? `${path}.${key}` : key
+      );
+    }
+    return result as unknown as T;
+  }
+  return value;
 }
 
 async function paginatedQuery<T>(

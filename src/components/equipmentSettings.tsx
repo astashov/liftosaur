@@ -33,6 +33,8 @@ import { IconEquipmentSmith } from "./icons/iconEquipmentSmith";
 import { IconEquipmentTrapbar } from "./icons/iconEquipmentTrapbar";
 import { Dialog_confirm } from "../utils/dialog";
 
+const maxPlateNum = 1000;
+
 interface IProps<T> {
   dispatch: IDispatch;
   lensPrefix: Lens<IState, IAllEquipment>;
@@ -608,7 +610,8 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
                   }
                   let newPlates;
                   if (v != null) {
-                    const num = Math.floor(v / equipmentData.multiplier) * equipmentData.multiplier;
+                    const clampedV = Math.min(Math.max(0, v), maxPlateNum);
+                    const num = Math.floor(clampedV / equipmentData.multiplier) * equipmentData.multiplier;
                     newPlates = pl.map((p) => (Weight_eqeq(p.weight, plate.weight) ? { ...p, num } : p));
                   } else {
                     newPlates = pl.filter((p) => !Weight_eqeq(p.weight, plate.weight));
