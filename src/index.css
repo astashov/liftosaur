@@ -167,9 +167,12 @@ html.liftosaur-app #app {
   color: darkblue;
 }
 
-.code.block,
-.planner-editor-view .cm-editor .cm-content {
-  font-family: "Iosevka Web" !important;
+@layer base {
+  .code.block,
+  .planner-editor-view,
+  .planner-editor-view * {
+    font-family: "Iosevka Web" !important;
+  }
 }
 
 .cm-gutters {
