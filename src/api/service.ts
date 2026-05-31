@@ -188,7 +188,7 @@ export class Service {
     let historyResponse: IHistoryRecord[] | undefined = undefined;
     let historyLimit = args.historyLimit || 20;
     while ((historyResponse || history).length > historyLimit - 1) {
-      historyLimit = 200;
+      historyLimit = 100;
       historyResponse = await this.getHistory({
         after: history.length > 1 ? history[history.length - 2].id : undefined,
         limit: historyLimit,
