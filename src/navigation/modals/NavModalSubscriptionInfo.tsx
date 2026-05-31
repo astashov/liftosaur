@@ -28,9 +28,9 @@ function Section(props: ISectionProps): JSX.Element {
           style={{ width: "100%", aspectRatio: aspect }}
           resizeMode="contain"
           onLoad={(e) => {
-            const { width, height } = e.nativeEvent.source;
-            if (width && height) {
-              setAspect(width / height);
+            const source = (e?.nativeEvent as { source?: { width?: number; height?: number } } | undefined)?.source;
+            if (source?.width && source?.height) {
+              setAspect(source.width / source.height);
             }
           }}
           accessibilityLabel={props.imageAlt}

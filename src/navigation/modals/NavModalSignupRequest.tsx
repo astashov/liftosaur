@@ -43,9 +43,9 @@ export function NavModalSignupRequest(): JSX.Element {
               style={{ width: "100%", aspectRatio: imageAspect }}
               resizeMode="contain"
               onLoad={(e) => {
-                const { width, height } = e.nativeEvent.source;
-                if (width && height) {
-                  setImageAspect(width / height);
+                const source = (e?.nativeEvent as { source?: { width?: number; height?: number } } | undefined)?.source;
+                if (source?.width && source?.height) {
+                  setImageAspect(source.width / source.height);
                 }
               }}
               accessibilityLabel="Buff coder showing thumbs up"
