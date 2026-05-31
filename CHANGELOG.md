@@ -14,6 +14,17 @@
 -->
 
 ---
+date: 2026-05-31
+title: New native iOS and Android apps
+---
+
+Before, the iOS and Android Liftosaur apps were webapps. Basically, a site, that is rendered inside a little browser window, wrapped as a native app. It worked fine, but didn't have that native feeling, screen navigations, gestures, native-looking modals, etc.
+
+From now on, the new versions of the apps on App Store and Google Play are native apps. They look the same, but have smoother animations, native navigation and modals. Update and check them out!
+
+That was a massive ground-up rewrite of Liftosaur, so in case you find any bugs - please let me know in Discord or at **info@liftosaur.com**!
+
+---
 date: 2026-05-02
 title: Huge update where nothing changed
 ---
