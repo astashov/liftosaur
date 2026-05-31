@@ -156,6 +156,8 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
 
   const keyExtractor = useCallback((item: IHistoryRecord) => String(item.id), []);
 
+  const scrollMarkers = usePerfScrollMarkers("ProgramHistoryView");
+
   const stickyHeader = (
     <View>
       <View className="border-b border-border-neutral">
@@ -193,8 +195,6 @@ export function ProgramHistoryView(props: IProps): JSX.Element {
       </View>
     );
   }
-
-  const scrollMarkers = usePerfScrollMarkers("ProgramHistoryView");
 
   return (
     <View className="flex-1">
