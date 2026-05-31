@@ -96,7 +96,11 @@ export function RestTimer(props: IProps): JSX.Element | null {
       } else if (timer != null && timeDifference > timerMs + maxNotificationWindowMs) {
         sentNotification.current = true;
       }
-      if (prevProps.current.progress.timerSince !== props.progress.timerSince) {
+      // Reset on any deadline change (start time OR duration), so extending the timer re-arms the chirp
+      const prevDeadline =
+        (prevProps.current.progress.timerSince ?? 0) + (prevProps.current.progress.timer ?? 0) * 1000;
+      const currDeadline = (props.progress.timerSince ?? 0) + (props.progress.timer ?? 0) * 1000;
+      if (prevDeadline !== currDeadline) {
         sentNotification.current = false;
       }
     }
