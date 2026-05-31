@@ -147,9 +147,12 @@ import UserNotifications
       if volume <= 0 { return }
       guard let url = Bundle.main.url(forResource: "notification", withExtension: "m4r") else { return }
       do {
-        try AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default, options: [.mixWithOthers])
+        // .playback (not .ambient) so the cue grabs the active output route and is audible over a
+        // podcast playing on Bluetooth/AirPods; .duckOthers lowers it briefly, restored on deactivation.
+        try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.duckOthers, .mixWithOthers])
         try AVAudioSession.sharedInstance().setActive(true, options: [])
         let player = try AVAudioPlayer(contentsOf: url)
+        player.delegate = TimerAudioSessionDeactivator.shared
         player.volume = Float(min(max(volume, 0), 1))
         player.prepareToPlay()
         player.play()
@@ -180,5 +183,15 @@ import UserNotifications
     center.requestAuthorization(options: options) { granted, _ in
       completion(granted ? "granted" : "denied")
     }
+  }
+}
+
+// Kept fileprivate so AVAudioPlayerDelegate (an ObjC protocol) isn't leaked into Liftosaur-Swift.h
+// via the @objc LiftosaurTimerImpl, which would break the ObjC++ Turbo Module wrappers.
+fileprivate final class TimerAudioSessionDeactivator: NSObject, AVAudioPlayerDelegate {
+  static let shared = TimerAudioSessionDeactivator()
+
+  func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+    try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
   }
 }

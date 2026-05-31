@@ -380,6 +380,13 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
   }, [env, dispatch]);
 
   useEffect(() => {
+    // Android's AlarmManager receiver plays the timer sound itself in both foreground and background,
+    // so the in-app sound must be suppressed to avoid a double chirp. On iOS the scheduled notification
+    // is silent in the foreground (no willPresent), so the in-app sound is the only foreground cue and
+    // must NOT be suppressed.
+    if (Platform.OS !== "android") {
+      return;
+    }
     return NativeTimerBridge_subscribeOnScheduled(() => {
       if (Progress_getCurrentProgress(stateRef.current)?.ui) {
         updateState(

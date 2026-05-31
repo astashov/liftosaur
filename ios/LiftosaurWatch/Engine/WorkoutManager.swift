@@ -486,13 +486,15 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
     }
 
     private func playCompletionSound() {
+        guard cachedVolume > 0 else { return }
         guard let url = Bundle.main.url(forResource: "notification", withExtension: "m4r") else {
             Logger.workout.warning("notification.m4r not found in bundle")
             return
         }
         do {
             let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.ambient, options: .duckOthers)
+            // .playback (not .ambient) so the cue is audible over Bluetooth audio playing on another app.
+            try session.setCategory(.playback, options: [.duckOthers, .mixWithOthers])
             try session.setActive(true)
             audioPlayer = try AVAudioPlayer(contentsOf: url)
             audioPlayer?.delegate = self
