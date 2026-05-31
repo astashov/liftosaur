@@ -819,6 +819,10 @@ iframe#exercise-youtube-player {
   z-index: 40;
 }
 
+#app .planner-editor-view .cm-panels-top {
+  top: 3.5rem !important;
+}
+
 .planner-editor-view .cm-editor .cm-tooltip-autocomplete ul {
   border: none;
   color: var(--color-text-primary);
@@ -877,15 +881,15 @@ iframe#exercise-youtube-player {
   top: 0px;
 }
 
+#app .planner-editor-error {
+  top: 3.5rem;
+}
+
 @media (max-width: 640px) {
   .planner-stats-tooltip {
     top: 30px;
     left: 0;
     right: auto;
-  }
-
-  .planner-editor-error {
-    top: 45px;
   }
 }
 

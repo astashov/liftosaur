@@ -73,6 +73,7 @@ export function NativeWorkoutBridge_discardWorkout(): void {
   NativeLiftosaurLiveActivity.endLiveActivity().catch(() => {});
   currentReminderDuration = null;
   NativeLiftosaurTimer.cancelReminder().catch(() => {});
+  NativeLiftosaurTimer.stopTimer().catch(() => {});
 }
 
 export function NativeWorkoutBridge_updateLiveActivity(state: ILiveActivityState): void {
