@@ -183,6 +183,8 @@ export class Service {
   public async getAllHistoryRecords(args: {
     alreadyFetchedHistory?: IHistoryRecord[];
     historyLimit?: number;
+    userId?: string;
+    adminKey?: string;
   }): Promise<IHistoryRecord[]> {
     let history = args.alreadyFetchedHistory || [];
     let historyResponse: IHistoryRecord[] | undefined = undefined;
@@ -192,6 +194,8 @@ export class Service {
       historyResponse = await this.getHistory({
         after: history.length > 1 ? history[history.length - 2].id : undefined,
         limit: historyLimit,
+        userId: args.userId,
+        adminKey: args.adminKey,
       });
       if (historyResponse.length > 0) {
         history = [...history, ...historyResponse];
@@ -203,13 +207,22 @@ export class Service {
     return history;
   }
 
-  public async getHistory(args: { after?: number; limit?: number }): Promise<IHistoryRecord[]> {
+  public async getHistory(args: {
+    after?: number;
+    limit?: number;
+    userId?: string;
+    adminKey?: string;
+  }): Promise<IHistoryRecord[]> {
     const url = UrlUtils_build(`${__API_HOST__}/api/history`);
     if (args.after) {
       url.searchParams.set("after", args.after.toString());
     }
     if (args.limit) {
       url.searchParams.set("limit", args.limit.toString());
+    }
+    if (args.userId != null && args.adminKey != null) {
+      url.searchParams.set("userid", args.userId);
+      url.searchParams.set("key", args.adminKey);
     }
     const response = await this.client(url.toString(), { credentials: "include" });
     const json: { history: IHistoryRecord[] } = await response.json();
@@ -335,6 +348,17 @@ export class Service {
     return json?.data?.claim;
   }
 
+  public async checkAdminKey(adminKey: string): Promise<boolean> {
+    const url = UrlUtils_build(`${__API_HOST__}/api/admin/check`);
+    url.searchParams.set("key", adminKey);
+    try {
+      const response = await this.client(url.toString(), { credentials: "include" });
+      return response.status === 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
   public async postAddFreeUser(userid: string, adminKey: string): Promise<void> {
     const url = UrlUtils_build(`${__API_HOST__}/api/addfreeuser/${userid}`);
     url.searchParams.set("key", adminKey);
@@ -458,6 +482,8 @@ export class Service {
       json.storage.history = await this.getAllHistoryRecords({
         alreadyFetchedHistory: json.storage.history,
         historyLimit: historylimit,
+        userId: userId != null && adminKey != null ? userId : undefined,
+        adminKey: userId != null && adminKey != null ? adminKey : undefined,
       });
     }
     return {

@@ -28,12 +28,14 @@ import {
   IApplePromotionalOffer,
   IEnv,
   IGooglePromotionalOffer,
+  ILocalStorage,
   IOfferData,
   IState,
   ISubscriptionLoading,
   updateProgress,
   updateState,
 } from "../models/state";
+import { AdminDebug_fetchStorage, AdminDebug_isDebugAccountId } from "../models/adminDebug";
 import {
   IProgram,
   IStorage,
@@ -58,7 +60,7 @@ import { CSV_toString } from "../utils/csv";
 import { Exporter_toFile } from "../utils/exporter";
 import { DateUtils_formatYYYYMMDD, DateUtils_format } from "../utils/date";
 import { getInitialState } from "./reducer";
-import { IndexedDBUtils_get, IndexedDBUtils_remove } from "../utils/indexeddb";
+import { IndexedDBUtils_get, IndexedDBUtils_remove, IndexedDBUtils_set } from "../utils/indexeddb";
 import { WhatsNew_updateStorage } from "../models/whatsnewUtils";
 import { Screen_shouldConfirmNavigation } from "../models/screen";
 import {
@@ -538,8 +540,8 @@ export function Thunk_saveWorkoutToHealth(args: {
   calories: number;
   intervals: [number, number | null][];
 }): IThunk {
-  return async (dispatch, _getState, env) => {
-    if (!env.health) {
+  return async (dispatch, getState, env) => {
+    if (!env.health || AdminDebug_isDebugAccountId(getState().storage.tempUserId)) {
       return;
     }
     const platform = Platform.OS === "ios" ? "apple" : "google";
@@ -566,8 +568,8 @@ export function Thunk_saveMeasurementsToHealth(args: {
   waist?: ILength;
   timestamp: number;
 }): IThunk {
-  return async (dispatch, _getState, env) => {
-    if (!env.health) {
+  return async (dispatch, getState, env) => {
+    if (!env.health || AdminDebug_isDebugAccountId(getState().storage.tempUserId)) {
       return;
     }
     if (!args.bodyweight && !args.bodyfat && !args.waist) {
@@ -589,8 +591,8 @@ export function Thunk_saveMeasurementsToHealth(args: {
 }
 
 export function Thunk_requestHealthPermissions(): IThunk {
-  return async (_dispatch, _getState, env) => {
-    if (!env.health) {
+  return async (_dispatch, getState, env) => {
+    if (!env.health || AdminDebug_isDebugAccountId(getState().storage.tempUserId)) {
       return;
     }
     try {
@@ -604,6 +606,12 @@ export function Thunk_requestHealthPermissions(): IThunk {
 export function Thunk_syncHealthKit(cb?: () => void): IThunk {
   return async (dispatch, getState, env) => {
     const state = getState();
+    if (AdminDebug_isDebugAccountId(state.storage.tempUserId)) {
+      if (cb != null) {
+        cb();
+      }
+      return;
+    }
     if (
       !(state.storage.settings.appleHealthSyncMeasurements && HealthSync_eligibleForAppleHealth()) &&
       !(state.storage.settings.googleHealthSyncMeasurements && HealthSync_eligibleForGoogleHealth())
@@ -1573,6 +1581,40 @@ export function Thunk_switchAccount(id: string): IThunk {
   };
 }
 
+export function Thunk_adminCheckKey(adminKey: string, cb: (isValid: boolean) => void): IThunk {
+  return async (dispatch, getState, env) => {
+    const isValid = await load(dispatch, "Validating admin key", () => env.service.checkAdminKey(adminKey));
+    cb(isValid);
+  };
+}
+
+export function Thunk_adminLoginAsUser(userId: string, adminKey: string, storageId?: string): IThunk {
+  return async (dispatch, getState, env) => {
+    const result = await load(dispatch, "Loading user storage", () =>
+      AdminDebug_fetchStorage(env.service, getState().storage.tempUserId, userId, adminKey, storageId)
+    );
+    if (!result.success) {
+      Dialog_alert(`Failed to login as user ${userId}: ${result.error}`);
+      return;
+    }
+    const debugStorage = result.data;
+    dispatch(Thunk_postevent("admin-login-as-user"));
+    // Sign out the admin's own session so the debug sandbox is fully anonymous: the server
+    // never minted a target cookie, and clearing the admin's own cookie means no in-session
+    // request can be attributed to anyone. The admin's local account stays in IndexedDB.
+    await env.service.signout();
+    const localStorage: ILocalStorage = { storage: debugStorage };
+    const rawStorage = JSON.stringify(localStorage);
+    await IndexedDBUtils_set("current_account", debugStorage.tempUserId);
+    await IndexedDBUtils_set(`liftosaur_${debugStorage.tempUserId}`, rawStorage);
+    const newState = await getInitialState(env.service.client, { rawStorage, deviceId: getState().deviceId });
+    dispatch({ type: "ReplaceState", state: newState });
+    dispatch(Thunk_fetchInitial());
+    const { navigateTo } = await getNavigationService();
+    navigateTo("main", undefined, { tab: "home" });
+  };
+}
+
 export function Thunk_claimkey(): IThunk {
   return async (dispatch, getState, env) => {
     const claim = await env.service.postClaimKey(getState().storage.tempUserId);
@@ -1599,6 +1641,10 @@ export function Thunk_fetchInitial(): IThunk {
       WhatsNew_updateStorage(dispatch);
     }
     dispatch(Thunk_fetchPrograms());
+    // A debug sandbox must not verify the target's subscription receipts or restore IAPs.
+    if (AdminDebug_isDebugAccountId(getState().storage.tempUserId)) {
+      return;
+    }
     if (getState().storage.subscription.apple.length > 0) {
       dispatch(Thunk_postevent("check-apple-subscription"));
       const receipt = getState().storage.subscription.apple[0]?.value;

@@ -162,6 +162,7 @@ import { KeychainStore_getAuthToken, KeychainStore_clearAuthToken } from "./util
 import { lg } from "./utils/posthog";
 import { EventManager_initTelemetry } from "./utils/eventManager";
 import { WatchStorageFilter_filterJson } from "./utils/watchStorageFilter";
+import { AdminDebug_isDebugAccountId } from "./models/adminDebug";
 import { lb } from "lens-shmens";
 import { updateState } from "./models/state";
 import { TourConfigs_findTourId, TourConfigs_imagesForCurrentScreen } from "./components/tour/tourConfigs";
@@ -271,6 +272,10 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
   }, [state.storage.settings.alwaysOnDisplay]);
 
   useEffect(() => {
+    // A debug sandbox must not register the target-derived id with native analytics/attribution.
+    if (AdminDebug_isDebugAccountId(stateRef.current.storage.tempUserId)) {
+      return undefined;
+    }
     return Analytics_initialize({
       userId: stateRef.current.user?.id ?? stateRef.current.storage.tempUserId,
       onAttribution: (data) => {
@@ -286,8 +291,12 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
     });
   }, [dispatch]);
 
-  const personId = state.user?.id ?? state.storage.tempUserId;
-  const personEmail = state.user ? state.storage.email : undefined;
+  // In a debug sandbox keep all native identity (AppsFlyer, Rollbar person, EventManager telemetry)
+  // anonymous - the target-derived id must never leave the device. The `if (!personId) return`
+  // guards in the effects below then skip every identity-emitting path.
+  const isDebugSandbox = AdminDebug_isDebugAccountId(state.storage.tempUserId);
+  const personId = isDebugSandbox ? undefined : (state.user?.id ?? state.storage.tempUserId);
+  const personEmail = state.user && !isDebugSandbox ? state.storage.email : undefined;
   useEffect(() => {
     if (!personId) {
       return;
@@ -297,13 +306,21 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
   }, [personId, personEmail]);
 
   useEffect(() => {
-    if (!personId) {
-      return;
-    }
+    // EventManager_initTelemetry is one-shot, so the callback must resolve identity from current
+    // state at event time rather than closing over personId - otherwise a session that later enters
+    // a debug sandbox keeps emitting telemetry under the stale (admin) identity.
     EventManager_initTelemetry((event) => {
-      lg(event.name, event.extra, undefined, personId, event.timestamp);
+      const current = stateRef.current;
+      if (AdminDebug_isDebugAccountId(current.storage.tempUserId)) {
+        return;
+      }
+      const currentPersonId = current.user?.id ?? current.storage.tempUserId;
+      if (!currentPersonId) {
+        return;
+      }
+      lg(event.name, event.extra, undefined, currentPersonId, event.timestamp);
     });
-  }, [personId]);
+  }, []);
 
   useEffect(() => {
     const handleLink = (url: string | null): void => {
@@ -399,6 +416,11 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
   }, [dispatch]);
 
   useEffect(() => {
+    // Never mirror a debug sandbox to the paired watch - that would copy the target user's
+    // data onto the admin's physical device and persist it there.
+    if (AdminDebug_isDebugAccountId(state.storage.tempUserId)) {
+      return;
+    }
     const filtered = WatchStorageFilter_filterJson(state.storage);
     NativeWatchBridge_sendStorageToWatch(filtered);
   }, [state.storage]);
@@ -418,8 +440,10 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
       } else if (event.type === "reloadStorageFromDisk") {
         dispatch(Thunk_reloadStorageFromDisk());
       } else if (event.type === "requestStorage") {
-        const filtered = WatchStorageFilter_filterJson(stateRef.current.storage);
-        NativeWatchBridge_sendStorageToWatch(filtered);
+        if (!AdminDebug_isDebugAccountId(stateRef.current.storage.tempUserId)) {
+          const filtered = WatchStorageFilter_filterJson(stateRef.current.storage);
+          NativeWatchBridge_sendStorageToWatch(filtered);
+        }
       } else if (event.type === "requestAuth") {
         const currentUserId = stateRef.current.user?.id;
         KeychainStore_getAuthToken()

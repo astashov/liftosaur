@@ -678,18 +678,17 @@ const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
   const { event, di } = payload;
   const querystringParams = event.queryStringParameters || {};
   let userId;
-  let setCookie: string | undefined = undefined;
   const passAdminKey = match.params.key != null && match.params.key === (await di.secrets.getApiKey());
+  // A userid request with an invalid/missing admin key must hard-fail, not silently fall back to
+  // the caller's own session - otherwise an admin with a stale key gets their own data mislabeled
+  // as the target's.
+  if (match.params.userid != null && !passAdminKey) {
+    return ResponseUtils_json(401, event, { error: "Invalid admin key" });
+  }
+  // Admin reads must NOT mint a target-user session cookie - that would leave the caller
+  // authenticated as the target. Admin clients pass key+userid on every request instead.
   if (passAdminKey && match.params.userid != null) {
     userId = querystringParams.userid;
-    const cookieSecret = await di.secrets.getCookieSecret();
-    const session = JWT.sign({ userId: userId }, cookieSecret);
-    setCookie = Cookie.serialize("session", session, {
-      httpOnly: true,
-      domain: ".liftosaur.com",
-      path: "/",
-      expires: new Date(new Date().getFullYear() + 10, 0, 1),
-    });
   } else {
     userId = await getCurrentUserId(event, di);
   }
@@ -711,18 +710,13 @@ const getStorageHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
       }
       di.log.log(`Responding user data, id: ${user.storage.id}, original id: ${user.storage.originalId}`);
       user.storage.originalId = user.storage.originalId || Date.now();
-      return ResponseUtils_json(
-        200,
-        event,
-        {
-          storage: user.storage,
-          email: user.email,
-          user_id: user.id,
-          is_new_user: false,
-          key,
-        },
-        setCookie ? { "set-cookie": setCookie } : undefined
-      );
+      return ResponseUtils_json(200, event, {
+        storage: user.storage,
+        email: user.email,
+        user_id: user.id,
+        is_new_user: false,
+        key,
+      });
     }
   }
   return ResponseUtils_json(200, event, { key });
@@ -1008,16 +1002,33 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   };
 };
 
-const getHistoryEndpoint = Endpoint.build("/api/history", { after: "number?", limit: "number?" });
+const getHistoryEndpoint = Endpoint.build("/api/history", {
+  after: "number?",
+  limit: "number?",
+  userid: "string?",
+  key: "string?",
+});
 const getHistoryHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getHistoryEndpoint> = async ({
   payload,
   match: { params },
 }) => {
   const { event, di } = payload;
-  const user = await getCurrentLimitedUser(event, di);
-  if (user != null) {
+  let userId: string | undefined;
+  const passAdminKey = params.key != null && params.key === (await di.secrets.getApiKey());
+  // A userid request with an invalid/missing admin key must hard-fail, not fall back to the
+  // caller's own session.
+  if (params.userid != null && !passAdminKey) {
+    return ResponseUtils_json(401, event, { error: "Invalid admin key" });
+  }
+  if (passAdminKey && params.userid != null) {
+    userId = params.userid;
+  } else {
+    const user = await getCurrentLimitedUser(event, di);
+    userId = user?.id;
+  }
+  if (userId != null) {
     const userDao = new UserDao(di);
-    const history = await userDao.getHistoryByUserId(user.id, { after: params.after, limit: params.limit });
+    const history = await userDao.getHistoryByUserId(userId, { after: params.after, limit: params.limit });
     return ResponseUtils_json(200, event, { history });
   }
   return ResponseUtils_json(400, event, { error: "Not Authorized" });
@@ -1290,6 +1301,19 @@ const postAddFreeUserHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
   const { event, di } = payload;
   if (params.key === (await di.secrets.getApiKey())) {
     await new FreeUserDao(di).create(params.id, Date.now() + 1000 * 60 * 60 * 24 * 365, false);
+    return ResponseUtils_json(200, event, { data: "ok" });
+  } else {
+    return ResponseUtils_json(401, event, {});
+  }
+};
+
+const getAdminCheckEndpoint = Endpoint.build("/api/admin/check", { key: "string" });
+const getAdminCheckHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getAdminCheckEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  if (params.key === (await di.secrets.getApiKey())) {
     return ResponseUtils_json(200, event, { data: "ok" });
   } else {
     return ResponseUtils_json(401, event, {});
@@ -3099,6 +3123,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .get(getAffiliatesEndpoint, getAffiliatesHandler)
       .get(getAiPromptEndpoint, getAiPromptHandler)
       .post(postShortUrlEndpoint, postShortUrlHandler)
+      .get(getAdminCheckEndpoint, getAdminCheckHandler)
       .post(postAddFreeUserEndpoint, postAddFreeUserHandler)
       .post(postClaimFreeUserEndpoint, postClaimFreeUserHandler)
       .post(postAiPromptEndpoint, postAiPromptHandler)

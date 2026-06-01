@@ -42,6 +42,7 @@ import {
 } from "../types";
 import { IndexedDBUtils_get, IndexedDBUtils_set } from "../utils/indexeddb";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
+import { AdminDebug_isDebugAccountId } from "../models/adminDebug";
 import { LogUtils_log } from "../utils/log";
 import { Service } from "../api/service";
 import { unrunMigrations } from "../migrations/runner";
@@ -172,7 +173,7 @@ export async function getInitialState(
       user: undefined,
       freshMigrations: maybeStorage.success && hasUnrunMigrations,
       errors,
-      nosync,
+      nosync: nosync || AdminDebug_isDebugAccountId(finalStorage.tempUserId),
       deviceId,
       editProgramStates: {},
       editProgramExerciseStates: {},

@@ -9,6 +9,7 @@ import {
   SendMessage_toIosAndAndroid,
 } from "./sendMessage";
 import { EventManager_isAvailable, EventManager_log } from "./eventManager";
+import { AdminDebug_isDebugAccountId } from "../models/adminDebug";
 
 declare let __COMMIT_HASH__: string;
 
@@ -58,6 +59,11 @@ export function lg(
     (typeof window !== "undefined" ? window.tempUserId : undefined);
 
   if (tempUserId == null) {
+    return;
+  }
+
+  // A debug sandbox must stay analytics-silent so the target-derived id never leaves the device.
+  if (AdminDebug_isDebugAccountId(tempUserId)) {
     return;
   }
 

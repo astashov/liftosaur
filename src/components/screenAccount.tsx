@@ -15,6 +15,7 @@ import { INavCommon } from "../models/state";
 import { useNavOptions } from "../navigation/useNavOptions";
 import { Button } from "./button";
 import { IAccount, Account_getAll } from "../models/account";
+import { AdminDebug_isDebugAccountId } from "../models/adminDebug";
 import { IPartialStorage } from "../types";
 import { GroupHeader } from "./groupHeader";
 import { MenuItem } from "./menuItem";
@@ -223,6 +224,9 @@ export function ScreenAccount(props: IProps): JSX.Element {
           expandName={true}
           addons={
             <View>
+              {AdminDebug_isDebugAccountId(account.id) ? (
+                <Text className="-mt-1 text-xs font-bold text-text-error">DEBUG · sync off</Text>
+              ) : null}
               {account.name ? <Text className="-mt-1 text-xs text-text-secondary">{`id: ${account.id}`}</Text> : null}
               {account.email && account.email !== "noemail@example.com" && (
                 <Text className="text-xs text-text-secondary">
