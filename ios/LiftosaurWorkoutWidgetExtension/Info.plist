@@ -19,5 +19,7 @@
 		<string>Poppins-Italic.ttf</string>
 		<string>Iosevka-Regular.ttf</string>
 	</array>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>
