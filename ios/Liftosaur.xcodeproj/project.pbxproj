@@ -9,11 +9,13 @@
 /* Begin PBXBuildFile section */
 		00A9D43BFF6350A3156888F5 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		12F317DBE89387792B8C2788 /* notification.m4r in Resources */ = {isa = PBXBuildFile; fileRef = 91FAA5A7B2D2A2141783C9C5 /* notification.m4r */; };
+		CAF0000000000000000000B1 /* notification.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF0000000000000000000F1 /* notification.caf */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		2B45EA7869F3FB4183C4A4CE /* LiftosaurTimerImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = B65E29D489BF686568C6787C /* LiftosaurTimerImpl.swift */; };
 		2C22A34FB039FEBA75BBB641 /* Pods_Liftosaur.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0880623F1BFA46C212C4C21F /* Pods_Liftosaur.framework */; };
 		2CE4394B21A1DBBE08022D06 /* RCTLiftosaurTimer.mm in Sources */ = {isa = PBXBuildFile; fileRef = CAF9A9419BADC6FB0293A37D /* RCTLiftosaurTimer.mm */; };
 		3A606C432FAB8D1800799977 /* Store.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 3A606C422FAB8D1800799977 /* Store.storekit */; };
+		3A6705F72FCD20D60023C017 /* notification.m4r in Resources */ = {isa = PBXBuildFile; fileRef = 3A6705F62FCD20D60023C017 /* notification.m4r */; };
 		3AACC4F92FB2A15D001C68AA /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AACC4F82FB2A15D001C68AA /* WidgetKit.framework */; };
 		3AACC4FB2FB2A15D001C68AA /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AACC4FA2FB2A15D001C68AA /* SwiftUI.framework */; };
 		3AACC5082FB2A15E001C68AA /* LiftosaurWorkoutWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3AACC4F72FB2A15D001C68AA /* LiftosaurWorkoutWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -177,6 +179,7 @@
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = Liftosaur/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		1A72802BA6B84B4A91C55832 /* Iosevka-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Iosevka-Regular.ttf"; path = "../assets/fonts/Iosevka-Regular.ttf"; sourceTree = "<group>"; };
 		3A606C422FAB8D1800799977 /* Store.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Store.storekit; sourceTree = "<group>"; };
+		3A6705F62FCD20D60023C017 /* notification.m4r */ = {isa = PBXFileReference; lastKnownFileType = file; path = notification.m4r; sourceTree = "<group>"; };
 		3AACC4F72FB2A15D001C68AA /* LiftosaurWorkoutWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LiftosaurWorkoutWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		3AACC4F82FB2A15D001C68AA /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		3AACC4FA2FB2A15D001C68AA /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -260,6 +263,7 @@
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Liftosaur/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		8B4BDC15E59DDB21DA61FB5B /* LiftosaurLiveActivityImpl.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LiftosaurLiveActivityImpl.swift; path = Liftosaur/LiftosaurLiveActivityImpl.swift; sourceTree = "<group>"; };
 		91FAA5A7B2D2A2141783C9C5 /* notification.m4r */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file; name = notification.m4r; path = Liftosaur/notification.m4r; sourceTree = "<group>"; };
+		CAF0000000000000000000F1 /* notification.caf */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file; name = notification.caf; path = Liftosaur/notification.caf; sourceTree = "<group>"; };
 		9FBEDEE80EFF415DAB4E7192 /* Poppins-BoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-BoldItalic.ttf"; path = "../assets/fonts/Poppins-BoldItalic.ttf"; sourceTree = "<group>"; };
 		A95E3F373AF047269613648A /* Poppins-SemiBoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-SemiBoldItalic.ttf"; path = "../assets/fonts/Poppins-SemiBoldItalic.ttf"; sourceTree = "<group>"; };
 		B65E29D489BF686568C6787C /* LiftosaurTimerImpl.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LiftosaurTimerImpl.swift; path = Liftosaur/LiftosaurTimerImpl.swift; sourceTree = "<group>"; };
@@ -347,8 +351,9 @@
 				EE0040000000000000000040 /* RCTLftUpdater.h */,
 				EE0041000000000000000041 /* RCTLftUpdater.mm */,
 				EE0043000000000000000043 /* LftUpdater.swift */,
-				EE0045000000000000000045 /* LftUpdaterPath.swift */,
 				91FAA5A7B2D2A2141783C9C5 /* notification.m4r */,
+				CAF0000000000000000000F1 /* notification.caf */,
+				EE0045000000000000000045 /* LftUpdaterPath.swift */,
 			);
 			name = Liftosaur;
 			sourceTree = "<group>";
@@ -450,6 +455,7 @@
 		3AACC5DA2FB3526B001C68AA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				3A6705F62FCD20D60023C017 /* notification.m4r */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -660,6 +666,7 @@
 				EE0021000000000000000021 /* codesigning.pem in Resources */,
 				3A606C432FAB8D1800799977 /* Store.storekit in Resources */,
 				12F317DBE89387792B8C2788 /* notification.m4r in Resources */,
+				CAF0000000000000000000B1 /* notification.caf in Resources */,
 				3AACC5532FB2C941001C68AA /* Poppins-MediumItalic.ttf in Resources */,
 				3AACC5542FB2C941001C68AA /* Poppins-Black.ttf in Resources */,
 				3AACC5552FB2C941001C68AA /* Poppins-Light.ttf in Resources */,
@@ -713,6 +720,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3A6705F72FCD20D60023C017 /* notification.m4r in Resources */,
 				3AACC5EF2FB3526B001C68AA /* Assets.xcassets in Resources */,
 				5C9210548D8DDE45FAA805DE /* PrivacyInfo.xcprivacy in Resources */,
 				4595B7D1B70E4BDEB49B3E2F /* Iosevka-Regular.ttf in Resources */,

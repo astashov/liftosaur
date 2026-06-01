@@ -66,7 +66,9 @@ import UserNotifications
       ? "It's time for the next set!"
       : "\(bodyHeader): \(body)"
     if volume > 0 {
-      content.sound = UNNotificationSound(named: UNNotificationSoundName("notification.m4r"))
+      // Must be a CAF/WAV/AIFF (Linear PCM) — UNNotificationSound silently falls back to the default
+      // system sound for AAC formats like .m4r, so the custom cue never plays.
+      content.sound = UNNotificationSound(named: UNNotificationSoundName("notification.caf"))
     }
 
     let trigger = UNTimeIntervalNotificationTrigger(timeInterval: duration, repeats: false)
@@ -118,7 +120,7 @@ import UserNotifications
     let content = UNMutableNotificationContent()
     content.title = title.isEmpty ? "Workout reminder" : title
     content.body = body.isEmpty ? "You have an ongoing workout, make sure to finish it if you're done" : body
-    content.sound = UNNotificationSound(named: UNNotificationSoundName("notification.m4r"))
+    content.sound = UNNotificationSound(named: UNNotificationSoundName("notification.caf"))
 
     let trigger = UNTimeIntervalNotificationTrigger(timeInterval: duration, repeats: false)
     let request = UNNotificationRequest(identifier: reminderIdentifier, content: content, trigger: trigger)
