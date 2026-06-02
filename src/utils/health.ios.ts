@@ -152,7 +152,11 @@ export class HealthAdapter implements IHealthAdapter {
       return;
     }
     try {
-      await Promise.all(taskFns.map((fn) => fn()));
+      // Run the first save alone so HealthKit builds its HKUnit grammar serially - the first-time
+      // build isn't thread-safe and concurrent parses raise an NSException that aborts the app.
+      const [first, ...rest] = taskFns;
+      await first();
+      await Promise.all(rest.map((fn) => fn()));
     } catch {
       await requestAuthorization({ toRead: [], toShare: neededTypes });
       await Promise.all(taskFns.map((fn) => fn()));
@@ -163,8 +167,15 @@ export class HealthAdapter implements IHealthAdapter {
     const weightUnitParam = massUnitArg(args.weightUnit);
     const lengthUnitParam = lengthUnitArg(args.lengthUnit);
 
-    const [bodyMassRes, bodyFatRes, waistRes] = await Promise.all([
-      queryQuantitySamplesWithAnchor(BODY_MASS, { anchor: prior.bodyMass, unit: weightUnitParam, limit: 0 }),
+    // HealthKit builds its HKUnit parsing grammar lazily on the first unitFromString: call, and
+    // that first build is not thread-safe - concurrent first-time parses race and raise an
+    // NSException that aborts the app. Run the first query alone so the grammar is built serially.
+    const bodyMassRes = await queryQuantitySamplesWithAnchor(BODY_MASS, {
+      anchor: prior.bodyMass,
+      unit: weightUnitParam,
+      limit: 0,
+    });
+    const [bodyFatRes, waistRes] = await Promise.all([
       queryQuantitySamplesWithAnchor(BODY_FAT, { anchor: prior.bodyFat, unit: "%", limit: 0 }),
       queryQuantitySamplesWithAnchor(WAIST, { anchor: prior.waist, unit: lengthUnitParam, limit: 0 }),
     ]);
