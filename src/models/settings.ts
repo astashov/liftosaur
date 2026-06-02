@@ -433,7 +433,13 @@ export function Settings_setOneRM(
 }
 
 export function Settings_getTheme(settings: ISettings): "dark" | "light" {
-  return settings.theme ? settings.theme : window.lftSystemDarkMode ? "dark" : "light";
+  return settings.theme
+    ? settings.theme
+    : typeof window !== "undefined"
+      ? window.lftSystemDarkMode
+        ? "dark"
+        : "light"
+      : "light";
 }
 
 export function Settings_applyTheme(theme?: "dark" | "light"): void {
