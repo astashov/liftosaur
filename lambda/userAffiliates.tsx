@@ -5,7 +5,7 @@ import { IAccount } from "../src/models/account";
 
 export interface ICreatorStats {
   summary: IAffiliateDashboardSummary;
-  monthlyPayments: { month: string; revenue: number; count: number }[];
+  monthlyPayments: { month: string; revenue: number; count: number; programUsers: number; couponUsers: number }[];
 }
 
 export function renderUserAffiliatesHtml(

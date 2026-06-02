@@ -8,7 +8,7 @@ export function renderAffiliateDashboardHtml(
   affiliateId: string,
   affiliateData: IAffiliateData[],
   summary: IAffiliateDashboardSummary,
-  monthlyPayments: { month: string; revenue: number; count: number }[],
+  monthlyPayments: { month: string; revenue: number; count: number; programUsers: number; couponUsers: number }[],
   apiKey: string
 ): string {
   return renderPage(

@@ -203,22 +203,39 @@ export class AffiliateDao {
     return { userTotalRevenue, userMonthlyRevenue, eligiblePayments };
   }
 
+  private monthKeyFromTimestamp(timestamp: number): string {
+    const date = new Date(timestamp);
+    return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
+  }
+
   private generateMonthlyPayments(
-    allEligiblePayments: IPaymentDao[]
-  ): { month: string; revenue: number; count: number }[] {
-    const paymentsPerMonth: Record<string, { revenue: number; count: number }> = {};
+    allEligiblePayments: IPaymentDao[],
+    affiliateUsers: { affiliateTimestamp: number; affiliateType?: "coupon" | "program" }[]
+  ): { month: string; revenue: number; count: number; programUsers: number; couponUsers: number }[] {
+    const perMonth: Record<string, { revenue: number; count: number; programUsers: number; couponUsers: number }> = {};
+    const ensureMonth = (monthKey: string): { revenue: number; count: number; programUsers: number; couponUsers: number } => {
+      if (!perMonth[monthKey]) {
+        perMonth[monthKey] = { revenue: 0, count: 0, programUsers: 0, couponUsers: 0 };
+      }
+      return perMonth[monthKey];
+    };
 
     allEligiblePayments.forEach((payment) => {
-      const date = new Date(payment.timestamp);
-      const monthKey = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
-      if (!paymentsPerMonth[monthKey]) {
-        paymentsPerMonth[monthKey] = { revenue: 0, count: 0 };
-      }
-      paymentsPerMonth[monthKey].revenue += this.getDollarAmount(payment) * 0.2;
-      paymentsPerMonth[monthKey].count += 1;
+      const month = ensureMonth(this.monthKeyFromTimestamp(payment.timestamp));
+      month.revenue += this.getDollarAmount(payment) * 0.2;
+      month.count += 1;
     });
 
-    return Object.entries(paymentsPerMonth)
+    affiliateUsers.forEach(({ affiliateTimestamp, affiliateType }) => {
+      const month = ensureMonth(this.monthKeyFromTimestamp(affiliateTimestamp));
+      if (affiliateType === "coupon") {
+        month.couponUsers += 1;
+      } else {
+        month.programUsers += 1;
+      }
+    });
+
+    return Object.entries(perMonth)
       .map(([month, data]) => ({ month, ...data }))
       .sort((a, b) => b.month.localeCompare(a.month));
   }
@@ -226,7 +243,7 @@ export class AffiliateDao {
   public async getDashboardData(affiliateId: string): Promise<{
     affiliateData: IAffiliateData[];
     summary: IAffiliateDashboardSummary;
-    monthlyPayments: { month: string; revenue: number; count: number }[];
+    monthlyPayments: { month: string; revenue: number; count: number; programUsers: number; couponUsers: number }[];
   }> {
     const users = await this.getAffiliatedUsers(affiliateId);
 
@@ -340,14 +357,14 @@ export class AffiliateDao {
       couponRevenue,
     };
 
-    const monthlyPayments = this.generateMonthlyPayments(allEligiblePayments);
+    const monthlyPayments = this.generateMonthlyPayments(allEligiblePayments, isFirstAffiliateUsers);
 
     return { affiliateData, summary, monthlyPayments };
   }
 
   public async getCreatorStats(creatorId: string): Promise<{
     summary: IAffiliateDashboardSummary;
-    monthlyPayments: { month: string; revenue: number; count: number }[];
+    monthlyPayments: { month: string; revenue: number; count: number; programUsers: number; couponUsers: number }[];
   }> {
     const users = await this.getAffiliatedUsers(creatorId);
 
@@ -406,7 +423,7 @@ export class AffiliateDao {
       }
     }
 
-    const monthlyPayments = this.generateMonthlyPayments(allEligiblePayments);
+    const monthlyPayments = this.generateMonthlyPayments(allEligiblePayments, firstAffiliateUsers);
 
     return {
       summary: {
