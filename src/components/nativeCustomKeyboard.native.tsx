@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { IconKeyboardClose } from "./icons/iconKeyboardClose";
 import { IconBackspace } from "./icons/iconBackspace";
 import { IconCalculator } from "./icons/iconCalculator";
+import { KeyboardRestTimer } from "./restTimer";
 import { IPercentageUnit, IUnit } from "../types";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 import {
@@ -130,6 +131,7 @@ export const NativeCustomKeyboard = memo(function NativeCustomKeyboard(props: IN
         </View>
 
         <View className="w-24 mt-2">
+          <KeyboardRestTimer />
           <Pressable
             testID="keyboard-close"
             data-testid="keyboard-close"

@@ -1,17 +1,37 @@
-import { JSX, useEffect, useMemo, useRef, useState } from "react";
+import { JSX, useEffect, useRef, useState } from "react";
 import { View, Pressable, Platform, Animated, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useCustomKeyboardAnimatedHeight } from "../navigation/CustomKeyboardContext";
+import { useCustomKeyboardActiveId } from "../navigation/CustomKeyboardContext";
 import { useActiveSheetHeight } from "../navigation/ActiveSheetHeightContext";
+import { useTrackedState } from "../navigation/TrackedStateContext";
 import { Text } from "./primitives/text";
 import { TimeUtils_formatMMSS } from "../utils/time";
+import { StringUtils_pad } from "../utils/string";
 import { IDispatch } from "../ducks/types";
 import { Thunk_playAudioNotification, Thunk_updateTimer } from "../ducks/thunks";
 import { IconTrash } from "./icons/iconTrash";
 import { IconBack } from "./icons/iconBack";
 import { IHistoryRecord, ISettings, ISubscription } from "../types";
 import { Reps_findNextEntryAndSetIndex } from "../models/set";
+import { Progress_getCurrentProgress } from "../models/progress";
 import { SendMessage_print } from "../utils/sendMessage";
+
+function useRestTimerTick(isActive: boolean): void {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    if (!isActive) {
+      return undefined;
+    }
+    const intervalId = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => clearInterval(intervalId);
+  }, [isActive]);
+}
+
+export function RestTimer_formatCompact(ms: number): string {
+  const seconds = Math.floor((ms / 1000) % 60);
+  const minutes = Math.floor(ms / 1000 / 60);
+  return `${minutes}:${StringUtils_pad(seconds.toString(), 2)}`;
+}
 
 interface IProps {
   progress: IHistoryRecord;
@@ -29,21 +49,21 @@ const shadowStyle = Platform.select({
 export function RestTimer(props: IProps): JSX.Element | null {
   const prevProps = useRef<IProps>(props);
   const sentNotification = useRef<boolean>(false);
-  const intervalId = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
-  const [, setTick] = useState<number>(0);
   const [isExpanded, setIsExpanded] = useState(false);
   const insets = useSafeAreaInsets();
-  const keyboardAnimatedHeight = useCustomKeyboardAnimatedHeight();
+  const keyboardActiveId = useCustomKeyboardActiveId();
   const { height: windowHeight } = useWindowDimensions();
   const activeSheetHeight = useActiveSheetHeight();
-  const sheetHidesTimer = activeSheetHeight > windowHeight * 0.5;
+  // When the custom keyboard is open, the timer is shown inside it (see KeyboardRestTimer), so hide
+  // the floating one here. We keep it mounted (not returning null) so the completion chirp still fires.
+  const hideTimer = activeSheetHeight > windowHeight * 0.5 || keyboardActiveId != null;
   const baseBottom = insets.bottom + 80;
   const targetBottom = Math.max(baseBottom, activeSheetHeight > 0 ? activeSheetHeight + 16 : 0);
   const animatedTargetBottom = useRef(new Animated.Value(targetBottom)).current;
   const animatedOpacity = useRef(new Animated.Value(1)).current;
   const wasHiddenRef = useRef(false);
   useEffect(() => {
-    if (sheetHidesTimer) {
+    if (hideTimer) {
       animatedTargetBottom.setValue(targetBottom);
       animatedOpacity.setValue(0);
       wasHiddenRef.current = true;
@@ -60,22 +80,14 @@ export function RestTimer(props: IProps): JSX.Element | null {
         useNativeDriver: false,
       }).start();
     }
-  }, [sheetHidesTimer, targetBottom, animatedTargetBottom, animatedOpacity]);
-  const animatedBottom = useMemo(
-    () => Animated.add(keyboardAnimatedHeight, animatedTargetBottom),
-    [keyboardAnimatedHeight, animatedTargetBottom]
-  );
+  }, [hideTimer, targetBottom, animatedTargetBottom, animatedOpacity]);
   const { progress } = props;
   const { timer, timerSince } = progress;
 
+  useRestTimerTick(timerSince != null);
+
   useEffect(() => {
     if (timerSince != null) {
-      if (intervalId.current != null) {
-        clearInterval(intervalId.current);
-      }
-      intervalId.current = setInterval(() => {
-        setTick((t) => t + 1);
-      }, 1000);
       const timeDifference = Date.now() - timerSince;
       const timerMs = timer != null ? timer * 1000 : 0;
       // Only play notification within 5s of completion; avoids repeat plays when syncing from another device past the threshold
@@ -105,17 +117,12 @@ export function RestTimer(props: IProps): JSX.Element | null {
       }
     }
     prevProps.current = props;
-    return () => {
-      if (intervalId.current != null) {
-        clearInterval(intervalId.current);
-      }
-    };
   });
 
   if (timer == null || timerSince == null) {
     return null;
   }
-  const pointerEventsMode = sheetHidesTimer ? "none" : "box-none";
+  const pointerEventsMode = hideTimer ? "none" : "box-none";
 
   const timeDifference = Date.now() - timerSince;
   const isTimeOut = timeDifference > timer * 1000;
@@ -129,7 +136,14 @@ export function RestTimer(props: IProps): JSX.Element | null {
     return (
       <Animated.View
         style={[
-          { position: "absolute", left: 16, right: 16, bottom: animatedBottom, zIndex: 30, opacity: animatedOpacity },
+          {
+            position: "absolute",
+            left: 16,
+            right: 16,
+            bottom: animatedTargetBottom,
+            zIndex: 30,
+            opacity: animatedOpacity,
+          },
         ]}
         pointerEvents={pointerEventsMode}
       >
@@ -208,7 +222,7 @@ export function RestTimer(props: IProps): JSX.Element | null {
 
   return (
     <Animated.View
-      style={[{ position: "absolute", right: 16, bottom: animatedBottom, zIndex: 30, opacity: animatedOpacity }]}
+      style={[{ position: "absolute", right: 16, bottom: animatedTargetBottom, zIndex: 30, opacity: animatedOpacity }]}
       pointerEvents={pointerEventsMode}
     >
       <Pressable
@@ -234,5 +248,31 @@ export function RestTimer(props: IProps): JSX.Element | null {
         </Text>
       </Pressable>
     </Animated.View>
+  );
+}
+
+export function KeyboardRestTimer(): JSX.Element | null {
+  const state = useTrackedState();
+  const progress = Progress_getCurrentProgress(state);
+  const timer = progress?.timer;
+  const timerSince = progress?.timerSince;
+  useRestTimerTick(timerSince != null);
+
+  if (timer == null || timerSince == null) {
+    return null;
+  }
+  const timeDifference = Date.now() - timerSince;
+  const isTimeOut = timeDifference > timer * 1000;
+  return (
+    <View pointerEvents="none" className="items-center absolute left-0 right-0 bottom-full mb-1">
+      <Text
+        data-testid="keyboard-rest-timer"
+        testID="keyboard-rest-timer"
+        numberOfLines={1}
+        className={`text-xs font-bold ${isTimeOut ? "text-text-error" : "text-text-secondary"}`}
+      >
+        {RestTimer_formatCompact(timeDifference)} / {RestTimer_formatCompact(timer * 1000)}
+      </Text>
+    </View>
   );
 }
