@@ -4,6 +4,7 @@ import MarkdownTextInput from "@expensify/react-native-live-markdown/src/Markdow
 import type { MarkdownStyle } from "@expensify/react-native-live-markdown/src/MarkdownTextInput";
 import type { MarkdownRange } from "@expensify/react-native-live-markdown/src/commonTypes";
 import { debounce } from "../utils/throttler";
+import { Tailwind_semantic } from "../utils/tailwindConfig";
 
 interface IProps {
   value?: string;
@@ -125,27 +126,30 @@ function parseMarkdownWorklet(input: string): MarkdownRange[] {
   return ranges;
 }
 
-const markdownStyle: MarkdownStyle = {
-  syntax: { color: "#404740" },
-  link: { color: "#1d4ed8" },
-  h1: { fontSize: 18 },
-  code: {
-    color: "#a11",
-    backgroundColor: "transparent",
-    borderColor: "transparent",
-    borderWidth: 0,
-    borderRadius: 0,
-    padding: 0,
-    fontSize: 14,
-    fontFamily: "Courier",
-  },
-  blockquote: {
-    borderColor: "#9ca3af",
-    borderWidth: 3,
-    marginLeft: 0,
-    paddingLeft: 6,
-  },
-};
+function buildMarkdownStyle(): MarkdownStyle {
+  const text = Tailwind_semantic().text;
+  return {
+    syntax: { color: text.secondary },
+    link: { color: text.link },
+    h1: { fontSize: 18 },
+    code: {
+      color: text.error,
+      backgroundColor: "transparent",
+      borderColor: "transparent",
+      borderWidth: 0,
+      borderRadius: 0,
+      padding: 0,
+      fontSize: 14,
+      fontFamily: "Courier",
+    },
+    blockquote: {
+      borderColor: text.secondarysubtle,
+      borderWidth: 3,
+      marginLeft: 0,
+      paddingLeft: 6,
+    },
+  };
+}
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -155,7 +159,6 @@ const styles = StyleSheet.create({
     fontFamily: "Poppins",
     fontSize: 14,
     lineHeight: 20,
-    color: "#000",
     padding: 0,
     margin: 0,
     textAlignVertical: "top" as const,
@@ -198,6 +201,9 @@ export function MarkdownEditorBorderless(props: IProps): JSX.Element {
     setMinHeight((prev) => (measured > prev ? measured : prev));
   }, []);
 
+  const semanticText = Tailwind_semantic().text;
+  const markdownStyle = useMemo(() => buildMarkdownStyle(), [semanticText.primary]);
+
   return (
     <View style={styles.wrapper}>
       <MarkdownTextInput
@@ -205,12 +211,12 @@ export function MarkdownEditorBorderless(props: IProps): JSX.Element {
         scrollEnabled={false}
         value={text}
         placeholder={props.placeholder}
-        placeholderTextColor="#9ca3af"
+        placeholderTextColor={semanticText.secondarysubtle}
         onChangeText={handleChangeText}
         onContentSizeChange={handleContentSizeChange}
         parser={parseMarkdownWorklet}
         markdownStyle={markdownStyle}
-        style={[styles.input, { minHeight }]}
+        style={[styles.input, { minHeight, color: semanticText.primary }]}
       />
     </View>
   );
