@@ -18,6 +18,7 @@ import { Service } from "../../../api/service";
 import { PlannerEditorCustomCta } from "./plannerEditorCustomCta";
 import { IPlannerProgram, IPlannerProgramDay, ISettings } from "../../../types";
 import { PlannerCodeBlock } from "./plannerCodeBlock";
+import { Settings_getTheme } from "../../../models/settings";
 import { MarkdownEditor } from "../../../components/markdownEditor";
 import { GroupHeader } from "../../../components/groupHeader";
 
@@ -133,6 +134,7 @@ export function PlannerDay(props: IPlannerDayProps): JSX.Element {
             <PlannerEditorView
               lineNumbers={true}
               name="Exercises"
+              theme={Settings_getTheme(props.settings)}
               exerciseFullNames={props.exerciseFullNames}
               customExercises={exercises}
               error={evaluatedDay.success ? undefined : evaluatedDay.error}

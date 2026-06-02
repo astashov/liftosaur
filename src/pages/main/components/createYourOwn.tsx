@@ -12,7 +12,7 @@ import {
   Program_applyEvaluatedProgram,
   Program_runAllFinishDayScripts,
 } from "../../../models/program";
-import { Settings_build } from "../../../models/settings";
+import { Settings_build, Settings_getTheme } from "../../../models/settings";
 import { IPlannerProgram, IPlannerProgramDay, IPlannerProgramWeek, IProgram, ISettings, IStats } from "../../../types";
 import { useLensReducer } from "../../../utils/useLensReducer";
 import { PlannerEditorView } from "../../planner/components/plannerEditorView";
@@ -110,6 +110,7 @@ Bench Press / 3x8 100lb / progress: dp(5lb, 8, 12)
         </div>
         <PlannerEditorView
           name="Exercises"
+          theme={Settings_getTheme(settings)}
           exerciseFullNames={exerciseFullNames}
           customExercises={{}}
           lineNumbers={true}

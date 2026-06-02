@@ -2,6 +2,7 @@ import React from "react";
 import { IProgramState } from "../../../types";
 import { LiftoscriptSyntaxError } from "../../../liftoscriptEvaluator";
 import { WebviewEditor } from "../../primitives/webviewEditor";
+import { IEditorTheme } from "../../../pages/planner/webviewEditor/editorWebviewBridge";
 
 interface IProps {
   name: string;
@@ -14,6 +15,7 @@ interface IProps {
   state: IProgramState;
   value?: string;
   height?: number;
+  theme?: IEditorTheme;
 }
 
 export function ScriptEditorView(props: IProps): React.JSX.Element {
@@ -29,6 +31,7 @@ export function ScriptEditorView(props: IProps): React.JSX.Element {
       state={props.state}
       onCustomErrorCta={props.onCustomErrorCta}
       height={props.height}
+      theme={props.theme}
     />
   );
 }

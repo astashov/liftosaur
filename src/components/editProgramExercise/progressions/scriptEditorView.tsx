@@ -2,6 +2,7 @@ import { JSX, useEffect, useRef } from "react";
 import { IProgramState } from "../../../types";
 import { LiftoscriptSyntaxError } from "../../../liftoscriptEvaluator";
 import { ScriptEditor } from "./scriptEditor";
+import { IEditorTheme } from "../../../pages/planner/webviewEditor/editorWebviewBridge";
 
 interface IProps {
   name: string;
@@ -13,6 +14,8 @@ interface IProps {
   onCustomErrorCta?: (error: string) => JSX.Element | undefined;
   state: IProgramState;
   value?: string;
+  // On web the editor lives in the main DOM and inherits the app's theme class, so this is unused here.
+  theme?: IEditorTheme;
 }
 
 export function ScriptEditorView(props: IProps): JSX.Element {

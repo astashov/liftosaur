@@ -2,6 +2,7 @@ import { JSX, useEffect, useRef } from "react";
 import { IAllCustomExercises } from "../../../types";
 import { PlannerEditor } from "../plannerEditor";
 import { PlannerSyntaxError } from "../plannerExerciseEvaluator";
+import { IEditorTheme } from "../webviewEditor/editorWebviewBridge";
 
 interface IProps {
   name: string;
@@ -18,6 +19,8 @@ interface IProps {
   autoHeight?: boolean;
   minHeight?: number;
   maxHeight?: number;
+  // On web the editor lives in the main DOM and inherits the app's theme class, so this is unused here.
+  theme?: IEditorTheme;
 }
 
 export function PlannerEditorView(props: IProps): JSX.Element {

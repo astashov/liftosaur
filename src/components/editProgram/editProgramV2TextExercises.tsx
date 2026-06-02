@@ -8,6 +8,7 @@ import { PlannerStatsUtils_dayApproxTimeMs } from "../../pages/planner/models/pl
 import { IPlannerUi, IPlannerState, IPlannerProgramExercise } from "../../pages/planner/models/types";
 import { IPlannerEvalResult } from "../../pages/planner/plannerExerciseEvaluator";
 import { IPlannerProgram, IPlannerProgramDay, ISettings } from "../../types";
+import { Settings_getTheme } from "../../models/settings";
 import { CollectionUtils_findIndexReverse } from "../../utils/collection";
 import { TimeUtils_formatHHMM } from "../../utils/time";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -41,6 +42,7 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
     <View className="flex-1 w-0 min-w-0">
       <PlannerEditorView
         name="Exercises"
+        theme={Settings_getTheme(props.settings)}
         exerciseFullNames={props.exerciseFullNames}
         customExercises={customExercises}
         lineNumbers={true}

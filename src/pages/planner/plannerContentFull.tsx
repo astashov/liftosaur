@@ -6,6 +6,7 @@ import { IconPreview } from "../../components/icons/iconPreview";
 import { Modal } from "../../components/modal";
 import { Exercise_findByName } from "../../models/exercise";
 import { IPlannerProgram, ISettings } from "../../types";
+import { Settings_getTheme } from "../../models/settings";
 import { CollectionUtils_findIndexReverse } from "../../utils/collection";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { PlannerDayStats } from "./components/plannerDayStats";
@@ -211,6 +212,7 @@ export function PlannerContentFull(props: IPlannerContentFullProps): JSX.Element
         <div className="flex-1 min-w-0" ref={editorRef}>
           <PlannerEditorView
             name="Program"
+            theme={Settings_getTheme(props.settings)}
             customExercises={props.settings.exercises}
             exerciseFullNames={exerciseFullNames}
             error={evaluatedWeeks.success ? undefined : evaluatedWeeks.error}

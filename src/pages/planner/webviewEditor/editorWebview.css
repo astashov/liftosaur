@@ -41,7 +41,8 @@ body {
   background: var(--bg, #ffffff);
 }
 
-.dark {
+/* The `dark` class is set on <html>, but `body` repaints its own background, so scope the override to body. */
+html.dark body {
   color: var(--fg-dark, #e7e7e7);
   background: var(--bg-dark, #0e0f10);
 }
@@ -83,6 +84,31 @@ html.auto-height #editor,
 
 .planner-editor-view .cm-line {
   line-height: 1.35rem;
+}
+
+/* CodeMirror only ships a light base theme; the webview loads no app CSS, so mirror the app's dark chrome here. */
+html.dark .planner-editor-view .cm-gutters {
+  background-color: #0c0819;
+  color: #a4b0bc;
+  border-right: 1px solid #364756;
+}
+
+html.dark .planner-editor-view .cm-activeLineGutter {
+  background-color: #252034;
+}
+
+html.dark .planner-editor-view .cm-activeLine {
+  background-color: #34495444;
+}
+
+html.dark .planner-editor-view .cm-selectionBackground,
+html.dark .planner-editor-view .cm-focused .cm-selectionBackground {
+  background-color: #393248 !important;
+}
+
+html.dark .planner-editor-view .cm-cursor,
+html.dark .planner-editor-view .cm-dropCursor {
+  border-left-color: #ffffff;
 }
 
 .planner-editor-view .cm-errorLineGutter {

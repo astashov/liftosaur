@@ -2,6 +2,7 @@ import React from "react";
 import { IAllCustomExercises } from "../../../types";
 import { PlannerSyntaxError } from "../plannerExerciseEvaluator";
 import { WebviewEditor } from "../../../components/primitives/webviewEditor";
+import { IEditorTheme } from "../webviewEditor/editorWebviewBridge";
 
 interface IProps {
   name: string;
@@ -18,6 +19,7 @@ interface IProps {
   autoHeight?: boolean;
   minHeight?: number;
   maxHeight?: number;
+  theme?: IEditorTheme;
 }
 
 export function PlannerEditorView(props: IProps): React.JSX.Element {
@@ -37,6 +39,7 @@ export function PlannerEditorView(props: IProps): React.JSX.Element {
       autoHeight={props.autoHeight}
       minHeight={props.minHeight}
       maxHeight={props.maxHeight}
+      theme={props.theme}
     />
   );
 }

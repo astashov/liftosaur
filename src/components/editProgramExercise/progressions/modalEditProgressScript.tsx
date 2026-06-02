@@ -8,6 +8,7 @@ import { ScriptEditorView } from "./scriptEditorView";
 import { StringUtils_unindent, StringUtils_indent } from "../../../utils/string";
 import { ScriptRunner } from "../../../parser";
 import { ISettings } from "../../../types";
+import { Settings_getTheme } from "../../../models/settings";
 
 interface IModalEditProgressScriptProps {
   onClose: () => void;
@@ -49,6 +50,7 @@ export function ModalEditProgressScriptContent(props: IModalEditProgressScriptPr
       <ScriptEditorView
         name="modal-edit-progress-script-editor"
         state={ownState}
+        theme={Settings_getTheme(props.settings)}
         lineNumbers={true}
         error={error}
         value={script}

@@ -11,6 +11,7 @@ import {
 } from "../../pages/planner/models/plannerProgram";
 import { PlannerEditorView } from "../../pages/planner/components/plannerEditorView";
 import { EditProgramCustomErrorCta } from "./editProgramCustomErrorCta";
+import { Settings_getTheme } from "../../models/settings";
 
 export interface IEditProgramV2FullProps {
   plannerProgram: IPlannerProgram;
@@ -57,6 +58,7 @@ export function EditProgramV2Full(props: IEditProgramV2FullProps): JSX.Element {
       <View className="px-4 pt-4">
         <PlannerEditorView
           name="Program"
+          theme={Settings_getTheme(props.settings)}
           autoHeight={true}
           minHeight={200}
           customExercises={props.settings.exercises}
