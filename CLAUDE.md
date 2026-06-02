@@ -39,7 +39,7 @@ npm run build:dev
 # Watch bundle is downloaded from https://www.liftosaur.com/watch-bundle.js
 # by WatchCacheManager at runtime - no manual copy needed
 
-# Build watch app (run from /Users/anton/projects/LiftosauriOS/src)
+# Build watch app (run from ./ios)
 xcodebuild -workspace Liftosaur.xcworkspace -scheme "LiftosaurWatch" -destination 'platform=watchOS Simulator,id=6D3DDA86-DDC2-4D24-8908-21839A099D79' build
 ```
 
