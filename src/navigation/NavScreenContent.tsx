@@ -65,6 +65,7 @@ export function NavScreenContent(props: {
       testID="screen"
       className="flex-1 bg-background-default"
       contentContainerStyle={{ flexGrow: 1, paddingBottom: props.footer != null ? footerHeight : 0 }}
+      automaticallyAdjustKeyboardInsets={true}
       onScroll={onScroll}
       scrollEventThrottle={16}
       onScrollBeginDrag={scrollMarkers.onScrollBeginDrag}
