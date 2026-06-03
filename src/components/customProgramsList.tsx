@@ -1,10 +1,10 @@
-import { JSX, memo, useCallback } from "react";
+import { JSX, memo, useCallback, useMemo } from "react";
 import { View, Pressable } from "react-native";
 import { LegendList } from "@legendapp/list";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import { IEquipment, IHistoryRecord, IProgram, ISettings } from "../types";
-import { IExercise, Exercise_find, Exercise_toKey } from "../models/exercise";
+import { IExercise, Exercise_find, Exercise_toKey, equipmentName } from "../models/exercise";
 import { ExerciseImageUtils_exists } from "../models/exerciseImage";
 import {
   Program_evaluate,
@@ -30,6 +30,7 @@ import { IconTrash } from "./icons/iconTrash";
 import { EditProgram_deleteProgram } from "../models/editProgram";
 import { useTimedMemo } from "../utils/useTimedMemo";
 import { usePerfScrollMarkers } from "../utils/usePerfScrollMarkers";
+import { Equipment_currentEquipment } from "../models/equipment";
 
 interface IProps {
   programs: IProgram[];
@@ -110,7 +111,8 @@ const CustomProgram = memo(function CustomProgram(props: ICustomProgramProps): J
         }
       }
       const exercises = CollectionUtils_nonnull(ObjectUtils_values(exerciseObj));
-      const equipment = CollectionUtils_nonnull(Array.from(equipmentSet));
+      const allEquipment = useMemo(() => Equipment_currentEquipment(props.settings), [props.settings]);
+      const equipment = CollectionUtils_nonnull(Array.from(equipmentSet)).map((e) => equipmentName(e, allEquipment));
       const time = Program_dayAverageTimeMs(evaluatedProgram, settings);
       const formattedTime = time > 0 ? TimeUtils_formatHHMM(time) : undefined;
       const visibleExercises = exercises.filter((e) => ExerciseImageUtils_exists(e, "small"));
