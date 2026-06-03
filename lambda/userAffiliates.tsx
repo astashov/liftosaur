@@ -1,11 +1,11 @@
 import { renderPage } from "./render";
 import { UserAffiliatesHtml } from "../src/pages/userAffiliates/userAffiliatesHtml";
-import type { IAffiliateDashboardSummary } from "./dao/affiliateDao";
+import type { IAffiliateDashboardSummary, IAffiliateMonthlyPayment } from "./dao/affiliateDao";
 import { IAccount } from "../src/models/account";
 
 export interface ICreatorStats {
   summary: IAffiliateDashboardSummary;
-  monthlyPayments: { month: string; revenue: number; count: number; programUsers: number; couponUsers: number }[];
+  monthlyPayments: IAffiliateMonthlyPayment[];
 }
 
 export function renderUserAffiliatesHtml(

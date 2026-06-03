@@ -117,8 +117,18 @@ export function UserAffiliatesContent(props: IUserAffiliatesContentProps): JSX.E
                     <tr key={monthData.month} className="hover:bg-gray-50">
                       <td className="px-4 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{monthName}</td>
                       <td className="px-4 py-4 text-sm text-gray-500 whitespace-nowrap">{monthData.count}</td>
-                      <td className="px-4 py-4 text-sm text-blue-700 whitespace-nowrap">{monthData.programUsers}</td>
-                      <td className="px-4 py-4 text-sm text-purple-700 whitespace-nowrap">{monthData.couponUsers}</td>
+                      <td className="px-4 py-4 text-sm text-blue-700 whitespace-nowrap">
+                        {monthData.programUsersTotal}
+                        {monthData.programUsers > 0 && (
+                          <span className="text-gray-400"> (+{monthData.programUsers})</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-purple-700 whitespace-nowrap">
+                        {monthData.couponUsersTotal}
+                        {monthData.couponUsers > 0 && (
+                          <span className="text-gray-400"> (+{monthData.couponUsers})</span>
+                        )}
+                      </td>
                       <td className="px-4 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
                         {formatCurrency(monthData.revenue)}
                       </td>

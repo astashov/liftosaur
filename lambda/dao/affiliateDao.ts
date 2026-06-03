@@ -32,6 +32,16 @@ export interface IAffiliateDao {
   type?: "coupon" | "program";
 }
 
+export interface IAffiliateMonthlyPayment {
+  month: string;
+  revenue: number;
+  count: number;
+  programUsers: number;
+  couponUsers: number;
+  programUsersTotal: number;
+  couponUsersTotal: number;
+}
+
 export interface IAffiliateDashboardSummary {
   totalUsers: number;
   signedUpUsers: number;
@@ -211,7 +221,7 @@ export class AffiliateDao {
   private generateMonthlyPayments(
     allEligiblePayments: IPaymentDao[],
     affiliateUsers: { affiliateTimestamp: number; affiliateType?: "coupon" | "program" }[]
-  ): { month: string; revenue: number; count: number; programUsers: number; couponUsers: number }[] {
+  ): IAffiliateMonthlyPayment[] {
     const perMonth: Record<string, { revenue: number; count: number; programUsers: number; couponUsers: number }> = {};
     const ensureMonth = (monthKey: string): { revenue: number; count: number; programUsers: number; couponUsers: number } => {
       if (!perMonth[monthKey]) {
@@ -235,15 +245,25 @@ export class AffiliateDao {
       }
     });
 
-    return Object.entries(perMonth)
+    const ascending = Object.entries(perMonth)
       .map(([month, data]) => ({ month, ...data }))
-      .sort((a, b) => b.month.localeCompare(a.month));
+      .sort((a, b) => a.month.localeCompare(b.month));
+
+    let programUsersTotal = 0;
+    let couponUsersTotal = 0;
+    const withTotals = ascending.map((data) => {
+      programUsersTotal += data.programUsers;
+      couponUsersTotal += data.couponUsers;
+      return { ...data, programUsersTotal, couponUsersTotal };
+    });
+
+    return withTotals.sort((a, b) => b.month.localeCompare(a.month));
   }
 
   public async getDashboardData(affiliateId: string): Promise<{
     affiliateData: IAffiliateData[];
     summary: IAffiliateDashboardSummary;
-    monthlyPayments: { month: string; revenue: number; count: number; programUsers: number; couponUsers: number }[];
+    monthlyPayments: IAffiliateMonthlyPayment[];
   }> {
     const users = await this.getAffiliatedUsers(affiliateId);
 
@@ -364,7 +384,7 @@ export class AffiliateDao {
 
   public async getCreatorStats(creatorId: string): Promise<{
     summary: IAffiliateDashboardSummary;
-    monthlyPayments: { month: string; revenue: number; count: number; programUsers: number; couponUsers: number }[];
+    monthlyPayments: IAffiliateMonthlyPayment[];
   }> {
     const users = await this.getAffiliatedUsers(creatorId);
 
