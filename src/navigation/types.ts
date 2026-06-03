@@ -68,6 +68,8 @@ export type IMeStackParamList = {
   programPreview: undefined;
   progress: { id?: number } | undefined;
   onerms: undefined;
+  editProgram: { programId: string };
+  editProgramExercise: { programId: string; key: string; dayData: Required<IDayData>; fromWorkout?: boolean };
 };
 
 export type IRootTabParamList = {
