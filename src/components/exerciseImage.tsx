@@ -110,14 +110,14 @@ export const ExerciseImage = memo(function ExerciseImage(props: IProps): JSX.Ele
           (props.useTextForCustomExercise ? (
             <View
               className={`items-start justify-center overflow-hidden bg-background-image ${props.className ?? ""} ${props.customClassName ?? ""}`}
-              style={{ aspectRatio: 1 }}
+              style={imgStyle}
             >
               <Text className="text-xs text-text-secondarysubtle" style={{ fontSize: 11, lineHeight: 13 }}>
                 {Exercise_nameWithEquipment(exercise, props.settings)}
               </Text>
             </View>
           ) : (
-            <View className={props.className}>
+            <View className={`items-center justify-center ${props.className ?? ""}`} style={imgStyle}>
               <IconDefaultExercise size={props.width || 32} />
             </View>
           ))}
