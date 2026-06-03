@@ -153,7 +153,6 @@ export function NavModalDebug(): JSX.Element {
                       return;
                     }
                     dispatch(Thunk_adminLoginAsUser(userId.trim(), adminKey.trim(), storageId.trim() || undefined));
-                    navigation.goBack();
                   }}
                 >
                   Login as user

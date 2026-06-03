@@ -427,22 +427,21 @@ interface IOuterTabBarProps {
 const OuterTabBar = memo(function OuterTabBar(props: IOuterTabBarProps): JSX.Element {
   const activeColor = Tailwind_semantic().button.secondarystroke;
   return (
-    <View className="flex-row pt-4 pb-2 bg-background-default">
+    <View className="flex-row justify-between pt-4 px-4 bg-background-default border-b border-border-neutral">
       {props.labels.map((label, index) => {
         const isSelected = props.activeIndex === index;
         const nameClass = `tab-${StringUtils_dashcase(label.toLowerCase())}`;
         return (
-          <View key={label} className="items-center flex-1 border-b border-border-neutral">
-            <Pressable
-              className="px-4 pb-1"
-              data-testid={nameClass}
-              testID={nameClass}
-              style={isSelected ? { borderBottomWidth: 2, borderBottomColor: activeColor } : undefined}
-              onPress={() => props.onChange(index)}
-            >
-              <Text className={`text-base ${isSelected ? "text-text-purple" : ""}`}>{label}</Text>
-            </Pressable>
-          </View>
+          <Pressable
+            key={label}
+            className="px-2 pb-1"
+            data-testid={nameClass}
+            testID={nameClass}
+            style={isSelected ? { borderBottomWidth: 2, borderBottomColor: activeColor } : undefined}
+            onPress={() => props.onChange(index)}
+          >
+            <Text className={`text-base ${isSelected ? "text-text-purple" : ""}`}>{label}</Text>
+          </Pressable>
         );
       })}
     </View>
