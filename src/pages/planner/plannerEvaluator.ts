@@ -830,6 +830,7 @@ export function PlannerEvaluator_findOriginalExercisesAtWeekDay(
   const originalExercises: { exercise: IPlannerProgramExercise; dayData: Required<IDayData> }[] = [];
   const week = program[atWeek - 1];
   const candidateDays = atDay != null ? [week[atDay - 1]] : week;
+  const originalKey = PlannerKey_fromFullName(fullName, settings.exercises);
   for (let dayInWeekIndex = 0; dayInWeekIndex < candidateDays.length; dayInWeekIndex += 1) {
     const day = candidateDays[dayInWeekIndex];
     if (day == null || !day.success) {
@@ -837,7 +838,6 @@ export function PlannerEvaluator_findOriginalExercisesAtWeekDay(
     }
     for (const exercise of day.data) {
       const reusingKey = PlannerKey_fromPlannerExercise(exercise, settings);
-      const originalKey = PlannerKey_fromFullName(fullName, settings.exercises);
       if (reusingKey === originalKey) {
         originalExercises.push({
           exercise,

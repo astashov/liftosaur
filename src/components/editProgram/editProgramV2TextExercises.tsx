@@ -43,6 +43,8 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
       <PlannerEditorView
         name="Exercises"
         theme={Settings_getTheme(props.settings)}
+        autoHeight={true}
+        minHeight={200}
         exerciseFullNames={props.exerciseFullNames}
         customExercises={customExercises}
         lineNumbers={true}

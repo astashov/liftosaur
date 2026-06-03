@@ -1681,10 +1681,14 @@ export const allExercisesList: Record<IExerciseId, IExercise> = {
   },
 };
 
-const nameToIdMapping = ObjectUtils_keys(allExercisesList).reduce<Partial<Record<string, IExerciseId>>>((acc, key) => {
-  acc[allExercisesList[key].name.toLowerCase()] = allExercisesList[key].id;
-  return acc;
-}, {});
+const nameToIdMapping = ObjectUtils_keys(allExercisesList).reduce<Partial<Record<string, IExerciseId>>>(
+  (acc, key) => {
+    acc[allExercisesList[key].name.toLowerCase()] = allExercisesList[key].id;
+    return acc;
+  },
+  // Null-prototype so arbitrary exercise names (e.g. "constructor", "__proto__") can't resolve to inherited props.
+  Object.create(null) as Partial<Record<string, IExerciseId>>
+);
 
 export const metadata: Record<IExerciseId, IMetaExercises> = {
   abWheel: {
@@ -3717,17 +3721,34 @@ export function Exercise_findById(id: IExerciseId, customExercises: IAllCustomEx
   return maybeGetExercise(id, customExercises);
 }
 
+function normalizeExerciseName(name: string): string {
+  return name.toLowerCase().replace(/\s*,\s*/g, ",");
+}
+
+// Cache a normalized-name -> id index per customExercises object, since Exercise_findIdByName is called
+// once per exercise reference during program evaluation, and accounts can have hundreds of custom exercises.
+const customExercisesNameIndexCache = new WeakMap<IAllCustomExercises, Map<string, IExerciseId>>();
+function getCustomExercisesNameIndex(customExercises: IAllCustomExercises): Map<string, IExerciseId> {
+  let index = customExercisesNameIndexCache.get(customExercises);
+  if (index == null) {
+    index = new Map();
+    for (const ce of ObjectUtils_values(customExercises)) {
+      if (ce?.name && ce.id) {
+        const key = normalizeExerciseName(ce.name);
+        if (!index.has(key)) {
+          index.set(key, ce.id);
+        }
+      }
+    }
+    customExercisesNameIndexCache.set(customExercises, index);
+  }
+  return index;
+}
+
 export function Exercise_findIdByName(name: string, customExercises: IAllCustomExercises): IExerciseId | undefined {
   const lowercaseName = name.toLowerCase();
   return (
-    nameToIdMapping[lowercaseName] ||
-    ObjectUtils_values(customExercises).find((ce) => {
-      const thisLowercaseName = ce?.name?.toLowerCase() || "";
-      return (
-        thisLowercaseName === lowercaseName ||
-        thisLowercaseName.replace(/\s*,\s*/g, ",") === lowercaseName.replace(/\s*,\s*/g, ",")
-      );
-    })?.id
+    nameToIdMapping[lowercaseName] || getCustomExercisesNameIndex(customExercises).get(normalizeExerciseName(name))
   );
 }
 

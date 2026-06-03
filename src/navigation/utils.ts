@@ -1,5 +1,6 @@
 import type { INavCommon, IState } from "../models/state";
 import { Program_getProgram } from "../models/program";
+import { untrack } from "./TrackedStateContext";
 import type { IScreen } from "../models/screen";
 import type { IHistoryRecord } from "../types";
 import type { NavigationState } from "@react-navigation/native";
@@ -27,11 +28,11 @@ export function buildNavCommon(state: IState): INavCommon {
   const currentProgram =
     state.storage.currentProgramId != null ? Program_getProgram(state, state.storage.currentProgramId) : undefined;
   return {
-    loading: state.loading,
-    currentProgram,
-    settings: state.storage.settings,
+    loading: untrack(state.loading),
+    currentProgram: untrack(currentProgram),
+    settings: untrack(state.storage.settings),
     isOngoingProgress: (state.storage.progress?.length ?? 0) > 0,
-    stats: state.storage.stats,
+    stats: untrack(state.storage.stats),
     userId: state.user?.id,
   };
 }

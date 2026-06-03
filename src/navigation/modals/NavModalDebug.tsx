@@ -76,7 +76,7 @@ export function NavModalDebug(): JSX.Element {
           </Button>
         </View>
         <View className="pt-6 mt-6 border-t border-border-neutral">
-          <Text className="pb-2 font-bold">Login as user</Text>
+          <Text className="pb-2 font-bold">Admin access</Text>
           {!isKeyValid ? (
             <View>
               <Input
