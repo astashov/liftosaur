@@ -1,4 +1,4 @@
-import { JSX, memo, useState } from "react";
+import { JSX, memo, useEffect, useState } from "react";
 import { View, Pressable, Linking, Platform } from "react-native";
 import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
@@ -69,6 +69,12 @@ function openExternal(url: string): void {
 function ScreenSettingsInner(props: IProps): JSX.Element {
   usePerfRenderCount("ScreenSettings");
   const [isCopied, setIsCopied] = useState<boolean>(false);
+  // This screen reads settings via `untrack`, so it doesn't re-render when `theme` changes.
+  // Track the toggle locally so the switch reflects the tap instead of snapping back.
+  const [theme, setTheme] = useState<"dark" | "light">(Settings_getTheme(props.settings));
+  useEffect(() => {
+    setTheme(Settings_getTheme(props.settings));
+  }, [props.settings]);
   const currentBodyweight = Stats_getCurrentBodyweight(props.stats);
   const currentBodyfat = Stats_getCurrentBodyfat(props.stats);
 
@@ -424,9 +430,10 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
       <MenuItemEditable
         type="boolean"
         name="Dark mode"
-        value={Settings_getTheme(props.settings) === "dark" ? "true" : "false"}
+        value={theme === "dark" ? "true" : "false"}
         onChange={(newValue) => {
           const newTheme = newValue === "true" ? "dark" : "light";
+          setTheme(newTheme);
           Settings_applyTheme(newTheme);
           props.dispatch({
             type: "UpdateSettings",
