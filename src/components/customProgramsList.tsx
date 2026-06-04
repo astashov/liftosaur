@@ -1,4 +1,4 @@
-import { JSX, memo, useCallback, useMemo } from "react";
+import { JSX, memo, useCallback } from "react";
 import { View, Pressable } from "react-native";
 import { LegendList } from "@legendapp/list";
 import { Text } from "./primitives/text";

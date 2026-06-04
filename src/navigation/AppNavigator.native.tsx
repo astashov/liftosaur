@@ -118,6 +118,19 @@ import { NavModalSubscriptionInfo } from "./modals/NavModalSubscriptionInfo";
 import { NavModalTextInput } from "./modals/NavModalTextInput";
 import { NavModalWhatsnew } from "./modals/NavModalWhatsnew";
 import { NavHeader } from "./NavHeader";
+import { ScreenErrorBoundary } from "../components/screenErrorBoundary";
+
+function renderScreenWithErrorBoundary(args: {
+  route: { name: string };
+  navigation: { canGoBack?: () => boolean; goBack?: () => void };
+  children: JSX.Element;
+}): JSX.Element {
+  return (
+    <ScreenErrorBoundary screenName={args.route.name} navigation={args.navigation}>
+      {args.children}
+    </ScreenErrorBoundary>
+  );
+}
 
 const OnboardingStack = createNativeStackNavigator<IOnboardingStackParamList>();
 const HomeStack = createNativeStackNavigator<IHomeStackParamList>();
@@ -148,7 +161,11 @@ const navHeaderScreenOptions = {
 function OnboardingStackScreen(): JSX.Element {
   const initialScreen = useContext(InitialScreenContext) as keyof IOnboardingStackParamList | undefined;
   return (
-    <OnboardingStack.Navigator screenOptions={stackScreenOptions} initialRouteName={initialScreen || "first"}>
+    <OnboardingStack.Navigator
+      screenOptions={stackScreenOptions}
+      screenLayout={renderScreenWithErrorBoundary}
+      initialRouteName={initialScreen || "first"}
+    >
       <OnboardingStack.Screen name="first" component={NavScreenFirst} />
       <OnboardingStack.Screen name="units" component={NavScreenUnits} />
       <OnboardingStack.Screen name="setupequipment" component={NavScreenSetupEquipment} />
@@ -175,7 +192,7 @@ function OnboardingStackScreen(): JSX.Element {
 
 function HomeStackScreen(): JSX.Element {
   return (
-    <HomeStack.Navigator screenOptions={stackScreenOptions}>
+    <HomeStack.Navigator screenOptions={stackScreenOptions} screenLayout={renderScreenWithErrorBoundary}>
       <HomeStack.Screen name="main" component={NavScreenMain} />
       <HomeStack.Screen
         name="progress"
@@ -194,7 +211,7 @@ function HomeStackScreen(): JSX.Element {
 
 function ProgramStackScreen(): JSX.Element {
   return (
-    <ProgramStack.Navigator screenOptions={navHeaderScreenOptions}>
+    <ProgramStack.Navigator screenOptions={navHeaderScreenOptions} screenLayout={renderScreenWithErrorBoundary}>
       <ProgramStack.Screen name="programs" component={NavScreenPrograms} />
       <ProgramStack.Screen name="editProgram" component={NavScreenEditProgram} />
       <ProgramStack.Screen name="editProgramExercise" component={NavScreenEditProgramExercise} />
@@ -208,7 +225,7 @@ function ProgramStackScreen(): JSX.Element {
 
 function WorkoutStackScreen(): JSX.Element {
   return (
-    <WorkoutStack.Navigator screenOptions={stackScreenOptions}>
+    <WorkoutStack.Navigator screenOptions={stackScreenOptions} screenLayout={renderScreenWithErrorBoundary}>
       <WorkoutStack.Screen
         name="progress"
         component={NavScreenProgress}
@@ -241,7 +258,7 @@ function WorkoutStackScreen(): JSX.Element {
 
 function GraphsStackScreen(): JSX.Element {
   return (
-    <GraphsStack.Navigator screenOptions={stackScreenOptions}>
+    <GraphsStack.Navigator screenOptions={stackScreenOptions} screenLayout={renderScreenWithErrorBoundary}>
       <GraphsStack.Screen
         name="graphsList"
         component={NavScreenGraphs}
@@ -259,7 +276,7 @@ function GraphsStackScreen(): JSX.Element {
 
 function MeStackScreen(): JSX.Element {
   return (
-    <MeStack.Navigator screenOptions={navHeaderScreenOptions}>
+    <MeStack.Navigator screenOptions={navHeaderScreenOptions} screenLayout={renderScreenWithErrorBoundary}>
       <MeStack.Screen name="settings" component={NavScreenSettings} />
       <MeStack.Screen name="account" component={NavScreenAccount} />
       <MeStack.Screen name="timers" component={NavScreenTimers} />
@@ -308,6 +325,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
     <InitialScreenContext.Provider value={initialScreen}>
       <RootStack.Navigator
         screenOptions={{ headerShown: false, animation: "none", freezeOnBlur: true }}
+        screenLayout={renderScreenWithErrorBoundary}
         initialRouteName={isOnboarding ? "onboarding" : "mainTabs"}
       >
         <RootStack.Screen name="onboarding" component={OnboardingStackScreen} />
