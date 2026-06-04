@@ -20,7 +20,10 @@ class MainActivity : ReactActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     HealthConnectPermissionDelegate.setPermissionDelegate(this)
-    super.onCreate(savedInstanceState)
+    // react-native-screens fragments can't be restored; passing null prevents Android
+    // from re-instantiating them after the process is killed in the background.
+    // https://github.com/software-mansion/react-native-screens/issues/17#issuecomment-424704067
+    super.onCreate(null)
     handleLiveActivityIntent(intent)
   }
 

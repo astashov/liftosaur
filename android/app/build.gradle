@@ -90,12 +90,19 @@ android {
     compileSdk rootProject.ext.compileSdkVersion
 
     namespace "com.liftosaur.www.twa"
+
+    externalNativeBuild {
+        cmake {
+            path "src/main/jni/CMakeLists.txt"
+        }
+    }
+
     defaultConfig {
         applicationId "com.liftosaur.www.twa"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 120
-        versionName "120.0"
+        versionCode 122
+        versionName "122.0"
         buildConfigField "boolean", "DISABLE_OTA", "${disableOta}"
     }
     buildFeatures {

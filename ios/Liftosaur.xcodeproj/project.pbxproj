@@ -9,11 +9,12 @@
 /* Begin PBXBuildFile section */
 		00A9D43BFF6350A3156888F5 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		12F317DBE89387792B8C2788 /* notification.m4r in Resources */ = {isa = PBXBuildFile; fileRef = 91FAA5A7B2D2A2141783C9C5 /* notification.m4r */; };
-		CAF0000000000000000000B1 /* notification.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF0000000000000000000F1 /* notification.caf */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		270E1C6BE4D30A01EEE7E60B /* RCTFastTextRegistrar.mm in Sources */ = {isa = PBXBuildFile; fileRef = 7FF1B3BD2B6C6730C0BDC0DC /* RCTFastTextRegistrar.mm */; };
 		2B45EA7869F3FB4183C4A4CE /* LiftosaurTimerImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = B65E29D489BF686568C6787C /* LiftosaurTimerImpl.swift */; };
 		2C22A34FB039FEBA75BBB641 /* Pods_Liftosaur.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0880623F1BFA46C212C4C21F /* Pods_Liftosaur.framework */; };
 		2CE4394B21A1DBBE08022D06 /* RCTLiftosaurTimer.mm in Sources */ = {isa = PBXBuildFile; fileRef = CAF9A9419BADC6FB0293A37D /* RCTLiftosaurTimer.mm */; };
+		326EEB1E8DD314E2E32D357B /* RCTFastTextView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 839BEAD642ED44672AEE54D7 /* RCTFastTextView.mm */; };
 		3A606C432FAB8D1800799977 /* Store.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 3A606C422FAB8D1800799977 /* Store.storekit */; };
 		3A6705F72FCD20D60023C017 /* notification.m4r in Resources */ = {isa = PBXBuildFile; fileRef = 3A6705F62FCD20D60023C017 /* notification.m4r */; };
 		3AACC4F92FB2A15D001C68AA /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AACC4F82FB2A15D001C68AA /* WidgetKit.framework */; };
@@ -118,6 +119,8 @@
 		95D0C1ECBFE44A7CB61734C1 /* Iosevka-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1A72802BA6B84B4A91C55832 /* Iosevka-Regular.ttf */; };
 		9CFD04038647D1D4AFBE4A93 /* RCTLiftosaurLiveActivity.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6CDE7A4672A3F2BF6A135AE9 /* RCTLiftosaurLiveActivity.mm */; };
 		ABAB4E16DB2DC920D7412751 /* LiftosaurShareImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = E883E351A4F90F4F9BB4EFE5 /* LiftosaurShareImpl.swift */; };
+		CAF0000000000000000000B1 /* notification.caf in Resources */ = {isa = PBXBuildFile; fileRef = CAF0000000000000000000F1 /* notification.caf */; };
+		CDEAC135073AE09BCE6C4E5D /* FastText.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A41D91319A9E1C5A962BD7 /* FastText.swift */; };
 		EE0003000000000000000003 /* RCTLiftosaurEventReporter.mm in Sources */ = {isa = PBXBuildFile; fileRef = EE0002000000000000000002 /* RCTLiftosaurEventReporter.mm */; };
 		EE0005000000000000000005 /* LiftosaurEventReporterImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0004000000000000000004 /* LiftosaurEventReporterImpl.swift */; };
 		EE0007000000000000000007 /* RCTLiftosaurWorkoutMirroring.mm in Sources */ = {isa = PBXBuildFile; fileRef = EE0006000000000000000006 /* RCTLiftosaurWorkoutMirroring.mm */; };
@@ -173,11 +176,14 @@
 /* Begin PBXFileReference section */
 		0880623F1BFA46C212C4C21F /* Pods_Liftosaur.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Liftosaur.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0C643222D97503FBA997CA59 /* RCTLiftosaurLiveActivity.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTLiftosaurLiveActivity.h; path = Liftosaur/RCTLiftosaurLiveActivity.h; sourceTree = "<group>"; };
+		0F867517A1458EA44579B682 /* RCTFastTextView.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTFastTextView.h; path = Liftosaur/FastText/RCTFastTextView.h; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* Liftosaur.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Liftosaur.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Liftosaur/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Liftosaur/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = Liftosaur/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		1A72802BA6B84B4A91C55832 /* Iosevka-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Iosevka-Regular.ttf"; path = "../assets/fonts/Iosevka-Regular.ttf"; sourceTree = "<group>"; };
+		2970733CBB5FA79134CD53EE /* FastTextShadowNode.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = FastTextShadowNode.h; path = Liftosaur/FastText/FastTextShadowNode.h; sourceTree = "<group>"; };
+		2E2DCE34013D967839DD9676 /* RCTFastTextRegistrar.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTFastTextRegistrar.h; path = Liftosaur/FastText/RCTFastTextRegistrar.h; sourceTree = "<group>"; };
 		3A606C422FAB8D1800799977 /* Store.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Store.storekit; sourceTree = "<group>"; };
 		3A6705F62FCD20D60023C017 /* notification.m4r */ = {isa = PBXFileReference; lastKnownFileType = file; path = notification.m4r; sourceTree = "<group>"; };
 		3AACC4F72FB2A15D001C68AA /* LiftosaurWorkoutWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LiftosaurWorkoutWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -260,15 +266,19 @@
 		6932EE9394B77D111CEA7C57 /* RCTLiftosaurShare.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTLiftosaurShare.mm; path = Liftosaur/RCTLiftosaurShare.mm; sourceTree = "<group>"; };
 		6CDE7A4672A3F2BF6A135AE9 /* RCTLiftosaurLiveActivity.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTLiftosaurLiveActivity.mm; path = Liftosaur/RCTLiftosaurLiveActivity.mm; sourceTree = "<group>"; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = Liftosaur/AppDelegate.swift; sourceTree = "<group>"; };
+		7FF1B3BD2B6C6730C0BDC0DC /* RCTFastTextRegistrar.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTFastTextRegistrar.mm; path = Liftosaur/FastText/RCTFastTextRegistrar.mm; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Liftosaur/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		839BEAD642ED44672AEE54D7 /* RCTFastTextView.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTFastTextView.mm; path = Liftosaur/FastText/RCTFastTextView.mm; sourceTree = "<group>"; };
 		8B4BDC15E59DDB21DA61FB5B /* LiftosaurLiveActivityImpl.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LiftosaurLiveActivityImpl.swift; path = Liftosaur/LiftosaurLiveActivityImpl.swift; sourceTree = "<group>"; };
 		91FAA5A7B2D2A2141783C9C5 /* notification.m4r */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file; name = notification.m4r; path = Liftosaur/notification.m4r; sourceTree = "<group>"; };
-		CAF0000000000000000000F1 /* notification.caf */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file; name = notification.caf; path = Liftosaur/notification.caf; sourceTree = "<group>"; };
 		9FBEDEE80EFF415DAB4E7192 /* Poppins-BoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-BoldItalic.ttf"; path = "../assets/fonts/Poppins-BoldItalic.ttf"; sourceTree = "<group>"; };
+		A0A41D91319A9E1C5A962BD7 /* FastText.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FastText.swift; path = Liftosaur/FastText/FastText.swift; sourceTree = "<group>"; };
 		A95E3F373AF047269613648A /* Poppins-SemiBoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-SemiBoldItalic.ttf"; path = "../assets/fonts/Poppins-SemiBoldItalic.ttf"; sourceTree = "<group>"; };
 		B65E29D489BF686568C6787C /* LiftosaurTimerImpl.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LiftosaurTimerImpl.swift; path = Liftosaur/LiftosaurTimerImpl.swift; sourceTree = "<group>"; };
+		CAF0000000000000000000F1 /* notification.caf */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file; name = notification.caf; path = Liftosaur/notification.caf; sourceTree = "<group>"; };
 		CAF9A9419BADC6FB0293A37D /* RCTLiftosaurTimer.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTLiftosaurTimer.mm; path = Liftosaur/RCTLiftosaurTimer.mm; sourceTree = "<group>"; };
 		D504098807F3C847075A4F60 /* Liftosaur-Bridging-Header.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "Liftosaur-Bridging-Header.h"; path = "Liftosaur/Liftosaur-Bridging-Header.h"; sourceTree = "<group>"; };
+		DA1C6AB4542FC0D9B6F6C451 /* FastTextComponentDescriptor.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = FastTextComponentDescriptor.h; path = Liftosaur/FastText/FastTextComponentDescriptor.h; sourceTree = "<group>"; };
 		DD9788074553024D2C5DC450 /* RCTLiftosaurTimer.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTLiftosaurTimer.h; path = Liftosaur/RCTLiftosaurTimer.h; sourceTree = "<group>"; };
 		DD99D9B7ADD2478880135CFC /* Poppins-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-Bold.ttf"; path = "../assets/fonts/Poppins-Bold.ttf"; sourceTree = "<group>"; };
 		E883E351A4F90F4F9BB4EFE5 /* LiftosaurShareImpl.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = LiftosaurShareImpl.swift; path = Liftosaur/LiftosaurShareImpl.swift; sourceTree = "<group>"; };
@@ -354,6 +364,13 @@
 				91FAA5A7B2D2A2141783C9C5 /* notification.m4r */,
 				CAF0000000000000000000F1 /* notification.caf */,
 				EE0045000000000000000045 /* LftUpdaterPath.swift */,
+				2970733CBB5FA79134CD53EE /* FastTextShadowNode.h */,
+				DA1C6AB4542FC0D9B6F6C451 /* FastTextComponentDescriptor.h */,
+				0F867517A1458EA44579B682 /* RCTFastTextView.h */,
+				839BEAD642ED44672AEE54D7 /* RCTFastTextView.mm */,
+				2E2DCE34013D967839DD9676 /* RCTFastTextRegistrar.h */,
+				7FF1B3BD2B6C6730C0BDC0DC /* RCTFastTextRegistrar.mm */,
+				A0A41D91319A9E1C5A962BD7 /* FastText.swift */,
 			);
 			name = Liftosaur;
 			sourceTree = "<group>";
@@ -837,6 +854,9 @@
 				EE0042000000000000000042 /* RCTLftUpdater.mm in Sources */,
 				EE0044000000000000000044 /* LftUpdater.swift in Sources */,
 				EE0046000000000000000046 /* LftUpdaterPath.swift in Sources */,
+				326EEB1E8DD314E2E32D357B /* RCTFastTextView.mm in Sources */,
+				270E1C6BE4D30A01EEE7E60B /* RCTFastTextRegistrar.mm in Sources */,
+				CDEAC135073AE09BCE6C4E5D /* FastText.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -930,7 +950,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 102;
+				MARKETING_VERSION = 103;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -964,7 +984,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 102;
+				MARKETING_VERSION = 103;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",

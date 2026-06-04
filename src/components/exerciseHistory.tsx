@@ -13,6 +13,9 @@ import { Reps_volume } from "../models/set";
 import { History_getPersonalRecords, IPersonalRecords } from "../models/history";
 import { ObjectUtils_keys } from "../utils/object";
 import { HistoryRecordSetsView } from "./historyRecordSets";
+import { FastText } from "./primitives/fastText";
+import { StyledText, StyledText_remToPx } from "../utils/styledText";
+import { useRem } from "../utils/useRem";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import { lb } from "lens-shmens";
 import { updateSettings } from "../models/state";
@@ -149,6 +152,9 @@ interface IExerciseHistoryRecordProps {
 
 const ExerciseHistoryRecord = memo((props: IExerciseHistoryRecordProps): JSX.Element => {
   const { historyRecord, fullExercise, units, prs, dispatch } = props;
+  const rem = useRem();
+  const secondary = Tailwind_semantic().text.secondary;
+  const xs = StyledText_remToPx("xs", rem);
   const exerciseEntries = historyRecord.entries.filter((e) => Exercise_eq(e.exercise, fullExercise));
   const exerciseNotes = exerciseEntries.map((e) => e.notes).filter((e) => e);
   const onClick = useCallback(() => {
@@ -186,22 +192,39 @@ const ExerciseHistoryRecord = memo((props: IExerciseHistoryRecordProps): JSX.Ele
                         isNext={false}
                       />
                     </View>
-                    {volume.value > 0 && (
-                      <Text className="mb-1 text-xs text-text-secondary">
-                        Volume: <Text className="text-xs font-bold">{Weight_print(volume)}</Text>
-                      </Text>
-                    )}
-                    {Object.keys(state).length > 0 && (
-                      <Text className="text-xs text-text-secondary">
-                        {ObjectUtils_keys(state)
-                          .map((stateKey) => {
-                            const value = state[stateKey];
-                            const displayValue = Weight_is(value) || Weight_isPct(value) ? Weight_display(value) : value;
-                            return `${stateKey} - ${displayValue}`;
-                          })
-                          .join(", ")}
-                      </Text>
-                    )}
+                    {volume.value > 0 &&
+                      (() => {
+                        const builder = new StyledText();
+                        builder.add("Volume: ");
+                        builder.add(Weight_print(volume), { fontWeight: "700" });
+                        const built = builder.build();
+                        return (
+                          <FastText
+                            text={built.text}
+                            fragments={built.fragments}
+                            color={secondary}
+                            fontSize={xs}
+                            style={{ marginBottom: rem / 4 }}
+                          />
+                        );
+                      })()}
+                    {Object.keys(state).length > 0 &&
+                      (() => {
+                        const builder = new StyledText();
+                        ObjectUtils_keys(state).forEach((stateKey, si) => {
+                          const value = state[stateKey];
+                          const displayValue = Weight_is(value) || Weight_isPct(value) ? Weight_display(value) : value;
+                          if (si !== 0) {
+                            builder.add(", ");
+                          }
+                          builder.add(`${stateKey} - `);
+                          builder.add(`${displayValue}`, { fontWeight: "700" });
+                        });
+                        const built = builder.build();
+                        return (
+                          <FastText text={built.text} fragments={built.fragments} color={secondary} fontSize={xs} />
+                        );
+                      })()}
                   </View>
                 );
               })}

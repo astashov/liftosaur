@@ -12,6 +12,7 @@ import com.liftosaur.www.twa.eventreporter.EventReporterDispatcher
 import com.liftosaur.www.twa.eventreporter.EventReporterTombstone
 import com.liftosaur.www.twa.eventreporter.LastTerminationHolder
 import com.liftosaur.www.twa.eventreporter.LiftosaurEventReporterPackage
+import com.liftosaur.www.twa.fasttext.FastTextPackage
 import com.liftosaur.www.twa.lftupdater.LftUpdaterPackage
 import com.liftosaur.www.twa.lftupdater.LftUpdaterPath
 import com.liftosaur.www.twa.liveactivity.LiftosaurLiveActivityPackage
@@ -31,6 +32,7 @@ class MainApplication : Application(), ReactApplication {
           add(LiftosaurLiveActivityPackage())
           add(LiftosaurEventReporterPackage())
           add(LftUpdaterPackage())
+          add(FastTextPackage())
         },
       jsMainModulePath = "index",
       jsBundleFilePath = if (BuildConfig.DISABLE_OTA) null else LftUpdaterPath.effectiveBundleFilePath(this),

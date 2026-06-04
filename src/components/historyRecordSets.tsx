@@ -1,11 +1,15 @@
 import { JSX, memo, useMemo } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
+import { FastText } from "./primitives/fastText";
 import { IDisplaySet, Reps_group, Reps_setToDisplaySet } from "../models/set";
 import { ISet, IUnit } from "../types";
 import { CollectionUtils_compact } from "../utils/collection";
 import { ObjectUtils_keys } from "../utils/object";
 import { IHistoryEntryPersonalRecords } from "../models/history";
+import { StyledText, StyledText_remToPx } from "../utils/styledText";
+import { useRem } from "../utils/useRem";
+import { Tailwind_semantic, Tailwind_colors } from "../utils/tailwindConfig";
 
 function isSameDisplaySet(a: IDisplaySet, b: IDisplaySet): boolean {
   return (
@@ -75,15 +79,22 @@ export const HistoryRecordSet = memo(function HistoryRecordSet(props: IHistoryRe
     })
   );
   const isPr = prTypes.length > 0;
+  const rem = useRem();
+  const sem = Tailwind_semantic();
+  const primary = sem.text.primary;
+  const secondary = sem.text.secondary;
+  const purple = sem.text.purple;
+  // `text-orange-400` (in-range reps) has no semantic/stock entry; reuse the project's
+  // warning yellow as the closest design-system color.
   const repsColor = isNext
-    ? "text-text-secondary"
+    ? secondary
     : set.isCompleted
-      ? "text-text-success"
+      ? sem.text.success
       : set.isInRange
-        ? "text-orange-400"
-        : "text-text-error";
-  const rpeColor = isNext ? "text-text-secondary" : set.isRpeFailed ? "text-text-error" : "text-text-success";
-  const timerColor = isNext ? "text-text-secondary" : "text-text-purple";
+        ? Tailwind_colors().yellow[600]
+        : sem.text.error;
+  const rpeColor = isNext ? secondary : set.isRpeFailed ? sem.text.error : sem.text.success;
+  const timerColor = isNext ? secondary : purple;
   const dataCy = isNext
     ? "history-entry-sets-next"
     : set.isCompleted
@@ -91,6 +102,31 @@ export const HistoryRecordSet = memo(function HistoryRecordSet(props: IHistoryRe
       : set.isInRange
         ? "history-entry-sets-in-range"
         : "history-entry-sets-incompleted";
+
+  const sm = StyledText_remToPx("sm", rem);
+  const xs = StyledText_remToPx("xs", rem);
+  const builder = new StyledText();
+  if (group.length > 1) {
+    builder.add(`${group.length}`, { fontWeight: "600", color: purple }, "history-entry-sets");
+    builder.add(" \u00D7 ", { color: secondary });
+  }
+  builder.add(`${set.reps}`, { fontWeight: "600", color: repsColor }, "history-entry-reps");
+  if (set.weight) {
+    builder.add(" \u00D7 ", { color: secondary });
+    builder.add(`${set.weight}`, { fontWeight: "600" }, "history-entry-weight");
+    builder.add(set.askWeight ? "+" : "");
+    builder.add(`${set.unit}`, { color: secondary });
+  }
+  if (set.rpe != null) {
+    builder.add(" @", { fontSize: xs, color: rpeColor });
+    builder.add(`${set.rpe}`, { color: rpeColor }, "history-entry-rpe");
+  }
+  if (set.timer != null) {
+    builder.add(` ${set.timer}`, { color: timerColor });
+    builder.add("s", { fontSize: xs, color: timerColor }, "history-entry-timer");
+  }
+  const built = builder.build();
+
   return (
     <View className="flex-row items-center" data-testid={dataCy} testID={dataCy}>
       {props.showPrDetails && isPr && (
@@ -99,49 +135,14 @@ export const HistoryRecordSet = memo(function HistoryRecordSet(props: IHistoryRe
           <Text className="text-sm leading-6">{"\u{1F3C6}"}</Text>
         </View>
       )}
-      <Text className={`px-1 text-sm leading-6 ${isPr ? "bg-color-yellow150 " : ""}`}>
-        {group.length > 1 && (
-          <>
-            <Text
-              className="text-sm font-semibold text-text-purple"
-              data-testid="history-entry-sets"
-              testID="history-entry-sets"
-            >
-              {group.length}
-            </Text>
-            <Text className="text-sm text-text-secondary"> {"\u00D7"} </Text>
-          </>
-        )}
-        <Text
-          className={`font-semibold ${repsColor} text-sm`}
-          data-testid="history-entry-reps"
-          testID="history-entry-reps"
-        >
-          {set.reps}
-        </Text>
-        {set.weight && (
-          <>
-            <Text className="text-sm text-text-secondary"> {"\u00D7"} </Text>
-            <Text data-testid="history-entry-weight" testID="history-entry-weight">
-              <Text className="text-sm font-semibold">{set.weight}</Text>
-              <Text className="text-sm">{set.askWeight ? "+" : ""}</Text>
-              <Text className="text-sm text-text-secondary">{set.unit}</Text>
-            </Text>
-          </>
-        )}
-        {set.rpe != null && (
-          <Text className={rpeColor} data-testid="history-entry-rpe" testID="history-entry-rpe">
-            <Text className="text-xs"> @</Text>
-            <Text className="text-sm">{set.rpe}</Text>
-          </Text>
-        )}
-        {set.timer != null && (
-          <Text className={timerColor} data-testid="history-entry-timer" testID="history-entry-timer">
-            <Text className="text-sm"> {set.timer}</Text>
-            <Text className="text-xs">s</Text>
-          </Text>
-        )}
-      </Text>
+      <FastText
+        text={built.text}
+        fragments={built.fragments}
+        color={primary}
+        fontSize={sm}
+        paddingHorizontal={rem / 4}
+        backgroundColor={isPr ? sem.color.yellow150 : undefined}
+      />
     </View>
   );
 });

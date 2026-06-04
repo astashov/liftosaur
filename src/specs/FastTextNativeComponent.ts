@@ -1,0 +1,30 @@
+/* eslint-disable @typescript-eslint/naming-convention */
+import type { ViewProps, ColorValue } from "react-native";
+import type { Int32, Float } from "react-native/Libraries/Types/CodegenTypes";
+import codegenNativeComponent from "react-native/Libraries/Utilities/codegenNativeComponent";
+
+interface NativeFragment {
+  start: Int32;
+  end: Int32;
+  color?: ColorValue;
+  backgroundColor?: ColorValue;
+  fontWeight?: string;
+  fontSize?: Float;
+  fontStyle?: string;
+}
+
+export interface NativeProps extends ViewProps {
+  text: string;
+  color?: ColorValue;
+  backgroundColor?: ColorValue;
+  fontWeight?: string;
+  fontStyle?: string;
+  fontSize?: Float;
+  // NOT "paddingHorizontal"/"lineHeight": those are reserved RN ViewProps/text styles and
+  // Yoga would apply them as real layout padding in addition to our custom handling.
+  textPaddingHorizontal?: Float;
+  textLineHeight?: Float;
+  fragments?: ReadonlyArray<NativeFragment>;
+}
+
+export default codegenNativeComponent<NativeProps>("FastText");

@@ -254,7 +254,7 @@
   },
   "codegenConfig": {
     "name": "LiftosaurSpecs",
-    "type": "modules",
+    "type": "all",
     "jsSrcsDir": "src/specs",
     "android": {
       "javaPackageName": "com.liftosaur.www.twa.specs"
