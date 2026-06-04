@@ -1182,7 +1182,7 @@ class LiftosaurPipelineStack extends cdk.Stack {
           },
         },
       },
-      timeout: cdk.Duration.minutes(30),
+      timeout: cdk.Duration.minutes(60),
     });
 
     buildProject.addToRolePolicy(
