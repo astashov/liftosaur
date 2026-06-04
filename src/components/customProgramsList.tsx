@@ -111,7 +111,7 @@ const CustomProgram = memo(function CustomProgram(props: ICustomProgramProps): J
         }
       }
       const exercises = CollectionUtils_nonnull(ObjectUtils_values(exerciseObj));
-      const allEquipment = useMemo(() => Equipment_currentEquipment(props.settings), [props.settings]);
+      const allEquipment = Equipment_currentEquipment(settings);
       const equipment = CollectionUtils_nonnull(Array.from(equipmentSet)).map((e) => equipmentName(e, allEquipment));
       const time = Program_dayAverageTimeMs(evaluatedProgram, settings);
       const formattedTime = time > 0 ? TimeUtils_formatHHMM(time) : undefined;
