@@ -61,7 +61,7 @@ export class AsyncQueue {
       };
 
       this.queue.push(item);
-      lgDebug("dbg-queue-enqueue", "lkqtuayqpa", {
+      lgDebug("dbg-queue-enqueue", "venjrctxrf", {
         queueLength: this.queue.length,
         isProcessing: this.isProcessing ? 1 : 0,
       });
@@ -74,7 +74,7 @@ export class AsyncQueue {
       return;
     }
 
-    lgDebug("dbg-queue-process", "lkqtuayqpa", { queueLength: this.queue.length });
+    lgDebug("dbg-queue-process", "venjrctxrf", { queueLength: this.queue.length });
     this.isProcessing = true;
     this._processingGeneration += 1;
     const generation = this._processingGeneration;
@@ -115,7 +115,7 @@ export class AsyncQueue {
       throw error;
     } finally {
       if (generation !== this._processingGeneration) {
-        lgDebug("dbg-queue-stale-finally", "lkqtuayqpa", {
+        lgDebug("dbg-queue-stale-finally", "venjrctxrf", {
           staleGen: generation,
           currentGen: this._processingGeneration,
           queueLength: this.queue.length,
@@ -201,7 +201,7 @@ export class AsyncQueue {
       this.queue.splice(staleIndices[i], 1);
     }
 
-    lgDebug("dbg-queue-after-clear-stale", "lkqtuayqpa", {
+    lgDebug("dbg-queue-after-clear-stale", "venjrctxrf", {
       clearedQueued: staleIndices.length,
       clearedCurrent: clearedCurrent ? 1 : 0,
       remainingQueue: this.queue.length,

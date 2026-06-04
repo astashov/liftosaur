@@ -454,10 +454,10 @@ async function _sync2(
       });
       const fetchMs = Date.now() - t0;
       if (signal?.aborted) {
-        lgDebug("dbg-sync2-aborted", "lkqtuayqpa", { fetchMs });
+        lgDebug("dbg-sync2-aborted", "venjrctxrf", { fetchMs });
         return;
       }
-      lgDebug("dbg-sync2-response", "lkqtuayqpa", {
+      lgDebug("dbg-sync2-response", "venjrctxrf", {
         fetchMs,
         type: result.type,
         force: args?.force ? 1 : 0,
@@ -649,7 +649,7 @@ export function Thunk_sync2(args?: { force?: boolean; cb?: () => void; log?: boo
         })
       );
     }
-    lgDebug("dbg-sync2-dispatch", "lkqtuayqpa", {
+    lgDebug("dbg-sync2-dispatch", "venjrctxrf", {
       force: args?.force ? 1 : 0,
       queueLength: env.queue.length(),
       isProcessing: env.queue.getIsProcessing() ? 1 : 0,
@@ -1781,10 +1781,12 @@ export function Thunk_setGooglePurchaseToken(productId?: string, token?: string)
   };
 }
 
+const LOADING_STUCK_MS = 20000;
+
 async function load<T>(dispatch: IDispatch, type: string, cb: () => Promise<T>): Promise<T> {
   return new Promise((resolve, reject) => {
     const name = UidFactory_generateUid(4);
-    _load(dispatch, name, type, cb, 0, resolve, reject);
+    _load(dispatch, name, type, cb, 0, resolve, reject, Date.now());
   });
 }
 
@@ -1795,8 +1797,15 @@ function _load<T>(
   cb: () => Promise<T>,
   attempt: number,
   resolve: (arg: T) => void,
-  reject: (arg: unknown) => void
+  reject: (arg: unknown) => void,
+  startTime: number
 ): void {
+  // The navbar gear spins while any loading item has no endTime. If the underlying op never settles
+  // (e.g. a sync whose fetch isn't cancellable after the queue aborts it), the gear is stuck forever.
+  // This watchdog reports that the user is seeing it, with which op and for how long.
+  const stuckWatchdog = setTimeout(() => {
+    lgDebug("loading-stuck", "venjrctxrf", { type, attempt, elapsedMs: Date.now() - startTime });
+  }, LOADING_STUCK_MS);
   updateState(
     dispatch,
     [
@@ -1816,6 +1825,7 @@ function _load<T>(
   );
   cb()
     .then((r) => {
+      clearTimeout(stuckWatchdog);
       updateState(
         dispatch,
         [
@@ -1827,7 +1837,9 @@ function _load<T>(
       resolve(r);
     })
     .catch((e) => {
+      clearTimeout(stuckWatchdog);
       if (e.name === "AbortError") {
+        lgDebug("load-abort", "venjrctxrf", { type, attempt, elapsedMs: Date.now() - startTime });
         updateState(
           dispatch,
           [
@@ -1840,6 +1852,7 @@ function _load<T>(
         return;
       }
       if (attempt >= 3 || (e instanceof NoRetryError && e.noretry)) {
+        lgDebug("load-failed", "venjrctxrf", { type, attempt, error: e instanceof Error ? e.message : String(e) });
         updateState(
           dispatch,
           [
@@ -1856,8 +1869,9 @@ function _load<T>(
         }
         reject(e);
       } else {
+        lgDebug("load-retry", "venjrctxrf", { type, attempt, error: e instanceof Error ? e.message : String(e) });
         setTimeout(() => {
-          _load(dispatch, name, type, cb, attempt + 1, resolve, reject);
+          _load(dispatch, name, type, cb, attempt + 1, resolve, reject, startTime);
         }, 1000);
       }
     });

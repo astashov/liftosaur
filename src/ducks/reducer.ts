@@ -70,7 +70,7 @@ import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { EditProgramUiHelpers_getChangedKeys } from "../components/editProgram/editProgramUi/editProgramUiHelpers";
 import { c } from "../utils/types";
 import { ICollectionVersions } from "../models/versionTracker";
-import { lg, lgDebug } from "../utils/posthog";
+import { lg } from "../utils/posthog";
 import { Equipment_getCurrentGym, Equipment_getEquipmentIdForExerciseType } from "../models/equipment";
 import { Stats_getCurrentMovingAverageBodyweight } from "../models/stats";
 import { Weight_build, Weight_eq } from "../models/weight";
@@ -518,17 +518,7 @@ export const reducerWrapper =
     }
     let newState = reducer(state, action);
     const isMergingStorage = isExternalStorageMerge(action);
-    const t0Reducer = Date.now();
     const isStorageChanged = !isMergingStorage && Storage_isChanged(state.storage, newState.storage);
-    const reducerIsChangedMs = Date.now() - t0Reducer;
-    if (reducerIsChangedMs > 5) {
-      const actionDesc =
-        "type" in action && action.type === "UpdateState" ? action.desc : "type" in action ? action.type : "thunk";
-      lgDebug("dbg-reducer-is-changed", "lkqtuayqpa", {
-        ms: reducerIsChangedMs,
-        action: actionDesc || "unknown",
-      });
-    }
     if (isStorageChanged) {
       const oldHistoryLen = state.storage.history?.length ?? 0;
       const newHistoryLen = newState.storage.history?.length ?? 0;
