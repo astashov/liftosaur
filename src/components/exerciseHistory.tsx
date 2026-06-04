@@ -1,4 +1,4 @@
-import { JSX, Fragment, memo, useCallback, useMemo, useState } from "react";
+import { JSX, memo, useCallback, useMemo, useState } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
 import { Pressable } from "react-native";
@@ -193,18 +193,13 @@ const ExerciseHistoryRecord = memo((props: IExerciseHistoryRecordProps): JSX.Ele
                     )}
                     {Object.keys(state).length > 0 && (
                       <Text className="text-xs text-text-secondary">
-                        {ObjectUtils_keys(state).map((stateKey, i) => {
-                          const value = state[stateKey];
-                          const displayValue = Weight_is(value) || Weight_isPct(value) ? Weight_display(value) : value;
-                          return (
-                            <Fragment key={stateKey}>
-                              {i !== 0 && ", "}
-                              <Text className="text-xs">
-                                {stateKey} - <Text className="text-xs font-bold">{displayValue}</Text>
-                              </Text>
-                            </Fragment>
-                          );
-                        })}
+                        {ObjectUtils_keys(state)
+                          .map((stateKey) => {
+                            const value = state[stateKey];
+                            const displayValue = Weight_is(value) || Weight_isPct(value) ? Weight_display(value) : value;
+                            return `${stateKey} - ${displayValue}`;
+                          })
+                          .join(", ")}
                       </Text>
                     )}
                   </View>
