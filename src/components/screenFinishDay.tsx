@@ -63,9 +63,18 @@ interface IProps {
 }
 
 export function ScreenFinishDay(props: IProps): JSX.Element {
+  useNavOptions({ navTitle: "Congratulations!" });
+
   const recordById =
     props.historyRecordId != null ? props.history.find((h) => h.id === props.historyRecordId) : undefined;
   const record = recordById ?? props.history[0];
+
+  // On the very first workout, history is momentarily empty between the
+  // navigate-to-finishDay and the FinishProgramDayAction commit, so `record`
+  // is undefined for one render until the committed record arrives.
+  if (record == null) {
+    return <></>;
+  }
 
   const allPrs = History_getPersonalRecords(props.history);
   const totalWeight = History_totalRecordWeight(record, props.settings.units);
@@ -92,8 +101,6 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
     Platform.OS === "android" ||
     (SendMessage_isIos() && SendMessage_iosAppVersion() >= 11) ||
     (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 20);
-
-  useNavOptions({ navTitle: "Congratulations!" });
 
   return (
     <>
