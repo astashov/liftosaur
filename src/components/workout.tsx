@@ -188,7 +188,7 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
   const progressDay = props.progress.day;
 
   return (
-    <NavScreenContent stickyHeaderIndices={[2]}>
+    <NavScreenContent stickyHeaderIndices={[1, 2]}>
       <WorkoutHeader
         description={description}
         progress={props.progress}
