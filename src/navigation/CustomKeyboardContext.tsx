@@ -10,7 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { View, Animated, StyleSheet, Platform } from "react-native";
+import { View, Animated, StyleSheet, Platform, BackHandler } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { NativeCustomKeyboard } from "../components/nativeCustomKeyboard.native";
 import { IPercentageUnit, IUnit } from "../types";
@@ -121,6 +121,18 @@ export function CustomKeyboardProvider(props: {
     setActiveConfig(null);
     setHeight(0);
   }, []);
+
+  const isKeyboardOpen = activeConfig != null;
+  useEffect(() => {
+    if (Platform.OS !== "android" || !isKeyboardOpen) {
+      return;
+    }
+    const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
+      closeKeyboard();
+      return true;
+    });
+    return () => subscription.remove();
+  }, [isKeyboardOpen, closeKeyboard]);
 
   const activeId = activeConfig?.id ?? null;
   const value = useMemo(
