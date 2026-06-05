@@ -42,7 +42,7 @@ Squat / 1x5 100% / warmup: none / progress: custom() {~
   await page.getByTestId("footer-workout").click();
   await expect(
     page.getByTestId("bottom-sheet").getByTestId("history-entry-exercise").nth(0).getByTestId("history-entry-weight")
-  ).toHaveText("140lb");
+  ).toHaveText("140");
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
 
   await page.getByTestId("complete-set").nth(0).click();
@@ -71,5 +71,5 @@ Squat / 1x5 100% / warmup: none / progress: custom() {~
   await page.getByTestId("footer-workout").click();
   await expect(
     page.getByTestId("bottom-sheet").getByTestId("history-entry-exercise").nth(0).getByTestId("history-entry-weight")
-  ).toHaveText("155lb");
+  ).toHaveText("155");
 });

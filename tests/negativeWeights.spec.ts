@@ -58,7 +58,7 @@ Triceps Dip, Leverage Machine / 2x3-5 -20lb / progress: lp(30lb)`
         "[data-testid=history-entry-exercise]:has-text('Pull Up, Leverage Machine') >> [data-testid=history-entry-weight]"
       )
       .first()
-  ).toHaveText("-45lb");
+  ).toHaveText("-45");
   await expect(
     page
       .getByTestId("bottom-sheet")
@@ -68,5 +68,5 @@ Triceps Dip, Leverage Machine / 2x3-5 -20lb / progress: lp(30lb)`
         "[data-testid=history-entry-exercise]:has-text('Triceps Dip, Leverage Machine') >> [data-testid=history-entry-weight]"
       )
       .first()
-  ).toHaveText("10lb");
+  ).toHaveText("10");
 });

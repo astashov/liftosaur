@@ -115,15 +115,18 @@ export const HistoryRecordSet = memo(function HistoryRecordSet(props: IHistoryRe
     builder.add(" \u00D7 ", { color: secondary });
     builder.add(`${set.weight}`, { fontWeight: "600" }, "history-entry-weight");
     builder.add(set.askWeight ? "+" : "");
-    builder.add(`${set.unit}`, { color: secondary });
+    if (set.unit != null) {
+      builder.add(`${set.unit}`, { color: secondary }, "history-entry-unit");
+    }
   }
   if (set.rpe != null) {
     builder.add(" @", { fontSize: xs, color: rpeColor });
     builder.add(`${set.rpe}`, { color: rpeColor }, "history-entry-rpe");
   }
   if (set.timer != null) {
-    builder.add(` ${set.timer}`, { color: timerColor });
-    builder.add("s", { fontSize: xs, color: timerColor }, "history-entry-timer");
+    builder.add(" ");
+    builder.add(`${set.timer}`, { color: timerColor }, "history-entry-timer");
+    builder.add("s", { fontSize: xs, color: timerColor });
   }
   const built = builder.build();
 

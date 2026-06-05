@@ -45,7 +45,7 @@ Squat / 1x5 115lb / warmup: none`
 
   await page.getByTestId("footer-workout").click();
   await expect(page.getByTestId("history-record").first().getByTestId("history-entry-weight").first()).toHaveText(
-    "115lb"
+    "115"
   );
   await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
 
@@ -60,7 +60,7 @@ Squat / 1x5 115lb / warmup: none`
     await page.getByTestId("footer-workout").click();
     await expect(
       page.getByTestId("bottom-sheet").getByTestId("history-record").first().getByTestId("history-entry-weight").first()
-    ).toHaveText(`${weight}lb`);
+    ).toHaveText(`${weight}`);
     await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
   }
 });

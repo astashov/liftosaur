@@ -30,8 +30,8 @@ Squat / 1x5 135lb @8+, 1x5 135lb @8, 1x5 135lb, 1x5 135lb @7+ / progress: custom
   await page.getByTestId("footer-workout").click();
 
   await expect(page.getByTestId("history-entry-rpe")).toHaveCount(2);
-  await expect(page.getByTestId("history-entry-rpe").nth(0)).toHaveText("@8");
-  await expect(page.getByTestId("history-entry-rpe").nth(1)).toHaveText("@7");
+  await expect(page.getByTestId("history-entry-rpe").nth(0)).toHaveText("8");
+  await expect(page.getByTestId("history-entry-rpe").nth(1)).toHaveText("7");
 
   await expect(page.getByTestId("history-entry-sets-next")).toHaveCount(3);
   await expect(page.getByTestId("history-entry-sets-next").first()).toHaveText("2 × 5 × 135lb @8");
@@ -76,5 +76,5 @@ Squat / 1x5 135lb @8+, 1x5 135lb @8, 1x5 135lb, 1x5 135lb @7+ / progress: custom
   await expect(page.getByTestId("history-entry-sets-completed").nth(3)).toHaveText("5 × 135lb @10");
 
   await page.getByTestId("footer-workout").click();
-  await expect(page.getByTestId("bottom-sheet").getByTestId("history-entry-rpe").nth(0)).toHaveText("@8");
+  await expect(page.getByTestId("bottom-sheet").getByTestId("history-entry-rpe").nth(0)).toHaveText("8");
 });

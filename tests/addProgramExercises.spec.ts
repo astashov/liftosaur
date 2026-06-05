@@ -79,9 +79,9 @@ Bicep Curl / ...t1 / used: none`
   await page.getByTestId("tab-edit").click();
   await expect(
     page.getByTestId("exercise-deadlift_barbell").getByTestId("ui-workout-sets").getByTestId("history-entry-weight")
-  ).toHaveText("210lb");
+  ).toHaveText("210");
   await page.getByTestId("tab-week-2").click();
   await expect(
     page.getByTestId("exercise-bicepcurl_dumbbell").getByTestId("ui-workout-sets").getByTestId("history-entry-weight")
-  ).toHaveText("55lb");
+  ).toHaveText("55");
 });
