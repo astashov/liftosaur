@@ -4,10 +4,9 @@ import {
   SendMessage_isAndroid,
   SendMessage_iosAppVersion,
   SendMessage_androidAppVersion,
-  SendMessage_iosVersion,
-  SendMessage_androidVersion,
   SendMessage_toIosAndAndroid,
 } from "./sendMessage";
+import { AppAttribution_get } from "./appAttribution";
 import { EventManager_isAvailable, EventManager_log } from "./eventManager";
 import { AdminDebug_isDebugAccountId } from "../models/adminDebug";
 
@@ -67,17 +66,11 @@ export function lg(
     return;
   }
 
-  const isMobile = SendMessage_isIos() || SendMessage_isAndroid();
-
   const event: IEventPayload = {
     type: "event",
     timestamp: timestamp ?? Date.now(),
     commithash: typeof __COMMIT_HASH__ !== "undefined" ? __COMMIT_HASH__ : "unknown",
-    isMobile,
-    iOSVersion: SendMessage_isIos() ? SendMessage_iosAppVersion() : undefined,
-    androidVersion: SendMessage_isAndroid() ? SendMessage_androidAppVersion() : undefined,
-    iOSOSVersion: SendMessage_isIos() ? SendMessage_iosVersion() : undefined,
-    androidOSVersion: SendMessage_isAndroid() ? SendMessage_androidVersion() : undefined,
+    ...AppAttribution_get(),
     name,
     extra,
     userId: tempUserId,
