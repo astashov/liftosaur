@@ -487,7 +487,8 @@ class LiftosaurWatch {
       if (!progress) {
         return { success: false, error: "No progress to finish" };
       }
-      lg("watch-finish-workout");
+      lg("watch-finish-workout", { workout: JSON.stringify(progress) });
+      lg("ls-finish-workout");
       const newStorage = Progress_finishWorkout(storage, progress);
       return { success: true, data: newStorage };
     });
