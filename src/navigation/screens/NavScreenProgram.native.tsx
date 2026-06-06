@@ -5,6 +5,7 @@ import type { IDayData } from "../../types";
 import { useTrackedState, useTrackedDispatch, untrack } from "../TrackedStateContext";
 import { buildNavCommon } from "../utils";
 import { NavScreenContent } from "../NavScreenContent";
+import { useConfirmScreenLeave } from "../useConfirmScreenLeave";
 import { ChooseProgramView } from "../../components/chooseProgram";
 import { useScreenPerf } from "../../utils/useScreenPerf";
 import { usePerfRenderCount } from "../../utils/usePerfRenderCount";
@@ -62,6 +63,7 @@ export function NavScreenEditProgram(): React.JSX.Element {
   const navCommon = useEqual(untrack(buildNavCommon(state)));
   const route = useRoute<{ key: string; name: "editProgram"; params: { programId: string } }>();
   const programId = route.params.programId;
+  useConfirmScreenLeave(state, dispatch, { name: "editProgram", params: { programId } });
   const plannerState = untrack(state.editProgramStates[programId]);
   const editProgram = untrack(
     Program_getProgram(
@@ -104,6 +106,10 @@ export function NavScreenEditProgramExercise(): React.JSX.Element {
     params: { programId: string; key: string; dayData: Required<IDayData>; fromWorkout?: boolean };
   }>();
   const { programId, key: exerciseKey, dayData, fromWorkout } = route.params;
+  useConfirmScreenLeave(state, dispatch, {
+    name: "editProgramExercise",
+    params: { programId, key: exerciseKey, dayData, fromWorkout },
+  });
   const exerciseStateKey = `${programId}_${exerciseKey}`;
   const plannerState = untrack(state.editProgramExerciseStates[exerciseStateKey]);
   const editProgramState = untrack(state.editProgramStates[programId]);

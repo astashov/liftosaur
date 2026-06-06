@@ -1,5 +1,6 @@
 import { IThunk, IDispatch } from "./types";
-import { IScreen, IScreenParams } from "../models/screen";
+import type { NavigationAction } from "@react-navigation/native";
+import { IScreen, IScreenData, IScreenParams } from "../models/screen";
 import type { INavigateOpts } from "../navigation/navigationService";
 import type { IAllScreenParamList } from "../navigation/types";
 
@@ -93,6 +94,7 @@ import { UidFactory_generateUid } from "../utils/generator";
 import { ClipboardUtils_copy } from "../utils/clipboard";
 import {
   Progress_getProgress,
+  Progress_getProgressById,
   Progress_updateTimer,
   Progress_getCurrentProgress,
   Progress_isCurrent,
@@ -109,7 +111,7 @@ import { RollbarUtils_config } from "../utils/rollbar";
 import { UrlUtils_build } from "../utils/url";
 import { ImportFromLiftosaur_convertLiftosaurCsvToHistoryRecords } from "../utils/importFromLiftosaur";
 import { Sync_getStorageUpdate2 } from "../utils/sync";
-import { ObjectUtils_values, ObjectUtils_filter, ObjectUtils_clone } from "../utils/object";
+import { ObjectUtils_values, ObjectUtils_filter, ObjectUtils_clone, ObjectUtils_omit } from "../utils/object";
 import { EditStats_uploadHealthStats } from "../models/editStats";
 import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
 import {
@@ -1057,16 +1059,8 @@ export function Thunk_pushScreen<T extends IScreen>(
   params?: IScreenParams<T>,
   opts?: INavigateOpts
 ): IThunk {
-  return async (dispatch, getState, env) => {
+  return async (dispatch, getState) => {
     dispatch(Thunk_postevent("navigate-to-" + screen));
-    const isCrossNav = !!(opts?.tab || opts?.stack);
-    const previousScreen = isCrossNav ? env.getCurrentScreenData?.() : undefined;
-    if (isCrossNav && previousScreen) {
-      const confirmation = Screen_shouldConfirmNavigation(getState(), previousScreen);
-      if (confirmation && !(await Dialog_confirm(confirmation))) {
-        return;
-      }
-    }
     if (
       ["musclesProgram", "musclesDay", "graphsList"].indexOf(screen) !== -1 &&
       !Subscriptions_hasSubscription(getState().storage.subscription)
@@ -1092,12 +1086,6 @@ export function Thunk_pushScreen<T extends IScreen>(
     }
     const { navigateTo } = await getNavigationService();
     navigateTo(screen, params as IAllScreenParamList[typeof screen], opts);
-    if (isCrossNav && previousScreen) {
-      const progressId = previousScreen.name === "progress" ? (previousScreen.params?.id ?? 0) : 0;
-      if (progressId !== 0) {
-        cleanup(dispatch, getState(), progressId);
-      }
-    }
     if (typeof window !== "undefined" && window.scroll) {
       window.scroll(0, 0);
     }
@@ -1161,44 +1149,66 @@ export function Thunk_maybeRequestSignup(): IThunk {
   };
 }
 
-function cleanup(dispatch: IDispatch, state: IState, progressId: number): void {
-  const progress = progressId === 0 ? state.storage.progress?.[0] : state.progress[progressId];
-  if (progress && !Progress_isCurrent(progress)) {
-    updateState(
-      dispatch,
-      [
-        lb<IState>()
-          .pi("progress")
-          .recordModify((progresses) => Progress_stop(progresses, progress.id)),
-      ],
-      "Stop workout progress"
-    );
+export const screensWithEditState: IScreen[] = ["progress", "editProgram"];
+
+function cleanupScreenEditState(dispatch: IDispatch, state: IState, screen: IScreenData): void {
+  if (screen.name === "progress") {
+    const progressId = screen.params?.id ?? 0;
+    const progress = Progress_getProgressById(state, progressId);
+    if (progress && !Progress_isCurrent(progress)) {
+      updateState(
+        dispatch,
+        [
+          lb<IState>()
+            .pi("progress")
+            .recordModify((progresses) => Progress_stop(progresses, progress.id)),
+        ],
+        "Stop workout progress"
+      );
+    }
+  } else if (screen.name === "editProgram") {
+    const programId = screen.params?.programId;
+    if (programId != null && state.editProgramStates[programId] != null) {
+      updateState(
+        dispatch,
+        [
+          lb<IState>()
+            .p("editProgramStates")
+            .recordModify((states) => ObjectUtils_omit(states, [programId])),
+        ],
+        "Stop edit program"
+      );
+    }
   }
 }
 
-export function Thunk_pullScreen(): IThunk {
-  return async (dispatch, getState, env) => {
-    const { goBack } = await getNavigationService();
-    const currentScreen = env.getCurrentScreenData?.();
-    if (currentScreen) {
-      const confirmation = Screen_shouldConfirmNavigation(getState(), currentScreen);
-      if (confirmation) {
-        if (await Dialog_confirm(confirmation)) {
-          const progressId = currentScreen.name === "progress" ? (currentScreen.params?.id ?? 0) : 0;
-          cleanup(dispatch, getState(), progressId);
-        } else {
-          return;
-        }
-      } else {
-        const progressId = currentScreen.name === "progress" ? (currentScreen.params?.id ?? 0) : 0;
-        if (progressId !== 0) {
-          cleanup(dispatch, getState(), progressId);
-        }
-      }
+export function Thunk_cleanupRemovedScreens(screens: IScreenData[]): IThunk {
+  return async (dispatch, getState) => {
+    for (const screen of screens) {
+      cleanupScreenEditState(dispatch, getState(), screen);
     }
+  };
+}
+
+export function Thunk_pullScreen(): IThunk {
+  return async () => {
+    const { goBack } = await getNavigationService();
     goBack();
     if (typeof window !== "undefined" && window.scroll) {
       window.scroll(0, 0);
+    }
+  };
+}
+
+export function Thunk_confirmScreenLeave(screen: IScreenData, action: NavigationAction): IThunk {
+  return async (dispatch, getState, env) => {
+    // Save flows (e.g. Thunk_finishProgramDay) dispatch their commit synchronously
+    // right after the navigation call that got prevented. Deferring a tick lets that
+    // commit land, so the re-check below sees clean state and proceeds silently.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const confirmation = Screen_shouldConfirmNavigation(getState(), screen);
+    if (confirmation == null || (await Dialog_confirm(confirmation))) {
+      env.navigationRef?.dispatch(action);
     }
   };
 }
@@ -1211,26 +1221,31 @@ export function Thunk_editHistoryRecord(historyRecord: IHistoryRecord): IThunk {
   };
 }
 
-export function Thunk_finishProgramDay(): IThunk {
+export function Thunk_finishProgramDay(id: number): IThunk {
   return async (dispatch, getState) => {
     const state = getState();
-    const progress = Progress_getProgress(state);
+    const progress = Progress_getProgressById(state, id);
     const isCurrent = progress ? Progress_isCurrent(progress) : false;
     const { navigateTo, goBack } = await getNavigationService();
     // Navigate before dispatch so the progress screen unmounts before
-    // FallbackScreen can detect null progress and redirect to home
+    // FallbackScreen can detect null progress and redirect to home.
+    // The dispatch must stay synchronous after goBack: for a dirty past workout
+    // useConfirmScreenLeave intercepts the goBack, and Thunk_confirmScreenLeave's
+    // one-tick defer needs the save committed by then to proceed without a dialog.
+    // ScreenRemovalCleanup's "state" event also fires post-commit, so the save
+    // lands before the removed screen's edit state gets cleaned up.
     if (isCurrent) {
       navigateTo("finishDay", progress ? { id: progress.startTime } : undefined, { tab: "workout" });
     } else {
       goBack();
     }
-    dispatch({ type: "FinishProgramDayAction" });
+    dispatch({ type: "FinishProgramDayAction", id });
   };
 }
 
-export function Thunk_deleteProgress(): IThunk {
+export function Thunk_deleteProgress(id: number): IThunk {
   return async (dispatch) => {
-    dispatch({ type: "DeleteProgress" });
+    dispatch({ type: "DeleteProgress", id });
     const { navigateTo } = await getNavigationService();
     navigateTo("main", undefined, { tab: "home" });
   };

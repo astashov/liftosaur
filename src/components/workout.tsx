@@ -354,7 +354,7 @@ function WorkoutHeaderInner(props: IWorkoutHeaderProps): JSX.Element {
       }
     }
     NativeWorkoutBridge_pauseWorkout();
-    props.dispatch(Thunk_finishProgramDay());
+    props.dispatch(Thunk_finishProgramDay(progress.id));
     if (isCurrent) {
       props.dispatch(Thunk_postevent("finish-workout", { workout: JSON.stringify(props.progress) }));
       const isIos = Platform.OS === "ios" || SendMessage_isIos();

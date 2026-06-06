@@ -10,6 +10,7 @@ import { MathUtils_clamp } from "../utils/math";
 
 interface IModalDateContentProps {
   dispatch: IDispatch;
+  progressId: number;
   date: string;
   time: number;
   onDone?: () => void;
@@ -73,7 +74,7 @@ export function ModalDateContent(props: IModalDateContentProps): JSX.Element {
           kind="grayv2"
           className="mr-3"
           onClick={() => {
-            props.dispatch({ type: "ConfirmDate", date: undefined, time: undefined });
+            props.dispatch({ type: "ConfirmDate", id: props.progressId, date: undefined, time: undefined });
             props.onDone?.();
           }}
         >
@@ -91,6 +92,7 @@ export function ModalDateContent(props: IModalDateContentProps): JSX.Element {
                 : MathUtils_clamp(newHoursValue, 0, 99) * 3600000 + MathUtils_clamp(newMinutesValue, 0, 60) * 60000;
             props.dispatch({
               type: "ConfirmDate",
+              id: props.progressId,
               date: DateUtils_formatYYYYMMDD(new Date(dateTimestamp)),
               time: newTime,
             });

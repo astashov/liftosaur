@@ -48,6 +48,7 @@ import { NavigationContainer, DefaultTheme, type NavigationState } from "@react-
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { navigationRef } from "../navigation/navigationRef";
+import { ScreenRemovalCleanup_subscribe } from "../navigation/screenRemovalCleanup";
 import { navigateToModal } from "../navigation/navigationService";
 import { getCurrentScreenData } from "../navigation/navigationService";
 import { StateContext } from "../navigation/StateContext";
@@ -113,6 +114,10 @@ export function AppView(props: IProps): JSX.Element | null {
     SendMessage_toAndroid({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
     SendMessage_toIos({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
   }, [state.storage.settings.alwaysOnDisplay]);
+
+  useEffect(() => {
+    return ScreenRemovalCleanup_subscribe(dispatch);
+  }, []);
 
   useEffect(() => {
     TextSize_apply(state.storage.settings.textSize ?? 16);

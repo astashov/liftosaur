@@ -10,12 +10,14 @@ import { Progress_isCurrent } from "../../models/progress";
 import { Program_getFullProgram, Program_getProgram, Program_fullProgram } from "../../models/program";
 import { FallbackScreen } from "../../components/fallbackScreen";
 import { useEqual } from "../../utils/useEqual";
+import { useConfirmScreenLeave } from "../useConfirmScreenLeave";
 
 export function NavScreenProgress(): JSX.Element {
   const state = useTrackedState();
   const dispatch = useTrackedDispatch();
   const route = useRoute<{ key: string; name: string; params?: { id?: number } }>();
   const progressId = route.params?.id ?? 0;
+  useConfirmScreenLeave(state, dispatch, { name: "progress", params: { id: progressId } });
   const subscription = useEqual(untrack(state.storage.subscription));
   const settings = untrack(state.storage.settings);
   const stats = untrack(state.storage.stats);

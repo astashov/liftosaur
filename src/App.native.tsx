@@ -183,6 +183,7 @@ import { ActiveSheetHeightProvider } from "./navigation/ActiveSheetHeightContext
 import { CustomKeyboardProvider } from "./navigation/CustomKeyboardContext";
 import { AppNavigator } from "./navigation/AppNavigator";
 import { navigationRef } from "./navigation/navigationRef";
+import { ScreenRemovalCleanup_subscribe } from "./navigation/screenRemovalCleanup";
 import { navigateToModal } from "./navigation/navigationService";
 import { getCurrentScreenData } from "./navigation/navigationService";
 import { IndexedDBUtils_initializeForSafari, IndexedDBUtils_get } from "./utils/indexeddb";
@@ -247,6 +248,10 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
     const userId = stateRef.current.user?.id || stateRef.current.storage.tempUserId;
     Subscriptions_cleanupOutdatedAppleReceipts(dispatch, userId, service, stateRef.current.storage.subscription);
     Subscriptions_cleanupOutdatedGooglePurchaseTokens(dispatch, userId, service, stateRef.current.storage.subscription);
+  }, []);
+
+  useEffect(() => {
+    return ScreenRemovalCleanup_subscribe(dispatch);
   }, []);
 
   useEffect(() => {

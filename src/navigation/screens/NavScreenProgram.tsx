@@ -5,6 +5,7 @@ import type { IDayData } from "../../types";
 import { useAppState } from "../StateContext";
 import { buildNavCommon } from "../utils";
 import { NavScreenContent } from "../NavScreenContent";
+import { useConfirmScreenLeave } from "../useConfirmScreenLeave";
 import { ChooseProgramView } from "../../components/chooseProgram";
 import { ScreenEditProgram as ScreenEditProgramComponent } from "../../components/screenEditProgram";
 import { ScreenEditProgramExercise as ScreenEditProgramExerciseComponent } from "../../components/editProgramExercise/screenEditProgramExercise";
@@ -49,6 +50,7 @@ export function NavScreenEditProgram(): JSX.Element {
   const navCommon = buildNavCommon(state);
   const route = useRoute<{ key: string; name: "editProgram"; params: { programId: string } }>();
   const programId = route.params.programId;
+  useConfirmScreenLeave(state, dispatch, { name: "editProgram", params: { programId } });
   const plannerState = state.editProgramStates[programId];
   const editProgram = Program_getProgram(
     state,
@@ -84,6 +86,10 @@ export function NavScreenEditProgramExercise(): JSX.Element {
     params: { programId: string; key: string; dayData: Required<IDayData>; fromWorkout?: boolean };
   }>();
   const { programId, key: exerciseKey, dayData, fromWorkout } = route.params;
+  useConfirmScreenLeave(state, dispatch, {
+    name: "editProgramExercise",
+    params: { programId, key: exerciseKey, dayData, fromWorkout },
+  });
   const exerciseStateKey = `${programId}_${exerciseKey}`;
   const plannerState = state.editProgramExerciseStates[exerciseStateKey];
   const editProgramState = state.editProgramStates[programId];

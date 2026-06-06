@@ -16,7 +16,7 @@ export function NavModalDate(): JSX.Element {
   const dateModal = progress?.ui?.dateModal;
 
   const onClose = (): void => {
-    dispatch({ type: "ConfirmDate", date: undefined, time: undefined });
+    dispatch({ type: "ConfirmDate", id: progressId, date: undefined, time: undefined });
     navigation.goBack();
   };
 
@@ -36,6 +36,7 @@ export function NavModalDate(): JSX.Element {
       <FormSheet>
         <ModalDateContent
           dispatch={dispatch}
+          progressId={progressId}
           date={dateModal.date ?? ""}
           time={dateModal.time ?? 0}
           onDone={() => navigation.goBack()}

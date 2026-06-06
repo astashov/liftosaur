@@ -931,10 +931,17 @@ export function Progress_getCurrentProgress(state: Pick<IState, "storage">): IHi
 
 export function Progress_getProgress(state: Pick<IState, "progress" | "storage">): IHistoryRecord | undefined {
   const progressId = Progress_getProgressId(state);
-  if (progressId === 0) {
+  return Progress_getProgressById(state, progressId);
+}
+
+export function Progress_getProgressById(
+  state: Pick<IState, "progress" | "storage">,
+  id: number
+): IHistoryRecord | undefined {
+  if (id === 0) {
     return state.storage.progress?.[0];
   } else {
-    return (state as IState).progress[progressId];
+    return (state as IState).progress[id];
   }
 }
 

@@ -192,6 +192,10 @@ GOOD (explains why):
 if (user.subscription?.active || cachedSubscription) {
 ```
 
+## Git Commits
+
+Do NOT add "Co-Authored-By: Claude ..." (or any other AI attribution) lines to commit messages.
+
 ## Knowledge Base
 
 Project knowledge base lives in `lambda/scripts/memory/`. See `lambda/scripts/memory/INDEX.md` for a compact overview of all captured knowledge.

@@ -4,6 +4,7 @@ import { Program_getProgram, Program_nextHistoryRecord, Program_evaluate } from 
 import { Dialog_alert } from "../utils/dialog";
 import {
   Progress_getProgress,
+  Progress_getProgressById,
   Progress_completeSetAction,
   Progress_changeAmrapAction,
   Progress_setProgress,
@@ -190,12 +191,14 @@ export async function getInitialState(
 
 export type IChangeDate = {
   type: "ChangeDate";
+  id: number;
   date: string;
   time: number;
 };
 
 export type IConfirmDate = {
   type: "ConfirmDate";
+  id: number;
   date?: string;
   time?: number;
 };
@@ -227,6 +230,7 @@ export type ICancelProgress = {
 
 export type IDeleteProgress = {
   type: "DeleteProgress";
+  id: number;
 };
 
 export type ICompleteSetAction = {
@@ -243,6 +247,7 @@ export type ICompleteSetAction = {
 
 export type IFinishProgramDayAction = {
   type: "FinishProgramDayAction";
+  id: number;
 };
 
 export type IStartProgramDayAction = {
@@ -651,7 +656,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       progress: { ...state.progress, [action.historyRecord.id]: { ...action.historyRecord, ui: {} } },
     };
   } else if (action.type === "FinishProgramDayAction") {
-    const progress = Progress_getProgress(state);
+    const progress = Progress_getProgressById(state, action.id);
     if (progress == null) {
       return state;
     }
@@ -662,9 +667,17 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       progress: Progress_isCurrent(progress) ? state.progress : Progress_stop(state.progress, progress.id),
     };
   } else if (action.type === "ChangeDate") {
-    return Progress_setProgress(state, Progress_showUpdateDate(Progress_getProgress(state)!, action.date, action.time));
+    const progress = Progress_getProgressById(state, action.id);
+    if (progress == null) {
+      return state;
+    }
+    return Progress_setProgress(state, Progress_showUpdateDate(progress, action.date, action.time));
   } else if (action.type === "ConfirmDate") {
-    return Progress_setProgress(state, Progress_changeDate(Progress_getProgress(state)!, action.date, action.time));
+    const progress = Progress_getProgressById(state, action.id);
+    if (progress == null) {
+      return state;
+    }
+    return Progress_setProgress(state, Progress_changeDate(progress, action.date, action.time));
   } else if (action.type === "CancelProgress") {
     const progress = Progress_getProgress(state)!;
     return {
@@ -673,7 +686,7 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
       progress: Progress_isCurrent(progress) ? state.progress : Progress_stop(state.progress, progress.id),
     };
   } else if (action.type === "DeleteProgress") {
-    const progress = Progress_getProgress(state);
+    const progress = Progress_getProgressById(state, action.id);
     if (progress != null) {
       const history = state.storage.history.filter((h) => h.id !== progress.id);
       if (Progress_isCurrent(progress)) {

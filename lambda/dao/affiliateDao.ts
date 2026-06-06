@@ -223,7 +223,9 @@ export class AffiliateDao {
     affiliateUsers: { affiliateTimestamp: number; affiliateType?: "coupon" | "program" }[]
   ): IAffiliateMonthlyPayment[] {
     const perMonth: Record<string, { revenue: number; count: number; programUsers: number; couponUsers: number }> = {};
-    const ensureMonth = (monthKey: string): { revenue: number; count: number; programUsers: number; couponUsers: number } => {
+    const ensureMonth = (
+      monthKey: string
+    ): { revenue: number; count: number; programUsers: number; couponUsers: number } => {
       if (!perMonth[monthKey]) {
         perMonth[monthKey] = { revenue: 0, count: 0, programUsers: 0, couponUsers: 0 };
       }

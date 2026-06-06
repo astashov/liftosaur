@@ -119,9 +119,9 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
       `Are you sure you want to delete this ${isCurrent ? "ONGOING" : "PAST"} workout?`
     );
     if (confirmed) {
-      dispatch(Thunk_deleteProgress());
+      dispatch(Thunk_deleteProgress(progress.id));
     }
-  }, [dispatch, isCurrent]);
+  }, [dispatch, isCurrent, progress.id]);
 
   const onDeletePressHandler = useCallback(() => {
     onDeletePress().catch(() => undefined);
@@ -130,6 +130,7 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
   const onTitleClick = useCallback(() => {
     dispatch({
       type: "ChangeDate",
+      id: progress.id,
       date: progress.date,
       time: History_workoutTime(progress),
     });
