@@ -8,6 +8,7 @@ import { renderPage } from "./render";
 export function renderProgramHtml(
   client: Window["fetch"],
   isMobile: boolean,
+  userAgent: string | undefined,
   shouldSyncProgram: boolean,
   program?: IExportedProgram,
   account?: IAccount,
@@ -20,6 +21,7 @@ export function renderProgramHtml(
       exportedProgram={program}
       shouldSyncProgram={shouldSyncProgram}
       isMobile={isMobile}
+      userAgent={userAgent}
       client={client}
       account={account}
       source={source}

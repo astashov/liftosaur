@@ -10,6 +10,7 @@ interface IProps {
   exportedProgram?: IExportedProgram;
   account?: IAccount;
   isMobile: boolean;
+  userAgent?: string;
   shouldSyncProgram: boolean;
   revisions: string[];
   currentRevision?: string;

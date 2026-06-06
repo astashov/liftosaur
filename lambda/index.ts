@@ -2185,7 +2185,16 @@ const getProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ge
 
   return {
     statusCode: 200,
-    body: renderProgramHtml(di.fetch, isMobile, false, program, account, undefined, storage),
+    body: renderProgramHtml(
+      di.fetch,
+      isMobile,
+      getUserAgent(payload.event),
+      false,
+      program,
+      account,
+      undefined,
+      storage
+    ),
     headers: { "content-type": "text/html" },
   };
 };
@@ -2363,7 +2372,17 @@ const getUserProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
   const programRevisions = await userDao.listProgramRevisions(user.id, params.programid);
   return {
     statusCode: 200,
-    body: renderProgramHtml(di.fetch, isMobile, true, exportedProgram, account, undefined, storage, programRevisions),
+    body: renderProgramHtml(
+      di.fetch,
+      isMobile,
+      getUserAgent(payload.event),
+      true,
+      exportedProgram,
+      account,
+      undefined,
+      storage,
+      programRevisions
+    ),
     headers: { "content-type": "text/html" },
   };
 };
@@ -2745,7 +2764,16 @@ const getProgramShorturlHandler: RouteHandler<
 
           return {
             statusCode: 200,
-            body: renderProgramHtml(di.fetch, isMobile, false, program, account, source, storage),
+            body: renderProgramHtml(
+              di.fetch,
+              isMobile,
+              getUserAgent(payload.event),
+              false,
+              program,
+              account,
+              source,
+              storage
+            ),
             headers: { "content-type": "text/html" },
           };
         } else {
