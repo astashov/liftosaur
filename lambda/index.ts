@@ -1084,6 +1084,12 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
         error: "Your program is out of date. Please refresh the page and try again.",
       });
     }
+    // The web editor has no UI for changing nextDay, but submits a snapshot of the program
+    // from page load time - it'd overwrite nextDay advanced by workouts since then
+    const serverProgram = oldStorage.programs.find((p) => p.id === exportedProgram.program.id);
+    if (serverProgram != null) {
+      exportedProgram.program.nextDay = serverProgram.nextDay;
+    }
     const newStorage: IPartialStorage = {
       ...oldStorage,
       programs: CollectionUtils_setBy(oldStorage.programs, "id", exportedProgram.program.id, exportedProgram.program),

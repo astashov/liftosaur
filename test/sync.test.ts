@@ -22,6 +22,8 @@ import {
   SyncTestUtils_finishWorkout,
 } from "./utils/syncTestUtils";
 import { Progress_getProgress } from "../src/models/progress";
+import { Program_exportProgram } from "../src/models/program";
+import { ObjectUtils_clone } from "../src/utils/object";
 
 describe("sync", () => {
   let sandbox: sinon.SinonSandbox;
@@ -175,6 +177,29 @@ describe("sync", () => {
     expect(threw).to.eql(true);
 
     expect(msg).to.contain("kill/restart");
+  });
+
+  it("doesn't reset nextDay when saving a stale program snapshot from the web editor", async () => {
+    const { mockReducer, env } = await SyncTestUtils_initTheApp("web_123");
+    const program = mockReducer.state.storage.programs[0];
+    expect(program.nextDay).to.equal(1);
+    const webEditorSnapshot = ObjectUtils_clone(Program_exportProgram(program, mockReducer.state.storage.settings));
+
+    await SyncTestUtils_logWorkout(mockReducer, basicBeginnerProgram, [
+      [5, 5, 5],
+      [5, 5, 5],
+      [5, 5, 5],
+    ]);
+    const advancedNextDay = mockReducer.state.storage.programs[0].nextDay;
+    expect(advancedNextDay).to.not.equal(1);
+
+    webEditorSnapshot.program.name = "Renamed Program";
+    const result = await env.service.postSaveProgram(webEditorSnapshot, "web_456");
+    expect(result.success).to.equal(true);
+
+    await mockReducer.run([Thunk_sync2({ force: true })]);
+    expect(mockReducer.state.storage.programs[0].name).to.equal("Renamed Program");
+    expect(mockReducer.state.storage.programs[0].nextDay).to.equal(advancedNextDay);
   });
 
   describe("progress", () => {
