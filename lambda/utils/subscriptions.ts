@@ -552,6 +552,60 @@ export class Subscriptions {
     }
   }
 
+  public async acknowledgeGooglePurchase(token: string, productId: string): Promise<boolean> {
+    const purchaseType = productId.indexOf("lifetime") !== -1 ? "products" : "subscriptions";
+    const url = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.liftosaur.www.twa/purchases/${purchaseType}/${productId}/tokens/${token}:acknowledge`;
+    const googleServiceAccountPubsub = await this.secretsUtil.getGoogleServiceAccountPubsub();
+
+    const jwttoken = JWT.sign(
+      {
+        iss: googleServiceAccountPubsub.client_email,
+        sub: googleServiceAccountPubsub.client_email,
+        aud: "https://androidpublisher.googleapis.com/",
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      },
+      googleServiceAccountPubsub.private_key,
+      { algorithm: "RS256" }
+    );
+    try {
+      const result = await fetch(url, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${jwttoken}`, "Content-Type": "application/json" },
+        body: "{}",
+      });
+      if (!result.ok) {
+        this.log.log(`Failed to acknowledge Google purchase ${productId}: ${result.status} ${await result.text()}`);
+      }
+      return result.ok;
+    } catch (error) {
+      this.log.log("Acknowledging Google purchase error: ", error);
+      return false;
+    }
+  }
+
+  public async maybeAcknowledgeGooglePurchase(
+    json:
+      | IVerifyGoogleSubscriptionTokenSuccess
+      | IVerifyGoogleProductTokenSuccess
+      | IVerifyGoogleSubscriptionTokenError,
+    token: string,
+    productId: string
+  ): Promise<void> {
+    if ("error" in json || json.acknowledgementState !== 0) {
+      return;
+    }
+    // Clients can fail to acknowledge (e.g. the RN app used to drop purchaseToken), and Google
+    // auto-refunds unacknowledged purchases after 3 days - so acknowledge server-side as a backstop
+    const isPaid =
+      json.kind === "androidpublisher#productPurchase"
+        ? json.purchaseState === 0
+        : json.paymentState === 1 || json.paymentState === 2;
+    if (isPaid && (await this.acknowledgeGooglePurchase(token, productId))) {
+      json.acknowledgementState = 1;
+    }
+  }
+
   public async verifyGooglePurchaseTokenJson(
     response:
       | IVerifyGoogleSubscriptionTokenSuccess

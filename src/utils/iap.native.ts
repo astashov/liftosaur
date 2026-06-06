@@ -155,7 +155,14 @@ export class IapAdapter implements IIapAdapter {
 
   public async finishTransaction(purchase: IIapPurchase): Promise<void> {
     await finishTransaction({
-      purchase: { id: purchase.id, transactionId: purchase.transactionId, productId: purchase.productId } as Purchase,
+      // purchaseToken is required on Android - without it the purchase is never acknowledged,
+      // and Google auto-refunds unacknowledged purchases after 3 days
+      purchase: {
+        id: purchase.id,
+        transactionId: purchase.transactionId,
+        productId: purchase.productId,
+        purchaseToken: purchase.purchaseToken,
+      } as Purchase,
       isConsumable: false,
     });
   }

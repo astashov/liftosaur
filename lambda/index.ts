@@ -308,6 +308,7 @@ const postVerifyGooglePurchaseTokenHandler: RouteHandler<
   const googleJson = await subscriptions.getGooglePurchaseTokenJson(token, productId);
   let verifiedGooglePurchaseToken = false;
   if (googleJson) {
+    await subscriptions.maybeAcknowledgeGooglePurchase(googleJson, token, productId);
     verifiedGooglePurchaseToken = await subscriptions.verifyGooglePurchaseTokenJson(googleJson);
     if (verifiedGooglePurchaseToken && userId && !("error" in googleJson)) {
       const subscriptionDetails = await subscriptions.getGoogleVerificationInfo(
