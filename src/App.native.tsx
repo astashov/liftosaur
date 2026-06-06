@@ -145,6 +145,10 @@ import { reducerWrapper, defaultOnActions, getInitialState, getIdbKey, IAction }
 import { useThunkReducer } from "./utils/useThunkReducer";
 import { Service } from "./api/service";
 import { AudioInterface } from "./lib/audioInterface";
+import {
+  Subscriptions_cleanupOutdatedAppleReceipts,
+  Subscriptions_cleanupOutdatedGooglePurchaseTokens,
+} from "./utils/subscriptions";
 import { Progress_getCurrentProgress, Progress_lbProgress } from "./models/progress";
 import { NativeTimerBridge_subscribeOnScheduled } from "./utils/nativeTimerBridge";
 import {
@@ -240,6 +244,9 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
     dispatch(Thunk_sync2({ force: true }));
     dispatch(Thunk_fetchInitial());
     dispatch(Thunk_syncHealthKit());
+    const userId = stateRef.current.user?.id || stateRef.current.storage.tempUserId;
+    Subscriptions_cleanupOutdatedAppleReceipts(dispatch, userId, service, stateRef.current.storage.subscription);
+    Subscriptions_cleanupOutdatedGooglePurchaseTokens(dispatch, userId, service, stateRef.current.storage.subscription);
   }, []);
 
   useEffect(() => {
