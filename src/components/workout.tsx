@@ -40,6 +40,7 @@ import { Button } from "./button";
 import { navigateToModal } from "../navigation/navigationService";
 import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
 import { SendMessage_isIos } from "../utils/sendMessage";
+import { lgDebug } from "../utils/posthog";
 import { History_calories, History_pauseWorkout } from "../models/history";
 import { NativeWorkoutBridge_finishWorkout, NativeWorkoutBridge_pauseWorkout } from "../utils/nativeWorkoutBridge";
 import { NativeWatchBridge_sendFinishWorkoutToWatch } from "../utils/nativeWatchBridge";
@@ -353,8 +354,11 @@ function WorkoutHeaderInner(props: IWorkoutHeaderProps): JSX.Element {
         return;
       }
     }
+    lgDebug("dbg-finish-onfinish-before-pause", "cckidffiis");
     NativeWorkoutBridge_pauseWorkout();
+    lgDebug("dbg-finish-onfinish-after-pause", "cckidffiis");
     props.dispatch(Thunk_finishProgramDay(progress.id));
+    lgDebug("dbg-finish-onfinish-after-dispatch", "cckidffiis");
     if (isCurrent) {
       props.dispatch(Thunk_postevent("finish-workout", { workout: JSON.stringify(props.progress) }));
       const isIos = Platform.OS === "ios" || SendMessage_isIos();
@@ -366,6 +370,7 @@ function WorkoutHeaderInner(props: IWorkoutHeaderProps): JSX.Element {
         isHealthEligible &&
         (!props.settings.healthConfirmation ||
           (await Dialog_confirm(`Do you want to sync this workout to ${healthName}?`)));
+      lgDebug("dbg-finish-onfinish-health-checked", "cckidffiis", { shouldSyncToHealth: String(!!shouldSyncToHealth) });
       const rawIntervals = History_pauseWorkout(props.progress.intervals) ?? [];
       const intervals: [number, number | null][] = rawIntervals.map(([s, e]) => [s, e ?? null]);
       NativeWorkoutBridge_finishWorkout({
@@ -373,6 +378,7 @@ function WorkoutHeaderInner(props: IWorkoutHeaderProps): JSX.Element {
         calories: History_calories(props.progress),
         intervals: JSON.stringify(intervals),
       });
+      lgDebug("dbg-finish-onfinish-after-native-finish", "cckidffiis");
       const watchSaved = shouldSyncToHealth ? await NativeWatchBridge_sendFinishWorkoutToWatch() : false;
       NativeWorkoutMirroring_resetWatchWorkoutState();
       if (shouldSyncToHealth && !watchSaved) {
@@ -390,6 +396,7 @@ function WorkoutHeaderInner(props: IWorkoutHeaderProps): JSX.Element {
       } else if (watchSaved) {
         props.dispatch(Thunk_postevent("skipped-phone-health-sync-watch-saved"));
       }
+      lgDebug("dbg-finish-onfinish-end", "cckidffiis");
     }
   };
 

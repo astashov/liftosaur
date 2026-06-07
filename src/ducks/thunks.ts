@@ -1223,10 +1223,12 @@ export function Thunk_editHistoryRecord(historyRecord: IHistoryRecord): IThunk {
 
 export function Thunk_finishProgramDay(id: number): IThunk {
   return async (dispatch, getState) => {
+    lgDebug("dbg-finish-thunk-start", "cckidffiis", { id });
     const state = getState();
     const progress = Progress_getProgressById(state, id);
     const isCurrent = progress ? Progress_isCurrent(progress) : false;
     const { navigateTo, goBack } = await getNavigationService();
+    lgDebug("dbg-finish-thunk-nav-service", "cckidffiis", { isCurrent: String(isCurrent) });
     // Navigate before dispatch so the progress screen unmounts before
     // FallbackScreen can detect null progress and redirect to home.
     // The dispatch must stay synchronous after goBack: for a dirty past workout
@@ -1239,7 +1241,9 @@ export function Thunk_finishProgramDay(id: number): IThunk {
     } else {
       goBack();
     }
+    lgDebug("dbg-finish-thunk-after-navigate", "cckidffiis");
     dispatch({ type: "FinishProgramDayAction", id });
+    lgDebug("dbg-finish-thunk-after-action", "cckidffiis");
   };
 }
 
