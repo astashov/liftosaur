@@ -18,6 +18,7 @@ export type LiftosaurTelemetryEvent = {
 export interface Spec extends TurboModule {
   getLastTerminationInfo(): Promise<LiftosaurTerminationInfo | null>;
   flushPendingTelemetry(): Promise<void>;
+  getAppVersion(): string;
 
   readonly onTelemetryEvent: EventEmitter<LiftosaurTelemetryEvent>;
 }

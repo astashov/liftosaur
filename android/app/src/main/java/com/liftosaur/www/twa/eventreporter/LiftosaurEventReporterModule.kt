@@ -4,6 +4,7 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.WritableMap
+import com.liftosaur.www.twa.BuildConfig
 import com.liftosaur.www.twa.specs.NativeLiftosaurEventReporterSpec
 
 class LiftosaurEventReporterModule(reactContext: ReactApplicationContext) :
@@ -35,6 +36,10 @@ class LiftosaurEventReporterModule(reactContext: ReactApplicationContext) :
             // best-effort; never block JS on telemetry collection
         }
         promise.resolve(null)
+    }
+
+    override fun getAppVersion(): String {
+        return BuildConfig.VERSION_CODE.toString()
     }
 
     fun dispatchTelemetry(event: WritableMap) {

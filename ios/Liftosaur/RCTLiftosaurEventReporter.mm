@@ -44,6 +44,11 @@ RCT_EXPORT_MODULE(LiftosaurEventReporter)
   resolve(nil);
 }
 
+- (NSString *)getAppVersion {
+  NSString *version = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+  return version ?: @"0";
+}
+
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params {
   return std::make_shared<facebook::react::NativeLiftosaurEventReporterSpecJSI>(params);

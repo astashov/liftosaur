@@ -1,10 +1,11 @@
 import "../global.css";
 import React, { useMemo, useRef, useState, useEffect } from "react";
-import { ActivityIndicator, AppState, InteractionManager, Linking, Platform, View } from "react-native";
+import { ActivityIndicator, AppState, InteractionManager, Linking, NativeModules, Platform, View } from "react-native";
 import { Client as RollbarClient } from "rollbar-react-native";
 import RB from "rollbar";
 import { Analytics_initialize, Analytics_setUserId } from "./utils/analytics";
 import { RollbarUtils_config } from "./utils/rollbar";
+import { AppAttribution_get } from "./utils/appAttribution";
 import { Ota_init, Ota_activeBundleIdSync } from "./utils/ota";
 import { RN_COMMIT_HASH, RN_FULL_COMMIT_HASH } from "./rnBuildInfo";
 
@@ -77,6 +78,30 @@ function rewriteRollbarFrames(payload: IRollbarPayload): void {
   }
 }
 
+// JS-reported items don't pass through the native Rollbar SDKs, so mirror the
+// client.ios/client.android fields those SDKs attach to native crash reports.
+// rollbar-react-native builds the same attributes natively for its
+// captureDeviceInfo option, but nests them under client.os — fetch them
+// directly and place them at the path native crashes use.
+function rollbarClientAttribution(): Record<string, unknown> {
+  let device: Record<string, unknown> = {};
+  try {
+    const native = (NativeModules as { RollbarReactNative?: { deviceAttributes?: () => string } }).RollbarReactNative;
+    const raw = native?.deviceAttributes?.();
+    device = raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
+  } catch {
+    device = {};
+  }
+  if (Platform.OS === "ios") {
+    return { ios: device };
+  }
+  if (Platform.OS === "android") {
+    // deviceAttributes lacks version_code, which native crash reports do include
+    return { android: { ...device, version_code: AppAttribution_get().androidVersion } };
+  }
+  return {};
+}
+
 const rollbarClient = new RollbarClient({
   accessToken: "f29180c0746c4922996ff41dfc2527d2",
   captureUncaught: true,
@@ -89,6 +114,7 @@ const rollbarClient = new RollbarClient({
         code_version: RN_FULL_COMMIT_HASH,
         guess_uncaught_frames: true,
       },
+      ...rollbarClientAttribution(),
     },
   },
   transform: rewriteRollbarFrames,
