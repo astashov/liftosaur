@@ -163,11 +163,26 @@ export class VersionTrackerUpdateVersions<TAtomicType extends string, TControlle
     );
     const items = collectionVersions.items || {};
 
+    const newIds = new Set<string>();
+    for (const item of newValue) {
+      const itemId = VersionTrackerUtils_getId(item, this.versionTypes);
+      if (itemId) {
+        newIds.add(itemId);
+      }
+    }
+
     const deletedInThisUpdate: string[] = [];
+    const oldItemsById = new Map<string, unknown>();
     if (Array.isArray(oldValue)) {
       for (const oldItem of oldValue) {
         const oldItemId = VersionTrackerUtils_getId(oldItem, this.versionTypes);
-        if (oldItemId && !newValue.some((item) => VersionTrackerUtils_getId(item, this.versionTypes) === oldItemId)) {
+        if (!oldItemId) {
+          continue;
+        }
+        if (!oldItemsById.has(oldItemId)) {
+          oldItemsById.set(oldItemId, oldItem);
+        }
+        if (!newIds.has(oldItemId)) {
           collectionVersions.deleted = collectionVersions.deleted || {};
           collectionVersions.deleted[oldItemId] = timestamp;
           delete items[oldItemId];
@@ -189,9 +204,7 @@ export class VersionTrackerUpdateVersions<TAtomicType extends string, TControlle
     for (const item of newValue) {
       const itemId = VersionTrackerUtils_getId(item, this.versionTypes);
       if (itemId) {
-        const oldItem = Array.isArray(oldValue)
-          ? oldValue.find((o: unknown) => VersionTrackerUtils_getId(o, this.versionTypes) === itemId)
-          : undefined;
+        const oldItem = oldItemsById.get(itemId);
 
         if (!VersionTrackerUtils_areEqual(oldItem, item)) {
           const newCollectionVersion = isCollectionVersions(newVersion) ? newVersion : undefined;

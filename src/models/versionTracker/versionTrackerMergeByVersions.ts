@@ -268,6 +268,13 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
       if (dedupedExtracted.length === 0 && deletedKeys.size === 0 && dedupedFull.length === fullValue.length) {
         return fullValue;
       }
+      const dedupedFullById = new Map<string, unknown>();
+      for (const item of dedupedFull) {
+        const itemId = VersionTrackerUtils_getId(item, this.versionTypes);
+        if (itemId) {
+          dedupedFullById.set(itemId, item);
+        }
+      }
       const result: unknown[] = [];
       const processedIds = new Set<string>();
       let allSame = true;
@@ -285,7 +292,7 @@ export class VersionTrackerMergeByVersions<TAtomicType extends string, TControll
           processedIds.add(itemId);
           const diffItemVersion = diffVersion?.items?.[itemId];
           const fullItemVersion = fullVersion?.items?.[itemId];
-          const fullItem = dedupedFull.find((item) => VersionTrackerUtils_getId(item, this.versionTypes) === itemId);
+          const fullItem = dedupedFullById.get(itemId);
 
           if (
             isVersionsObject(diffItemVersion) &&
