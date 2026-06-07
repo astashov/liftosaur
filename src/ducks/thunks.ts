@@ -2114,6 +2114,8 @@ export function Thunk_iapHandlePurchase(purchase: IIapPurchase): IThunk {
         productId: purchase.productId,
         price: purchase.price ?? 0,
         currency: purchase.currency || "USD",
+        transactionId: purchase.transactionId ?? purchase.id,
+        transactionDate: purchase.transactionDate,
       });
     } finally {
       try {

@@ -39,6 +39,10 @@ function toIapPurchase(purchase: Purchase, priceCache: Map<string, IPriceCacheEn
   return {
     id: purchase.id,
     transactionId: purchase.transactionId ?? undefined,
+    // `||` on purpose: 0 means "date unknown", and unknown must skip the staleness check rather
+    // than read as epoch-1970-stale - otherwise a library quirk emitting 0 dates would silently
+    // drop every purchase event. Unknown-date transactions are still deduped by transaction id.
+    transactionDate: purchase.transactionDate || undefined,
     productId: purchase.productId,
     purchaseToken: token ?? undefined,
     currency: iosCurrency ?? cached?.currency,

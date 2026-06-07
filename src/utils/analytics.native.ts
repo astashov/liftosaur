@@ -1,14 +1,24 @@
 import { Platform } from "react-native";
 import appsFlyer, { ConversionData } from "react-native-appsflyer";
+import { createMMKV } from "react-native-mmkv";
 import { IAttributionData } from "../models/state";
 
 const APPSFLYER_DEV_KEY = "7WaUEAvZKS2HaM3Nmtt5B4";
 const APPLE_APP_ID = "1661880849";
 
+const TRACKED_PURCHASES_KEY = "trackedPurchaseTransactionIds";
+const TRACKED_PURCHASES_MAX = 500;
+// Wide enough that renewals/trial conversions delivered on the user's next app open still count
+// (transactions billed in background arrive with their original date), narrow enough that a
+// restore on a fresh install can only replay the last month, once.
+const STALE_PURCHASE_MS = 30 * 24 * 60 * 60 * 1000;
+
 export interface IAnalyticsPurchaseEvent {
   productId: string;
   price: number;
   currency: string;
+  transactionId?: string;
+  transactionDate?: number;
 }
 
 export interface IAnalyticsInitOptions {
@@ -72,7 +82,38 @@ export function Analytics_trackSignUp(): void {
   appsFlyer.logEvent("af_complete_registration", {}).catch(() => undefined);
 }
 
+function getTrackedPurchaseIds(): string[] {
+  try {
+    const mmkv = createMMKV({ id: "liftosaur.analytics" });
+    return JSON.parse(mmkv.getString(TRACKED_PURCHASES_KEY) ?? "[]");
+  } catch {
+    return [];
+  }
+}
+
+function markPurchaseTracked(transactionId: string): void {
+  const tracked = getTrackedPurchaseIds();
+  if (!tracked.includes(transactionId)) {
+    const mmkv = createMMKV({ id: "liftosaur.analytics" });
+    mmkv.set(TRACKED_PURCHASES_KEY, JSON.stringify([transactionId, ...tracked].slice(0, TRACKED_PURCHASES_MAX)));
+  }
+}
+
 export function Analytics_trackPurchase(event: IAnalyticsPurchaseEvent): void {
+  // StoreKit re-delivers transactions across launches and replays old ones on restore, so
+  // dedup by transaction id (persisted - re-deliveries span sessions) and drop transactions
+  // that happened long ago (restores on a fresh install arrive with an empty dedup store).
+  if (event.transactionDate != null) {
+    // Defensive seconds->ms normalization: a units mismatch would otherwise silently drop
+    // every purchase event as stale (epoch seconds ~1.7e9, epoch ms ~1.7e12).
+    const transactionDateMs = event.transactionDate < 1e12 ? event.transactionDate * 1000 : event.transactionDate;
+    if (Date.now() - transactionDateMs > STALE_PURCHASE_MS) {
+      return;
+    }
+  }
+  if (event.transactionId && getTrackedPurchaseIds().includes(event.transactionId)) {
+    return;
+  }
   const contentType = event.productId.includes("lifetime") ? "one_time_purchase" : "subscription";
   appsFlyer
     .logEvent("af_purchase", {
@@ -82,6 +123,15 @@ export function Analytics_trackPurchase(event: IAnalyticsPurchaseEvent): void {
       af_purchase_currency: event.currency,
       af_content_id: event.productId,
       af_content_type: contentType,
+    })
+    .then(() => {
+      // Persist only after a successful send - a transaction marked tracked on a failed send
+      // (e.g. SDK not started yet) would suppress all future re-delivery retries. Same-session
+      // duplicate sends while this promise is in flight are guarded by the in-memory dedup in
+      // iap.native.ts onPurchaseUpdated.
+      if (event.transactionId) {
+        markPurchaseTracked(event.transactionId);
+      }
     })
     .catch(() => undefined);
 }

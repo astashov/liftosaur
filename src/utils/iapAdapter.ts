@@ -1,6 +1,7 @@
 export interface IIapPurchase {
   id: string;
   transactionId?: string;
+  transactionDate?: number;
   productId: string;
   purchaseToken?: string;
   currency?: string;

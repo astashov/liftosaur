@@ -4,6 +4,8 @@ export interface IAnalyticsPurchaseEvent {
   productId: string;
   price: number;
   currency: string;
+  transactionId?: string;
+  transactionDate?: number;
 }
 
 export interface IAnalyticsInitOptions {
