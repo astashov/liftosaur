@@ -24,6 +24,7 @@ export function FastText(props: IFastTextProps): JSX.Element {
     fontWeight: f.fontWeight,
     fontSize: f.fontSize,
     fontStyle: f.fontStyle,
+    textDecorationLine: f.textDecorationLine,
   }));
   const testID = props["data-testid"] ?? props["data-cy"] ?? props.testID;
   return (
@@ -36,6 +37,9 @@ export function FastText(props: IFastTextProps): JSX.Element {
       fontSize={props.fontSize}
       textPaddingHorizontal={props.paddingHorizontal}
       textLineHeight={props.lineHeight}
+      numberOfLines={props.numberOfLines}
+      textAlign={props.textAlign}
+      textDecorationLine={props.textDecorationLine}
       fragments={fragments}
       style={props.style}
       accessible={true}

@@ -11,6 +11,7 @@ import UIKit
   @objc public let weight: Int // 0 => inherit base
   @objc public let fontSize: CGFloat // 0 => inherit base
   @objc public let italic: NSNumber? // nil => inherit base
+  @objc public let decoration: String? // "underline" | "line-through", nil => none
 
   @objc public init(
     start: Int,
@@ -19,7 +20,8 @@ import UIKit
     backgroundColor: UIColor?,
     weight: Int,
     fontSize: CGFloat,
-    italic: NSNumber?
+    italic: NSNumber?,
+    decoration: String?
   ) {
     self.start = start
     self.end = end
@@ -28,6 +30,7 @@ import UIKit
     self.weight = weight
     self.fontSize = fontSize
     self.italic = italic
+    self.decoration = decoration
   }
 }
 
@@ -39,6 +42,9 @@ import UIKit
   @objc public let italic: Bool
   @objc public let paddingHorizontal: CGFloat
   @objc public let lineHeight: CGFloat
+  @objc public let numberOfLines: Int // 0 => unlimited
+  @objc public let textAlign: String // "" => natural
+  @objc public let decoration: String? // nil => none
   @objc public let accessibilityText: String
   @objc public let fragments: [FastTextFragmentSpec]
 
@@ -50,6 +56,9 @@ import UIKit
     italic: Bool,
     paddingHorizontal: CGFloat,
     lineHeight: CGFloat,
+    numberOfLines: Int,
+    textAlign: String,
+    decoration: String?,
     accessibilityText: String,
     fragments: [FastTextFragmentSpec]
   ) {
@@ -60,6 +69,9 @@ import UIKit
     self.italic = italic
     self.paddingHorizontal = paddingHorizontal
     self.lineHeight = lineHeight
+    self.numberOfLines = numberOfLines
+    self.textAlign = textAlign
+    self.decoration = decoration
     self.accessibilityText = accessibilityText
     self.fragments = fragments
   }
@@ -89,6 +101,17 @@ import UIKit
     return UIFont(name: name, size: size) ?? UIFont.systemFont(ofSize: size)
   }
 
+  private static func addDecoration(_ decoration: String?, to attr: NSMutableAttributedString, range: NSRange) {
+    switch decoration {
+    case "underline":
+      attr.addAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, range: range)
+    case "line-through":
+      attr.addAttribute(.strikethroughStyle, value: NSUnderlineStyle.single.rawValue, range: range)
+    default:
+      break
+    }
+  }
+
   @objc public static func attributedString(for spec: FastTextSpec) -> NSAttributedString {
     let nsText = spec.text as NSString
     let length = nsText.length
@@ -101,11 +124,19 @@ import UIKit
     let full = NSRange(location: 0, length: length)
     attr.addAttribute(.font, value: font(weight: spec.weight, italic: spec.italic, size: baseSize), range: full)
     attr.addAttribute(.foregroundColor, value: spec.color, range: full)
+    addDecoration(spec.decoration, to: attr, range: full)
 
-    if spec.lineHeight > 0 {
+    let alignment: NSTextAlignment? =
+      spec.textAlign == "center" ? .center : spec.textAlign == "right" ? .right : spec.textAlign == "left" ? .left : nil
+    if spec.lineHeight > 0 || alignment != nil {
       let paragraphStyle = NSMutableParagraphStyle()
-      paragraphStyle.minimumLineHeight = spec.lineHeight
-      paragraphStyle.maximumLineHeight = spec.lineHeight
+      if spec.lineHeight > 0 {
+        paragraphStyle.minimumLineHeight = spec.lineHeight
+        paragraphStyle.maximumLineHeight = spec.lineHeight
+      }
+      if let alignment = alignment {
+        paragraphStyle.alignment = alignment
+      }
       attr.addAttribute(.paragraphStyle, value: paragraphStyle, range: full)
     }
 
@@ -128,22 +159,62 @@ import UIKit
       if let backgroundColor = fragment.backgroundColor {
         attr.addAttribute(.backgroundColor, value: backgroundColor, range: range)
       }
+      addDecoration(fragment.decoration, to: attr, range: range)
     }
 
     return attr
   }
 
+  // TextKit stack used only when numberOfLines > 0: NSStringDrawing has no line-count cap,
+  // while NSTextContainer truncates the last visible line with an ellipsis natively.
+  private static func makeTruncatingLayout(
+    for spec: FastTextSpec,
+    width: CGFloat
+  ) -> (NSLayoutManager, NSTextContainer, NSTextStorage) {
+    let storage = NSTextStorage(attributedString: attributedString(for: spec))
+    let manager = NSLayoutManager()
+    let container = NSTextContainer(size: CGSize(width: width, height: .greatestFiniteMagnitude))
+    container.lineFragmentPadding = 0
+    container.maximumNumberOfLines = spec.numberOfLines
+    container.lineBreakMode = .byTruncatingTail
+    manager.addTextContainer(container)
+    storage.addLayoutManager(manager)
+    return (manager, container, storage)
+  }
+
   // maxWidth <= 0 means unbounded (the ObjC++ caller passes 0 for Yoga's UNDEFINED width).
   @objc public static func measure(_ spec: FastTextSpec, maxWidth: CGFloat, maxHeight: CGFloat) -> CGSize {
-    let attr = attributedString(for: spec)
     let padding = spec.paddingHorizontal
     let availableWidth = maxWidth <= 0 ? CGFloat.greatestFiniteMagnitude : max(maxWidth - 2 * padding, 0)
+    if spec.numberOfLines > 0 {
+      let (manager, container, storage) = makeTruncatingLayout(for: spec, width: availableWidth)
+      // NSLayoutManager references its NSTextStorage weakly, so keep it alive through layout.
+      return withExtendedLifetime(storage) {
+        manager.ensureLayout(for: container)
+        let rect = manager.usedRect(for: container)
+        return CGSize(width: ceil(rect.width) + 2 * padding, height: ceil(rect.height))
+      }
+    }
+    let attr = attributedString(for: spec)
     let rect = attr.boundingRect(
       with: CGSize(width: availableWidth, height: maxHeight),
       options: .usesLineFragmentOrigin,
       context: nil
     )
     return CGSize(width: ceil(rect.width) + 2 * padding, height: ceil(rect.height))
+  }
+
+  @objc public static func draw(_ spec: FastTextSpec, in rect: CGRect) {
+    if spec.numberOfLines > 0 {
+      let (manager, container, storage) = makeTruncatingLayout(for: spec, width: rect.width)
+      withExtendedLifetime(storage) {
+        let glyphRange = manager.glyphRange(for: container)
+        manager.drawBackground(forGlyphRange: glyphRange, at: rect.origin)
+        manager.drawGlyphs(forGlyphRange: glyphRange, at: rect.origin)
+      }
+      return
+    }
+    attributedString(for: spec).draw(with: rect, options: .usesLineFragmentOrigin, context: nil)
   }
 }
 
@@ -183,10 +254,6 @@ import UIKit
     }
     let padding = spec.paddingHorizontal
     let textRect = CGRect(x: padding, y: 0, width: max(bounds.width - 2 * padding, 0), height: bounds.height)
-    FastTextRenderer.attributedString(for: spec).draw(
-      with: textRect,
-      options: .usesLineFragmentOrigin,
-      context: nil
-    )
+    FastTextRenderer.draw(spec, in: textRect)
   }
 }

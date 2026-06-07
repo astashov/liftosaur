@@ -1,8 +1,22 @@
 import type { ColorValue, StyleProp, ViewStyle } from "react-native";
+import { Tailwind_colors, Tailwind_semantic } from "./tailwindConfig";
 
-export type IFastTextFontWeight = "400" | "600" | "700";
+// typeof-guarded: Metro/webpack define __DEV__, but this module also runs under node (tests).
+declare let __DEV__: boolean | undefined;
+
+function isDev(): boolean {
+  return typeof __DEV__ !== "undefined" && __DEV__ === true;
+}
+
+// "500" maps to the SemiBold face: Android/web don't bundle Poppins-Medium, and both native
+// renderers already treat 500-699 as SemiBold.
+export type IFastTextFontWeight = "400" | "500" | "600" | "700";
 
 export type IFastTextFontStyle = "normal" | "italic";
+
+export type IFastTextDecoration = "underline" | "line-through";
+
+export type IFastTextAlign = "left" | "center" | "right";
 
 export interface IFastTextStyle {
   color?: ColorValue;
@@ -10,6 +24,7 @@ export interface IFastTextStyle {
   fontWeight?: IFastTextFontWeight;
   fontSize?: number;
   fontStyle?: IFastTextFontStyle;
+  textDecorationLine?: IFastTextDecoration;
 }
 
 export interface IFastTextFragment extends IFastTextStyle {
@@ -39,6 +54,8 @@ export interface IFastTextProps extends IFastTextStyle {
   fragments?: IFastTextFragment[];
   paddingHorizontal?: number;
   lineHeight?: number;
+  numberOfLines?: number;
+  textAlign?: IFastTextAlign;
   style?: StyleProp<ViewStyle>;
   // Native FastText draws text rather than using <Text>, so it exposes nothing to screen
   // readers by default; the wrapper falls back to `text` when this is unset.
@@ -57,7 +74,8 @@ function hasStyle(style?: IFastTextStyle): style is IFastTextStyle {
     style.backgroundColor != null ||
     style.fontWeight != null ||
     style.fontSize != null ||
-    style.fontStyle != null
+    style.fontStyle != null ||
+    style.textDecorationLine != null
   );
 }
 
@@ -129,4 +147,83 @@ const SIZE_PX: Record<IFastTextSize, number> = {
 
 export function StyledText_remToPx(size: IFastTextSize, rem: number): number {
   return SIZE_PX[size] * (rem / BASE_REM);
+}
+
+const FONT_WEIGHT_CLASSES: Record<string, IFastTextFontWeight> = {
+  "font-normal": "400",
+  "font-medium": "500",
+  "font-semibold": "600",
+  "font-bold": "700",
+};
+
+// Resolves a Tailwind-ish class string into FastText styles so conversions from nested
+// <Text className="..."> read like the JSX they replace:
+//   const cls = StyledText_cls(rem);
+//   builder.add("Plates: ", cls("text-sm text-text-secondary"));
+// Supports text sizes, font weights, italic, underline/line-through, and text-*/bg-* colors
+// resolved via Tailwind_semantic() (e.g. text-text-secondary, text-syntax-weight, bg-background-subtle)
+// or Tailwind_colors() (e.g. text-yellow-600, bg-white).
+export function StyledText_cls(rem: number): (className: string) => IFastTextStyle {
+  const semantic = Tailwind_semantic() as unknown as Record<string, Record<string, string> | undefined>;
+  const colors = Tailwind_colors() as unknown as Record<string, string | Record<string, string> | undefined>;
+
+  function resolveColor(rest: string): string | undefined {
+    const direct = colors[rest];
+    if (typeof direct === "string") {
+      return direct;
+    }
+    const dashIndex = rest.indexOf("-");
+    if (dashIndex === -1) {
+      return undefined;
+    }
+    const head = rest.slice(0, dashIndex);
+    const tail = rest.slice(dashIndex + 1);
+    const fromSemantic = semantic[head]?.[tail];
+    if (fromSemantic != null) {
+      return fromSemantic;
+    }
+    const palette = colors[head];
+    return typeof palette === "object" ? palette?.[tail] : undefined;
+  }
+
+  return (className) => {
+    const style: IFastTextStyle = {};
+    for (const token of className.split(/\s+/)) {
+      if (token.length === 0) {
+        continue;
+      }
+      const weight = FONT_WEIGHT_CLASSES[token];
+      if (weight != null) {
+        style.fontWeight = weight;
+      } else if (token === "italic") {
+        style.fontStyle = "italic";
+      } else if (token === "not-italic") {
+        style.fontStyle = "normal";
+      } else if (token === "underline" || token === "line-through") {
+        style.textDecorationLine = token;
+      } else if (token.startsWith("text-")) {
+        const rest = token.slice("text-".length);
+        if (rest in SIZE_PX) {
+          style.fontSize = StyledText_remToPx(rest as IFastTextSize, rem);
+        } else {
+          const color = resolveColor(rest);
+          if (color != null) {
+            style.color = color;
+          } else if (isDev()) {
+            console.warn(`StyledText_cls: unknown color class "${token}"`);
+          }
+        }
+      } else if (token.startsWith("bg-")) {
+        const color = resolveColor(token.slice("bg-".length));
+        if (color != null) {
+          style.backgroundColor = color;
+        } else if (isDev()) {
+          console.warn(`StyledText_cls: unknown color class "${token}"`);
+        }
+      } else if (isDev()) {
+        console.warn(`StyledText_cls: unsupported class "${token}"`);
+      }
+    }
+    return style;
+  };
 }

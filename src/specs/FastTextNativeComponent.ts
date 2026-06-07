@@ -11,6 +11,7 @@ interface NativeFragment {
   fontWeight?: string;
   fontSize?: Float;
   fontStyle?: string;
+  textDecorationLine?: string;
 }
 
 export interface NativeProps extends ViewProps {
@@ -24,6 +25,10 @@ export interface NativeProps extends ViewProps {
   // Yoga would apply them as real layout padding in addition to our custom handling.
   textPaddingHorizontal?: Float;
   textLineHeight?: Float;
+  // 0 => unlimited; truncates with a tail ellipsis when bounded.
+  numberOfLines?: Int32;
+  textAlign?: string;
+  textDecorationLine?: string;
   fragments?: ReadonlyArray<NativeFragment>;
 }
 

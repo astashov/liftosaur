@@ -58,6 +58,14 @@ static NSNumber *_Nullable FastTextItalic(const std::string &fontStyle) {
   return @(fontStyle == "italic");
 }
 
+// nil => no decoration; the Swift side only acts on "underline"/"line-through".
+static NSString *_Nullable FastTextDecoration(const std::string &textDecorationLine) {
+  if (textDecorationLine.empty()) {
+    return nil;
+  }
+  return FastTextNSString(textDecorationLine);
+}
+
 static FastTextSpec *FastTextSpecFromProps(const FastTextProps &props) {
   NSMutableArray<FastTextFragmentSpec *> *fragments = [NSMutableArray arrayWithCapacity:props.fragments.size()];
   for (const auto &f : props.fragments) {
@@ -68,7 +76,8 @@ static FastTextSpec *FastTextSpecFromProps(const FastTextProps &props) {
                                                      backgroundColor:FastTextUIColor(f.backgroundColor)
                                                               weight:FastTextParseWeight(f.fontWeight, 0)
                                                             fontSize:(f.fontSize > 0 ? f.fontSize : 0)
-                                                              italic:FastTextItalic(f.fontStyle)]];
+                                                              italic:FastTextItalic(f.fontStyle)
+                                                          decoration:FastTextDecoration(f.textDecorationLine)]];
   }
   return [[FastTextSpec alloc] initWithText:FastTextNSString(props.text)
                                       color:(FastTextUIColor(props.color) ?: UIColor.blackColor)
@@ -77,6 +86,9 @@ static FastTextSpec *FastTextSpecFromProps(const FastTextProps &props) {
                                      italic:(props.fontStyle == "italic")
                           paddingHorizontal:props.textPaddingHorizontal
                                  lineHeight:props.textLineHeight
+                              numberOfLines:(props.numberOfLines > 0 ? props.numberOfLines : 0)
+                                  textAlign:FastTextNSString(props.textAlign)
+                                 decoration:FastTextDecoration(props.textDecorationLine)
                           accessibilityText:FastTextNSString(props.accessibilityLabel)
                                   fragments:fragments];
 }

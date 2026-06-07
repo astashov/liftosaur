@@ -61,4 +61,39 @@ describe("FastText (web)", () => {
     expect(html).to.contain("font-size:14px");
     expect(html).to.contain("font-size:28px");
   });
+
+  it("renders base and per-fragment text decorations", () => {
+    const html = render({
+      text: "abcd",
+      textDecorationLine: "underline",
+      fragments: [{ start: 2, end: 4, textDecorationLine: "line-through" }],
+    });
+    expect(html).to.contain("text-decoration-line:underline");
+    expect(html).to.contain("text-decoration-line:line-through");
+  });
+
+  it("truncates to one line with an ellipsis", () => {
+    const html = render({ text: "hello", numberOfLines: 1 });
+    expect(html).to.contain("white-space:nowrap");
+    expect(html).to.contain("text-overflow:ellipsis");
+    expect(html).to.contain("overflow:hidden");
+  });
+
+  it("clamps multiple lines via -webkit-line-clamp", () => {
+    const html = render({ text: "hello", numberOfLines: 2 });
+    expect(html).to.contain("-webkit-line-clamp:2");
+    expect(html).to.contain("overflow:hidden");
+  });
+
+  it("applies textAlign as a block-level box", () => {
+    const html = render({ text: "hello", textAlign: "right" });
+    expect(html).to.contain("display:block");
+    expect(html).to.contain("text-align:right");
+  });
+
+  it("normalizes fontWeight 500 to the 600 face (no Poppins-Medium on web)", () => {
+    const html = render({ text: "ab", fontWeight: "500", fragments: [{ start: 0, end: 1, fontWeight: "500" }] });
+    expect(html).to.contain("font-weight:600");
+    expect(html).not.to.contain("font-weight:500");
+  });
 });

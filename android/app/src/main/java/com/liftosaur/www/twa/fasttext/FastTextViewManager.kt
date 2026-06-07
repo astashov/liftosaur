@@ -62,6 +62,18 @@ class FastTextViewManager : SimpleViewManager<FastTextView>(), FastTextManagerIn
     view.spec = view.spec.copy(lineHeightPx = value * density(view.context))
   }
 
+  override fun setNumberOfLines(view: FastTextView, value: Int) {
+    view.spec = view.spec.copy(maxLines = maxOf(value, 0))
+  }
+
+  override fun setTextAlign(view: FastTextView, value: String?) {
+    view.spec = view.spec.copy(textAlign = value?.takeIf { it.isNotEmpty() })
+  }
+
+  override fun setTextDecorationLine(view: FastTextView, value: String?) {
+    view.spec = view.spec.copy(decoration = value?.takeIf { it.isNotEmpty() })
+  }
+
   override fun setFragments(view: FastTextView, value: ReadableArray?) {
     view.spec = view.spec.copy(fragments = parseFragments(value, density(view.context), view.context))
   }
@@ -104,9 +116,12 @@ class FastTextViewManager : SimpleViewManager<FastTextView>(), FastTextManagerIn
     val italic = parseItalic(props?.getString("fontStyle")) ?: false
     val paddingHorizontalPx = readFloat(props, "textPaddingHorizontal", 0f) * d
     val lineHeightPx = readFloat(props, "textLineHeight", 0f) * d
+    val maxLines = if (props != null && props.hasKey("numberOfLines") && !props.isNull("numberOfLines")) maxOf(props.getInt("numberOfLines"), 0) else 0
+    val textAlign = props?.getString("textAlign")?.takeIf { it.isNotEmpty() }
+    val decoration = props?.getString("textDecorationLine")?.takeIf { it.isNotEmpty() }
     val fragments =
       if (props?.hasKey("fragments") == true) parseFragments(props.getArray("fragments"), d, context) else emptyList()
-    return FastTextSpec(text, Color.BLACK, null, weight, italic, fontSizePx, paddingHorizontalPx, lineHeightPx, fragments)
+    return FastTextSpec(text, Color.BLACK, null, weight, italic, fontSizePx, paddingHorizontalPx, lineHeightPx, maxLines, textAlign, decoration, fragments)
   }
 
   private fun parseFragments(arr: ReadableArray?, d: Float, context: Context): List<FastTextFragment> {
@@ -127,6 +142,7 @@ class FastTextViewManager : SimpleViewManager<FastTextView>(), FastTextManagerIn
           weight = if (m.hasKey("fontWeight") && !m.isNull("fontWeight")) m.getString("fontWeight")?.toIntOrNull() else null,
           fontSizePx = if (m.hasKey("fontSize") && !m.isNull("fontSize") && m.getDouble("fontSize") > 0.0) (m.getDouble("fontSize").toFloat() * d) else null,
           italic = parseItalic(if (m.hasKey("fontStyle") && !m.isNull("fontStyle")) m.getString("fontStyle") else null),
+          decoration = if (m.hasKey("textDecorationLine") && !m.isNull("textDecorationLine")) m.getString("textDecorationLine")?.takeIf { it.isNotEmpty() } else null,
         )
       )
     }

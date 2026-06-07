@@ -5,15 +5,19 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Typeface
+import android.text.Layout
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.StaticLayout
 import android.text.TextPaint
+import android.text.TextUtils
 import android.text.style.AbsoluteSizeSpan
 import android.text.style.BackgroundColorSpan
 import android.text.style.ForegroundColorSpan
 import android.text.style.LineHeightSpan
 import android.text.style.MetricAffectingSpan
+import android.text.style.StrikethroughSpan
+import android.text.style.UnderlineSpan
 import android.view.View
 import com.facebook.react.common.assets.ReactFontManager
 
@@ -25,6 +29,7 @@ data class FastTextFragment(
   val weight: Int?,
   val fontSizePx: Float?,
   val italic: Boolean?,
+  val decoration: String?,
 )
 
 data class FastTextSpec(
@@ -36,6 +41,9 @@ data class FastTextSpec(
   val fontSizePx: Float,
   val paddingHorizontalPx: Float,
   val lineHeightPx: Float,
+  val maxLines: Int,
+  val textAlign: String?,
+  val decoration: String?,
   val fragments: List<FastTextFragment>,
 ) {
   companion object {
@@ -107,6 +115,13 @@ object FastTextLayoutBuilder {
     return tp
   }
 
+  private fun decorationSpan(decoration: String?): Any? =
+    when (decoration) {
+      "underline" -> UnderlineSpan()
+      "line-through" -> StrikethroughSpan()
+      else -> null
+    }
+
   fun buildSpannable(context: Context, spec: FastTextSpec): SpannableString {
     val sp = SpannableString(spec.text)
     val len = spec.text.length
@@ -117,6 +132,7 @@ object FastTextLayoutBuilder {
     sp.setSpan(ForegroundColorSpan(spec.color), 0, len, flag)
     sp.setSpan(AbsoluteSizeSpan(spec.fontSizePx.toInt(), false), 0, len, flag)
     sp.setSpan(TypefaceWeightSpan(typeface(context, spec.weight, spec.italic)), 0, len, flag)
+    decorationSpan(spec.decoration)?.let { sp.setSpan(it, 0, len, flag) }
     if (spec.lineHeightPx > 0f) {
       sp.setSpan(AbsoluteLineHeightSpan(spec.lineHeightPx.toInt()), 0, len, flag)
     }
@@ -132,21 +148,35 @@ object FastTextLayoutBuilder {
         sp.setSpan(TypefaceWeightSpan(typeface(context, f.weight ?: spec.weight, f.italic ?: spec.italic)), s, e, flag)
       }
       f.fontSizePx?.let { sp.setSpan(AbsoluteSizeSpan(it.toInt(), false), s, e, flag) }
+      decorationSpan(f.decoration)?.let { sp.setSpan(it, s, e, flag) }
     }
     return sp
   }
 
+  private fun alignment(textAlign: String?): Layout.Alignment =
+    when (textAlign) {
+      "center" -> Layout.Alignment.ALIGN_CENTER
+      "right" -> Layout.Alignment.ALIGN_OPPOSITE
+      else -> Layout.Alignment.ALIGN_NORMAL
+    }
+
   fun layout(context: Context, spec: FastTextSpec, contentWidthPx: Int): StaticLayout {
     val sp = buildSpannable(context, spec)
-    return StaticLayout.Builder.obtain(sp, 0, spec.text.length, basePaint(context, spec), maxOf(contentWidthPx, 0))
-      .setIncludePad(false)
-      .build()
+    val width = maxOf(contentWidthPx, 0)
+    val builder =
+      StaticLayout.Builder.obtain(sp, 0, spec.text.length, basePaint(context, spec), width)
+        .setIncludePad(false)
+        .setAlignment(alignment(spec.textAlign))
+    if (spec.maxLines > 0) {
+      builder.setMaxLines(spec.maxLines).setEllipsize(TextUtils.TruncateAt.END).setEllipsizedWidth(width)
+    }
+    return builder.build()
   }
 }
 
 class FastTextView(context: Context) : View(context) {
   var spec: FastTextSpec =
-    FastTextSpec("", Color.BLACK, null, 400, false, FastTextSpec.DEFAULT_FONT_SIZE_DP * resources.displayMetrics.density, 0f, 0f, emptyList())
+    FastTextSpec("", Color.BLACK, null, 400, false, FastTextSpec.DEFAULT_FONT_SIZE_DP * resources.displayMetrics.density, 0f, 0f, 0, null, null, emptyList())
     set(value) {
       field = value
       // Set the background on the View (clipped to bounds by the framework). Canvas.drawColor
