@@ -279,6 +279,34 @@ const exerciseMapping: Partial<Record<string, [string, string | undefined]>> = {
   "Wrist Roller": ["Wrist Roller", "bodyweight"],
 };
 
+const hevyMonths = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+
+// Hermes only parses ISO 8601 dates, so Hevy's "13 Mar 2026, 15:22" format must be parsed manually
+function parseHevyDate(raw: string | undefined): number | undefined {
+  if (!raw) {
+    return undefined;
+  }
+  const match = raw.match(/^(\d{1,2}) ([A-Za-z]{3}) (\d{4}),? (\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+  if (match) {
+    const month = hevyMonths.indexOf(match[2].toLowerCase());
+    if (month !== -1) {
+      const ts = new Date(
+        Number(match[3]),
+        month,
+        Number(match[1]),
+        Number(match[4]),
+        Number(match[5]),
+        Number(match[6] ?? 0)
+      ).getTime();
+      if (!isNaN(ts)) {
+        return ts;
+      }
+    }
+  }
+  const ts = new Date(raw).getTime();
+  return isNaN(ts) ? undefined : ts;
+}
+
 interface IHevyRecord {
   title: string;
   start_time: string;
@@ -365,16 +393,8 @@ export function ImportFromHevy_convertHevyCsvToHistoryRecords(
   const customExercises: Record<string, ICustomExercise> = {};
   const backMap: Partial<Record<string, string>> = {};
   const historyRecords: IHistoryRecord[] = hevyWorkouts.map((hevyWorkout) => {
-    let startTs: number | undefined;
-    try {
-      const ts = new Date(hevyWorkout.start_time).getTime();
-      startTs = isNaN(ts) ? undefined : ts;
-    } catch (_) {}
-    let endTs: number | undefined;
-    try {
-      const ts = new Date(hevyWorkout.end_time).getTime();
-      endTs = isNaN(ts) ? undefined : ts;
-    } catch (_) {}
+    const startTs = parseHevyDate(hevyWorkout.start_time);
+    const endTs = parseHevyDate(hevyWorkout.end_time);
     const entries = hevyWorkout.exercises.map((record, index) => {
       let exerciseNameAndEquipment = exerciseMapping[record.exercise_title];
       let exerciseId: string;
