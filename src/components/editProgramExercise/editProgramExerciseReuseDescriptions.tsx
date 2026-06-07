@@ -56,7 +56,7 @@ export function EditProgramExerciseReuseDescriptions(props: IEditProgramExercise
 
   const reuseDescriptionKey = plannerExercise.descriptions.reuse?.exercise?.key;
   const reuseDescriptionsCandidates = getReuseDescriptionsCandidates(
-    plannerExercise.fullName,
+    plannerExercise.key,
     props.evaluatedProgram,
     plannerExercise.dayData
   );
