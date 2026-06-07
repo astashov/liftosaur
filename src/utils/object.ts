@@ -255,12 +255,69 @@ export function ObjectUtils_clone<T>(obj: T): T {
       return window.structuredClone(obj);
     } catch (e) {
       if ((e as { name?: string } | null)?.name === "DataCloneError") {
-        return JSON.parse(JSON.stringify(obj));
+        return jsonClone(obj);
       }
       throw e;
     }
   }
-  return JSON.parse(JSON.stringify(obj));
+  return jsonClone(obj);
+}
+
+function jsonClone<T>(obj: T): T {
+  try {
+    return JSON.parse(JSON.stringify(obj));
+  } catch (e) {
+    if (e instanceof TypeError) {
+      return cloneLikeJson(obj);
+    }
+    throw e;
+  }
+}
+
+// Hermes has no structuredClone, and evaluated programs can contain reference cycles
+// (e.g. exercise.descriptions.reuse.exercise pointing back at the exercise), which
+// JSON.stringify throws a TypeError on. This mimics JSON.parse(JSON.stringify()) semantics
+// exactly, except cycles link back to the in-progress ancestor clone instead of throwing.
+// Shared non-cyclic references are still duplicated, like JSON does.
+function cloneLikeJson<T>(obj: T, ancestors: WeakMap<object, unknown> = new WeakMap()): T {
+  if (typeof obj === "number" && !isFinite(obj)) {
+    return null as unknown as T;
+  }
+  if (obj === null || typeof obj !== "object") {
+    return obj;
+  }
+  const ancestorClone = ancestors.get(obj);
+  if (ancestorClone !== undefined) {
+    return ancestorClone as T;
+  }
+  const withToJson = obj as { toJSON?: () => unknown };
+  if (typeof withToJson.toJSON === "function") {
+    return cloneLikeJson(withToJson.toJSON(), ancestors) as T;
+  }
+  if (Array.isArray(obj)) {
+    const result: unknown[] = [];
+    ancestors.set(obj, result);
+    for (const item of obj) {
+      result.push(
+        item === undefined || typeof item === "function" || typeof item === "symbol"
+          ? null
+          : cloneLikeJson(item, ancestors)
+      );
+    }
+    ancestors.delete(obj);
+    return result as unknown as T;
+  }
+  const result: Record<string, unknown> = {};
+  ancestors.set(obj, result);
+  for (const key of Object.keys(obj)) {
+    const item = (obj as Record<string, unknown>)[key];
+    if (item === undefined || typeof item === "function" || typeof item === "symbol") {
+      continue;
+    }
+    result[key] = cloneLikeJson(item, ancestors);
+  }
+  ancestors.delete(obj);
+  return result as unknown as T;
 }
 
 export function ObjectUtils_fromArray<K extends string, V>(arr: Array<[K, V]>): Record<K, V> {
