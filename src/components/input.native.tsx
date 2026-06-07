@@ -55,7 +55,7 @@ export const Input = memo(
     const labelSizeVal = labelSizeProp || "sm";
 
     const inputRef = useRef<TextInput>(null);
-    const currentValueRef = useRef(String(valueProp ?? ""));
+    const currentValueRef = useRef(String(valueProp ?? props.defaultValue ?? ""));
     const [validationErrors, setValidationErrors] = useState<Set<IValidationError>>(new Set());
     const [touched, setTouched] = useState(false);
 
@@ -178,6 +178,9 @@ export const Input = memo(
               runValidation({ applyClamp: true, displayMode: "snapshot" });
             }}
             keyboardType={props.type === "number" ? "numeric" : "default"}
+            // Android's selectAllOnFocus re-applies selection after the first keystroke
+            // (second char overwrites first), and setNativeProps({selection}) is a no-op
+            // on Fabric — no working select-on-focus on Android, so iOS only
             selectTextOnFocus={Platform.OS === "ios"}
             testID={props.identifier}
           />

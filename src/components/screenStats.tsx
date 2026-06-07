@@ -55,40 +55,61 @@ type IValuesRef = React.MutableRefObject<Partial<Record<IStatsKey, string>>>;
 
 export function ScreenStats(props: IProps): JSX.Element {
   const { statsEnabled, lengthUnits, units } = props.settings;
-  const lastWeightStats = ObjectUtils_keys(props.stats.weight).reduce<Partial<Record<keyof IStatsWeight, IWeight>>>(
-    (acc, key) => {
-      const value = (props.stats.weight[key] || [])[0]?.value;
-      if (value != null) {
-        acc[key] = Weight_convertTo(value, props.settings.units);
-      }
-      return acc;
-    },
-    {}
-  );
-  const lastLengthStats = ObjectUtils_keys(props.stats.length).reduce<Partial<Record<keyof IStatsLength, ILength>>>(
-    (acc, key) => {
-      const value = (props.stats.length[key] || [])[0]?.value;
-      if (value != null) {
-        acc[key] = Length_convertTo(value, props.settings.lengthUnits);
-      }
-      return acc;
-    },
-    {}
-  );
-  const lastPercentageStats = ObjectUtils_keys(props.stats.percentage).reduce<
-    Partial<Record<keyof IStatsPercentage, IPercentage>>
-  >((acc, key) => {
-    const value = (props.stats.percentage[key] || [])[0]?.value;
-    if (value != null) {
-      acc[key] = value;
-    }
-    return acc;
-  }, {});
+  const [cleared, setCleared] = useState(false);
+  const lastWeightStats: Partial<Record<keyof IStatsWeight, IWeight>> = cleared
+    ? {}
+    : ObjectUtils_keys(props.stats.weight).reduce<Partial<Record<keyof IStatsWeight, IWeight>>>((acc, key) => {
+        const value = (props.stats.weight[key] || [])[0]?.value;
+        if (value != null) {
+          acc[key] = Weight_convertTo(value, props.settings.units);
+        }
+        return acc;
+      }, {});
+  const lastLengthStats: Partial<Record<keyof IStatsLength, ILength>> = cleared
+    ? {}
+    : ObjectUtils_keys(props.stats.length).reduce<Partial<Record<keyof IStatsLength, ILength>>>((acc, key) => {
+        const value = (props.stats.length[key] || [])[0]?.value;
+        if (value != null) {
+          acc[key] = Length_convertTo(value, props.settings.lengthUnits);
+        }
+        return acc;
+      }, {});
+  const lastPercentageStats: Partial<Record<keyof IStatsPercentage, IPercentage>> = cleared
+    ? {}
+    : ObjectUtils_keys(props.stats.percentage).reduce<Partial<Record<keyof IStatsPercentage, IPercentage>>>(
+        (acc, key) => {
+          const value = (props.stats.percentage[key] || [])[0]?.value;
+          if (value != null) {
+            acc[key] = value;
+          }
+          return acc;
+        },
+        {}
+      );
   const [syncToAppleHealth, setSyncToAppleHealth] = useState(!!props.settings.appleHealthSyncMeasurements);
   const [syncToGoogleHealth, setSyncToGoogleHealth] = useState(!!props.settings.googleHealthSyncMeasurements);
   const [clearKey, setClearKey] = useState(0);
 
-  const valuesRef: IValuesRef = useRef<Partial<Record<IStatsKey, string>>>({});
+  const initialValues: Partial<Record<IStatsKey, string>> = {};
+  for (const key of ObjectUtils_keys(lastWeightStats)) {
+    const value = lastWeightStats[key];
+    if (value != null) {
+      initialValues[key] = String(value.value);
+    }
+  }
+  for (const key of ObjectUtils_keys(lastLengthStats)) {
+    const value = lastLengthStats[key];
+    if (value != null) {
+      initialValues[key] = String(value.value);
+    }
+  }
+  for (const key of ObjectUtils_keys(lastPercentageStats)) {
+    const value = lastPercentageStats[key];
+    if (value != null) {
+      initialValues[key] = String(value.value);
+    }
+  }
+  const valuesRef: IValuesRef = useRef<Partial<Record<IStatsKey, string>>>(initialValues);
 
   function saveWeight(timestamp: number): Partial<Record<keyof IStatsWeight, IWeight>> {
     const payload = ObjectUtils_keys(statsEnabled.weight).reduce<Partial<Record<keyof IStatsWeight, IWeight>>>(
@@ -218,6 +239,7 @@ export function ScreenStats(props: IProps): JSX.Element {
           kind="grayv2"
           onClick={() => {
             valuesRef.current = {};
+            setCleared(true);
             setClearKey((k) => k + 1);
           }}
         >
