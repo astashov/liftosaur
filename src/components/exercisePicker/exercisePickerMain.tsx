@@ -97,13 +97,13 @@ type IListItem =
   | { kind: "tabs" }
   | { kind: "weekTabs" }
   | { kind: "searchFilter" }
-  | { kind: "stickyChrome"; showTabs: boolean; sub: "search" | "weeks" | null }
+  | { kind: "stickyChrome"; showTabs: boolean; sub: "search" | "program" | null; showWeeks: boolean }
   | { kind: "customHeader" }
   | { kind: "customExercise"; raw: ICustomExercise; exercise: IExercise; key: string }
   | { kind: "builtinHeader" }
   | { kind: "builtinExercise"; exercise: IExercise; key: string }
   | { kind: "programGroup"; group: IProgramGroup }
-  | { kind: "programEmpty" }
+  | { kind: "programEmpty"; message: string }
   | { kind: "templateForm" };
 
 interface ITabDef {
@@ -229,8 +229,9 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
           exercises: exs,
         };
       })
-      .filter((g): g is IProgramGroup => g != null);
-  }, [currentWeek]);
+      .filter((g): g is IProgramGroup => g != null)
+      .filter((g) => !search || Exercise_matchesQuery({ name: g.name, equipment: g.exerciseType.equipment }, search));
+  }, [currentWeek, search]);
 
   const usedKeys = useMemo(() => new Set(usedExerciseTypes.map((et) => Exercise_toKey(et))), [usedExerciseTypes]);
 
@@ -383,13 +384,9 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
     const showTabs = tabs.length > 1;
 
     if (mode === "workout") {
-      const sub: "search" | "weeks" | null = isAdhocTab
-        ? "search"
-        : isFromProgramTab && weeks.length > 1
-          ? "weeks"
-          : null;
+      const sub: "search" | "program" | null = isAdhocTab ? "search" : isFromProgramTab ? "program" : null;
       if (showTabs || sub != null) {
-        result.push({ kind: "stickyChrome", showTabs, sub });
+        result.push({ kind: "stickyChrome", showTabs, sub, showWeeks: isFromProgramTab && weeks.length > 1 });
       }
     } else {
       if (showTabs) {
@@ -402,7 +399,9 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
 
     if (isFromProgramTab) {
       if (weeks.length === 0) {
-        result.push({ kind: "programEmpty" });
+        result.push({ kind: "programEmpty", message: "No weeks available in the program." });
+      } else if (programGroups.length === 0) {
+        result.push({ kind: "programEmpty", message: "No exercises match your search." });
       } else {
         for (const g of programGroups) {
           result.push({ kind: "programGroup", group: g });
@@ -505,7 +504,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
         return 92;
       case "stickyChrome": {
         const tabsHeight = item.showTabs ? 44 : 0;
-        const subHeight = item.sub === "search" ? 92 : item.sub === "weeks" ? 48 : 0;
+        const subHeight = item.sub === "search" ? 92 : item.sub === "program" ? 48 + (item.showWeeks ? 48 : 0) : 0;
         return tabsHeight + subHeight || 44;
       }
       case "customHeader":
@@ -689,8 +688,15 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
                   settings={settings}
                 />
               )}
-              {item.sub === "weeks" && (
-                <WeekTabsRow weeks={weeks} currentWeekIndex={currentWeekIndex} onChange={setCurrentWeekIndex} />
+              {item.sub === "program" && (
+                <>
+                  <View className="flex-row items-center mx-4 my-1">
+                    <SearchInput dispatch={dispatch} search={search} />
+                  </View>
+                  {item.showWeeks && (
+                    <WeekTabsRow weeks={weeks} currentWeekIndex={currentWeekIndex} onChange={setCurrentWeekIndex} />
+                  )}
+                </>
               )}
             </Animated.View>
           );
@@ -795,7 +801,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
         case "programEmpty":
           return (
             <View className="px-4 py-6">
-              <Text className="text-sm text-center text-text-secondary">No weeks available in the program.</Text>
+              <Text className="text-sm text-center text-text-secondary">{item.message}</Text>
             </View>
           );
         case "templateForm":
@@ -977,11 +983,11 @@ interface ISearchAndFilterProps {
   filters: IExercisePickerState["filters"];
 }
 
-const SearchAndFilter = memo(function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
-  const { dispatch, search, sort, filters, settings } = props;
-  const filterNames = useMemo(() => ExercisePickerUtils_getAllFilterNames(filters, settings), [filters, settings]);
-  const isFiltered = filterNames.length > 0;
-
+const SearchInput = memo(function SearchInput(props: {
+  dispatch: ILensDispatch<IExercisePickerState>;
+  search?: string;
+}): JSX.Element {
+  const { dispatch, search } = props;
   const [localSearch, setLocalSearch] = useState<string>(search ?? "");
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
@@ -1011,6 +1017,28 @@ const SearchAndFilter = memo(function SearchAndFilter(props: ISearchAndFilterPro
     [dispatch]
   );
 
+  return (
+    <View className="flex-row items-center flex-1 gap-2 p-2 rounded-lg bg-background-neutral">
+      <IconMagnifyingGlass size={18} color={Tailwind_colors().lightgray[600]} />
+      <TextInput
+        placeholder="Search by name"
+        placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
+        className="flex-1 text-sm text-text-secondary"
+        style={{ paddingVertical: 0, includeFontPadding: false }}
+        data-testid="exercise-filter-by-name"
+        testID="exercise-filter-by-name"
+        value={localSearch}
+        onChangeText={onChangeText}
+      />
+    </View>
+  );
+});
+
+const SearchAndFilter = memo(function SearchAndFilter(props: ISearchAndFilterProps): JSX.Element {
+  const { dispatch, search, sort, filters, settings } = props;
+  const filterNames = useMemo(() => ExercisePickerUtils_getAllFilterNames(filters, settings), [filters, settings]);
+  const isFiltered = filterNames.length > 0;
+
   const onFilterPress = useCallback(() => {
     dispatch(
       lb<IExercisePickerState>()
@@ -1028,19 +1056,7 @@ const SearchAndFilter = memo(function SearchAndFilter(props: ISearchAndFilterPro
   return (
     <View className="my-1">
       <View className="flex-row items-center gap-2 mx-4">
-        <View className="flex-row items-center flex-1 gap-2 p-2 rounded-lg bg-background-neutral">
-          <IconMagnifyingGlass size={18} color={Tailwind_colors().lightgray[600]} />
-          <TextInput
-            placeholder="Search by name"
-            placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
-            className="flex-1 text-sm text-text-secondary"
-            style={{ paddingVertical: 0, includeFontPadding: false }}
-            data-testid="exercise-filter-by-name"
-            testID="exercise-filter-by-name"
-            value={localSearch}
-            onChangeText={onChangeText}
-          />
-        </View>
+        <SearchInput dispatch={dispatch} search={search} />
         <Pressable
           className={`flex-row items-center gap-1 py-1 border rounded-lg ${
             isFiltered ? "border-button-secondarystroke px-2" : "px-4 border-border-neutral"
