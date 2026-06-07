@@ -165,3 +165,19 @@ export function WorkoutExerciseUtils_setsStatusToTextColor(status: ISetsStatus):
       return "text-gray-300";
   }
 }
+
+// Concrete-color twin of setsStatusToTextColor for FastText (which takes resolved colors,
+// not classNames). setsStatusToColor above is NOT it — that's the icon palette.
+export function WorkoutExerciseUtils_setsStatusToTextColorValue(status: ISetsStatus): string {
+  switch (status) {
+    case "success":
+      return Tailwind_colors().green[600];
+    case "in-range":
+      return Tailwind_colors().yellow[600];
+    case "failed":
+      return Tailwind_colors().red[600];
+    case "not-finished":
+      // Closest custom-palette match to text-gray-300 (Tailwind default palette, #d1d5db).
+      return Tailwind_colors().lightgray[200];
+  }
+}

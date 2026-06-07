@@ -24,8 +24,11 @@ import {
   WorkoutExerciseUtils_getBorderColor100,
   WorkoutExerciseUtils_getBgColor50,
   WorkoutExerciseUtils_getIconColor,
-  WorkoutExerciseUtils_setsStatusToTextColor,
+  WorkoutExerciseUtils_setsStatusToTextColorValue,
 } from "../utils/workoutExerciseUtils";
+import { FastText } from "./primitives/fastText";
+import { StyledText, StyledText_cls } from "../utils/styledText";
+import { useRem } from "../utils/useRem";
 import { SwipeableRow } from "./swipeableRow";
 import { CollectionUtils_removeAt } from "../utils/collection";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
@@ -452,76 +455,75 @@ interface IWorkoutExerciseSetTargetProps {
 }
 
 function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.Element {
+  const cls = StyledText_cls(useRem());
   switch (props.setType) {
-    case "warmup":
+    case "warmup": {
       const set = props.set;
+      const builder = new StyledText();
+      if (set.reps != null) {
+        builder.add(n(Math.max(0, set.reps)), cls("font-semibold"));
+      }
+      if (set.reps != null && set.weight != null) {
+        builder.add(" × ", cls("text-text-secondary"));
+      }
+      if (set.weight != null) {
+        builder.add(n(set.weight.value), cls("font-semibold"));
+        builder.add(set.weight.unit, cls("text-xs"));
+      }
+      const built = builder.build();
       return (
         <View>
           <Text className="text-xs text-text-secondary">Warmup</Text>
-          <View className="flex-row items-center">
-            {set.reps != null && <Text className="text-sm font-semibold">{n(Math.max(0, set.reps))}</Text>}
-            {set.reps != null && set.weight != null && <Text className="text-sm text-text-secondary"> × </Text>}
-            {set.weight != null && (
-              <Text className="text-sm">
-                <Text className="text-sm font-semibold">{n(set.weight.value)}</Text>
-                <Text className="text-xs text-text-primary">{set.weight.unit}</Text>
-              </Text>
-            )}
-          </View>
+          <FastText text={built.text} fragments={built.fragments} {...cls("text-sm text-text-primary")} />
         </View>
       );
+    }
     case "adhoc":
     case "program": {
       const aSet = props.set;
       const isDiffWeight = aSet.weight && aSet.originalWeight && !Weight_eq(aSet.weight, aSet.originalWeight);
       const hasTarget = aSet.reps != null || aSet.weight != null;
+      const builder = new StyledText();
+      if (aSet.reps != null) {
+        builder.add(
+          `${aSet.minReps != null ? `${n(Math.max(0, aSet.minReps))}-` : ""}${n(Math.max(0, aSet.reps))}${aSet.isAmrap ? "+" : ""}`,
+          cls("font-semibold text-syntax-reps")
+        );
+      }
+      if (aSet.reps != null && aSet.weight != null) {
+        builder.add(" × ", cls("text-text-secondary"));
+      }
+      if (aSet.originalWeight && aSet.weight) {
+        if (isDiffWeight) {
+          builder.add(n(aSet.originalWeight.value), cls("line-through text-text-secondary"));
+          builder.add(aSet.originalWeight.unit, cls("text-xs line-through text-text-secondary"));
+        } else {
+          builder.add(n(aSet.originalWeight.value), cls("font-semibold text-syntax-weight"));
+          builder.add(aSet.originalWeight.unit, cls("text-xs text-syntax-weight"));
+        }
+      }
+      if (aSet.weight && isDiffWeight) {
+        builder.add(" ");
+        builder.add(n(aSet.weight.value), cls("font-semibold text-syntax-weight"));
+        builder.add(aSet.weight.unit, cls("text-xs text-syntax-weight"));
+      }
+      builder.add(
+        `${aSet.originalWeight == null && aSet.askWeight ? " ?" : ""}${aSet.askWeight ? "+" : ""}${
+          aSet.rpe ? ` @${n(Math.max(0, aSet.rpe))}` : ""
+        }${aSet.rpe && aSet.logRpe ? "+" : ""}`,
+        cls("font-semibold text-syntax-rpe")
+      );
+      if (aSet.timer != null) {
+        builder.add(` ${n(aSet.timer)}`, cls("text-syntax-timer"));
+        builder.add("s", cls("text-xs text-syntax-timer"));
+      }
+      const built = builder.build();
       return (
         <View>
           {aSet.label ? <Text className="text-xs text-text-secondary">{aSet.label}</Text> : null}
           {props.setType === "adhoc" && <Text className="text-xs text-text-secondary">Ad-hoc</Text>}
           {hasTarget ? (
-            <View className="flex-row flex-wrap items-center">
-              {aSet.reps != null && (
-                <Text className="text-sm font-semibold text-syntax-reps">
-                  {aSet.minReps != null ? `${n(Math.max(0, aSet.minReps))}-` : null}
-                  {n(Math.max(0, aSet.reps))}
-                  {aSet.isAmrap ? "+" : ""}
-                </Text>
-              )}
-              {aSet.reps != null && aSet.weight != null && <Text className="text-sm text-text-secondary"> × </Text>}
-              {aSet.originalWeight && aSet.weight && (
-                <Text
-                  className={`text-sm ${isDiffWeight ? "line-through text-text-secondary" : "font-semibold text-syntax-weight"}`}
-                >
-                  {n(aSet.originalWeight.value)}
-                  <Text
-                    className={`text-xs font-normal ${isDiffWeight ? "text-text-secondary" : "text-syntax-weight"}`}
-                  >
-                    {aSet.originalWeight.unit}
-                  </Text>
-                </Text>
-              )}
-              {aSet.weight && isDiffWeight && (
-                <Text className="text-sm">
-                  {" "}
-                  <Text className="text-sm font-semibold text-syntax-weight">{n(aSet.weight.value)}</Text>
-                  <Text className="text-xs text-syntax-weight">{aSet.weight.unit}</Text>
-                </Text>
-              )}
-              <Text className="text-sm font-semibold text-syntax-rpe">
-                {aSet.originalWeight == null && aSet.askWeight ? " ?" : ""}
-                {aSet.askWeight ? "+" : ""}
-                {aSet.rpe ? ` @${n(Math.max(0, aSet.rpe))}` : null}
-                {aSet.rpe && aSet.logRpe ? "+" : ""}
-              </Text>
-              {aSet.timer != null ? (
-                <Text className="text-sm text-syntax-timer">
-                  {" "}
-                  {n(aSet.timer)}
-                  <Text className="text-xs text-syntax-timer">s</Text>
-                </Text>
-              ) : null}
-            </View>
+            <FastText text={built.text} fragments={built.fragments} {...cls("text-sm text-text-primary")} />
           ) : (
             <Text className="text-sm">None</Text>
           )}
@@ -536,33 +538,31 @@ interface IWorkoutExerciseLastSetProps {
 }
 
 function WorkoutExerciseLastSet(props: IWorkoutExerciseLastSetProps): JSX.Element {
+  const cls = StyledText_cls(useRem());
   const set = props.set;
   if (set == null) {
     return <Text className="text-xs text-text-secondary">No last set</Text>;
   }
-  const setStatus = Reps_setsStatus([set]);
+  const statusColor = WorkoutExerciseUtils_setsStatusToTextColorValue(Reps_setsStatus([set]));
+  const semibold = { ...cls("font-semibold"), color: statusColor };
+  const builder = new StyledText();
+  builder.add(set.completedReps != null ? n(set.completedReps) : "-", semibold);
+  builder.add(" × ", cls("text-text-secondary"));
+  builder.add(set.completedWeight ? set.completedWeight.value.toString() : "-", semibold);
+  builder.add(set.completedWeight?.unit, { ...cls("text-xs"), color: statusColor });
+  builder.add(
+    set.completedRpe != null
+      ? ` @${n(Math.max(0, set.completedRpe))}+`
+      : set.rpe != null
+        ? ` @${n(Math.max(0, set.rpe))}`
+        : "",
+    semibold
+  );
+  const built = builder.build();
   return (
     <View>
       {set.label ? <Text className="text-xs text-text-secondary">{set.label}</Text> : null}
-      <View className="flex-row items-center">
-        <Text className={`text-sm font-semibold ${WorkoutExerciseUtils_setsStatusToTextColor(setStatus)}`}>
-          {set.completedReps != null ? n(set.completedReps) : "-"}
-        </Text>
-        <Text className="text-sm text-text-secondary"> × </Text>
-        <Text className={`text-sm font-semibold ${WorkoutExerciseUtils_setsStatusToTextColor(setStatus)}`}>
-          {set.completedWeight ? set.completedWeight.value.toString() : "-"}
-          <Text className={`text-xs font-normal ${WorkoutExerciseUtils_setsStatusToTextColor(setStatus)}`}>
-            {set.completedWeight?.unit}
-          </Text>
-        </Text>
-        <Text className={`text-sm font-semibold ${WorkoutExerciseUtils_setsStatusToTextColor(setStatus)}`}>
-          {set.completedRpe != null
-            ? ` @${n(Math.max(0, set.completedRpe))}+`
-            : set.rpe != null
-              ? ` @${n(Math.max(0, set.rpe))}`
-              : ""}
-        </Text>
-      </View>
+      <FastText text={built.text} fragments={built.fragments} {...cls("text-sm text-text-primary")} />
     </View>
   );
 }
@@ -575,24 +575,23 @@ interface IRpeWeightHintProps {
 }
 
 function RpeWeightHint(props: IRpeWeightHintProps): JSX.Element {
+  const cls = StyledText_cls(useRem());
   const multiplier = Weight_rpeMultiplier(props.reps, props.rpe);
   const onerm = Exercise_onerm(props.exerciseType, props.settings);
   const weight = Weight_multiply(onerm, multiplier);
-  const semantic = Tailwind_semantic();
+  const builder = new StyledText();
+  builder.add(`${props.reps}`, cls("font-bold text-syntax-reps"));
+  builder.add(" × ");
+  builder.add(`@${props.rpe}`, cls("font-bold text-syntax-rpe"));
+  builder.add(" - ");
+  builder.add(`${n(multiplier * 100, 0)}%`, cls("font-bold text-text-primary"));
+  builder.add(" of 1RM - ");
+  builder.add(n(weight.value), cls("font-bold text-text-primary"));
+  builder.add(weight.unit);
+  const built = builder.build();
   return (
     <View>
-      <Text className="text-xs text-text-secondary">
-        <Text className="text-xs font-bold" style={{ color: semantic.syntax.reps }}>
-          {props.reps}
-        </Text>{" "}
-        ×{" "}
-        <Text className="text-xs font-bold" style={{ color: semantic.syntax.rpe }}>
-          @{props.rpe}
-        </Text>{" "}
-        - <Text className="text-xs font-bold text-text-primary">{n(multiplier * 100, 0)}%</Text> of 1RM -{" "}
-        <Text className="text-xs font-bold text-text-primary">{n(weight.value)}</Text>
-        <Text className="text-xs text-text-secondary">{weight.unit}</Text>
-      </Text>
+      <FastText text={built.text} fragments={built.fragments} {...cls("text-xs text-text-secondary")} />
     </View>
   );
 }
@@ -691,6 +690,7 @@ interface IWorkoutExerciseE1RMSetProps {
 }
 
 function WorkoutExerciseE1RMSet(props: IWorkoutExerciseE1RMSetProps): JSX.Element {
+  const cls = StyledText_cls(useRem());
   const set = props.set;
   const isCompleted = !!set.isCompleted;
   const weight = set.completedWeight ?? set.weight ?? set.originalWeight;
@@ -700,10 +700,13 @@ function WorkoutExerciseE1RMSet(props: IWorkoutExerciseE1RMSetProps): JSX.Elemen
     return <Text className="text-sm">Unknown</Text>;
   }
   const e1RM = Weight_getOneRepMax(weight, reps, rpe);
+  const built = new StyledText().add(n(e1RM.value), cls("font-semibold")).add(e1RM.unit, cls("text-xs")).build();
   return (
-    <Text className={`text-sm ${isCompleted ? "" : "opacity-40"}`}>
-      <Text className="font-semibold text-text-primary">{n(e1RM.value)}</Text>
-      <Text className="text-xs text-text-primary">{e1RM.unit}</Text>
-    </Text>
+    <FastText
+      text={built.text}
+      fragments={built.fragments}
+      {...cls("text-sm text-text-primary")}
+      style={isCompleted ? undefined : { opacity: 0.4 }}
+    />
   );
 }

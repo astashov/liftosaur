@@ -1,7 +1,7 @@
 import { memo } from "react";
 import type { JSX } from "react";
 import { View, Pressable } from "react-native";
-import { Text } from "../primitives/text";
+import { FastText } from "../primitives/fastText";
 import {
   IExercise,
   equipmentName,
@@ -19,6 +19,8 @@ import { IconEdit2 } from "../icons/iconEdit2";
 import { IconStar } from "../icons/iconStar";
 import { IconCheckCircle } from "../icons/iconCheckCircle";
 import { Muscle_getMusclesFromScreenMuscle, Muscle_getMuscleGroupName } from "../../models/muscle";
+import { StyledText, StyledText_cls } from "../../utils/styledText";
+import { useRem } from "../../utils/useRem";
 
 interface IExerciseItemProps {
   exercise: IExercise;
@@ -76,12 +78,7 @@ export const ExercisePickerExerciseItem = memo(function ExercisePickerExerciseIt
               />
             </View>
           )}
-          <Text className="text-sm">
-            <Text className="text-sm font-semibold">{e.name}</Text>
-            {exerciseType.equipment ? (
-              <Text className="text-sm text-text-secondary">{`, ${equipmentName(exerciseType.equipment)}`}</Text>
-            ) : null}
-          </Text>
+          <ExerciseNameLine name={e.name} equipment={exerciseType.equipment} />
         </Pressable>
         <Pressable
           data-testid={`custom-exercise-${StringUtils_dashcase(e.name)}`}
@@ -138,6 +135,33 @@ export const ExercisePickerExerciseItem = memo(function ExercisePickerExerciseIt
   );
 });
 
+function ExerciseNameLine(props: { name: string; equipment?: string }): JSX.Element {
+  const cls = StyledText_cls(useRem());
+  const builder = new StyledText();
+  builder.add(props.name, cls("font-semibold"));
+  if (props.equipment) {
+    builder.add(`, ${equipmentName(props.equipment)}`, cls("text-text-secondary"));
+  }
+  const built = builder.build();
+  return <FastText text={built.text} fragments={built.fragments} {...cls("text-sm text-text-primary")} />;
+}
+
+// One picker row renders up to three of these; collapsing each into a single FastText node
+// (instead of a nested <Text> per muscle) is the bulk of the picker's mount-time win.
+function LabeledItemsLine(props: { label: string; items: { text: string; isMatch?: boolean }[] }): JSX.Element {
+  const cls = StyledText_cls(useRem());
+  const semantic = Tailwind_semantic();
+  const semibold = cls("font-semibold");
+  const builder = new StyledText();
+  builder.add(`${props.label}: `, cls("text-text-secondary"));
+  props.items.forEach((item, i) => {
+    const color = item.isMatch == null ? undefined : item.isMatch ? semantic.text.success : semantic.text.error;
+    builder.add(`${item.text}${i !== props.items.length - 1 ? ", " : ""}`, { ...semibold, color });
+  });
+  const built = builder.build();
+  return <FastText text={built.text} fragments={built.fragments} {...cls("text-xs text-text-primary")} />;
+}
+
 function RadioIndicator(props: { checked: boolean }): JSX.Element {
   const color = Tailwind_semantic().icon.purple;
   return (
@@ -165,47 +189,24 @@ function MuscleView(props: {
 
   return (
     <View>
-      {types.length > 0 && (
-        <Text className="text-xs">
-          <Text className="text-xs text-text-secondary">Type: </Text>
-          <Text className="text-xs font-semibold">{types.join(", ")}</Text>
-        </Text>
-      )}
+      {types.length > 0 && <LabeledItemsLine label="Type" items={[{ text: types.join(", ") }]} />}
       {targetMuscles.length > 0 && (
-        <Text className="text-xs">
-          <Text className="text-xs text-text-secondary">Target: </Text>
-          <Text className="text-xs font-semibold">
-            {targetMuscles.map((m, i) => (
-              <Text
-                key={m}
-                className={`text-xs font-semibold ${
-                  tms.length === 0 ? "" : tms.indexOf(m) !== -1 ? "text-text-success" : "text-text-error"
-                }`}
-              >
-                {m}
-                {i !== targetMuscles.length - 1 ? ", " : ""}
-              </Text>
-            ))}
-          </Text>
-        </Text>
+        <LabeledItemsLine
+          label="Target"
+          items={targetMuscles.map((m) => ({
+            text: m,
+            isMatch: tms.length === 0 ? undefined : tms.indexOf(m) !== -1,
+          }))}
+        />
       )}
       {synergistMuscles.length > 0 && (
-        <Text className="text-xs">
-          <Text className="text-xs text-text-secondary">Synergist: </Text>
-          <Text className="text-xs font-semibold">
-            {synergistMuscles.map((m, i) => (
-              <Text
-                key={m}
-                className={`text-xs font-semibold ${
-                  sms.length === 0 ? "" : sms.indexOf(m) !== -1 ? "text-text-success" : "text-text-error"
-                }`}
-              >
-                {m}
-                {i !== synergistMuscles.length - 1 ? ", " : ""}
-              </Text>
-            ))}
-          </Text>
-        </Text>
+        <LabeledItemsLine
+          label="Synergist"
+          items={synergistMuscles.map((m) => ({
+            text: m,
+            isMatch: sms.length === 0 ? undefined : sms.indexOf(m) !== -1,
+          }))}
+        />
       )}
     </View>
   );
@@ -228,55 +229,30 @@ export function MuscleGroupsView(props: {
 
   return (
     <View>
-      {types.length > 0 && (
-        <Text className="text-xs">
-          <Text className="text-xs text-text-secondary">Type: </Text>
-          <Text className="text-xs font-semibold">{types.join(", ")}</Text>
-        </Text>
-      )}
+      {types.length > 0 && <LabeledItemsLine label="Type" items={[{ text: types.join(", ") }]} />}
       {targetMuscleGroups.length > 0 && (
-        <Text className="text-xs">
-          <Text className="text-xs text-text-secondary">Target: </Text>
-          <Text className="text-xs font-semibold">
-            {targetMuscleGroups.map((m, i) => {
-              const muscles = Muscle_getMusclesFromScreenMuscle(m, props.settings);
-              const doesContain = muscles.some((muscle) => tms.includes(muscle));
-              return (
-                <Text
-                  key={m}
-                  className={`text-xs font-semibold ${
-                    !props.currentExerciseType ? "" : doesContain ? "text-text-success" : "text-text-error"
-                  }`}
-                >
-                  {Muscle_getMuscleGroupName(m, props.settings)}
-                  {i !== targetMuscleGroups.length - 1 ? ", " : ""}
-                </Text>
-              );
-            })}
-          </Text>
-        </Text>
+        <LabeledItemsLine
+          label="Target"
+          items={targetMuscleGroups.map((m) => {
+            const muscles = Muscle_getMusclesFromScreenMuscle(m, props.settings);
+            return {
+              text: Muscle_getMuscleGroupName(m, props.settings),
+              isMatch: !props.currentExerciseType ? undefined : muscles.some((muscle) => tms.includes(muscle)),
+            };
+          })}
+        />
       )}
       {synergistMuscleGroups.length > 0 && (
-        <Text className="text-xs">
-          <Text className="text-xs text-text-secondary">Synergist: </Text>
-          <Text className="text-xs font-semibold">
-            {synergistMuscleGroups.map((m, i) => {
-              const muscles = Muscle_getMusclesFromScreenMuscle(m, props.settings);
-              const doesContain = props.currentExerciseType && muscles.some((muscle) => sms.includes(muscle));
-              return (
-                <Text
-                  key={m}
-                  className={`text-xs font-semibold ${
-                    !props.currentExerciseType ? "" : doesContain ? "text-text-success" : "text-text-error"
-                  }`}
-                >
-                  {Muscle_getMuscleGroupName(m, props.settings)}
-                  {i !== synergistMuscleGroups.length - 1 ? ", " : ""}
-                </Text>
-              );
-            })}
-          </Text>
-        </Text>
+        <LabeledItemsLine
+          label="Synergist"
+          items={synergistMuscleGroups.map((m) => {
+            const muscles = Muscle_getMusclesFromScreenMuscle(m, props.settings);
+            return {
+              text: Muscle_getMuscleGroupName(m, props.settings),
+              isMatch: !props.currentExerciseType ? undefined : muscles.some((muscle) => sms.includes(muscle)),
+            };
+          })}
+        />
       )}
     </View>
   );

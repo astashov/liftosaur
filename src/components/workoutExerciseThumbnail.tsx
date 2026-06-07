@@ -1,7 +1,9 @@
 import { JSX, memo, useCallback } from "react";
 import { View } from "react-native";
 import { Pressable } from "./primitives/pressable";
-import { Text } from "./primitives/text";
+import { FastText } from "./primitives/fastText";
+import { StyledText, StyledText_cls } from "../utils/styledText";
+import { useRem } from "../utils/useRem";
 import { Exercise_get } from "../models/exercise";
 import { Reps_setsStatus } from "../models/set";
 import { IHistoryEntry, ISettings } from "../types";
@@ -77,10 +79,7 @@ function WorkoutExerciseThumbnailInner(props: IWorkoutExerciseThumbnailProps): J
               <View style={{ position: "absolute", bottom: 0, right: 0, padding: 2 }}>
                 <View className="absolute inset-0 rounded-md bg-lightgray-50" style={{ opacity: 0.75 }} />
                 <View style={{ position: "relative", zIndex: 10 }}>
-                  <Text className="text-black">
-                    <Text className="text-xs font-semibold text-black">{completedSetsCount}</Text>/
-                    <Text className="text-xs font-semibold text-black">{totalSetsCount}</Text>
-                  </Text>
+                  <SetsProgressBadge completed={completedSetsCount} total={totalSetsCount} />
                 </View>
               </View>
             )
@@ -112,6 +111,13 @@ function WorkoutExerciseThumbnailInner(props: IWorkoutExerciseThumbnailProps): J
       ) : null}
     </View>
   );
+}
+
+function SetsProgressBadge(props: { completed: number; total: number }): JSX.Element {
+  const cls = StyledText_cls(useRem());
+  const counter = cls("text-xs font-semibold");
+  const built = new StyledText().add(`${props.completed}`, counter).add("/").add(`${props.total}`, counter).build();
+  return <FastText text={built.text} fragments={built.fragments} {...cls("text-base text-black")} />;
 }
 
 export const WorkoutExerciseThumbnail = memo(WorkoutExerciseThumbnailInner);
