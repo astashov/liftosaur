@@ -1,12 +1,22 @@
-import { IHistoryRecord, ICustomExercise, ISettings } from "../types";
+import { IHistoryRecord, ICustomExercise, ISettings, IWeight, VHistoryRecord } from "../types";
 import Papa from "papaparse";
-import { CollectionUtils_groupByKey } from "./collection";
+import { CollectionUtils_compact, CollectionUtils_groupByKey } from "./collection";
 import { ObjectUtils_values } from "./object";
 import { Exercise_findByName, Exercise_getIsUnilateral } from "../models/exercise";
 import { Weight_build } from "../models/weight";
 import { UidFactory_generateUid } from "./generator";
 import { Progress_getEntryId } from "../models/progress";
 import { History_generateId } from "../models/history";
+import { Storage_validate } from "../models/storage";
+import {
+  IImportResult,
+  IImportRowError,
+  ImportFileError,
+  ImportUtils_detectCsvKind,
+  ImportUtils_isSuspiciousReps,
+  ImportUtils_isSuspiciousTimestamp,
+  ImportUtils_isSuspiciousWeight,
+} from "./importTypes";
 
 const exerciseMapping: Partial<Record<string, [string, string | undefined]>> = {
   "21s Bicep Curl": ["Bicep Curl", "barbell"],
@@ -340,19 +350,117 @@ interface IHevyStruct {
   end_time: string;
   description: string;
   exercises: IHevyStructExercise[];
+  row: number;
 }
 
-export function ImportFromHevy_convertHevyCsvToHistoryRecords(
-  hevyCsvRaw: string,
-  settings: ISettings
-): {
-  historyRecords: IHistoryRecord[];
-  customExercises: Record<string, ICustomExercise>;
-} {
-  const hevyRecords = Papa.parse<IHevyRecord>(hevyCsvRaw, { header: true }).data;
+function parseHevyNumber(value: string | number | undefined | null): number | undefined {
+  if (value == null || `${value}`.trim() === "") {
+    return undefined;
+  }
+  const num = Number(`${value}`);
+  return isNaN(num) ? undefined : num;
+}
+
+// Leave the weight undefined when both columns are blank (bodyweight set) instead of fabricating 0kg.
+function buildHevyWeight(set: IHevyStructSet): IWeight | undefined {
+  if (set.weight_lbs != null) {
+    return Weight_build(set.weight_lbs, "lb");
+  }
+  if (set.weight_kg != null) {
+    return Weight_build(set.weight_kg, "kg");
+  }
+  return undefined;
+}
+
+function validateHevyRecord(record: IHevyRecord & { row: number }): IImportRowError | undefined {
+  if (parseHevyDate(record.start_time) == null) {
+    return {
+      row: record.row,
+      column: "start_time",
+      value: `${record.start_time ?? ""}`,
+      message: `"${record.start_time ?? ""}" is not a valid date`,
+    };
+  }
+  for (const column of ["reps", "weight_lbs", "weight_kg"] as const) {
+    const value = record[column];
+    if (value != null && `${value}`.trim() !== "" && isNaN(Number(`${value}`))) {
+      return { row: record.row, column, value: `${value}`, message: `"${value}" is not a number` };
+    }
+  }
+  return undefined;
+}
+
+function collectHevyWarnings(record: IHevyRecord & { row: number }, warnings: IImportRowError[]): void {
+  const startTs = parseHevyDate(record.start_time);
+  if (startTs != null && ImportUtils_isSuspiciousTimestamp(startTs)) {
+    warnings.push({
+      row: record.row,
+      column: "start_time",
+      value: `${record.start_time}`,
+      message: `"${record.start_time}" looks like an implausible workout date`,
+    });
+  }
+  for (const [column, unit] of [
+    ["weight_lbs", "lb"],
+    ["weight_kg", "kg"],
+  ] as const) {
+    const value = parseHevyNumber(record[column]);
+    if (value != null && ImportUtils_isSuspiciousWeight(value, unit)) {
+      warnings.push({
+        row: record.row,
+        column,
+        value: `${record[column]}`,
+        message: `${value} ${unit} looks like an implausible weight`,
+      });
+    }
+  }
+  const reps = parseHevyNumber(record.reps);
+  if (reps != null && ImportUtils_isSuspiciousReps(reps)) {
+    warnings.push({
+      row: record.row,
+      column: "reps",
+      value: `${record.reps}`,
+      message: `${reps} looks like an implausible rep count`,
+    });
+  }
+}
+
+export function ImportFromHevy_convertHevyCsvToHistoryRecords(hevyCsvRaw: string, settings: ISettings): IImportResult {
+  const parsed = Papa.parse<IHevyRecord>(hevyCsvRaw, { header: true, skipEmptyLines: true });
+  const kind = ImportUtils_detectCsvKind((parsed.meta.fields ?? []).map((f) => `${f}`));
+  if (kind === "liftosaur") {
+    throw new ImportFileError(
+      'This looks like a Liftosaur history CSV. Use "Import history from CSV file" in Settings instead.'
+    );
+  }
+  if (kind !== "hevy") {
+    throw new ImportFileError("This doesn't look like a Hevy workout export CSV.");
+  }
+  const hevyRecords = parsed.data.map((record, i) => ({ ...record, row: i + 2 }));
+  if (hevyRecords.length === 0) {
+    throw new ImportFileError("The file has no workout rows");
+  }
+
+  const errors: IImportRowError[] = [];
+  const warnings: IImportRowError[] = [];
+  const validRecords: (IHevyRecord & { row: number })[] = [];
+  for (const record of hevyRecords) {
+    const error = validateHevyRecord(record);
+    if (error) {
+      errors.push(error);
+    } else {
+      collectHevyWarnings(record, warnings);
+      validRecords.push(record);
+    }
+  }
+  if (validRecords.length < hevyRecords.length / 2) {
+    throw new ImportFileError(
+      `${errors.length} of ${hevyRecords.length} rows failed to parse - this doesn't look like a valid Hevy export.`
+    );
+  }
 
   const hevyWorkouts: IHevyStruct[] = [];
-  for (const workout of ObjectUtils_values(CollectionUtils_groupByKey(hevyRecords, "start_time"))) {
+  for (const workout of ObjectUtils_values(CollectionUtils_groupByKey(validRecords, "start_time"))) {
     if (!workout) {
       continue;
     }
@@ -370,14 +478,14 @@ export function ImportFromHevy_convertHevyCsvToHistoryRecords(
         exercise_title: exercise[0].exercise_title,
         exercise_notes: (exercise[0].exercise_notes || "").replace(/\\n/g, "\n"),
         warmupSets: warmupSets.map((set) => ({
-          weight_lbs: set.weight_lbs != null ? Number(`${set.weight_lbs}`) : undefined,
-          weight_kg: set.weight_kg != null ? Number(`${set.weight_kg}`) : undefined,
-          reps: Number(`${set.reps ?? 1}`),
+          weight_lbs: parseHevyNumber(set.weight_lbs),
+          weight_kg: parseHevyNumber(set.weight_kg),
+          reps: parseHevyNumber(set.reps) ?? 1,
         })),
         sets: sets.map((set) => ({
-          weight_lbs: set.weight_lbs != null ? Number(`${set.weight_lbs}`) : undefined,
-          weight_kg: set.weight_kg != null ? Number(`${set.weight_kg}`) : undefined,
-          reps: Number(`${set.reps ?? 1}`),
+          weight_lbs: parseHevyNumber(set.weight_lbs),
+          weight_kg: parseHevyNumber(set.weight_kg),
+          reps: parseHevyNumber(set.reps) ?? 1,
         })),
       });
     }
@@ -387,14 +495,23 @@ export function ImportFromHevy_convertHevyCsvToHistoryRecords(
       end_time: workout[0].end_time,
       description: (workout[0].description || "").replace(/\\n/g, "\n"),
       exercises: hevyExercises,
+      row: workout[0].row,
     });
   }
 
   const customExercises: Record<string, ICustomExercise> = {};
   const backMap: Partial<Record<string, string>> = {};
-  const historyRecords: IHistoryRecord[] = hevyWorkouts.map((hevyWorkout) => {
-    const startTs = parseHevyDate(hevyWorkout.start_time);
+  const historyRecords = hevyWorkouts.map((hevyWorkout): IHistoryRecord | undefined => {
+    const startTs = parseHevyDate(hevyWorkout.start_time)!;
     const endTs = parseHevyDate(hevyWorkout.end_time);
+    if (hevyWorkout.end_time && endTs == null) {
+      warnings.push({
+        row: hevyWorkout.row,
+        column: "end_time",
+        value: hevyWorkout.end_time,
+        message: `"${hevyWorkout.end_time}" is not a valid date, using the start time instead`,
+      });
+    }
     const entries = hevyWorkout.exercises.map((record, index) => {
       let exerciseNameAndEquipment = exerciseMapping[record.exercise_title];
       let exerciseId: string;
@@ -432,51 +549,51 @@ export function ImportFromHevy_convertHevyCsvToHistoryRecords(
         id: Progress_getEntryId({ id: exerciseId, equipment }, UidFactory_generateUid(3)),
         exercise: { id: exerciseId, equipment: equipment },
         index,
-        warmupSets: record.warmupSets.map((set, i) => ({
-          vtype: "set" as const,
-          id: UidFactory_generateUid(6),
-          index: i,
-          originalWeight:
-            set.weight_lbs != null ? Weight_build(set.weight_lbs ?? 0, "lb") : Weight_build(set.weight_kg ?? 0, "kg"),
-          weight:
-            set.weight_lbs != null ? Weight_build(set.weight_lbs ?? 0, "lb") : Weight_build(set.weight_kg ?? 0, "kg"),
-          completedWeight:
-            set.weight_lbs != null ? Weight_build(set.weight_lbs ?? 0, "lb") : Weight_build(set.weight_kg ?? 0, "kg"),
-          reps: set.reps ?? 1,
-          completedReps: set.reps ?? 1,
-          completedRepsLeft: isUnilateral ? set.reps : undefined,
-          isUnilateral,
-          isCompleted: true,
-          isAmrap: false,
-          timestamp: startTs,
-        })),
-        sets: record.sets.map((set, i) => ({
-          vtype: "set" as const,
-          id: UidFactory_generateUid(6),
-          index: i,
-          weight:
-            set.weight_lbs != null ? Weight_build(set.weight_lbs ?? 0, "lb") : Weight_build(set.weight_kg ?? 0, "kg"),
-          originalWeight:
-            set.weight_lbs != null ? Weight_build(set.weight_lbs ?? 0, "lb") : Weight_build(set.weight_kg ?? 0, "kg"),
-          completedWeight:
-            set.weight_lbs != null ? Weight_build(set.weight_lbs ?? 0, "lb") : Weight_build(set.weight_kg ?? 0, "kg"),
-          reps: set.reps ?? 1,
-          completedReps: set.reps ?? 1,
-          completedRepsLeft: isUnilateral ? set.reps : undefined,
-          isAmrap: false,
-          timestamp: startTs,
-          isUnilateral,
-          isCompleted: true,
-        })),
+        warmupSets: record.warmupSets.map((set, i) => {
+          const weight = buildHevyWeight(set);
+          return {
+            vtype: "set" as const,
+            id: UidFactory_generateUid(6),
+            index: i,
+            originalWeight: weight,
+            weight,
+            completedWeight: weight,
+            reps: set.reps ?? 1,
+            completedReps: set.reps ?? 1,
+            completedRepsLeft: isUnilateral ? set.reps : undefined,
+            isUnilateral,
+            isCompleted: true,
+            isAmrap: false,
+            timestamp: startTs,
+          };
+        }),
+        sets: record.sets.map((set, i) => {
+          const weight = buildHevyWeight(set);
+          return {
+            vtype: "set" as const,
+            id: UidFactory_generateUid(6),
+            index: i,
+            weight,
+            originalWeight: weight,
+            completedWeight: weight,
+            reps: set.reps ?? 1,
+            completedReps: set.reps ?? 1,
+            completedRepsLeft: isUnilateral ? set.reps : undefined,
+            isAmrap: false,
+            timestamp: startTs,
+            isUnilateral,
+            isCompleted: true,
+          };
+        }),
         notes: record.exercise_notes,
       };
     });
-    return {
+    const historyRecord: IHistoryRecord = {
       vtype: "history_record",
-      id: History_generateId(endTs ?? Date.now()),
-      date: new Date(endTs ?? Date.now()).toISOString(),
-      startTime: startTs ?? Date.now(),
-      endTime: endTs ?? Date.now(),
+      id: History_generateId(endTs ?? startTs),
+      date: new Date(endTs ?? startTs).toISOString(),
+      startTime: startTs,
+      endTime: endTs ?? startTs,
       dayName: hevyWorkout.title,
       programName: "Hevy",
       programId: "hevy",
@@ -484,7 +601,16 @@ export function ImportFromHevy_convertHevyCsvToHistoryRecords(
       notes: hevyWorkout.description,
       entries,
     };
+    const validation = Storage_validate(historyRecord, VHistoryRecord, "historyRecord");
+    if (!validation.success) {
+      errors.push({
+        row: hevyWorkout.row,
+        message: `Workout "${hevyWorkout.start_time}" failed validation: ${validation.error.join("; ")}`,
+      });
+      return undefined;
+    }
+    return historyRecord;
   });
 
-  return { historyRecords, customExercises };
+  return { historyRecords: CollectionUtils_compact(historyRecords), customExercises, errors, warnings };
 }

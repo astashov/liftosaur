@@ -15,7 +15,9 @@ import {
   IExerciseType,
   IEquipment,
   IStats,
+  IImportSession,
 } from "../types";
+import { IImportResult } from "../utils/importTypes";
 import { AsyncQueue } from "../utils/asyncQueue";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
 import type { NavigationContainerRef } from "@react-navigation/native";
@@ -158,6 +160,12 @@ export interface IState {
   editProgramStates: Record<string, IPlannerState>;
   editProgramExerciseStates: Record<string, IPlannerExerciseState>;
   playgroundState?: IProgramPreviewPlaygroundState;
+  importPreview?: IImportPreview;
+}
+
+export interface IImportPreview {
+  source: IImportSession["source"];
+  result: IImportResult;
 }
 
 export interface ILocalStorage {

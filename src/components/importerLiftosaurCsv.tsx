@@ -4,7 +4,7 @@ import { Text } from "./primitives/text";
 import { IDispatch } from "../ducks/types";
 import { MenuItemWrapper } from "./menuItem";
 import { Thunk_importCsvData } from "../ducks/thunks";
-import { FileImport_pickFile, FileImport_confirm } from "../utils/fileImport";
+import { FileImport_pickFile } from "../utils/fileImport";
 import { IconHelp } from "./icons/iconHelp";
 import { InternalLink } from "../internalLink";
 
@@ -20,10 +20,7 @@ export function ImporterLiftosaurCsv(props: IImporterLiftosaurCsvProps): JSX.Ele
     if (contents == null) {
       return;
     }
-    const ok = await FileImport_confirm("Importing new data WILL NOT wipe out your current data.");
-    if (ok) {
-      props.dispatch(Thunk_importCsvData(contents));
-    }
+    props.dispatch(Thunk_importCsvData(contents));
   }, [props.dispatch]);
 
   return (

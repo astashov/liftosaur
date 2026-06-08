@@ -15,7 +15,7 @@ import { InternalLink } from "../internalLink";
 import { IUser } from "../models/user";
 import { ClipboardUtils_copy } from "../utils/clipboard";
 import { Share_generateProfileLink } from "../models/share";
-import { ILengthUnit, ISettings, IStats, ISubscription, IUnit } from "../types";
+import { IImportSession, ILengthUnit, ISettings, IStats, ISubscription, IUnit } from "../types";
 import { WhatsNew_showWhatsNew } from "../models/whatsnewUtils";
 import { ImporterStorage } from "./importerStorage";
 import { ImporterProgram } from "./importerProgram";
@@ -53,6 +53,7 @@ interface IProps {
   user?: IUser;
   currentProgramName?: string;
   settings: ISettings;
+  importSessions?: IImportSession[];
   navCommon: INavCommon;
 }
 
@@ -484,6 +485,13 @@ function ScreenSettingsInner(props: IProps): JSX.Element {
           <Text className="text-base text-text-primary">Import history from other apps</Text>
         </View>
       </MenuItemWrapper>
+      {(props.importSessions ?? []).length > 0 && (
+        <MenuItem
+          shouldShowRightArrow={true}
+          name="Recent imports"
+          onClick={() => props.dispatch(Thunk_pushScreen("recentImports"))}
+        />
+      )}
 
       <GroupHeader name="Miscellaneous" topPadding={true} />
       <MenuItem name="Changelog" onClick={() => WhatsNew_showWhatsNew(props.dispatch)} />

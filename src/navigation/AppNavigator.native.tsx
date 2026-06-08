@@ -49,6 +49,8 @@ import {
   NavScreenMeasurements,
   NavScreenExerciseStats,
   NavScreenApiKeys,
+  NavScreenRecentImports,
+  NavScreenImportPreview,
 } from "./screens/NavScreenMe";
 import { Footer2Wrapper } from "./screens/NavScreenFooter2";
 import { NavModalMonthCalendar } from "./modals/NavModalMonthCalendar";
@@ -290,6 +292,8 @@ function MeStackScreen(): JSX.Element {
       <MeStack.Screen name="measurements" component={NavScreenMeasurements} />
       <MeStack.Screen name="exerciseStats" component={NavScreenExerciseStats} />
       <MeStack.Screen name="apiKeys" component={NavScreenApiKeys} />
+      <MeStack.Screen name="recentImports" component={NavScreenRecentImports} />
+      <MeStack.Screen name="importPreview" component={NavScreenImportPreview} />
       <MeStack.Screen name="programs" component={NavScreenPrograms} />
       <MeStack.Screen name="progress" component={NavScreenProgress} getId={({ params }) => String(params?.id ?? 0)} />
       <MeStack.Screen name="onerms" component={NavScreenOnerms} />

@@ -47,16 +47,16 @@ import {
   IWeight,
   IPercentage,
   ILength,
+  ICustomExercise,
+  IImportSession,
 } from "../types";
-import {
-  CollectionUtils_sortBy,
-  CollectionUtils_uniqBy,
-  CollectionUtils_compact,
-  CollectionUtils_setAt,
-} from "../utils/collection";
+import { CollectionUtils_compact, CollectionUtils_setAt } from "../utils/collection";
 import { ImportExporter_exportStorage, ImportExporter_getExportedProgram } from "../lib/importexporter";
 import { Storage_mergeStorage, Storage_isChanged, Storage_get, Storage_setAffiliate } from "../models/storage";
 import { History_exportAsCSV } from "../models/history";
+import { ImportSession_apply, ImportSession_findEditedRecordIds, ImportSession_undo } from "../models/importSession";
+import { ImportFileError } from "../utils/importTypes";
+import { StringUtils_pluralize } from "../utils/string";
 import { CSV_toString } from "../utils/csv";
 import { Exporter_toFile } from "../utils/exporter";
 import { DateUtils_formatYYYYMMDD, DateUtils_format } from "../utils/date";
@@ -110,6 +110,7 @@ import { lg, lgDebug } from "../utils/posthog";
 import { RollbarUtils_config } from "../utils/rollbar";
 import { UrlUtils_build } from "../utils/url";
 import { ImportFromLiftosaur_convertLiftosaurCsvToHistoryRecords } from "../utils/importFromLiftosaur";
+import { ImportFromHevy_convertHevyCsvToHistoryRecords } from "../utils/importFromHevy";
 import { Sync_getStorageUpdate2 } from "../utils/sync";
 import { ObjectUtils_values, ObjectUtils_filter, ObjectUtils_clone, ObjectUtils_omit } from "../utils/object";
 import { EditStats_uploadHealthStats } from "../models/editStats";
@@ -1383,40 +1384,125 @@ export function Thunk_importStorage(maybeStorage: string): IThunk {
   };
 }
 
+// Parsing a large CSV blocks the JS thread, so show the navbar spinner while it runs. The yield lets
+// the spinner paint before the synchronous parse starts (otherwise it wouldn't render until parsing
+// finishes). This does NOT use `load()` - that retries up to 3x, which would re-parse a bad file.
+async function importWithSpinner<T>(dispatch: IDispatch, cb: () => T): Promise<T> {
+  const name = UidFactory_generateUid(4);
+  updateState(
+    dispatch,
+    [lb<IState>().p("loading").p("items").p(name).record({ startTime: Date.now(), type: "Importing" })],
+    "Start import parse"
+  );
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 16));
+    return cb();
+  } finally {
+    updateState(
+      dispatch,
+      [lb<IState>().p("loading").p("items").pi(name).p("endTime").record(Date.now())],
+      "End import parse"
+    );
+  }
+}
+
 export function Thunk_importCsvData(rawCsv: string): IThunk {
   return async (dispatch, getState, env) => {
     try {
       dispatch(Thunk_postevent("import-csv-data"));
-      const { historyRecords, customExercises } = ImportFromLiftosaur_convertLiftosaurCsvToHistoryRecords(
-        rawCsv,
-        getState().storage.settings
+      const result = await importWithSpinner(dispatch, () =>
+        ImportFromLiftosaur_convertLiftosaurCsvToHistoryRecords(rawCsv, getState().storage.settings)
       );
+      if (result.historyRecords.length === 0) {
+        Dialog_alert("No workouts found in the file.");
+        return;
+      }
       updateState(
         dispatch,
-        [
-          lb<IState>()
-            .p("storage")
-            .p("history")
-            .recordModify((oldHistoryRecords) => {
-              return CollectionUtils_sortBy(
-                CollectionUtils_uniqBy(oldHistoryRecords.concat(historyRecords), "id"),
-                "id"
-              );
-            }),
-          lb<IState>()
-            .p("storage")
-            .p("settings")
-            .p("exercises")
-            .recordModify((oldExercises) => {
-              return { ...oldExercises, ...customExercises };
-            }),
-        ],
-        "Import Strong CSV data"
+        [lb<IState>().p("importPreview").record({ source: "liftosaurCsv", result })],
+        "Open import preview"
       );
+      dispatch(Thunk_pushScreen("importPreview"));
     } catch (e) {
-      console.error(e);
-      Dialog_alert("Couldn't parse the provided file");
+      if (e instanceof ImportFileError) {
+        Dialog_alert(e.message);
+      } else {
+        console.error(e);
+        Dialog_alert("Couldn't parse the provided file");
+      }
     }
+  };
+}
+
+export function Thunk_importHevyData(rawCsv: string): IThunk {
+  return async (dispatch, getState) => {
+    try {
+      dispatch(Thunk_postevent("import-hevy-data"));
+      const result = await importWithSpinner(dispatch, () =>
+        ImportFromHevy_convertHevyCsvToHistoryRecords(rawCsv, getState().storage.settings)
+      );
+      if (result.historyRecords.length === 0) {
+        Dialog_alert("No workouts found in the file.");
+        return;
+      }
+      updateState(
+        dispatch,
+        [lb<IState>().p("importPreview").record({ source: "hevy", result })],
+        "Open import preview"
+      );
+      dispatch(Thunk_pushScreen("importPreview"));
+    } catch (e) {
+      if (e instanceof ImportFileError) {
+        Dialog_alert(e.message);
+      } else {
+        console.error(e);
+        Rollbar.error(e as Error);
+        Dialog_alert("Failed to import history from Hevy.");
+      }
+    }
+  };
+}
+
+export function Thunk_undoImport(sessionId: string): IThunk {
+  return async (dispatch, getState) => {
+    const storage = getState().storage;
+    const session = (storage.importSessions ?? []).find((s) => s.id === sessionId);
+    if (session == null) {
+      return;
+    }
+    const editedCount = ImportSession_findEditedRecordIds(storage, session).length;
+    const editedWarning = editedCount > 0 ? ` ${editedCount} of them were edited after the import.` : "";
+    const sourceName = session.source === "hevy" ? "Hevy" : "CSV";
+    if (
+      !(await Dialog_confirm(
+        `Remove ${session.workoutCount} ${StringUtils_pluralize("workout", session.workoutCount)} imported from ${sourceName} on ${DateUtils_format(session.timestamp)}?${editedWarning}`
+      ))
+    ) {
+      return;
+    }
+    const undone = ImportSession_undo(getState().storage, sessionId);
+    if (undone != null) {
+      updateState(dispatch, [lb<IState>().p("storage").record(undone)], "Undo import");
+    }
+  };
+}
+
+export function Thunk_applyImport(
+  historyRecords: IHistoryRecord[],
+  customExercises: Record<string, ICustomExercise>,
+  source: IImportSession["source"]
+): IThunk {
+  return async (dispatch, getState) => {
+    const applied = ImportSession_apply(getState().storage, historyRecords, customExercises, source);
+    updateState(
+      dispatch,
+      [
+        lb<IState>().p("storage").p("history").record(applied.history),
+        lb<IState>().p("storage").p("settings").p("exercises").record(applied.exercises),
+        lb<IState>().p("storage").p("importSessions").record(applied.importSessions),
+      ],
+      `Import history from ${source === "hevy" ? "Hevy" : "CSV"}`
+    );
   };
 }
 

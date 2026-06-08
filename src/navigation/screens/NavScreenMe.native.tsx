@@ -17,6 +17,8 @@ import { ScreenMeasurements as ScreenMeasurementsComponent } from "../../compone
 import { ScreenStats as ScreenStatsComponent } from "../../components/screenStats";
 import { ScreenExercises as ScreenExercisesComponent } from "../../components/screenExercises";
 import { ScreenExerciseStats as ScreenExerciseStatsComponent } from "../../components/screenExerciseStats";
+import { ScreenRecentImports as ScreenRecentImportsComponent } from "../../components/screenRecentImports";
+import { ScreenImportPreview as ScreenImportPreviewComponent } from "../../components/screenImportPreview";
 import { Program_getProgram } from "../../models/program";
 import { Exercise_find, Exercise_toKey } from "../../models/exercise";
 import { Equipment_getEquipmentOfGym } from "../../models/equipment";
@@ -59,6 +61,7 @@ export function NavScreenSettings(): React.JSX.Element {
           user={user}
           currentProgramName={currentProgram?.name || ""}
           settings={settings}
+          importSessions={untrack(state.storage.importSessions)}
         />
       </NavScreenContent>
     </View>
@@ -308,6 +311,37 @@ export function NavScreenApiKeys(): React.JSX.Element {
           userId={state.user?.id}
         />
       </NavScreenContent>
+    </View>
+  );
+}
+
+export function NavScreenRecentImports(): React.JSX.Element {
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  return (
+    <View className="flex-1 bg-background-default">
+      <NavScreenContent>
+        <ScreenRecentImportsComponent dispatch={dispatch} importSessions={untrack(state.storage.importSessions)} />
+      </NavScreenContent>
+    </View>
+  );
+}
+
+export function NavScreenImportPreview(): React.JSX.Element {
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  const preview = untrack(state.importPreview);
+  if (preview == null) {
+    return <View className="flex-1 bg-background-default" />;
+  }
+  return (
+    <View className="flex-1 bg-background-default">
+      <ScreenImportPreviewComponent
+        dispatch={dispatch}
+        preview={preview}
+        history={untrack(state.storage.history)}
+        settings={untrack(state.storage.settings)}
+      />
     </View>
   );
 }

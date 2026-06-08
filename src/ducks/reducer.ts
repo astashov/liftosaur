@@ -69,8 +69,7 @@ import { SendMessage_isIos } from "../utils/sendMessage";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { EditProgramUiHelpers_getChangedKeys } from "../components/editProgram/editProgramUi/editProgramUiHelpers";
-import { c } from "../utils/types";
-import { ICollectionVersions } from "../models/versionTracker";
+import { History_deleteRecords } from "../models/history";
 import { lg, lgDebug } from "../utils/posthog";
 import { Equipment_getCurrentGym, Equipment_getEquipmentIdForExerciseType } from "../models/equipment";
 import { Stats_getCurrentMovingAverageBodyweight } from "../models/stats";
@@ -699,32 +698,23 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
   } else if (action.type === "DeleteProgress") {
     const progress = Progress_getProgressById(state, action.id);
     if (progress != null) {
-      const history = state.storage.history.filter((h) => h.id !== progress.id);
       if (Progress_isCurrent(progress)) {
         NativeWorkoutBridge_discardWorkout();
         NativeWatchBridge_sendDiscardWorkoutToWatch();
         NativeWorkoutMirroring_resetWatchWorkoutState();
+        return {
+          ...state,
+          storage: {
+            ...state.storage,
+            history: state.storage.history.filter((h) => h.id !== progress.id),
+            progress: [],
+          },
+        };
       }
       return {
         ...state,
-        storage: {
-          ...state.storage,
-          history,
-          ...(Progress_isCurrent(progress) ? { progress: [] } : {}),
-          _versions: !Progress_isCurrent(progress)
-            ? {
-                ...state.storage._versions,
-                history: {
-                  ...c<ICollectionVersions>(state.storage._versions?.history || {}),
-                  deleted: {
-                    ...c<ICollectionVersions>(state.storage._versions?.history || {}).deleted,
-                    [progress.id]: Date.now(),
-                  },
-                },
-              }
-            : state.storage._versions,
-        },
-        progress: Progress_isCurrent(progress) ? state.progress : Progress_stop(state.progress, progress.id),
+        storage: History_deleteRecords(state.storage, [progress.id]),
+        progress: Progress_stop(state.progress, progress.id),
       };
     } else {
       return state;

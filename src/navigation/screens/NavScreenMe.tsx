@@ -1,4 +1,5 @@
 import { JSX, useMemo } from "react";
+import { View } from "react-native";
 import { useRoute } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { buildNavCommon } from "../utils";
@@ -16,6 +17,8 @@ import { ScreenMuscleGroups as ScreenMuscleGroupsComponent } from "../../compone
 import { ScreenStats as ScreenStatsComponent } from "../../components/screenStats";
 import { ScreenMeasurements as ScreenMeasurementsComponent } from "../../components/screenMeasurements";
 import { ScreenExerciseStats as ScreenExerciseStatsComponent } from "../../components/screenExerciseStats";
+import { ScreenRecentImports as ScreenRecentImportsComponent } from "../../components/screenRecentImports";
+import { ScreenImportPreview as ScreenImportPreviewComponent } from "../../components/screenImportPreview";
 import { Program_getProgram } from "../../models/program";
 import { Exercise_find, Exercise_toKey } from "../../models/exercise";
 import { Equipment_getEquipmentOfGym } from "../../models/equipment";
@@ -55,6 +58,7 @@ export function NavScreenSettings(): JSX.Element {
         user={user}
         currentProgramName={currentProgram?.name || ""}
         settings={settings}
+        importSessions={state.storage.importSessions}
       />
     </NavScreenContent>
   );
@@ -252,5 +256,32 @@ export function NavScreenApiKeys(): JSX.Element {
         userId={state.user?.id}
       />
     </NavScreenContent>
+  );
+}
+
+export function NavScreenRecentImports(): JSX.Element {
+  const { state, dispatch } = useAppState();
+  return (
+    <NavScreenContent>
+      <ScreenRecentImportsComponent dispatch={dispatch} importSessions={state.storage.importSessions} />
+    </NavScreenContent>
+  );
+}
+
+export function NavScreenImportPreview(): JSX.Element {
+  const { state, dispatch } = useAppState();
+  const preview = state.importPreview;
+  if (preview == null) {
+    return <View className="flex-1 bg-background-default" />;
+  }
+  return (
+    <View className="flex-1 bg-background-default">
+      <ScreenImportPreviewComponent
+        dispatch={dispatch}
+        preview={preview}
+        history={state.storage.history}
+        settings={state.storage.settings}
+      />
+    </View>
   );
 }

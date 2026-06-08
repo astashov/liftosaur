@@ -64,6 +64,8 @@ export type IMeStackParamList = {
   measurements: { key: IStatsKey } | undefined;
   exerciseStats: undefined;
   apiKeys: undefined;
+  recentImports: undefined;
+  importPreview: undefined;
   programs: undefined;
   programPreview: undefined;
   progress: { id?: number } | undefined;

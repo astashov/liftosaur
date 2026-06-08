@@ -1599,6 +1599,28 @@ const _VAffiliateDataMatches: IEquals<v.InferOutput<typeof _VAffiliateData>, IAf
 void _VAffiliateDataMatches;
 export const VAffiliateData: v.GenericSchema<IAffiliateData> = _VAffiliateData;
 
+export interface IImportSession {
+  vtype: "import_session";
+  id: string;
+  timestamp: number;
+  source: "hevy" | "liftosaurCsv";
+  historyRecordIds: number[];
+  customExerciseIds: string[];
+  workoutCount: number;
+}
+const _VImportSession = v.object({
+  vtype: v.literal("import_session"),
+  id: v.string(),
+  timestamp: v.number(),
+  source: v.union([v.literal("hevy"), v.literal("liftosaurCsv")]),
+  historyRecordIds: v.array(v.number()),
+  customExerciseIds: v.array(v.string()),
+  workoutCount: v.number(),
+});
+const _VImportSessionMatches: IEquals<v.InferOutput<typeof _VImportSession>, IImportSession> = true;
+void _VImportSessionMatches;
+export const VImportSession: v.GenericSchema<IImportSession> = _VImportSession;
+
 interface IStorageRaw {
   history: IHistoryRecord[];
   deletedHistory: number[];
@@ -1622,6 +1644,7 @@ interface IStorageRaw {
   id?: number;
   referrer?: string;
   attribution?: string;
+  importSessions?: IImportSession[];
   _versions?: unknown;
 }
 const _VStorage = v.object({
@@ -1647,6 +1670,7 @@ const _VStorage = v.object({
   id: v.optional(v.number()),
   referrer: v.optional(v.string()),
   attribution: v.optional(v.string()),
+  importSessions: v.optional(v.array(VImportSession)),
   _versions: v.optional(v.unknown()),
 });
 const _VStorageMatches: IEquals<v.InferOutput<typeof _VStorage>, IStorageRaw> = true;
@@ -1718,6 +1742,7 @@ export const ATOMIC_TYPES = [
   "subscription_receipt",
   "affiliate",
   "muscle_groups_settings",
+  "import_session",
 ] as const;
 
 export type IAtomicType = (typeof ATOMIC_TYPES)[number];
@@ -1777,6 +1802,7 @@ export const TYPE_ID_MAPPING: Record<IAtomicType | IControlledType, string> = {
   graph: "id",
   graphs: "id",
   muscle_groups_settings: "vtype",
+  import_session: "id",
 };
 
 export const DICTIONARY_FIELDS = [

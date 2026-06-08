@@ -14,6 +14,24 @@
 -->
 
 ---
+date: 2026-06-08
+title: Improved import history flow
+---
+
+Import history although a pretty rarely used feature - is one of the most dangerous. With slightly wrong CSV file,
+you can massively mess up your workout history, and cleaning it up or restoring the account may be hard and painful.
+
+Now that functionality is way less destructive. When you import Liftosaur CSV or Hevy CSV, it'll show you
+a preview screen, where it will display:
+
+* The workout history preview - the way you'd see it on the Home screen
+* Warnings - like if some weights or reps look suspicious, if there are duplicated workouts, if dates look wrong, etc
+* Summary stats - like how many workouts, exercises, sets, etc would be imported
+* The list of custom exercises that would be created by the import
+
+And after your import it - there's still a way to "undo" the import - you can go to Me -> Recent Imports, and there you'll see the list of 5 last imports, with the option to undo each of them. Undoing the import would remove all workouts that were imported in that import, as well as custom exercises that were created in that import (unless they already used in other workouts or programs).
+
+---
 date: 2026-05-31
 title: New native iOS and Android apps
 ---

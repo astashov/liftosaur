@@ -3,17 +3,10 @@ import { View } from "react-native";
 import { Text } from "./primitives/text";
 import { GroupHeader } from "./groupHeader";
 import { MenuItemWrapper } from "./menuItem";
-import { ImportFromHevy_convertHevyCsvToHistoryRecords } from "../utils/importFromHevy";
 import { IDispatch } from "../ducks/types";
-import { IState, updateState } from "../models/state";
-import { lb } from "lens-shmens";
-import { CollectionUtils_sortBy, CollectionUtils_uniqBy } from "../utils/collection";
-import RB from "rollbar";
-import { ICustomExercise, IHistoryRecord, ISettings } from "../types";
-import { Dialog_alert, Dialog_confirm } from "../utils/dialog";
+import { Thunk_importHevyData } from "../ducks/thunks";
+import { ISettings } from "../types";
 import { FileImport_pickFile } from "../utils/fileImport";
-
-declare let Rollbar: RB;
 
 interface IModalImportFromOtherAppsContentProps {
   settings: ISettings;
@@ -27,48 +20,11 @@ export function ModalImportFromOtherAppsContent(props: IModalImportFromOtherApps
     if (contents == null) {
       return;
     }
-    let historyRecords: IHistoryRecord[];
-    let customExercises: Record<string, ICustomExercise>;
-    try {
-      const result = ImportFromHevy_convertHevyCsvToHistoryRecords(contents, props.settings);
-      historyRecords = result.historyRecords;
-      customExercises = result.customExercises;
-    } catch (error) {
-      const e = error as Error;
-      console.error(e);
-      Rollbar.error(e);
-      historyRecords = [];
-      customExercises = {};
-      Dialog_alert("Failed to import history from Hevy.");
-    }
-    if (historyRecords.length > 0) {
-      if (await Dialog_confirm(`Do you want to import ${historyRecords.length} workouts?`)) {
-        updateState(
-          props.dispatch,
-          [
-            lb<IState>()
-              .p("storage")
-              .p("history")
-              .recordModify((oldHistoryRecords) => {
-                return CollectionUtils_sortBy(
-                  CollectionUtils_uniqBy(oldHistoryRecords.concat(historyRecords), "id"),
-                  "id"
-                );
-              }),
-            lb<IState>()
-              .p("storage")
-              .p("settings")
-              .p("exercises")
-              .recordModify((oldExercises) => {
-                return { ...oldExercises, ...customExercises };
-              }),
-          ],
-          "Import Hevy workouts"
-        );
-      }
-    }
     props.onClose();
-  }, [props.settings, props.dispatch, props.onClose]);
+    // The pushed screen inherits the modal's bounded container if navigation happens before the
+    // modal finishes closing, so delay the dispatch
+    setTimeout(() => props.dispatch(Thunk_importHevyData(contents)), 50);
+  }, [props.dispatch, props.onClose]);
 
   return (
     <View>

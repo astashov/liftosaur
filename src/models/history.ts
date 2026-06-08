@@ -34,6 +34,7 @@ import {
   ISettings,
   IScreenMuscle,
   IIntervals,
+  IStorage,
 } from "../types";
 import { Collector, ICollectorFn } from "../utils/collector";
 import {
@@ -77,6 +78,11 @@ export interface IHistoryEntryPersonalRecords {
 
 export function History_generateId(timestamp: number): number {
   return timestamp + Math.floor(Math.random() * 1000);
+}
+
+export function History_deleteRecords(storage: IStorage, ids: number[]): IStorage {
+  const idSet = new Set(ids);
+  return { ...storage, history: storage.history.filter((h) => !idSet.has(h.id)) };
 }
 
 export function History_createCustomEntry(exerciseType: IExerciseType, index: number): IHistoryEntry {
