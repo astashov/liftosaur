@@ -8,6 +8,8 @@ interface IProps {
   adminKey: string;
   userDao: IUserDashboardData | undefined;
   events: IEventPayload[];
+  nextBefore?: number;
+  hasMore: boolean;
 }
 
 export function UserDashboardHtml(props: IProps): JSX.Element {

@@ -1560,7 +1560,7 @@ const getDashboardsUserHandler: RouteHandler<
     const userDao = new UserDao(di);
     const eventDao = new EventDao(di);
     const user = await userDao.getById(match.params.userid);
-    const events = await eventDao.getByUserId(match.params.userid);
+    const { events, nextBefore, hasMore } = await eventDao.getByUserIdByDays(match.params.userid, 1);
     if (user != null || events.length > 0) {
       const firstWorkoutDate =
         user && user.storage.history.length > 0
@@ -1581,7 +1581,9 @@ const getDashboardsUserHandler: RouteHandler<
                 programNames: user.storage.programs.map((p) => p.name),
               }
             : undefined,
-          events
+          events,
+          nextBefore,
+          hasMore
         ),
         headers: { "content-type": "text/html" },
       };
@@ -1591,6 +1593,30 @@ const getDashboardsUserHandler: RouteHandler<
   } else {
     return ResponseUtils_json(401, event, { data: "Unauthorized" });
   }
+};
+
+const getDashboardsUserEventsEndpoint = Endpoint.build("/dashboards/user/:userid/events", {
+  key: "string",
+  before: "number?",
+  days: "number?",
+});
+const getDashboardsUserEventsHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getDashboardsUserEventsEndpoint
+> = async ({ payload, match }) => {
+  const { event, di } = payload;
+  const apiKey = await di.secrets.getApiKey();
+  if (match.params.key !== apiKey) {
+    return ResponseUtils_json(401, event, { data: "Unauthorized" });
+  }
+  const eventDao = new EventDao(di);
+  const { events, nextBefore, hasMore } = await eventDao.getByUserIdByDays(
+    match.params.userid,
+    match.params.days ?? 4,
+    match.params.before
+  );
+  return ResponseUtils_json(200, event, { events, nextBefore, hasMore });
 };
 
 const getDashboardsPaymentsEndpoint = Endpoint.build("/dashboards/payments", { key: "string" });
@@ -3210,6 +3236,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .get(getRepMaxEndpoint, getRepMaxHandler)
       .post(postReceiveAdAttrEndpoint, postReceiveAdAttrHandler)
       .post(postEventEndpoint, postEventHandler)
+      .get(getDashboardsUserEventsEndpoint, getDashboardsUserEventsHandler)
       .get(getDashboardsUserEndpoint, getDashboardsUserHandler)
       .get(getDashboardsPaymentsEndpoint, getDashboardsPaymentsHandler)
       .post(postBatchEventsEndpoint, postBatchEventsHandler)

@@ -1,5 +1,5 @@
 import { IEventPayload } from "../../src/api/service";
-import { DateUtils_formatYYYYMMDDHHMM } from "../../src/utils/date";
+import { DateUtils_formatYYYYMMDD, DateUtils_formatYYYYMMDDHHMM } from "../../src/utils/date";
 import { IStorageUpdate2 } from "../../src/utils/sync";
 import { Utils_getEnv } from "../utils";
 import { IDI } from "../utils/di";
@@ -70,6 +70,54 @@ export class EventDao {
       attrs: { "#userId": "userId" },
       values: { ":userid": userid },
     });
+  }
+
+  public async getByUserIdByDays(
+    userid: string,
+    numDays: number,
+    before?: number
+  ): Promise<{ events: IEventPayload[]; nextBefore?: number; hasMore: boolean }> {
+    const env = Utils_getEnv();
+    const pageSize = 200;
+    const maxEvents = 4000;
+
+    const collected: IEventPayload[] = [];
+    const days = new Set<string>();
+    let cursor = before;
+
+    while (true) {
+      const hasCursor = cursor != null;
+      const page = await this.di.dynamo.query<IEventPayload>({
+        tableName: eventsTableNames[env].events,
+        expression: hasCursor ? "#userId = :userid AND #timestamp < :cursor" : "#userId = :userid",
+        scanIndexForward: false,
+        limit: pageSize,
+        attrs: hasCursor ? { "#userId": "userId", "#timestamp": "timestamp" } : { "#userId": "userId" },
+        values: hasCursor ? { ":userid": userid, ":cursor": cursor } : { ":userid": userid },
+      });
+      if (page.length === 0) {
+        return { events: collected, hasMore: false };
+      }
+
+      for (const event of page) {
+        const day = DateUtils_formatYYYYMMDD(event.timestamp);
+        if (!days.has(day)) {
+          if (days.size >= numDays) {
+            return { events: collected, nextBefore: event.timestamp + 1, hasMore: true };
+          }
+          days.add(day);
+        }
+        collected.push(event);
+        if (collected.length >= maxEvents) {
+          return { events: collected, nextBefore: event.timestamp, hasMore: true };
+        }
+      }
+
+      if (page.length < pageSize) {
+        return { events: collected, hasMore: false };
+      }
+      cursor = page[page.length - 1].timestamp;
+    }
   }
 
   public scanByName(name: string): Promise<IEventPayload[]> {

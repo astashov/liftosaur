@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import { JSX, useState } from "react";
 import { IEventPayload } from "../../api/service";
 import { CollectionUtils_groupByExpr, CollectionUtils_sort, CollectionUtils_sortBy } from "../../utils/collection";
 import { DateUtils_formatYYYYMMDD, DateUtils_formatHHMMSS } from "../../utils/date";
@@ -8,6 +8,8 @@ export interface IUserDashboardContentProps {
   adminKey: string;
   userDao: IUserDashboardData | undefined;
   events: IEventPayload[];
+  nextBefore?: number;
+  hasMore: boolean;
 }
 
 export interface IUserDashboardData {
@@ -18,9 +20,37 @@ export interface IUserDashboardData {
   firstWorkoutDate?: string;
 }
 
+interface IEventsPage {
+  events: IEventPayload[];
+  nextBefore?: number;
+  hasMore: boolean;
+}
+
 export function UserDashboardContent(props: IUserDashboardContentProps): JSX.Element {
-  const { userDao, events: allEvents } = props;
-  const userId = userDao ? userDao.id : (allEvents[0].userId ?? "");
+  const { userDao } = props;
+  const userId = userDao ? userDao.id : (props.events[0]?.userId ?? "");
+
+  const [allEvents, setAllEvents] = useState<IEventPayload[]>(props.events);
+  const [nextBefore, setNextBefore] = useState<number | undefined>(props.nextBefore);
+  const [hasMore, setHasMore] = useState<boolean>(props.hasMore);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  async function loadMore(): Promise<void> {
+    if (isLoading || !hasMore || nextBefore == null) {
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const url = `/dashboards/user/${userId}/events?key=${encodeURIComponent(props.adminKey)}&before=${nextBefore}&days=4`;
+      const response = await fetch(url);
+      const page = (await response.json()) as IEventsPage;
+      setAllEvents((prev) => prev.concat(page.events));
+      setNextBefore(page.nextBefore);
+      setHasMore(page.hasMore);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
   const groupedEvents = CollectionUtils_groupByExpr(allEvents, (event) => DateUtils_formatYYYYMMDD(event.timestamp));
 
@@ -95,6 +125,18 @@ export function UserDashboardContent(props: IUserDashboardContentProps): JSX.Ele
             </div>
           );
         })}
+
+      {hasMore && (
+        <div className="my-4 text-center">
+          <button
+            disabled={isLoading}
+            onClick={loadMore}
+            className="px-4 py-2 font-bold rounded-lg bg-background-subtle text-text-link disabled:opacity-50"
+          >
+            {isLoading ? "Loading..." : "Load More"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

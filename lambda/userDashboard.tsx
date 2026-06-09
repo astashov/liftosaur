@@ -7,7 +7,18 @@ export function renderUserDashboardHtml(
   client: Window["fetch"],
   adminKey: string,
   userDao: IUserDashboardData | undefined,
-  events: IEventPayload[]
+  events: IEventPayload[],
+  nextBefore: number | undefined,
+  hasMore: boolean
 ): string {
-  return renderPage(<UserDashboardHtml client={client} adminKey={adminKey} userDao={userDao} events={events} />);
+  return renderPage(
+    <UserDashboardHtml
+      client={client}
+      adminKey={adminKey}
+      userDao={userDao}
+      events={events}
+      nextBefore={nextBefore}
+      hasMore={hasMore}
+    />
+  );
 }
