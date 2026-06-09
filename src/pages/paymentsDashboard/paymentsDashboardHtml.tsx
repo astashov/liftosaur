@@ -1,13 +1,20 @@
 import type { JSX } from "react";
 import { Page } from "../../components/page";
-import { IPaymentsDashboardData, IPaymentsDashboardUserAffiliate } from "../../../lambda/paymentsDashboard";
+import {
+  IPaymentsDashboardData,
+  IPaymentsDashboardUserAffiliate,
+  IPaymentsSummary,
+} from "../../../lambda/paymentsDashboard";
 import { PaymentsDashboardContent } from "./paymentsDashboardContent";
 
 export interface IPaymentsDashboardHtmlProps {
   paymentsData: IPaymentsDashboardData[];
   userAffiliates: Partial<Record<string, IPaymentsDashboardUserAffiliate>>;
+  summary: IPaymentsSummary;
   apiKey: string;
   client: Window["fetch"];
+  nextBefore: number;
+  hasMore: boolean;
 }
 
 export function PaymentsDashboardHtml(props: IPaymentsDashboardHtmlProps): JSX.Element {

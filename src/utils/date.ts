@@ -203,6 +203,16 @@ export function DateUtils_yearAndMonth(date: Date | string | number): [number, n
   return [d.getUTCFullYear(), d.getUTCMonth()];
 }
 
+export function DateUtils_startOfUTCMonth(date: Date | string | number): number {
+  const d = new Date(date);
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1);
+}
+
+export function DateUtils_addUTCMonths(timestamp: number, months: number): number {
+  const d = new Date(timestamp);
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + months, 1);
+}
+
 export function DateUtils_dayOfWeekStr(date: string): string {
   const d = new Date(DateUtils_fromYYYYMMDDStr(date));
   return d.toLocaleDateString(undefined, { weekday: "long" });

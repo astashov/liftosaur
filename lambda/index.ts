@@ -57,7 +57,13 @@ import { AffiliateDao } from "./dao/affiliateDao";
 import { renderAffiliateDashboardHtml } from "./affiliateDashboard";
 import { renderUserAffiliatesHtml } from "./userAffiliates";
 import { renderUsersDashboardHtml } from "./usersDashboard";
-import { DateUtils_formatYYYYMMDD, DateUtils_formatUTCYYYYMMDD, DateUtils_yearAndMonth } from "../src/utils/date";
+import {
+  DateUtils_formatYYYYMMDD,
+  DateUtils_formatUTCYYYYMMDD,
+  DateUtils_yearAndMonth,
+  DateUtils_startOfUTCMonth,
+  DateUtils_addUTCMonths,
+} from "../src/utils/date";
 import { IUsersDashboardData } from "../src/pages/usersDashboard/usersDashboardContent";
 import { Mobile_isMobile } from "./utils/mobile";
 import { renderAffiliatesHtml } from "./affiliates";
@@ -97,14 +103,16 @@ import { DocDao } from "./dao/docDao";
 import { renderRepMaxHtml } from "./repmax";
 import { MathUtils_toWord } from "../src/utils/math";
 import { EventDao } from "./dao/eventDao";
-import { PaymentDao } from "./dao/paymentDao";
+import { PaymentDao, IPaymentDao } from "./dao/paymentDao";
 import { StorageDao } from "./dao/storageDao";
 import { renderUserDashboardHtml } from "./userDashboard";
 import {
   renderPaymentsDashboardHtml,
   IPaymentsDashboardData,
   IPaymentsDashboardUserAffiliate,
+  IPaymentsSummary,
 } from "./paymentsDashboard";
+import { computePaymentsSummary } from "../src/pages/paymentsDashboard/paymentsDashboardContent";
 import { IExportedPlannerProgram } from "../src/pages/planner/models/types";
 import { UrlContentFetcher } from "./utils/urlContentFetcher";
 import { LlmPrompt_getSystemPrompt, LlmPrompt_getUserPrompt } from "./utils/llms/llmPrompt";
@@ -1619,7 +1627,67 @@ const getDashboardsUserEventsHandler: RouteHandler<
   return ResponseUtils_json(200, event, { events, nextBefore, hasMore });
 };
 
-const getDashboardsPaymentsEndpoint = Endpoint.build("/dashboards/payments", { key: "string" });
+interface IPaymentsPage {
+  paymentsData: IPaymentsDashboardData[];
+  userAffiliates: Partial<Record<string, IPaymentsDashboardUserAffiliate>>;
+  summary: IPaymentsSummary;
+  nextBefore: number;
+  hasMore: boolean;
+}
+
+async function buildPaymentsPage(di: IDI, before: number | undefined, months: number): Promise<IPaymentsPage> {
+  const allPayments = await new PaymentDao(di).getAllPayments();
+  const summary = computePaymentsSummary([{ date: "all", payments: allPayments }]);
+
+  const start =
+    before != null
+      ? DateUtils_addUTCMonths(before, -months)
+      : DateUtils_addUTCMonths(DateUtils_startOfUTCMonth(Date.now()), -(months - 1));
+
+  const windowed = allPayments.filter((p) => p.timestamp >= start && (before == null || p.timestamp < before));
+  const hasMore = allPayments.some((p) => p.timestamp < start);
+
+  const paymentsByDate: Record<string, IPaymentDao[]> = {};
+  for (const payment of windowed) {
+    const date = DateUtils_formatUTCYYYYMMDD(payment.timestamp);
+    if (!paymentsByDate[date]) {
+      paymentsByDate[date] = [];
+    }
+    paymentsByDate[date].push(payment);
+  }
+
+  const paymentsData: IPaymentsDashboardData[] = Object.entries(paymentsByDate)
+    .map(([date, payments]) => ({
+      date,
+      payments: payments.sort((a, b) => b.timestamp - a.timestamp),
+    }))
+    .sort((a, b) => b.date.localeCompare(a.date));
+
+  const uniqueUserIds = Array.from(new Set(windowed.map((p) => p.userId)));
+  const affiliatesByUser = await new AffiliateDao(di).getAffiliatesForUsers(uniqueUserIds);
+  const userAffiliates: Partial<Record<string, IPaymentsDashboardUserAffiliate>> = {};
+  for (const userId of uniqueUserIds) {
+    const affiliates = affiliatesByUser[userId] || [];
+    let earliest: { affiliateId: string; timestamp: number } | undefined;
+    for (const a of affiliates) {
+      const ts = a.timestamp || 0;
+      if (!earliest || ts < earliest.timestamp) {
+        earliest = { affiliateId: a.affiliateId, timestamp: ts };
+      }
+    }
+    if (earliest) {
+      userAffiliates[userId] = earliest;
+    }
+  }
+
+  return { paymentsData, userAffiliates, summary, nextBefore: start, hasMore };
+}
+
+const getDashboardsPaymentsEndpoint = Endpoint.build("/dashboards/payments", {
+  key: "string",
+  before: "number?",
+  months: "number?",
+});
 const getDashboardsPaymentsHandler: RouteHandler<
   IPayload,
   APIGatewayProxyResult,
@@ -1627,51 +1695,26 @@ const getDashboardsPaymentsHandler: RouteHandler<
 > = async ({ payload, match }) => {
   const { event, di } = payload;
   const apiKey = await di.secrets.getApiKey();
-  if (match.params.key === apiKey) {
-    const paymentDao = new PaymentDao(di);
-    const allPayments = await paymentDao.getAllPayments();
-    const paymentsByDate: Record<string, typeof allPayments> = {};
-
-    for (const payment of allPayments) {
-      const date = DateUtils_formatUTCYYYYMMDD(payment.timestamp);
-      if (!paymentsByDate[date]) {
-        paymentsByDate[date] = [];
-      }
-      paymentsByDate[date].push(payment);
-    }
-
-    const paymentsData: IPaymentsDashboardData[] = Object.entries(paymentsByDate)
-      .map(([date, payments]) => ({
-        date,
-        payments: payments.sort((a, b) => b.timestamp - a.timestamp),
-      }))
-      .sort((a, b) => b.date.localeCompare(a.date));
-
-    const uniqueUserIds = Array.from(new Set(allPayments.map((p) => p.userId)));
-    const affiliatesByUser = await new AffiliateDao(di).getAffiliatesForUsers(uniqueUserIds);
-    const userAffiliates: Partial<Record<string, IPaymentsDashboardUserAffiliate>> = {};
-    for (const userId of uniqueUserIds) {
-      const affiliates = affiliatesByUser[userId] || [];
-      let earliest: { affiliateId: string; timestamp: number } | undefined;
-      for (const a of affiliates) {
-        const ts = a.timestamp || 0;
-        if (!earliest || ts < earliest.timestamp) {
-          earliest = { affiliateId: a.affiliateId, timestamp: ts };
-        }
-      }
-      if (earliest) {
-        userAffiliates[userId] = earliest;
-      }
-    }
-
-    return {
-      statusCode: 200,
-      body: renderPaymentsDashboardHtml(di.fetch, apiKey, paymentsData, userAffiliates),
-      headers: { "content-type": "text/html" },
-    };
-  } else {
+  if (match.params.key !== apiKey) {
     return ResponseUtils_json(401, event, { data: "Unauthorized" });
   }
+  const page = await buildPaymentsPage(di, match.params.before, match.params.months ?? 2);
+  if (match.params.before != null) {
+    return ResponseUtils_json(200, event, page);
+  }
+  return {
+    statusCode: 200,
+    body: renderPaymentsDashboardHtml(
+      di.fetch,
+      apiKey,
+      page.paymentsData,
+      page.userAffiliates,
+      page.summary,
+      page.nextBefore,
+      page.hasMore
+    ),
+    headers: { "content-type": "text/html" },
+  };
 };
 
 const getProfileImageEndpoint = Endpoint.build("/profileimage", { user: "string" });

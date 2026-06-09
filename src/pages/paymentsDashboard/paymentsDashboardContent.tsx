@@ -1,5 +1,9 @@
 import { JSX, useState } from "react";
-import { IPaymentsDashboardData, IPaymentsDashboardUserAffiliate } from "../../../lambda/paymentsDashboard";
+import {
+  IPaymentsDashboardData,
+  IPaymentsDashboardUserAffiliate,
+  IPaymentsSummary,
+} from "../../../lambda/paymentsDashboard";
 import { IPaymentDao } from "../../../lambda/dao/paymentDao";
 import { StringUtils_truncate } from "../../utils/string";
 import { TimeUtils_formatUTCHHMM } from "../../utils/time";
@@ -11,6 +15,141 @@ export interface IPaymentsDashboardContentProps {
   apiKey: string;
   paymentsData: IPaymentsDashboardData[];
   userAffiliates: Partial<Record<string, IPaymentsDashboardUserAffiliate>>;
+  summary: IPaymentsSummary;
+  nextBefore: number;
+  hasMore: boolean;
+}
+
+interface IPaymentsPage {
+  paymentsData: IPaymentsDashboardData[];
+  userAffiliates: Partial<Record<string, IPaymentsDashboardUserAffiliate>>;
+  nextBefore: number;
+  hasMore: boolean;
+}
+
+export function computePaymentsSummary(paymentsData: IPaymentsDashboardData[]): IPaymentsSummary {
+  const currencyTotals: Record<string, { total: number; refunds: number }> = {};
+  const totalsByTypeAndCurrency: Record<string, { subscription: number; inapp: number }> = {};
+  const totalsByPlatformAndCurrency: Record<string, { apple: number; google: number }> = {};
+  let totalUSD = 0;
+  let refundsUSD = 0;
+  let totalSubscriptionUSD = 0;
+  let totalInappUSD = 0;
+  let totalAppleUSD = 0;
+  let totalGoogleUSD = 0;
+  let totalPurchases = 0;
+  let totalSubscriptionPurchases = 0;
+  let totalInappPurchases = 0;
+  let totalApplePurchases = 0;
+  let totalGooglePurchases = 0;
+  let totalRenewals = 0;
+  let totalRefunds = 0;
+  let totalFreeTrials = 0;
+
+  paymentsData.forEach((periodData) => {
+    periodData.payments.forEach((payment) => {
+      const curr = payment.currency || "USD";
+      if (!currencyTotals[curr]) {
+        currencyTotals[curr] = { total: 0, refunds: 0 };
+      }
+      if (!totalsByTypeAndCurrency[curr]) {
+        totalsByTypeAndCurrency[curr] = { subscription: 0, inapp: 0 };
+      }
+      if (!totalsByPlatformAndCurrency[curr]) {
+        totalsByPlatformAndCurrency[curr] = { apple: 0, google: 0 };
+      }
+
+      const netAmount = payment.amount - (payment.tax ?? 0);
+      const isSubscription = !payment.productId.includes("lifetime");
+      const platform = payment.type;
+
+      if (payment.paymentType === "refund") {
+        currencyTotals[curr].refunds += payment.amount;
+        const usdConversion = PriceUtils_exchangeRate(payment.amount, curr);
+        if (usdConversion.success) {
+          refundsUSD += usdConversion.value;
+        }
+      } else {
+        currencyTotals[curr].total += netAmount;
+        const usdConversion = PriceUtils_exchangeRate(netAmount, curr);
+        if (usdConversion.success) {
+          totalUSD += usdConversion.value;
+        }
+        if (isSubscription) {
+          totalsByTypeAndCurrency[curr].subscription += netAmount;
+          const usdConv = PriceUtils_exchangeRate(netAmount, curr);
+          if (usdConv.success) {
+            totalSubscriptionUSD += usdConv.value;
+          }
+        } else {
+          totalsByTypeAndCurrency[curr].inapp += netAmount;
+          const usdConv = PriceUtils_exchangeRate(netAmount, curr);
+          if (usdConv.success) {
+            totalInappUSD += usdConv.value;
+          }
+        }
+        if (platform === "apple") {
+          totalsByPlatformAndCurrency[curr].apple += netAmount;
+          const usdConv = PriceUtils_exchangeRate(netAmount, curr);
+          if (usdConv.success) {
+            totalAppleUSD += usdConv.value;
+          }
+        } else if (platform === "google") {
+          totalsByPlatformAndCurrency[curr].google += netAmount;
+          const usdConv = PriceUtils_exchangeRate(netAmount, curr);
+          if (usdConv.success) {
+            totalGoogleUSD += usdConv.value;
+          }
+        }
+      }
+
+      if (payment.paymentType === "purchase") {
+        totalPurchases += 1;
+        if (payment.productId.includes("lifetime")) {
+          totalInappPurchases += 1;
+        } else {
+          totalSubscriptionPurchases += 1;
+        }
+        if (payment.type === "apple") {
+          totalApplePurchases += 1;
+        } else if (payment.type === "google") {
+          totalGooglePurchases += 1;
+        }
+      } else if (payment.paymentType === "renewal") {
+        totalRenewals += 1;
+      } else if (payment.paymentType === "refund") {
+        totalRefunds += 1;
+      }
+      if (payment.isFreeTrialPayment) {
+        totalFreeTrials += 1;
+      }
+    });
+  });
+
+  const cancellationData = detectCancellations(paymentsData);
+
+  return {
+    currencyTotals,
+    totalsByTypeAndCurrency,
+    totalsByPlatformAndCurrency,
+    totalUSD,
+    refundsUSD,
+    totalSubscriptionUSD,
+    totalInappUSD,
+    totalAppleUSD,
+    totalGoogleUSD,
+    totalPurchases,
+    totalSubscriptionPurchases,
+    totalInappPurchases,
+    totalApplePurchases,
+    totalGooglePurchases,
+    totalRenewals,
+    totalRefunds,
+    totalFreeTrials,
+    totalCancellations: cancellationData.totalCancellations,
+    monthlyCancellations: cancellationData.monthlyCancellations,
+    yearlyCancellations: cancellationData.yearlyCancellations,
+  };
 }
 
 function getAttributedAffiliate(
@@ -247,19 +386,43 @@ function groupCancellationsByPeriod(
 
 export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps): JSX.Element {
   const [viewMode, setViewMode] = useState<"day" | "month">("day");
-  const currencyTotals: Record<string, { total: number; refunds: number }> = {};
-  let totalUSD = 0;
-  let refundsUSD = 0;
+  const [paymentsData, setPaymentsData] = useState<IPaymentsDashboardData[]>(props.paymentsData);
+  const [userAffiliates, setUserAffiliates] = useState<Partial<Record<string, IPaymentsDashboardUserAffiliate>>>(
+    props.userAffiliates
+  );
+  const [nextBefore, setNextBefore] = useState<number>(props.nextBefore);
+  const [hasMore, setHasMore] = useState<boolean>(props.hasMore);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const cancellationData = detectCancellations(props.paymentsData);
+  async function loadMore(): Promise<void> {
+    if (isLoading || !hasMore) {
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const url = `/dashboards/payments?key=${encodeURIComponent(props.apiKey)}&before=${nextBefore}&months=2`;
+      const response = await props.client(url);
+      const page = (await response.json()) as IPaymentsPage;
+      setPaymentsData((prev) => prev.concat(page.paymentsData));
+      setUserAffiliates((prev) => ({ ...prev, ...page.userAffiliates }));
+      setNextBefore(page.nextBefore);
+      setHasMore(page.hasMore);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const summary = props.summary;
+
+  const cancellationData = detectCancellations(paymentsData);
   const cancellationsByPeriod = groupCancellationsByPeriod(cancellationData.cancellations, viewMode);
 
   const cancelledTrialUserIds = new Set(
     cancellationData.cancellations.filter((c) => c.wasTrialPayment).map((c) => c.userId)
   );
 
-  const sortedDailyData = [...props.paymentsData].sort((a, b) => b.date.localeCompare(a.date));
-  const groupedData = viewMode === "month" ? groupByMonth(props.paymentsData) : sortedDailyData;
+  const sortedDailyData = [...paymentsData].sort((a, b) => b.date.localeCompare(a.date));
+  const groupedData = viewMode === "month" ? groupByMonth(paymentsData) : sortedDailyData;
 
   const totalsByPeriod = groupedData.map((periodData) => {
     const dayTotalsByCurrency: Record<string, { total: number; refunds: number }> = {};
@@ -283,9 +446,6 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
       if (!dayTotalsByPlatformAndCurrency[curr]) {
         dayTotalsByPlatformAndCurrency[curr] = { apple: 0, google: 0 };
       }
-      if (!currencyTotals[curr]) {
-        currencyTotals[curr] = { total: 0, refunds: 0 };
-      }
 
       const netAmount = payment.amount - (payment.tax ?? 0);
       const isSubscription = !payment.productId.includes("lifetime");
@@ -293,18 +453,14 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
 
       if (payment.paymentType === "refund") {
         dayTotalsByCurrency[curr].refunds += payment.amount;
-        currencyTotals[curr].refunds += payment.amount;
         const usdConversion = PriceUtils_exchangeRate(payment.amount, curr);
         if (usdConversion.success) {
-          refundsUSD += usdConversion.value;
           dayRefundsUSD += usdConversion.value;
         }
       } else {
         dayTotalsByCurrency[curr].total += netAmount;
-        currencyTotals[curr].total += netAmount;
         const usdConversion = PriceUtils_exchangeRate(netAmount, curr);
         if (usdConversion.success) {
-          totalUSD += usdConversion.value;
           dayTotalUSD += usdConversion.value;
         }
 
@@ -375,47 +531,25 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
     };
   });
 
-  const totalPurchases = totalsByPeriod.reduce((sum, period) => sum + period.purchaseCount, 0);
-  const totalSubscriptionPurchases = totalsByPeriod.reduce((sum, period) => sum + period.subscriptionPurchaseCount, 0);
-  const totalInappPurchases = totalsByPeriod.reduce((sum, period) => sum + period.inappPurchaseCount, 0);
-  const totalApplePurchases = totalsByPeriod.reduce((sum, period) => sum + period.applePurchaseCount, 0);
-  const totalGooglePurchases = totalsByPeriod.reduce((sum, period) => sum + period.googlePurchaseCount, 0);
-  const totalRenewals = totalsByPeriod.reduce((sum, period) => sum + period.renewalCount, 0);
-  const totalRefunds = totalsByPeriod.reduce((sum, period) => sum + period.refundCount, 0);
-  const totalFreeTrials = totalsByPeriod.reduce((sum, period) => sum + period.freeTrialCount, 0);
-
-  const totalsByTypeAndCurrency: Record<string, { subscription: number; inapp: number }> = {};
-  const totalsByPlatformAndCurrency: Record<string, { apple: number; google: number }> = {};
-  let totalSubscriptionUSD = 0;
-  let totalInappUSD = 0;
-  let totalAppleUSD = 0;
-  let totalGoogleUSD = 0;
-
-  totalsByPeriod.forEach((period) => {
-    Object.entries(period.periodTotalsByTypeAndCurrency).forEach(([currency, totals]) => {
-      if (!totalsByTypeAndCurrency[currency]) {
-        totalsByTypeAndCurrency[currency] = { subscription: 0, inapp: 0 };
-      }
-      totalsByTypeAndCurrency[currency].subscription += totals.subscription;
-      totalsByTypeAndCurrency[currency].inapp += totals.inapp;
-    });
-
-    Object.entries(period.periodTotalsByPlatformAndCurrency).forEach(([currency, totals]) => {
-      if (!totalsByPlatformAndCurrency[currency]) {
-        totalsByPlatformAndCurrency[currency] = { apple: 0, google: 0 };
-      }
-      totalsByPlatformAndCurrency[currency].apple += totals.apple;
-      totalsByPlatformAndCurrency[currency].google += totals.google;
-    });
-  });
-
-  totalsByPeriod.forEach((period) => {
-    totalSubscriptionUSD += period.daySubscriptionUSD;
-    totalInappUSD += period.dayInappUSD;
-    totalAppleUSD += period.dayAppleUSD;
-    totalGoogleUSD += period.dayGoogleUSD;
-  });
-  console.log(totalsByPeriod);
+  const {
+    currencyTotals,
+    totalsByTypeAndCurrency,
+    totalsByPlatformAndCurrency,
+    totalUSD,
+    refundsUSD,
+    totalSubscriptionUSD,
+    totalInappUSD,
+    totalAppleUSD,
+    totalGoogleUSD,
+    totalPurchases,
+    totalSubscriptionPurchases,
+    totalInappPurchases,
+    totalApplePurchases,
+    totalGooglePurchases,
+    totalRenewals,
+    totalRefunds,
+    totalFreeTrials,
+  } = summary;
 
   return (
     <section className="py-16">
@@ -506,9 +640,9 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
           </div>
           <div>
             <div className="text-sm text-gray-600">Cancellations</div>
-            <div className="text-xl font-bold text-orange-600">{cancellationData.totalCancellations}</div>
+            <div className="text-xl font-bold text-orange-600">{summary.totalCancellations}</div>
             <div className="text-xs text-gray-600">
-              Monthly: {cancellationData.monthlyCancellations} | Yearly: {cancellationData.yearlyCancellations}
+              Monthly: {summary.monthlyCancellations} | Yearly: {summary.yearlyCancellations}
             </div>
           </div>
           <div>
@@ -677,7 +811,7 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
                     <td className="px-2 py-2 font-mono text-xs text-purple-600">{payment.offerIdentifier || "-"}</td>
                     <td className="px-2 py-2 font-mono text-xs">
                       {(() => {
-                        const affiliate = getAttributedAffiliate(payment, props.userAffiliates);
+                        const affiliate = getAttributedAffiliate(payment, userAffiliates);
                         return affiliate ? (
                           <a
                             href={`/dashboards/affiliates/${affiliate.affiliateId}?key=${props.apiKey}`}
@@ -737,6 +871,18 @@ export function PaymentsDashboardContent(props: IPaymentsDashboardContentProps):
           </div>
         </div>
       ))}
+
+      {hasMore && (
+        <div className="my-8 text-center">
+          <button
+            disabled={isLoading}
+            onClick={loadMore}
+            className="px-6 py-2 font-semibold text-white bg-blue-600 rounded disabled:opacity-50"
+          >
+            {isLoading ? "Loading..." : "Load More"}
+          </button>
+        </div>
+      )}
     </section>
   );
 }
