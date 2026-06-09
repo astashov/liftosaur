@@ -165,10 +165,12 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
           data-testid="exercises-list-filter"
           testID="exercises-list-filter"
           className="px-4 py-2 mb-2 text-base border rounded-lg bg-background-default border-border-neutral text-text-primary"
-          value={filter}
+          defaultValue={filter}
+          autoCapitalize="none"
+          autoCorrect={false}
           placeholder="Filter by name"
           placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
-          onChangeText={(t) => setFilter(t.toLowerCase())}
+          onChangeText={(t) => setFilter(t)}
         />
         <Multiselect
           id="filtertypes"
