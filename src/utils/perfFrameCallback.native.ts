@@ -40,8 +40,9 @@ export function usePerfFrameSampling(
   const framesSlow = useSharedValue(0);
   const framesFrozen = useSharedValue(0);
   const maxGapMs = useSharedValue(0);
-  // Set on app resume / sampler activation: the first frame afterwards carries the whole suspend
-  // duration as its gap (iOS pauses the UI-thread frame loop while backgrounded), which is not jank.
+  // Set when the app backgrounds (or at sampler activation). The first frame after the app resumes
+  // carries the whole suspend duration as its gap (iOS pauses the UI-thread frame loop while
+  // backgrounded), which is not jank — skip classifying it.
   const skipNextGap = useSharedValue(false);
   const lastTotalRef = useRef(0);
   const lastSlowRef = useRef(0);
@@ -102,7 +103,10 @@ export function usePerfFrameSampling(
     lastFrozenRef.current = framesFrozen.value;
 
     const appStateSub = AppState.addEventListener("change", (next) => {
-      if (next === "active") {
+      // Mark on the way out, not on resume: iOS delivers background/inactive while the app is still
+      // executing (before it suspends), so the flag is set well before the resumed frame fires —
+      // no cross-thread race with the UI-thread frame callback.
+      if (next === "background" || next === "inactive") {
         skipNextGap.value = true;
       }
     });
