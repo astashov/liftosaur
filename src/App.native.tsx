@@ -238,8 +238,15 @@ import { HealthAdapter } from "./utils/health";
 import { WhatsNew_doesHaveNewUpdates } from "./models/whatsnew";
 import { History_getGraphsAggregates, History_getHomeAggregates } from "./models/history";
 import { PerfLongTasks_start } from "./utils/perfLongTasks";
-import { usePerfFrameSampling } from "./utils/perfFrameCallback";
+import { usePerfFrameSampling, PerfFrameSampler_flush } from "./utils/perfFrameCallback";
 import { PerfNavTracker_handleStateChange } from "./utils/perfNavTracker";
+import { PerfEnabled_tier1 } from "./utils/perfEnabled";
+import {
+  PerfScorecard_recordFrameWindow,
+  PerfScorecard_onScreenChange,
+  PerfScorecard_flush,
+  PerfScorecard_setContextProvider,
+} from "./utils/perfScorecard";
 
 GoogleSignin.configure({
   webClientId: "944666871420-p8kv124sgte8o0p6ev2ah6npudsl7e4f.apps.googleusercontent.com",
@@ -266,6 +273,10 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
   const [state, dispatch] = useThunkReducer<IState, IAction, IEnv>(reducer, props.initialState, env, onActions);
   const stateRef = useRef(state);
   stateRef.current = state;
+  // Route key (not name) so same-screen setParams doesn't fragment one visit into many perf_screen
+  // events; name is kept separately to label the outgoing screen's partial frame window.
+  const lastRouteKeyRef = useRef<string | undefined>(undefined);
+  const lastScreenNameRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     dispatch(Thunk_sync2({ force: true }));
@@ -284,7 +295,14 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
     return PerfLongTasks_start(() => getCurrentScreenData()?.name);
   }, []);
 
-  usePerfFrameSampling(true, () => getCurrentScreenData()?.name);
+  usePerfFrameSampling(PerfEnabled_tier1(), () => getCurrentScreenData()?.name, PerfScorecard_recordFrameWindow);
+
+  useEffect(() => {
+    PerfScorecard_setContextProvider(() => ({
+      history_record_count: stateRef.current.storage.history.length,
+      program_count: stateRef.current.storage.programs.length,
+    }));
+  }, []);
 
   // Warm aggregates caches during idle time so first-visit of Graphs/Home is fast.
   // Re-runs when history or settings change to keep the cache fresh.
@@ -398,6 +416,8 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
         dispatch(Thunk_syncHealthKit());
       } else if (next === "background") {
         dispatch(Thunk_postevent("sleep"));
+        PerfFrameSampler_flush();
+        PerfScorecard_flush();
       }
     });
     return () => sub.remove();
@@ -635,12 +655,24 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
                       const route = navigationRef.getCurrentRoute();
                       setCurrentScreenName(route?.name as IScreen | undefined);
                       PerfNavTracker_handleStateChange(route?.name);
+                      if (route?.key !== lastRouteKeyRef.current) {
+                        PerfFrameSampler_flush(lastScreenNameRef.current);
+                        PerfScorecard_onScreenChange(route?.name);
+                        lastRouteKeyRef.current = route?.key;
+                        lastScreenNameRef.current = route?.name;
+                      }
                     }}
                     onReady={() => {
                       const route = navigationRef.getCurrentRoute();
                       setCurrentScreenName(route?.name as IScreen | undefined);
                       setIsNavReady(true);
                       PerfNavTracker_handleStateChange(route?.name);
+                      if (route?.key !== lastRouteKeyRef.current) {
+                        PerfFrameSampler_flush(lastScreenNameRef.current);
+                        PerfScorecard_onScreenChange(route?.name);
+                        lastRouteKeyRef.current = route?.key;
+                        lastScreenNameRef.current = route?.name;
+                      }
                     }}
                   >
                     <AppNavigator initialScreen={initialScreen} />

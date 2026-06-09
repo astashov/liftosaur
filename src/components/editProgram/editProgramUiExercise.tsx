@@ -1,7 +1,8 @@
-import { JSX, Fragment, memo, Profiler, ReactNode } from "react";
+import { JSX, Fragment, memo, ReactNode } from "react";
 import { View, Pressable } from "react-native";
 import { PerfTracker_recordEvent, PerfTracker_getSessionId } from "../../utils/perfTracker";
-import { PerfEnabled_isEnabled } from "../../utils/perfEnabled";
+import { PerfEnabled_tier2 } from "../../utils/perfEnabled";
+import { PerfProfiler } from "../../utils/perfProfiler";
 import { Text } from "../primitives/text";
 import { IPlannerProgramExercise, IPlannerState } from "../../pages/planner/models/types";
 import { ILensDispatch } from "../../utils/useLensReducer";
@@ -46,7 +47,7 @@ function onExerciseProfile(
   actualDuration: number,
   baseDuration: number
 ): void {
-  if (!PerfEnabled_isEnabled()) {
+  if (!PerfEnabled_tier2()) {
     return;
   }
   if (actualDuration < 1) {
@@ -88,7 +89,7 @@ export const EditProgramUiExerciseView = memo(function EditProgramUiExerciseView
   const orderAndRepeat = [order, repeatStr].filter((s) => s).join(", ");
 
   return (
-    <Profiler id="ExerciseView" onRender={onExerciseProfile}>
+    <PerfProfiler id="ExerciseView" onRender={onExerciseProfile}>
       <View
         data-testid={`exercise-${props.plannerExercise.key}`}
         testID={`exercise-${props.plannerExercise.key}`}
@@ -224,7 +225,7 @@ export const EditProgramUiExerciseView = memo(function EditProgramUiExerciseView
           </View>
         </View>
         {!isCollapsed && (
-          <Profiler id="ExerciseView.content" onRender={onExerciseProfile}>
+          <PerfProfiler id="ExerciseView.content" onRender={onExerciseProfile}>
             <EditProgramUiExerciseContentView
               weekIndex={weekIndex}
               dayIndex={dayIndex}
@@ -236,10 +237,10 @@ export const EditProgramUiExerciseView = memo(function EditProgramUiExerciseView
               dispatch={props.dispatch}
               plannerDispatch={props.plannerDispatch}
             />
-          </Profiler>
+          </PerfProfiler>
         )}
       </View>
-    </Profiler>
+    </PerfProfiler>
   );
 });
 
@@ -312,9 +313,9 @@ export const EditProgramUiExerciseContentView = memo(function EditProgramUiExerc
                   <View data-testid="ui-workout-sets" testID="ui-workout-sets">
                     <Text className="pb-1 text-xs text-left text-text-secondary">Workout</Text>
                     {reusingSets && <Text className="pb-1 text-xs text-text-secondary">Reusing {reusingSets}</Text>}
-                    <Profiler id="ExerciseView.setVariations" onRender={onExerciseProfile}>
+                    <PerfProfiler id="ExerciseView.setVariations" onRender={onExerciseProfile}>
                       <EditProgramUiExerciseSetVariations plannerExercise={plannerExercise} settings={props.settings} />
-                    </Profiler>
+                    </PerfProfiler>
                   </View>
                 </View>
               </View>
@@ -342,15 +343,15 @@ export const EditProgramUiExerciseContentView = memo(function EditProgramUiExerc
             </View>
           )}
           <View className="px-3 pb-2">
-            <Profiler id="ExerciseView.progress" onRender={onExerciseProfile}>
+            <PerfProfiler id="ExerciseView.progress" onRender={onExerciseProfile}>
               <EditProgramUiProgress evaluatedProgram={props.evaluatedProgram} exercise={props.plannerExercise} />
-            </Profiler>
+            </PerfProfiler>
           </View>
           {props.plannerExercise.update && (
             <View className="px-3 pb-2">
-              <Profiler id="ExerciseView.update" onRender={onExerciseProfile}>
+              <PerfProfiler id="ExerciseView.update" onRender={onExerciseProfile}>
                 <EditProgramUiUpdate evaluatedProgram={props.evaluatedProgram} exercise={props.plannerExercise} />
-              </Profiler>
+              </PerfProfiler>
             </View>
           )}
         </View>

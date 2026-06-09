@@ -1,6 +1,6 @@
 import { useMemo, DependencyList } from "react";
 import { PerfTracker_recordEvent, PerfTracker_getSessionId } from "./perfTracker";
-import { PerfEnabled_isEnabled } from "./perfEnabled";
+import { PerfEnabled_tier2 } from "./perfEnabled";
 
 declare const performance: { now: () => number } | undefined;
 
@@ -8,7 +8,7 @@ const MIN_REPORT_MS = 1;
 
 export function useTimedMemo<T>(label: string, fn: () => T, deps: DependencyList): T {
   return useMemo(() => {
-    if (!PerfEnabled_isEnabled() || typeof performance === "undefined" || !performance.now) {
+    if (!PerfEnabled_tier2() || typeof performance === "undefined" || !performance.now) {
       return fn();
     }
     const start = performance.now();

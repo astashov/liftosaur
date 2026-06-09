@@ -1,11 +1,12 @@
 import { Platform } from "react-native";
 import { PerfTrackerStore_create, PerfTrackerStore_generateSessionId } from "./perfTrackerStore";
-import type { IPerfEvent } from "./perfTracker";
-import { PerfEnabled_isEnabled } from "./perfEnabled";
+import type { IPerfEvent, IPerfFrameWindow, IPerfRecentAction } from "./perfTracker";
+import { PerfEnabled_tier2 } from "./perfEnabled";
 
-export type { IPerfEvent };
+export type { IPerfEvent, IPerfFrameWindow, IPerfRecentAction };
 
 declare let __API_HOST__: string;
+declare let __COMMIT_HASH__: string;
 
 const BATCH_INTERVAL_MS = 1500;
 const BATCH_MAX_SIZE = 50;
@@ -60,7 +61,7 @@ function ensureSessionStart(): void {
     session: sessionId,
     ts: Date.now(),
     platform: Platform.OS,
-    build: "dev",
+    build: typeof __COMMIT_HASH__ !== "undefined" ? __COMMIT_HASH__ : "unknown",
   });
 }
 
@@ -70,7 +71,7 @@ export function PerfTracker_mark(_name: string, _screen?: string): void {
 }
 
 export function PerfTracker_recordEvent(event: IPerfEvent): void {
-  if (!PerfEnabled_isEnabled()) {
+  if (!PerfEnabled_tier2()) {
     return;
   }
   ensureSessionStart();
@@ -91,7 +92,7 @@ export function PerfTracker_getSessionId(): string {
 }
 
 export function PerfTracker_flush(): Promise<void> {
-  if (!PerfEnabled_isEnabled()) {
+  if (!PerfEnabled_tier2()) {
     return Promise.resolve();
   }
   if (flushTimer != null) {

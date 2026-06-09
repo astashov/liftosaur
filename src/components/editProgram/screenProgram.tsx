@@ -1,4 +1,4 @@
-import { JSX, memo, Profiler, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { JSX, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { View, ScrollView } from "react-native";
 import { Pressable } from "../primitives/pressable";
 import { Text } from "../primitives/text";
@@ -42,7 +42,8 @@ import { useTimedMemo } from "../../utils/useTimedMemo";
 import { usePerfRenderCount } from "../../utils/usePerfRenderCount";
 import { usePerfRenderTrace } from "../../utils/usePerfRenderTrace";
 import { PerfTracker_recordEvent, PerfTracker_getSessionId } from "../../utils/perfTracker";
-import { PerfEnabled_isEnabled } from "../../utils/perfEnabled";
+import { PerfEnabled_tier2 } from "../../utils/perfEnabled";
+import { PerfProfiler } from "../../utils/perfProfiler";
 
 function onProfile(
   id: string,
@@ -50,7 +51,7 @@ function onProfile(
   actualDuration: number,
   baseDuration: number
 ): void {
-  if (!PerfEnabled_isEnabled()) {
+  if (!PerfEnabled_tier2()) {
     return;
   }
   if (actualDuration < 1) {
@@ -245,7 +246,7 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
   if (activeTabLabel === "Preview") {
     const currentWeek = previewWeeks[safePreviewWeekIndex];
     tabContent = currentWeek ? (
-      <Profiler id="tab.Preview" onRender={onProfile}>
+      <PerfProfiler id="tab.Preview" onRender={onProfile}>
         <ProgramPreviewWeekContent
           key="preview"
           week={currentWeek}
@@ -259,13 +260,13 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
           plannerDispatch={plannerDispatch}
           totalWeeks={previewWeeks.length}
         />
-      </Profiler>
+      </PerfProfiler>
     ) : (
       <View />
     );
   } else if (activeTabLabel === "Edit") {
     tabContent = (
-      <Profiler id="tab.Edit" onRender={onProfile}>
+      <PerfProfiler id="tab.Edit" onRender={onProfile}>
         <EditProgramView
           hideNavbar
           hideWeekTabBar={showEditWeekTabBar}
@@ -279,11 +280,11 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
           plannerDispatch={plannerDispatch}
           state={plannerState}
         />
-      </Profiler>
+      </PerfProfiler>
     );
   } else {
     tabContent = (
-      <Profiler id="tab.Playground" onRender={onProfile}>
+      <PerfProfiler id="tab.Playground" onRender={onProfile}>
         <View className="pb-4">
           <Nux className="mx-4 my-2" id="Playground" helps={props.helps} dispatch={dispatch}>
             <Text className="text-xs">
@@ -303,7 +304,7 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
             externalWeekIndex={safePlaygroundWeekIndex}
           />
         </View>
-      </Profiler>
+      </PerfProfiler>
     );
   }
 
@@ -357,9 +358,9 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
   }
 
   return (
-    <Profiler id="ScreenProgram.shell" onRender={onProfile}>
+    <PerfProfiler id="ScreenProgram.shell" onRender={onProfile}>
       <NavScreenContent stickyHeaderIndices={STICKY_INDICES}>
-        <Profiler id="ScreenProgram.header" onRender={onProfile}>
+        <PerfProfiler id="ScreenProgram.header" onRender={onProfile}>
           <EditProgramHeader
             evaluatedProgram={evaluatedProgram}
             settings={props.settings}
@@ -367,14 +368,14 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
             onChangeDay={onChangeDay}
             onChangeName={onChangeName}
           />
-        </Profiler>
+        </PerfProfiler>
         <OuterTabBar labels={TAB_LABELS_RO} activeIndex={tabIndex} onChange={onChangeTab} />
-        <Profiler id="ScreenProgram.stickyHeader" onRender={onProfile}>
+        <PerfProfiler id="ScreenProgram.stickyHeader" onRender={onProfile}>
           {perTabStickyHeader}
-        </Profiler>
+        </PerfProfiler>
         {tabContent}
       </NavScreenContent>
-    </Profiler>
+    </PerfProfiler>
   );
 });
 

@@ -1,5 +1,5 @@
 import { PerfTracker_recordEvent, PerfTracker_getSessionId } from "./perfTracker";
-import { PerfEnabled_isEnabled } from "./perfEnabled";
+import { PerfEnabled_tier2 } from "./perfEnabled";
 
 const PENDING_TAP_TTL_MS = 1000;
 
@@ -16,7 +16,7 @@ function clearPendingTap(): void {
 }
 
 export function PerfNavTracker_recordTap(targetScreen: string): void {
-  if (!PerfEnabled_isEnabled()) {
+  if (!PerfEnabled_tier2()) {
     return;
   }
   pendingTapTs = Date.now();
@@ -29,7 +29,7 @@ export function PerfNavTracker_recordTap(targetScreen: string): void {
 }
 
 export function PerfNavTracker_handleStateChange(currentScreen: string | undefined): void {
-  if (!PerfEnabled_isEnabled()) {
+  if (!PerfEnabled_tier2()) {
     return;
   }
   if (currentScreen == null) {

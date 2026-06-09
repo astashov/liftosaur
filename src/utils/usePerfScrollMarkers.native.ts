@@ -1,6 +1,6 @@
 import { useRef, useMemo } from "react";
 import { PerfTracker_recordEvent, PerfTracker_getSessionId } from "./perfTracker";
-import { PerfEnabled_isEnabled } from "./perfEnabled";
+import { PerfEnabled_tier2 } from "./perfEnabled";
 import { getCurrentScreenData } from "../navigation/navigationService";
 
 export interface IPerfScrollMarkers {
@@ -15,7 +15,7 @@ export function usePerfScrollMarkers(label?: string): IPerfScrollMarkers {
 
   return useMemo(() => {
     function emit(type: "scroll_start" | "scroll_end"): void {
-      if (!PerfEnabled_isEnabled()) {
+      if (!PerfEnabled_tier2()) {
         return;
       }
       PerfTracker_recordEvent({

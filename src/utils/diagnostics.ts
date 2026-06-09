@@ -7,6 +7,7 @@ interface IDiagnosticsAction {
   type: string;
   time?: string;
   desc?: string;
+  ts?: number;
   [key: string]: any;
 }
 
@@ -23,7 +24,7 @@ export function Diagnostics_getLastState(): IState | undefined {
 }
 
 export function Diagnostics_recordAction(action: IDiagnosticsAction): void {
-  lastActions = [action, ...lastActions.slice(0, MAX_ACTIONS - 1)];
+  lastActions = [{ ...action, ts: Date.now() }, ...lastActions.slice(0, MAX_ACTIONS - 1)];
 }
 
 export function Diagnostics_getLastActions(): IDiagnosticsAction[] {

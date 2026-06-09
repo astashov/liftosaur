@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 import { PerfTracker_recordEvent, PerfTracker_getSessionId } from "./perfTracker";
-import { PerfEnabled_isEnabled } from "./perfEnabled";
+import { PerfEnabled_tier2 } from "./perfEnabled";
 
 export function usePerfRenderTrace(componentName: string): void {
   useEffect(() => {
-    if (!PerfEnabled_isEnabled()) {
+    if (!PerfEnabled_tier2()) {
       return;
     }
     PerfTracker_recordEvent({

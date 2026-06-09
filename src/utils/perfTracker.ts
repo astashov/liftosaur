@@ -1,6 +1,29 @@
+export interface IPerfRecentAction {
+  type: string;
+  desc?: string;
+  age_ms: number;
+}
+
+export interface IPerfFrameWindow {
+  screen?: string;
+  frames_total: number;
+  frames_slow: number;
+  frames_frozen: number;
+  max_gap_ms: number;
+  window_ms: number;
+  ts: number;
+}
+
 export type IPerfEvent =
   | { type: "nav"; session: string; from?: string; to: string; tap_ts: number }
-  | { type: "longtask"; session: string; duration: number; start: number; screen?: string }
+  | {
+      type: "longtask";
+      session: string;
+      duration: number;
+      start: number;
+      screen?: string;
+      recent?: IPerfRecentAction[];
+    }
   | {
       type: "framedrop";
       session: string;
@@ -8,6 +31,17 @@ export type IPerfEvent =
       gap_ms: number;
       expected_ms: number;
       screen?: string;
+      ts: number;
+    }
+  | {
+      type: "frame_summary";
+      session: string;
+      screen?: string;
+      frames_total: number;
+      frames_slow: number;
+      frames_frozen: number;
+      max_gap_ms: number;
+      window_ms: number;
       ts: number;
     }
   | { type: "session_start"; session: string; ts: number; platform: string; build: string }
@@ -47,6 +81,7 @@ export type IPerfEvent =
       session: string;
       action: string;
       desc?: string;
+      duration_ms?: number;
       ts: number;
     }
   | {

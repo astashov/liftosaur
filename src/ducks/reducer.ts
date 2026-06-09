@@ -75,7 +75,8 @@ import { Equipment_getCurrentGym, Equipment_getEquipmentIdForExerciseType } from
 import { Stats_getCurrentMovingAverageBodyweight } from "../models/stats";
 import { Weight_build, Weight_eq } from "../models/weight";
 import { PerfTracker_recordEvent, PerfTracker_getSessionId } from "../utils/perfTracker";
-import { PerfEnabled_isEnabled } from "../utils/perfEnabled";
+import { PerfEnabled_isEnabled, PerfEnabled_tier2 } from "../utils/perfEnabled";
+import { PerfScorecard_recordAction } from "../utils/perfScorecard";
 
 declare let __COMMIT_HASH__: string;
 
@@ -510,17 +511,10 @@ export const reducerWrapper =
   (state, action) => {
     Diagnostics_setLastState(state);
     Diagnostics_recordAction({ ...action, time: DateUtils_formatHHMMSS(Date.now(), true) });
-    if (PerfEnabled_isEnabled()) {
-      const actionType = "type" in action ? action.type : "thunk";
-      const desc = "type" in action && action.type === "UpdateState" ? action.desc : undefined;
-      PerfTracker_recordEvent({
-        type: "action",
-        session: PerfTracker_getSessionId(),
-        action: actionType,
-        desc,
-        ts: Date.now(),
-      });
-    }
+    const perfOn = PerfEnabled_isEnabled();
+    const perfActionType = "type" in action ? action.type : "thunk";
+    const perfActionDesc = "type" in action && action.type === "UpdateState" ? action.desc : undefined;
+    const perfSyncStart = perfOn ? Date.now() : 0;
     let newState = reducer(state, action);
     const isMergingStorage = isExternalStorageMerge(action);
     const isStorageChanged = !isMergingStorage && Storage_isChanged(state.storage, newState.storage);
@@ -578,6 +572,21 @@ export const reducerWrapper =
             }
           }, 100);
         }
+      }
+    }
+
+    if (perfOn) {
+      const perfDurationMs = Date.now() - perfSyncStart;
+      PerfScorecard_recordAction(perfActionDesc ?? perfActionType, perfDurationMs);
+      if (PerfEnabled_tier2()) {
+        PerfTracker_recordEvent({
+          type: "action",
+          session: PerfTracker_getSessionId(),
+          action: perfActionType,
+          desc: perfActionDesc,
+          duration_ms: perfDurationMs,
+          ts: perfSyncStart,
+        });
       }
     }
     return newState;

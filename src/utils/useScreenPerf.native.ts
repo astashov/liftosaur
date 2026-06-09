@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import { InteractionManager } from "react-native";
 import { PerfTracker_recordEvent, PerfTracker_getSessionId } from "./perfTracker";
-import { PerfEnabled_isEnabled } from "./perfEnabled";
+import { PerfEnabled_tier2 } from "./perfEnabled";
 
 const AUTO_LOADED_STABLE_FRAMES = 8;
 
@@ -27,14 +27,14 @@ export function useScreenPerf(screenName: string): { markLoaded: () => void } {
   const mountedRef = useRef(true);
 
   useLayoutEffect(() => {
-    if (!PerfEnabled_isEnabled()) {
+    if (!PerfEnabled_tier2()) {
       return;
     }
     emitMark(screenName, "mount");
   }, [screenName]);
 
   useEffect(() => {
-    if (!PerfEnabled_isEnabled()) {
+    if (!PerfEnabled_tier2()) {
       return;
     }
     emitMark(screenName, "commit");
@@ -51,7 +51,7 @@ export function useScreenPerf(screenName: string): { markLoaded: () => void } {
   });
 
   useEffect(() => {
-    if (!PerfEnabled_isEnabled()) {
+    if (!PerfEnabled_tier2()) {
       return;
     }
     let lastSeenCommit = commitCountRef.current;
@@ -89,7 +89,7 @@ export function useScreenPerf(screenName: string): { markLoaded: () => void } {
   }, []);
 
   const markLoaded = useCallback(() => {
-    if (!PerfEnabled_isEnabled()) {
+    if (!PerfEnabled_tier2()) {
       return;
     }
     if (loadedFiredRef.current) {

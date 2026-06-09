@@ -14,13 +14,17 @@ export interface IPerfTrackerStore {
 
 export function PerfTrackerStore_create(options: IPerfTrackerStoreOptions): IPerfTrackerStore {
   const pending: IPerfEvent[] = [];
-  const ring: IPerfEvent[] = [];
+  const ringSize = options.ringBufferSize;
+  const ring: (IPerfEvent | undefined)[] = new Array(ringSize);
+  let ringWrite = 0;
+  let ringCount = 0;
 
   return {
     recordEvent: (event) => {
-      ring.push(event);
-      if (ring.length > options.ringBufferSize) {
-        ring.shift();
+      ring[ringWrite % ringSize] = event;
+      ringWrite += 1;
+      if (ringCount < ringSize) {
+        ringCount += 1;
       }
       pending.push(event);
       return pending.length >= options.batchMaxSize ? "flush" : "buffered";
@@ -31,10 +35,16 @@ export function PerfTrackerStore_create(options: IPerfTrackerStoreOptions): IPer
       return drained;
     },
     getRecent: (n) => {
-      if (n >= ring.length) {
-        return ring.slice();
+      const count = Math.min(n, ringCount);
+      const start = ringWrite - count;
+      const result: IPerfEvent[] = [];
+      for (let i = 0; i < count; i += 1) {
+        const event = ring[(start + i) % ringSize];
+        if (event !== undefined) {
+          result.push(event);
+        }
       }
-      return ring.slice(ring.length - n);
+      return result;
     },
     pendingCount: () => pending.length,
   };
