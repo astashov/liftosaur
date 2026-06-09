@@ -38,6 +38,7 @@ export function NavScreenPrograms(): JSX.Element {
         programsIndex={state.programsIndex || []}
         customPrograms={state.storage.programs || []}
         editProgramId={Progress_getCurrentProgress(state)?.programId}
+        hasBottomNav={true}
       />
     </NavScreenContent>
   );

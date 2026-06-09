@@ -33,6 +33,7 @@ export function NavScreenMain(): JSX.Element {
           programsIndex={untrack(state.programsIndex || [])}
           customPrograms={untrack(state.storage.programs || [])}
           editProgramId={ongoingProgress?.programId}
+          hasBottomNav={true}
         />
       </View>
     );

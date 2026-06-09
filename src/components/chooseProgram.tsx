@@ -23,6 +23,7 @@ interface IProps {
   customPrograms: IProgram[];
   editProgramId?: string;
   navCommon: INavCommon;
+  hasBottomNav?: boolean;
 }
 
 export function ChooseProgramView(props: IProps): JSX.Element {
@@ -108,6 +109,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
             />
           )}
           <Footer
+            hasBottomNav={props.hasBottomNav}
             onCreate={() => navigateToModal("createProgramModal")}
             onEmpty={() => {
               Program_selectProgramAndGoHome(props.dispatch, emptyProgramId);
@@ -131,6 +133,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
 interface IFooterProps {
   onCreate: () => void;
   onEmpty: () => void;
+  hasBottomNav?: boolean;
 }
 
 function Footer(props: IFooterProps): JSX.Element {
@@ -138,7 +141,7 @@ function Footer(props: IFooterProps): JSX.Element {
   return (
     <View
       className="flex-row items-stretch justify-around gap-2 px-2 pt-4 border-t border-border-neutral bg-background-default"
-      style={{ paddingBottom: insets.bottom + 16 }}
+      style={{ paddingBottom: (props.hasBottomNav ? 0 : insets.bottom) + 16 }}
     >
       <Pressable
         className="items-center justify-center flex-1"

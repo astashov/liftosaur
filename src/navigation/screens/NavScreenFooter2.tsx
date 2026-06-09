@@ -6,7 +6,7 @@ import { buildNavCommon } from "../utils";
 import { Footer2View } from "../../components/footer2";
 import type { IScreen, ITab } from "../../models/screen";
 
-const screensWithoutFooter: string[] = ["programs", "subscription", "onerms"];
+const screensWithoutFooter: string[] = ["subscription", "onerms"];
 
 function getTopRouteOfActiveTab(tabState: BottomTabBarProps["state"]): IScreen | undefined {
   const activeTab = tabState.routes[tabState.index];

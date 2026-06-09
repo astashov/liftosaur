@@ -47,6 +47,7 @@ export function NavScreenPrograms(): React.JSX.Element {
       programsIndex={untrack(state.programsIndex || [])}
       customPrograms={untrack(state.storage.programs || [])}
       editProgramId={progress?.programId}
+      hasBottomNav={true}
     />
   );
 }
