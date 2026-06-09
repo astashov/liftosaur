@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { AppState } from "react-native";
 import { useFrameCallback, useSharedValue, runOnJS } from "react-native-reanimated";
 import { PerfTracker_recordEvent, PerfTracker_getSessionId, IPerfFrameWindow } from "./perfTracker";
 import { PerfEnabled_isEnabled, PerfEnabled_tier2 } from "./perfEnabled";
@@ -34,6 +35,9 @@ export function usePerfFrameSampling(
   const framesSlow = useSharedValue(0);
   const framesFrozen = useSharedValue(0);
   const maxGapMs = useSharedValue(0);
+  // Set on app resume / sampler activation: the first frame afterwards carries the whole suspend
+  // duration as its gap (iOS pauses the UI-thread frame loop while backgrounded), which is not jank.
+  const skipNextGap = useSharedValue(false);
   const lastTotalRef = useRef(0);
   const lastSlowRef = useRef(0);
   const lastFrozenRef = useRef(0);
@@ -63,6 +67,10 @@ export function usePerfFrameSampling(
       return;
     }
     framesTotal.value += 1;
+    if (skipNextGap.value) {
+      skipNextGap.value = false;
+      return;
+    }
     if (gap > FROZEN_FRAME_MS) {
       framesFrozen.value += 1;
       runOnJS(recordFrozen)(gap);
@@ -80,9 +88,16 @@ export function usePerfFrameSampling(
       return;
     }
     frameCallback.setActive(true);
+    skipNextGap.value = true;
     lastTotalRef.current = framesTotal.value;
     lastSlowRef.current = framesSlow.value;
     lastFrozenRef.current = framesFrozen.value;
+
+    const appStateSub = AppState.addEventListener("change", (next) => {
+      if (next === "active") {
+        skipNextGap.value = true;
+      }
+    });
 
     function drain(screenOverride?: string): void {
       const total = framesTotal.value - lastTotalRef.current;
@@ -118,10 +133,11 @@ export function usePerfFrameSampling(
 
     return () => {
       clearInterval(interval);
+      appStateSub.remove();
       if (registeredDrain === drain) {
         registeredDrain = undefined;
       }
       frameCallback.setActive(false);
     };
-  }, [active, frameCallback, framesTotal, framesSlow, framesFrozen, maxGapMs]);
+  }, [active, frameCallback, framesTotal, framesSlow, framesFrozen, maxGapMs, skipNextGap]);
 }
