@@ -1,4 +1,5 @@
 import { JSX } from "react";
+import { View } from "react-native";
 import { useAppState } from "../StateContext";
 import { buildNavCommon } from "../utils";
 import { NavScreenContent } from "../NavScreenContent";
@@ -72,7 +73,7 @@ export function NavScreenProgramsOnboarding(): JSX.Element {
   const { state, dispatch } = useAppState();
   const navCommon = buildNavCommon(state);
   return (
-    <NavScreenContent>
+    <View className="flex-1 bg-background-default">
       <ChooseProgramView
         navCommon={navCommon}
         settings={state.storage.settings}
@@ -83,7 +84,7 @@ export function NavScreenProgramsOnboarding(): JSX.Element {
         customPrograms={state.storage.programs || []}
         editProgramId={Progress_getCurrentProgress(state)?.programId}
       />
-    </NavScreenContent>
+    </View>
   );
 }
 

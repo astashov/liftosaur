@@ -28,7 +28,7 @@ export function NavScreenPrograms(): JSX.Element {
   const { state, dispatch } = useAppState();
   const navCommon = buildNavCommon(state);
   return (
-    <NavScreenContent>
+    <View className="flex-1 bg-background-default">
       <ChooseProgramView
         navCommon={navCommon}
         settings={state.storage.settings}
@@ -40,7 +40,7 @@ export function NavScreenPrograms(): JSX.Element {
         editProgramId={Progress_getCurrentProgress(state)?.programId}
         hasBottomNav={true}
       />
-    </NavScreenContent>
+    </View>
   );
 }
 

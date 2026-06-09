@@ -72,6 +72,7 @@ export function CustomProgramsList(props: IProps): JSX.Element {
 
   return (
     <LegendList
+      style={{ flex: 1 }}
       data={programs}
       renderItem={renderItem}
       keyExtractor={keyExtractor}

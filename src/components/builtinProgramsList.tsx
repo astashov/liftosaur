@@ -125,6 +125,7 @@ export function BuiltinProgramsList(props: IProps): JSX.Element {
   const scrollMarkers = usePerfScrollMarkers("BuiltinProgramsList");
   return (
     <LegendList
+      style={{ flex: 1 }}
       data={entries}
       renderItem={renderItem}
       keyExtractor={keyExtractor}

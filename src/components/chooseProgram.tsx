@@ -33,18 +33,16 @@ export function ChooseProgramView(props: IProps): JSX.Element {
 
   useNavOptions({
     navTitle: "Choose a program",
-    navRightButtons: hasCustomPrograms
-      ? [
-          <LinkButton
-            key="import"
-            className="px-2 text-sm no-underline"
-            name="import-program"
-            onClick={() => navigateToModal("importFromLinkModal")}
-          >
-            Import
-          </LinkButton>,
-        ]
-      : undefined,
+    navRightButtons: [
+      <LinkButton
+        key="import"
+        className="px-2 text-sm no-underline"
+        name="import-program"
+        onClick={() => navigateToModal("importFromLinkModal")}
+      >
+        Import
+      </LinkButton>,
+    ],
   });
 
   return (
@@ -108,13 +106,6 @@ export function ChooseProgramView(props: IProps): JSX.Element {
               search={search}
             />
           )}
-          <Footer
-            hasBottomNav={props.hasBottomNav}
-            onCreate={() => navigateToModal("createProgramModal")}
-            onEmpty={() => {
-              Program_selectProgramAndGoHome(props.dispatch, emptyProgramId);
-            }}
-          />
         </>
       ) : (
         <BuiltinProgramsList
@@ -126,6 +117,13 @@ export function ChooseProgramView(props: IProps): JSX.Element {
           search={search}
         />
       )}
+      <Footer
+        hasBottomNav={props.hasBottomNav}
+        onCreate={() => navigateToModal("createProgramModal")}
+        onEmpty={() => {
+          Program_selectProgramAndGoHome(props.dispatch, emptyProgramId);
+        }}
+      />
     </View>
   );
 }
