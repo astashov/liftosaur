@@ -246,77 +246,110 @@ export function ObjectUtils_findKeyByExpression<T extends Record<string, any>>(
   return undefined;
 }
 
+// A faithful `structuredClone` polyfill. We use it on every platform rather than the native
+// structuredClone because Hermes (React Native) doesn't ship one, and routing everything
+// through a single implementation keeps web and native byte-for-byte identical.
+//
+// It matches structuredClone's two defining properties that JSON.parse(JSON.stringify())
+// gets wrong, and that caused real crashes here:
+//   - Shared references are preserved, not duplicated. An evaluated program inlines the same
+//     reused exercise into hundreds of exercises; JSON.stringify expands that shared graph
+//     into a multi-hundred-MB string and throws "String length exceeds limit". Preserving the
+//     sharing keeps the clone the same size as the original.
+//   - Reference cycles are preserved instead of throwing.
+// It also preserves the values structuredClone keeps but JSON drops/mangles: NaN/Infinity,
+// `undefined`, Date/RegExp/Map/Set/ArrayBuffer/typed arrays.
+//
+// One deliberate deviation: native structuredClone THROWS a DataCloneError on functions and
+// symbols; we drop them instead (objects skip the key, arrays/maps/sets get `undefined`), the
+// way the previous JSON-based clone tolerated them. Uncommon container types structuredClone
+// also handles (Error, Blob/File, boxed primitives) are cloned as plain objects, since they
+// never appear in the state we clone.
 export function ObjectUtils_clone<T>(obj: T): T {
-  if (obj == null) {
-    return obj;
-  }
-  if (typeof window !== "undefined" && window.structuredClone) {
-    try {
-      return window.structuredClone(obj);
-    } catch (e) {
-      if ((e as { name?: string } | null)?.name === "DataCloneError") {
-        return jsonClone(obj);
-      }
-      throw e;
-    }
-  }
-  return jsonClone(obj);
+  return structuredCloneLike(obj, new WeakMap());
 }
 
-function jsonClone<T>(obj: T): T {
-  try {
-    return JSON.parse(JSON.stringify(obj));
-  } catch (e) {
-    if (e instanceof TypeError) {
-      return cloneLikeJson(obj);
-    }
-    throw e;
-  }
-}
-
-// Hermes has no structuredClone, and evaluated programs can contain reference cycles
-// (e.g. exercise.descriptions.reuse.exercise pointing back at the exercise), which
-// JSON.stringify throws a TypeError on. This mimics JSON.parse(JSON.stringify()) semantics
-// exactly, except cycles link back to the in-progress ancestor clone instead of throwing.
-// Shared non-cyclic references are still duplicated, like JSON does.
-function cloneLikeJson<T>(obj: T, ancestors: WeakMap<object, unknown> = new WeakMap()): T {
-  if (typeof obj === "number" && !isFinite(obj)) {
-    return null as unknown as T;
-  }
-  if (obj === null || typeof obj !== "object") {
+function structuredCloneLike<T>(obj: T, seen: WeakMap<object, unknown>): T {
+  if (obj === null) {
     return obj;
   }
-  const ancestorClone = ancestors.get(obj);
-  if (ancestorClone !== undefined) {
-    return ancestorClone as T;
+  const type = typeof obj;
+  if (type !== "object") {
+    // strings, numbers (NaN/Infinity/-0 preserved), booleans, bigint and undefined pass through.
+    return (type === "function" || type === "symbol" ? undefined : obj) as T;
   }
-  const withToJson = obj as { toJSON?: () => unknown };
-  if (typeof withToJson.toJSON === "function") {
-    return cloneLikeJson(withToJson.toJSON(), ancestors) as T;
+
+  const value = obj as object;
+  const existing = seen.get(value);
+  if (existing !== undefined) {
+    return existing as T;
   }
-  if (Array.isArray(obj)) {
-    const result: unknown[] = [];
-    ancestors.set(obj, result);
-    for (const item of obj) {
-      result.push(
-        item === undefined || typeof item === "function" || typeof item === "symbol"
-          ? null
-          : cloneLikeJson(item, ancestors)
-      );
-    }
-    ancestors.delete(obj);
+
+  if (value instanceof Date) {
+    const result = new Date(value.getTime());
+    seen.set(value, result);
     return result as unknown as T;
   }
+  if (value instanceof RegExp) {
+    const result = new RegExp(value.source, value.flags);
+    seen.set(value, result);
+    return result as unknown as T;
+  }
+  if (value instanceof ArrayBuffer) {
+    const result = value.slice(0);
+    seen.set(value, result);
+    return result as unknown as T;
+  }
+  if (ArrayBuffer.isView(value)) {
+    const view = value as ArrayBufferView & { length: number };
+    const buffer = structuredCloneLike(view.buffer, seen) as ArrayBuffer;
+    const result =
+      value instanceof DataView
+        ? new DataView(buffer, view.byteOffset, view.byteLength)
+        : new (value.constructor as new (b: ArrayBuffer, o: number, l: number) => ArrayBufferView)(
+            buffer,
+            view.byteOffset,
+            view.length
+          );
+    seen.set(value, result);
+    return result as unknown as T;
+  }
+  if (value instanceof Map) {
+    const result = new Map();
+    seen.set(value, result);
+    for (const [k, v] of value) {
+      result.set(structuredCloneLike(k, seen), structuredCloneLike(v, seen));
+    }
+    return result as unknown as T;
+  }
+  if (value instanceof Set) {
+    const result = new Set();
+    seen.set(value, result);
+    for (const v of value) {
+      result.add(structuredCloneLike(v, seen));
+    }
+    return result as unknown as T;
+  }
+  if (Array.isArray(value)) {
+    const result = new Array(value.length);
+    seen.set(value, result);
+    for (let i = 0; i < value.length; i += 1) {
+      if (i in value) {
+        result[i] = structuredCloneLike(value[i], seen);
+      }
+    }
+    return result as unknown as T;
+  }
+
   const result: Record<string, unknown> = {};
-  ancestors.set(obj, result);
-  for (const key of Object.keys(obj)) {
-    const item = (obj as Record<string, unknown>)[key];
-    if (item === undefined || typeof item === "function" || typeof item === "symbol") {
+  seen.set(value, result);
+  for (const key of Object.keys(value)) {
+    const item = (value as Record<string, unknown>)[key];
+    if (typeof item === "function" || typeof item === "symbol") {
       continue;
     }
-    result[key] = cloneLikeJson(item, ancestors);
+    result[key] = structuredCloneLike(item, seen);
   }
-  ancestors.delete(obj);
   return result as unknown as T;
 }
 

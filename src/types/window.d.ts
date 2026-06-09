@@ -61,7 +61,6 @@ interface Window {
 
   loadRollbar: (item: string | number, token: string) => Promise<void>;
 
-  structuredClone?: (obj: any) => any;
   onYouTubeIframeAPIReady?: () => void;
   YT: typeof YT;
   tempUserId?: string;
