@@ -19,6 +19,7 @@ export interface Spec extends TurboModule {
   getLastTerminationInfo(): Promise<LiftosaurTerminationInfo | null>;
   flushPendingTelemetry(): Promise<void>;
   getAppVersion(): string;
+  getDeviceModel(): string;
 
   readonly onTelemetryEvent: EventEmitter<LiftosaurTelemetryEvent>;
 }

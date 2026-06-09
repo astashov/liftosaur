@@ -2,6 +2,7 @@
 #import <React/RCTBridgeModule.h>
 #import <React_RCTAppDelegate/RCTDefaultReactNativeFactoryDelegate.h>
 #import "Liftosaur-Swift.h"
+#import <sys/utsname.h>
 
 static __weak RCTLiftosaurEventReporter *gCodegenWiredInstance = nil;
 
@@ -47,6 +48,12 @@ RCT_EXPORT_MODULE(LiftosaurEventReporter)
 - (NSString *)getAppVersion {
   NSString *version = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
   return version ?: @"0";
+}
+
+- (NSString *)getDeviceModel {
+  struct utsname systemInfo;
+  uname(&systemInfo);
+  return [NSString stringWithCString:systemInfo.machine encoding:NSUTF8StringEncoding] ?: @"";
 }
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:

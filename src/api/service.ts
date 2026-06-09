@@ -100,6 +100,7 @@ export type IEventPayload =
       androidVersion?: number;
       iOSOSVersion?: number;
       androidOSVersion?: number;
+      deviceModel?: string;
       commithash: string;
       extra?: Record<string, string | number>;
     }

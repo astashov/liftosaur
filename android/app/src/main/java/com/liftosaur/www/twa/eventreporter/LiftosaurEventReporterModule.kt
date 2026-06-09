@@ -42,6 +42,10 @@ class LiftosaurEventReporterModule(reactContext: ReactApplicationContext) :
         return BuildConfig.VERSION_CODE.toString()
     }
 
+    override fun getDeviceModel(): String {
+        return android.os.Build.MODEL ?: ""
+    }
+
     fun dispatchTelemetry(event: WritableMap) {
         emitOnTelemetryEvent(event)
     }

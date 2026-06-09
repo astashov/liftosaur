@@ -13,6 +13,7 @@ export interface IAppAttribution {
   androidVersion?: number;
   iOSOSVersion?: number;
   androidOSVersion?: number;
+  deviceModel?: string;
 }
 
 export function AppAttribution_get(): IAppAttribution {
