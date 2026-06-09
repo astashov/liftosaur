@@ -39,15 +39,21 @@ export function NavModalExerciseImageSource(): JSX.Element {
       return;
     }
     setIsUploading(true);
-    const dataUrl = await ImagePicker_pick(source);
-    if (dataUrl) {
-      const imageUploader = new ImageUploader(service);
-      const url = await imageUploader.uploadBase64Image(dataUrl, exerciseId);
-      Modal_setResult(modalDispatch, "exerciseImageSourceModal", { smallImageUrl: url });
+    try {
+      const uri = await ImagePicker_pick(source);
+      if (uri) {
+        const imageUploader = new ImageUploader(service);
+        const url = await imageUploader.uploadBase64Image(uri, exerciseId);
+        Modal_setResult(modalDispatch, "exerciseImageSourceModal", { smallImageUrl: url });
+      }
+    } catch (e) {
+      console.error("Error uploading image", e);
+      Dialog_alert("Failed to upload image. Please try again.");
+    } finally {
+      setIsUploading(false);
+      Modal_clear(modalDispatch, "exerciseImageSourceModal");
+      navigation.goBack();
     }
-    setIsUploading(false);
-    Modal_clear(modalDispatch, "exerciseImageSourceModal");
-    navigation.goBack();
   };
 
   if (!data) {

@@ -14,6 +14,10 @@ async function ensureCameraPermission(): Promise<boolean> {
   return granted === PermissionsAndroid.RESULTS.GRANTED;
 }
 
+// Returns the original local file:// uri. We deliberately don't pass maxWidth/maxHeight/quality:
+// those make the picker re-encode to JPEG, which flattens transparent PNGs onto a black background.
+// assetRepresentationMode "current" keeps the original format (alpha intact); the downscale happens
+// later in the native LiftosaurImageResizer, which preserves transparency.
 export async function ImagePicker_pick(source: "camera" | "photo-library"): Promise<string | undefined> {
   if (source === "camera" && !(await ensureCameraPermission())) {
     return undefined;
@@ -21,18 +25,18 @@ export async function ImagePicker_pick(source: "camera" | "photo-library"): Prom
   const fn = source === "camera" ? launchCamera : launchImageLibrary;
   const res = await fn({
     mediaType: "photo",
-    includeBase64: true,
-    maxWidth: 1600,
-    maxHeight: 1600,
-    quality: 0.8,
+    assetRepresentationMode: "current",
   });
-  if (res.didCancel || res.errorCode) {
+  // Normal user cancellation is not an error - return undefined so callers can quietly close.
+  if (res.didCancel) {
     return undefined;
   }
-  const asset = res.assets?.[0];
-  if (!asset?.base64) {
-    return undefined;
+  if (res.errorCode) {
+    throw new Error(res.errorMessage ?? `Image picker error: ${res.errorCode}`);
   }
-  const mime = asset.type ?? "image/jpeg";
-  return `data:${mime};base64,${asset.base64}`;
+  const uri = res.assets?.[0]?.uri;
+  if (!uri) {
+    throw new Error("No image was selected");
+  }
+  return uri;
 }

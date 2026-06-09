@@ -56,7 +56,6 @@ async function uploadAndUpdateImage(
 ): Promise<void> {
   const data = await ImagePicker_pick(source);
   if (!data) {
-    Dialog_alert(source === "camera" ? "Couldn't get image from camera" : "Couldn't get image from photo library");
     return;
   }
   const imageUploader = new ImageUploader(service);
@@ -420,9 +419,14 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
               description="Take a photo"
               onClick={async () => {
                 setIsUploading(true);
-                await uploadAndUpdateImage("camera", editCustomExercise.id, service, props.dispatch);
-                setIsUploading(false);
-                setShowPicturePickerBottomSheet(false);
+                try {
+                  await uploadAndUpdateImage("camera", editCustomExercise.id, service, props.dispatch);
+                } catch (e) {
+                  Dialog_alert("Failed to upload image. Please try again.");
+                } finally {
+                  setIsUploading(false);
+                  setShowPicturePickerBottomSheet(false);
+                }
               }}
             />
             <BottomSheetItem
@@ -432,9 +436,14 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
               description="Pick photo from your photo library"
               onClick={async () => {
                 setIsUploading(true);
-                await uploadAndUpdateImage("photo-library", editCustomExercise.id, service, props.dispatch);
-                setIsUploading(false);
-                setShowPicturePickerBottomSheet(false);
+                try {
+                  await uploadAndUpdateImage("photo-library", editCustomExercise.id, service, props.dispatch);
+                } catch (e) {
+                  Dialog_alert("Failed to upload image. Please try again.");
+                } finally {
+                  setIsUploading(false);
+                  setShowPicturePickerBottomSheet(false);
+                }
               }}
             />
           </View>

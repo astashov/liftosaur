@@ -150,6 +150,7 @@ dependencies {
     implementation 'com.tiktok.open.sdk:tiktok-open-sdk-core:2.3.0'
     implementation 'com.tiktok.open.sdk:tiktok-open-sdk-share:2.3.0'
     implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'androidx.exifinterface:exifinterface:1.3.3'
 
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
