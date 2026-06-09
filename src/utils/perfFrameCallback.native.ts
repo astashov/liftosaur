@@ -8,6 +8,11 @@ import { PerfEnabled_isEnabled, PerfEnabled_tier2 } from "./perfEnabled";
 // fixed 60Hz budget would flag normal frames as "slow". 33ms = at least one missed 60Hz frame.
 const SLOW_FRAME_MS = 33;
 const FROZEN_FRAME_MS = 700;
+// Gaps beyond this are app suspends / OS-level hangs (the UI-thread frame loop was paused while
+// backgrounded), not per-frame render jank — they'd otherwise dominate max_gap_ms. This is the
+// race-free backstop to the AppState resume-skip below: a multi-second gap on a foregrounded UI
+// thread is never a render freeze, and genuine long JS freezes are captured by the long-task observer.
+const SUSPEND_GAP_MS = 6000;
 const SUMMARY_INTERVAL_MS = 1000;
 
 let registeredDrain: ((screenOverride?: string) => void) | undefined;
@@ -69,6 +74,9 @@ export function usePerfFrameSampling(
     framesTotal.value += 1;
     if (skipNextGap.value) {
       skipNextGap.value = false;
+      return;
+    }
+    if (gap > SUSPEND_GAP_MS) {
       return;
     }
     if (gap > FROZEN_FRAME_MS) {
