@@ -317,7 +317,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
       <div className="mx-auto" style={{ maxWidth }}>
         <div
           style={{ display: showHelp ? "block" : "none" }}
-          className="relative px-8 py-4 mb-4 mr-0 border border-orange-400 rounded-lg bg-yellow-50 sm:mr-64"
+          className="relative px-8 py-4 mb-4 mr-0 border border-border-cardyellow rounded-lg bg-background-cardyellow sm:mr-64"
         >
           <div>
             <p className="mb-2">
