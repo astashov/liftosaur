@@ -106,7 +106,7 @@ import { NativeWorkoutBridge_discardWorkout } from "../utils/nativeWorkoutBridge
 import { IImportLinkData, ImportFromLink_importFromLink } from "../utils/importFromLink";
 import { getLatestMigrationVersion } from "../migrations/migrations";
 import { LogUtils_log } from "../utils/log";
-import { lg, lgDebug } from "../utils/posthog";
+import { lg } from "../utils/posthog";
 import { RollbarUtils_config } from "../utils/rollbar";
 import { UrlUtils_build } from "../utils/url";
 import { ImportFromLiftosaur_convertLiftosaurCsvToHistoryRecords } from "../utils/importFromLiftosaur";
@@ -448,24 +448,15 @@ async function _sync2(
     const storageUpdate = Sync_getStorageUpdate2(state.storage, state.lastSyncedStorage, state.deviceId);
     if (args?.force || storageUpdate.storage) {
       const lastSyncedStorage = state.storage;
-      const t0 = Date.now();
       const result = await env.service.postSync({
         tempUserId: state.storage.tempUserId,
         storageUpdate: storageUpdate,
         signal,
         deviceId: state.deviceId,
       });
-      const fetchMs = Date.now() - t0;
       if (signal?.aborted) {
-        lgDebug("dbg-sync2-aborted", "venjrctxrf", { fetchMs });
         return;
       }
-      lgDebug("dbg-sync2-response", "venjrctxrf", {
-        fetchMs,
-        type: result.type,
-        force: args?.force ? 1 : 0,
-        hasStorageUpdate: storageUpdate.storage ? 1 : 0,
-      });
       handleResponse(result, { lastSyncedStorage });
     }
   }
@@ -652,11 +643,6 @@ export function Thunk_sync2(args?: { force?: boolean; cb?: () => void; log?: boo
         })
       );
     }
-    lgDebug("dbg-sync2-dispatch", "venjrctxrf", {
-      force: args?.force ? 1 : 0,
-      queueLength: env.queue.length(),
-      isProcessing: env.queue.getIsProcessing() ? 1 : 0,
-    });
     try {
       const state = getState();
       if (state.errors.corruptedstorage == null && !state.nosync && (state.user != null || args?.force)) {
@@ -1224,12 +1210,10 @@ export function Thunk_editHistoryRecord(historyRecord: IHistoryRecord): IThunk {
 
 export function Thunk_finishProgramDay(id: number): IThunk {
   return async (dispatch, getState) => {
-    lgDebug("dbg-finish-thunk-start", "cckidffiis", { id });
     const state = getState();
     const progress = Progress_getProgressById(state, id);
     const isCurrent = progress ? Progress_isCurrent(progress) : false;
     const { navigateTo, goBack } = await getNavigationService();
-    lgDebug("dbg-finish-thunk-nav-service", "cckidffiis", { isCurrent: String(isCurrent) });
     // Navigate before dispatch so the progress screen unmounts before
     // FallbackScreen can detect null progress and redirect to home.
     // The dispatch must stay synchronous after goBack: for a dirty past workout
@@ -1242,9 +1226,7 @@ export function Thunk_finishProgramDay(id: number): IThunk {
     } else {
       goBack();
     }
-    lgDebug("dbg-finish-thunk-after-navigate", "cckidffiis");
     dispatch({ type: "FinishProgramDayAction", id });
-    lgDebug("dbg-finish-thunk-after-action", "cckidffiis");
   };
 }
 
@@ -1886,12 +1868,10 @@ export function Thunk_setGooglePurchaseToken(productId?: string, token?: string)
   };
 }
 
-const LOADING_STUCK_MS = 20000;
-
 async function load<T>(dispatch: IDispatch, type: string, cb: () => Promise<T>): Promise<T> {
   return new Promise((resolve, reject) => {
     const name = UidFactory_generateUid(4);
-    _load(dispatch, name, type, cb, 0, resolve, reject, Date.now());
+    _load(dispatch, name, type, cb, 0, resolve, reject);
   });
 }
 
@@ -1902,15 +1882,8 @@ function _load<T>(
   cb: () => Promise<T>,
   attempt: number,
   resolve: (arg: T) => void,
-  reject: (arg: unknown) => void,
-  startTime: number
+  reject: (arg: unknown) => void
 ): void {
-  // The navbar gear spins while any loading item has no endTime. If the underlying op never settles
-  // (e.g. a sync whose fetch isn't cancellable after the queue aborts it), the gear is stuck forever.
-  // This watchdog reports that the user is seeing it, with which op and for how long.
-  const stuckWatchdog = setTimeout(() => {
-    lgDebug("loading-stuck", "venjrctxrf", { type, attempt, elapsedMs: Date.now() - startTime });
-  }, LOADING_STUCK_MS);
   updateState(
     dispatch,
     [
@@ -1930,7 +1903,6 @@ function _load<T>(
   );
   cb()
     .then((r) => {
-      clearTimeout(stuckWatchdog);
       updateState(
         dispatch,
         [
@@ -1942,9 +1914,7 @@ function _load<T>(
       resolve(r);
     })
     .catch((e) => {
-      clearTimeout(stuckWatchdog);
       if (e.name === "AbortError") {
-        lgDebug("load-abort", "venjrctxrf", { type, attempt, elapsedMs: Date.now() - startTime });
         updateState(
           dispatch,
           [
@@ -1957,7 +1927,6 @@ function _load<T>(
         return;
       }
       if (attempt >= 3 || (e instanceof NoRetryError && e.noretry)) {
-        lgDebug("load-failed", "venjrctxrf", { type, attempt, error: e instanceof Error ? e.message : String(e) });
         updateState(
           dispatch,
           [
@@ -1974,9 +1943,8 @@ function _load<T>(
         }
         reject(e);
       } else {
-        lgDebug("load-retry", "venjrctxrf", { type, attempt, error: e instanceof Error ? e.message : String(e) });
         setTimeout(() => {
-          _load(dispatch, name, type, cb, attempt + 1, resolve, reject, startTime);
+          _load(dispatch, name, type, cb, attempt + 1, resolve, reject);
         }, 1000);
       }
     });

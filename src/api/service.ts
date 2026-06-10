@@ -8,10 +8,6 @@ import { IExportedProgram, IProgramIndexEntry } from "../models/program";
 import { CollectionUtils_uniqBy } from "../utils/collection";
 import { Encoder_encode } from "../utils/encoder";
 import { IAppleOffer, IGoogleOffer } from "../models/state";
-import { lgDebug } from "../utils/posthog";
-
-const DEBUG_USER_ID = "venjrctxrf";
-let inflightHistoryFetches = 0;
 
 function Service_nativeClientHeaders(): Record<string, string> {
   if (Platform.OS === "ios") {
@@ -175,7 +171,6 @@ export class Service {
     json.storage.history = await this.getAllHistoryRecords({
       alreadyFetchedHistory: json.storage.history,
       historyLimit: historylimit,
-      caller: "signin-google",
     });
     return {
       email: json.email,
@@ -191,53 +186,26 @@ export class Service {
     historyLimit?: number;
     userId?: string;
     adminKey?: string;
-    caller?: string;
   }): Promise<IHistoryRecord[]> {
-    const caller = args.caller ?? "unknown";
-    const startTime = Date.now();
-    let pages = 0;
-    inflightHistoryFetches += 1;
-    // The full-history pull runs on app boot, sign-in and every dirty sync; >1 in flight means
-    // several of those paths fan out at once (the root of the stuck-spinner reports).
-    if (inflightHistoryFetches > 1) {
-      lgDebug("history-fetch-concurrent", DEBUG_USER_ID, { caller, inflight: inflightHistoryFetches });
-    }
-    try {
-      let history = args.alreadyFetchedHistory || [];
-      let historyResponse: IHistoryRecord[] | undefined = undefined;
-      let historyLimit = args.historyLimit || 20;
-      while ((historyResponse || history).length > historyLimit - 1) {
-        historyLimit = 100;
-        historyResponse = await this.getHistory({
-          after: history.length > 1 ? history[history.length - 2].id : undefined,
-          limit: historyLimit,
-          userId: args.userId,
-          adminKey: args.adminKey,
-        });
-        pages += 1;
-        if (historyResponse.length > 0) {
-          history = [...history, ...historyResponse];
-        } else {
-          break;
-        }
-      }
-      history = CollectionUtils_uniqBy(history, "id");
-      const ms = Date.now() - startTime;
-      if (pages > 2 || ms > 3000) {
-        lgDebug("history-fetch-slow", DEBUG_USER_ID, { caller, pages, records: history.length, ms });
-      }
-      return history;
-    } catch (e) {
-      lgDebug("history-fetch-error", DEBUG_USER_ID, {
-        caller,
-        pages,
-        ms: Date.now() - startTime,
-        error: e instanceof Error ? e.message : String(e),
+    let history = args.alreadyFetchedHistory || [];
+    let historyResponse: IHistoryRecord[] | undefined = undefined;
+    let historyLimit = args.historyLimit || 20;
+    while ((historyResponse || history).length > historyLimit - 1) {
+      historyLimit = 100;
+      historyResponse = await this.getHistory({
+        after: history.length > 1 ? history[history.length - 2].id : undefined,
+        limit: historyLimit,
+        userId: args.userId,
+        adminKey: args.adminKey,
       });
-      throw e;
-    } finally {
-      inflightHistoryFetches -= 1;
+      if (historyResponse.length > 0) {
+        history = [...history, ...historyResponse];
+      } else {
+        break;
+      }
     }
+    history = CollectionUtils_uniqBy(history, "id");
+    return history;
   }
 
   public async getHistory(args: {
@@ -279,7 +247,6 @@ export class Service {
     json.storage.history = await this.getAllHistoryRecords({
       alreadyFetchedHistory: json.storage.history,
       historyLimit: historylimit,
-      caller: "signin-apple",
     });
     return {
       email: json.email,
@@ -353,7 +320,6 @@ export class Service {
       json.storage.history = await this.getAllHistoryRecords({
         alreadyFetchedHistory: json.storage.history,
         historyLimit: 20,
-        caller: "sync-dirty",
       });
     }
     return json;
@@ -519,7 +485,6 @@ export class Service {
         historyLimit: historylimit,
         userId: userId != null && adminKey != null ? userId : undefined,
         adminKey: userId != null && adminKey != null ? adminKey : undefined,
-        caller: "get-storage",
       });
     }
     return {

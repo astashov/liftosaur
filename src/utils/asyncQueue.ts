@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { DateUtils_formatYYYYMMDDHHMM } from "./date";
-import { lg, lgDebug } from "./posthog";
+import { lg } from "./posthog";
 
 export interface IAsyncQueueOptions {
   timeoutMs?: number;
@@ -61,10 +61,6 @@ export class AsyncQueue {
       };
 
       this.queue.push(item);
-      lgDebug("dbg-queue-enqueue", "venjrctxrf", {
-        queueLength: this.queue.length,
-        isProcessing: this.isProcessing ? 1 : 0,
-      });
       this.processQueue();
     });
   }
@@ -74,7 +70,6 @@ export class AsyncQueue {
       return;
     }
 
-    lgDebug("dbg-queue-process", "venjrctxrf", { queueLength: this.queue.length });
     this.isProcessing = true;
     this._processingGeneration += 1;
     const generation = this._processingGeneration;
@@ -114,13 +109,7 @@ export class AsyncQueue {
     } catch (error) {
       throw error;
     } finally {
-      if (generation !== this._processingGeneration) {
-        lgDebug("dbg-queue-stale-finally", "venjrctxrf", {
-          staleGen: generation,
-          currentGen: this._processingGeneration,
-          queueLength: this.queue.length,
-        });
-      } else {
+      if (generation === this._processingGeneration) {
         this.currentItem = null;
         this.isProcessing = false;
         this.processQueue();
@@ -159,7 +148,6 @@ export class AsyncQueue {
   public clearStaleOperations(): void {
     const now = Date.now();
     this.addLog("clear-stale-operations", { queueLength: this.queue.length });
-    let clearedCurrent = false;
 
     if (this.currentItem && this.currentItem.timeoutMs) {
       const elapsed = now - this.currentItem.enqueuedAt;
@@ -174,7 +162,6 @@ export class AsyncQueue {
         this.currentItem.controller.abort();
         this.currentItem = null;
         this.isProcessing = false;
-        clearedCurrent = true;
       }
     }
 
@@ -201,12 +188,6 @@ export class AsyncQueue {
       this.queue.splice(staleIndices[i], 1);
     }
 
-    lgDebug("dbg-queue-after-clear-stale", "venjrctxrf", {
-      clearedQueued: staleIndices.length,
-      clearedCurrent: clearedCurrent ? 1 : 0,
-      remainingQueue: this.queue.length,
-      isProcessing: this.isProcessing ? 1 : 0,
-    });
     if (!this.isProcessing && this.queue.length > 0) {
       this.processQueue();
     }

@@ -70,7 +70,7 @@ import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { EditProgramUiHelpers_getChangedKeys } from "../components/editProgram/editProgramUi/editProgramUiHelpers";
 import { History_deleteRecords } from "../models/history";
-import { lg, lgDebug } from "../utils/posthog";
+import { lg } from "../utils/posthog";
 import { Equipment_getCurrentGym, Equipment_getEquipmentIdForExerciseType } from "../models/equipment";
 import { Stats_getCurrentMovingAverageBodyweight } from "../models/stats";
 import { Weight_build, Weight_eq } from "../models/weight";
@@ -341,7 +341,6 @@ export type IAction =
   | IApplyProgramChangesToProgress;
 
 let timerId: number | undefined = undefined;
-let dbgLastFinishActionAt: number | undefined = undefined;
 
 function isExternalStorageMerge(action: unknown): boolean {
   return (
@@ -537,10 +536,6 @@ export const reducerWrapper =
       }
       const versions = Storage_updateVersions(state.storage, newState.storage, state.deviceId);
       newState = { ...newState, storage: { ...newState.storage, _versions: versions } };
-      if ("type" in action && action.type === "FinishProgramDayAction") {
-        lgDebug("dbg-finish-versions-updated", "cckidffiis");
-        dbgLastFinishActionAt = Date.now();
-      }
     }
 
     if (SendMessage_isIos()) {
@@ -566,10 +561,6 @@ export const reducerWrapper =
             };
             await IndexedDBUtils_set("current_account", userId);
             await IndexedDBUtils_set(`liftosaur_${userId}`, JSON.stringify(localStorage));
-            if (dbgLastFinishActionAt != null && Date.now() - dbgLastFinishActionAt < 10000) {
-              dbgLastFinishActionAt = undefined;
-              lgDebug("dbg-finish-persisted", "cckidffiis", { progressLen: newState2.storage.progress.length });
-            }
           }, 100);
         }
       }
@@ -674,12 +665,10 @@ export const reducer: Reducer<IState, IAction> = (state, action): IState => {
     };
   } else if (action.type === "FinishProgramDayAction") {
     const progress = Progress_getProgressById(state, action.id);
-    lgDebug("dbg-finish-reducer-start", "cckidffiis", { hasProgress: String(progress != null) });
     if (progress == null) {
       return state;
     }
     const newStorage = Progress_finishWorkout(state.storage, progress);
-    lgDebug("dbg-finish-reducer-end", "cckidffiis", { historyLen: newStorage.history.length });
     return {
       ...state,
       storage: newStorage,

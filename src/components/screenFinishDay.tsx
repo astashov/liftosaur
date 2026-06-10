@@ -50,7 +50,6 @@ import { Muscle_getMuscleGroupName } from "../models/muscle";
 import { IconDoc } from "./icons/iconDoc";
 import { LiftohistorySerializer_serialize } from "../liftohistory/liftohistorySerializer";
 import { navigateToModal } from "../navigation/navigationService";
-import { lgDebug } from "../utils/posthog";
 
 interface IProps {
   history: IHistoryRecord[];
@@ -69,7 +68,6 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
   const recordById =
     props.historyRecordId != null ? props.history.find((h) => h.id === props.historyRecordId) : undefined;
   const record = recordById ?? props.history[0];
-  lgDebug("dbg-finish-screen-render-start", "cckidffiis", { hasRecord: String(record != null) });
 
   // On the very first workout, history is momentarily empty between the
   // navigate-to-finishDay and the FinishProgramDayAction commit, so `record`
@@ -103,8 +101,6 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
     Platform.OS === "android" ||
     (SendMessage_isIos() && SendMessage_iosAppVersion() >= 11) ||
     (SendMessage_isAndroid() && SendMessage_androidAppVersion() >= 20);
-
-  lgDebug("dbg-finish-screen-render-computed", "cckidffiis");
 
   return (
     <>
