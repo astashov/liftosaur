@@ -1,5 +1,6 @@
 import { JSX } from "react";
 import { View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "./primitives/text";
 import { IProgram, ISettings, IStats } from "../types";
 import {
@@ -28,6 +29,7 @@ export interface IBottomSheetNextWorkoutContentProps {
 }
 
 export function BottomSheetNextWorkoutContent(props: IBottomSheetNextWorkoutContentProps): JSX.Element {
+  const insets = useSafeAreaInsets();
   const evaluatedProgram = props.currentProgram ? Program_evaluate(props.currentProgram, props.settings) : undefined;
 
   const programDay = evaluatedProgram ? Program_getProgramDay(evaluatedProgram, evaluatedProgram.nextDay) : undefined;
@@ -60,7 +62,7 @@ export function BottomSheetNextWorkoutContent(props: IBottomSheetNextWorkoutCont
           dispatch={props.dispatch}
         />
       )}
-      <View className="flex-row justify-between pt-6 pb-4 bg-background-default">
+      <View className="flex-row justify-between pt-6 bg-background-default" style={{ paddingBottom: insets.bottom }}>
         <LinkButton
           name="change-next-day"
           data-testid="change-next-day"
