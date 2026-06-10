@@ -23,6 +23,7 @@ import { GraphExercise } from "./graphExercise";
 import { ExerciseAllTimePRs } from "./exerciseAllTimePRs";
 import { ExerciseHistory } from "./exerciseHistory";
 import { Reps_setsStatus } from "../models/set";
+import { Weight_build } from "../models/weight";
 import { WorkoutExerciseCard } from "./workoutExerciseCard";
 import { usePerfRenderCount } from "../utils/usePerfRenderCount";
 
@@ -52,31 +53,48 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
   usePerfRenderCount("WorkoutExercise");
   const exerciseType = props.entry.exercise;
 
-  const [
-    history,
-    { maxTime: maxX, minTime: minX },
-    { maxWeight, maxWeightHistoryRecord },
-    { max1RM, max1RMHistoryRecord, max1RMSet },
-  ] = useMemo(() => {
+  const [isHeavyContentReady, setIsHeavyContentReady] = useState(false);
+  useEffect(() => {
+    // Defer below-the-fold heavy content (graphs/PRs + the O(history) PR math) off the first paint so
+    // the card renders immediately. Deterministic delay on purpose, NOT InteractionManager: this
+    // screen uses native-stack transitions (react-native-screens) and a gesture-driven pager, neither
+    // of which registers a JS interaction handle — runAfterInteractions would fire mid-transition, not
+    // after it. ~350ms clears the push slide so the work lands once the screen has settled.
+    const t = setTimeout(() => setIsHeavyContentReady(true), 350);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Cheap pass needed for the card's first paint: filter the full history down to this exercise (a
+  // per-record `.some` predicate) and the global time range. The per-set 1RM/PR math is deferred
+  // below so it stays off the mount frame for users with large histories.
+  const [history, { maxTime: maxX, minTime: minX }] = useMemo(() => {
     const results = Collector.build(props.history)
       .addFn(History_collectAllHistoryRecordsOfExerciseType(exerciseType))
       .addFn(History_collectMinAndMaxTime())
-      .addFn(History_collectWeightPersonalRecord(exerciseType, props.settings.units))
-      .addFn(History_collect1RMPersonalRecord(exerciseType, props.settings.units))
       .run();
     results[0] = CollectionUtils_sort(results[0], (a, b) => {
       return props.settings.exerciseStatsSettings.ascendingSort ? a.startTime - b.startTime : b.startTime - a.startTime;
     });
     return results;
-  }, [props.history, exerciseType, props.settings.units, props.settings.exerciseStatsSettings.ascendingSort]);
+  }, [props.history, exerciseType, props.settings.exerciseStatsSettings.ascendingSort]);
+
+  // PRs feed only the (already deferred) graphs/PRs block, and the per-record 1RM math is the
+  // expensive part — so defer it and run it over the already-filtered slice, not all history.
+  const [{ maxWeight, maxWeightHistoryRecord }, { max1RM, max1RMHistoryRecord, max1RMSet }] = useMemo(() => {
+    if (!isHeavyContentReady) {
+      const zero = Weight_build(0, props.settings.units);
+      return [
+        { maxWeight: zero, maxWeightHistoryRecord: undefined },
+        { max1RM: zero, max1RMHistoryRecord: undefined, max1RMSet: undefined },
+      ];
+    }
+    return Collector.build(history)
+      .addFn(History_collectWeightPersonalRecord(exerciseType, props.settings.units))
+      .addFn(History_collect1RMPersonalRecord(exerciseType, props.settings.units))
+      .run();
+  }, [isHeavyContentReady, history, exerciseType, props.settings.units]);
   const showPrs = maxWeight.value > 0 || max1RM.value > 0;
   const status = Reps_setsStatus(props.entry.sets);
-
-  const [isHeavyContentReady, setIsHeavyContentReady] = useState(false);
-  useEffect(() => {
-    const t = setTimeout(() => setIsHeavyContentReady(true), 150);
-    return () => clearTimeout(t);
-  }, []);
 
   const [activeGraphId, setActiveGraphId] = useState<string | null>(null);
   const activeGraphValue = useMemo<IActiveGraphContext>(

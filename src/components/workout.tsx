@@ -33,6 +33,7 @@ import { WorkoutExercisePager } from "./workoutExercisePager";
 import { Scroller, IScrollerHandle } from "./scroller";
 import { WorkoutExerciseThumbnail } from "./workoutExerciseThumbnail";
 import { IconShare } from "./icons/iconShare";
+import { IconSpinner } from "./icons/iconSpinner";
 import { Markdown } from "./markdown";
 import { DraggableList2 } from "./draggableList2";
 import { LinkButton } from "./linkButton";
@@ -45,10 +46,13 @@ import { History_calories, History_pauseWorkout } from "../models/history";
 import { NativeWorkoutBridge_finishWorkout, NativeWorkoutBridge_pauseWorkout } from "../utils/nativeWorkoutBridge";
 import { NativeWatchBridge_sendFinishWorkoutToWatch } from "../utils/nativeWatchBridge";
 import { NativeWorkoutMirroring_resetWatchWorkoutState } from "../utils/nativeWorkoutMirroringBridge";
-import { Dialog_confirm } from "../utils/dialog";
+import { Dialog_alert, Dialog_confirm } from "../utils/dialog";
+import type RB from "rollbar";
 import { useEqual } from "../utils/useEqual";
 import { usePerfRenderCount } from "../utils/usePerfRenderCount";
 import { NavScreenContent } from "../navigation/NavScreenContent";
+
+declare let Rollbar: RB | undefined;
 
 interface IWorkoutViewProps {
   history: IHistoryRecord[];
@@ -341,6 +345,7 @@ function WorkoutHeaderInner(props: IWorkoutHeaderProps): JSX.Element {
   const currentProgram = allPrograms.find((p) => p.id === program?.id);
   const isCurrent = Progress_isCurrent(progress);
   const isEligibleForProgramDay = !isCurrent && allPrograms.every((p) => p.id !== progress.programId);
+  const [isFinishing, setIsFinishing] = useState(false);
 
   const onFinish = async (): Promise<void> => {
     const isFullyFinished = isCurrent && Progress_isFullyFinishedSet(props.progress);
@@ -354,49 +359,67 @@ function WorkoutHeaderInner(props: IWorkoutHeaderProps): JSX.Element {
         return;
       }
     }
-    lgDebug("dbg-finish-onfinish-before-pause", "cckidffiis");
-    NativeWorkoutBridge_pauseWorkout();
-    lgDebug("dbg-finish-onfinish-after-pause", "cckidffiis");
-    props.dispatch(Thunk_finishProgramDay(progress.id));
-    lgDebug("dbg-finish-onfinish-after-dispatch", "cckidffiis");
-    if (isCurrent) {
-      props.dispatch(Thunk_postevent("finish-workout", { workout: JSON.stringify(props.progress) }));
-      const isIos = Platform.OS === "ios" || SendMessage_isIos();
-      const healthName = isIos ? "Apple Health" : "Google Health";
-      const isHealthEligible =
-        (HealthSync_eligibleForAppleHealth() && props.settings.appleHealthSyncWorkout) ||
-        (HealthSync_eligibleForGoogleHealth() && props.settings.googleHealthSyncWorkout);
-      const shouldSyncToHealth =
-        isHealthEligible &&
-        (!props.settings.healthConfirmation ||
-          (await Dialog_confirm(`Do you want to sync this workout to ${healthName}?`)));
-      lgDebug("dbg-finish-onfinish-health-checked", "cckidffiis", { shouldSyncToHealth: String(!!shouldSyncToHealth) });
-      const rawIntervals = History_pauseWorkout(props.progress.intervals) ?? [];
-      const intervals: [number, number | null][] = rawIntervals.map(([s, e]) => [s, e ?? null]);
-      NativeWorkoutBridge_finishWorkout({
-        healthSync: !!shouldSyncToHealth,
-        calories: History_calories(props.progress),
-        intervals: JSON.stringify(intervals),
-      });
-      lgDebug("dbg-finish-onfinish-after-native-finish", "cckidffiis");
-      const watchSaved = shouldSyncToHealth ? await NativeWatchBridge_sendFinishWorkoutToWatch() : false;
-      NativeWorkoutMirroring_resetWatchWorkoutState();
-      if (shouldSyncToHealth && !watchSaved) {
-        const validIntervals = intervals.filter((i): i is [number, number] => i[1] != null);
-        const startMs = validIntervals[0]?.[0] ?? props.progress.startTime;
-        const endMs = validIntervals[validIntervals.length - 1]?.[1] ?? Date.now();
-        props.dispatch(
-          Thunk_saveWorkoutToHealth({
-            startMs,
-            endMs,
-            calories: History_calories(props.progress),
-            intervals,
-          })
-        );
-      } else if (watchSaved) {
-        props.dispatch(Thunk_postevent("skipped-phone-health-sync-watch-saved"));
+    // FinishProgramDayAction synchronously re-evaluates the program + rebuilds the planner (1-2s on
+    // large/complex programs), blocking the JS thread. Flip the spinner and yield a frame so it
+    // actually paints before the blocking dispatch starts — a same-tick setState would never render.
+    setIsFinishing(true);
+    try {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      lgDebug("dbg-finish-onfinish-before-pause", "cckidffiis");
+      NativeWorkoutBridge_pauseWorkout();
+      lgDebug("dbg-finish-onfinish-after-pause", "cckidffiis");
+      props.dispatch(Thunk_finishProgramDay(progress.id));
+      lgDebug("dbg-finish-onfinish-after-dispatch", "cckidffiis");
+      if (isCurrent) {
+        props.dispatch(Thunk_postevent("finish-workout", { workout: JSON.stringify(props.progress) }));
+        const isIos = Platform.OS === "ios" || SendMessage_isIos();
+        const healthName = isIos ? "Apple Health" : "Google Health";
+        const isHealthEligible =
+          (HealthSync_eligibleForAppleHealth() && props.settings.appleHealthSyncWorkout) ||
+          (HealthSync_eligibleForGoogleHealth() && props.settings.googleHealthSyncWorkout);
+        const shouldSyncToHealth =
+          isHealthEligible &&
+          (!props.settings.healthConfirmation ||
+            (await Dialog_confirm(`Do you want to sync this workout to ${healthName}?`)));
+        lgDebug("dbg-finish-onfinish-health-checked", "cckidffiis", {
+          shouldSyncToHealth: String(!!shouldSyncToHealth),
+        });
+        const rawIntervals = History_pauseWorkout(props.progress.intervals) ?? [];
+        const intervals: [number, number | null][] = rawIntervals.map(([s, e]) => [s, e ?? null]);
+        NativeWorkoutBridge_finishWorkout({
+          healthSync: !!shouldSyncToHealth,
+          calories: History_calories(props.progress),
+          intervals: JSON.stringify(intervals),
+        });
+        lgDebug("dbg-finish-onfinish-after-native-finish", "cckidffiis");
+        const watchSaved = shouldSyncToHealth ? await NativeWatchBridge_sendFinishWorkoutToWatch() : false;
+        NativeWorkoutMirroring_resetWatchWorkoutState();
+        if (shouldSyncToHealth && !watchSaved) {
+          const validIntervals = intervals.filter((i): i is [number, number] => i[1] != null);
+          const startMs = validIntervals[0]?.[0] ?? props.progress.startTime;
+          const endMs = validIntervals[validIntervals.length - 1]?.[1] ?? Date.now();
+          props.dispatch(
+            Thunk_saveWorkoutToHealth({
+              startMs,
+              endMs,
+              calories: History_calories(props.progress),
+              intervals,
+            })
+          );
+        } else if (watchSaved) {
+          props.dispatch(Thunk_postevent("skipped-phone-health-sync-watch-saved"));
+        }
+        lgDebug("dbg-finish-onfinish-end", "cckidffiis");
       }
-      lgDebug("dbg-finish-onfinish-end", "cckidffiis");
+      // Deliberately do NOT clear isFinishing on success. The blocking FinishProgramDayAction commit
+      // is deferred inside Thunk_finishProgramDay past `await getNavigationService()`, so it runs
+      // after this function returns — clearing here would hide the spinner right before the freeze it
+      // exists to mask. The thunk navigates away (finishDay / goBack) immediately before that commit,
+      // so this screen leaves while the spinner is still up. Only reset on failure (which happens
+      // before navigation) so the button re-enables.
+    } catch (error) {
+      setIsFinishing(false);
+      throw error;
     }
   };
 
@@ -461,14 +484,33 @@ function WorkoutHeaderInner(props: IWorkoutHeaderProps): JSX.Element {
             name={isCurrent ? "finish-workout" : "save-history-record"}
             kind="purple"
             buttonSize="md"
+            disabled={isFinishing}
             data-testid="finish-workout"
             testID="finish-workout"
             className={isCurrent ? "ls-finish-workout" : "ls-save-history-record"}
             onClick={() => {
-              onFinish().catch(() => undefined);
+              if (isFinishing) {
+                return;
+              }
+              // Finishing a workout is the most critical action — never swallow its failure silently.
+              // The bare .catch(() => undefined) suppressed the global unhandledrejection reporter too.
+              onFinish().catch((error) => {
+                if (typeof Rollbar !== "undefined" && Rollbar != null) {
+                  Rollbar.error(error instanceof Error ? error : new Error(String(error)));
+                }
+                Dialog_alert("Something went wrong finishing your workout. Please try again.");
+              });
             }}
           >
-            {isCurrent ? "Finish" : "Save"}
+            {isFinishing ? (
+              <View className="px-2">
+                <IconSpinner width={20} height={20} color={Tailwind_colors().white} />
+              </View>
+            ) : isCurrent ? (
+              "Finish"
+            ) : (
+              "Save"
+            )}
           </Button>
         </View>
       </View>
