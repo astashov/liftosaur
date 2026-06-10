@@ -385,6 +385,16 @@ function InputNumber2Inner(props: IInputNumber2Props): JSX.Element {
     if (!isFocused) {
       return;
     }
+    if (props.value == null && props.initialValue != null) {
+      valueRef.current = props.initialValue.toString();
+      setValue(props.initialValue.toString());
+    }
+  }, [isFocused, props.initialValue]);
+
+  useEffect(() => {
+    if (!isFocused) {
+      return;
+    }
     openKeyboard(buildKeyboardConfig());
   }, [isFocused, buildKeyboardConfig, openKeyboard]);
 
