@@ -108,6 +108,7 @@ export function NavModalWorkoutShare(): JSX.Element {
                     calories: History_calories(progress),
                     intervals: JSON.stringify(progress.intervals),
                   });
+                  Dialog_alert(`Synced to ${healthName}`);
                 } else {
                   const rawIntervals = History_pauseWorkout(progress.intervals) ?? [];
                   const intervals: [number, number | null][] = rawIntervals.map(([s, e]) => [s, e ?? null]);
@@ -120,6 +121,7 @@ export function NavModalWorkoutShare(): JSX.Element {
                       endMs,
                       calories: History_calories(progress),
                       intervals,
+                      successAlert: true,
                     })
                   );
                 }

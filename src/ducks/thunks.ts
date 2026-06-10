@@ -533,6 +533,7 @@ export function Thunk_saveWorkoutToHealth(args: {
   endMs: number;
   calories: number;
   intervals: [number, number | null][];
+  successAlert?: boolean;
 }): IThunk {
   return async (dispatch, getState, env) => {
     if (!env.health || AdminDebug_isDebugAccountId(getState().storage.tempUserId)) {
@@ -548,6 +549,9 @@ export function Thunk_saveWorkoutToHealth(args: {
     try {
       await env.health.saveWorkout(args);
       dispatch(Thunk_postevent(`success-workout-${platform}-health`));
+      if (args.successAlert) {
+        Dialog_alert(`Synced to ${platform === "apple" ? "Apple Health" : "Google Health"}`);
+      }
     } catch (e) {
       console.warn("Failed to save workout to Health", e);
       dispatch(Thunk_postevent(`fail-workout-${platform}-health`, { error: (e as Error)?.message ?? "unknown" }));
