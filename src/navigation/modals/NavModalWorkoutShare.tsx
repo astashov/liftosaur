@@ -14,7 +14,8 @@ import { IconDoc } from "../../components/icons/iconDoc";
 import { IconHeart } from "../../components/icons/iconHeart";
 import { ClipboardUtils_copy } from "../../utils/clipboard";
 import { Share_generateLink } from "../../models/share";
-import { History_calories } from "../../models/history";
+import { History_calories, History_pauseWorkout } from "../../models/history";
+import { Thunk_saveWorkoutToHealth } from "../../ducks/thunks";
 import { LiftohistorySerializer_serialize } from "../../liftohistory/liftohistorySerializer";
 import {
   SendMessage_isIos,
@@ -27,7 +28,7 @@ import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth }
 import type { IRootStackParamList } from "../types";
 
 export function NavModalWorkoutShare(): JSX.Element {
-  const { state } = useAppState();
+  const { state, dispatch } = useAppState();
   const navigation = useNavigation();
   const route = useRoute<{
     key: string;
@@ -62,7 +63,8 @@ export function NavModalWorkoutShare(): JSX.Element {
     navigation.goBack();
   };
 
-  const healthName = SendMessage_isIos() ? "Apple Health" : "Google Health";
+  const isIos = Platform.OS === "ios" || SendMessage_isIos();
+  const healthName = isIos ? "Apple Health" : "Google Health";
   const shouldShowHealthSync = HealthSync_eligibleForAppleHealth() || HealthSync_eligibleForGoogleHealth();
 
   const content = (
@@ -98,11 +100,29 @@ export function NavModalWorkoutShare(): JSX.Element {
               description={""}
               icon={<IconHeart size={24} />}
               onClick={() => {
-                NativeWorkoutBridge_finishWorkout({
-                  healthSync: true,
-                  calories: History_calories(progress),
-                  intervals: JSON.stringify(progress.intervals),
-                });
+                // Legacy webview wrapper builds (Platform.OS === "web") sync via the native
+                // finishWorkout bridge message; bare-RN builds write directly through env.health.
+                if (SendMessage_isIos() || SendMessage_isAndroid()) {
+                  NativeWorkoutBridge_finishWorkout({
+                    healthSync: true,
+                    calories: History_calories(progress),
+                    intervals: JSON.stringify(progress.intervals),
+                  });
+                } else {
+                  const rawIntervals = History_pauseWorkout(progress.intervals) ?? [];
+                  const intervals: [number, number | null][] = rawIntervals.map(([s, e]) => [s, e ?? null]);
+                  const validIntervals = intervals.filter((i): i is [number, number] => i[1] != null);
+                  const startMs = validIntervals[0]?.[0] ?? progress.startTime;
+                  const endMs = validIntervals[validIntervals.length - 1]?.[1] ?? progress.endTime ?? startMs;
+                  dispatch(
+                    Thunk_saveWorkoutToHealth({
+                      startMs,
+                      endMs,
+                      calories: History_calories(progress),
+                      intervals,
+                    })
+                  );
+                }
                 onClose();
               }}
             />
