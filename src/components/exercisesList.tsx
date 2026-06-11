@@ -171,6 +171,7 @@ export function ExercisesList(props: IExercisesListProps): JSX.Element {
           placeholder="Filter by name"
           placeholderTextColor={Tailwind_semantic().text.secondarysubtle}
           onChangeText={(t) => setFilter(t)}
+          returnKeyType="search"
         />
         <Multiselect
           id="filtertypes"

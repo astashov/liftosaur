@@ -59,6 +59,7 @@ export function ExerciseCloneLibraryContent(props: IExerciseCloneLibraryContentP
             testID="exercise-filter-by-name"
             defaultValue={search}
             onChangeText={setSearch}
+            returnKeyType="search"
           />
         </View>
       </View>

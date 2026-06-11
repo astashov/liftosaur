@@ -153,6 +153,7 @@ export function ExerciseImageLibraryContent(props: IExerciseImageLibraryContentP
             testID="exercise-filter-by-name"
             defaultValue={search}
             onChangeText={setSearch}
+            returnKeyType="search"
           />
         </View>
       </View>

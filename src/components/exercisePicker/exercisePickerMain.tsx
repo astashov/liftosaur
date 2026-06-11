@@ -1029,6 +1029,7 @@ const SearchInput = memo(function SearchInput(props: {
         testID="exercise-filter-by-name"
         value={localSearch}
         onChangeText={onChangeText}
+        returnKeyType="search"
       />
     </View>
   );

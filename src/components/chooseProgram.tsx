@@ -61,6 +61,7 @@ export function ChooseProgramView(props: IProps): JSX.Element {
             onChangeText={(text) => setSearch(text)}
             data-testid="program-search"
             testID="program-search"
+            returnKeyType="search"
           />
         </View>
       </View>
