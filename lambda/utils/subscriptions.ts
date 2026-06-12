@@ -20,24 +20,20 @@ export const APPLE_PRODUCT_IDS = [
 
 export const APPLE_BUNDLE_ID = "com.liftosaur.www";
 
+// Offer tags the trial/promo derivation recognizes from subscriptionsv2 `offerDetails.offerTags[]`.
+// Tags are the rename-proof signal that replaces the deprecated v1 `paymentState` GET. Keep this list in
+// sync with Play Console (Monetize → Subscriptions → offer → "Offer tags"); the offerId naming convention
+// is the fallback when an offer has no matching tag.
+// As of 2026-06: "freetrial" → monthly/yearly-subscription-trial; "promo" → monthly/yearly-discount-30.
+export const GOOGLE_TRIAL_OFFER_TAGS: string[] = ["freetrial"];
+export const GOOGLE_PROMO_OFFER_TAGS: string[] = ["promo"];
+
 export function Subscriptions_isAppleJws(value: string): boolean {
   if (!value) {
     return false;
   }
   const parts = value.split(".");
   return parts.length === 3 && parts.every((p) => /^[A-Za-z0-9_-]+$/.test(p));
-}
-
-interface IVerifyGoogleProductTokenSuccess {
-  purchaseTimeMillis: number;
-  purchaseState: number;
-  consumptionState: number;
-  developerPayload: string;
-  orderId: string;
-  purchaseType: number;
-  acknowledgementState: number;
-  kind: "androidpublisher#productPurchase";
-  regionCode: string;
 }
 
 export interface IAppleTransactionHistory {
@@ -98,37 +94,92 @@ interface IGoogleOrderInfo {
   }>;
 }
 
-interface IVerifyGoogleSubscriptionTokenSuccess {
-  startTimeMillis: string;
-  expiryTimeMillis: string;
-  autoRenewing: boolean;
-  priceCurrencyCode: string;
-  priceAmountMicros: string;
-  countryCode: string;
-  developerPayload: string;
-  cancelReason: number;
-  orderId: string;
-  purchaseType: number;
-  paymentState?: number;
-  promotionType?: number;
-  promotionCode?: string;
-  acknowledgementState: number;
-  linkedPurchaseToken?: string;
-  introductoryPriceInfo?: {
-    introductoryPriceCurrencyCode?: string;
-    introductoryPriceAmountMicros?: string;
-    introductoryPricePeriod?: string;
-    introductoryPriceCycles?: number;
+// androidpublisher v3 `purchases.subscriptionsv2.get` response (SubscriptionPurchaseV2).
+// Token-only path; the product lives in lineItems[].productId, not in the URL.
+export type IGoogleSubscriptionStateV2 =
+  | "SUBSCRIPTION_STATE_UNSPECIFIED"
+  | "SUBSCRIPTION_STATE_PENDING"
+  | "SUBSCRIPTION_STATE_ACTIVE"
+  | "SUBSCRIPTION_STATE_PAUSED"
+  | "SUBSCRIPTION_STATE_IN_GRACE_PERIOD"
+  | "SUBSCRIPTION_STATE_ON_HOLD"
+  | "SUBSCRIPTION_STATE_CANCELED"
+  | "SUBSCRIPTION_STATE_EXPIRED"
+  | "SUBSCRIPTION_STATE_PENDING_PURCHASE_CANCELED";
+
+export interface ISubscriptionPurchaseLineItemV2 {
+  productId?: string;
+  expiryTime?: string; // RFC3339, e.g. "2025-03-03T17:11:49.283Z"
+  // The most recent SUCCESSFUL (paid) order for this line item. Use this for amount/trial/promo — unlike the
+  // top-level latestOrderId it never points at a pending/declined order during grace/on-hold/payment-failure.
+  latestSuccessfulOrderId?: string;
+  autoRenewingPlan?: {
+    autoRenewEnabled?: boolean;
+    recurringPrice?: { currencyCode?: string; units?: string; nanos?: number };
   };
-  kind: "androidpublisher#subscriptionPurchase";
+  prepaidPlan?: { allowExtendAfterTime?: string };
+  offerDetails?: {
+    offerTags?: string[];
+    basePlanId?: string;
+    offerId?: string;
+  };
+  // Authoritative current billing phase (present on ~all live subs). Exactly one key is set:
+  // freeTrial (in a free trial now), introductoryPrice (discounted now), or basePrice (full price).
+  offerPhase?: { freeTrial?: unknown; introductoryPrice?: unknown; basePrice?: unknown };
+  // Present only while a deferred plan switch is queued; productId = the SKU that will replace this one.
+  deferredItemReplacement?: { productId?: string };
+  deferredItemRemoval?: unknown;
 }
 
-interface IVerifyGoogleSubscriptionTokenError {
-  error: {
-    code: number;
-    message: string;
-    errors: unknown[];
-  };
+export interface ISubscriptionPurchaseV2 {
+  kind?: string;
+  subscriptionState?: IGoogleSubscriptionStateV2;
+  // Deprecated by Google; can be a pending/declined order. Prefer lineItems[].latestSuccessfulOrderId.
+  latestOrderId?: string;
+  linkedPurchaseToken?: string;
+  startTime?: string;
+  lineItems?: ISubscriptionPurchaseLineItemV2[];
+  canceledStateContext?: unknown;
+  acknowledgementState?: string;
+  testPurchase?: unknown;
+}
+
+// androidpublisher v3 `purchases.productsv2.getproductpurchasev2` response (ProductPurchaseV2).
+// Token-only path; replaces the deprecated v1 `purchases.products.get` for one-time/lifetime products.
+// NB: unlike subscriptionState, the productsv2 purchaseState enum is NOT prefixed — the live API returns
+// bare "PURCHASED" / "CANCELLED" / "PENDING" (only UNSPECIFIED carries the prefix). Confirmed via parity.
+export type IGoogleOneTimePurchaseStateV2 = "PURCHASE_STATE_UNSPECIFIED" | "PURCHASED" | "CANCELLED" | "PENDING";
+
+export type IGoogleAcknowledgementStateV2 =
+  | "ACKNOWLEDGEMENT_STATE_UNSPECIFIED"
+  | "ACKNOWLEDGEMENT_STATE_PENDING"
+  | "ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED";
+
+export interface IProductPurchaseV2 {
+  kind?: string;
+  purchaseStateContext?: { purchaseState?: IGoogleOneTimePurchaseStateV2 };
+  acknowledgementState?: IGoogleAcknowledgementStateV2;
+  orderId?: string;
+  regionCode?: string;
+  purchaseCompletionTime?: string;
+  productLineItem?: Array<{ productId?: string; productOfferDetails?: { purchaseOptionId?: string } }>;
+  testPurchaseContext?: unknown;
+}
+
+// Normalized payment-relevant fields read from a v2 purchase, shared by the verify endpoint, the RTDN
+// webhook, and the reconciler. Amount/tax still come from the Orders API (v2 carries only the recurring
+// price); `fallbackAmount` is the v2 recurring price used only when an Orders lookup is unavailable.
+export interface IGooglePaymentInfoV2 {
+  kind: "subscription" | "product";
+  purchaseToken: string;
+  orderId?: string;
+  originalTransactionId: string;
+  startTimeMs?: number;
+  purchaseTimeMs?: number;
+  offerId?: string;
+  currency?: string;
+  fallbackAmount?: number;
+  isRenewal: boolean;
 }
 
 export interface IVerifyAppleReceiptResponse {
@@ -186,6 +237,21 @@ export class Subscriptions {
     private readonly secretsUtil: ISecretsUtil
   ) {}
 
+  private async signAndroidPublisherJwt(): Promise<string> {
+    const googleServiceAccountPubsub = await this.secretsUtil.getGoogleServiceAccountPubsub();
+    return JWT.sign(
+      {
+        iss: googleServiceAccountPubsub.client_email,
+        sub: googleServiceAccountPubsub.client_email,
+        aud: "https://androidpublisher.googleapis.com/",
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      },
+      googleServiceAccountPubsub.private_key,
+      { algorithm: "RS256" }
+    );
+  }
+
   public async hasSubscription(di: IDI, userId: string, subscription: ISubscription): Promise<boolean> {
     if (subscription.key) {
       const fetchedKey = await new FreeUserDao(di).verifyKey(userId);
@@ -200,22 +266,27 @@ export class Subscriptions {
         }
       }
     }
+    let googleFailedClosed = false;
     if (subscription.google) {
       for (const receipt of subscription.google) {
         const { token, productId } = JSON.parse(receipt.value) as { token: string; productId: string };
-        if (await this.verifyGooglePurchaseToken(token, productId)) {
+        if (await this.verifyGooglePurchaseTokenV2(token, productId)) {
           return true;
         }
       }
+      // verifyGooglePurchaseTokenV2 fails OPEN on transport errors, so reaching here means Google live-verified
+      // every google receipt as NOT entitled (e.g. ON_HOLD/PAUSED/EXPIRED). That verdict is authoritative.
+      googleFailedClosed = subscription.google.length > 0;
     }
-    // Fallback: paid users can end up with an empty storage.subscription if the
-    // mobile app hasn't pushed the receipt to the server yet. lftSubscriptionDetails
-    // is written by /api/verifyapplereceipt, so it's the authoritative server-side
-    // record of whether a subscription was ever verified. We trust `expires` but
-    // not `isActive` — the Google monthly/yearly writer in getGoogleVerificationInfo
-    // computes isActive with inverted logic, so `expires > now` is the safe check.
+    // Fallback: paid users can end up with an empty storage.subscription if the mobile app hasn't pushed the
+    // receipt to the server yet. lftSubscriptionDetails is the authoritative record of a verified subscription.
+    // Require isActive (v2 computes it correctly now) and never let a stale Google row override a live "no".
     const details = (await new SubscriptionDetailsDao(di).getAll([userId]))[0];
-    if (details && details.expires > Date.now()) {
+    if (details && details.expires > Date.now() && details.isActive) {
+      if (details.type === "google" && googleFailedClosed) {
+        this.log.log(`hasSubscription: live Google check failed closed, ignoring stale details row for ${userId}`);
+        return false;
+      }
       this.log.log(`hasSubscription: storage check failed, using lftSubscriptionDetails fallback for ${userId}`);
       return true;
     }
@@ -426,41 +497,378 @@ export class Subscriptions {
     }
   }
 
-  public async getGoogleVerificationInfo(
-    userId: string,
-    json: IVerifyGoogleSubscriptionTokenSuccess | IVerifyGoogleProductTokenSuccess,
-    purchaseToken: string
-  ): Promise<ISubscriptionDetailsDao | undefined> {
-    const { token } = JSON.parse(purchaseToken) as { token: string; productId: string };
+  // Returns the parsed body for ANY HTTP response (a 4xx error body has no lineItems, so mappers treat it as
+  // not-entitled). Returns undefined ONLY on a transport/parse failure, which entitlement callers treat as
+  // fail-open (matching the old v1 getGooglePurchaseTokenJson semantics).
+  public async getGoogleSubscriptionV2(token: string): Promise<ISubscriptionPurchaseV2 | undefined> {
+    const url = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.liftosaur.www.twa/purchases/subscriptionsv2/tokens/${token}`;
     try {
-      if (json.kind === "androidpublisher#productPurchase") {
-        return {
-          userId,
-          type: "google",
-          product: "lifetime",
-          expires: 4105144800000,
-          isTrial: false,
-          isPromo: false,
-          promoCode: "",
-          isActive: json.purchaseState === 0 && json.acknowledgementState === 1,
-          originalTransactionId: token,
-        };
-      } else {
-        return {
-          userId,
-          type: "google",
-          product: Number(json.priceAmountMicros || "0") > 100000000 ? "yearly" : "montly",
-          expires: Number(json.expiryTimeMillis || "0"),
-          isTrial: json.paymentState === 2,
-          isPromo: json.promotionType === 0 || json.promotionType === 1,
-          promoCode: json.promotionCode,
-          isActive: json.cancelReason == null && Number(json.expiryTimeMillis || "0") > Date.now(),
-          originalTransactionId: json.linkedPurchaseToken || token,
-        };
+      const jwttoken = await this.signAndroidPublisherJwt();
+      const result = await fetch(url, { method: "GET", headers: { Authorization: `Bearer ${jwttoken}` } });
+      const json = (await result.json()) as ISubscriptionPurchaseV2;
+      if (!result.ok) {
+        this.log.log(`subscriptionsv2.get non-ok: ${result.status} ${JSON.stringify(json)}`);
       }
+      return json;
     } catch (error) {
-      this.log.log("Getting Google Token info error: ", error);
+      this.log.log("subscriptionsv2.get error: ", error);
       return undefined;
+    }
+  }
+
+  // Fetches a subscription and resolves PENDING_PURCHASE_CANCELED to the REAL subscription: per Google docs,
+  // when a pending purchase (e.g. a canceled upgrade/downgrade) was for an existing subscription, its current
+  // state lives at linkedPurchaseToken — the pending token itself must NOT be read as "not entitled" and must
+  // NOT overwrite the active row. Returns the resolved payload AND the token it belongs to (so callers key the
+  // details row / originalTransactionId off the real subscription, not the pending one). undefined only on a
+  // transport failure (fail-open for entitlement).
+  public async getGoogleSubscriptionV2Resolved(
+    token: string,
+    depth = 0
+  ): Promise<{ json: ISubscriptionPurchaseV2; token: string } | undefined> {
+    const json = await this.getGoogleSubscriptionV2(token);
+    if (!json) {
+      return undefined;
+    }
+    if (json.subscriptionState === "SUBSCRIPTION_STATE_PENDING_PURCHASE_CANCELED" && json.linkedPurchaseToken) {
+      if (depth >= 3) {
+        this.log.log("getGoogleSubscriptionV2Resolved: pending-canceled chain too deep, treating as unresolved");
+        return undefined;
+      }
+      // The real state lives at linkedPurchaseToken. Return its result DIRECTLY: a transport failure on the
+      // linked fetch must propagate as undefined (entitlement fails open, upsert skips) — never fall back to
+      // the misleading pending-canceled payload, which would fail closed / overwrite the active row.
+      return this.getGoogleSubscriptionV2Resolved(json.linkedPurchaseToken, depth + 1);
+    }
+    return { json, token };
+  }
+
+  // SKU → the vocabulary stored in lftSubscriptionDetails. Keeps the historical "montly" misspelling so
+  // downstream readers and existing DB rows stay compatible.
+  public googleSkuToProduct(sku?: string): "montly" | "yearly" | "lifetime" | undefined {
+    if (!sku) {
+      return undefined;
+    }
+    if (sku.indexOf("lifetime") !== -1) {
+      return "lifetime";
+    }
+    if (sku.indexOf("yearly") !== -1) {
+      return "yearly";
+    }
+    if (sku.indexOf("montly") !== -1 || sku.indexOf("monthly") !== -1) {
+      return "montly";
+    }
+    return undefined;
+  }
+
+  // Trial/promo from a subscriptionsv2 line item's offer. Prefers Play Console offer tags (stable), and falls
+  // back to the offerId naming convention. A base-plan offer (empty/`base` offerId, no tags) is neither.
+  public deriveGoogleOfferTrialPromo(offerDetails?: { offerId?: string; offerTags?: string[] }): {
+    isTrial: boolean;
+    isPromo: boolean;
+    promoCode?: string;
+  } {
+    const offerId = offerDetails?.offerId || "";
+    const offerTags = offerDetails?.offerTags || [];
+    const hasTag = (tags: string[]): boolean => offerTags.some((t) => tags.indexOf(t) !== -1);
+    const isTrial = hasTag(GOOGLE_TRIAL_OFFER_TAGS) || offerId.indexOf("trial") !== -1;
+    const isPromo = !isTrial && (hasTag(GOOGLE_PROMO_OFFER_TAGS) || (offerId !== "" && offerId.indexOf("base") === -1));
+    return { isTrial, isPromo, promoCode: isPromo ? offerId : undefined };
+  }
+
+  // currentOrderAmount (the actual charge for the active period, from the Orders API) makes isTrial/isPromo
+  // reflect the CURRENT phase instead of the sticky offer enrollment. When omitted, falls back to offer tags.
+  public getGoogleVerificationInfoV2(
+    userId: string,
+    json: ISubscriptionPurchaseV2,
+    token: string,
+    currentOrderAmount?: number
+  ): ISubscriptionDetailsDao | undefined {
+    try {
+      const lineItems = json.lineItems || [];
+      if (lineItems.length === 0) {
+        return undefined;
+      }
+      // During a transition a sub can carry >1 line item; the one with the latest expiry is the active period.
+      const sorted = CollectionUtils_sort(
+        lineItems,
+        (a, b) => this.parseRfc3339(b.expiryTime) - this.parseRfc3339(a.expiryTime)
+      );
+      const active = sorted[0];
+      const product = this.googleSkuToProduct(active.productId) || "montly";
+      const expires = this.parseRfc3339(active.expiryTime);
+      const isActive = this.isGoogleSubscriptionV2Active(json);
+      const pendingSku =
+        active.deferredItemReplacement?.productId ||
+        lineItems.map((li) => li.deferredItemReplacement?.productId).find((p) => !!p);
+      const pendingProduct = this.googleSkuToProduct(pendingSku);
+      const recurring = this.recurringPriceToNumber(active.autoRenewingPlan?.recurringPrice);
+      const { isTrial, isPromo, promoCode } = this.deriveGoogleTrialPromo(
+        active.offerDetails,
+        active.offerPhase,
+        currentOrderAmount,
+        recurring
+      );
+      return {
+        userId,
+        type: "google",
+        product,
+        expires,
+        isTrial,
+        isPromo,
+        promoCode,
+        isActive,
+        originalTransactionId: json.linkedPurchaseToken || token,
+        pendingProduct,
+      };
+    } catch (error) {
+      this.log.log("Getting Google v2 info error: ", error);
+      return undefined;
+    }
+  }
+
+  // Trial/promo for the CURRENT period. `offerPhase` is Google's authoritative current-phase signal (present
+  // on ~all live subs) and is preferred when available: freeTrial => trial, introductoryPrice => promo,
+  // basePrice => neither. This correctly handles a trial that is the first phase of a discount offer (where
+  // the offer tag would say "promo"). Falls back to the actual charge (currentOrderAmount < recurring), and
+  // finally to the sticky offer tags, when offerPhase is absent.
+  public deriveGoogleTrialPromo(
+    offerDetails: { offerId?: string; offerTags?: string[] } | undefined,
+    offerPhase?: { freeTrial?: unknown; introductoryPrice?: unknown; basePrice?: unknown },
+    currentOrderAmount?: number,
+    recurringAmount?: number
+  ): { isTrial: boolean; isPromo: boolean; promoCode?: string } {
+    if (
+      offerPhase &&
+      (offerPhase.freeTrial != null || offerPhase.introductoryPrice != null || offerPhase.basePrice != null)
+    ) {
+      const isTrial = offerPhase.freeTrial != null;
+      const isPromo = !isTrial && offerPhase.introductoryPrice != null;
+      return { isTrial, isPromo, promoCode: isPromo ? offerDetails?.offerId : undefined };
+    }
+    const offer = this.deriveGoogleOfferTrialPromo(offerDetails);
+    if (currentOrderAmount == null) {
+      return offer;
+    }
+    const freeNow = currentOrderAmount === 0;
+    const discountedNow = recurringAmount != null && currentOrderAmount > 0 && currentOrderAmount < recurringAmount;
+    const isTrial = freeNow && offer.isTrial;
+    const isPromo = !isTrial && (freeNow || discountedNow);
+    return { isTrial, isPromo, promoCode: isPromo ? offer.promoCode : undefined };
+  }
+
+  private recurringPriceToNumber(price?: { units?: string; nanos?: number }): number | undefined {
+    if (!price) {
+      return undefined;
+    }
+    return Number(price.units || "0") + (price.nanos ?? 0) / 1000000000;
+  }
+
+  public async getGoogleCurrentOrderAmount(orderId?: string): Promise<number | undefined> {
+    if (!orderId) {
+      return undefined;
+    }
+    const orderInfo = await this.getGoogleOrderInfo(orderId);
+    if (!orderInfo?.total) {
+      return undefined;
+    }
+    return this.recurringPriceToNumber(orderInfo.total);
+  }
+
+  private parseRfc3339(value?: string): number {
+    if (!value) {
+      return 0;
+    }
+    const ms = new Date(value).getTime();
+    return isNaN(ms) ? 0 : ms;
+  }
+
+  // ACTIVE / IN_GRACE_PERIOD are entitled; CANCELED is still entitled until the paid period ends (expires > now).
+  // ON_HOLD / PAUSED / EXPIRED / PENDING(_PURCHASE_CANCELED) are not. The expiry guard covers CANCELED.
+  public isGoogleSubscriptionV2Active(json: ISubscriptionPurchaseV2): boolean {
+    const lineItems = json.lineItems || [];
+    if (lineItems.length === 0) {
+      return false;
+    }
+    const expires = Math.max(...lineItems.map((li) => this.parseRfc3339(li.expiryTime)));
+    const entitledStates: IGoogleSubscriptionStateV2[] = [
+      "SUBSCRIPTION_STATE_ACTIVE",
+      "SUBSCRIPTION_STATE_IN_GRACE_PERIOD",
+      "SUBSCRIPTION_STATE_CANCELED",
+    ];
+    return (
+      entitledStates.indexOf(json.subscriptionState ?? "SUBSCRIPTION_STATE_UNSPECIFIED") !== -1 && expires > Date.now()
+    );
+  }
+
+  public isGoogleProductV2Active(json: IProductPurchaseV2): boolean {
+    return (
+      json.purchaseStateContext?.purchaseState === "PURCHASED" &&
+      json.acknowledgementState === "ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED"
+    );
+  }
+
+  // Same response contract as getGoogleSubscriptionV2: parsed body on any HTTP response, undefined only on
+  // transport/parse failure (fail-open for entitlement).
+  public async getGoogleProductV2(token: string): Promise<IProductPurchaseV2 | undefined> {
+    const url = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.liftosaur.www.twa/purchases/productsv2/tokens/${token}`;
+    try {
+      const jwttoken = await this.signAndroidPublisherJwt();
+      const result = await fetch(url, { method: "GET", headers: { Authorization: `Bearer ${jwttoken}` } });
+      const json = (await result.json()) as IProductPurchaseV2;
+      if (!result.ok) {
+        this.log.log(`productsv2.getproductpurchasev2 non-ok: ${result.status} ${JSON.stringify(json)}`);
+      }
+      return json;
+    } catch (error) {
+      this.log.log("productsv2.getproductpurchasev2 error: ", error);
+      return undefined;
+    }
+  }
+
+  public getGoogleProductVerificationInfoV2(
+    userId: string,
+    json: IProductPurchaseV2,
+    token: string
+  ): ISubscriptionDetailsDao | undefined {
+    try {
+      // An error/410 body has no purchaseStateContext — never mint a far-future-expires lifetime row from it.
+      if (!json.purchaseStateContext) {
+        return undefined;
+      }
+      const isActive = this.isGoogleProductV2Active(json);
+      return {
+        userId,
+        type: "google",
+        product: "lifetime",
+        expires: 4105144800000,
+        isTrial: false,
+        isPromo: false,
+        promoCode: "",
+        isActive,
+        originalTransactionId: token,
+      };
+    } catch (error) {
+      this.log.log("Getting Google product v2 info error: ", error);
+      return undefined;
+    }
+  }
+
+  // The latest SUCCESSFUL order for the active line item — the only order safe to base amount/trial/promo on.
+  // (The top-level latestOrderId is deprecated and may be a pending/declined order during grace/on-hold.)
+  public getGoogleSubscriptionSuccessfulOrderId(json: ISubscriptionPurchaseV2): string | undefined {
+    const lineItems = json.lineItems || [];
+    if (lineItems.length === 0) {
+      return undefined;
+    }
+    const active = CollectionUtils_sort(
+      lineItems,
+      (a, b) => this.parseRfc3339(b.expiryTime) - this.parseRfc3339(a.expiryTime)
+    )[0];
+    return active.latestSuccessfulOrderId;
+  }
+
+  public buildGoogleSubscriptionPaymentInfoV2(json: ISubscriptionPurchaseV2, token: string): IGooglePaymentInfoV2 {
+    const lineItems = json.lineItems || [];
+    const active = CollectionUtils_sort(
+      lineItems,
+      (a, b) => this.parseRfc3339(b.expiryTime) - this.parseRfc3339(a.expiryTime)
+    )[0];
+    const startTimeMs = this.parseRfc3339(json.startTime) || undefined;
+    const price = active?.autoRenewingPlan?.recurringPrice;
+    return {
+      kind: "subscription",
+      purchaseToken: token,
+      orderId: active?.latestSuccessfulOrderId,
+      originalTransactionId: json.linkedPurchaseToken || token,
+      startTimeMs,
+      purchaseTimeMs: startTimeMs,
+      offerId: active?.offerDetails?.offerId,
+      currency: price?.currencyCode,
+      fallbackAmount: price ? Number(price.units || "0") + (price.nanos ?? 0) / 1000000000 : undefined,
+      isRenewal: !!json.linkedPurchaseToken,
+    };
+  }
+
+  public buildGoogleProductPaymentInfoV2(json: IProductPurchaseV2, token: string): IGooglePaymentInfoV2 {
+    const purchaseTimeMs = this.parseRfc3339(json.purchaseCompletionTime) || undefined;
+    return {
+      kind: "product",
+      purchaseToken: token,
+      orderId: json.orderId,
+      originalTransactionId: token,
+      startTimeMs: purchaseTimeMs,
+      purchaseTimeMs,
+      isRenewal: false,
+    };
+  }
+
+  public async getGooglePaymentInfoV2(token: string, productId: string): Promise<IGooglePaymentInfoV2 | undefined> {
+    if (productId.indexOf("lifetime") !== -1) {
+      const json = await this.getGoogleProductV2(token);
+      // No purchaseStateContext => error body / unusable response; bail like the old v1 "error in json" guard.
+      if (!json || !json.purchaseStateContext) {
+        return undefined;
+      }
+      return this.buildGoogleProductPaymentInfoV2(json, token);
+    } else {
+      const json = await this.getGoogleSubscriptionV2(token);
+      if (!json || (json.lineItems || []).length === 0) {
+        return undefined;
+      }
+      return this.buildGoogleSubscriptionPaymentInfoV2(json, token);
+    }
+  }
+
+  // Server-side acknowledgement backstop: Google auto-refunds purchases left unacknowledged for 3 days, and
+  // clients can fail to acknowledge. The acknowledge POST itself is the non-deprecated v3 method.
+  public async maybeAcknowledgeGoogleSubscriptionV2(
+    json: ISubscriptionPurchaseV2,
+    token: string,
+    productId: string
+  ): Promise<void> {
+    if (json.acknowledgementState !== "ACKNOWLEDGEMENT_STATE_PENDING") {
+      return;
+    }
+    const paidStates: IGoogleSubscriptionStateV2[] = [
+      "SUBSCRIPTION_STATE_ACTIVE",
+      "SUBSCRIPTION_STATE_IN_GRACE_PERIOD",
+    ];
+    // Reflect a successful ack on the in-memory json so a subsequent isGoogle*Active read sees it acknowledged.
+    if (paidStates.indexOf(json.subscriptionState ?? "SUBSCRIPTION_STATE_UNSPECIFIED") !== -1) {
+      if (await this.acknowledgeGooglePurchase(token, productId)) {
+        json.acknowledgementState = "ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED";
+      }
+    }
+  }
+
+  public async maybeAcknowledgeGoogleProductV2(
+    json: IProductPurchaseV2,
+    token: string,
+    productId: string
+  ): Promise<void> {
+    if (json.acknowledgementState !== "ACKNOWLEDGEMENT_STATE_PENDING") {
+      return;
+    }
+    if (json.purchaseStateContext?.purchaseState === "PURCHASED") {
+      if (await this.acknowledgeGooglePurchase(token, productId)) {
+        json.acknowledgementState = "ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED";
+      }
+    }
+  }
+
+  // Entitlement check for hasSubscription. Fails open (true) on a transport failure to match the prior v1
+  // behavior; a valid response that maps to "not entitled" fails closed (false).
+  public async verifyGooglePurchaseTokenV2(token: string, productId: string): Promise<boolean> {
+    if (token == null) {
+      return false;
+    }
+    if (productId.indexOf("lifetime") !== -1) {
+      const json = await this.getGoogleProductV2(token);
+      return json == null ? true : this.isGoogleProductV2Active(json);
+    } else {
+      const resolved = await this.getGoogleSubscriptionV2Resolved(token);
+      return resolved == null ? true : this.isGoogleSubscriptionV2Active(resolved.json);
     }
   }
 
@@ -480,19 +888,7 @@ export class Subscriptions {
   public async getGoogleOrderInfo(orderId: string): Promise<IGoogleOrderInfo | undefined> {
     try {
       const url = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.liftosaur.www.twa/orders/${orderId}`;
-      const googleServiceAccountPubsub = await this.secretsUtil.getGoogleServiceAccountPubsub();
-
-      const jwttoken = JWT.sign(
-        {
-          iss: googleServiceAccountPubsub.client_email,
-          sub: googleServiceAccountPubsub.client_email,
-          aud: "https://androidpublisher.googleapis.com/",
-          iat: Math.floor(Date.now() / 1000),
-          exp: Math.floor(Date.now() / 1000) + 3600,
-        },
-        googleServiceAccountPubsub.private_key,
-        { algorithm: "RS256" }
-      );
+      const jwttoken = await this.signAndroidPublisherJwt();
 
       const response = await fetch(url, {
         headers: {
@@ -513,61 +909,10 @@ export class Subscriptions {
     }
   }
 
-  public async getGooglePurchaseTokenJson(
-    token: string,
-    productId: string
-  ): Promise<
-    | IVerifyGoogleSubscriptionTokenSuccess
-    | IVerifyGoogleProductTokenSuccess
-    | IVerifyGoogleSubscriptionTokenError
-    | undefined
-  > {
-    console.log("Verifying Google token", token, productId);
-    const url =
-      productId.indexOf("lifetime") !== -1
-        ? `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.liftosaur.www.twa/purchases/products/${productId}/tokens/${token}`
-        : `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.liftosaur.www.twa/purchases/subscriptions/${productId}/tokens/${token}`;
-    const googleServiceAccountPubsub = await this.secretsUtil.getGoogleServiceAccountPubsub();
-
-    const jwttoken = JWT.sign(
-      {
-        iss: googleServiceAccountPubsub.client_email,
-        sub: googleServiceAccountPubsub.client_email,
-        aud: "https://androidpublisher.googleapis.com/",
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + 3600,
-      },
-      googleServiceAccountPubsub.private_key,
-      { algorithm: "RS256" }
-    );
-    try {
-      const result = await fetch(url, {
-        method: "GET",
-        headers: { Authorization: `Bearer ${jwttoken}` },
-      });
-      const json = await result.json();
-      return json;
-    } catch (error) {
-      return undefined;
-    }
-  }
-
   public async acknowledgeGooglePurchase(token: string, productId: string): Promise<boolean> {
     const purchaseType = productId.indexOf("lifetime") !== -1 ? "products" : "subscriptions";
     const url = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.liftosaur.www.twa/purchases/${purchaseType}/${productId}/tokens/${token}:acknowledge`;
-    const googleServiceAccountPubsub = await this.secretsUtil.getGoogleServiceAccountPubsub();
-
-    const jwttoken = JWT.sign(
-      {
-        iss: googleServiceAccountPubsub.client_email,
-        sub: googleServiceAccountPubsub.client_email,
-        aud: "https://androidpublisher.googleapis.com/",
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + 3600,
-      },
-      googleServiceAccountPubsub.private_key,
-      { algorithm: "RS256" }
-    );
+    const jwttoken = await this.signAndroidPublisherJwt();
     try {
       const result = await fetch(url, {
         method: "POST",
@@ -581,64 +926,6 @@ export class Subscriptions {
     } catch (error) {
       this.log.log("Acknowledging Google purchase error: ", error);
       return false;
-    }
-  }
-
-  public async maybeAcknowledgeGooglePurchase(
-    json:
-      | IVerifyGoogleSubscriptionTokenSuccess
-      | IVerifyGoogleProductTokenSuccess
-      | IVerifyGoogleSubscriptionTokenError,
-    token: string,
-    productId: string
-  ): Promise<void> {
-    if ("error" in json || json.acknowledgementState !== 0) {
-      return;
-    }
-    // Clients can fail to acknowledge (e.g. the RN app used to drop purchaseToken), and Google
-    // auto-refunds unacknowledged purchases after 3 days - so acknowledge server-side as a backstop
-    const isPaid =
-      json.kind === "androidpublisher#productPurchase"
-        ? json.purchaseState === 0
-        : json.paymentState === 1 || json.paymentState === 2;
-    if (isPaid && (await this.acknowledgeGooglePurchase(token, productId))) {
-      json.acknowledgementState = 1;
-    }
-  }
-
-  public async verifyGooglePurchaseTokenJson(
-    response:
-      | IVerifyGoogleSubscriptionTokenSuccess
-      | IVerifyGoogleProductTokenSuccess
-      | IVerifyGoogleSubscriptionTokenError
-  ): Promise<boolean> {
-    if ("error" in response) {
-      return false;
-    }
-    if (response.kind === "androidpublisher#productPurchase") {
-      if (response.purchaseState === 0 && response.acknowledgementState === 1) {
-        return true;
-      } else {
-        return false;
-      }
-    } else if (Date.now() < parseInt(response.expiryTimeMillis, 10)) {
-      console.log("Google subscription is valid");
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  public async verifyGooglePurchaseToken(token: string, productId: string): Promise<boolean> {
-    if (token == null) {
-      console.log("-------- Receipt is undefined!");
-      return false;
-    }
-    const json = await this.getGooglePurchaseTokenJson(token, productId);
-    if (json) {
-      return this.verifyGooglePurchaseTokenJson(json);
-    } else {
-      return true;
     }
   }
 }

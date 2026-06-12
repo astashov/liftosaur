@@ -111,18 +111,22 @@ describe("IAP", () => {
   }
 
   function stubGoogleSubscriptionValid(): sinon.SinonStub {
-    return sandbox.stub(Subscriptions.prototype, "getGooglePurchaseTokenJson").resolves({
-      kind: "androidpublisher#subscriptionPurchase",
-      startTimeMillis: "1",
-      expiryTimeMillis: String(Number.MAX_SAFE_INTEGER),
-      autoRenewing: true,
-      priceCurrencyCode: "USD",
-      priceAmountMicros: "4990000",
-      countryCode: "US",
-      developerPayload: "",
-      orderId: "GPA.123",
-      purchaseType: 0,
-      acknowledgementState: 1,
+    return sandbox.stub(Subscriptions.prototype, "getGoogleSubscriptionV2").resolves({
+      subscriptionState: "SUBSCRIPTION_STATE_ACTIVE",
+      acknowledgementState: "ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED",
+      startTime: "2025-01-01T00:00:00.000Z",
+      latestOrderId: "GPA.123",
+      lineItems: [
+        {
+          productId: "com.liftosaur.subscription.and_montly",
+          expiryTime: "2999-01-01T00:00:00.000Z",
+          autoRenewingPlan: {
+            autoRenewEnabled: true,
+            recurringPrice: { currencyCode: "USD", units: "4", nanos: 990000000 },
+          },
+          offerDetails: { offerId: "monthly-subscription-base" },
+        },
+      ],
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
   }

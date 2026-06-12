@@ -29,6 +29,7 @@ export interface IUsersDashboardData {
     isActive: boolean;
     expires: number;
     promoCode?: string;
+    pendingProduct?: string;
   };
 }
 

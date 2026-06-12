@@ -42,7 +42,7 @@ import {
 import { ImageCacher_cache } from "./utils/imageCacher";
 import { ProgramImageGenerator } from "./utils/programImageGenerator";
 import { AppleAuthTokenDao } from "./dao/appleAuthTokenDao";
-import { Subscriptions, Subscriptions_isAppleJws } from "./utils/subscriptions";
+import { Subscriptions, Subscriptions_isAppleJws, IGooglePaymentInfoV2 } from "./utils/subscriptions";
 import * as ClientSubscription from "../src/utils/subscriptions";
 import { NodeEncoder_decode } from "./utils/nodeEncoder";
 import { renderProgramHtml } from "./program";
@@ -299,6 +299,19 @@ const postVerifyAppleReceiptHandler: RouteHandler<
   }
 };
 
+async function recordGoogleVerificationPayment(
+  di: IDI,
+  userId: string,
+  paymentInfo: IGooglePaymentInfoV2,
+  productId: string
+): Promise<void> {
+  try {
+    await new GooglePaymentProcessor(di).processVerificationPayment(userId, paymentInfo, productId);
+  } catch (e) {
+    di.log.log("Failed to add Google payment record", e);
+  }
+}
+
 const postVerifyGooglePurchaseTokenEndpoint = Endpoint.build("/api/verifygooglepurchasetoken");
 const postVerifyGooglePurchaseTokenHandler: RouteHandler<
   IPayload,
@@ -313,26 +326,48 @@ const postVerifyGooglePurchaseTokenHandler: RouteHandler<
   }
   const subscriptions = new Subscriptions(di.log, di.secrets);
   const { token, productId } = JSON.parse(googlePurchaseToken) as { token: string; productId: string };
-  const googleJson = await subscriptions.getGooglePurchaseTokenJson(token, productId);
+  const isLifetime = productId.indexOf("lifetime") !== -1;
   let verifiedGooglePurchaseToken = false;
-  if (googleJson) {
-    await subscriptions.maybeAcknowledgeGooglePurchase(googleJson, token, productId);
-    verifiedGooglePurchaseToken = await subscriptions.verifyGooglePurchaseTokenJson(googleJson);
-    if (verifiedGooglePurchaseToken && userId && !("error" in googleJson)) {
-      const subscriptionDetails = await subscriptions.getGoogleVerificationInfo(
-        userId,
-        googleJson,
-        googlePurchaseToken
-      );
-      if (subscriptionDetails) {
-        await new SubscriptionDetailsDao(di).add(subscriptionDetails);
+  // One v2 fetch drives acknowledge gating, entitlement, the details row, and the payment record.
+  if (isLifetime) {
+    const pv2 = await subscriptions.getGoogleProductV2(token);
+    if (pv2) {
+      await subscriptions.maybeAcknowledgeGoogleProductV2(pv2, token, productId);
+      verifiedGooglePurchaseToken = subscriptions.isGoogleProductV2Active(pv2);
+      if (verifiedGooglePurchaseToken && userId) {
+        const details = subscriptions.getGoogleProductVerificationInfoV2(userId, pv2, token);
+        if (details) {
+          await new SubscriptionDetailsDao(di).add(details);
+        }
+        await recordGoogleVerificationPayment(
+          di,
+          userId,
+          subscriptions.buildGoogleProductPaymentInfoV2(pv2, token),
+          productId
+        );
       }
-
-      try {
-        const googlePaymentProcessor = new GooglePaymentProcessor(di);
-        await googlePaymentProcessor.processVerificationPayment(userId, googleJson, token, productId);
-      } catch (e) {
-        di.log.log("Failed to add Google payment record", e);
+    }
+  } else {
+    // Resolve PENDING_PURCHASE_CANCELED to the real subscription (via linkedPurchaseToken) so a canceled
+    // upgrade/downgrade token doesn't read as inactive or overwrite the active row. effToken is the resolved
+    // subscription's token, used so the details row / originalTransactionId key off the real subscription.
+    const resolved = await subscriptions.getGoogleSubscriptionV2Resolved(token);
+    if (resolved) {
+      const sv2 = resolved.json;
+      const effToken = resolved.token;
+      await subscriptions.maybeAcknowledgeGoogleSubscriptionV2(sv2, effToken, productId);
+      verifiedGooglePurchaseToken = subscriptions.isGoogleSubscriptionV2Active(sv2);
+      if (verifiedGooglePurchaseToken && userId) {
+        const details = subscriptions.getGoogleVerificationInfoV2(userId, sv2, effToken);
+        if (details) {
+          await new SubscriptionDetailsDao(di).add(details);
+        }
+        await recordGoogleVerificationPayment(
+          di,
+          userId,
+          subscriptions.buildGoogleSubscriptionPaymentInfoV2(sv2, effToken),
+          productId
+        );
       }
     }
   }
@@ -1895,6 +1930,7 @@ const getDashboardsUsersHandler: RouteHandler<
           isActive: subscriptionDetailsDao.isActive,
           expires: subscriptionDetailsDao.expires,
           promoCode: subscriptionDetailsDao.promoCode,
+          pendingProduct: subscriptionDetailsDao.pendingProduct,
         };
       }
 

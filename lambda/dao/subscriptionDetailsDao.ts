@@ -20,6 +20,9 @@ export interface ISubscriptionDetailsDao {
   expires: number;
   promoCode?: string;
   originalTransactionId?: string;
+  // Google-only: the product a deferred plan switch is scheduled to change to before the next renewal,
+  // read authoritatively from subscriptionsv2 `deferredItemReplacement`. undefined when no switch is queued.
+  pendingProduct?: string;
 }
 
 export class SubscriptionDetailsDao {

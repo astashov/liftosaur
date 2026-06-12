@@ -1,44 +1,6 @@
 import { IDI } from "./di";
 import { PaymentDao } from "../dao/paymentDao";
-import { Subscriptions } from "./subscriptions";
-
-interface IVerifyGoogleProductTokenSuccess {
-  purchaseTimeMillis: number;
-  purchaseState: number;
-  consumptionState: number;
-  developerPayload: string;
-  orderId: string;
-  purchaseType: number;
-  acknowledgementState: number;
-  kind: "androidpublisher#productPurchase";
-  regionCode: string;
-}
-
-interface IVerifyGoogleSubscriptionTokenSuccess {
-  startTimeMillis: string;
-  expiryTimeMillis: string;
-  autoRenewing: boolean;
-  priceCurrencyCode: string;
-  priceAmountMicros: string;
-  countryCode: string;
-  developerPayload: string;
-  cancelReason: number;
-  orderId: string;
-  purchaseType: number;
-  paymentState?: number;
-  purchaseTimeMillis?: string;
-  promotionType?: number;
-  promotionCode?: string;
-  acknowledgementState: number;
-  linkedPurchaseToken?: string;
-  introductoryPriceInfo?: {
-    introductoryPriceCurrencyCode?: string;
-    introductoryPriceAmountMicros?: string;
-    introductoryPricePeriod?: string;
-    introductoryPriceCycles?: number;
-  };
-  kind: "androidpublisher#subscriptionPurchase";
-}
+import { IGooglePaymentInfoV2, Subscriptions } from "./subscriptions";
 
 export function convertGooglePriceToNumber(price: { units?: string; nanos?: number }): number {
   return Number(price.units || "0") + Number(Number((price.nanos ?? 0) / 1000000000).toFixed(2));
@@ -49,22 +11,15 @@ export class GooglePaymentProcessor {
 
   public async processVerificationPayment(
     userId: string,
-    googleJson: IVerifyGoogleProductTokenSuccess | IVerifyGoogleSubscriptionTokenSuccess,
-    token: string,
+    info: IGooglePaymentInfoV2,
     productId: string
   ): Promise<void> {
     try {
-      let amount = 0;
-      let tax: number | undefined;
-      let currency = "USD";
-      let originalTransactionId = token;
-      let purchaseTime: number | undefined = undefined;
-      let offerIdentifier: string | undefined = undefined;
-
+      // Fresh subscription purchases > 24h old are handled by the RTDN webhook instead.
       if (
-        googleJson.kind === "androidpublisher#subscriptionPurchase" &&
-        googleJson.startTimeMillis != null &&
-        Date.now() - Number(googleJson.startTimeMillis) > 24 * 60 * 60 * 1000
+        info.kind === "subscription" &&
+        info.startTimeMs != null &&
+        Date.now() - info.startTimeMs > 24 * 60 * 60 * 1000
       ) {
         this.di.log.log(
           `Google verification: Subscription purchase time is more than 24 hours ago, so webhook will handle it.`
@@ -73,55 +28,39 @@ export class GooglePaymentProcessor {
       }
 
       const paymentDao = new PaymentDao(this.di);
-      let transactionId = token;
-
       const subscriptions = new Subscriptions(this.di.log, this.di.secrets);
 
-      this.di.log.log("Google verification: Purchase token", token);
-      this.di.log.log("Google verification: Decoded JSON", googleJson);
-      if (googleJson.kind === "androidpublisher#subscriptionPurchase") {
-        amount = Number((Number(googleJson.priceAmountMicros || "0") / 1000000).toFixed(2));
-        currency = googleJson.priceCurrencyCode || "USD";
-        originalTransactionId = googleJson.linkedPurchaseToken || token;
-        transactionId = googleJson.orderId || token;
-        purchaseTime = googleJson.startTimeMillis != null ? Number(googleJson.startTimeMillis) : purchaseTime;
+      let amount = info.fallbackAmount ?? 0;
+      let tax: number | undefined;
+      let currency = info.currency || "USD";
+      let purchaseTime: number | undefined = info.kind === "subscription" ? info.startTimeMs : info.purchaseTimeMs;
+      let offerIdentifier: string | undefined = undefined;
+      let orderTotalResolved = false;
+      const transactionId = info.orderId || info.purchaseToken;
 
-        // Try to fetch order info for subscription to get tax details
-        if (googleJson.orderId) {
-          this.di.log.log(`Google verification: Fetching order info for subscription ${productId}`);
-          const orderInfo = await subscriptions.getGoogleOrderInfo(googleJson.orderId);
-          this.di.log.log("Google verification: Subscription Order Info", JSON.stringify(orderInfo, null, 2));
-          purchaseTime =
-            purchaseTime == null
-              ? orderInfo?.createTime
-                ? new Date(orderInfo.createTime).getTime()
-                : orderInfo?.lastEventTime
-                  ? new Date(orderInfo.lastEventTime).getTime()
-                  : purchaseTime
-              : purchaseTime;
-          if (orderInfo && orderInfo.total) {
-            amount = convertGooglePriceToNumber(orderInfo.total);
-            currency = orderInfo.total.currencyCode || currency;
-          }
-          if (orderInfo && orderInfo.tax) {
-            tax = convertGooglePriceToNumber(orderInfo.tax);
-          }
-          if (orderInfo?.lineItems?.[0]?.subscriptionDetails?.offerId) {
-            offerIdentifier = orderInfo.lineItems[0].subscriptionDetails.offerId;
-          }
-        }
-      } else if (googleJson.kind === "androidpublisher#productPurchase") {
-        this.di.log.log(`Google verification: Fetching order info for product ${productId}`);
-        transactionId = googleJson.orderId || token;
-        const orderInfo = await subscriptions.getGoogleOrderInfo(googleJson.orderId);
+      this.di.log.log("Google verification: Purchase info", JSON.stringify(info, null, 2));
+      // Amount/tax come from the Orders API; fallbackAmount is only the v2 recurring price if Orders is missing.
+      if (info.orderId) {
+        this.di.log.log(`Google verification: Fetching order info for ${info.kind} ${productId}`);
+        const orderInfo = await subscriptions.getGoogleOrderInfo(info.orderId);
         this.di.log.log("Google verification: Order Info", JSON.stringify(orderInfo, null, 2));
-        purchaseTime = googleJson.purchaseTimeMillis != null ? Number(googleJson.purchaseTimeMillis) : purchaseTime;
+        if (purchaseTime == null) {
+          purchaseTime = orderInfo?.createTime
+            ? new Date(orderInfo.createTime).getTime()
+            : orderInfo?.lastEventTime
+              ? new Date(orderInfo.lastEventTime).getTime()
+              : purchaseTime;
+        }
         if (orderInfo && orderInfo.total) {
           amount = convertGooglePriceToNumber(orderInfo.total);
-          currency = orderInfo.total.currencyCode || "USD";
+          currency = orderInfo.total.currencyCode || currency;
+          orderTotalResolved = true;
         }
         if (orderInfo && orderInfo.tax) {
           tax = convertGooglePriceToNumber(orderInfo.tax);
+        }
+        if (info.kind === "subscription" && orderInfo?.lineItems?.[0]?.subscriptionDetails?.offerId) {
+          offerIdentifier = orderInfo.lineItems[0].subscriptionDetails.offerId;
         }
       }
 
@@ -130,27 +69,12 @@ export class GooglePaymentProcessor {
         return;
       }
 
-      let timestamp = Date.now();
-      if (googleJson.kind === "androidpublisher#productPurchase") {
-        timestamp = Number(googleJson.purchaseTimeMillis);
-      } else if (googleJson.kind === "androidpublisher#subscriptionPurchase") {
-        timestamp = Number(googleJson.startTimeMillis || Date.now());
-      }
-
-      let isFreeTrialPayment = false;
-      if (googleJson.kind === "androidpublisher#subscriptionPurchase") {
-        if (googleJson.paymentState === 2) {
-          isFreeTrialPayment = true;
-        } else if (googleJson.introductoryPriceInfo) {
-          const introPrice = googleJson.introductoryPriceInfo.introductoryPriceAmountMicros;
-          isFreeTrialPayment = introPrice === "0";
-        }
-      }
+      const timestamp = purchaseTime ?? Date.now();
 
       await paymentDao.addIfNotExists({
         userId,
         timestamp,
-        originalTransactionId,
+        originalTransactionId: info.originalTransactionId,
         transactionId,
         productId,
         amount,
@@ -158,11 +82,10 @@ export class GooglePaymentProcessor {
         currency,
         type: "google",
         source: "verifier",
-        paymentType:
-          googleJson.kind === "androidpublisher#subscriptionPurchase" && googleJson.linkedPurchaseToken
-            ? "renewal"
-            : "purchase",
-        isFreeTrialPayment,
+        paymentType: info.kind === "subscription" && info.isRenewal ? "renewal" : "purchase",
+        // Free trial = a subscription whose ACTUAL charge (resolved Orders total) was zero. Products are never
+        // trials, and a failed Orders lookup must not default to "free trial" just because amount stayed 0.
+        isFreeTrialPayment: info.kind === "subscription" && orderTotalResolved && amount === 0,
         subscriptionStartTimestamp: purchaseTime,
         offerIdentifier,
       });

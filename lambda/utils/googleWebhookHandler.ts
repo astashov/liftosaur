@@ -1,6 +1,7 @@
 import { IDI } from "./di";
 import { PaymentDao } from "../dao/paymentDao";
 import { UserDao } from "../dao/userDao";
+import { SubscriptionDetailsDao } from "../dao/subscriptionDetailsDao";
 import { Subscriptions } from "./subscriptions";
 import { GoogleJWTVerifier } from "./googleJwtVerifier";
 import { convertGooglePriceToNumber } from "./googlePaymentProcessor";
@@ -114,6 +115,13 @@ export class GoogleWebhookHandler {
 
   private async handleSubscriptionNotification(notification: IGoogleSubscriptionNotification): Promise<void> {
     const { purchaseToken, subscriptionId, notificationType } = notification;
+
+    // Re-read live subscriptionsv2 (not the event payload) and upsert the details row on EVERY subscription
+    // notification, so isActive and pendingProduct stay fresh through hold/pause/expire/revoke transitions
+    // (the hasSubscription fallback now trusts details.isActive). Reading live state makes this idempotent and
+    // order-independent: a late DEFERRED after a renewal sees no deferredItemReplacement and won't resurrect it.
+    await this.upsertGoogleSubscriptionDetailsFromV2(purchaseToken);
+
     let paymentType: "purchase" | "renewal" | "refund";
 
     switch (notificationType) {
@@ -143,6 +151,39 @@ export class GoogleWebhookHandler {
         return;
     }
     await this.recordPaymentEvent(purchaseToken, subscriptionId, paymentType, "subscription");
+  }
+
+  private async upsertGoogleSubscriptionDetailsFromV2(purchaseToken: string): Promise<void> {
+    try {
+      const subscriptions = new Subscriptions(this.di.log, this.di.secrets);
+      // Resolve PENDING_PURCHASE_CANCELED to the real subscription so a canceled upgrade/downgrade event
+      // doesn't overwrite the active row with isActive: false (it carries linkedPurchaseToken to the real sub).
+      const resolved = await subscriptions.getGoogleSubscriptionV2Resolved(purchaseToken);
+      if (!resolved) {
+        this.di.log.log(`Google webhook: no subscriptionsv2 for token ${purchaseToken}, skipping details upsert`);
+        return;
+      }
+      const v2 = resolved.json;
+      const effToken = resolved.token;
+      // User lookup keys on the original transaction id stored in the existing details row (linked-token chain).
+      const originalTransactionId = v2.linkedPurchaseToken || effToken;
+      const userId = await new UserDao(this.di).getUserIdByOriginalTransactionId(originalTransactionId);
+      if (!userId) {
+        this.di.log.log(`Google webhook: no user for original transaction id ${originalTransactionId}, skipping`);
+        return;
+      }
+      const details = subscriptions.getGoogleVerificationInfoV2(userId, v2, effToken);
+      if (!details) {
+        return;
+      }
+      await new SubscriptionDetailsDao(this.di).add(details);
+      this.di.log.log(
+        `Google webhook: upserted subscription details for ${userId} — product ${details.product}, ` +
+          `pendingProduct ${details.pendingProduct ?? "none"}, isActive ${details.isActive}`
+      );
+    } catch (error) {
+      this.di.log.log(`Google webhook: error upserting subscription details from v2: ${error}`);
+    }
   }
 
   private async handleOneTimeProductNotification(notification: IGoogleOneTimeProductNotification): Promise<void> {
@@ -193,59 +234,46 @@ export class GoogleWebhookHandler {
 
       if (productType !== "voided") {
         const subscriptions = new Subscriptions(this.di.log, this.di.secrets);
-        const purchaseDetails = await subscriptions.getGooglePurchaseTokenJson(purchaseToken, productId);
-        this.di.log.log("Google webhook: Purchase details", purchaseDetails);
+        const info = await subscriptions.getGooglePaymentInfoV2(purchaseToken, productId);
+        this.di.log.log("Google webhook: Purchase info", info);
 
-        if (!purchaseDetails || "error" in purchaseDetails) {
+        if (!info) {
           this.di.log.log(`Google webhook: Failed to get purchase details for token ${purchaseToken}`);
           return;
         }
 
-        if (purchaseDetails.kind === "androidpublisher#subscriptionPurchase") {
-          amount = Math.round(Number(purchaseDetails.priceAmountMicros || "0") / 1000000);
-          currency = purchaseDetails.priceCurrencyCode || "USD";
-          originalTransactionId = purchaseDetails.linkedPurchaseToken || purchaseToken;
-          transactionId = purchaseDetails.orderId || purchaseToken;
+        originalTransactionId = info.originalTransactionId;
+        transactionId = info.orderId || purchaseToken;
+        currency = info.currency || "USD";
+        amount = info.fallbackAmount ?? 0;
+        let orderTotalResolved = false;
+        if (info.kind === "subscription") {
           timestamp = Date.now();
-          subscriptionStartTimestamp =
-            purchaseDetails.startTimeMillis != null ? Number(purchaseDetails.startTimeMillis) : undefined;
+          subscriptionStartTimestamp = info.startTimeMs;
+        } else {
+          timestamp = info.purchaseTimeMs ?? Date.now();
+        }
 
-          // Check if it's a free trial using paymentState (2 = free trial) or intro price
-          if (purchaseDetails.paymentState === 2) {
-            isFreeTrialPayment = true;
-          } else if (purchaseDetails.introductoryPriceInfo) {
-            const introPrice = purchaseDetails.introductoryPriceInfo.introductoryPriceAmountMicros;
-            isFreeTrialPayment = introPrice === "0";
-          }
-
-          if (purchaseDetails.orderId) {
-            this.di.log.log(`Google webhook: Fetching order info for subscription ${productId}`);
-            const orderInfo = await subscriptions.getGoogleOrderInfo(purchaseDetails.orderId);
-            this.di.log.log("Google webhook: Subscription Order Info", JSON.stringify(orderInfo, null, 2));
-            if (orderInfo && orderInfo.total) {
-              amount = convertGooglePriceToNumber(orderInfo.total);
-              currency = orderInfo.total.currencyCode || currency;
-            }
-            if (orderInfo && orderInfo.tax) {
-              tax = convertGooglePriceToNumber(orderInfo.tax);
-            }
-            if (orderInfo?.lineItems?.[0]?.subscriptionDetails?.offerId) {
-              offerIdentifier = orderInfo.lineItems[0].subscriptionDetails.offerId;
-            }
-          }
-        } else if (purchaseDetails.kind === "androidpublisher#productPurchase") {
-          this.di.log.log(`Google webhook: Fetching order info for product ${productId}`);
-          transactionId = purchaseDetails.orderId || purchaseToken;
-          timestamp = purchaseDetails.purchaseTimeMillis;
-          const orderInfo = await subscriptions.getGoogleOrderInfo(purchaseDetails.orderId);
+        // Amount/tax come from the Orders API; fallbackAmount is only the v2 recurring price if Orders is missing.
+        if (info.orderId) {
+          this.di.log.log(`Google webhook: Fetching order info for ${info.kind} ${productId}`);
+          const orderInfo = await subscriptions.getGoogleOrderInfo(info.orderId);
+          this.di.log.log("Google webhook: Order Info", JSON.stringify(orderInfo, null, 2));
           if (orderInfo && orderInfo.total) {
             amount = convertGooglePriceToNumber(orderInfo.total);
-            currency = orderInfo.total.currencyCode || "USD";
+            currency = orderInfo.total.currencyCode || currency;
+            orderTotalResolved = true;
           }
           if (orderInfo && orderInfo.tax) {
             tax = convertGooglePriceToNumber(orderInfo.tax);
           }
+          if (info.kind === "subscription" && orderInfo?.lineItems?.[0]?.subscriptionDetails?.offerId) {
+            offerIdentifier = orderInfo.lineItems[0].subscriptionDetails.offerId;
+          }
         }
+        // Free trial = a subscription whose ACTUAL charge (resolved Orders total) was zero. Products are never
+        // trials, and a failed Orders lookup must not default to "free trial" just because amount stayed 0.
+        isFreeTrialPayment = info.kind === "subscription" && orderTotalResolved && amount === 0;
       }
 
       if (await paymentDao.doesExist(transactionId)) {

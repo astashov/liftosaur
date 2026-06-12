@@ -3,7 +3,7 @@ import JWT from "jsonwebtoken";
 import { IDI } from "./di";
 import { SubscriptionDetailsDao, ISubscriptionDetailsDao } from "../dao/subscriptionDetailsDao";
 import { PaymentDao } from "../dao/paymentDao";
-import { IAppleTransaction, IAppleTransactionHistory, Subscriptions } from "./subscriptions";
+import { IAppleTransaction, IAppleTransactionHistory, IGooglePaymentInfoV2, Subscriptions } from "./subscriptions";
 import { AppleJWTVerifier } from "./appleJwtVerifier";
 import { UserDao, ILimitedUserDao } from "../dao/userDao";
 import { convertGooglePriceToNumber } from "./googlePaymentProcessor";
@@ -181,12 +181,23 @@ export class PaymentReconciler {
     for (const tokenString of tokenStrings) {
       try {
         const { token, productId } = JSON.parse(tokenString) as { token: string; productId: string };
-        const purchaseDetails = await this.subscriptionsUtil.getGooglePurchaseTokenJson(token, productId);
-        if (!purchaseDetails || "error" in purchaseDetails) {
-          continue;
+        let info: ISubscriptionDetailsDao | undefined;
+        if (productId.indexOf("lifetime") !== -1) {
+          // Only mint a lifetime details row for a genuinely active purchase — an error body or a
+          // canceled/refunded product must NOT create a far-future-expires row that the hasSubscription
+          // fallback (expires > now) would then grant on.
+          const pv2 = await this.subscriptionsUtil.getGoogleProductV2(token);
+          info =
+            pv2 && this.subscriptionsUtil.isGoogleProductV2Active(pv2)
+              ? this.subscriptionsUtil.getGoogleProductVerificationInfoV2(user.id, pv2, token)
+              : undefined;
+        } else {
+          // Resolve PENDING_PURCHASE_CANCELED to the real subscription (via linkedPurchaseToken).
+          const resolved = await this.subscriptionsUtil.getGoogleSubscriptionV2Resolved(token);
+          info = resolved
+            ? this.subscriptionsUtil.getGoogleVerificationInfoV2(user.id, resolved.json, resolved.token)
+            : undefined;
         }
-
-        const info = await this.subscriptionsUtil.getGoogleVerificationInfo(user.id, purchaseDetails, tokenString);
         if (!info) {
           continue;
         }
@@ -439,19 +450,16 @@ export class PaymentReconciler {
       const purchaseToken = sub.originalTransactionId!;
       const productId = GOOGLE_PRODUCT_IDS[sub.product]!;
 
-      const purchaseDetails = await this.subscriptionsUtil.getGooglePurchaseTokenJson(purchaseToken, productId);
-      if (!purchaseDetails || "error" in purchaseDetails) {
-        return {
-          added: 0,
-          error: `Google: Failed to verify token for user ${sub.userId}: ${JSON.stringify(purchaseDetails)}`,
-        };
+      const info = await this.subscriptionsUtil.getGooglePaymentInfoV2(purchaseToken, productId);
+      if (!info) {
+        return { added: 0, error: `Google: Failed to verify token for user ${sub.userId}` };
       }
 
-      if (purchaseDetails.kind === "androidpublisher#productPurchase") {
-        return this.reconcileGoogleProduct(sub, purchaseDetails, existingTxIds);
+      if (info.kind === "product") {
+        return this.reconcileGoogleProduct(sub, info, existingTxIds);
       }
 
-      return this.reconcileGoogleSubscription(sub, purchaseDetails, purchaseToken, productId, existingTxIds);
+      return this.reconcileGoogleSubscription(sub, info, purchaseToken, productId, existingTxIds);
     } catch (error) {
       return { added: 0, error: `Google ${sub.originalTransactionId}: ${error}` };
     }
@@ -459,14 +467,15 @@ export class PaymentReconciler {
 
   private async reconcileGoogleProduct(
     sub: ISubscriptionDetailsDao,
-    purchaseDetails: { purchaseTimeMillis: number; orderId: string; kind: "androidpublisher#productPurchase" },
+    info: IGooglePaymentInfoV2,
     existingTxIds: Set<string>
   ): Promise<{ added: number; error?: string }> {
-    const orderId = purchaseDetails.orderId;
+    const orderId = info.orderId;
+    const purchaseTimeMs = info.purchaseTimeMs ?? 0;
     if (!orderId || existingTxIds.has(orderId)) {
       return { added: 0 };
     }
-    if (Number(purchaseDetails.purchaseTimeMillis) < PAYMENT_TRACKING_START) {
+    if (purchaseTimeMs < PAYMENT_TRACKING_START) {
       return { added: 0 };
     }
 
@@ -489,7 +498,7 @@ export class PaymentReconciler {
     } else {
       await this.paymentDao.addIfNotExists({
         userId: sub.userId,
-        timestamp: Number(purchaseDetails.purchaseTimeMillis),
+        timestamp: purchaseTimeMs,
         originalTransactionId: sub.originalTransactionId!,
         transactionId: orderId,
         productId: GOOGLE_PRODUCT_IDS[sub.product]!,
@@ -500,7 +509,7 @@ export class PaymentReconciler {
         source: "reconciler",
         paymentType: "purchase",
         isFreeTrialPayment: false,
-        subscriptionStartTimestamp: Number(purchaseDetails.purchaseTimeMillis),
+        subscriptionStartTimestamp: purchaseTimeMs,
       });
       this.di.log.log(`Reconciler: Added Google product payment ${orderId} for user ${sub.userId}`);
     }
@@ -510,31 +519,18 @@ export class PaymentReconciler {
   // Google renewal orderIds follow: GPA.xxxx (initial), GPA.xxxx..0 (1st renewal), GPA.xxxx..1, etc.
   private async reconcileGoogleSubscription(
     sub: ISubscriptionDetailsDao,
-    purchaseDetails: {
-      orderId: string;
-      priceCurrencyCode: string;
-      priceAmountMicros: string;
-      startTimeMillis: string;
-      linkedPurchaseToken?: string;
-      paymentState?: number;
-      introductoryPriceInfo?: { introductoryPriceAmountMicros?: string };
-      kind: "androidpublisher#subscriptionPurchase";
-    },
+    info: IGooglePaymentInfoV2,
     purchaseToken: string,
     productId: string,
     existingTxIds: Set<string>
   ): Promise<{ added: number; error?: string }> {
-    const currentOrderId = purchaseDetails.orderId;
+    const currentOrderId = info.orderId;
     if (!currentOrderId) {
       return { added: 0 };
     }
 
-    const originalTransactionId = purchaseDetails.linkedPurchaseToken || purchaseToken;
-    const subscriptionStartTimestamp =
-      purchaseDetails.startTimeMillis != null ? Number(purchaseDetails.startTimeMillis) : undefined;
-    const isFreeTrialPayment =
-      purchaseDetails.paymentState === 2 ||
-      purchaseDetails.introductoryPriceInfo?.introductoryPriceAmountMicros === "0";
+    const originalTransactionId = info.originalTransactionId;
+    const subscriptionStartTimestamp = info.startTimeMs;
 
     const baseOrderId = currentOrderId.replace(/\.\.\d+$/, "");
     const renewalMatch = currentOrderId.match(/\.\.(\d+)$/);
@@ -570,11 +566,13 @@ export class PaymentReconciler {
 
       let amount = 0;
       let tax: number | undefined;
-      let currency = purchaseDetails.priceCurrencyCode || "USD";
+      let currency = info.currency || "USD";
       let offerIdentifier: string | undefined;
+      let orderTotalResolved = false;
       if (orderInfo.total) {
         amount = convertGooglePriceToNumber(orderInfo.total);
         currency = orderInfo.total.currencyCode || currency;
+        orderTotalResolved = true;
       }
       if (orderInfo.tax) {
         tax = convertGooglePriceToNumber(orderInfo.tax);
@@ -601,7 +599,8 @@ export class PaymentReconciler {
           type: "google",
           source: "reconciler",
           paymentType,
-          isFreeTrialPayment: paymentType === "purchase" && isFreeTrialPayment,
+          // Free trial = a zero ACTUAL charge (resolved Orders total), not a missing/failed lookup.
+          isFreeTrialPayment: orderTotalResolved && amount === 0,
           subscriptionStartTimestamp,
           offerIdentifier,
         });
