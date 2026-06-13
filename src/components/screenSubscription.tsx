@@ -164,6 +164,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
     status: props.subscriptionStatus,
     ownedLifetime: props.ownedLifetime,
     isNative,
+    isIos,
   });
 
   const monthlyPrice =
@@ -212,7 +213,7 @@ export function ScreenSubscription(props: IProps): JSX.Element {
   const isPitch = (plan.state === "none" || plan.state === "premium") && !isUnclaimed;
   const showManagement = plan.state === "subscriber" || plan.state === "cancelled" || plan.state === "premium";
   // Lifetime/free-access users already own everything, so a coupon would be a no-op for them.
-  const hasFullAccess = plan.state === "lifetime" || plan.state === "freeaccess";
+  const hasFullAccess = plan.state === "lifetime" || plan.state === "freeaccess" || plan.state === "otherstore";
 
   return (
     <NavScreenContent>
@@ -375,6 +376,12 @@ function StatusHeader(props: { plan: IDerivedSubscriptionPlan }): JSX.Element {
   } else if (plan.state === "subscriber") {
     title = `✓ Premium — ${planLabel(plan.plan)}`;
     subtitle = dateStr ? `Renews on ${dateStr}.` : undefined;
+  } else if (plan.state === "otherstore") {
+    title = "✓ Premium";
+    subtitle =
+      plan.managedOn === "apple"
+        ? "You bought this subscription on the App Store. Manage or cancel it from an Apple device."
+        : "You bought this subscription on Google Play. Manage or cancel it from an Android device.";
   } else {
     title = "✓ Premium";
     subtitle = "Manage your subscription from the mobile app.";

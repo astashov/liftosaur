@@ -9,7 +9,8 @@ export type ISubscriptionPlanState =
   | "cancelled"
   | "lifetime"
   | "freeaccess"
-  | "premium";
+  | "premium"
+  | "otherstore";
 
 export type ISubscriptionPlanKind = "monthly" | "yearly";
 
@@ -20,6 +21,8 @@ export interface IDerivedSubscriptionPlan {
   autoRenew?: boolean;
   // Set when the user has queued a switch to a different plan that takes effect at expirationDate.
   pendingPlan?: ISubscriptionPlanKind;
+  // For state "otherstore": the store the subscription must be managed on (it was bought on the other platform).
+  managedOn?: "apple" | "google";
 }
 
 export function SubscriptionPlan_planFromProductId(productId: string): ISubscriptionPlanKind | undefined {
@@ -37,8 +40,9 @@ export function SubscriptionPlan_derive(args: {
   status?: IIapActiveSubscription[];
   ownedLifetime?: boolean;
   isNative: boolean;
+  isIos?: boolean;
 }): IDerivedSubscriptionPlan {
-  const { subscription, status, ownedLifetime, isNative } = args;
+  const { subscription, status, ownedLifetime, isNative, isIos } = args;
 
   if (subscription.key && subscription.key !== "unclaimed") {
     return { state: "freeaccess" };
@@ -72,9 +76,19 @@ export function SubscriptionPlan_derive(args: {
     if (isNative && status === undefined) {
       return { state: "loading" };
     }
-    // Native with a known-empty status means the store has no live entitlement. On web we have no store
-    // status at all, so fall back to a generic "premium" state driven by synced receipts.
-    return { state: isNative ? "none" : "premium" };
+    if (isNative) {
+      // This device's store reports no live entitlement, but a receipt from the OTHER store means the user
+      // subscribed on the other platform. They keep premium (feature gating reads the synced receipts), but
+      // can only manage/cancel it from a device on that platform — not here.
+      const boughtOnOtherStore = isIos ? subscription.google.length > 0 : subscription.apple.length > 0;
+      if (boughtOnOtherStore) {
+        return { state: "otherstore", managedOn: isIos ? "google" : "apple" };
+      }
+      // Same-store receipt but no live entitlement = expired/cancelled; let them re-subscribe.
+      return { state: "none" };
+    }
+    // On web we have no store status at all, so fall back to a generic "premium" state from synced receipts.
+    return { state: "premium" };
   }
 
   return { state: "none" };

@@ -66,13 +66,15 @@ export function MenuItem(props: IMenuItemProps): JSX.Element {
       <View className="flex-row items-center">
         {dragHandle}
         {props.prefix != null && <View className="flex-row items-center justify-center">{props.prefix}</View>}
-        <View className={`py-3 ${props.expandValue ? undefined : "flex-1"}`}>
-          <View className="flex-row items-center">
-            <Text className="text-base text-text-primary">{props.name}</Text>
+        <View className="flex-row items-center gap-2 flex-1">
+          <View className={`py-3 ${props.expandValue ? undefined : "flex-1"}`}>
+            <View className="flex-row items-center">
+              <Text className="text-base text-text-primary">{props.name}</Text>
+            </View>
+            {props.addons != null && <View className="pt-1">{props.addons}</View>}
           </View>
-          {props.addons != null && <View className="pt-1">{props.addons}</View>}
+          <View className={`${props.expandName ? "" : "flex-1"} items-end`}>{valueNode}</View>
         </View>
-        <View className={`${props.expandName ? "" : "flex-1"} items-end`}>{valueNode}</View>
         {props.shouldShowRightArrow && (
           <View className="flex-row items-center py-2 pl-2">
             <IconArrowRight />

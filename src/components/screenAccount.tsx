@@ -91,6 +91,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
     status: props.subscriptionStatus,
     ownedLifetime: props.ownedLifetime,
     isNative,
+    isIos: Platform.OS === "ios",
   });
   // "loading" = native subscriber whose store status hasn't arrived yet (status undefined). Spinning here
   // (rather than flashing "Free plan") covers the first render and a failed getActiveSubscriptions(); once a
@@ -415,6 +416,16 @@ function buildPremiumCard(plan: IDerivedSubscriptionPlan): IPremiumCard {
       };
     case "premium":
       return { title: "Premium", subtitle: "Manage on the mobile app", actionLabel: "Manage", showCancel: false };
+    case "otherstore":
+      return {
+        title: "Premium",
+        subtitle:
+          plan.managedOn === "apple"
+            ? "Bought on the App Store — manage it on an Apple device"
+            : "Bought on Google Play — manage it on an Android device",
+        actionLabel: "View",
+        showCancel: false,
+      };
     default:
       return { title: "Free plan", actionLabel: "Get Premium", showCancel: false };
   }

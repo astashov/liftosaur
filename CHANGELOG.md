@@ -14,6 +14,14 @@
 -->
 
 ---
+date: 2026-06-13
+title: Added subscription management to the Account screen
+---
+
+It was somewhat confusing that you couldn't see your current subscription status within the app, so I added it
+to the Account screen. So now you see what's your subscription status there, and can manage it from there as well.
+
+---
 date: 2026-06-08
 title: Improved import history flow
 ---
