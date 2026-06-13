@@ -1,6 +1,7 @@
 import { IDI } from "../utils/di";
 import { UserDao } from "../dao/userDao";
 import { PaymentDao } from "../dao/paymentDao";
+import { SubscriptionDetailsDao } from "../dao/subscriptionDetailsDao";
 import { AppleJWTVerifier } from "./appleJwtVerifier";
 
 export interface IAppleNotificationV2 {
@@ -26,7 +27,12 @@ interface IApplePayloadData {
   notificationType: string;
   data?: {
     signedTransactionInfo?: string;
+    signedRenewalInfo?: string;
   };
+}
+
+interface IAppleRenewalInfo {
+  autoRenewStatus?: number;
 }
 
 export class AppleWebhookHandler {
@@ -82,8 +88,14 @@ export class AppleWebhookHandler {
         return { status: "ok" };
       }
 
-      let paymentType: "purchase" | "renewal" | "refund";
       const notificationType = payloadData.notificationType;
+
+      const renewalInfo = payloadData.data.signedRenewalInfo
+        ? (jwtVerifier.verifyJWT(payloadData.data.signedRenewalInfo) as IAppleRenewalInfo | null)
+        : null;
+      await this.updateSubscriptionStatus(userId, notificationType, transactionInfo, renewalInfo);
+
+      let paymentType: "purchase" | "renewal" | "refund";
 
       switch (notificationType) {
         case "SUBSCRIBED":
@@ -140,6 +152,35 @@ export class AppleWebhookHandler {
     } catch (error) {
       this.di.log.log("Apple webhook error:", error);
       return { status: "error" };
+    }
+  }
+
+  private async updateSubscriptionStatus(
+    userId: string,
+    notificationType: string,
+    transactionInfo: IAppleTransactionInfo,
+    renewalInfo: IAppleRenewalInfo | null
+  ): Promise<void> {
+    try {
+      const isLifetime = transactionInfo.productId.indexOf("lifetime") !== -1;
+      const expires = isLifetime ? 4105144800000 : (transactionInfo.expiresDate ?? 0);
+      const isTerminal =
+        notificationType === "EXPIRED" ||
+        notificationType === "GRACE_PERIOD_EXPIRED" ||
+        notificationType === "REVOKE" ||
+        notificationType === "REFUND";
+      const isActive = isTerminal ? false : expires > Date.now();
+      const autoRenew = renewalInfo?.autoRenewStatus != null ? renewalInfo.autoRenewStatus === 1 : undefined;
+      const updated = await new SubscriptionDetailsDao(this.di).updateStatus(userId, "apple", {
+        isActive,
+        expires,
+        autoRenew,
+      });
+      this.di.log.log(
+        `Apple webhook: ${updated ? "updated" : "skipped"} subscription status for ${userId} (${notificationType}): isActive=${isActive}, autoRenew=${autoRenew}`
+      );
+    } catch (e) {
+      this.di.log.log("Apple webhook: failed to update subscription status", e);
     }
   }
 }

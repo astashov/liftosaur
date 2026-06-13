@@ -374,6 +374,21 @@ const postVerifyGooglePurchaseTokenHandler: RouteHandler<
   return ResponseUtils_json(200, event, { result: !!verifiedGooglePurchaseToken });
 };
 
+const getSubscriptionDetailsEndpoint = Endpoint.build("/api/subscriptiondetails");
+const getSubscriptionDetailsHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getSubscriptionDetailsEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  const userId = await getCurrentUserId(event, di);
+  if (userId == null) {
+    return ResponseUtils_json(401, event, { error: "Not Authorized" });
+  }
+  const details = await new SubscriptionDetailsDao(di).getAll([userId]);
+  return ResponseUtils_json(200, event, { details });
+};
+
 const postAppleWebhookEndpoint = Endpoint.build("/api/apple-payment-webhook");
 const postAppleWebhookHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postAppleWebhookEndpoint> = async ({
   payload,
@@ -3280,6 +3295,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .get(getProgramRevisionEndpoint, getProgramRevisionHandler)
       .get(getMusclesForExerciseEndpoint, getMusclesForExerciseHandler)
       .post(postVerifyAppleReceiptEndpoint, postVerifyAppleReceiptHandler)
+      .get(getSubscriptionDetailsEndpoint, getSubscriptionDetailsHandler)
       .post(postVerifyGooglePurchaseTokenEndpoint, postVerifyGooglePurchaseTokenHandler)
       .post(postAppleWebhookEndpoint, postAppleWebhookHandler)
       .post(postGoogleWebhookEndpoint, postGoogleWebhookHandler)
