@@ -25,6 +25,9 @@ export interface IPaymentDao {
   isFreeTrialPayment: boolean;
   subscriptionStartTimestamp?: number;
   offerIdentifier?: string;
+  // Play Console license-tester / test purchase. Stored, but hidden from the payments dashboard and
+  // excluded from affiliate revenue so test purchases don't pollute reporting or affiliate payouts.
+  isTest?: boolean;
 }
 
 export class PaymentDao {

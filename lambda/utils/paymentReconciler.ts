@@ -314,6 +314,7 @@ export class PaymentReconciler {
             isFreeTrialPayment: tx.offerDiscountType === "FREE_TRIAL",
             subscriptionStartTimestamp: tx.originalPurchaseDate,
             offerIdentifier: tx.offerIdentifier,
+            isTest: tx.environment === "Sandbox",
           });
           this.di.log.log(`Reconciler: Added Apple payment ${tx.transactionId} for user ${sub.userId}`);
         }
@@ -510,6 +511,7 @@ export class PaymentReconciler {
         paymentType: "purchase",
         isFreeTrialPayment: false,
         subscriptionStartTimestamp: purchaseTimeMs,
+        isTest: info.isTest,
       });
       this.di.log.log(`Reconciler: Added Google product payment ${orderId} for user ${sub.userId}`);
     }
@@ -603,6 +605,7 @@ export class PaymentReconciler {
           isFreeTrialPayment: orderTotalResolved && amount === 0,
           subscriptionStartTimestamp,
           offerIdentifier,
+          isTest: info.isTest,
         });
         this.di.log.log(`Reconciler: Added Google ${paymentType} ${orderId} for user ${sub.userId}`);
       }

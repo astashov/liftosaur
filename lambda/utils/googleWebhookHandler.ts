@@ -226,6 +226,7 @@ export class GoogleWebhookHandler {
       let originalTransactionId = purchaseToken;
       let timestamp = Date.now();
       let isFreeTrialPayment = false;
+      let isTest = false;
       let subscriptionStartTimestamp: number | undefined = undefined;
       let offerIdentifier: string | undefined = undefined;
 
@@ -246,6 +247,7 @@ export class GoogleWebhookHandler {
         transactionId = info.orderId || purchaseToken;
         currency = info.currency || "USD";
         amount = info.fallbackAmount ?? 0;
+        isTest = info.isTest;
         let orderTotalResolved = false;
         if (info.kind === "subscription") {
           timestamp = Date.now();
@@ -313,6 +315,7 @@ export class GoogleWebhookHandler {
         isFreeTrialPayment,
         subscriptionStartTimestamp,
         offerIdentifier,
+        isTest,
       });
 
       this.di.log.log(

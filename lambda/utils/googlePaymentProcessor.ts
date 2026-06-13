@@ -88,6 +88,7 @@ export class GooglePaymentProcessor {
         isFreeTrialPayment: info.kind === "subscription" && orderTotalResolved && amount === 0,
         subscriptionStartTimestamp: purchaseTime,
         offerIdentifier,
+        isTest: info.isTest,
       });
 
       this.di.log.log(

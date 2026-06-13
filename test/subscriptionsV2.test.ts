@@ -428,6 +428,16 @@ describe("buildGoogleSubscriptionPaymentInfoV2", () => {
     const info = subs.buildGoogleSubscriptionPaymentInfoV2(json, "tok");
     expect(info.isRenewal).to.equal(false);
     expect(info.originalTransactionId).to.equal("tok");
+    expect(info.isTest).to.equal(false);
+  });
+
+  it("flags a license-tester subscription via the testPurchase field", () => {
+    const json: ISubscriptionPurchaseV2 = {
+      subscriptionState: "SUBSCRIPTION_STATE_ACTIVE",
+      testPurchase: {},
+      lineItems: [{ productId: "com.liftosaur.subscription.and_montly", expiryTime: FUTURE }],
+    };
+    expect(subs.buildGoogleSubscriptionPaymentInfoV2(json, "tok").isTest).to.equal(true);
   });
 });
 
@@ -444,6 +454,15 @@ describe("buildGoogleProductPaymentInfoV2", () => {
     expect(info.originalTransactionId).to.equal("lifetime-token");
     expect(info.isRenewal).to.equal(false);
     expect(info.purchaseTimeMs).to.equal(new Date("2025-03-03T17:11:49.283Z").getTime());
+    expect(info.isTest).to.equal(false);
+  });
+
+  it("flags a license-tester product via the testPurchaseContext field", () => {
+    const info = subs.buildGoogleProductPaymentInfoV2(
+      { orderId: "GPA.lifetime", purchaseCompletionTime: "2025-03-03T17:11:49.283Z", testPurchaseContext: {} },
+      "lifetime-token"
+    );
+    expect(info.isTest).to.equal(true);
   });
 });
 

@@ -198,7 +198,8 @@ export class AffiliateDao {
         p.subscriptionStartTimestamp != null &&
         p.subscriptionStartTimestamp > affiliateTimestamp &&
         isFirstAffiliate &&
-        p.paymentType !== "refund"
+        p.paymentType !== "refund" &&
+        !p.isTest
     );
 
     const userTotalRevenue =

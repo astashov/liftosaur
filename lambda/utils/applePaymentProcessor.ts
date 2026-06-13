@@ -21,11 +21,18 @@ export class ApplePaymentProcessor {
   public async getTransactionDetails(
     transactionId: string,
     transactionHistory?: IAppleTransactionHistory
-  ): Promise<{ amount: number; currency: string; isFreeTrialPayment: boolean; originalPurchaseDate?: number }> {
+  ): Promise<{
+    amount: number;
+    currency: string;
+    isFreeTrialPayment: boolean;
+    originalPurchaseDate?: number;
+    isTest: boolean;
+  }> {
     let amount = 0;
     let currency = "USD";
     let isFreeTrialPayment = false;
     let originalPurchaseDate: number | undefined = undefined;
+    let isTest = false;
 
     if (transactionHistory && transactionHistory.signedTransactions) {
       const jwtVerifier = new AppleJWTVerifier(this.di.log);
@@ -39,11 +46,12 @@ export class ApplePaymentProcessor {
           }
           originalPurchaseDate = transaction.originalPurchaseDate;
           isFreeTrialPayment = transaction.offerDiscountType === "FREE_TRIAL";
+          isTest = transaction.environment === "Sandbox";
           break;
         }
       }
     }
-    return { amount, currency, isFreeTrialPayment, originalPurchaseDate };
+    return { amount, currency, isFreeTrialPayment, originalPurchaseDate, isTest };
   }
 
   public async processReceiptPayment(userId: string, latestReceiptInfo?: IAppleReceiptInfo[]): Promise<void> {
@@ -74,6 +82,7 @@ export class ApplePaymentProcessor {
     let currency = "USD";
     let isFreeTrialPayment = false;
     let originalPurchaseDate: number | undefined = undefined;
+    let isTest = false;
 
     if (latestReceipt.original_transaction_id) {
       this.di.log.log(`Apple verification: Fetching transaction history for ${latestReceipt.original_transaction_id}`);
@@ -85,6 +94,7 @@ export class ApplePaymentProcessor {
       currency = result.currency;
       isFreeTrialPayment = result.isFreeTrialPayment;
       originalPurchaseDate = result.originalPurchaseDate;
+      isTest = result.isTest;
     }
 
     const originalTransactionId = latestReceipt.original_transaction_id || "";
@@ -104,6 +114,7 @@ export class ApplePaymentProcessor {
       paymentType: isPurchase ? "purchase" : "renewal",
       isFreeTrialPayment,
       subscriptionStartTimestamp: originalPurchaseDate,
+      isTest,
     });
   }
 
@@ -129,6 +140,7 @@ export class ApplePaymentProcessor {
       isFreeTrialPayment: transactionInfo.offerDiscountType === "FREE_TRIAL",
       subscriptionStartTimestamp: transactionInfo.originalPurchaseDate,
       offerIdentifier: transactionInfo.offerIdentifier,
+      isTest: transactionInfo.environment === "Sandbox",
     });
   }
 }

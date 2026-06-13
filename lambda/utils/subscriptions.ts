@@ -180,6 +180,9 @@ export interface IGooglePaymentInfoV2 {
   currency?: string;
   fallbackAmount?: number;
   isRenewal: boolean;
+  // True for Play Console license-tester / test purchases (v2 carries testPurchase / testPurchaseContext).
+  // Kept in PaymentDao but hidden from the payments dashboard and excluded from affiliate revenue.
+  isTest: boolean;
 }
 
 export interface IVerifyAppleReceiptResponse {
@@ -787,6 +790,7 @@ export class Subscriptions {
       currency: price?.currencyCode,
       fallbackAmount: price ? Number(price.units || "0") + (price.nanos ?? 0) / 1000000000 : undefined,
       isRenewal: !!json.linkedPurchaseToken,
+      isTest: json.testPurchase != null,
     };
   }
 
@@ -800,6 +804,7 @@ export class Subscriptions {
       startTimeMs: purchaseTimeMs,
       purchaseTimeMs,
       isRenewal: false,
+      isTest: json.testPurchaseContext != null,
     };
   }
 

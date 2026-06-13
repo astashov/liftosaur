@@ -19,6 +19,7 @@ export interface IAppleTransactionInfo {
   currency?: string;
   offerDiscountType?: "FREE_TRIAL" | "PAY_UP_FRONT" | "PAY_AS_YOU_GO";
   offerIdentifier?: string;
+  environment?: "Sandbox" | "Production";
 }
 
 interface IApplePayloadData {
@@ -128,6 +129,7 @@ export class AppleWebhookHandler {
         isFreeTrialPayment: transactionInfo.offerDiscountType === "FREE_TRIAL",
         subscriptionStartTimestamp: transactionInfo.originalPurchaseDate,
         offerIdentifier: transactionInfo.offerIdentifier,
+        isTest: transactionInfo.environment === "Sandbox",
       });
 
       this.di.log.log(

@@ -1671,7 +1671,7 @@ interface IPaymentsPage {
 }
 
 async function buildPaymentsPage(di: IDI, before: number | undefined, months: number): Promise<IPaymentsPage> {
-  const allPayments = await new PaymentDao(di).getAllPayments();
+  const allPayments = (await new PaymentDao(di).getAllPayments()).filter((p) => !p.isTest);
   const summary = computePaymentsSummary([{ date: "all", payments: allPayments }]);
 
   const start =
