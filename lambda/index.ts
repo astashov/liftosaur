@@ -328,6 +328,11 @@ const postVerifyGooglePurchaseTokenHandler: RouteHandler<
   const { token, productId } = JSON.parse(googlePurchaseToken) as { token: string; productId: string };
   const isLifetime = productId.indexOf("lifetime") !== -1;
   let verifiedGooglePurchaseToken = false;
+  // Returned to the caller keyed by possession of the purchase token (a real secret), so the client can read
+  // its live subscription status — incl. a queued deferred plan switch — without a userId-based lookup.
+  let subscription:
+    | { type: string; product: string; isActive: boolean; expires: number; pendingProduct?: string }
+    | undefined;
   // One v2 fetch drives acknowledge gating, entitlement, the details row, and the payment record.
   if (isLifetime) {
     const pv2 = await subscriptions.getGoogleProductV2(token);
@@ -361,6 +366,13 @@ const postVerifyGooglePurchaseTokenHandler: RouteHandler<
         const details = subscriptions.getGoogleVerificationInfoV2(userId, sv2, effToken);
         if (details) {
           await new SubscriptionDetailsDao(di).add(details);
+          subscription = {
+            type: details.type,
+            product: details.product,
+            isActive: details.isActive,
+            expires: details.expires,
+            pendingProduct: details.pendingProduct,
+          };
         }
         await recordGoogleVerificationPayment(
           di,
@@ -371,22 +383,7 @@ const postVerifyGooglePurchaseTokenHandler: RouteHandler<
       }
     }
   }
-  return ResponseUtils_json(200, event, { result: !!verifiedGooglePurchaseToken });
-};
-
-const getSubscriptionDetailsEndpoint = Endpoint.build("/api/subscriptiondetails");
-const getSubscriptionDetailsHandler: RouteHandler<
-  IPayload,
-  APIGatewayProxyResult,
-  typeof getSubscriptionDetailsEndpoint
-> = async ({ payload }) => {
-  const { event, di } = payload;
-  const userId = await getCurrentUserId(event, di);
-  if (userId == null) {
-    return ResponseUtils_json(401, event, { error: "Not Authorized" });
-  }
-  const details = await new SubscriptionDetailsDao(di).getAll([userId]);
-  return ResponseUtils_json(200, event, { details });
+  return ResponseUtils_json(200, event, { result: !!verifiedGooglePurchaseToken, subscription });
 };
 
 const postAppleWebhookEndpoint = Endpoint.build("/api/apple-payment-webhook");
@@ -3295,7 +3292,6 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .get(getProgramRevisionEndpoint, getProgramRevisionHandler)
       .get(getMusclesForExerciseEndpoint, getMusclesForExerciseHandler)
       .post(postVerifyAppleReceiptEndpoint, postVerifyAppleReceiptHandler)
-      .get(getSubscriptionDetailsEndpoint, getSubscriptionDetailsHandler)
       .post(postVerifyGooglePurchaseTokenEndpoint, postVerifyGooglePurchaseTokenHandler)
       .post(postAppleWebhookEndpoint, postAppleWebhookHandler)
       .post(postGoogleWebhookEndpoint, postGoogleWebhookHandler)
