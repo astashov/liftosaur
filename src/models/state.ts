@@ -24,7 +24,7 @@ import type { NavigationContainerRef } from "@react-navigation/native";
 import type { IRootStackParamList } from "../navigation/types";
 import type { IScreenData } from "./screen";
 import type { IProgramPreviewPlaygroundState } from "../components/preview/programPreviewPlaygroundSetup";
-import type { IIapAdapter } from "../utils/iapAdapter";
+import type { IIapActiveSubscription, IIapAdapter } from "../utils/iapAdapter";
 import type { IHealthAdapter } from "../utils/healthAdapter";
 
 export type IEnv = {
@@ -133,6 +133,13 @@ export interface IState {
   loading: ILoading;
   defaultEquipmentExpanded?: IEquipment;
   subscriptionLoading?: ISubscriptionLoading;
+  subscriptionStatus?: IIapActiveSubscription[];
+  subscriptionStatusLoading?: boolean;
+  // Ephemeral, NON-synced optimistic hint for a just-queued Android plan switch, bridging the gap until
+  // Google's deferred RTDN lands and the server reports `pendingProduct` authoritatively. Session-only
+  // (not persisted/synced) and time-boxed via `until` so it can't drift like the old synced flag did.
+  subscriptionPendingHint?: { productId: string; until: number };
+  ownedLifetime?: boolean;
   progress: Partial<Record<number, IHistoryRecord>>;
   previewProgram?: {
     id: string;

@@ -1,4 +1,4 @@
-import { JSX } from "react";
+import { JSX, useEffect } from "react";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRoute } from "@react-navigation/native";
@@ -8,11 +8,20 @@ import { ProgramHistoryView } from "../../components/programHistory";
 import { ChooseProgramView } from "../../components/chooseProgram";
 import { Program_getProgram } from "../../models/program";
 import { useScreenPerf } from "../../utils/useScreenPerf";
+import { ImagePreloader_preload } from "../../utils/imagePreloader";
+
+const subscriptionImages = ["/images/subscriptionhero.png"];
 
 export function NavScreenMain(): JSX.Element {
   const state = useTrackedState();
   const dispatch = useTrackedDispatch();
   useScreenPerf("main");
+
+  useEffect(() => {
+    for (const path of subscriptionImages) {
+      ImagePreloader_preload(path);
+    }
+  }, []);
   const navCommon = untrack(buildNavCommon(state));
   const route = useRoute<{ key: string; name: "main"; params?: { historyRecordId?: number } }>();
   const ongoingProgress = untrack(state.storage.progress?.[0]);

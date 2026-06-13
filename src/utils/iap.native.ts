@@ -1,8 +1,10 @@
+import { Platform } from "react-native";
 import {
   initConnection,
   endConnection,
   fetchProducts,
   getAvailablePurchases,
+  getActiveSubscriptions,
   finishTransaction,
   getReceiptDataIOS,
   getReceiptIOS,
@@ -10,12 +12,15 @@ import {
   purchaseUpdatedListener,
   purchaseErrorListener,
   requestPurchase,
+  showManageSubscriptionsIOS,
+  deepLinkToSubscriptions,
   type Product,
   type ProductSubscription,
   type Purchase,
   type PurchaseAndroid,
 } from "react-native-iap";
 import {
+  IIapActiveSubscription,
   IIapAdapter,
   IIapApplePromoOffer,
   IIapInAppProduct,
@@ -36,6 +41,10 @@ function toIapPurchase(purchase: Purchase, priceCache: Map<string, IPriceCacheEn
   const token = (purchase as PurchaseAndroid).purchaseToken ?? purchase.purchaseToken ?? undefined;
   const iosCurrency = (purchase as { currencyCodeIOS?: string | null }).currencyCodeIOS ?? undefined;
   const cached = priceCache.get(purchase.productId);
+  const renewalInfoIOS = (
+    purchase as { renewalInfoIOS?: { autoRenewPreference?: string | null; pendingUpgradeProductId?: string | null } }
+  ).renewalInfoIOS;
+  const renewsAs = renewalInfoIOS?.autoRenewPreference ?? renewalInfoIOS?.pendingUpgradeProductId ?? undefined;
   return {
     id: purchase.id,
     transactionId: purchase.transactionId ?? undefined,
@@ -47,6 +56,7 @@ function toIapPurchase(purchase: Purchase, priceCache: Map<string, IPriceCacheEn
     purchaseToken: token ?? undefined,
     currency: iosCurrency ?? cached?.currency,
     price: cached?.price,
+    renewsAsProductId: renewsAs && renewsAs !== purchase.productId ? renewsAs : undefined,
   };
 }
 
@@ -130,8 +140,42 @@ export class IapAdapter implements IIapAdapter {
     return (result ?? []).map((p) => toIapPurchase(p, this.priceCache));
   }
 
+  public async getActiveSubscriptions(): Promise<IIapActiveSubscription[]> {
+    const result = await getActiveSubscriptions();
+    return (result ?? []).map((s) => {
+      const renewsAs = s.renewalInfoIOS?.autoRenewPreference ?? s.renewalInfoIOS?.pendingUpgradeProductId ?? undefined;
+      return {
+        productId: s.productId,
+        isActive: s.isActive,
+        autoRenew: s.autoRenewingAndroid ?? s.renewalInfoIOS?.willAutoRenew ?? true,
+        expirationDate: s.expirationDateIOS ?? undefined,
+        purchaseTokenAndroid: s.purchaseTokenAndroid ?? undefined,
+        pendingProductId: renewsAs && renewsAs !== s.productId ? renewsAs : undefined,
+      };
+    });
+  }
+
   public async requestSubscription(args: IIapRequestSubscriptionArgs): Promise<void> {
-    const offerToken = this.findGoogleOfferToken(args.sku, args.googleOfferId);
+    // A plan switch reuses the old purchase token. The switching user already consumed their intro,
+    // so an intro/discount offer is ineligible and Play rejects it with DEVELOPER_ERROR — use the
+    // base-plan offer for switches.
+    const isReplacement = !!(args.androidOldPurchaseToken && args.androidReplacementMode);
+    const offerToken = this.findGoogleOfferToken(args.sku, args.googleOfferId, isReplacement);
+    const google: {
+      skus: string[];
+      subscriptionOffers: { sku: string; offerToken: string }[];
+      purchaseToken?: string;
+      replacementMode?: number;
+    } = {
+      skus: [args.sku],
+      subscriptionOffers: offerToken ? [{ sku: args.sku, offerToken }] : [],
+    };
+    if (args.androidOldPurchaseToken && args.androidReplacementMode) {
+      google.purchaseToken = args.androidOldPurchaseToken;
+      // Google Play BillingFlowParams.SubscriptionUpdateParams.ReplacementMode enum values. Use the
+      // top-level (whole-subscription) replacement API, not item-level subscriptionProductReplacementParams.
+      google.replacementMode = args.androidReplacementMode === "deferred" ? 6 : 1; // 6=DEFERRED, 1=WITH_TIME_PRORATION
+    }
     await requestPurchase({
       type: "subs",
       request: {
@@ -139,12 +183,17 @@ export class IapAdapter implements IIapAdapter {
           sku: args.sku,
           withOffer: applePromoToWithOffer(args.applePromo),
         },
-        google: {
-          skus: [args.sku],
-          subscriptionOffers: offerToken ? [{ sku: args.sku, offerToken }] : [],
-        },
+        google,
       },
     });
+  }
+
+  public async openManageSubscriptions(): Promise<void> {
+    if (Platform.OS === "ios") {
+      await showManageSubscriptionsIOS();
+    } else {
+      await deepLinkToSubscriptions({});
+    }
   }
 
   public async requestInAppProduct(args: { sku: string }): Promise<void> {
@@ -203,12 +252,17 @@ export class IapAdapter implements IIapAdapter {
     const sub = purchaseUpdatedListener(async (p) => {
       const purchase = toIapPurchase(p, this.priceCache);
       const txnId = purchase.transactionId ?? purchase.id;
-      if (txnId) {
-        if (handled.has(txnId)) {
+      // Key on the queued plan switch too: a switch re-delivers the existing transaction (same id,
+      // also replayed on launch) but now with renewsAsProductId set, and we must process that to
+      // clear the spinner — deduping on id alone would drop it. StoreKit Testing also reuses
+      // transactionId "0" across distinct transactions, so don't dedupe that degenerate id at all.
+      const dedupKey = `${txnId}:${purchase.renewsAsProductId ?? ""}`;
+      if (txnId && txnId !== "0") {
+        if (handled.has(dedupKey)) {
           return;
         }
-        handled.add(txnId);
-        setTimeout(() => handled.delete(txnId), 5 * 60 * 1000);
+        handled.add(dedupKey);
+        setTimeout(() => handled.delete(dedupKey), 5 * 60 * 1000);
       }
       await handler(purchase);
     });
@@ -226,13 +280,19 @@ export class IapAdapter implements IIapAdapter {
     return () => sub.remove();
   }
 
-  private findGoogleOfferToken(sku: string, offerId?: string): string | undefined {
+  private findGoogleOfferToken(sku: string, offerId?: string, preferBase?: boolean): string | undefined {
     const sub = this.cachedSubscriptions.find((s) => s.id === sku);
     const offers = sub?.subscriptionOffers ?? [];
     if (offerId) {
       const matched = offers.find((o) => o.id === offerId);
       if (matched?.offerTokenAndroid) {
         return matched.offerTokenAndroid;
+      }
+    }
+    if (preferBase) {
+      const base = offers.find((o) => o.id.indexOf("base") !== -1);
+      if (base?.offerTokenAndroid) {
+        return base.offerTokenAndroid;
       }
     }
     const trial = offers.find((o) => o.id === "monthly-subscription-trial" || o.id === "yearly-subscription-trial");

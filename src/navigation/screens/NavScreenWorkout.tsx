@@ -100,6 +100,8 @@ export function NavScreenSubscription(): JSX.Element {
       googleOffer={state.googleOffer}
       subscription={state.storage.subscription}
       subscriptionLoading={state.subscriptionLoading}
+      subscriptionStatus={state.subscriptionStatus}
+      ownedLifetime={state.ownedLifetime}
       dispatch={dispatch}
       navCommon={navCommon}
     />

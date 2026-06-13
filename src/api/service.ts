@@ -142,6 +142,17 @@ export interface IRecordResponse {
   settings: ISettings;
 }
 
+export interface ISubscriptionServerDetails {
+  type: "apple" | "google";
+  product: string;
+  isActive: boolean;
+  expires: number;
+  autoRenew?: boolean;
+  // The product a queued plan switch will renew as, read authoritatively from Google
+  // subscriptionsv2 `deferredItemReplacement` server-side. Empty when no switch is queued.
+  pendingProduct?: string;
+}
+
 export class Service {
   public readonly client: Window["fetch"];
 
@@ -263,6 +274,30 @@ export class Service {
       body: JSON.stringify({}),
       credentials: "include",
     });
+  }
+
+  public async refreshGoogleSubscription(
+    userId: string,
+    googlePurchaseToken: string
+  ): Promise<ISubscriptionServerDetails | undefined> {
+    // Re-verifies the live purchase token (which also rewrites the server's details row) and returns the
+    // freshly-derived status incl. any queued deferred plan switch. Authorized by possession of the purchase
+    // token, so no userId-based read. Deliberately uncached: each refresh must reflect live Play state.
+    try {
+      const url = UrlUtils_build(`${__API_HOST__}/api/verifygooglepurchasetoken`);
+      const result = await this.client(url.toString(), {
+        method: "POST",
+        body: JSON.stringify({ googlePurchaseToken, userId }),
+        credentials: "include",
+      });
+      if (result.status === 200) {
+        const json = (await result.json()) as { subscription?: ISubscriptionServerDetails };
+        return json.subscription;
+      }
+    } catch {
+      // Network/parse failure: caller keeps its prior state rather than clearing the pending card.
+    }
+    return undefined;
   }
 
   public async getProgramRevisions(programId: string): Promise<IEither<string[], string>> {

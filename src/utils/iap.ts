@@ -1,4 +1,5 @@
 import {
+  IIapActiveSubscription,
   IIapAdapter,
   IIapInAppProduct,
   IIapPurchase,
@@ -19,7 +20,11 @@ export class IapAdapter implements IIapAdapter {
   public async getAvailablePurchases(): Promise<IIapPurchase[]> {
     return [];
   }
+  public async getActiveSubscriptions(): Promise<IIapActiveSubscription[]> {
+    return [];
+  }
   public async requestSubscription(_args: IIapRequestSubscriptionArgs): Promise<void> {}
+  public async openManageSubscriptions(): Promise<void> {}
   public async requestInAppProduct(_args: { sku: string }): Promise<void> {}
   public async finishTransaction(_purchase: IIapPurchase): Promise<void> {}
   public async getReceiptDataIOS(): Promise<string | undefined> {

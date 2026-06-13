@@ -87,6 +87,7 @@ import {
   IapHelpers_alertAlreadySubscribed,
   IapHelpers_applePromoToAdapter,
   IapHelpers_clearLoading,
+  IapHelpers_setLoading,
   IapHelpers_getSkus,
   IapHelpers_readReceiptOrJwsIOS,
 } from "../utils/iapHelpers";
@@ -1822,7 +1823,7 @@ export function Thunk_redeemCoupon(code: string, cb: (success: boolean) => void)
   };
 }
 
-export function Thunk_setAppleReceipt(receipt?: string): IThunk {
+export function Thunk_setAppleReceipt(receipt?: string, opts?: { keepSubscriptionScreenOpen?: boolean }): IThunk {
   return async (dispatch, getState, env) => {
     if (receipt) {
       if (
@@ -1835,7 +1836,9 @@ export function Thunk_setAppleReceipt(receipt?: string): IThunk {
         dispatch(Thunk_postevent("complete-apple-subscription"));
         dispatch(Thunk_log("ls-set-apple-receipt"));
         Subscriptions_setAppleReceipt(dispatch, receipt);
-        if (env.getCurrentScreenData?.()?.name === "subscription") {
+        // A plan switch re-delivers the existing receipt; closing the screen would hide the freshly-updated
+        // pending-switch UI, so keep it open in that case and let the refresh repaint the management state.
+        if (env.getCurrentScreenData?.()?.name === "subscription" && !opts?.keepSubscriptionScreenOpen) {
           dispatch(Thunk_pullScreen());
         }
       } else {
@@ -1852,7 +1855,11 @@ export function Thunk_pushExerciseStatsScreen(exerciseType: IExerciseType): IThu
   };
 }
 
-export function Thunk_setGooglePurchaseToken(productId?: string, token?: string): IThunk {
+export function Thunk_setGooglePurchaseToken(
+  productId?: string,
+  token?: string,
+  opts?: { keepSubscriptionScreenOpen?: boolean }
+): IThunk {
   return async (dispatch, getState, env) => {
     if (productId && token) {
       const purchaseToken = JSON.stringify({ productId, token });
@@ -1862,7 +1869,9 @@ export function Thunk_setGooglePurchaseToken(productId?: string, token?: string)
         dispatch(Thunk_postevent("complete-google-subscription"));
         dispatch(Thunk_log("ls-set-google-purchase-token"));
         Subscriptions_setGooglePurchaseToken(dispatch, purchaseToken);
-        if (env.getCurrentScreenData?.()?.name === "subscription") {
+        // A plan switch re-delivers the existing token; keep the screen open so the updated pending-switch
+        // UI stays visible instead of being closed out from under the user.
+        if (env.getCurrentScreenData?.()?.name === "subscription" && !opts?.keepSubscriptionScreenOpen) {
           dispatch(Thunk_pullScreen());
         }
       } else {
@@ -2047,16 +2056,8 @@ function buildSubscribeThunk(
   sku: string,
   args?: IIapSubscribeArgs
 ): IThunk {
-  return async (dispatch, _getState, env) => {
-    updateState(
-      dispatch,
-      [
-        lb<IState>()
-          .p("subscriptionLoading")
-          .record({ [loadingKey]: true } as ISubscriptionLoading),
-      ],
-      `Start ${loadingKey} subscription`
-    );
+  return async (dispatch, getState, env) => {
+    IapHelpers_setLoading(dispatch, getState, { [loadingKey]: true } as ISubscriptionLoading);
     if (env.iap) {
       const owned = await env.iap.getAvailablePurchases();
       if (owned.length > 0) {
@@ -2090,12 +2091,8 @@ export function Thunk_subscribeYearly(args?: IIapSubscribeArgs): IThunk {
 }
 
 export function Thunk_buyLifetime(): IThunk {
-  return async (dispatch, _getState, env) => {
-    updateState(
-      dispatch,
-      [lb<IState>().p("subscriptionLoading").record({ lifetime: true })],
-      "Start lifetime subscription"
-    );
+  return async (dispatch, getState, env) => {
+    IapHelpers_setLoading(dispatch, getState, { lifetime: true });
     if (env.iap) {
       const owned = await env.iap.getAvailablePurchases();
       if (owned.length > 0) {
@@ -2159,26 +2156,30 @@ export function Thunk_iapHandlePurchase(purchase: IIapPurchase): IThunk {
       return;
     }
     try {
+      const keepScreen = { keepSubscriptionScreenOpen: !!purchase.renewsAsProductId };
       if (Platform.OS === "ios") {
         const receipt = await IapHelpers_readReceiptOrJwsIOS(env.iap, purchase);
         if (receipt) {
-          console.log("IAP: dispatching Thunk_setAppleReceipt");
-          dispatch(Thunk_setAppleReceipt(receipt));
+          dispatch(Thunk_setAppleReceipt(receipt, keepScreen));
         } else {
           console.warn("IAP: no receipt obtained for purchase, server will not be notified");
         }
       } else {
         if (purchase.purchaseToken && purchase.productId) {
-          dispatch(Thunk_setGooglePurchaseToken(purchase.productId, purchase.purchaseToken));
+          dispatch(Thunk_setGooglePurchaseToken(purchase.productId, purchase.purchaseToken, keepScreen));
         }
       }
-      Analytics_trackPurchase({
-        productId: purchase.productId,
-        price: purchase.price ?? 0,
-        currency: purchase.currency || "USD",
-        transactionId: purchase.transactionId ?? purchase.id,
-        transactionDate: purchase.transactionDate,
-      });
+      // A queued plan switch re-delivers the existing transaction (renewsAsProductId set); it's not a
+      // new purchase, so don't double-count it as one.
+      if (!purchase.renewsAsProductId) {
+        Analytics_trackPurchase({
+          productId: purchase.productId,
+          price: purchase.price ?? 0,
+          currency: purchase.currency || "USD",
+          transactionId: purchase.transactionId ?? purchase.id,
+          transactionDate: purchase.transactionDate,
+        });
+      }
     } finally {
       try {
         await env.iap.finishTransaction(purchase);
@@ -2186,6 +2187,9 @@ export function Thunk_iapHandlePurchase(purchase: IIapPurchase): IThunk {
         console.warn("IAP finishTransaction failed", e);
       }
       IapHelpers_clearLoading(dispatch);
+      // Refresh so a plan switch (or its cancellation) reflects in subscriptionStatus.pendingProductId
+      // right away, instead of only after the screen re-mounts.
+      dispatch(Thunk_iapRefreshActiveSubscriptions());
     }
   };
 }
@@ -2194,6 +2198,22 @@ export function Thunk_iapHandlePurchaseError(error: IIapPurchaseError): IThunk {
   return async (dispatch) => {
     console.warn("IAP purchase error", error);
     IapHelpers_clearLoading(dispatch);
+  };
+}
+
+// Android's Google Play billing sheet (especially for in-app products) doesn't reliably emit a
+// purchaseError event when the user dismisses it without buying, so the plan-card spinner would
+// otherwise hang until the safety timeout. A real purchase clears its own loading via
+// Thunk_iapHandlePurchase, so by the time the app has been back in the foreground for a moment any
+// still-set loading means the sheet was dismissed.
+export function Thunk_iapClearStuckLoadingOnForeground(): IThunk {
+  return async (dispatch, getState) => {
+    if (Platform.OS !== "android") {
+      return;
+    }
+    if (getState().subscriptionLoading != null) {
+      IapHelpers_clearLoading(dispatch);
+    }
   };
 }
 
@@ -2247,6 +2267,163 @@ export function Thunk_iapFetchProducts(): IThunk {
       );
     } catch (e) {
       console.warn("IAP fetchProducts failed", e);
+    }
+  };
+}
+
+// How long the optimistic Android plan-switch hint survives before deferring to the server. Generous
+// enough to cover Google's deferred RTDN propagation; the hint also clears as soon as the server reports.
+const SUBSCRIPTION_PENDING_HINT_MS = 1 * 60 * 1000;
+
+export function Thunk_iapRefreshActiveSubscriptions(): IThunk {
+  return async (dispatch, getState, env) => {
+    if (!env.iap) {
+      return;
+    }
+    updateState(
+      dispatch,
+      [lb<IState>().p("subscriptionStatusLoading").record(true)],
+      "Start subscription status loading"
+    );
+    try {
+      const [subs, owned] = await Promise.all([env.iap.getActiveSubscriptions(), env.iap.getAvailablePurchases()]);
+      const lifetimeSku = IapHelpers_getSkus().lifetime;
+      const ownedLifetime = owned.some((p) => p.productId === lifetimeSku);
+      let patchedSubs = subs;
+      let serverPending: string | undefined;
+      // Android exposes neither the subscription expiry nor a queued plan switch client-side, so fill
+      // both from the server's verified subscriptionsv2 record (iOS already has them from StoreKit).
+      // `pendingProduct` comes from Google's `deferredItemReplacement` and is authoritative: when the
+      // switch is cancelled in Play or has landed, the server drops it and the pending card clears.
+      if (Platform.OS === "android" && subs.some((s) => s.isActive)) {
+        try {
+          // Re-verify the live purchase token to get the server's freshly-derived status (incl. a queued
+          // `deferredItemReplacement` plan switch), so it surfaces immediately instead of waiting on Google's
+          // laggy SUBSCRIPTION_DEFERRED RTDN. Authorized by the purchase token, not a userId lookup.
+          const state = getState();
+          const userId = state.user?.id || state.storage.tempUserId;
+          const activeStoreSub = subs.find((s) => s.isActive && !!s.purchaseTokenAndroid);
+          if (activeStoreSub?.purchaseTokenAndroid) {
+            const purchaseToken = JSON.stringify({
+              productId: activeStoreSub.productId,
+              token: activeStoreSub.purchaseTokenAndroid,
+            });
+            const sub = await env.service.refreshGoogleSubscription(userId, purchaseToken);
+            if (sub) {
+              serverPending = sub.pendingProduct;
+              patchedSubs = subs.map((s) =>
+                s.isActive ? { ...s, expirationDate: s.expirationDate ?? sub.expires } : s
+              );
+            }
+          }
+        } catch (e) {
+          console.warn("IAP refreshGoogleSubscription failed", e);
+        }
+      }
+      // The server's pendingProduct is authoritative once present; until Google's deferred RTDN lands,
+      // a fresh non-expired optimistic hint bridges the gap. Drop the hint when the server takes over,
+      // it expires, or the switch has landed (active product already equals the hint).
+      const hint = getState().subscriptionPendingHint;
+      const hintValid =
+        hint != null &&
+        Date.now() < hint.until &&
+        !patchedSubs.some((s) => s.isActive && s.productId === hint.productId);
+      const keepHint = hintValid && serverPending == null;
+      const effectivePending = serverPending ?? (hintValid ? hint?.productId : undefined);
+      if (effectivePending != null) {
+        patchedSubs = patchedSubs.map((s) => (s.isActive ? { ...s, pendingProductId: effectivePending } : s));
+      }
+      updateState(
+        dispatch,
+        [
+          lb<IState>().p("subscriptionStatus").record(patchedSubs),
+          lb<IState>().p("ownedLifetime").record(ownedLifetime),
+          ...(keepHint ? [] : [lb<IState>().p("subscriptionPendingHint").record(undefined)]),
+        ],
+        "Update active subscriptions"
+      );
+    } catch (e) {
+      console.warn("IAP getActiveSubscriptions failed", e);
+    } finally {
+      updateState(
+        dispatch,
+        [lb<IState>().p("subscriptionStatusLoading").record(undefined)],
+        "Stop subscription status loading"
+      );
+    }
+  };
+}
+
+export function Thunk_switchSubscription(target: "monthly" | "yearly"): IThunk {
+  return async (dispatch, getState, env) => {
+    const sku = target === "monthly" ? IapHelpers_getSkus().monthly : IapHelpers_getSkus().yearly;
+    IapHelpers_setLoading(dispatch, getState, { [target]: true } as ISubscriptionLoading);
+    if (!env.iap) {
+      IapHelpers_clearLoading(dispatch);
+      return;
+    }
+    try {
+      if (Platform.OS === "ios") {
+        // StoreKit applies the subscription group's upgrade/downgrade rules automatically,
+        // so a switch is just a normal purchase of the target sku. Deliberately skips the
+        // already-subscribed guard that the initial-purchase thunks use.
+        await env.iap.requestSubscription({ sku });
+      } else {
+        let active = getState().subscriptionStatus ?? [];
+        if (active.length === 0) {
+          active = await env.iap.getActiveSubscriptions();
+        }
+        const current = active.find((s) => s.isActive && !!s.purchaseTokenAndroid);
+        if (!current?.purchaseTokenAndroid) {
+          IapHelpers_clearLoading(dispatch);
+          Dialog_alert("Couldn't find your active subscription to switch. Please try again.");
+          return;
+        }
+        // monthly→yearly defers to the next billing cycle (short wait, no wasted paid time);
+        // yearly→monthly prorates immediately (a year is too long to wait).
+        const isDeferred = target === "yearly";
+        await env.iap.requestSubscription({
+          sku,
+          androidOldPurchaseToken: current.purchaseTokenAndroid,
+          androidOldProductId: current.productId,
+          androidReplacementMode: isDeferred ? "deferred" : "with-time-proration",
+        });
+        // Android plan changes don't reliably emit a purchase event, so clear the spinner here. The
+        // pending "Switching to…" state is read authoritatively from the server (subscriptionsv2
+        // `deferredItemReplacement`) on refresh, but that lags behind Google's deferred RTDN — so set a
+        // short-lived, non-synced optimistic hint to show the card immediately. The refresh reconciles it
+        // against the server and drops it once the server is authoritative (or after it expires).
+        if (isDeferred) {
+          updateState(
+            dispatch,
+            [
+              lb<IState>()
+                .p("subscriptionPendingHint")
+                .record({ productId: sku, until: Date.now() + SUBSCRIPTION_PENDING_HINT_MS }),
+            ],
+            "Optimistic pending subscription switch"
+          );
+        }
+        IapHelpers_clearLoading(dispatch);
+        dispatch(Thunk_iapRefreshActiveSubscriptions());
+      }
+    } catch (e) {
+      IapHelpers_clearLoading(dispatch);
+      console.warn("IAP switchSubscription failed", e);
+    }
+  };
+}
+
+export function Thunk_openManageSubscriptions(): IThunk {
+  return async (_dispatch, _getState, env) => {
+    if (!env.iap) {
+      Dialog_alert("Manage your subscription from your App Store / Play Store account settings.");
+      return;
+    }
+    try {
+      await env.iap.openManageSubscriptions();
+    } catch (e) {
+      console.warn("IAP openManageSubscriptions failed", e);
     }
   };
 }

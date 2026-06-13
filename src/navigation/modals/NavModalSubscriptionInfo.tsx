@@ -1,21 +1,22 @@
-import { JSX, useState } from "react";
+import { JSX } from "react";
 import { View, Image } from "react-native";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { ModalScreenContainer } from "../ModalScreenContainer";
 import { FormSheet } from "../FormSheet";
 import { Text } from "../../components/primitives/text";
 import type { IRootStackParamList } from "../types";
-import { HostConfig_resolveUrl } from "../../utils/hostConfig";
+import { ImagePreloader_uri } from "../../utils/imagePreloader";
+import { SubscriptionInfoImages_get } from "../../components/subscriptionInfoImages";
 
 interface ISectionProps {
   title: string;
   description: JSX.Element;
   imageUri: string;
   imageAlt: string;
+  aspect: number;
 }
 
 function Section(props: ISectionProps): JSX.Element {
-  const [aspect, setAspect] = useState(1);
   return (
     <>
       <View className="px-4">
@@ -24,15 +25,9 @@ function Section(props: ISectionProps): JSX.Element {
       </View>
       <View className="items-center">
         <Image
-          source={{ uri: HostConfig_resolveUrl(props.imageUri) }}
-          style={{ width: "100%", aspectRatio: aspect }}
+          source={{ uri: ImagePreloader_uri(props.imageUri) }}
+          style={{ width: "100%", aspectRatio: props.aspect }}
           resizeMode="contain"
-          onLoad={(e) => {
-            const source = (e?.nativeEvent as { source?: { width?: number; height?: number } } | undefined)?.source;
-            if (source?.width && source?.height) {
-              setAspect(source.width / source.height);
-            }
-          }}
           accessibilityLabel={props.imageAlt}
         />
       </View>
@@ -48,6 +43,7 @@ export function NavModalSubscriptionInfo(): JSX.Element {
     params: IRootStackParamList["subscriptionInfoModal"];
   }>();
   const { type } = route.params;
+  const image = SubscriptionInfoImages_get(type);
 
   const onClose = (): void => {
     navigation.goBack();
@@ -59,7 +55,8 @@ export function NavModalSubscriptionInfo(): JSX.Element {
         {type === "platesCalculator" && (
           <Section
             title="Plates Calculator"
-            imageUri="/images/plates_calculator_subs.png"
+            imageUri={image.uri}
+            aspect={image.aspect}
             imageAlt="Plates Calculator screenshot"
             description={
               <>
@@ -76,7 +73,8 @@ export function NavModalSubscriptionInfo(): JSX.Element {
         {type === "graphs" && (
           <Section
             title="Graphs"
-            imageUri="/images/graphs_subs.png"
+            imageUri={image.uri}
+            aspect={image.aspect}
             imageAlt="Graphs screenshot"
             description={
               <Text className="pb-4">
@@ -90,7 +88,8 @@ export function NavModalSubscriptionInfo(): JSX.Element {
         {type === "notifications" && (
           <Section
             title="Rest Timer Notifications"
-            imageUri="/images/notifs_subs.jpg"
+            imageUri={image.uri}
+            aspect={image.aspect}
             imageAlt="Notification screenshot"
             description={
               <Text className="pb-4">
@@ -102,12 +101,41 @@ export function NavModalSubscriptionInfo(): JSX.Element {
         {type === "weekInsights" && (
           <Section
             title="Week Insights"
-            imageUri="/images/week_insights_subs.png"
+            imageUri={image.uri}
+            aspect={image.aspect}
             imageAlt="Week Insights Screenshot"
             description={
               <Text className="pb-4">
                 After each week you'll see how many sets you finished per type, per muscle group, etc, and whether it's
                 within recommended range.
+              </Text>
+            }
+          />
+        )}
+        {type === "watch" && (
+          <Section
+            title="Apple Watch App"
+            imageUri={image.uri}
+            aspect={image.aspect}
+            imageAlt="Apple Watch app screenshot"
+            description={
+              <Text className="pb-4">
+                Track your workouts directly from your wrist - log sets, see your next exercise, and run the rest timer
+                without reaching for your phone.
+              </Text>
+            }
+          />
+        )}
+        {type === "mcp" && (
+          <Section
+            title="API & MCP"
+            imageUri={image.uri}
+            aspect={image.aspect}
+            imageAlt="MCP screenshot"
+            description={
+              <Text className="pb-4">
+                Give Claude, ChatGPT, or Gemini access to your workouts and programs via MCP. Or use the API to build
+                your own custom integrations.
               </Text>
             }
           />

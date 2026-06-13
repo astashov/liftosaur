@@ -1,4 +1,5 @@
 import {
+  IIapActiveSubscription,
   IIapAdapter,
   IIapInAppProduct,
   IIapPurchase,
@@ -10,6 +11,8 @@ import {
 export class MockIapAdapter implements IIapAdapter {
   public legacyReceipt: string | undefined = undefined;
   public availablePurchases: IIapPurchase[] = [];
+  public activeSubscriptions: IIapActiveSubscription[] = [];
+  public openManageSubscriptionsCalled: number = 0;
   public subscriptionProducts: IIapSubscriptionProduct[] = [];
   public inAppProducts: IIapInAppProduct[] = [];
   public requestSubscriptionCalls: IIapRequestSubscriptionArgs[] = [];
@@ -43,8 +46,16 @@ export class MockIapAdapter implements IIapAdapter {
     return this.availablePurchases;
   }
 
+  public async getActiveSubscriptions(): Promise<IIapActiveSubscription[]> {
+    return this.activeSubscriptions;
+  }
+
   public async requestSubscription(args: IIapRequestSubscriptionArgs): Promise<void> {
     this.requestSubscriptionCalls.push(args);
+  }
+
+  public async openManageSubscriptions(): Promise<void> {
+    this.openManageSubscriptionsCalled += 1;
   }
 
   public async requestInAppProduct(args: { sku: string }): Promise<void> {

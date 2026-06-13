@@ -138,7 +138,7 @@ export type IRootStackParamList = {
   editUpdateScriptModal: { exerciseStateKey: string; programId: string };
   monthCalendarModal: undefined;
   accountModal: undefined;
-  subscriptionInfoModal: { type: "platesCalculator" | "graphs" | "notifications" | "weekInsights" };
+  subscriptionInfoModal: { type: "platesCalculator" | "graphs" | "notifications" | "weekInsights" | "watch" | "mcp" };
   weekInsightsDetailsModal: { selectedFirstDayOfWeek: number };
   setSplitModal: {
     exercises: { exerciseName: string; isSynergist: boolean; strengthSets: number; hypertrophySets: number }[];

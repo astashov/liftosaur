@@ -2,6 +2,11 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
+def playServiceAccountFile = rootProject.file("../lambda/scripts/liftosaur-google-service-account-key.json")
+if (playServiceAccountFile.exists()) {
+    apply plugin: "com.github.triplet.play"
+}
+
 def keystorePropertiesFile = rootProject.file("keystore.properties")
 def keystoreProperties = new Properties()
 if (keystorePropertiesFile.exists()) {
@@ -101,8 +106,8 @@ android {
         applicationId "com.liftosaur.www.twa"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 125
-        versionName "125.0"
+        versionCode 139
+        versionName "139.0"
         buildConfigField "boolean", "DISABLE_OTA", "${disableOta}"
     }
     buildFeatures {
@@ -140,6 +145,15 @@ android {
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
+    }
+}
+
+if (playServiceAccountFile.exists()) {
+    play {
+        serviceAccountCredentials = playServiceAccountFile
+        track = "internal"
+        defaultToAppBundles = true
+        releaseStatus = com.github.triplet.gradle.androidpublisher.ReleaseStatus.COMPLETED
     }
 }
 
