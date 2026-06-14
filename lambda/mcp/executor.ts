@@ -19,6 +19,17 @@ import {
   ApiV1_deleteCustomExercise,
   IApiError,
 } from "../utils/apiv1";
+import {
+  ApiV1_listGyms,
+  ApiV1_createGym,
+  ApiV1_updateGym,
+  ApiV1_deleteGym,
+  ApiV1_listEquipment,
+  ApiV1_getEquipment,
+  ApiV1_updateEquipment,
+  ApiV1_createCustomEquipment,
+  IWritableEquipmentField,
+} from "../utils/apiv1Equipment";
 import { IEither } from "../../src/utils/types";
 import { IMuscle, IExerciseKind } from "../../src/types";
 
@@ -26,6 +37,64 @@ type IToolResult = IEither<unknown, IApiError>;
 
 function err(status: number, code: string, message: string): IToolResult {
   return { success: false, error: { status, code, message } };
+}
+
+// These coercers accept both native JSON values (from MCP clients that honor the structured schema) and
+// the stringified forms (clients that pass escaped JSON / "true" / "2"). Anything that isn't a recognized
+// form is passed through UNCHANGED so the downstream valibot schema rejects it with a 400 — never silently
+// coerced into a wrong value (e.g. "yes" must not become false, "abc" must not become NaN).
+const asBool = (raw: unknown): unknown => {
+  if (typeof raw === "boolean") {
+    return raw;
+  }
+  if (raw === "true") {
+    return true;
+  }
+  if (raw === "false") {
+    return false;
+  }
+  return raw;
+};
+const asJson = (raw: unknown): unknown => (typeof raw === "string" ? JSON.parse(raw) : raw);
+const asNumber = (raw: unknown): unknown => {
+  if (typeof raw === "number") {
+    return raw;
+  }
+  if (typeof raw === "string" && raw.trim() !== "" && isFinite(Number(raw))) {
+    return Number(raw);
+  }
+  return raw;
+};
+
+// One entry per writable equipment field — keyed by IWritableEquipmentField so a new writable field
+// added to IEquipmentData/the API schema is a compile error here until MCP arg-parsing is added for it.
+const EQUIPMENT_ARG_PARSERS: Record<IWritableEquipmentField, (raw: unknown) => unknown> = {
+  bar: asJson,
+  plates: asJson,
+  fixed: asJson,
+  multiplier: asNumber,
+  isFixed: asBool,
+  unit: (raw) => raw,
+  name: (raw) => raw,
+  notes: (raw) => raw,
+  similarTo: (raw) => raw,
+  useBodyweightForBar: asBool,
+  isAssisting: asBool,
+  isDeleted: asBool,
+};
+
+function parseEquipmentArgs(args: Record<string, unknown>): { input: Record<string, unknown>; error?: IToolResult } {
+  const input: Record<string, unknown> = {};
+  try {
+    for (const field of Object.keys(EQUIPMENT_ARG_PARSERS) as IWritableEquipmentField[]) {
+      if (args[field] != null) {
+        input[field] = EQUIPMENT_ARG_PARSERS[field](args[field]);
+      }
+    }
+  } catch (e) {
+    return { input, error: err(400, "invalid_input", "bar, plates, and fixed must be valid JSON") };
+  }
+  return { input };
 }
 
 export async function McpToolExecutor_execute(
@@ -179,6 +248,49 @@ export async function McpToolExecutor_execute(
 
     case "delete_custom_exercise":
       return ApiV1_deleteCustomExercise(userId, user, args.id as string, di);
+
+    case "list_gyms":
+      return ApiV1_listGyms(user);
+
+    case "create_gym":
+      return ApiV1_createGym(userId, user, args.name as string, di);
+
+    case "update_gym":
+      return ApiV1_updateGym(
+        userId,
+        user,
+        args.gymId as string,
+        {
+          name: args.name,
+          setCurrent: args.setCurrent != null ? asBool(args.setCurrent) : undefined,
+        },
+        di
+      );
+
+    case "delete_gym":
+      return ApiV1_deleteGym(userId, user, args.gymId as string, di);
+
+    case "list_equipment":
+      return ApiV1_listEquipment(user, args.gymId as string);
+
+    case "get_equipment":
+      return ApiV1_getEquipment(user, args.gymId as string, args.id as string);
+
+    case "update_equipment": {
+      const parsed = parseEquipmentArgs(args);
+      if (parsed.error) {
+        return parsed.error;
+      }
+      return ApiV1_updateEquipment(userId, user, args.gymId as string, args.id as string, parsed.input, di);
+    }
+
+    case "create_custom_equipment": {
+      const parsed = parseEquipmentArgs(args);
+      if (parsed.error) {
+        return parsed.error;
+      }
+      return ApiV1_createCustomEquipment(userId, user, args.gymId as string, args.name as string, parsed.input, di);
+    }
 
     case "get_program_stats":
       return ApiV1_programStats(user, args.programText as string);

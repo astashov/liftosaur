@@ -139,6 +139,22 @@ import {
   postV1PlaygroundHandler,
   postV1ProgramStatsEndpoint,
   postV1ProgramStatsHandler,
+  getV1GymsEndpoint,
+  getV1GymsHandler,
+  postV1GymEndpoint,
+  postV1GymHandler,
+  putV1GymEndpoint,
+  putV1GymHandler,
+  deleteV1GymEndpoint,
+  deleteV1GymHandler,
+  getV1EquipmentListEndpoint,
+  getV1EquipmentListHandler,
+  getV1EquipmentEndpoint,
+  getV1EquipmentHandler,
+  postV1EquipmentEndpoint,
+  postV1EquipmentHandler,
+  putV1EquipmentEndpoint,
+  putV1EquipmentHandler,
 } from "./api/v1";
 import {
   getMcpEndpoint,
@@ -3345,6 +3361,14 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .delete(deleteV1ProgramEndpoint, deleteV1ProgramHandler)
       .post(postV1PlaygroundEndpoint, postV1PlaygroundHandler)
       .post(postV1ProgramStatsEndpoint, postV1ProgramStatsHandler)
+      .get(getV1EquipmentListEndpoint, getV1EquipmentListHandler)
+      .get(getV1EquipmentEndpoint, getV1EquipmentHandler)
+      .post(postV1EquipmentEndpoint, postV1EquipmentHandler)
+      .put(putV1EquipmentEndpoint, putV1EquipmentHandler)
+      .get(getV1GymsEndpoint, getV1GymsHandler)
+      .post(postV1GymEndpoint, postV1GymHandler)
+      .put(putV1GymEndpoint, putV1GymHandler)
+      .delete(deleteV1GymEndpoint, deleteV1GymHandler)
       .get(getMcpEndpoint, getMcpHandler)
       .delete(deleteMcpEndpoint, deleteMcpHandler)
       .post(postMcpEndpoint, postMcpHandler)

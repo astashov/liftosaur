@@ -371,6 +371,263 @@ Content-Type: application/json
 }
 ```
 
+### List Gyms
+
+Equipment (bars, plates, fixed weights) is configured per gym. Most accounts have a single gym. You need a gym's `id` before reading or editing its equipment.
+
+```
+GET /api/v1/gyms
+```
+
+**Response:**
+
+```json
+{
+  "data": {
+    "currentGymId": "default",
+    "gyms": [
+      { "id": "default", "name": "Main", "isCurrent": true, "equipmentCount": 8 }
+    ]
+  }
+}
+```
+
+### Create a Gym
+
+The new gym starts with a copy of the current gym's equipment.
+
+```
+POST /api/v1/gyms
+Content-Type: application/json
+
+{
+  "name": "Home"
+}
+```
+
+**Response (201):**
+
+```json
+{
+  "data": {
+    "id": "k3n8p2qz",
+    "name": "Home",
+    "isCurrent": false,
+    "equipmentCount": 8
+  }
+}
+```
+
+### Update a Gym
+
+Rename a gym and/or make it the current (active) gym.
+
+```
+PUT /api/v1/gyms/:id
+Content-Type: application/json
+
+{
+  "name": "Garage",
+  "setCurrent": true
+}
+```
+
+Both fields are optional.
+
+**Response:**
+
+```json
+{
+  "data": {
+    "id": "k3n8p2qz",
+    "name": "Garage",
+    "isCurrent": true,
+    "equipmentCount": 8
+  }
+}
+```
+
+### Delete a Gym
+
+```
+DELETE /api/v1/gyms/:id
+```
+
+You cannot delete the last remaining gym (returns `400`).
+
+**Response:**
+
+```json
+{
+  "data": {
+    "deleted": true
+  }
+}
+```
+
+### List Equipment
+
+```
+GET /api/v1/gyms/:gymId/equipment
+```
+
+Built-in equipment keys: `barbell`, `cable`, `dumbbell`, `smith`, `band`, `kettlebell`, `bodyweight`, `leverageMachine`, `medicineball`, `ezbar`, `trapbar`. Custom equipment has keys like `equipment-xxxxxxxx`.
+
+Returns all equipment in the gym, including soft-deleted ones (each item carries an `isDeleted` flag) — deleted equipment is kept in storage so that exercises which reference it (for weight rounding / the plate calculator) don't point at a non-existent id. Filter by `isDeleted` client-side if you only want active equipment.
+
+**Response:**
+
+```json
+{
+  "data": {
+    "gymId": "default",
+    "equipment": [
+      {
+        "id": "barbell",
+        "name": "Barbell",
+        "isCustom": false,
+        "isDeleted": false,
+        "bar": { "lb": "45lb", "kg": "20kg" },
+        "multiplier": 2,
+        "isFixed": false,
+        "plates": [
+          { "weight": "45lb", "num": 8 },
+          { "weight": "25lb", "num": 4 },
+          { "weight": "10lb", "num": 4 }
+        ],
+        "fixed": []
+      }
+    ]
+  }
+}
+```
+
+The optional fields `unit`, `notes`, `similarTo`, `useBodyweightForBar`, and `isAssisting` are only present when set on the equipment.
+
+### Get Equipment
+
+```
+GET /api/v1/gyms/:gymId/equipment/:id
+```
+
+**Response:**
+
+```json
+{
+  "data": {
+    "id": "barbell",
+    "name": "Barbell",
+    "isCustom": false,
+    "isDeleted": false,
+    "bar": { "lb": "45lb", "kg": "20kg" },
+    "multiplier": 2,
+    "isFixed": false,
+    "plates": [
+      { "weight": "45lb", "num": 8 },
+      { "weight": "25lb", "num": 4 },
+      { "weight": "10lb", "num": 4 }
+    ],
+    "fixed": []
+  }
+}
+```
+
+### Update Equipment
+
+Equipment configuration drives how Liftosaur rounds prescribed weights during a workout. Only provided fields change; omitted fields keep their current values. Weights are strings like `"45lb"` or `"20kg"`. Out-of-range values are clamped.
+
+```
+PUT /api/v1/gyms/:gymId/equipment/:id
+Content-Type: application/json
+
+{
+  "bar": { "lb": "45lb", "kg": "20kg" },
+  "plates": [{ "weight": "45lb", "num": 8 }, { "weight": "25lb", "num": 2 }],
+  "fixed": ["10lb", "15lb", "20lb"],
+  "isFixed": false,
+  "multiplier": 2,
+  "unit": "lb",
+  "name": "Barbell",
+  "notes": ""
+}
+```
+
+Field notes:
+- `bar` — optional `lb` and `kg` bar weights; `lb` must be in lb, `kg` in kg.
+- `plates` — available plates; `num` is how many of that plate.
+- `fixed` — fixed weights, used when `isFixed` is `true` (e.g. a dumbbell rack).
+- `multiplier` — integer 1-10, how many sides plates load onto (`2` for a barbell/dumbbell loaded on both ends, `1` for a machine loaded on one side).
+- `isDeleted` — soft-delete/restore. Set `true` to remove the equipment from workout pickers (this is how you "delete" a custom equipment or hide a built-in like `barbell`); set `false` to restore it. The entry and its config are kept in storage either way (so exercises that reference it for rounding don't dangle), and it still appears in List Equipment with `isDeleted: true`. There is no separate delete endpoint and no hard-delete.
+
+Works for built-in and custom equipment, including soft-deleted ones. Returns the updated equipment.
+
+**Response:**
+
+```json
+{
+  "data": {
+    "id": "barbell",
+    "name": "Barbell",
+    "isCustom": false,
+    "isDeleted": false,
+    "unit": "lb",
+    "bar": { "lb": "45lb", "kg": "20kg" },
+    "multiplier": 2,
+    "isFixed": false,
+    "plates": [{ "weight": "45lb", "num": 8 }, { "weight": "25lb", "num": 2 }],
+    "fixed": ["10lb", "15lb", "20lb"],
+    "notes": ""
+  }
+}
+```
+
+### Create Custom Equipment
+
+```
+POST /api/v1/gyms/:gymId/equipment
+Content-Type: application/json
+
+{
+  "name": "Battle Rope",
+  "plates": [{ "weight": "10kg", "num": 4 }]
+}
+```
+
+Only `name` is required; the same fields as Update Equipment are accepted. Returns `201` with the full created equipment object (same shape as Get Equipment), including the generated `id`.
+
+**Response (201):**
+
+```json
+{
+  "data": {
+    "id": "equipment-a1b2c3d4",
+    "name": "Battle Rope",
+    "isCustom": true,
+    "isDeleted": false,
+    "bar": { "lb": "0lb", "kg": "0kg" },
+    "multiplier": 1,
+    "isFixed": false,
+    "plates": [{ "weight": "10kg", "num": 4 }],
+    "fixed": []
+  }
+}
+```
+
+### Delete / Restore Equipment
+
+There is no separate delete endpoint — soft-delete and restore are done through **Update Equipment** by setting the `isDeleted` field:
+
+```
+PUT /api/v1/gyms/:gymId/equipment/:id
+Content-Type: application/json
+
+{
+  "isDeleted": true
+}
+```
+
+Set `isDeleted` to `true` to remove equipment from workout pickers (works for both a custom equipment and a built-in like `barbell`), or `false` to restore it. The entry and its config are kept in storage so exercises that reference it for rounding don't dangle, and it still appears in List Equipment with `isDeleted: true`. Returns the updated equipment, or `404` if it doesn't exist in the gym.
+
 ## Liftoscript and Liftoscript Workouts
 
 Programs use Liftoscript - a custom DSL for defining workout programs. It's not a standard format, so you'll need to learn the syntax to write valid programs. Check out the built-in program library for examples, or use the [MCP server](/docs/mcp) to let an AI assistant write programs for you.

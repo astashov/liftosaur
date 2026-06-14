@@ -16,6 +16,16 @@ import {
   ApiV1_programStats,
   IApiError,
 } from "../utils/apiv1";
+import {
+  ApiV1_listGyms,
+  ApiV1_createGym,
+  ApiV1_updateGym,
+  ApiV1_deleteGym,
+  ApiV1_listEquipment,
+  ApiV1_getEquipment,
+  ApiV1_updateEquipment,
+  ApiV1_createCustomEquipment,
+} from "../utils/apiv1Equipment";
 import { EventDao } from "../dao/eventDao";
 
 interface IPayload {
@@ -252,5 +262,112 @@ export const postV1ProgramStatsHandler: RouteHandler<
       return apiError(400, "invalid_input", "Missing 'programText' field");
     }
     return resultToResponse(ApiV1_programStats(auth.user, body.programText as string));
+  });
+};
+
+// --- Gym Endpoints ---
+
+export const getV1GymsEndpoint = Endpoint.build("/api/v1/gyms");
+export const getV1GymsHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getV1GymsEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-list-gyms", async (auth) => {
+    return resultToResponse(ApiV1_listGyms(auth.user));
+  });
+};
+
+export const postV1GymEndpoint = Endpoint.build("/api/v1/gyms");
+export const postV1GymHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postV1GymEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-create-gym", async (auth) => {
+    const body = getBodyJson(event);
+    if (!body.name) {
+      return apiError(400, "invalid_input", "Missing 'name' field");
+    }
+    return resultToResponse(await ApiV1_createGym(auth.userId, auth.user, body.name as string, di), 201);
+  });
+};
+
+export const putV1GymEndpoint = Endpoint.build("/api/v1/gyms/:id");
+export const putV1GymHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof putV1GymEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-update-gym", async (auth) => {
+    const body = getBodyJson(event);
+    return resultToResponse(await ApiV1_updateGym(auth.userId, auth.user, params.id, body, di));
+  });
+};
+
+export const deleteV1GymEndpoint = Endpoint.build("/api/v1/gyms/:id");
+export const deleteV1GymHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof deleteV1GymEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-delete-gym", async (auth) => {
+    return resultToResponse(await ApiV1_deleteGym(auth.userId, auth.user, params.id, di));
+  });
+};
+
+// --- Equipment Endpoints ---
+
+export const getV1EquipmentListEndpoint = Endpoint.build("/api/v1/gyms/:gymId/equipment");
+export const getV1EquipmentListHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getV1EquipmentListEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-list-equipment", async (auth) => {
+    return resultToResponse(ApiV1_listEquipment(auth.user, params.gymId));
+  });
+};
+
+export const getV1EquipmentEndpoint = Endpoint.build("/api/v1/gyms/:gymId/equipment/:id");
+export const getV1EquipmentHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getV1EquipmentEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-get-equipment", async (auth) => {
+    return resultToResponse(ApiV1_getEquipment(auth.user, params.gymId, params.id));
+  });
+};
+
+export const postV1EquipmentEndpoint = Endpoint.build("/api/v1/gyms/:gymId/equipment");
+export const postV1EquipmentHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postV1EquipmentEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-create-equipment", async (auth) => {
+    const body = getBodyJson(event);
+    if (!body.name) {
+      return apiError(400, "invalid_input", "Missing 'name' field");
+    }
+    return resultToResponse(
+      await ApiV1_createCustomEquipment(auth.userId, auth.user, params.gymId, body.name as string, body, di),
+      201
+    );
+  });
+};
+
+export const putV1EquipmentEndpoint = Endpoint.build("/api/v1/gyms/:gymId/equipment/:id");
+export const putV1EquipmentHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof putV1EquipmentEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-update-equipment", async (auth) => {
+    const body = getBodyJson(event);
+    return resultToResponse(await ApiV1_updateEquipment(auth.userId, auth.user, params.gymId, params.id, body, di));
   });
 };

@@ -105,6 +105,20 @@ export function Weight_parse(str: string): IWeight | undefined {
   }
 }
 
+// Unlike Weight_parse, the number must be a well-formed decimal — strings like "...lb", "+.kg",
+// or "1.2.3lb" are rejected instead of silently coercing to 0 or a truncated value.
+export function Weight_strictParse(str: string): IWeight | undefined {
+  const match = str.match(/^([\-+]?(?:[0-9]+(?:\.[0-9]+)?|\.[0-9]+))\s*(kg|lb)$/);
+  if (!match) {
+    return undefined;
+  }
+  const value = parseFloat(match[1]);
+  if (!isFinite(value)) {
+    return undefined;
+  }
+  return Weight_build(MathUtils_roundFloat(value, 2), match[2] as IUnit);
+}
+
 export function Weight_printOrNumber(weight: IWeight | IPercentage | number): string {
   return typeof weight === "number" ? `${weight}` : Weight_print(weight);
 }

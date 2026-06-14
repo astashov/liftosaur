@@ -6,16 +6,97 @@ export interface IMcpToolAnnotations {
   openWorldHint?: boolean;
 }
 
+export interface IMcpJsonSchema {
+  type: string;
+  description?: string;
+  enum?: string[];
+  items?: IMcpJsonSchema;
+  properties?: Record<string, IMcpJsonSchema>;
+  required?: string[];
+}
+
 export interface IMcpToolDef {
   name: string;
   description: string;
   annotations?: IMcpToolAnnotations;
   inputSchema: {
     type: "object";
-    properties: Record<string, { type: string; description: string; enum?: string[] }>;
+    properties: Record<string, IMcpJsonSchema>;
     required?: string[];
   };
 }
+
+const EQUIPMENT_WEIGHT_DESC = 'Weight string like "45lb" or "20kg"';
+const BUILTIN_EQUIPMENT_KEYS = [
+  "barbell",
+  "cable",
+  "dumbbell",
+  "smith",
+  "band",
+  "kettlebell",
+  "bodyweight",
+  "leverageMachine",
+  "medicineball",
+  "ezbar",
+  "trapbar",
+];
+
+// Shared between update_equipment and create_custom_equipment. Modeled structurally (objects/arrays)
+// so MCP clients can pass native JSON; the executor also accepts JSON strings for backward compatibility.
+const EQUIPMENT_FIELD_SCHEMAS: Record<string, IMcpJsonSchema> = {
+  bar: {
+    type: "object",
+    description: "Bar weights. lb must be in lb, kg must be in kg; either is optional.",
+    properties: {
+      lb: { type: "string", description: 'Bar weight in lb, e.g. "45lb"' },
+      kg: { type: "string", description: 'Bar weight in kg, e.g. "20kg"' },
+    },
+  },
+  plates: {
+    type: "array",
+    description: "Available plates.",
+    items: {
+      type: "object",
+      properties: {
+        weight: { type: "string", description: EQUIPMENT_WEIGHT_DESC },
+        num: { type: "number", description: "How many of that plate are available (0-200)" },
+      },
+      required: ["weight", "num"],
+    },
+  },
+  fixed: {
+    type: "array",
+    description: 'Fixed weights (used when isFixed is true), e.g. ["10lb", "15lb", "20lb"].',
+    items: { type: "string", description: EQUIPMENT_WEIGHT_DESC },
+  },
+  isFixed: { type: "boolean", description: "True for fixed-weight equipment (uses 'fixed' instead of bar+plates)" },
+  multiplier: {
+    type: "number",
+    description:
+      "Integer 1-10: number of sides plates load onto (2 for a barbell loaded on both ends, 1 for a one-side machine)",
+  },
+  unit: { type: "string", enum: ["lb", "kg"], description: "The equipment's preferred unit" },
+  name: { type: "string", description: "Display name (1-100 chars)" },
+  notes: { type: "string", description: "Free-text notes" },
+  similarTo: {
+    type: "string",
+    enum: BUILTIN_EQUIPMENT_KEYS,
+    description: "Built-in equipment key whose plate-rounding behavior this mimics",
+  },
+  useBodyweightForBar: {
+    type: "boolean",
+    description: "Add the lifter's bodyweight to the bar (e.g. dips, pull-ups)",
+  },
+  isAssisting: {
+    type: "boolean",
+    description: "Assisted equipment where added weight reduces effort (e.g. assisted pull-up machine)",
+  },
+  isDeleted: {
+    type: "boolean",
+    description:
+      "Soft-delete/restore: true removes the equipment from workout pickers (this is how you 'delete' a custom or hide a built-in like barbell), false restores it. The entry and its config are kept in storage either way.",
+  },
+};
 
 export const mcpTools: IMcpToolDef[] = [
   // --- History ---
@@ -342,6 +423,112 @@ export const mcpTools: IMcpToolDef[] = [
         programText: { type: "string", description: "Program text in Liftoscript format" },
       },
       required: ["programText"],
+    },
+  },
+
+  // --- Gyms ---
+  {
+    name: "list_gyms",
+    description:
+      "List the user's gyms. Equipment (bars, plates, etc.) is configured per gym, so you need a gym's id before reading or editing its equipment. Returns id, name, whether it's the current gym, and equipment count. Most users have a single gym.",
+    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "create_gym",
+    description:
+      "Create a new gym. The new gym starts with a copy of the current gym's equipment, which you can then edit. Use a separate gym per physical location (e.g. 'Home', 'Office').",
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+    inputSchema: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "Gym name (1-100 chars)" },
+      },
+      required: ["name"],
+    },
+  },
+  {
+    name: "update_gym",
+    description: "Rename a gym and/or make it the current (active) gym.",
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+    inputSchema: {
+      type: "object",
+      properties: {
+        gymId: { type: "string", description: "Gym id (from list_gyms)" },
+        name: { type: "string", description: "New gym name (optional)" },
+        setCurrent: { type: "boolean", description: "Set true to make this the current gym (optional)" },
+      },
+      required: ["gymId"],
+    },
+  },
+  {
+    name: "delete_gym",
+    description: "Delete a gym. Cannot delete the last remaining gym.",
+    annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: true },
+    inputSchema: {
+      type: "object",
+      properties: {
+        gymId: { type: "string", description: "Gym id to delete" },
+      },
+      required: ["gymId"],
+    },
+  },
+
+  // --- Equipment ---
+  {
+    name: "list_equipment",
+    description:
+      "List all of a gym's equipment, including soft-deleted ones (each carries an isDeleted flag). Equipment configuration (bar weight, available plates, fixed weights) drives how Liftosaur rounds prescribed weights during a workout. Built-in equipment keys: barbell, cable, dumbbell, smith, band, kettlebell, bodyweight, leverageMachine, medicineball, ezbar, trapbar. Custom equipment has keys like 'equipment-xxxxxxxx'. Call list_gyms first to get the gymId.",
+    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+    inputSchema: {
+      type: "object",
+      properties: {
+        gymId: { type: "string", description: "Gym id (from list_gyms)" },
+      },
+      required: ["gymId"],
+    },
+  },
+  {
+    name: "get_equipment",
+    description:
+      "Get a single equipment's full configuration (bar weights, plates, fixed weights, multiplier, unit) within a gym.",
+    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+    inputSchema: {
+      type: "object",
+      properties: {
+        gymId: { type: "string", description: "Gym id" },
+        id: { type: "string", description: "Equipment id/key (e.g. 'barbell' or 'equipment-xxxxxxxx')" },
+      },
+      required: ["gymId", "id"],
+    },
+  },
+  {
+    name: "update_equipment",
+    description:
+      'Update a gym\'s equipment. Only provided fields change; omitted fields keep their current values. Weights are strings like "45lb" or "20kg". Out-of-range values are clamped. Works for built-in and custom equipment. To soft-delete or restore equipment, set the isDeleted field (true removes it from workout pickers — the config is kept — false restores it).',
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+    inputSchema: {
+      type: "object",
+      properties: {
+        gymId: { type: "string", description: "Gym id" },
+        id: { type: "string", description: "Equipment id/key" },
+        ...EQUIPMENT_FIELD_SCHEMAS,
+      },
+      required: ["gymId", "id"],
+    },
+  },
+  {
+    name: "create_custom_equipment",
+    description:
+      "Create a new custom equipment in a gym (beyond the 11 built-ins). Starts from sensible defaults; pass the same fields as update_equipment to configure bar/plates/etc. Returns the generated equipment id.",
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+    inputSchema: {
+      type: "object",
+      properties: {
+        gymId: { type: "string", description: "Gym id" },
+        ...EQUIPMENT_FIELD_SCHEMAS,
+      },
+      required: ["gymId", "name"],
     },
   },
 ];

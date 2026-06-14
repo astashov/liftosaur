@@ -3,6 +3,8 @@ import "mocha";
 import { expect } from "chai";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { getRawHandler, IHandler } from "../lambda";
+import { mcpTools } from "../lambda/mcp/tools";
+import { EQUIPMENT_WRITABLE_FIELDS } from "../lambda/utils/apiv1Equipment";
 import { buildMockDi, IMockDI } from "./utils/mockDi";
 import { MockLogUtil } from "./utils/mockLogUtil";
 import { userTableNames } from "../lambda/dao/userDao";
@@ -762,6 +764,322 @@ describe("MCP", () => {
       const body = parseBody(result);
       expect(body.result.isError).to.equal(true);
       expect(body.result.content[0].text).to.include("not found");
+    });
+  });
+
+  describe("gyms and equipment", () => {
+    let token: string;
+
+    beforeEach(async () => {
+      token = await createOauthToken();
+    });
+
+    async function callTool(name: string, args?: Record<string, unknown>): Promise<any> {
+      const result = await handler(buildMcpEvent(toolCall(name, args), authHeaders(token)), ctx);
+      expect(result.statusCode).to.equal(200);
+      return parseBody(result).result;
+    }
+
+    function toolData(res: any): any {
+      expect(res.isError, res.content?.[0]?.text).to.be.undefined;
+      return JSON.parse(res.content[0].text);
+    }
+
+    async function firstGymId(): Promise<string> {
+      const data = toolData(await callTool("list_gyms"));
+      return data.gyms[0].id;
+    }
+
+    it("exposes every writable equipment field in the update and create tool schemas", () => {
+      for (const toolName of ["update_equipment", "create_custom_equipment"]) {
+        const tool = mcpTools.find((t) => t.name === toolName)!;
+        const props = Object.keys(tool.inputSchema.properties);
+        for (const field of EQUIPMENT_WRITABLE_FIELDS) {
+          expect(props, `${toolName} is missing the '${field}' field`).to.include(field);
+        }
+      }
+    });
+
+    it("lists the default gym", async () => {
+      const data = toolData(await callTool("list_gyms"));
+      expect(data.gyms).to.have.lengthOf(1);
+      expect(data.gyms[0].id).to.be.a("string");
+      expect(data.gyms[0].equipmentCount).to.be.greaterThan(0);
+    });
+
+    it("lists built-in equipment for a gym", async () => {
+      const gymId = await firstGymId();
+      const data = toolData(await callTool("list_equipment", { gymId }));
+      const ids = data.equipment.map((e: any) => e.id);
+      expect(ids).to.include("barbell");
+      expect(ids).to.include("dumbbell");
+    });
+
+    it("returns 404 for unknown gym", async () => {
+      const res = await callTool("list_equipment", { gymId: "nope" });
+      expect(res.isError).to.equal(true);
+      expect(res.content[0].text).to.include("Gym not found");
+    });
+
+    it("updates barbell plates and bar, returns parsed weights", async () => {
+      const gymId = await firstGymId();
+      const data = toolData(
+        await callTool("update_equipment", {
+          gymId,
+          id: "barbell",
+          bar: JSON.stringify({ lb: "45lb", kg: "20kg" }),
+          plates: JSON.stringify([
+            { weight: "45lb", num: 8 },
+            { weight: "25lb", num: 2 },
+          ]),
+        })
+      );
+      expect(data.bar.lb).to.equal("45lb");
+      expect(data.plates).to.deep.equal([
+        { weight: "45lb", num: 8 },
+        { weight: "25lb", num: 2 },
+      ]);
+    });
+
+    it("clamps out-of-range plate counts and weights", async () => {
+      const gymId = await firstGymId();
+      const data = toolData(
+        await callTool("update_equipment", {
+          gymId,
+          id: "barbell",
+          plates: JSON.stringify([{ weight: "999999lb", num: 999999 }]),
+          multiplier: "999999",
+        })
+      );
+      expect(data.plates[0].num).to.equal(200);
+      expect(data.plates[0].weight).to.equal("5000lb");
+      expect(data.multiplier).to.equal(10);
+    });
+
+    it("rejects malformed weight strings", async () => {
+      const gymId = await firstGymId();
+      for (const weight of ["heavy", "...lb", "+.kg", "1.2.3lb", "lb", "45"]) {
+        const res = await callTool("update_equipment", {
+          gymId,
+          id: "barbell",
+          plates: JSON.stringify([{ weight, num: 4 }]),
+        });
+        expect(res.isError, `expected ${weight} to be rejected`).to.equal(true);
+        expect(res.content[0].text).to.include("Invalid weight");
+      }
+    });
+
+    it("does not silently coerce malformed weights into the stored equipment", async () => {
+      const gymId = await firstGymId();
+      const before = toolData(await callTool("get_equipment", { gymId, id: "barbell" }));
+      await callTool("update_equipment", {
+        gymId,
+        id: "barbell",
+        plates: JSON.stringify([{ weight: "...lb", num: 4 }]),
+      });
+      const after = toolData(await callTool("get_equipment", { gymId, id: "barbell" }));
+      expect(after.plates).to.deep.equal(before.plates);
+    });
+
+    it("applies similarTo, useBodyweightForBar, and isAssisting", async () => {
+      const gymId = await firstGymId();
+      const data = toolData(
+        await callTool("update_equipment", {
+          gymId,
+          id: "barbell",
+          similarTo: "dumbbell",
+          useBodyweightForBar: "true",
+          isAssisting: "true",
+        })
+      );
+      expect(data.similarTo).to.equal("dumbbell");
+      expect(data.useBodyweightForBar).to.equal(true);
+      expect(data.isAssisting).to.equal(true);
+    });
+
+    it("rejects similarTo that is not a built-in equipment key", async () => {
+      const gymId = await firstGymId();
+      const res = await callTool("update_equipment", { gymId, id: "barbell", similarTo: "not-real" });
+      expect(res.isError).to.equal(true);
+    });
+
+    it("rejects a bar weight whose unit does not match the key", async () => {
+      const gymId = await firstGymId();
+      const res = await callTool("update_equipment", {
+        gymId,
+        id: "barbell",
+        bar: JSON.stringify({ lb: "20kg" }),
+      });
+      expect(res.isError).to.equal(true);
+      expect(res.content[0].text).to.include("must be expressed in lb");
+    });
+
+    it("rejects malformed booleans/numbers instead of silently coercing them", async () => {
+      const gymId = await firstGymId();
+
+      const badBool = await callTool("update_equipment", { gymId, id: "barbell", isDeleted: "yes" });
+      expect(badBool.isError, "isDeleted: 'yes' should not silently become false").to.equal(true);
+
+      const badNum = await callTool("update_equipment", { gymId, id: "barbell", multiplier: "abc" });
+      expect(badNum.isError, "multiplier: 'abc' should not silently become NaN/clamp").to.equal(true);
+
+      // The stringified valid forms still work (backward compat).
+      const okBool = toolData(await callTool("update_equipment", { gymId, id: "barbell", isDeleted: "true" }));
+      expect(okBool.isDeleted).to.equal(true);
+      const okNum = toolData(await callTool("update_equipment", { gymId, id: "barbell", multiplier: "3" }));
+      expect(okNum.multiplier).to.equal(3);
+    });
+
+    it("rejects an empty/whitespace name on update (no nameless equipment)", async () => {
+      const gymId = await firstGymId();
+      const created = toolData(await callTool("create_custom_equipment", { gymId, name: "Yoke" }));
+      const res = await callTool("update_equipment", { gymId, id: created.id, name: "   " });
+      expect(res.isError).to.equal(true);
+      expect(res.content[0].text).to.include("empty");
+    });
+
+    it("rejects malformed JSON for structured fields", async () => {
+      const gymId = await firstGymId();
+      const res = await callTool("update_equipment", { gymId, id: "barbell", plates: "{not json" });
+      expect(res.isError).to.equal(true);
+      expect(res.content[0].text).to.include("valid JSON");
+    });
+
+    it("creates and gets custom equipment, soft-deletes it but keeps it in the list", async () => {
+      const gymId = await firstGymId();
+      const created = toolData(
+        await callTool("create_custom_equipment", {
+          gymId,
+          name: "Resistance Rig",
+          plates: JSON.stringify([{ weight: "10kg", num: 4 }]),
+        })
+      );
+      expect(created.id).to.match(/^equipment-/);
+      expect(created.isCustom).to.equal(true);
+      expect(created.isDeleted).to.equal(false);
+      expect(created.name).to.equal("Resistance Rig");
+
+      const got = toolData(await callTool("get_equipment", { gymId, id: created.id }));
+      expect(got.name).to.equal("Resistance Rig");
+
+      const del = toolData(await callTool("update_equipment", { gymId, id: created.id, isDeleted: true }));
+      expect(del.isDeleted).to.equal(true);
+
+      // Soft-deleted equipment is kept in storage (and the list) so exercises that reference it for rounding don't dangle.
+      const afterList = toolData(await callTool("list_equipment", { gymId }));
+      const entry = afterList.equipment.find((e: any) => e.id === created.id);
+      expect(entry.isDeleted).to.equal(true);
+    });
+
+    it("deletes and restores a built-in via update_equipment isDeleted; list always returns it", async () => {
+      const gymId = await firstGymId();
+
+      const deleted = toolData(await callTool("update_equipment", { gymId, id: "barbell", isDeleted: true }));
+      expect(deleted.isDeleted).to.equal(true);
+
+      const list = toolData(await callTool("list_equipment", { gymId }));
+      const barbell = list.equipment.find((e: any) => e.id === "barbell");
+      expect(barbell.isDeleted).to.equal(true);
+
+      const got = toolData(await callTool("get_equipment", { gymId, id: "barbell" }));
+      expect(got.isDeleted).to.equal(true);
+
+      const restored = toolData(await callTool("update_equipment", { gymId, id: "barbell", isDeleted: false }));
+      expect(restored.isDeleted).to.equal(false);
+    });
+
+    it("can update a soft-deleted equipment's config without restoring it", async () => {
+      const gymId = await firstGymId();
+      await callTool("update_equipment", { gymId, id: "barbell", isDeleted: true });
+      const updated = toolData(
+        await callTool("update_equipment", { gymId, id: "barbell", bar: JSON.stringify({ lb: "33lb" }) })
+      );
+      expect(updated.bar.lb).to.equal("33lb");
+      expect(updated.isDeleted).to.equal(true);
+    });
+
+    it("404s when updating a non-existent equipment", async () => {
+      const gymId = await firstGymId();
+      const res = await callTool("update_equipment", { gymId, id: "band", isDeleted: false });
+      expect(res.isError).to.equal(true);
+      expect(res.content[0].text).to.include("not found");
+    });
+
+    it("accepts native JSON objects/arrays for structured fields (not just strings)", async () => {
+      const gymId = await firstGymId();
+      const data = toolData(
+        await callTool("update_equipment", {
+          gymId,
+          id: "barbell",
+          bar: { lb: "45lb", kg: "20kg" },
+          plates: [
+            { weight: "45lb", num: 4 },
+            { weight: "10lb", num: 2 },
+          ],
+          fixed: ["10lb", "15lb"],
+          multiplier: 2,
+          isFixed: false,
+        })
+      );
+      expect(data.bar.lb).to.equal("45lb");
+      expect(data.plates).to.deep.equal([
+        { weight: "45lb", num: 4 },
+        { weight: "10lb", num: 2 },
+      ]);
+      expect(data.multiplier).to.equal(2);
+    });
+
+    it("creates a gym copying current equipment, then renames and deletes it", async () => {
+      const created = toolData(await callTool("create_gym", { name: "Home" }));
+      expect(created.name).to.equal("Home");
+      expect(created.equipmentCount).to.be.greaterThan(0);
+
+      const renamed = toolData(await callTool("update_gym", { gymId: created.id, name: "Garage", setCurrent: "true" }));
+      expect(renamed.name).to.equal("Garage");
+      expect(renamed.isCurrent).to.equal(true);
+
+      const del = await callTool("delete_gym", { gymId: created.id });
+      expect(del.isError).to.be.undefined;
+
+      const list = toolData(await callTool("list_gyms"));
+      expect(list.gyms.map((g: any) => g.id)).to.not.include(created.id);
+    });
+
+    it("accepts setCurrent as native boolean and rejects invalid forms", async () => {
+      const a = toolData(await callTool("create_gym", { name: "Spot A" }));
+      const viaBool = toolData(await callTool("update_gym", { gymId: a.id, setCurrent: true }));
+      expect(viaBool.isCurrent).to.equal(true);
+
+      const b = toolData(await callTool("create_gym", { name: "Spot B" }));
+      const bad = await callTool("update_gym", { gymId: b.id, setCurrent: "yes" });
+      expect(bad.isError, "setCurrent: 'yes' should not silently no-op").to.equal(true);
+
+      // It really didn't switch — Spot A is still current.
+      const list = toolData(await callTool("list_gyms"));
+      expect(list.currentGymId).to.equal(a.id);
+    });
+
+    it("refuses to delete the last gym", async () => {
+      const gymId = await firstGymId();
+      const res = await callTool("delete_gym", { gymId });
+      expect(res.isError).to.equal(true);
+      expect(res.content[0].text).to.include("last gym");
+    });
+
+    it("edits to one gym do not leak into another", async () => {
+      const baseGymId = await firstGymId();
+      const home = toolData(await callTool("create_gym", { name: "Home" }));
+
+      toolData(
+        await callTool("update_equipment", {
+          gymId: home.id,
+          id: "barbell",
+          bar: JSON.stringify({ lb: "33lb" }),
+        })
+      );
+
+      const baseBarbell = toolData(await callTool("get_equipment", { gymId: baseGymId, id: "barbell" }));
+      expect(baseBarbell.bar.lb).to.not.equal("33lb");
     });
   });
 });

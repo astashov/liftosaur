@@ -1,7 +1,13 @@
 import "mocha";
 import { expect } from "chai";
 import { Settings_build } from "../src/models/settings";
-import { Weight_build, Weight_calculatePlates, Weight_platesWeight, Weight_formatOneSide } from "../src/models/weight";
+import {
+  Weight_build,
+  Weight_calculatePlates,
+  Weight_platesWeight,
+  Weight_formatOneSide,
+  Weight_strictParse,
+} from "../src/models/weight";
 import { IPlate, ISettings } from "../src/types";
 import { Exercise_toKey } from "../src/models/exercise";
 
@@ -146,6 +152,22 @@ describe("Weight", () => {
         { weight: Weight_build(5, "lb"), num: 2 },
       ];
       expect(Weight_formatOneSide(buildSettings(plates), plates, exerciseType)).to.eql("45/45/25/3x10/5");
+    });
+  });
+
+  describe(".strictParse()", () => {
+    it("parses well-formed weights", () => {
+      expect(Weight_strictParse("45lb")).to.eql(Weight_build(45, "lb"));
+      expect(Weight_strictParse("20kg")).to.eql(Weight_build(20, "kg"));
+      expect(Weight_strictParse(".5kg")).to.eql(Weight_build(0.5, "kg"));
+      expect(Weight_strictParse("2.5 lb")).to.eql(Weight_build(2.5, "lb"));
+      expect(Weight_strictParse("-5lb")).to.eql(Weight_build(-5, "lb"));
+    });
+
+    it("rejects malformed weights instead of coercing them", () => {
+      for (const s of ["...lb", "+.kg", "1.2.3lb", "lb", "45", "heavy", "", "45g"]) {
+        expect(Weight_strictParse(s), `expected ${JSON.stringify(s)} to be rejected`).to.equal(undefined);
+      }
     });
   });
 });
