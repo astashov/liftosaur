@@ -5,6 +5,7 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { getRawHandler, IHandler } from "../lambda";
 import { mcpTools } from "../lambda/mcp/tools";
 import { EQUIPMENT_WRITABLE_FIELDS } from "../lambda/utils/apiv1Equipment";
+import { EXERCISE_DATA_WRITABLE_FIELDS } from "../lambda/utils/apiv1ExerciseData";
 import { buildMockDi, IMockDI } from "./utils/mockDi";
 import { MockLogUtil } from "./utils/mockLogUtil";
 import { userTableNames } from "../lambda/dao/userDao";
@@ -1080,6 +1081,144 @@ describe("MCP", () => {
 
       const baseBarbell = toolData(await callTool("get_equipment", { gymId: baseGymId, id: "barbell" }));
       expect(baseBarbell.bar.lb).to.not.equal("33lb");
+    });
+  });
+
+  describe("exercise data", () => {
+    let token: string;
+
+    beforeEach(async () => {
+      token = await createOauthToken();
+    });
+
+    async function callTool(name: string, args?: Record<string, unknown>): Promise<any> {
+      const result = await handler(buildMcpEvent(toolCall(name, args), authHeaders(token)), ctx);
+      expect(result.statusCode).to.equal(200);
+      return parseBody(result).result;
+    }
+
+    function toolData(res: any): any {
+      expect(res.isError, res.content?.[0]?.text).to.be.undefined;
+      return JSON.parse(res.content[0].text);
+    }
+
+    it("exposes every writable exercise-data field in the set tool schema", () => {
+      const tool = mcpTools.find((t) => t.name === "set_exercise_data")!;
+      const props = Object.keys(tool.inputSchema.properties);
+      for (const field of EXERCISE_DATA_WRITABLE_FIELDS) {
+        expect(props, `set_exercise_data is missing the '${field}' field`).to.include(field);
+      }
+    });
+
+    it("sets, gets, lists and deletes exercise data", async () => {
+      const set = toolData(await callTool("set_exercise_data", { key: "squat_barbell", rm1: "315lb", rounding: 5 }));
+      expect(set.key).to.equal("squat_barbell");
+      expect(set.exerciseName).to.equal("Squat");
+      expect(set.rm1).to.equal("315lb");
+      expect(set.rounding).to.equal(5);
+
+      const got = toolData(await callTool("get_exercise_data", { key: "squat_barbell" }));
+      expect(got.rm1).to.equal("315lb");
+
+      const list = toolData(await callTool("list_exercise_data"));
+      expect(list.exerciseData.map((e: any) => e.key)).to.include("squat_barbell");
+
+      const del = toolData(await callTool("delete_exercise_data", { key: "squat_barbell" }));
+      expect(del.deleted).to.equal(true);
+
+      const after = await callTool("get_exercise_data", { key: "squat_barbell" });
+      expect(after.isError).to.equal(true);
+    });
+
+    it("accepts native-JSON and string forms for structured args", async () => {
+      const a = toolData(
+        await callTool("set_exercise_data", { key: "benchPress", muscleMultipliers: { "Triceps Brachii": 1 } })
+      );
+      expect(a.muscleMultipliers["Triceps Brachii"]).to.equal(1);
+
+      const b = toolData(
+        await callTool("set_exercise_data", { key: "benchPress", muscleMultipliers: '{"Triceps Brachii":0.5}' })
+      );
+      expect(b.muscleMultipliers["Triceps Brachii"]).to.equal(0.5);
+    });
+
+    it("clears a single field when passed null", async () => {
+      await callTool("set_exercise_data", { key: "deadlift_barbell", rm1: "405lb", notes: "brace hard" });
+      const cleared = toolData(await callTool("set_exercise_data", { key: "deadlift_barbell", notes: null }));
+      expect(cleared.notes).to.equal(undefined);
+      expect(cleared.rm1).to.equal("405lb");
+    });
+
+    it("coerces isUnilateral from string and rejects garbage", async () => {
+      const ok = toolData(await callTool("set_exercise_data", { key: "squat_barbell", isUnilateral: "true" }));
+      expect(ok.isUnilateral).to.equal(true);
+
+      const bad = await callTool("set_exercise_data", { key: "squat_barbell", isUnilateral: "maybe" });
+      expect(bad.isError).to.equal(true);
+    });
+
+    it("rejects an unknown exercise key", async () => {
+      const res = await callTool("set_exercise_data", { key: "notARealExercise", rm1: "100lb" });
+      expect(res.isError).to.equal(true);
+      expect(res.content[0].text).to.include("Unknown exercise key");
+    });
+
+    it("404s getting exercise data that was never set", async () => {
+      const res = await callTool("get_exercise_data", { key: "overheadPress_barbell" });
+      expect(res.isError).to.equal(true);
+    });
+
+    it("hides an entry whose last field was cleared, but allows re-adding it (no tombstone block)", async () => {
+      await callTool("set_exercise_data", { key: "squat_barbell", notes: "depth" });
+      const cleared = toolData(await callTool("set_exercise_data", { key: "squat_barbell", notes: null }));
+      expect(cleared.notes).to.equal(undefined);
+
+      const get = await callTool("get_exercise_data", { key: "squat_barbell" });
+      expect(get.isError).to.equal(true);
+
+      const readded = toolData(await callTool("set_exercise_data", { key: "squat_barbell", rm1: "315lb" }));
+      expect(readded.rm1).to.equal("315lb");
+      const getAgain = toolData(await callTool("get_exercise_data", { key: "squat_barbell" }));
+      expect(getAgain.rm1).to.equal("315lb");
+    });
+
+    it("rejects an unknown equipment suffix in the key", async () => {
+      const res = await callTool("set_exercise_data", { key: "squat_notRealEquipment", rm1: "100lb" });
+      expect(res.isError).to.equal(true);
+      expect(res.content[0].text).to.include("Unknown equipment");
+    });
+
+    it("rejects a non-canonical key with extra underscore segments", async () => {
+      const res = await callTool("set_exercise_data", { key: "squat_barbell_extra", rm1: "100lb" });
+      expect(res.isError).to.equal(true);
+      expect(res.content[0].text).to.include("Malformed exercise key");
+    });
+
+    it("advertises null for every clearable field in the set tool schema", () => {
+      const tool = mcpTools.find((t) => t.name === "set_exercise_data")!;
+      for (const field of EXERCISE_DATA_WRITABLE_FIELDS) {
+        expect(tool.inputSchema.properties[field].type, `${field} should allow null`).to.include("null");
+      }
+    });
+
+    it("treats per-gym null as 'None' (omitted from the returned map) and preserves it across updates", async () => {
+      const gyms = toolData(await callTool("list_gyms"));
+      const gymId = gyms.gyms[0].id;
+
+      const none = toolData(
+        await callTool("set_exercise_data", { key: "squat_barbell", equipment: { [gymId]: null } })
+      );
+      expect(none.equipment).to.deep.equal({});
+
+      const upd = toolData(await callTool("set_exercise_data", { key: "squat_barbell", notes: "high bar" }));
+      expect(upd.notes).to.equal("high bar");
+      expect(upd.equipment).to.deep.equal({});
+    });
+
+    it("rejects an empty update (only key) with an error", async () => {
+      const res = await callTool("set_exercise_data", { key: "squat_barbell" });
+      expect(res.isError).to.equal(true);
+      expect(res.content[0].text).to.include("At least one field");
     });
   });
 });

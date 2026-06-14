@@ -14,6 +14,20 @@
 -->
 
 ---
+date: 2026-06-14
+title: Added API / MCP for the equipment and exercise data
+---
+
+Now you can manage your gyms and equipment through API and MCP, as well as managing the exercise data:
+
+* 1RM value
+* Muscle overrides
+* Equipment assigned to exercises
+* Default rounding
+* Whether the exercise is unilateral
+* Exercise persistent notes
+
+---
 date: 2026-06-13
 title: Added subscription management to the Account screen
 ---

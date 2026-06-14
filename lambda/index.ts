@@ -155,6 +155,14 @@ import {
   postV1EquipmentHandler,
   putV1EquipmentEndpoint,
   putV1EquipmentHandler,
+  getV1ExerciseDataListEndpoint,
+  getV1ExerciseDataListHandler,
+  getV1ExerciseDataEndpoint,
+  getV1ExerciseDataHandler,
+  putV1ExerciseDataEndpoint,
+  putV1ExerciseDataHandler,
+  deleteV1ExerciseDataEndpoint,
+  deleteV1ExerciseDataHandler,
 } from "./api/v1";
 import {
   getMcpEndpoint,
@@ -3369,6 +3377,10 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .post(postV1GymEndpoint, postV1GymHandler)
       .put(putV1GymEndpoint, putV1GymHandler)
       .delete(deleteV1GymEndpoint, deleteV1GymHandler)
+      .get(getV1ExerciseDataListEndpoint, getV1ExerciseDataListHandler)
+      .get(getV1ExerciseDataEndpoint, getV1ExerciseDataHandler)
+      .put(putV1ExerciseDataEndpoint, putV1ExerciseDataHandler)
+      .delete(deleteV1ExerciseDataEndpoint, deleteV1ExerciseDataHandler)
       .get(getMcpEndpoint, getMcpHandler)
       .delete(deleteMcpEndpoint, deleteMcpHandler)
       .post(postMcpEndpoint, postMcpHandler)

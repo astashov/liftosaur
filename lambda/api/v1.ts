@@ -26,6 +26,12 @@ import {
   ApiV1_updateEquipment,
   ApiV1_createCustomEquipment,
 } from "../utils/apiv1Equipment";
+import {
+  ApiV1_listExerciseData,
+  ApiV1_getExerciseData,
+  ApiV1_setExerciseData,
+  ApiV1_deleteExerciseData,
+} from "../utils/apiv1ExerciseData";
 import { EventDao } from "../dao/eventDao";
 
 interface IPayload {
@@ -369,5 +375,56 @@ export const putV1EquipmentHandler: RouteHandler<
   return withApiAuthAndEvent(event, di, "api-v1-update-equipment", async (auth) => {
     const body = getBodyJson(event);
     return resultToResponse(await ApiV1_updateEquipment(auth.userId, auth.user, params.gymId, params.id, body, di));
+  });
+};
+
+// --- Exercise Data Endpoints ---
+
+export const getV1ExerciseDataListEndpoint = Endpoint.build("/api/v1/exercise-data");
+export const getV1ExerciseDataListHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getV1ExerciseDataListEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-list-exercise-data", async (auth) => {
+    return resultToResponse(ApiV1_listExerciseData(auth.user));
+  });
+};
+
+export const getV1ExerciseDataEndpoint = Endpoint.build("/api/v1/exercise-data/:key");
+export const getV1ExerciseDataHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getV1ExerciseDataEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-get-exercise-data", async (auth) => {
+    return resultToResponse(ApiV1_getExerciseData(auth.user, params.key));
+  });
+};
+
+export const putV1ExerciseDataEndpoint = Endpoint.build("/api/v1/exercise-data/:key");
+export const putV1ExerciseDataHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof putV1ExerciseDataEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-set-exercise-data", async (auth) => {
+    const body = getBodyJson(event);
+    return resultToResponse(await ApiV1_setExerciseData(auth.userId, auth.user, params.key, body, di));
+  });
+};
+
+export const deleteV1ExerciseDataEndpoint = Endpoint.build("/api/v1/exercise-data/:key");
+export const deleteV1ExerciseDataHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof deleteV1ExerciseDataEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-delete-exercise-data", async (auth) => {
+    return resultToResponse(await ApiV1_deleteExerciseData(auth.userId, auth.user, params.key, di));
   });
 };

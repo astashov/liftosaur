@@ -30,6 +30,13 @@ import {
   ApiV1_createCustomEquipment,
   IWritableEquipmentField,
 } from "../utils/apiv1Equipment";
+import {
+  ApiV1_listExerciseData,
+  ApiV1_getExerciseData,
+  ApiV1_setExerciseData,
+  ApiV1_deleteExerciseData,
+  IWritableExerciseDataField,
+} from "../utils/apiv1ExerciseData";
 import { IEither } from "../../src/utils/types";
 import { IMuscle, IExerciseKind } from "../../src/types";
 
@@ -93,6 +100,35 @@ function parseEquipmentArgs(args: Record<string, unknown>): { input: Record<stri
     }
   } catch (e) {
     return { input, error: err(400, "invalid_input", "bar, plates, and fixed must be valid JSON") };
+  }
+  return { input };
+}
+
+// One entry per writable exercise-data field — keyed by IWritableExerciseDataField so a new writable field
+// is a compile error here until MCP arg-parsing is added for it. Unlike equipment, `null` is meaningful
+// (clears a field), so it's passed through to the API rather than skipped.
+const EXERCISE_DATA_ARG_PARSERS: Record<IWritableExerciseDataField, (raw: unknown) => unknown> = {
+  rm1: (raw) => raw,
+  rounding: asNumber,
+  equipment: asJson,
+  notes: (raw) => raw,
+  muscleMultipliers: asJson,
+  isUnilateral: asBool,
+};
+
+function parseExerciseDataArgs(args: Record<string, unknown>): {
+  input: Record<string, unknown>;
+  error?: IToolResult;
+} {
+  const input: Record<string, unknown> = {};
+  try {
+    for (const field of Object.keys(EXERCISE_DATA_ARG_PARSERS) as IWritableExerciseDataField[]) {
+      if (field in args && args[field] !== undefined) {
+        input[field] = EXERCISE_DATA_ARG_PARSERS[field](args[field]);
+      }
+    }
+  } catch (e) {
+    return { input, error: err(400, "invalid_input", "equipment and muscleMultipliers must be valid JSON") };
   }
   return { input };
 }
@@ -291,6 +327,23 @@ export async function McpToolExecutor_execute(
       }
       return ApiV1_createCustomEquipment(userId, user, args.gymId as string, args.name as string, parsed.input, di);
     }
+
+    case "list_exercise_data":
+      return ApiV1_listExerciseData(user);
+
+    case "get_exercise_data":
+      return ApiV1_getExerciseData(user, args.key as string);
+
+    case "set_exercise_data": {
+      const parsed = parseExerciseDataArgs(args);
+      if (parsed.error) {
+        return parsed.error;
+      }
+      return ApiV1_setExerciseData(userId, user, args.key as string, parsed.input, di);
+    }
+
+    case "delete_exercise_data":
+      return ApiV1_deleteExerciseData(userId, user, args.key as string, di);
 
     case "get_program_stats":
       return ApiV1_programStats(user, args.programText as string);

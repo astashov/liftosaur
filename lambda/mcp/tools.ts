@@ -7,7 +7,8 @@ export interface IMcpToolAnnotations {
 }
 
 export interface IMcpJsonSchema {
-  type: string;
+  // A JSON Schema type, or a type array like ["string", "null"] to allow null (used for clearable fields).
+  type: string | string[];
   description?: string;
   enum?: string[];
   items?: IMcpJsonSchema;
@@ -95,6 +96,35 @@ const EQUIPMENT_FIELD_SCHEMAS: Record<string, IMcpJsonSchema> = {
     type: "boolean",
     description:
       "Soft-delete/restore: true removes the equipment from workout pickers (this is how you 'delete' a custom or hide a built-in like barbell), false restores it. The entry and its config are kept in storage either way.",
+  },
+};
+
+// Shared between set_exercise_data. Modeled structurally so MCP clients can pass native JSON; the
+// executor also accepts JSON strings. Pass null to clear an individual field (revert to default).
+const EXERCISE_DATA_FIELD_SCHEMAS: Record<string, IMcpJsonSchema> = {
+  rm1: {
+    type: ["string", "null"],
+    description: 'The exercise 1 rep max, as a weight string like "225lb" or "100kg". null clears it.',
+  },
+  rounding: {
+    type: ["number", "null"],
+    description:
+      "Weight increment that prescribed weights are rounded to for this exercise (e.g. 5 for 5lb, 2.5 for 2.5kg). null clears it (reverts to the equipment default).",
+  },
+  equipment: {
+    type: ["object", "null"],
+    description:
+      'Per-gym equipment override: a map of gymId -> equipmentId (e.g. {"default":"dumbbell"}). Replaces any existing override wholesale and sets which equipment this exercise uses (for weight rounding / plate calc) at each gym. Each gymId must exist and each equipmentId must exist in that gym (see list_gyms / list_equipment), or be null to mean "None" (no equipment at that gym). Top-level null clears the override. In responses the map lists only gyms with a real equipment override; an absent gym means "None".',
+  },
+  notes: { type: ["string", "null"], description: "Free-text notes shown for this exercise. null clears them." },
+  muscleMultipliers: {
+    type: ["object", "null"],
+    description:
+      "Override of which muscles this exercise works: a map of muscle name -> multiplier. Use 1 to mark a muscle as a target, and a value <1 (e.g. 0.5) to mark it as a synergist with that weight. Replaces the exercise's default muscles entirely. null clears the override.",
+  },
+  isUnilateral: {
+    type: ["boolean", "null"],
+    description: "Whether the exercise is unilateral (performed one side at a time). null clears the override.",
   },
 };
 
@@ -529,6 +559,63 @@ export const mcpTools: IMcpToolDef[] = [
         ...EQUIPMENT_FIELD_SCHEMAS,
       },
       required: ["gymId", "name"],
+    },
+  },
+
+  // --- Exercise Data ---
+  {
+    name: "list_exercise_data",
+    description:
+      "List all per-exercise settings the user has customized (1 rep max, weight rounding, per-gym equipment overrides, notes, muscle overrides, unilateral flag). Each entry is keyed by an exercise key: a built-in exercise id joined with its equipment by '_' (e.g. 'squat_barbell', 'benchPress_barbell'), or a custom exercise id. Exercises without any customization don't appear here — that's expected; their values fall back to defaults. Use this to discover the exact keys already in use before writing with set_exercise_data.",
+    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "get_exercise_data",
+    description:
+      "Get the customized settings for a single exercise key (e.g. 'squat_barbell', 'benchPress_barbell'). Returns 404 if the exercise has no customizations stored. Use list_exercises for valid built-in exercise ids and list_custom_exercises for custom ones.",
+    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+    inputSchema: {
+      type: "object",
+      properties: {
+        key: {
+          type: "string",
+          description:
+            "Exercise key: a built-in id joined with its equipment by '_' (e.g. 'squat_barbell', 'benchPress_barbell'), or a custom exercise id. Use the equipment-qualified form that matches how the user trains; a bare id like 'benchPress' only matches the no-equipment variant.",
+        },
+      },
+      required: ["key"],
+    },
+  },
+  {
+    name: "set_exercise_data",
+    description:
+      "Set (upsert) per-exercise settings for an exercise key like 'squat_barbell' or 'benchPress_barbell'. Use this to set a user's 1 rep max (rm1), weight rounding, per-gym equipment overrides, notes, muscle overrides, or the unilateral flag. Only provided fields change; omitted fields keep their current values; pass null for a field to clear it (revert to default). The key's exercise must exist (built-in id from list_exercises, joined with its equipment by '_', or a custom exercise id). Prefer the equipment-qualified key that matches how the user trains — a bare built-in id only matches the no-equipment variant and won't affect normal barbell/dumbbell entries.",
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+    inputSchema: {
+      type: "object",
+      properties: {
+        key: {
+          type: "string",
+          description:
+            "Exercise key: a built-in id joined with its equipment by '_' (e.g. 'squat_barbell', 'benchPress_barbell'), or a custom exercise id. Use the equipment-qualified form that matches how the user trains; a bare id like 'benchPress' only matches the no-equipment variant.",
+        },
+        ...EXERCISE_DATA_FIELD_SCHEMAS,
+      },
+      required: ["key"],
+    },
+  },
+  {
+    name: "delete_exercise_data",
+    description:
+      "Delete all stored customizations for an exercise key, reverting the exercise (1RM, rounding, equipment override, notes, muscles, unilateral) entirely to defaults. To clear just one field, use set_exercise_data with that field set to null instead.",
+    annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: true },
+    inputSchema: {
+      type: "object",
+      properties: {
+        key: { type: "string", description: "Exercise key whose customizations to delete." },
+      },
+      required: ["key"],
     },
   },
 ];

@@ -1,8 +1,6 @@
 import * as v from "valibot";
 import { UserDao, ILimitedUserDao } from "../dao/userDao";
 import { IDI } from "./di";
-import { IEither } from "../../src/utils/types";
-import { IApiError } from "./apiv1";
 import {
   IGym,
   IEquipmentData,
@@ -14,49 +12,29 @@ import {
   VUnit,
   VBuiltinEquipment,
 } from "../../src/types";
-import { Weight_strictParse, Weight_print } from "../../src/models/weight";
+import { Weight_print } from "../../src/models/weight";
 import { Equipment_build, Equipment_isBuiltIn, Equipment_getCurrentGym } from "../../src/models/equipment";
 import { equipmentName } from "../../src/models/exercise";
-import { MathUtils_roundFloat } from "../../src/utils/math";
+import { MathUtils_clamp } from "../../src/utils/math";
 import { ObjectUtils_clone } from "../../src/utils/object";
 import { UidFactory_generateUid } from "./generator";
+import {
+  IApiResult,
+  IExactUnion,
+  VWeightString,
+  MAX_NOTES_LENGTH,
+  err,
+  ok,
+  issuesToMessage,
+  getGym,
+} from "./apiv1Common";
 
-type IApiResult<T> = IEither<T, IApiError>;
-
-function err<T>(status: number, code: string, message: string): IApiResult<T> {
-  return { success: false, error: { status, code, message } };
-}
-
-function ok<T>(data: T): IApiResult<T> {
-  return { success: true, data };
-}
-
-const MAX_WEIGHT = 5000;
 const MAX_PLATE_KINDS = 50;
 const MAX_PLATE_NUM = 200;
 const MAX_FIXED = 200;
 const MIN_MULTIPLIER = 1;
 const MAX_MULTIPLIER = 10;
 const MAX_NAME_LENGTH = 100;
-const MAX_NOTES_LENGTH = 2500;
-
-function clamp(value: number, min: number, max: number): number {
-  if (!isFinite(value)) {
-    return min;
-  }
-  return Math.min(max, Math.max(min, value));
-}
-
-// Parses a weight like "45lb"/"20kg", rejects anything else, and clamps the value to a sane range.
-const VWeightString = v.pipe(
-  v.string(),
-  v.transform((s) => Weight_strictParse(s.trim())),
-  v.check((w): w is IWeight => w != null, 'Invalid weight, expected a string like "45lb" or "20kg"'),
-  v.transform((w) => {
-    const weight = w as IWeight;
-    return { value: MathUtils_roundFloat(clamp(weight.value, 0, MAX_WEIGHT), 3), unit: weight.unit } as IWeight;
-  })
-);
 
 function VBarWeight(unit: IUnit): v.GenericSchema<unknown, IWeight> {
   return v.pipe(
@@ -72,7 +50,7 @@ const VPlateInput = v.object({
   weight: VWeightString,
   num: v.pipe(
     v.number(),
-    v.transform((n) => clamp(Math.round(n), 0, MAX_PLATE_NUM))
+    v.transform((n) => MathUtils_clamp(Math.round(n), 0, MAX_PLATE_NUM))
   ),
 });
 
@@ -106,7 +84,7 @@ const VEquipmentUpdateInput = v.object({
   multiplier: v.optional(
     v.pipe(
       v.number(),
-      v.transform((n) => clamp(Math.round(n), MIN_MULTIPLIER, MAX_MULTIPLIER))
+      v.transform((n) => MathUtils_clamp(Math.round(n), MIN_MULTIPLIER, MAX_MULTIPLIER))
     )
   ),
   isFixed: v.optional(v.boolean()),
@@ -162,22 +140,7 @@ export const EQUIPMENT_WRITABLE_FIELDS = (Object.keys(EQUIPMENT_FIELD_POLICY) as
 // policy and schema drift apart (e.g. a new writable field isn't added to VEquipmentUpdateInput), this
 // assignment fails to compile because IExactUnion resolves to `false`. Exported only so noUnusedLocals
 // doesn't flag this compile-time assertion (lambda's eslint config forbids the usual `void` marker).
-type IExactUnion<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
 export const _equipmentInputMatchesPolicy: IExactUnion<keyof IEquipmentUpdateInput, IWritableEquipmentField> = true;
-
-function issuesToMessage(issues: v.GenericIssue[]): string {
-  return (
-    issues
-      .map((i) => {
-        const path = (i.path ?? [])
-          .map((p) => (typeof (p as { key?: unknown }).key === "string" ? (p as { key: string }).key : ""))
-          .filter(Boolean)
-          .join(".");
-        return path ? `${path}: ${i.message}` : i.message;
-      })
-      .join("; ") || "Invalid input"
-  );
-}
 
 function parseEquipmentInput(input: unknown): IApiResult<IEquipmentUpdateInput> {
   const result = v.safeParse(VEquipmentUpdateInput, input ?? {});
@@ -210,10 +173,6 @@ function applyEquipmentInput(base: IEquipmentData, input: IEquipmentUpdateInput)
     return err(400, "invalid_input", issuesToMessage(validated.issues));
   }
   return ok(validated.output);
-}
-
-function getGym(settings: ISettings, gymId: string): IGym | undefined {
-  return settings.gyms.find((g) => g.id === gymId);
 }
 
 interface IEquipmentResponse {

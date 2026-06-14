@@ -141,6 +141,8 @@ Once connected, you can ask the AI to:
 - **Analyze history** - "Show me my last 10 workouts" or "How has my squat progressed?"
 - **Test progressions** - simulate workouts in the playground to verify the logic works
 - **Manage custom exercises** - create, update, or delete exercises not in the built-in list
+- **Configure gyms and equipment** - set up bars, plates, and fixed weights per gym
+- **Tune per-exercise settings** - set your 1RM, weight rounding, equipment, or notes for an exercise
 
 The AI has access to the Liftoscript language reference and built-in program examples, so it can learn the syntax on the fly.
 
@@ -177,6 +179,28 @@ These are the tools the AI assistant can call on your behalf:
 | `create_custom_exercise` | Create a custom exercise with name, target/synergist muscles, and types |
 | `update_custom_exercise` | Update an existing custom exercise. Only provided fields change |
 | `delete_custom_exercise` | Delete a custom exercise |
+
+### Gyms and Equipment
+
+| Tool | What it does |
+|------|-------------|
+| `list_gyms` | List your gyms (id, name, current flag, equipment count) |
+| `create_gym` | Create a new gym, copying the current gym's equipment |
+| `update_gym` | Rename a gym and/or make it the current one |
+| `delete_gym` | Delete a gym (can't delete the last one) |
+| `list_equipment` | List a gym's equipment, including soft-deleted ones |
+| `get_equipment` | Get a single equipment's full config (bar, plates, fixed weights, etc.) |
+| `update_equipment` | Update equipment config; set `isDeleted` to hide/restore it |
+| `create_custom_equipment` | Create a new custom equipment in a gym |
+
+### Exercise Settings
+
+| Tool | What it does |
+|------|-------------|
+| `list_exercise_data` | List per-exercise customizations (1RM, rounding, equipment overrides, notes, muscles, unilateral) |
+| `get_exercise_data` | Get the stored customizations for one exercise key (e.g. `squat_barbell`) |
+| `set_exercise_data` | Set/upsert per-exercise settings; pass `null` for a field to clear it |
+| `delete_exercise_data` | Clear all stored customizations for an exercise key |
 
 ### Testing and Analysis
 

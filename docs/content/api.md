@@ -628,6 +628,79 @@ Content-Type: application/json
 
 Set `isDeleted` to `true` to remove equipment from workout pickers (works for both a custom equipment and a built-in like `barbell`), or `false` to restore it. The entry and its config are kept in storage so exercises that reference it for rounding don't dangle, and it still appears in List Equipment with `isDeleted: true`. Returns the updated equipment, or `404` if it doesn't exist in the gym.
 
+### List Exercise Data
+
+Per-exercise settings (1 rep max, weight rounding, per-gym equipment overrides, notes, muscle overrides, unilateral flag) are stored keyed by an _exercise key_: a built-in exercise id plus its equipment, joined with `_` (e.g. `squat_barbell`, `benchPress_barbell`), or a custom exercise id.
+
+The key must match the equipment your workouts actually use, which is almost always the equipment-qualified form (e.g. `benchPress_barbell`, `bicepCurl_dumbbell`). A bare id like `benchPress` only matches an exercise configured with **no equipment** — setting data under a bare id will not affect your normal barbell/dumbbell entries. List Exercise Data shows the exact keys already in use on your account.
+
+```
+GET /api/v1/exercise-data
+```
+
+Returns only the exercises the user has customized. Exercises with no stored customizations don't appear (their values fall back to defaults).
+
+**Response:**
+
+```json
+{
+  "data": {
+    "exerciseData": [
+      {
+        "key": "squat_barbell",
+        "exerciseName": "Squat",
+        "rm1": "315lb",
+        "rounding": 5,
+        "isUnilateral": false
+      }
+    ]
+  }
+}
+```
+
+The fields `rm1`, `rounding`, `equipment`, `notes`, `muscleMultipliers`, and `isUnilateral` are only present when set.
+
+### Get Exercise Data
+
+```
+GET /api/v1/exercise-data/:key
+```
+
+Returns the stored customizations for a single exercise key (same shape as a List item), or `404` if the exercise has no customizations stored.
+
+### Set Exercise Data
+
+Upserts per-exercise settings. Only provided fields change; omitted fields keep their current values; pass `null` for a field to clear it (revert to default). If clearing leaves no fields set, the entry stops appearing in List / Get (it's emptied, not hard-deleted, so re-adding a field later works cleanly). The key's exercise must exist (a built-in id optionally with an equipment suffix, or a custom exercise id) and, if an equipment suffix is given, it must be a built-in equipment or a custom equipment id present in one of your gyms — otherwise `400`.
+
+```
+PUT /api/v1/exercise-data/:key
+Content-Type: application/json
+
+{
+  "rm1": "315lb",
+  "rounding": 5
+}
+```
+
+Fields:
+
+- `rm1` — the exercise 1 rep max, as a weight string like `"315lb"` or `"140kg"`.
+- `rounding` — weight increment that prescribed weights round to (e.g. `5` for 5lb, `2.5` for 2.5kg).
+- `equipment` — per-gym equipment override, a map of `gymId` → `equipmentId` (e.g. `{ "default": "dumbbell" }`). The map replaces any existing override wholesale. Each `gymId` must exist and each `equipmentId` must exist in that gym (see List Gyms / List Equipment), or be `null` to mean "None" (the exercise uses no equipment at that gym). Setting the whole `equipment` field to `null` clears the override entirely. In responses the map lists only gyms with a real equipment override; a gym absent from the map (when an override is present) means "None" there.
+- `notes` — free-text notes shown for the exercise.
+- `muscleMultipliers` — override of which muscles the exercise works, a map of muscle name → multiplier; `1` marks a target muscle, a value `<1` (e.g. `0.5`) marks a synergist with that weight. Replaces the exercise's default muscles entirely.
+- `isUnilateral` — whether the exercise is performed one side at a time.
+
+Returns the updated exercise data (same shape as Get).
+
+### Delete Exercise Data
+
+```
+DELETE /api/v1/exercise-data/:key
+```
+
+Clears all stored customizations for the exercise key, reverting it entirely to defaults — afterwards it no longer appears in List / Get. Returns `{ "data": { "deleted": true } }`, or `404` if nothing was stored. To clear just one field, use Set Exercise Data with that field set to `null` instead.
+
 ## Liftoscript and Liftoscript Workouts
 
 Programs use Liftoscript - a custom DSL for defining workout programs. It's not a standard format, so you'll need to learn the syntax to write valid programs. Check out the built-in program library for examples, or use the [MCP server](/docs/mcp) to let an AI assistant write programs for you.

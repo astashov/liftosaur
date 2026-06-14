@@ -601,6 +601,225 @@ Squat / 3x5 / 100lb`;
     });
   });
 
+  describe("exercise data endpoints", () => {
+    let apiKey: string;
+    const ctx = { getRemainingTimeInMillis: () => 10000 };
+
+    beforeEach(async () => {
+      const created = await service.createApiKey("Exercise Data Key");
+      apiKey = created!.key;
+    });
+
+    async function req(method: string, path: string, body?: unknown): Promise<{ status: number; data: any }> {
+      const result = await handler(buildEvent(method, path, { headers: apiHeaders(apiKey), body }), ctx);
+      return { status: result.statusCode, data: parseBody(result) };
+    }
+
+    it("starts empty, then sets, gets, lists and deletes exercise data", async () => {
+      const empty = await req("GET", "/api/v1/exercise-data");
+      expect(empty.status).to.equal(200);
+      expect(empty.data.data.exerciseData).to.deep.equal([]);
+
+      const set = await req("PUT", "/api/v1/exercise-data/squat_barbell", { rm1: "315lb", rounding: 5 });
+      expect(set.status).to.equal(200);
+      expect(set.data.data.key).to.equal("squat_barbell");
+      expect(set.data.data.exerciseName).to.equal("Squat");
+      expect(set.data.data.rm1).to.equal("315lb");
+      expect(set.data.data.rounding).to.equal(5);
+
+      const get = await req("GET", "/api/v1/exercise-data/squat_barbell");
+      expect(get.status).to.equal(200);
+      expect(get.data.data.rm1).to.equal("315lb");
+
+      const list = await req("GET", "/api/v1/exercise-data");
+      expect(list.data.data.exerciseData.map((e: any) => e.key)).to.include("squat_barbell");
+
+      const del = await req("DELETE", "/api/v1/exercise-data/squat_barbell");
+      expect(del.status).to.equal(200);
+      expect(del.data.data.deleted).to.equal(true);
+
+      const after = await req("GET", "/api/v1/exercise-data/squat_barbell");
+      expect(after.status).to.equal(404);
+    });
+
+    it("merges fields on upsert and clears a single field with null", async () => {
+      await req("PUT", "/api/v1/exercise-data/benchPress", { rm1: "225lb", notes: "elbows in" });
+      const merged = await req("PUT", "/api/v1/exercise-data/benchPress", { rounding: 2.5 });
+      expect(merged.data.data.rm1).to.equal("225lb");
+      expect(merged.data.data.notes).to.equal("elbows in");
+      expect(merged.data.data.rounding).to.equal(2.5);
+
+      const cleared = await req("PUT", "/api/v1/exercise-data/benchPress", { notes: null });
+      expect(cleared.data.data.notes).to.equal(undefined);
+      expect(cleared.data.data.rm1).to.equal("225lb");
+    });
+
+    it("rejects an unknown exercise key with 400", async () => {
+      const res = await req("PUT", "/api/v1/exercise-data/notARealExercise", { rm1: "100lb" });
+      expect(res.status).to.equal(400);
+      expect(res.data.error.code).to.equal("invalid_input");
+    });
+
+    it("rejects a malformed rm1 weight with 400", async () => {
+      const res = await req("PUT", "/api/v1/exercise-data/squat_barbell", { rm1: "lots" });
+      expect(res.status).to.equal(400);
+      expect(res.data.error.message).to.include("Invalid weight");
+    });
+
+    it("rejects an invalid muscle in muscleMultipliers with 400", async () => {
+      const res = await req("PUT", "/api/v1/exercise-data/squat_barbell", {
+        muscleMultipliers: { NotAMuscle: 1 },
+      });
+      expect(res.status).to.equal(400);
+    });
+
+    it("rejects an equipment override for an unknown gym with 400", async () => {
+      const res = await req("PUT", "/api/v1/exercise-data/squat_barbell", {
+        equipment: { nope: "barbell" },
+      });
+      expect(res.status).to.equal(400);
+      expect(res.data.error.message).to.include("unknown gym");
+    });
+
+    it("404s deleting exercise data that was never set", async () => {
+      const res = await req("DELETE", "/api/v1/exercise-data/deadlift_barbell");
+      expect(res.status).to.equal(404);
+    });
+
+    it("hides an entry whose last field was cleared, but allows re-adding it (no tombstone block)", async () => {
+      await req("PUT", "/api/v1/exercise-data/squat_barbell", { notes: "depth" });
+      const cleared = await req("PUT", "/api/v1/exercise-data/squat_barbell", { notes: null });
+      expect(cleared.status).to.equal(200);
+      expect(cleared.data.data.notes).to.equal(undefined);
+
+      const get = await req("GET", "/api/v1/exercise-data/squat_barbell");
+      expect(get.status).to.equal(404);
+
+      const list = await req("GET", "/api/v1/exercise-data");
+      expect(list.data.data.exerciseData.map((e: any) => e.key)).to.not.include("squat_barbell");
+
+      // The whole point of not deleting the key: re-adding must work and surface again.
+      const readded = await req("PUT", "/api/v1/exercise-data/squat_barbell", { rm1: "315lb" });
+      expect(readded.status).to.equal(200);
+      expect(readded.data.data.rm1).to.equal("315lb");
+      const getAgain = await req("GET", "/api/v1/exercise-data/squat_barbell");
+      expect(getAgain.status).to.equal(200);
+      expect(getAgain.data.data.rm1).to.equal("315lb");
+    });
+
+    it("DELETE hides the entry but allows re-adding it", async () => {
+      await req("PUT", "/api/v1/exercise-data/benchPress", { rm1: "225lb" });
+      const del = await req("DELETE", "/api/v1/exercise-data/benchPress");
+      expect(del.status).to.equal(200);
+      expect((await req("GET", "/api/v1/exercise-data/benchPress")).status).to.equal(404);
+      // Deleting again is a 404 (already empty)
+      expect((await req("DELETE", "/api/v1/exercise-data/benchPress")).status).to.equal(404);
+
+      const readded = await req("PUT", "/api/v1/exercise-data/benchPress", { rm1: "235lb" });
+      expect(readded.status).to.equal(200);
+      expect(readded.data.data.rm1).to.equal("235lb");
+    });
+
+    it("rejects an unknown equipment suffix in the key with 400", async () => {
+      const res = await req("PUT", "/api/v1/exercise-data/squat_notRealEquipment", { rm1: "100lb" });
+      expect(res.status).to.equal(400);
+      expect(res.data.error.message).to.include("Unknown equipment");
+    });
+
+    it("rejects a non-canonical key with extra underscore segments with 400", async () => {
+      // "squat_barbell_extra" parses to the canonical "squat_barbell", so storing under the original key
+      // would be silently unreadable by the app.
+      const res = await req("PUT", "/api/v1/exercise-data/squat_barbell_extra", { rm1: "100lb" });
+      expect(res.status).to.equal(400);
+      expect(res.data.error.message).to.include("Malformed exercise key");
+
+      const get = await req("GET", "/api/v1/exercise-data/squat_barbell_extra");
+      expect(get.status).to.equal(404);
+    });
+
+    it("accepts a valid built-in equipment suffix", async () => {
+      const res = await req("PUT", "/api/v1/exercise-data/squat_dumbbell", { rm1: "100lb" });
+      expect(res.status).to.equal(200);
+      expect(res.data.data.key).to.equal("squat_dumbbell");
+    });
+
+    async function firstGymId(): Promise<string> {
+      const { data } = await req("GET", "/api/v1/gyms");
+      return data.data.gyms[0].id;
+    }
+
+    it("treats a per-gym 'None' (null) as an omitted gym, not a stored undefined (round-trips through Dynamo)", async () => {
+      const gymId = await firstGymId();
+      // gymA gets a real equipment, gymB is set to None — only gymA should survive in the map.
+      const res = await req("PUT", "/api/v1/exercise-data/squat_barbell", {
+        equipment: { [gymId]: "dumbbell" },
+      });
+      expect(res.status).to.equal(200);
+      expect(res.data.data.equipment).to.deep.equal({ [gymId]: "dumbbell" });
+
+      const none = await req("PUT", "/api/v1/exercise-data/squat_barbell", { equipment: { [gymId]: null } });
+      expect(none.status).to.equal(200);
+      // "None" => the gym is absent from the map (no stored `undefined` that Dynamo would strip differently).
+      expect(none.data.data.equipment).to.deep.equal({});
+      const get = await req("GET", "/api/v1/exercise-data/squat_barbell");
+      expect(get.data.data.equipment).to.deep.equal({});
+    });
+
+    it("preserves an inherited app-style 'None' override when updating an unrelated field (regression)", async () => {
+      const gymId = await firstGymId();
+      // The app stores "None" as { [gymId]: undefined } (editEquipment.ts) and syncs it. Seed exactly that
+      // (the mock, like pre-strip Dynamo, keeps the undefined-valued key) — the state that used to 400.
+      const stored = await di.dynamo.get<any>({ tableName: userTableNames.prod.users, key: { id: userId } });
+      stored.storage.settings.exerciseData = { squat_barbell: { equipment: { [gymId]: undefined } } };
+      await di.dynamo.put({ tableName: userTableNames.prod.users, item: stored });
+
+      const upd = await req("PUT", "/api/v1/exercise-data/squat_barbell", { notes: "high bar" });
+      expect(upd.status).to.equal(200);
+      expect(upd.data.data.notes).to.equal("high bar");
+      expect(upd.data.data.equipment).to.deep.equal({});
+    });
+
+    it("clears all equipment overrides with top-level null, keeping other fields", async () => {
+      const gymId = await firstGymId();
+      await req("PUT", "/api/v1/exercise-data/squat_barbell", { rm1: "300lb", equipment: { [gymId]: "dumbbell" } });
+
+      const cleared = await req("PUT", "/api/v1/exercise-data/squat_barbell", { equipment: null });
+      expect(cleared.status).to.equal(200);
+      expect(cleared.data.data.equipment).to.equal(undefined);
+      expect(cleared.data.data.rm1).to.equal("300lb");
+    });
+
+    it("rejects an empty update with 400", async () => {
+      const res = await req("PUT", "/api/v1/exercise-data/squat_barbell", {});
+      expect(res.status).to.equal(400);
+      expect(res.data.error.code).to.equal("invalid_input");
+    });
+
+    it("resolves exerciseName for a custom exercise id containing '_'", async () => {
+      // Legacy/imported custom ids can contain "_"; Exercise_fromKey would mis-split them, so the formatter
+      // must look the id up exactly (like validateExerciseKey does) to fill exerciseName.
+      const stored = await di.dynamo.get<any>({ tableName: userTableNames.prod.users, key: { id: userId } });
+      stored.storage.settings.exercises = {
+        legacy_squat: {
+          vtype: "custom_exercise",
+          id: "legacy_squat",
+          name: "Legacy Squat",
+          isDeleted: false,
+          meta: { bodyParts: [], targetMuscles: [], synergistMuscles: [] },
+          types: [],
+        },
+      };
+      await di.dynamo.put({ tableName: userTableNames.prod.users, item: stored });
+
+      const set = await req("PUT", "/api/v1/exercise-data/legacy_squat", { rm1: "225lb" });
+      expect(set.status).to.equal(200);
+      expect(set.data.data.exerciseName).to.equal("Legacy Squat");
+
+      const get = await req("GET", "/api/v1/exercise-data/legacy_squat");
+      expect(get.data.data.exerciseName).to.equal("Legacy Squat");
+    });
+  });
+
   describe("CORS", () => {
     it("returns CORS headers on OPTIONS", async () => {
       const result = await handler(buildEvent("OPTIONS", "/api/v1/history"), { getRemainingTimeInMillis: () => 10000 });
