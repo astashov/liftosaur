@@ -211,7 +211,8 @@ function deserializeWorkoutRecord(
 
   return {
     vtype: "history_record",
-    date: dateStr,
+    // Store canonical ISO 8601 — Hermes (native) only parses strict ISO, unlike V8 which accepts the raw input
+    date: parsedDate.toISOString(),
     programId,
     programName: programName || "Adhoc",
     day,
