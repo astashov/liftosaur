@@ -37,7 +37,7 @@ import { Progress_doesUse1RM, Progress_editExerciseNotes } from "../models/progr
 import { StringUtils_dashcase } from "../utils/string";
 import { GroupHeader } from "./groupHeader";
 import { Settings_getNextTargetType } from "../models/settings";
-import { History_collectLastEntry, History_collectLastNote } from "../models/history";
+import { IPrevExerciseData } from "../models/history";
 import { DateUtils_format } from "../utils/date";
 import { IDispatch } from "../ducks/types";
 import { IEvaluatedProgram, IEvaluatedProgramDay, Program_getProgramExerciseForKeyAndDay } from "../models/program";
@@ -46,7 +46,6 @@ import {
   Equipment_getEquipmentDataForExerciseType,
 } from "../models/equipment";
 import { PlannerProgramExercise_currentDescription } from "../pages/planner/models/plannerProgramExercise";
-import { Collector } from "../utils/collector";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { IconReorder } from "./icons/iconReorder";
 import { navigateToModal } from "../navigation/navigationService";
@@ -59,9 +58,8 @@ interface IWorkoutExerciseCardProps {
   program?: IEvaluatedProgram;
   programDay?: IEvaluatedProgramDay;
   day: number;
-  history: IHistoryRecord[];
+  prevData?: IPrevExerciseData;
   progressId: number;
-  progressStartTime: number;
   supersetEntry?: IHistoryEntry;
   progressUserPromptedStateVars?: Partial<Record<string, IProgramState>>;
   isCurrentProgress: boolean;
@@ -104,15 +102,9 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
     () => lb<IHistoryRecord>().p("entries").i(props.entryIndex).p("warmupSets"),
     [props.entryIndex]
   );
-  const progressStartTime = props.progressStartTime;
-  const [{ lastHistoryEntry }, { lastNote, timestamp }] = useMemo(
-    () =>
-      Collector.build(props.history)
-        .addFn(History_collectLastEntry(progressStartTime, exerciseType))
-        .addFn(History_collectLastNote(progressStartTime, exerciseType))
-        .run(),
-    [props.history, exerciseType, progressStartTime]
-  );
+  const lastHistoryEntry = props.prevData?.lastEntry;
+  const lastNote = props.prevData?.lastNote;
+  const timestamp = props.prevData?.lastNoteTimestamp;
 
   const [isKebabMenuOpen, setIsKebabMenuOpen] = useState(false);
   const supersetEntry = props.supersetEntry;

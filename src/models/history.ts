@@ -383,6 +383,63 @@ export function History_collectLastNote(
   };
 }
 
+export interface IPrevExerciseData {
+  lastEntry?: IHistoryEntry;
+  lastEntryTimestamp?: number;
+  lastNote?: string;
+  lastNoteTimestamp?: number;
+  count: number;
+}
+
+// One pass over the whole history producing, per exercise key, the data each workout-exercise card
+// needs for its first paint: the previous started entry (for "last time" set values), the recent
+// note, and how many past records contain the exercise. The workout screen builds this once and
+// shares it across all exercise tabs — replacing the per-card O(total history) scans (collectLastEntry
+// + collectLastNote + collectAllHistoryRecordsOfExerciseType) that were the dominant source of
+// mount-frame jank for users with large histories. Mirrors the semantics of those three collectors.
+export function History_buildPrevExerciseData(
+  history: IHistoryRecord[],
+  beforeTime: number
+): Record<string, IPrevExerciseData> {
+  const twoMonthsAgo = beforeTime - 60 * 24 * 60 * 60 * 1000;
+  const result: Record<string, IPrevExerciseData> = {};
+  for (const hr of history) {
+    const time = hr.endTime ?? hr.startTime;
+    const isBefore = time < beforeTime;
+    const seenKeys = new Set<string>();
+    for (const entry of hr.entries) {
+      const key = Exercise_toKey(entry.exercise);
+      let data = result[key];
+      if (data == null) {
+        data = { count: 0 };
+        result[key] = data;
+      }
+      if (!seenKeys.has(key)) {
+        seenKeys.add(key);
+        data.count += 1;
+      }
+      if (
+        isBefore &&
+        Reps_isStarted(entry.sets) &&
+        (data.lastEntryTimestamp == null || time > data.lastEntryTimestamp)
+      ) {
+        data.lastEntry = entry;
+        data.lastEntryTimestamp = time;
+      }
+      if (
+        isBefore &&
+        entry.notes &&
+        time > twoMonthsAgo &&
+        (data.lastNoteTimestamp == null || time > data.lastNoteTimestamp)
+      ) {
+        data.lastNote = entry.notes;
+        data.lastNoteTimestamp = time;
+      }
+    }
+  }
+  return result;
+}
+
 export function History_collectWeightPersonalRecord(
   exerciseType: IExerciseType,
   unit: IUnit

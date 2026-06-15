@@ -28,6 +28,8 @@ import {
   Progress_getNextSupersetEntry,
 } from "../models/progress";
 import { IconPlus2 } from "./icons/iconPlus2";
+import { History_buildPrevExerciseData, IPrevExerciseData } from "../models/history";
+import { Exercise_toKey } from "../models/exercise";
 import { WorkoutExercise } from "./workoutExercise";
 import { WorkoutExercisePager } from "./workoutExercisePager";
 import { Scroller, IScrollerHandle } from "./scroller";
@@ -186,6 +188,13 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
     }
     return map;
   }, [progressEntries]);
+  // Build the "previous workout" lookup for every exercise once, here, instead of letting each
+  // exercise card scan the whole history on its own mount frame (the dominant workout-screen mount
+  // jank for large histories). Keyed on history identity, so it survives set completions.
+  const prevExerciseData = useMemo(
+    () => History_buildPrevExerciseData(props.history, props.progress.startTime),
+    [props.history, props.progress.startTime]
+  );
   const isCurrentProgress = Progress_isCurrent(props.progress);
   const progressStartTime = props.progress.startTime;
   const progressUserPromptedStateVars = props.progress.userPromptedStateVars;
@@ -244,6 +253,7 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
                   progressStartTime={progressStartTime}
                   userPromptedStateVars={progressUserPromptedStateVars}
                   supersetEntry={supersetByEntryId.get(entry.id)}
+                  prevData={prevExerciseData[Exercise_toKey(entry.exercise)]}
                   isCurrentProgress={isCurrentProgress}
                   helps={props.helps}
                   subscription={props.subscription}
@@ -277,6 +287,7 @@ interface IWorkoutExercisePageProps {
   progressStartTime: number;
   userPromptedStateVars?: Partial<Record<string, IProgramState>>;
   supersetEntry?: IHistoryEntry;
+  prevData?: IPrevExerciseData;
   isCurrentProgress: boolean;
   helps: string[];
   subscription: ISubscription;
@@ -311,6 +322,7 @@ function WorkoutExercisePageInner(props: IWorkoutExercisePageProps): JSX.Element
             progressStartTime={props.progressStartTime}
             userPromptedStateVars={props.userPromptedStateVars}
             supersetEntry={props.supersetEntry}
+            prevData={props.prevData}
             isCurrentProgress={props.isCurrentProgress}
             showHelp={true}
             helps={props.helps}

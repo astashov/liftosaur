@@ -11,6 +11,7 @@ import {
   History_collectMinAndMaxTime,
   History_collectWeightPersonalRecord,
   History_collect1RMPersonalRecord,
+  IPrevExerciseData,
 } from "../models/history";
 import { LinkButton } from "./linkButton";
 import { CollectionUtils_sort } from "../utils/collection";
@@ -37,6 +38,7 @@ interface IWorkoutExerciseProps {
   progressStartTime: number;
   userPromptedStateVars?: Partial<Record<string, IProgramState>>;
   supersetEntry?: IHistoryEntry;
+  prevData?: IPrevExerciseData;
   isCurrentProgress: boolean;
   showHelp?: boolean;
   helps: string[];
@@ -64,10 +66,15 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
     return () => clearTimeout(t);
   }, []);
 
-  // Cheap pass needed for the card's first paint: filter the full history down to this exercise (a
-  // per-record `.some` predicate) and the global time range. The per-set 1RM/PR math is deferred
-  // below so it stays off the mount frame for users with large histories.
+  // The "previous workout" values shown on first paint come from props.prevData, which the parent
+  // builds for the whole workout in a single pass — so the card mounts without scanning history here.
+  // This full per-exercise filter + sort + time range only feeds the deferred graph/PRs/history
+  // blocks below, so it's gated behind isHeavyContentReady to keep it off the mount frame (it was the
+  // dominant workout-screen mount jank for users with large histories).
   const [history, { maxTime: maxX, minTime: minX }] = useMemo(() => {
+    if (!isHeavyContentReady) {
+      return [[], { maxTime: 0, minTime: 0 }] as [IHistoryRecord[], { maxTime: number; minTime: number }];
+    }
     const results = Collector.build(props.history)
       .addFn(History_collectAllHistoryRecordsOfExerciseType(exerciseType))
       .addFn(History_collectMinAndMaxTime())
@@ -76,7 +83,7 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
       return props.settings.exerciseStatsSettings.ascendingSort ? a.startTime - b.startTime : b.startTime - a.startTime;
     });
     return results;
-  }, [props.history, exerciseType, props.settings.exerciseStatsSettings.ascendingSort]);
+  }, [isHeavyContentReady, props.history, exerciseType, props.settings.exerciseStatsSettings.ascendingSort]);
 
   // PRs feed only the (already deferred) graphs/PRs block, and the per-record 1RM math is the
   // expensive part — so defer it and run it over the already-filtered slice, not all history.
@@ -129,12 +136,11 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
         entryIndex={props.entryIndex}
         settings={props.settings}
         dispatch={props.dispatch}
-        history={history}
+        prevData={props.prevData}
         program={props.program}
         programDay={props.programDay}
         otherStates={props.otherStates}
         progressId={props.progressId}
-        progressStartTime={props.progressStartTime}
         supersetEntry={props.supersetEntry}
         progressUserPromptedStateVars={props.userPromptedStateVars}
         isCurrentProgress={props.isCurrentProgress}
@@ -143,7 +149,7 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
         subscription={props.subscription}
         hidePlatesCalculator={props.hidePlatesCalculator}
       />
-      {(history.length > 1 || showPrs) && (
+      {((props.prevData?.count ?? 0) > 1 || showPrs) && (
         <View className="items-center mt-2">
           <LinkButton className="text-sm" name="toggle-workout-graphs" onClick={onToggleGraphs}>
             {props.settings.workoutSettings.shouldHideGraphs ? "Show Graphs and PRs" : "Hide Graphs and PRs"}
