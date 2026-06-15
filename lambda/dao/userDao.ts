@@ -569,6 +569,36 @@ export class UserDao {
     });
   }
 
+  // Stats are stored one row per measurement value, keyed by name = `${timestamp}_${statKey}` (statKey is
+  // e.g. "weight", "chest", "bodyfat"), with `type` being the category. This mirrors how store()/saveStorage
+  // split stats out of the user blob, so a single-value upsert/delete stays consistent with full-sync writes.
+  public async saveStat(
+    userId: string,
+    statKey: string,
+    type: "weight" | "length" | "percentage",
+    stat: IStatsWeightValue | IStatsLengthValue | IStatsPercentageValue
+  ): Promise<void> {
+    const env = Utils_getEnv();
+    const statDb: IStatDb = {
+      name: `${stat.timestamp}_${statKey}`,
+      value: stat.value,
+      timestamp: stat.timestamp,
+      type,
+    };
+    await this.di.dynamo.put({
+      tableName: userTableNames[env].stats,
+      item: { ...statDb, userId },
+    });
+  }
+
+  public async deleteStat(userId: string, statKey: string, timestamp: number): Promise<void> {
+    const env = Utils_getEnv();
+    await this.di.dynamo.remove({
+      tableName: userTableNames[env].stats,
+      key: { userId, name: `${timestamp}_${statKey}` },
+    });
+  }
+
   public async store(user: ILimitedUserDao): Promise<void> {
     const env = Utils_getEnv();
     const storage = ObjectUtils_clone(user.storage);
@@ -696,6 +726,38 @@ export class UserDao {
         return rest;
       })
     );
+  }
+
+  // Page a single measurement key's values newest-first via the timestamp GSI. The GSI is partitioned per
+  // user and sorted by timestamp across ALL keys, so we narrow to one key with a filter on the stored
+  // `name` (`${timestamp}_${statKey}`); the dynamo wrapper keeps reading pages until `limit` post-filter
+  // matches accumulate. `beforeTimestamp` is the exclusive cursor (timestamps are unique within a key).
+  public async getStatsPage(
+    userId: string,
+    args: { statKey: string; beforeTimestamp?: number; limit: number }
+  ): Promise<(IStatsWeightValue | IStatsLengthValue | IStatsPercentageValue)[]> {
+    const env = Utils_getEnv();
+    const hasCursor = args.beforeTimestamp != null;
+    const statsDb = await this.di.dynamo.query<IStatDb & { userId?: string }>({
+      tableName: userTableNames[env].stats,
+      indexName: userTableNames[env].statsTimestamp,
+      expression: ["#userId = :userId", ...(hasCursor ? ["#timestamp < :timestamp"] : [])].join(" AND "),
+      filterExpression: "contains(#name, :suffix)",
+      scanIndexForward: false,
+      attrs: { "#userId": "userId", "#name": "name", ...(hasCursor ? { "#timestamp": "timestamp" } : {}) },
+      values: {
+        ":userId": userId,
+        ":suffix": `_${args.statKey}`,
+        ...(hasCursor ? { ":timestamp": args.beforeTimestamp } : {}),
+      },
+      limit: args.limit,
+    });
+    return statsDb.map((s) => ({
+      vtype: "stat" as const,
+      value: s.value,
+      timestamp: s.timestamp,
+      updatedAt: s.timestamp,
+    })) as (IStatsWeightValue | IStatsLengthValue | IStatsPercentageValue)[];
   }
 
   public async getLastBodyweightStats(userId: string): Promise<IStats> {

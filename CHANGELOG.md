@@ -15,6 +15,15 @@
 
 ---
 date: 2026-06-14
+title: Added API / MCP for body measurements
+---
+
+Now you can manage your body measurements through the API and MCP server - bodyweight, bodyfat, and body parts (neck, chest, waist, biceps, thighs, and the rest).
+
+Read your full measurement history, record new values (with a custom date if you're backfilling), edit a value, or delete one - all from an AI assistant or directly over the REST API.
+
+---
+date: 2026-06-14
 title: Added API / MCP for the equipment and exercise data
 ---
 

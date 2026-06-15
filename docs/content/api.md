@@ -701,6 +701,98 @@ DELETE /api/v1/exercise-data/:key
 
 Clears all stored customizations for the exercise key, reverting it entirely to defaults — afterwards it no longer appears in List / Get. Returns `{ "data": { "deleted": true } }`, or `404` if nothing was stored. To clear just one field, use Set Exercise Data with that field set to `null` instead.
 
+### List Measurements
+
+Body measurements (bodyweight, body parts, and bodyfat) are recorded as time series. Each measurement is addressed by a _key_ that falls in one of three categories, and every value is a number with an **explicit unit suffix**:
+
+- **weight** — `weight` (bodyweight), e.g. `"180lb"` / `"82kg"`.
+- **percentage** — `bodyfat`, e.g. `"18%"`.
+- **length** — a body part, e.g. `"37cm"` / `"14.75in"`: `neck`, `shoulders`, `bicepLeft`, `bicepRight`, `forearmLeft`, `forearmRight`, `chest`, `waist`, `hips`, `thighLeft`, `thighRight`, `calfLeft`, `calfRight`.
+
+```
+GET /api/v1/measurements
+```
+
+A bounded overview — returns only keys that have at least one recorded value, each with the total `count` and the `latest` value (with its unix epoch ms `timestamp`, its stable id used by Update / Delete, an ISO 8601 `date`, and the unit-suffixed `value`). It does **not** return the full series — a key can hold thousands of values; page through them with Get Measurement.
+
+**Response:**
+
+```json
+{
+  "data": {
+    "measurements": [
+      {
+        "key": "weight",
+        "category": "weight",
+        "count": 412,
+        "latest": { "timestamp": 1700000000000, "date": "2023-11-14T22:13:20.000Z", "value": "180lb" }
+      }
+    ]
+  }
+}
+```
+
+### Get Measurement
+
+```
+GET /api/v1/measurements/:key?limit=50&cursor=1700000000000
+```
+
+Returns the recorded history for a single key, newest-first and paginated. Each value's unit is part of its string and may differ between values (changing your units setting does not convert past entries). `limit` defaults to 50 (max 200). The response includes `hasMore` and, when there are more, a `nextCursor` — pass it back as `cursor` to fetch the next (older) page. A valid key with no recorded values returns `200` with an empty `values` array; an unknown key returns `400`.
+
+**Response:**
+
+```json
+{
+  "data": {
+    "key": "weight",
+    "category": "weight",
+    "values": [
+      { "timestamp": 1700000000000, "date": "2023-11-14T22:13:20.000Z", "value": "180lb" }
+    ],
+    "hasMore": false
+  }
+}
+```
+
+### Add Measurement
+
+```
+POST /api/v1/measurements/:key
+Content-Type: application/json
+
+{
+  "value": "180lb",
+  "timestamp": 1700000000000
+}
+```
+
+- `value` (required) — a number with a unit suffix that matches the key's category: `lb`/`kg` for weight, `cm`/`in` for length, `%` for bodyfat (e.g. `"180lb"`, `"37cm"`, `"18%"`). The suffix is required.
+- `timestamp` (optional) — unix epoch ms or an ISO 8601 date string. Defaults to now.
+
+Returns the created value (`201`). Fails with `409` if a value already exists at that exact timestamp for the key — use Update Measurement instead.
+
+### Update Measurement
+
+```
+PUT /api/v1/measurements/:key/:timestamp
+Content-Type: application/json
+
+{
+  "value": "178lb"
+}
+```
+
+The `:timestamp` in the path identifies the existing value, and `value` (unit-suffixed, as in Add) is the new reading. The timestamp is the entry's identity and isn't changed here — to re-date an entry, Delete it and Add it at the new time. Returns the updated value, `400` if `value` is missing/invalid, or `404` if no value exists at that timestamp.
+
+### Delete Measurement
+
+```
+DELETE /api/v1/measurements/:key/:timestamp
+```
+
+Deletes a single recorded value. Returns `{ "data": { "deleted": true } }`, or `404` if no value exists at that timestamp.
+
 ## Liftoscript and Liftoscript Workouts
 
 Programs use Liftoscript - a custom DSL for defining workout programs. It's not a standard format, so you'll need to learn the syntax to write valid programs. Check out the built-in program library for examples, or use the [MCP server](/docs/mcp) to let an AI assistant write programs for you.

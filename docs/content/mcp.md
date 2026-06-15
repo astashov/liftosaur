@@ -202,6 +202,16 @@ These are the tools the AI assistant can call on your behalf:
 | `set_exercise_data` | Set/upsert per-exercise settings; pass `null` for a field to clear it |
 | `delete_exercise_data` | Clear all stored customizations for an exercise key |
 
+### Measurements
+
+| Tool | What it does |
+|------|-------------|
+| `list_measurements` | Overview of tracked body measurements (bodyweight, body parts, bodyfat): count + latest value per key |
+| `get_measurement` | Get the recorded history for one key (e.g. `weight`, `chest`, `bodyfat`), newest-first, paginated |
+| `add_measurement` | Record a new value with a unit suffix (e.g. `180lb`, `37cm`, `18%`); timestamp defaults to now |
+| `update_measurement` | Change the reading at a given timestamp (the timestamp itself is fixed — re-date via delete + add) |
+| `delete_measurement` | Delete a single recorded value |
+
 ### Testing and Analysis
 
 | Tool | What it does |

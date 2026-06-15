@@ -1,3 +1,5 @@
+import { MEASUREMENT_KEYS } from "../utils/apiv1Measurements";
+
 export interface IMcpToolAnnotations {
   title?: string;
   readOnlyHint?: boolean;
@@ -26,6 +28,12 @@ export interface IMcpToolDef {
     required?: string[];
   };
 }
+
+// Imported from the API layer (derived from statsWeightDef/statsLengthDef/statsPercentageDef in
+// src/types.ts) so the MCP schema enum can't drift from what the REST handlers accept.
+const MEASUREMENT_KEYS_DESC = `Valid keys: ${MEASUREMENT_KEYS.join(", ")} ('weight' is bodyweight, 'bodyfat' is a percentage, the rest are body lengths).`;
+const MEASUREMENT_VALUE_DESC =
+  'A number with an explicit unit suffix: weight as "180lb"/"82kg", a body length as "37cm"/"14.75in", bodyfat as "18%". The suffix is required and must match the key\'s category.';
 
 const EQUIPMENT_WEIGHT_DESC = 'Weight string like "45lb" or "20kg"';
 const BUILTIN_EQUIPMENT_KEYS = [
@@ -616,6 +624,79 @@ export const mcpTools: IMcpToolDef[] = [
         key: { type: "string", description: "Exercise key whose customizations to delete." },
       },
       required: ["key"],
+    },
+  },
+
+  // --- Measurements ---
+  {
+    name: "list_measurements",
+    description:
+      'Overview of the user\'s tracked body measurements (bodyweight, body parts, bodyfat). Each measurement is keyed by name and falls in one of three categories: weight (`weight` = bodyweight, in kg/lb), percentage (`bodyfat`, in %), or length (a body part, in cm/in). Returns, per key that has data, the total `count` of recorded values and the `latest` one (with its unix epoch ms `timestamp`, an ISO 8601 `date`, and a unit-suffixed `value` like "180lb"). Keys with no recorded values are omitted. This does NOT return the full series — a key can have thousands of values; page through them with get_measurement.',
+    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "get_measurement",
+    description: `Get the recorded history for a single measurement key, newest-first, paginated. ${MEASUREMENT_KEYS_DESC} Returns up to 'limit' values plus 'hasMore' and 'nextCursor'; pass 'nextCursor' back as 'cursor' to fetch the next (older) page. An empty list means nothing has been recorded for that key yet.`,
+    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: true },
+    inputSchema: {
+      type: "object",
+      properties: {
+        key: { type: "string", enum: MEASUREMENT_KEYS, description: "Measurement key." },
+        limit: { type: "string", description: "Max values to return (default 50, max 200)." },
+        cursor: { type: "string", description: "Pagination cursor (nextCursor from the previous page)." },
+      },
+      required: ["key"],
+    },
+  },
+  {
+    name: "add_measurement",
+    description: `Record a new measurement value. ${MEASUREMENT_KEYS_DESC} timestamp defaults to now; pass a unix epoch ms or ISO 8601 date to backfill a past entry. Fails with a conflict if an entry already exists at that exact timestamp — use update_measurement instead.`,
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+    inputSchema: {
+      type: "object",
+      properties: {
+        key: { type: "string", enum: MEASUREMENT_KEYS, description: "Measurement key." },
+        value: { type: "string", description: MEASUREMENT_VALUE_DESC },
+        timestamp: {
+          type: ["number", "string"],
+          description: "When the measurement was taken: unix epoch ms or ISO 8601 date string. Defaults to now.",
+        },
+      },
+      required: ["key", "value"],
+    },
+  },
+  {
+    name: "update_measurement",
+    description: `Change the reading of an existing measurement value, identified by its key and timestamp (from list/get). ${MEASUREMENT_KEYS_DESC} The timestamp is the entry's identity and can't be changed here — to re-date an entry, delete_measurement it and add_measurement it at the new time.`,
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+    inputSchema: {
+      type: "object",
+      properties: {
+        key: { type: "string", enum: MEASUREMENT_KEYS, description: "Measurement key." },
+        timestamp: {
+          type: ["number", "string"],
+          description: "Existing entry's timestamp (unix epoch ms) identifying which value to update.",
+        },
+        value: { type: "string", description: `New value. ${MEASUREMENT_VALUE_DESC}` },
+      },
+      required: ["key", "timestamp", "value"],
+    },
+  },
+  {
+    name: "delete_measurement",
+    description: `Delete a single recorded measurement value, identified by its key and timestamp (from list/get). ${MEASUREMENT_KEYS_DESC}`,
+    annotations: { readOnlyHint: false, destructiveHint: true, openWorldHint: true },
+    inputSchema: {
+      type: "object",
+      properties: {
+        key: { type: "string", enum: MEASUREMENT_KEYS, description: "Measurement key." },
+        timestamp: {
+          type: ["number", "string"],
+          description: "Timestamp (unix epoch ms) of the value to delete.",
+        },
+      },
+      required: ["key", "timestamp"],
     },
   },
 ];

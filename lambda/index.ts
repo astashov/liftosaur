@@ -163,6 +163,16 @@ import {
   putV1ExerciseDataHandler,
   deleteV1ExerciseDataEndpoint,
   deleteV1ExerciseDataHandler,
+  getV1MeasurementsListEndpoint,
+  getV1MeasurementsListHandler,
+  getV1MeasurementEndpoint,
+  getV1MeasurementHandler,
+  postV1MeasurementEndpoint,
+  postV1MeasurementHandler,
+  putV1MeasurementEndpoint,
+  putV1MeasurementHandler,
+  deleteV1MeasurementEndpoint,
+  deleteV1MeasurementHandler,
 } from "./api/v1";
 import {
   getMcpEndpoint,
@@ -3381,6 +3391,11 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .get(getV1ExerciseDataEndpoint, getV1ExerciseDataHandler)
       .put(putV1ExerciseDataEndpoint, putV1ExerciseDataHandler)
       .delete(deleteV1ExerciseDataEndpoint, deleteV1ExerciseDataHandler)
+      .get(getV1MeasurementsListEndpoint, getV1MeasurementsListHandler)
+      .get(getV1MeasurementEndpoint, getV1MeasurementHandler)
+      .post(postV1MeasurementEndpoint, postV1MeasurementHandler)
+      .put(putV1MeasurementEndpoint, putV1MeasurementHandler)
+      .delete(deleteV1MeasurementEndpoint, deleteV1MeasurementHandler)
       .get(getMcpEndpoint, getMcpHandler)
       .delete(deleteMcpEndpoint, deleteMcpHandler)
       .post(postMcpEndpoint, postMcpHandler)

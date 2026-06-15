@@ -820,6 +820,194 @@ Squat / 3x5 / 100lb`;
     });
   });
 
+  describe("measurement endpoints", () => {
+    let apiKey: string;
+    const ctx = { getRemainingTimeInMillis: () => 10000 };
+
+    beforeEach(async () => {
+      const created = await service.createApiKey("Measurements Key");
+      apiKey = created!.key;
+    });
+
+    async function req(
+      method: string,
+      path: string,
+      body?: unknown,
+      qs?: Record<string, string>
+    ): Promise<{ status: number; data: any }> {
+      const result = await handler(buildEvent(method, path, { headers: apiHeaders(apiKey), body, qs }), ctx);
+      return { status: result.statusCode, data: parseBody(result) };
+    }
+
+    it("starts empty, then adds, gets, lists and deletes a bodyweight measurement", async () => {
+      const empty = await req("GET", "/api/v1/measurements");
+      expect(empty.status).to.equal(200);
+      expect(empty.data.data.measurements).to.deep.equal([]);
+
+      const add = await req("POST", "/api/v1/measurements/weight", {
+        value: "180lb",
+        timestamp: 1700000000000,
+      });
+      expect(add.status).to.equal(201);
+      expect(add.data.data.value).to.equal("180lb");
+      expect(add.data.data.timestamp).to.equal(1700000000000);
+      expect(add.data.data.date).to.equal(new Date(1700000000000).toISOString());
+
+      const get = await req("GET", "/api/v1/measurements/weight");
+      expect(get.status).to.equal(200);
+      expect(get.data.data.category).to.equal("weight");
+      expect(get.data.data.values.length).to.equal(1);
+      expect(get.data.data.values[0].value).to.equal("180lb");
+      expect(get.data.data.hasMore).to.equal(false);
+
+      const list = await req("GET", "/api/v1/measurements");
+      expect(list.data.data.measurements.map((m: any) => m.key)).to.deep.equal(["weight"]);
+      expect(list.data.data.measurements[0].count).to.equal(1);
+      expect(list.data.data.measurements[0].latest.value).to.equal("180lb");
+      expect(list.data.data.measurements[0]).to.not.have.property("values");
+
+      const del = await req("DELETE", "/api/v1/measurements/weight/1700000000000");
+      expect(del.status).to.equal(200);
+      expect(del.data.data.deleted).to.equal(true);
+
+      const after = await req("GET", "/api/v1/measurements/weight");
+      expect(after.data.data.values).to.deep.equal([]);
+    });
+
+    it("paginates a key's history newest-first with a timestamp cursor", async () => {
+      const base = 1700000000000;
+      for (let i = 0; i < 5; i++) {
+        const add = await req("POST", "/api/v1/measurements/weight", {
+          value: `${180 + i}lb`,
+          timestamp: base + i * 86400000,
+        });
+        expect(add.status).to.equal(201);
+      }
+
+      const page1 = await req("GET", "/api/v1/measurements/weight", undefined, { limit: "2" });
+      expect(page1.data.data.values.map((v: any) => v.timestamp)).to.deep.equal([
+        base + 4 * 86400000,
+        base + 3 * 86400000,
+      ]);
+      expect(page1.data.data.hasMore).to.equal(true);
+      expect(page1.data.data.nextCursor).to.equal(base + 3 * 86400000);
+
+      const page2 = await req("GET", "/api/v1/measurements/weight", undefined, {
+        limit: "2",
+        cursor: String(page1.data.data.nextCursor),
+      });
+      expect(page2.data.data.values.map((v: any) => v.timestamp)).to.deep.equal([base + 2 * 86400000, base + 86400000]);
+      expect(page2.data.data.hasMore).to.equal(true);
+
+      const page3 = await req("GET", "/api/v1/measurements/weight", undefined, {
+        limit: "2",
+        cursor: String(page2.data.data.nextCursor),
+      });
+      expect(page3.data.data.values.map((v: any) => v.timestamp)).to.deep.equal([base]);
+      expect(page3.data.data.hasMore).to.equal(false);
+      expect(page3.data.data.nextCursor).to.equal(undefined);
+
+      // The list summary stays bounded regardless of how many values exist.
+      const list = await req("GET", "/api/v1/measurements");
+      expect(list.data.data.measurements[0].count).to.equal(5);
+      expect(list.data.data.measurements[0].latest.timestamp).to.equal(base + 4 * 86400000);
+    });
+
+    it("rejects a non-numeric cursor with 400 (not a 500)", async () => {
+      const res = await req("GET", "/api/v1/measurements/weight", undefined, { cursor: "abc" });
+      expect(res.status).to.equal(400);
+      expect(res.data.error.message).to.include("cursor");
+    });
+
+    it("clamps an out-of-range limit instead of erroring", async () => {
+      await req("POST", "/api/v1/measurements/weight", { value: "180lb", timestamp: 1700000000000 });
+      await req("POST", "/api/v1/measurements/weight", { value: "181lb", timestamp: 1700000086400 });
+      const res = await req("GET", "/api/v1/measurements/weight", undefined, { limit: "-1" });
+      expect(res.status).to.equal(200);
+      expect(res.data.data.values.length).to.equal(1);
+      expect(res.data.data.hasMore).to.equal(true);
+    });
+
+    it("accepts a length value with its unit suffix", async () => {
+      const add = await req("POST", "/api/v1/measurements/chest", { value: "37.5cm" });
+      expect(add.status).to.equal(201);
+      expect(add.data.data.value).to.equal("37.5cm");
+    });
+
+    it("requires an explicit unit suffix (rejects a bare number)", async () => {
+      const res = await req("POST", "/api/v1/measurements/weight", { value: "180" });
+      expect(res.status).to.equal(400);
+      expect(res.data.error.message).to.include("unit suffix");
+    });
+
+    it("updates the value at a timestamp, keeping its identity", async () => {
+      await req("POST", "/api/v1/measurements/bodyfat", { value: "18%", timestamp: 1700000000000 });
+
+      const upd = await req("PUT", "/api/v1/measurements/bodyfat/1700000000000", { value: "16%" });
+      expect(upd.status).to.equal(200);
+      expect(upd.data.data.value).to.equal("16%");
+      expect(upd.data.data.timestamp).to.equal(1700000000000);
+
+      const get = await req("GET", "/api/v1/measurements/bodyfat");
+      expect(get.data.data.values.map((v: any) => v.value)).to.deep.equal(["16%"]);
+      expect(get.data.data.values.map((v: any) => v.timestamp)).to.deep.equal([1700000000000]);
+    });
+
+    it("re-dates an entry via delete + add", async () => {
+      await req("POST", "/api/v1/measurements/bodyfat", { value: "18%", timestamp: 1700000000000 });
+      expect((await req("DELETE", "/api/v1/measurements/bodyfat/1700000000000")).status).to.equal(200);
+      const re = await req("POST", "/api/v1/measurements/bodyfat", { value: "18%", timestamp: 1700000086400 });
+      expect(re.status).to.equal(201);
+      const get = await req("GET", "/api/v1/measurements/bodyfat");
+      expect(get.data.data.values.map((v: any) => v.timestamp)).to.deep.equal([1700000086400]);
+    });
+
+    it("rejects an unknown measurement key with 400", async () => {
+      const res = await req("POST", "/api/v1/measurements/notReal", { value: "1lb" });
+      expect(res.status).to.equal(400);
+      expect(res.data.error.code).to.equal("invalid_input");
+    });
+
+    it("rejects a unit that doesn't match the category with 400", async () => {
+      const res = await req("POST", "/api/v1/measurements/weight", { value: "80cm" });
+      expect(res.status).to.equal(400);
+      expect(res.data.error.message).to.include("not valid for a weight measurement");
+    });
+
+    it("rejects adding a duplicate timestamp with 409", async () => {
+      await req("POST", "/api/v1/measurements/weight", { value: "180lb", timestamp: 1700000000000 });
+      const dup = await req("POST", "/api/v1/measurements/weight", { value: "181lb", timestamp: 1700000000000 });
+      expect(dup.status).to.equal(409);
+    });
+
+    it("404s updating or deleting a missing measurement", async () => {
+      expect((await req("PUT", "/api/v1/measurements/weight/123", { value: "1lb" })).status).to.equal(404);
+      expect((await req("DELETE", "/api/v1/measurements/weight/123")).status).to.equal(404);
+    });
+
+    it("400s (not 404s) on a malformed identity timestamp", async () => {
+      for (const ts of ["abc", "1700000000000abc"]) {
+        const upd = await req("PUT", `/api/v1/measurements/weight/${ts}`, { value: "1lb" });
+        expect(upd.status, `PUT ${ts}`).to.equal(400);
+        expect(upd.data.error.message).to.include("timestamp");
+        const del = await req("DELETE", `/api/v1/measurements/weight/${ts}`);
+        expect(del.status, `DELETE ${ts}`).to.equal(400);
+      }
+    });
+
+    it("400s on a malformed pagination cursor (trailing garbage)", async () => {
+      const res = await req("GET", "/api/v1/measurements/weight", undefined, { cursor: "1700000000000abc" });
+      expect(res.status).to.equal(400);
+      expect(res.data.error.message).to.include("cursor");
+    });
+
+    it("rejects an empty update with 400", async () => {
+      await req("POST", "/api/v1/measurements/weight", { value: "180lb", timestamp: 1700000000000 });
+      const res = await req("PUT", "/api/v1/measurements/weight/1700000000000", {});
+      expect(res.status).to.equal(400);
+    });
+  });
+
   describe("CORS", () => {
     it("returns CORS headers on OPTIONS", async () => {
       const result = await handler(buildEvent("OPTIONS", "/api/v1/history"), { getRemainingTimeInMillis: () => 10000 });

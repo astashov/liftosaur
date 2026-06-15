@@ -32,6 +32,13 @@ import {
   ApiV1_setExerciseData,
   ApiV1_deleteExerciseData,
 } from "../utils/apiv1ExerciseData";
+import {
+  ApiV1_listMeasurements,
+  ApiV1_getMeasurement,
+  ApiV1_addMeasurement,
+  ApiV1_updateMeasurement,
+  ApiV1_deleteMeasurement,
+} from "../utils/apiv1Measurements";
 import { EventDao } from "../dao/eventDao";
 
 interface IPayload {
@@ -426,5 +433,85 @@ export const deleteV1ExerciseDataHandler: RouteHandler<
   const { event, di } = payload;
   return withApiAuthAndEvent(event, di, "api-v1-delete-exercise-data", async (auth) => {
     return resultToResponse(await ApiV1_deleteExerciseData(auth.userId, auth.user, params.key, di));
+  });
+};
+
+// --- Measurements Endpoints ---
+
+export const getV1MeasurementsListEndpoint = Endpoint.build("/api/v1/measurements");
+export const getV1MeasurementsListHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getV1MeasurementsListEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-list-measurements", async (auth) => {
+    return resultToResponse(await ApiV1_listMeasurements(auth.userId, auth.user, di));
+  });
+};
+
+export const getV1MeasurementEndpoint = Endpoint.build("/api/v1/measurements/:key", {
+  limit: "string?",
+  cursor: "string?",
+});
+export const getV1MeasurementHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getV1MeasurementEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-get-measurement", async (auth) => {
+    return resultToResponse(
+      await ApiV1_getMeasurement(auth.userId, auth.user, params.key, { limit: params.limit, cursor: params.cursor }, di)
+    );
+  });
+};
+
+export const postV1MeasurementEndpoint = Endpoint.build("/api/v1/measurements/:key");
+export const postV1MeasurementHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postV1MeasurementEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-add-measurement", async (auth) => {
+    const body = getBodyJson(event);
+    return resultToResponse(
+      await ApiV1_addMeasurement(
+        auth.userId,
+        auth.user,
+        params.key,
+        { value: body.value, timestamp: body.timestamp },
+        di
+      ),
+      201
+    );
+  });
+};
+
+export const putV1MeasurementEndpoint = Endpoint.build("/api/v1/measurements/:key/:timestamp");
+export const putV1MeasurementHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof putV1MeasurementEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-update-measurement", async (auth) => {
+    const body = getBodyJson(event);
+    return resultToResponse(
+      await ApiV1_updateMeasurement(auth.userId, auth.user, params.key, params.timestamp, { value: body.value }, di)
+    );
+  });
+};
+
+export const deleteV1MeasurementEndpoint = Endpoint.build("/api/v1/measurements/:key/:timestamp");
+export const deleteV1MeasurementHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof deleteV1MeasurementEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { event, di } = payload;
+  return withApiAuthAndEvent(event, di, "api-v1-delete-measurement", async (auth) => {
+    return resultToResponse(await ApiV1_deleteMeasurement(auth.userId, auth.user, params.key, params.timestamp, di));
   });
 };

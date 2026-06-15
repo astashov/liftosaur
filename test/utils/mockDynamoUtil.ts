@@ -24,6 +24,22 @@ const idKeys: Partial<Record<string, string[]>> = {
   lftPayments: ["userId", "transactionId"],
 };
 
+// Sort key used to order results when a query passes scanIndexForward. GSIs sort by a different attribute
+// than their base table, so they're listed explicitly here.
+const indexSortKeys: Partial<Record<string, string>> = {
+  [userTableNames.prod.statsTimestamp]: "timestamp",
+  [userTableNames.prod.historyRecordsDate]: "date",
+};
+
+function compareValues(a: unknown, b: unknown): number {
+  const an = typeof a === "number" ? a : Number(a);
+  const bn = typeof b === "number" ? b : Number(b);
+  if (!isNaN(an) && !isNaN(bn) && `${a}`.trim() !== "" && `${b}`.trim() !== "") {
+    return an - bn;
+  }
+  return `${a}`.localeCompare(`${b}`);
+}
+
 export class MockDynamoUtil implements IDynamoUtil {
   public data: Record<string, Record<string, unknown>> = {};
 
@@ -46,17 +62,67 @@ export class MockDynamoUtil implements IDynamoUtil {
       const value = Array.isArray(v) ? `IN (${v.map((x) => `${x}`).join(",")})` : `${v}`;
       expression = expression.replace(new RegExp(k, "g"), value);
     }
-    const equalMatch = expression.match(/(.*)\s*=\s*(.*)/);
-    if (equalMatch) {
-      const key = equalMatch[1].trim();
-      const value = equalMatch[2].trim();
-      return (item) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, eqeqeq
-        return (item as any)[key] == value;
-      };
-    } else {
-      return (_) => true;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const clauses: ((item: any) => boolean)[] = [];
+    let expr = expression;
+
+    expr = expr.replace(/([\w.]+)\s+BETWEEN\s+(\S+)\s+AND\s+(\S+)/gi, (_m, field: string, a: string, b: string) => {
+      clauses.push((item) => compareValues(item[field], a) >= 0 && compareValues(item[field], b) <= 0);
+      return "";
+    });
+    expr = expr.replace(/contains\(\s*([\w.]+)\s*,\s*([^)]+?)\s*\)/gi, (_m, field: string, val: string) => {
+      clauses.push((item) => typeof item[field] === "string" && item[field].includes(val));
+      return "";
+    });
+    expr = expr.replace(/begins_with\(\s*([\w.]+)\s*,\s*([^)]+?)\s*\)/gi, (_m, field: string, val: string) => {
+      clauses.push((item) => typeof item[field] === "string" && item[field].startsWith(val));
+      return "";
+    });
+
+    for (const part of expr.split(/\s+AND\s+/i)) {
+      const trimmed = part.trim();
+      if (!trimmed) {
+        continue;
+      }
+      const inMatch = trimmed.match(/^([\w.]+)\s+IN\s+\(([^)]*)\)$/i);
+      if (inMatch) {
+        const field = inMatch[1];
+        const options = inMatch[2].split(",").map((s) => s.trim());
+
+        clauses.push((item) => options.some((o) => `${item[field]}` === o));
+        continue;
+      }
+      const opMatch = trimmed.match(/^([\w.]+)\s*(<=|>=|<>|=|<|>)\s*(.+)$/);
+      if (opMatch) {
+        const [, field, op, raw] = opMatch;
+        const val = raw.trim();
+        clauses.push((item) => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const actual = (item as any)[field];
+          const c = compareValues(actual, val);
+          switch (op) {
+            case "=":
+              return `${actual}` === val;
+            case "<>":
+              return `${actual}` !== val;
+            case "<":
+              return c < 0;
+            case "<=":
+              return c <= 0;
+            case ">":
+              return c > 0;
+            case ">=":
+              return c >= 0;
+            default:
+              return true;
+          }
+        });
+      }
+      // Anything we don't recognize is left as match-all, preserving the mock's historical leniency.
     }
+
+    return (item) => clauses.every((c) => c(item));
   }
 
   public async query<T>(args: {
@@ -67,11 +133,34 @@ export class MockDynamoUtil implements IDynamoUtil {
     scanIndexForward?: boolean;
     attrs?: Record<string, string>;
     values?: Partial<Record<string, string | string[] | number>>;
+    limit?: number;
   }): Promise<T[]> {
     let values = ObjectUtils_values(this.data[args.tableName] || {}) as unknown as T[];
-    values = values.filter(
-      this.buildCondition({ filterExpression: args.expression, attrs: args.attrs, values: args.values })
-    );
+    const keyCondition = this.buildCondition<T>({
+      filterExpression: args.expression,
+      attrs: args.attrs,
+      values: args.values,
+    });
+    const filterCondition = args.filterExpression
+      ? this.buildCondition<T>({ filterExpression: args.filterExpression, attrs: args.attrs, values: args.values })
+      : () => true;
+    values = values.filter((item) => keyCondition(item) && filterCondition(item));
+
+    // Only GSI queries get ordered here (by the index's sort key). Base-table query order is left as-is to
+    // match the mock's historical behavior — tests that care about base-table order assert insertion order.
+    const sortKey = args.indexName ? indexSortKeys[args.indexName] : undefined;
+    if (args.scanIndexForward !== undefined && sortKey) {
+      values = [...values].sort((a, b) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const c = compareValues((a as any)[sortKey], (b as any)[sortKey]);
+        return args.scanIndexForward ? c : -c;
+      });
+    }
+
+    if (args.limit != null) {
+      values = values.slice(0, args.limit);
+    }
+
     return Promise.resolve(ObjectUtils_clone(values));
   }
 

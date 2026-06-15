@@ -37,6 +37,13 @@ import {
   ApiV1_deleteExerciseData,
   IWritableExerciseDataField,
 } from "../utils/apiv1ExerciseData";
+import {
+  ApiV1_listMeasurements,
+  ApiV1_getMeasurement,
+  ApiV1_addMeasurement,
+  ApiV1_updateMeasurement,
+  ApiV1_deleteMeasurement,
+} from "../utils/apiv1Measurements";
 import { IEither } from "../../src/utils/types";
 import { IMuscle, IExerciseKind } from "../../src/types";
 
@@ -344,6 +351,43 @@ export async function McpToolExecutor_execute(
 
     case "delete_exercise_data":
       return ApiV1_deleteExerciseData(userId, user, args.key as string, di);
+
+    case "list_measurements":
+      return ApiV1_listMeasurements(userId, user, di);
+
+    case "get_measurement":
+      return ApiV1_getMeasurement(
+        userId,
+        user,
+        args.key as string,
+        {
+          limit: args.limit != null ? String(args.limit) : undefined,
+          cursor: args.cursor != null ? String(args.cursor) : undefined,
+        },
+        di
+      );
+
+    case "add_measurement":
+      return ApiV1_addMeasurement(
+        userId,
+        user,
+        args.key as string,
+        { value: args.value != null ? String(args.value) : undefined, timestamp: args.timestamp },
+        di
+      );
+
+    case "update_measurement":
+      return ApiV1_updateMeasurement(
+        userId,
+        user,
+        args.key as string,
+        args.timestamp as string | number,
+        { value: args.value != null ? String(args.value) : undefined },
+        di
+      );
+
+    case "delete_measurement":
+      return ApiV1_deleteMeasurement(userId, user, args.key as string, args.timestamp as string | number, di);
 
     case "get_program_stats":
       return ApiV1_programStats(user, args.programText as string);
