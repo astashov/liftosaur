@@ -11,7 +11,7 @@ import { navigateToModal } from "../../navigation/navigationService";
 import { useUndoRedo } from "../../pages/builder/utils/undoredo";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { useNavOptions } from "../../navigation/useNavOptions";
-import { Program_evaluate, Program_getFirstProgramExercise } from "../../models/program";
+import { Program_evaluateCachedPlanner, Program_getFirstProgramExercise } from "../../models/program";
 import {
   PlannerProgramExercise_buildProgress,
   PlannerProgramExercise_getProgressDefaultArgs,
@@ -55,7 +55,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
   );
   useUndoRedo(plannerState, plannerDispatch);
 
-  const evaluatedProgram = Program_evaluate(plannerState.current.program, props.settings);
+  const evaluatedProgram = Program_evaluateCachedPlanner(plannerState.current.program, props.settings);
   let plannerExercise = evaluatedProgram.weeks[props.dayData.week - 1]?.days[
     props.dayData.dayInWeek - 1
   ].exercises.find((e) => e.key === props.exerciseKey);
@@ -233,6 +233,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
           <EditProgramExerciseProgress
             ui={plannerState.ui}
             program={plannerState.current.program}
+            evaluatedProgram={evaluatedProgram}
             plannerExercise={plannerExercise}
             settings={props.settings}
             plannerDispatch={plannerDispatch}
@@ -246,6 +247,7 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
           <EditProgramExerciseUpdate
             ui={plannerState.ui}
             program={plannerState.current.program}
+            evaluatedProgram={evaluatedProgram}
             plannerExercise={plannerExercise}
             settings={props.settings}
             plannerDispatch={plannerDispatch}

@@ -25,7 +25,7 @@ import { PlannerExerciseEvaluator } from "../../../pages/planner/plannerExercise
 import { IExercise, Exercise_findByNameEquipment, Exercise_fullName, Exercise_get } from "../../../models/exercise";
 import {
   IEvaluatedProgram,
-  Program_evaluate,
+  Program_evaluateCachedPlanner,
   Program_create,
   Program_getFirstProgramExercise,
 } from "../../../models/program";
@@ -43,7 +43,9 @@ export function EditProgramUiHelpers_changeFirstInstance(
   cb: (exercise: IPlannerProgramExercise) => void
 ): IPlannerProgram {
   const key = PlannerKey_fromFullName(plannerExercise.fullName, settings.exercises);
-  const evaluatedProgram = ObjectUtils_clone(Program_evaluate({ ...Program_create("Temp"), planner }, settings));
+  const evaluatedProgram = ObjectUtils_clone(
+    Program_evaluateCachedPlanner({ ...Program_create("Temp"), planner }, settings)
+  );
   PP_iterate2(evaluatedProgram.weeks, (e) => {
     const aKey = PlannerKey_fromFullName(e.fullName, settings.exercises);
     if (key === aKey) {
@@ -152,7 +154,9 @@ export function EditProgramUiHelpers_changeSets(
   settings: ISettings,
   cb: (set: IPlannerProgramExerciseEvaluatedSet) => void
 ): IPlannerProgram {
-  const evaluatedProgram = ObjectUtils_clone(Program_evaluate({ ...Program_create("Temp"), planner }, settings));
+  const evaluatedProgram = ObjectUtils_clone(
+    Program_evaluateCachedPlanner({ ...Program_create("Temp"), planner }, settings)
+  );
 
   PP_iterate2(evaluatedProgram.weeks, (e, weekIndex, dayInWeekIndex, dayIndex, exerciseIndex) => {
     if (e.key !== key) {
@@ -212,7 +216,9 @@ export function EditProgramUiHelpers_changeCurrentInstance3(
   shouldValidate: boolean,
   cb: (exercise: IPlannerProgramExercise) => void
 ): IPlannerProgram {
-  const evaluatedProgram = ObjectUtils_clone(Program_evaluate({ ...Program_create("Temp"), planner }, settings));
+  const evaluatedProgram = ObjectUtils_clone(
+    Program_evaluateCachedPlanner({ ...Program_create("Temp"), planner }, settings)
+  );
 
   const weeks = EditProgramUiHelpers_getWeeks2(evaluatedProgram, dayData, fullName, isRepeat);
   for (const week of weeks) {
@@ -278,7 +284,9 @@ export function EditProgramUiHelpers_duplicateCurrentInstance(
   newExerciseType: IExerciseType | string,
   settings: ISettings
 ): IPlannerProgram {
-  const evaluatedProgram = ObjectUtils_clone(Program_evaluate({ ...Program_create("Temp"), planner }, settings));
+  const evaluatedProgram = ObjectUtils_clone(
+    Program_evaluateCachedPlanner({ ...Program_create("Temp"), planner }, settings)
+  );
   const weeks = EditProgramUiHelpers_getWeeks2(evaluatedProgram, dayData, fullName);
 
   const add = [];
@@ -327,7 +335,9 @@ export function EditProgramUiHelpers_changeRepeating(
   settings: ISettings,
   shouldValidate: boolean
 ): IPlannerProgram {
-  const evaluatedProgram = ObjectUtils_clone(Program_evaluate({ ...Program_create("Temp"), planner }, settings));
+  const evaluatedProgram = ObjectUtils_clone(
+    Program_evaluateCachedPlanner({ ...Program_create("Temp"), planner }, settings)
+  );
 
   let repeatingExercise: IPlannerProgramExercise | undefined;
   const newRepeating: number[] = [];
@@ -375,7 +385,9 @@ export function EditProgramUiHelpers_deleteCurrentInstance(
   shouldValidate: boolean,
   allowDeleteEverywhere: boolean
 ): IPlannerProgram {
-  const evaluatedProgram = ObjectUtils_clone(Program_evaluate({ ...Program_create("Temp"), planner }, settings));
+  const evaluatedProgram = ObjectUtils_clone(
+    Program_evaluateCachedPlanner({ ...Program_create("Temp"), planner }, settings)
+  );
   const weeks = EditProgramUiHelpers_getWeeks2(evaluatedProgram, dayData, fullName);
 
   for (const week of weeks) {
@@ -396,7 +408,10 @@ export function EditProgramUiHelpers_deleteCurrentInstance(
     settings
   );
   if (!allowDeleteEverywhere) {
-    const newEvaluatedProgram = Program_evaluate({ ...Program_create("Temp"), planner: newPlanner }, settings);
+    const newEvaluatedProgram = Program_evaluateCachedPlanner(
+      { ...Program_create("Temp"), planner: newPlanner },
+      settings
+    );
     const firstExercise = Program_getFirstProgramExercise(newEvaluatedProgram, fullName);
     if (!firstExercise) {
       Dialog_alert("You cannot delete this exercise from all days on the screen. Do it from the Program screen.");
@@ -413,7 +428,9 @@ export function EditProgramUiHelpers_addInstance(
   exerciseType: IExerciseType | undefined,
   settings: ISettings
 ): IPlannerProgram {
-  const evaluatedProgram = ObjectUtils_clone(Program_evaluate({ ...Program_create("Temp"), planner }, settings));
+  const evaluatedProgram = ObjectUtils_clone(
+    Program_evaluateCachedPlanner({ ...Program_create("Temp"), planner }, settings)
+  );
   const { week, dayInWeek } = dayData;
   const targetDay = evaluatedProgram.weeks[week - 1]?.days[dayInWeek - 1];
   const { label, name } = PlannerExerciseEvaluator.extractNameParts(fullName, settings.exercises);
@@ -500,7 +517,9 @@ export function EditProgramUiHelpers_changeCurrentInstancePosition(
   toIndex: number,
   settings: ISettings
 ): IPlannerProgram {
-  const evaluatedProgram = ObjectUtils_clone(Program_evaluate({ ...Program_create("Temp"), planner }, settings));
+  const evaluatedProgram = ObjectUtils_clone(
+    Program_evaluateCachedPlanner({ ...Program_create("Temp"), planner }, settings)
+  );
   const weeks = EditProgramUiHelpers_getWeeks2(evaluatedProgram, dayData, fullName);
   const reorder = weeks.map((week) => ({ dayData: { ...dayData, week }, fromIndex, toIndex }));
   return new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner({ reorder });
@@ -513,7 +532,9 @@ export function EditProgramUiHelpers_changeAllInstances(
   shouldValidate: boolean,
   cb: (exercise: IPlannerProgramExercise) => void
 ): IPlannerProgram {
-  const evaluatedProgram = ObjectUtils_clone(Program_evaluate({ ...Program_create("Temp"), planner }, settings));
+  const evaluatedProgram = ObjectUtils_clone(
+    Program_evaluateCachedPlanner({ ...Program_create("Temp"), planner }, settings)
+  );
   PP_iterate2(evaluatedProgram.weeks, (e) => {
     if (e.fullName === fullName) {
       cb(e);
@@ -532,8 +553,8 @@ export function EditProgramUiHelpers_getChangedKeys(
   newPlanner: IPlannerProgram,
   settings: ISettings
 ): Partial<Record<string, string>> {
-  const { evaluatedWeeks: oldEvaluatedWeeks } = ObjectUtils_clone(PlannerProgram_evaluate(oldPlanner, settings));
-  const { evaluatedWeeks: newEvaluatedWeeks } = ObjectUtils_clone(PlannerProgram_evaluate(newPlanner, settings));
+  const { evaluatedWeeks: oldEvaluatedWeeks } = PlannerProgram_evaluate(oldPlanner, settings);
+  const { evaluatedWeeks: newEvaluatedWeeks } = PlannerProgram_evaluate(newPlanner, settings);
   const changedKeys: Partial<Record<string, string>> = {};
   for (let weekIndex = 0; weekIndex < oldEvaluatedWeeks.length; weekIndex++) {
     const oldWeek = oldEvaluatedWeeks[weekIndex];

@@ -6,7 +6,7 @@ import { IPlannerProgramExercise, IPlannerExerciseState, IPlannerExerciseUi } fr
 import { IProgram, ISettings } from "../../types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { LinkButton } from "../linkButton";
-import { IEvaluatedProgram, Program_evaluate, Program_getReusingUpdateExercises } from "../../models/program";
+import { IEvaluatedProgram, Program_getReusingUpdateExercises } from "../../models/program";
 import { PP_iterate2 } from "../../models/pp";
 import { MenuItemWrapper } from "../menuItem";
 import { InputSelect } from "../inputSelect";
@@ -19,6 +19,7 @@ import { CollectionUtils_uniqBy } from "../../utils/collection";
 
 interface IEditProgramExerciseUpdateProps {
   program: IProgram;
+  evaluatedProgram: IEvaluatedProgram;
   ui: IPlannerExerciseUi;
   plannerExercise: IPlannerProgramExercise;
   plannerDispatch: ILensDispatch<IPlannerExerciseState>;
@@ -49,7 +50,7 @@ function getUpdateReuseCandidates(
 export function EditProgramExerciseUpdate(props: IEditProgramExerciseUpdateProps): JSX.Element {
   const { plannerExercise } = props;
   const ownUpdate = plannerExercise.update;
-  const evaluatedProgram = Program_evaluate(props.program, props.settings);
+  const evaluatedProgram = props.evaluatedProgram;
   const lbUi = lb<IPlannerExerciseState>().p("ui");
   const [isOverriding, setIsOverriding] = useState(false);
 

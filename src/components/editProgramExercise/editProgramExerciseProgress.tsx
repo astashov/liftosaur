@@ -14,7 +14,6 @@ import { ILensDispatch } from "../../utils/useLensReducer";
 import { LinkButton } from "../linkButton";
 import {
   IEvaluatedProgram,
-  Program_evaluate,
   Program_getReusingCustomProgressExercises,
   Program_getReusingSetProgressExercises,
 } from "../../models/program";
@@ -38,6 +37,7 @@ import { ObjectUtils_entries } from "../../utils/object";
 
 interface IEditProgramExerciseProgressProps {
   program: IProgram;
+  evaluatedProgram: IEvaluatedProgram;
   ui: IPlannerExerciseUi;
   plannerExercise: IPlannerProgramExercise;
   plannerDispatch: ILensDispatch<IPlannerExerciseState>;
@@ -68,7 +68,7 @@ function getProgressReuseCandidates(
 export function EditProgramExerciseProgress(props: IEditProgramExerciseProgressProps): JSX.Element {
   const { plannerExercise } = props;
   const ownProgress = plannerExercise.progress;
-  const evaluatedProgram = Program_evaluate(props.program, props.settings);
+  const evaluatedProgram = props.evaluatedProgram;
   const lbUi = lb<IPlannerExerciseState>().p("ui");
   const [isOverriding, setIsOverriding] = useState(false);
 

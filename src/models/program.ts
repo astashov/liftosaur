@@ -90,6 +90,7 @@ import {
   IByExercise,
   IByTag,
   PlannerEvaluator_forceEvaluate,
+  PlannerEvaluator_evaluate,
   PlannerEvaluator_changeExerciseName,
 } from "../pages/planner/plannerEvaluator";
 import { PP_iterate2, PP_iterate } from "./pp";
@@ -103,7 +104,7 @@ import {
   PlannerProgramExercise_createExerciseFromEntry,
 } from "../pages/planner/models/plannerProgramExercise";
 import { CollectionUtils_sortBy, CollectionUtils_uniqBy } from "../utils/collection";
-import { PlannerSyntaxError } from "../pages/planner/plannerExerciseEvaluator";
+import { IPlannerEvalResult, PlannerSyntaxError } from "../pages/planner/plannerExerciseEvaluator";
 import { UrlUtils_build } from "../utils/url";
 import { Service } from "../api/service";
 import { EditProgram_initPlannerState } from "./editProgram";
@@ -825,36 +826,39 @@ export function Program_getProgramExerciseByTypeWeekAndDay(
   return exercise;
 }
 
-export function Program_forceEvaluate(program: IProgram, settings: ISettings): IEvaluatedProgram {
-  const planner = program.planner;
-  if (!planner) {
-    return {
-      type: "evaluatedProgram",
-      id: program.id,
-      planner: {
-        vtype: "planner",
-        name: program.name,
-        weeks: [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }],
-      },
+function Program_emptyEvaluatedProgram(program: IProgram): IEvaluatedProgram {
+  return {
+    type: "evaluatedProgram",
+    id: program.id,
+    planner: {
+      vtype: "planner",
       name: program.name,
-      errors: [],
-      nextDay: program.nextDay,
-      weeks: [
-        {
-          name: "Week 1",
-          days: [
-            {
-              name: "Day 1",
-              dayData: { day: 1, week: 1, dayInWeek: 1 },
-              exercises: [],
-            },
-          ],
-        },
-      ],
-      states: {},
-    };
-  }
-  const { evaluatedWeeks } = PlannerEvaluator_forceEvaluate(program.planner!, settings);
+      weeks: [{ name: "Week 1", days: [{ name: "Day 1", exerciseText: "" }] }],
+    },
+    name: program.name,
+    errors: [],
+    nextDay: program.nextDay,
+    weeks: [
+      {
+        name: "Week 1",
+        days: [
+          {
+            name: "Day 1",
+            dayData: { day: 1, week: 1, dayInWeek: 1 },
+            exercises: [],
+          },
+        ],
+      },
+    ],
+    states: {},
+  };
+}
+
+function Program_buildEvaluatedProgram(
+  program: IProgram,
+  planner: IPlannerProgram,
+  evaluatedWeeks: IPlannerEvalResult[][]
+): IEvaluatedProgram {
   let dayNum = 0;
   const errors: IEvaluatedProgramError[] = [];
   const weeks = planner.weeks.map((week, weekIndex) => {
@@ -886,19 +890,41 @@ export function Program_forceEvaluate(program: IProgram, settings: ISettings): I
       states[tag] = { ...states[tag], ...PlannerProgramExercise_getState(exercise) };
     }
   });
-  const result: IEvaluatedProgram = {
+  return {
     type: "evaluatedProgram",
     id: program.id,
     errors,
     planner,
     name: program.name,
     nextDay: program.nextDay,
-    weeks: weeks,
+    weeks,
     states,
   };
-  // console.log("Program text", PlannerProgram.generateFullText(program.planner?.weeks || []));
-  return result;
 }
+
+export function Program_forceEvaluate(program: IProgram, settings: ISettings): IEvaluatedProgram {
+  const planner = program.planner;
+  if (!planner) {
+    return Program_emptyEvaluatedProgram(program);
+  }
+  const { evaluatedWeeks } = PlannerEvaluator_forceEvaluate(planner, settings);
+  return Program_buildEvaluatedProgram(program, planner, evaluatedWeeks);
+}
+
+// Reuses the content-memoized planner evaluation that the edit screen already computed for its render,
+// so edit dispatches don't re-parse the whole program. The planner evaluation may be cached/shared, so
+// callers that mutate the returned exercises MUST clone first. Not interchangeable with Program_forceEvaluate,
+// which guarantees a fresh recompute.
+function Program_evaluateCachedPlannerImpl(program: IProgram, settings: ISettings): IEvaluatedProgram {
+  const planner = program.planner;
+  if (!planner) {
+    return Program_emptyEvaluatedProgram(program);
+  }
+  const { evaluatedWeeks } = PlannerEvaluator_evaluate(planner, settings);
+  return Program_buildEvaluatedProgram(program, planner, evaluatedWeeks);
+}
+
+export const Program_evaluateCachedPlanner = memoize(Program_evaluateCachedPlannerImpl, { maxSize: 10 });
 
 export function Program_getNumberOfExerciseInstances(program: IEvaluatedProgram, exerciseKey: string): number {
   let count = 0;
