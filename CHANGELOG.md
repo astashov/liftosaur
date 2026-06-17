@@ -14,6 +14,13 @@
 -->
 
 ---
+date: 2026-06-17
+title: Added Apple Watch complications
+---
+
+To get them - update the app from App Store
+
+---
 date: 2026-06-15
 title: Added API / MCP for body measurements
 ---
