@@ -8,6 +8,7 @@ import Combine
 import OSLog
 import WatchKit
 import AVFoundation
+import WidgetKit
 
 struct CompletedSetInfo: Equatable {
     let entryIndex: Int
@@ -18,8 +19,8 @@ struct CompletedSetInfo: Equatable {
 class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
     static let shared = WorkoutManager()
 
-    @Published var currentWorkout: WatchWorkout?
-    @Published var activeWorkout: WatchWorkout?
+    @Published var currentWorkout: WatchWorkout? { didSet { updateComplication() } }
+    @Published var activeWorkout: WatchWorkout? { didSet { updateComplication() } }
     @Published var setsCompletedDuringSync: CompletedSetInfo? = nil
     @Published var workoutStartTime: Date?
     @Published var isLoading = false
@@ -151,6 +152,20 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         }
     }
 
+    private func updateComplication() {
+        let info: ComplicationInfo?
+        if let active = activeWorkout {
+            info = ComplicationInfo(isOngoing: true, programName: active.programName, dayName: active.dayName)
+        } else if let next = currentWorkout {
+            info = ComplicationInfo(isOngoing: false, programName: next.programName, dayName: next.dayName)
+        } else {
+            info = nil
+        }
+        guard info != ComplicationStore.load() else { return }
+        ComplicationStore.save(info)
+        WidgetCenter.shared.reloadAllTimelines()
+    }
+
     func hasProgram() async -> Bool {
         guard let engine = engine,
               let storageJson = loadStorage() else {
@@ -229,6 +244,9 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         // End HealthKit session in background - don't block navigation
         Task { await HealthKitManager.shared.endWorkoutSession(save: false) }
         WatchConnectivityManager.shared.sendEndWorkout()
+        // Refresh the next workout before clearing activeWorkout, so the complication
+        // reflects the real next workout instead of the just-discarded one.
+        await loadNextWorkout()
         activeWorkout = nil
         workoutStartTime = nil
         restTimer = nil
@@ -246,6 +264,9 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         restTimer = nil
         restTimerMonitor?.invalidate()
         restTimerMonitor = nil
+        // The phone ended the workout; reload the next workout so the complication
+        // stops showing the ended one (synced phone storage already reflects it).
+        Task { await loadNextWorkout() }
     }
 
     func finishWorkout(saveToHealth: Bool) async -> WatchFinishWorkoutSummary? {
@@ -274,6 +295,11 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         } else {
             Logger.workout.error(" finishWorkout: getFinishWorkoutSummary returned nil")
         }
+
+        // Refresh the next workout from the just-finished storage (cache still local,
+        // before sync) and before clearing activeWorkout, so the complication shows the
+        // new next workout instead of the one that was just finished.
+        await loadNextWorkout()
 
         Task {
             await HealthKitManager.shared.endWorkoutSession(save: saveToHealth)

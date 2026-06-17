@@ -9,12 +9,14 @@ import SwiftUI
 import WatchKit
 import HealthKit
 import OSLog
+import WidgetKit
 
 /// Handles incoming workout configurations from the paired iPhone
 class WorkoutConfigurationHandler: NSObject, WKApplicationDelegate {
     func applicationDidFinishLaunching() {
         Logger.mirroring.info("Watch app did finish launching")
         WatchCrashReporter.shared.writeBreadcrumb("app_did_finish_launching")
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     func applicationDidBecomeActive() {
