@@ -15,6 +15,7 @@ export class MockIapAdapter implements IIapAdapter {
   public openManageSubscriptionsCalled: number = 0;
   public subscriptionProducts: IIapSubscriptionProduct[] = [];
   public inAppProducts: IIapInAppProduct[] = [];
+  public productPrices: Record<string, { price?: number; currency?: string }> = {};
   public requestSubscriptionCalls: IIapRequestSubscriptionArgs[] = [];
   public requestInAppProductCalls: { sku: string }[] = [];
   public finishTransactionCalls: IIapPurchase[] = [];
@@ -40,6 +41,10 @@ export class MockIapAdapter implements IIapAdapter {
 
   public async fetchInAppProducts(_skus: string[]): Promise<IIapInAppProduct[]> {
     return this.inAppProducts;
+  }
+
+  public async getProductPrice(productId: string): Promise<{ price?: number; currency?: string }> {
+    return this.productPrices[productId] ?? {};
   }
 
   public async getAvailablePurchases(): Promise<IIapPurchase[]> {

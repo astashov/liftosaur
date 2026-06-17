@@ -1645,6 +1645,9 @@ interface IStorageRaw {
   referrer?: string;
   attribution?: string;
   importSessions?: IImportSession[];
+  // Localized store prices (displayPrice strings keyed by product id) captured on a native device,
+  // synced so the web paywall can show the user's real prices instead of hardcoded US defaults.
+  subscriptionPrices?: Partial<Record<string, string>>;
   _versions?: unknown;
 }
 const _VStorage = v.object({
@@ -1671,6 +1674,7 @@ const _VStorage = v.object({
   referrer: v.optional(v.string()),
   attribution: v.optional(v.string()),
   importSessions: v.optional(v.array(VImportSession)),
+  subscriptionPrices: v.optional(v.record(v.string(), v.optional(v.string()))),
   _versions: v.optional(v.unknown()),
 });
 const _VStorageMatches: IEquals<v.InferOutput<typeof _VStorage>, IStorageRaw> = true;

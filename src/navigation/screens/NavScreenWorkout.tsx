@@ -94,7 +94,7 @@ export function NavScreenSubscription(): JSX.Element {
   return (
     <ScreenSubscriptionComponent
       history={state.storage.history}
-      prices={state.prices}
+      prices={{ ...state.storage.subscriptionPrices, ...state.prices }}
       offers={state.offers}
       appleOffer={state.appleOffer}
       googleOffer={state.googleOffer}

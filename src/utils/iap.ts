@@ -17,6 +17,9 @@ export class IapAdapter implements IIapAdapter {
   public async fetchInAppProducts(_skus: string[]): Promise<IIapInAppProduct[]> {
     return [];
   }
+  public async getProductPrice(_productId: string): Promise<{ price?: number; currency?: string }> {
+    return {};
+  }
   public async getAvailablePurchases(): Promise<IIapPurchase[]> {
     return [];
   }

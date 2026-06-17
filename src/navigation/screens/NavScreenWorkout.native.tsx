@@ -99,7 +99,7 @@ export function NavScreenSubscription(): JSX.Element {
   return (
     <ScreenSubscriptionComponent
       history={untrack(state.storage.history)}
-      prices={untrack(state.prices)}
+      prices={untrack({ ...state.storage.subscriptionPrices, ...state.prices })}
       offers={untrack(state.offers)}
       appleOffer={untrack(state.appleOffer)}
       googleOffer={untrack(state.googleOffer)}

@@ -29,6 +29,7 @@ import {
   IIapRequestSubscriptionArgs,
   IIapSubscriptionProduct,
 } from "./iapAdapter";
+import { IapHelpers_getSkus } from "./iapHelpers";
 
 const APPLE_KEY_IDENTIFIER = "CNHQ5ZL35U";
 
@@ -107,7 +108,10 @@ export class IapAdapter implements IIapAdapter {
     if (numericPrice == null && c == null) {
       return;
     }
-    this.priceCache.set(id, { price: numericPrice, currency: c });
+    // Merge, not clobber: a currency-only (or price-only) update must not drop the other field that
+    // a previous fetch already learned.
+    const existing = this.priceCache.get(id);
+    this.priceCache.set(id, { price: numericPrice ?? existing?.price, currency: c ?? existing?.currency });
   }
 
   public async initConnection(): Promise<void> {
@@ -133,6 +137,22 @@ export class IapAdapter implements IIapAdapter {
       this.cachePrice(p.id, (p as { price?: number | null }).price, currency);
     });
     return (result ?? []).map(toIapInAppProduct);
+  }
+
+  public async getProductPrice(productId: string): Promise<{ price?: number; currency?: string }> {
+    const cached = this.priceCache.get(productId);
+    if (cached?.price != null) {
+      return { price: cached.price, currency: cached.currency };
+    }
+    // A re-delivered purchase arrives before the paywall fetched prices, so warm the cache now by
+    // fetching the one product. lifetime is a one-time in-app product; monthly/yearly are subs.
+    if (productId === IapHelpers_getSkus().lifetime) {
+      await this.fetchInAppProducts([productId]);
+    } else {
+      await this.fetchSubscriptions([productId]);
+    }
+    const refreshed = this.priceCache.get(productId);
+    return { price: refreshed?.price, currency: refreshed?.currency };
   }
 
   public async getAvailablePurchases(): Promise<IIapPurchase[]> {

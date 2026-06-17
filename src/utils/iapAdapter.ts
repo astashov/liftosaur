@@ -70,6 +70,10 @@ export interface IIapAdapter {
   endConnection(): Promise<void>;
   fetchSubscriptions(skus: string[]): Promise<IIapSubscriptionProduct[]>;
   fetchInAppProducts(skus: string[]): Promise<IIapInAppProduct[]>;
+  // Resolves the numeric price/currency for a product, fetching from the store if it isn't already
+  // cached. Used to fill in revenue for purchase events delivered before the paywall was opened
+  // (background renewals, killed-app replays, restores).
+  getProductPrice(productId: string): Promise<{ price?: number; currency?: string }>;
   getAvailablePurchases(): Promise<IIapPurchase[]>;
   getActiveSubscriptions(): Promise<IIapActiveSubscription[]>;
   requestSubscription(args: IIapRequestSubscriptionArgs): Promise<void>;

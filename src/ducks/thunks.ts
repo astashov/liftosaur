@@ -113,7 +113,13 @@ import { UrlUtils_build } from "../utils/url";
 import { ImportFromLiftosaur_convertLiftosaurCsvToHistoryRecords } from "../utils/importFromLiftosaur";
 import { ImportFromHevy_convertHevyCsvToHistoryRecords } from "../utils/importFromHevy";
 import { Sync_getStorageUpdate2 } from "../utils/sync";
-import { ObjectUtils_values, ObjectUtils_filter, ObjectUtils_clone, ObjectUtils_omit } from "../utils/object";
+import {
+  ObjectUtils_values,
+  ObjectUtils_filter,
+  ObjectUtils_clone,
+  ObjectUtils_omit,
+  ObjectUtils_keys,
+} from "../utils/object";
 import { EditStats_uploadHealthStats } from "../models/editStats";
 import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
 import {
@@ -2172,10 +2178,25 @@ export function Thunk_iapHandlePurchase(purchase: IIapPurchase): IThunk {
       // A queued plan switch re-delivers the existing transaction (renewsAsProductId set); it's not a
       // new purchase, so don't double-count it as one.
       if (!purchase.renewsAsProductId) {
+        let price = purchase.price;
+        let currency = purchase.currency;
+        if (price == null) {
+          // Re-deliveries (background renewals, killed-app replays, restores) arrive before the
+          // paywall fetched prices, so resolve the product price now to avoid reporting af_revenue: 0.
+          // A transient store-lookup failure here must not skip the purchase event entirely - fall
+          // back to whatever the purchase already carried and still track.
+          try {
+            const resolved = await env.iap.getProductPrice(purchase.productId);
+            price = resolved.price ?? price;
+            currency = resolved.currency ?? currency;
+          } catch (e) {
+            console.warn("IAP getProductPrice failed", e);
+          }
+        }
         Analytics_trackPurchase({
           productId: purchase.productId,
-          price: purchase.price ?? 0,
-          currency: purchase.currency || "USD",
+          price: price ?? 0,
+          currency: currency || "USD",
           transactionId: purchase.transactionId ?? purchase.id,
           transactionDate: purchase.transactionDate,
         });
@@ -2231,7 +2252,7 @@ export function Thunk_redeemCouponIOS(): IThunk {
 }
 
 export function Thunk_iapFetchProducts(): IThunk {
-  return async (dispatch, _getState, env) => {
+  return async (dispatch, getState, env) => {
     if (!env.iap) {
       return;
     }
@@ -2265,6 +2286,22 @@ export function Thunk_iapFetchProducts(): IThunk {
         ],
         "Update prices for products"
       );
+      // Persist localized prices to synced storage so the web paywall can show them. Guard on change
+      // so an unchanged fetch on every app open doesn't bump the storage version and trigger a sync.
+      const storedPrices = getState().storage.subscriptionPrices ?? {};
+      const changed = ObjectUtils_keys(newPrices).some((k) => newPrices[k] !== storedPrices[k]);
+      if (changed) {
+        updateState(
+          dispatch,
+          [
+            lb<IState>()
+              .p("storage")
+              .p("subscriptionPrices")
+              .recordModify((v) => ({ ...(v ?? {}), ...newPrices })),
+          ],
+          "Save subscription prices to storage"
+        );
+      }
     } catch (e) {
       console.warn("IAP fetchProducts failed", e);
     }
