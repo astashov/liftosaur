@@ -38,7 +38,7 @@ export function NativeWatchBridge_sendClearAuthToWatch(): void {}
 
 export function NativeWatchBridge_clearWatchStorage(): void {}
 
-export function NativeWatchBridge_sendFinishWorkoutToWatch(): Promise<boolean> {
+export function NativeWatchBridge_sendFinishWorkoutToWatch(_saveToHealth: boolean): Promise<boolean> {
   return Promise.resolve(false);
 }
 

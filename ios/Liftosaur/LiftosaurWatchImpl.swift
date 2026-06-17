@@ -134,12 +134,12 @@ import WatchConnectivity
     lastStorageSentToWatch = nil
   }
 
-  @objc public func sendFinishWorkout(completion: @escaping (Bool) -> Void) {
+  @objc public func sendFinishWorkout(save: Bool, completion: @escaping (Bool) -> Void) {
     guard let session = session, session.activationState == .activated,
           session.isPaired && session.isWatchAppInstalled else {
       completion(false); return
     }
-    let message: [String: Any] = ["type": "finishWorkout"]
+    let message: [String: Any] = ["type": "finishWorkout", "saveToHealth": save]
     if session.isReachable {
       var didComplete = false
       let done: (Bool) -> Void = { watchSaved in

@@ -69,9 +69,10 @@ RCT_EXPORT_MODULE(LiftosaurWatch)
   resolve(nil);
 }
 
-- (void)sendFinishWorkoutToWatch:(RCTPromiseResolveBlock)resolve
+- (void)sendFinishWorkoutToWatch:(BOOL)saveToHealth
+                         resolve:(RCTPromiseResolveBlock)resolve
                           reject:(RCTPromiseRejectBlock)reject {
-  [[LiftosaurWatchImpl shared] sendFinishWorkoutWithCompletion:^(BOOL watchSaved) {
+  [[LiftosaurWatchImpl shared] sendFinishWorkoutWithSave:saveToHealth completion:^(BOOL watchSaved) {
     resolve(@(watchSaved));
   }];
 }

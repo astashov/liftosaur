@@ -396,7 +396,7 @@ function WorkoutHeaderInner(props: IWorkoutHeaderProps): JSX.Element {
           calories: History_calories(props.progress),
           intervals: JSON.stringify(intervals),
         });
-        const watchSaved = shouldSyncToHealth ? await NativeWatchBridge_sendFinishWorkoutToWatch() : false;
+        const watchSaved = await NativeWatchBridge_sendFinishWorkoutToWatch(!!shouldSyncToHealth);
         NativeWorkoutMirroring_resetWatchWorkoutState();
         if (shouldSyncToHealth && !watchSaved) {
           const validIntervals = intervals.filter((i): i is [number, number] => i[1] != null);

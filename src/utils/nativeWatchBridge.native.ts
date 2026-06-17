@@ -52,11 +52,11 @@ export function NativeWatchBridge_clearWatchStorage(): void {
   NativeLiftosaurWatch!.clearWatchStorage().catch(() => {});
 }
 
-export function NativeWatchBridge_sendFinishWorkoutToWatch(): Promise<boolean> {
+export function NativeWatchBridge_sendFinishWorkoutToWatch(saveToHealth: boolean): Promise<boolean> {
   if (Platform.OS !== "ios") {
     return Promise.resolve(false);
   }
-  return NativeLiftosaurWatch!.sendFinishWorkoutToWatch().catch(() => false);
+  return NativeLiftosaurWatch!.sendFinishWorkoutToWatch(saveToHealth).catch(() => false);
 }
 
 export function NativeWatchBridge_sendDiscardWorkoutToWatch(): void {

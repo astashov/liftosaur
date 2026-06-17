@@ -202,14 +202,16 @@ extension WatchConnectivityManager: WCSessionDelegate {
             return
         }
         if message["type"] as? String == "finishWorkout" {
-            Logger.wc.info(" received finishWorkout from phone (with reply)")
+            let saveToHealth = message["saveToHealth"] as? Bool ?? true
+            Logger.wc.info(" received finishWorkout from phone (with reply), saveToHealth: \(saveToHealth)")
             Task { @MainActor in
                 let hadActiveSession = HealthKitManager.shared.isSessionActive
-                replyHandler(["watchSaved": hadActiveSession])
-                Logger.wc.info(" replied watchSaved=\(hadActiveSession), now ending session")
+                let didSave = hadActiveSession && saveToHealth
+                replyHandler(["watchSaved": didSave])
+                Logger.wc.info(" replied watchSaved=\(didSave), now ending session")
                 WorkoutManager.shared.clearWorkoutState()
                 if hadActiveSession {
-                    await HealthKitManager.shared.endWorkoutSession(save: true)
+                    await HealthKitManager.shared.endWorkoutSession(save: saveToHealth)
                 }
             }
             return
