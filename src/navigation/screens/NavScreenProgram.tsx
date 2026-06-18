@@ -95,10 +95,17 @@ export function NavScreenEditProgramExercise(): JSX.Element {
   const plannerState = state.editProgramExerciseStates[exerciseStateKey];
   const editProgramState = state.editProgramStates[programId];
   const [didInit, setDidInit] = useState(false);
-  const ownedKeysRef = useRef<Set<string>>(new Set());
-  ownedKeysRef.current.add(exerciseStateKey);
+  const hasInitedRef = useRef(false);
 
+  // Init runs once per genuine mount. RN-screens freeze (freezeOnBlur) tears down
+  // and re-runs layout effects when this screen is fully obscured by stacked
+  // modals; the ref guard prevents unfreeze from re-initializing, which would
+  // rebuild from the saved program and discard in-progress edits. The edit state
+  // is cleared on real route removal via screenRemovalCleanup, not on unmount.
   useLayoutEffect(() => {
+    if (hasInitedRef.current) {
+      return;
+    }
     const isFromWorkout = fromWorkout ?? editProgramState == null;
     const program = isFromWorkout
       ? Program_getProgram(state, programId)
@@ -107,6 +114,7 @@ export function NavScreenEditProgramExercise(): JSX.Element {
       dispatch(Thunk_pushScreen("main", undefined, { tab: "home" }));
       return;
     }
+    hasInitedRef.current = true;
     const newPlannerState = EditProgram_initPlannerProgramExerciseState(
       program,
       state.storage.settings,
@@ -120,24 +128,6 @@ export function NavScreenEditProgramExercise(): JSX.Element {
       "Init edit exercise state"
     );
     setDidInit(true);
-    return () => {
-      const keysToClear = Array.from(ownedKeysRef.current);
-      updateState(
-        dispatch,
-        [
-          lb<IState>()
-            .p("editProgramExerciseStates")
-            .recordModify((states) => {
-              const next = { ...states };
-              for (const k of keysToClear) {
-                delete next[k];
-              }
-              return next;
-            }),
-        ],
-        "Clear edit exercise state"
-      );
-    };
   }, []);
 
   const pendingNewKey = plannerState?.ui.pendingNewKey;
@@ -146,6 +136,40 @@ export function NavScreenEditProgramExercise(): JSX.Element {
       navigation.setParams({ key: pendingNewKey } as never);
     }
   }, [pendingNewKey]);
+
+  // An exercise type swap (picker onNewKey) creates a new keyed entry and
+  // migrates to it via pendingNewKey/setParams; drop the now-orphaned previous
+  // entry so only the current key remains for route-removal cleanup to clear.
+  // Guarded on the new entry actually existing: undo/redo (reducer.ts) also
+  // setParams the key but keeps the edit state under the previous key with no
+  // new entry — deleting it there would lose the edit session.
+  const prevStateKeyRef = useRef(exerciseStateKey);
+  useEffect(() => {
+    const prevKey = prevStateKeyRef.current;
+    if (prevKey === exerciseStateKey) {
+      return;
+    }
+    prevStateKeyRef.current = exerciseStateKey;
+    if (state.editProgramExerciseStates[exerciseStateKey] == null) {
+      return;
+    }
+    updateState(
+      dispatch,
+      [
+        lb<IState>()
+          .p("editProgramExerciseStates")
+          .recordModify((states) => {
+            if (states[prevKey] == null) {
+              return states;
+            }
+            const next = { ...states };
+            delete next[prevKey];
+            return next;
+          }),
+      ],
+      "Clear migrated exercise state"
+    );
+  }, [exerciseStateKey]);
 
   if (!didInit || plannerState == null) {
     return (

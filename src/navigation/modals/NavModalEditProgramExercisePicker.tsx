@@ -218,7 +218,14 @@ export function NavModalEditProgramExercisePicker(): JSX.Element {
               return {
                 ...states,
                 [oldStateKey]: { ...currentState, ui: { ...currentState.ui, pendingNewKey: newKey } },
-                [newStateKey]: { ...currentState, ui: { ...currentState.ui, exercisePickerState: undefined } },
+                // Reset history so the type change is a commit point: undo can't
+                // walk back across the key boundary (which would re-point the
+                // route to the old key whose entry the migration cleanup drops).
+                [newStateKey]: {
+                  ...currentState,
+                  history: { past: [], future: [] },
+                  ui: { ...currentState.ui, exercisePickerState: undefined },
+                },
               };
             }),
         ],

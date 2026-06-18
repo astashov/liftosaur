@@ -1,5 +1,5 @@
 import { JSX, useEffect, useMemo } from "react";
-import { useRoute, useNavigation } from "@react-navigation/native";
+import { useRoute, useNavigation, useIsFocused } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
 import { FormSheet } from "../FormSheet";
@@ -16,6 +16,7 @@ import type { IRootStackParamList } from "../types";
 export function NavModalCreateStateVariable(): JSX.Element {
   const { state, dispatch } = useAppState();
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
   const route = useRoute<{
     key: string;
     name: "createStateVariableModal";
@@ -56,10 +57,13 @@ export function NavModalCreateStateVariable(): JSX.Element {
 
   const shouldGoBack = !plannerState || !plannerDispatch || !plannerExercise;
   useEffect(() => {
-    if (shouldGoBack) {
+    // Only auto-close when this screen is actually on top — otherwise goBack()
+    // pops a child modal stacked above. useIsFocused() is reactive and in the
+    // deps, so a close deferred while a child is open runs once focus returns.
+    if (shouldGoBack && isFocused) {
       navigation.goBack();
     }
-  }, [shouldGoBack]);
+  }, [shouldGoBack, isFocused, navigation]);
 
   if (shouldGoBack) {
     return <></>;

@@ -1147,7 +1147,7 @@ export function Thunk_maybeRequestSignup(): IThunk {
   };
 }
 
-export const screensWithEditState: IScreen[] = ["progress", "editProgram"];
+export const screensWithEditState: IScreen[] = ["progress", "editProgram", "editProgramExercise"];
 
 function cleanupScreenEditState(dispatch: IDispatch, state: IState, screen: IScreenData): void {
   if (screen.name === "progress") {
@@ -1175,6 +1175,21 @@ function cleanupScreenEditState(dispatch: IDispatch, state: IState, screen: IScr
             .recordModify((states) => ObjectUtils_omit(states, [programId])),
         ],
         "Stop edit program"
+      );
+    }
+  } else if (screen.name === "editProgramExercise") {
+    const programId = screen.params?.programId;
+    const exerciseKey = screen.params?.key;
+    const exerciseStateKey = programId != null && exerciseKey != null ? `${programId}_${exerciseKey}` : undefined;
+    if (exerciseStateKey != null && state.editProgramExerciseStates[exerciseStateKey] != null) {
+      updateState(
+        dispatch,
+        [
+          lb<IState>()
+            .p("editProgramExerciseStates")
+            .recordModify((states) => ObjectUtils_omit(states, [exerciseStateKey])),
+        ],
+        "Clear edit exercise state"
       );
     }
   }

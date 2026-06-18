@@ -22,6 +22,8 @@ function screenStateIdentity(screen: IScreenData): string {
     return `progress:${screen.params?.id ?? 0}`;
   } else if (screen.name === "editProgram") {
     return `editProgram:${screen.params?.programId}`;
+  } else if (screen.name === "editProgramExercise") {
+    return `editProgramExercise:${screen.params?.programId}_${screen.params?.key}`;
   }
   return `${screen.name}:${JSON.stringify(screen.params ?? {})}`;
 }
