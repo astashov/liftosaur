@@ -29,6 +29,7 @@ export interface ILogDao {
   month: number;
   day: number;
   referrer?: string;
+  landingPage?: string;
 }
 
 export class LogDao {
@@ -96,15 +97,32 @@ export class LogDao {
     return results;
   }
 
+  // Best-effort write of a server-initiated action row (optionally stamping the first-touch landing
+  // page). Used to link a phone account to its SEO origin at web sign-in / add-to-account time, so it
+  // must never throw and break the underlying request.
+  public async recordAction(userId: string, action: string, landingPage?: string): Promise<void> {
+    try {
+      await this.increment(userId, action, { name: "web" }, [], undefined, undefined, landingPage);
+    } catch (e) {
+      this.di.log.log("Failed to record log action", action, e);
+    }
+  }
+
   public async increment(
     userId: string,
     action: string,
     platform: { name: string; version?: string },
     subscriptions: ("apple" | "google")[],
     maybeAffiliates?: Partial<Record<string, IAffiliateData>>,
-    referrer?: string
+    referrer?: string,
+    landingPage?: string
   ): Promise<void> {
     const env = Utils_getEnv();
+    // Only write landingPage when present so cookieless calls (e.g. native app) don't overwrite the
+    // first-touch value captured from the web cookie.
+    const landingPageExpr = landingPage ? ", #landingPage = :landingPage" : "";
+    const landingPageAttrs: Record<string, string> = landingPage ? { "#landingPage": "landingPage" } : {};
+    const landingPageValues: Record<string, string> = landingPage ? { ":landingPage": landingPage } : {};
     const item = await this.di.dynamo.get<ILogDao>({ tableName: logTableNames[env].logs, key: { userId, action } });
     const itemProgramAffiliates = item?.affiliates || {};
     const programAffiliates = ObjectUtils_mapValues(
@@ -164,7 +182,8 @@ export class LogDao {
         tableName: logTableNames[env].logs,
         key: { userId, action },
         expression:
-          "SET #ts = :timestamp, #cnt = :cnt, #affiliates = :affiliates, #affiliatesCoupons = :affiliatesCoupons, #platforms = :platforms, #subscriptions = :subscriptions, #year = :year, #month = :month, #day = :day, #referrer = :referrer",
+          "SET #ts = :timestamp, #cnt = :cnt, #affiliates = :affiliates, #affiliatesCoupons = :affiliatesCoupons, #platforms = :platforms, #subscriptions = :subscriptions, #year = :year, #month = :month, #day = :day, #referrer = :referrer" +
+          landingPageExpr,
         attrs: {
           "#ts": "ts",
           "#cnt": "cnt",
@@ -176,6 +195,7 @@ export class LogDao {
           "#month": "month",
           "#day": "day",
           "#referrer": "referrer",
+          ...landingPageAttrs,
         },
         values: {
           ":timestamp": Date.now(),
@@ -188,6 +208,7 @@ export class LogDao {
           ":month": month,
           ":day": day,
           ":referrer": referrer || "",
+          ...landingPageValues,
         },
       });
     } else {
@@ -195,7 +216,8 @@ export class LogDao {
         tableName: logTableNames[env].logs,
         key: { userId, action },
         expression:
-          "SET #ts = :timestamp, #cnt = :cnt, #platforms = :platforms, #subscriptions = :subscriptions, #year = :year, #month = :month, #day = :day, #referrer = :referrer",
+          "SET #ts = :timestamp, #cnt = :cnt, #platforms = :platforms, #subscriptions = :subscriptions, #year = :year, #month = :month, #day = :day, #referrer = :referrer" +
+          landingPageExpr,
         attrs: {
           "#ts": "ts",
           "#cnt": "cnt",
@@ -205,6 +227,7 @@ export class LogDao {
           "#month": "month",
           "#day": "day",
           "#referrer": "referrer",
+          ...landingPageAttrs,
         },
         values: {
           ":timestamp": Date.now(),
@@ -215,6 +238,7 @@ export class LogDao {
           ":month": month,
           ":day": day,
           ":referrer": referrer || "",
+          ...landingPageValues,
         },
       });
     }

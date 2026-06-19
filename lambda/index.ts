@@ -270,6 +270,12 @@ function getUserAgent(event: APIGatewayProxyEvent): string {
   return event.headers["user-agent"] || event.headers["User-Agent"] || "";
 }
 
+function getLandingPageCookie(event: APIGatewayProxyEvent): string | undefined {
+  const cookies = Cookie.parse(event.headers.Cookie || event.headers.cookie || "");
+  const raw = cookies.lft_landing;
+  return raw && raw.startsWith("/") && raw.length <= 256 ? raw : undefined;
+}
+
 function getIsLoggedIn(event: APIGatewayProxyEvent): boolean {
   const authState = event.headers["x-auth-state"] || event.headers["X-Auth-State"];
   return authState === "yes";
@@ -949,6 +955,11 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
           resp.session = session;
         }
 
+        const landingPage = getLandingPageCookie(event);
+        if (userId && landingPage && !isNativeClient) {
+          await new LogDao(di).recordAction(userId, "ls-web-signin", landingPage);
+        }
+
         return {
           statusCode: 200,
           body: JSON.stringify(resp),
@@ -1077,6 +1088,11 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
     resp.session = session;
   }
 
+  const landingPage = getLandingPageCookie(event);
+  if (userId && landingPage && !isNativeClient) {
+    await new LogDao(di).recordAction(userId, "ls-web-signin", landingPage);
+  }
+
   return {
     statusCode: 200,
     body: JSON.stringify(resp),
@@ -1139,6 +1155,7 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
   if (user != null) {
     const bodyJson = getBodyJson(event);
     const deviceId = bodyJson.deviceId as string | undefined;
+    const source = bodyJson.source as string | undefined;
     const exportedProgram: IExportedProgram = bodyJson.program;
     const userDao = new UserDao(di);
     const eventDao = new EventDao(di);
@@ -1244,6 +1261,9 @@ const postSaveProgramHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
       eventPost,
       saveVersions,
     ]);
+    if (source === "program-details") {
+      await new LogDao(di).recordAction(user.id, "ls-add-program-to-account", getLandingPageCookie(event));
+    }
     return ResponseUtils_json(200, event, { data: { id: exportedProgram.program.id } });
   }
   return ResponseUtils_json(400, event, { error: "Not Authorized" });
@@ -1505,7 +1525,21 @@ const logEndpoint = Endpoint.build("/api/log");
 const logHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof logEndpoint> = async ({ payload }) => {
   const { event, di } = payload;
   const env = Utils_getEnv();
-  const { user, action, affiliates, platform, subscriptions, key, enforce, referrer } = getBodyJson(event);
+  const {
+    user,
+    action,
+    affiliates,
+    platform,
+    subscriptions,
+    key,
+    enforce,
+    referrer,
+    landingPage: bodyLandingPage,
+  } = getBodyJson(event);
+  const landingPage =
+    typeof bodyLandingPage === "string" && bodyLandingPage.startsWith("/") && bodyLandingPage.length <= 256
+      ? bodyLandingPage
+      : getLandingPageCookie(event);
   let data: { result: "ok" | "error"; clear?: boolean };
   if (user && action) {
     let clear: boolean | undefined;
@@ -1515,7 +1549,7 @@ const logHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof logEndpoi
         clear = true;
       }
     }
-    await new LogDao(di).increment(user, action, platform, subscriptions, affiliates, referrer);
+    await new LogDao(di).increment(user, action, platform, subscriptions, affiliates, referrer, landingPage);
     data = { result: "ok", clear };
   } else {
     data = { result: "error" };

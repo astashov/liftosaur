@@ -256,6 +256,7 @@ export function Page<T>(props: IProps<T>): JSX.Element {
         <script dangerouslySetInnerHTML={{ __html: applyThemeBeforePaint() }} />
         <script dangerouslySetInnerHTML={{ __html: rollbar() }} />
         <script dangerouslySetInnerHTML={{ __html: storeUtmInLocalStorage() }} />
+        <script dangerouslySetInnerHTML={{ __html: storeLandingPageInCookie() }} />
         {props.jsonLd?.map((ld, i) => (
           <script
             key={i}
@@ -373,6 +374,20 @@ function storeUtmInLocalStorage(): string {
           window.localStorage.setItem(param, value);
         }
       });
+    })();
+    `;
+}
+
+function storeLandingPageInCookie(): string {
+  return `
+    (function() {
+      try {
+        if (typeof document === "undefined") { return; }
+        if (/(?:^|;\\s*)lft_landing=/.test(document.cookie)) { return; }
+        var path = window.location.pathname || "/";
+        document.cookie = "lft_landing=" + encodeURIComponent(path) +
+          "; path=/; domain=.liftosaur.com; max-age=31536000; samesite=lax";
+      } catch (e) {}
     })();
     `;
 }

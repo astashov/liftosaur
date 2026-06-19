@@ -71,7 +71,7 @@ export function BottomSheetNextWorkoutContent(props: IBottomSheetNextWorkoutCont
         >
           <View className="flex-row items-center">
             <IconSwap color={Tailwind_colors().blue[400]} size={16} />
-            <Text className="pl-1 text-sm font-bold underline text-text-link">Change next workout</Text>
+            <Text className="pl-1 text-sm font-bold underline text-text-link">Select next workout</Text>
           </View>
         </LinkButton>
         <LinkButton

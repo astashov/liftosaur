@@ -24,9 +24,28 @@ export interface IAnalyticsPurchaseEvent {
 export interface IAnalyticsInitOptions {
   userId?: string;
   onAttribution: (data: IAttributionData) => void;
+  onLandingPage?: (landingPage: string) => void;
 }
 
 let initialized = false;
+
+// On a deferred deep link (first install) AppsFlyer only delivers deep_link_value/deep_link_sub1, not
+// media_source/campaign. We put the bare page id in deep_link_value and the type in deep_link_sub1 (see
+// Platform_landingPageParams); reconstruct the path here so it matches the web-cookie landing format.
+function landingPageFromDeepLink(data: Record<string, unknown>): string | undefined {
+  const value = typeof data.deep_link_value === "string" ? data.deep_link_value : undefined;
+  if (!value) {
+    return undefined;
+  }
+  const type = typeof data.deep_link_sub1 === "string" ? data.deep_link_sub1 : undefined;
+  if (type === "program") {
+    return `/programs/${value}`;
+  }
+  if (type === "exercise") {
+    return `/exercises/${value}`;
+  }
+  return `/${value}`;
+}
 
 export function Analytics_initialize(opts: IAnalyticsInitOptions): () => void {
   if (initialized) {
@@ -48,6 +67,17 @@ export function Analytics_initialize(opts: IAnalyticsInitOptions): () => void {
     });
   });
 
+  // Must be registered before initSdk so the first (deferred) deep link isn't missed.
+  const deepLinkCanceller = appsFlyer.onDeepLink((res) => {
+    if (!res || res.deepLinkStatus === "NOT_FOUND" || !res.data) {
+      return;
+    }
+    const landingPage = landingPageFromDeepLink(res.data as unknown as Record<string, unknown>);
+    if (landingPage && opts.onLandingPage) {
+      opts.onLandingPage(landingPage);
+    }
+  });
+
   if (opts.userId) {
     appsFlyer.setCustomerUserId(opts.userId, () => undefined);
   }
@@ -58,7 +88,7 @@ export function Analytics_initialize(opts: IAnalyticsInitOptions): () => void {
       appId: APPLE_APP_ID,
       isDebug: false,
       onInstallConversionDataListener: true,
-      onDeepLinkListener: false,
+      onDeepLinkListener: true,
       manualStart: true,
     },
     () => {
@@ -67,7 +97,10 @@ export function Analytics_initialize(opts: IAnalyticsInitOptions): () => void {
     () => undefined
   );
 
-  return unsubscribe;
+  return () => {
+    unsubscribe();
+    deepLinkCanceller();
+  };
 }
 
 export function Analytics_setUserId(userId: string): void {

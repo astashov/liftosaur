@@ -1643,6 +1643,7 @@ interface IStorageRaw {
   originalId?: number;
   id?: number;
   referrer?: string;
+  landingPage?: string;
   attribution?: string;
   importSessions?: IImportSession[];
   // Localized store prices (displayPrice strings keyed by product id) captured on a native device,
@@ -1672,6 +1673,7 @@ const _VStorage = v.object({
   originalId: v.optional(v.number()),
   id: v.optional(v.number()),
   referrer: v.optional(v.string()),
+  landingPage: v.optional(v.string()),
   attribution: v.optional(v.string()),
   importSessions: v.optional(v.array(VImportSession)),
   subscriptionPrices: v.optional(v.record(v.string(), v.optional(v.string()))),

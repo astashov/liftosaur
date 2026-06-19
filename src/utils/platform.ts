@@ -10,6 +10,31 @@ export function Platform_isAndroid(userAgent?: string): boolean {
   return /Android/i.test(userAgent);
 }
 
+export interface IOnelinkLandingParams {
+  id: string;
+  type: "program" | "exercise" | "rep-max";
+}
+
+// Identifies the SEO page a OneLink click originated from, so AppsFlyer can carry it through the
+// install (deferred deep link) and the native app can attribute the install to that page. The `id`
+// has no slashes on purpose - it goes into deep_link_value, and the native side reconstructs the path
+// from id + type, keeping web-cookie and native landing pages in the same format.
+export function Platform_landingPageParams(pathname: string): IOnelinkLandingParams | undefined {
+  const programMatch = pathname.match(/^\/programs\/([^/]+)$/);
+  if (programMatch) {
+    return { id: programMatch[1], type: "program" };
+  }
+  const exerciseMatch = pathname.match(/^\/exercises\/([^/]+)$/);
+  if (exerciseMatch) {
+    return { id: exerciseMatch[1], type: "exercise" };
+  }
+  const repMaxMatch = pathname.match(/^\/([a-z-]*rep-max-calculator)$/);
+  if (repMaxMatch) {
+    return { id: repMaxMatch[1], type: "rep-max" };
+  }
+  return undefined;
+}
+
 export function Platform_onelink(noparams: boolean, type?: "ios" | "android"): string {
   const url = UrlUtils_build("https://liftosaur.onelink.me/cG8a/aylyqael");
   let afr: string | undefined = undefined;
@@ -45,6 +70,18 @@ export function Platform_onelink(noparams: boolean, type?: "ios" | "android"): s
     if (utmTerm) {
       url.searchParams.set("utm_term", utmTerm);
       url.searchParams.set("af_adset", utmTerm);
+    }
+    const landing = Platform_landingPageParams(window.location.pathname);
+    if (landing) {
+      url.searchParams.set("deep_link_value", landing.id);
+      url.searchParams.set("deep_link_sub1", landing.type);
+      // Don't clobber a paid UTM source/campaign; only label as SEO when nothing else claimed it.
+      if (!url.searchParams.has("pid")) {
+        url.searchParams.set("pid", "seo");
+      }
+      if (!url.searchParams.has("c")) {
+        url.searchParams.set("c", `${landing.type}-pages`);
+      }
     }
     if (afr) {
       url.searchParams.set("af_r", afr);

@@ -344,6 +344,12 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
         }
         updateState(dispatch, [lb<IState>().p("storage").p("referrer").record(referrer)], "Set Referrer");
       },
+      onLandingPage: (landingPage) => {
+        if (stateRef.current.storage.landingPage) {
+          return;
+        }
+        updateState(dispatch, [lb<IState>().p("storage").p("landingPage").record(landingPage)], "Set Landing Page");
+      },
     });
   }, [dispatch]);
 

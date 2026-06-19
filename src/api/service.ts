@@ -404,12 +404,16 @@ export class Service {
     });
   }
 
-  public async postSaveProgram(program: IExportedProgram, deviceId?: string): Promise<IEither<string, string>> {
+  public async postSaveProgram(
+    program: IExportedProgram,
+    deviceId?: string,
+    source?: string
+  ): Promise<IEither<string, string>> {
     const url = UrlUtils_build(`${__API_HOST__}/api/program`);
     try {
       const response = await this.client(url.toString(), {
         method: "POST",
-        body: JSON.stringify({ program, deviceId }),
+        body: JSON.stringify({ program, deviceId, source }),
         credentials: "include",
       });
       if (response.status === 200) {

@@ -13,7 +13,8 @@ export async function LogUtils_log(
   subscriptions: string[],
   onClear: () => void,
   key?: string,
-  referrer?: string
+  referrer?: string,
+  landingPage?: string
 ): Promise<void> {
   const platform = {
     name: Platform.OS,
@@ -23,7 +24,7 @@ export async function LogUtils_log(
   try {
     fetch(url.toString(), {
       method: "POST",
-      body: JSON.stringify({ user, action, affiliates, platform, subscriptions, key, referrer }),
+      body: JSON.stringify({ user, action, affiliates, platform, subscriptions, key, referrer, landingPage }),
       credentials: "include",
     })
       .then((res) => res.json())

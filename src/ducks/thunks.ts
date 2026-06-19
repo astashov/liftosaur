@@ -281,7 +281,8 @@ export function Thunk_log(action: string): IThunk {
           );
         },
         state.storage.subscription.key,
-        state.storage.referrer
+        state.storage.referrer,
+        state.storage.landingPage
       );
     }
   };

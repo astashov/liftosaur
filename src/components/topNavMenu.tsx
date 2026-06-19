@@ -14,6 +14,7 @@ import { IconYoutube } from "./icons/iconYoutube";
 import { IconGooglePlay } from "./icons/iconGooglePlay";
 import { IconSpinner } from "./icons/iconSpinner";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
+import { track } from "../utils/posthog";
 
 export function TopNavMenu(props: {
   client: Window["fetch"];
@@ -110,18 +111,22 @@ export function TopNavMenu(props: {
                 )}
               </div>
               <div className="flex flex-col gap-3 mb-8">
-                <Onelink className="flex items-center gap-3 text-text-primary no-underline">
+                <Onelink
+                  className="flex items-center gap-3 text-text-primary no-underline"
+                  onClick={() => track({ redditname: "Lead", googlename: "outbound_click" })}
+                >
                   <IconApple color={Tailwind_semantic().text.primary} />
                   <span className="text-base">App Store</span>
                 </Onelink>
-                <a
-                  href="https://play.google.com/store/apps/details?id=com.liftosaur.www.twa"
+                <Onelink
+                  type="android"
                   target="_blank"
                   className="flex items-center gap-3 text-text-primary no-underline"
+                  onClick={() => track({ redditname: "Lead", googlename: "outbound_click" })}
                 >
                   <IconGooglePlay size={20} color={Tailwind_semantic().text.primary} />
                   <span className="text-base">Google Play</span>
-                </a>
+                </Onelink>
               </div>
               <div className="pt-6 border-t border-border-neutral">
                 <div className="flex items-center justify-center gap-5">

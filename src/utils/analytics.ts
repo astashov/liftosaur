@@ -11,6 +11,7 @@ export interface IAnalyticsPurchaseEvent {
 export interface IAnalyticsInitOptions {
   userId?: string;
   onAttribution: (data: IAttributionData) => void;
+  onLandingPage?: (landingPage: string) => void;
 }
 
 export function Analytics_initialize(_opts: IAnalyticsInitOptions): () => void {

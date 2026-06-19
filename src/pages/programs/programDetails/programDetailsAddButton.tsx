@@ -12,6 +12,7 @@ import { Button } from "../../../components/button";
 import { IconSpinner } from "../../../components/icons/iconSpinner";
 import { UidFactory_generateUid } from "../../../utils/generator";
 import { Tailwind_semantic } from "../../../utils/tailwindConfig";
+import { track } from "../../../utils/posthog";
 
 declare let __HOST__: string;
 
@@ -33,6 +34,7 @@ export function ProgramDetailsAddButton(props: IProps): JSX.Element {
       kind={props.isLoggedIn ? "purple" : "grayv2"}
       disabled={isLoading}
       onClick={async () => {
+        track({ name: "add_program_to_account" });
         if (!props.isLoggedIn) {
           Dialog_alert("You should be logged in");
           return;
@@ -56,7 +58,7 @@ export function ProgramDetailsAddButton(props: IProps): JSX.Element {
         }
         setIsLoading(true);
         const service = new Service(props.client);
-        const result = await service.postSaveProgram(exportProgram);
+        const result = await service.postSaveProgram(exportProgram, undefined, "program-details");
         if (result.success) {
           window.location.href = `${__HOST__}/user/p/${result.data}`;
         } else {

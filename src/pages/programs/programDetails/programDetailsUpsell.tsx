@@ -1,7 +1,8 @@
 import type { JSX } from "react";
 import { track } from "../../../utils/posthog";
-import { Platform_isiOS, Platform_isAndroid } from "../../../utils/platform";
+import { Platform_isiOS, Platform_isAndroid, Platform_onelink } from "../../../utils/platform";
 import { Onelink } from "../../../components/onelink";
+import { ProgramQrCode } from "../../../components/programQrCode";
 
 interface IProgramDetailsUpsellProps {
   userAgent?: string;
@@ -33,13 +34,8 @@ export function ProgramDetailsUpsell(props: IProgramDetailsUpsellProps): JSX.Ele
       <div className="flex items-center mt-2 ml-4">
         <div className="flex justify-center gap-2 md:justify-start">
           {!isMobile && (
-            <div style={{ marginTop: "-7px", marginLeft: "-7px" }}>
-              <img
-                src="/images/store-qr-code.png"
-                alt="QR code for app stores"
-                loading="lazy"
-                style={{ width: "90px", height: "90px" }}
-              />
+            <div>
+              <ProgramQrCode url={Platform_onelink(false)} size={90} />
             </div>
           )}
           <div>
