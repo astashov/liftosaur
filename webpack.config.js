@@ -178,6 +178,7 @@ const mainConfig = {
     usersdashboard: ["./src/usersdashboard.tsx", "./src/page.css", "./src/index.css"],
     paymentsdashboard: ["./src/paymentsdashboard.tsx", "./src/page.css", "./src/index.css"],
     "webpushr-sw": "./src/webpushr-sw.ts",
+    consent: "./src/consent/consentEntry.ts",
   },
   output: {
     filename: "[name].js",

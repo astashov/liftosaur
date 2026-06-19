@@ -62,10 +62,21 @@
       function gtag() {
         dataLayer.push(arguments);
       }
+      gtag("consent", "default", {
+        ad_storage: "denied",
+        ad_user_data: "denied",
+        ad_personalization: "denied",
+        analytics_storage: "denied",
+        wait_for_update: 500,
+      });
+      // Respect the saved privacy choice but never show a banner here - /app is rendered inside older
+      // native WebView clients and a banner overlay could break them.
+      window.lftConsentConfig = { showBanner: false, gtagOnly: true };
       gtag("js", new Date());
 
       gtag("config", "G-98XGEN6RQK", { anonymize_ip: true });
     </script>
+    <script defer src="/consent.js?version=xxxxxxxx"></script>
   </head>
   <body class="bg-background-default text-text-primary">
     <div id="app"></div>

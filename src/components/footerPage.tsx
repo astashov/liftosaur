@@ -74,6 +74,16 @@ export function FooterPage(props: IProps): JSX.Element {
                     {text}
                   </a>
                 ))}
+                <a
+                  className="text-sm text-gray-300 no-underline cursor-pointer hover:text-text-alwayswhite"
+                  href="#privacy-settings"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    (window as unknown as { lftConsent?: { open: () => void } }).lftConsent?.open();
+                  }}
+                >
+                  Privacy Settings
+                </a>
               </div>
             </div>
           </div>

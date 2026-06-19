@@ -229,11 +229,6 @@ export function Page<T>(props: IProps<T>): JSX.Element {
           type="text/javascript"
           src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"
         ></script>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `!function(w,d){if(!w.rdt){var p=w.rdt=function(){p.sendEvent?p.sendEvent.apply(p,arguments):p.callQueue.push(arguments)};p.callQueue=[];var t=d.createElement("script");t.src="https://www.redditstatic.com/ads/pixel.js",t.async=!0;var s=d.getElementsByTagName("script")[0];s.parentNode.insertBefore(t,s)}}(window,document);rdt('init','t2_hoob2');rdt('track', 'PageVisit');`,
-          }}
-        />
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-98XGEN6RQK"></script>
         <script
           dangerouslySetInnerHTML={{
@@ -242,6 +237,13 @@ export function Page<T>(props: IProps<T>): JSX.Element {
           function gtag() {
             dataLayer.push(arguments);
           }
+          gtag("consent", "default", {
+            ad_storage: "denied",
+            ad_user_data: "denied",
+            ad_personalization: "denied",
+            analytics_storage: "denied",
+            wait_for_update: 500,
+          });
           gtag("js", new Date());
           gtag("config", "G-98XGEN6RQK", { 'anonymize_ip': true });`,
           }}
@@ -255,8 +257,7 @@ export function Page<T>(props: IProps<T>): JSX.Element {
         <meta property="twitter:card" content="summary_large_image" />
         <script dangerouslySetInnerHTML={{ __html: applyThemeBeforePaint() }} />
         <script dangerouslySetInnerHTML={{ __html: rollbar() }} />
-        <script dangerouslySetInnerHTML={{ __html: storeUtmInLocalStorage() }} />
-        <script dangerouslySetInnerHTML={{ __html: storeLandingPageInCookie() }} />
+        <script defer src={`/consent.js?version=${commitHash}`}></script>
         {props.jsonLd?.map((ld, i) => (
           <script
             key={i}
@@ -358,36 +359,4 @@ function applyThemeBeforePaint(): string {
       } catch (e) {}
     })();
   `;
-}
-
-function storeUtmInLocalStorage(): string {
-  return `
-    (function() {
-      if (typeof window === "undefined" || typeof window.localStorage === "undefined") {
-        return;
-      }
-      var params = new URL(window.location.href).searchParams;
-      var utmParams = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
-      utmParams.forEach(function(param) {
-        var value = params.get(param);
-        if (value) {
-          window.localStorage.setItem(param, value);
-        }
-      });
-    })();
-    `;
-}
-
-function storeLandingPageInCookie(): string {
-  return `
-    (function() {
-      try {
-        if (typeof document === "undefined") { return; }
-        if (/(?:^|;\\s*)lft_landing=/.test(document.cookie)) { return; }
-        var path = window.location.pathname || "/";
-        document.cookie = "lft_landing=" + encodeURIComponent(path) +
-          "; path=/; domain=.liftosaur.com; max-age=31536000; samesite=lax";
-      } catch (e) {}
-    })();
-    `;
 }
