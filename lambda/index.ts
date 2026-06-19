@@ -40,6 +40,7 @@ import {
   ResponseUtils_clearSessionCookie,
 } from "./utils/response";
 import { ImageCacher_cache } from "./utils/imageCacher";
+import { ConsentMode_fromCountry } from "./utils/consentMode";
 import { ProgramImageGenerator } from "./utils/programImageGenerator";
 import { AppleAuthTokenDao } from "./dao/appleAuthTokenDao";
 import { Subscriptions, Subscriptions_isAppleJws, IGooglePaymentInfoV2 } from "./utils/subscriptions";
@@ -1555,6 +1556,15 @@ const logHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof logEndpoi
     data = { result: "error" };
   }
   return ResponseUtils_json(200, event, { data });
+};
+
+// Must never be cached - it's per-viewer.
+const getGeoEndpoint = Endpoint.build("/api/geo");
+const getGeoHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getGeoEndpoint> = async ({ payload }) => {
+  const { event } = payload;
+  const country = event.headers["cloudfront-viewer-country"] || event.headers["CloudFront-Viewer-Country"] || null;
+  const consentMode = ConsentMode_fromCountry(country);
+  return ResponseUtils_json(200, event, { country, consentMode }, { "cache-control": "no-store" });
 };
 
 const postBatchEventsEndpoint = Endpoint.build("/api/batchevents");
@@ -3326,6 +3336,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
     const request: IPayload = { event, di };
     let r = new Router<IPayload, APIGatewayProxyResult>(request)
       .get(getUpdatesManifestEndpoint, getUpdatesManifestHandler)
+      .get(getGeoEndpoint, getGeoHandler)
       .get(getMainEndpoint, getMainHandler)
       .get(getStoreExceptionDataEndpoint, getStoreExceptionDataHandler)
       .post(postStoreExceptionDataEndpoint, postStoreExceptionDataHandler)

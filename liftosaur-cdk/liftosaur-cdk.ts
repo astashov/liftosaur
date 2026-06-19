@@ -888,6 +888,16 @@ export class LiftosaurCdkStack extends cdk.Stack {
       ],
     };
 
+    // Forwards CloudFront's synthetic viewer-country header to the origin (the managed AllViewer
+    // policies don't include CloudFront-generated headers). Scoped to the uncached /api/geo behavior
+    // so it never affects edge caching of the SSR pages.
+    const geoOriginRequestPolicy = new cloudfront.OriginRequestPolicy(this, `LftGeoOriginRequestPolicy${suffix}`, {
+      originRequestPolicyName: `LftGeoOriginRequestPolicy${suffix}`,
+      headerBehavior: cloudfront.OriginRequestHeaderBehavior.allowList("CloudFront-Viewer-Country", "Origin"),
+      cookieBehavior: cloudfront.OriginRequestCookieBehavior.none(),
+      queryStringBehavior: cloudfront.OriginRequestQueryStringBehavior.none(),
+    });
+
     const mainDistribution = new cloudfront.Distribution(this, `LftMainDistribution${suffix}`, {
       certificate: streamingCert,
       domainNames: [mainDomain],
@@ -940,6 +950,13 @@ export class LiftosaurCdkStack extends cdk.Stack {
           origin: apiOrigin,
           cachePolicy: updatesManifestCachePolicy,
           originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        },
+        "/api/geo": {
+          origin: apiOrigin,
+          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+          originRequestPolicy: geoOriginRequestPolicy,
           allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         },
