@@ -2234,6 +2234,13 @@ export function Thunk_iapHandlePurchase(purchase: IIapPurchase): IThunk {
 export function Thunk_iapHandlePurchaseError(error: IIapPurchaseError): IThunk {
   return async (dispatch) => {
     console.warn("IAP purchase error", error);
+    dispatch(
+      Thunk_postevent("iap-purchase-error", {
+        code: error.code,
+        message: error.message,
+        ...(error.productId ? { productId: error.productId } : {}),
+      })
+    );
     IapHelpers_clearLoading(dispatch);
   };
 }
