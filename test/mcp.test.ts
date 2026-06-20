@@ -11,6 +11,7 @@ import { MockLogUtil } from "./utils/mockLogUtil";
 import { userTableNames } from "../lambda/dao/userDao";
 import { freeUsersTableNames } from "../lambda/dao/freeUserDao";
 import { OauthDao } from "../lambda/dao/oauthDao";
+import { ApiKeyDao } from "../lambda/dao/apiKeyDao";
 import { Storage_getDefault } from "../src/models/storage";
 import { MockFetch } from "./utils/mockFetch";
 import sinon from "sinon";
@@ -107,6 +108,12 @@ describe("MCP", () => {
     return token.token;
   }
 
+  async function createApiKey(): Promise<string> {
+    const apiKeyDao = new ApiKeyDao(di);
+    const apiKey = await apiKeyDao.create(userId, "test-key");
+    return apiKey.key;
+  }
+
   function authHeaders(token: string): Record<string, string> {
     return { Authorization: `Bearer ${token}` };
   }
@@ -183,6 +190,33 @@ describe("MCP", () => {
       const result = await handler(buildMcpEvent(toolCall("list_programs")), ctx);
       expect(result.statusCode).to.equal(401);
       expect(result.headers!["www-authenticate"]).to.include("oauth-protected-resource");
+    });
+
+    it("authenticates a tool call with an API key", async () => {
+      const apiKey = await createApiKey();
+      const result = await handler(buildMcpEvent(toolCall("list_programs"), authHeaders(apiKey)), ctx);
+      expect(result.statusCode).to.equal(200);
+      const body = parseBody(result);
+      expect(body.result.isError).to.be.undefined;
+    });
+
+    it("rejects tool call with invalid API key", async () => {
+      const result = await handler(buildMcpEvent(toolCall("list_programs"), authHeaders("lftsk_invalid")), ctx);
+      expect(result.statusCode).to.equal(401);
+    });
+
+    it("rejects tool call with API key when user has no subscription", async () => {
+      const apiKey = await createApiKey();
+      await di.dynamo.remove({ tableName: freeUsersTableNames.prod.freeUsers, key: { id: userId } });
+      const user = await di.dynamo.get<any>({ tableName: userTableNames.prod.users, key: { id: userId } });
+      user.storage.subscription = {};
+      await di.dynamo.put({ tableName: userTableNames.prod.users, item: user });
+
+      const result = await handler(buildMcpEvent(toolCall("list_programs"), authHeaders(apiKey)), ctx);
+      expect(result.statusCode).to.equal(200);
+      const body = parseBody(result);
+      expect(body.result.isError).to.equal(true);
+      expect(body.result.content[0].text).to.include("subscription required");
     });
   });
 

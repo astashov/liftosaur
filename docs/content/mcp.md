@@ -5,7 +5,7 @@ shortDescription: "Connect AI assistants like Claude or ChatGPT to Liftosaur - c
 order: 2
 category: "Integrations"
 datePublished: "2026-03-07"
-dateModified: "2026-03-10"
+dateModified: "2026-06-20"
 ---
 
 ## What is MCP?
@@ -24,9 +24,29 @@ The Liftosaur MCP server URL is:
 https://www.liftosaur.com/mcp
 ```
 
-The server uses OAuth 2.1 for authentication. On first use, your AI client will open a browser window to sign in with your Liftosaur account. After that it handles token refresh automatically.
+There are two ways to authenticate:
+
+- **OAuth 2.1** (default) - On first use, your AI client opens a browser window to sign in with your Liftosaur account, then handles token refresh automatically. Best for clients with a built-in connector UI (Claude.ai, ChatGPT).
+- **API key** - Pass a Liftosaur API key (the same kind used for the [REST API](/docs/api)) as a Bearer token. No browser sign-in needed - handy for command-line clients or config-file setups. See [Using an API key](#using-an-api-key) below.
 
 Below are setup instructions for each major AI platform.
+
+### Using an API key
+
+If you'd rather not go through the OAuth browser flow, you can authenticate with an API key instead. This is the same key used by the REST API.
+
+1. Open Liftosaur and go to **Settings**
+2. Tap **API Keys**
+3. Tap **Create API Key** and give it a name
+4. Copy the key - it starts with `lftsk_`
+
+Then send it in the `Authorization` header when configuring your MCP client:
+
+```
+Authorization: Bearer lftsk_your_key_here
+```
+
+Most clients that let you set custom headers (Claude Code, config-file setups) support this. The per-client sections below show the API-key variant where applicable. Keep the key secret - if you lose it, delete it and create a new one.
 
 ### Claude.ai (Web)
 
@@ -73,6 +93,24 @@ Claude Desktop doesn't support remote servers directly via `claude_desktop_confi
 5. Save the file and restart Claude Desktop
 6. On first use, Claude will open your browser to authenticate with Liftosaur
 
+To use an API key instead of the OAuth browser flow, pass it as a header via `mcp-remote`:
+
+```json
+{
+  "mcpServers": {
+    "liftosaur": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://www.liftosaur.com/mcp",
+        "--header",
+        "Authorization: Bearer lftsk_your_key_here"
+      ]
+    }
+  }
+}
+```
+
 ### Claude Code
 
 Run this command in your terminal:
@@ -82,6 +120,13 @@ claude mcp add liftosaur --transport http https://www.liftosaur.com/mcp
 ```
 
 That's it. Claude Code will prompt for authentication on first use.
+
+To authenticate with an API key instead of the OAuth browser flow, pass it as a header:
+
+```bash
+claude mcp add liftosaur --transport http https://www.liftosaur.com/mcp \
+  --header "Authorization: Bearer lftsk_your_key_here"
+```
 
 ### ChatGPT
 
@@ -122,13 +167,29 @@ Gemini CLI supports remote MCP servers via `settings.json`.
 4. Run `/mcp` to verify the server is connected
 5. On first use, run `/mcp auth liftosaur` to authenticate with your Liftosaur account
 
+To use an API key instead, drop `authProviderType` and pass the key as a header:
+
+```json
+{
+  "mcpServers": {
+    "liftosaur": {
+      "httpUrl": "https://www.liftosaur.com/mcp",
+      "headers": { "Authorization": "Bearer lftsk_your_key_here" },
+      "timeout": 30000
+    }
+  }
+}
+```
+
 ### Other MCP Clients
 
-Any MCP-compatible client that supports Streamable HTTP transport and OAuth 2.1 can connect. Point it at:
+Any MCP-compatible client that supports Streamable HTTP transport can connect. Point it at:
 
 ```
 https://www.liftosaur.com/mcp
 ```
+
+Authenticate either via OAuth 2.1 (dynamic client registration is supported) or by sending an API key in the `Authorization: Bearer lftsk_...` header.
 
 ## What Can You Do With It?
 

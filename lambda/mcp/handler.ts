@@ -4,6 +4,7 @@ import { IDI } from "../utils/di";
 import { Utils_getEnv, Utils_isLocal } from "../utils";
 import { UserDao } from "../dao/userDao";
 import { OauthDao } from "../dao/oauthDao";
+import { ApiKeyDao } from "../dao/apiKeyDao";
 import { mcpTools } from "./tools";
 import {
   McpReference_getLiftoscriptReference,
@@ -278,9 +279,19 @@ async function handleToolCall(
   }
 
   const accessToken = authHeader.substring(7);
-  const oauthDao = new OauthDao(di);
-  const tokenRecord = await oauthDao.getByToken(accessToken);
-  if (!tokenRecord || tokenRecord.expiresAt < Date.now()) {
+  let userId: string | undefined;
+  if (accessToken.startsWith("lftsk_")) {
+    const apiKeyDao = new ApiKeyDao(di);
+    const keyRecord = await apiKeyDao.getByKey(accessToken);
+    userId = keyRecord?.userId;
+  } else {
+    const oauthDao = new OauthDao(di);
+    const tokenRecord = await oauthDao.getByToken(accessToken);
+    if (tokenRecord && tokenRecord.expiresAt >= Date.now()) {
+      userId = tokenRecord.userId;
+    }
+  }
+  if (!userId) {
     di.log.log(`[MCP] ${toolName} -> 401: invalid/expired token`);
     const baseUrl = Utils_isLocal()
       ? "https://local.liftosaur.com:8080"
@@ -297,7 +308,6 @@ async function handleToolCall(
     };
   }
 
-  const userId = tokenRecord.userId;
   fireEvent(userId);
   di.log.log(`[MCP] ${toolName} user=${userId}`);
   const userDao = new UserDao(di);
