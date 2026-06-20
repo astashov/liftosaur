@@ -422,6 +422,7 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
         dispatch(Thunk_syncHealthKit());
       } else if (next === "background") {
         dispatch(Thunk_postevent("sleep"));
+        env.queue.abortAll();
         PerfFrameSampler_flush();
         PerfScorecard_flush();
       }

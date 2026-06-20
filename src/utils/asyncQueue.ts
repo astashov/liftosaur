@@ -137,6 +137,25 @@ export class AsyncQueue {
     this.queue = [];
   }
 
+  // On mobile, backgrounding freezes the JS thread: the in-flight operation's fetch and the
+  // processQueue timeout both suspend, so currentItem/isProcessing stay latched and block every
+  // later sync until the next wake. Abort everything proactively when going to background so the
+  // queue is clean on resume. Bumping the generation neutralizes the frozen processQueue's finally
+  // so it can't double-process after we reset state here.
+  public abortAll(): void {
+    this.addLog("abort-all", { queueLength: this.queue.length });
+    this._processingGeneration += 1;
+    if (this.currentItem) {
+      this.currentItem.controller.abort();
+      this.currentItem = null;
+    }
+    for (const item of this.queue) {
+      item.controller.abort();
+    }
+    this.queue = [];
+    this.isProcessing = false;
+  }
+
   public length(): number {
     return this.queue.length;
   }
@@ -159,6 +178,7 @@ export class AsyncQueue {
           elapsed,
           timeout: this.currentItem.timeoutMs,
         });
+        this._processingGeneration += 1;
         this.currentItem.controller.abort();
         this.currentItem = null;
         this.isProcessing = false;
