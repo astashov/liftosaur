@@ -10,6 +10,7 @@ import { EditOnDesktop } from "./components/editOnDesktop";
 import { TestimonialsView } from "./components/testimonialsView";
 import { Service } from "../../api/service";
 import { IUserContext } from "../../components/pageWrapper";
+import { SafeLocalStorage_getItem, SafeLocalStorage_setItem } from "../../utils/safeLocalStorage";
 
 export interface IMainContentProps {
   client: Window["fetch"];
@@ -26,9 +27,9 @@ export function MainContent(props: IMainContentProps): JSX.Element {
     const params = new URLSearchParams(window.location.search);
     let source = params.get("cpgsrc");
     if (source) {
-      window.localStorage.setItem("source", source);
+      SafeLocalStorage_setItem("source", source);
     }
-    source = window.localStorage.getItem("source");
+    source = SafeLocalStorage_getItem("source");
     if (source) {
       for (const link of Array.from(document.querySelectorAll(".google-play-link"))) {
         const href = link.getAttribute("href");

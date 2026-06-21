@@ -1,5 +1,10 @@
 import { JSX, useEffect, useState } from "react";
 import { useLensReducer } from "../../utils/useLensReducer";
+import {
+  SafeLocalStorage_getItem,
+  SafeLocalStorage_setItem,
+  SafeLocalStorage_removeItem,
+} from "../../utils/safeLocalStorage";
 import { Dialog_alert, Dialog_confirm } from "../../utils/dialog";
 import { IPlannerState } from "./models/types";
 import { LinkInlineInput } from "../../components/inlineInput";
@@ -235,7 +240,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
     }
   }, []);
   useEffect(() => {
-    setShowHelp(typeof window !== "undefined" && window.localStorage.getItem("hide-planner-help") !== "true");
+    setShowHelp(SafeLocalStorage_getItem("hide-planner-help") !== "true");
     if (props.initialProgram) {
       const exportProgram = Program_exportProgram(state.current.program, settings);
       Encoder_encodeIntoUrl(JSON.stringify(exportProgram), window.location.href).then(() => {
@@ -298,7 +303,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
               className="block ml-3 nm-planner-help"
               onClick={() => {
                 setShowHelp(true);
-                window.localStorage.removeItem("hide-planner-help");
+                SafeLocalStorage_removeItem("hide-planner-help");
               }}
             >
               <IconHelp />
@@ -370,7 +375,7 @@ export function PlannerContent(props: IPlannerContentProps): JSX.Element {
             style={{ top: "0.5rem", right: "0.5rem" }}
             onClick={() => {
               setShowHelp(false);
-              window.localStorage.setItem("hide-planner-help", "true");
+              SafeLocalStorage_setItem("hide-planner-help", "true");
             }}
           >
             <IconCloseCircleOutline />
