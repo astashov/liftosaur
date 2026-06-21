@@ -91,7 +91,9 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
   const currentEquipmentName = Equipment_getEquipmentNameForExerciseType(settings, exercise);
   const currentEquipmentNotes = Equipment_getEquipmentDataForExerciseType(settings, exercise)?.notes;
   const exerciseNotes = Exercise_getNotes(exerciseType, settings);
-  const description = programExercise ? PlannerProgramExercise_currentDescription(programExercise) : undefined;
+  const description = programExercise
+    ? PlannerProgramExercise_currentDescription(programExercise)
+    : props.entry.descriptionSnapshot;
   const onerm = Exercise_onerm(exercise, settings);
   const nextSet = useMemo(
     () => [...props.entry.warmupSets, ...props.entry.sets].filter((s) => !s.isCompleted)[0],

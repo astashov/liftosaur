@@ -26,15 +26,19 @@ import {
 } from "./weight";
 import {
   IHistoryEntry,
+  IHistoryEntryProgressSnapshot,
   IHistoryRecord,
   ISet,
   IExerciseType,
   IUnit,
   IWeight,
+  IPercentage,
   ISettings,
   IScreenMuscle,
   IIntervals,
   IStorage,
+  IStats,
+  IProgramState,
 } from "../types";
 import { Collector, ICollectorFn } from "../utils/collector";
 import {
@@ -47,13 +51,21 @@ import {
 import { ProgramExercise_isUsingVariable } from "./programExercise";
 import { IState, updateState } from "./state";
 import { lb, lbu } from "lens-shmens";
-import { ObjectUtils_keys, ObjectUtils_clone } from "../utils/object";
+import { ObjectUtils_keys, ObjectUtils_clone, ObjectUtils_isNotEmpty } from "../utils/object";
 import { IDispatch } from "../ducks/types";
 import { NativeWorkoutBridge_pauseWorkout, NativeWorkoutBridge_resumeWorkout } from "../utils/nativeWorkoutBridge";
 import memoize from "micro-memoize";
 import { DateUtils_firstDayOfWeekTimestamp, DateUtils_formatYYYYMMDD } from "../utils/date";
-import { IEvaluatedProgram, Program_getProgramExerciseForKeyAndDay } from "./program";
-import { PlannerProgramExercise_getState } from "../pages/planner/models/plannerProgramExercise";
+import {
+  IEvaluatedProgram,
+  Program_getProgramExerciseForKeyAndDay,
+  Program_computeProgressStateChanges,
+} from "./program";
+import {
+  PlannerProgramExercise_getState,
+  PlannerProgramExercise_currentDescription,
+} from "../pages/planner/models/plannerProgramExercise";
+import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { Muscle_getAvailableMuscleGroups } from "./muscle";
 
 export interface IHistoricalEntries {
@@ -101,6 +113,7 @@ export function History_finishProgramDay(
   settings: ISettings,
   day: number,
   program?: IEvaluatedProgram,
+  stats?: IStats,
   forceEndTime: number = Date.now()
 ): IHistoryRecord {
   const { deletedProgramExercises, ui, ...historyRecord } = progress;
@@ -109,15 +122,16 @@ export function History_finishProgramDay(
   return {
     ...historyRecord,
     entries: historyRecord.entries.map((entry) => {
+      const originalUpdatePrints = entry.updatePrints;
       const programExercise =
         program && entry.programExerciseId
           ? Program_getProgramExerciseForKeyAndDay(program, day, entry.programExerciseId)
           : undefined;
       if (Progress_isCurrent(progress)) {
         const isUnilateral = Exercise_getIsUnilateral(entry.exercise, settings);
+        const { updatePrints, ...entryWithoutPrints } = entry;
         entry = {
-          ...entry,
-          updatePrints: undefined,
+          ...entryWithoutPrints,
           sets: entry.sets.map((set) => {
             return {
               ...set,
@@ -131,10 +145,22 @@ export function History_finishProgramDay(
         if (programExercise != null) {
           const state = PlannerProgramExercise_getState(programExercise);
           const useRm1 = ProgramExercise_isUsingVariable(programExercise, "rm1");
+          const descriptionSnapshot = PlannerProgramExercise_currentDescription(programExercise);
+          const progressSnapshot = History_buildProgressSnapshot(
+            entry,
+            settings,
+            programExercise,
+            program,
+            stats,
+            progress.userPromptedStateVars?.[entry.programExerciseId ?? ""],
+            originalUpdatePrints
+          );
           entry = {
             ...entry,
             state: { ...state },
             vars: useRm1 ? { rm1: Exercise_onerm(programExercise.exerciseType, settings) } : {},
+            ...(descriptionSnapshot != null ? { descriptionSnapshot } : {}),
+            ...(progressSnapshot != null ? { progressSnapshot } : {}),
           };
         }
       }
@@ -148,6 +174,56 @@ export function History_finishProgramDay(
     intervals: History_pauseWorkout(progress.intervals),
     ...(Progress_isCurrent(progress) ? { endTime } : {}),
   };
+}
+
+function History_buildProgressSnapshot(
+  entry: IHistoryEntry,
+  settings: ISettings,
+  programExercise: IPlannerProgramExercise,
+  program?: IEvaluatedProgram,
+  stats?: IStats,
+  userPromptedStateVars?: IProgramState,
+  updatePrints?: (number | IWeight | IPercentage)[][]
+): IHistoryEntryProgressSnapshot | undefined {
+  const snapshot: IHistoryEntryProgressSnapshot = {};
+  if (program && stats) {
+    const changes = Program_computeProgressStateChanges(
+      entry,
+      programExercise.dayData,
+      settings,
+      programExercise,
+      program,
+      stats,
+      userPromptedStateVars
+    );
+    if (changes) {
+      const diffState = History_compactDiff(changes.diffState);
+      const diffVars = History_compactDiff(changes.diffVars);
+      if (ObjectUtils_isNotEmpty(diffState)) {
+        snapshot.diffState = diffState;
+      }
+      if (ObjectUtils_isNotEmpty(diffVars)) {
+        snapshot.diffVars = diffVars;
+      }
+      if (changes.prints.length > 0) {
+        snapshot.prints = changes.prints;
+      }
+    }
+  }
+  if (updatePrints && updatePrints.length > 0) {
+    snapshot.updatePrints = updatePrints;
+  }
+  return ObjectUtils_isNotEmpty(snapshot) ? snapshot : undefined;
+}
+
+function History_compactDiff(diff: Record<string, string | undefined>): Record<string, string> {
+  return ObjectUtils_keys(diff).reduce<Record<string, string>>((memo, key) => {
+    const value = diff[key];
+    if (value != null) {
+      memo[key] = value;
+    }
+    return memo;
+  }, {});
 }
 
 export function History_getMaxWeightSetFromEntry(entry: IHistoryEntry): ISet | undefined {

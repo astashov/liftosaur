@@ -25,7 +25,7 @@ import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { WorkoutExerciseUtils_getBgColor100 } from "../utils/workoutExerciseUtils";
 import { Equipment_getUnitOrDefaultForExerciseType } from "../models/equipment";
 import { IconSwapSmall } from "./icons/iconSwapSmall";
-import { ProgressStateChanges } from "./progressStateChanges";
+import { ProgressStateChanges, ProgressStateChangesView } from "./progressStateChanges";
 import { IEvaluatedProgram } from "../models/program";
 import { Exercise_getIsUnilateral } from "../models/exercise";
 import { memo, useCallback, useMemo } from "react";
@@ -216,7 +216,7 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
         ))}
       </View>
 
-      {props.programExercise && props.program && (
+      {props.programExercise && props.program ? (
         <View className="mx-4 mt-2">
           <ProgressStateChanges
             entry={props.entry}
@@ -229,6 +229,18 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
             onSuppressProgress={onSuppressProgress}
           />
         </View>
+      ) : (
+        props.entry.progressSnapshot && (
+          <View className="mx-4 mt-2">
+            <ProgressStateChangesView
+              diffState={props.entry.progressSnapshot.diffState}
+              diffVars={props.entry.progressSnapshot.diffVars}
+              prints={props.entry.progressSnapshot.prints}
+              updatePrints={props.entry.progressSnapshot.updatePrints}
+              isSuppressed={props.entry.isSuppressed}
+            />
+          </View>
+        )
       )}
 
       <View className="flex-row gap-2 px-4 mt-1 mb-2">

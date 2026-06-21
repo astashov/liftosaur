@@ -1556,6 +1556,43 @@ export function Program_getDiffVars(
   return diffVars;
 }
 
+export interface IProgressStateChanges {
+  diffState: Record<string, string | undefined>;
+  diffVars: Record<string, string | undefined>;
+  prints: (number | IWeight | IPercentage)[][];
+}
+
+export function Program_computeProgressStateChanges(
+  entry: IHistoryEntry,
+  dayData: IDayData,
+  settings: ISettings,
+  programExercise: IPlannerProgramExercise,
+  program: IEvaluatedProgram,
+  stats: IStats,
+  userPromptedStateVars?: IProgramState
+): IProgressStateChanges | undefined {
+  const state = PlannerProgramExercise_getState(programExercise);
+  const result = Program_runExerciseFinishDayScript(
+    entry,
+    dayData,
+    settings,
+    state,
+    program.states,
+    programExercise,
+    stats,
+    userPromptedStateVars
+  );
+  if (!result.success) {
+    return undefined;
+  }
+  const { state: newState, updates, bindings } = result.data;
+  return {
+    diffState: Program_getDiffState(state, newState, settings.units),
+    diffVars: Program_getDiffVars(entry, updates, bindings, settings),
+    prints: result.data.prints,
+  };
+}
+
 export function Program_getEvaluatedProgramFromState(state: IState): IEvaluatedProgram | undefined {
   const program = Program_getCurrentProgram(state.storage);
   return program ? Program_evaluate(program, state.storage.settings) : undefined;

@@ -508,6 +508,26 @@ export const VSet: v.GenericSchema<ISet> = _VSet;
 export const VProgramState = v.record(v.string(), v.union([v.number(), VWeight, VPercentage]));
 export type IProgramState = v.InferOutput<typeof VProgramState>;
 
+export interface IHistoryEntryProgressSnapshot {
+  diffState?: Record<string, string>;
+  diffVars?: Record<string, string>;
+  prints?: (number | IWeight | IPercentage)[][];
+  updatePrints?: (number | IWeight | IPercentage)[][];
+}
+const _VHistoryEntryProgressSnapshot = v.object({
+  diffState: v.optional(v.record(v.string(), v.string())),
+  diffVars: v.optional(v.record(v.string(), v.string())),
+  prints: v.optional(v.array(v.array(v.union([v.number(), VWeight, VPercentage])))),
+  updatePrints: v.optional(v.array(v.array(v.union([v.number(), VWeight, VPercentage])))),
+});
+const _VHistoryEntryProgressSnapshotMatches: IEquals<
+  v.InferOutput<typeof _VHistoryEntryProgressSnapshot>,
+  IHistoryEntryProgressSnapshot
+> = true;
+void _VHistoryEntryProgressSnapshotMatches;
+export const VHistoryEntryProgressSnapshot: v.GenericSchema<IHistoryEntryProgressSnapshot> =
+  _VHistoryEntryProgressSnapshot;
+
 export interface IHistoryEntry {
   vtype: "history_entry";
   exercise: IExerciseType;
@@ -523,6 +543,8 @@ export interface IHistoryEntry {
   isSuppressed?: boolean;
   superset?: string;
   updatePrints?: (number | IWeight | IPercentage)[][];
+  descriptionSnapshot?: string;
+  progressSnapshot?: IHistoryEntryProgressSnapshot;
 }
 const _VHistoryEntry = v.object({
   vtype: v.literal("history_entry"),
@@ -539,6 +561,8 @@ const _VHistoryEntry = v.object({
   isSuppressed: v.optional(v.boolean()),
   superset: v.optional(v.string()),
   updatePrints: v.optional(v.array(v.array(v.union([v.number(), VWeight, VPercentage])))),
+  descriptionSnapshot: v.optional(v.string()),
+  progressSnapshot: v.optional(VHistoryEntryProgressSnapshot),
 });
 const _VHistoryEntryMatches: IEquals<v.InferOutput<typeof _VHistoryEntry>, IHistoryEntry> = true;
 void _VHistoryEntryMatches;

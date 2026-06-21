@@ -1710,7 +1710,13 @@ export function Progress_finishWorkout(storage: IStorage, progress: IHistoryReco
   const program = progress.programId === emptyProgramId ? Program_createEmptyProgram() : storage.programs[programIndex];
   const evaluatedProgram = program ? Program_evaluate(program, settings) : undefined;
   Progress_stopTimer(progress);
-  const historyRecord = History_finishProgramDay(progress, storage.settings, progress.day, evaluatedProgram);
+  const historyRecord = History_finishProgramDay(
+    progress,
+    storage.settings,
+    progress.day,
+    evaluatedProgram,
+    storage.stats
+  );
   let newHistory;
   if (!Progress_isCurrent(progress)) {
     newHistory = storage.history.map((h) => (h.id === progress.id ? historyRecord : h));

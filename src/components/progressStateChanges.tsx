@@ -1,19 +1,13 @@
 import { JSX, memo } from "react";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
-import {
-  IEvaluatedProgram,
-  Program_getDiffState,
-  Program_getDiffVars,
-  Program_runExerciseFinishDayScript,
-} from "../models/program";
+import { IEvaluatedProgram, Program_computeProgressStateChanges } from "../models/program";
 import { ObjectUtils_isNotEmpty, ObjectUtils_keys } from "../utils/object";
 import { Weight_print } from "../models/weight";
 import { StringUtils_dashcase } from "../utils/string";
 import { Reps_isFinished } from "../models/set";
 import { IHistoryEntry, ISettings, IProgramState, IDayData, IPercentage, IWeight, IStats } from "../types";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
-import { PlannerProgramExercise_getState } from "../pages/planner/models/plannerProgramExercise";
 import { LinkButton } from "./linkButton";
 
 interface IProps {
@@ -29,78 +23,94 @@ interface IProps {
 }
 
 function ProgressStateChangesInner(props: IProps): JSX.Element | null {
-  const state = PlannerProgramExercise_getState(props.programExercise);
   const { entry, settings, dayData } = props;
-  const { units } = settings;
-  const result = Program_runExerciseFinishDayScript(
+  const changes = Program_computeProgressStateChanges(
     entry,
     dayData,
     settings,
-    state,
-    props.program.states,
     props.programExercise,
+    props.program,
     props.stats,
     props.userPromptedStateVars
   );
-  const isFinished = Reps_isFinished(entry.sets);
-  const updatePrints = entry.updatePrints || [];
-  const showEndOfDay = props.forceShow || isFinished;
-  const onSuppressProgress = props.onSuppressProgress;
-
-  if (result.success) {
-    const { state: newState, updates, bindings } = result.data;
-    const diffState = Program_getDiffState(state, newState, units);
-    const diffVars = Program_getDiffVars(entry, updates, bindings, settings);
-    const prints = result.data.prints;
-
-    if (
-      (showEndOfDay && ObjectUtils_isNotEmpty(diffState)) ||
-      (showEndOfDay && ObjectUtils_isNotEmpty(diffVars)) ||
-      (showEndOfDay && prints.length > 0) ||
-      updatePrints.length > 0
-    ) {
-      return (
-        <View
-          data-help-id="progress-state-changes"
-          data-help="This shows how state variables of the exercise are going to change after finishing this workout day. It usually indicates progression or deload, so next time you'd do more/less reps, or lift more/less weight."
-        >
-          <View>
-            {showEndOfDay && ObjectUtils_isNotEmpty(diffVars) && (
-              <View className={props.entry.isSuppressed ? "line-through" : ""}>
-                <ExerciseChanges diffVars={diffVars} />
-              </View>
-            )}
-            {showEndOfDay && ObjectUtils_isNotEmpty(diffState) && (
-              <View className={props.entry.isSuppressed ? "line-through" : ""}>
-                <StateVariablesChanges diffState={diffState} />
-              </View>
-            )}
-            {showEndOfDay && prints.length > 0 && <Prints title="Progress Prints" prints={prints} />}
-            {updatePrints.length > 0 && <Prints title="Update Prints" prints={updatePrints} />}
-          </View>
-          {onSuppressProgress && (
-            <View>
-              <LinkButton
-                name="supress-progress"
-                className="text-xs"
-                data-testid="suppress-progress"
-                testID="suppress-progress"
-                onClick={() => {
-                  onSuppressProgress(!props.entry.isSuppressed);
-                }}
-              >
-                {props.entry.isSuppressed ? "Enable" : "Suppress"}
-              </LinkButton>
-            </View>
-          )}
-        </View>
-      );
-    }
+  if (!changes) {
+    return null;
   }
-  return null;
+  const showEndOfDay = props.forceShow || Reps_isFinished(entry.sets);
+
+  return (
+    <ProgressStateChangesView
+      diffState={showEndOfDay ? changes.diffState : undefined}
+      diffVars={showEndOfDay ? changes.diffVars : undefined}
+      prints={showEndOfDay ? changes.prints : undefined}
+      updatePrints={entry.updatePrints}
+      isSuppressed={entry.isSuppressed}
+      onSuppressProgress={props.onSuppressProgress}
+    />
+  );
 }
 
 export const ProgressStateChanges = memo(ProgressStateChangesInner);
+
+interface IViewProps {
+  diffState?: Record<string, string | undefined>;
+  diffVars?: Record<string, string | undefined>;
+  prints?: (number | IWeight | IPercentage)[][];
+  updatePrints?: (number | IWeight | IPercentage)[][];
+  isSuppressed?: boolean;
+  onSuppressProgress?: (isSuppressed: boolean) => void;
+}
+
+export function ProgressStateChangesView(props: IViewProps): JSX.Element | null {
+  const diffState = props.diffState ?? {};
+  const diffVars = props.diffVars ?? {};
+  const prints = props.prints ?? [];
+  const updatePrints = props.updatePrints ?? [];
+  const hasDiffState = ObjectUtils_isNotEmpty(diffState);
+  const hasDiffVars = ObjectUtils_isNotEmpty(diffVars);
+  const onSuppressProgress = props.onSuppressProgress;
+
+  if (!hasDiffVars && !hasDiffState && prints.length === 0 && updatePrints.length === 0) {
+    return null;
+  }
+
+  return (
+    <View
+      data-help-id="progress-state-changes"
+      data-help="This shows how state variables of the exercise are going to change after finishing this workout day. It usually indicates progression or deload, so next time you'd do more/less reps, or lift more/less weight."
+    >
+      <View>
+        {hasDiffVars && (
+          <View className={props.isSuppressed ? "line-through" : ""}>
+            <ExerciseChanges diffVars={diffVars} />
+          </View>
+        )}
+        {hasDiffState && (
+          <View className={props.isSuppressed ? "line-through" : ""}>
+            <StateVariablesChanges diffState={diffState} />
+          </View>
+        )}
+        {prints.length > 0 && <Prints title="Progress Prints" prints={prints} />}
+        {updatePrints.length > 0 && <Prints title="Update Prints" prints={updatePrints} />}
+      </View>
+      {onSuppressProgress && (
+        <View>
+          <LinkButton
+            name="supress-progress"
+            className="text-xs"
+            data-testid="suppress-progress"
+            testID="suppress-progress"
+            onClick={() => {
+              onSuppressProgress(!props.isSuppressed);
+            }}
+          >
+            {props.isSuppressed ? "Enable" : "Suppress"}
+          </LinkButton>
+        </View>
+      )}
+    </View>
+  );
+}
 
 function ExerciseChanges({ diffVars }: { diffVars: Record<string, string | undefined> }): JSX.Element | null {
   if (ObjectUtils_isNotEmpty(diffVars)) {
