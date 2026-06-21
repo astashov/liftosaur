@@ -225,6 +225,7 @@ import {
   Thunk_sync2,
   Thunk_syncHealthKit,
   Thunk_iapFetchProducts,
+  Thunk_iapRestoreOnStartup,
   Thunk_iapHandlePurchase,
   Thunk_iapHandlePurchaseError,
   Thunk_completeSetExternal,
@@ -451,6 +452,7 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
       }
       if (!cancelled) {
         dispatch(Thunk_iapFetchProducts());
+        dispatch(Thunk_iapRestoreOnStartup());
       }
     })().catch(() => {});
     return () => {

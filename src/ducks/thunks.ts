@@ -1782,7 +1782,35 @@ export function Thunk_fetchInitial(): IThunk {
         }
       }
     }
-    if (SendMessage_isAndroid() || Platform.OS === "android") {
+    // Modern RN restore-on-load (Platform.OS android/ios) must wait until initConnection() succeeds, so it's
+    // dispatched from the IAP effect in App.native.tsx via Thunk_iapRestoreOnStartup, not here. The legacy WebView
+    // Android app has no env.iap and restores through the native bridge, which doesn't depend on initConnection.
+    if (SendMessage_isAndroid()) {
+      dispatch(Thunk_restorePurchases());
+    }
+  };
+}
+
+// Restore on startup for the native stores, dispatched only after iap.initConnection() succeeds (getAvailablePurchases
+// needs an open connection). Android restores unconditionally; iOS only self-heals when no receipt is stored: a
+// lifetime/sub owned on this Apple ID but bought under a different local account (or never persisted) leaves
+// storage.subscription empty - the only signal devices without StoreKit access (the Apple Watch) use to unlock
+// Premium, and the live "lifetime" screen state hides the manual Restore button, so there's no other recovery path.
+// StoreKit 2's currentEntitlements read is silent (unlike legacy SK1 restoreCompletedTransactions, which prompts for
+// the App Store password - the reason iOS wasn't restored on load before), so it's safe to do on every launch.
+export function Thunk_iapRestoreOnStartup(): IThunk {
+  return async (dispatch, getState, env) => {
+    if (env.iap == null) {
+      return;
+    }
+    // A debug sandbox must not restore the admin's IAPs into the target-derived debug account (same guard as
+    // Thunk_fetchInitial) - restoring would also write server-side subscription/payment records under the debug id.
+    if (AdminDebug_isDebugAccountId(getState().storage.tempUserId)) {
+      return;
+    }
+    if (Platform.OS === "android") {
+      dispatch(Thunk_restorePurchases());
+    } else if (Platform.OS === "ios" && getState().storage.subscription.apple.length === 0) {
       dispatch(Thunk_restorePurchases());
     }
   };
