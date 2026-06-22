@@ -31,6 +31,7 @@ export interface IEditSetColumnWidths {
   x: IEditSetColumnSpec;
   weight: IEditSetColumnSpec;
   rpe: IEditSetColumnSpec;
+  setTimer: IEditSetColumnSpec;
   timer: IEditSetColumnSpec;
 }
 
@@ -38,6 +39,7 @@ interface IEditSetColumnOpts {
   hasMinReps: boolean;
   hasWeight: boolean;
   hasRpe: boolean;
+  hasSetTimer: boolean;
   hasTimer: boolean;
 }
 
@@ -50,6 +52,7 @@ export function computeEditSetColumnWidths(remValue: number, opts: IEditSetColum
     x: opts.hasWeight ? { width: Math.round(0.75 * remValue) } : { width: 0 },
     weight: opts.hasWeight ? { flex: 1.4 } : { width: 0 },
     rpe: opts.hasRpe ? { flex: 1 } : { width: 0 },
+    setTimer: opts.hasSetTimer ? { flex: 1 } : { width: 0 },
     timer: opts.hasTimer ? { flex: 1 } : { width: 0 },
   };
 }
@@ -79,6 +82,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
   const reusingWeights = reusingSets && plannerExercise.globals.weight == null;
   const reusingRpe = reusingSets && plannerExercise.globals.rpe == null;
   const reusingTimer = reusingSets && plannerExercise.globals.timer == null;
+  const reusingSetTimer = reusingSets && plannerExercise.globals.setTimer == null;
 
   function changeSet(cb: (s: IPlannerProgramExerciseEvaluatedSet) => void): void {
     if (!plannerExercise) {
@@ -100,6 +104,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
   const weightInputWidth = 3.5;
   const rpeInputWidth = 2.5;
   const timerInputWidth = 2.5;
+  const setTimerInputWidth = 2.5;
 
   return (
     <SwipeableRow width={128} openThreshold={30} closeThreshold={110} scrollThreshold={7} initiateTreshold={8}>
@@ -289,6 +294,54 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
                 </View>
               ) : (
                 <View style={columnWidths.rpe} />
+              ))}
+            {props.opts.hasSetTimer &&
+              (set.setTimer != null ? (
+                <View style={columnWidths.setTimer} className="items-center justify-center py-2">
+                  <View
+                    style={{ opacity: reusingSetTimer ? 0.3 : 1 }}
+                    className="flex-row items-center justify-center"
+                  >
+                    <InputNumber2
+                      width={setTimerInputWidth}
+                      data-testid="set-time"
+                      testID="set-time"
+                      name="set-time-value"
+                      after={() =>
+                        set.isOverflowSetTimer ? <Text className="text-xs text-text-secondary">+</Text> : undefined
+                      }
+                      keyboardAddon={
+                        <View className="py-2">
+                          <InputNumberAddOn
+                            data-testid="keyboard-addon-set-time-overflow"
+                            testID="keyboard-addon-set-time-overflow"
+                            label="Count up past target?"
+                            value={!!set.isOverflowSetTimer}
+                            onChange={(value) => {
+                              changeSet((s) => (s.isOverflowSetTimer = value || undefined));
+                            }}
+                          />
+                        </View>
+                      }
+                      onBlur={(value) => {
+                        if (value != null && !isNaN(value)) {
+                          changeSet((s) => (s.setTimer = value));
+                        }
+                      }}
+                      onInput={(value) => {
+                        if (value != null && !isNaN(value)) {
+                          changeSet((s) => (s.setTimer = value));
+                        }
+                      }}
+                      value={set.setTimer}
+                      min={0}
+                      max={9999}
+                      step={15}
+                    />
+                  </View>
+                </View>
+              ) : (
+                <View style={columnWidths.setTimer} />
               ))}
             {props.opts.hasTimer &&
               (set.timer != null ? (

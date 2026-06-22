@@ -14,7 +14,9 @@ import {
   IPercentage,
 } from "../types";
 import { IconCheckCircle } from "./icons/iconCheckCircle";
+import { IconPlayCircle } from "./icons/iconPlayCircle";
 import { n } from "../utils/math";
+import { TimeUtils_formatMMSS } from "../utils/time";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { InputNumber2 } from "./inputNumber2";
 import { InputWeight2 } from "./inputWeight2";
@@ -46,6 +48,8 @@ import {
 } from "../models/weight";
 import { Exercise_getIsUnilateral, Exercise_onerm } from "../models/exercise";
 import { FocusedInputFlush_flush } from "../utils/focusedInputFlush";
+import { getNavigationService } from "../navigation/navUtils";
+import { Thunk_startSetTimer } from "../ducks/thunks";
 
 export interface ISetColumnWidths {
   set: number;
@@ -222,6 +226,12 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
       isExternal: false,
     });
   }, [dispatch, setIndex, entryIndex, programExercise, otherStates, isPlayground, type, set.isCompleted]);
+  const onEditSetTimer = useCallback(() => {
+    getNavigationService().then((nav) => nav.navigateToModal("setTimerEditModal", { entryIndex, setIndex }));
+  }, [entryIndex, setIndex]);
+  const onStartSetTimer = useCallback(() => {
+    dispatch(Thunk_startSetTimer(entryIndex, setIndex));
+  }, [dispatch, entryIndex, setIndex]);
 
   return (
     <SwipeableRow
@@ -352,7 +362,7 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
             </View>
 
             {props.columnWidths.rpe > 0 ? (
-              <View className="items-start justify-center py-2 ml-1" style={{ width: props.columnWidths.rpe }}>
+              <View className="items-center justify-center py-2 ml-1" style={{ width: props.columnWidths.rpe }}>
                 {completedRpeValue != null ? (
                   <Text
                     numberOfLines={1}
@@ -363,22 +373,45 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
                     @{n(completedRpeValue)}
                   </Text>
                 ) : null}
+                {set.completedSetTimer != null ? (
+                  <Pressable
+                    data-testid="set-timer-value"
+                    testID="set-timer-value"
+                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                    onPress={props.type === "workout" ? onEditSetTimer : undefined}
+                  >
+                    <Text numberOfLines={1} className="text-xs font-semibold text-syntax-timer">
+                      {TimeUtils_formatMMSS(set.completedSetTimer * 1000)}
+                    </Text>
+                  </Pressable>
+                ) : null}
               </View>
             ) : null}
 
             <View className="items-end justify-center" style={{ width: props.columnWidths.check }}>
-              <Pressable
-                className={props.columnWidths.rpe > 0 ? "pl-1 pr-4 py-3" : "px-4 py-3"}
-                data-testid="complete-set"
-                testID="complete-set"
-                onPress={onCompleteSet}
-              >
-                <IconCheckCircle
-                  size={24}
-                  isChecked={true}
-                  color={WorkoutExerciseUtils_getIconColor([set], props.type === "warmup")}
-                />
-              </Pressable>
+              {props.type === "workout" && set.setTimer != null && !set.isCompleted ? (
+                <Pressable
+                  className={props.columnWidths.rpe > 0 ? "pl-1 pr-4 py-3" : "px-4 py-3"}
+                  data-testid="start-set-timer"
+                  testID="start-set-timer"
+                  onPress={onStartSetTimer}
+                >
+                  <IconPlayCircle size={24} color={WorkoutExerciseUtils_getIconColor([set], false)} />
+                </Pressable>
+              ) : (
+                <Pressable
+                  className={props.columnWidths.rpe > 0 ? "pl-1 pr-4 py-3" : "px-4 py-3"}
+                  data-testid="complete-set"
+                  testID="complete-set"
+                  onPress={onCompleteSet}
+                >
+                  <IconCheckCircle
+                    size={24}
+                    isChecked={true}
+                    color={WorkoutExerciseUtils_getIconColor([set], props.type === "warmup")}
+                  />
+                </Pressable>
+              )}
             </View>
           </View>
 
@@ -454,7 +487,7 @@ interface IWorkoutExerciseSetTargetProps {
   set: ISet;
 }
 
-function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.Element {
+export function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.Element {
   const cls = StyledText_cls(useRem());
   switch (props.setType) {
     case "warmup": {
@@ -513,9 +546,23 @@ function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.El
         }${aSet.rpe && aSet.logRpe ? "+" : ""}`,
         cls("font-semibold text-syntax-rpe")
       );
-      if (aSet.timer != null) {
+      if (aSet.setTimer != null) {
+        const overflow = aSet.isOverflowSetTimer ? "+" : "";
+        builder.add(` ${n(Math.max(0, aSet.setTimer))}`, cls("font-semibold text-syntax-timer"));
+        builder.add("s", cls("text-xs text-syntax-timer"));
+        builder.add(`${overflow}|`, cls("font-semibold text-syntax-timer"));
+        if (aSet.timer != null) {
+          builder.add(`${n(Math.max(0, aSet.timer))}`, cls("font-semibold text-syntax-timer"));
+          builder.add("s", cls("text-xs text-syntax-timer"));
+        } else {
+          builder.add("?", cls("font-semibold text-syntax-timer"));
+        }
+      } else if (aSet.timer != null) {
         builder.add(` ${n(aSet.timer)}`, cls("text-syntax-timer"));
         builder.add("s", cls("text-xs text-syntax-timer"));
+      }
+      if (aSet.auto) {
+        builder.add(" auto", cls("text-syntax-auto"));
       }
       const built = builder.build();
       return (

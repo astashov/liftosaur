@@ -29,6 +29,9 @@ export interface IPlannerProgramExerciseGlobals {
   logRpe?: boolean;
   rpe?: number;
   timer?: number;
+  setTimer?: number;
+  isOverflowSetTimer?: boolean;
+  auto?: boolean;
   percentage?: number;
   weight?: IWeight;
   askWeight?: boolean;
@@ -91,6 +94,9 @@ export interface IPlannerProgramExerciseEvaluatedSet {
   weight?: IWeight | IPercentage;
   minrep?: number;
   timer?: number;
+  setTimer?: number;
+  isOverflowSetTimer?: boolean;
+  auto?: boolean;
   rpe?: number;
   logRpe: boolean;
   label?: string;
@@ -102,6 +108,9 @@ export interface IPlannerProgramExerciseEvaluatedSet {
 export interface IPlannerProgramExerciseSet {
   repRange?: IPlannerProgramExerciseRepRange;
   timer?: number;
+  setTimer?: number;
+  isOverflowSetTimer?: boolean;
+  auto?: boolean;
   rpe?: number;
   logRpe?: boolean;
   percentage?: number;

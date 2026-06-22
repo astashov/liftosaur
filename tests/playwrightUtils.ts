@@ -153,6 +153,15 @@ export async function PlaywrightUtils_createProgram(page: Page, name: string): P
   await page.getByTestId("modal-create-program-submit").click();
 }
 
+export async function PlaywrightUtils_createProgramWithCode(page: Page, name: string, code: string): Promise<void> {
+  await PlaywrightUtils_createProgram(page, name);
+  await page.getByTestId("tab-edit").click();
+  await page.getByTestId("editor-v2-full-program").click();
+  await PlaywrightUtils_clearCodeMirror(page, "planner-editor");
+  await PlaywrightUtils_typeCodeMirror(page, "planner-editor", code);
+  await page.getByTestId("save-program").click();
+}
+
 export async function PlaywrightUtils_closeTour(page: Page): Promise<void> {
   await page.getByTestId("tour-close").click();
 }

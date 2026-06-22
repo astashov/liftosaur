@@ -100,6 +100,7 @@ import { ClipboardUtils_copy } from "../utils/clipboard";
 import {
   Progress_getProgress,
   Progress_getProgressById,
+  Progress_getNextTimedSet,
   Progress_updateTimer,
   Progress_getCurrentProgress,
   Progress_isCurrent,
@@ -806,6 +807,162 @@ export function Thunk_completeSetExternal(
       mode: isWarmup ? "warmup" : "workout",
       forceUpdateEntryIndex: true,
       isExternal: true,
+    });
+  };
+}
+
+export function Thunk_completeSetWithTimer(entryIndex: number, setIndex: number, completedSetTimer: number): IThunk {
+  return async (dispatch, getState, env) => {
+    const state = getState();
+    const progress = Progress_getProgress(state);
+    if (!progress) {
+      return;
+    }
+    const entry = progress.entries[entryIndex];
+    const set = entry?.sets[setIndex];
+    if (!set) {
+      return;
+    }
+    dispatch({
+      type: "UpdateProgress",
+      lensRecordings: [
+        lb<IHistoryRecord>()
+          .p("entries")
+          .i(entryIndex)
+          .p("sets")
+          .i(setIndex)
+          .p("completedSetTimer")
+          .record(Math.round(completedSetTimer)),
+      ],
+      desc: "complete-set-timer",
+    });
+    if (!set.isCompleted) {
+      const program = Program_getFullProgram(state, progress.programId);
+      const evaluatedProgram = program ? Program_evaluate(program, state.storage.settings) : undefined;
+      const programExercise = evaluatedProgram
+        ? Program_getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
+        : undefined;
+      dispatch({
+        type: "CompleteSetAction",
+        setIndex,
+        entryIndex,
+        programExercise,
+        otherStates: evaluatedProgram?.states,
+        isPlayground: false,
+        mode: "workout",
+        forceUpdateEntryIndex: true,
+        isExternal: false,
+      });
+    }
+  };
+}
+
+// A timed set defers its rest timer to the sheets that drive it: the set-timer banner and, for AMRAP
+// sets, the reps modal that opens on top of it. The rest only starts once the set is completed and
+// *both* of those are closed — so the clock isn't replaced by a rest countdown while either is open.
+export function Thunk_startTimedSetRestIfReady(entryIndex: number, setIndex: number): IThunk {
+  return async (dispatch, getState, env) => {
+    const state = getState();
+    const progress = Progress_getProgress(state);
+    if (!progress) {
+      return;
+    }
+    const set = progress.entries[entryIndex]?.sets[setIndex];
+    if (set?.setTimer == null || !set.isCompleted) {
+      return;
+    }
+    if (progress.ui?.setTimerModal != null || progress.ui?.amrapModal != null) {
+      return;
+    }
+    dispatch({ type: "StartTimer", timestamp: Date.now(), mode: "workout", entryIndex, setIndex });
+  };
+}
+
+export function Thunk_closeSetTimer(): IThunk {
+  return async (dispatch, getState, env) => {
+    const state = getState();
+    const setTimerModal = Progress_getProgress(state)?.ui?.setTimerModal;
+    dispatch({
+      type: "UpdateProgress",
+      lensRecordings: [lb<IHistoryRecord>().pi("ui", {}).p("setTimerModal").record(undefined)],
+      desc: "Close set timer modal",
+    });
+    if (setTimerModal) {
+      dispatch(Thunk_startTimedSetRestIfReady(setTimerModal.entryIndex, setTimerModal.setIndex));
+    }
+  };
+}
+
+export function Thunk_startSetTimer(entryIndex: number, setIndex: number): IThunk {
+  return async (dispatch, getState, env) => {
+    const state = getState();
+    const progress = Progress_getProgress(state);
+    if (!progress) {
+      return;
+    }
+    const set = progress.entries[entryIndex]?.sets[setIndex];
+    if (!set || set.setTimer == null) {
+      return;
+    }
+    dispatch({
+      type: "UpdateProgress",
+      lensRecordings: [
+        lb<IHistoryRecord>()
+          .pi("ui", {})
+          .p("setTimerModal")
+          .record({ entryIndex, setIndex, startedAt: Date.now(), nonce: Date.now() }),
+      ],
+      desc: "start-set-timer",
+    });
+  };
+}
+
+export function Thunk_advanceSetTimer(): IThunk {
+  return async (dispatch, getState, env) => {
+    const state = getState();
+    const progress = Progress_getProgress(state);
+    if (!progress) {
+      return;
+    }
+    const next = Progress_getNextTimedSet(progress);
+    dispatch({
+      type: "UpdateProgress",
+      lensRecordings: [
+        lb<IHistoryRecord>()
+          .pi("ui", {})
+          .p("setTimerModal")
+          .record(
+            next != null ? { ...next, startedAt: Date.now(), nonce: progress.ui?.setTimerModal?.nonce } : undefined
+          ),
+      ],
+      desc: "advance-set-timer",
+    });
+  };
+}
+
+export function Thunk_autoAdvanceAfterRest(): IThunk {
+  return async (dispatch, getState, env) => {
+    const state = getState();
+    const progress = Progress_getProgress(state);
+    if (!progress) {
+      return;
+    }
+    const next = Progress_getNextTimedSet(progress);
+    dispatch({
+      type: "UpdateProgress",
+      lensRecordings: [
+        lb<IHistoryRecord>().p("timerSince").record(undefined),
+        lb<IHistoryRecord>().p("timer").record(undefined),
+        lb<IHistoryRecord>().p("timerMode").record(undefined),
+        lb<IHistoryRecord>().p("timerEntryIndex").record(undefined),
+        lb<IHistoryRecord>().p("timerSetIndex").record(undefined),
+        // Fresh nonce so the workout screen's observer re-opens the banner for the next set.
+        lb<IHistoryRecord>()
+          .pi("ui", {})
+          .p("setTimerModal")
+          .record(next != null ? { ...next, startedAt: Date.now(), nonce: Date.now() } : undefined),
+      ],
+      desc: "auto-advance-after-rest",
     });
   };
 }

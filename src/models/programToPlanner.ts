@@ -705,6 +705,9 @@ export class ProgramToPlanner {
     const firstLogRpe = !!variations[0]?.sets[0]?.logRpe;
     const firstAskWeight = !!variations[0]?.sets[0]?.askWeight;
     const firstTimer = variations[0]?.sets[0]?.timer;
+    // When any set carries a set timer, its rest is embedded in the setTimer|rest token, so the rest
+    // timer must not also be lifted to a global (a global would override the embedded rest on re-parse).
+    const hasAnySetTimer = variations.some((v) => v.sets.some((s) => s.setTimer != null));
     return {
       weight:
         firstWeight != null &&
@@ -721,7 +724,7 @@ export class ProgramToPlanner {
           : undefined,
       logRpe: variations.every((v) => v.sets.every((s) => s.rpe === firstRpe && !!s.logRpe)),
       timer:
-        firstTimer != null && variations.every((v) => v.sets.every((s) => s.timer === firstTimer))
+        !hasAnySetTimer && firstTimer != null && variations.every((v) => v.sets.every((s) => s.timer === firstTimer))
           ? firstTimer
           : undefined,
     };
@@ -830,8 +833,16 @@ export class ProgramToPlanner {
         setStr += set.rpe != null ? ` @${n(Math.max(0, set.rpe))}` : "";
         setStr += set.rpe != null && set.logRpe ? "+" : "";
       }
-      if (globals.timer == null) {
+      if (set.setTimer != null) {
+        // SetTimer embeds the rest timer, so it's always rendered per-set (never lifted to a global)
+        const overflow = set.isOverflowSetTimer ? "+" : "";
+        const restPart = set.timer != null ? `${n(Math.max(0, set.timer))}s` : "?";
+        setStr += ` ${n(Math.max(0, set.setTimer))}s${overflow}|${restPart}`;
+      } else if (globals.timer == null) {
         setStr += set.timer ? ` ${n(Math.max(0, set.timer))}s` : "";
+      }
+      if (set.auto) {
+        setStr += " auto";
       }
       if (set.label) {
         setStr += ` (${set.label})`;
@@ -852,6 +863,6 @@ export class ProgramToPlanner {
   private setToKey(set: IPlannerProgramExerciseEvaluatedSet): string {
     return `${set.maxrep}-${set.minrep}-${Weight_printNull(set.weight)}-${set.isAmrap}-${set.rpe}-${set.logRpe}-${
       set.timer
-    }-${set.label}-${set.askWeight}`;
+    }-${set.label}-${set.askWeight}-${set.setTimer}-${set.isOverflowSetTimer}-${set.auto}`;
   }
 }

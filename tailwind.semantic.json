@@ -103,6 +103,7 @@
     "weight": { "light": "@colors.green.800", "dark": "@colors.green.500" },
     "rpe": { "light": "@colors.green.800", "dark": "@colors.green.500" },
     "timer": { "light": "@colors.purple.800", "dark": "@colors.purple.500" },
+    "auto": { "light": "@colors.blue.800", "dark": "@colors.blue.500" },
 
     "keyword": { "light": "@colors.purple.700", "dark": "@colors.purple.300" },
     "literal": { "light": "@colors.green.600", "dark": "@colors.green.400" },

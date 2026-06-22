@@ -41,10 +41,11 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
   const hasWeight = props.setVariation.sets.some((set) => set.weight != null);
   const hasMinReps = props.setVariation.sets.some((set) => set.minrep != null);
   const hasTimer = props.setVariation.sets.some((set) => set.timer != null);
+  const hasSetTimer = props.setVariation.sets.some((set) => set.setTimer != null);
   const [setIds, setSetIds] = useState<string[]>(setVariation.sets.map(() => UidFactory_generateUid(4)));
   const currentIndex = PlannerProgramExercise_currentEvaluatedSetVariationIndex(props.plannerExercise);
   const remValue = props.settings.textSize ?? 16;
-  const columnWidths = computeEditSetColumnWidths(remValue, { hasMinReps, hasWeight, hasRpe, hasTimer });
+  const columnWidths = computeEditSetColumnWidths(remValue, { hasMinReps, hasWeight, hasRpe, hasSetTimer, hasTimer });
 
   return (
     <View className="border rounded-lg bg-background-subtlecardpurple border-border-cardpurple">
@@ -122,9 +123,14 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
               <Text className="text-xs text-text-secondary">RPE</Text>
             </View>
           )}
+          {hasSetTimer && (
+            <View style={columnWidths.setTimer} className="items-center justify-end py-1">
+              <Text className="text-xs text-center text-text-secondary">{"Set\nTime"}</Text>
+            </View>
+          )}
           {hasTimer && (
             <View style={columnWidths.timer} className="items-center justify-end py-1">
-              <Text className="text-xs text-text-secondary">Timer</Text>
+              <Text className="text-xs text-text-secondary">Rest</Text>
             </View>
           )}
         </View>
@@ -145,7 +151,7 @@ export function EditProgramExerciseSetVariation(props: IEditProgramExerciseSetVa
                 settings={props.settings}
                 exerciseStateKey={props.exerciseStateKey}
                 programId={props.programId}
-                opts={{ hasMinReps, hasWeight, hasRpe, hasTimer }}
+                opts={{ hasMinReps, hasWeight, hasRpe, hasSetTimer, hasTimer }}
               />
             );
           })}

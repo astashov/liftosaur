@@ -313,6 +313,8 @@ export class PlannerExerciseEvaluator {
       const repRange = this.getRepRange(setParts);
       const rpeNode = expr.getChild(PlannerNodeName.Rpe);
       const timerNode = expr.getChild(PlannerNodeName.Timer);
+      const setTimerNode = expr.getChild(PlannerNodeName.SetTimer);
+      const autoNode = expr.getChild(PlannerNodeName.Auto);
       const percentageNode = expr.getChild(PlannerNodeName.PercentageWithPlus);
       const weightNode = expr.getChild(PlannerNodeName.WeightWithPlus);
       const labelNode = expr.getChild(PlannerNodeName.SetLabel);
@@ -326,7 +328,18 @@ export class PlannerExerciseEvaluator {
       if (rpe != null && isNaN(rpe)) {
         rpe = undefined;
       }
-      const timer = timerNode == null ? undefined : parseInt(this.getValue(timerNode).replace("s", ""), 10);
+      let timer = timerNode == null ? undefined : parseInt(this.getValue(timerNode).replace("s", ""), 10);
+      let setTimer: number | undefined;
+      let isOverflowSetTimer: boolean | undefined;
+      if (setTimerNode != null) {
+        // SetTimer encodes both the active timer and the rest timer, e.g. "60s+|30s" or "60s|?"
+        const [leftRaw, rightRaw] = this.getValue(setTimerNode).split("|");
+        isOverflowSetTimer = leftRaw.indexOf("+") !== -1 ? true : undefined;
+        setTimer = parseInt(leftRaw.replace("s", "").replace("+", ""), 10);
+        // "?" on the rest side means "fall back to the global default rest timer"
+        timer = rightRaw === "?" ? undefined : parseInt(rightRaw.replace("s", ""), 10);
+      }
+      const auto = autoNode != null ? true : undefined;
       const percentage =
         percentageNode == null ? undefined : parseFloat(this.getValue(percentageNode).replace(/[%\+]/, ""));
       const weight = this.getWeight(weightNode);
@@ -341,6 +354,9 @@ export class PlannerExerciseEvaluator {
       return {
         repRange,
         timer,
+        setTimer,
+        isOverflowSetTimer,
+        auto,
         logRpe,
         rpe,
         weight,
@@ -967,6 +983,11 @@ export class PlannerExerciseEvaluator {
       }
       const rpe = allSets.find((set) => set.repRange == null && set.rpe != null)?.rpe;
       const timer = allSets.find((set) => set.repRange == null && set.timer != null)?.timer;
+      const setTimer = allSets.find((set) => set.repRange == null && set.setTimer != null)?.setTimer;
+      const isOverflowSetTimer = allSets.find(
+        (set) => set.repRange == null && set.isOverflowSetTimer != null
+      )?.isOverflowSetTimer;
+      const auto = allSets.find((set) => set.repRange == null && set.auto != null)?.auto;
       const percentage = allSets.find((set) => set.repRange == null && set.percentage != null)?.percentage;
       const weight = allSets.find((set) => set.repRange == null && set.weight != null)?.weight;
       const logRpe = allSets.find((set) => set.repRange == null && set.logRpe != null)?.logRpe;
@@ -1067,6 +1088,9 @@ export class PlannerExerciseEvaluator {
           logRpe,
           askWeight,
           timer,
+          setTimer,
+          isOverflowSetTimer,
+          auto,
           percentage,
           weight,
         },

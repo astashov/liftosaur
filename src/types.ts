@@ -469,6 +469,9 @@ export interface ISet {
   isAmrap?: boolean;
   label?: string;
   timer?: number;
+  setTimer?: number;
+  isOverflowSetTimer?: boolean;
+  auto?: boolean;
   askWeight?: boolean;
   isCompleted?: boolean;
   isUnilateral?: boolean;
@@ -476,6 +479,7 @@ export interface ISet {
   completedReps?: number;
   completedWeight?: IWeight;
   completedRpe?: number;
+  completedSetTimer?: number;
   programSetIndex?: number;
 }
 const _VSet = v.object({
@@ -492,6 +496,9 @@ const _VSet = v.object({
   isAmrap: v.optional(v.boolean()),
   label: v.optional(v.string()),
   timer: v.optional(v.number()),
+  setTimer: v.optional(v.number()),
+  isOverflowSetTimer: v.optional(v.boolean()),
+  auto: v.optional(v.boolean()),
   askWeight: v.optional(v.boolean()),
   isCompleted: v.optional(v.boolean()),
   isUnilateral: v.optional(v.boolean()),
@@ -499,6 +506,7 @@ const _VSet = v.object({
   completedReps: v.optional(v.number()),
   completedWeight: v.optional(VWeight),
   completedRpe: v.optional(v.number()),
+  completedSetTimer: v.optional(v.number()),
   programSetIndex: v.optional(v.number()),
 });
 const _VSetMatches: IEquals<v.InferOutput<typeof _VSet>, ISet> = true;
@@ -838,6 +846,12 @@ export interface IProgressUi {
     userVars?: boolean;
     nonce?: number;
   };
+  setTimerModal?: {
+    entryIndex: number;
+    setIndex: number;
+    startedAt: number;
+    nonce?: number;
+  };
   editModal?: {
     programExerciseId: string;
     entryIndex: number;
@@ -884,6 +898,14 @@ const _VProgressUi = v.object({
       logRpe: v.optional(v.boolean()),
       askWeight: v.optional(v.boolean()),
       userVars: v.optional(v.boolean()),
+      nonce: v.optional(v.number()),
+    })
+  ),
+  setTimerModal: v.optional(
+    v.object({
+      entryIndex: v.number(),
+      setIndex: v.number(),
+      startedAt: v.number(),
       nonce: v.optional(v.number()),
     })
   ),

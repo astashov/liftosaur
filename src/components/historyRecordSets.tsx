@@ -10,10 +10,16 @@ import { IHistoryEntryPersonalRecords } from "../models/history";
 import { StyledText, StyledText_remToPx } from "../utils/styledText";
 import { useRem } from "../utils/useRem";
 import { Tailwind_semantic, Tailwind_colors } from "../utils/tailwindConfig";
+import { TimeUtils_formatMMSS } from "../utils/time";
 
 function isSameDisplaySet(a: IDisplaySet, b: IDisplaySet): boolean {
   return (
-    a.reps === b.reps && a.weight === b.weight && a.rpe === b.rpe && a.askWeight === b.askWeight && a.timer === b.timer
+    a.reps === b.reps &&
+    a.weight === b.weight &&
+    a.rpe === b.rpe &&
+    a.askWeight === b.askWeight &&
+    a.timer === b.timer &&
+    a.setTimer === b.setTimer
   );
 }
 
@@ -122,6 +128,19 @@ export const HistoryRecordSet = memo(function HistoryRecordSet(props: IHistoryRe
   if (set.rpe != null) {
     builder.add(" @", { fontSize: xs, color: rpeColor });
     builder.add(`${set.rpe}`, { color: rpeColor }, "history-entry-rpe");
+  }
+  if (set.setTimer != null) {
+    builder.add(" ");
+    if (set.setTimer < 60) {
+      builder.add(`${set.setTimer}`, { fontWeight: "600", color: timerColor }, "history-entry-set-timer");
+      builder.add("s", { fontSize: xs, color: timerColor });
+    } else {
+      builder.add(
+        TimeUtils_formatMMSS(set.setTimer * 1000),
+        { fontWeight: "600", color: timerColor },
+        "history-entry-set-timer"
+      );
+    }
   }
   if (set.timer != null) {
     builder.add(" ");

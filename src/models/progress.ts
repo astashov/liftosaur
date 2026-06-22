@@ -119,6 +119,8 @@ export interface IScriptBindings {
   askweights: (number | undefined)[];
   logrpes: (number | undefined)[];
   timers: (number | undefined)[];
+  setTime: (number | undefined)[];
+  completedSetTime: (number | undefined)[];
   RPE: (number | undefined)[];
   completedRPE: (number | undefined)[];
   completedReps: (number | undefined)[];
@@ -309,6 +311,8 @@ export function Progress_createEmptyScriptBindings(
     completedRPE: [],
     isCompleted: [],
     timers: [],
+    setTime: [],
+    completedSetTime: [],
     w: [],
     r: [],
     cr: [],
@@ -351,6 +355,8 @@ export function Progress_createScriptBindings(
     bindings.logrpes.push(set.logRpe ? 1 : undefined);
     bindings.askweights.push(set.askWeight ? 1 : undefined);
     bindings.timers.push(set.timer);
+    bindings.setTime.push(set.setTimer);
+    bindings.completedSetTime.push(set.completedSetTimer);
     bindings.isCompleted.push(set.isCompleted ? 1 : 0);
   }
   bindings.w = bindings.weights;
@@ -1096,6 +1102,7 @@ export function Progress_applyBindings(
     "amraps",
     "logrpes",
     "timers",
+    "setTime",
     "originalWeights",
     "askweights",
   ] as const;
@@ -1145,6 +1152,9 @@ export function Progress_applyBindings(
         } else if (key === "timers") {
           const value = bindings.timers[i];
           entry.sets[i].timer = value != null && value >= 0 ? value : undefined;
+        } else if (key === "setTime") {
+          const value = bindings.setTime[i];
+          entry.sets[i].setTimer = value != null && value >= 0 ? value : undefined;
         }
       }
     }
@@ -1244,6 +1254,31 @@ export function Progress_completeSet(
   } else {
     return Progress_completeAmrapSet(progress, entryIndex, setIndex, settings);
   }
+}
+
+export function Progress_getFirstIncompleteWorkoutSet(
+  progress: IHistoryRecord
+): { entryIndex: number; setIndex: number } | undefined {
+  for (let entryIndex = 0; entryIndex < progress.entries.length; entryIndex += 1) {
+    const sets = progress.entries[entryIndex].sets;
+    for (let setIndex = 0; setIndex < sets.length; setIndex += 1) {
+      if (!sets[setIndex].isCompleted) {
+        return { entryIndex, setIndex };
+      }
+    }
+  }
+  return undefined;
+}
+
+export function Progress_getNextTimedSet(
+  progress: IHistoryRecord
+): { entryIndex: number; setIndex: number } | undefined {
+  const next = Progress_getFirstIncompleteWorkoutSet(progress);
+  if (next == null) {
+    return undefined;
+  }
+  const set = progress.entries[next.entryIndex]?.sets[next.setIndex];
+  return set?.setTimer != null ? next : undefined;
 }
 
 export function Progress_getIsRpeEnabled(sets: ISet[]): boolean {
@@ -1586,15 +1621,19 @@ export function Progress_changeAmrapAction(
     newProgress = Progress_stopTimer(newProgress);
   }
   newProgress = Progress_maybeApplySuperset(newProgress, action.entryIndex, "workout");
-  newProgress = Progress_startTimer(
-    newProgress,
-    new Date().getTime(),
-    "workout",
-    action.entryIndex,
-    action.setIndex,
-    settings,
-    subscription
-  );
+  const amrapSet = newProgress.entries[action.entryIndex]?.sets[action.setIndex];
+  // Timed sets defer their rest timer to the set-timer banner (it starts on close); see completeSet.
+  if (amrapSet?.setTimer == null) {
+    newProgress = Progress_startTimer(
+      newProgress,
+      new Date().getTime(),
+      "workout",
+      action.entryIndex,
+      action.setIndex,
+      settings,
+      subscription
+    );
+  }
   newProgress.intervals = History_resumeWorkout(
     newProgress,
     action.isPlayground,
@@ -1651,7 +1690,9 @@ export function Progress_completeSetAction(
   if (didFinish) {
     newProgress = Progress_maybeApplySuperset(newProgress, action.entryIndex, action.mode);
   }
-  if (!action.isPlayground) {
+  // Timed sets defer their rest timer to the set-timer banner, which starts it when it closes (so a
+  // set logged via "Log & keep timing" doesn't start resting while the clock is still running).
+  if (!action.isPlayground && newSet.setTimer == null) {
     newProgress = Progress_startTimer(
       newProgress,
       new Date().getTime(),

@@ -94,7 +94,7 @@ test("Sets", async ({ page }) => {
   await PlaywrightUtils_swipeLeft(page, page.getByTestId("set-x").nth(4));
   await page.getByTestId("edit-set").nth(4).click();
   await page.getByTestId("menu-item-name-rpe").click();
-  await page.getByTestId("menu-item-name-timer").click();
+  await page.getByTestId("menu-item-name-rest").click();
   await page.getByTestId("bottom-sheet-close").and(page.locator(":visible")).click();
 
   await PlaywrightUtils_typeKeyboard(page, page.getByTestId("input-timer-value-field"), "150");

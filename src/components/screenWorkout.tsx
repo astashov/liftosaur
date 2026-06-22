@@ -112,6 +112,15 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
     prevEditSetModal.current = editSetModal;
   }, [editSetModal]);
 
+  const setTimerModal = progress.ui?.setTimerModal;
+  const prevSetTimerNonce = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    if (setTimerModal && setTimerModal.nonce !== prevSetTimerNonce.current) {
+      prevSetTimerNonce.current = setTimerModal.nonce;
+      navigateToModal("setTimerModal", { progressId: progress.id });
+    }
+  }, [setTimerModal, progress.id]);
+
   const dispatch = props.dispatch;
   const isCurrent = Progress_isCurrent(progress);
   const onDeletePress = useCallback(async (): Promise<void> => {

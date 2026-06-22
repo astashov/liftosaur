@@ -19,6 +19,7 @@ import { lb, LensBuilder } from "lens-shmens";
 import { WorkoutExerciseSet, computeSetColumnWidths } from "./workoutExerciseSet";
 import { Reps_isFinishedSet, Reps_addSet } from "../models/set";
 import { n } from "../utils/math";
+import { TimeUtils_formatMMSS } from "../utils/time";
 import { IconPlus2 } from "./icons/iconPlus2";
 import { Tailwind_colors } from "../utils/tailwindConfig";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
@@ -85,10 +86,6 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
   const remValue = props.settings.textSize ?? 16;
   const rpeLabel = useMemo(() => {
     const allSets = [...sets, ...warmupSets];
-    const hasAny = allSets.some((s) => s.completedRpe != null);
-    if (!hasAny) {
-      return "";
-    }
     let longest = "";
     for (const s of allSets) {
       if (s.completedRpe != null) {
@@ -97,13 +94,33 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
           longest = label;
         }
       }
+      if (s.completedSetTimer != null) {
+        const label = TimeUtils_formatMMSS(s.completedSetTimer * 1000);
+        if (label.length > longest.length) {
+          longest = label;
+        }
+      }
     }
-    return longest || "";
+    return longest;
   }, [sets, warmupSets]);
-  const columnWidths = useMemo(
-    () => computeSetColumnWidths(remValue, isUnilateral, rpeLabel),
-    [remValue, isUnilateral, rpeLabel]
-  );
+  const rpeColumnLabel = useMemo(() => {
+    const allSets = [...sets, ...warmupSets];
+    const hasRpe = allSets.some((s) => s.completedRpe != null);
+    const hasTime = allSets.some((s) => s.completedSetTimer != null);
+    if (hasRpe && hasTime) {
+      return "RPE/Time";
+    }
+    return hasTime ? "Time" : "RPE";
+  }, [sets, warmupSets]);
+  // The column must fit both the recorded values and its header, so size it by whichever is wider.
+  const rpeColumnWidthLabel =
+    rpeLabel.length === 0 ? "" : rpeLabel.length >= rpeColumnLabel.length ? rpeLabel : rpeColumnLabel;
+  const hasTime = rpeColumnLabel.indexOf("Time") >= 0;
+  const columnWidths = useMemo(() => {
+    const widths = computeSetColumnWidths(remValue, isUnilateral, rpeColumnWidthLabel);
+    // Time values (mm:ss) and the tap target read better with a touch more room than RPE.
+    return hasTime ? { ...widths, rpe: widths.rpe + Math.round(0.75 * remValue) } : widths;
+  }, [remValue, isUnilateral, rpeColumnWidthLabel, hasTime]);
   const lbWarmupSetByIndex = useMemo(
     () => warmupSets.map((_, i) => props.lbWarmupSets.i(i)),
     [props.lbWarmupSets, warmupSets.length]
@@ -160,7 +177,9 @@ function WorkoutExerciseAllSetsInner(props: IWorkoutExerciseAllSets): JSX.Elemen
         </View>
         {columnWidths.rpe > 0 ? (
           <View className="items-center ml-1" style={{ width: columnWidths.rpe }}>
-            <Text className="text-xs text-center text-text-secondary">RPE</Text>
+            <Text numberOfLines={1} className="text-xs text-center text-text-secondary">
+              {rpeColumnLabel}
+            </Text>
           </View>
         ) : null}
         <View style={{ width: columnWidths.check }} />

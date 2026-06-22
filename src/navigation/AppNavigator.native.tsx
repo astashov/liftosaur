@@ -79,6 +79,8 @@ import { NavModalProgramPreviewMuscles } from "./modals/NavModalProgramPreviewMu
 import { NavModalAmrap } from "./modals/NavModalAmrap";
 import { NavModalNextWorkout } from "./modals/NavModalNextWorkout";
 import { NavModalEditTarget } from "./modals/NavModalEditTarget";
+import { NavModalSetTimer } from "./modals/NavModalSetTimer";
+import { NavModalSetTimerEdit } from "./modals/NavModalSetTimerEdit";
 import { NavModalGraphs } from "./modals/NavModalGraphs";
 import { NavModalStatsSettings } from "./modals/NavModalStatsSettings";
 import { NavModal1RM } from "./modals/NavModal1RM";
@@ -380,6 +382,16 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
             name="editSetTargetModal"
             component={NavModalEditTarget}
             options={{ sheetResizeAnimationEnabled: false }}
+          />
+          <RootStack.Screen
+            name="setTimerModal"
+            component={NavModalSetTimer}
+            options={{ sheetAllowedDetents: "fitToContents" }}
+          />
+          <RootStack.Screen
+            name="setTimerEditModal"
+            component={NavModalSetTimerEdit}
+            options={{ sheetAllowedDetents: "fitToContents" }}
           />
           <RootStack.Screen name="programPreviewMusclesModal" component={NavModalProgramPreviewMuscles} />
           <RootStack.Screen name="nextWorkoutModal" component={NavModalNextWorkout} />

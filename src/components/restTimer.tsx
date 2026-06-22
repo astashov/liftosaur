@@ -8,7 +8,7 @@ import { Text } from "./primitives/text";
 import { TimeUtils_formatMMSS } from "../utils/time";
 import { StringUtils_pad } from "../utils/string";
 import { IDispatch } from "../ducks/types";
-import { Thunk_playAudioNotification, Thunk_updateTimer } from "../ducks/thunks";
+import { Thunk_playAudioNotification, Thunk_updateTimer, Thunk_autoAdvanceAfterRest } from "../ducks/thunks";
 import { IconTrash } from "./icons/iconTrash";
 import { IconBack } from "./icons/iconBack";
 import { IHistoryRecord, ISettings, ISubscription } from "../types";
@@ -49,6 +49,7 @@ const shadowStyle = Platform.select({
 export function RestTimer(props: IProps): JSX.Element | null {
   const prevProps = useRef<IProps>(props);
   const sentNotification = useRef<boolean>(false);
+  const autoAdvanced = useRef<boolean>(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const insets = useSafeAreaInsets();
   const keyboardActiveId = useCustomKeyboardActiveId();
@@ -117,6 +118,28 @@ export function RestTimer(props: IProps): JSX.Element | null {
       }
     }
     prevProps.current = props;
+  });
+
+  // Re-arm the auto-advance whenever a new rest timer starts.
+  useEffect(() => {
+    autoAdvanced.current = false;
+  }, [timerSince, timer]);
+
+  // For `auto` timed sets the rest is shown here (corner timer), not in the set-timer banner; when it
+  // expires we dismiss it and re-open the banner for the next timed set's work window.
+  useEffect(() => {
+    if (timer == null || timerSince == null || autoAdvanced.current) {
+      return;
+    }
+    const expired = Date.now() - timerSince > timer * 1000;
+    const timedSet =
+      progress.timerMode === "workout" && progress.timerEntryIndex != null && progress.timerSetIndex != null
+        ? progress.entries[progress.timerEntryIndex]?.sets[progress.timerSetIndex]
+        : undefined;
+    if (expired && timedSet?.auto) {
+      autoAdvanced.current = true;
+      props.dispatch(Thunk_autoAdvanceAfterRest());
+    }
   });
 
   if (timer == null || timerSince == null) {

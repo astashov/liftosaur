@@ -33,6 +33,7 @@ export interface IDisplaySet {
   isRpeFailed?: boolean;
   isInRange?: boolean;
   timer?: number;
+  setTimer?: number;
 }
 
 export function Reps_display(sets: ISet[], isNext: boolean = false): string {
@@ -47,7 +48,12 @@ export function Reps_display(sets: ISet[], isNext: boolean = false): string {
 
 function isSameDisplaySet(a: IDisplaySet, b: IDisplaySet): boolean {
   return (
-    a.reps === b.reps && a.weight === b.weight && a.rpe === b.rpe && a.askWeight === b.askWeight && a.timer === b.timer
+    a.reps === b.reps &&
+    a.weight === b.weight &&
+    a.rpe === b.rpe &&
+    a.askWeight === b.askWeight &&
+    a.timer === b.timer &&
+    a.setTimer === b.setTimer
   );
 }
 
@@ -74,6 +80,7 @@ export function Reps_setToDisplaySet(set: ISet, isNext: boolean, units: IUnit): 
     isCompleted: Reps_isCompletedSet(set),
     isRpeFailed: set.completedRpe != null && set.completedRpe > (set.rpe ?? 0),
     isInRange: set.minReps != null ? set.completedReps != null && set.completedReps >= set.minReps : undefined,
+    setTimer: isNext ? set.setTimer : (set.completedSetTimer ?? set.setTimer),
   };
 }
 
@@ -275,7 +282,9 @@ export function Reps_group(sets: ISet[], isNext?: boolean): ISet[][] {
           last.askWeight !== set.askWeight ||
           (isNext && last.isAmrap !== set.isAmrap) ||
           last.rpe !== set.rpe ||
-          last.completedRpe !== set.completedRpe)
+          last.completedRpe !== set.completedRpe ||
+          last.setTimer !== set.setTimer ||
+          (!isNext && last.completedSetTimer !== set.completedSetTimer))
       ) {
         memo.push([]);
         lastGroup = memo[memo.length - 1];

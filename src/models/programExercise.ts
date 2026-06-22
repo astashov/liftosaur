@@ -202,6 +202,8 @@ export function ProgramExercise_applyVariables(
                   operation(exercise, sets[setIndex], settings, "minrep", value.value, value.op);
                 } else if (key === "timers") {
                   operation(exercise, sets[setIndex], settings, "timer", value.value, value.op);
+                } else if (key === "setTime") {
+                  operation(exercise, sets[setIndex], settings, "setTimer", value.value, value.op);
                 } else if (key === "weights") {
                   operation(exercise, sets[setIndex], settings, "weight", value.value, value.op);
                 } else if (key === "amraps") {
@@ -266,7 +268,7 @@ function operation(
   programExercise: IPlannerProgramExerciseWithType,
   set: IPlannerProgramExerciseEvaluatedSet,
   settings: ISettings,
-  key: "maxrep" | "minrep" | "weight" | "rpe" | "timer" | "logRpe" | "isAmrap" | "askWeight",
+  key: "maxrep" | "minrep" | "weight" | "rpe" | "timer" | "setTimer" | "logRpe" | "isAmrap" | "askWeight",
   value: IWeight | IPercentage | number,
   op: IAssignmentOp
 ): void {
@@ -275,7 +277,7 @@ function operation(
       set[key] = value;
     } else if (
       typeof value === "number" &&
-      (key === "maxrep" || key === "minrep" || key === "timer" || key === "rpe")
+      (key === "maxrep" || key === "minrep" || key === "timer" || key === "setTimer" || key === "rpe")
     ) {
       set[key] = value;
     } else if (typeof value === "number" && (key === "askWeight" || key === "isAmrap" || key === "logRpe")) {
@@ -293,7 +295,7 @@ function operation(
       set[key] = newValue;
     } else if (
       typeof newValue === "number" &&
-      (key === "maxrep" || key === "minrep" || key === "timer" || key === "rpe")
+      (key === "maxrep" || key === "minrep" || key === "timer" || key === "setTimer" || key === "rpe")
     ) {
       set[key] = newValue;
     } else if (typeof newValue === "number" && (key === "askWeight" || key === "isAmrap" || key === "logRpe")) {

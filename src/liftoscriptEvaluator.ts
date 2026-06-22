@@ -141,6 +141,7 @@ export type ILiftoscriptEvaluatorUpdate =
   | { type: "minReps"; value: ILiftoscriptVariableValue<number> }
   | { type: "weights"; value: ILiftoscriptVariableValue<number | IPercentage | IWeight> }
   | { type: "timers"; value: ILiftoscriptVariableValue<number> }
+  | { type: "setTime"; value: ILiftoscriptVariableValue<number> }
   | { type: "RPE"; value: ILiftoscriptVariableValue<number> }
   | { type: "logrpes"; value: ILiftoscriptVariableValue<number> }
   | { type: "amraps"; value: ILiftoscriptVariableValue<number> }
@@ -326,6 +327,7 @@ export class LiftoscriptEvaluator {
                   "minReps",
                   "numberOfSets",
                   "timers",
+                  "setTime",
                   "askweights",
                   "amraps",
                   "logrpes",
@@ -368,6 +370,8 @@ export class LiftoscriptEvaluator {
             "completedRepsLeft",
             "completedWeights",
             "timers",
+            "setTime",
+            "completedSetTime",
             "w",
             "r",
             "cr",
@@ -504,7 +508,7 @@ export class LiftoscriptEvaluator {
   }
 
   private changeBinding(
-    key: "reps" | "weights" | "RPE" | "minReps" | "timers" | "logrpes" | "amraps" | "askweights",
+    key: "reps" | "weights" | "RPE" | "minReps" | "timers" | "setTime" | "logrpes" | "amraps" | "askweights",
     expression: SyntaxNode,
     indexExprs: SyntaxNode[],
     op: IAssignmentOp
@@ -556,6 +560,7 @@ export class LiftoscriptEvaluator {
       | "reps"
       | "weights"
       | "timers"
+      | "setTime"
       | "RPE"
       | "minReps"
       | "setVariationIndex"
@@ -815,6 +820,7 @@ export class LiftoscriptEvaluator {
             variable === "RPE" ||
             variable === "minReps" ||
             variable === "timers" ||
+            variable === "setTime" ||
             variable === "logrpes" ||
             variable === "amraps" ||
             variable === "askweights" ||
@@ -834,7 +840,8 @@ export class LiftoscriptEvaluator {
             variable === "logrpes" ||
             variable === "askweights" ||
             variable === "minReps" ||
-            variable === "timers")
+            variable === "timers" ||
+            variable === "setTime")
         ) {
           return this.changeBinding(variable, expression, indexExprs, "=");
         } else {
@@ -943,6 +950,7 @@ export class LiftoscriptEvaluator {
             variable === "RPE" ||
             variable === "minReps" ||
             variable === "timers" ||
+            variable === "setTime" ||
             variable === "setVariationIndex" ||
             variable === "descriptionIndex" ||
             variable === "numberOfSets")
@@ -964,7 +972,8 @@ export class LiftoscriptEvaluator {
             variable === "weights" ||
             variable === "RPE" ||
             variable === "minReps" ||
-            variable === "timers")
+            variable === "timers" ||
+            variable === "setTime")
         ) {
           const op = this.getValue(incAssignmentExpr);
           if (op !== "=" && op !== "+=" && op !== "-=" && op !== "*=" && op !== "/=") {

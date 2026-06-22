@@ -59,6 +59,8 @@ import { NavModalAmrap } from "./modals/NavModalAmrap";
 import { NavModalExercisePicker } from "./modals/NavModalExercisePicker";
 import { NavModalEditProgramExercisePicker } from "./modals/NavModalEditProgramExercisePicker";
 import { NavModalEditTarget } from "./modals/NavModalEditTarget";
+import { NavModalSetTimer } from "./modals/NavModalSetTimer";
+import { NavModalSetTimerEdit } from "./modals/NavModalSetTimerEdit";
 import { NavModalDate } from "./modals/NavModalDate";
 import { NavModal1RM } from "./modals/NavModal1RM";
 import { NavModalEquipment } from "./modals/NavModalEquipment";
@@ -330,6 +332,8 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="exercisePickerModal" component={NavModalExercisePicker} />
           <RootStack.Screen name="editProgramExercisePickerModal" component={NavModalEditProgramExercisePicker} />
           <RootStack.Screen name="editSetTargetModal" component={NavModalEditTarget} />
+          <RootStack.Screen name="setTimerModal" component={NavModalSetTimer} />
+          <RootStack.Screen name="setTimerEditModal" component={NavModalSetTimerEdit} />
           <RootStack.Screen name="dateModal" component={NavModalDate} />
           <RootStack.Screen name="rm1Modal" component={NavModal1RM} />
           <RootStack.Screen name="equipmentModal" component={NavModalEquipment} />
