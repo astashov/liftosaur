@@ -1,4 +1,5 @@
-import { Alert } from "react-native";
+import { Alert, Platform } from "react-native";
+import { Prompt_show } from "./prompt.native";
 
 export async function Dialog_confirm(message: string): Promise<boolean> {
   return new Promise((resolve) => {
@@ -10,6 +11,12 @@ export async function Dialog_confirm(message: string): Promise<boolean> {
 }
 
 export async function Dialog_prompt(message: string): Promise<string | undefined> {
+  // Alert.prompt is iOS-only; on Android we render a custom prompt via PromptHost.
+  if (Platform.OS === "android") {
+    return new Promise((resolve) => {
+      Prompt_show(message, resolve);
+    });
+  }
   return new Promise((resolve) => {
     Alert.prompt(
       "Confirm",

@@ -217,6 +217,7 @@ import { Settings_applyTheme, Settings_getTheme } from "./models/settings";
 import { TextSize_apply } from "./utils/textSize";
 import { AppContext } from "./components/appContext";
 import { ActionSheetHost } from "./components/actionSheetHost";
+import { PromptHost } from "./components/promptHost";
 import { SystemBars } from "react-native-edge-to-edge";
 import { activateKeepAwake, deactivateKeepAwake } from "@sayem314/react-native-keep-awake";
 import { ImportExporter_handleUniversalLink } from "./lib/importexporter";
@@ -695,6 +696,7 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
                     />
                   )}
                   <ActionSheetHost />
+                  <PromptHost />
                 </CustomKeyboardProvider>
               </ActiveSheetHeightProvider>
             </ModalStateProvider>
