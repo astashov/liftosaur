@@ -40,6 +40,9 @@ export type LiveActivityState = {
   ignoreDoNotDisturb: boolean;
   rest?: LiveActivityRest;
   entry?: LiveActivityEntry;
+  // Set only on the update that results from a "Complete Set" Live Activity tap,
+  // so native can ack that exact render back to the waiting intent.
+  completeSetRequestId?: string;
 };
 
 export type LiveActivityActionEvent = {
@@ -47,6 +50,7 @@ export type LiveActivityActionEvent = {
   entryIndex?: number;
   setIndex?: number;
   addSeconds?: number;
+  completeSetRequestId?: string;
 };
 
 export interface Spec extends TurboModule {

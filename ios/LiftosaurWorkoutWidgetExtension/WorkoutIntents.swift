@@ -3,6 +3,8 @@ import Foundation
 import ActivityKit
 import OSLog
 
+private let kCompleteSetRequestedDarwinName = "com.liftosaur.workout.completeSetRequested"
+
 @available(iOS 16.2, *)
 func checkAndEndActivityIfAppKilled() async {
     guard let sharedDefaults = UserDefaults(suiteName: "group.com.liftosaur.workout") else {
@@ -133,17 +135,47 @@ struct CompleteSetIntent: LiveActivityIntent {
             await checkAndEndActivityIfAppKilled()
         }
 
+        let requestId = "\(self.entryIndex)-\(self.setIndex)-\(Int(Date().timeIntervalSince1970 * 1000))"
         if let sharedDefaults = UserDefaults(suiteName: "group.com.liftosaur.workout") {
+            sharedDefaults.removeObject(forKey: "completeSetAckRequestId")
             sharedDefaults.set(self.entryIndex, forKey: "completeSetEntryIndex")
             sharedDefaults.set(self.setIndex, forKey: "completeSetSetIndex")
             sharedDefaults.set(self.restTimer, forKey: "completeSetRestTimer")
             sharedDefaults.set(self.restTimerSince, forKey: "completeSetRestTimerSince")
             sharedDefaults.set(self.stateVersion, forKey: "completeSetStateVersion")
+            sharedDefaults.set(requestId, forKey: "completeSetRequestId")
             Logger.liveActivity.debug("Syncing complete set (\(self.entryIndex)/\(self.setIndex), version: \(self.stateVersion))")
             sharedDefaults.synchronize()
         }
 
+        // Wake the app to drain the request now instead of waiting on its 0.5s
+        // polling timer, then keep perform() suspended until the app reports it
+        // re-rendered the Live Activity. As a LiveActivityIntent this runs in the
+        // app's process, so awaiting here keeps the process scheduled long enough
+        // for the JS round-trip + ActivityKit update to complete (otherwise iOS
+        // suspends us mid-update and the lock-screen widget shows the stale set).
+        let center = CFNotificationCenterGetDarwinNotifyCenter()
+        CFNotificationCenterPostNotification(
+            center,
+            CFNotificationName(rawValue: kCompleteSetRequestedDarwinName as CFString),
+            nil,
+            nil,
+            true
+        )
+        await Self.waitForCompleteSetAck(requestId: requestId, timeout: 5.0)
+
         return .result()
+    }
+
+    private static func waitForCompleteSetAck(requestId: String, timeout: TimeInterval) async {
+        let defaults = UserDefaults(suiteName: "group.com.liftosaur.workout")
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if defaults?.string(forKey: "completeSetAckRequestId") == requestId {
+                return
+            }
+            try? await Task.sleep(nanoseconds: 50_000_000)
+        }
     }
 }
 
@@ -190,6 +222,7 @@ struct OpenWorkoutIntent: AppIntent {
         Logger.liveActivity.debug("OpenWorkoutIntent.perform (completeSet=\(self.completeSet))")
         if completeSet {
             if let sharedDefaults = UserDefaults(suiteName: "group.com.liftosaur.workout") {
+                sharedDefaults.removeObject(forKey: "completeSetRequestId")
                 sharedDefaults.set(entryIndex, forKey: "completeSetEntryIndex")
                 sharedDefaults.set(setIndex, forKey: "completeSetSetIndex")
                 sharedDefaults.set(restTimer, forKey: "completeSetRestTimer")

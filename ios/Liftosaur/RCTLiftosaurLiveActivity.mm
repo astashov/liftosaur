@@ -38,6 +38,7 @@ static NSDictionary *DictFromState(JS::NativeLiftosaurLiveActivity::LiveActivity
   NSMutableDictionary *dict = [NSMutableDictionary dictionary];
   dict[@"workoutStartTimestamp"] = @(state.workoutStartTimestamp());
   dict[@"ignoreDoNotDisturb"] = @(state.ignoreDoNotDisturb());
+  if (auto v = state.completeSetRequestId()) dict[@"completeSetRequestId"] = v;
   if (auto rest = state.rest()) {
     dict[@"rest"] = @{
       @"restTimerSince": @(rest->restTimerSince()),

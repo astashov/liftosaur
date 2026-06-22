@@ -13,6 +13,10 @@ export type INativeWorkoutBridgeLiveActivityAction = LiveActivityActionEvent;
 
 let currentReminderDuration: number | null = null;
 let appStateSubscribed = false;
+// Set while a "completeSet" action handler runs synchronously, so the single
+// updateLiveActivity it triggers (reducer side-effect, same JS tick) carries the
+// id back to native and acks the exact render the waiting intent is blocked on.
+let pendingCompleteSetRequestId: string | null = null;
 
 function ensureAppStateSubscription(): void {
   if (appStateSubscribed) {
@@ -82,13 +86,23 @@ export function NativeWorkoutBridge_updateLiveActivity(state: ILiveActivityState
     ignoreDoNotDisturb: state.ignoreDoNotDisturb,
     rest: state.restTimer,
     entry: state.historyEntryState,
+    completeSetRequestId: pendingCompleteSetRequestId ?? undefined,
   }).catch(() => {});
 }
 
 export function NativeWorkoutBridge_subscribeToLiveActivityActions(
   handler: (event: LiveActivityActionEvent) => void
 ): () => void {
-  const subscription = NativeLiftosaurLiveActivity.onLiveActivityAction(handler);
+  const subscription = NativeLiftosaurLiveActivity.onLiveActivityAction((event) => {
+    if (event.action === "completeSet" && event.completeSetRequestId != null) {
+      pendingCompleteSetRequestId = event.completeSetRequestId;
+    }
+    try {
+      handler(event);
+    } finally {
+      pendingCompleteSetRequestId = null;
+    }
+  });
   NativeLiftosaurLiveActivity.flushPendingActions().catch(() => {});
   return () => subscription.remove();
 }

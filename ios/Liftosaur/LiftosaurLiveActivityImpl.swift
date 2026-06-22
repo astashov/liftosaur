@@ -5,6 +5,15 @@ import UIKit
 
 private let kAppGroup = "group.com.liftosaur.workout"
 
+// A Live Activity "Complete Set" tap can't optimistically update the widget
+// (next-set/exercise depends on JS-only logic: supersets, update scripts,
+// AMRAP, etc.), so it round-trips through JS. The intent posts this Darwin
+// notification to drain the request immediately instead of waiting for the
+// 0.5s polling timer, and waits on `completeSetAckRequestId` (written below
+// after the activity actually re-renders) so iOS keeps the process alive
+// until the refresh lands.
+private let kCompleteSetRequestedDarwinName = "com.liftosaur.workout.completeSetRequested"
+
 private let liveActivityLogger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.liftosaur.www",
                                         category: "liveactivity")
 
@@ -31,10 +40,33 @@ private let liveActivityLogger = Logger(subsystem: Bundle.main.bundleIdentifier 
       name: UIApplication.didBecomeActiveNotification,
       object: nil
     )
+    registerCompleteSetDarwinObserver()
   }
 
   @objc private func handleDidBecomeActive() {
     processPendingWorkout()
+  }
+
+  private func registerCompleteSetDarwinObserver() {
+    let center = CFNotificationCenterGetDarwinNotifyCenter()
+    let observer = Unmanaged.passUnretained(self).toOpaque()
+    CFNotificationCenterAddObserver(
+      center,
+      observer,
+      { _, _, _, _, _ in
+        DispatchQueue.main.async {
+          LiftosaurLiveActivityImpl.shared.handleCompleteSetRequested()
+        }
+      },
+      kCompleteSetRequestedDarwinName as CFString,
+      nil,
+      .deliverImmediately
+    )
+  }
+
+  @objc private func handleCompleteSetRequested() {
+    startPollingIfNeeded()
+    tick()
   }
 
   @objc public func isSupported() -> Bool {
@@ -58,7 +90,8 @@ private let liveActivityLogger = Logger(subsystem: Bundle.main.bundleIdentifier 
     }
     startPollingIfNeeded()
     cacheExerciseImageIfNeeded(contentState.historyEntryState?.exerciseImageUrl)
-    Task { await LiveActivityManager.shared.update(contentState: contentState) }
+    let ackRequestId = state["completeSetRequestId"] as? String
+    Task { await LiveActivityManager.shared.update(contentState: contentState, ackRequestId: ackRequestId) }
   }
 
   private func cacheExerciseImageIfNeeded(_ urlString: String?) {
@@ -152,12 +185,18 @@ private let liveActivityLogger = Logger(subsystem: Bundle.main.bundleIdentifier 
 
     if let entryIndex = sharedDefaults.object(forKey: "completeSetEntryIndex") as? Int,
        let setIndex = sharedDefaults.object(forKey: "completeSetSetIndex") as? Int {
+      let requestId = sharedDefaults.string(forKey: "completeSetRequestId")
       sharedDefaults.removeObject(forKey: "completeSetEntryIndex")
       sharedDefaults.removeObject(forKey: "completeSetSetIndex")
       sharedDefaults.removeObject(forKey: "completeSetStateVersion")
       sharedDefaults.removeObject(forKey: "completeSetRestTimer")
       sharedDefaults.removeObject(forKey: "completeSetRestTimerSince")
-      emit(["action": "completeSet", "entryIndex": entryIndex, "setIndex": setIndex])
+      sharedDefaults.removeObject(forKey: "completeSetRequestId")
+      var event: [String: Any] = ["action": "completeSet", "entryIndex": entryIndex, "setIndex": setIndex]
+      if let requestId = requestId {
+        event["completeSetRequestId"] = requestId
+      }
+      emit(event)
     }
 
     if let action = sharedDefaults.string(forKey: "adjustRestTimerAction") {
@@ -291,7 +330,7 @@ actor LiveActivityManager {
     return Date().addingTimeInterval(60)
   }
 
-  func update(contentState: WorkoutAttributes.ContentState) async {
+  func update(contentState: WorkoutAttributes.ContentState, ackRequestId: String? = nil) async {
     if contentState.workoutStartTimestamp > 0,
        contentState.workoutStartTimestamp == lastEndedWorkoutStartTimestamp {
       liveActivityLogger.info("Ignoring update for ended workout (ts=\(contentState.workoutStartTimestamp))")
@@ -329,6 +368,11 @@ actor LiveActivityManager {
           liveActivityLogger.info("Created new Live Activity (id=\(newActivity.id))")
         }
         pendingState = nil
+        // Ack only after the activity actually re-rendered, so the waiting
+        // CompleteSetIntent keeps the app alive until the refresh is visible.
+        if let ackRequestId = ackRequestId, let defaults = UserDefaults(suiteName: kAppGroup) {
+          defaults.set(ackRequestId, forKey: "completeSetAckRequestId")
+        }
       } catch {
         liveActivityLogger.error("Failed to update/create Live Activity: \(error.localizedDescription)")
         if let authError = error as? ActivityAuthorizationError, case .visibility = authError {
