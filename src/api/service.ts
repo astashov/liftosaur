@@ -6,7 +6,7 @@ import { UrlUtils_build } from "../utils/url";
 import { IStorageUpdate2 } from "../utils/sync";
 import { IExportedProgram, IProgramIndexEntry } from "../models/program";
 import { CollectionUtils_uniqBy } from "../utils/collection";
-import { Encoder_encode } from "../utils/encoder";
+import { Encoder_encode, Encoder_decode } from "../utils/encoder";
 import { IAppleOffer, IGoogleOffer } from "../models/state";
 
 function Service_nativeClientHeaders(): Record<string, string> {
@@ -533,6 +533,32 @@ export class Service {
       key: json.key,
       is_new_user: json.is_new_user,
     };
+  }
+
+  public async getDebugSnapshotList(userId: string, adminKey: string): Promise<string[]> {
+    const url = UrlUtils_build(`${__API_HOST__}/api/debuginfo`);
+    url.searchParams.set("userid", userId);
+    url.searchParams.set("key", adminKey);
+    const result = await this.client(url.toString(), { credentials: "include" });
+    const json = await result.json();
+    return json.list ?? [];
+  }
+
+  public async getDebugSnapshotStorage(
+    userId: string,
+    adminKey: string,
+    timestamp: string
+  ): Promise<IStorage | undefined> {
+    const url = UrlUtils_build(`${__API_HOST__}/api/debuginfo`);
+    url.searchParams.set("userid", userId);
+    url.searchParams.set("key", adminKey);
+    url.searchParams.set("timestamp", timestamp);
+    const result = await this.client(url.toString(), { credentials: "include" });
+    const json = await result.json();
+    if (json.storage == null) {
+      return undefined;
+    }
+    return JSON.parse(await Encoder_decode(json.storage));
   }
 
   public async getExceptionData(id: string): Promise<string | undefined> {

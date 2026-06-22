@@ -45,7 +45,7 @@ import { ProgramImageGenerator } from "./utils/programImageGenerator";
 import { AppleAuthTokenDao } from "./dao/appleAuthTokenDao";
 import { Subscriptions, Subscriptions_isAppleJws, IGooglePaymentInfoV2 } from "./utils/subscriptions";
 import * as ClientSubscription from "../src/utils/subscriptions";
-import { NodeEncoder_decode } from "./utils/nodeEncoder";
+import { NodeEncoder_decode, NodeEncoder_encode } from "./utils/nodeEncoder";
 import { renderProgramHtml } from "./program";
 import {
   IExportedProgram,
@@ -844,6 +844,38 @@ const saveDebugHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof sav
   }
   await debugDao.store(id, debugData);
   return ResponseUtils_json(200, event, { data: "ok" });
+};
+
+const getDebugInfoEndpoint = Endpoint.build("/api/debuginfo", {
+  key: "string",
+  userid: "string",
+  timestamp: "string?",
+});
+const getDebugInfoHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof getDebugInfoEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  if (params.key !== (await di.secrets.getApiKey())) {
+    return ResponseUtils_json(401, event, { error: "Invalid admin key" });
+  }
+  const debugDao = new DebugDao(di);
+  if (params.timestamp == null) {
+    const list = await debugDao.list(params.userid);
+    return ResponseUtils_json(200, event, { list: list ?? [] });
+  }
+  const debug = await debugDao.get(params.userid, params.timestamp);
+  if (debug == null) {
+    return ResponseUtils_json(404, event, { error: "Snapshot not found" });
+  }
+  const rawState = JSON.parse(debug.data).state;
+  const state = typeof rawState === "string" ? JSON.parse(rawState) : rawState;
+  const storage = state?.storage;
+  if (storage == null) {
+    return ResponseUtils_json(404, event, { error: "Snapshot has no storage" });
+  }
+  const encodedStorage = await NodeEncoder_encode(JSON.stringify(storage));
+  return ResponseUtils_json(200, event, { storage: encodedStorage });
 };
 
 const postWatchCrashReportEndpoint = Endpoint.build("/api/watchcrashreport");
@@ -3362,6 +3394,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .post(postSyncEndpoint, postSyncHandler)
       .post(postSync2Endpoint, postSync2Handler)
       .get(getStorageEndpoint, getStorageHandler)
+      .get(getDebugInfoEndpoint, getDebugInfoHandler)
       .get(getPlannerEndpoint, getPlannerHandler)
       .get(getProgramEndpoint, getProgramHandler)
       .get(getUserProgramsEndpoint, getUserProgramsHandler)

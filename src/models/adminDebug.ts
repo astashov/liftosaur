@@ -33,3 +33,21 @@ export async function AdminDebug_fetchStorage(
     return { success: false, error: e instanceof Error ? e.message : String(e) };
   }
 }
+
+export async function AdminDebug_fetchDebugSnapshotStorage(
+  service: Service,
+  userId: string,
+  adminKey: string,
+  timestamp: string
+): Promise<IEither<IStorage, string>> {
+  try {
+    const snapshotStorage = await service.getDebugSnapshotStorage(userId, adminKey, timestamp);
+    if (snapshotStorage == null) {
+      return { success: false, error: "Snapshot not found or invalid admin key" };
+    }
+    const storage: IStorage = { ...snapshotStorage, tempUserId: AdminDebug_scrambledTempUserId(userId) };
+    return { success: true, data: storage };
+  } catch (e) {
+    return { success: false, error: e instanceof Error ? e.message : String(e) };
+  }
+}

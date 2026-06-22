@@ -5,7 +5,12 @@ import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
 import { FormSheet } from "../FormSheet";
 import { Text } from "../../components/primitives/text";
-import { Thunk_postDebug, Thunk_adminCheckKey, Thunk_adminLoginAsUser } from "../../ducks/thunks";
+import {
+  Thunk_postDebug,
+  Thunk_adminCheckKey,
+  Thunk_adminLoginAsUser,
+  Thunk_adminListDebugSnapshots,
+} from "../../ducks/thunks";
 import { CollectionUtils_sortBy, CollectionUtils_nonnull } from "../../utils/collection";
 import { DateUtils_formatHHMMSS } from "../../utils/date";
 import { ObjectUtils_values } from "../../utils/object";
@@ -26,6 +31,8 @@ export function NavModalDebug(): JSX.Element {
   const [keyError, setKeyError] = useState<string | undefined>(undefined);
   const [userId, setUserId] = useState("");
   const [storageId, setStorageId] = useState("");
+  const [snapshotTimestamp, setSnapshotTimestamp] = useState("");
+  const [snapshots, setSnapshots] = useState<string[] | undefined>(undefined);
 
   return (
     <ModalScreenContainer onClose={() => navigation.goBack()} isFullWidth>
@@ -144,6 +151,55 @@ export function NavModalDebug(): JSX.Element {
                   }}
                 />
               </View>
+              <View className="pt-2">
+                <Input
+                  identifier="admin-snapshot-timestamp"
+                  label="Local state snapshot timestamp (optional)"
+                  type="text"
+                  value={snapshotTimestamp}
+                  changeType="oninput"
+                  changeHandler={(r) => {
+                    if (r.success) {
+                      setSnapshotTimestamp(r.data);
+                    }
+                  }}
+                />
+                <Text className="pt-1 text-xs text-gray2-main">
+                  Loads the user's uploaded local IState (full device history), not the server storage.
+                </Text>
+                <View className="items-start mt-2">
+                  <Button
+                    name="admin-list-snapshots"
+                    kind="grayv2"
+                    onClick={() => {
+                      if (!userId.trim()) {
+                        return;
+                      }
+                      dispatch(Thunk_adminListDebugSnapshots(userId.trim(), adminKey.trim(), setSnapshots));
+                    }}
+                  >
+                    List snapshots
+                  </Button>
+                </View>
+                {snapshots != null &&
+                  (snapshots.length > 0 ? (
+                    <View className="pt-2">
+                      {snapshots.map((ts) => (
+                        <View key={ts} className="py-1">
+                          <Button
+                            name="admin-select-snapshot"
+                            kind="lightpurple"
+                            onClick={() => setSnapshotTimestamp(ts)}
+                          >
+                            {ts}
+                          </Button>
+                        </View>
+                      ))}
+                    </View>
+                  ) : (
+                    <Text className="pt-2 text-xs text-gray2-main">No snapshots found for this user.</Text>
+                  ))}
+              </View>
               <View className="items-center mt-3">
                 <Button
                   name="admin-login-as-user"
@@ -152,7 +208,14 @@ export function NavModalDebug(): JSX.Element {
                     if (!userId.trim()) {
                       return;
                     }
-                    dispatch(Thunk_adminLoginAsUser(userId.trim(), adminKey.trim(), storageId.trim() || undefined));
+                    dispatch(
+                      Thunk_adminLoginAsUser(
+                        userId.trim(),
+                        adminKey.trim(),
+                        storageId.trim() || undefined,
+                        snapshotTimestamp.trim() || undefined
+                      )
+                    );
                   }}
                 >
                   Login as user

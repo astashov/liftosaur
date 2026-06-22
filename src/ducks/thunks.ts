@@ -36,7 +36,11 @@ import {
   updateProgress,
   updateState,
 } from "../models/state";
-import { AdminDebug_fetchStorage, AdminDebug_isDebugAccountId } from "../models/adminDebug";
+import {
+  AdminDebug_fetchStorage,
+  AdminDebug_fetchDebugSnapshotStorage,
+  AdminDebug_isDebugAccountId,
+} from "../models/adminDebug";
 import {
   IProgram,
   IStorage,
@@ -1702,10 +1706,30 @@ export function Thunk_adminCheckKey(adminKey: string, cb: (isValid: boolean) => 
   };
 }
 
-export function Thunk_adminLoginAsUser(userId: string, adminKey: string, storageId?: string): IThunk {
+export function Thunk_adminListDebugSnapshots(
+  userId: string,
+  adminKey: string,
+  cb: (snapshots: string[]) => void
+): IThunk {
+  return async (dispatch, getState, env) => {
+    const snapshots = await load(dispatch, "Listing debug snapshots", () =>
+      env.service.getDebugSnapshotList(userId, adminKey)
+    );
+    cb(snapshots);
+  };
+}
+
+export function Thunk_adminLoginAsUser(
+  userId: string,
+  adminKey: string,
+  storageId?: string,
+  debugTimestamp?: string
+): IThunk {
   return async (dispatch, getState, env) => {
     const result = await load(dispatch, "Loading user storage", () =>
-      AdminDebug_fetchStorage(env.service, getState().storage.tempUserId, userId, adminKey, storageId)
+      debugTimestamp != null
+        ? AdminDebug_fetchDebugSnapshotStorage(env.service, userId, adminKey, debugTimestamp)
+        : AdminDebug_fetchStorage(env.service, getState().storage.tempUserId, userId, adminKey, storageId)
     );
     if (!result.success) {
       Dialog_alert(`Failed to login as user ${userId}: ${result.error}`);
