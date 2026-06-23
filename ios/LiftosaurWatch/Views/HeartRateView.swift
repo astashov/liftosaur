@@ -42,7 +42,7 @@ struct HeartRateView: View {
             print("HeartRateView tapped, canStartSession: \(canStartSession)")
             if canStartSession {
                 Task {
-                    await HealthKitManager.shared.startWorkoutSession()
+                    await WorkoutManager.shared.reconcileHealth(.sync)
                 }
             }
         }

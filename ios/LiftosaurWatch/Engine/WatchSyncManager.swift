@@ -225,7 +225,9 @@ class WatchSyncManager: ObservableObject {
         // Capture old workout state before reloading
         let oldWorkout = WorkoutManager.shared.activeWorkout
 
-        // Reload subscription status and workouts to reflect storage changes in UI
+        // Reload subscription status and workouts to reflect storage changes in UI.
+        // loadActiveWorkout fires reconcileHealth(.sync), which (re)starts a session for an active
+        // workout and ends an orphaned session when there's none.
         await WorkoutManager.shared.checkSubscription()
         await WorkoutManager.shared.loadNextWorkout()
         await WorkoutManager.shared.loadActiveWorkout()

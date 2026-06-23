@@ -205,14 +205,14 @@ extension WatchConnectivityManager: WCSessionDelegate {
             let saveToHealth = message["saveToHealth"] as? Bool ?? true
             Logger.wc.info(" received finishWorkout from phone (with reply), saveToHealth: \(saveToHealth)")
             Task { @MainActor in
-                let hadActiveSession = HealthKitManager.shared.isSessionActive
-                let didSave = hadActiveSession && saveToHealth
-                replyHandler(["watchSaved": didSave])
-                Logger.wc.info(" replied watchSaved=\(didSave), now ending session")
+                // Predict whether we'll save (a held, running session + health-sync on) and reply
+                // IMMEDIATELY — don't wait for the slow finishWorkout(), or the phone's 5s fallback
+                // could fire and double-save. The actual end/save happens in the background below.
+                let willSave = HealthKitManager.shared.isSessionActive && saveToHealth
+                Logger.wc.info(" replied watchSaved=\(willSave), ending session in background")
+                replyHandler(["watchSaved": willSave])
                 WorkoutManager.shared.clearWorkoutState()
-                if hadActiveSession {
-                    await HealthKitManager.shared.endWorkoutSession(save: saveToHealth)
-                }
+                await WorkoutManager.shared.reconcileHealth(.finish(save: willSave))
             }
             return
         }
@@ -294,7 +294,7 @@ extension WatchConnectivityManager: WCSessionDelegate {
             Logger.wc.info(" received finishWorkout via transferUserInfo, phoneSaved: \(phoneSaved)")
             Task { @MainActor in
                 WorkoutManager.shared.clearWorkoutState()
-                await HealthKitManager.shared.endWorkoutSession(save: !phoneSaved)
+                await WorkoutManager.shared.reconcileHealth(.finish(save: !phoneSaved))
             }
         }
 
@@ -303,7 +303,7 @@ extension WatchConnectivityManager: WCSessionDelegate {
             Logger.wc.info(" received discardWorkout from phone")
             Task { @MainActor in
                 WorkoutManager.shared.clearWorkoutState()
-                await HealthKitManager.shared.endWorkoutSession(save: false)
+                await WorkoutManager.shared.reconcileHealth(.discard)
             }
         }
     }

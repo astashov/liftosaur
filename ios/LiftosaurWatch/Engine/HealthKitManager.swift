@@ -23,7 +23,19 @@ class HealthKitManager: NSObject, ObservableObject {
     private var session: HKWorkoutSession?
     private var builder: HKLiveWorkoutBuilder?
 
-    private var hasAttemptedRecovery = false
+    // Set only when HealthKit DEFINITIVELY reports no recoverable session (not on timeout/error),
+    // so cleanup paths can retry recovery until they get a real answer. Reset when we start a
+    // session (a session now exists, so the "no session" answer is stale).
+    private var recoveryConfirmedNoSession = false
+
+    // True when the current session came from recoverActiveWorkoutSession (started in a previous
+    // launch). Lets the load/wake reconcile end a cross-launch orphan WITHOUT depending on
+    // reading the session's metadata back after recovery.
+    private var sessionWasRecovered = false
+
+    // When the current session was started this launch. Used to protect a freshly started session
+    // from a no-active-workout teardown before its workout's storage has had time to sync.
+    private var sessionStartedAt: Date?
 
     override init() {
         super.init()
@@ -32,20 +44,22 @@ class HealthKitManager: NSObject, ObservableObject {
     /// Attempt to recover an existing workout session that was running when the app was terminated.
     /// Returns true if a session was recovered, false otherwise.
     func recoverActiveSession() async -> Bool {
-        guard !hasAttemptedRecovery else {
-            Logger.healthKit.info("Session recovery already attempted")
-            return isSessionActive
+        // Already hold a session — nothing to recover.
+        if session != nil {
+            Logger.healthKit.info("Session already exists, no recovery needed")
+            return true
         }
-        hasAttemptedRecovery = true
+        // Only short-circuit on a DEFINITIVE prior answer ("HealthKit confirmed no session"). A
+        // timeout/error is NOT cached, so later cleanup calls (.sync/.finish/.discard) can retry
+        // and still find a cross-launch orphan — otherwise one bad first attempt would blind every
+        // later teardown and leave the endless session this is meant to fix.
+        if recoveryConfirmedNoSession {
+            return false
+        }
 
         guard isHealthKitAvailable else {
             Logger.healthKit.warning("Cannot recover session: HealthKit not available")
             return false
-        }
-
-        if session != nil {
-            Logger.healthKit.info("Session already exists, no recovery needed")
-            return true
         }
 
         // Use timeout to prevent hanging if HealthKit callback never fires (known simulator issue)
@@ -53,13 +67,13 @@ class HealthKitManager: NSObject, ObservableObject {
             var hasResumed = false
             let lock = NSLock()
 
-            // Timeout after 3 seconds - if HealthKit doesn't respond, assume no session
+            // Timeout after 3 seconds - if HealthKit doesn't respond, retry on the next call.
             DispatchQueue.global().asyncAfter(deadline: .now() + 3) {
                 lock.lock()
                 if !hasResumed {
                     hasResumed = true
                     lock.unlock()
-                    Logger.healthKit.warning("Session recovery timed out, assuming no session")
+                    Logger.healthKit.warning("Session recovery timed out, will retry next call")
                     continuation.resume(returning: false)
                 } else {
                     lock.unlock()
@@ -82,19 +96,24 @@ class HealthKitManager: NSObject, ObservableObject {
 
                 Task { @MainActor in
                     if let error = error {
+                        // Error — don't cache, retry next call.
                         Logger.healthKit.error("Failed to recover workout session: \(error.localizedDescription)")
                         continuation.resume(returning: false)
                         return
                     }
 
                     guard let recoveredSession = recoveredSession else {
+                        // Definitive: HealthKit has no recoverable session. Cache it — within a
+                        // launch the only sessions after this are ones we create (and hold a ref to).
                         Logger.healthKit.info("No active workout session to recover")
+                        self.recoveryConfirmedNoSession = true
                         continuation.resume(returning: false)
                         return
                     }
 
                     self.session = recoveredSession
                     self.builder = recoveredSession.associatedWorkoutBuilder()
+                    self.sessionWasRecovered = true
                     recoveredSession.delegate = self
                     self.builder?.delegate = self
 
@@ -117,6 +136,52 @@ class HealthKitManager: NSObject, ObservableObject {
 
     var isHealthKitAvailable: Bool {
         HKHealthStore.isHealthDataAvailable()
+    }
+
+    // How long a freshly started session is protected from a no-active-workout teardown, giving
+    // fresh active-workout storage time to sync (a phone-started session, or a stale incoming
+    // merge, can briefly look like "no workout"). Bounded, so a session is never kept indefinitely.
+    private let recentStartGrace: TimeInterval = 45
+
+    /// Reconcile the session against the single source of truth (storage). MUST be called
+    /// serialized (see WorkoutManager.reconcileHealth) so a start can't interleave with a stop.
+    /// recoverActiveWorkoutSession is app-private: it only ever returns OUR session, so this can
+    /// never touch another app's workout.
+    func reconcileSession(hasActiveWorkout: Bool) async {
+        _ = await recoverActiveSession()
+
+        guard session != nil else {
+            if hasActiveWorkout {
+                Logger.sync.info(">>> reconcile: no session, active workout -> starting")
+                await startWorkoutSession()
+            }
+            return
+        }
+
+        if hasActiveWorkout {
+            // Session + active workout -> keep it. We don't try to match the session to the
+            // workout: a leftover session from a previous workout is already prevented from
+            // reaching here by the phone's guaranteed-delivery finish (which ends it on reconnect)
+            // and by startWorkoutSessionFromPhone replacing any existing session on a mirrored
+            // start. (Back-to-back A->B keeping A's session for B is a benign attribution edge.)
+            return
+        }
+
+        // Session exists but storage has no active workout.
+        if sessionWasRecovered {
+            // From a prior launch -> its workout is long over -> orphan.
+            Logger.sync.info(">>> reconcile: recovered session, no active workout -> ending orphan")
+            await endWorkoutSession(save: false)
+        } else if let startedAt = sessionStartedAt, Date().timeIntervalSince(startedAt) >= recentStartGrace {
+            // Started this launch, old enough that fresh storage has had time to sync -> the
+            // workout really ended.
+            Logger.sync.info(">>> reconcile: session past grace, no active workout -> ending orphan")
+            await endWorkoutSession(save: false)
+        } else {
+            // Young this-launch session: an incoming merge can be stale, or a phone-started
+            // workout hasn't synced yet -> keep; it ages out.
+            Logger.sync.info(">>> reconcile: session too young, no active workout -> keeping (grace)")
+        }
     }
 
     private var writableTypes: Set<HKSampleType> {
@@ -239,6 +304,9 @@ class HealthKitManager: NSObject, ObservableObject {
             session?.startActivity(with: startDate)
             try await builder?.beginCollection(at: startDate)
 
+            sessionWasRecovered = false
+            recoveryConfirmedNoSession = false
+            sessionStartedAt = Date()
             isSessionActive = true
             Logger.healthKit.info("Workout session started")
         } catch {
@@ -281,6 +349,9 @@ class HealthKitManager: NSObject, ObservableObject {
             session?.startActivity(with: startDate)
             try await builder?.beginCollection(at: startDate)
 
+            sessionWasRecovered = false
+            recoveryConfirmedNoSession = false
+            sessionStartedAt = Date()
             isSessionActive = true
             Logger.healthKit.info("Workout session started from iPhone request")
         } catch {
@@ -292,46 +363,54 @@ class HealthKitManager: NSObject, ObservableObject {
 
     func endWorkoutSession(save: Bool) async {
         Logger.sync.info(">>> endWorkoutSession called, save: \(save), session=\(self.session != nil), builder=\(self.builder != nil), isSessionActive=\(self.isSessionActive)")
-        guard let session = session, let builder = builder else {
+        guard let session = session else {
             Logger.sync.info(">>> endWorkoutSession: no active session to end")
+            self.builder = nil
+            sessionWasRecovered = false
+            sessionStartedAt = nil
             heartRate = nil
             isSessionActive = false
             return
         }
+
+        // Capture the builder BEFORE session.end(): ending can fire the .ended delegate which
+        // clears self.builder, and we still need it to end collection / save / discard.
+        let builder = self.builder
 
         Logger.sync.info(">>> endWorkoutSession: session.state=\(session.state.rawValue)")
-        // Check if session is in a valid state to end
-        guard session.state == .running || session.state == .paused else {
-            Logger.sync.info(">>> endWorkoutSession: session NOT running/paused (state=\(session.state.rawValue)), discarding builder")
-            builder.discardWorkout()
-            self.session = nil
-            self.builder = nil
-            heartRate = nil
-            isSessionActive = false
-            return
+        // Always end the session if it isn't already ended. A session caught mid-start
+        // (.prepared/.notStarted) must still be ended — otherwise we drop our reference while
+        // HealthKit keeps the workout running, which is exactly how energy leaks.
+        let wasRunning = session.state == .running || session.state == .paused
+        if session.state != .ended {
+            Logger.sync.info(">>> endWorkoutSession: calling session.end()")
+            session.end()
         }
 
-        let endDate = Date()
-        Logger.sync.info(">>> endWorkoutSession: calling session.end()")
-        session.end()
-
-        do {
-            Logger.sync.info(">>> endWorkoutSession: ending collection...")
-            try await builder.endCollection(at: endDate)
-
-            if save {
-                try await builder.finishWorkout()
-                Logger.sync.info(">>> endWorkoutSession: workout SAVED to HealthKit")
-            } else {
+        // Only finish (save) a session that was actually running; a mid-start session has no
+        // meaningful data, so discard it regardless of `save` to avoid writing an empty workout.
+        let shouldSave = save && wasRunning
+        if let builder = builder {
+            do {
+                Logger.sync.info(">>> endWorkoutSession: ending collection...")
+                try await builder.endCollection(at: Date())
+                if shouldSave {
+                    try await builder.finishWorkout()
+                    Logger.sync.info(">>> endWorkoutSession: workout SAVED to HealthKit")
+                } else {
+                    builder.discardWorkout()
+                    Logger.sync.info(">>> endWorkoutSession: workout DISCARDED (save=\(save), wasRunning=\(wasRunning))")
+                }
+            } catch {
+                Logger.sync.error(">>> endWorkoutSession: FAILED: \(error.localizedDescription)")
                 builder.discardWorkout()
-                Logger.sync.info(">>> endWorkoutSession: workout DISCARDED")
             }
-        } catch {
-            Logger.sync.error(">>> endWorkoutSession: FAILED: \(error.localizedDescription)")
         }
 
         self.session = nil
         self.builder = nil
+        sessionWasRecovered = false
+        sessionStartedAt = nil
         heartRate = nil
         isSessionActive = false
         Logger.sync.info(">>> endWorkoutSession: completed")
@@ -364,6 +443,13 @@ extension HealthKitManager: HKWorkoutSessionDelegate {
         date: Date
     ) {
         Task { @MainActor in
+            // Delegate callbacks run outside the health lock, so an OLD session's late callback
+            // (e.g. .ended for a session we already replaced) must not mutate state for the new
+            // one. Ignore anything that isn't the current session.
+            guard workoutSession === self.session else {
+                Logger.healthKit.info("Ignoring state change for a stale session")
+                return
+            }
             switch toState {
             case .running:
                 isSessionActive = true
@@ -375,6 +461,8 @@ extension HealthKitManager: HKWorkoutSessionDelegate {
                 heartRate = nil
                 self.session = nil
                 self.builder = nil
+                sessionWasRecovered = false
+                sessionStartedAt = nil
                 Logger.healthKit.info("Session state: ended")
             default:
                 break
@@ -388,6 +476,7 @@ extension HealthKitManager: HKWorkoutSessionDelegate {
     ) {
         Logger.healthKit.error("Workout session failed: \(error.localizedDescription)")
         Task { @MainActor in
+            guard workoutSession === self.session else { return }
             isSessionActive = false
             heartRate = nil
         }

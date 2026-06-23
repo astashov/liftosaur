@@ -22,6 +22,13 @@ class WorkoutConfigurationHandler: NSObject, WKApplicationDelegate {
     func applicationDidBecomeActive() {
         Logger.mirroring.info("Watch app did become active")
 
+        // Reconcile the HK session against storage on every wake: this is the backstop that tears
+        // down a session orphaned across a relaunch (storage shows no active workout, yet
+        // HealthKit is still running one and forcing the app to the foreground).
+        Task { @MainActor in
+            await WorkoutManager.shared.reconcileHealth(.sync)
+        }
+
         // Check if bundle needs refresh (>1 day since last fetch)
         if WatchCacheManager.shared.shouldFetchBundle {
             Task {
@@ -38,8 +45,10 @@ class WorkoutConfigurationHandler: NSObject, WKApplicationDelegate {
         Logger.mirroring.info("Received workout configuration from iPhone: \(workoutConfiguration.activityType.rawValue)")
 
         Task { @MainActor in
-            // Start a workout session based on the configuration from the phone
-            await HealthKitManager.shared.startWorkoutSessionFromPhone(configuration: workoutConfiguration)
+            // Start the session through the serialized health path so it can't race a reconcile.
+            // The session lives until storage shows no active workout (or it ages past the grace
+            // if storage never confirms the workout).
+            await WorkoutManager.shared.reconcileHealth(.startFromPhone(workoutConfiguration))
         }
     }
 }
