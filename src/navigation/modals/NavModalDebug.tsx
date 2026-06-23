@@ -10,7 +10,9 @@ import {
   Thunk_adminCheckKey,
   Thunk_adminLoginAsUser,
   Thunk_adminListDebugSnapshots,
+  Thunk_adminEnableServerSync,
 } from "../../ducks/thunks";
+import { AdminDebug_isDebugAccountId } from "../../models/adminDebug";
 import { CollectionUtils_sortBy, CollectionUtils_nonnull } from "../../utils/collection";
 import { DateUtils_formatHHMMSS } from "../../utils/date";
 import { ObjectUtils_values } from "../../utils/object";
@@ -127,6 +129,31 @@ export function NavModalDebug(): JSX.Element {
                 Admin key valid. The session loads into an isolated, non-syncing local account (tagged DEBUG in
                 Account). Switch back / delete it there when done.
               </Text>
+              {AdminDebug_isDebugAccountId(state.storage.tempUserId) && (
+                <View className="pb-4 mb-4 border-b border-border-neutral">
+                  {state.nosync ? (
+                    <>
+                      <View className="items-center">
+                        <Button
+                          name="debug-enable-server-sync"
+                          kind="purple"
+                          onClick={() => dispatch(Thunk_adminEnableServerSync(adminKey.trim()))}
+                        >
+                          Enable server sync (real round-trip)
+                        </Button>
+                      </View>
+                      <Text className="pt-1 text-xs text-gray2-main">
+                        Syncs this debug sandbox to an isolated debug_ server account for the full authenticated
+                        sync/merge path. Hard-guarded server-side to the debug_ namespace — never the real account.
+                      </Text>
+                    </>
+                  ) : (
+                    <Text className="text-xs text-text-success">
+                      ✓ Server sync enabled — syncing to {state.storage.tempUserId}
+                    </Text>
+                  )}
+                </View>
+              )}
               <Input
                 identifier="admin-userid"
                 label="User id"

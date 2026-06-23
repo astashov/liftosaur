@@ -78,6 +78,7 @@ import { GooglePaymentProcessor } from "./utils/googlePaymentProcessor";
 import { GoogleWebhookHandler } from "./utils/googleWebhookHandler";
 import { CouponDao } from "./dao/couponDao";
 import { DebugDao } from "./dao/debugDao";
+import { adminDebugPrefix } from "../src/models/adminDebug";
 import { Updates_handleManifest } from "./updates/manifestHandler";
 import { renderPlannerHtml } from "./planner";
 import { ExceptionDao } from "./dao/exceptionDao";
@@ -876,6 +877,38 @@ const getDebugInfoHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof 
   }
   const encodedStorage = await NodeEncoder_encode(JSON.stringify(storage));
   return ResponseUtils_json(200, event, { storage: encodedStorage });
+};
+
+const postDebugSessionEndpoint = Endpoint.build("/api/admin/debugsession", {
+  key: "string",
+  userid: "string",
+});
+const postDebugSessionHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof postDebugSessionEndpoint> = async ({
+  payload,
+  match: { params },
+}) => {
+  const { event, di } = payload;
+  if (params.key !== (await di.secrets.getApiKey())) {
+    return ResponseUtils_json(401, event, { error: "Invalid admin key" });
+  }
+  if (!params.userid.startsWith(adminDebugPrefix)) {
+    return ResponseUtils_json(400, event, { error: `userid must be a ${adminDebugPrefix} debug id` });
+  }
+  const debugId = params.userid;
+  const userDao = new UserDao(di);
+  const existing = await userDao.getLimitedById(debugId);
+  const email = existing?.email ?? `${debugId}@debug.liftosaur.com`;
+  if (existing == null) {
+    await userDao.store(UserDao.build(debugId, email, {}));
+  }
+  const session = JWT.sign({ userId: debugId }, await di.secrets.getCookieSecret());
+  const setCookie = Cookie.serialize("session", session, {
+    httpOnly: true,
+    domain: ".liftosaur.com",
+    path: "/",
+    expires: new Date(new Date().getFullYear() + 10, 0, 1),
+  });
+  return ResponseUtils_json(200, event, { session, userId: debugId, email }, { "set-cookie": setCookie });
 };
 
 const postWatchCrashReportEndpoint = Endpoint.build("/api/watchcrashreport");
@@ -3393,6 +3426,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .post(postImageUploadUrlEndpoint, postImageUploadUrlHandler)
       .post(postSyncEndpoint, postSyncHandler)
       .post(postSync2Endpoint, postSync2Handler)
+      .post(postDebugSessionEndpoint, postDebugSessionHandler)
       .get(getStorageEndpoint, getStorageHandler)
       .get(getDebugInfoEndpoint, getDebugInfoHandler)
       .get(getPlannerEndpoint, getPlannerHandler)

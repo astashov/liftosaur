@@ -360,6 +360,24 @@ export class Service {
     return json;
   }
 
+  public async createDebugSession(
+    userId: string,
+    adminKey: string
+  ): Promise<{ session?: string; userId: string; email: string } | undefined> {
+    const url = UrlUtils_build(`${__API_HOST__}/api/admin/debugsession`);
+    url.searchParams.set("userid", userId);
+    url.searchParams.set("key", adminKey);
+    const response = await this.client(url.toString(), {
+      method: "POST",
+      body: JSON.stringify({}),
+      credentials: "include",
+    });
+    if (response.status !== 200) {
+      return undefined;
+    }
+    return response.json();
+  }
+
   public async postDebug(id: string, state: string, meta: Record<string, string>): Promise<boolean> {
     try {
       const compressed = await Encoder_encode(JSON.stringify({ state, meta }));

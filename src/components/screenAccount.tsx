@@ -40,6 +40,7 @@ declare let __HOST__: string;
 interface IProps {
   email?: string;
   userId?: string;
+  nosync?: boolean;
   storage: IPartialStorage;
   subscriptionStatus?: IIapActiveSubscription[];
   subscriptionStatusLoading?: boolean;
@@ -147,6 +148,11 @@ export function ScreenAccount(props: IProps): JSX.Element {
         }
         addons={
           <View>
+            {AdminDebug_isDebugAccountId(currentAccount.id) ? (
+              <Text className="-mt-1 text-xs font-bold text-text-error">
+                {props.nosync ? "DEBUG · sync off" : "DEBUG · sync ON (server)"}
+              </Text>
+            ) : null}
             {currentAccount.name ? (
               <Text className="-mt-1 text-xs text-text-secondary">{`id: ${currentAccount.id}`}</Text>
             ) : null}

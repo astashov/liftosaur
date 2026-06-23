@@ -296,17 +296,23 @@ export function Thunk_logOut(cb?: () => void): IThunk {
   return async (dispatch, getState, env) => {
     dispatch(Thunk_postevent("log-out"));
     if (getState().user?.id) {
+      const isDebugAccount = AdminDebug_isDebugAccountId(getState().storage.tempUserId);
       await env.service.signout();
       dispatch({ type: "Logout" });
       updateState(dispatch, [lb<IState>().p("lastSyncedStorage").record(undefined)], "Clear last sync on logout");
-      SendMessage_toIos({ type: "accountLogout" });
-      try {
-        await KeychainStore_clearAuthToken();
-      } catch (e) {
-        lg("ls-keychain-clear-auth-fail", { error: e instanceof Error ? e.message : String(e) });
+      // A debug sandbox borrows the device's native auth, so logging out of it must only drop the
+      // debug session - tearing down the keychain/Google/watch auth here would wipe the admin's own
+      // real persisted login.
+      if (!isDebugAccount) {
+        SendMessage_toIos({ type: "accountLogout" });
+        try {
+          await KeychainStore_clearAuthToken();
+        } catch (e) {
+          lg("ls-keychain-clear-auth-fail", { error: e instanceof Error ? e.message : String(e) });
+        }
+        await SignOut_google();
+        NativeWatchBridge_sendClearAuthToWatch();
       }
-      await SignOut_google();
-      NativeWatchBridge_sendClearAuthToWatch();
     }
     if (cb) {
       cb();
@@ -1750,6 +1756,36 @@ export function Thunk_adminLoginAsUser(
     dispatch(Thunk_fetchInitial());
     const { navigateTo } = await getNavigationService();
     navigateTo("main", undefined, { tab: "home" });
+  };
+}
+
+export function Thunk_adminEnableServerSync(adminKey: string): IThunk {
+  return async (dispatch, getState, env) => {
+    const tempUserId = getState().storage.tempUserId;
+    if (!AdminDebug_isDebugAccountId(tempUserId)) {
+      return;
+    }
+    const session = await load(dispatch, "Creating debug session", () =>
+      env.service.createDebugSession(tempUserId, adminKey)
+    );
+    if (session == null) {
+      Dialog_alert("Failed to create debug session (check the admin key)");
+      return;
+    }
+    // Enablement is intentionally session-only and fails closed: the set-cookie authenticates this
+    // session via the cookie jar, but on restart getInitialState reloads any debug_ account
+    // force-nosync, so sync turns back off and must be re-enabled here. We deliberately do NOT write
+    // the debug session to the keychain - that slot is the real login auth (+ watch bridge), and a
+    // debug token must never outlive the session or leak to the watch.
+    updateState(
+      dispatch,
+      [
+        lb<IState>().p("nosync").record(false),
+        lb<IState>().p("user").record({ id: session.userId, email: session.email }),
+      ],
+      "Debug: enable server sync"
+    );
+    dispatch(Thunk_sync2({ force: true, log: true }));
   };
 }
 
