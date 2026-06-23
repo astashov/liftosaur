@@ -10,6 +10,7 @@ import {
   UpdateCommand,
   DeleteCommand,
   BatchGetCommand,
+  BatchGetCommandInput,
   BatchWriteCommand,
   BatchWriteCommandInput,
   NativeAttributeValue,
@@ -409,7 +410,7 @@ export class DynamoUtil implements IDynamoUtil {
       Object.keys(items).reduce((sum, table) => sum + (items[table]?.length ?? 0), 0);
 
     let pending = requestItems;
-    for (let attempt = 0; attempt < BATCH_WRITE_MAX_ATTEMPTS; attempt += 1) {
+    for (let attempt = 0; attempt < BATCH_MAX_ATTEMPTS; attempt += 1) {
       const result = await this.dynamo.send(new BatchWriteCommand({ RequestItems: pending }));
       const unprocessed = (result.UnprocessedItems ?? {}) as NonNullable<BatchWriteCommandInput["RequestItems"]>;
       if (countRequests(unprocessed) === 0) {
@@ -419,23 +420,58 @@ export class DynamoUtil implements IDynamoUtil {
       this.log.log(
         `Dynamo batch write retry: ${context} - ${countRequests(pending)} unprocessed item(s), attempt ${attempt + 1}`
       );
-      await new Promise((resolve) => setTimeout(resolve, batchWriteBackoffMs(attempt)));
+      await new Promise((resolve) => setTimeout(resolve, batchBackoffMs(attempt)));
     }
     throw new Error(
-      `Dynamo batch write (${context}) left ${countRequests(pending)} unprocessed item(s) after ${BATCH_WRITE_MAX_ATTEMPTS} attempts`
+      `Dynamo batch write (${context}) left ${countRequests(pending)} unprocessed item(s) after ${BATCH_MAX_ATTEMPTS} attempts`
+    );
+  }
+
+  // Like sendBatchWriteWithRetry, but for reads: BatchGetItem can return some keys in
+  // `UnprocessedKeys` (HTTP 200) under throttling, which would silently truncate results. Re-fetch
+  // only those keys with backoff, accumulating responses, and throw if they can't be drained.
+  private async sendBatchGetWithRetry(
+    requestItems: NonNullable<BatchGetCommandInput["RequestItems"]>,
+    context: string
+  ): Promise<Record<string, Record<string, NativeAttributeValue>[]>> {
+    const countKeys = (items: NonNullable<BatchGetCommandInput["RequestItems"]>): number =>
+      Object.keys(items).reduce((sum, table) => sum + (items[table]?.Keys?.length ?? 0), 0);
+
+    const responses: Record<string, Record<string, NativeAttributeValue>[]> = {};
+    let pending = requestItems;
+    for (let attempt = 0; attempt < BATCH_MAX_ATTEMPTS; attempt += 1) {
+      const result = await this.dynamo.send(new BatchGetCommand({ RequestItems: pending }));
+      for (const table of Object.keys(result.Responses ?? {})) {
+        responses[table] = (responses[table] ?? []).concat(result.Responses?.[table] ?? []);
+      }
+      const unprocessed = (result.UnprocessedKeys ?? {}) as NonNullable<BatchGetCommandInput["RequestItems"]>;
+      if (countKeys(unprocessed) === 0) {
+        return responses;
+      }
+      pending = unprocessed;
+      this.log.log(
+        `Dynamo batch get retry: ${context} - ${countKeys(pending)} unprocessed key(s), attempt ${attempt + 1}`
+      );
+      await new Promise((resolve) => setTimeout(resolve, batchBackoffMs(attempt)));
+    }
+    throw new Error(
+      `Dynamo batch get (${context}) left ${countKeys(pending)} unprocessed key(s) after ${BATCH_MAX_ATTEMPTS} attempts`
     );
   }
 
   public async batchGet<T>(args: { tableName: string; keys: Record<string, NativeAttributeValue>[] }): Promise<T[]> {
+    if (args.keys.length === 0) {
+      return [];
+    }
     const startTime = Date.now();
     try {
       const result = await Promise.all(
         CollectionUtils_inGroupsOf(95, args.keys).map((group) => {
-          return this.dynamo.send(new BatchGetCommand({ RequestItems: { [args.tableName]: { Keys: group } } }));
+          return this.sendBatchGetWithRetry({ [args.tableName]: { Keys: group } }, `get ${args.tableName}`);
         })
       );
       this.log.log(`Dynamo batch get: ${args.tableName} - `, args.keys, ` - ${Date.now() - startTime}ms`);
-      return CollectionUtils_compact(result.map((r) => r.Responses?.[args.tableName] || [])).flat() as T[];
+      return CollectionUtils_compact(result.map((r) => r[args.tableName] || [])).flat() as T[];
     } catch (e) {
       this.log.log(`FAILED Dynamo batch get: ${args.tableName} - `, args.keys, ` - ${Date.now() - startTime}ms`);
       throw e;
@@ -522,11 +558,11 @@ export class DynamoUtil implements IDynamoUtil {
   }
 }
 
-const BATCH_WRITE_MAX_ATTEMPTS = 8;
+const BATCH_MAX_ATTEMPTS = 8;
 
-// Exponential backoff with full jitter, capped at ~2s, so retries of throttled batch writes
+// Exponential backoff with full jitter, capped at ~2s, so retries of throttled batch operations
 // spread out instead of hammering the table in lockstep.
-function batchWriteBackoffMs(attempt: number): number {
+function batchBackoffMs(attempt: number): number {
   const ceiling = Math.min(2000, 50 * Math.pow(2, attempt));
   return Math.floor(Math.random() * ceiling);
 }
