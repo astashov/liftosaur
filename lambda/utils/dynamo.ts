@@ -11,6 +11,7 @@ import {
   DeleteCommand,
   BatchGetCommand,
   BatchWriteCommand,
+  BatchWriteCommandInput,
   NativeAttributeValue,
 } from "@aws-sdk/lib-dynamodb";
 import { CollectionUtils_inGroupsOf, CollectionUtils_compact } from "../../src/utils/collection";
@@ -396,6 +397,35 @@ export class DynamoUtil implements IDynamoUtil {
     this.log.log(`Dynamo delete: ${args.tableName} - `, args.key, ` - ${Date.now() - startTime}ms`);
   }
 
+  // DynamoDB BatchWriteItem can succeed (HTTP 200) while leaving some items unwritten in
+  // `UnprocessedItems` (e.g. under throttling) - the SDK does NOT auto-retry those. Re-send only
+  // the leftovers with exponential backoff, and throw if they can't be drained so callers never
+  // silently lose writes.
+  private async sendBatchWriteWithRetry(
+    requestItems: NonNullable<BatchWriteCommandInput["RequestItems"]>,
+    context: string
+  ): Promise<void> {
+    const countRequests = (items: NonNullable<BatchWriteCommandInput["RequestItems"]>): number =>
+      Object.keys(items).reduce((sum, table) => sum + (items[table]?.length ?? 0), 0);
+
+    let pending = requestItems;
+    for (let attempt = 0; attempt < BATCH_WRITE_MAX_ATTEMPTS; attempt += 1) {
+      const result = await this.dynamo.send(new BatchWriteCommand({ RequestItems: pending }));
+      const unprocessed = (result.UnprocessedItems ?? {}) as NonNullable<BatchWriteCommandInput["RequestItems"]>;
+      if (countRequests(unprocessed) === 0) {
+        return;
+      }
+      pending = unprocessed;
+      this.log.log(
+        `Dynamo batch write retry: ${context} - ${countRequests(pending)} unprocessed item(s), attempt ${attempt + 1}`
+      );
+      await new Promise((resolve) => setTimeout(resolve, batchWriteBackoffMs(attempt)));
+    }
+    throw new Error(
+      `Dynamo batch write (${context}) left ${countRequests(pending)} unprocessed item(s) after ${BATCH_WRITE_MAX_ATTEMPTS} attempts`
+    );
+  }
+
   public async batchGet<T>(args: { tableName: string; keys: Record<string, NativeAttributeValue>[] }): Promise<T[]> {
     const startTime = Date.now();
     try {
@@ -420,16 +450,9 @@ export class DynamoUtil implements IDynamoUtil {
       CollectionUtils_inGroupsOf(25, args.keys).map(async (group) => {
         const startTime = Date.now();
         try {
-          await this.dynamo.send(
-            new BatchWriteCommand({
-              RequestItems: {
-                [args.tableName]: group.map((key) => ({
-                  DeleteRequest: {
-                    Key: key,
-                  },
-                })),
-              },
-            })
+          await this.sendBatchWriteWithRetry(
+            { [args.tableName]: group.map((key) => ({ DeleteRequest: { Key: key } })) },
+            `delete ${args.tableName}`
           );
         } catch (e) {
           this.log.log(`FAILED Dynamo batch delete: ${args.tableName} - `, group, ` - ${Date.now() - startTime}ms`);
@@ -453,16 +476,9 @@ export class DynamoUtil implements IDynamoUtil {
       CollectionUtils_inGroupsOf(25, sanitizedItems).map(async (group) => {
         const startTime = Date.now();
         try {
-          await this.dynamo.send(
-            new BatchWriteCommand({
-              RequestItems: {
-                [args.tableName]: group.map((item) => ({
-                  PutRequest: {
-                    Item: item,
-                  },
-                })),
-              },
-            })
+          await this.sendBatchWriteWithRetry(
+            { [args.tableName]: group.map((item) => ({ PutRequest: { Item: item } })) },
+            `put ${args.tableName}`
           );
         } catch (e) {
           this.log.log(
@@ -504,6 +520,15 @@ export class DynamoUtil implements IDynamoUtil {
       })
     );
   }
+}
+
+const BATCH_WRITE_MAX_ATTEMPTS = 8;
+
+// Exponential backoff with full jitter, capped at ~2s, so retries of throttled batch writes
+// spread out instead of hammering the table in lockstep.
+function batchWriteBackoffMs(attempt: number): number {
+  const ceiling = Math.min(2000, 50 * Math.pow(2, attempt));
+  return Math.floor(Math.random() * ceiling);
 }
 
 // The AWS SDK throws when marshalling a finite number outside the IEEE-safe integer range
