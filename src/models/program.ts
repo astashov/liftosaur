@@ -237,15 +237,21 @@ export function Program_isEmpty(program?: IProgram | IEvaluatedProgram): boolean
   return program?.id === emptyProgramId;
 }
 
-export function Program_uses1RM(program: IEvaluatedProgram): boolean {
-  const allExercises = Program_getAllProgramExercises(program);
-  return allExercises.some((e) => ProgramExercise_doesUse1RM(e));
-}
+export const Program_uses1RM = memoize(
+  (program: IEvaluatedProgram): boolean => {
+    const allExercises = Program_getAllProgramExercises(program);
+    return allExercises.some((e) => ProgramExercise_doesUse1RM(e));
+  },
+  { maxSize: 10 }
+);
 
-export function Program_usesRPE(program: IEvaluatedProgram): boolean {
-  const allExercises = Program_getAllProgramExercises(program);
-  return allExercises.some((e) => ProgramExercise_doesUseRPE(e));
-}
+export const Program_usesRPE = memoize(
+  (program: IEvaluatedProgram): boolean => {
+    const allExercises = Program_getAllProgramExercises(program);
+    return allExercises.some((e) => ProgramExercise_doesUseRPE(e));
+  },
+  { maxSize: 10 }
+);
 
 export function Program_getProgramExercisesFromExerciseType(
   program: IEvaluatedProgram,

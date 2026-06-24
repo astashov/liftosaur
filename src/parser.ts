@@ -15,10 +15,30 @@ import RB from "rollbar";
 import { IProgramMode } from "./models/program";
 import { ILiftoscriptEvaluatorUpdate } from "./liftoscriptEvaluator";
 import { Dialog_alert } from "./utils/dialog";
+import memoize from "micro-memoize";
 
 declare let Rollbar: RB;
 
 const lastAlertDisplayedTs: Partial<Record<string, number>> = {};
+
+// Parsing a Liftoscript expression with Lezer is expensive, and the same progress/update
+// scripts are scanned repeatedly (e.g. the same exercise instance in every week/day, and on
+// every tour/render pass). Cache by (script, name) since the result is pure.
+const hasKeywordMemoized = memoize(
+  (script: string, name: string): boolean => {
+    const expr = LiftoscriptParser.parse(script);
+    const cursor = expr.cursor();
+    do {
+      if (cursor.node.type.name === NodeName.Keyword) {
+        if (LiftoscriptEvaluator.getValue(script, cursor.node) === name) {
+          return true;
+        }
+      }
+    } while (cursor.next());
+    return false;
+  },
+  { maxSize: 200 }
+);
 
 export class ScriptRunner {
   private readonly script: string;
@@ -144,16 +164,7 @@ export class ScriptRunner {
   }
 
   public static hasKeyword(script: string, name: string): boolean {
-    const expr = LiftoscriptParser.parse(script);
-    const cursor = expr.cursor();
-    do {
-      if (cursor.node.type.name === NodeName.Keyword) {
-        if (LiftoscriptEvaluator.getValue(script, cursor.node) === name) {
-          return true;
-        }
-      }
-    } while (cursor.next());
-    return false;
+    return hasKeywordMemoized(script, name);
   }
 
   public static safe<T>(cb: () => T, errorMsg: (e: Error) => string, defaultValue: T, disabled?: boolean): T {
