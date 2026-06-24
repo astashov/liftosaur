@@ -49,6 +49,10 @@ class FastTextViewManager : SimpleViewManager<FastTextView>(), FastTextManagerIn
     view.spec = view.spec.copy(italic = parseItalic(value) ?: false)
   }
 
+  override fun setFontFamily(view: FastTextView, value: String?) {
+    view.spec = view.spec.copy(fontFamily = value?.takeIf { it.isNotEmpty() })
+  }
+
   override fun setFontSize(view: FastTextView, value: Float) {
     val d = density(view.context)
     view.spec = view.spec.copy(fontSizePx = if (value > 0f) value * d else FastTextSpec.DEFAULT_FONT_SIZE_DP * d)
@@ -114,6 +118,7 @@ class FastTextViewManager : SimpleViewManager<FastTextView>(), FastTextManagerIn
     val fontSizePx = (if (fontSizeRaw > 0f) fontSizeRaw else FastTextSpec.DEFAULT_FONT_SIZE_DP) * d
     val weight = props?.getString("fontWeight")?.toIntOrNull() ?: 400
     val italic = parseItalic(props?.getString("fontStyle")) ?: false
+    val fontFamily = props?.getString("fontFamily")?.takeIf { it.isNotEmpty() }
     val paddingHorizontalPx = readFloat(props, "textPaddingHorizontal", 0f) * d
     val lineHeightPx = readFloat(props, "textLineHeight", 0f) * d
     val maxLines = if (props != null && props.hasKey("numberOfLines") && !props.isNull("numberOfLines")) maxOf(props.getInt("numberOfLines"), 0) else 0
@@ -121,7 +126,7 @@ class FastTextViewManager : SimpleViewManager<FastTextView>(), FastTextManagerIn
     val decoration = props?.getString("textDecorationLine")?.takeIf { it.isNotEmpty() }
     val fragments =
       if (props?.hasKey("fragments") == true) parseFragments(props.getArray("fragments"), d, context) else emptyList()
-    return FastTextSpec(text, Color.BLACK, null, weight, italic, fontSizePx, paddingHorizontalPx, lineHeightPx, maxLines, textAlign, decoration, fragments)
+    return FastTextSpec(text, Color.BLACK, null, weight, italic, fontFamily, fontSizePx, paddingHorizontalPx, lineHeightPx, maxLines, textAlign, decoration, fragments)
   }
 
   private fun parseFragments(arr: ReadableArray?, d: Float, context: Context): List<FastTextFragment> {

@@ -38,6 +38,7 @@ data class FastTextSpec(
   val backgroundColor: Int?,
   val weight: Int,
   val italic: Boolean,
+  val fontFamily: String?,
   val fontSizePx: Float,
   val paddingHorizontalPx: Float,
   val lineHeightPx: Float,
@@ -104,14 +105,18 @@ object FastTextLayoutBuilder {
     }
   }
 
-  private fun typeface(context: Context, weight: Int, italic: Boolean): Typeface =
-    ReactFontManager.getInstance().getTypeface(fontFamily(weight, italic), Typeface.NORMAL, context.assets)
+  private fun typeface(context: Context, family: String?, weight: Int, italic: Boolean): Typeface {
+    // A custom family (e.g. Iosevka) is used verbatim; the weight->Poppins-file mapping only
+    // applies when no family is given.
+    val name = if (!family.isNullOrEmpty()) family else fontFamily(weight, italic)
+    return ReactFontManager.getInstance().getTypeface(name, Typeface.NORMAL, context.assets)
+  }
 
   fun basePaint(context: Context, spec: FastTextSpec): TextPaint {
     val tp = TextPaint(Paint.ANTI_ALIAS_FLAG)
     tp.textSize = spec.fontSizePx
     tp.color = spec.color
-    tp.typeface = typeface(context, spec.weight, spec.italic)
+    tp.typeface = typeface(context, spec.fontFamily, spec.weight, spec.italic)
     return tp
   }
 
@@ -131,7 +136,7 @@ object FastTextLayoutBuilder {
     val flag = Spanned.SPAN_INCLUSIVE_EXCLUSIVE
     sp.setSpan(ForegroundColorSpan(spec.color), 0, len, flag)
     sp.setSpan(AbsoluteSizeSpan(spec.fontSizePx.toInt(), false), 0, len, flag)
-    sp.setSpan(TypefaceWeightSpan(typeface(context, spec.weight, spec.italic)), 0, len, flag)
+    sp.setSpan(TypefaceWeightSpan(typeface(context, spec.fontFamily, spec.weight, spec.italic)), 0, len, flag)
     decorationSpan(spec.decoration)?.let { sp.setSpan(it, 0, len, flag) }
     if (spec.lineHeightPx > 0f) {
       sp.setSpan(AbsoluteLineHeightSpan(spec.lineHeightPx.toInt()), 0, len, flag)
@@ -145,7 +150,12 @@ object FastTextLayoutBuilder {
       f.color?.let { sp.setSpan(ForegroundColorSpan(it), s, e, flag) }
       f.backgroundColor?.let { sp.setSpan(BackgroundColorSpan(it), s, e, flag) }
       if (f.weight != null || f.italic != null) {
-        sp.setSpan(TypefaceWeightSpan(typeface(context, f.weight ?: spec.weight, f.italic ?: spec.italic)), s, e, flag)
+        sp.setSpan(
+          TypefaceWeightSpan(typeface(context, spec.fontFamily, f.weight ?: spec.weight, f.italic ?: spec.italic)),
+          s,
+          e,
+          flag,
+        )
       }
       f.fontSizePx?.let { sp.setSpan(AbsoluteSizeSpan(it.toInt(), false), s, e, flag) }
       decorationSpan(f.decoration)?.let { sp.setSpan(it, s, e, flag) }
@@ -176,7 +186,7 @@ object FastTextLayoutBuilder {
 
 class FastTextView(context: Context) : View(context) {
   var spec: FastTextSpec =
-    FastTextSpec("", Color.BLACK, null, 400, false, FastTextSpec.DEFAULT_FONT_SIZE_DP * resources.displayMetrics.density, 0f, 0f, 0, null, null, emptyList())
+    FastTextSpec("", Color.BLACK, null, 400, false, null, FastTextSpec.DEFAULT_FONT_SIZE_DP * resources.displayMetrics.density, 0f, 0f, 0, null, null, emptyList())
     set(value) {
       field = value
       // Set the background on the View (clipped to bounds by the framework). Canvas.drawColor

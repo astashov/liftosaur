@@ -20,6 +20,9 @@ export interface NativeProps extends ViewProps {
   backgroundColor?: ColorValue;
   fontWeight?: string;
   fontStyle?: string;
+  // Empty => the weight-based Poppins face mapping. Set => that family is used verbatim
+  // (e.g. "Iosevka" for code blocks), bypassing the Poppins mapping.
+  fontFamily?: string;
   fontSize?: Float;
   // NOT "paddingHorizontal"/"lineHeight": those are reserved RN ViewProps/text styles and
   // Yoga would apply them as real layout padding in addition to our custom handling.

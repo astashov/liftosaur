@@ -40,6 +40,7 @@ import UIKit
   @objc public let fontSize: CGFloat
   @objc public let weight: Int
   @objc public let italic: Bool
+  @objc public let fontFamily: String? // nil => weight-based Poppins face mapping
   @objc public let paddingHorizontal: CGFloat
   @objc public let lineHeight: CGFloat
   @objc public let numberOfLines: Int // 0 => unlimited
@@ -54,6 +55,7 @@ import UIKit
     fontSize: CGFloat,
     weight: Int,
     italic: Bool,
+    fontFamily: String?,
     paddingHorizontal: CGFloat,
     lineHeight: CGFloat,
     numberOfLines: Int,
@@ -67,6 +69,7 @@ import UIKit
     self.fontSize = fontSize
     self.weight = weight
     self.italic = italic
+    self.fontFamily = fontFamily
     self.paddingHorizontal = paddingHorizontal
     self.lineHeight = lineHeight
     self.numberOfLines = numberOfLines
@@ -81,7 +84,12 @@ import UIKit
   // Mirrors the Android FastTextView weight->Poppins-family mapping and the web Text
   // primitive's resolveFontFamily; a numeric system weight would synthesize a faux weight
   // off the regular face instead of loading the real Poppins-SemiBold/Bold files.
-  @objc public static func font(weight: Int, italic: Bool, size: CGFloat) -> UIFont {
+  @objc public static func font(family: String?, weight: Int, italic: Bool, size: CGFloat) -> UIFont {
+    // A custom family (e.g. Iosevka) is used verbatim; it ships a single face, so weight/italic
+    // synthesis is left to UIKit rather than mapped to per-weight Poppins files.
+    if let family = family, !family.isEmpty, let custom = UIFont(name: family, size: size) {
+      return custom
+    }
     let bold = weight >= 700
     let semibold = weight >= 500 && weight < 700
     let name: String
@@ -122,7 +130,8 @@ import UIKit
     let baseSize = spec.fontSize > 0 ? spec.fontSize : 16
     let attr = NSMutableAttributedString(string: spec.text)
     let full = NSRange(location: 0, length: length)
-    attr.addAttribute(.font, value: font(weight: spec.weight, italic: spec.italic, size: baseSize), range: full)
+    attr.addAttribute(
+      .font, value: font(family: spec.fontFamily, weight: spec.weight, italic: spec.italic, size: baseSize), range: full)
     attr.addAttribute(.foregroundColor, value: spec.color, range: full)
     addDecoration(spec.decoration, to: attr, range: full)
 
@@ -152,7 +161,7 @@ import UIKit
       let weight = fragment.weight != 0 ? fragment.weight : spec.weight
       let size = fragment.fontSize > 0 ? fragment.fontSize : baseSize
       let italic = fragment.italic?.boolValue ?? spec.italic
-      attr.addAttribute(.font, value: font(weight: weight, italic: italic, size: size), range: range)
+      attr.addAttribute(.font, value: font(family: spec.fontFamily, weight: weight, italic: italic, size: size), range: range)
       if let color = fragment.color {
         attr.addAttribute(.foregroundColor, value: color, range: range)
       }

@@ -42,6 +42,7 @@ export function FastText(props: IFastTextProps): JSX.Element {
   const baseStyle: CSSProperties = {
     color: props.color as string | undefined,
     backgroundColor: props.backgroundColor as string | undefined,
+    fontFamily: props.fontFamily,
     fontWeight: normalizeFontWeight(props.fontWeight),
     fontSize: props.fontSize != null ? props.fontSize : undefined,
     fontStyle: props.fontStyle,
@@ -49,6 +50,8 @@ export function FastText(props: IFastTextProps): JSX.Element {
     paddingLeft: props.paddingHorizontal,
     paddingRight: props.paddingHorizontal,
     lineHeight: props.lineHeight != null ? `${props.lineHeight}px` : undefined,
+    // whitespace preserved + no soft-wrap; the parent scroll container provides overflow.
+    ...(props.noWrap ? { whiteSpace: "pre" } : undefined),
     // textAlign only takes effect on a block-level box (an inline span shrinks to content).
     ...(props.textAlign != null ? { display: "block", textAlign: props.textAlign } : undefined),
     ...numberOfLinesCss(props.numberOfLines),

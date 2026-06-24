@@ -84,6 +84,7 @@ static FastTextSpec *FastTextSpecFromProps(const FastTextProps &props) {
                                    fontSize:(props.fontSize > 0 ? props.fontSize : 16)
                                      weight:FastTextParseWeight(props.fontWeight, 400)
                                      italic:(props.fontStyle == "italic")
+                                 fontFamily:(props.fontFamily.empty() ? nil : FastTextNSString(props.fontFamily))
                           paddingHorizontal:props.textPaddingHorizontal
                                  lineHeight:props.textLineHeight
                               numberOfLines:(props.numberOfLines > 0 ? props.numberOfLines : 0)

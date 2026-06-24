@@ -88,16 +88,16 @@ export function EditProgramV2TextExercises(props: IEditProgramV2TextExercisesPro
         }}
       />
       {repeats.length > 0 && (
-        <View className="pl-1 ml-8">
-          {repeats.map((e, i) => (
-            <View key={i} className="flex-row">
-              <Text className="mr-1">{"\u2022"}</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-1">
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="pl-1 ml-8">
+          <View>
+            {repeats.map((e, i) => (
+              <View key={i} className="flex-row">
+                <Text className="mr-1">{"\u2022"}</Text>
                 <PlannerCodeBlock script={e.text} />
-              </ScrollView>
-            </View>
-          ))}
-        </View>
+              </View>
+            ))}
+          </View>
+        </ScrollView>
       )}
       {approxDayTime && (
         <View className="flex-row justify-end items-center">

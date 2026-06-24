@@ -52,6 +52,12 @@ export interface IFastTextSpan {
 export interface IFastTextProps extends IFastTextStyle {
   text: string;
   fragments?: IFastTextFragment[];
+  // Overrides the weight-based Poppins face mapping with a verbatim family name (e.g.
+  // "Iosevka" for monospace code). Base-level only — fragments differ in color, not font.
+  fontFamily?: string;
+  // Web-only: render with white-space: pre (no soft-wrap, whitespace preserved). Native
+  // achieves the same by being measured at unbounded width inside a horizontal ScrollView.
+  noWrap?: boolean;
   paddingHorizontal?: number;
   lineHeight?: number;
   numberOfLines?: number;

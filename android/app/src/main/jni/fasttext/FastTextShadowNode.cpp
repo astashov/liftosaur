@@ -17,6 +17,9 @@ Size FastTextMeasuringShadowNode::measureContent(
   serialized["fontSize"] = props.fontSize;
   serialized["fontWeight"] = props.fontWeight;
   serialized["fontStyle"] = props.fontStyle;
+  // Must match the drawn font: a custom family (e.g. Iosevka) has different line metrics than
+  // Poppins, so measuring in Poppins under-measures the height and clips the lower lines.
+  serialized["fontFamily"] = props.fontFamily;
   serialized["textPaddingHorizontal"] = props.textPaddingHorizontal;
   serialized["textLineHeight"] = props.textLineHeight;
 

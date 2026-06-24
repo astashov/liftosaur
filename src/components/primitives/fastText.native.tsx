@@ -42,6 +42,7 @@ export function FastText(props: IFastTextProps): JSX.Element {
       backgroundColor={props.backgroundColor}
       fontWeight={props.fontWeight}
       fontStyle={props.fontStyle}
+      fontFamily={props.fontFamily}
       fontSize={scaleFontSize(props.fontSize)}
       textPaddingHorizontal={props.paddingHorizontal}
       textLineHeight={scaleFontSize(props.lineHeight)}

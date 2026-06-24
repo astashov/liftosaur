@@ -1,8 +1,10 @@
 import type { JSX } from "react";
 import { Platform, View } from "react-native";
-import { Text } from "../../../components/primitives/text";
+import { FastText } from "../../../components/primitives/fastText";
 import { PlannerHighlighter_segments } from "../plannerHighlighter";
 import { Tailwind_semantic } from "../../../utils/tailwindConfig";
+import { StyledText, StyledText_cls } from "../../../utils/styledText";
+import { useRem } from "../../../utils/useRem";
 
 const MONO_FONT_FAMILY = Platform.select({
   web: "Iosevka Web, Iosevka, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
@@ -58,19 +60,26 @@ function colorForClass(clazz: string | null): string | undefined {
 }
 
 export function PlannerCodeBlock(props: IPlannerCodeBlockProps): JSX.Element {
-  const segments = PlannerHighlighter_segments(props.script);
+  const cls = StyledText_cls(useRem());
+  const fontSize = cls(props.className ?? "text-base").fontSize;
+  const builder = new StyledText();
+  for (const segment of PlannerHighlighter_segments(props.script)) {
+    const color = colorForClass(segment.clazz);
+    builder.add(segment.text, color != null ? { color } : undefined);
+  }
+  const { text, fragments } = builder.build();
+  // No internal scroller: callers that need horizontal scroll wrap this in a ScrollView
+  // (e.g. simpleMarkdown, editProgramV2TextExercises) or rely on web `.code.block` overflow.
   return (
     <View className="block code">
-      <Text style={{ fontFamily: MONO_FONT_FAMILY }} className={`${props.className} whitespace-pre`}>
-        {segments.map((segment, i) => {
-          const color = colorForClass(segment.clazz);
-          return (
-            <Text key={i} className={props.className} style={color ? { color } : undefined}>
-              {segment.text}
-            </Text>
-          );
-        })}
-      </Text>
+      <FastText
+        text={text}
+        fragments={fragments}
+        fontFamily={MONO_FONT_FAMILY}
+        fontSize={fontSize}
+        color={Tailwind_semantic().text.primary}
+        noWrap={true}
+      />
     </View>
   );
 }
