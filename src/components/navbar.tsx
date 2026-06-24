@@ -10,7 +10,7 @@ import { IconSpinner } from "./icons/iconSpinner";
 import { IconClose } from "./icons/iconClose";
 import { lb } from "lens-shmens";
 import { ObjectUtils_filter, ObjectUtils_values } from "../utils/object";
-import { navigateToModal } from "../navigation/navigationService";
+import { navigateToModal, getCurrentScreenData } from "../navigation/navigationService";
 import { Tailwind_semantic, Tailwind_colors } from "../utils/tailwindConfig";
 import { ITourId } from "../models/state";
 import type { IHelpKey } from "./help/helpRegistry";
@@ -103,7 +103,11 @@ export const NavbarView = (props: INavbarProps): JSX.Element => {
                 if (props.helpTourId) {
                   updateState(
                     props.dispatch,
-                    [lb<IState>().p("tour").record({ id: props.helpTourId, enforced: true })],
+                    [
+                      lb<IState>()
+                        .p("tour")
+                        .record({ id: props.helpTourId, enforced: true, screenData: getCurrentScreenData() }),
+                    ],
                     "Start tour from navbar"
                   );
                 } else if (props.helpKey) {

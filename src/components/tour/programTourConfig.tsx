@@ -12,7 +12,7 @@ import { IState } from "../../models/state";
 const paraCn = "text-sm leading-relaxed text-text-secondary";
 
 function getPlannerFromState(state: IState): IPlannerProgram | undefined {
-  const screenData = getCurrentScreenData();
+  const screenData = state.tour?.screenData ?? getCurrentScreenData();
   const programId = screenData?.name === "editProgram" ? screenData.params?.programId : undefined;
   if (!programId) {
     return undefined;

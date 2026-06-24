@@ -32,7 +32,8 @@ import { LinkButton } from "../linkButton";
 import { PlannerProgram_evaluate } from "../../pages/planner/models/plannerProgram";
 import { IconKebab } from "../icons/iconKebab";
 import { UidFactory_generateUid } from "../../utils/generator";
-import { navigateToModal } from "../../navigation/navigationService";
+import { useIsFocused } from "@react-navigation/native";
+import { navigateToModal, getCurrentRouteName } from "../../navigation/navigationService";
 import { ProgramPreview_buildWeeks, ProgramPreviewWeekContent } from "../preview/programPreviewTab";
 import { Nux } from "../nux";
 import { programTourConfig } from "../tour/programTourConfig";
@@ -141,19 +142,38 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
   }, [planner]);
 
   const exercisePickerUi = props.plannerState.ui.exercisePicker;
-  const prevExercisePickerUi = useRef(exercisePickerUi);
-  useEffect(() => {
-    if (exercisePickerUi && !prevExercisePickerUi.current) {
-      navigateToModal("editProgramExercisePickerModal", {
-        context: "editProgram",
-        programId,
-        dayData: exercisePickerUi.dayData,
-        change: exercisePickerUi.change,
-        exerciseKey: exercisePickerUi.exerciseKey,
-      });
+  // Open the picker modal whenever a request is set but the picker isn't actually
+  // open. The route check makes this a no-op while the picker is up (so `.state`
+  // mutations don't re-push), but lets us re-open if a navigation was dropped.
+  const openPickerIfNeeded = useCallback(() => {
+    const picker = plannerStateRef.current.ui.exercisePicker;
+    if (!picker || getCurrentRouteName() === "editProgramExercisePickerModal") {
+      return;
     }
-    prevExercisePickerUi.current = exercisePickerUi;
-  }, [exercisePickerUi, programId]);
+    navigateToModal("editProgramExercisePickerModal", {
+      context: "editProgram",
+      programId,
+      dayData: picker.dayData,
+      change: picker.change,
+      exerciseKey: picker.exerciseKey,
+    });
+  }, [programId]);
+  const navigatedPickerRef = useRef(exercisePickerUi);
+  useEffect(() => {
+    if (exercisePickerUi && navigatedPickerRef.current !== exercisePickerUi) {
+      openPickerIfNeeded();
+    }
+    navigatedPickerRef.current = exercisePickerUi;
+  }, [exercisePickerUi, openPickerIfNeeded]);
+  // Recover a dropped navigation: when this screen regains focus (e.g. a competing
+  // modal that stole the navigation closed) and a picker request is still pending,
+  // re-assert it instead of waiting for the user to tap again.
+  const isFocused = useIsFocused();
+  useEffect(() => {
+    if (isFocused) {
+      openPickerIfNeeded();
+    }
+  }, [isFocused, openPickerIfNeeded]);
 
   const navRightButtons = useMemo(
     () => [

@@ -9,7 +9,7 @@ import { getCurrentScreenData } from "../../navigation/navigationService";
 const paraCn = "text-sm leading-relaxed text-text-secondary";
 
 function getPlannerExerciseFromState(state: IState): IPlannerProgramExercise | undefined {
-  const screenData = getCurrentScreenData();
+  const screenData = state.tour?.screenData ?? getCurrentScreenData();
   if (!screenData || screenData.name !== "editProgramExercise") {
     return undefined;
   }

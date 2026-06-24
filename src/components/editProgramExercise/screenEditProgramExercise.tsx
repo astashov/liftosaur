@@ -7,7 +7,8 @@ import { IDispatch } from "../../ducks/types";
 import { IDayData, ISettings } from "../../types";
 import { INavCommon, IState } from "../../models/state";
 import { lb } from "lens-shmens";
-import { navigateToModal } from "../../navigation/navigationService";
+import { useIsFocused } from "@react-navigation/native";
+import { navigateToModal, getCurrentRouteName } from "../../navigation/navigationService";
 import { useUndoRedo } from "../../pages/builder/utils/undoredo";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { useNavOptions } from "../../navigation/useNavOptions";
@@ -69,20 +70,52 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
   const lbProgram = lb<IPlannerExerciseState>().p("current").p("program").pi("planner");
 
   const exercisePickerState = props.plannerState.ui.exercisePickerState;
-  const prevExercisePickerState = useRef(exercisePickerState);
-  useEffect(() => {
-    if (exercisePickerState && !prevExercisePickerState.current) {
-      navigateToModal("editProgramExercisePickerModal", {
-        context: "editProgramExercise",
-        programId: props.programId,
-        exerciseStateKey: props.exerciseStateKey,
-        dayData: props.dayData,
-        change: "all",
-        exerciseKey: props.exerciseKey,
-      });
+  // See screenProgram.tsx. Open the picker whenever a request is pending but the
+  // picker route isn't actually open (so it survives a dropped navigation), but
+  // stay a no-op while it's up so `.state` mutations don't re-push it.
+  const pickerStateRef = useRef(exercisePickerState);
+  pickerStateRef.current = exercisePickerState;
+  const navParamsRef = useRef({
+    programId: props.programId,
+    exerciseStateKey: props.exerciseStateKey,
+    dayData: props.dayData,
+    exerciseKey: props.exerciseKey,
+  });
+  navParamsRef.current = {
+    programId: props.programId,
+    exerciseStateKey: props.exerciseStateKey,
+    dayData: props.dayData,
+    exerciseKey: props.exerciseKey,
+  };
+  const openPickerIfNeeded = useCallback(() => {
+    if (!pickerStateRef.current || getCurrentRouteName() === "editProgramExercisePickerModal") {
+      return;
     }
-    prevExercisePickerState.current = exercisePickerState;
-  }, [exercisePickerState]);
+    const p = navParamsRef.current;
+    navigateToModal("editProgramExercisePickerModal", {
+      context: "editProgramExercise",
+      programId: p.programId,
+      exerciseStateKey: p.exerciseStateKey,
+      dayData: p.dayData,
+      change: "all",
+      exerciseKey: p.exerciseKey,
+    });
+  }, []);
+  const navigatedPickerRef = useRef(exercisePickerState);
+  useEffect(() => {
+    if (exercisePickerState && navigatedPickerRef.current !== exercisePickerState) {
+      openPickerIfNeeded();
+    }
+    navigatedPickerRef.current = exercisePickerState;
+  }, [exercisePickerState, openPickerIfNeeded]);
+  // Recover a dropped navigation when the screen regains focus (e.g. a competing
+  // modal that stole the navigation closed) with a request still pending.
+  const isFocused = useIsFocused();
+  useEffect(() => {
+    if (isFocused) {
+      openPickerIfNeeded();
+    }
+  }, [isFocused, openPickerIfNeeded]);
 
   const toggleProgress = useCallback(() => {
     if (!plannerExercise) {

@@ -126,6 +126,13 @@ export function goBack(): void {
   }
 }
 
+export function getCurrentRouteName(): string | undefined {
+  if (!navigationRef.isReady()) {
+    return undefined;
+  }
+  return navigationRef.getCurrentRoute()?.name;
+}
+
 export function getCurrentScreenData(): IScreenData | undefined {
   if (!navigationRef.isReady()) {
     return undefined;

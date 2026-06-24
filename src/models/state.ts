@@ -118,6 +118,11 @@ export type ITourId = "workout" | "program" | "editProgramExercise";
 export interface IStateTour {
   id: ITourId;
   enforced: boolean;
+  // Screen the tour was started on. Step `condition`s resolve the active screen
+  // via getCurrentScreenData(), which returns the tour modal once it's open — so
+  // they're evaluated against this snapshot instead, keeping the steps shown in
+  // the modal consistent with the ones that triggered the tour.
+  screenData?: IScreenData;
 }
 
 export interface IState {

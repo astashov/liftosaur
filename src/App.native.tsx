@@ -634,7 +634,11 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
     }
     const tourId = TourConfigs_findTourId(stateRef.current, true);
     if (tourId && tourId !== stateRef.current.tour?.id) {
-      updateState(dispatch, [lb<IState>().p("tour").record({ id: tourId, enforced: false })], "Auto-start a tour");
+      updateState(
+        dispatch,
+        [lb<IState>().p("tour").record({ id: tourId, enforced: false, screenData: getCurrentScreenData() })],
+        "Auto-start a tour"
+      );
     }
   }, [isNavReady, currentScreenName, dispatch]);
 
