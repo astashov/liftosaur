@@ -1,9 +1,12 @@
-import { JSX, Fragment, memo, ReactNode } from "react";
+import { JSX, memo, ReactNode } from "react";
 import { View, Pressable } from "react-native";
 import { PerfTracker_recordEvent, PerfTracker_getSessionId } from "../../utils/perfTracker";
 import { PerfEnabled_tier2 } from "../../utils/perfEnabled";
 import { PerfProfiler } from "../../utils/perfProfiler";
 import { Text } from "../primitives/text";
+import { FastText } from "../primitives/fastText";
+import { StyledText, StyledText_cls } from "../../utils/styledText";
+import { useRem } from "../../utils/useRem";
 import { IPlannerProgramExercise, IPlannerState } from "../../pages/planner/models/types";
 import { ILensDispatch } from "../../utils/useLensReducer";
 import { ISettings } from "../../types";
@@ -116,19 +119,17 @@ export const EditProgramUiExerciseView = memo(function EditProgramUiExerciseView
             testID="planner-ui-exercise-name"
           >
             <View className="flex-1">
-              <Text className="text-base font-bold">
-                {props.plannerExercise.label ? `${props.plannerExercise.label}: ` : ""}
-                {props.plannerExercise.name}
-                {props.plannerExercise.equipment != null &&
-                  props.plannerExercise.equipment !== exercise?.defaultEquipment && (
-                    <Text className="text-base font-bold">, {equipmentName(props.plannerExercise.equipment)}</Text>
-                  )}
-                {orderAndRepeat ? (
-                  <Text className="text-sm font-normal text-text-primary"> [{orderAndRepeat}]</Text>
-                ) : (
-                  ""
-                )}
-              </Text>
+              <ExerciseNameLine
+                label={props.plannerExercise.label}
+                name={props.plannerExercise.name}
+                equipment={
+                  props.plannerExercise.equipment != null &&
+                  props.plannerExercise.equipment !== exercise?.defaultEquipment
+                    ? equipmentName(props.plannerExercise.equipment)
+                    : undefined
+                }
+                orderAndRepeat={orderAndRepeat || undefined}
+              />
             </View>
             {props.plannerExercise.notused && (
               <View className="px-1 ml-3 rounded bg-background-darkgray">
@@ -323,23 +324,7 @@ export const EditProgramUiExerciseContentView = memo(function EditProgramUiExerc
           </View>
           {supersetGroup && (
             <View className="px-3 pb-2">
-              <Text className="text-xs">
-                Superset Group: <Text className="text-xs font-bold">{supersetGroup}</Text>
-                {supersetExercises.length > 0 && (
-                  <Text className="text-xs text-text-secondary">
-                    <Text className="text-xs text-text-secondary"> (</Text>
-                    {supersetExercises.map((ex, i) => {
-                      return (
-                        <Fragment key={i}>
-                          {i > 0 ? ", " : ""}
-                          <Text className="text-xs font-bold text-text-secondary">{ex.name}</Text>
-                        </Fragment>
-                      );
-                    })}
-                    <Text className="text-xs text-text-secondary">)</Text>
-                  </Text>
-                )}
-              </Text>
+              <SupersetLine group={supersetGroup} exerciseNames={supersetExercises.map((ex) => ex.name)} />
             </View>
           )}
           <View className="px-3 pb-2">
@@ -428,3 +413,43 @@ export const EditProgramUiExerciseContentView = memo(function EditProgramUiExerc
     </View>
   );
 });
+
+function ExerciseNameLine(props: {
+  label?: string;
+  name: string;
+  equipment?: string;
+  orderAndRepeat?: string;
+}): JSX.Element {
+  const cls = StyledText_cls(useRem());
+  const builder = new StyledText();
+  if (props.label) {
+    builder.add(`${props.label}: `);
+  }
+  builder.add(props.name);
+  if (props.equipment) {
+    builder.add(`, ${props.equipment}`);
+  }
+  if (props.orderAndRepeat) {
+    builder.add(` [${props.orderAndRepeat}]`, cls("text-sm font-normal"));
+  }
+  const built = builder.build();
+  return <FastText text={built.text} fragments={built.fragments} {...cls("text-base font-bold text-text-primary")} />;
+}
+
+function SupersetLine(props: { group: string; exerciseNames: string[] }): JSX.Element {
+  const cls = StyledText_cls(useRem());
+  const secondary = cls("text-text-secondary");
+  const builder = new StyledText();
+  builder.add("Superset Group: ");
+  builder.add(props.group, cls("font-bold"));
+  if (props.exerciseNames.length > 0) {
+    builder.add(" (", secondary);
+    props.exerciseNames.forEach((name, i) => {
+      builder.add(i > 0 ? ", " : "", secondary);
+      builder.add(name, cls("font-bold text-text-secondary"));
+    });
+    builder.add(")", secondary);
+  }
+  const built = builder.build();
+  return <FastText text={built.text} fragments={built.fragments} {...cls("text-xs text-text-primary")} />;
+}
