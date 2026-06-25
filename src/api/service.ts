@@ -1,5 +1,13 @@
 import { Platform } from "react-native";
-import { IStorage, IHistoryRecord, ISettings, IUnit, IMuscleGeneratorResponse, IPlannerProgramWeek } from "../types";
+import {
+  IStorage,
+  IHistoryRecord,
+  ISettings,
+  IUnit,
+  IMuscleGeneratorResponse,
+  IPlannerProgramWeek,
+  IAffiliateData,
+} from "../types";
 import { IAccount } from "../models/account";
 import { IEither } from "../utils/types";
 import { UrlUtils_build } from "../utils/url";
@@ -127,6 +135,19 @@ export type IEventPayload =
       commithash: string;
       isMobile?: boolean;
       update: string;
+    }
+  | {
+      type: "log";
+      userId?: string;
+      timestamp: number;
+      action: string;
+      affiliates?: Partial<Record<string, IAffiliateData>>;
+      subscriptions: string[];
+      referrer?: string;
+      landingPage?: string;
+      platform: { name: string; version?: string };
+      commithash: string;
+      isMobile?: boolean;
     };
 
 const cachePromises: Partial<Record<string, unknown>> = {};
@@ -677,6 +698,24 @@ export class Service {
       }
     });
     return !!(json as { result: boolean }).result;
+  }
+
+  public async verifySubscriptionKey(userId: string, key: string): Promise<{ clear: boolean }> {
+    try {
+      const url = UrlUtils_build(`${__API_HOST__}/api/verifysubscriptionkey`);
+      const result = await this.client(url.toString(), {
+        method: "POST",
+        body: JSON.stringify({ user: userId, key }),
+        credentials: "include",
+      });
+      if (result.status !== 200) {
+        return { clear: false };
+      }
+      const json = (await result.json()) as { data?: { clear?: boolean } };
+      return { clear: !!json.data?.clear };
+    } catch {
+      return { clear: false };
+    }
   }
 
   public async deleteAccount(): Promise<boolean> {

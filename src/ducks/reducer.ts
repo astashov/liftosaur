@@ -185,7 +185,7 @@ export async function getInitialState(
     nosync,
     deviceId,
   });
-  LogUtils_log(newState.storage.tempUserId, "ls-initialize-user", {}, [], () => undefined);
+  LogUtils_log(newState.storage.tempUserId, "ls-initialize-user", {}, []);
   return newState;
 }
 

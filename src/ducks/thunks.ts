@@ -277,16 +277,27 @@ export function Thunk_log(action: string): IThunk {
         action,
         state.storage.affiliates,
         Subscriptions_listOfSubscriptions(state.storage.subscription),
-        () => {
-          updateState(
-            dispatch,
-            [lb<IState>().p("storage").p("subscription").p("key").record(undefined)],
-            "Clear subscription key"
-          );
-        },
-        state.storage.subscription.key,
         state.storage.referrer,
         state.storage.landingPage
+      );
+    }
+  };
+}
+
+export function Thunk_verifySubscriptionKey(): IThunk {
+  return async (dispatch, getState, env) => {
+    const state = getState();
+    const key = state.storage.subscription.key;
+    if (state.nosync || key == null) {
+      return;
+    }
+    const userId = state.user?.id || state.storage.tempUserId;
+    const { clear } = await env.service.verifySubscriptionKey(userId, key);
+    if (clear) {
+      updateState(
+        dispatch,
+        [lb<IState>().p("storage").p("subscription").p("key").record(undefined)],
+        "Clear subscription key"
       );
     }
   };
@@ -1821,6 +1832,7 @@ export function Thunk_fetchInitial(): IThunk {
     if (AdminDebug_isDebugAccountId(getState().storage.tempUserId)) {
       return;
     }
+    dispatch(Thunk_verifySubscriptionKey());
     if (getState().storage.subscription.apple.length > 0) {
       dispatch(Thunk_postevent("check-apple-subscription"));
       const receipt = getState().storage.subscription.apple[0]?.value;

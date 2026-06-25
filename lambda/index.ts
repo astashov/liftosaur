@@ -1590,15 +1590,12 @@ const postClaimCouponHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
 const logEndpoint = Endpoint.build("/api/log");
 const logHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof logEndpoint> = async ({ payload }) => {
   const { event, di } = payload;
-  const env = Utils_getEnv();
   const {
     user,
     action,
     affiliates,
     platform,
     subscriptions,
-    key,
-    enforce,
     referrer,
     landingPage: bodyLandingPage,
   } = getBodyJson(event);
@@ -1606,21 +1603,33 @@ const logHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof logEndpoi
     typeof bodyLandingPage === "string" && bodyLandingPage.startsWith("/") && bodyLandingPage.length <= 256
       ? bodyLandingPage
       : getLandingPageCookie(event);
-  let data: { result: "ok" | "error"; clear?: boolean };
+  let data: { result: "ok" | "error" };
   if (user && action) {
-    let clear: boolean | undefined;
-    if (key != null && (env === "prod" || enforce)) {
-      const fetchedKey = await new FreeUserDao(di).verifyKey(user);
-      if (fetchedKey !== key) {
-        clear = true;
-      }
-    }
     await new LogDao(di).increment(user, action, platform, subscriptions, affiliates, referrer, landingPage);
-    data = { result: "ok", clear };
+    data = { result: "ok" };
   } else {
     data = { result: "error" };
   }
   return ResponseUtils_json(200, event, { data });
+};
+
+const postVerifySubscriptionKeyEndpoint = Endpoint.build("/api/verifysubscriptionkey");
+const postVerifySubscriptionKeyHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postVerifySubscriptionKeyEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  const env = Utils_getEnv();
+  const { user, key, enforce } = getBodyJson(event);
+  let clear: boolean | undefined;
+  if (user && key != null && (env === "prod" || enforce)) {
+    const fetchedKey = await new FreeUserDao(di).verifyKey(user);
+    if (fetchedKey !== key) {
+      clear = true;
+    }
+  }
+  return ResponseUtils_json(200, event, { data: { result: "ok", clear } });
 };
 
 // Must never be cached - it's per-viewer.
@@ -1650,7 +1659,11 @@ const postBatchEventsHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
       .map((e) => (e.type === "event" ? e.name : e.type))
       .join(", ")
   );
-  const idGroups = CollectionUtils_inGroupsOf(25, ObjectUtils_keys(events));
+
+  const logIds = ObjectUtils_keys(events).filter((id) => events[id].type === "log");
+  const eventIds = ObjectUtils_keys(events).filter((id) => events[id].type !== "log");
+
+  const idGroups = CollectionUtils_inGroupsOf(25, eventIds);
   for (const group of idGroups) {
     const eventsToPost: IEventPayload[] = [];
     for (const id of group) {
@@ -1669,6 +1682,31 @@ const postBatchEventsHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
       di.log.log("Error posting batch events", error);
     }
   }
+
+  // LogDao.increment is a read-modify-write, so same-(user,action) logs in one batch must run
+  // sequentially or they'd clobber each other's count.
+  const logDao = new LogDao(di);
+  for (const id of logIds) {
+    const e = events[id];
+    if (e.type !== "log") {
+      continue;
+    }
+    try {
+      await logDao.increment(
+        e.userId || "",
+        e.action,
+        e.platform,
+        e.subscriptions as ("apple" | "google")[],
+        e.affiliates,
+        e.referrer,
+        e.landingPage
+      );
+      successfulIds = successfulIds.concat(id);
+    } catch (error) {
+      di.log.log("Error posting batch log", error);
+    }
+  }
+
   return ResponseUtils_json(200, event, { acknowledged: successfulIds });
 };
 
@@ -3449,6 +3487,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .get(getHistoryRecordEndpoint, getHistoryRecordHandler)
       .get(getHistoryRecordImageEndpoint, getHistoryRecordImageHandler)
       .post(logEndpoint, logHandler)
+      .post(postVerifySubscriptionKeyEndpoint, postVerifySubscriptionKeyHandler)
 
       .get(getProfileEndpoint, getProfileHandler)
       .get(getProfileImageEndpoint, getProfileImageHandler)
