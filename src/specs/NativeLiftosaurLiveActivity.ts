@@ -28,10 +28,24 @@ export type LiveActivityEntry = {
   plates?: string;
   currentWeight?: string;
   currentReps?: string;
+  isSetTimer?: boolean;
 };
 
 export type LiveActivityRest = {
   restTimerSince: number;
+  restTimer: number;
+  isAuto: boolean;
+};
+
+export type LiveActivitySetTimer = {
+  setTimerSince: number;
+  setTimer: number;
+  isOverflow: boolean;
+  isCompleted: boolean;
+  entryIndex: number;
+  setIndex: number;
+  // Rest (seconds) that follows the work timer. Lets native transition the activity to the rest view at
+  // the threshold even when the app is backgrounded and JS can't run the auto-complete.
   restTimer: number;
 };
 
@@ -43,14 +57,17 @@ export type LiveActivityState = {
   // Set only on the update that results from a "Complete Set" Live Activity tap,
   // so native can ack that exact render back to the waiting intent.
   completeSetRequestId?: string;
+  setTimer?: LiveActivitySetTimer;
 };
 
 export type LiveActivityActionEvent = {
-  action: "completeSet" | "addRestTime" | "skipRest" | "openApp";
+  action: "completeSet" | "addRestTime" | "skipRest" | "openApp" | "recordSetTimer" | "checkSetTimer";
   entryIndex?: number;
   setIndex?: number;
   addSeconds?: number;
   completeSetRequestId?: string;
+  elapsedSeconds?: number;
+  keepTiming?: boolean;
 };
 
 export interface Spec extends TurboModule {

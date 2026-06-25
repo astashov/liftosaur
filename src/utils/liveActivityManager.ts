@@ -38,15 +38,30 @@ export interface ILiveActivityEntry {
   plates?: string;
   currentWeight?: string;
   currentReps?: string;
+  isSetTimer?: boolean;
 }
 
 export interface ILiveActivityRest {
   restTimerSince: number;
   restTimer: number;
+  // Whether the resting set is part of an `auto` circuit (so the live activity shows "tap to update" when
+  // the rest ends, to auto-advance to the next set's work timer). Non-auto rest just expires.
+  isAuto: boolean;
+}
+
+export interface ILiveActivitySetTimer {
+  setTimerSince: number;
+  setTimer: number;
+  isOverflow: boolean;
+  isCompleted: boolean;
+  entryIndex: number;
+  setIndex: number;
+  restTimer: number;
 }
 
 export interface ILiveActivityState {
   restTimer?: ILiveActivityRest;
+  setTimer?: ILiveActivitySetTimer;
   historyEntryState?: ILiveActivityEntry;
   workoutStartTimestamp: number;
   ignoreDoNotDisturb: boolean;
@@ -107,7 +122,9 @@ export function LiveActivityManager_getLiveActivityEntry(
       status: Reps_setsStatus([s]),
       isWarmup: i < entry.warmupSets.length,
     })),
-    targetReps: set.reps ? `${n(set.reps)}${set.isAmrap ? "+" : ""}` : undefined,
+    targetReps: set.reps
+      ? `${set.minReps != null ? `${n(set.minReps)}-` : ""}${n(set.reps)}${set.isAmrap ? "+" : ""}`
+      : undefined,
     targetWeight: set.weight ? `${Weight_print(set.weight)}${set.askWeight ? "+" : ""}` : undefined,
     targetRPE: set.rpe != null ? `${n(set.rpe)}${set.logRpe ? "+" : ""}` : undefined,
     targetTimer: set.timer != null ? set.timer.toString() : undefined,
@@ -117,6 +134,7 @@ export function LiveActivityManager_getLiveActivityEntry(
     currentReps: currentReps != null ? currentReps.toString() : undefined,
     isWarmup: isNextSetWarmup,
     canCompleteFromLiveActivity,
+    isSetTimer: set.setTimer != null,
   };
   return state;
 }
@@ -162,27 +180,73 @@ export function LiveActivityManager_updateLiveActivity(
   if (!subscription || !Subscriptions_hasSubscription(subscription)) {
     return;
   }
-  const liveActivityEntry = LiveActivityManager_getLiveActivityEntry(
+  let liveActivityEntry = LiveActivityManager_getLiveActivityEntry(
     progress,
     entryIndex,
     setIndex,
     programExercise,
     settings
   );
+
+  // A running set timer takes over the live activity entirely: it shows the timed set's
+  // count-up clock and "complete the set" buttons instead of the next-exercise/rest layout.
+  // It's driven by `progress.ui.setTimerModal` so every existing update call site reflects it
+  // automatically, and reverts to the normal layout the moment the modal is cleared.
+  const setTimerModal = progress.ui?.setTimerModal;
+  let setTimerState: ILiveActivitySetTimer | undefined;
+  if (setTimerModal) {
+    const timedEntry = progress.entries[setTimerModal.entryIndex];
+    const timedSet = timedEntry?.sets[setTimerModal.setIndex];
+    if (timedEntry && timedSet) {
+      const absoluteSetIndex = timedEntry.warmupSets.length + setTimerModal.setIndex;
+      const timedEntryState = LiveActivityManager_getLiveActivityEntry(
+        progress,
+        setTimerModal.entryIndex,
+        absoluteSetIndex,
+        programExercise,
+        settings
+      );
+      // Count current/total across warmups+work (the absolute index), matching the rest timer view — so a
+      // timed set after warmups reads "4/5" rather than the work-only "2/3".
+      liveActivityEntry = timedEntryState ?? liveActivityEntry;
+      setTimerState = {
+        setTimerSince: setTimerModal.startedAt,
+        setTimer: timedSet.setTimer ?? 0,
+        isOverflow: !!timedSet.isOverflowSetTimer,
+        isCompleted: !!timedSet.isCompleted,
+        entryIndex: setTimerModal.entryIndex,
+        setIndex: setTimerModal.setIndex,
+        restTimer: timedSet.timer ?? 0,
+      };
+    }
+  }
+
+  const restingSet =
+    progress.timerEntryIndex != null && progress.timerSetIndex != null
+      ? progress.entries[progress.timerEntryIndex]?.sets[progress.timerSetIndex]
+      : undefined;
   const attributes: ILiveActivityState = {
     workoutStartTimestamp: progress.startTime,
     historyEntryState: liveActivityEntry,
+    setTimer: setTimerState,
     restTimer:
-      progress.timerSince != null && progress.timer != null
+      setTimerState == null && progress.timerSince != null && progress.timer != null
         ? {
             restTimerSince: restTimerSince ?? progress.timerSince,
             restTimer: restTimer ?? progress.timer,
+            isAuto: !!restingSet?.auto,
           }
         : undefined,
     ignoreDoNotDisturb: !!settings.ignoreDoNotDisturb,
   };
   SendMessage_print(
     `Main App: Updating live activity for ${liveActivityEntry?.exerciseName} (${liveActivityEntry?.entryIndex}/${liveActivityEntry?.setIndex})`
+  );
+  // eslint-disable-next-line no-console
+  console.log(
+    `[LiveActivity] update ${liveActivityEntry?.exerciseName} (${liveActivityEntry?.entryIndex}/${liveActivityEntry?.setIndex}) — setTimer: ${
+      setTimerState ? `${setTimerState.setTimer}s since ${setTimerState.setTimerSince}` : "none"
+    }, rest: ${attributes.restTimer ? `${attributes.restTimer.restTimer}s` : "none"}`
   );
   NativeWorkoutBridge_updateLiveActivity(attributes);
 }

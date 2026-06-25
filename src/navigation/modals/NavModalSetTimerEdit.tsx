@@ -47,6 +47,15 @@ export function NavModalSetTimerEdit(): JSX.Element {
     navigation.goBack();
   };
 
+  const onClear = (): void => {
+    updateProgress(
+      dispatch,
+      [lb<IHistoryRecord>().p("entries").i(entryIndex).p("sets").i(setIndex).p("completedSetTimer").record(undefined)],
+      "clear-set-timer"
+    );
+    navigation.goBack();
+  };
+
   const onSave = (): void => {
     const minutes = Number(minutesValue);
     const seconds = Number(secondsValue);
@@ -105,8 +114,14 @@ export function NavModalSetTimerEdit(): JSX.Element {
           </View>
         </View>
         <View className="flex-row justify-between mt-4">
-          <Button name="set-timer-edit-cancel" kind="grayv2" className="mr-3" onClick={onClose}>
-            Cancel
+          <Button
+            name="set-timer-edit-clear"
+            data-testid="set-timer-edit-clear"
+            kind="grayv2"
+            className="mr-3"
+            onClick={onClear}
+          >
+            Clear
           </Button>
           <Button name="set-timer-edit-submit" data-testid="set-timer-edit-submit" kind="purple" onClick={onSave}>
             Save

@@ -2,10 +2,12 @@ import { ILiveActivityState } from "./liveActivityManager";
 import { SendMessage_toIosAndAndroid } from "./sendMessage";
 
 export type INativeWorkoutBridgeLiveActivityAction = {
-  action: "completeSet" | "addRestTime" | "skipRest" | "openApp";
+  action: "completeSet" | "addRestTime" | "skipRest" | "openApp" | "recordSetTimer" | "checkSetTimer";
   entryIndex?: number;
   setIndex?: number;
   addSeconds?: number;
+  elapsedSeconds?: number;
+  keepTiming?: boolean;
 };
 
 export function NativeWorkoutBridge_pauseWorkout(): void {

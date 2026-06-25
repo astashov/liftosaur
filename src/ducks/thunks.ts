@@ -53,7 +53,10 @@ import {
   ILength,
   ICustomExercise,
   IImportSession,
+  IProgramState,
 } from "../types";
+import { IPlannerProgramExercise } from "../pages/planner/models/types";
+import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { CollectionUtils_compact, CollectionUtils_setAt } from "../utils/collection";
 import { ImportExporter_exportStorage, ImportExporter_getExportedProgram } from "../lib/importexporter";
 import { Storage_mergeStorage, Storage_isChanged, Storage_get, Storage_setAffiliate } from "../models/storage";
@@ -100,13 +103,15 @@ import { ClipboardUtils_copy } from "../utils/clipboard";
 import {
   Progress_getProgress,
   Progress_getProgressById,
-  Progress_getNextTimedSet,
+  Progress_isSetTimerCheckDue,
+  Progress_getFirstIncompleteWorkoutSet,
   Progress_updateTimer,
   Progress_getCurrentProgress,
   Progress_isCurrent,
   Progress_stop,
   Progress_scheduleTimerNotification,
 } from "../models/progress";
+import { Reps_findNextEntryAndSetIndex } from "../models/set";
 import { NativeTimerBridge_stopTimer } from "../utils/nativeTimerBridge";
 import { NativeWorkoutBridge_discardWorkout } from "../utils/nativeWorkoutBridge";
 import { IImportLinkData, ImportFromLink_importFromLink } from "../utils/importFromLink";
@@ -811,159 +816,151 @@ export function Thunk_completeSetExternal(
   };
 }
 
-export function Thunk_completeSetWithTimer(entryIndex: number, setIndex: number, completedSetTimer: number): IThunk {
+function resolveTimedSetProgramContext(
+  state: IState,
+  progress: IHistoryRecord,
+  entryIndex: number | undefined
+): { programExercise: IPlannerProgramExercise | undefined; otherStates: IByExercise<IProgramState> | undefined } {
+  const entry = entryIndex != null ? progress.entries[entryIndex] : undefined;
+  if (!entry) {
+    return { programExercise: undefined, otherStates: undefined };
+  }
+  const program = Program_getFullProgram(state, progress.programId);
+  const evaluatedProgram = program ? Program_evaluate(program, state.storage.settings) : undefined;
+  const programExercise = evaluatedProgram
+    ? Program_getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
+    : undefined;
+  return { programExercise, otherStates: evaluatedProgram?.states };
+}
+
+// Record the running set timer and complete the set. The model (Progress_completeSetAction) derives the
+// elapsed time from when the clock started, decides whether to advance/close+rest, and may open the
+// AMRAP modal — this thunk just resolves the program context the update script needs.
+export function Thunk_recordSetTimer(
+  entryIndex: number,
+  setIndex: number,
+  keepTiming: boolean,
+  recordedSeconds?: number
+): IThunk {
   return async (dispatch, getState, env) => {
     const state = getState();
     const progress = Progress_getProgress(state);
     if (!progress) {
       return;
     }
-    const entry = progress.entries[entryIndex];
-    const set = entry?.sets[setIndex];
-    if (!set) {
+    // A native Live Activity / Live Update "Stop & Record"/"Log & keep" tap can arrive stale — the timed set
+    // already auto-closed at its target, or the user double-tapped an old notification. The set timer modal is
+    // then gone (or points at a different set), and completing here would fall through to normal set toggling
+    // and flip the already-completed set back off. Ignore it and just resync the surface that sent it.
+    const setTimerModal = progress.ui?.setTimerModal;
+    if (setTimerModal == null || setTimerModal.entryIndex !== entryIndex || setTimerModal.setIndex !== setIndex) {
+      dispatch(Thunk_refreshLiveActivity());
       return;
     }
+    const { programExercise, otherStates } = resolveTimedSetProgramContext(state, progress, entryIndex);
     dispatch({
-      type: "UpdateProgress",
-      lensRecordings: [
-        lb<IHistoryRecord>()
-          .p("entries")
-          .i(entryIndex)
-          .p("sets")
-          .i(setIndex)
-          .p("completedSetTimer")
-          .record(Math.round(completedSetTimer)),
-      ],
-      desc: "complete-set-timer",
+      type: "CompleteSetAction",
+      entryIndex,
+      setIndex,
+      mode: "workout",
+      programExercise,
+      otherStates,
+      forceUpdateEntryIndex: false,
+      isExternal: false,
+      isPlayground: false,
+      keepSetTimerRunning: keepTiming,
+      // From the live activity this is the elapsed at the moment of the tap (native-computed) — use it
+      // instead of recomputing from startedAt at processing time, which drifts if the app woke late.
+      recordedSeconds,
     });
-    if (!set.isCompleted) {
-      const program = Program_getFullProgram(state, progress.programId);
-      const evaluatedProgram = program ? Program_evaluate(program, state.storage.settings) : undefined;
-      const programExercise = evaluatedProgram
-        ? Program_getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
-        : undefined;
-      dispatch({
-        type: "CompleteSetAction",
-        setIndex,
-        entryIndex,
-        programExercise,
-        otherStates: evaluatedProgram?.states,
-        isPlayground: false,
-        mode: "workout",
-        forceUpdateEntryIndex: true,
-        isExternal: false,
-      });
-    }
   };
 }
 
-// A timed set defers its rest timer to the sheets that drive it: the set-timer banner and, for AMRAP
-// sets, the reps modal that opens on top of it. The rest only starts once the set is completed and
-// *both* of those are closed — so the clock isn't replaced by a rest countdown while either is open.
-export function Thunk_startTimedSetRestIfReady(entryIndex: number, setIndex: number): IThunk {
+// Polled by the set-timer banner and the rest timer every tick. Cheap no-op unless a time threshold has
+// actually been crossed (auto work timer hit its target, or auto rest expired), in which case the model
+// advances/completes. Gated by the pure predicate so we don't evaluate the program every second.
+export function Thunk_checkSetTimer(): IThunk {
   return async (dispatch, getState, env) => {
     const state = getState();
     const progress = Progress_getProgress(state);
-    if (!progress) {
+    if (!progress || !Progress_isSetTimerCheckDue(progress, Date.now())) {
       return;
     }
-    const set = progress.entries[entryIndex]?.sets[setIndex];
-    if (set?.setTimer == null || !set.isCompleted) {
-      return;
-    }
-    if (progress.ui?.setTimerModal != null || progress.ui?.amrapModal != null) {
-      return;
-    }
-    dispatch({ type: "StartTimer", timestamp: Date.now(), mode: "workout", entryIndex, setIndex });
+    const entryIndex = progress.ui?.setTimerModal?.entryIndex ?? progress.timerEntryIndex;
+    const { programExercise, otherStates } = resolveTimedSetProgramContext(state, progress, entryIndex);
+    dispatch({ type: "CheckSetTimerAction", programExercise, otherStates });
+    // The predicate above guarantees the model just advanced (auto work timer hit target, or auto rest
+    // expired → next set timer). Re-push so the live activity/live update follows along — otherwise an
+    // in-app poll advances the UI while the lock-screen stays on the expired rest until the next update.
+    dispatch(Thunk_refreshLiveActivity());
   };
 }
 
-export function Thunk_closeSetTimer(): IThunk {
-  return async (dispatch, getState, env) => {
-    const state = getState();
-    const setTimerModal = Progress_getProgress(state)?.ui?.setTimerModal;
-    dispatch({
-      type: "UpdateProgress",
-      lensRecordings: [lb<IHistoryRecord>().pi("ui", {}).p("setTimerModal").record(undefined)],
-      desc: "Close set timer modal",
-    });
-    if (setTimerModal) {
-      dispatch(Thunk_startTimedSetRestIfReady(setTimerModal.entryIndex, setTimerModal.setIndex));
-    }
-  };
-}
-
-export function Thunk_startSetTimer(entryIndex: number, setIndex: number): IThunk {
+// Re-pushes the live activity for the current workout state (set timer / rest / next set). Used on app
+// foreground (after Thunk_checkSetTimer reconciles the model) to resync the live activity, which can't
+// advance itself while the app is suspended.
+export function Thunk_refreshLiveActivity(): IThunk {
   return async (dispatch, getState, env) => {
     const state = getState();
     const progress = Progress_getProgress(state);
-    if (!progress) {
+    if (!progress || !Progress_isCurrent(progress)) {
       return;
     }
-    const set = progress.entries[entryIndex]?.sets[setIndex];
-    if (!set || set.setTimer == null) {
+    const program = Program_getFullProgram(state, progress.programId);
+    const settings = state.storage.settings;
+    const subscription = state.storage.subscription;
+    const setTimerModal = progress.ui?.setTimerModal;
+    if (setTimerModal != null) {
+      // Centralization in LiveActivityManager_updateLiveActivity reads setTimerModal, so the entry/set
+      // passed here are overridden — it renders the set-timer view.
+      LiveActivityManager_updateProgressLiveActivity(
+        program,
+        progress,
+        settings,
+        subscription,
+        setTimerModal.entryIndex,
+        setTimerModal.setIndex,
+        undefined,
+        undefined
+      );
       return;
     }
-    dispatch({
-      type: "UpdateProgress",
-      lensRecordings: [
-        lb<IHistoryRecord>()
-          .pi("ui", {})
-          .p("setTimerModal")
-          .record({ entryIndex, setIndex, startedAt: Date.now(), nonce: Date.now() }),
-      ],
-      desc: "start-set-timer",
-    });
-  };
-}
-
-export function Thunk_advanceSetTimer(): IThunk {
-  return async (dispatch, getState, env) => {
-    const state = getState();
-    const progress = Progress_getProgress(state);
-    if (!progress) {
+    if (progress.timer != null && progress.timerSince != null) {
+      // The rest timer belongs to the just-completed set (progress.timerSetIndex), but the live activity
+      // must show the NEXT set so its complete button targets a set that can actually be completed — pushing
+      // the completed set's index makes the button a no-op. Mirrors screenWorkout/restTimer; the rest timer
+      // itself is read from progress.timer/timerSince inside updateLiveActivity, so it still shows.
+      const next =
+        progress.timerEntryIndex != null
+          ? Reps_findNextEntryAndSetIndex(progress, progress.timerEntryIndex, progress.timerMode ?? "workout")
+          : undefined;
+      LiveActivityManager_updateProgressLiveActivity(
+        program,
+        progress,
+        settings,
+        subscription,
+        next?.entryIndex ?? progress.timerEntryIndex,
+        next?.setIndex ?? progress.timerSetIndex,
+        progress.timer,
+        progress.timerSince
+      );
       return;
     }
-    const next = Progress_getNextTimedSet(progress);
-    dispatch({
-      type: "UpdateProgress",
-      lensRecordings: [
-        lb<IHistoryRecord>()
-          .pi("ui", {})
-          .p("setTimerModal")
-          .record(
-            next != null ? { ...next, startedAt: Date.now(), nonce: progress.ui?.setTimerModal?.nonce } : undefined
-          ),
-      ],
-      desc: "advance-set-timer",
-    });
-  };
-}
-
-export function Thunk_autoAdvanceAfterRest(): IThunk {
-  return async (dispatch, getState, env) => {
-    const state = getState();
-    const progress = Progress_getProgress(state);
-    if (!progress) {
-      return;
+    const next = Progress_getFirstIncompleteWorkoutSet(progress);
+    if (next != null) {
+      const entry = progress.entries[next.entryIndex];
+      const absoluteSetIndex = entry.warmupSets.length + next.setIndex;
+      LiveActivityManager_updateProgressLiveActivity(
+        program,
+        progress,
+        settings,
+        subscription,
+        next.entryIndex,
+        absoluteSetIndex,
+        undefined,
+        undefined
+      );
     }
-    const next = Progress_getNextTimedSet(progress);
-    dispatch({
-      type: "UpdateProgress",
-      lensRecordings: [
-        lb<IHistoryRecord>().p("timerSince").record(undefined),
-        lb<IHistoryRecord>().p("timer").record(undefined),
-        lb<IHistoryRecord>().p("timerMode").record(undefined),
-        lb<IHistoryRecord>().p("timerEntryIndex").record(undefined),
-        lb<IHistoryRecord>().p("timerSetIndex").record(undefined),
-        // Fresh nonce so the workout screen's observer re-opens the banner for the next set.
-        lb<IHistoryRecord>()
-          .pi("ui", {})
-          .p("setTimerModal")
-          .record(next != null ? { ...next, startedAt: Date.now(), nonce: Date.now() } : undefined),
-      ],
-      desc: "auto-advance-after-rest",
-    });
   };
 }
 

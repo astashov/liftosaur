@@ -67,11 +67,13 @@ test("set timer - discard does not record, log-keep records but keeps timing", a
   await expect(page.getByTestId("start-set-timer")).toHaveCount(2);
   await expect(page.getByTestId("set-timer-value")).toHaveCount(0);
 
-  // Log & keep timing records the set but keeps the banner open.
+  // Log & keep timing records the set but keeps the banner open. Once logged, both record buttons are
+  // hidden — only "Discard & close" remains.
   await page.getByTestId("start-set-timer").first().click();
   await page.getByTestId("set-timer-log-keep").click();
   await expect(page.getByTestId("set-timer-current")).toBeVisible();
   await expect(page.getByTestId("set-timer-log-keep")).toHaveCount(0);
+  await expect(page.getByTestId("set-timer-stop-record")).toHaveCount(0);
   await page.getByTestId("set-timer-discard").click();
 
   await expect(page.getByTestId("set-timer-current")).toHaveCount(0);
@@ -94,6 +96,22 @@ test("set timer - edit recorded time after recording", async ({ page }) => {
   await page.getByTestId("set-timer-edit-submit").click();
 
   await expect(page.getByTestId("set-timer-value")).toHaveText("01:30");
+});
+
+test("set timer - clear recorded time", async ({ page }) => {
+  await createSetTimerProgram(page, "Bench Press / 1x1 100lb 30s|60s");
+
+  await page.getByTestId("footer-workout").click();
+  await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
+
+  await page.getByTestId("start-set-timer").first().click();
+  await page.getByTestId("set-timer-stop-record").click();
+
+  await expect(page.getByTestId("set-timer-value")).toHaveCount(1);
+  await page.getByTestId("set-timer-value").click();
+  await page.getByTestId("set-timer-edit-clear").click();
+
+  await expect(page.getByTestId("set-timer-value")).toHaveCount(0);
 });
 
 test("set timer - editor Set Time column and overflow round-trip to liftoscript", async ({ page }) => {
@@ -229,4 +247,92 @@ test("set timer - Tabata circuit reopens the banner after the rest timer", async
 
   await expect(page.getByTestId("start-set-timer")).toHaveCount(0);
   await expect(page.getByTestId("set-timer-value")).toHaveCount(2);
+});
+
+test("set timer - non-overflow set auto-completes when it reaches the target", async ({ page }) => {
+  // Short 2s target so the test can wait for the auto-completion.
+  await createSetTimerProgram(page, "Bench Press / 1x1 100lb 2s|60s");
+
+  await page.getByTestId("footer-workout").click();
+  await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
+
+  await page.getByTestId("start-set-timer").first().click();
+  await expect(page.getByTestId("set-timer-current")).toBeVisible();
+
+  // A non-overflow timed set has a fixed work duration: once the target elapses it records and
+  // completes on its own, with no manual "Stop & record".
+  await expect(page.getByTestId("set-timer-current")).toHaveCount(0, { timeout: 5000 });
+  await expect(page.getByTestId("start-set-timer")).toHaveCount(0);
+  await expect(page.getByTestId("set-timer-value")).toHaveCount(1);
+});
+
+test("set timer - overflow set counts up past the target without auto-completing", async ({ page }) => {
+  await createSetTimerProgram(page, "Bench Press / 1x1 100lb 2s+|60s");
+
+  await page.getByTestId("footer-workout").click();
+  await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
+
+  await page.getByTestId("start-set-timer").first().click();
+  await expect(page.getByTestId("set-timer-current")).toBeVisible();
+
+  // The `+` overflow keeps counting past the target — the banner stays open until stopped manually.
+  await page.waitForTimeout(3000);
+  await expect(page.getByTestId("set-timer-current")).toBeVisible();
+
+  await page.getByTestId("set-timer-stop-record").click();
+  await expect(page.getByTestId("set-timer-current")).toHaveCount(0);
+  await expect(page.getByTestId("start-set-timer")).toHaveCount(0);
+  await expect(page.getByTestId("set-timer-value")).toHaveCount(1);
+});
+
+test("set timer - log & keep timing still auto-closes at the target", async ({ page }) => {
+  await createSetTimerProgram(page, "Bench Press / 1x1 100lb 3s|60s");
+
+  await page.getByTestId("footer-workout").click();
+  await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
+
+  await page.getByTestId("start-set-timer").first().click();
+  await expect(page.getByTestId("set-timer-current")).toBeVisible();
+
+  // Log & keep timing logs the set but keeps the clock running underneath.
+  await page.getByTestId("set-timer-log-keep").click();
+  await expect(page.getByTestId("set-timer-current")).toBeVisible();
+
+  // The kept clock still reaches the non-overflow target — it must close the banner and start rest on its
+  // own instead of running forever.
+  await expect(page.getByTestId("set-timer-current")).toHaveCount(0, { timeout: 6000 });
+  await expect(page.getByTestId("start-set-timer")).toHaveCount(0);
+  await expect(page.getByTestId("set-timer-value")).toHaveCount(1);
+});
+
+test("set timer - log & keep timing on an AMRAP set keeps the clock through the modal", async ({ page }) => {
+  await createSetTimerProgram(page, "Bench Press / 1x1+ 100lb+ @8+ 30s|60s");
+
+  await page.getByTestId("footer-workout").click();
+  await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();
+
+  await page.getByTestId("start-set-timer").first().click();
+  await expect(page.getByTestId("set-timer-current")).toBeVisible();
+
+  // Log & keep timing records, opens the AMRAP modal on top, and keeps the clock running underneath.
+  await page.getByTestId("set-timer-log-keep").click();
+  await expect(page.getByTestId("set-timer-current")).toHaveCount(0);
+
+  await page.getByTestId("modal-amrap-input").fill("12");
+  await page.getByTestId("modal-amrap-weight-input").fill("20");
+  await page.getByTestId("modal-rpe-input").fill("9");
+  await page.getByTestId("modal-amrap-submit").click();
+
+  // The clock survives the AMRAP resolution — the banner is shown again, still timing.
+  await expect(page.getByTestId("set-timer-current")).toBeVisible();
+  await expect(page.getByTestId("rpe-value")).toHaveText("@9");
+
+  // The set is logged now, so the record buttons are hidden — only Discard remains.
+  await expect(page.getByTestId("set-timer-stop-record")).toHaveCount(0);
+  await expect(page.getByTestId("set-timer-log-keep")).toHaveCount(0);
+  await page.getByTestId("set-timer-discard").click();
+  await expect(page.getByTestId("set-timer-current")).toHaveCount(0);
+  await expect(page.getByTestId("modal-amrap-input")).toHaveCount(0);
+  await expect(page.getByTestId("start-set-timer")).toHaveCount(0);
+  await expect(page.getByTestId("set-timer-value")).toHaveCount(1);
 });

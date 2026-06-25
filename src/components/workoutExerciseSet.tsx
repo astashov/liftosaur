@@ -49,7 +49,6 @@ import {
 import { Exercise_getIsUnilateral, Exercise_onerm } from "../models/exercise";
 import { FocusedInputFlush_flush } from "../utils/focusedInputFlush";
 import { getNavigationService } from "../navigation/navUtils";
-import { Thunk_startSetTimer } from "../ducks/thunks";
 
 export interface ISetColumnWidths {
   set: number;
@@ -229,9 +228,6 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
   const onEditSetTimer = useCallback(() => {
     getNavigationService().then((nav) => nav.navigateToModal("setTimerEditModal", { entryIndex, setIndex }));
   }, [entryIndex, setIndex]);
-  const onStartSetTimer = useCallback(() => {
-    dispatch(Thunk_startSetTimer(entryIndex, setIndex));
-  }, [dispatch, entryIndex, setIndex]);
 
   return (
     <SwipeableRow
@@ -394,7 +390,7 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
                   className={props.columnWidths.rpe > 0 ? "pl-1 pr-4 py-3" : "px-4 py-3"}
                   data-testid="start-set-timer"
                   testID="start-set-timer"
-                  onPress={onStartSetTimer}
+                  onPress={onCompleteSet}
                 >
                   <IconPlayCircle size={24} color={WorkoutExerciseUtils_getIconColor([set], false)} />
                 </Pressable>

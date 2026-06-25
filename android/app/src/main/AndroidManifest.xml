@@ -93,6 +93,8 @@
           <action android:name="com.liftosaur.www.twa.ACTION_COMPLETE_SET" />
           <action android:name="com.liftosaur.www.twa.ACTION_ADJUST_TIMER_PLUS" />
           <action android:name="com.liftosaur.www.twa.ACTION_ADJUST_TIMER_MINUS" />
+          <action android:name="com.liftosaur.www.twa.ACTION_RECORD_SET_TIMER" />
+          <action android:name="com.liftosaur.www.twa.ACTION_RECORD_SET_TIMER_KEEP" />
         </intent-filter>
       </receiver>
       <service

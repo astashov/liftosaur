@@ -43,6 +43,18 @@ static NSDictionary *DictFromState(JS::NativeLiftosaurLiveActivity::LiveActivity
     dict[@"rest"] = @{
       @"restTimerSince": @(rest->restTimerSince()),
       @"restTimer": @(rest->restTimer()),
+      @"isAuto": @(rest->isAuto()),
+    };
+  }
+  if (auto setTimer = state.setTimer()) {
+    dict[@"setTimer"] = @{
+      @"setTimerSince": @(setTimer->setTimerSince()),
+      @"setTimer": @(setTimer->setTimer()),
+      @"isOverflow": @(setTimer->isOverflow()),
+      @"isCompleted": @(setTimer->isCompleted()),
+      @"entryIndex": @(setTimer->entryIndex()),
+      @"setIndex": @(setTimer->setIndex()),
+      @"restTimer": @(setTimer->restTimer()),
     };
   }
   if (auto entry = state.entry()) {

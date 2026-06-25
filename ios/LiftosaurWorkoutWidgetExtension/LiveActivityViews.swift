@@ -419,6 +419,180 @@ struct SetCardContent: View {
     }
 }
 
+// MARK: - Set Timer Mode
+
+// Reuses the colored target row (reps × weight @rpe) but shows the timer as `setTimer|rest` (e.g.
+// `60s|120s`) instead of just the rest, and drops the "Target:" prefix.
+struct SetTimerTargetInfo: SetInfoProvider {
+    let entry: HistoryEntryState
+    let setTimerSeconds: Int
+
+    var repsText: String? { entry.targetReps }
+    var weightText: String? { entry.targetWeight }
+    var originalWeightText: String? { nil }
+    var rpeText: String? { entry.targetRPE }
+    var timerText: String? {
+        if let rest = entry.targetTimer {
+            return "\(setTimerSeconds)s|\(rest)s"
+        }
+        return "\(setTimerSeconds)s"
+    }
+}
+
+@available(iOS 16.1, *)
+struct SetTimerActivityView: View {
+    let entry: HistoryEntryState?
+    let setTimer: LiveActivitySetTimer
+
+    var body: some View {
+        let canComplete = entry?.canCompleteFromLiveActivity ?? true
+        return VStack(spacing: 8.0) {
+            HStack(spacing: 8.0) {
+                HStack(spacing: 16.0) {
+                    Image("AppIcon2")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 32, height: 32)
+                        .cornerRadius(8.0)
+                    SetTimerClock(setTimer: setTimer)
+                }
+                .layoutPriority(1)
+
+                Spacer()
+
+                // Once the set is logged there's nothing left to record. Keep the button-width slot
+                // reserved so the count-up clock doesn't expand into the freed space and push "of 0:30"
+                // to the right edge.
+                if !setTimer.isCompleted {
+                    SetTimerActionButton(setTimer: setTimer, canComplete: canComplete, keepTiming: false, text: "Stop & Record", kind: .primary)
+                } else {
+                    Color.clear.frame(width: 124)
+                }
+            }
+
+            HStack(alignment: .center, spacing: 8.0) {
+                if let entry {
+                    if let exerciseImageUrl = entry.exerciseImageUrl {
+                        CachedImage(urlString: exerciseImageUrl, height: 44)
+                    }
+                    VStack(alignment: .leading, spacing: 1.0) {
+                        Text(entry.exerciseName)
+                            .font(.custom("Poppins-SemiBold", size: 16))
+                            .foregroundColor(.white)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                        ColoredTargetInfoView(
+                            setInfo: SetTimerTargetInfo(entry: entry, setTimerSeconds: setTimer.setTimer),
+                            isWarmup: entry.isWarmup,
+                            showPrefix: false,
+                            setCountText: "\(entry.currentSet)/\(entry.totalSets)"
+                        )
+                        .font(.custom("Poppins-Regular", size: 13))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                    }
+                    .layoutPriority(1)
+                }
+
+                Spacer()
+
+                if !setTimer.isCompleted {
+                    SetTimerActionButton(setTimer: setTimer, canComplete: canComplete, keepTiming: true, text: "Log Target", kind: .secondary)
+                } else {
+                    Color.clear.frame(width: 124)
+                }
+            }
+        }
+        .padding(.horizontal, 16.0)
+        .padding(.top, 8.0)
+        .padding(.bottom, 12.0)
+    }
+}
+
+@available(iOS 16.1, *)
+struct SetTimerClock: View {
+    let setTimer: LiveActivitySetTimer
+
+    var body: some View {
+        let isOvertime: Bool = {
+            guard setTimer.setTimer > 0, !setTimer.isOverflow else { return false }
+            let elapsed = Int(Date().timeIntervalSince1970) - (setTimer.setTimerSince / 1000)
+            return elapsed > setTimer.setTimer
+        }()
+
+        HStack(alignment: .center, spacing: 4.0) {
+            Text(timerInterval: Date(timeIntervalSince1970: TimeInterval(setTimer.setTimerSince) / 1000)...Date.distantFuture, countsDown: false)
+                .font(.custom("Poppins-Bold", size: 34))
+                .monospacedDigit()
+                .foregroundColor(isOvertime ? .red : .white)
+                .lineLimit(1)
+
+            if setTimer.setTimer > 0 {
+                let minutes = setTimer.setTimer / 60
+                let seconds = setTimer.setTimer % 60
+                Text("of \(String(format: "%d:%02d", minutes, seconds))")
+                    .font(.custom("Poppins-Regular", size: 15))
+                    .foregroundColor(.white.opacity(0.6))
+                    .lineLimit(1)
+            }
+        }
+    }
+}
+
+@available(iOS 16.1, *)
+struct SetTimerButtonLabel: View {
+    enum Kind { case primary, secondary }
+    let text: String
+    let kind: Kind
+
+    var body: some View {
+        Text(text)
+            .font(.custom("Poppins-SemiBold", size: 15))
+            .foregroundColor(kind == .primary ? .black : .white)
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+            .frame(width: 124)
+            .padding(.vertical, 12.0)
+            .background(
+                RoundedRectangle(cornerRadius: 12.0)
+                    .fill(kind == .primary ? Color(white: 0.85) : Color.white.opacity(0.08))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12.0)
+                    .strokeBorder(kind == .secondary ? Color.white.opacity(0.2) : Color.clear, lineWidth: 1)
+            )
+    }
+}
+
+@available(iOS 16.1, *)
+struct SetTimerActionButton: View {
+    let setTimer: LiveActivitySetTimer
+    let canComplete: Bool
+    let keepTiming: Bool
+    let text: String
+    let kind: SetTimerButtonLabel.Kind
+
+    var body: some View {
+        #if WIDGET_EXTENSION
+        // When recording would open the AMRAP modal it can't be done silently — open the app instead,
+        // matching ActiveWorkoutView's complete-set button.
+        if canComplete {
+            Button(intent: RecordSetTimerIntent(entryIndex: setTimer.entryIndex, setIndex: setTimer.setIndex, setTimerSince: setTimer.setTimerSince, keepTiming: keepTiming)) {
+                SetTimerButtonLabel(text: text, kind: kind)
+            }
+            .buttonStyle(.plain)
+        } else {
+            Button(intent: OpenWorkoutRecordSetTimerIntent(entryIndex: setTimer.entryIndex, setIndex: setTimer.setIndex, setTimerSince: setTimer.setTimerSince, keepTiming: keepTiming)) {
+                SetTimerButtonLabel(text: text, kind: kind)
+            }
+            .buttonStyle(.plain)
+        }
+        #else
+        SetTimerButtonLabel(text: text, kind: kind)
+        #endif
+    }
+}
+
 @available(iOS 16.1, *)
 func formatTime(_ timestampMs: Int) -> String {
     let elapsed = Int(Date().timeIntervalSince1970 * 1000) - timestampMs

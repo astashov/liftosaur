@@ -50,6 +50,17 @@ struct HistoryEntryState: Codable, Hashable, SetInfoProvider {
 struct LiveActivityRest: Codable, Hashable {
     var restTimerSince: Int
     var restTimer: Int
+    var isAuto: Bool
+}
+
+struct LiveActivitySetTimer: Codable, Hashable {
+    var setTimerSince: Int
+    var setTimer: Int
+    var isOverflow: Bool
+    var isCompleted: Bool
+    var entryIndex: Int
+    var setIndex: Int
+    var restTimer: Int
 }
 
 struct WorkoutAttributes: ActivityAttributes {
@@ -57,6 +68,7 @@ struct WorkoutAttributes: ActivityAttributes {
         var historyEntryState: HistoryEntryState?
         var workoutStartTimestamp: Int
         var restTimer: LiveActivityRest?
+        var setTimer: LiveActivitySetTimer?
         var stateVersion: Int?
     }
 }

@@ -8,15 +8,23 @@ import { TimeUtils_formatMMSS } from "../utils/time";
 import { WorkoutExerciseSetTarget } from "./workoutExerciseSet";
 import { ExerciseImage } from "./exerciseImage";
 import { Exercise_get, Exercise_nameWithEquipment } from "../models/exercise";
-import { Thunk_completeSetWithTimer, Thunk_advanceSetTimer } from "../ducks/thunks";
+import { Thunk_recordSetTimer, Thunk_checkSetTimer } from "../ducks/thunks";
 
-function useSetTimerTick(isActive: boolean): void {
+// Re-renders the clock every 250ms and polls Thunk_checkSetTimer so `auto` circuits advance/complete
+// on time. All the advance/complete/rest logic lives in the model (Progress_checkSetTimer) — this
+// just provides the clock tick.
+function useSetTimerTick(isActive: boolean, dispatch: IDispatch): void {
   const [, setTick] = useState(0);
+  const dispatchRef = useRef(dispatch);
+  dispatchRef.current = dispatch;
   useEffect(() => {
     if (!isActive) {
       return undefined;
     }
-    const intervalId = setInterval(() => setTick((t) => t + 1), 250);
+    const intervalId = setInterval(() => {
+      setTick((t) => t + 1);
+      dispatchRef.current(Thunk_checkSetTimer());
+    }, 250);
     return () => clearInterval(intervalId);
   }, [isActive]);
 }
@@ -35,63 +43,26 @@ export function SetTimerBannerContent(props: ISetTimerBannerContentProps): JSX.E
   const entry = progress.entries[entryIndex];
   const set = entry?.sets[setIndex];
 
-  const completedRef = useRef(false);
-
-  // The same modal walks through several timed sets in an `auto` circuit; reset the
-  // guard whenever it advances to a different set (new startedAt).
-  useEffect(() => {
-    completedRef.current = false;
-  }, [entryIndex, setIndex, startedAt]);
-
-  useSetTimerTick(set != null);
+  useSetTimerTick(set != null, dispatch);
 
   const target = set?.setTimer ?? 0;
-  const restTarget = set?.timer ?? 0;
-  const isAuto = !!set?.auto;
   const elapsedMs = Math.max(0, Date.now() - startedAt);
 
-  // After a timed set is recorded we only auto-advance the banner for continuous `auto` circuits with
-  // no rest (EMOM-style). An `auto` set *with* rest closes the banner and lets the corner rest timer
-  // run — it reopens the next set's banner when the rest expires (see RestTimer). A non-auto set just
-  // closes; its next set is started explicitly via the play button.
-  const completeAndProceed = (recordedSeconds: number): void => {
-    dispatch(Thunk_completeSetWithTimer(entryIndex, setIndex, recordedSeconds));
-    if (isAuto && restTarget === 0) {
-      dispatch(Thunk_advanceSetTimer());
-    } else {
-      onClose();
-    }
-  };
-
-  useEffect(() => {
-    if (set == null || !isAuto) {
-      return;
-    }
-    if (target > 0 && elapsedMs >= target * 1000 && !completedRef.current) {
-      completedRef.current = true;
-      dispatch(Thunk_completeSetWithTimer(entryIndex, setIndex, target));
-      if (restTarget > 0) {
-        onClose();
-      } else {
-        dispatch(Thunk_advanceSetTimer());
-      }
-    }
-  }, [elapsedMs, isAuto, target, restTarget, set, entryIndex, setIndex, dispatch, onClose]);
-
-  if (set == null || entry == null) {
+  // For a timed AMRAP set the amrap modal stacks on top while this modal stays mounted underneath (see
+  // Progress_proceedAfterTimedSet). Hide the clock so it isn't visible behind the amrap sheet.
+  if (set == null || entry == null || progress.ui?.amrapModal != null) {
     return null;
   }
 
-  const elapsedSec = Math.round(elapsedMs / 1000);
   const pct = target > 0 ? Math.min(1, elapsedMs / (target * 1000)) : 0;
   const elapsedLabel = TimeUtils_formatMMSS(elapsedMs);
 
   function onStopAndRecord(): void {
-    completeAndProceed(elapsedSec);
+    dispatch(Thunk_recordSetTimer(entryIndex, setIndex, false));
   }
 
   function onLogKeepTiming(): void {
-    dispatch(Thunk_completeSetWithTimer(entryIndex, setIndex, elapsedSec));
+    dispatch(Thunk_recordSetTimer(entryIndex, setIndex, true));
   }
 
   const isCompleted = !!set.isCompleted;
@@ -130,14 +101,17 @@ export function SetTimerBannerContent(props: ISetTimerBannerContentProps): JSX.E
         <Text className="text-xs text-text-secondary">{TimeUtils_formatMMSS(target * 1000)}</Text>
       </View>
       <View className="mt-6 gap-2">
-        <Button
-          name="set-timer-stop-record"
-          data-testid="set-timer-stop-record"
-          kind="purple"
-          onPress={onStopAndRecord}
-        >
-          Stop &amp; record · {elapsedLabel}
-        </Button>
+        {/* Once the set is logged there's nothing left to record — only "Discard & close" remains. */}
+        {!isCompleted && (
+          <Button
+            name="set-timer-stop-record"
+            data-testid="set-timer-stop-record"
+            kind="purple"
+            onPress={onStopAndRecord}
+          >
+            Stop &amp; record · {elapsedLabel}
+          </Button>
+        )}
         {!isCompleted && (
           <Button
             name="set-timer-log-keep"

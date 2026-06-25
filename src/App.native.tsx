@@ -231,6 +231,9 @@ import {
   Thunk_iapHandlePurchaseError,
   Thunk_completeSetExternal,
   Thunk_updateTimer,
+  Thunk_recordSetTimer,
+  Thunk_checkSetTimer,
+  Thunk_refreshLiveActivity,
   Thunk_handleWatchStorageMerge,
   Thunk_reloadStorageFromDisk,
   Thunk_postevent,
@@ -422,6 +425,11 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
         env.queue.clearStaleOperations();
         dispatch(Thunk_sync2({ force: true }));
         dispatch(Thunk_syncHealthKit());
+        // JS is suspended while backgrounded, so a set timer can overrun its target unprocessed. On wake,
+        // catch the model up (auto-complete the timed set, backdating the rest it starts), then re-push the
+        // live activity — it can't advance itself while suspended, so this is its source of truth.
+        dispatch(Thunk_checkSetTimer());
+        dispatch(Thunk_refreshLiveActivity());
       } else if (next === "background") {
         dispatch(Thunk_postevent("sleep"));
         env.queue.abortAll();
@@ -586,6 +594,13 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
         }
         const addSeconds = event.addSeconds ?? 0;
         dispatch(Thunk_updateTimer(Math.max(0, timer + addSeconds), entryIndex, setIndex, false));
+      } else if (event.action === "recordSetTimer") {
+        dispatch(Thunk_recordSetTimer(entryIndex, setIndex, !!event.keepTiming, event.elapsedSeconds));
+      } else if (event.action === "checkSetTimer") {
+        // A native task fired at the set timer's target (the app is alive but JS timers were throttled):
+        // run the same reconcile the in-app poll does. Thunk_checkSetTimer re-pushes the live activity
+        // itself when it advances, so no separate refresh is needed here.
+        dispatch(Thunk_checkSetTimer());
       }
     });
   }, [dispatch]);

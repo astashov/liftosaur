@@ -87,6 +87,7 @@ export function NativeWorkoutBridge_updateLiveActivity(state: ILiveActivityState
     rest: state.restTimer,
     entry: state.historyEntryState,
     completeSetRequestId: pendingCompleteSetRequestId ?? undefined,
+    setTimer: state.setTimer,
   }).catch(() => {});
 }
 
@@ -94,7 +95,7 @@ export function NativeWorkoutBridge_subscribeToLiveActivityActions(
   handler: (event: LiveActivityActionEvent) => void
 ): () => void {
   const subscription = NativeLiftosaurLiveActivity.onLiveActivityAction((event) => {
-    if (event.action === "completeSet" && event.completeSetRequestId != null) {
+    if ((event.action === "completeSet" || event.action === "recordSetTimer") && event.completeSetRequestId != null) {
       pendingCompleteSetRequestId = event.completeSetRequestId;
     }
     try {

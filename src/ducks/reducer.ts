@@ -7,6 +7,8 @@ import {
   Progress_getProgressById,
   Progress_completeSetAction,
   Progress_changeAmrapAction,
+  Progress_checkSetTimer,
+  Progress_closeTimedSet,
   Progress_setProgress,
   Progress_finishWorkout,
   Progress_isCurrent,
@@ -243,6 +245,25 @@ export type ICompleteSetAction = {
   mode: IProgressMode;
   forceUpdateEntryIndex: boolean;
   isExternal: boolean;
+  // Set when completing a timed set from its running clock: the elapsed seconds to record (the model
+  // otherwise derives it from setTimerModal.startedAt), and whether to keep the clock running afterwards.
+  recordedSeconds?: number;
+  keepSetTimerRunning?: boolean;
+};
+
+// Polled by any surface (banner tick, rest-timer tick, live activity, watch) to drive time-based set
+// timer transitions: auto-fire when the work timer hits its target, or auto-advance after rest expires.
+// No-op (returns the same progress) when nothing is due.
+export type ICheckSetTimerAction = {
+  type: "CheckSetTimerAction";
+  programExercise?: IPlannerProgramExercise;
+  otherStates?: IByExercise<IProgramState>;
+  now?: number;
+};
+
+// Discard the set timer banner (no recording); starts the deferred rest if the set was already logged.
+export type ICloseSetTimerAction = {
+  type: "CloseSetTimerAction";
 };
 
 export type IFinishProgramDayAction = {
@@ -318,7 +339,12 @@ export type IUpdateProgressAction = {
   desc: string;
 };
 
-export type ICardsAction = ICompleteSetAction | IChangeAMRAPAction | IUpdateProgressAction;
+export type ICardsAction =
+  | ICompleteSetAction
+  | IChangeAMRAPAction
+  | IUpdateProgressAction
+  | ICheckSetTimerAction
+  | ICloseSetTimerAction;
 
 export type IAction =
   | ICardsAction
@@ -622,6 +648,20 @@ export function buildCardsReducer(
         const newProgress = Progress_changeAmrapAction(settings, stats, progress, action, subscription);
         return newProgress;
       }
+      case "CheckSetTimerAction": {
+        return Progress_checkSetTimer(
+          settings,
+          stats,
+          progress,
+          subscription,
+          action.programExercise,
+          action.otherStates,
+          action.now
+        );
+      }
+      case "CloseSetTimerAction": {
+        return Progress_closeTimedSet(progress, settings, subscription);
+      }
       case "UpdateProgress": {
         return action.lensRecordings.reduce((memo, recording) => recording.fn(memo), progress);
       }
@@ -630,7 +670,13 @@ export function buildCardsReducer(
 }
 
 export const reducer: Reducer<IState, IAction> = (state, action): IState => {
-  if (action.type === "CompleteSetAction" || action.type === "ChangeAMRAPAction" || action.type === "UpdateProgress") {
+  if (
+    action.type === "CompleteSetAction" ||
+    action.type === "ChangeAMRAPAction" ||
+    action.type === "CheckSetTimerAction" ||
+    action.type === "CloseSetTimerAction" ||
+    action.type === "UpdateProgress"
+  ) {
     const progress = Progress_getProgress(state);
     if (progress == null) {
       return state;

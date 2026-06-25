@@ -851,6 +851,9 @@ export interface IProgressUi {
     setIndex: number;
     startedAt: number;
     nonce?: number;
+    // Set when recorded via "Log & keep timing" while the AMRAP modal is open, so the clock survives the
+    // AMRAP resolution instead of being closed by Progress_changeAmrapAction.
+    keepTiming?: boolean;
   };
   editModal?: {
     programExerciseId: string;
@@ -907,6 +910,7 @@ const _VProgressUi = v.object({
       setIndex: v.number(),
       startedAt: v.number(),
       nonce: v.optional(v.number()),
+      keepTiming: v.optional(v.boolean()),
     })
   ),
   editModal: v.optional(

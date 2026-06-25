@@ -60,8 +60,22 @@ struct LiftosaurWorkoutWidget: Widget {
                 }
 
                 DynamicIslandExpandedRegion(.trailing, priority: 1.0) {
-                    if let restTimer = context.state.restTimer {
+                    if let setTimer = context.state.setTimer {
+                        DynamicIslandSetTimerClock(setTimer: setTimer)
+                    } else if let restTimer = context.state.restTimer {
                         DynamicIslandRestTimer(restTimer: restTimer)
+                    }
+                }
+
+                DynamicIslandExpandedRegion(.bottom) {
+                    if let setTimer = context.state.setTimer, !setTimer.isCompleted {
+                        SetTimerActionButton(
+                            setTimer: setTimer,
+                            canComplete: context.state.historyEntryState?.canCompleteFromLiveActivity ?? true,
+                            keepTiming: false,
+                            text: "Stop & Record",
+                            kind: .primary
+                        )
                     }
                 }
             } compactLeading: {
@@ -72,14 +86,28 @@ struct LiftosaurWorkoutWidget: Widget {
                     Image(systemName: "figure.strengthtraining.traditional")
                 }
             } compactTrailing: {
-                if let restTimer = context.state.restTimer {
+                if let setTimer = context.state.setTimer {
+                    DynamicIslandSetTimerCompact(setTimer: setTimer)
+                } else if let restTimer = context.state.restTimer {
                     DynamicIslandCompactTimer(
                         restTime: restTimer.restTimerSince,
                         restTimer: restTimer.restTimer
                     )
                 }
             } minimal: {
-                if let restTimer = context.state.restTimer {
+                if let setTimer = context.state.setTimer {
+                    let isOvertime: Bool = {
+                        guard setTimer.setTimer > 0, !setTimer.isOverflow else { return false }
+                        let elapsed = Int(Date().timeIntervalSince1970) - (setTimer.setTimerSince / 1000)
+                        return elapsed > setTimer.setTimer
+                    }()
+
+                    Text(timerInterval: Date(timeIntervalSince1970: TimeInterval(setTimer.setTimerSince) / 1000)...Date.distantFuture, countsDown: false)
+                        .font(.system(size: 10))
+                        .fontWeight(.bold)
+                        .monospacedDigit()
+                        .foregroundColor(isOvertime ? .red : SetColors.timer)
+                } else if let restTimer = context.state.restTimer {
                     let isOvertime: Bool = {
                         let elapsed = Int(Date().timeIntervalSince1970) - (restTimer.restTimerSince / 1000)
                         return elapsed > restTimer.restTimer
@@ -213,11 +241,71 @@ struct LockScreenLiveActivityView: View {
     let context: ActivityViewContext<WorkoutAttributes>
 
     var body: some View {
-        ActiveWorkoutView(
-            entry: context.state.historyEntryState,
-            restTimer: context.state.restTimer,
-            workoutStartTimestamp: context.state.workoutStartTimestamp,
-            stateVersion: context.state.stateVersion ?? 0
-        )
+        if let setTimer = context.state.setTimer {
+            SetTimerActivityView(
+                entry: context.state.historyEntryState,
+                setTimer: setTimer
+            )
+        } else {
+            ActiveWorkoutView(
+                entry: context.state.historyEntryState,
+                restTimer: context.state.restTimer,
+                workoutStartTimestamp: context.state.workoutStartTimestamp,
+                stateVersion: context.state.stateVersion ?? 0
+            )
+        }
+    }
+}
+
+struct DynamicIslandSetTimerClock: View {
+    let setTimer: LiveActivitySetTimer
+
+    var body: some View {
+        let isOvertime: Bool = {
+            guard setTimer.setTimer > 0, !setTimer.isOverflow else { return false }
+            let elapsed = Int(Date().timeIntervalSince1970) - (setTimer.setTimerSince / 1000)
+            return elapsed > setTimer.setTimer
+        }()
+
+        VStack(alignment: .center, spacing: -2.0) {
+            Text(timerInterval: Date(timeIntervalSince1970: TimeInterval(setTimer.setTimerSince) / 1000)...Date.distantFuture, countsDown: false)
+                .font(.title2)
+                .fontWeight(.bold)
+                .monospacedDigit()
+                .multilineTextAlignment(.center)
+                .frame(width: 80, alignment: .center)
+                .foregroundColor(isOvertime ? .red : SetColors.timer)
+
+            if setTimer.setTimer > 0 {
+                let minutes = setTimer.setTimer / 60
+                let seconds = setTimer.setTimer % 60
+                Text("of \(String(format: "%d:%02d", minutes, seconds))")
+                    .font(.subheadline)
+                    .monospacedDigit()
+                    .foregroundColor(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+    }
+}
+
+struct DynamicIslandSetTimerCompact: View {
+    let setTimer: LiveActivitySetTimer
+
+    var body: some View {
+        let isOvertime: Bool = {
+            guard setTimer.setTimer > 0, !setTimer.isOverflow else { return false }
+            let elapsed = Int(Date().timeIntervalSince1970) - (setTimer.setTimerSince / 1000)
+            return elapsed > setTimer.setTimer
+        }()
+
+        Text(timerInterval: Date(timeIntervalSince1970: TimeInterval(setTimer.setTimerSince) / 1000)...Date.distantFuture, countsDown: false)
+            .font(.caption2)
+            .fontWeight(.bold)
+            .monospacedDigit()
+            .foregroundColor(isOvertime ? .red : SetColors.timer)
+            .multilineTextAlignment(.trailing)
+            .frame(width: 45, alignment: .trailing)
+            .padding(.trailing, 4.0)
     }
 }

@@ -71,6 +71,14 @@ import UserNotifications
       content.sound = UNNotificationSound(named: UNNotificationSoundName("notification.caf"))
     }
 
+    // UNTimeIntervalNotificationTrigger aborts the process on a non-positive interval, so an already-expired
+    // timer has nothing to schedule.
+    guard duration > 0 else {
+      NSLog("[LftTimer] iOS schedule skipped, duration=%.1f already elapsed", duration)
+      completion(true, nil)
+      return
+    }
+
     let trigger = UNTimeIntervalNotificationTrigger(timeInterval: duration, repeats: false)
     let request = UNNotificationRequest(identifier: timerIdentifier, content: content, trigger: trigger)
     center.add(request) { error in

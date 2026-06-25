@@ -103,11 +103,19 @@ struct ColoredTargetInfoView: View {
     let setInfo: SetInfoProvider
     var isWarmup: Bool = false
     var useOriginalWeight: Bool = false
+    var showPrefix: Bool = true
+    var setCountText: String? = nil
 
     var body: some View {
         HStack(spacing: 0) {
-            Text(isWarmup ? "Warmup: " : "Target: ")
-                .foregroundColor(.secondary)
+            if let setCountText {
+                Text("\(setCountText): ")
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+            } else if showPrefix {
+                Text(isWarmup ? "Warmup: " : "Target: ")
+                    .foregroundColor(.secondary)
+            }
 
             if let reps = setInfo.repsText {
                 Text(reps)

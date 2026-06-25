@@ -83,7 +83,7 @@ import {
 import { CollectionUtils_compact, CollectionUtils_findIndexReverse } from "../utils/collection";
 import { ILiftoscriptEvaluatorUpdate } from "../liftoscriptEvaluator";
 import { Equipment_getUnitForExerciseType } from "./equipment";
-import { IByTag } from "../pages/planner/plannerEvaluator";
+import { IByTag, IByExercise } from "../pages/planner/plannerEvaluator";
 import { IPlannerProgramExercise, IPlannerProgramExerciseWithType } from "../pages/planner/models/types";
 import {
   PlannerProgramExercise_getUpdateScript,
@@ -577,8 +577,17 @@ export function Progress_startTimer(
     };
   }
   if (subscription && Subscriptions_hasSubscription(subscription)) {
+    // A backdated start (rest resumed after the screen was locked past the target) can already be overrun,
+    // so only schedule the "rest is over" notification when there's still time left — UNTimeIntervalNotificationTrigger
+    // aborts on a non-positive interval.
     const timerForPush = timer - Math.round((Date.now() - timestamp) / 1000);
-    Progress_scheduleTimerNotification(progress, entryIndex, mode, settings, timerForPush);
+    if (timerForPush > 0) {
+      Progress_scheduleTimerNotification(progress, entryIndex, mode, settings, timerForPush);
+    } else {
+      // Backdated start that's already overrun: schedule nothing, but clear any earlier pending
+      // notification so a stale one doesn't fire.
+      NativeTimerBridge_stopTimer();
+    }
   }
   const newProgress: IHistoryRecord = {
     ...progress,
@@ -1215,6 +1224,24 @@ export function Progress_completeSet(
 ): IHistoryRecord {
   const entry = progress.entries[entryIndex];
   const set = mode === "warmup" ? entry.warmupSets[setIndex] : entry.sets[setIndex];
+  const setTimerModal = progress.ui?.setTimerModal;
+  const hasOpenSetTimer =
+    setTimerModal != null && setTimerModal.entryIndex === entryIndex && setTimerModal.setIndex === setIndex;
+  // The first "complete" on a timed set starts its clock (opens the set-timer modal) instead of
+  // completing it — the actual completion happens on the second signal (Stop & record), mirroring
+  // how the AMRAP modal defers completion. See Progress_completeSetAction for the recording step.
+  if (
+    mode === "workout" &&
+    set?.setTimer != null &&
+    !set.isCompleted &&
+    !hasOpenSetTimer &&
+    set.completedSetTimer == null
+  ) {
+    return {
+      ...progress,
+      ui: { ...progress.ui, setTimerModal: { entryIndex, setIndex, startedAt: Date.now(), nonce: Date.now() } },
+    };
+  }
   const shouldLogRpe = !!set?.logRpe;
   const shouldPromptUserVars = hasUserPromptedVars && Progress_hasLastUnfinishedSet(entry);
   const isUnilateral = Exercise_getIsUnilateral(entry.exercise, settings);
@@ -1279,6 +1306,192 @@ export function Progress_getNextTimedSet(
   }
   const set = progress.entries[next.entryIndex]?.sets[next.setIndex];
   return set?.setTimer != null ? next : undefined;
+}
+
+// Moves the set-timer banner to the next timed set (or closes it if there's none) and clears any rest
+// timer. `freshNonce` controls whether the workout screen re-opens the banner: keep the nonce for an
+// in-place advance (EMOM, banner already open), use a fresh one after rest (banner was closed).
+export function Progress_advanceTimedSet(progress: IHistoryRecord, freshNonce: boolean): IHistoryRecord {
+  const next = Progress_getNextTimedSet(progress);
+  const prevNonce = progress.ui?.setTimerModal?.nonce;
+  // Advancing ends the current (auto) rest — cancel its pending "rest is over" notification so it doesn't
+  // fire during the next set's clock.
+  if (progress.timerSince != null) {
+    NativeTimerBridge_stopTimer();
+  }
+  return {
+    ...progress,
+    timerSince: undefined,
+    timer: undefined,
+    timerMode: undefined,
+    timerEntryIndex: undefined,
+    timerSetIndex: undefined,
+    ui: {
+      ...progress.ui,
+      setTimerModal:
+        next != null ? { ...next, startedAt: Date.now(), nonce: freshNonce ? Date.now() : prevNonce } : undefined,
+    },
+  };
+}
+
+// The single place that decides what happens after a timed set is recorded+completed from its clock.
+export function Progress_proceedAfterTimedSet(
+  progress: IHistoryRecord,
+  entryIndex: number,
+  setIndex: number,
+  settings: ISettings,
+  subscription: ISubscription | undefined
+): IHistoryRecord {
+  // AMRAP took over (set isn't completed yet). Keep the set-timer modal open so the amrap modal stacks
+  // cleanly on top of it — clearing it here would race the amrap push and pop the wrong screen. The
+  // set-timer modal is closed (and rest started) when amrap resolves; see Progress_changeAmrapAction.
+  if (progress.ui?.amrapModal != null) {
+    return progress;
+  }
+  const set = progress.entries[entryIndex]?.sets[setIndex];
+  // EMOM-style: auto with no rest rolls straight into the next timed set in the same banner.
+  if (set?.auto && (set.timer ?? 0) === 0) {
+    return Progress_advanceTimedSet(progress, false);
+  }
+  // Otherwise close the banner and start the deferred rest timer. Backdate its start to when the set
+  // should have ended (clock start + recorded duration) rather than "now", so reopening the app after
+  // the screen was locked past the target reconciles to the correct rest elapsed instead of resetting it.
+  let newProgress: IHistoryRecord = { ...progress, ui: { ...progress.ui, setTimerModal: undefined } };
+  if (set?.isCompleted && set.setTimer != null) {
+    const startedAt = progress.ui?.setTimerModal?.startedAt;
+    // Rest begins when the timed window actually ended on the clock — not at the logged history value. A set
+    // logged early via "Log & keep timing" keeps that earlier time as its record, but its clock runs on to the
+    // target and auto-closes there. So when a non-overflow set reached its target, backdate the rest from the
+    // target; only an early "Stop & Record" (clock stopped before the target) backdates from the recorded time.
+    const reachedTarget =
+      startedAt != null && !set.isOverflowSetTimer && Date.now() - startedAt >= set.setTimer * 1000;
+    const restOffsetSeconds = reachedTarget ? set.setTimer : set.completedSetTimer;
+    const restSince =
+      startedAt != null && restOffsetSeconds != null ? startedAt + restOffsetSeconds * 1000 : Date.now();
+    newProgress = Progress_startTimer(newProgress, restSince, "workout", entryIndex, setIndex, settings, subscription);
+  }
+  return newProgress;
+}
+
+// Discard the set timer banner without recording. If the set was already logged (via "Log & keep"),
+// start its deferred rest.
+export function Progress_closeTimedSet(
+  progress: IHistoryRecord,
+  settings: ISettings,
+  subscription: ISubscription | undefined
+): IHistoryRecord {
+  const stm = progress.ui?.setTimerModal;
+  if (stm == null) {
+    return progress;
+  }
+  let newProgress: IHistoryRecord = { ...progress, ui: { ...progress.ui, setTimerModal: undefined } };
+  const set = newProgress.entries[stm.entryIndex]?.sets[stm.setIndex];
+  if (set?.isCompleted && set.setTimer != null && newProgress.ui?.amrapModal == null) {
+    newProgress = Progress_startTimer(
+      newProgress,
+      Date.now(),
+      "workout",
+      stm.entryIndex,
+      stm.setIndex,
+      settings,
+      subscription
+    );
+  }
+  return newProgress;
+}
+
+// Cheap pure predicate (no program evaluation) telling whether Progress_checkSetTimer would do anything.
+// Lets per-second pollers skip resolving program context + dispatching when nothing is due.
+export function Progress_isSetTimerCheckDue(progress: IHistoryRecord, now: number): boolean {
+  if (progress.ui?.amrapModal != null) {
+    return false;
+  }
+  const stm = progress.ui?.setTimerModal;
+  if (stm != null) {
+    const set = progress.entries[stm.entryIndex]?.sets[stm.setIndex];
+    // No !isCompleted guard: a set logged via "Log & keep timing" keeps the clock running with the modal
+    // open, and must still auto-close + start rest when the clock reaches the (non-overflow) target.
+    return !!(set?.setTimer != null && !set.isOverflowSetTimer && now - stm.startedAt >= set.setTimer * 1000);
+  }
+  if (
+    progress.timer != null &&
+    progress.timerSince != null &&
+    progress.timerEntryIndex != null &&
+    progress.timerSetIndex != null
+  ) {
+    const restSet = progress.entries[progress.timerEntryIndex]?.sets[progress.timerSetIndex];
+    return !!(
+      restSet?.auto &&
+      now - progress.timerSince >= progress.timer * 1000 &&
+      Progress_getNextTimedSet(progress) != null
+    );
+  }
+  return false;
+}
+
+// Time-driven set timer transitions, safe to poll. Returns the same `progress` reference when nothing
+// is due, so callers can skip dispatching. Two cases: (A) a non-overflow timed set's work timer reached
+// its target → record+complete+proceed (overflow `+` sets count up past target and are stopped manually);
+// (B) an `auto` set's rest expired → advance to the next timed set.
+export function Progress_checkSetTimer(
+  settings: ISettings,
+  stats: IStats,
+  progress: IHistoryRecord,
+  subscription: ISubscription | undefined,
+  programExercise: IPlannerProgramExercise | undefined,
+  otherStates: IByExercise<IProgramState> | undefined,
+  nowArg?: number
+): IHistoryRecord {
+  const now = nowArg ?? Date.now();
+  if (progress.ui?.amrapModal != null) {
+    return progress;
+  }
+  const stm = progress.ui?.setTimerModal;
+  if (stm != null) {
+    const set = progress.entries[stm.entryIndex]?.sets[stm.setIndex];
+    // No !isCompleted guard: a "Log & keep timing" set is already completed but keeps the clock running, and
+    // must still auto-close + rest at the target. completeSetAction's already-logged branch handles it.
+    if (set?.setTimer != null && !set.isOverflowSetTimer && now - stm.startedAt >= set.setTimer * 1000) {
+      // A set logged via "Log & keep timing" keeps the time the user logged it at — don't overwrite it with
+      // the target. A not-yet-logged set records the target (it ran the full duration).
+      const recordedSeconds = set.isCompleted ? (set.completedSetTimer ?? set.setTimer) : set.setTimer;
+      return Progress_completeSetAction(
+        settings,
+        stats,
+        progress,
+        {
+          type: "CompleteSetAction",
+          entryIndex: stm.entryIndex,
+          setIndex: stm.setIndex,
+          mode: "workout",
+          programExercise,
+          otherStates,
+          forceUpdateEntryIndex: false,
+          isExternal: true,
+          isPlayground: false,
+          recordedSeconds,
+        },
+        subscription
+      );
+    }
+    return progress;
+  }
+  if (
+    progress.timer != null &&
+    progress.timerSince != null &&
+    progress.timerEntryIndex != null &&
+    progress.timerSetIndex != null
+  ) {
+    const restSet = progress.entries[progress.timerEntryIndex]?.sets[progress.timerSetIndex];
+    if (
+      restSet?.auto &&
+      now - progress.timerSince >= progress.timer * 1000 &&
+      Progress_getNextTimedSet(progress) != null
+    ) {
+      return Progress_advanceTimedSet(progress, true);
+    }
+  }
+  return progress;
 }
 
 export function Progress_getIsRpeEnabled(sets: ISet[]): boolean {
@@ -1621,9 +1834,21 @@ export function Progress_changeAmrapAction(
     newProgress = Progress_stopTimer(newProgress);
   }
   newProgress = Progress_maybeApplySuperset(newProgress, action.entryIndex, "workout");
-  const amrapSet = newProgress.entries[action.entryIndex]?.sets[action.setIndex];
-  // Timed sets defer their rest timer to the set-timer banner (it starts on close); see completeSet.
-  if (amrapSet?.setTimer == null) {
+  // A timed set keeps its set-timer modal open behind the amrap modal (see Progress_proceedAfterTimedSet).
+  // If it was recorded via "Log & keep timing" (keepTiming), leave the clock running and don't start rest;
+  // otherwise close the banner and start the deferred rest. For non-timed sets setTimerModal is already
+  // undefined, so this is just the normal rest start.
+  const amrapSetTimerModal = newProgress.ui?.setTimerModal;
+  if (amrapSetTimerModal?.keepTiming) {
+    newProgress = {
+      ...newProgress,
+      ui: { ...newProgress.ui, setTimerModal: { ...amrapSetTimerModal, keepTiming: undefined } },
+    };
+  } else {
+    newProgress = { ...newProgress, ui: { ...newProgress.ui, setTimerModal: undefined } };
+    // Intentionally "now", NOT backdated to the clock end like Progress_proceedAfterTimedSet does (see
+    // time-based-exercises.md §5.2). The time spent in the AMRAP modal is data entry, not rest — backdating
+    // would count it as elapsed rest and a short rest could be over the instant the user submits.
     newProgress = Progress_startTimer(
       newProgress,
       new Date().getTime(),
@@ -1658,6 +1883,58 @@ export function Progress_completeSetAction(
   action: ICompleteSetAction,
   subscription: ISubscription | undefined
 ): IHistoryRecord {
+  const setTimerModal = progress.ui?.setTimerModal;
+  const wasSetTimerOpen =
+    action.mode === "workout" &&
+    setTimerModal != null &&
+    setTimerModal.entryIndex === action.entryIndex &&
+    setTimerModal.setIndex === action.setIndex;
+  const oldSet = progress.entries[action.entryIndex][action.mode === "warmup" ? "warmupSets" : "sets"][action.setIndex];
+
+  // Stopping the clock on a set that's already logged (e.g. after "Log & keep timing"): just update the
+  // recorded time and close/keep the banner — don't run completion, which would toggle the set off.
+  if (wasSetTimerOpen && setTimerModal != null && oldSet.isCompleted) {
+    const recorded = action.recordedSeconds ?? Math.round((Date.now() - setTimerModal.startedAt) / 1000);
+    let stopped = lf(progress)
+      .p("entries")
+      .i(action.entryIndex)
+      .p("sets")
+      .i(action.setIndex)
+      .p("completedSetTimer")
+      .set(recorded);
+    if (!action.keepSetTimerRunning) {
+      stopped = Progress_proceedAfterTimedSet(stopped, action.entryIndex, action.setIndex, settings, subscription);
+    }
+    stopped.intervals = History_resumeWorkout(
+      stopped,
+      action.isPlayground,
+      settings.timers.reminder,
+      subscription != null && Subscriptions_hasSubscription(subscription)
+    );
+    LiveActivityManager_updateLiveActivityForNextEntry(
+      stopped,
+      action.entryIndex,
+      action.mode,
+      action.programExercise,
+      settings,
+      subscription
+    );
+    return stopped;
+  }
+
+  // Completing a timed set from its running clock: record the elapsed time first (derived from when the
+  // clock started, unless the surface passed an explicit recordedSeconds).
+  if (wasSetTimerOpen && setTimerModal != null && !oldSet.isCompleted && oldSet.completedSetTimer == null) {
+    const recorded = action.recordedSeconds ?? Math.round((Date.now() - setTimerModal.startedAt) / 1000);
+    progress = lf(progress)
+      .p("entries")
+      .i(action.entryIndex)
+      .p("sets")
+      .i(action.setIndex)
+      .p("completedSetTimer")
+      .set(recorded);
+  }
+
   const hasUserPromptedVars = action.programExercise && ProgramExercise_hasUserPromptedVars(action.programExercise);
   let newProgress = Progress_completeSet(
     progress,
@@ -1667,10 +1944,32 @@ export function Progress_completeSetAction(
     !!hasUserPromptedVars,
     settings
   );
-  const oldSet = progress.entries[action.entryIndex][action.mode === "warmup" ? "warmupSets" : "sets"][action.setIndex];
   const newSet =
     newProgress.entries[action.entryIndex][action.mode === "warmup" ? "warmupSets" : "sets"][action.setIndex];
   const didFinish = !oldSet.isCompleted && newSet.isCompleted;
+  // First tap on a timed set just opened its clock (see Progress_completeSet) — nothing is completed
+  // yet, so skip the completion side-effects and only refresh the live activity to show the timer.
+  const justStartedSetTimer =
+    !wasSetTimerOpen &&
+    !newSet.isCompleted &&
+    newProgress.ui?.setTimerModal?.entryIndex === action.entryIndex &&
+    newProgress.ui?.setTimerModal?.setIndex === action.setIndex;
+  if (justStartedSetTimer) {
+    // Starting this set's clock means the previous set's rest is over — stop it (and cancel its pending
+    // "rest is over" notification) so it doesn't fire in the middle of this set's clock.
+    if (newProgress.timerSince != null) {
+      newProgress = Progress_stopTimer(newProgress);
+    }
+    LiveActivityManager_updateLiveActivityForNextEntry(
+      newProgress,
+      action.entryIndex,
+      action.mode,
+      action.programExercise,
+      settings,
+      subscription
+    );
+    return newProgress;
+  }
   if (action.programExercise && !newProgress.ui?.amrapModal) {
     newProgress = Progress_runUpdateScript(
       newProgress,
@@ -1690,8 +1989,8 @@ export function Progress_completeSetAction(
   if (didFinish) {
     newProgress = Progress_maybeApplySuperset(newProgress, action.entryIndex, action.mode);
   }
-  // Timed sets defer their rest timer to the set-timer banner, which starts it when it closes (so a
-  // set logged via "Log & keep timing" doesn't start resting while the clock is still running).
+  // Non-timed sets start their rest timer here. Timed sets defer it to Progress_proceedAfterTimedSet
+  // (below) so a set logged via "Log & keep timing" doesn't start resting while its clock still runs.
   if (!action.isPlayground && newSet.setTimer == null) {
     newProgress = Progress_startTimer(
       newProgress,
@@ -1702,6 +2001,29 @@ export function Progress_completeSetAction(
       settings,
       subscription
     );
+  }
+  // After a timed set is recorded+completed from its clock, advance to the next timed set or close the
+  // banner and start rest — the one place that decision lives. "Log & keep timing" skips it.
+  if (wasSetTimerOpen && !action.keepSetTimerRunning) {
+    newProgress = Progress_proceedAfterTimedSet(
+      newProgress,
+      action.entryIndex,
+      action.setIndex,
+      settings,
+      subscription
+    );
+  } else if (
+    wasSetTimerOpen &&
+    action.keepSetTimerRunning &&
+    newProgress.ui?.amrapModal != null &&
+    newProgress.ui?.setTimerModal != null
+  ) {
+    // Recorded via "Log & keep timing" and the AMRAP modal opened on top: mark the clock so it survives
+    // the AMRAP resolution (Progress_changeAmrapAction would otherwise close it).
+    newProgress = {
+      ...newProgress,
+      ui: { ...newProgress.ui, setTimerModal: { ...newProgress.ui.setTimerModal, keepTiming: true } },
+    };
   }
   newProgress.intervals = History_resumeWorkout(
     newProgress,

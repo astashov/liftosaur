@@ -65,6 +65,8 @@ import {
   Progress_updateTimer,
   Progress_changeAmrapAction,
   Progress_stopTimerPure,
+  Progress_checkSetTimer,
+  Progress_closeTimedSet,
 } from "../models/progress";
 import { Equipment_getUnitOrDefaultForExerciseType } from "../models/equipment";
 import {
@@ -755,6 +757,45 @@ class LiftosaurWatch {
         progress: [newProgress],
       };
       return { success: true, data: newStorage };
+    });
+  }
+
+  // Polled by the watch (e.g. every second) to drive `auto` set timer transitions; no-op otherwise.
+  public static checkSetTimer(storageJson: string, deviceId: string): string {
+    return this.modifyStorage(storageJson, deviceId, (storage): IEither<IStorage, string> => {
+      const progress = storage.progress?.[0];
+      if (!progress) {
+        return { success: false, error: "No active workout" };
+      }
+      const evaluatedProgram = getEvaluatedProgram(storage);
+      const stm = progress.ui?.setTimerModal;
+      const entryIndex = stm?.entryIndex ?? progress.timerEntryIndex;
+      const entry = entryIndex != null ? progress.entries[entryIndex] : undefined;
+      const programExercise =
+        evaluatedProgram && entry
+          ? Program_getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId)
+          : undefined;
+      const newProgress = Progress_checkSetTimer(
+        storage.settings,
+        storage.stats,
+        progress,
+        storage.subscription,
+        programExercise,
+        evaluatedProgram?.states
+      );
+      return { success: true, data: { ...storage, progress: [newProgress] } };
+    });
+  }
+
+  // Discard the set timer banner from the watch (no recording); starts deferred rest if already logged.
+  public static closeSetTimer(storageJson: string, deviceId: string): string {
+    return this.modifyStorage(storageJson, deviceId, (storage): IEither<IStorage, string> => {
+      const progress = storage.progress?.[0];
+      if (!progress) {
+        return { success: false, error: "No active workout" };
+      }
+      const newProgress = Progress_closeTimedSet(progress, storage.settings, storage.subscription);
+      return { success: true, data: { ...storage, progress: [newProgress] } };
     });
   }
 

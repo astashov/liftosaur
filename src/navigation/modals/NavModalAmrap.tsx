@@ -13,7 +13,6 @@ import {
   Program_fullProgram,
 } from "../../models/program";
 import { buildPlaygroundDispatch, getPlaygroundProgress } from "./navModalPlaygroundUtils";
-import { Thunk_startTimedSetRestIfReady } from "../../ducks/thunks";
 import type { IRootStackParamList } from "../types";
 
 export function NavModalAmrap(): JSX.Element {
@@ -92,17 +91,6 @@ export function NavModalAmrap(): JSX.Element {
     }
     navigation.goBack();
   };
-
-  useEffect(() => {
-    if (context !== "workout") {
-      return undefined;
-    }
-    const onBeforeRemove = (): void => {
-      dispatch(Thunk_startTimedSetRestIfReady(amrapModal.entryIndex, amrapModal.setIndex));
-    };
-    const unsubscribe = navigation.addListener("beforeRemove", onBeforeRemove);
-    return unsubscribe;
-  }, [navigation, dispatch, context, amrapModal.entryIndex, amrapModal.setIndex]);
 
   const shouldGoBack = !progress;
   useEffect(() => {

@@ -4,7 +4,6 @@ import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
 import { FormSheet } from "../FormSheet";
 import { SetTimerBannerContent } from "../../components/setTimerBanner";
-import { Thunk_closeSetTimer } from "../../ducks/thunks";
 import type { IRootStackParamList } from "../types";
 
 export function NavModalSetTimer(): JSX.Element {
@@ -17,7 +16,7 @@ export function NavModalSetTimer(): JSX.Element {
 
   useEffect(() => {
     const onBeforeRemove = (): void => {
-      dispatch(Thunk_closeSetTimer());
+      dispatch({ type: "CloseSetTimerAction" });
     };
     const unsubscribe = navigation.addListener("beforeRemove", onBeforeRemove);
     return unsubscribe;
