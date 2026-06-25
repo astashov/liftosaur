@@ -1030,6 +1030,7 @@ export function Thunk_startProgramDay(programId?: string): IThunk {
       if (program != null) {
         const newProgress = Program_nextHistoryRecord(program, state.storage.settings, state.storage.stats);
         updateState(dispatch, [lb<IState>().p("storage").p("progress").record([newProgress])], "Create new progress");
+        dispatch(Thunk_log("ls-start-workout"));
         dispatch(Thunk_pushScreen("progress", { id: newProgress.id }, { tab: "workout" }));
       } else {
         Dialog_alert("No currently selected program");
@@ -1055,6 +1056,7 @@ export function Thunk_pushToEditProgramExercise(
         : undefined
       : editProgramState?.current.program || (programId != null ? Program_getProgram(state, programId) : undefined);
     if (currentProgram && !Program_isEmpty(currentProgram) && programId) {
+      dispatch(Thunk_log("ls-program-edit-exercise-screen"));
       const { navigateTo } = await getNavigationService();
       navigateTo("editProgramExercise", { programId, key, dayData, fromWorkout: isFromWorkout });
     } else {

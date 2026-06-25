@@ -67,7 +67,7 @@ export function ScreenUnitSelector(props: IProps): JSX.Element {
       </View>
       <View className="pb-16 mx-4 mb-2">
         <Button
-          className="w-full"
+          className="w-full ls-onboarding-units"
           name="see-how-it-works"
           kind="purple"
           onClick={() => props.dispatch(Thunk_pushScreen("setupequipment"))}

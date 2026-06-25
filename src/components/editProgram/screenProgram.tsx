@@ -25,7 +25,8 @@ import { IconTimerSmall } from "../icons/iconTimerSmall";
 import { EditProgram_setName } from "../../models/editProgram";
 import { EditProgramNavbar, EditProgramView } from "./editProgram";
 import { ProgramPreviewPlayground } from "../preview/programPreviewPlayground";
-import { Thunk_pushScreen } from "../../ducks/thunks";
+import { Thunk_pushScreen, Thunk_log } from "../../ducks/thunks";
+import { PlannerDispatch_logEditAction } from "../../utils/plannerDispatch";
 import { IconSwap } from "../icons/iconSwap";
 import { ContentGrowingTextarea } from "../contentGrowingTextarea";
 import { LinkButton } from "../linkButton";
@@ -99,6 +100,7 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
 
   const plannerStateRef = useRef(plannerState);
   plannerStateRef.current = plannerState;
+  const loggedOnceRef = useRef<Set<string>>(new Set());
 
   const lbBuilder = useMemo(() => lb<IState>().p("editProgramStates").p(programId), [programId]);
 
@@ -112,6 +114,7 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
         recordings.map((r) => r.prepend(lbBuilder)),
         desc || "Update state"
       );
+      PlannerDispatch_logEditAction(dispatch, desc, loggedOnceRef.current);
       const changesCurrent = recordings.some((r) => r.lens.from.some((f) => f === "current"));
       const current = plannerStateRef.current;
       if (desc !== "undo" && changesCurrent && current != null) {
@@ -122,6 +125,10 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
   }, [dispatch, lbBuilder]);
 
   useUndoRedo(plannerState, plannerDispatch);
+
+  useEffect(() => {
+    dispatch(Thunk_log("ls-program-open"));
+  }, [dispatch]);
 
   const program: IProgram = plannerState.current.program;
   const planner = program.planner!;
@@ -161,10 +168,11 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
   const navigatedPickerRef = useRef(exercisePickerUi);
   useEffect(() => {
     if (exercisePickerUi && navigatedPickerRef.current !== exercisePickerUi) {
+      dispatch(Thunk_log("ls-program-exercise-picker"));
       openPickerIfNeeded();
     }
     navigatedPickerRef.current = exercisePickerUi;
-  }, [exercisePickerUi, openPickerIfNeeded]);
+  }, [dispatch, exercisePickerUi, openPickerIfNeeded]);
   // Recover a dropped navigation: when this screen regains focus (e.g. a competing
   // modal that stole the navigation closed) and a picker request is still pending,
   // re-assert it instead of waiting for the user to tap again.
@@ -212,9 +220,13 @@ export const ScreenProgram = memo(function ScreenProgram(props: IProps): JSX.Ele
 
   const onChangeTab = useCallback(
     (newTabIndex: number): void => {
+      const tabLabel = TAB_LABELS[newTabIndex];
+      if (tabLabel) {
+        dispatch(Thunk_log(`ls-program-tab-${tabLabel.toLowerCase()}`));
+      }
       plannerDispatch(lb<IPlannerState>().p("ui").p("tabIndex").record(newTabIndex), "Change tab");
     },
-    [plannerDispatch]
+    [dispatch, plannerDispatch]
   );
 
   const [previewWeekIndex, setPreviewWeekIndex] = useState(0);

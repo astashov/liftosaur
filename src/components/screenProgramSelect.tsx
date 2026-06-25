@@ -15,6 +15,7 @@ import { emptyProgramId, Program_selectProgramAndGoHome } from "../models/progra
 import { IconEquipmentKettlebell } from "./icons/iconEquipmentKettlebell";
 import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { ImagePreloader_uri } from "../utils/imagePreloader";
+import { useTrackClick } from "../utils/clickTracking";
 
 interface IScreenProgramSelectProps {
   dispatch: IDispatch;
@@ -32,6 +33,7 @@ interface IOption {
 export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Element {
   useNavOptions({ navHidden: true });
   const insets = useSafeAreaInsets();
+  const trackClick = useTrackClick();
 
   const options: IOption[] = [
     {
@@ -90,7 +92,10 @@ export function ScreenProgramSelect(props: IScreenProgramSelectProps): JSX.Eleme
                 className="flex-row items-center w-full gap-3 px-4 py-4 border rounded-xl bg-background-subtlecardpurple border-border-cardpurple nm-program-select"
                 data-testid={`program-select-${opt.key}`}
                 testID={`program-select-${opt.key}`}
-                onPress={opt.onClick}
+                onPress={() => {
+                  trackClick(`program-select-${opt.key}`, `ls-onboarding-program-${opt.key}`);
+                  opt.onClick();
+                }}
               >
                 <View>{opt.icon}</View>
                 <View className="flex-1">

@@ -144,7 +144,7 @@ export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Ele
       <View className="bg-background-default" style={[{ paddingBottom: insets.bottom || 8 }, getFooterShadowStyle()]}>
         <View className="flex-row px-4 pt-2 pb-2" style={{ gap: 8 }}>
           <Button
-            className="flex-1"
+            className="flex-1 ls-onboarding-equipment-skip"
             name="setup-equipment-skip"
             kind="lightgrayv3"
             buttonSize="lg"
@@ -155,7 +155,7 @@ export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Ele
             Skip
           </Button>
           <Button
-            className="flex-1"
+            className="flex-1 ls-onboarding-equipment-setup"
             name="setup-equipment-continue"
             kind="purple"
             buttonSize="lg"
@@ -310,7 +310,7 @@ export function ScreenSetupPlates(props: IScreenSetupPlatesProps): JSX.Element {
         style={[{ paddingBottom: insets.bottom || 16 }, getFooterShadowStyle()]}
       >
         <Button
-          className="w-full"
+          className="w-full ls-onboarding-plates"
           name="setup-plates-continue"
           kind="purple"
           buttonSize="lg"

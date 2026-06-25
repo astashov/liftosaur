@@ -19,7 +19,7 @@ import { EditProgramV2Full } from "./editProgramV2Full";
 import { PlannerProgram_evaluate } from "../../pages/planner/models/plannerProgram";
 import { ScrollableTabs } from "../scrollableTabs";
 import { IEvaluatedProgram, Program_cleanPlannerProgram } from "../../models/program";
-import { Thunk_pushScreen } from "../../ducks/thunks";
+import { Thunk_pushScreen, Thunk_log } from "../../ducks/thunks";
 import { updateState, IState } from "../../models/state";
 import { CollectionUtils_setBy } from "../../utils/collection";
 import { IDispatch } from "../../ducks/types";
@@ -182,6 +182,7 @@ export const EditProgramNavbar = memo(function EditProgramNavbar(props: IEditPro
           disabled={!isValid}
           name="editor-v2-reorder-program"
           onClick={() => {
+            props.dispatch(Thunk_log("ls-program-mode-reorder"));
             props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("reorder")], "Switch to reorder mode");
           }}
         >
@@ -192,6 +193,7 @@ export const EditProgramNavbar = memo(function EditProgramNavbar(props: IEditPro
           name="editor-v2-ui-program"
           disabled={!isValid}
           onClick={() => {
+            props.dispatch(Thunk_log("ls-program-mode-ui"));
             props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("ui")], "Switch to UI mode");
           }}
         >
@@ -201,6 +203,7 @@ export const EditProgramNavbar = memo(function EditProgramNavbar(props: IEditPro
           isSelected={props.state.ui.mode === "perday"}
           name="editor-v2-perday-program"
           onClick={() => {
+            props.dispatch(Thunk_log("ls-program-mode-perday"));
             props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("perday")], "Switch to per-day mode");
           }}
         >
@@ -210,6 +213,7 @@ export const EditProgramNavbar = memo(function EditProgramNavbar(props: IEditPro
           isSelected={props.state.ui.mode === "full"}
           name="editor-v2-full-program"
           onClick={() => {
+            props.dispatch(Thunk_log("ls-program-mode-full"));
             props.plannerDispatch([lb<IPlannerState>().p("ui").p("mode").record("full")], "Switch to full text mode");
           }}
         >
@@ -219,6 +223,7 @@ export const EditProgramNavbar = memo(function EditProgramNavbar(props: IEditPro
       <View className="flex-row items-center">
         <Button
           sticky
+          className="ls-program-save"
           disabled={!isValid}
           name="save-program"
           kind="purple"
