@@ -31,7 +31,10 @@ const WAIST = "HKQuantityTypeIdentifierWaistCircumference" satisfies QuantityTyp
 const ENERGY_BURNED = "HKQuantityTypeIdentifierActiveEnergyBurned" satisfies QuantityTypeIdentifierWriteable;
 const WORKOUT = "HKWorkoutTypeIdentifier" satisfies SampleTypeIdentifierWriteable;
 
-const READ_TYPES: ObjectTypeIdentifier[] = [BODY_MASS, BODY_FAT, WAIST, ENERGY_BURNED];
+// Active energy is only read by the watchOS app and the native phone workout-mirroring path, each of
+// which requests its own authorization. Keeping it out of the RN read request avoids a recurring
+// "Active Energy" read prompt on every app start for users who only sync measurements.
+const MEASUREMENT_READ_TYPES: ObjectTypeIdentifier[] = [BODY_MASS, BODY_FAT, WAIST];
 const MEASUREMENT_WRITE_TYPES: SampleTypeIdentifierWriteable[] = [BODY_MASS, BODY_FAT, WAIST];
 const WORKOUT_WRITE_TYPES: SampleTypeIdentifierWriteable[] = [WORKOUT, ENERGY_BURNED];
 const ALL_WRITE_TYPES: SampleTypeIdentifierWriteable[] = [...MEASUREMENT_WRITE_TYPES, ...WORKOUT_WRITE_TYPES];
@@ -63,13 +66,13 @@ export class HealthAdapter implements IHealthAdapter {
   }
 
   public async requestPermissions(): Promise<boolean> {
-    return requestAuthorization({ toRead: READ_TYPES, toShare: ALL_WRITE_TYPES });
+    return requestAuthorization({ toRead: MEASUREMENT_READ_TYPES, toShare: ALL_WRITE_TYPES });
   }
 
   public async syncMeasurements(args: IHealthSyncArgs): Promise<IHealthSyncResult> {
     if (!this.askedReadThisSession) {
       this.askedReadThisSession = true;
-      await requestAuthorization({ toRead: READ_TYPES, toShare: [] });
+      await requestAuthorization({ toRead: MEASUREMENT_READ_TYPES, toShare: [] });
     }
     const prior = HealthIosAnchors_decode(args.anchor);
     try {
