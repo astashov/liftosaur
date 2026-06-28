@@ -190,9 +190,9 @@ export function LiveActivityManager_updateLiveActivity(
 
   // A running set timer takes over the live activity entirely: it shows the timed set's
   // count-up clock and "complete the set" buttons instead of the next-exercise/rest layout.
-  // It's driven by `progress.ui.setTimerModal` so every existing update call site reflects it
-  // automatically, and reverts to the normal layout the moment the modal is cleared.
-  const setTimerModal = progress.ui?.setTimerModal;
+  // It's driven by `progress.setTimer` so every existing update call site reflects it
+  // automatically, and reverts to the normal layout the moment the clock is cleared.
+  const setTimerModal = progress.setTimer;
   let setTimerState: ILiveActivitySetTimer | undefined;
   if (setTimerModal) {
     const timedEntry = progress.entries[setTimerModal.entryIndex];

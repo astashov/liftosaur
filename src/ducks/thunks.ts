@@ -852,7 +852,7 @@ export function Thunk_recordSetTimer(
     // already auto-closed at its target, or the user double-tapped an old notification. The set timer modal is
     // then gone (or points at a different set), and completing here would fall through to normal set toggling
     // and flip the already-completed set back off. Ignore it and just resync the surface that sent it.
-    const setTimerModal = progress.ui?.setTimerModal;
+    const setTimerModal = progress.setTimer;
     if (setTimerModal == null || setTimerModal.entryIndex !== entryIndex || setTimerModal.setIndex !== setIndex) {
       dispatch(Thunk_refreshLiveActivity());
       return;
@@ -886,7 +886,7 @@ export function Thunk_checkSetTimer(): IThunk {
     if (!progress || !Progress_isSetTimerCheckDue(progress, Date.now())) {
       return;
     }
-    const entryIndex = progress.ui?.setTimerModal?.entryIndex ?? progress.timerEntryIndex;
+    const entryIndex = progress.setTimer?.entryIndex ?? progress.timerEntryIndex;
     const { programExercise, otherStates } = resolveTimedSetProgramContext(state, progress, entryIndex);
     dispatch({ type: "CheckSetTimerAction", programExercise, otherStates });
     // The predicate above guarantees the model just advanced (auto work timer hit target, or auto rest
@@ -909,7 +909,7 @@ export function Thunk_refreshLiveActivity(): IThunk {
     const program = Program_getFullProgram(state, progress.programId);
     const settings = state.storage.settings;
     const subscription = state.storage.subscription;
-    const setTimerModal = progress.ui?.setTimerModal;
+    const setTimerModal = progress.setTimer;
     if (setTimerModal != null) {
       // Centralization in LiveActivityManager_updateLiveActivity reads setTimerModal, so the entry/set
       // passed here are overridden — it renders the set-timer view.

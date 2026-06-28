@@ -768,7 +768,7 @@ class LiftosaurWatch {
         return { success: false, error: "No active workout" };
       }
       const evaluatedProgram = getEvaluatedProgram(storage);
-      const stm = progress.ui?.setTimerModal;
+      const stm = progress.setTimer;
       const entryIndex = stm?.entryIndex ?? progress.timerEntryIndex;
       const entry = entryIndex != null ? progress.entries[entryIndex] : undefined;
       const programExercise =

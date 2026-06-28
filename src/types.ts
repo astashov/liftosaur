@@ -846,15 +846,6 @@ export interface IProgressUi {
     userVars?: boolean;
     nonce?: number;
   };
-  setTimerModal?: {
-    entryIndex: number;
-    setIndex: number;
-    startedAt: number;
-    nonce?: number;
-    // Set when recorded via "Log & keep timing" while the AMRAP modal is open, so the clock survives the
-    // AMRAP resolution instead of being closed by Progress_changeAmrapAction.
-    keepTiming?: boolean;
-  };
   editModal?: {
     programExerciseId: string;
     entryIndex: number;
@@ -902,15 +893,6 @@ const _VProgressUi = v.object({
       askWeight: v.optional(v.boolean()),
       userVars: v.optional(v.boolean()),
       nonce: v.optional(v.number()),
-    })
-  ),
-  setTimerModal: v.optional(
-    v.object({
-      entryIndex: v.number(),
-      setIndex: v.number(),
-      startedAt: v.number(),
-      nonce: v.optional(v.number()),
-      keepTiming: v.optional(v.boolean()),
     })
   ),
   editModal: v.optional(
@@ -992,6 +974,16 @@ export interface IHistoryRecord {
   timer?: number;
   timerEntryIndex?: number;
   timerSetIndex?: number;
+  // The running clock for a time-based set. Lives on the record (not under `ui`) so it's version-tracked
+  // and syncs across devices like the rest timer — a clock started on the watch shows in the app and vice
+  // versa. `nonce` drives re-presenting the modal; `keepTiming` survives the AMRAP resolution.
+  setTimer?: {
+    entryIndex: number;
+    setIndex: number;
+    startedAt: number;
+    nonce?: number;
+    keepTiming?: boolean;
+  };
   notes?: string;
   updatedAt?: number;
 }
@@ -1018,6 +1010,15 @@ const _VHistoryRecord = v.object({
   timer: v.optional(v.number()),
   timerEntryIndex: v.optional(v.number()),
   timerSetIndex: v.optional(v.number()),
+  setTimer: v.optional(
+    v.object({
+      entryIndex: v.number(),
+      setIndex: v.number(),
+      startedAt: v.number(),
+      nonce: v.optional(v.number()),
+      keepTiming: v.optional(v.boolean()),
+    })
+  ),
   notes: v.optional(v.string()),
   updatedAt: v.optional(v.number()),
 });
@@ -1824,6 +1825,7 @@ export const CONTROLLED_FIELDS: Record<IControlledType, readonly string[]> = {
     "timer",
     "timerEntryIndex",
     "timerSetIndex",
+    "setTimer",
   ] as const,
   history_entry: [
     "exercise",

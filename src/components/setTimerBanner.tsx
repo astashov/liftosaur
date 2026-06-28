@@ -3,7 +3,7 @@ import { View } from "react-native";
 import { Text } from "./primitives/text";
 import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
-import { IExerciseType, IHistoryRecord, IProgressUi, ISettings } from "../types";
+import { IExerciseType, IHistoryRecord, ISettings } from "../types";
 import { TimeUtils_formatMMSS } from "../utils/time";
 import { WorkoutExerciseSetTarget } from "./workoutExerciseSet";
 import { ExerciseImage } from "./exerciseImage";
@@ -32,7 +32,7 @@ function useSetTimerTick(isActive: boolean, dispatch: IDispatch): void {
 interface ISetTimerBannerContentProps {
   progress: IHistoryRecord;
   settings: ISettings;
-  setTimerModal: NonNullable<IProgressUi["setTimerModal"]>;
+  setTimerModal: NonNullable<IHistoryRecord["setTimer"]>;
   dispatch: IDispatch;
   onClose: () => void;
 }

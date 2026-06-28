@@ -112,7 +112,7 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
     prevEditSetModal.current = editSetModal;
   }, [editSetModal]);
 
-  const setTimerModal = progress.ui?.setTimerModal;
+  const setTimerModal = progress.setTimer;
   const prevSetTimerNonce = useRef<number | undefined>(undefined);
   useEffect(() => {
     if (setTimerModal && setTimerModal.nonce !== prevSetTimerNonce.current) {

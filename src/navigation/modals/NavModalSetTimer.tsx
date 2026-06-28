@@ -12,7 +12,7 @@ export function NavModalSetTimer(): JSX.Element {
   const route = useRoute<{ key: string; name: "setTimerModal"; params: IRootStackParamList["setTimerModal"] }>();
   const { progressId } = route.params;
   const progress = progressId === 0 ? state.storage.progress?.[0] : state.progress[progressId];
-  const setTimerModal = progress?.ui?.setTimerModal;
+  const setTimerModal = progress?.setTimer;
 
   useEffect(() => {
     const onBeforeRemove = (): void => {
