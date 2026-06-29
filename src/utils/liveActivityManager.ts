@@ -242,12 +242,6 @@ export function LiveActivityManager_updateLiveActivity(
   SendMessage_print(
     `Main App: Updating live activity for ${liveActivityEntry?.exerciseName} (${liveActivityEntry?.entryIndex}/${liveActivityEntry?.setIndex})`
   );
-  // eslint-disable-next-line no-console
-  console.log(
-    `[LiveActivity] update ${liveActivityEntry?.exerciseName} (${liveActivityEntry?.entryIndex}/${liveActivityEntry?.setIndex}) — setTimer: ${
-      setTimerState ? `${setTimerState.setTimer}s since ${setTimerState.setTimerSince}` : "none"
-    }, rest: ${attributes.restTimer ? `${attributes.restTimer.restTimer}s` : "none"}`
-  );
   NativeWorkoutBridge_updateLiveActivity(attributes);
 }
 
