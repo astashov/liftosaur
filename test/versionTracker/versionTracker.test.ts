@@ -681,6 +681,39 @@ describe("VersionTracker", () => {
         expect((programVersions.name as IVectorClock).vc.ios_xyz).to.equal(1);
         expect((programVersions.nextDay as IVectorClock).vc.web_abc).to.equal(2);
       });
+
+      it("should propagate clearing an optional controlled field (setTimer) across devices", () => {
+        const trackerWeb = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "web_abc" });
+        const trackerIos = new VersionTracker(STORAGE_VERSION_TYPES, { deviceId: "ios_xyz" });
+
+        const storage1 = Storage_getDefault();
+        const progress: IHistoryRecord = {
+          vtype: "progress",
+          id: 1,
+          date: "2023-01-01",
+          programId: "prog1",
+          programName: "Test Program",
+          day: 1,
+          dayName: "Day 1",
+          entries: [],
+          startTime: 1000,
+          setTimer: { entryIndex: 0, setIndex: 0, startedAt: 500, nonce: 500 },
+        };
+        storage1.progress = [progress];
+        const versions1 = trackerWeb.fillVersions(storage1, {}, 1000);
+
+        // Watch clears the set timer (Stop & record on the watch).
+        const storage2 = ObjectUtils_clone(storage1);
+        delete storage2.progress[0].setTimer;
+        const versions2 = trackerIos.updateVersions(storage1, storage2, versions1, {}, 2000);
+
+        // Sync watch -> phone. The phone still holds the running set timer (storage1).
+        const versionDiff = trackerIos.diffVersions(versions1, versions2);
+        const extracted = trackerIos.extractByVersions(storage2, versionDiff!);
+        const merged = trackerWeb.mergeByVersions(storage1, versions1, versionDiff!, extracted);
+
+        expect(merged.progress[0].setTimer, "phone must drop the set timer after the watch clears it").to.be.undefined;
+      });
     });
   });
 

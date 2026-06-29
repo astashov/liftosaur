@@ -149,10 +149,10 @@ struct HomeScreen: View {
         programName: "Basic Beginner Routine",
         exercises: [
             WatchExercise(id: "benchPress_barbell", name: "Bench Press", imageUrl: "/externalimages/exercises/single/small/benchpress_barbell_single_small.png", sets: [
-                WatchSet(index: 0, reps: 5, minReps: nil, weight: WatchWeight(value: 135, unit: "lb"), originalWeight: WatchWeight(value: 135, unit: "lb"), isAmrap: false, askWeight: nil, rpe: nil, timer: nil, label: nil, isCompleted: false, completedReps: nil, completedRepsLeft: nil, completedWeight: nil, completedRpe: nil, status: "not-finished", plates: nil, isWarmup: false, isUnilateral: false)
+                WatchSet(index: 0, reps: 5, minReps: nil, weight: WatchWeight(value: 135, unit: "lb"), originalWeight: WatchWeight(value: 135, unit: "lb"), isAmrap: false, askWeight: nil, rpe: nil, timer: nil, setTimer: nil, label: nil, isCompleted: false, completedReps: nil, completedRepsLeft: nil, completedWeight: nil, completedRpe: nil, completedSetTimer: nil, status: "not-finished", plates: nil, isWarmup: false, isUnilateral: false)
             ]),
             WatchExercise(id: "squat_barbell", name: "Squat", imageUrl: "/externalimages/exercises/single/small/squat_barbell_single_small.png", sets: [
-                WatchSet(index: 0, reps: 5, minReps: nil, weight: WatchWeight(value: 185, unit: "lb"), originalWeight: WatchWeight(value: 185, unit: "lb"), isAmrap: false, askWeight: nil, rpe: nil, timer: nil, label: nil, isCompleted: false, completedReps: nil, completedRepsLeft: nil, completedWeight: nil, completedRpe: nil, status: "not-finished", plates: nil, isWarmup: false, isUnilateral: false)
+                WatchSet(index: 0, reps: 5, minReps: nil, weight: WatchWeight(value: 185, unit: "lb"), originalWeight: WatchWeight(value: 185, unit: "lb"), isAmrap: false, askWeight: nil, rpe: nil, timer: nil, setTimer: nil, label: nil, isCompleted: false, completedReps: nil, completedRepsLeft: nil, completedWeight: nil, completedRpe: nil, completedSetTimer: nil, status: "not-finished", plates: nil, isWarmup: false, isUnilateral: false)
             ])
         ],
         isOngoing: false,

@@ -29,12 +29,14 @@ struct WatchSet: Codable, SetInfoProvider, Equatable {
     let askWeight: Bool?
     let rpe: Double?
     let timer: Int?
+    let setTimer: Int?
     let label: String?
     let isCompleted: Bool?
     let completedReps: Int?
     let completedRepsLeft: Int?
     let completedWeight: WatchWeight?
     let completedRpe: Double?
+    let completedSetTimer: Int?
     let status: String
     let plates: String?
     let isWarmup: Bool
@@ -144,6 +146,25 @@ struct WatchAmrapModal: Codable, Identifiable {
 struct WatchRestTimer: Codable, Equatable {
     let timerSince: Double  // timestamp in milliseconds
     let timer: Int  // total timer duration in seconds
+}
+
+struct WatchSetTimerModal: Codable, Identifiable, Equatable {
+    var id: String { "\(entryIndex)-\(setIndex)" }
+    let entryIndex: Int
+    let setIndex: Int  // work-set index (excludes warmups)
+    let startedAt: Double  // timestamp in milliseconds
+    let setTimer: Int  // target duration in seconds
+    let isOverflow: Bool
+    let isCompleted: Bool
+    let restTimer: Int
+    let exerciseName: String
+    let imageUrl: String?
+    let currentSet: Int  // 1-based, across warmups+work
+    let totalSets: Int
+}
+
+struct WatchSetTimerCheckDue: Codable {
+    let due: Bool
 }
 
 struct WatchWorkoutStatus: Codable, Equatable {

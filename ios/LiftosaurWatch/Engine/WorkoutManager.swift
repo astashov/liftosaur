@@ -45,6 +45,7 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
     @Published var isPaused = false
     @Published var workoutTime: TimeInterval = 0
     @Published var restTimer: WatchRestTimer?
+    @Published var setTimerModal: WatchSetTimerModal?
     @Published var heartRate: Double?
     @Published var hasSubscription: Bool = true  // Default to true to avoid flash of premium screen
     private var workoutIntervals: [[Double?]] = []  // [[startMs, endMs or nil]]
@@ -215,10 +216,12 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
             isPaused = false
             workoutTime = 0
             restTimer = nil
+            setTimerModal = nil
         }
         if workout != nil {
             await loadWorkoutStatus()
             await loadRestTimer()
+            await loadSetTimerModal()
         }
         // Storage is the single source of truth for the HK session. Reconcile (serialized, reads
         // fresh storage) instead of starting/stopping inline: it starts a session when a workout
@@ -425,6 +428,16 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         await loadActiveWorkout()
     }
 
+    func updateCompletedSetTimer(entryIndex: Int, setIndex: Int, seconds: Int) async {
+        guard await withStorageMutation(
+            operation: { engine, storageJson, deviceId in
+                await engine.updateCompletedSetTimer(storageJson: storageJson, deviceId: deviceId, entryIndex: entryIndex, setIndex: setIndex, seconds: seconds)
+            },
+            operationName: "edit set timer"
+        ) != nil else { return }
+        await loadActiveWorkout()
+    }
+
     func getNextEntryAndSetIndex(entryIndex: Int, setIndex: Int) async -> WatchNextEntryAndSetIndex? {
         await withStorageSilentOptional { engine, storageJson in
             await engine.getNextEntryAndSetIndex(storageJson: storageJson, entryIndex: entryIndex, setIndex: setIndex)
@@ -476,6 +489,46 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         await withStorageSilentOptional { engine, storageJson in
             await engine.getAmrapModal(storageJson: storageJson)
         }
+    }
+
+    func loadSetTimerModal() async {
+        setTimerModal = await withStorageSilentOptional { engine, storageJson in
+            await engine.getSetTimerModal(storageJson: storageJson)
+        }
+    }
+
+    func recordSetTimer(entryIndex: Int, setIndex: Int, keepTiming: Bool, recordedSeconds: Int) async {
+        guard await withStorageMutation(
+            operation: { engine, storageJson, deviceId in
+                await engine.recordSetTimer(storageJson: storageJson, deviceId: deviceId, entryIndex: entryIndex, setIndex: setIndex, keepTiming: keepTiming, recordedSeconds: recordedSeconds)
+            },
+            operationName: "record set timer"
+        ) != nil else { return }
+        await loadActiveWorkout()
+    }
+
+    func closeSetTimer() async {
+        guard await withStorageMutation(
+            operation: { engine, storageJson, deviceId in
+                await engine.closeSetTimer(storageJson: storageJson, deviceId: deviceId)
+            },
+            operationName: "close set timer"
+        ) != nil else { return }
+        await loadActiveWorkout()
+    }
+
+    // Polled every tick while a timed set / rest is active. The cheap predicate gates the persisting +
+    // syncing mutation so `auto` circuits advance on time without writing storage every second.
+    func checkSetTimer() async {
+        guard let engine = engine, let storageJson = loadStorage() else { return }
+        guard await engine.isSetTimerCheckDue(storageJson: storageJson) else { return }
+        guard await withStorageMutation(
+            operation: { engine, storageJson, deviceId in
+                await engine.checkSetTimer(storageJson: storageJson, deviceId: deviceId)
+            },
+            operationName: "check set timer"
+        ) != nil else { return }
+        await loadActiveWorkout()
     }
 
     func adjustRestTimer(adjustment: Int) async {
@@ -588,9 +641,17 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
     }
 
     private func playCompletionSound() {
+        playSound(resource: "notification")
+    }
+
+    func playSetTimerEndSound() {
+        playSound(resource: "set-timer-end")
+    }
+
+    private func playSound(resource: String) {
         guard cachedVolume > 0 else { return }
-        guard let url = Bundle.main.url(forResource: "notification", withExtension: "m4r") else {
-            Logger.workout.warning("notification.m4r not found in bundle")
+        guard let url = Bundle.main.url(forResource: resource, withExtension: "m4r") else {
+            Logger.workout.warning("\(resource).m4r not found in bundle")
             return
         }
         do {

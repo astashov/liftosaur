@@ -29,11 +29,15 @@ struct ExerciseScreen: View {
     let onUpdateReps: (Int, Int, Int) async -> Void  // entryIndex, setIndex, reps
     let onUpdateRepsLeft: (Int, Int, Int) async -> Void  // entryIndex, setIndex, repsLeft
     let onUpdateWeight: (Int, Int, Double) async -> Void  // entryIndex, setIndex, weight
+    let onUpdateCompletedSetTimer: (Int, Int, Int) async -> Void  // entryIndex, setIndex, seconds (<0 clears)
     let onGetAmrapModal: () async -> WatchAmrapModal?
     let onCompleteSetWithAmrap: (Int?, Int?, Double?, Double?, [String: Any]?) async -> Void
     let restTimer: WatchRestTimer?
     let onAdjustRestTimer: (Int) async -> Void
     let onStopRestTimer: () async -> Void
+    let onRecordSetTimer: (Int, Int, Bool, Int) async -> Void  // entryIndex, setIndex, keepTiming, seconds
+    let onCloseSetTimer: () async -> Void
+    let onCheckSetTimer: () async -> Void
     let onAddSet: (Int) async -> Void  // entryIndex
     let onDeleteSet: (Int, Int) async -> Void  // entryIndex, setIndex
     let onBack: () -> Void
@@ -127,6 +131,9 @@ struct ExerciseScreen: View {
                         },
                         onUpdateWeight: { setIndex, weight in
                             await onUpdateWeight(exerciseIndex, setIndex, weight)
+                        },
+                        onUpdateCompletedSetTimer: { setIndex, seconds in
+                            await onUpdateCompletedSetTimer(exerciseIndex, setIndex, seconds)
                         },
                         onAddSet: {
                             await onAddSet(exerciseIndex)
@@ -238,6 +245,41 @@ struct ExerciseScreen: View {
                 )
             }
         }
+        // Bound to the published clock state, so completing a timed set, an `auto` advance, or a clock
+        // started on the phone all present this automatically; it dismisses the moment the clock clears.
+        // The dismiss chrome (X / swipe) doubles as Discard: the binding's setter only fires on a
+        // user-initiated dismiss (not when the model clears the clock itself), so we discard only then.
+        .sheet(item: Binding(
+            get: { workoutManager.setTimerModal },
+            set: { newValue in
+                if newValue == nil, workoutManager.setTimerModal != nil {
+                    Task { await onCloseSetTimer() }
+                }
+            }
+        )) { _ in
+            SetTimerScreen(
+                workoutManager: workoutManager,
+                heartRate: heartRate,
+                onRecord: { seconds in
+                    guard let modal = workoutManager.setTimerModal else { return }
+                    // The set closes into rest; the cursor advance is handled centrally when setTimerModal
+                    // clears (see onChange below). A timed AMRAP set still needs its reps/weight here.
+                    await onRecordSetTimer(modal.entryIndex, modal.setIndex, false, seconds)
+                    _ = await presentAmrapAfterSetTimer()
+                },
+                onKeep: { seconds in
+                    guard let modal = workoutManager.setTimerModal else { return }
+                    // The clock keeps running (set is logged but not closed). A timed AMRAP set still needs its
+                    // reps/weight, so present the amrap prompt if it opened; otherwise stay on this screen (the
+                    // set-timer sheet re-presents via its binding once amrap resolves).
+                    await onRecordSetTimer(modal.entryIndex, modal.setIndex, true, seconds)
+                    _ = await presentAmrapAfterSetTimer()
+                },
+                onCheck: {
+                    await runCheckSetTimer()
+                }
+            )
+        }
         .onAppear {
             currentExerciseIndex = initialExerciseIndex
             crownExerciseValue = Double(initialExerciseIndex) * kCrownScale + 1.0
@@ -252,6 +294,16 @@ struct ExerciseScreen: View {
         .onChange(of: restTimer) { _, newValue in
             localRestTimer = newValue
             updateRestTimerElapsed()
+        }
+        .onChange(of: workoutManager.setTimerModal) { oldValue, newValue in
+            // The set timer closed into a rest: it auto-completed at the target, a "Log & keep" set auto-closed,
+            // or it was recorded/discarded-after-logging. The model advanced but our local set cursor is still on
+            // the finished set, so move it to the next set like a normal completion does. Gated on "a rest is now
+            // active" so we don't advance on an AMRAP yield (no rest yet) or a discard that recorded nothing —
+            // and on no amrap pending so we never skip past a set that still needs its reps/weight.
+            if let finished = oldValue, newValue == nil, workoutManager.restTimer != nil, amrapModal == nil {
+                Task { await advanceCursorAfterSetTimer(entryIndex: finished.entryIndex, setIndex: finished.setIndex) }
+            }
         }
         .onChange(of: currentExerciseIndex) { _, newValue in
             selectedField = .none
@@ -352,6 +404,51 @@ struct ExerciseScreen: View {
         )
     }
 
+    // A timed AMRAP set still needs its reps/weight after recording (for both "Stop & record" and "Log & keep").
+    // getSetTimerModal yields to the amrap modal, so by now the set-timer sheet is dismissing; let it finish
+    // before presenting amrap so watchOS doesn't drop the second sheet (see "close modal before navigating").
+    @MainActor
+    private func presentAmrapAfterSetTimer() async -> Bool {
+        guard let amrap = await onGetAmrapModal() else { return false }
+        try? await Task.sleep(nanoseconds: 350_000_000)
+        amrapModal = amrap
+        return true
+    }
+
+    // Polls the set timer (auto-advance), then presents the AMRAP prompt if an `auto` set just auto-completed
+    // into one: a timed AMRAP set reaching its target opens the amrap modal and keeps the clock behind it (no
+    // rest yet), so the set-timer sheet yields without the manual record path that would otherwise present it.
+    // Mirrors the in-app behavior. The non-AMRAP close-into-rest cursor advance is handled in onChange.
+    @MainActor
+    private func runCheckSetTimer() async {
+        let hadSetTimer = workoutManager.setTimerModal != nil
+        await onCheckSetTimer()
+        if hadSetTimer, workoutManager.setTimerModal == nil {
+            // Auto-advance only (emom/tabata) — manual Stop/Log goes through onRecord, not this poll — so the
+            // user gets an audible cue that the timed set ended while not looking at the watch.
+            workoutManager.playSetTimerEndSound()
+            if amrapModal == nil {
+                _ = await presentAmrapAfterSetTimer()
+            }
+        }
+    }
+
+    // Move the local set cursor to the next set after a set timer closed into rest (mirrors the AMRAP submit
+    // navigation). The just-finished set's indices are passed in since the modal is already cleared.
+    @MainActor
+    private func advanceCursorAfterSetTimer(entryIndex: Int, setIndex: Int) async {
+        updateRestTimerElapsed()
+        selectedField = .none
+        if let next = await onGetNextEntryAndSetIndex(entryIndex, setIndex) {
+            currentExerciseIndex = next.entryIndex
+            if next.entryIndex < currentSetIndices.count {
+                currentSetIndices[next.entryIndex] = next.setIndex
+            }
+        } else {
+            onAllSetsCompleted()
+        }
+    }
+
     // MARK: - Timer
 
     private func startTimer() {
@@ -366,6 +463,12 @@ struct ExerciseScreen: View {
             }
             self.currentTime = Date()
             self.updateRestTimerElapsed()
+            // While resting, poll so an `auto` rest (Tabata) advances to the next timed set on time. The
+            // set-timer screen drives its own poll for the work-timer/EMOM case; the cheap JS predicate
+            // makes this a no-op until a threshold is actually crossed.
+            if self.localRestTimer != nil {
+                Task { await self.runCheckSetTimer() }
+            }
         }
     }
 
@@ -432,6 +535,7 @@ struct ExercisePageView: View {
     let onUpdateReps: (Int, Int) async -> Void  // setIndex, reps
     let onUpdateRepsLeft: (Int, Int) async -> Void  // setIndex, repsLeft
     let onUpdateWeight: (Int, Double) async -> Void  // setIndex, weight
+    let onUpdateCompletedSetTimer: (Int, Int) async -> Void  // setIndex, seconds (<0 clears)
     let onAddSet: () async -> Void
     let onDeleteSet: (Int) async -> Void  // setIndex
     let onBack: () -> Void
@@ -486,7 +590,8 @@ struct ExercisePageView: View {
                             onGetValidWeights: onGetValidWeights,
                             onUpdateReps: onUpdateReps,
                             onUpdateRepsLeft: onUpdateRepsLeft,
-                            onUpdateWeight: onUpdateWeight
+                            onUpdateWeight: onUpdateWeight,
+                            onUpdateCompletedSetTimer: onUpdateCompletedSetTimer
                         )
                         .tag(setIndex)
                         .id("\(exercise.name)-\(setIndex)-\(exercise.sets[setIndex].isUnilateral)")
@@ -509,6 +614,7 @@ struct ExercisePageView: View {
                     isCompletingSet: isCompletingSet,
                     isAddSetTab: currentSetIndex == addSetTabIndex,
                     isAddingSet: isAddingSet,
+                    isSetTimer: currentSetIndex < exercise.sets.count && exercise.sets[currentSetIndex].setTimer != nil,
                     onPrevious: { navigatePrevious() },
                     onComplete: { completeCurrentSet() },
                     onNext: { navigateNext() },
@@ -890,7 +996,9 @@ struct SetContentView: View {
     let onUpdateReps: (Int, Int) async -> Void  // setIndex, reps
     let onUpdateRepsLeft: (Int, Int) async -> Void  // setIndex, repsLeft
     let onUpdateWeight: (Int, Double) async -> Void  // setIndex, weight
+    let onUpdateCompletedSetTimer: (Int, Int) async -> Void  // setIndex, seconds (<0 clears)
 
+    @State private var showTimeEdit: Bool = false
     @State private var crownRepsValue: Double = 0
     @State private var crownRepsLeftValue: Double = 0
     @State private var crownWeightIndex: Double = 0
@@ -969,6 +1077,13 @@ struct SetContentView: View {
         }
         .onChange(of: weightIndex) { _, newIndex in
             checkAndExtendWeights(currentIndex: newIndex)
+        }
+        .sheet(isPresented: $showTimeEdit) {
+            SetTimerEditScreen(
+                initialSeconds: workoutSet.completedSetTimer ?? workoutSet.setTimer ?? 0,
+                onSave: { seconds in await onUpdateCompletedSetTimer(setIndex, seconds) },
+                onClear: { await onUpdateCompletedSetTimer(setIndex, -1) }
+            )
         }
     }
 
@@ -1096,6 +1211,26 @@ struct SetContentView: View {
     @ViewBuilder
     private var targetInfoView: some View {
         VStack(alignment: .leading, spacing: 1) {
+            // The recorded set-timer duration for a timed set. Sits in the measured target area so the fields
+            // above automatically shrink to make room (see measuredTargetHeight in body).
+            if let recorded = workoutSet.completedSetTimer {
+                HStack(spacing: 0) {
+                    Text("Time: ")
+                        .foregroundColor(.secondary)
+                    Text(formatMMSS(recorded))
+                        .foregroundColor(LiftosaurColor.purple400)
+                        .fontWeight(.bold)
+                    Image(systemName: "pencil")
+                        .font(.system(size: 9))
+                        .foregroundColor(LiftosaurColor.textSecondary)
+                        .padding(.leading, 3)
+                }
+                .font(.system(size: 11))
+                .lineLimit(1)
+                .contentShape(Rectangle())
+                .onTapGesture { showTimeEdit = true }
+            }
+
             ColoredTargetInfoView(setInfo: workoutSet, isWarmup: workoutSet.isWarmup, useOriginalWeight: true)
                 .font(.system(size: 11))
 
@@ -1118,6 +1253,10 @@ struct SetContentView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 2)
+    }
+
+    private func formatMMSS(_ seconds: Int) -> String {
+        String(format: "%d:%02d", seconds / 60, seconds % 60)
     }
 
     private func loadValidWeights() {
@@ -1307,6 +1446,7 @@ struct SetNavigationButtons: View {
     let isCompletingSet: Bool
     var isAddSetTab: Bool = false
     var isAddingSet: Bool = false
+    var isSetTimer: Bool = false
     let onPrevious: () -> Void
     let onComplete: () -> Void
     let onNext: () -> Void
@@ -1361,7 +1501,9 @@ struct SetNavigationButtons: View {
                             .frame(maxWidth: .infinity)
                             .frame(height: buttonHeight)
                     } else {
-                        Image(systemName: "checkmark")
+                        // A timed set's first tap starts its clock rather than completing it, so show a play
+                        // icon instead of the checkmark (mirrors the Live Activity "Start" label).
+                        Image(systemName: isSetTimer ? "play.fill" : "checkmark")
                             .font(.system(size: 18, weight: .bold))
                             .foregroundColor(LiftosaurColor.buttonPrimaryLabel)
                             .frame(maxWidth: .infinity)
@@ -1457,11 +1599,15 @@ struct AddSetTabView: View {
         onUpdateReps: { _, _, _ in },
         onUpdateRepsLeft: { _, _, _ in },
         onUpdateWeight: { _, _, _ in },
+        onUpdateCompletedSetTimer: { _, _, _ in },
         onGetAmrapModal: { nil },
         onCompleteSetWithAmrap: { _, _, _, _, _ in },
         restTimer: WatchRestTimer(timerSince: Date().timeIntervalSince1970 * 1000 - 90000, timer: 180),
         onAdjustRestTimer: { _ in },
         onStopRestTimer: {},
+        onRecordSetTimer: { _, _, _, _ in },
+        onCloseSetTimer: {},
+        onCheckSetTimer: {},
         onAddSet: { _ in },
         onDeleteSet: { _, _ in },
         onBack: {},

@@ -456,6 +456,40 @@ describe("updateVersions", () => {
       });
     });
 
+    it("should bump a version when an optional controlled field is cleared", () => {
+      const progress: IHistoryRecord = {
+        vtype: "progress",
+        id: 1,
+        date: "2023-01-01",
+        programId: "prog1",
+        programName: "Test Program",
+        day: 1,
+        dayName: "Day 1",
+        entries: [],
+        startTime: 1000,
+        setTimer: { entryIndex: 0, setIndex: 0, startedAt: 500, nonce: 500 },
+      };
+
+      const progressCleared: IHistoryRecord = { ...progress };
+      delete progressCleared.setTimer;
+
+      const emptyStorage = { ...Storage_getDefault(), progress: [] };
+      const withTimer = { ...Storage_getDefault(), progress: [progress] };
+      const withoutTimer = { ...withTimer, progress: [progressCleared] };
+
+      const baseVersions = versionTracker.updateVersions(emptyStorage, withTimer, {}, {}, 1000);
+      const baseItem = (baseVersions.progress as ICollectionVersions).items!["1000"] as IVersions<IHistoryRecord>;
+      const baseSetTimer = (baseItem as any).setTimer;
+      expect(baseSetTimer, "setTimer should be versioned when first set").to.exist;
+      expect(typeof baseSetTimer === "number" ? baseSetTimer : baseSetTimer.t).to.equal(1000);
+
+      const versions = versionTracker.updateVersions(withTimer, withoutTimer, baseVersions, {}, 2000);
+      const itemVersion = (versions.progress as ICollectionVersions).items!["1000"] as IVersions<IHistoryRecord>;
+      const clearedSetTimer = (itemVersion as any).setTimer;
+      expect(clearedSetTimer, "clearing setTimer must keep a version so the deletion propagates").to.exist;
+      expect(typeof clearedSetTimer === "number" ? clearedSetTimer : clearedSetTimer.t).to.equal(2000);
+    });
+
     it("should track multiple controlled fields", () => {
       const program: IProgram = {
         vtype: "program",

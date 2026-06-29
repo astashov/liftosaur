@@ -190,6 +190,10 @@ class LiftosaurEngine {
         await callMutation("completeSet", globals: [("__lft_s", storageJson)], args: [str(deviceId), "\(entryIndex)", "\(setIndex)"])
     }
 
+    func updateCompletedSetTimer(storageJson: String, deviceId: String, entryIndex: Int, setIndex: Int, seconds: Int) async -> Result<String, EngineError> {
+        await callMutation("updateCompletedSetTimer", globals: [("__lft_s", storageJson)], args: [str(deviceId), "\(entryIndex)", "\(setIndex)", "\(seconds)"])
+    }
+
     func getNextEntryAndSetIndex(storageJson: String, entryIndex: Int, setIndex: Int) async -> Result<WatchNextEntryAndSetIndex?, EngineError> {
         await callOptional("getNextEntryAndSetIndex", globals: [("__lft_s", storageJson)], args: ["\(entryIndex)", "\(setIndex)"])
     }
@@ -229,6 +233,28 @@ class LiftosaurEngine {
         let rpeArg = completedRpe.map { String($0) } ?? "undefined"
         let userVarsArg = userPromptedVarsJson.map { str($0) } ?? "undefined"
         return await callMutation("completeSetWithAmrap", globals: [("__lft_s", storageJson)], args: [str(deviceId), repsArg, repsLeftArg, weightArg, rpeArg, userVarsArg])
+    }
+
+    func getSetTimerModal(storageJson: String) async -> Result<WatchSetTimerModal?, EngineError> {
+        await callOptional("getSetTimerModal", globals: [("__lft_s", storageJson)])
+    }
+
+    func recordSetTimer(storageJson: String, deviceId: String, entryIndex: Int, setIndex: Int, keepTiming: Bool, recordedSeconds: Int) async -> Result<String, EngineError> {
+        await callMutation("recordSetTimer", globals: [("__lft_s", storageJson)], args: [str(deviceId), "\(entryIndex)", "\(setIndex)", keepTiming ? "true" : "false", "\(recordedSeconds)"])
+    }
+
+    func closeSetTimer(storageJson: String, deviceId: String) async -> Result<String, EngineError> {
+        await callMutation("closeSetTimer", globals: [("__lft_s", storageJson)], args: [str(deviceId)])
+    }
+
+    func isSetTimerCheckDue(storageJson: String) async -> Bool {
+        let result: Result<WatchSetTimerCheckDue, EngineError> = await call("isSetTimerCheckDue", globals: [("__lft_s", storageJson)])
+        guard case .success(let value) = result else { return false }
+        return value.due
+    }
+
+    func checkSetTimer(storageJson: String, deviceId: String) async -> Result<String, EngineError> {
+        await callMutation("checkSetTimer", globals: [("__lft_s", storageJson)], args: [str(deviceId)])
     }
 
     func getRestTimer(storageJson: String) async -> Result<WatchRestTimer?, EngineError> {

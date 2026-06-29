@@ -347,7 +347,10 @@ export class VersionTrackerUpdateVersions<TAtomicType extends string, TControlle
         VersionTrackerUtils_isRecord(oldValue) && controlledField in oldValue ? oldValue[controlledField] : undefined;
       const newFieldValue = newValue[controlledField];
 
-      if (!VersionTrackerUtils_areEqual(oldFieldValue, newFieldValue) && newFieldValue != null) {
+      // A controlled field going present -> absent (e.g. clearing progress.setTimer) must still bump a version so
+      // the deletion propagates to other devices, mirroring how top-level field deletions are tracked. Without this
+      // the field lingers on the receiving device (a stale set-timer modal kept showing after a Stop on the watch).
+      if (!VersionTrackerUtils_areEqual(oldFieldValue, newFieldValue)) {
         const currentFieldVersion = fieldVersions[controlledField];
         const fieldPath = path ? `${path}.${controlledField}` : controlledField;
         const updatedVersion = this.updateControlledFieldVersion(

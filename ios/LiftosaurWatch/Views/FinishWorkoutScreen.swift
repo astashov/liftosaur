@@ -222,9 +222,9 @@ struct SectionHeader: View {
                     name: "Bench Press",
                     imageUrl: nil,
                     sets: [
-                        WatchSet(index: 0, reps: 5, minReps: nil, weight: WatchWeight(value: 45, unit: "lb"), originalWeight: nil, isAmrap: nil, askWeight: nil, rpe: nil, timer: nil, label: nil, isCompleted: true, completedReps: 5, completedRepsLeft: nil, completedWeight: nil, completedRpe: nil, status: "success", plates: nil, isWarmup: false, isUnilateral: false),
-                        WatchSet(index: 1, reps: 5, minReps: nil, weight: WatchWeight(value: 45, unit: "lb"), originalWeight: nil, isAmrap: nil, askWeight: nil, rpe: nil, timer: nil, label: nil, isCompleted: true, completedReps: 5, completedRepsLeft: nil, completedWeight: nil, completedRpe: nil, status: "success", plates: nil, isWarmup: false, isUnilateral: false),
-                        WatchSet(index: 2, reps: 5, minReps: nil, weight: WatchWeight(value: 45, unit: "lb"), originalWeight: nil, isAmrap: true, askWeight: nil, rpe: nil, timer: nil, label: nil, isCompleted: true, completedReps: 8, completedRepsLeft: nil, completedWeight: nil, completedRpe: nil, status: "success", plates: nil, isWarmup: false, isUnilateral: false)
+                        WatchSet(index: 0, reps: 5, minReps: nil, weight: WatchWeight(value: 45, unit: "lb"), originalWeight: nil, isAmrap: nil, askWeight: nil, rpe: nil, timer: nil, setTimer: nil, label: nil, isCompleted: true, completedReps: 5, completedRepsLeft: nil, completedWeight: nil, completedRpe: nil, completedSetTimer: nil, status: "success", plates: nil, isWarmup: false, isUnilateral: false),
+                        WatchSet(index: 1, reps: 5, minReps: nil, weight: WatchWeight(value: 45, unit: "lb"), originalWeight: nil, isAmrap: nil, askWeight: nil, rpe: nil, timer: nil, setTimer: nil, label: nil, isCompleted: true, completedReps: 5, completedRepsLeft: nil, completedWeight: nil, completedRpe: nil, completedSetTimer: nil, status: "success", plates: nil, isWarmup: false, isUnilateral: false),
+                        WatchSet(index: 2, reps: 5, minReps: nil, weight: WatchWeight(value: 45, unit: "lb"), originalWeight: nil, isAmrap: true, askWeight: nil, rpe: nil, timer: nil, setTimer: nil, label: nil, isCompleted: true, completedReps: 8, completedRepsLeft: nil, completedWeight: nil, completedRpe: nil, completedSetTimer: nil, status: "success", plates: nil, isWarmup: false, isUnilateral: false)
                     ]
                 )
             ],
