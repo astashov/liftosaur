@@ -215,8 +215,7 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
             workoutStartTime = nil
             isPaused = false
             workoutTime = 0
-            restTimer = nil
-            setTimerModal = nil
+            resetWorkoutTimers()
         }
         if workout != nil {
             await loadWorkoutStatus()
@@ -310,6 +309,16 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         isStartingWorkout = false
     }
 
+    /// Clears all transient timer UI/state tied to an active workout. Call from every teardown path so a
+    /// rest-timer or set-timer sheet can't linger for a workout that no longer exists (e.g. the phone
+    /// finished/discarded while a set-timer sheet was open on the watch).
+    private func resetWorkoutTimers() {
+        restTimer = nil
+        restTimerMonitor?.invalidate()
+        restTimerMonitor = nil
+        setTimerModal = nil
+    }
+
     func discardWorkout() async {
         Logger.workout.info(" discardWorkout() called")
         guard await withStorageMutation(
@@ -330,9 +339,7 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         await loadNextWorkout()
         activeWorkout = nil
         workoutStartTime = nil
-        restTimer = nil
-        restTimerMonitor?.invalidate()
-        restTimerMonitor = nil
+        resetWorkoutTimers()
         Logger.workout.info(" discardWorkout() completed")
     }
 
@@ -342,9 +349,7 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         workoutStartTime = nil
         isPaused = false
         workoutTime = 0
-        restTimer = nil
-        restTimerMonitor?.invalidate()
-        restTimerMonitor = nil
+        resetWorkoutTimers()
         // The phone ended the workout; reload the next workout so the complication
         // stops showing the ended one (synced phone storage already reflects it).
         Task { await loadNextWorkout() }
@@ -388,9 +393,7 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         workoutStartTime = nil
         isPaused = false
         workoutTime = 0
-        restTimer = nil
-        restTimerMonitor?.invalidate()
-        restTimerMonitor = nil
+        resetWorkoutTimers()
         Logger.workout.info(" finishWorkout: returning summary (nil=\(summary == nil))")
         return summary
     }
@@ -895,7 +898,7 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         error = nil
         isPaused = false
         workoutTime = 0
-        restTimer = nil
+        resetWorkoutTimers()
         workoutIntervals = []
         hasSubscription = true  // Reset to true until we know otherwise
 

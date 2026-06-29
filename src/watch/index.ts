@@ -1032,6 +1032,7 @@ class LiftosaurWatch {
           completedRepsLeft: undefined,
           completedRpe: undefined,
           completedWeight: undefined,
+          isCompleted: false,
         };
       }
       return { ...set, completedSetTimer: seconds };
