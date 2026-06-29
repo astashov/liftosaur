@@ -657,6 +657,9 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
     }
 
     func playSetTimerEndSound() {
+        // Haptic fires regardless of volume (it's separate from the sound), like the rest-timer cue, so the
+        // set→rest transition is still felt when muted.
+        WKInterfaceDevice.current().play(.notification)
         playSound(resource: "set-timer-end")
     }
 

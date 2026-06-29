@@ -345,6 +345,10 @@ const mainConfig = {
         to: `notification.m4r`,
       },
       {
+        from: `src/set-timer-end.m4r`,
+        to: `set-timer-end.m4r`,
+      },
+      {
         from: "icons",
         to: "icons",
       },

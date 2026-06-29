@@ -157,7 +157,7 @@ class LiftosaurTimerModule(reactContext: ReactApplicationContext) :
         }
     }
 
-    override fun playSound(volume: Double, vibration: Boolean, promise: Promise) {
+    override fun playSound(volume: Double, vibration: Boolean, sound: String, promise: Promise) {
         try {
             if (volume <= 0 && !vibration) {
                 promise.resolve(null)
@@ -191,7 +191,8 @@ class LiftosaurTimerModule(reactContext: ReactApplicationContext) :
                         .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                         .build()
                 )
-                ctx.resources.openRawResourceFd(R.raw.notif)?.use { afd ->
+                val rawId = if (sound == "set-timer-end") R.raw.set_timer_end else R.raw.notif
+                ctx.resources.openRawResourceFd(rawId)?.use { afd ->
                     player.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
                 } ?: run {
                     player.release()

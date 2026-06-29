@@ -1243,26 +1243,6 @@ struct SetContentView: View {
     @ViewBuilder
     private var targetInfoView: some View {
         VStack(alignment: .leading, spacing: 1) {
-            // The recorded set-timer duration for a timed set. Sits in the measured target area so the fields
-            // above automatically shrink to make room (see measuredTargetHeight in body).
-            if let recorded = workoutSet.completedSetTimer {
-                HStack(spacing: 0) {
-                    Text("Time: ")
-                        .foregroundColor(.secondary)
-                    Text(formatMMSS(recorded))
-                        .foregroundColor(LiftosaurColor.purple400)
-                        .fontWeight(.bold)
-                    Image(systemName: "pencil")
-                        .font(.system(size: 9))
-                        .foregroundColor(LiftosaurColor.textSecondary)
-                        .padding(.leading, 3)
-                }
-                .font(.system(size: 11))
-                .lineLimit(1)
-                .contentShape(Rectangle())
-                .onTapGesture { showTimeEdit = true }
-            }
-
             ColoredTargetInfoView(setInfo: workoutSet, isWarmup: workoutSet.isWarmup, useOriginalWeight: true)
                 .font(.system(size: 11))
 
@@ -1278,6 +1258,15 @@ struct SetContentView: View {
                         .foregroundColor(LiftosaurColor.textPrimary)
                         .fontWeight(.bold)
                 }
+                // The recorded set-timer duration rides at the trailing edge of the plates line instead of its
+                // own row, so it doesn't squish the reps/weight fields on compact watches. Tap anywhere in this
+                // area to edit it.
+                if let recorded = workoutSet.completedSetTimer {
+                    Spacer(minLength: 6)
+                    Text(formatMMSS(recorded))
+                        .foregroundColor(LiftosaurColor.purple400)
+                        .fontWeight(.bold)
+                }
             }
             .font(.system(size: 11))
             .lineLimit(1)
@@ -1285,6 +1274,12 @@ struct SetContentView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 2)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if workoutSet.setTimer != nil || workoutSet.completedSetTimer != nil {
+                showTimeEdit = true
+            }
+        }
     }
 
     private func formatMMSS(_ seconds: Int) -> String {

@@ -30,8 +30,8 @@ export function NativeTimerBridge_stopTimer(): void {
   NativeLiftosaurTimer.stopTimer().catch(() => {});
 }
 
-export function NativeTimerBridge_playSound(volume: number, vibration: boolean): boolean {
-  NativeLiftosaurTimer.playSound(volume, vibration).catch(() => {});
+export function NativeTimerBridge_playSound(volume: number, vibration: boolean, sound: string): boolean {
+  NativeLiftosaurTimer.playSound(volume, vibration, sound).catch(() => {});
   return true;
 }
 

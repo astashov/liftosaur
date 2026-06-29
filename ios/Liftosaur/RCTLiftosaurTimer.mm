@@ -65,9 +65,10 @@ RCT_EXPORT_MODULE(LiftosaurTimer)
 
 - (void)playSound:(double)volume
         vibration:(BOOL)vibration
+            sound:(NSString *)sound
           resolve:(RCTPromiseResolveBlock)resolve
            reject:(RCTPromiseRejectBlock)reject {
-  [[LiftosaurTimerImpl shared] playSoundWithVolume:volume vibration:vibration];
+  [[LiftosaurTimerImpl shared] playSoundWithVolume:volume vibration:vibration sound:sound];
   resolve(nil);
 }
 

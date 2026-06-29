@@ -34,10 +34,10 @@ export function NativeTimerBridge_stopTimer(): void {
   SendMessage_toAndroid({ type: "stopTimer" });
 }
 
-export function NativeTimerBridge_playSound(volume: number, vibration: boolean): boolean {
+export function NativeTimerBridge_playSound(volume: number, vibration: boolean, sound: string): boolean {
   return (
-    SendMessage_toIos({ type: "playSound", volume: `${volume}`, vibration: vibration ? "true" : "false" }) ||
-    SendMessage_toAndroid({ type: "playSound", volume: `${volume}`, vibration: vibration ? "true" : "false" })
+    SendMessage_toIos({ type: "playSound", volume: `${volume}`, vibration: vibration ? "true" : "false", sound }) ||
+    SendMessage_toAndroid({ type: "playSound", volume: `${volume}`, vibration: vibration ? "true" : "false", sound })
   );
 }
 

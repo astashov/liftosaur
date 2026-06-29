@@ -17,7 +17,6 @@
 		326EEB1E8DD314E2E32D357B /* RCTFastTextView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 839BEAD642ED44672AEE54D7 /* RCTFastTextView.mm */; };
 		3A606C432FAB8D1800799977 /* Store.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 3A606C422FAB8D1800799977 /* Store.storekit */; };
 		3A6705F72FCD20D60023C017 /* notification.m4r in Resources */ = {isa = PBXBuildFile; fileRef = 3A6705F62FCD20D60023C017 /* notification.m4r */; };
-		3ABEEF0100000000000000C2 /* set-timer-end.m4r in Resources */ = {isa = PBXBuildFile; fileRef = 3ABEEF0100000000000000C1 /* set-timer-end.m4r */; };
 		3AACC4F92FB2A15D001C68AA /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AACC4F82FB2A15D001C68AA /* WidgetKit.framework */; };
 		3AACC4FB2FB2A15D001C68AA /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AACC4FA2FB2A15D001C68AA /* SwiftUI.framework */; };
 		3AACC5082FB2A15E001C68AA /* LiftosaurWorkoutWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3AACC4F72FB2A15D001C68AA /* LiftosaurWorkoutWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -80,8 +79,6 @@
 		3AACC5FA2FB3526B001C68AA /* AmrapModalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5DB2FB3526B001C68AA /* AmrapModalView.swift */; };
 		3AACC5FB2FB3526B001C68AA /* WatchEventManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5D22FB3526B001C68AA /* WatchEventManager.swift */; };
 		3AACC5FC2FB3526B001C68AA /* RestTimerScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5E12FB3526B001C68AA /* RestTimerScreen.swift */; };
-		3ABEEF0100000000000000A2 /* SetTimerScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ABEEF0100000000000000A1 /* SetTimerScreen.swift */; };
-		3ABEEF0100000000000000B2 /* SetTimerEditScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ABEEF0100000000000000B1 /* SetTimerEditScreen.swift */; };
 		3AACC5FD2FB3526B001C68AA /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5E72FB3526B001C68AA /* ContentView.swift */; };
 		3AACC5FE2FB3526B001C68AA /* ExerciseScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5DC2FB3526B001C68AA /* ExerciseScreen.swift */; };
 		3AACC5FF2FB3526B001C68AA /* FinishWorkoutScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC5DD2FB3526B001C68AA /* FinishWorkoutScreen.swift */; };
@@ -112,6 +109,10 @@
 		3AACC62A2FB35D68001C68AA /* Logger+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC6122FB355BA001C68AA /* Logger+Extension.swift */; };
 		3AACC62B2FB35DA2001C68AA /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC61D2FB35653001C68AA /* Settings.swift */; };
 		3AACC62C2FB35DA3001C68AA /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC61D2FB35653001C68AA /* Settings.swift */; };
+		3ABEEF0100000000000000A2 /* SetTimerScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ABEEF0100000000000000A1 /* SetTimerScreen.swift */; };
+		3ABEEF0100000000000000B2 /* SetTimerEditScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ABEEF0100000000000000B1 /* SetTimerEditScreen.swift */; };
+		3ABEEF0100000000000000C2 /* set-timer-end.m4r in Resources */ = {isa = PBXBuildFile; fileRef = 3ABEEF0100000000000000C1 /* set-timer-end.m4r */; };
+		3ABEEF0100000000000000D2 /* set-timer-end.m4r in Resources */ = {isa = PBXBuildFile; fileRef = 3ABEEF0100000000000000D1 /* set-timer-end.m4r */; };
 		438B6645A9C600CDF5BC2E07 /* RCTLiftosaurShare.mm in Sources */ = {isa = PBXBuildFile; fileRef = 6932EE9394B77D111CEA7C57 /* RCTLiftosaurShare.mm */; };
 		4595B7D1B70E4BDEB49B3E2F /* Iosevka-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1A72802BA6B84B4A91C55832 /* Iosevka-Regular.ttf */; };
 		52AA6CA5D70F4173BBE269EC /* Iosevka-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1A72802BA6B84B4A91C55832 /* Iosevka-Regular.ttf */; };
@@ -218,7 +219,6 @@
 		2E2DCE34013D967839DD9676 /* RCTFastTextRegistrar.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = RCTFastTextRegistrar.h; path = Liftosaur/FastText/RCTFastTextRegistrar.h; sourceTree = "<group>"; };
 		3A606C422FAB8D1800799977 /* Store.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Store.storekit; sourceTree = "<group>"; };
 		3A6705F62FCD20D60023C017 /* notification.m4r */ = {isa = PBXFileReference; lastKnownFileType = file; path = notification.m4r; sourceTree = "<group>"; };
-		3ABEEF0100000000000000C1 /* set-timer-end.m4r */ = {isa = PBXFileReference; lastKnownFileType = file; path = "set-timer-end.m4r"; sourceTree = "<group>"; };
 		3AACC4F72FB2A15D001C68AA /* LiftosaurWorkoutWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = LiftosaurWorkoutWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		3AACC4F82FB2A15D001C68AA /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		3AACC4FA2FB2A15D001C68AA /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -272,8 +272,6 @@
 		3AACC5DF2FB3526B001C68AA /* HomeScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeScreen.swift; sourceTree = "<group>"; };
 		3AACC5E02FB3526B001C68AA /* PremiumRequiredScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PremiumRequiredScreen.swift; sourceTree = "<group>"; };
 		3AACC5E12FB3526B001C68AA /* RestTimerScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RestTimerScreen.swift; sourceTree = "<group>"; };
-		3ABEEF0100000000000000A1 /* SetTimerScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetTimerScreen.swift; sourceTree = "<group>"; };
-		3ABEEF0100000000000000B1 /* SetTimerEditScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetTimerEditScreen.swift; sourceTree = "<group>"; };
 		3AACC5E22FB3526B001C68AA /* ScrollableInputFields.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollableInputFields.swift; sourceTree = "<group>"; };
 		3AACC5E32FB3526B001C68AA /* WorkoutCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutCardView.swift; sourceTree = "<group>"; };
 		3AACC5E42FB3526B001C68AA /* WorkoutExercisesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutExercisesScreen.swift; sourceTree = "<group>"; };
@@ -295,6 +293,10 @@
 		3AACC6242FB35CFD001C68AA /* LiftosaurWatchImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LiftosaurWatchImpl.swift; path = Liftosaur/LiftosaurWatchImpl.swift; sourceTree = "<group>"; };
 		3AACC6252FB35CFD001C68AA /* RCTLiftosaurWatch.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTLiftosaurWatch.h; path = Liftosaur/RCTLiftosaurWatch.h; sourceTree = "<group>"; };
 		3AACC6262FB35CFD001C68AA /* RCTLiftosaurWatch.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTLiftosaurWatch.mm; path = Liftosaur/RCTLiftosaurWatch.mm; sourceTree = "<group>"; };
+		3ABEEF0100000000000000A1 /* SetTimerScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetTimerScreen.swift; sourceTree = "<group>"; };
+		3ABEEF0100000000000000B1 /* SetTimerEditScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetTimerEditScreen.swift; sourceTree = "<group>"; };
+		3ABEEF0100000000000000C1 /* set-timer-end.m4r */ = {isa = PBXFileReference; lastKnownFileType = file; path = "set-timer-end.m4r"; sourceTree = "<group>"; };
+		3ABEEF0100000000000000D1 /* set-timer-end.m4r */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file; name = "set-timer-end.m4r"; path = "Liftosaur/set-timer-end.m4r"; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-Liftosaur.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Liftosaur.debug.xcconfig"; path = "Target Support Files/Pods-Liftosaur/Pods-Liftosaur.debug.xcconfig"; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-Liftosaur.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Liftosaur.release.xcconfig"; path = "Target Support Files/Pods-Liftosaur/Pods-Liftosaur.release.xcconfig"; sourceTree = "<group>"; };
 		682B1C3E13634AA59A78E2F9 /* Poppins-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Poppins-Regular.ttf"; path = "../assets/fonts/Poppins-Regular.ttf"; sourceTree = "<group>"; };
@@ -418,6 +420,7 @@
 				EE0041000000000000000041 /* RCTLftUpdater.mm */,
 				EE0043000000000000000043 /* LftUpdater.swift */,
 				91FAA5A7B2D2A2141783C9C5 /* notification.m4r */,
+				3ABEEF0100000000000000D1 /* set-timer-end.m4r */,
 				CAF0000000000000000000F1 /* notification.caf */,
 				EE0045000000000000000045 /* LftUpdaterPath.swift */,
 				2970733CBB5FA79134CD53EE /* FastTextShadowNode.h */,
@@ -780,6 +783,7 @@
 				EE0021000000000000000021 /* codesigning.pem in Resources */,
 				3A606C432FAB8D1800799977 /* Store.storekit in Resources */,
 				12F317DBE89387792B8C2788 /* notification.m4r in Resources */,
+				3ABEEF0100000000000000D2 /* set-timer-end.m4r in Resources */,
 				CAF0000000000000000000B1 /* notification.caf in Resources */,
 				3AACC5532FB2C941001C68AA /* Poppins-MediumItalic.ttf in Resources */,
 				3AACC5542FB2C941001C68AA /* Poppins-Black.ttf in Resources */,

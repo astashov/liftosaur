@@ -886,9 +886,18 @@ export function Thunk_checkSetTimer(): IThunk {
     if (!progress || !Progress_isSetTimerCheckDue(progress, Date.now())) {
       return;
     }
+    const hadSetTimer = progress.setTimer != null;
     const entryIndex = progress.setTimer?.entryIndex ?? progress.timerEntryIndex;
     const { programExercise, otherStates } = resolveTimedSetProgramContext(state, progress, entryIndex);
     dispatch({ type: "CheckSetTimerAction", programExercise, otherStates });
+    // The set timer just closed — into rest, into an AMRAP prompt, or ended (an EMOM that rolls straight to
+    // the next set keeps setTimer, so it stays silent, matching the watch). Play the set→rest cue.
+    const after = Progress_getProgress(getState());
+    const setTimerClosed = hadSetTimer && (after?.setTimer == null || after?.amrapModal != null);
+    if (setTimerClosed && getState().adminKey == null) {
+      const settings = getState().storage.settings;
+      env.audio.play(settings.volume, !!settings.vibration, "set-timer-end");
+    }
     // The predicate above guarantees the model just advanced (auto work timer hit target, or auto rest
     // expired → next set timer). Re-push so the live activity/live update follows along — otherwise an
     // in-app poll advances the UI while the lock-screen stays on the expired rest until the next update.

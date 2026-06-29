@@ -33,7 +33,7 @@ export interface Spec extends TurboModule {
   scheduleReminder(duration: number, title: string, body: string): Promise<LiftosaurTimerStartResult>;
   cancelReminder(): Promise<void>;
 
-  playSound(volume: number, vibration: boolean): Promise<void>;
+  playSound(volume: number, vibration: boolean, sound: string): Promise<void>;
 
   getNotificationPermission(): Promise<LiftosaurTimerPermissionStatus>;
   requestNotificationPermission(): Promise<LiftosaurTimerPermissionStatus>;
