@@ -72,11 +72,11 @@ interface IWorkoutViewProps {
 
 function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
   usePerfRenderCount("Workout");
-  const selectedEntry = props.progress.entries[props.progress.ui?.currentEntryIndex ?? 0];
+  const selectedEntry = props.progress.entries[props.progress.currentEntryIndex ?? 0];
   const description = props.programDay?.description;
   const forceUpdateEntryIndex = !!props.progress.ui?.forceUpdateEntryIndex;
   const { width: windowWidth } = useWindowDimensions();
-  const currentEntryIndex = props.progress.ui?.currentEntryIndex ?? 0;
+  const currentEntryIndex = props.progress.currentEntryIndex ?? 0;
   const [enableReorder, setEnableReorder] = useState(false);
 
   const [renderedIndices, setRenderedIndices] = useState<ReadonlySet<number>>(() => {
@@ -133,7 +133,7 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
       if (!isExternal) {
         updateProgress(
           dispatch,
-          lb<IHistoryRecord>().pi("ui", {}).p("currentEntryIndex").record(selectedIndex),
+          lb<IHistoryRecord>().p("currentEntryIndex").record(selectedIndex),
           "scroll-exercise-tab"
         );
       } else {
@@ -158,7 +158,7 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
       updateProgress(
         dispatch,
         [
-          lb<IHistoryRecord>().pi("ui", {}).p("currentEntryIndex").record(entryIndex),
+          lb<IHistoryRecord>().p("currentEntryIndex").record(entryIndex),
           lb<IHistoryRecord>()
             .pi("ui", {})
             .p("forceUpdateEntryIndex")
@@ -559,7 +559,7 @@ function WorkoutThumbnailsStripInner(props: IWorkoutThumbnailsStripProps): JSX.E
   const colorToSupersetGroup = useEqual(
     useMemo(() => Progress_getColorToSupersetGroup(props.progress), [props.progress])
   );
-  const currentEntryIndex = props.progress.ui?.currentEntryIndex ?? 0;
+  const currentEntryIndex = props.progress.currentEntryIndex ?? 0;
   const currentSuperset = props.progress.entries[currentEntryIndex]?.superset;
   const thumbScrollerRef = useRef<IScrollerHandle>(null);
   const prevEntriesLengthRef = useRef(props.progress.entries.length);

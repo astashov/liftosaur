@@ -1,4 +1,4 @@
-import { JSX, useEffect } from "react";
+import { JSX, useEffect, useRef } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
@@ -69,6 +69,15 @@ export function NavModalAmrap(): JSX.Element {
       Program_getFirstProgramExercise(evaluatedProgram, entry?.programExerciseId)
     : undefined;
 
+  const didGoBackRef = useRef(false);
+  const goBackOnce = (): void => {
+    if (didGoBackRef.current) {
+      return;
+    }
+    didGoBackRef.current = true;
+    navigation.goBack();
+  };
+
   const onClose = (): void => {
     modalDispatch({
       type: "ChangeAMRAPAction",
@@ -89,13 +98,15 @@ export function NavModalAmrap(): JSX.Element {
     if (!isPlayground) {
       Progress_forceUpdateEntryIndex(dispatch);
     }
-    navigation.goBack();
+    goBackOnce();
   };
 
-  const shouldGoBack = !progress;
+  // Also dismiss when the synced amrapModal clears — e.g. the same prompt was answered on the watch. Playground
+  // progress has no amrapModal field, so only gate on it for the workout context.
+  const shouldGoBack = !progress || (context === "workout" && progress.amrapModal == null);
   useEffect(() => {
     if (shouldGoBack) {
-      navigation.goBack();
+      goBackOnce();
     }
   }, [shouldGoBack]);
 
@@ -118,7 +129,7 @@ export function NavModalAmrap(): JSX.Element {
             if (!isPlayground) {
               Progress_forceUpdateEntryIndex(dispatch);
             }
-            navigation.goBack();
+            goBackOnce();
           }}
         />
       </FormSheet>

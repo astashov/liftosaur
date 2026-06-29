@@ -3,7 +3,7 @@ import { View } from "react-native";
 import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
 import { Modal } from "./modal";
-import { IHistoryRecord, IPercentage, IProgressUi, IProgramState, ISettings, IWeight } from "../types";
+import { IHistoryRecord, IPercentage, IProgramState, ISettings, IWeight } from "../types";
 import { GroupHeader } from "./groupHeader";
 import { ObjectUtils_keys } from "../utils/object";
 import { Weight_build, Weight_is, Weight_isPct, Weight_buildPct } from "../models/weight";
@@ -29,7 +29,7 @@ interface IModalAmrapProps {
 }
 
 export function ModalAmrap(props: IModalAmrapProps): JSX.Element {
-  const amrapModal = props.progress?.ui?.amrapModal;
+  const amrapModal = props.progress?.amrapModal;
   return (
     <Modal maxWidth="480px" isHidden={!amrapModal} isFullWidth={true} shouldShowClose={true} onClose={props.onDone}>
       {amrapModal && (
@@ -53,7 +53,7 @@ interface IModalAmrapContentProps {
   dispatch: IDispatch;
   isPlayground: boolean;
   settings: ISettings;
-  amrapModal: NonNullable<IProgressUi["amrapModal"]>;
+  amrapModal: NonNullable<IHistoryRecord["amrapModal"]>;
   programExercise?: IPlannerProgramExercise;
   otherStates?: IByExercise<IProgramState>;
   onDone?: () => void;

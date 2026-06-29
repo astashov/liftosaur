@@ -45,7 +45,7 @@ export const ProgramPreviewPlaygroundDay = memo((props: IProgramPreviewPlaygroun
   const handleFinish = useCallback(() => onFinish(weekIndex, dayIndex), [onFinish, weekIndex, dayIndex]);
 
   const programDay = Program_getProgramDay(props.program, props.day)!;
-  const index = props.progress.ui?.currentEntryIndex ?? 0;
+  const index = props.progress.currentEntryIndex ?? 0;
   const entry = props.progress.entries[index];
   const dayExercises = programDay ? Program_getProgramDayUsedExercises(programDay) : [];
   const programExercises = props.isPlayground
@@ -126,15 +126,11 @@ function PreviewListOfExercises(props: IPreviewListOfExercisesProps): JSX.Elemen
   const dispatch = props.dispatch;
   const onSelect = useCallback(
     (entryIndex: number) => {
-      updateProgress(
-        dispatch,
-        [lb<IHistoryRecord>().pi("ui", {}).p("currentEntryIndex").record(entryIndex)],
-        "click-exercise-tab"
-      );
+      updateProgress(dispatch, [lb<IHistoryRecord>().p("currentEntryIndex").record(entryIndex)], "click-exercise-tab");
     },
     [dispatch]
   );
-  const currentIdx = props.progress.ui?.currentEntryIndex ?? 0;
+  const currentIdx = props.progress.currentEntryIndex ?? 0;
   const currentSuperset = props.progress.entries[currentIdx]?.superset;
   return (
     <Scroller>

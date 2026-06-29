@@ -3,7 +3,7 @@ import type {
   IDayData,
   IEquipment,
   IExerciseType,
-  IProgressUi,
+  IHistoryRecord,
   IScreenMuscle,
   IShortDayData,
   IStatsKey,
@@ -86,7 +86,7 @@ export type IRootStackParamList = {
   onboarding: NavigatorScreenParams<IOnboardingStackParamList>;
   mainTabs: NavigatorScreenParams<IRootTabParamList>;
   subscription: undefined;
-  amrapModal: NonNullable<IProgressUi["amrapModal"]> &
+  amrapModal: NonNullable<IHistoryRecord["amrapModal"]> &
     ({ context: "workout"; progressId: number } | { context: "playground"; weekIndex: number; dayIndex: number });
   exercisePickerModal: { progressId: number };
   editProgramExercisePickerModal: {

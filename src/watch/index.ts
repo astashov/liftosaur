@@ -87,6 +87,7 @@ export interface IWatchHistoryRecord {
   dayName: string;
   programName: string;
   exercises: IWatchHistoryEntry[];
+  currentEntryIndex: number;
 }
 
 export interface IWatchHistoryEntry {
@@ -473,6 +474,7 @@ class LiftosaurWatch {
       dayName: historyRecord.dayName,
       programName: historyRecord.programName,
       exercises,
+      currentEntryIndex: historyRecord.currentEntryIndex ?? 0,
     };
   }
 
@@ -737,8 +739,8 @@ class LiftosaurWatch {
       if (!progress) {
         return { success: false, error: "No active workout" };
       }
-      if (progress.ui?.amrapModal) {
-        progress = { ...progress, ui: { ...progress.ui, amrapModal: undefined } };
+      if (progress.amrapModal) {
+        progress = { ...progress, amrapModal: undefined };
       }
       const entry = progress.entries[entryIndex];
       if (!entry) {
@@ -832,7 +834,7 @@ class LiftosaurWatch {
       // A timed AMRAP set keeps progress.setTimer set behind the amrap modal (see Progress_proceedAfterTimedSet);
       // yield to the amrap screen here like the in-app banner does, then re-present after it resolves (keep) or
       // stay gone (record).
-      if (!stm || progress.ui?.amrapModal != null) {
+      if (!stm || progress.amrapModal != null) {
         return { success: true, data: undefined };
       }
       const entry = progress.entries[stm.entryIndex];
@@ -1036,6 +1038,23 @@ class LiftosaurWatch {
     });
   }
 
+  // The shown exercise, synced so the phone follows the watch (and vice versa). No-op when unchanged so a
+  // cursor move that merely reflects an incoming sync doesn't re-broadcast.
+  public static setCurrentEntryIndex(storageJson: string, deviceId: string, entryIndex: number): string {
+    return this.modifyStorage(storageJson, deviceId, (storage) => {
+      const progress = storage.progress?.[0];
+      if (!progress) {
+        return { success: false, error: "No active workout" };
+      }
+      if ((progress.currentEntryIndex ?? 0) === entryIndex) {
+        return { success: true, data: storage };
+      }
+      const newProgress: IHistoryRecord = { ...progress, currentEntryIndex: entryIndex };
+      const newStorage: IStorage = { ...storage, progress: [newProgress] };
+      return { success: true, data: newStorage };
+    });
+  }
+
   public static getNextEntryAndSetIndex(storageJson: string, entryIndex: number, setIndex: number): string {
     return this.getStorage<{ entryIndex: number; setIndex: number } | undefined>(storageJson, (storage) => {
       const progress = storage.progress?.[0];
@@ -1135,7 +1154,7 @@ class LiftosaurWatch {
         return { success: true, data: undefined };
       }
 
-      const modalData = progress.ui?.amrapModal;
+      const modalData = progress.amrapModal;
       if (!modalData) {
         return { success: true, data: undefined };
       }
@@ -1227,7 +1246,7 @@ class LiftosaurWatch {
         return { success: false, error: "No active workout" };
       }
 
-      const modalData = progress.ui?.amrapModal;
+      const modalData = progress.amrapModal;
       if (!modalData) {
         return { success: false, error: "No amrap modal data" };
       }

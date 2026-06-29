@@ -34,7 +34,7 @@ export function WebWorkoutModals(props: IWebWorkoutModalsProps): JSX.Element {
 
   return (
     <>
-      {props.progress.ui?.amrapModal && (
+      {props.progress.amrapModal && (
         <ModalAmrap
           isPlayground={true}
           progress={props.progress}
@@ -43,7 +43,7 @@ export function WebWorkoutModals(props: IWebWorkoutModalsProps): JSX.Element {
           programExercise={Program_getProgramExercise(
             props.day,
             props.program,
-            props.progress.entries[props.progress.ui?.amrapModal?.entryIndex || 0]?.programExerciseId
+            props.progress.entries[props.progress.amrapModal?.entryIndex || 0]?.programExerciseId
           )}
           otherStates={props.program.states}
         />

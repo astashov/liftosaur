@@ -438,6 +438,18 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         await loadActiveWorkout()
     }
 
+    // Persist + sync the shown exercise so the phone follows the watch. No reload: the cursor is the view's
+    // source of truth, and the JS side no-ops when unchanged so a cursor move that merely reflects an incoming
+    // remote change doesn't loop back.
+    func setCurrentEntryIndex(_ entryIndex: Int) async {
+        _ = await withStorageMutation(
+            operation: { engine, storageJson, deviceId in
+                await engine.setCurrentEntryIndex(storageJson: storageJson, deviceId: deviceId, entryIndex: entryIndex)
+            },
+            operationName: "set current entry index"
+        )
+    }
+
     func getNextEntryAndSetIndex(entryIndex: Int, setIndex: Int) async -> WatchNextEntryAndSetIndex? {
         await withStorageSilentOptional { engine, storageJson in
             await engine.getNextEntryAndSetIndex(storageJson: storageJson, entryIndex: entryIndex, setIndex: setIndex)

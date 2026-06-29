@@ -10,6 +10,7 @@ struct WatchWorkout: Codable, Equatable {
     let dayName: String
     let programName: String
     let exercises: [WatchExercise]
+    let currentEntryIndex: Int
 }
 
 struct WatchExercise: Codable, Identifiable, Equatable {

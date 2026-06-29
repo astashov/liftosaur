@@ -837,15 +837,6 @@ export const VExercisePickerState: v.GenericSchema<IExercisePickerState> = _VExe
 export interface IProgressUi {
   vtype?: "progress_ui";
   id?: string;
-  amrapModal?: {
-    entryIndex: number;
-    setIndex: number;
-    isAmrap?: boolean;
-    logRpe?: boolean;
-    askWeight?: boolean;
-    userVars?: boolean;
-    nonce?: number;
-  };
   editModal?: {
     programExerciseId: string;
     entryIndex: number;
@@ -875,7 +866,6 @@ export interface IProgressUi {
     entryIndex: number;
   };
   entryIndexEditMode?: number;
-  currentEntryIndex?: number;
   showSupersetPicker?: IHistoryEntry;
   forceUpdateEntryIndex?: boolean;
   isExternal?: boolean;
@@ -884,17 +874,6 @@ export interface IProgressUi {
 const _VProgressUi = v.object({
   vtype: v.optional(v.literal("progress_ui")),
   id: v.optional(v.string()),
-  amrapModal: v.optional(
-    v.object({
-      entryIndex: v.number(),
-      setIndex: v.number(),
-      isAmrap: v.optional(v.boolean()),
-      logRpe: v.optional(v.boolean()),
-      askWeight: v.optional(v.boolean()),
-      userVars: v.optional(v.boolean()),
-      nonce: v.optional(v.number()),
-    })
-  ),
   editModal: v.optional(
     v.object({
       programExerciseId: v.string(),
@@ -938,7 +917,6 @@ const _VProgressUi = v.object({
     })
   ),
   entryIndexEditMode: v.optional(v.number()),
-  currentEntryIndex: v.optional(v.number()),
   showSupersetPicker: v.optional(v.lazy(() => VHistoryEntry)),
   forceUpdateEntryIndex: v.optional(v.boolean()),
   isExternal: v.optional(v.boolean()),
@@ -984,6 +962,21 @@ export interface IHistoryRecord {
     nonce?: number;
     keepTiming?: boolean;
   };
+  // Lives on the record (not under `ui`) so it's version-tracked and syncs across devices like setTimer — an
+  // AMRAP prompt opened on the watch shows in the app and vice versa, and resolving it on either device
+  // dismisses it on both. `nonce` drives re-presenting the modal.
+  amrapModal?: {
+    entryIndex: number;
+    setIndex: number;
+    isAmrap?: boolean;
+    logRpe?: boolean;
+    askWeight?: boolean;
+    userVars?: boolean;
+    nonce?: number;
+  };
+  // The exercise the workout screen is scrolled to. Lives on the record (not under `ui`) so it version-syncs
+  // across devices — auto-advancing past an exercise (EMOM/Tabata) on one client moves the others too.
+  currentEntryIndex?: number;
   notes?: string;
   updatedAt?: number;
 }
@@ -1019,6 +1012,18 @@ const _VHistoryRecord = v.object({
       keepTiming: v.optional(v.boolean()),
     })
   ),
+  amrapModal: v.optional(
+    v.object({
+      entryIndex: v.number(),
+      setIndex: v.number(),
+      isAmrap: v.optional(v.boolean()),
+      logRpe: v.optional(v.boolean()),
+      askWeight: v.optional(v.boolean()),
+      userVars: v.optional(v.boolean()),
+      nonce: v.optional(v.number()),
+    })
+  ),
+  currentEntryIndex: v.optional(v.number()),
   notes: v.optional(v.string()),
   updatedAt: v.optional(v.number()),
 });
@@ -1826,6 +1831,8 @@ export const CONTROLLED_FIELDS: Record<IControlledType, readonly string[]> = {
     "timerEntryIndex",
     "timerSetIndex",
     "setTimer",
+    "amrapModal",
+    "currentEntryIndex",
   ] as const,
   history_entry: [
     "exercise",

@@ -131,7 +131,7 @@ export function NavModalExercisePicker(): JSX.Element {
                       );
                       return [...entries, nextHistoryEntry].map((e, i) => ({ ...e, index: i }));
                     }),
-                  lb<IHistoryRecord>().pi("ui", {}).p("currentEntryIndex").record(newEntryIndex),
+                  lb<IHistoryRecord>().p("currentEntryIndex").record(newEntryIndex),
                 ],
                 "add-exercise"
               );

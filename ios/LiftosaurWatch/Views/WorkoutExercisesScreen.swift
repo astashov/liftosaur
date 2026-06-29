@@ -226,7 +226,8 @@ struct SetGroup: Identifiable {
                     WatchSet(index: 1, reps: 5, minReps: nil, weight: WatchWeight(value: 45, unit: "lb"), originalWeight: WatchWeight(value: 77.5, unit: "lb"), isAmrap: false, askWeight: nil, rpe: nil, timer: nil, setTimer: nil, label: nil, isCompleted: false, completedReps: nil, completedRepsLeft: nil, completedWeight: nil, completedRpe: nil, completedSetTimer: nil, status: "not-finished", plates: nil, isWarmup: false, isUnilateral: false),
                     WatchSet(index: 2, reps: 5, minReps: nil, weight: WatchWeight(value: 45, unit: "lb"), originalWeight: WatchWeight(value: 77.5, unit: "lb"), isAmrap: false, askWeight: nil, rpe: nil, timer: nil, setTimer: nil, label: nil, isCompleted: false, completedReps: nil, completedRepsLeft: nil, completedWeight: nil, completedRpe: nil, completedSetTimer: nil, status: "not-finished", plates: nil, isWarmup: false, isUnilateral: false)
                 ])
-            ]
+            ],
+            currentEntryIndex: 0
         ),
         isPaused: false,
         workoutTime: 2745,  // 45 minutes 45 seconds

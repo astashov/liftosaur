@@ -195,7 +195,6 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
             return newEntries;
           }),
         lb<IHistoryRecord>()
-          .pi("ui", {})
           .p("currentEntryIndex")
           .recordModify((index) => Math.max(0, (index ?? 0) - 1)),
       ],

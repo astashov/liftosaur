@@ -74,7 +74,7 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
     }
   }, []);
 
-  const amrapModal = progress.ui?.amrapModal;
+  const amrapModal = progress.amrapModal;
   const prevAmrapNonce = useRef<number | undefined>(undefined);
   useEffect(() => {
     if (amrapModal && amrapModal.nonce !== prevAmrapNonce.current) {
@@ -149,7 +149,7 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
   const onPauseResume = useCallback(() => {
     if (History_isPaused(props.progress.intervals)) {
       History_resumeWorkoutAction(dispatch, false, props.settings, Subscriptions_hasSubscription(props.subscription));
-      const currentEntryIndex = props.progress.ui?.currentEntryIndex || 0;
+      const currentEntryIndex = props.progress.currentEntryIndex || 0;
       const currentEntry = props.progress.entries[currentEntryIndex];
       const setIndex = currentEntry ? Reps_findNextSetIndex(currentEntry) : 0;
       dispatch(Thunk_updateLiveActivity(currentEntryIndex, setIndex, props.progress.timer, props.progress.timerSince));

@@ -58,7 +58,6 @@ import {
   IHistoryRecord,
   IProgressMode,
   IExerciseType,
-  IProgressUi,
   IProgramState,
   IEquipment,
   ISubscription,
@@ -766,7 +765,7 @@ export function Progress_maybeApplySuperset(
   const entry = progress.entries[entryIndex];
   const nextEntryIndex = Progress_getNextEntryIndex(progress, entry, mode);
   if (nextEntryIndex != null) {
-    return { ...progress, ui: { ...progress.ui, currentEntryIndex: nextEntryIndex } };
+    return { ...progress, currentEntryIndex: nextEntryIndex };
   }
   return progress;
 }
@@ -1266,7 +1265,8 @@ export function Progress_completeSet(
         };
       });
   } else if (Progress_shouldShowAmrapModal(entry, setIndex, mode, hasUserPromptedVars, settings)) {
-    const amrapUi: IProgressUi = {
+    return {
+      ...progress,
       amrapModal: {
         entryIndex,
         setIndex,
@@ -1277,7 +1277,6 @@ export function Progress_completeSet(
         askWeight: shouldAskWeight,
       },
     };
-    return { ...progress, ui: { ...progress.ui, ...amrapUi } };
   } else {
     return Progress_completeAmrapSet(progress, entryIndex, setIndex, settings);
   }
@@ -1319,6 +1318,10 @@ export function Progress_advanceTimedSet(progress: IHistoryRecord, freshNonce: b
   if (progress.timerSince != null) {
     NativeTimerBridge_stopTimer();
   }
+  // Follow the clock to the next set's exercise so the shown exercise tracks the active set (EMOM/Tabata can
+  // roll into a different exercise). currentEntryIndex syncs, so every client's view moves with it.
+  const nextEntryIndex = next != null ? next.entryIndex : progress.currentEntryIndex;
+  const entryChanged = nextEntryIndex !== (progress.currentEntryIndex ?? 0);
   return {
     ...progress,
     timerSince: undefined,
@@ -1326,8 +1329,11 @@ export function Progress_advanceTimedSet(progress: IHistoryRecord, freshNonce: b
     timerMode: undefined,
     timerEntryIndex: undefined,
     timerSetIndex: undefined,
-    setTimer:
-      next != null ? { ...next, startedAt: Date.now(), nonce: freshNonce ? Date.now() : prevNonce } : undefined,
+    setTimer: next != null ? { ...next, startedAt: Date.now(), nonce: freshNonce ? Date.now() : prevNonce } : undefined,
+    currentEntryIndex: nextEntryIndex,
+    // The pager scrolls on a forceUpdateEntryIndex flip, not on currentEntryIndex alone (so swipes aren't
+    // fought). Flip it when an auto-advance crosses into another exercise so the pager scrolls to follow.
+    ui: entryChanged ? { ...progress.ui, forceUpdateEntryIndex: !progress.ui?.forceUpdateEntryIndex } : progress.ui,
   };
 }
 
@@ -1342,7 +1348,7 @@ export function Progress_proceedAfterTimedSet(
   // AMRAP took over (set isn't completed yet). Keep the set-timer modal open so the amrap modal stacks
   // cleanly on top of it — clearing it here would race the amrap push and pop the wrong screen. The
   // set-timer modal is closed (and rest started) when amrap resolves; see Progress_changeAmrapAction.
-  if (progress.ui?.amrapModal != null) {
+  if (progress.amrapModal != null) {
     return progress;
   }
   const set = progress.entries[entryIndex]?.sets[setIndex];
@@ -1360,8 +1366,7 @@ export function Progress_proceedAfterTimedSet(
     // logged early via "Log & keep timing" keeps that earlier time as its record, but its clock runs on to the
     // target and auto-closes there. So when a non-overflow set reached its target, backdate the rest from the
     // target; only an early "Stop & Record" (clock stopped before the target) backdates from the recorded time.
-    const reachedTarget =
-      startedAt != null && !set.isOverflowSetTimer && Date.now() - startedAt >= set.setTimer * 1000;
+    const reachedTarget = startedAt != null && !set.isOverflowSetTimer && Date.now() - startedAt >= set.setTimer * 1000;
     const restOffsetSeconds = reachedTarget ? set.setTimer : set.completedSetTimer;
     const restSince =
       startedAt != null && restOffsetSeconds != null ? startedAt + restOffsetSeconds * 1000 : Date.now();
@@ -1383,7 +1388,7 @@ export function Progress_closeTimedSet(
   }
   let newProgress: IHistoryRecord = { ...progress, setTimer: undefined };
   const set = newProgress.entries[stm.entryIndex]?.sets[stm.setIndex];
-  if (set?.isCompleted && set.setTimer != null && newProgress.ui?.amrapModal == null) {
+  if (set?.isCompleted && set.setTimer != null && newProgress.amrapModal == null) {
     newProgress = Progress_startTimer(
       newProgress,
       Date.now(),
@@ -1400,7 +1405,7 @@ export function Progress_closeTimedSet(
 // Cheap pure predicate (no program evaluation) telling whether Progress_checkSetTimer would do anything.
 // Lets per-second pollers skip resolving program context + dispatching when nothing is due.
 export function Progress_isSetTimerCheckDue(progress: IHistoryRecord, now: number): boolean {
-  if (progress.ui?.amrapModal != null) {
+  if (progress.amrapModal != null) {
     return false;
   }
   const stm = progress.setTimer;
@@ -1440,7 +1445,7 @@ export function Progress_checkSetTimer(
   nowArg?: number
 ): IHistoryRecord {
   const now = nowArg ?? Date.now();
-  if (progress.ui?.amrapModal != null) {
+  if (progress.amrapModal != null) {
     return progress;
   }
   const stm = progress.setTimer;
@@ -1500,8 +1505,8 @@ export function Progress_getIsMinRepsEnabled(sets: ISet[]): boolean {
 }
 
 export function Progress_updateAmrapRepsInExercise(progress: IHistoryRecord, value?: number): IHistoryRecord {
-  if (progress.ui?.amrapModal != null) {
-    const { entryIndex, setIndex } = progress.ui.amrapModal;
+  if (progress.amrapModal != null) {
+    const { entryIndex, setIndex } = progress.amrapModal;
     return lf(progress).p("entries").i(entryIndex).p("sets").i(setIndex).p("completedReps").set(value);
   } else {
     return progress;
@@ -1509,8 +1514,8 @@ export function Progress_updateAmrapRepsInExercise(progress: IHistoryRecord, val
 }
 
 export function Progress_updateAmrapRepsLeftInExercise(progress: IHistoryRecord, value?: number): IHistoryRecord {
-  if (progress.ui?.amrapModal != null) {
-    const { entryIndex, setIndex } = progress.ui.amrapModal;
+  if (progress.amrapModal != null) {
+    const { entryIndex, setIndex } = progress.amrapModal;
     return lf(progress).p("entries").i(entryIndex).p("sets").i(setIndex).p("completedRepsLeft").set(value);
   } else {
     return progress;
@@ -1518,8 +1523,8 @@ export function Progress_updateAmrapRepsLeftInExercise(progress: IHistoryRecord,
 }
 
 export function Progress_updateRpeInExercise(progress: IHistoryRecord, value?: number): IHistoryRecord {
-  if (progress.ui?.amrapModal != null) {
-    const { entryIndex, setIndex } = progress.ui.amrapModal;
+  if (progress.amrapModal != null) {
+    const { entryIndex, setIndex } = progress.amrapModal;
     const newValue = value != null ? Math.round(Math.min(10, Math.max(0, value)) / 0.5) * 0.5 : undefined;
     return lf(progress).p("entries").i(entryIndex).p("sets").i(setIndex).p("completedRpe").set(newValue);
   } else {
@@ -1528,8 +1533,8 @@ export function Progress_updateRpeInExercise(progress: IHistoryRecord, value?: n
 }
 
 export function Progress_updateWeightInExercise(progress: IHistoryRecord, value?: IWeight): IHistoryRecord {
-  if (progress.ui?.amrapModal != null) {
-    const { entryIndex, setIndex } = progress.ui.amrapModal;
+  if (progress.amrapModal != null) {
+    const { entryIndex, setIndex } = progress.amrapModal;
     return lf(progress).p("entries").i(entryIndex).p("sets").i(setIndex).p("completedWeight").set(value);
   } else {
     return progress;
@@ -1566,7 +1571,7 @@ export function Progress_addExercise(dispatch: IDispatch, exerciseType: IExercis
             index: i,
           }));
         }),
-      lb<IHistoryRecord>().pi("ui", {}).p("currentEntryIndex").record(numberOfEntries),
+      lb<IHistoryRecord>().p("currentEntryIndex").record(numberOfEntries),
     ],
     "add-exercise"
   );
@@ -1796,7 +1801,7 @@ export function Progress_changeAmrapAction(
     action.weightValue == null &&
     ObjectUtils_keys(action.userVars || {}).length === 0
   ) {
-    return { ...newProgress, ui: { ...newProgress.ui, amrapModal: undefined } };
+    return { ...newProgress, amrapModal: undefined };
   }
   if (action.amrapValue != null) {
     newProgress = Progress_updateAmrapRepsInExercise(newProgress, action.amrapValue);
@@ -1870,7 +1875,7 @@ export function Progress_changeAmrapAction(
     settings,
     subscription
   );
-  return { ...newProgress, ui: { ...newProgress.ui, amrapModal: undefined } };
+  return { ...newProgress, amrapModal: undefined };
 }
 
 export function Progress_completeSetAction(
@@ -1967,7 +1972,7 @@ export function Progress_completeSetAction(
     );
     return newProgress;
   }
-  if (action.programExercise && !newProgress.ui?.amrapModal) {
+  if (action.programExercise && !newProgress.amrapModal) {
     newProgress = Progress_runUpdateScript(
       newProgress,
       action.programExercise,
@@ -2012,7 +2017,7 @@ export function Progress_completeSetAction(
   } else if (
     wasSetTimerOpen &&
     action.keepSetTimerRunning &&
-    newProgress.ui?.amrapModal != null &&
+    newProgress.amrapModal != null &&
     newProgress.setTimer != null
   ) {
     // Recorded via "Log & keep timing" and the AMRAP modal opened on top: mark the clock so it survives

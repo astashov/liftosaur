@@ -985,13 +985,16 @@ export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivit
       const wasOnProgressScreen = env.getCurrentScreenData?.()?.name === "progress";
       const hadProgress = state.storage.progress && state.storage.progress.length > 0;
 
-      // Merge watch storage with phone storage
+      // Merge watch storage with phone storage. amrapModal now lives on progress (not progress.ui), so it
+      // version-merges across devices like setTimer — no manual propagation past the `ui` exclusion needed.
       let mergedStorage = Storage_mergeStorage(state.storage, watchStorage, state.deviceId);
 
-      // progress.ui is excluded from version-based merging, so amrapModal set by
-      // live activity mutations gets dropped. Propagate it explicitly.
-      const watchAmrapModal = watchStorage.progress?.[0]?.ui?.amrapModal;
-      if (isLiveActivity && watchAmrapModal && mergedStorage.progress?.[0]) {
+      // currentEntryIndex syncs, but the workout pager only scrolls when forceUpdateEntryIndex (a device-local
+      // ui flag) flips — without this a watch-driven exercise switch highlights the thumbnail but never scrolls
+      // the pager to it. Flip the flag when the merge actually moved the shown exercise.
+      const prevEntryIndex = state.storage.progress?.[0]?.currentEntryIndex ?? 0;
+      const mergedEntryIndex = mergedStorage.progress?.[0]?.currentEntryIndex ?? 0;
+      if (mergedEntryIndex !== prevEntryIndex && mergedStorage.progress?.[0]) {
         mergedStorage = {
           ...mergedStorage,
           progress: [
@@ -999,9 +1002,7 @@ export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivit
               ...mergedStorage.progress[0],
               ui: {
                 ...mergedStorage.progress[0].ui,
-                amrapModal: watchAmrapModal,
-                isExternal: watchStorage.progress[0].ui?.isExternal,
-                forceUpdateEntryIndex: watchStorage.progress[0].ui?.forceUpdateEntryIndex,
+                forceUpdateEntryIndex: !mergedStorage.progress[0].ui?.forceUpdateEntryIndex,
               },
             },
           ],

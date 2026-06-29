@@ -50,7 +50,7 @@ export function SetTimerBannerContent(props: ISetTimerBannerContentProps): JSX.E
 
   // For a timed AMRAP set the amrap modal stacks on top while this modal stays mounted underneath (see
   // Progress_proceedAfterTimedSet). Hide the clock so it isn't visible behind the amrap sheet.
-  if (set == null || entry == null || progress.ui?.amrapModal != null) {
+  if (set == null || entry == null || progress.amrapModal != null) {
     return null;
   }
 

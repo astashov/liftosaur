@@ -149,7 +149,7 @@ export const workoutTourConfig: ITourConfig = {
       dino: "firstworkouttourequipment.png",
       condition: (state) => {
         const progress = Progress_getCurrentProgress(state);
-        const currentEntry = progress?.entries[progress.ui?.currentEntryIndex ?? 0];
+        const currentEntry = progress?.entries[progress.currentEntryIndex ?? 0];
         return currentEntry?.sets.some((w) => !Weight_eqNull(w.originalWeight, w.weight)) || false;
       },
       content: () => (
@@ -193,7 +193,7 @@ export const workoutTourConfig: ITourConfig = {
         if (!program) {
           return false;
         }
-        const entry = progress.entries[progress.ui?.currentEntryIndex ?? 0];
+        const entry = progress.entries[progress.currentEntryIndex ?? 0];
         const isFinished = Reps_isFinished(entry.sets);
         if (!isFinished) {
           return false;

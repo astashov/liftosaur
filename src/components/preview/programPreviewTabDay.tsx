@@ -26,7 +26,7 @@ interface IProgramPreviewTabDayProps {
 
 export const ProgramPreviewTabDay = memo((props: IProgramPreviewTabDayProps): JSX.Element => {
   const programDay = Program_getProgramDay(props.program, props.day)!;
-  const index = props.progress.ui?.currentEntryIndex ?? 0;
+  const index = props.progress.currentEntryIndex ?? 0;
   const programExercises = programDay ? Program_getProgramDayUsedExercises(programDay) : [];
   const visibleExercises = useProgressiveItems(programExercises, {
     initialBatch: 3,

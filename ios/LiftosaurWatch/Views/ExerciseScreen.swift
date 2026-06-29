@@ -306,55 +306,87 @@ struct ExerciseScreen: View {
             }
         }
         .onChange(of: currentExerciseIndex) { _, newValue in
-            selectedField = .none
-            crownExerciseValue = Double(newValue) * kCrownScale + 1.0
+            handleCurrentExerciseIndexChange(newValue)
+        }
+        .onChange(of: workoutManager.activeWorkout?.currentEntryIndex) { _, newIndex in
+            handleRemoteEntryIndexChange(newIndex)
         }
         .onChange(of: workoutManager.activeWorkout) { _, newWorkout in
-            guard let newWorkout = newWorkout else { return }
-            inputValues = newWorkout.exercises.map { exercise in
-                exercise.sets.map { set in
-                    SetInput(
-                        reps: set.completedReps ?? set.reps ?? 0,
-                        repsLeft: set.completedRepsLeft ?? set.reps ?? 0,
-                        weight: set.completedWeight?.value ?? set.weight?.value ?? 0
-                    )
-                }
+            handleActiveWorkoutChange(newWorkout)
+        }
+        .onChange(of: workoutManager.setsCompletedDuringSync) { _, completedSetInfo in
+            handleSetsCompletedDuringSync(completedSetInfo)
+        }
+    }
+
+    // Extracted from `body` to keep the view's modifier chain small enough for the Swift type-checker.
+    @MainActor
+    private func handleCurrentExerciseIndexChange(_ newValue: Int) {
+        selectedField = .none
+        crownExerciseValue = Double(newValue) * kCrownScale + 1.0
+        // Sync the shown exercise to the phone. The engine no-ops when unchanged, so a move that merely
+        // reflects an incoming remote change (handled below) doesn't echo back into a loop.
+        Task { await workoutManager.setCurrentEntryIndex(newValue) }
+    }
+
+    @MainActor
+    private func handleRemoteEntryIndexChange(_ newIndex: Int?) {
+        // The shown exercise changed elsewhere — a switch on the phone, or an auto-advance recorded into
+        // storage — so follow it. Guarded against the value the watch itself just set so it never fights the
+        // local cursor.
+        let exerciseCount = workout?.exercises.count ?? 0
+        guard let newIndex = newIndex, newIndex != currentExerciseIndex, newIndex < exerciseCount else { return }
+        withAnimation { currentExerciseIndex = newIndex }
+    }
+
+    @MainActor
+    private func handleActiveWorkoutChange(_ newWorkout: WatchWorkout?) {
+        guard let newWorkout = newWorkout else { return }
+        inputValues = newWorkout.exercises.map { exercise in
+            exercise.sets.map { set in
+                SetInput(
+                    reps: set.completedReps ?? set.reps ?? 0,
+                    repsLeft: set.completedRepsLeft ?? set.reps ?? 0,
+                    weight: set.completedWeight?.value ?? set.weight?.value ?? 0
+                )
             }
-            if currentSetIndices.count != newWorkout.exercises.count {
-                currentSetIndices = newWorkout.exercises.map { exercise in
-                    exercise.sets.firstIndex(where: { $0.isCompleted != true }) ?? 0
-                }
-            } else {
-                // Clamp currentSetIndices to valid range (e.g., after deleting a set)
-                for i in 0..<currentSetIndices.count {
-                    let maxIndex = max(0, newWorkout.exercises[i].sets.count - 1)
-                    if currentSetIndices[i] > maxIndex {
-                        currentSetIndices[i] = maxIndex
-                    }
+        }
+        if currentSetIndices.count != newWorkout.exercises.count {
+            currentSetIndices = newWorkout.exercises.map { exercise in
+                exercise.sets.firstIndex(where: { $0.isCompleted != true }) ?? 0
+            }
+        } else {
+            // Clamp currentSetIndices to valid range (e.g., after deleting a set)
+            for i in 0..<currentSetIndices.count {
+                let maxIndex = max(0, newWorkout.exercises[i].sets.count - 1)
+                if currentSetIndices[i] > maxIndex {
+                    currentSetIndices[i] = maxIndex
                 }
             }
         }
-        .onChange(of: workoutManager.setsCompletedDuringSync) { _, completedSetInfo in
-            guard let completedSetInfo = completedSetInfo else { return }
-            workoutManager.setsCompletedDuringSync = nil
-            let entryIndex = completedSetInfo.entryIndex
-            let setIndex = completedSetInfo.setIndex
-            Logger.workout.info(" setsCompletedDuringSync: set completed at entry \(entryIndex), set \(setIndex)")
-            Task {
-                if let next = await onGetNextEntryAndSetIndex(entryIndex, setIndex) {
-                    Logger.workout.info(" setsCompletedDuringSync: will navigate to entry \(next.entryIndex), set \(next.setIndex)")
-                    selectedField = .none
-                    withAnimation {
-                        currentExerciseIndex = next.entryIndex
-                        if next.entryIndex < currentSetIndices.count {
-                            currentSetIndices[next.entryIndex] = next.setIndex
-                        }
+    }
+
+    @MainActor
+    private func handleSetsCompletedDuringSync(_ completedSetInfo: CompletedSetInfo?) {
+        guard let completedSetInfo = completedSetInfo else { return }
+        workoutManager.setsCompletedDuringSync = nil
+        let entryIndex = completedSetInfo.entryIndex
+        let setIndex = completedSetInfo.setIndex
+        Logger.workout.info(" setsCompletedDuringSync: set completed at entry \(entryIndex), set \(setIndex)")
+        Task {
+            if let next = await onGetNextEntryAndSetIndex(entryIndex, setIndex) {
+                Logger.workout.info(" setsCompletedDuringSync: will navigate to entry \(next.entryIndex), set \(next.setIndex)")
+                selectedField = .none
+                withAnimation {
+                    currentExerciseIndex = next.entryIndex
+                    if next.entryIndex < currentSetIndices.count {
+                        currentSetIndices[next.entryIndex] = next.setIndex
                     }
-                    Logger.workout.info(" setsCompletedDuringSync: after update - currentExerciseIndex=\(currentExerciseIndex), setIndices=\(currentSetIndices)")
-                } else {
-                    Logger.workout.info(" setsCompletedDuringSync: getNextEntryAndSetIndex returned nil (all sets complete?)")
-                    onAllSetsCompleted()
                 }
+                Logger.workout.info(" setsCompletedDuringSync: after update - currentExerciseIndex=\(currentExerciseIndex), setIndices=\(currentSetIndices)")
+            } else {
+                Logger.workout.info(" setsCompletedDuringSync: getNextEntryAndSetIndex returned nil (all sets complete?)")
+                onAllSetsCompleted()
             }
         }
     }

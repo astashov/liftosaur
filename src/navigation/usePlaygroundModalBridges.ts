@@ -18,16 +18,16 @@ function findActivePlaygroundModal(
   for (let weekIndex = 0; weekIndex < progresses.length; weekIndex++) {
     const week = progresses[weekIndex];
     for (let dayIndex = 0; dayIndex < week.days.length; dayIndex++) {
-      const day = week.days[dayIndex];
-      const ui = day.progress.ui;
-      if (ui?.editSetModal || ui?.amrapModal || ui?.editModal) {
+      const progress = week.days[dayIndex].progress;
+      const ui = progress.ui;
+      if (ui?.editSetModal || progress.amrapModal || ui?.editModal) {
         return {
           weekIndex,
           dayIndex,
           modal: {
-            editSetModal: ui.editSetModal != null,
-            amrapModal: ui.amrapModal != null,
-            editModal: ui.editModal != null,
+            editSetModal: ui?.editSetModal != null,
+            amrapModal: progress.amrapModal != null,
+            editModal: ui?.editModal != null,
           },
         };
       }
@@ -57,7 +57,7 @@ export function usePlaygroundModalBridges(state: IState): void {
   useEffect(() => {
     if (active?.modal.amrapModal && !prevAmrapModal.current) {
       const progress = state.playgroundState?.progresses[active.weekIndex]?.days[active.dayIndex]?.progress;
-      const amrapModal = progress?.ui?.amrapModal;
+      const amrapModal = progress?.amrapModal;
       if (amrapModal) {
         navigateToModal("amrapModal", {
           ...amrapModal,

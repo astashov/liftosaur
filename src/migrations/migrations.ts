@@ -2,7 +2,7 @@ import { CollectionUtils_sort } from "../utils/collection";
 import { Dialog_alert } from "../utils/dialog";
 import { UidFactory_generateUid } from "../utils/generator";
 import { ObjectUtils_clone, ObjectUtils_keys, ObjectUtils_values } from "../utils/object";
-import { IGraph, IMuscle, ISettings, IStorage } from "../types";
+import { IGraph, IHistoryRecord, IMuscle, ISettings, IStorage } from "../types";
 import { Weight_build } from "../models/weight";
 import { PlannerExerciseEvaluator } from "../pages/planner/plannerExerciseEvaluator";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
@@ -382,6 +382,29 @@ export const migrations = {
         if (!entry.id) {
           entry.id = Progress_getEntryId(entry.exercise);
         }
+      }
+    }
+    return storage;
+  },
+  "20260628120000_move_amrap_modal_to_progress": (aStorage: IStorage): IStorage => {
+    const storage: IStorage = JSON.parse(JSON.stringify(aStorage));
+    // amrapModal and currentEntryIndex moved from progress.ui to progress so they version-sync across devices
+    // like setTimer. Carry over the values from a workout left open across the upgrade.
+    for (const record of storage.progress || []) {
+      const legacyUi = record.ui as
+        | undefined
+        | { amrapModal?: IHistoryRecord["amrapModal"]; currentEntryIndex?: number };
+      if (legacyUi?.amrapModal != null) {
+        if (record.amrapModal == null) {
+          record.amrapModal = legacyUi.amrapModal;
+        }
+        delete legacyUi.amrapModal;
+      }
+      if (legacyUi?.currentEntryIndex != null) {
+        if (record.currentEntryIndex == null) {
+          record.currentEntryIndex = legacyUi.currentEntryIndex;
+        }
+        delete legacyUi.currentEntryIndex;
       }
     }
     return storage;
