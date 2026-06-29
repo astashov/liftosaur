@@ -19,7 +19,9 @@ function isSameDisplaySet(a: IDisplaySet, b: IDisplaySet): boolean {
     a.rpe === b.rpe &&
     a.askWeight === b.askWeight &&
     a.timer === b.timer &&
-    a.setTimer === b.setTimer
+    a.setTimer === b.setTimer &&
+    a.isOverflowSetTimer === b.isOverflowSetTimer &&
+    a.auto === b.auto
   );
 }
 
@@ -101,6 +103,7 @@ export const HistoryRecordSet = memo(function HistoryRecordSet(props: IHistoryRe
         : sem.text.error;
   const rpeColor = isNext ? secondary : set.isRpeFailed ? sem.text.error : sem.text.success;
   const timerColor = isNext ? secondary : purple;
+  const autoColor = isNext ? secondary : sem.syntax.auto;
   const dataCy = isNext
     ? "history-entry-sets-next"
     : set.isCompleted
@@ -131,7 +134,17 @@ export const HistoryRecordSet = memo(function HistoryRecordSet(props: IHistoryRe
   }
   if (set.setTimer != null) {
     builder.add(" ");
-    if (set.setTimer < 60) {
+    if (isNext) {
+      builder.add(`${set.setTimer}`, { fontWeight: "600", color: timerColor }, "history-entry-set-timer");
+      builder.add("s", { fontSize: xs, color: timerColor });
+      builder.add(`${set.isOverflowSetTimer ? "+" : ""}|`, { fontWeight: "600", color: timerColor });
+      if (set.timer != null) {
+        builder.add(`${set.timer}`, { fontWeight: "600", color: timerColor }, "history-entry-timer");
+        builder.add("s", { fontSize: xs, color: timerColor });
+      } else {
+        builder.add("?", { fontWeight: "600", color: timerColor });
+      }
+    } else if (set.setTimer < 60) {
       builder.add(`${set.setTimer}`, { fontWeight: "600", color: timerColor }, "history-entry-set-timer");
       builder.add("s", { fontSize: xs, color: timerColor });
     } else {
@@ -141,11 +154,13 @@ export const HistoryRecordSet = memo(function HistoryRecordSet(props: IHistoryRe
         "history-entry-set-timer"
       );
     }
-  }
-  if (set.timer != null) {
+  } else if (set.timer != null) {
     builder.add(" ");
     builder.add(`${set.timer}`, { color: timerColor }, "history-entry-timer");
     builder.add("s", { fontSize: xs, color: timerColor });
+  }
+  if (set.auto) {
+    builder.add(" auto", { color: autoColor }, "history-entry-auto");
   }
   const built = builder.build();
 

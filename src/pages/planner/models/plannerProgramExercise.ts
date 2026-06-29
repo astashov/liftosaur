@@ -321,6 +321,9 @@ export function PlannerProgramExercise_evaluatedSetsToDisplaySets(
       unit,
       askWeight: set.askWeight,
       timer: set.timer,
+      setTimer: set.setTimer,
+      isOverflowSetTimer: set.isOverflowSetTimer,
+      auto: set.auto,
     });
   }
   return Reps_groupDisplaySets(displaySets);
@@ -355,6 +358,9 @@ export function PlannerProgramExercise_setsToDisplaySets(
         unit,
         askWeight: set.askWeight,
         timer: set.timer,
+        setTimer: set.setTimer,
+        isOverflowSetTimer: set.isOverflowSetTimer,
+        auto: set.auto,
       });
     }
   }

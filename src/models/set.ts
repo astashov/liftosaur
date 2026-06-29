@@ -34,6 +34,8 @@ export interface IDisplaySet {
   isInRange?: boolean;
   timer?: number;
   setTimer?: number;
+  isOverflowSetTimer?: boolean;
+  auto?: boolean;
 }
 
 export function Reps_display(sets: ISet[], isNext: boolean = false): string {
@@ -53,7 +55,9 @@ function isSameDisplaySet(a: IDisplaySet, b: IDisplaySet): boolean {
     a.rpe === b.rpe &&
     a.askWeight === b.askWeight &&
     a.timer === b.timer &&
-    a.setTimer === b.setTimer
+    a.setTimer === b.setTimer &&
+    a.isOverflowSetTimer === b.isOverflowSetTimer &&
+    a.auto === b.auto
   );
 }
 
@@ -81,6 +85,9 @@ export function Reps_setToDisplaySet(set: ISet, isNext: boolean, units: IUnit): 
     isRpeFailed: set.completedRpe != null && set.completedRpe > (set.rpe ?? 0),
     isInRange: set.minReps != null ? set.completedReps != null && set.completedReps >= set.minReps : undefined,
     setTimer: isNext ? set.setTimer : (set.completedSetTimer ?? set.setTimer),
+    isOverflowSetTimer: isNext ? set.isOverflowSetTimer : undefined,
+    timer: isNext ? set.timer : undefined,
+    auto: set.auto,
   };
 }
 
@@ -284,6 +291,9 @@ export function Reps_group(sets: ISet[], isNext?: boolean): ISet[][] {
           last.rpe !== set.rpe ||
           last.completedRpe !== set.completedRpe ||
           last.setTimer !== set.setTimer ||
+          (isNext && last.timer !== set.timer) ||
+          (isNext && last.isOverflowSetTimer !== set.isOverflowSetTimer) ||
+          last.auto !== set.auto ||
           (!isNext && last.completedSetTimer !== set.completedSetTimer))
       ) {
         memo.push([]);
