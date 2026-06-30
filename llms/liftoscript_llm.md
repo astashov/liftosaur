@@ -53,6 +53,28 @@ Squat / 3x8                      /// BAD - no weight, will be empty!
 
 The `?+` syntax means "no explicit weight, but ask the user to confirm the inferred weight". Use it with RPE-based exercises when you want the user to record the actual weight used.
 
+## Set Timers (active timers / circuits)
+
+A bare `90s` is the REST timer. To also time the set itself (planks, timed cardio, EMOM/Tabata work intervals), use `setTimer|restTimer` - the `|` is what distinguishes it from a plain rest timer (a bare `90s` stays backwards-compatible):
+
+```
+Plank / 3x1 60s|30s      /// hold 60s, then rest 30s
+Plank / 3x1 60s|?        /// hold 60s, rest = global default (? keeps the default)
+Plank / 1x1 30s+|60s     /// + = count up past 30s, stop manually, record elapsed (AMRAP for timers)
+```
+
+Add `auto` so the workout auto-advances to the next set when the rest timer ends - this is what turns set timers into circuits:
+
+```
+// EMOM - 5 rounds, 5 reps, 1-minute window (0s rest, auto-advance)
+Power Clean / 5x5 135lb 60s|0s auto
+
+// Tabata - 8 rounds of 20s work / 10s rest, record reps (1+ = AMRAP reps)
+Squat, Bodyweight / 8x1+ 20s|10s auto
+```
+
+In `progress`/`update` scripts the set timer is exposed as `setTime[n]` (target) and `completedSetTime[n]` (recorded), e.g. `setTime[1] += 5` or `setTime[1] = completedSetTime[1] + 5`.
+
 ## Equipment
 
 Each exercise has a default equipment type. You can use a short alias (just the name) for the default, or specify non-default equipment after a comma:
@@ -260,7 +282,9 @@ Script goes between `{~` and `~}`. Runs after workout finishes.
 - `completedReps[n]` / `cr[n]` - actual reps done
 - `completedRepsLeft[n]` - completed reps for left side (unilateral exercises)
 - `RPE[n]`, `completedRPE[n]` - prescribed/actual RPE
-- `timers[n]` - set timer
+- `timers[n]` - rest timer
+- `setTime[n]` - active set timer target (the `60s` in `60s|30s`)
+- `completedSetTime[n]` - actual recorded set-timer duration
 - `amraps[n]` - whether set is AMRAP (`1` or `0`)
 - `logrpes[n]` - whether to log RPE (`1` or `0`)
 - `askweights[n]` - whether to ask user for weight (`1` or `0`)
@@ -278,6 +302,7 @@ Omitting index compares/assigns ALL sets: `completedReps >= reps` checks all set
 - `minReps[week:day:setvariation:set]`
 - `RPE[week:day:setvariation:set]`
 - `timers[week:day:setvariation:set]`
+- `setTime[week:day:setvariation:set]`
 - `amraps[week:day:setvariation:set]`
 - `logrpes[week:day:setvariation:set]`
 - `askweights[week:day:setvariation:set]`

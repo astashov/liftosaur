@@ -114,6 +114,40 @@ If you want the app to ask for the weight but don't want to specify an explicit 
 Bench Press / 3x8 @8 ?+
 ```
 
+### Set timers (active timers) and circuits
+
+Besides the rest timer (a bare `90s`), you can specify an **active set timer** - how long the set itself lasts (a plank, a timed cardio interval, etc). The syntax is `setTimer|restTimer`:
+
+```liftoscript
+Plank / 3x1 60s|30s
+```
+
+That's 3 sets of plank, holding each for 60s, then resting 30s. The `|` is what distinguishes a set timer from a plain rest timer - a bare `90s` is still just the rest timer (backwards compatible).
+
+Use `?` on the rest side to keep the global default rest timer and only set the active timer:
+
+```liftoscript
+Plank / 3x1 60s|?
+```
+
+Add `+` after the set timer to make it count up past the threshold instead of stopping automatically - you stop it manually, and the elapsed time is recorded. This is the AMRAP equivalent for timers (e.g. "hold the plank as long as you can"):
+
+```liftoscript
+Plank / 2x1 30s|60s, 1x1 30s+|60s
+```
+
+The target and the recorded set timer are available in `progress` and `update` blocks as the `setTime` and `completedSetTime` arrays (e.g. `setTime[1] += 5`, or `setTime[1] = completedSetTime[1] + 5`).
+
+There's also an `auto` keyword - when present, the workout automatically advances to the next set after the rest timer ends. Combined with set timers, this lets you build circuits like **EMOM** or **Tabata**:
+
+```liftoscript
+// EMOM - 5 rounds, 5 reps, 1-minute window
+Power Clean / 5x5 135lb 60s|0s auto
+
+// Tabata - 8 rounds of 20s work / 10s rest, record reps
+Squat, Bodyweight / 8x1+ 20s|10s auto
+```
+
 An example workout may look something like this:
 
 ```liftoscript

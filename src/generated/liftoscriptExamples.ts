@@ -775,6 +775,60 @@ Bench Press / ...main[3]
 Bent Over Row / ...main[3]
 Hammer Curl / 3x8-12 / progress: lp(5lb)
 \`\`\`
+
+## Set Timers and Circuits (Plank / EMOM / Tabata)
+
+Set timers (\`setTimer|restTimer\`) time the set itself, not just the rest after it. Add \`auto\` to auto-advance to the next set when rest ends, which is how you build EMOM/Tabata-style circuits.
+
+### Timed core finisher
+
+Hold each plank as long as you can (the \`+\` makes the timer count up past 45s instead of stopping), rest 30s. The progress script bumps next time's target up by 5s whenever you beat the current target on every set.
+
+\`\`\`
+# Week 1
+## Day 1
+Plank / 3x1 45s+|30s / progress: custom() {~
+  if (completedSetTime > setTime) {
+    setTime += 5
+  }
+~}
+Hanging Leg Raise / 3x12 @8
+\`\`\`
+
+### EMOM (Every Minute On the Minute)
+
+Each set starts on a fresh 1-minute window: do the reps, then the \`auto\` rest timer carries you to the next round. \`0s\` rest means the whole minute is the work+rest window driven by the 60s set timer.
+
+\`\`\`
+# Week 1
+## Day 1
+Power Clean / 10x3 135lb 60s|0s auto
+Kettlebell Swing / 10x10 53lb 60s|0s auto
+\`\`\`
+
+### Tabata
+
+8 rounds of 20s work / 10s rest, auto-advancing. \`1+\` makes each round an AMRAP so you record how many reps you got.
+
+\`\`\`
+# Week 1
+## Day 1
+Squat, Bodyweight / 8x1+ 20s|10s auto
+Push Up / 8x1+ 20s|10s auto
+Mountain Climber / 8x1+ 20s|10s auto
+\`\`\`
+
+### Mixed circuit
+
+You can mix timed and untimed exercises in the same day - only the lines with \`|\` get an active set timer.
+
+\`\`\`
+# Week 1
+## Day 1
+Jump Rope / 3x1 30s|15s auto
+Goblet Squat / 3x12 35lb 15s auto
+Plank / 3x1 45s|15s auto
+\`\`\`
 `;
 
 export default content;
