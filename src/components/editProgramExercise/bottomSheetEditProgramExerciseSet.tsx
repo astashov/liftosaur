@@ -140,6 +140,16 @@ export function BottomSheetEditProgramExerciseSetContent(props: IBottomSheetEdit
               });
             }}
           />
+          <MenuItemEditable
+            type="boolean"
+            name="Auto"
+            value={set.auto ? "true" : "false"}
+            onChange={(value) => {
+              changeSet((s) => {
+                s.auto = value === "true" ? true : undefined;
+              });
+            }}
+          />
         </>
       )}
     </View>

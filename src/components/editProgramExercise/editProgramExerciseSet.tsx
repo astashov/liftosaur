@@ -112,9 +112,14 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
         <View ref={moveRef as unknown as React.RefObject<View>} style={style as object}>
           <View className="flex-row items-center border-b border-border-cardpurple">
             <View style={columnWidths.set} className="items-center justify-center py-1">
-              <View className="items-center justify-center h-6 rounded-full">
+              <View className="items-center justify-center rounded-full">
                 <Text className="text-sm">{setIndex + 1}</Text>
                 {set.label && <Text className="text-xs text-text-secondary">{set.label}</Text>}
+                {set.auto && (
+                  <Text data-testid="set-auto" testID="set-auto" className="text-xs text-syntax-auto">
+                    auto
+                  </Text>
+                )}
               </View>
             </View>
             {props.opts.hasMinReps && (
