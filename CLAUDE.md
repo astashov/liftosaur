@@ -67,24 +67,34 @@ if main: "local", then the host is "local.liftosaur.com". If main is "localai", 
 4. Click/type using element refs from snapshot
 5. Take screenshots to verify visual state
 
-### iOS Simulator (mobile-mcp)
+### iOS Simulator (ios-simulator-mcp — PREFERRED for iOS)
+
+The app is bare React Native (Fabric/New Arch), so the simulator exposes a real
+native accessibility tree. Use `ios-simulator-mcp` (idb-backed), NOT mobile-mcp —
+it's faster, ~token-free vs screenshots, and our `testID`s come through as stable
+`AXUniqueId` refs (e.g. `save-program-exercise`, `input-set-reps-field`, `footer-workout`).
+
 ```
-# Control iOS simulator
-mcp__mobile-mcp__mobile_list_available_devices - Find simulators
-mcp__mobile-mcp__mobile_launch_app            - Launch app (com.liftosaur.www)
-mcp__mobile-mcp__mobile_take_screenshot       - Capture screen
-mcp__mobile-mcp__mobile_list_elements_on_screen - Find tappable elements
-mcp__mobile-mcp__mobile_click_on_screen_at_coordinates - Tap by coordinates
-mcp__mobile-mcp__mobile_swipe_on_screen       - Scroll/swipe
-mcp__mobile-mcp__mobile_type_keys             - Type text
+mcp__ios-simulator__get_booted_sim_id  - Get the booted sim UUID
+mcp__ios-simulator__ui_describe_all    - Full accessibility tree (elements + frames)
+mcp__ios-simulator__ui_find_element    - Find by AXLabel or AXUniqueId (our testID)
+mcp__ios-simulator__ui_tap             - Tap at x,y
+mcp__ios-simulator__ui_type            - Type text
+mcp__ios-simulator__ui_swipe           - Swipe/scroll
+mcp__ios-simulator__ui_view            - Compressed screenshot (visual check only)
+mcp__ios-simulator__launch_app         - Launch by bundle id (com.liftosaur.www)
 ```
 
-**Workflow:**
-1. Start simulator if needed: `xcrun simctl boot <device-id>`
-2. List devices to get simulator ID
-3. Launch app with bundle ID `com.liftosaur.www`
-4. Take screenshot to see current state
-5. List elements to find coordinates, then tap
+**Workflow (target by testID, never pixel-guess):**
+1. `get_booted_sim_id` to get the UUID
+2. `ui_find_element(["<testID>"])` → read the returned `frame` (x, y, width, height)
+3. `ui_tap` at the frame center; re-run `ui_describe_all` to confirm the tree updated
+4. Use `ui_view`/`screenshot` only for visual/pixel verification
+
+**Prereqs (already installed):** `idb-companion` (brew `facebook/fb` tap) + `fb-idb`
+client on PATH (`~/.local/bin/idb`). Note: `fb-idb` breaks on Python ≥3.13
+(`asyncio.get_event_loop` removed) — if reinstalling, pin it: `pipx install
+--python python3.11 fb-idb`.
 
 ### Android Emulator (mobile-mcp)
 ```
@@ -103,9 +113,14 @@ mcp__mobile-mcp__mobile_type_keys             - Type text
 4. Take screenshots and interact via coordinates
 
 ### Notes
-- iOS/Android apps are WebView wrappers, so element detection returns the WebView container
-- Use screenshots + coordinate-based tapping for mobile
-- Web verification via Playwright provides richer element detection via snapshots
+- The app is bare React Native (not a WebView wrapper). iOS exposes a real native
+  accessibility tree via `ios-simulator-mcp` — prefer semantic `testID`/AXUniqueId
+  targeting over screenshots + coordinates.
+- Android has no idb-based server; keep using `mobile-mcp` (screenshot + coordinate
+  taps, package `com.liftosaur.www.twa`) for Android.
+- The embedded Liftoscript editor is still an inlined-HTML WebView — it shows as one
+  opaque native node in the a11y tree; verify editor flows via Playwright-against-web.
+- Web verification via Playwright provides richer element detection via snapshots.
 
 ## Architecture Overview
 
