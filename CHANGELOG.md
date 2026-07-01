@@ -14,6 +14,30 @@
 -->
 
 ---
+date: 2026-07-01
+title: Added time-based exercises and intervals/circuits support
+---
+
+You can now time the set itself, not just the rest after it. Great for planks, timed cardio, or any "hold for X seconds" exercise. Use the `setTimer|restTimer` syntax:
+
+```liftoscript
+Plank / 3x1 60s|30s
+```
+
+That's 3 sets of plank, holding each for 60s, then resting 30s. Add `+` to count up past the target instead of stopping automatically (like `30s+|60s`). Add `auto` to auto-advance to the next set when the rest ends - which is how you build circuits like EMOM or Tabata:
+
+```liftoscript
+// EMOM - 5 rounds, 5 reps, 1-minute window
+Power Clean / 5x5 135lb 60s|0s auto
+// Tabata - 8 rounds of 20s work / 10s rest
+Squat, Bodyweight / 8x1+ 20s|10s auto
+```
+
+In the UI (in the app, in Live Activity / Live Update, and in Apple Watch as well), you'll get a set timer modal if the current set has time.
+
+Read more in the [docs](internal:/docs/liftoscript). You need an iOS/Android native app update (from App Store / Google Play) to get this feature.
+
+---
 date: 2026-06-17
 title: Added Apple Watch complications
 ---
