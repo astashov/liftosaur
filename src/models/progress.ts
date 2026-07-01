@@ -1343,13 +1343,19 @@ export function Progress_proceedAfterTimedSet(
   entryIndex: number,
   setIndex: number,
   settings: ISettings,
-  subscription: ISubscription | undefined
+  subscription: ISubscription | undefined,
+  isPlayground?: boolean
 ): IHistoryRecord {
   // AMRAP took over (set isn't completed yet). Keep the set-timer modal open so the amrap modal stacks
   // cleanly on top of it — clearing it here would race the amrap push and pop the wrong screen. The
   // set-timer modal is closed (and rest started) when amrap resolves; see Progress_changeAmrapAction.
   if (progress.amrapModal != null) {
     return progress;
+  }
+  // The playground has no rest timers (like normal-set completion, see below) and doesn't run circuits in real
+  // time — just close the banner. No rest, no EMOM/auto advance; the user taps the next set to continue.
+  if (isPlayground) {
+    return { ...progress, setTimer: undefined };
   }
   const set = progress.entries[entryIndex]?.sets[setIndex];
   // EMOM-style: auto with no rest rolls straight into the next timed set in the same banner.
@@ -1380,7 +1386,8 @@ export function Progress_proceedAfterTimedSet(
 export function Progress_closeTimedSet(
   progress: IHistoryRecord,
   settings: ISettings,
-  subscription: ISubscription | undefined
+  subscription: ISubscription | undefined,
+  isPlayground?: boolean
 ): IHistoryRecord {
   const stm = progress.setTimer;
   if (stm == null) {
@@ -1388,7 +1395,8 @@ export function Progress_closeTimedSet(
   }
   let newProgress: IHistoryRecord = { ...progress, setTimer: undefined };
   const set = newProgress.entries[stm.entryIndex]?.sets[stm.setIndex];
-  if (set?.isCompleted && set.setTimer != null && newProgress.amrapModal == null) {
+  // The playground has no rest timers, so discarding a "Log & keep timing" set just closes the banner.
+  if (!isPlayground && set?.isCompleted && set.setTimer != null && newProgress.amrapModal == null) {
     newProgress = Progress_startTimer(
       newProgress,
       Date.now(),
@@ -1442,7 +1450,8 @@ export function Progress_checkSetTimer(
   subscription: ISubscription | undefined,
   programExercise: IPlannerProgramExercise | undefined,
   otherStates: IByExercise<IProgramState> | undefined,
-  nowArg?: number
+  nowArg?: number,
+  isPlayground?: boolean
 ): IHistoryRecord {
   const now = nowArg ?? Date.now();
   if (progress.amrapModal != null) {
@@ -1470,7 +1479,7 @@ export function Progress_checkSetTimer(
           otherStates,
           forceUpdateEntryIndex: false,
           isExternal: true,
-          isPlayground: false,
+          isPlayground: isPlayground ?? false,
           recordedSeconds,
         },
         subscription
@@ -1851,15 +1860,18 @@ export function Progress_changeAmrapAction(
     // Intentionally "now", NOT backdated to the clock end like Progress_proceedAfterTimedSet does (see
     // time-based-exercises.md §5.2). The time spent in the AMRAP modal is data entry, not rest — backdating
     // would count it as elapsed rest and a short rest could be over the instant the user submits.
-    newProgress = Progress_startTimer(
-      newProgress,
-      new Date().getTime(),
-      "workout",
-      action.entryIndex,
-      action.setIndex,
-      settings,
-      subscription
-    );
+    // The playground has no rest timers (matches Progress_proceedAfterTimedSet + normal-set completion).
+    if (!action.isPlayground) {
+      newProgress = Progress_startTimer(
+        newProgress,
+        new Date().getTime(),
+        "workout",
+        action.entryIndex,
+        action.setIndex,
+        settings,
+        subscription
+      );
+    }
   }
   newProgress.intervals = History_resumeWorkout(
     newProgress,
@@ -1891,6 +1903,14 @@ export function Progress_completeSetAction(
     setTimerModal != null &&
     setTimerModal.entryIndex === action.entryIndex &&
     setTimerModal.setIndex === action.setIndex;
+  // A Stop/Log tap from the set-timer banner (keepSetTimerRunning is set only by those) is a deferred user
+  // action — if the clock already auto-completed, advanced, or closed just before the event landed, the banner
+  // is stale and completing here would fall through to normal toggling and flip an already-completed set back
+  // off. Thunk_recordSetTimer guards this before dispatching; the playground dispatches directly, so guard here
+  // too (safe for every path: the thunk/watch already pre-check, and auto-fires don't set keepSetTimerRunning).
+  if (action.keepSetTimerRunning != null && !wasSetTimerOpen) {
+    return progress;
+  }
   const oldSet = progress.entries[action.entryIndex][action.mode === "warmup" ? "warmupSets" : "sets"][action.setIndex];
 
   // Stopping the clock on a set that's already logged (e.g. after "Log & keep timing"): just update the
@@ -1905,7 +1925,14 @@ export function Progress_completeSetAction(
       .p("completedSetTimer")
       .set(recorded);
     if (!action.keepSetTimerRunning) {
-      stopped = Progress_proceedAfterTimedSet(stopped, action.entryIndex, action.setIndex, settings, subscription);
+      stopped = Progress_proceedAfterTimedSet(
+        stopped,
+        action.entryIndex,
+        action.setIndex,
+        settings,
+        subscription,
+        action.isPlayground
+      );
     }
     stopped.intervals = History_resumeWorkout(
       stopped,
@@ -2012,7 +2039,8 @@ export function Progress_completeSetAction(
       action.entryIndex,
       action.setIndex,
       settings,
-      subscription
+      subscription,
+      action.isPlayground
     );
   } else if (
     wasSetTimerOpen &&

@@ -259,11 +259,16 @@ export type ICheckSetTimerAction = {
   programExercise?: IPlannerProgramExercise;
   otherStates?: IByExercise<IProgramState>;
   now?: number;
+  // When a playground timer auto-fires at its target, the completion must stay playground-scoped — otherwise
+  // it resumes/updates the real native workout (playground records have id 0 and read as "current").
+  isPlayground?: boolean;
 };
 
 // Discard the set timer banner (no recording); starts the deferred rest if the set was already logged.
 export type ICloseSetTimerAction = {
   type: "CloseSetTimerAction";
+  // Playground has no rest timers, so closing a logged set-timer there must not start a deferred rest.
+  isPlayground?: boolean;
 };
 
 export type IFinishProgramDayAction = {
@@ -656,11 +661,12 @@ export function buildCardsReducer(
           subscription,
           action.programExercise,
           action.otherStates,
-          action.now
+          action.now,
+          action.isPlayground
         );
       }
       case "CloseSetTimerAction": {
-        return Progress_closeTimedSet(progress, settings, subscription);
+        return Progress_closeTimedSet(progress, settings, subscription, action.isPlayground);
       }
       case "UpdateProgress": {
         return action.lensRecordings.reduce((memo, recording) => recording.fn(memo), progress);

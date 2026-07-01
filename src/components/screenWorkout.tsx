@@ -117,7 +117,7 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
   useEffect(() => {
     if (setTimerModal && setTimerModal.nonce !== prevSetTimerNonce.current) {
       prevSetTimerNonce.current = setTimerModal.nonce;
-      navigateToModal("setTimerModal", { progressId: progress.id });
+      navigateToModal("setTimerModal", { context: "workout", progressId: progress.id });
     }
   }, [setTimerModal, progress.id]);
 

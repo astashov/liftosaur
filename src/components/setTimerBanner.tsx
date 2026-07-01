@@ -3,27 +3,29 @@ import { View } from "react-native";
 import { Text } from "./primitives/text";
 import { Button } from "./button";
 import { IDispatch } from "../ducks/types";
-import { IExerciseType, IHistoryRecord, ISettings } from "../types";
+import { IExerciseType, IHistoryRecord, IProgramState, ISettings } from "../types";
 import { TimeUtils_formatMMSS } from "../utils/time";
 import { WorkoutExerciseSetTarget } from "./workoutExerciseSet";
 import { ExerciseImage } from "./exerciseImage";
 import { Exercise_get, Exercise_nameWithEquipment } from "../models/exercise";
 import { Thunk_recordSetTimer, Thunk_checkSetTimer } from "../ducks/thunks";
+import { Progress_isSetTimerCheckDue } from "../models/progress";
+import { IByExercise } from "../pages/planner/plannerEvaluator";
+import { IPlannerProgramExercise } from "../pages/planner/models/types";
 
-// Re-renders the clock every 250ms and polls Thunk_checkSetTimer so `auto` circuits advance/complete
-// on time. All the advance/complete/rest logic lives in the model (Progress_checkSetTimer) — this
-// just provides the clock tick.
-function useSetTimerTick(isActive: boolean, dispatch: IDispatch): void {
+// Re-renders the clock every 250ms and calls onTick so `auto` circuits advance/complete on time. All the
+// advance/complete/rest logic lives in the model (Progress_checkSetTimer) — this just provides the clock tick.
+function useSetTimerTick(isActive: boolean, onTick: () => void): void {
   const [, setTick] = useState(0);
-  const dispatchRef = useRef(dispatch);
-  dispatchRef.current = dispatch;
+  const onTickRef = useRef(onTick);
+  onTickRef.current = onTick;
   useEffect(() => {
     if (!isActive) {
       return undefined;
     }
     const intervalId = setInterval(() => {
       setTick((t) => t + 1);
-      dispatchRef.current(Thunk_checkSetTimer());
+      onTickRef.current();
     }, 250);
     return () => clearInterval(intervalId);
   }, [isActive]);
@@ -35,15 +37,35 @@ interface ISetTimerBannerContentProps {
   setTimerModal: NonNullable<IHistoryRecord["setTimer"]>;
   dispatch: IDispatch;
   onClose: () => void;
+  // In the playground the progress isn't in global state, so the record/tick thunks can't resolve it.
+  // Dispatch the underlying card actions directly instead, mirroring how ModalAmrap handles the playground.
+  isPlayground?: boolean;
+  programExercise?: IPlannerProgramExercise;
+  otherStates?: IByExercise<IProgramState>;
 }
 
 export function SetTimerBannerContent(props: ISetTimerBannerContentProps): JSX.Element | null {
-  const { progress, dispatch, setTimerModal, settings, onClose } = props;
+  const { progress, dispatch, setTimerModal, settings, onClose, isPlayground } = props;
   const { entryIndex, setIndex, startedAt } = setTimerModal;
   const entry = progress.entries[entryIndex];
   const set = entry?.sets[setIndex];
 
-  useSetTimerTick(set != null, dispatch);
+  useSetTimerTick(set != null, () => {
+    if (isPlayground) {
+      // The thunk gates on this internally; the playground dispatches the card action directly, so gate here
+      // too — otherwise every 250ms tick writes playground state even when no transition is due.
+      if (Progress_isSetTimerCheckDue(progress, Date.now())) {
+        dispatch({
+          type: "CheckSetTimerAction",
+          programExercise: props.programExercise,
+          otherStates: props.otherStates,
+          isPlayground: true,
+        });
+      }
+    } else {
+      dispatch(Thunk_checkSetTimer());
+    }
+  });
 
   const target = set?.setTimer ?? 0;
   const elapsedMs = Math.max(0, Date.now() - startedAt);
@@ -57,12 +79,31 @@ export function SetTimerBannerContent(props: ISetTimerBannerContentProps): JSX.E
   const pct = target > 0 ? Math.min(1, elapsedMs / (target * 1000)) : 0;
   const elapsedLabel = TimeUtils_formatMMSS(elapsedMs);
 
+  function recordSetTimer(keepTiming: boolean): void {
+    if (isPlayground) {
+      dispatch({
+        type: "CompleteSetAction",
+        entryIndex,
+        setIndex,
+        mode: "workout",
+        programExercise: props.programExercise,
+        otherStates: props.otherStates,
+        forceUpdateEntryIndex: false,
+        isExternal: false,
+        isPlayground: true,
+        keepSetTimerRunning: keepTiming,
+      });
+    } else {
+      dispatch(Thunk_recordSetTimer(entryIndex, setIndex, keepTiming));
+    }
+  }
+
   function onStopAndRecord(): void {
-    dispatch(Thunk_recordSetTimer(entryIndex, setIndex, false));
+    recordSetTimer(false);
   }
 
   function onLogKeepTiming(): void {
-    dispatch(Thunk_recordSetTimer(entryIndex, setIndex, true));
+    recordSetTimer(true);
   }
 
   const isCompleted = !!set.isCompleted;

@@ -2,7 +2,12 @@ import "mocha";
 import { expect } from "chai";
 import { PlannerTestUtils_get } from "./utils/plannerTestUtils";
 import { Program_nextHistoryRecord } from "../src/models/program";
-import { Progress_getNextTimedSet, Progress_getFirstIncompleteWorkoutSet } from "../src/models/progress";
+import {
+  Progress_getNextTimedSet,
+  Progress_getFirstIncompleteWorkoutSet,
+  Progress_proceedAfterTimedSet,
+  Progress_closeTimedSet,
+} from "../src/models/progress";
 import { Settings_build } from "../src/models/settings";
 import { Stats_getEmpty } from "../src/models/stats";
 import { IHistoryRecord } from "../src/types";
@@ -10,6 +15,15 @@ import { IHistoryRecord } from "../src/types";
 function buildProgress(text: string): IHistoryRecord {
   const { program } = PlannerTestUtils_get(text);
   return Program_nextHistoryRecord(program, Settings_build(), Stats_getEmpty(), 0);
+}
+
+// A completed timed set (set 0) with its clock still open — the state a timed set is in right when the
+// user hits "Stop & record" / "Discard".
+function buildLoggedTimedSet(text: string): IHistoryRecord {
+  const progress = buildProgress(text);
+  progress.entries[0].sets[0].isCompleted = true;
+  progress.entries[0].sets[0].completedSetTimer = 30;
+  return { ...progress, setTimer: { entryIndex: 0, setIndex: 0, startedAt: Date.now(), nonce: Date.now() } };
 }
 
 describe("Set timer triggering", () => {
@@ -48,5 +62,38 @@ describe("Set timer triggering", () => {
     expect(Progress_getNextTimedSet(progress)).to.eql({ entryIndex: 0, setIndex: 1 });
     progress.entries[0].sets[1].isCompleted = true;
     expect(Progress_getNextTimedSet(progress)).to.eql(undefined);
+  });
+
+  // The playground is a tap-through simulation with no rest timers (normal-set completion already skips
+  // them); a timed set must behave the same — close the banner, no deferred rest, no EMOM/auto advance.
+  it("proceedAfterTimedSet starts the rest timer in a workout but not in the playground", () => {
+    const text = `# Week 1\n## Day 1\nPlank / 3x1 30s|15s auto\n`;
+
+    const workout = Progress_proceedAfterTimedSet(buildLoggedTimedSet(text), 0, 0, Settings_build(), undefined, false);
+    expect(workout.setTimer).to.eql(undefined);
+    expect(workout.timer).to.not.eql(undefined);
+
+    const playground = Progress_proceedAfterTimedSet(
+      buildLoggedTimedSet(text),
+      0,
+      0,
+      Settings_build(),
+      undefined,
+      true
+    );
+    expect(playground.setTimer).to.eql(undefined);
+    expect(playground.timer).to.eql(undefined);
+  });
+
+  it("closeTimedSet starts the deferred rest in a workout but not in the playground", () => {
+    const text = `# Week 1\n## Day 1\nPlank / 3x1 30s|15s auto\n`;
+
+    const workout = Progress_closeTimedSet(buildLoggedTimedSet(text), Settings_build(), undefined, false);
+    expect(workout.setTimer).to.eql(undefined);
+    expect(workout.timer).to.not.eql(undefined);
+
+    const playground = Progress_closeTimedSet(buildLoggedTimedSet(text), Settings_build(), undefined, true);
+    expect(playground.setTimer).to.eql(undefined);
+    expect(playground.timer).to.eql(undefined);
   });
 });

@@ -2,6 +2,8 @@ import { JSX } from "react";
 import { IHistoryRecord, ISettings } from "../../types";
 import { IDispatch } from "../../ducks/types";
 import { ModalAmrap } from "../modalAmrap";
+import { Modal } from "../modal";
+import { SetTimerBannerContent } from "../setTimerBanner";
 import { BottomSheetEditTarget } from "../bottomSheetEditTarget";
 import { ProgramPreviewPlaygroundExerciseEditModal } from "./programPreviewPlaygroundExerciseEditModal";
 import { lb } from "lens-shmens";
@@ -32,8 +34,34 @@ export function WebWorkoutModals(props: IWebWorkoutModalsProps): JSX.Element {
     ? Program_getProgramExercise(props.day, props.program, editModalProgramExerciseId)
     : undefined;
 
+  const setTimerModal = props.progress.setTimer;
+  // A timed AMRAP set keeps setTimer set behind the amrap modal (see Progress_proceedAfterTimedSet) — yield to
+  // the amrap modal here like SetTimerBannerContent does, so the set-timer shell doesn't show behind it.
+  const showSetTimerModal = setTimerModal != null && props.progress.amrapModal == null;
+  const closeSetTimerModal = (): void => {
+    props.dispatch({ type: "CloseSetTimerAction", isPlayground: true });
+  };
+
   return (
     <>
+      {showSetTimerModal && setTimerModal && (
+        <Modal maxWidth="480px" isHidden={false} isFullWidth={true} shouldShowClose={true} onClose={closeSetTimerModal}>
+          <SetTimerBannerContent
+            progress={props.progress}
+            settings={props.settings}
+            setTimerModal={setTimerModal}
+            dispatch={props.dispatch}
+            onClose={closeSetTimerModal}
+            isPlayground={true}
+            programExercise={Program_getProgramExercise(
+              props.day,
+              props.program,
+              props.progress.entries[setTimerModal.entryIndex]?.programExerciseId
+            )}
+            otherStates={props.program.states}
+          />
+        </Modal>
+      )}
       {props.progress.amrapModal && (
         <ModalAmrap
           isPlayground={true}
