@@ -21,7 +21,7 @@ import { Tailwind_semantic } from "../utils/tailwindConfig";
 import { InputNumber2 } from "./inputNumber2";
 import { InputWeight2 } from "./inputWeight2";
 import { updateProgress } from "../models/state";
-import { LensBuilder } from "lens-shmens";
+import { LensBuilder, lb } from "lens-shmens";
 import {
   WorkoutExerciseUtils_getBorderColor100,
   WorkoutExerciseUtils_getBgColor50,
@@ -48,7 +48,6 @@ import {
 } from "../models/weight";
 import { Exercise_getIsUnilateral, Exercise_onerm } from "../models/exercise";
 import { FocusedInputFlush_flush } from "../utils/focusedInputFlush";
-import { getNavigationService } from "../navigation/navUtils";
 
 export interface ISetColumnWidths {
   set: number;
@@ -226,8 +225,12 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
     });
   }, [dispatch, setIndex, entryIndex, programExercise, otherStates, isPlayground, type, set.isCompleted]);
   const onEditSetTimer = useCallback(() => {
-    getNavigationService().then((nav) => nav.navigateToModal("setTimerEditModal", { entryIndex, setIndex }));
-  }, [entryIndex, setIndex]);
+    updateProgress(
+      dispatch,
+      [lb<IHistoryRecord>().pi("ui", {}).p("setTimerEditModal").record({ entryIndex, setIndex })],
+      "open-set-timer-edit"
+    );
+  }, [dispatch, entryIndex, setIndex]);
 
   return (
     <SwipeableRow

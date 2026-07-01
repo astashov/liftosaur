@@ -4,6 +4,7 @@ import { IDispatch } from "../../ducks/types";
 import { ModalAmrap } from "../modalAmrap";
 import { Modal } from "../modal";
 import { SetTimerBannerContent } from "../setTimerBanner";
+import { SetTimerEditContent } from "../setTimerEdit";
 import { BottomSheetEditTarget } from "../bottomSheetEditTarget";
 import { ProgramPreviewPlaygroundExerciseEditModal } from "./programPreviewPlaygroundExerciseEditModal";
 import { lb } from "lens-shmens";
@@ -42,6 +43,18 @@ export function WebWorkoutModals(props: IWebWorkoutModalsProps): JSX.Element {
     props.dispatch({ type: "CloseSetTimerAction", isPlayground: true });
   };
 
+  const setTimerEditModal = props.progress.ui?.setTimerEditModal;
+  const setTimerEditSet = setTimerEditModal
+    ? props.progress.entries[setTimerEditModal.entryIndex]?.sets[setTimerEditModal.setIndex]
+    : undefined;
+  const closeSetTimerEditModal = (): void => {
+    props.dispatch({
+      type: "UpdateProgress",
+      lensRecordings: [lb<IHistoryRecord>().pi("ui", {}).p("setTimerEditModal").record(undefined)],
+      desc: "close-set-timer-edit",
+    });
+  };
+
   return (
     <>
       {showSetTimerModal && setTimerModal && (
@@ -59,6 +72,22 @@ export function WebWorkoutModals(props: IWebWorkoutModalsProps): JSX.Element {
               props.progress.entries[setTimerModal.entryIndex]?.programExerciseId
             )}
             otherStates={props.program.states}
+          />
+        </Modal>
+      )}
+      {setTimerEditModal && setTimerEditSet && (
+        <Modal
+          maxWidth="480px"
+          isHidden={false}
+          isFullWidth={true}
+          shouldShowClose={true}
+          onClose={closeSetTimerEditModal}
+        >
+          <SetTimerEditContent
+            set={setTimerEditSet}
+            entryIndex={setTimerEditModal.entryIndex}
+            setIndex={setTimerEditModal.setIndex}
+            dispatch={props.dispatch}
           />
         </Modal>
       )}

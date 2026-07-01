@@ -862,6 +862,10 @@ export interface IProgressUi {
     set: ISet;
     setIndex?: number;
   };
+  setTimerEditModal?: {
+    entryIndex: number;
+    setIndex: number;
+  };
   exerciseBottomSheet?: {
     entryIndex: number;
   };
@@ -909,6 +913,12 @@ const _VProgressUi = v.object({
       programExerciseId: v.optional(v.string()),
       set: VSet,
       setIndex: v.optional(v.number()),
+    })
+  ),
+  setTimerEditModal: v.optional(
+    v.object({
+      entryIndex: v.number(),
+      setIndex: v.number(),
     })
   ),
   exerciseBottomSheet: v.optional(

@@ -6,6 +6,7 @@ interface IPlaygroundModalState {
   editSetModal: boolean;
   amrapModal: boolean;
   editModal: boolean;
+  setTimerEditModal: boolean;
   // The set-timer nonce (not a boolean) so we push only for a genuinely new timer, like workout mode does.
   setTimerNonce: number | undefined;
 }
@@ -26,7 +27,7 @@ function findActivePlaygroundModal(
       // modal, so the nonce comparison below naturally avoids re-pushing the set-timer route that's still
       // mounted underneath — gating on `amrapModal == null` here would instead read as a fresh open.
       const setTimerNonce = progress.setTimer?.nonce;
-      if (ui?.editSetModal || progress.amrapModal || ui?.editModal || setTimerNonce != null) {
+      if (ui?.editSetModal || progress.amrapModal || ui?.editModal || ui?.setTimerEditModal || setTimerNonce != null) {
         return {
           weekIndex,
           dayIndex,
@@ -34,6 +35,7 @@ function findActivePlaygroundModal(
             editSetModal: ui?.editSetModal != null,
             amrapModal: progress.amrapModal != null,
             editModal: ui?.editModal != null,
+            setTimerEditModal: ui?.setTimerEditModal != null,
             setTimerNonce,
           },
         };
@@ -49,6 +51,7 @@ export function usePlaygroundModalBridges(state: IState): void {
   const prevEditSetModal = useRef(false);
   const prevAmrapModal = useRef(false);
   const prevEditModal = useRef(false);
+  const prevSetTimerEditModal = useRef(false);
   const prevSetTimerNonce = useRef<number | undefined>(undefined);
 
   useEffect(() => {
@@ -88,6 +91,17 @@ export function usePlaygroundModalBridges(state: IState): void {
     }
     prevEditModal.current = active?.modal.editModal ?? false;
   }, [active?.modal.editModal, active?.weekIndex, active?.dayIndex]);
+
+  useEffect(() => {
+    if (active?.modal.setTimerEditModal && !prevSetTimerEditModal.current) {
+      navigateToModal("setTimerEditModal", {
+        context: "playground",
+        weekIndex: active.weekIndex,
+        dayIndex: active.dayIndex,
+      });
+    }
+    prevSetTimerEditModal.current = active?.modal.setTimerEditModal ?? false;
+  }, [active?.modal.setTimerEditModal, active?.weekIndex, active?.dayIndex]);
 
   useEffect(() => {
     const nonce = active?.modal.setTimerNonce;

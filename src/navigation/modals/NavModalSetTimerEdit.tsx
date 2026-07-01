@@ -1,18 +1,14 @@
-import { JSX, useEffect, useState } from "react";
-import { View } from "react-native";
+import { JSX, useEffect } from "react";
 import { useRoute, useNavigation } from "@react-navigation/native";
 import { lb } from "lens-shmens";
 import { useAppState } from "../StateContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
 import { FormSheet } from "../FormSheet";
-import { Text } from "../../components/primitives/text";
-import { Button } from "../../components/button";
-import { Input } from "../../components/input";
+import { SetTimerEditContent } from "../../components/setTimerEdit";
 import { Progress_getProgress } from "../../models/progress";
 import { updateProgress } from "../../models/state";
+import { buildPlaygroundDispatch, getPlaygroundProgress } from "./navModalPlaygroundUtils";
 import { IHistoryRecord } from "../../types";
-import { MathUtils_clamp } from "../../utils/math";
-import { StringUtils_pad } from "../../utils/string";
 import type { IRootStackParamList } from "../types";
 
 export function NavModalSetTimerEdit(): JSX.Element {
@@ -23,23 +19,51 @@ export function NavModalSetTimerEdit(): JSX.Element {
     name: "setTimerEditModal";
     params: IRootStackParamList["setTimerEditModal"];
   }>();
-  const { entryIndex, setIndex } = route.params;
+  const { context } = route.params;
+  const isPlayground = context === "playground";
 
-  const progress = Progress_getProgress(state);
-  const set = progress?.entries[entryIndex]?.sets[setIndex];
-  const initialSeconds = set?.completedSetTimer ?? set?.setTimer ?? 0;
+  const settings = isPlayground ? (state.playgroundState?.settings ?? state.storage.settings) : state.storage.settings;
 
-  const [minutesValue, setMinutesValue] = useState(Math.floor(initialSeconds / 60).toString());
-  const [secondsValue, setSecondsValue] = useState(StringUtils_pad((initialSeconds % 60).toString(), 2));
+  let progress: IHistoryRecord | undefined;
+  let modalDispatch = dispatch;
+  if (context === "playground") {
+    const { weekIndex, dayIndex } = route.params;
+    progress = getPlaygroundProgress(state, weekIndex, dayIndex);
+    modalDispatch = buildPlaygroundDispatch(
+      dispatch,
+      weekIndex,
+      dayIndex,
+      () => getPlaygroundProgress(state, weekIndex, dayIndex),
+      settings,
+      state.storage.stats
+    );
+  } else {
+    progress = Progress_getProgress(state);
+  }
 
-  const shouldGoBack = set == null;
+  const editModal = progress?.ui?.setTimerEditModal;
+  const set = editModal ? progress?.entries[editModal.entryIndex]?.sets[editModal.setIndex] : undefined;
+
+  const shouldGoBack = editModal == null || set == null;
   useEffect(() => {
     if (shouldGoBack) {
       navigation.goBack();
     }
   }, [shouldGoBack]);
 
-  if (shouldGoBack) {
+  useEffect(() => {
+    const onBeforeRemove = (): void => {
+      updateProgress(
+        modalDispatch,
+        [lb<IHistoryRecord>().pi("ui", {}).p("setTimerEditModal").record(undefined)],
+        "close-set-timer-edit"
+      );
+    };
+    const unsubscribe = navigation.addListener("beforeRemove", onBeforeRemove);
+    return unsubscribe;
+  }, [navigation, modalDispatch]);
+
+  if (shouldGoBack || editModal == null || set == null) {
     return <></>;
   }
 
@@ -47,86 +71,15 @@ export function NavModalSetTimerEdit(): JSX.Element {
     navigation.goBack();
   };
 
-  const onClear = (): void => {
-    updateProgress(
-      dispatch,
-      [lb<IHistoryRecord>().p("entries").i(entryIndex).p("sets").i(setIndex).p("completedSetTimer").record(undefined)],
-      "clear-set-timer"
-    );
-    navigation.goBack();
-  };
-
-  const onSave = (): void => {
-    const minutes = Number(minutesValue);
-    const seconds = Number(secondsValue);
-    const newSeconds =
-      isNaN(minutes) || isNaN(seconds)
-        ? initialSeconds
-        : MathUtils_clamp(minutes, 0, 999) * 60 + MathUtils_clamp(seconds, 0, 59);
-    updateProgress(
-      dispatch,
-      [lb<IHistoryRecord>().p("entries").i(entryIndex).p("sets").i(setIndex).p("completedSetTimer").record(newSeconds)],
-      "edit-set-timer"
-    );
-    navigation.goBack();
-  };
-
   return (
     <ModalScreenContainer onClose={onClose} shouldShowClose={true}>
       <FormSheet>
-        <Text className="pb-2 font-bold">Edit recorded time</Text>
-        <Text className="pb-2 text-xs text-text-secondary">(in mm:ss)</Text>
-        <View className="flex-row items-center">
-          <View className="flex-1">
-            <Input
-              type="tel"
-              placeholder="00"
-              value={minutesValue}
-              inputSize="sm"
-              labelSize="xs"
-              changeType="oninput"
-              identifier="set-timer-edit-minutes"
-              changeHandler={(e) => {
-                if (e.success) {
-                  setMinutesValue(e.data);
-                }
-              }}
-            />
-          </View>
-          <View className="items-center justify-center" style={{ width: 16, height: 40 }}>
-            <Text>:</Text>
-          </View>
-          <View className="flex-1">
-            <Input
-              type="tel"
-              placeholder="00"
-              value={secondsValue}
-              inputSize="sm"
-              labelSize="xs"
-              changeType="oninput"
-              identifier="set-timer-edit-seconds"
-              changeHandler={(e) => {
-                if (e.success) {
-                  setSecondsValue(e.data);
-                }
-              }}
-            />
-          </View>
-        </View>
-        <View className="flex-row justify-between mt-4">
-          <Button
-            name="set-timer-edit-clear"
-            data-testid="set-timer-edit-clear"
-            kind="grayv2"
-            className="mr-3"
-            onClick={onClear}
-          >
-            Clear
-          </Button>
-          <Button name="set-timer-edit-submit" data-testid="set-timer-edit-submit" kind="purple" onClick={onSave}>
-            Save
-          </Button>
-        </View>
+        <SetTimerEditContent
+          set={set}
+          entryIndex={editModal.entryIndex}
+          setIndex={editModal.setIndex}
+          dispatch={modalDispatch}
+        />
       </FormSheet>
     </ModalScreenContainer>
   );

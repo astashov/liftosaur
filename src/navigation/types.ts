@@ -103,7 +103,9 @@ export type IRootStackParamList = {
   setTimerModal:
     | { context: "workout"; progressId: number }
     | { context: "playground"; weekIndex: number; dayIndex: number };
-  setTimerEditModal: { entryIndex: number; setIndex: number };
+  setTimerEditModal:
+    | { context: "workout"; progressId: number }
+    | { context: "playground"; weekIndex: number; dayIndex: number };
   dateModal: { progressId: number };
   equipmentModal: { context: "workout"; progressId: number } | { context: "preview"; programId: string };
   rm1Modal: { context: "workout"; progressId: number } | { context: "preview"; programId: string };
