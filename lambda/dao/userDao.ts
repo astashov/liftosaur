@@ -107,6 +107,19 @@ interface IStatDb {
   type: "length" | "weight" | "percentage";
 }
 
+// Maps an outdated client storage version to the server version it's safe to sync against anyway.
+// Only include gaps that are a single, idempotent, sync-safe migration (server re-runs all migrations
+// on every sync, so old-format fields get relocated server-side). See rn-ota-delivery.md: releases that
+// bump runtimeVersion strand users who haven't installed the new native binary, and OTA can't reach them.
+// `20260304084247 -> 20260628120000` = move_amrap_modal_to_progress (the versionCode 140 -> 141 release).
+const syncSafeOutdatedClientVersions: Record<string, string> = {
+  "20260304084247": "20260628120000",
+};
+
+function isSyncSafeOutdatedClient(clientVersion: string, serverVersion: string): boolean {
+  return syncSafeOutdatedClientVersions[clientVersion] === serverVersion;
+}
+
 export class UserDao {
   constructor(private readonly di: IDI) {}
 
@@ -223,13 +236,22 @@ export class UserDao {
     }
     const { _versions, ...limitedUserStorage } = result.data;
     if (limitedUserStorage.version !== storageUpdate.version) {
-      this.di.log.log(
-        "outdated storage, client version:",
-        storageUpdate.version,
-        "server version:",
-        limitedUserStorage.version
-      );
-      return { success: false, error: "outdated_client_storage" };
+      if (isSyncSafeOutdatedClient(storageUpdate.version, limitedUserStorage.version)) {
+        this.di.log.log(
+          "sync-safe outdated storage, allowing merge, client version:",
+          storageUpdate.version,
+          "server version:",
+          limitedUserStorage.version
+        );
+      } else {
+        this.di.log.log(
+          "outdated storage, client version:",
+          storageUpdate.version,
+          "server version:",
+          limitedUserStorage.version
+        );
+        return { success: false, error: "outdated_client_storage" };
+      }
     }
     if (
       Object.keys(storageUpdate.storage || {}).length === 0 &&
@@ -382,7 +404,16 @@ export class UserDao {
     }
     const limitedUserStorage = result.data;
     if (limitedUserStorage.version !== storageUpdate.version) {
-      return { success: false, error: "outdated_client_storage" };
+      if (isSyncSafeOutdatedClient(storageUpdate.version, limitedUserStorage.version)) {
+        this.di.log.log(
+          "sync-safe outdated storage (sync1), allowing merge, client version:",
+          storageUpdate.version,
+          "server version:",
+          limitedUserStorage.version
+        );
+      } else {
+        return { success: false, error: "outdated_client_storage" };
+      }
     }
     const { originalId: oldOriginalId, version, settings, tempUserId, ...restStorageUpdate } = storageUpdate;
     if (Object.keys(restStorageUpdate).length === 0 && ObjectUtils_keys(settings).length === 0) {
