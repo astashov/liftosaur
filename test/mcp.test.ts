@@ -218,6 +218,50 @@ describe("MCP", () => {
       expect(body.result.isError).to.equal(true);
       expect(body.result.content[0].text).to.include("subscription required");
     });
+
+    // storage.subscription.key is server-derived and never persisted, so a valid free user's server-read storage
+    // has no key. Entitlement must still be granted from the lftFreeUsers row via OAuth.
+    it("grants access via a valid free-user key when storage.subscription.key is absent", async () => {
+      const token = await createOauthToken();
+      const user = await di.dynamo.get<any>({ tableName: userTableNames.prod.users, key: { id: userId } });
+      user.storage.subscription = { apple: [], google: [] };
+      await di.dynamo.put({ tableName: userTableNames.prod.users, item: user });
+
+      const result = await handler(buildMcpEvent(toolCall("list_programs"), authHeaders(token)), ctx);
+      expect(result.statusCode).to.equal(200);
+      const body = parseBody(result);
+      expect(body.result.isError).to.be.undefined;
+    });
+
+    it("grants access via a valid free-user key with an API key when storage.subscription.key is absent", async () => {
+      const apiKey = await createApiKey();
+      const user = await di.dynamo.get<any>({ tableName: userTableNames.prod.users, key: { id: userId } });
+      user.storage.subscription = { apple: [], google: [] };
+      await di.dynamo.put({ tableName: userTableNames.prod.users, item: user });
+
+      const result = await handler(buildMcpEvent(toolCall("list_programs"), authHeaders(apiKey)), ctx);
+      expect(result.statusCode).to.equal(200);
+      const body = parseBody(result);
+      expect(body.result.isError).to.be.undefined;
+    });
+
+    // An expired free-user row must NOT grant access, even though the row exists.
+    it("rejects when the free-user key is expired and storage has no receipts", async () => {
+      const token = await createOauthToken();
+      await di.dynamo.put({
+        tableName: freeUsersTableNames.prod.freeUsers,
+        item: { id: userId, key: "test-sub-key", isClaimed: true, expires: Date.now() - 1 },
+      });
+      const user = await di.dynamo.get<any>({ tableName: userTableNames.prod.users, key: { id: userId } });
+      user.storage.subscription = { apple: [], google: [] };
+      await di.dynamo.put({ tableName: userTableNames.prod.users, item: user });
+
+      const result = await handler(buildMcpEvent(toolCall("list_programs"), authHeaders(token)), ctx);
+      expect(result.statusCode).to.equal(200);
+      const body = parseBody(result);
+      expect(body.result.isError).to.equal(true);
+      expect(body.result.content[0].text).to.include("subscription required");
+    });
   });
 
   describe("unauthenticated tools", () => {

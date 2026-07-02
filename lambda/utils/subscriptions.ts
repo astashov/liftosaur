@@ -256,12 +256,6 @@ export class Subscriptions {
   }
 
   public async hasSubscription(di: IDI, userId: string, subscription: ISubscription): Promise<boolean> {
-    if (subscription.key) {
-      const fetchedKey = await new FreeUserDao(di).verifyKey(userId);
-      if (fetchedKey === subscription.key) {
-        return true;
-      }
-    }
     if (subscription.apple) {
       for (const receipt of subscription.apple) {
         if (await this.verifyAppleReceipt(receipt.value)) {
@@ -280,6 +274,15 @@ export class Subscriptions {
       // verifyGooglePurchaseTokenV2 fails OPEN on transport errors, so reaching here means Google live-verified
       // every google receipt as NOT entitled (e.g. ON_HOLD/PAUSED/EXPIRED). That verdict is authoritative.
       googleFailedClosed = subscription.google.length > 0;
+    }
+    // Free-user key: storage.subscription.key is a server-derived, response-only field (re-injected from
+    // lftFreeUsers on every sync/login and never persisted), so server-read storage never contains it. Entitlement
+    // must re-derive it from lftFreeUsers by userId rather than trust the (absent) stored key. verifyKey already
+    // enforces isClaimed && not-expired, so a returned key is itself a valid entitlement. Checked after apple/google
+    // since a free key is rare — this keeps the common paid-user path off an extra DynamoDB read.
+    const fetchedKey = await new FreeUserDao(di).verifyKey(userId);
+    if (fetchedKey != null) {
+      return true;
     }
     // Fallback: paid users can end up with an empty storage.subscription if the mobile app hasn't pushed the
     // receipt to the server yet. lftSubscriptionDetails is the authoritative record of a verified subscription.
