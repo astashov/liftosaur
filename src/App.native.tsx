@@ -8,6 +8,14 @@ import { RollbarUtils_config } from "./utils/rollbar";
 import { AppAttribution_get } from "./utils/appAttribution";
 import { Ota_init, Ota_activeBundleIdSync } from "./utils/ota";
 import { RN_COMMIT_HASH, RN_FULL_COMMIT_HASH } from "./rnBuildInfo";
+import {
+  localdomain,
+  localapidomain,
+  localstreamingapidomain,
+  localport,
+  localapiport,
+  localstreamingapiport,
+} from "./localdomain";
 
 declare let Rollbar: RB;
 
@@ -16,11 +24,17 @@ declare let __HOST__: string;
 // Inject compile-time constants that are normally provided by webpack's DefinePlugin.
 // Metro doesn't have an equivalent, so we attach them to globalThis at module init.
 // Toggle the `useLocal` flag for local development vs production.
+// Dev hosts come from localdomain.js so each git worktree's native build targets
+// its own dev/api/streaming ports (see scripts/worktree-create.sh).
 const useLocal = __DEV__;
-const nativeHost = useLocal ? "https://local.liftosaur.com:8080" : "https://www.liftosaur.com";
-const nativeApiHost = useLocal ? "https://local-api.liftosaur.com:3000" : "https://api3.liftosaur.com";
+const nativeHost = useLocal
+  ? `https://${localdomain}.liftosaur.com:${localport}`
+  : "https://www.liftosaur.com";
+const nativeApiHost = useLocal
+  ? `https://${localapidomain}.liftosaur.com:${localapiport}`
+  : "https://api3.liftosaur.com";
 const nativeStreamingApiHost = useLocal
-  ? "https://local-streaming-api.liftosaur.com:3001"
+  ? `https://${localstreamingapidomain}.liftosaur.com:${localstreamingapiport}`
   : "https://streaming-api.liftosaur.com";
 
 const globalAny = globalThis as unknown as {

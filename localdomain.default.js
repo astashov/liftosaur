@@ -5,4 +5,5 @@ module.exports = {
   port: 8080,
   apiPort: 3000,
   streamingApiPort: 3001,
+  metroPort: 8081,
 };

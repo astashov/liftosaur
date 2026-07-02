@@ -379,6 +379,13 @@ const mainConfig = {
     ]),
   ],
   mode: process.env.NODE_ENV === "production" ? "production" : "development",
+  watchOptions: {
+    ignored: [
+      path.join(__dirname, "worktrees", "**"),
+      path.join(__dirname, ".claude", "worktrees", "**"),
+      "**/node_modules/**",
+    ],
+  },
   devServer: {
     devMiddleware: {
       index: false, // specify to enable root proxying

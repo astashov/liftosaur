@@ -7,7 +7,9 @@
     "*.css"
   ],
   "scripts": {
-    "ios": "RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --simulator='iPhone 17e RNW'",
+    "ios": "RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --simulator=\"${IOS_SIM:-iPhone 17e RNW}\" --port ${RCT_METRO_PORT:-8081}",
+    "worktree:ios": "./scripts/worktree-ios.sh",
+    "worktree:metro": "RCT_METRO_PORT=$(node -p \"require('./localdomain').metroPort || 8081\") npm run rn:start",
     "ios-release": "RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --simulator='iPhone 17e RNW' --mode Release",
     "ios-device": "RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --device='Anton iPhone Air'",
     "ios-device-release": "RCT_USE_PREBUILT_RNCORE=0 RCT_NEW_ARCH_ENABLED=1 USE_FRAMEWORKS=static react-native run-ios --mode Release --device='Anton iPhone Air' ${DISABLE_OTA:+--extra-params SWIFT_ACTIVE_COMPILATION_CONDITIONS=DISABLE_OTA}",
@@ -23,7 +25,7 @@
     "android-device2-release": "react-native run-android --mode=release --device 58060DLAQ003M0",
     "build:android-aab": "cd android && ./gradlew bundleRelease && echo '\\nAAB: android/app/build/outputs/bundle/release/app-release.aab'",
     "release:android:internal": "./scripts/release-android-internal.sh",
-    "rn:start": "npm run build:theme && react-native start",
+    "rn:start": "npm run build:theme && react-native start --port ${RCT_METRO_PORT:-8081}",
     "build": "npm run ensure:localdomain && npm run build:prepare && npm run upload-source-maps",
     "build:prepare": "npm run ensure:localdomain && npm run build:theme && npm run build:markdown && npm run build:programs && npm run build:exercises && npm run plannerhighlighter && npm run blog && npm run docs && npm run sitemap && NODE_ENV=production npm run build:dev",
     "build:stage": "npm run ensure:localdomain && npm run build:theme && npm run build:markdown && npm run build:programs && npm run build:exercises && npm run plannerhighlighter && npm run blog && npm run docs && npm run sitemap && NODE_ENV=production STAGE=1 npm run build:dev",
