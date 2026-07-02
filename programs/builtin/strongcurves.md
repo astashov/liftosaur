@@ -168,8 +168,8 @@ Box Squat, Dumbbell[1-4] / 3x10 / 0lb / 60s / warmup: none / progress: dp(5lb, 1
 Bench Press, Dumbbell[1-4] / 3x8 / 20lb / 60s / progress: dp(5lb, 8, 12)
 Romanian Deadlift[1-4] / 3x10 / 10lb / 60s / progress: dp(5lb, 10, 20)
 Side Hip Abductor[1-4] / 1x15 / 0lb / warmup: none
-Plank[1-4] / 1x1 30s|? / warmup: none
-Side Plank[1-4] / 1x1 30s|? / warmup: none
+Plank[1-4] / 1x1 0lb 30s|? / warmup: none
+Side Plank[1-4] / 1x1 0lb 30s|? / warmup: none
 
 ## Workout B
 Single Leg Glute Bridge Straight Leg[1-4] / 3x10 / 0lb / 60s / warmup: none / progress: dp(5lb, 10, 20)
@@ -188,7 +188,7 @@ Squat, Bodyweight[1-4] / 3x10 / 0lb / 60s / warmup: none / progress: dp(5lb, 10,
 Incline Bench Press, Dumbbell[1-4] / 3x8 / 10lb / 60s / progress: dp(5lb, 8, 12)
 Single Leg Deadlift, Bodyweight[1-4] / 3x10 / 0lb / 60s / warmup: none / progress: dp(5lb, 10, 20)
 Hip Abductor, Band[1-4] / 1x10 / 0lb / warmup: none
-Plank[1-4] / 1x1 30s|? / warmup: none
+Plank[1-4] / 1x1 0lb 30s|? / warmup: none
 Cable Twist[1-4] / 1x10 / 10lb / 60s / warmup: none
 
 
@@ -232,8 +232,8 @@ Step up, Bodyweight[5-8] / 3x10 / 0lb / 60s / warmup: none / progress: dp(5lb, 1
 Bench Press[5-8] / 3x8 / 45lb / 60s / progress: dp(5lb, 8, 12)
 Romanian Deadlift, Barbell[5-8] / 3x10 / 45lb / 60s / progress: dp(5lb, 10, 20)
 Side Hip Abductor[5-8] / 1x15 / 0lb / warmup: none
-Plank[5-8] / 1x1 45s|? / warmup: none
-Side Plank[5-8] / 1x1 45s|? / warmup: none
+Plank[5-8] / 1x1 0lb 45s|? / warmup: none
+Side Plank[5-8] / 1x1 0lb 45s|? / warmup: none
 
 ## Workout B
 Single Leg Glute Bridge Straight Leg[5-8] / 3x10 / 0lb / 60s / warmup: none / progress: dp(5lb, 10, 20)
@@ -306,7 +306,7 @@ Bulgarian Split Squat[9-12] / 3x10 / 0lb / 60s / warmup: none / progress: dp(5lb
 Overhead Press, Dumbbell[9-12] / 3x8 / 15lb / 60s / progress: dp(5lb, 8, 12)
 Good Morning[9-12] / 3x10 / 45lb / 60s / progress: dp(5lb, 10, 20)
 Hip Abductor, Band[9-12] / 1x15 / 0lb / warmup: none
-Plank[9-12] / 1x1 60s|? / warmup: none
+Plank[9-12] / 1x1 0lb 60s|? / warmup: none
 Side Bend[9-12] / 1x15 / 10lb / 60s / warmup: none / progress: dp(5lb, 15, 30)
 
 ## Workout C

@@ -300,7 +300,7 @@ Squat / 3x3 76%, 2x5 65% / 180s
 Bench Press / 4x3 76%, 2x5 65% / 180s
 Stiff Leg Deadlift[5-8] / 4x9 @8 / 120s
 // Hold each side for the set-timer duration
-Side Plank[5-8] / 3x1 30s|60s
+Side Plank[5-8] / 3x1 0lb 30s|60s
 
 ## Day 2
 Deadlift / 3x3 76%, 2x5 65% / 180s
@@ -330,7 +330,7 @@ Bent Over One Arm Row[5-11] / 6x10 @8 / 90s
 Squat / 4x3 78%, 2x5 67% / 180s
 Bench Press / 5x3 78%, 3x5 67% / 180s
 Stiff Leg Deadlift / 4x8 @8 / 120s
-Side Plank / 4x1 30s|60s
+Side Plank / 4x1 0lb 30s|60s
 
 ## Day 2
 Deadlift / 4x3 78%, 2x5 67% / 180s
@@ -355,7 +355,7 @@ Bent Over One Arm Row / 6x10 @8 / 90s
 Squat / 5x2 82%, 2x4 68% / 180s
 Bench Press / 5x2 82%, 2x4 68% / 180s
 Stiff Leg Deadlift / 4x8 @8 / 120s
-Side Plank / 4x1 45s|60s
+Side Plank / 4x1 0lb 45s|60s
 
 ## Day 2
 Deadlift / 5x2 82%, 2x4 68% / 180s
@@ -382,7 +382,7 @@ Bent Over One Arm Row / 6x8 @8 / 90s
 Squat / 4x3 81%, 3x4 71% / 180s
 Bench Press / 5x3 81%, 3x4 71% / 180s
 Stiff Leg Deadlift / 4x7 @8 / 120s
-Side Plank / 4x1 45s|60s
+Side Plank / 4x1 0lb 45s|60s
 
 ## Day 2
 Deadlift / 4x3 81%, 3x4 71% / 180s
@@ -410,7 +410,7 @@ Squat / 5x4 78%, 2x4 67% / 180s
 Bench Press / 6x4 78%, 2x4 67% / 180s
 Bent Over Row[9-11] / 4x8 @8 / 120s
 // Plank walkout or ab wheel
-Plank[9-11] / 3x1 20s|60s
+Plank[9-11] / 3x1 0lb 20s|60s
 
 ## Day 2
 Deadlift / 4x4 78%, 2x4 67% / 180s
@@ -438,7 +438,7 @@ Bent Over One Arm Row / 5x8 @8 / 90s
 Squat / 6x3 81%, 2x4 70% / 180s
 Bench Press / 7x4 81%, 2x4 70% / 180s
 Bent Over Row / 4x6 @8 / 120s
-Plank / 4x1 20s|60s
+Plank / 4x1 0lb 20s|60s
 
 ## Day 2
 Deadlift / 5x3 81%, 2x4 70% / 180s
@@ -465,7 +465,7 @@ Bent Over One Arm Row / 5x8 @8 / 90s
 Squat / 3x3 79%, 2x4 72% / 180s
 Bench Press / 3x3 79%, 2x4 72% / 180s
 Bent Over Row / 4x5 @8 / 120s
-Plank / 4x1 24s|60s
+Plank / 4x1 0lb 24s|60s
 
 ## Day 2
 Deadlift / 3x3 79%, 2x4 72% / 180s
