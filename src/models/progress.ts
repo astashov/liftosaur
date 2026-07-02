@@ -1283,11 +1283,14 @@ export function Progress_completeSet(
 }
 
 export function Progress_getFirstIncompleteWorkoutSet(
-  progress: IHistoryRecord
+  progress: IHistoryRecord,
+  after?: { entryIndex: number; setIndex: number }
 ): { entryIndex: number; setIndex: number } | undefined {
-  for (let entryIndex = 0; entryIndex < progress.entries.length; entryIndex += 1) {
+  const startEntry = after?.entryIndex ?? 0;
+  for (let entryIndex = startEntry; entryIndex < progress.entries.length; entryIndex += 1) {
     const sets = progress.entries[entryIndex].sets;
-    for (let setIndex = 0; setIndex < sets.length; setIndex += 1) {
+    const startSet = after != null && entryIndex === after.entryIndex ? after.setIndex + 1 : 0;
+    for (let setIndex = startSet; setIndex < sets.length; setIndex += 1) {
       if (!sets[setIndex].isCompleted) {
         return { entryIndex, setIndex };
       }
@@ -1299,7 +1302,16 @@ export function Progress_getFirstIncompleteWorkoutSet(
 export function Progress_getNextTimedSet(
   progress: IHistoryRecord
 ): { entryIndex: number; setIndex: number } | undefined {
-  const next = Progress_getFirstIncompleteWorkoutSet(progress);
+  // The "next" set for an auto/EMOM advance is the set right after the one the timer belongs to — NOT the
+  // globally-first incomplete set. Users don't work exercises strictly top-to-bottom, so an earlier untimed
+  // exercise left incomplete would otherwise be picked as "next", have no setTimer, and silently stop the chain.
+  const current =
+    progress.setTimer != null
+      ? { entryIndex: progress.setTimer.entryIndex, setIndex: progress.setTimer.setIndex }
+      : progress.timerEntryIndex != null && progress.timerSetIndex != null
+        ? { entryIndex: progress.timerEntryIndex, setIndex: progress.timerSetIndex }
+        : undefined;
+  const next = Progress_getFirstIncompleteWorkoutSet(progress, current);
   if (next == null) {
     return undefined;
   }
