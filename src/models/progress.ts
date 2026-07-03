@@ -88,6 +88,7 @@ import {
   PlannerProgramExercise_getUpdateScript,
   PlannerProgramExercise_getState,
   PlannerProgramExercise_currentEvaluatedSetVariationIndex,
+  PlannerProgramExercise_currentExerciseVariationIndex,
   PlannerProgramExercise_currentDescriptionIndex,
   PlannerProgramExercise_currentSetVariationIndex,
   PlannerProgramExercise_programWarmups,
@@ -135,6 +136,7 @@ export interface IScriptBindings {
   numberOfSets: number;
   completedNumberOfSets: number;
   setVariationIndex: number;
+  exerciseVariationIndex: number;
   bodyweight: IWeight;
   descriptionIndex: number;
   setIndex: number;
@@ -322,6 +324,7 @@ export function Progress_createEmptyScriptBindings(
     completedNumberOfSets: 0,
     ns: 0,
     setVariationIndex: 1,
+    exerciseVariationIndex: 1,
     descriptionIndex: 1,
     bodyweight: Weight_build(0, settings.units),
     setIndex: 1,
@@ -337,7 +340,8 @@ export function Progress_createScriptBindings(
   bodyweight: IWeight | undefined,
   setIndex?: number,
   setVariationIndex?: number,
-  descriptionIndex?: number
+  descriptionIndex?: number,
+  exerciseVariationIndex?: number
 ): IScriptBindings {
   const bindings = Progress_createEmptyScriptBindings(dayData, settings, entry.exercise);
   for (const set of entry.sets) {
@@ -369,6 +373,7 @@ export function Progress_createScriptBindings(
   bindings.completedNumberOfSets = entry.sets.filter((s) => s.isCompleted).length;
   bindings.setIndex = setIndex ?? 1;
   bindings.setVariationIndex = setVariationIndex ?? 1;
+  bindings.exerciseVariationIndex = exerciseVariationIndex ?? 1;
   bindings.descriptionIndex = descriptionIndex ?? 1;
   bindings.bodyweight = bodyweight ?? Weight_build(0, settings.units);
   return bindings;
@@ -987,6 +992,7 @@ export function Progress_runUpdateScriptForEntry(
   const state = ObjectUtils_clone(PlannerProgramExercise_getState(programExercise));
   const setVariationIndex = PlannerProgramExercise_currentEvaluatedSetVariationIndex(programExercise);
   const descriptionIndex = PlannerProgramExercise_currentDescriptionIndex(programExercise);
+  const exerciseVariationIndex = PlannerProgramExercise_currentExerciseVariationIndex(programExercise);
   const bindings = Progress_createScriptBindings(
     dayData,
     entry,
@@ -995,7 +1001,8 @@ export function Progress_runUpdateScriptForEntry(
     Stats_getCurrentMovingAverageBodyweight(stats, settings),
     setIndex + 1,
     setVariationIndex,
-    descriptionIndex
+    descriptionIndex,
+    exerciseVariationIndex
   );
   const fnContext: IScriptFnContext = { exerciseType: exercise, unit: settings.units, prints: [] };
   const runner = new ScriptRunner(

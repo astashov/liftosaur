@@ -99,6 +99,7 @@ import {
   PlannerProgramExercise_programWarmups,
   PlannerProgramExercise_getProgressScript,
   PlannerProgramExercise_currentEvaluatedSetVariationIndex,
+  PlannerProgramExercise_currentExerciseVariationIndex,
   PlannerProgramExercise_currentDescriptionIndex,
   PlannerProgramExercise_getState,
   PlannerProgramExercise_createExerciseFromEntry,
@@ -466,6 +467,7 @@ export function Program_runExerciseFinishDayScript(
   const script = PlannerProgramExercise_getProgressScript(programExercise) || "";
   const setVariationIndex = PlannerProgramExercise_currentEvaluatedSetVariationIndex(programExercise);
   const descriptionIndex = PlannerProgramExercise_currentDescriptionIndex(programExercise);
+  const exerciseVariationIndex = PlannerProgramExercise_currentExerciseVariationIndex(programExercise);
 
   const bindings = Progress_createScriptBindings(
     dayData,
@@ -475,7 +477,8 @@ export function Program_runExerciseFinishDayScript(
     Stats_getCurrentMovingAverageBodyweight(stats, settings),
     undefined,
     setVariationIndex + 1,
-    descriptionIndex + 1
+    descriptionIndex + 1,
+    exerciseVariationIndex + 1
   );
   const fns = Progress_createScriptFunctions(settings);
   let updates: ILiftoscriptEvaluatorUpdate[] = [];
@@ -527,6 +530,7 @@ export function Program_runFinishDayScript(
   const state = PlannerProgramExercise_getState(programExercise);
   const setVariationIndex = PlannerProgramExercise_currentEvaluatedSetVariationIndex(programExercise);
   const descriptionIndex = PlannerProgramExercise_currentDescriptionIndex(programExercise);
+  const exerciseVariationIndex = PlannerProgramExercise_currentExerciseVariationIndex(programExercise);
   const bindings = Progress_createScriptBindings(
     dayData,
     entry,
@@ -535,7 +539,8 @@ export function Program_runFinishDayScript(
     Stats_getCurrentMovingAverageBodyweight(stats, settings),
     undefined,
     setVariationIndex + 1,
-    descriptionIndex + 1
+    descriptionIndex + 1,
+    exerciseVariationIndex + 1
   );
   const fns = Progress_createScriptFunctions(settings);
 

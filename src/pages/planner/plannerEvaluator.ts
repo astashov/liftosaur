@@ -399,6 +399,13 @@ export function PlannerEvaluator_fillSetReuses(
         exercise.points.reuseSetPoint
       );
     }
+    if ((originalExercise.exercise.exerciseVariations?.length ?? 0) > 1) {
+      throw PlannerSyntaxError.fromPoint(
+        exercise.fullName,
+        `Cannot reuse '${reuse.fullName}' - it has multiple exercise variations. Move the shared sets/progress into a 'used: none' template and reuse that instead`,
+        exercise.points.reuseSetPoint
+      );
+    }
     if (
       originalExercise.exercise.progress?.reuse != null &&
       exercise.progress == null &&
@@ -778,12 +785,22 @@ export function PlannerEvaluator_checkUnknownExercises(
   exercise: IPlannerProgramExercise,
   metadata: IPlannerEvalMetadata
 ): void {
-  if (exercise.exerciseType == null && !metadata.notused.has(exercise.key)) {
-    throw PlannerSyntaxError.fromPoint(
-      exercise.fullName,
-      `Unknown exercise ${exercise.name}`,
-      exercise.points.fullName
-    );
+  if (metadata.notused.has(exercise.key)) {
+    return;
+  }
+  const variations = exercise.exerciseVariations;
+  if (variations != null && variations.length > 1) {
+    for (const variation of variations) {
+      if (variation.exerciseType == null) {
+        throw PlannerSyntaxError.fromPoint(
+          exercise.fullName,
+          `Unknown exercise ${variation.name}`,
+          exercise.points.fullName
+        );
+      }
+    }
+  } else if (exercise.exerciseType == null) {
+    throw PlannerSyntaxError.fromPoint(exercise.fullName, `Unknown exercise ${exercise.name}`, exercise.points.fullName);
   }
 }
 

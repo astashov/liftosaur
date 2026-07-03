@@ -145,8 +145,8 @@ const ExercisePickerContainer = forwardRef((props: IExercisePickerContainerProps
           defaultValue={props.label}
           changeType={"oninput"}
           inputSize="sm"
-          pattern="^[^\/\{\}\(\)\t\n\r#\[\]]+$"
-          patternMessage="Label cannot contain special characters: '/{}()#[]'"
+          pattern="^[^\/\{\}\(\)\t\n\r#\[\]\|!]+$"
+          patternMessage="Label cannot contain special characters: '/{}()#[]|!'"
           labelSize="xs"
           changeHandler={(e: IEither<string, Set<IValidationError>>) => {
             if (e.success && props.onLabelChange) {
@@ -675,8 +675,8 @@ function ExerciseTemplate(props: IExerciseTemplateProps): JSX.Element {
           setName(value);
           if (!value) {
             setNameError("Name cannot be empty");
-          } else if (/[/{}()\t\n\r#\[\]]+/.test(value)) {
-            setNameError("Name cannot contain special characters: '/{}()#[]'");
+          } else if (/[/{}()\t\n\r#\[\]|!]+/.test(value)) {
+            setNameError("Name cannot contain special characters: '/{}()#[]|!'");
           } else {
             setNameError(undefined);
           }

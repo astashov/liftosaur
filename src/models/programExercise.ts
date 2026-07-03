@@ -25,6 +25,7 @@ import {
   PlannerProgramExercise_getProgressScript,
   PlannerProgramExercise_getUpdateScript,
   PlannerProgramExercise_currentEvaluatedSetVariationIndex,
+  PlannerProgramExercise_currentExerciseVariationIndex,
   PlannerProgramExercise_currentDescriptionIndex,
 } from "../pages/planner/models/plannerProgramExercise";
 import { PP_iterate2 } from "./pp";
@@ -235,6 +236,31 @@ export function ProgramExercise_applyVariables(
               const sv = exercise.evaluatedSetVariations[indexValue];
               if (sv != null) {
                 sv.isCurrent = true;
+              }
+            } else if (key === "exerciseVariationIndex" && typeof update.value.value === "number") {
+              const variations = exercise.exerciseVariations ?? [];
+              if (variations.length > 0) {
+                let indexValue: number;
+                if (update.value.op === "=") {
+                  indexValue = update.value.value - 1;
+                } else {
+                  const currentExerciseVariationIndex = PlannerProgramExercise_currentExerciseVariationIndex(exercise);
+                  indexValue = Weight_applyOp(
+                    undefined,
+                    currentExerciseVariationIndex,
+                    update.value.value,
+                    update.value.op
+                  ) as number;
+                }
+                indexValue = ((indexValue % variations.length) + variations.length) % variations.length;
+                variations.forEach((v) => (v.isCurrent = false));
+                const nextVariation = variations[indexValue];
+                if (nextVariation != null) {
+                  nextVariation.isCurrent = true;
+                  if (nextVariation.exerciseType != null) {
+                    exercise.exerciseType = nextVariation.exerciseType;
+                  }
+                }
               }
             } else if (key === "descriptionIndex" && typeof update.value.value === "number") {
               let indexValue: number;

@@ -136,6 +136,7 @@ export interface ILiftoscriptVariableValue<T> {
 
 export type ILiftoscriptEvaluatorUpdate =
   | { type: "setVariationIndex"; value: ILiftoscriptVariableValue<number> }
+  | { type: "exerciseVariationIndex"; value: ILiftoscriptVariableValue<number> }
   | { type: "descriptionIndex"; value: ILiftoscriptVariableValue<number> }
   | { type: "reps"; value: ILiftoscriptVariableValue<number> }
   | { type: "minReps"; value: ILiftoscriptVariableValue<number> }
@@ -381,6 +382,7 @@ export class LiftoscriptEvaluator {
             "bodyweight",
             "RPE",
             "setVariationIndex",
+            "exerciseVariationIndex",
             "descriptionIndex",
             "numberOfSets",
             "programNumberOfSets",
@@ -566,6 +568,7 @@ export class LiftoscriptEvaluator {
       | "RPE"
       | "minReps"
       | "setVariationIndex"
+      | "exerciseVariationIndex"
       | "descriptionIndex"
       | "numberOfSets"
       | "logrpes"
@@ -577,10 +580,18 @@ export class LiftoscriptEvaluator {
   ): number | IWeight | IPercentage {
     const indexes = indexExprs.map((ie) => getChildren(ie)[0]);
     const maxTargetLength =
-      key === "setVariationIndex" || key === "descriptionIndex" ? 2 : key === "numberOfSets" ? 3 : 4;
+      key === "setVariationIndex" || key === "exerciseVariationIndex" || key === "descriptionIndex"
+        ? 2
+        : key === "numberOfSets"
+          ? 3
+          : 4;
     if (key === "setVariationIndex") {
       if (indexes.length > maxTargetLength) {
         this.error(`setVariationIndex can only have 2 values inside [*:*]`, expression);
+      }
+    } else if (key === "exerciseVariationIndex") {
+      if (indexes.length > maxTargetLength) {
+        this.error(`exerciseVariationIndex can only have 2 values inside [*:*]`, expression);
       }
     } else if (key === "descriptionIndex") {
       if (indexes.length > maxTargetLength) {
@@ -606,6 +617,11 @@ export class LiftoscriptEvaluator {
         const [week, day] = normalizedIndexValues;
         if ((week === "*" || week === this.bindings.week) && (day === "*" || day === this.bindings.day)) {
           this.bindings.setVariationIndex = result;
+        }
+      } else if (key === "exerciseVariationIndex") {
+        const [week, day] = normalizedIndexValues;
+        if ((week === "*" || week === this.bindings.week) && (day === "*" || day === this.bindings.day)) {
+          this.bindings.exerciseVariationIndex = result;
         }
       } else if (key === "descriptionIndex") {
         const [week, day] = normalizedIndexValues;
@@ -827,6 +843,7 @@ export class LiftoscriptEvaluator {
             variable === "amraps" ||
             variable === "askweights" ||
             variable === "setVariationIndex" ||
+            variable === "exerciseVariationIndex" ||
             variable === "descriptionIndex" ||
             variable === "numberOfSets")
         ) {
@@ -954,6 +971,7 @@ export class LiftoscriptEvaluator {
             variable === "timers" ||
             variable === "setTime" ||
             variable === "setVariationIndex" ||
+            variable === "exerciseVariationIndex" ||
             variable === "descriptionIndex" ||
             variable === "numberOfSets")
         ) {

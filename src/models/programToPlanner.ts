@@ -39,7 +39,7 @@ import {
   IPlannerProgramExerciseWarmupSet,
 } from "../pages/planner/models/types";
 import { IEvaluatedProgram, Program_getProgramExercise } from "./program";
-import { Exercise_get, Exercise_fullName } from "./exercise";
+import { Exercise_get, Exercise_fullName, Exercise_buildName } from "./exercise";
 import { CollectionUtils_compact } from "../utils/collection";
 import { PP_iterate2 } from "./pp";
 import { PlannerKey_fromFullName, PlannerKey_fromPlannerExercise } from "../pages/planner/plannerKey";
@@ -557,7 +557,23 @@ export class ProgramToPlanner {
   }
 
   private getExerciseName(programExercise: IPlannerProgramExercise): string {
-    if (programExercise.exerciseType) {
+    const variations = programExercise.exerciseVariations;
+    if (variations != null && variations.length > 1) {
+      const currentIndex = variations.findIndex((v) => v.isCurrent);
+      const activeIndex = currentIndex === -1 ? 0 : currentIndex;
+      const parts = variations.map((variation, i) => {
+        const label = i === 0 ? programExercise.label : undefined;
+        const segment = variation.exerciseType
+          ? Exercise_fullName(Exercise_get(variation.exerciseType, this.settings.exercises), this.settings, label)
+          : Exercise_buildName(variation.name, this.settings, label);
+        return `${i === activeIndex && i > 0 ? "! " : ""}${segment}`;
+      });
+      let name = parts.join(" | ");
+      if (programExercise.order > 0) {
+        name = `${name}[${programExercise.order}]`;
+      }
+      return name;
+    } else if (programExercise.exerciseType) {
       const exercise = Exercise_get(programExercise.exerciseType, this.settings.exercises);
       let name = Exercise_fullName(exercise, this.settings, programExercise.label);
       if (programExercise.order > 0) {

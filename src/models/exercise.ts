@@ -3664,19 +3664,22 @@ export function Exercise_isCustom(id: string, customExercises: IAllCustomExercis
   return customExercises[id] != null;
 }
 
-export function Exercise_fullName(exercise: IExercise, settings: ISettings, label?: string): string {
-  let str: string;
-  if (exercise.equipment && exercise.defaultEquipment !== exercise.equipment) {
+export function Exercise_buildName(name: string, settings: ISettings, label?: string, equipment?: IEquipment): string {
+  let str = name;
+  if (equipment) {
     const allEquipment = Equipment_currentEquipment(settings);
-    const equipment = equipmentName(exercise.equipment, allEquipment);
-    str = `${exercise.name}, ${equipment}`;
-  } else {
-    str = exercise.name;
+    str = `${name}, ${equipmentName(equipment, allEquipment)}`;
   }
   if (label) {
     str = `${label}: ${str}`;
   }
   return str;
+}
+
+export function Exercise_fullName(exercise: IExercise, settings: ISettings, label?: string): string {
+  const equipment =
+    exercise.equipment && exercise.defaultEquipment !== exercise.equipment ? exercise.equipment : undefined;
+  return Exercise_buildName(exercise.name, settings, label, equipment);
 }
 
 export function Exercise_reverseName(exercise: IExercise, settings?: ISettings): string {

@@ -7,6 +7,8 @@ export enum PlannerNodeName {
   Week = "Week",
   Day = "Day",
   ExerciseExpression = "ExerciseExpression",
+  ExerciseVariations = "ExerciseVariations",
+  ExerciseVariation = "ExerciseVariation",
   ExerciseName = "ExerciseName",
   NonSeparator = "NonSeparator",
   Repeat = "Repeat",
