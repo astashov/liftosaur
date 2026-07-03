@@ -5,6 +5,7 @@ import {
   IPlannerProgramExerciseGlobals,
   IPlannerProgramExerciseSet,
   IPlannerProgramExerciseSetVariation,
+  IPlannerProgramExerciseVariation,
   IPlannerProgramExerciseWithType,
   IPlannerProgramExerciseWarmupSet,
   IProgramExerciseProgress,
@@ -394,6 +395,18 @@ export function PlannerProgramExercise_currentEvaluatedSetVariation(
 ): IPlannerProgramExerciseEvaluatedSetVariation {
   const index = PlannerProgramExercise_currentEvaluatedSetVariationIndex(exercise);
   return exercise.evaluatedSetVariations[index];
+}
+
+export function PlannerProgramExercise_currentExerciseVariationIndex(exercise: IPlannerProgramExercise): number {
+  const index = (exercise.exerciseVariations ?? []).findIndex((v) => v.isCurrent);
+  return index === -1 ? 0 : index;
+}
+
+export function PlannerProgramExercise_currentExerciseVariation(
+  exercise: IPlannerProgramExercise
+): IPlannerProgramExerciseVariation | undefined {
+  const index = PlannerProgramExercise_currentExerciseVariationIndex(exercise);
+  return exercise.exerciseVariations?.[index];
 }
 
 export function PlannerProgramExercise_currentDescription(exercise: IPlannerProgramExercise): string | undefined {
@@ -867,6 +880,7 @@ export function PlannerProgramExercise_createExerciseFromEntry(
     line: 1,
     evaluatedSetVariations: [],
     setVariations: setVariations,
+    exerciseVariations: [{ exerciseType, name, isCurrent: true }],
     warmupSets: groupedWarmupSets.map((group) => ({
       type: "warmup",
       numberOfSets: group.length,

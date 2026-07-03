@@ -63,6 +63,7 @@ export type IPlannerProgramExercise = {
   notused?: boolean;
   evaluatedSetVariations: IPlannerProgramExerciseEvaluatedSetVariation[];
   setVariations: IPlannerProgramExerciseSetVariation[];
+  exerciseVariations: IPlannerProgramExerciseVariation[];
   warmupSets?: IPlannerProgramExerciseWarmupSet[];
   descriptions: IProgramExerciseDescriptions;
   globals: IPlannerProgramExerciseGlobals;
@@ -81,6 +82,12 @@ export type IPlannerProgramExercise = {
 
 export interface IPlannerProgramExerciseSetVariation {
   sets: IPlannerProgramExerciseSet[];
+  isCurrent: boolean;
+}
+
+export interface IPlannerProgramExerciseVariation {
+  exerciseType?: IExerciseType;
+  name: string;
   isCurrent: boolean;
 }
 

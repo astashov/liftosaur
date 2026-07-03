@@ -41,6 +41,7 @@ import { IEither } from "../../../utils/types";
 import { getLatestMigrationVersion } from "../../../migrations/migrations";
 import { ProgramToPlanner } from "../../../models/programToPlanner";
 import { PlannerKey_fromLabelNameAndEquipment, PlannerKey_fromExerciseType } from "../plannerKey";
+import { Exercise_get } from "../../../models/exercise";
 import { UidFactory_generateUid } from "../../../utils/generator";
 import { CollectionUtils_compact } from "../../../utils/collection";
 
@@ -138,6 +139,11 @@ export function PlannerProgram_replaceExercise(
         exercise.exerciseType = typeof toExerciseType === "string" ? undefined : toExerciseType;
         const newLabel2 = getLabel(exercise.label);
         exercise.label = newLabel2;
+        // Replacing collapses any multi-variation ladder into a single current variation for the new
+        // target, so serialization/identity come from the new exercise instead of the stale ladder.
+        const newName =
+          typeof toExerciseType === "string" ? toExerciseType : Exercise_get(toExerciseType, settings.exercises).name;
+        exercise.exerciseVariations = [{ exerciseType: exercise.exerciseType, name: newName, isCurrent: true }];
         if (typeof toExerciseType === "string") {
           exercise.notused = true;
           exercise.fullName = `${newLabel2 ? `${newLabel2}: ` : ""}${toExerciseType}`;

@@ -57,6 +57,7 @@ const bindings: IScriptBindings = {
   completedNumberOfSets: 3,
   setIndex: 1,
   setVariationIndex: 1,
+  exerciseVariationIndex: 1,
   bodyweight: Weight_build(0, "lb"),
   descriptionIndex: 1,
   rm1: Weight_build(100, "lb"),

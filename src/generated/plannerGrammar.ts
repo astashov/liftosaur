@@ -5,9 +5,11 @@ export const content = `@top Program { expression* }
 
 expression { LineComment | TripleLineComment | Week | Day | ExerciseExpression | EmptyExpression }
 
-ExerciseExpression { ExerciseName Repeat? (SectionSeparator ExerciseSection?)* linebreakOrEof }
+ExerciseExpression { ExerciseVariations Repeat? (SectionSeparator ExerciseSection?)* linebreakOrEof }
 EmptyExpression { linebreak }
 
+ExerciseVariations { ExerciseVariation ("|" ExerciseVariation)* }
+ExerciseVariation { CurrentVariation? ExerciseName }
 ExerciseName { NonSeparator+ }
 ExerciseSets { CurrentVariation? ExerciseSet ("," ExerciseSet)* }
 WarmupExerciseSets { (WarmupExerciseSet ("," WarmupExerciseSet)*) }
@@ -75,7 +77,7 @@ WarmupSetPart { (Rep "x")? Rep }
   SectionSeparator { "/" }
   linebreakOrEof { linebreak | @eof }
   linebreak { "\\n" | "\\r" | "\\r\\n" }
-  NonSeparator { ![/{}() \\t\\n\\r#\\[\\]]+ }
+  NonSeparator { ![/{}() \\t\\n\\r#\\[\\]|!]+ }
   Keyword { $[a-zA-Z_] $[0-9a-zA-Z_]* }
   Int { @digit+ }
   Float { @digit* "." @digit+ }

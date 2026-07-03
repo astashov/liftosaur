@@ -453,6 +453,7 @@ export function EditProgramUiHelpers_addInstance(
       text: "",
       tags: [],
       line: 0,
+      exerciseVariations: [{ exerciseType, name, isCurrent: true }],
       evaluatedSetVariations: [
         {
           sets: [
