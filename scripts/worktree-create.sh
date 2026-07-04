@@ -98,10 +98,10 @@ npm run build:programs
 npm run build:exercises
 
 echo "==> SSL certs (certbot + cloudflare)"
-sh lambda/scripts/update_liftosaur_dev_certs.sh
+sh ../../lambda/scripts/update_liftosaur_dev_certs.sh
 
 echo "==> DNS A records -> this machine"
-sh lambda/scripts/change_liftosaur_dev_api.sh
+sh ../../lambda/scripts/change_liftosaur_dev_api.sh
 
 cat <<EOF
 

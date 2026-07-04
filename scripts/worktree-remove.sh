@@ -31,7 +31,7 @@ for key in port apiPort streamingApiPort metroPort; do
 done
 
 echo "==> removing DNS records"
-( cd "$DIR" && sh lambda/scripts/delete_liftosaur_dev_api.sh )
+sh "$ROOT/lambda/scripts/delete_liftosaur_dev_api.sh" "$DIR/localdomain.js" || echo "  (skipped DNS deletion)"
 
 if xcrun simctl list devices | grep -q "$SIM_NAME ("; then
   echo "==> deleting simulator '$SIM_NAME'"
