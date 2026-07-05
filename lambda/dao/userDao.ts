@@ -108,12 +108,17 @@ interface IStatDb {
 }
 
 // Maps an outdated client storage version to the server version it's safe to sync against anyway.
-// Only include gaps that are a single, idempotent, sync-safe migration (server re-runs all migrations
-// on every sync, so old-format fields get relocated server-side). See rn-ota-delivery.md: releases that
-// bump runtimeVersion strand users who haven't installed the new native binary, and OTA can't reach them.
-// `20260304084247 -> 20260628120000` = move_amrap_modal_to_progress (the versionCode 140 -> 141 release).
+// Only include gaps composed entirely of idempotent, data-only migrations that don't change the storage
+// shape (the server re-runs all migrations on every sync, so old-format fields get relocated/re-derived
+// server-side). See rn-ota-delivery.md: releases that bump runtimeVersion strand users who haven't
+// installed the new native binary, and OTA can't reach them.
+// Both gaps below end at 20260702120000 = sanitize_pipe_bang_in_custom_exercise_names (data-only). The
+// intermediate 20260628120000 step is move_amrap_modal_to_progress (also data-only), so the older
+// versionCode-140 client (20260304084247) stays whitelisted across both migrations rather than being
+// re-stranded when the server advances past 20260628120000.
 const syncSafeOutdatedClientVersions: Record<string, string> = {
-  "20260304084247": "20260628120000",
+  "20260304084247": "20260702120000",
+  "20260628120000": "20260702120000",
 };
 
 function isSyncSafeOutdatedClient(clientVersion: string, serverVersion: string): boolean {
