@@ -14,6 +14,33 @@
 -->
 
 ---
+date: 2026-07-05
+title: Added exercise variations (progression ladders)
+---
+
+A single program exercise can now hold multiple movements, and you can switch between them - either automatically as you progress, or by hand. Great for calisthenics progressions, where you graduate from an easier movement to a harder one once you can do enough reps.
+
+List the movements separated by `|` in the exercise name. The current one is marked with `!` (the first is current by default):
+
+```liftoscript
+Split Squat | ! Bulgarian Split Squat | Pistol Squat / 3x8 0lb
+```
+
+To advance automatically, use the new `exerciseVariationIndex` variable in a progress script - it moves to the next movement when your condition is met:
+
+```liftoscript
+Squat | Pistol Squat | Front Squat / 3x8 0lb / progress: custom() {~
+  if (completedReps >= reps) {
+    exerciseVariationIndex += 1
+  }
+~}
+```
+
+You can also add, remove, reorder, and switch variations right from the Edit Program Exercise screen - enable "Exercise Variations" from the 3-dot menu. The sets, reps, and progress logic are shared across all movements; only the movement itself changes.
+
+Note that if you had a custom exercise with `|` or `!` in the name, it will be replaced to `-` character.
+
+---
 date: 2026-07-01
 title: Added time-based exercises and intervals/circuits support
 ---
