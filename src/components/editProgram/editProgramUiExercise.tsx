@@ -462,7 +462,15 @@ function ExerciseVariationsLine(props: {
     builder.add(name, cls("font-semibold"));
   });
   const built = builder.build();
-  return <FastText text={built.text} fragments={built.fragments} {...cls("text-xs text-text-secondary")} />;
+  return (
+    <FastText
+      data-testid="exercise-variations-summary"
+      testID="exercise-variations-summary"
+      text={built.text}
+      fragments={built.fragments}
+      {...cls("text-xs text-text-secondary")}
+    />
+  );
 }
 
 function SupersetLine(props: { group: string; exerciseNames: string[] }): JSX.Element {
