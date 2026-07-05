@@ -826,3 +826,24 @@ Jump Rope / 3x1 30s|15s auto
 Goblet Squat / 3x12 35lb 15s auto
 Plank / 3x1 45s|15s auto
 ```
+
+## Exercise Variations (Progression Ladders)
+
+For calisthenics-style programs (e.g. the r/bodyweightfitness Recommended Routine), a "slot" is an ordered list of increasingly hard movements. You do a rep range, and once you cap it you graduate to the next movement. List the movements separated by `|`, and advance the current one with `exerciseVariationIndex`. The current movement is marked with `!`.
+
+```
+# Week 1
+## Day 1
+Split Squat | Bulgarian Split Squat | Pistol Squat / 3x8 / progress: custom() {~
+  if (completedReps >= reps) {
+    exerciseVariationIndex += 1
+  }
+~}
+Inverted Row | Chin Up | Pull Up / 3x5 / progress: custom() {~
+  if (completedReps >= reps) {
+    exerciseVariationIndex += 1
+  }
+~}
+```
+
+The sets/reps are shared across all movements in a slot - only the exercise changes when you graduate. Combine with set variations if you also need a different set scheme per movement.
