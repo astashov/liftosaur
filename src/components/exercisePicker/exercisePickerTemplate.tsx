@@ -31,8 +31,8 @@ export const ExercisePickerTemplate = memo(function ExercisePickerTemplate(props
             const value = rawValue?.trim() || "";
             if (!value) {
               setNameError("Name cannot be empty");
-            } else if (/[/{}()\t\n\r#\[\]]+/.test(value)) {
-              setNameError("Name cannot contain special characters: '/{}()#[]'");
+            } else if (/[/{}()\t\n\r#\[\]|!]+/.test(value)) {
+              setNameError("Name cannot contain special characters: '/{}()#[]|!'");
             } else {
               setNameError(undefined);
               props.dispatch(

@@ -8,6 +8,7 @@ import { IconBack } from "../icons/iconBack";
 import { IconClose2 } from "../icons/iconClose2";
 import { ObjectUtils_isEqual } from "../../utils/object";
 import { ExercisePickerCustomExerciseContent } from "./exercisePickerCustomExerciseContent";
+import { ExercisePickerUtils_customExerciseNameError } from "./exercisePickerUtils";
 import { Exercise_getNotes } from "../../models/exercise";
 import { SheetDragHandle } from "../../navigation/TransparentModal";
 
@@ -27,7 +28,7 @@ interface IExercisePickerCustomExercise2Props {
 
 export function ExercisePickerCustomExercise(props: IExercisePickerCustomExercise2Props): JSX.Element {
   const isEdited = !props.originalExercise || !ObjectUtils_isEqual(props.exercise, props.originalExercise);
-  const isValid = props.exercise.name.trim().length ?? 0 > 0;
+  const isValid = ExercisePickerUtils_customExerciseNameError(props.exercise.name) == null;
   const [notes, setNotes] = useState<string | undefined>(
     props.exercise ? Exercise_getNotes(props.exercise, props.settings) : undefined
   );
