@@ -110,7 +110,7 @@ export function EditProgramExerciseWarmups(props: IEditProgramExerciseWarmupsPro
                   } else {
                     return EditProgramUiHelpers_changeAllInstances(
                       program,
-                      plannerExercise.fullName,
+                      plannerExercise.key,
                       props.settings,
                       true,
                       (e) => {

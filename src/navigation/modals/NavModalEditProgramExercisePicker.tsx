@@ -23,7 +23,7 @@ import { UndoingFlag_set } from "../../utils/undoingFlag";
 import {
   EditProgramUiHelpers_duplicateCurrentInstance,
   EditProgramUiHelpers_getChangedKeys,
-  EditProgramUiHelpers_changeAllInstancesByKey,
+  EditProgramUiHelpers_changeAllInstances,
 } from "../../components/editProgram/editProgramUi/editProgramUiHelpers";
 import { EditProgram_migrateExerciseStateKey } from "../../models/editProgram";
 import type { IRootStackParamList } from "../types";
@@ -65,30 +65,24 @@ function onChangeExercise(
         return;
       }
       const exercise = Exercise_get(newExerciseType, settings.exercises);
-      const newPlanner = EditProgramUiHelpers_changeAllInstancesByKey(
-        planner,
-        plannerExercise.key,
-        settings,
-        true,
-        (ex) => {
-          const variations = ex.exerciseVariations ?? [];
-          if (change === "variationAdd") {
-            variations.push({ exerciseType: newExerciseType, name: exercise.name, isCurrent: false });
-          } else if (variationIndex != null && variations[variationIndex] != null) {
-            variations[variationIndex] = {
-              exerciseType: newExerciseType,
-              name: exercise.name,
-              isCurrent: variations[variationIndex].isCurrent,
-            };
-          }
-          ex.exerciseVariations = variations;
-          // A lone rung serializes via ex.exerciseType, so keep it aligned with the current variation.
-          const current = variations.find((v) => v.isCurrent);
-          if (current?.exerciseType != null) {
-            ex.exerciseType = current.exerciseType;
-          }
+      const newPlanner = EditProgramUiHelpers_changeAllInstances(planner, plannerExercise.key, settings, true, (ex) => {
+        const variations = ex.exerciseVariations ?? [];
+        if (change === "variationAdd") {
+          variations.push({ exerciseType: newExerciseType, name: exercise.name, isCurrent: false });
+        } else if (variationIndex != null && variations[variationIndex] != null) {
+          variations[variationIndex] = {
+            exerciseType: newExerciseType,
+            name: exercise.name,
+            isCurrent: variations[variationIndex].isCurrent,
+          };
         }
-      );
+        ex.exerciseVariations = variations;
+        // A lone rung serializes via ex.exerciseType, so keep it aligned with the current variation.
+        const current = variations.find((v) => v.isCurrent);
+        if (current?.exerciseType != null) {
+          ex.exerciseType = current.exerciseType;
+        }
+      });
       plannerDispatch(lb<IPlannerProgram>().record(newPlanner), "Change exercise variation");
       if (onNewKey) {
         const changedKeys = EditProgramUiHelpers_getChangedKeys(planner, newPlanner, settings);

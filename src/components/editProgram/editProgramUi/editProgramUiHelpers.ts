@@ -526,33 +526,12 @@ export function EditProgramUiHelpers_changeCurrentInstancePosition(
   return new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner({ reorder });
 }
 
+// Matches by key (the exercise's identity), not fullName. They diverge only for exercise variations:
+// the key ignores the `!` current marker, so two instances of the same ladder can share a key while their
+// fullNames differ. Matching all same-key instances is what "change all instances" means — a fullName match
+// would silently skip the divergent ones (splitting a ladder on add/remove/reorder). For single-name
+// exercises the two are equivalent, since the name can't diverge across instances.
 export function EditProgramUiHelpers_changeAllInstances(
-  planner: IPlannerProgram,
-  fullName: string,
-  settings: ISettings,
-  shouldValidate: boolean,
-  cb: (exercise: IPlannerProgramExercise) => void
-): IPlannerProgram {
-  const evaluatedProgram = ObjectUtils_clone(
-    Program_evaluateCachedPlanner({ ...Program_create("Temp"), planner }, settings)
-  );
-  PP_iterate2(evaluatedProgram.weeks, (e) => {
-    if (e.fullName === fullName) {
-      cb(e);
-    }
-  });
-  return EditProgramUiHelpers_validate(
-    shouldValidate,
-    planner,
-    new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner(),
-    settings
-  );
-}
-
-// Matches by key, not fullName: exercise-variation keys ignore the `!` current marker, so two instances of
-// the same ladder can share a key while their fullNames differ. Ladder mutations must hit every same-key
-// instance (else add/remove/reorder splits the ladder — some instances re-key, others are left behind).
-export function EditProgramUiHelpers_changeAllInstancesByKey(
   planner: IPlannerProgram,
   key: string,
   settings: ISettings,

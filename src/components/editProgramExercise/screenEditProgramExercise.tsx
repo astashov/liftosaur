@@ -181,15 +181,9 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
       [
         lbProgram.recordModify((program) => {
           const notused = plannerExercise!.notused;
-          return EditProgramUiHelpers_changeAllInstances(
-            program,
-            plannerExercise!.fullName,
-            props.settings,
-            true,
-            (e) => {
-              e.notused = !notused;
-            }
-          );
+          return EditProgramUiHelpers_changeAllInstances(program, plannerExercise!.key, props.settings, true, (e) => {
+            e.notused = !notused;
+          });
         }),
       ],
       "Toggle used status"
