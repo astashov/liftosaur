@@ -33,6 +33,7 @@ export type IBottomSheetEditTargetContentProps = Omit<IBottomSheetEditTargetProp
 export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetContentProps): JSX.Element {
   const set = props.editSetModal.set;
   const [enableRpe, setEnableRpe] = useState(set.rpe != null);
+  const [enableSetTimer, setEnableSetTimer] = useState(set.setTimer != null);
   const [enableTimer, setEnableTimer] = useState(set.timer != null);
   const lbSet = lb<IHistoryRecord>().pi("ui", {}).pi("editSetModal").pi("set");
   const savedRef = useRef(false);
@@ -241,12 +242,95 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
           </View>
         </MenuItemWrapper>
       )}
+      {!enableSetTimer ? (
+        <View className="font-semibold">
+          <MenuItemEditable
+            size="sm"
+            type="boolean"
+            name="Enable Set Timer?"
+            value={set.setTimer != null ? "true" : "false"}
+            onChange={() => {
+              setEnableSetTimer(true);
+              updateProgress(props.dispatch, [lbSet.p("setTimer").record(30)], "target-enable-set-timer");
+            }}
+          />
+        </View>
+      ) : (
+        <MenuItemWrapper name="edit-set-target-set-timer">
+          <View className="flex-row items-center py-1">
+            <View className="flex-1">
+              <Text className="text-sm font-semibold">Set Timer</Text>
+            </View>
+            <View className="flex-row items-center gap-2">
+              <View className="flex-row items-center mr-3">
+                <InputNumber2
+                  width={3.5}
+                  name="target-set-timer"
+                  after={() =>
+                    set.isOverflowSetTimer ? <Text className="text-xs text-text-secondary">+</Text> : undefined
+                  }
+                  keyboardAddon={
+                    <View className="flex-row items-center py-2">
+                      <Text className="mr-2 text-sm font-semibold">Count up past target?</Text>
+                      <Switch
+                        value={!!set.isOverflowSetTimer}
+                        testID="edit-target-overflow-set-timer"
+                        data-testid="edit-target-overflow-set-timer"
+                        onValueChange={(value) => {
+                          updateProgress(
+                            props.dispatch,
+                            [lbSet.p("isOverflowSetTimer").record(value || undefined)],
+                            "overflow-set-timer-checkbox"
+                          );
+                        }}
+                      />
+                    </View>
+                  }
+                  onBlur={(value) => {
+                    if (savedRef.current) {
+                      return;
+                    }
+                    updateProgress(props.dispatch, [lbSet.p("setTimer").record(value)], "target-blur-set-timer");
+                  }}
+                  onInput={(value) => {
+                    if (savedRef.current) {
+                      return;
+                    }
+                    if (value != null && !isNaN(value) && value >= 0) {
+                      updateProgress(props.dispatch, [lbSet.p("setTimer").record(value)], "target-input-set-timer");
+                    }
+                  }}
+                  value={set.setTimer}
+                  min={0}
+                  max={9999}
+                  step={15}
+                />
+                <Text className="ml-1 text-xs text-text-secondary">s</Text>
+              </View>
+              <Pressable
+                className="p-2"
+                style={{ marginRight: -8 }}
+                onPress={() => {
+                  setEnableSetTimer(false);
+                  updateProgress(
+                    props.dispatch,
+                    [lbSet.p("setTimer").record(undefined), lbSet.p("isOverflowSetTimer").record(undefined)],
+                    "target-clear-set-timer"
+                  );
+                }}
+              >
+                <IconTrash width={15} height={20} />
+              </Pressable>
+            </View>
+          </View>
+        </MenuItemWrapper>
+      )}
       {!enableTimer ? (
         <View className="font-semibold">
           <MenuItemEditable
             size="sm"
             type="boolean"
-            name="Enable Custom Timer?"
+            name="Enable Custom Rest Timer?"
             value={set.timer ? "true" : "false"}
             onChange={() => {
               setEnableTimer(true);
@@ -257,7 +341,7 @@ export function BottomSheetEditTargetContent(props: IBottomSheetEditTargetConten
         <MenuItemWrapper name="edit-set-target-timer">
           <View className="flex-row items-center py-1">
             <View className="flex-1">
-              <Text className="text-sm font-semibold">Timer</Text>
+              <Text className="text-sm font-semibold">Rest Timer</Text>
             </View>
             <View className="flex-row items-center gap-2">
               <View className="flex-row items-center mr-3">

@@ -112,6 +112,7 @@ export function Reps_addSet(sets: ISet[], isUnilateral: boolean, lastSet?: ISet,
         completedRepsLeft: undefined,
         completedWeight: undefined,
         completedRpe: undefined,
+        completedSetTimer: undefined,
       };
     }
   }
