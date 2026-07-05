@@ -38,6 +38,19 @@ import { PP_iterate2 } from "../../models/pp";
 import { CollectionUtils_sort } from "../../utils/collection";
 import { Equipment_getCurrentGym } from "../../models/equipment";
 
+// `|` separates exercise variations and `!` marks the current one in Liftoscript, so a custom exercise
+// name containing them would be misparsed when referenced from a program's planner text.
+export function ExercisePickerUtils_customExerciseNameError(name: string): string | undefined {
+  const trimmed = name.trim();
+  if (trimmed.length === 0) {
+    return "Name cannot be empty";
+  }
+  if (/[|!]/.test(trimmed)) {
+    return 'Name cannot contain "|" or "!"';
+  }
+  return undefined;
+}
+
 export function ExercisePickerUtils_getSelectedMuscleGroupNames(
   selectedValues: IMuscle[],
   settings: ISettings

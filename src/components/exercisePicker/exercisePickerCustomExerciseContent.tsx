@@ -8,6 +8,7 @@ import { ILensDispatch } from "../../utils/useLensReducer";
 import { lb } from "lens-shmens";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { IconAi } from "../icons/iconAi";
+import { ExercisePickerUtils_customExerciseNameError } from "./exercisePickerUtils";
 import { ExercisePickerOptionsMuscles } from "./exercisePickerOptionsMuscles";
 import { IconArrowDown2 } from "../icons/iconArrowDown2";
 import { ExercisePickerOptions, IFilterValue } from "./exercisePickerOptions";
@@ -76,7 +77,8 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
     appContext.service ?? (typeof window !== "undefined" ? new Service(fetch.bind(window)) : new Service(fetch));
   const editCustomExercise = props.exercise;
   const { notes, setNotes } = props;
-  const isValid = editCustomExercise.name.trim().length ?? 0 > 0;
+  const nameError = ExercisePickerUtils_customExerciseNameError(editCustomExercise.name);
+  const isValid = nameError == null;
   const [isAutofilling, setIsAutofilling] = useState<boolean>(false);
   const [showCloneBottomSheet, setShowCloneBottomSheet] = useState<boolean>(false);
   const [showImageBottomSheet, setShowImageBottomSheet] = useState<boolean>(false);
@@ -158,7 +160,7 @@ export function ExercisePickerCustomExerciseContent(props: IExercisePickerCustom
               props.dispatch(lb<ICustomExercise>().p("name").record(text), "Update custom exercise name");
             }}
           />
-          {!isValid && <Text className="mt-1 text-xs text-text-error">Name cannot be empty</Text>}
+          {nameError != null && <Text className="mt-1 text-xs text-text-error">{nameError}</Text>}
         </View>
         <View className="mt-4">
           {editCustomExercise.largeImageUrl || editCustomExercise.smallImageUrl ? (
