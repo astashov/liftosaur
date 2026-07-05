@@ -167,6 +167,21 @@ t1 / used: none / 4x3, 1x3+ / 5x2, 1x2+ / 9x1, 1x1+ / 75% / progress: custom() {
 ~}
 ```
 
+### Exercise variations (progression ladders)
+
+Switch the **movement itself** (not the set scheme) by listing exercises separated by `|` and advancing `exerciseVariationIndex`. Useful for calisthenics ladders (r/bodyweightfitness RR). The current movement is marked with `!` (first is current by default); `exerciseVariationIndex` is 1-based and wraps mod length.
+
+```
+Split Squat | Bulgarian Split Squat | Pistol Squat / 3x8 / progress: custom() {~
+  if (completedReps >= reps) {
+    exerciseVariationIndex += 1
+  }
+~}
+```
+
+- Sets/reps/weights/progress are SHARED across variations - only the movement changes. Combine with set variations for a per-movement scheme. `%`/RPE resolve against the current variation's own 1RM.
+- A multi-variation exercise CANNOT be a reuse target (move shared sets into a `used: none` template); it CAN be a reuse consumer. The label comes from the first variation only.
+
 ### Starting weights
 
 - If the program uses 1RM percentages, use `%` notation: `3x5 / 75%`

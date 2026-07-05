@@ -292,7 +292,7 @@ Script goes between `{~` and `~}`. Runs after workout finishes.
 - `bodyweight` - user's current bodyweight
 - `day`, `week`, `dayInWeek` - current position (1-indexed)
 - `numberOfSets` / `ns`, `programNumberOfSets`, `completedNumberOfSets`
-- `setVariationIndex`, `descriptionIndex`
+- `setVariationIndex`, `exerciseVariationIndex`, `descriptionIndex`
 
 Omitting index compares/assigns ALL sets: `completedReps >= reps` checks all sets, `weights += 5lb` increments all.
 
@@ -308,7 +308,7 @@ Omitting index compares/assigns ALL sets: `completedReps >= reps` checks all set
 - `askweights[week:day:setvariation:set]`
 - `rm1`
 - `numberOfSets[week:day:setvariation]`
-- `setVariationIndex`, `descriptionIndex`
+- `setVariationIndex`, `exerciseVariationIndex`, `descriptionIndex`
 
 Omitted leading dimensions default to `*` (all): `weights[5]` = `weights[*:*:*:5]`.
 
@@ -524,6 +524,22 @@ Squat / 5x3 / 6x2 / 10x1 / progress: custom() {~
 ```
 
 Current variation marked with `!`: `Squat / 5x3 / ! 6x2 / 10x1`.
+
+## Exercise Variations
+
+Switch the **movement itself** (not just the set scheme) via `exerciseVariationIndex` - for progression ladders. List movements separated by `|` in the name section:
+```
+Squat, Bodyweight | Pistol Squat | Front Squat / 3x8 / progress: custom() {~
+  if (completedReps >= reps) {
+    exerciseVariationIndex += 1
+  }
+~}
+```
+Current variation marked with `!`: `Squat, Bodyweight | ! Pistol Squat | Front Squat`. First is current by default. `exerciseVariationIndex` is 1-based and wraps mod length.
+
+- Sets/reps/weights/progress are SHARED across variations; only the movement changes (combine with set variations for per-movement schemes). `%`/RPE resolve against the current variation's own 1RM.
+- A multi-variation exercise CANNOT be a reuse target (`...Squat` throws) - move shared sets into a `used: none` template. It CAN be a reuse consumer.
+- Label comes from the first variation only.
 
 ## Number of Sets Progression
 
