@@ -117,6 +117,7 @@ function getEditorSetup(plannerEditor: ScriptEditor): [Extension[], IEditorCompa
 interface IArgs {
   onChange?: (newValue: string) => void;
   onLineChange?: (newValue: number) => void;
+  onCaretChange?: (top: number, bottom: number) => void;
   onBlur?: (event: FocusEvent, newValue: string) => void;
   value?: string;
   height?: number;
@@ -180,6 +181,12 @@ export class ScriptEditor {
       const line = state.doc.lineAt(state.selection.main.head);
       if (update.view.hasFocus && this.args.onLineChange) {
         this.args.onLineChange(line.number);
+      }
+      if (update.view.hasFocus && this.args.onCaretChange) {
+        const coords = update.view.coordsAtPos(state.selection.main.head);
+        if (coords) {
+          this.args.onCaretChange(coords.top, coords.bottom);
+        }
       }
       if (update.docChanged && this.args.onChange) {
         this.args.onChange(update.state.doc.toString());

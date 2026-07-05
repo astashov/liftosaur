@@ -34,6 +34,7 @@ export type IWebviewToHost =
   | { kind: "ready" }
   | { kind: "change"; payload: { value: string } }
   | { kind: "lineChange"; payload: { line: number } }
+  | { kind: "caretChange"; payload: { top: number; bottom: number } }
   | { kind: "blur"; payload: { value: string } }
   | { kind: "heightChange"; payload: { height: number } }
   | { kind: "error"; payload: { message: string } };

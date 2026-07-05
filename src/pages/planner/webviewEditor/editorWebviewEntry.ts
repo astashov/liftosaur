@@ -30,6 +30,7 @@ function buildPlannerEditor(args: IEditorInitArgs): PlannerEditor {
     exerciseFullNames: args.exerciseFullNames,
     onChange: (value) => postToHost({ kind: "change", payload: { value } }),
     onLineChange: (line) => postToHost({ kind: "lineChange", payload: { line } }),
+    onCaretChange: (top, bottom) => postToHost({ kind: "caretChange", payload: { top, bottom } }),
     onBlur: (_e, value) => postToHost({ kind: "blur", payload: { value } }),
   });
 }
@@ -42,6 +43,7 @@ function buildScriptEditor(args: IEditorInitArgs): ScriptEditor {
     state: args.state ?? {},
     onChange: (value) => postToHost({ kind: "change", payload: { value } }),
     onLineChange: (line) => postToHost({ kind: "lineChange", payload: { line } }),
+    onCaretChange: (top, bottom) => postToHost({ kind: "caretChange", payload: { top, bottom } }),
     onBlur: (_e, value) => postToHost({ kind: "blur", payload: { value } }),
   });
 }

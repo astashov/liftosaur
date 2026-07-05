@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Platform, View } from "react-native";
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { Keyboard, Platform, View } from "react-native";
 import { WebView, WebViewMessageEvent } from "react-native-webview";
+import { NavScreenScrollContext } from "../../navigation/NavScreenScrollContext";
 import { Text } from "./text";
 import { EDITOR_HTML } from "../../pages/planner/webviewEditor/editorHtml.generated";
 import {
@@ -34,14 +35,61 @@ export interface IWebviewEditorProps {
 
 const DEFAULT_HEIGHT = 300;
 const DEFAULT_MIN_HEIGHT = 120;
+const CARET_KEYBOARD_MARGIN = Platform.OS === "android" ? 88 : 32;
 
 export function WebviewEditor(props: IWebviewEditorProps): React.JSX.Element {
   const webviewRef = useRef<WebView>(null);
+  const containerRef = useRef<View>(null);
   const readyRef = useRef(false);
   const pendingRef = useRef<IHostToWebview[]>([]);
   const lastSentValueRef = useRef<string | undefined>(undefined);
   const lastReceivedValueRef = useRef<string | undefined>(undefined);
   const [contentHeight, setContentHeight] = useState<number | undefined>(undefined);
+
+  const scrollCtx = useContext(NavScreenScrollContext);
+  const keyboardTopRef = useRef<number | null>(null);
+  const lastCaretRef = useRef<{ top: number; bottom: number } | null>(null);
+  const focusedRef = useRef(false);
+
+  const scrollCaretIntoView = useCallback(
+    (caret: { top: number; bottom: number }): void => {
+      const scrollNode = scrollCtx?.scrollRef.current;
+      const scrollYRef = scrollCtx?.scrollYRef;
+      const containerNode = containerRef.current;
+      const keyboardTop = keyboardTopRef.current;
+      if (!scrollNode || !scrollYRef || !containerNode || keyboardTop == null) {
+        return;
+      }
+      containerNode.measureInWindow((_x, y) => {
+        const caretBottom = y + caret.bottom;
+        const visibleBottom = keyboardTop - CARET_KEYBOARD_MARGIN;
+        if (caretBottom <= visibleBottom) {
+          return;
+        }
+        const delta = caretBottom - visibleBottom;
+        scrollNode.scrollTo({ y: Math.max(0, scrollYRef.current + delta), animated: true });
+      });
+    },
+    [scrollCtx]
+  );
+
+  useEffect(() => {
+    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      keyboardTopRef.current = e.endCoordinates.screenY;
+      if (focusedRef.current && lastCaretRef.current) {
+        scrollCaretIntoView(lastCaretRef.current);
+      }
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      keyboardTopRef.current = null;
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [scrollCaretIntoView]);
 
   const send = useCallback((msg: IHostToWebview): void => {
     if (!readyRef.current) {
@@ -94,7 +142,13 @@ export function WebviewEditor(props: IWebviewEditorProps): React.JSX.Element {
             props.onLineChange(msg.payload.line);
           }
           return;
+        case "caretChange":
+          focusedRef.current = true;
+          lastCaretRef.current = msg.payload;
+          scrollCaretIntoView(msg.payload);
+          return;
         case "blur":
+          focusedRef.current = false;
           lastReceivedValueRef.current = msg.payload.value;
           if (props.onBlur) {
             props.onBlur(msg.payload.value);
@@ -109,7 +163,7 @@ export function WebviewEditor(props: IWebviewEditorProps): React.JSX.Element {
           return;
       }
     },
-    [props, send]
+    [props, send, scrollCaretIntoView]
   );
 
   useEffect(() => {
@@ -186,7 +240,7 @@ export function WebviewEditor(props: IWebviewEditorProps): React.JSX.Element {
           {customCta != null && <View className="mt-1">{customCta}</View>}
         </View>
       )}
-      <View className={borderClass} style={{ height }} testID="planner-editor">
+      <View ref={containerRef} className={borderClass} style={{ height }} testID="planner-editor">
         <WebView
           ref={webviewRef}
           originWhitelist={["*"]}
