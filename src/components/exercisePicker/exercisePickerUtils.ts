@@ -26,10 +26,8 @@ import {
   IExercisePickerState,
   IExerciseType,
   IMuscle,
-  IPlannerProgram,
   IScreenMuscle,
   ISettings,
-  IShortDayData,
 } from "../../types";
 import { ObjectUtils_filter } from "../../utils/object";
 import { SetUtils_containsAnyValues } from "../../utils/setUtils";
@@ -38,10 +36,6 @@ import { ILensDispatch } from "../../utils/useLensReducer";
 import { IEvaluatedProgram } from "../../models/program";
 import { PP_iterate2 } from "../../models/pp";
 import { CollectionUtils_sort } from "../../utils/collection";
-import {
-  EditProgramUiHelpers_changeAllInstances,
-  EditProgramUiHelpers_changeCurrentInstance3,
-} from "../editProgram/editProgramUi/editProgramUiHelpers";
 import { Equipment_getCurrentGym } from "../../models/equipment";
 
 export function ExercisePickerUtils_getSelectedMuscleGroupNames(
@@ -328,34 +322,4 @@ export function ExercisePickerUtils_getProgramExercisefullName(
     suffix.push(exercise.dayInWeek);
   }
   return `${name}${isMultipleInstances ? `[${suffix.join(":")}]` : ""}`;
-}
-
-export function ExercisePickerUtils_changeLabel(
-  planner: IPlannerProgram,
-  plannerDispatch: ILensDispatch<IPlannerProgram>,
-  fullName: string,
-  dayData: IShortDayData,
-  value: string | undefined,
-  settings: ISettings,
-  shouldChangeAll: boolean
-): void {
-  if (shouldChangeAll) {
-    plannerDispatch(
-      lb<IPlannerProgram>().record(
-        EditProgramUiHelpers_changeAllInstances(planner, fullName, settings, true, (e) => {
-          e.label = value;
-        })
-      ),
-      "Change label for all instances"
-    );
-  } else {
-    plannerDispatch(
-      lb<IPlannerProgram>().record(
-        EditProgramUiHelpers_changeCurrentInstance3(planner, fullName, dayData, false, settings, true, (e) => {
-          e.label = value;
-        })
-      ),
-      "Change label for one instance"
-    );
-  }
 }

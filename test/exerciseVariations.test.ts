@@ -10,7 +10,7 @@ import { Stats_getEmpty } from "../src/models/stats";
 import { PlannerTestUtils_finish, PlannerTestUtils_changeExercise } from "./utils/plannerTestUtils";
 import { migrations } from "../src/migrations/migrations";
 import { IStorage } from "../src/types";
-import { EditProgramUiHelpers_changeAllInstancesByKey } from "../src/components/editProgram/editProgramUi/editProgramUiHelpers";
+import { EditProgramUiHelpers_changeAllInstances } from "../src/components/editProgram/editProgramUi/editProgramUiHelpers";
 
 function evalFirst(text: string): { evaluated: IEvaluatedProgram; settings: ISettings; program: IProgram } {
   const planner: IPlannerProgram = { vtype: "planner", name: "MyProgram", weeks: PlannerProgram_evaluateText(text) };
@@ -166,7 +166,7 @@ Squat | ! Pistol Squat / 3x5
     const key = day1.data[0].key;
     expect(day2.data[0].key).to.equal(key);
 
-    const newPlanner = EditProgramUiHelpers_changeAllInstancesByKey(planner, key, settings, false, (ex) => {
+    const newPlanner = EditProgramUiHelpers_changeAllInstances(planner, key, settings, false, (ex) => {
       ex.exerciseVariations = [...(ex.exerciseVariations ?? []), { name: "Front Squat", isCurrent: false }];
     });
 
