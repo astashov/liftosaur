@@ -15,7 +15,7 @@ import { SetNumber } from "./editProgramSets";
 import { IconArrowRight } from "../icons/iconArrowRight";
 import { IconArrowDown2 } from "../icons/iconArrowDown2";
 import { ExerciseImage } from "../exerciseImage";
-import { equipmentName, IExercise, Exercise_findByName } from "../../models/exercise";
+import { equipmentName, IExercise, Exercise_findByName, Exercise_get, Exercise_fullName } from "../../models/exercise";
 import { IconEdit2 } from "../icons/iconEdit2";
 import { lb } from "lens-shmens";
 import {
@@ -131,7 +131,7 @@ export const EditProgramUiExerciseView = memo(function EditProgramUiExerciseView
                 }
                 orderAndRepeat={orderAndRepeat || undefined}
               />
-              <ExerciseVariationsLine plannerExercise={props.plannerExercise} />
+              <ExerciseVariationsLine plannerExercise={props.plannerExercise} settings={props.settings} />
             </View>
             {props.plannerExercise.notused && (
               <View className="px-1 ml-3 rounded bg-background-darkgray">
@@ -438,14 +438,23 @@ function ExerciseNameLine(props: {
   return <FastText text={built.text} fragments={built.fragments} {...cls("text-base font-bold text-text-primary")} />;
 }
 
-function ExerciseVariationsLine(props: { plannerExercise: IPlannerProgramExercise }): JSX.Element | null {
+function ExerciseVariationsLine(props: {
+  plannerExercise: IPlannerProgramExercise;
+  settings: ISettings;
+}): JSX.Element | null {
   const variations = props.plannerExercise.exerciseVariations ?? [];
   const cls = StyledText_cls(useRem());
   if (variations.length <= 1) {
     return null;
   }
   const currentIndex = PlannerProgramExercise_currentExerciseVariationIndex(props.plannerExercise);
-  const otherNames = variations.filter((_, i) => i !== currentIndex).map((v) => v.name);
+  const otherNames = variations
+    .filter((_, i) => i !== currentIndex)
+    .map((v) =>
+      v.exerciseType
+        ? Exercise_fullName(Exercise_get(v.exerciseType, props.settings.exercises), props.settings)
+        : v.name
+    );
   const builder = new StyledText();
   builder.add("Variations: ");
   otherNames.forEach((name, i) => {
