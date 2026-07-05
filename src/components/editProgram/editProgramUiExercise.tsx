@@ -23,6 +23,7 @@ import {
   PlannerProgramExercise_warmups,
   PlannerProgramExercise_defaultWarmups,
   PlannerProgramExercise_warmupSetsToDisplaySets,
+  PlannerProgramExercise_currentExerciseVariationIndex,
 } from "../../pages/planner/models/plannerProgramExercise";
 import { HistoryRecordSet } from "../historyRecordSets";
 import { IconDuplicate2 } from "../icons/iconDuplicate2";
@@ -118,7 +119,7 @@ export const EditProgramUiExerciseView = memo(function EditProgramUiExerciseView
             data-testid="planner-ui-exercise-name"
             testID="planner-ui-exercise-name"
           >
-            <View className="flex-1">
+            <View className="flex-1 leading-tight">
               <ExerciseNameLine
                 label={props.plannerExercise.label}
                 name={props.plannerExercise.name}
@@ -130,6 +131,7 @@ export const EditProgramUiExerciseView = memo(function EditProgramUiExerciseView
                 }
                 orderAndRepeat={orderAndRepeat || undefined}
               />
+              <ExerciseVariationsLine plannerExercise={props.plannerExercise} />
             </View>
             {props.plannerExercise.notused && (
               <View className="px-1 ml-3 rounded bg-background-darkgray">
@@ -434,6 +436,24 @@ function ExerciseNameLine(props: {
   }
   const built = builder.build();
   return <FastText text={built.text} fragments={built.fragments} {...cls("text-base font-bold text-text-primary")} />;
+}
+
+function ExerciseVariationsLine(props: { plannerExercise: IPlannerProgramExercise }): JSX.Element | null {
+  const variations = props.plannerExercise.exerciseVariations ?? [];
+  const cls = StyledText_cls(useRem());
+  if (variations.length <= 1) {
+    return null;
+  }
+  const currentIndex = PlannerProgramExercise_currentExerciseVariationIndex(props.plannerExercise);
+  const otherNames = variations.filter((_, i) => i !== currentIndex).map((v) => v.name);
+  const builder = new StyledText();
+  builder.add("Variations: ");
+  otherNames.forEach((name, i) => {
+    builder.add(i > 0 ? ", " : "");
+    builder.add(name, cls("font-semibold"));
+  });
+  const built = builder.build();
+  return <FastText text={built.text} fragments={built.fragments} {...cls("text-xs text-text-secondary")} />;
 }
 
 function SupersetLine(props: { group: string; exerciseNames: string[] }): JSX.Element {
