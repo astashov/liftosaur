@@ -38,7 +38,7 @@ Squat | Pistol Squat | Front Squat / 3x8 0lb / progress: custom() {~
 
 You can also add, remove, reorder, and switch variations right from the Edit Program Exercise screen - enable "Exercise Variations" from the 3-dot menu. The sets, reps, and progress logic are shared across all movements; only the movement itself changes.
 
-Note that if you had a custom exercise with `|` or `!` in the name, it will be replaced to `-` character.
+Note that if you had a custom exercise with `|` or `!` in the name, it will be replaced to `-` character. If you program used `!` or `|` in the exercise names - you may need to tweak it, there's a migration that tries to fix it automatically, but it may miss some cases.
 
 ---
 date: 2026-07-01
