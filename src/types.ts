@@ -813,6 +813,8 @@ export interface IExercisePickerState {
   search?: string;
   exerciseType?: IExerciseType;
   entryIndex?: number;
+  hideLabel?: boolean;
+  hideTemplate?: boolean;
 }
 const _VExercisePickerState = v.object({
   screenStack: v.array(VExercisePickerScreen),
@@ -829,6 +831,8 @@ const _VExercisePickerState = v.object({
   search: v.optional(v.string()),
   exerciseType: v.optional(VExerciseType),
   entryIndex: v.optional(v.number()),
+  hideLabel: v.optional(v.boolean()),
+  hideTemplate: v.optional(v.boolean()),
 });
 const _VExercisePickerStateMatches: IEquals<v.InferOutput<typeof _VExercisePickerState>, IExercisePickerState> = true;
 void _VExercisePickerStateMatches;

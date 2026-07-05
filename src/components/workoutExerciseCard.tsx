@@ -388,7 +388,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
             <Pressable
               data-testid="exercise-options"
               testID="exercise-options"
-              className="px-4 py-2"
+              className="p-4"
               style={{ marginRight: -12 }}
               onPress={onKebabPress}
               hitSlop={16}

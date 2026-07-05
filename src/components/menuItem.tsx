@@ -1,6 +1,6 @@
 import type React from "react";
 import type { JSX, ReactNode } from "react";
-import { View, Pressable, Platform } from "react-native";
+import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
 import { IconArrowRight } from "./icons/iconArrowRight";
 import { IconHandle } from "./icons/iconHandle";
@@ -15,7 +15,8 @@ interface IMenuItemProps {
   expandValue?: boolean;
   addons?: ReactNode;
   shouldShowRightArrow?: boolean;
-  handleTouchStart?: (e: React.MouseEvent | React.TouchEvent) => void;
+  // Wraps the handle in a drag gesture (e.g. DraggableList2's render-prop); works on web and native.
+  dragHandle?: (children: ReactNode) => JSX.Element;
   onClick?: (e: React.MouseEvent) => void;
 }
 
@@ -50,16 +51,13 @@ export function MenuItem(props: IMenuItemProps): JSX.Element {
   const valueNode =
     typeof props.value === "string" ? <Text className="text-right text-text-link">{props.value}</Text> : props.value;
 
-  const dragHandle =
-    props.handleTouchStart && Platform.OS === "web" ? (
-      <Pressable
-        className="p-2"
-        style={{ marginLeft: -16, cursor: "move", touchAction: "none" } as Record<string, unknown>}
-        onPressIn={(e) => props.handleTouchStart?.(e as unknown as React.TouchEvent)}
-      >
-        <IconHandle />
-      </Pressable>
-    ) : null;
+  const dragHandle = props.dragHandle
+    ? props.dragHandle(
+        <View className="p-2">
+          <IconHandle />
+        </View>
+      )
+    : null;
 
   return (
     <MenuItemWrapper name={props.name} onClick={props.onClick} isBorderless={props.isBorderless}>

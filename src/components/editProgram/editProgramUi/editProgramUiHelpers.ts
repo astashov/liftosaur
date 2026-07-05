@@ -549,6 +549,32 @@ export function EditProgramUiHelpers_changeAllInstances(
   );
 }
 
+// Matches by key, not fullName: exercise-variation keys ignore the `!` current marker, so two instances of
+// the same ladder can share a key while their fullNames differ. Ladder mutations must hit every same-key
+// instance (else add/remove/reorder splits the ladder — some instances re-key, others are left behind).
+export function EditProgramUiHelpers_changeAllInstancesByKey(
+  planner: IPlannerProgram,
+  key: string,
+  settings: ISettings,
+  shouldValidate: boolean,
+  cb: (exercise: IPlannerProgramExercise) => void
+): IPlannerProgram {
+  const evaluatedProgram = ObjectUtils_clone(
+    Program_evaluateCachedPlanner({ ...Program_create("Temp"), planner }, settings)
+  );
+  PP_iterate2(evaluatedProgram.weeks, (e) => {
+    if (e.key === key) {
+      cb(e);
+    }
+  });
+  return EditProgramUiHelpers_validate(
+    shouldValidate,
+    planner,
+    new ProgramToPlanner(evaluatedProgram, settings).convertToPlanner(),
+    settings
+  );
+}
+
 export function EditProgramUiHelpers_getChangedKeys(
   oldPlanner: IPlannerProgram,
   newPlanner: IPlannerProgram,

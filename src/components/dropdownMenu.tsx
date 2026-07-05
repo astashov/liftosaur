@@ -16,7 +16,7 @@ export function DropdownMenu(props: {
   const color = props.bgColor || Tailwind_semantic().background.subtle;
   const align = props.textAlign ?? "right";
   const positionStyle: Record<string, string> = {
-    maxWidth: props.maxWidth || "12rem",
+    maxWidth: props.maxWidth || "16rem",
     top: props.topOffset ?? "0",
   };
   if (props.leftOffset != null) {

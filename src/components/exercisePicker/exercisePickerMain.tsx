@@ -113,7 +113,19 @@ interface ITabDef {
 
 export function ExercisePickerMain(props: IProps): JSX.Element {
   const { evaluatedProgram, state, dispatch, settings, onStar, onChoose, usedExerciseTypes } = props;
-  const { mode, search, filters, sort, showMuscles, exerciseType, selectedExercises, label, templateName } = state;
+  const {
+    mode,
+    search,
+    filters,
+    sort,
+    showMuscles,
+    exerciseType,
+    selectedExercises,
+    label,
+    templateName,
+    hideLabel,
+    hideTemplate,
+  } = state;
   const isStarred = !!filters.isStarred;
 
   const title =
@@ -133,11 +145,12 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
       }
       return result;
     }
-    return [
-      { label: "Exercise", index: 0 },
-      { label: "Template", index: 1 },
-    ];
-  }, [mode, evaluatedProgram]);
+    const result: ITabDef[] = [{ label: "Exercise", index: 0 }];
+    if (!hideTemplate) {
+      result.push({ label: "Template", index: 1 });
+    }
+    return result;
+  }, [mode, evaluatedProgram, hideTemplate]);
 
   const selectedTab = Math.min(state.selectedTab ?? 0, tabs.length - 1);
 
@@ -371,7 +384,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
 
   const items = useMemo<IListItem[]>(() => {
     const result: IListItem[] = [{ kind: "title" }];
-    if (mode === "program") {
+    if (mode === "program" && !hideLabel) {
       result.push({ kind: "labelInput" });
     }
     if (exerciseType) {
@@ -426,6 +439,7 @@ export function ExercisePickerMain(props: IProps): JSX.Element {
     return result;
   }, [
     mode,
+    hideLabel,
     exerciseType,
     tabs.length,
     selectedTab,

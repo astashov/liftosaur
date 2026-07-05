@@ -23,7 +23,9 @@ import { UndoingFlag_set } from "../../utils/undoingFlag";
 import {
   EditProgramUiHelpers_duplicateCurrentInstance,
   EditProgramUiHelpers_getChangedKeys,
+  EditProgramUiHelpers_changeAllInstancesByKey,
 } from "../../components/editProgram/editProgramUi/editProgramUiHelpers";
+import { EditProgram_migrateExerciseStateKey } from "../../models/editProgram";
 import type { IRootStackParamList } from "../types";
 import type {
   ICustomExercise,
@@ -42,7 +44,8 @@ function onChangeExercise(
   selectedExercises: IExercisePickerSelectedExercise[],
   plannerExercise: IPlannerProgramExercise | undefined,
   dayData: IShortDayData,
-  change: "one" | "all" | "duplicate",
+  change: "one" | "all" | "duplicate" | "variationAdd" | "variationEdit",
+  variationIndex: number | undefined,
   plannerDispatch: ILensDispatch<IPlannerProgram>,
   onStopIsUndoing: () => void,
   onNewKey?: (newKey: string) => void
@@ -55,7 +58,46 @@ function onChangeExercise(
   const newLabel = "label" in selectedExercise ? selectedExercise.label : undefined;
   UndoingFlag_set(true);
   if (plannerExercise) {
-    if (change === "one") {
+    if (change === "variationAdd" || change === "variationEdit") {
+      // A rung must be a concrete movement (templates carry no exerciseType), and the ladder is part of
+      // the exercise's identity, so it must stay identical across every instance of this key.
+      if (typeof newExerciseType === "string" || newExerciseType == null) {
+        return;
+      }
+      const exercise = Exercise_get(newExerciseType, settings.exercises);
+      const newPlanner = EditProgramUiHelpers_changeAllInstancesByKey(
+        planner,
+        plannerExercise.key,
+        settings,
+        true,
+        (ex) => {
+          const variations = ex.exerciseVariations ?? [];
+          if (change === "variationAdd") {
+            variations.push({ exerciseType: newExerciseType, name: exercise.name, isCurrent: false });
+          } else if (variationIndex != null && variations[variationIndex] != null) {
+            variations[variationIndex] = {
+              exerciseType: newExerciseType,
+              name: exercise.name,
+              isCurrent: variations[variationIndex].isCurrent,
+            };
+          }
+          ex.exerciseVariations = variations;
+          // A lone rung serializes via ex.exerciseType, so keep it aligned with the current variation.
+          const current = variations.find((v) => v.isCurrent);
+          if (current?.exerciseType != null) {
+            ex.exerciseType = current.exerciseType;
+          }
+        }
+      );
+      plannerDispatch(lb<IPlannerProgram>().record(newPlanner), "Change exercise variation");
+      if (onNewKey) {
+        const changedKeys = EditProgramUiHelpers_getChangedKeys(planner, newPlanner, settings);
+        const newKey = changedKeys[plannerExercise.key];
+        if (newKey != null) {
+          onNewKey(newKey);
+        }
+      }
+    } else if (change === "one") {
       const newPlanner = PlannerProgram_replaceExercise(
         planner,
         plannerExercise.key,
@@ -123,7 +165,7 @@ export function NavModalEditProgramExercisePicker(): JSX.Element {
     name: "editProgramExercisePickerModal";
     params: IRootStackParamList["editProgramExercisePickerModal"];
   }>();
-  const { context, programId, exerciseStateKey, dayData, change, exerciseKey } = route.params;
+  const { context, programId, exerciseStateKey, dayData, change, exerciseKey, variationIndex } = route.params;
 
   const isEditProgram = context === "editProgram";
   const plannerState = isEditProgram
@@ -203,34 +245,7 @@ export function NavModalEditProgramExercisePicker(): JSX.Element {
       if (isEditProgram || !exerciseStateKey) {
         return;
       }
-      const oldStateKey = exerciseStateKey;
-      const newStateKey = `${programId}_${newKey}`;
-      updateState(
-        dispatch,
-        [
-          lb<IState>()
-            .p("editProgramExerciseStates")
-            .recordModify((states) => {
-              const currentState = states[oldStateKey];
-              if (!currentState) {
-                return states;
-              }
-              return {
-                ...states,
-                [oldStateKey]: { ...currentState, ui: { ...currentState.ui, pendingNewKey: newKey } },
-                // Reset history so the type change is a commit point: undo can't
-                // walk back across the key boundary (which would re-point the
-                // route to the old key whose entry the migration cleanup drops).
-                [newStateKey]: {
-                  ...currentState,
-                  history: { past: [], future: [] },
-                  ui: { ...currentState.ui, exercisePickerState: undefined },
-                },
-              };
-            }),
-        ],
-        "Update exercise key"
-      );
+      EditProgram_migrateExerciseStateKey(dispatch, programId, exerciseStateKey, newKey);
     },
     [dispatch, isEditProgram, exerciseStateKey, programId]
   );
@@ -266,7 +281,15 @@ export function NavModalEditProgramExercisePicker(): JSX.Element {
               }
               return {
                 ...states,
-                [exerciseStateKey]: { ...current, ui: { ...current.ui, exercisePickerState: undefined } },
+                [exerciseStateKey]: {
+                  ...current,
+                  ui: {
+                    ...current.ui,
+                    exercisePickerState: undefined,
+                    exercisePickerChange: undefined,
+                    exercisePickerVariationIndex: undefined,
+                  },
+                },
               };
             }),
         ],
@@ -289,13 +312,14 @@ export function NavModalEditProgramExercisePicker(): JSX.Element {
         plannerExerciseRef.current,
         dayData,
         change,
+        variationIndex,
         programPlannerDispatch,
         stopIsUndoing,
         onNewKeyOrUndefined
       );
       onClose();
     },
-    [dayData, change, programPlannerDispatch, stopIsUndoing, onNewKeyOrUndefined, onClose]
+    [dayData, change, variationIndex, programPlannerDispatch, stopIsUndoing, onNewKeyOrUndefined, onClose]
   );
 
   const onChangeCustomExercise = useCallback(

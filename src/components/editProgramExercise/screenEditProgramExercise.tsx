@@ -18,6 +18,7 @@ import {
   PlannerProgramExercise_getProgressDefaultArgs,
 } from "../../pages/planner/models/plannerProgramExercise";
 import { EditProgramExerciseWarmups } from "./editProgramExerciseWarmups";
+import { EditProgramExerciseVariations } from "./editProgramExerciseVariations";
 import { buildPlannerDispatch } from "../../utils/plannerDispatch";
 import { IconKebab } from "../icons/iconKebab";
 import { ActionMenu, IActionMenuAction } from "../actionMenu";
@@ -80,12 +81,16 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
     exerciseStateKey: props.exerciseStateKey,
     dayData: props.dayData,
     exerciseKey: props.exerciseKey,
+    change: ui.exercisePickerChange,
+    variationIndex: ui.exercisePickerVariationIndex,
   });
   navParamsRef.current = {
     programId: props.programId,
     exerciseStateKey: props.exerciseStateKey,
     dayData: props.dayData,
     exerciseKey: props.exerciseKey,
+    change: ui.exercisePickerChange,
+    variationIndex: ui.exercisePickerVariationIndex,
   };
   const openPickerIfNeeded = useCallback(() => {
     if (!pickerStateRef.current || getCurrentRouteName() === "editProgramExercisePickerModal") {
@@ -97,7 +102,8 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
       programId: p.programId,
       exerciseStateKey: p.exerciseStateKey,
       dayData: p.dayData,
-      change: "all",
+      change: p.change ?? "all",
+      variationIndex: p.variationIndex,
       exerciseKey: p.exerciseKey,
     });
   }, []);
@@ -190,6 +196,20 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
     );
   }, [plannerDispatch, plannerExercise, props.settings, lbProgram]);
 
+  const toggleExerciseVariations = useCallback(() => {
+    plannerDispatch(
+      lb<IPlannerExerciseState>()
+        .p("ui")
+        .p("isExerciseVariationsEnabled")
+        .record(!plannerState.ui.isExerciseVariationsEnabled),
+      "Toggle exercise variations"
+    );
+  }, [plannerDispatch, plannerState.ui.isExerciseVariationsEnabled]);
+
+  // Disabling only hides the empty entry point — never a real ladder, so it's offered only when ≤1 rung.
+  const canToggleExerciseVariations =
+    !ui.isExerciseVariationsEnabled || (plannerExercise?.exerciseVariations?.length ?? 0) <= 1;
+
   const kebabActions: IActionMenuAction[] = plannerExercise
     ? [
         {
@@ -202,6 +222,15 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
           onPress: toggleUpdate,
           testID: "program-exercise-toggle-update",
         },
+        ...(canToggleExerciseVariations
+          ? [
+              {
+                label: `${ui.isExerciseVariationsEnabled ? "Disable" : "Enable"} Exercise Variations`,
+                onPress: toggleExerciseVariations,
+                testID: "program-exercise-toggle-exercise-variations",
+              },
+            ]
+          : []),
         {
           label: `Make ${plannerExercise.notused ? "Used" : "Unused"}`,
           onPress: toggleUsed,
@@ -261,6 +290,19 @@ export function ScreenEditProgramExercise(props: IProps): JSX.Element {
           plannerDispatch={plannerDispatch}
         />
       </View>
+      {ui.isExerciseVariationsEnabled && (
+        <View className="mb-4">
+          <EditProgramExerciseVariations
+            plannerExercise={plannerExercise}
+            planner={plannerState.current.program.planner}
+            settings={props.settings}
+            plannerDispatch={plannerDispatch}
+            dispatch={props.dispatch}
+            programId={props.programId}
+            exerciseStateKey={props.exerciseStateKey}
+          />
+        </View>
+      )}
       <View className="mb-4">
         {ui.isProgressEnabled && (
           <EditProgramExerciseProgress

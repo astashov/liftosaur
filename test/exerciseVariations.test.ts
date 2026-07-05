@@ -10,6 +10,7 @@ import { Stats_getEmpty } from "../src/models/stats";
 import { PlannerTestUtils_finish, PlannerTestUtils_changeExercise } from "./utils/plannerTestUtils";
 import { migrations } from "../src/migrations/migrations";
 import { IStorage } from "../src/types";
+import { EditProgramUiHelpers_changeAllInstancesByKey } from "../src/components/editProgram/editProgramUi/editProgramUiHelpers";
 
 function evalFirst(text: string): { evaluated: IEvaluatedProgram; settings: ISettings; program: IProgram } {
   const planner: IPlannerProgram = { vtype: "planner", name: "MyProgram", weeks: PlannerProgram_evaluateText(text) };
@@ -142,6 +143,36 @@ Squat | ! Pistol Squat | Front Squat / 3x8 / progress: custom() {~
     expect(newText).to.contain("Bench Press");
     expect(newText).to.not.contain("|");
     expect(newText).to.not.contain("Pistol Squat");
+  });
+
+  it("applies a variation change to every same-key instance even when the current marker differs", () => {
+    // Both days share the key `squat_pistolsquat` — the key ignores `!` — but their fullNames differ.
+    const text = `# Week 1
+## Day 1
+Squat | Pistol Squat / 3x5
+## Day 2
+Squat | ! Pistol Squat / 3x5
+`;
+    const settings = Settings_build();
+    const planner: IPlannerProgram = { vtype: "planner", name: "MyProgram", weeks: PlannerProgram_evaluateText(text) };
+    const evaluatedWeeks = PlannerProgram_evaluate(planner, settings).evaluatedWeeks;
+    const day1 = evaluatedWeeks[0][0];
+    const day2 = evaluatedWeeks[0][1];
+    expect(day1.success).to.equal(true);
+    expect(day2.success).to.equal(true);
+    if (!day1.success || !day2.success) {
+      return;
+    }
+    const key = day1.data[0].key;
+    expect(day2.data[0].key).to.equal(key);
+
+    const newPlanner = EditProgramUiHelpers_changeAllInstancesByKey(planner, key, settings, false, (ex) => {
+      ex.exerciseVariations = [...(ex.exerciseVariations ?? []), { name: "Front Squat", isCurrent: false }];
+    });
+
+    // Matching by fullName would have updated only Day 1 and split the ladder; by key both stay in sync.
+    expect(newPlanner.weeks[0].days[0].exerciseText).to.contain("Front Squat");
+    expect(newPlanner.weeks[0].days[1].exerciseText).to.contain("Front Squat");
   });
 
   it("migration rewrites planner text references to sanitized custom exercise names", () => {

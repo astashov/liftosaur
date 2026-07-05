@@ -94,7 +94,8 @@ export type IRootStackParamList = {
     programId: string;
     exerciseStateKey?: string;
     dayData: IShortDayData;
-    change: "one" | "all" | "duplicate";
+    change: "one" | "all" | "duplicate" | "variationAdd" | "variationEdit";
+    variationIndex?: number;
     exerciseKey?: string;
   };
   editSetTargetModal:

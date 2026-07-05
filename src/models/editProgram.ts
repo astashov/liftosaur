@@ -128,11 +128,53 @@ export function EditProgram_initPlannerProgramExerciseState(
       weekIndex: dayData.week - 1,
       isProgressEnabled: !!programExercise?.progress,
       isUpdateEnabled: !!programExercise?.update,
+      isExerciseVariationsEnabled: (programExercise?.exerciseVariations?.length ?? 0) > 1,
       modeTabIndex: fromWorkout ? 1 : 0,
       acrossWeeksTabIndex: fromWorkout ? 1 : undefined,
       fromWorkout,
     },
   };
+}
+
+// A composite-key change (exercise-type swap, or add/remove/reorder of exercise variations) re-keys the
+// exercise. The keyed edit state lives at `${programId}_${key}`, so we clone it to the new key, reset undo
+// history (the key boundary is a commit point undo can't cross), and stash `pendingNewKey` on the old
+// entry — NavScreenProgram reacts by re-pointing the route via setParams and dropping the orphan.
+export function EditProgram_migrateExerciseStateKey(
+  dispatch: IDispatch,
+  programId: string,
+  oldStateKey: string,
+  newKey: string
+): void {
+  const newStateKey = `${programId}_${newKey}`;
+  updateState(
+    dispatch,
+    [
+      lb<IState>()
+        .p("editProgramExerciseStates")
+        .recordModify((states) => {
+          const currentState = states[oldStateKey];
+          if (!currentState) {
+            return states;
+          }
+          return {
+            ...states,
+            [oldStateKey]: { ...currentState, ui: { ...currentState.ui, pendingNewKey: newKey } },
+            [newStateKey]: {
+              ...currentState,
+              history: { past: [], future: [] },
+              ui: {
+                ...currentState.ui,
+                exercisePickerState: undefined,
+                exercisePickerChange: undefined,
+                exercisePickerVariationIndex: undefined,
+              },
+            },
+          };
+        }),
+    ],
+    "Update exercise key"
+  );
 }
 
 export function EditProgram_create(dispatch: IDispatch, name: string): void {
