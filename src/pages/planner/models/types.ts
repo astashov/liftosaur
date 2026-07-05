@@ -283,8 +283,11 @@ export interface IPlannerExerciseUiEditSetBottomSheet {
 export interface IPlannerExerciseUi {
   modalExercise?: IModalExerciseUi;
   exercisePickerState?: IExercisePickerState;
+  exercisePickerChange?: "variationAdd" | "variationEdit";
+  exercisePickerVariationIndex?: number;
   isProgressEnabled?: boolean;
   isUpdateEnabled?: boolean;
+  isExerciseVariationsEnabled?: boolean;
   showAddStateVariableModal?: boolean;
   showEditProgressScriptModal?: boolean;
   showEditUpdateScriptModal?: boolean;
