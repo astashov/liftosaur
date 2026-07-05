@@ -459,6 +459,7 @@ export class LiftoscriptEvaluator {
     this.bindings.r = this.bindings.reps.slice(0, evaluatedValue);
     this.bindings.mr = this.bindings.minReps.slice(0, evaluatedValue);
     this.bindings.timers = this.bindings.timers.slice(0, evaluatedValue);
+    this.bindings.setTime = this.bindings.setTime.slice(0, evaluatedValue);
     this.bindings.amraps = this.bindings.amraps.slice(0, evaluatedValue);
     this.bindings.logrpes = this.bindings.logrpes.slice(0, evaluatedValue);
     this.bindings.askweights = this.bindings.askweights.slice(0, evaluatedValue);
@@ -483,6 +484,7 @@ export class LiftoscriptEvaluator {
         );
         this.bindings.reps[i] = this.bindings.reps[ns] ?? 0;
         this.bindings.timers[i] = this.bindings.timers[ns];
+        this.bindings.setTime[i] = this.bindings.setTime[ns];
         this.bindings.amraps[i] = this.bindings.amraps[ns];
         this.bindings.logrpes[i] = this.bindings.logrpes[ns];
         this.bindings.askweights[i] = this.bindings.askweights[ns];

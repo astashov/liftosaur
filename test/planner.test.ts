@@ -2117,5 +2117,27 @@ Plank / 1x1 50s+|60s / progress: custom() {~
 
 `);
     });
+
+    it("removes sets (not zeroes them out) when update reduces numberOfSets", () => {
+      const programText = `# Week 1
+## Day 1
+Squat[1-3] / ...customLogic / 3x5-10 / 200lb
+
+# Week 2
+## Day 1
+
+
+# Week 3
+## Day 1
+customLogic[1-3] / used: none / 2x5-30 / 5lb / warmup: none / update: custom() {~
+  if (week == 1) {
+    numberOfSets = 2
+  }
+~}`;
+      const { program } = PlannerTestUtils_get(programText);
+      const settings = Settings_build();
+      const record = Program_nextHistoryRecord(program, settings, Stats_getEmpty());
+      expect(record.entries[0].sets.length).to.equal(2);
+    });
   });
 });
