@@ -3750,8 +3750,10 @@ function getCustomExercisesNameIndex(customExercises: IAllCustomExercises): Map<
 
 export function Exercise_findIdByName(name: string, customExercises: IAllCustomExercises): IExerciseId | undefined {
   const lowercaseName = name.toLowerCase();
+  // Custom exercises win over built-ins on name collision, so shipping a built-in with the same
+  // name as a user's existing custom exercise never silently re-points their programs/history.
   return (
-    nameToIdMapping[lowercaseName] || getCustomExercisesNameIndex(customExercises).get(normalizeExerciseName(name))
+    getCustomExercisesNameIndex(customExercises).get(normalizeExerciseName(name)) || nameToIdMapping[lowercaseName]
   );
 }
 
@@ -3822,9 +3824,9 @@ export function Exercise_findByNameAndEquipment(
   if (name == null) {
     name = nameAndEquipment;
   }
-  let exerciseId = Exercise_findIdByName(name, {});
+  let exerciseId = Exercise_findIdByName(name, customExercises);
   if (exerciseId != null && equipment !== null) {
-    const exercise = Exercise_findById(exerciseId, {});
+    const exercise = Exercise_findById(exerciseId, customExercises);
     if (exercise != null) {
       return { ...exercise, equipment: equipment || exercise.defaultEquipment };
     }

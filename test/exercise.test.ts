@@ -8,6 +8,7 @@ import {
   Exercise_filterCustomExercisesByType,
   Exercise_findById,
   Exercise_findIdByName,
+  Exercise_findByNameAndEquipment,
 } from "../src/models/exercise";
 import { IAllCustomExercises, ICustomExercise } from "../src/types";
 
@@ -59,5 +60,28 @@ describe("Exercise — deleted custom exercises", () => {
   it("name/id resolution still finds deleted custom exercises (history/import path)", () => {
     expect(Exercise_findIdByName("Deleted Curl", customExercises)).to.eql("custom-deleted");
     expect(Exercise_findById("custom-deleted" as ICustomExercise["id"], customExercises)?.name).to.eql("Deleted Curl");
+  });
+});
+
+describe("Exercise — custom exercise wins over built-in on name collision", () => {
+  const customExercises: IAllCustomExercises = {
+    "custom-squat": buildCustom("custom-squat", "Squat", false),
+  };
+
+  it("Exercise_findIdByName prefers the custom exercise when the name matches a built-in", () => {
+    expect(Exercise_findIdByName("Squat", customExercises)).to.eql("custom-squat");
+  });
+
+  it("Exercise_findIdByName resolves to the built-in when there is no colliding custom exercise", () => {
+    expect(Exercise_findIdByName("Squat", {})).to.eql("squat");
+  });
+
+  it("Exercise_findByNameAndEquipment prefers the custom exercise (with and without equipment)", () => {
+    expect(Exercise_findByNameAndEquipment("Squat", customExercises)?.id).to.eql("custom-squat");
+    expect(Exercise_findByNameAndEquipment("Squat, Barbell", customExercises)?.id).to.eql("custom-squat");
+  });
+
+  it("Exercise_findByNameAndEquipment falls back to the built-in when no custom collides", () => {
+    expect(Exercise_findByNameAndEquipment("Squat", {})?.id).to.eql("squat");
   });
 });
