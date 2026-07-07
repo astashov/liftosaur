@@ -3,9 +3,11 @@
 Those exercises are available in the app by default, prefer to use them if possible when you build a program:
 
 Ab Wheel
+Arch Hang
 Arnold Press
 Arnold Press, Kettlebell
 Around The World
+Assisted Squat
 Back Extension, Bodyweight
 Back Extension
 Ball Slams
@@ -42,6 +44,7 @@ Bicycle Crunch
 Box Squat
 Box Squat, Dumbbell
 Bulgarian Split Squat
+Bulgarian Split Squat, Bodyweight
 Cable Crossover
 Cable Crunch
 Cable Kickback
@@ -68,10 +71,13 @@ Concentration Curl, Barbell
 Concentration Curl, Cable
 Concentration Curl
 Concentration Curl, Band
+Copenhagen Plank
 Cross Body Crunch
+Crow Pose
 Crunch, Cable
 Crunch
 Crunch, Leverage Machine
+Dead Hang
 Deadlift
 Deadlift, Cable
 Deadlift, Dumbbell
@@ -84,10 +90,13 @@ Decline Bench Press, Dumbbell
 Decline Bench Press, Smith Machine
 Deficit Deadlift
 Deficit Deadlift, Trap Bar
+Diamond Push Up
+Dragon Flag
 Elliptical Machine
 Face Pull
 Flat Knee Raise
 Flat Leg Raise
+Front Lever Row
 Front Raise, Barbell
 Front Raise, Cable
 Front Raise
@@ -114,8 +123,10 @@ Hack Squat, Smith Machine
 Hammer Curl, Cable
 Hammer Curl
 Hammer Curl, Band
+Handstand
 Handstand Push Up
 Hang Clean, Kettlebell
+Hanging Knee Raise
 Hanging Leg Raise, Cable
 Hanging Leg Raise
 High Row, Cable
@@ -140,6 +151,7 @@ Incline Chest Press
 Incline Chest Press, Band
 Incline Chest Press, Leverage Machine
 Incline Curl
+Incline Push Up
 Incline Row, Barbell
 Incline Row
 Inverted Row
@@ -148,6 +160,7 @@ Jump Squat
 Jump Squat, Bodyweight
 Kettlebell Swing, Dumbbell
 Kettlebell Swing
+Knee Push Up
 Kneeling Pulldown
 Knees to Elbows
 Lat Pulldown
@@ -171,14 +184,19 @@ Lying Bicep Curl
 Lying Leg Curl, Band
 Lying Leg Curl
 Muscle Up
+Negative Dip
+Negative Pull Up
+Nordic Curl
 Oblique Crunch
 Overhead Press
 Overhead Press, Dumbbell
 Overhead Press, EZ Bar
 Overhead Squat
 Overhead Squat, Dumbbell
+Pallof Press
 Pec Deck
 Pendlay Row
+Pike Push Up
 Pistol Squat, Kettlebell
 Pistol Squat
 Pistol Squat, Leverage Machine
@@ -187,6 +205,7 @@ Preacher Curl, Barbell
 Preacher Curl
 Preacher Curl, Leverage Machine
 Preacher Curl, EZ Bar
+Pseudo Planche Push Up
 Pull Up, Band
 Pull Up
 Pull Up, Leverage Machine
@@ -214,14 +233,18 @@ Reverse Lunge, Bodyweight
 Reverse Wrist Curl
 Reverse Wrist Curl, Dumbbell
 Reverse Wrist Curl, EZ Bar
+Ring Dip
+Ring Row
 Romanian Deadlift, Barbell
 Romanian Deadlift
 Reverse Hyperextension
 Reverse Hyperextension, Leverage Machine
+Romanian Deadlift, Bodyweight
 Russian Twist, Cable
 Russian Twist, Dumbbell
 Russian Twist
 Safety Squat Bar Squat
+Scapular Pull Up
 Seated Calf Raise
 Seated Calf Raise, Dumbbell
 Seated Calf Raise, Leverage Machine
@@ -241,6 +264,7 @@ Shoulder Press, Smith Machine
 Shoulder Press, Band
 Shoulder Press, Leverage Machine
 Shoulder Press Parallel Grip
+Shrimp Squat
 Shrug, Barbell
 Shrug, Cable
 Shrug
@@ -311,6 +335,7 @@ Sumo Deadlift
 Sumo Deadlift High Pull
 Superman, Dumbbell
 Superman
+Support Hold
 T Bar Row
 Thruster
 Toes To Bar
@@ -322,6 +347,7 @@ Triceps Extension, Cable
 Triceps Extension
 Triceps Extension, Band
 Triceps Pushdown
+Tuck Front Lever Row
 Upright Row, Barbell
 Upright Row, Cable
 Upright Row
@@ -329,7 +355,11 @@ Upright Row, Band
 V Up, Dumbbell
 V Up, Band
 V Up
+Vertical Row
+Wall Handstand
+Wall Push Up
 Wide Pull Up
+Wide Row
 Wrist Curl
 Wrist Curl, Dumbbell
 Wrist Curl, EZ Bar

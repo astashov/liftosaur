@@ -39,6 +39,31 @@ export const exerciseDescriptions: Record<
       },
     ],
   },
+  archhang_bodyweight: {
+    content:
+      "## Starting Position\n1. **Grip**: Hang from a pull-up bar with an overhand grip, hands about shoulder-width apart.\n2. **Body**: Start from a passive dead hang with arms straight and shoulders relaxed up by the ears.\n\n## Movement\n1. **Engaging Phase**:\n   - Pull your shoulder blades down and back, away from your ears.\n   - Lift your chest toward the bar and arch the upper back, keeping the arms straight.\n\n2. **Holding Phase**:\n   - Hold the arched, shoulders-engaged position for time.\n   - Keep the core tight and legs still - the arms stay straight throughout.\n\n## Key Points\n- Keep the arms fully straight - this is a scapular and back exercise, not an elbow-bending pull.\n- Drive the chest up toward the bar rather than shrugging the shoulders.\n- Build up to holds of 20-30 seconds before progressing toward negative pull-ups.",
+    video: "C995b3KLXS4",
+    description:
+      "The Arch Hang is an active hang from a bar with the chest drawn toward the bar and shoulder blades engaged, building the scapular and pulling strength that leads to pull-ups.",
+    howto: [
+      {
+        name: "Hang From the Bar",
+        text: "Take an overhand grip on a pull-up bar, hands about shoulder-width apart, and start from a relaxed dead hang with straight arms.",
+      },
+      {
+        name: "Engage the Shoulders",
+        text: "Pull your shoulder blades down and back, away from your ears, keeping your arms straight.",
+      },
+      {
+        name: "Arch and Hold",
+        text: "Lift your chest toward the bar and arch your upper back, holding the engaged position for time with a tight core and still legs.",
+      },
+      {
+        name: "Lower With Control",
+        text: "Release back to a passive dead hang under control to finish the rep or set.",
+      },
+    ],
+  },
   arnoldpress_dumbbell: {
     content:
       "## Starting Position\n1. **Seating**: Sit on a bench with back support or stand with feet shoulder-width apart.\n2. **Dumbbells**: Hold a dumbbell in each hand at shoulder height, palms facing you.\n\n## Execution\n1. **Engage Core**: Tighten your core for stability.\n2. **Press**: Rotate your palms outward while pressing the dumbbells overhead.\n3. **Full Extension**: Extend arms fully above your head.\n4. **Lowering**: Slowly reverse the motion, rotating your palms to face you as you lower the weights back to the starting position.\n\n## Tips\n- Keep your elbows in front of your body throughout the movement.\n- Maintain a neutral spine; avoid leaning back excessively.\n- Control the movement, avoiding jerky motions.\n\n## Common Mistakes\n- Using too much weight, leading to poor form.\n- Arching the back excessively.\n- Not controlling the descent of the weights.\n\nBy following these guidelines, you'll perform the Dumbbell Arnold Press effectively and safely.",
@@ -111,6 +136,31 @@ export const exerciseDescriptions: Record<
       {
         name: "Return to Start",
         text: "Continue the circular motion downward and back to the front starting position. Use slow, controlled tempo rather than momentum.",
+      },
+    ],
+  },
+  assistedsquat_bodyweight: {
+    content:
+      "## Starting Position\n1. **Grip**: Hold a sturdy support (doorframe, pole, or TRX straps) at about chest height with both hands.\n2. **Feet**: Stand shoulder-width apart, toes pointing slightly out, a short step back from the support.\n3. **Body**: Keep your chest up, core braced, and arms lightly loaded on the support.\n\n## Movement\n1. **Lowering Phase**:\n   - Sit your hips back and down, bending your knees.\n   - Pull gently on the support to control your descent and stay balanced.\n   - Lower until your thighs are at least parallel to the floor.\n\n2. **Raising Phase**:\n   - Drive through your heels to stand back up.\n   - Use the support only as much as needed, letting your legs do most of the work.\n\n## Key Points\n- Use the support for balance and to unload weight, not to pull yourself up.\n- Keep your knees tracking over your toes, not caving inward.\n- Reduce how much you rely on the support as you get stronger.",
+    video: "OuR_Fp7AB0c",
+    description:
+      "Learn the squat pattern with the Assisted Squat, holding a support to unload part of your bodyweight while building quad and glute strength.",
+    howto: [
+      {
+        name: "Grab the Support",
+        text: "Hold a doorframe, pole, or TRX straps at chest height with both hands. Stand shoulder-width apart, toes slightly out, a short step back from the support.",
+      },
+      {
+        name: "Lower Into the Squat",
+        text: "Sit your hips back and down while bending your knees. Pull lightly on the support to control the descent and keep your balance as you go.",
+      },
+      {
+        name: "Reach Depth",
+        text: "Lower until your thighs are at least parallel to the floor, keeping your chest up and knees tracking over your toes.",
+      },
+      {
+        name: "Stand Back Up",
+        text: "Drive through your heels to return to standing, using the support only as much as you need so your legs do most of the work.",
       },
     ],
   },
@@ -993,6 +1043,28 @@ export const exerciseDescriptions: Record<
       },
     ],
   },
+  bulgariansplitsquat_bodyweight: {
+    content:
+      "## Starting Position\n1. **Setup**: Stand a couple of feet in front of a bench or knee-height platform, facing away from it.\n2. **Rear Foot**: Place the top of your rear foot on the bench behind you.\n3. **Front Foot**: Position your front foot far enough forward that the knee stays over the ankle at the bottom.\n\n## Movement\n1. **Lowering Phase**:\n   - Bend the front knee and lower straight down until the front thigh is roughly parallel to the floor.\n   - Keep your torso upright or leaning slightly forward, front knee tracking over the toes.\n\n2. **Raising Phase**:\n   - Drive through the front foot to push back up to the starting position.\n\n## Key Points\n- Most of the weight stays on the front leg - the rear leg is for balance, not for pushing.\n- Keep the front knee in line with the toes; do not let it cave inward.\n- Stay in the split stance for the whole set rather than stepping the feet together between reps.",
+    video: "lG3MsPmEQQk",
+    description:
+      "The Bodyweight Bulgarian Split Squat builds single-leg strength in the quads and glutes, using a rear-foot-elevated stance to load each leg independently without added weight.",
+    howto: [
+      {
+        name: "Set the Split Stance",
+        text: "Stand a couple of feet in front of a bench facing away, place the top of your rear foot on the bench, and set your front foot far enough forward that the knee stays over the ankle.",
+      },
+      {
+        name: "Lower Down",
+        text: "Bend the front knee and lower straight down until the front thigh is about parallel to the floor, keeping the torso tall and the knee tracking over the toes.",
+      },
+      {
+        name: "Drive Back Up",
+        text: "Push through the front foot to return to the start, keeping most of the weight on the front leg.",
+      },
+      { name: "Finish the Set", text: "Complete all reps on one leg staying in the split stance, then switch legs." },
+    ],
+  },
   bulgariansplitsquat_dumbbell: {
     content:
       "## Setup\n1. **Equipment Needed**: Two dumbbells and a bench or stable surface.\n2. **Positioning**: Stand a few feet in front of the bench. Place one foot on the bench behind you.\n\n## Execution\n1. **Foot Placement**: Ensure your back foot is secured on the bench with the top of your foot resting on it.\n2. **Stance**: Keep your front foot flat on the ground, about 2-3 feet in front of you.\n3. **Brace Core**: Engage your core to stabilize your torso throughout the movement.\n\n## Movement\n1. **Lowering Phase**:\n   - Inhale as you lower your body by bending your front knee.\n   - Keep your front knee aligned with your ankle; don't let it extend past your toes.\n   - Your back knee should be heading towards the ground.\n\n2. **Depth**: Lower until your front thigh is parallel to the ground, or slightly below, while keeping your back knee off the floor.\n\n3. **Rising Phase**:\n   - Exhale as you push through your front heel to rise back to the starting position.\n   - Maintain balance and control throughout the movement.\n\n## Tips\n- **Posture**: Keep your chest lifted and your back straight.\n- **Weight Distribution**: Keep your weight centered in your front foot.\n- **Breathing**: Remember to breathe: inhale while lowering, exhale while rising.\n- **Repetitions**: Perform the desired number of repetitions, then switch legs.\n\n## Common Mistakes\n- Letting the front knee cave inward.\n- Leaning too far forward; keep a straight back.\n- Using too much weight, compromising form.\n\nBy following this guide, you can perform the Dumbbell Bulgarian Split Squat effectively while minimizing the risk of injury.",
@@ -1668,6 +1740,28 @@ export const exerciseDescriptions: Record<
       },
     ],
   },
+  copenhagenplank_bodyweight: {
+    content:
+      "## Starting Position\n1. Lie on your side next to a bench with your forearm on the floor and elbow under your shoulder.\n2. Rest the inside of your top foot or shin on the bench.\n3. Let your bottom leg hang below or lightly rest it under the bench for support.\n\n## Movement\n1. **Lifting Phase**:\n   - Press through your top leg and forearm to raise your hips off the floor.\n   - Form a straight line from head to heels.\n\n2. **Holding Phase**:\n   - Squeeze the inner thigh of your top leg to keep your hips lifted.\n   - Hold the position for the prescribed time, keeping your core tight.\n   - Lower with control, then switch sides.\n\n## Key Points\n- Stack your shoulder directly over your elbow to protect the joint.\n- Keep your hips level and square, do not let the bottom hip sag toward the floor.\n- Drive the effort through the adductor of your top leg, not just your obliques.\n- Shorten the lever by resting your knee on the bench instead of your foot if the full hold is too hard.",
+    video: "1NNqUQvMYGc",
+    description:
+      "Build hip adductor and oblique strength with the Bodyweight Copenhagen Plank, a side-plank hold with the top leg elevated on a bench.",
+    howto: [
+      {
+        name: "Set Up on Your Side",
+        text: "Lie on your side with your forearm on the floor and elbow under your shoulder. Rest the inside of your top foot or shin on a bench.",
+      },
+      {
+        name: "Lift Your Hips",
+        text: "Press through your top leg and forearm to raise your hips until your body forms a straight line from head to heels.",
+      },
+      {
+        name: "Hold the Position",
+        text: "Squeeze the inner thigh of your top leg to keep your hips lifted and level, holding for the prescribed time with a tight core.",
+      },
+      { name: "Switch Sides", text: "Lower your hips under control, then repeat the hold on the opposite side." },
+    ],
+  },
   crossbodycrunch_bodyweight: {
     content:
       "### Starting Position\n1. Lie flat on your back on a mat.\n2. Bend your knees and place your feet flat on the ground, hip-width apart.\n3. Position your arms at your sides or behind your head with elbows bent.\n\n### Execution\n1. Engage your core. \n2. Lift your head, shoulders, and upper back off the ground.\n3. Bring your right elbow towards your left knee while simultaneously extending your right leg out straight.\n4. Hold for a moment at the top of the movement.\n5. Lower back down to the starting position with control.\n6. Repeat on the opposite side, bringing your left elbow towards your right knee.\n\n### Tips for Proper Form\n- Keep your lower back pressed into the mat to avoid straining.\n- Move in a controlled manner; avoid jerky movements.\n- Focus on using your abdominal muscles to lift, not your neck or back.\n- Breathe out as you crunch up and inhale as you lower down.\n\n### Common Mistakes\n- Pulling on the neck: Keep hands lightly supporting the head without yanking.\n- Rounding the lower back: Maintain a neutral spine as much as possible.\n- Incomplete range of motion: Ensure you lift your shoulder blades off the ground.\n\nBy following these guidelines, you can perform the Bodyweight Cross Body Crunch effectively to target your core.",
@@ -1690,6 +1784,31 @@ export const exerciseDescriptions: Record<
       {
         name: "Alternate Sides",
         text: "Lower back to the start with control, then repeat on the other side, bringing your left elbow toward your right knee. Breathe out as you crunch and in as you lower.",
+      },
+    ],
+  },
+  crowpose_bodyweight: {
+    content:
+      "## Starting Position\n1. **Hands**: Squat down and place your hands flat on the floor shoulder-width apart, fingers spread.\n2. **Arms**: Bend your elbows slightly and rest your knees high on the backs of your upper arms.\n3. **Gaze**: Look at the floor slightly ahead of your hands, not straight down.\n\n## Movement\n1. **Entering the Hold**:\n   - Shift your weight forward onto your hands and rise onto the balls of your feet.\n   - Lift one foot and then the other off the floor until only your hands support you.\n\n2. **Holding**:\n   - Grip the floor with your fingertips and round your upper back.\n   - Draw your heels toward your glutes and squeeze your knees into your arms.\n   - Keep your gaze forward and hold for the target time.\n\n3. **Exiting the Hold**:\n   - Shift your weight back and lower your feet to the floor one at a time.\n   - Return to a squat under control.\n\n## Key Points\n- Round your upper back and look forward - looking down tips you onto your face.\n- Grip the floor with your fingertips to steer your balance, like a hand gripping a ledge.\n- Set your knees high on the upper arms, not out on the elbows, so they do not slide off.",
+    video: "SrYBD4yCI84",
+    description:
+      "Balance on your hands with your knees resting on your upper arms in the Crow Pose, an introductory arm balance that builds wrist strength, core control, and balance.",
+    howto: [
+      {
+        name: "Set Your Base",
+        text: "Squat down and place your hands flat on the floor shoulder-width apart with fingers spread. Bend your elbows slightly and rest your knees high on the backs of your upper arms.",
+      },
+      {
+        name: "Shift and Lift",
+        text: "Look slightly ahead of your hands and shift your weight forward until it loads your hands. Rise onto the balls of your feet, then lift one foot and the other off the floor.",
+      },
+      {
+        name: "Hold the Balance",
+        text: "Grip the floor with your fingertips, round your upper back, and squeeze your knees into your arms while drawing your heels toward your glutes. Keep your gaze forward and hold for the target time.",
+      },
+      {
+        name: "Step Back Down",
+        text: "Shift your weight back and lower your feet to the floor one at a time, returning to a squat under control.",
       },
     ],
   },
@@ -1765,6 +1884,31 @@ export const exerciseDescriptions: Record<
       {
         name: "Return Slowly",
         text: "Inhale as you slowly return to the upright starting position, maintaining core tension throughout. Avoid using momentum or rounding your back during the movement.",
+      },
+    ],
+  },
+  deadhang_bodyweight: {
+    content:
+      "## Starting Position\n1. **Grip**: Grab the bar with a shoulder-width overhand grip, wrapping your thumbs around.\n2. **Arms**: Let your arms hang fully straight.\n3. **Body**: Keep your legs straight or slightly bent so your feet clear the ground.\n\n## Movement\n1. **Hold Phase**:\n   - Hang with straight arms and let your body relax and lengthen.\n   - Keep your shoulders slightly engaged rather than fully shrugged to your ears.\n   - Breathe steadily and hold for the target time.\n\n2. **Finish**:\n   - Lower to the ground under control once your set time is reached.\n   - Step down rather than dropping to protect your shoulders.\n\n## Key Points\n- Grip firmly with thumbs wrapped for a secure hold.\n- Keep a neutral spine - avoid arching or excessively swinging.\n- Beginners start around 10-20 seconds; work toward 60 seconds or more.",
+    video: "2vspW4N4BMs",
+    description:
+      "Build grip strength, shoulder health, and hanging endurance with the Dead Hang, a passive hang from a bar with straight arms held for time.",
+    howto: [
+      {
+        name: "Grab the Bar",
+        text: "Take a shoulder-width overhand grip and wrap your thumbs around the bar for a secure hold.",
+      },
+      {
+        name: "Hang and Relax",
+        text: "Let your arms straighten fully and your body lengthen. Keep your shoulders slightly engaged rather than fully shrugged, and maintain a neutral spine.",
+      },
+      {
+        name: "Hold for Time",
+        text: "Breathe steadily and stay relaxed to extend your hang. Beginners aim for 10-20 seconds and build toward 60 seconds or more.",
+      },
+      {
+        name: "Come Down Safely",
+        text: "When your set time is up, lower or step down under control instead of dropping off the bar.",
       },
     ],
   },
@@ -2068,6 +2212,56 @@ export const exerciseDescriptions: Record<
       },
     ],
   },
+  diamondpushup_bodyweight: {
+    content:
+      "## Starting Position\n1. **Hands**: Place your hands together under your chest so your thumbs and index fingers form a diamond shape.\n2. **Feet**: Keep your feet together or slightly apart, maintaining a straight line from head to heels.\n3. **Body**: Engage your core and keep your body straight.\n\n## Movement\n1. **Lowering Phase**:\n   - Bend your elbows to lower your chest toward your hands.\n   - Keep your elbows tucked close to your sides, not flaring out.\n   - Lower until your chest nearly touches your hands.\n\n2. **Raising Phase**:\n   - Press through your palms to push your body back up to the starting position.\n   - Drive through your triceps and keep your core tight throughout.\n\n## Key Points\n- Keep your elbows tucked close to your body to maximize tricep involvement.\n- Avoid sagging your hips or piking your buttocks up.\n- If full diamond push-ups are too hard, start from your knees.",
+    video: "J0DnG1_S92I",
+    description:
+      "The Diamond Push Up is a close-grip push-up with the hands forming a diamond under the chest, emphasizing the triceps.",
+    howto: [
+      {
+        name: "Set Up the Diamond",
+        text: "Place your hands together directly under your chest so your thumbs and index fingers form a diamond shape. Keep your feet together and your body in a straight line from head to heels.",
+      },
+      {
+        name: "Lower Your Chest",
+        text: "Bend your elbows to lower your chest toward your hands, keeping your elbows tucked close to your sides rather than flaring out.",
+      },
+      {
+        name: "Press Back Up",
+        text: "Push through your palms and drive through your triceps to return to the top, keeping your core tight and back straight.",
+      },
+      {
+        name: "Scale the Difficulty",
+        text: "If full diamond push-ups are too hard, perform them from your knees until you build enough tricep strength.",
+      },
+    ],
+  },
+  dragonflag_bodyweight: {
+    content:
+      "## Starting Position\n1. Lie flat on a bench and reach back to grip the edge behind your head with both hands.\n2. Pull your shoulder blades down and press your upper back firmly into the bench.\n3. Brace your abs and glutes so your body forms one rigid line.\n\n## Movement\n1. **Raising Phase**:\n   - Drive your legs and hips up until your body is close to vertical, balancing on your upper back.\n   - Keep your entire body straight and locked, moving as a single unit.\n\n2. **Lowering Phase**:\n   - Lower your straight body toward the bench slowly and under control.\n   - Keep only your upper back in contact with the bench, never your lower back or hips.\n   - Stop just before your heels touch, then reverse.\n\n## Key Points\n- Keep your body perfectly straight from shoulders to feet, no bending at the hips.\n- Squeeze your glutes and hold a posterior pelvic tilt to prevent your lower back from arching.\n- Do not swing or use momentum, control every inch of the descent.\n- If the full version is too hard, tuck your knees to shorten the lever.",
+    video: "6Lar9utB5ZU",
+    description:
+      "Master the Bodyweight Dragon Flag, an advanced core movement that trains the entire abdominal wall by holding the body rigid and straight while lowering from near-vertical.",
+    howto: [
+      {
+        name: "Set Up on the Bench",
+        text: "Lie flat and grip the edge of the bench behind your head. Pull your shoulder blades down and press your upper back into the bench.",
+      },
+      {
+        name: "Raise to Near-Vertical",
+        text: "Brace your abs and glutes, then drive your legs and hips up until your body is nearly vertical, balancing on your upper back with the whole body rigid.",
+      },
+      {
+        name: "Lower Under Control",
+        text: "Slowly lower your straight, locked body toward the bench, keeping only your upper back on the surface and never letting your lower back arch.",
+      },
+      {
+        name: "Stop and Reverse",
+        text: "Stop just before your heels reach the bench, then raise back up without swinging or using momentum.",
+      },
+    ],
+  },
   ellipticalmachine_leveragemachine: {
     content:
       "## Setup\n1. **Adjust the Machine**: Set the resistance level according to your fitness level.\n2. **Foot Placement**: Place your feet securely on the foot pedals, ensuring they fit comfortably.\n\n## Starting Position\n- Stand upright with a slight bend in your knees.\n- Keep your back straight and engage your core.\n\n## Movement\n1. **Begin Motion**: Push the pedals backward and forward in a smooth, circular motion.\n2. **Arm Movement**: If the machine has handles, use your arms to push and pull in coordination with your legs. Keep your elbows close to your body.\n3. **Maintain Posture**: Keep your head up, looking forward, and avoid leaning too heavily on the handles.\n\n## Breathing\n- Inhale through your nose as you push and exhale through your mouth as you pull.\n\n## Duration\n- Focus on maintaining a steady pace without losing form throughout your workout.\n\n## Common Mistakes to Avoid\n- Avoid slouching or leaning excessively on the handles; this can lead to poor posture.\n- Do not lock your knees; keep them slightly bent throughout the exercise.\n\n## Conclusion\nUsing the leveraged machine elliptical effectively improves cardiovascular fitness and engages multiple muscle groups when done with proper form.",
@@ -2165,6 +2359,31 @@ export const exerciseDescriptions: Record<
       {
         name: "Lower Without Touching",
         text: "Slowly lower your legs back toward the ground, stopping just before your feet touch the mat. Exhale on the way down and repeat the motion under control.",
+      },
+    ],
+  },
+  frontleverrow_bodyweight: {
+    content:
+      "## Starting Position\n1. **Grip**: Hang from a bar with a shoulder-width overhand grip and straight arms.\n2. **Body**: Raise into a full front lever - body horizontal and straight, legs extended, back facing the floor.\n3. **Brace**: Squeeze your glutes, quads, and core to hold a rigid straight line.\n\n## Movement\n1. **Pulling Phase**:\n   - Keep the body horizontal and straight as you drive your elbows down and back.\n   - Pull your chest up toward the bar while holding the line from head to toe.\n\n2. **Lowering Phase**:\n   - Lower under control back to the horizontal lever over 2-3 seconds.\n   - Do not let your hips or legs drop below horizontal.\n\n## Key Points\n- Hold a straight line from head to heels - no piking or sagging at the hips.\n- Keep the body horizontal throughout; this is a row, not a pull-up.\n- Only attempt this once you can hold a solid full front lever.",
+    video: "AGhb8V8M758",
+    description:
+      "Develop elite back and core strength with the Front Lever Row, rowing your fully extended horizontal body up to the bar.",
+    howto: [
+      {
+        name: "Set the Full Lever",
+        text: "Hang from the bar with straight arms, then raise your straight body until it is horizontal and parallel to the floor with legs fully extended. Squeeze glutes, quads, and core to lock in a rigid line.",
+      },
+      {
+        name: "Row to the Bar",
+        text: "Keeping your body horizontal and straight, drive your elbows down and back to pull your chest toward the bar. Maintain the head-to-heel line without piking.",
+      },
+      {
+        name: "Lower With Control",
+        text: "Return to the horizontal lever over 2-3 seconds, resisting the urge to let your hips or legs sink below parallel.",
+      },
+      {
+        name: "Keep It Rigid",
+        text: "Brace hard the entire set so the body moves as one straight unit and the lats and back drive the pull.",
       },
     ],
   },
@@ -2811,6 +3030,31 @@ export const exerciseDescriptions: Record<
       },
     ],
   },
+  handstand_bodyweight: {
+    content:
+      "## Starting Position\n1. **Hands**: Place your hands shoulder-width apart on the floor, fingers spread and pointing forward.\n2. **Shoulders**: Set your shoulders directly over your wrists with arms locked straight.\n3. **Entry**: Take a small lunge stance and kick one leg up to bring your hips over your hands.\n\n## Movement\n1. **Entering the Hold**:\n   - Kick up to bring both legs overhead until your body stacks over your hands.\n   - Push the floor away to keep your shoulders fully elevated.\n\n2. **Holding**:\n   - Stack hips over shoulders and shoulders over wrists in one straight line.\n   - Squeeze your glutes, brace your core, and point your toes.\n   - Balance by pressing through your fingertips, not by bending your arms.\n   - Hold for the target time.\n\n3. **Exiting the Hold**:\n   - Lower one leg at a time back to the floor, or pirouette out to the side.\n   - Step down under control rather than falling out.\n\n## Key Points\n- Balance corrections come from your fingers and wrists, not your shoulders or hips.\n- Keep a hollow body - avoid arching your lower back or letting your ribs flare.\n- Look at the floor between your hands, not forward.",
+    video: "2-3wv5kLNnw",
+    description:
+      "Balance fully inverted on your hands with the Handstand, a free-standing hold that builds shoulder strength, wrist stability, and body control.",
+    howto: [
+      {
+        name: "Set Your Hands",
+        text: "Place your hands shoulder-width apart with fingers spread and pointing forward. Set your shoulders directly over your wrists with your arms locked straight.",
+      },
+      {
+        name: "Kick Up",
+        text: "From a small lunge, kick one leg up and follow with the other to bring your hips and legs over your hands. Push the floor away to keep your shoulders fully elevated.",
+      },
+      {
+        name: "Hold the Balance",
+        text: "Stack hips over shoulders over wrists in a straight line. Squeeze your glutes, brace your core, point your toes, and make small balance corrections by pressing through your fingertips. Hold for the target time.",
+      },
+      {
+        name: "Come Down",
+        text: "Lower one leg at a time back to the floor, or pirouette out to the side. Step down under control instead of falling out.",
+      },
+    ],
+  },
   handstandpushup_bodyweight: {
     content:
       "## Setup\n1. **Start Position**: Face a wall for support. Kick into a handstand position with your back against the wall.\n2. **Hand Placement**: Place your hands shoulder-width apart on the ground, about 6-12 inches from the wall.\n\n## Execution\n1. **Body Alignment**: Keep your body straight from head to heels, engaging your core and glutes.\n2. **Lowering Phase**: Bend your elbows to lower your head towards the ground. Keep elbows close to your body.\n3. **Depth**: Aim for your head to touch or come close to the ground.\n4. **Pushing Phase**: Press through your palms to push back up to the starting position while keeping a tight core.\n\n## Key Points\n- **Breathing**: Inhale as you lower your body; exhale when pushing back up.\n- **Control**: Avoid letting your feet or legs sag. Maintain a straight line.\n- **Wall Support**: Use the wall for balance; don't rely on it to push up.\n\n## Tips\n- Work on shoulder strength and flexibility beforehand.\n- If new to the movement, practice partial range of motion first.\n- Ensure a strong base with a proper grip on the ground.",
@@ -2858,6 +3102,31 @@ export const exerciseDescriptions: Record<
       {
         name: "Catch in Rack Position",
         text: "As the bell rises, pull your elbow up and back while rotating your wrist to guide the kettlebell into the rack position on your forearm. Absorb the weight by softening your knees.",
+      },
+    ],
+  },
+  hangingkneeraise_bodyweight: {
+    content:
+      "## Starting Position\n1. Grab a pull-up bar with an overhand grip, hands about shoulder-width apart.\n2. Hang with your arms fully extended and feet off the ground.\n3. Engage your core so your body stops swinging.\n\n## Movement\n1. **Raising Phase**:\n   - Raise your knees toward your chest by bending at the hips and knees.\n   - Curl your pelvis up at the top instead of just lifting the thighs.\n   - Stop when your thighs reach at least parallel to the floor.\n\n2. **Lowering Phase**:\n   - Lower your knees slowly back to the fully hanging position.\n   - Keep control the whole way down, avoiding any swing.\n\n## Key Points\n- Initiate the lift from your abs, not by kicking or swinging your legs.\n- Curl your pelvis toward your ribs to bring the lower abs into the movement.\n- Keep your shoulders slightly engaged rather than hanging fully limp.\n- Lower under control, do not just drop your legs at the top.",
+    video: "Gw3RyyARhBQ",
+    description:
+      "Target your lower abs with the Bodyweight Hanging Knee Raise, hanging from a bar and curling your knees toward your chest as a stepping stone to full hanging leg raises.",
+    howto: [
+      {
+        name: "Hang From the Bar",
+        text: "Grab a pull-up bar with an overhand grip, hands shoulder-width apart. Hang with arms fully extended and brace your core to stop swinging.",
+      },
+      {
+        name: "Raise Your Knees",
+        text: "Bend at the hips and knees to raise your knees toward your chest, curling your pelvis up at the top rather than only lifting the thighs.",
+      },
+      {
+        name: "Reach the Top",
+        text: "Bring your knees up until your thighs are at least parallel to the floor, keeping the movement driven by your abs.",
+      },
+      {
+        name: "Lower With Control",
+        text: "Slowly lower your knees back to the fully hanging position without swinging or dropping your legs.",
       },
     ],
   },
@@ -3455,6 +3724,31 @@ export const exerciseDescriptions: Record<
       },
     ],
   },
+  inclinepushup_bodyweight: {
+    content:
+      "## Starting Position\n1. **Hands**: Place your hands on a bench or box slightly wider than shoulder-width apart.\n2. **Feet**: Step your feet back so your body forms a straight line from head to heels at an incline.\n3. **Body**: Engage your core and keep your hips in line with your shoulders.\n\n## Movement\n1. **Lowering Phase**:\n   - Bend your elbows to lower your chest toward the edge of the bench.\n   - Keep your elbows at roughly a 45-degree angle, pointing back.\n   - Lower until your chest nearly touches the surface.\n\n2. **Raising Phase**:\n   - Press through your palms to push your body back up to the starting position.\n   - Keep your back straight and core braced throughout.\n\n## Key Points\n- The higher the surface, the easier the exercise; a lower surface makes it harder.\n- Keep your body in one straight line, not sagging or piking at the hips.\n- Progress toward floor push-ups by gradually lowering the surface height.",
+    video: "NnfAYkBRDPY",
+    description:
+      "The Incline Push Up is an easier push-up variation with hands elevated on a bench or box, building chest, shoulder, and tricep strength.",
+    howto: [
+      {
+        name: "Set Up on the Bench",
+        text: "Place your hands slightly wider than shoulder-width on a stable bench or box. Step your feet back so your body forms a straight incline line from head to heels.",
+      },
+      {
+        name: "Lower Your Chest",
+        text: "Bend your elbows to lower your chest toward the edge of the bench, keeping elbows angled back at about 45 degrees rather than flaring out.",
+      },
+      {
+        name: "Press Back Up",
+        text: "Push through your palms to straighten your arms and return to the top, keeping your core tight and back straight throughout.",
+      },
+      {
+        name: "Progress the Difficulty",
+        text: "Use a higher surface to make it easier or a lower one to make it harder, working toward full push-ups on the floor.",
+      },
+    ],
+  },
   inclinerow_barbell: {
     content:
       "## Setup\n1. **Incline Bench:** Set an incline bench to a 30-45 degree angle.\n2. **Barbell Position:** Place a barbell on the ground in front of the bench.\n\n## Starting Position\n1. **Kneel or Stand:** Position yourself so that your chest is against the bench.\n2. **Grip the Barbell:** Use an overhand grip, slightly wider than shoulder-width.\n3. **Feet Placement:** Keep your feet flat on the floor, spaced shoulder-width apart.\n\n## Execution\n1. **Engage Core:** Tighten your core to stabilize your body.\n2. **Pull the Bar:** Inhale and pull the barbell towards your lower ribcage, keeping your elbows close to your body.\n3. **Squeeze:** At the top of the movement, squeeze your shoulder blades together.\n4. **Lower Slowly:** Exhale as you lower the barbell back to the starting position, maintaining control.\n\n## Key Points\n- **Maintain Posture:** Keep your back flat and avoid rounding your shoulders.\n- **Head Position:** Keep your neck neutral and align your head with your spine.\n- **Controlled Movement:** Focus on smooth and controlled motions throughout the entire range of motion.\n\n## Common Mistakes\n- **Using Momentum:** Avoid swinging or jerking the weight; focus on muscle control.\n- **Arching Back:** Keep your back flat to prevent strain.\n- **Not Engaging Muscles:** Ensure you are fully engaging the back muscles during the lift.",
@@ -3682,6 +3976,31 @@ export const exerciseDescriptions: Record<
       {
         name: "Control the Return",
         text: "Slowly allow the band to rise back to the starting position, maintaining control and keeping your back straight throughout.",
+      },
+    ],
+  },
+  kneepushup_bodyweight: {
+    content:
+      "## Starting Position\n1. **Hands**: Place your hands on the floor slightly wider than shoulder-width apart.\n2. **Knees**: Rest on your knees with your ankles crossed or feet lifted behind you.\n3. **Body**: Keep a straight line from your head through your hips to your knees.\n\n## Movement\n1. **Lowering Phase**:\n   - Bend your elbows to lower your chest toward the floor.\n   - Keep your elbows at a 45-degree angle, pointing back, not flaring out.\n   - Lower until your chest nearly touches the floor.\n\n2. **Raising Phase**:\n   - Press through your palms to push your body back up to the starting position.\n   - Keep your core braced and body straight from head to knees.\n\n## Key Points\n- Keep your hips down; do not let them pike up or sag toward the floor.\n- Pivot from the knees, keeping the line from head to knees rigid.\n- Progress to full push-ups on your toes once these feel easy.",
+    video: "utzhPQuXWcA",
+    description:
+      "The Knee Push Up is a reduced-load push-up done from the knees, building chest, shoulder, and tricep strength on the way to full push-ups.",
+    howto: [
+      {
+        name: "Set Up on Your Knees",
+        text: "Place your hands slightly wider than shoulder-width on the floor and rest on your knees. Keep a straight line from your head through your hips to your knees.",
+      },
+      {
+        name: "Lower Your Chest",
+        text: "Bend your elbows to lower your chest toward the floor, keeping elbows angled back at about 45 degrees rather than flaring out to the sides.",
+      },
+      {
+        name: "Press Back Up",
+        text: "Push through your palms to straighten your arms and return to the top, keeping your hips down and your torso rigid from head to knees.",
+      },
+      {
+        name: "Progress to Full Push Ups",
+        text: "Once you can do these with clean form, move to standard push-ups on your toes to add load.",
       },
     ],
   },
@@ -4227,6 +4546,81 @@ export const exerciseDescriptions: Record<
       },
     ],
   },
+  negativedip_bodyweight: {
+    content:
+      "## Starting Position\n1. **Grip**: Grip the parallel bars and press or jump up to a straight-arm support at the top.\n2. **Body**: Lean slightly forward, brace your core, and cross or bend your legs behind you.\n3. **Shoulders**: Pull your shoulders down away from your ears.\n\n## Movement\n1. **Lowering Phase**:\n   - Bend your elbows and lower your body as slowly as you can, taking 3-5 seconds.\n   - Keep your elbows tucked close to your torso, not flaring wide.\n   - Lower until your shoulders drop below your elbows.\n\n2. **Reset**:\n   - At the bottom, step or hop your feet down to the floor.\n   - Climb or press back up to the top support position.\n   - Reset your posture before the next slow descent.\n\n## Key Points\n- The whole point is the slow descent - do not just drop, fight gravity the entire way.\n- Aim for 3-5 seconds down; if you can't control it, do fewer reps rather than rushing.\n- Keep a slight forward lean and tucked elbows to keep the shoulders safe.",
+    video: "T3Scqw1BbCc",
+    description:
+      "Build toward full dips with the Negative Dip, the slow lowering half of a parallel-bar dip used as a regression to develop pressing strength through the full range.",
+    howto: [
+      {
+        name: "Start at the Top",
+        text: "Press or jump up to a straight-arm support on the parallel bars. Lean slightly forward, brace your core, and pull your shoulders down.",
+      },
+      {
+        name: "Lower Slowly",
+        text: "Bend your elbows and descend as slowly as you can over 3-5 seconds, keeping your elbows tucked and your body under control the whole way.",
+      },
+      {
+        name: "Reach the Bottom",
+        text: "Continue until your shoulders drop below your elbows, resisting gravity to the very end rather than dropping.",
+      },
+      {
+        name: "Reset and Repeat",
+        text: "Step or hop your feet to the floor, climb back up to the top support, reset your posture, and begin the next slow negative.",
+      },
+    ],
+  },
+  negativepullup_bodyweight: {
+    content:
+      "## Starting Position\n1. **Get to the Top**: Jump or step off a box until your chin is above the bar.\n2. **Grip**: Hold a shoulder-width or slightly wider overhand grip.\n3. **Position**: Chin over the bar, chest up, shoulders pulled down and back.\n\n## Movement\n1. **Lowering Phase**:\n   - Lower your body as slowly as possible, aiming for a 3-5 second descent.\n   - Keep your shoulders engaged and resist the pull the whole way down.\n\n2. **Reset**:\n   - Once your arms are fully extended, step or jump back to the top position.\n   - Repeat for the target number of controlled negatives.\n\n## Key Points\n- Control the descent - the slower you lower, the more you build.\n- Keep your shoulders down and back rather than shrugging up.\n- Avoid dropping quickly at the bottom; stay tight until arms are straight.",
+    video: "EkpJkHpJXmM",
+    description:
+      "Build toward your first pull-up with the Negative Pull Up, starting at the top and lowering slowly to train the eccentric of the movement.",
+    howto: [
+      {
+        name: "Reach the Top",
+        text: "Jump or step off a box to bring your chin above the bar, taking a shoulder-width or slightly wider overhand grip with chest up and shoulders pulled down.",
+      },
+      {
+        name: "Lower Slowly",
+        text: "Descend as slowly as you can, aiming for a 3-5 second count. Keep your shoulders engaged and resist the movement the entire way.",
+      },
+      {
+        name: "Stay Controlled to the Bottom",
+        text: "Do not let go at the end - maintain tension until your arms are fully straight.",
+      },
+      {
+        name: "Reset and Repeat",
+        text: "Step or jump back up to the top position and perform the next controlled negative.",
+      },
+    ],
+  },
+  nordiccurl_bodyweight: {
+    content:
+      "## Starting Position\n1. **Knees**: Kneel on a pad with your knees about hip-width apart.\n2. **Ankles**: Anchor your ankles securely under a fixed object or have a partner hold them.\n3. **Body**: Extend your hips so your torso, thighs, and shoulders form a straight line, glutes squeezed and core braced.\n\n## Movement\n1. **Lowering Phase**:\n   - Keeping your hips extended, lower your torso forward toward the floor as slowly as you can.\n   - Resist the descent with your hamstrings, aiming for a 3-5 second lower.\n   - Do not let your hips fold or hinge back.\n\n2. **Raising Phase**:\n   - Catch yourself with your hands as you near the floor.\n   - Pull yourself back up by contracting your hamstrings, using a light push from your hands only as needed.\n\n## Key Points\n- Keep a straight line from knees to shoulders - do not bend at the hips.\n- Control the lowering phase; the eccentric is where the work happens.\n- Use your hands to assist the return until you can pull back up on your own.",
+    video: "d8AAPcYxPo8",
+    description:
+      "Develop powerful hamstrings with the Nordic Curl, a demanding eccentric exercise that lowers your torso toward the floor from a kneeling position.",
+    howto: [
+      {
+        name: "Set Your Position",
+        text: "Kneel on a pad with knees hip-width apart and anchor your ankles under a fixed object or partner. Extend your hips so your body forms a straight line from knees to shoulders, glutes squeezed and core braced.",
+      },
+      {
+        name: "Lower Slowly",
+        text: "Keeping your hips extended, lower your torso forward toward the floor as slowly as you can, resisting with your hamstrings for a 3-5 second descent. Do not let your hips fold back.",
+      },
+      {
+        name: "Catch at the Bottom",
+        text: "As you near the floor, place your hands down to catch yourself, keeping a straight line from knees to shoulders throughout.",
+      },
+      {
+        name: "Pull Back Up",
+        text: "Contract your hamstrings to pull yourself back to the starting position, using a light push from your hands only as much as you need.",
+      },
+    ],
+  },
   obliquecrunch_bodyweight: {
     content:
       "## Starting Position\n- Lie on your back on the floor.\n- Bend your knees and place your feet flat on the ground.\n- Place your hands behind your head, elbows wide.\n\n## Execution\n1. **Engage Core**: Tighten your abdominal muscles.\n2. **Lift Shoulders**: Curl your shoulders off the floor towards your right knee.\n3. **Twist**: As you lift, rotate your torso to bring your left elbow towards your right knee.\n4. **Return**: Slowly lower back to the starting position without letting your head touch the ground.\n5. **Repeat**: Alternate sides, bringing your right elbow toward your left knee for the next repetition.\n\n## Tips\n- Keep your movements controlled.\n- Avoid pulling on your neck; use your core to lift.\n- Ensure your lower back stays in contact with the floor.\n- Breathe out as you crunch, and breathe in as you return.",
@@ -4374,6 +4768,31 @@ export const exerciseDescriptions: Record<
       },
     ],
   },
+  pallofpress_band: {
+    content:
+      "## Starting Position\n1. **Anchor**: Attach a resistance band at chest height and stand side-on to the anchor point.\n2. **Grip**: Hold the band with both hands at the center of your chest, arms bent.\n3. **Body**: Stand with feet shoulder-width apart, knees slightly bent, core braced. Step away from the anchor until the band has tension.\n\n## Movement\n1. **Pressing Phase**:\n   - Press the band straight out in front of your chest until the arms are fully extended.\n   - Resist the band's pull that tries to rotate your torso toward the anchor - keep your shoulders and hips square.\n\n2. **Returning Phase**:\n   - Bring your hands back to your chest under control without letting your torso twist.\n\n## Key Points\n- The goal is to resist rotation - your torso should not turn toward the anchor at any point.\n- Brace your core and squeeze your glutes to stay stable throughout.\n- Press slowly and hold the extended position briefly for maximum anti-rotation demand.",
+    video: "AH_QZLm_0-s",
+    description:
+      "The Pallof Press is a banded anti-rotation core exercise where you press a band straight out from your chest and resist the twist it creates, training the obliques and deep core.",
+    howto: [
+      {
+        name: "Set Up Side-On",
+        text: "Anchor a resistance band at chest height and stand side-on to it, holding the band with both hands at the center of your chest. Step out until the band is taut.",
+      },
+      {
+        name: "Brace and Press",
+        text: "Brace your core and press the band straight out in front of your chest until your arms are fully extended, keeping your shoulders and hips square to the front.",
+      },
+      {
+        name: "Resist the Twist",
+        text: "Hold the extended position briefly, resisting the band's pull that tries to rotate you toward the anchor.",
+      },
+      {
+        name: "Return Under Control",
+        text: "Bring your hands back to your chest without letting your torso turn, then repeat before switching sides.",
+      },
+    ],
+  },
   pecdeck_leveragemachine: {
     content:
       "## Setup\n1. **Adjust the Seat**: Sit on the machine and adjust the seat height so that the handles align with your chest level.\n2. **Choose the Weight**: Select an appropriate weight for your fitness level.\n\n## Starting Position\n1. **Posture**: Sit back against the padded support with your back flat and shoulders relaxed.\n2. **Grip**: Grasp the handles with your palms facing forward or inwards, depending on the machine design. Keep your elbows slightly bent.\n\n## Execution\n1. **Initiate Movement**: Push the handles together in a controlled manner, focusing on squeezing your chest muscles.\n2. **Range of Motion**: Continue until your hands are close together but avoid locking your elbows at the end of the movement.\n3. **Return**: Gradually release the handles back to the starting position, ensuring you maintain control throughout.\n\n## Key Points\n- Keep your feet flat on the ground and avoid arching your back.\n- Engage your core throughout the exercise to maintain stability.\n- Breathe out during the pressing phase and inhale as you return to the starting position.\n- Maintain a smooth, controlled motion without using momentum. \n\n## Common Mistakes\n- Overextending or locking the elbows.\n- Allowing the shoulders to rise or shrug.\n- Not using full range of motion.\n\nFollowing these guidelines will help you effectively perform the Leverage Machine Pec Deck with proper form and reduce the risk of injury.",
@@ -4421,6 +4840,31 @@ export const exerciseDescriptions: Record<
       {
         name: "Return to the Floor",
         text: "Lower the barbell back to the floor with control until it comes to a full stop, then initiate the next rep from a dead stop.",
+      },
+    ],
+  },
+  pikepushup_bodyweight: {
+    content:
+      "## Starting Position\n1. **Hands**: Place your hands slightly wider than shoulder-width apart on the floor.\n2. **Feet**: Walk your feet in and lift your hips high so your body forms an inverted V.\n3. **Body**: Keep your legs and back mostly straight, weight shifted over your hands.\n\n## Movement\n1. **Lowering Phase**:\n   - Bend your elbows to lower the top of your head toward the floor.\n   - Keep your elbows tracking back and slightly out, not flaring wide.\n   - Lower until your head lightly touches or nearly touches the floor.\n\n2. **Raising Phase**:\n   - Press through your palms to push your body back up.\n   - Extend your elbows fully and return to the inverted-V position.\n\n## Key Points\n- Aim your nose rather than the crown of your head toward the floor for more range.\n- Keep your hips high and stacked over your hands so the load stays on your shoulders.\n- Elevate your feet on a box to make it harder and progress toward handstand push-ups.",
+    video: "66x0qQiJ-MA",
+    description:
+      "The Pike Push Up presses vertically with the hips piked high, targeting the shoulders and serving as a handstand push-up progression.",
+    howto: [
+      {
+        name: "Set Up in a Pike",
+        text: "Place your hands slightly wider than shoulder-width on the floor, walk your feet in, and lift your hips high into an inverted V with your weight over your hands.",
+      },
+      {
+        name: "Lower Your Head",
+        text: "Bend your elbows to lower the top of your head toward the floor, keeping your elbows tracking back rather than flaring wide, until your head nearly touches down.",
+      },
+      {
+        name: "Press Back Up",
+        text: "Push through your palms to fully extend your elbows and return to the piked start position, keeping your hips high throughout.",
+      },
+      {
+        name: "Progress the Difficulty",
+        text: "Elevate your feet on a box or bench to shift more weight onto your shoulders and work toward full handstand push-ups.",
       },
     ],
   },
@@ -4621,6 +5065,31 @@ export const exerciseDescriptions: Record<
       {
         name: "Lower Under Control",
         text: "Gradually lower the weight back to the starting position, maintaining control through the full range of motion.",
+      },
+    ],
+  },
+  pseudoplanchepushup_bodyweight: {
+    content:
+      "## Starting Position\n1. **Hands**: Place your hands by your waist, fingers pointing back or out to the sides.\n2. **Feet**: Keep your feet together with a straight line from head to heels.\n3. **Body**: Lean your shoulders forward so they sit in front of your hands, bracing your core with a slight posterior pelvic tilt.\n\n## Movement\n1. **Lowering Phase**:\n   - Bend your elbows to lower your body while keeping the forward lean.\n   - Keep your elbows close to your sides, not flaring out.\n   - Maintain the shoulders-ahead-of-hands position throughout.\n\n2. **Raising Phase**:\n   - Press through your palms to push your body back up.\n   - Protract your shoulder blades at the top and keep leaning forward.\n\n## Key Points\n- The forward lean is the whole point; standing too upright turns it back into a regular push-up.\n- The farther forward your shoulders travel past your hands, the harder it gets.\n- Keep your hips locked in line; do not let them drop or pike as your shoulders load.",
+    video: "Cdmg0CfMZeo",
+    description:
+      "The Pseudo Planche Push Up leans the shoulders forward past the hands to build straight-arm and planche strength, heavily loading the front delts and chest.",
+    howto: [
+      {
+        name: "Set Up With a Forward Lean",
+        text: "Place your hands by your waist with fingers pointing back or out. Lean your shoulders forward so they sit in front of your wrists, keeping your core braced and your body in one line.",
+      },
+      {
+        name: "Lower Under Control",
+        text: "Bend your elbows to lower your body while holding the forward lean, keeping your elbows close to your sides and your shoulders ahead of your hands.",
+      },
+      {
+        name: "Press Back Up",
+        text: "Push through your palms to return to the top, protracting your shoulder blades and keeping the forward lean throughout.",
+      },
+      {
+        name: "Increase the Lean",
+        text: "Shift your shoulders farther forward past your hands to make the movement harder as your straight-arm strength improves.",
       },
     ],
   },
@@ -5347,6 +5816,60 @@ export const exerciseDescriptions: Record<
       },
     ],
   },
+  ringdip_bodyweight: {
+    content:
+      "## Starting Position\n1. **Grip**: Grab the rings and press up to a straight-arm support, hands at your sides.\n2. **Rings**: Turn the rings out so your palms face forward at the top.\n3. **Body**: Lean slightly forward, brace your core, and keep your legs together.\n\n## Movement\n1. **Lowering Phase**:\n   - Bend your elbows to lower your body under control.\n   - Keep your elbows tucked close to your torso, not flaring wide.\n   - Lower until your shoulders drop below your elbows.\n\n2. **Raising Phase**:\n   - Press through your palms to drive back up to straight arms.\n   - Turn the rings back out and lock out at the top.\n   - Keep the rings pulled in tight to your body throughout.\n\n## Key Points\n- Fight to keep the rings from drifting away from your sides - that wobble is the exercise.\n- Keep a slight forward lean to bias the chest and protect the shoulders.\n- Do not shrug; keep your shoulders pulled down away from your ears.",
+    video: "2Vymm8nH4wM",
+    description:
+      "Build chest, triceps, and shoulder strength with the Ring Dip, a dip performed on gymnastic rings whose instability forces the stabilizers to work far harder than bar dips.",
+    howto: [
+      {
+        name: "Get Into Support",
+        text: "Press up on the rings to a straight-arm support with the rings turned out and your palms facing forward. Lean slightly forward and brace your core.",
+      },
+      {
+        name: "Lower Under Control",
+        text: "Bend your elbows and descend slowly, keeping your elbows tucked close to your body and the rings pulled in tight so they don't drift out.",
+      },
+      {
+        name: "Reach the Bottom",
+        text: "Lower until your shoulders drop below your elbows, keeping your chest over the rings and your core tight.",
+      },
+      {
+        name: "Press Back Up",
+        text: "Drive through your palms to extend your elbows, turn the rings back out, and lock out at the top before the next rep.",
+      },
+    ],
+  },
+  ringrow_bodyweight: {
+    content:
+      "## Starting Position\n1. **Rings**: Set the rings around waist to chest height and grab them with a neutral grip.\n2. **Body**: Walk your feet forward and hang under the rings with straight arms.\n3. **Line**: Squeeze your glutes and brace your core so your body forms a straight line from head to heels.\n\n## Movement\n1. **Pulling Phase**:\n   - Retract your shoulder blades first, then pull your chest toward the rings.\n   - Lead with your elbows and keep them from flaring straight out.\n   - Pull until your chest reaches the rings or your hands reach your ribs.\n\n2. **Lowering Phase**:\n   - Lower yourself under control back to straight arms.\n   - Keep your body rigid; don't let your hips sag.\n   - Reach a full stretch at the bottom before the next rep.\n\n## Key Points\n- The more horizontal your body, the harder it is - walk your feet forward to make it tougher, back to make it easier.\n- Lead with the shoulder blades and elbows so the back does the work, not just the arms.\n- Keep a straight line from head to heels; a sagging hip turns it into a partial rep.",
+    video: "jdOXFr-4m4g",
+    description:
+      "Train your back and biceps with the Ring Row, an inverted bodyweight row on gymnastic rings where you keep a straight body and pull your chest to the rings.",
+    howto: [
+      {
+        name: "Set Up Under the Rings",
+        text: "Set the rings at waist to chest height, grab them with a neutral grip, and walk your feet forward until you hang with straight arms. Brace your core so your body is a straight line.",
+      },
+      {
+        name: "Pull to the Rings",
+        text: "Retract your shoulder blades, then pull your chest up to the rings, leading with your elbows and keeping your body rigid.",
+      },
+      {
+        name: "Squeeze at the Top",
+        text: "Bring your chest to the rings or your hands to your ribs and squeeze your back briefly before lowering.",
+      },
+      {
+        name: "Lower With Control",
+        text: "Return to straight arms under control, keeping your hips up and your body straight, and reach a full stretch before the next rep.",
+      },
+      {
+        name: "Adjust the Difficulty",
+        text: "Walk your feet forward and lower your body toward horizontal to make it harder, or step back and stay more upright to make it easier.",
+      },
+    ],
+  },
   romaniandeadlift_barbell: {
     content:
       "## Setup\n1. **Barbell Position**: Place the barbell on the floor close to your shins.\n2. **Grip**: Stand with your feet shoulder-width apart. Bend at the hips and knees to grasp the barbell with an overhand grip, just outside your legs.\n\n## Starting Position\n1. **Feet**: Your feet should be flat on the ground.\n2. **Back**: Keep your back straight and chest lifted. Your spine should be in a neutral position.\n3. **Hips**: Shoulders should be slightly in front of the barbell.\n\n## Execution\n1. **Hinge at Hips**: Initiate the movement by hinging at your hips while maintaining a slight bend in your knees. \n2. **Lower the Bar**: Keep the barbell close to your body as you lower it down to mid-shin level or until your torso is nearly parallel to the ground.\n3. **Engage Muscles**: Focus on engaging your hamstrings and glutes throughout the movement.\n\n## Return\n1. **Reverse Motion**: Drive through your heels to push your hips forward, returning to a standing position.\n2. **Stand Tall**: Squeeze your glutes at the top and ensure your back remains straight.\n\n## Common Mistakes\n- **Rounding the Back**: Keep your back straight to avoid injury.\n- **Letting Bar Drift**: Maintain a close grip to your body during the lift.\n- **Excessive Knee Bend**: This should be a hip-dominant movement, not a squat.  \n\n## Tips\n- Start with lighter weight to master the form.\n- Maintain a controlled pace for both lowering and lifting the barbell.",
@@ -5370,6 +5893,28 @@ export const exerciseDescriptions: Record<
         name: "Drive Hips Forward",
         text: "Push through your heels to drive your hips forward, returning to a standing position. Squeeze your glutes at the top and keep your back straight.",
       },
+    ],
+  },
+  romaniandeadlift_bodyweight: {
+    content:
+      "## Starting Position\n1. **Stance**: Stand tall with feet hip-width apart and a slight bend in the knees.\n2. **Spine**: Brace your core and squeeze your glutes to set a neutral (flat) lower back.\n3. **Hands**: Let your arms hang at your sides, or place them on your chest and abdomen for feedback.\n\n## Movement\n1. **Lowering Phase**:\n   - Send your hips back and hinge at the hips, letting your torso lean forward to counterbalance.\n   - Keep the back flat and the knees only slightly bent as you feel a stretch in the hamstrings.\n\n2. **Raising Phase**:\n   - Drive your hips forward and squeeze your glutes to return to standing tall.\n\n## Key Points\n- The movement is a hip hinge, not a squat - the hips travel back, they don't drop straight down.\n- Keep a flat back throughout; do not round the lower back to reach lower.\n- Go only as low as you can while keeping the back flat, letting range increase as your hamstrings loosen.",
+    video: "j8IGy6TSHZ0",
+    description:
+      "The Bodyweight Romanian Deadlift trains the hip hinge, targeting the hamstrings and glutes by sending the hips back and lowering the torso with a flat back and no added load.",
+    howto: [
+      {
+        name: "Set Your Stance",
+        text: "Stand tall with feet hip-width apart, a slight bend in the knees, core braced and glutes squeezed to flatten the lower back.",
+      },
+      {
+        name: "Hinge at the Hips",
+        text: "Send your hips back and lean your torso forward, keeping the back flat and knees only slightly bent, until you feel a stretch in the hamstrings.",
+      },
+      {
+        name: "Reach the Bottom",
+        text: "Lower only as far as you can while keeping a flat back - do not round the lower back to go deeper.",
+      },
+      { name: "Drive Back Up", text: "Push your hips forward and squeeze your glutes to return to standing tall." },
     ],
   },
   romaniandeadlift_dumbbell: {
@@ -5494,6 +6039,31 @@ export const exerciseDescriptions: Record<
       {
         name: "Drive Up",
         text: "Push through your heels to return to standing, fully extending hips and knees. Exhale as you rise and inhale as you descend.",
+      },
+    ],
+  },
+  scapularpullup_bodyweight: {
+    content:
+      "## Starting Position\n1. **Grip**: Hang from a bar with a shoulder-width overhand grip.\n2. **Arms**: Keep your arms fully straight with elbows locked.\n3. **Hang**: Let your shoulders rise toward your ears in a relaxed dead hang.\n\n## Movement\n1. **Pulling Phase**:\n   - Pull your shoulder blades down and slightly together.\n   - Let your body rise a few inches while keeping your arms straight.\n\n2. **Lowering Phase**:\n   - Release the shoulder blades to let your body sink back into the dead hang.\n   - Move only at the shoulder blades - keep the elbows straight throughout.\n\n## Key Points\n- Do not bend your elbows; the movement comes entirely from the shoulder blades.\n- Keep the range small - only a few inches of body travel.\n- Pause briefly at the top and feel your lats and lower traps engage.",
+    video: "FgYoc4O-cio",
+    description:
+      "Build scapular control and pulling strength with the Scapular Pull Up, raising your body slightly by depressing the shoulder blades with straight arms.",
+    howto: [
+      {
+        name: "Hang From the Bar",
+        text: "Grab the bar with a shoulder-width overhand grip and hang with fully straight arms, letting your shoulders relax up toward your ears.",
+      },
+      {
+        name: "Depress the Shoulder Blades",
+        text: "Pull your shoulder blades down and slightly together, raising your body a few inches. Keep your arms completely straight so the movement happens only at the shoulders.",
+      },
+      {
+        name: "Pause at the Top",
+        text: "Hold the depressed position for a second and feel your lats and lower traps working.",
+      },
+      {
+        name: "Return to the Hang",
+        text: "Slowly release the shoulder blades to sink back into the relaxed dead hang, then repeat without bending the elbows.",
       },
     ],
   },
@@ -5963,6 +6533,31 @@ export const exerciseDescriptions: Record<
       {
         name: "Breathe and Align",
         text: "Inhale while lowering and exhale while pressing. Keep your head neutral and avoid overarching your back at any point.",
+      },
+    ],
+  },
+  shrimpsquat_bodyweight: {
+    content:
+      "## Starting Position\n1. **Stance**: Stand on one leg with your chest up and core braced.\n2. **Rear Leg**: Bend your back knee and reach behind to hold that foot in your hand.\n3. **Arms**: Use your free arm out in front for balance.\n\n## Movement\n1. **Lowering Phase**:\n   - Sit back and bend your standing knee to lower under control.\n   - Guide your rear knee straight down toward the floor.\n   - Keep your torso upright and your standing heel planted.\n\n2. **Raising Phase**:\n   - Once your rear knee lightly touches the floor, drive through your standing heel.\n   - Push straight back up to standing without twisting or leaning off to the side.\n\n## Key Points\n- Lower your rear knee under control - do not drop it onto the floor.\n- Keep your standing knee tracking over your toes, not caving inward.\n- Start with a shallow range or use a support until you can balance through the full movement.",
+    video: "TKt0-c83GSc",
+    description:
+      "Build advanced single-leg strength and balance with the Shrimp Squat, lowering the rear knee to the floor while holding the trailing foot behind you.",
+    howto: [
+      {
+        name: "Set Your Stance",
+        text: "Stand on one leg, bend your back knee, and reach behind to hold that foot in your hand. Keep your chest up and use your free arm in front for balance.",
+      },
+      {
+        name: "Lower Your Rear Knee",
+        text: "Sit back and bend your standing knee to descend under control, guiding your rear knee straight down toward the floor while keeping your torso upright.",
+      },
+      {
+        name: "Touch and Reverse",
+        text: "Lower until your rear knee lightly touches the floor, keeping your standing heel planted and your knee tracking over your toes.",
+      },
+      {
+        name: "Drive Back Up",
+        text: "Push through your standing heel to return to standing, moving straight up without twisting or leaning to the side.",
       },
     ],
   },
@@ -7720,6 +8315,28 @@ export const exerciseDescriptions: Record<
       },
     ],
   },
+  supporthold_bodyweight: {
+    content:
+      "## Starting Position\n1. **Grip**: Grip parallel bars, one in each hand, and press up until your arms are fully locked out.\n2. **Body**: Support your full bodyweight on straight arms with the torso upright or slightly hollow.\n\n## Movement\n1. **Support Phase**:\n   - Push your shoulders down away from your ears (depress the shoulder blades).\n   - Keep the elbows locked, chest tall, and hips slightly forward with a hollow body.\n\n2. **Holding Phase**:\n   - Hold the locked-out support position for time.\n   - Do not let the shoulders shrug up or the body sag - stay rigid throughout.\n\n## Key Points\n- Keep the arms fully straight and elbows locked - this is a straight-arm hold, not a dip.\n- Actively push the shoulders down and away from the ears the entire time.\n- Work up to 3 sets of 60-second holds before moving on to negative dips.",
+    video: "eLI7t-5wHno",
+    description:
+      "The Support Hold is an isometric hold at the top of a parallel-bar dip with the arms locked out and shoulders depressed, building the straight-arm strength that begins the dip progression.",
+    howto: [
+      {
+        name: "Get Into Support",
+        text: "Grip the parallel bars and press up until your arms are fully locked out, supporting your bodyweight on straight arms.",
+      },
+      {
+        name: "Set the Shoulders",
+        text: "Push your shoulders down away from your ears and hold the chest tall, with the hips slightly forward in a hollow-body position.",
+      },
+      {
+        name: "Hold for Time",
+        text: "Stay rigid and hold the locked-out support position, not letting the shoulders shrug up or the body sag.",
+      },
+      { name: "Lower Down", text: "Step or lower back down under control once the hold is complete." },
+    ],
+  },
   tbarrow_leveragemachine: {
     content:
       "### Starting Position\n1. **Adjust Seat Height**: Position the seat so that your chest is comfortably against the pad.\n2. **Select Weight**: Choose an appropriate weight for your level.\n3. **Grip Handles**: Use a neutral grip on the handles, arms extended but not locked.\n\n### Execution\n1. **Engage Core**: Tighten your core to stabilize your body.\n2. **Pull**: \n   - Initiate the movement by driving your elbows back.\n   - Focus on squeezing your shoulder blades together as you pull the handles towards your torso.\n3. **Maintain Posture**: Keep your back straight and avoid rounding your shoulders. \n4. **Pause**: Hold for a moment when the handles reach your waist or torso.\n5. **Lower**: Extend your arms back to the starting position in a controlled manner.\n\n### Tips\n- **Breathing**: Exhale while pulling and inhale as you lower the weight.\n- **Control Movement**: Avoid using momentum; maintain a steady pace throughout the exercise.\n- **Range of Motion**: Ensure to achieve a full range of motion without compromising form.\n\n### Common Mistakes\n- **Rounding the Back**: Keep your spine neutral throughout the movement.\n- **Overextending Arms**: Don’t lock out your elbows at the full extension.\n- **Not Engaging the Core**: Ensure the core is engaged to support your back.",
@@ -7995,6 +8612,31 @@ export const exerciseDescriptions: Record<
       },
     ],
   },
+  tuckfrontleverrow_bodyweight: {
+    content:
+      "## Starting Position\n1. **Grip**: Hang from a bar with a shoulder-width overhand grip and straight arms.\n2. **Tuck**: Pull your knees toward your chest and lift your hips until your torso is horizontal, back facing the floor.\n3. **Body**: Brace your core and squeeze your lats to hold the tucked lever steady.\n\n## Movement\n1. **Pulling Phase**:\n   - Keep your torso horizontal as you drive your elbows down and back.\n   - Pull your chest up toward the bar without dropping your hips.\n\n2. **Lowering Phase**:\n   - Lower under control back to the horizontal tuck position over 2-3 seconds.\n   - Keep your knees tucked and your body parallel to the floor throughout.\n\n## Key Points\n- Keep your body horizontal, not vertical - this is a row, not a pull-up.\n- Don't let your hips sag or pike as you pull.\n- Retract your shoulder blades to load the lats instead of just bending the arms.",
+    video: "ZWxrvwRKR-s",
+    description:
+      "Build advanced lat and core pulling strength with the Tuck Front Lever Row, rowing your body up while holding a horizontal tucked position under the bar.",
+    howto: [
+      {
+        name: "Set the Tuck Position",
+        text: "Hang from the bar with straight arms and a shoulder-width overhand grip. Pull your knees to your chest and raise your hips until your torso is horizontal and your back faces the floor.",
+      },
+      {
+        name: "Pull Toward the Bar",
+        text: "Keeping your torso parallel to the ground, drive your elbows down and back to row your chest up toward the bar. Do not let your hips drop out of the horizontal position.",
+      },
+      {
+        name: "Lower Under Control",
+        text: "Return to the horizontal tuck over 2-3 seconds, staying tight through the core and keeping the knees tucked.",
+      },
+      {
+        name: "Hold the Line",
+        text: "Maintain a stable, parallel body position for every rep and retract your shoulder blades so the lats do the work rather than just the arms.",
+      },
+    ],
+  },
   uprightrow_band: {
     content:
       "### Starting Position\n1. **Equipment**: Use a resistance band.\n2. **Feet Position**: Stand with feet shoulder-width apart. Step on the center of the band and hold the ends with both hands.\n3. **Grip**: Hold the band with an overhand grip, arms fully extended in front of you.\n\n### Execution\n1. **Raise**: Pull the band upward towards your chin, leading with your elbows. Your elbows should be above your wrists.\n2. **Body Position**: Keep your back straight and core engaged throughout the movement.\n3. **Movement Path**: The band should follow a straight line from the starting position to your chin.\n4. **Control**: Lower the band back to the starting position in a controlled manner, ensuring not to let your shoulders drop.\n\n### Tips\n- Avoid using excessive momentum; the movement should be smooth and controlled.\n- Keep your elbows pointed outwards and avoid letting them drop below wrist height.\n- Maintain a neutral wrist position, preventing any bending at the wrists.\n\n### Common Mistakes\n- Pulling too high, which can lead to shoulder strain.\n- Arching the back or leaning forward.\n- Using too much body sway or momentum instead of isolating the shoulder muscles.\n\nMaintain proper form throughout the exercise to maximize effectiveness and prevent injury.",
@@ -8095,6 +8737,31 @@ export const exerciseDescriptions: Record<
       },
     ],
   },
+  verticalrow_bodyweight: {
+    content:
+      "## Starting Position\n1. **Grip**: Grab a bar or rings at about chest height with an overhand grip.\n2. **Body**: Set your feet almost directly under the bar so your torso stays high and upright.\n3. **Line**: Brace your core and keep a straight line from head to heels, leaning back only slightly.\n\n## Movement\n1. **Pulling Phase**:\n   - Retract your shoulder blades, then pull your chest toward the bar.\n   - Lead with your elbows and keep your body rigid.\n   - Pull until your chest reaches the bar.\n\n2. **Lowering Phase**:\n   - Lower under control back to straight arms.\n   - Keep your torso upright and your hips from sagging.\n   - Reach a full stretch before the next rep.\n\n## Key Points\n- Because your torso is nearly vertical, you pull only a small fraction of your bodyweight - this is the easiest row variation.\n- As you get stronger, walk your feet forward to lower your torso and make each rep harder.\n- Keep the movement strict; leading with the shoulder blades trains the back for full inverted rows later.",
+    video: "wr8ZA-cvH3s",
+    description:
+      "Start horizontal pulling with the Vertical Row, a near-upright bodyweight row that is the easiest inverted-row regression for building toward a full inverted row.",
+    howto: [
+      {
+        name: "Set Up Upright",
+        text: "Grab a bar or rings at chest height with an overhand grip and place your feet almost under the bar so your torso stays high and nearly vertical.",
+      },
+      {
+        name: "Pull to the Bar",
+        text: "Brace your core, retract your shoulder blades, and pull your chest toward the bar, leading with your elbows and keeping your body straight.",
+      },
+      {
+        name: "Squeeze at the Top",
+        text: "Bring your chest to the bar and pause briefly, keeping your torso upright and hips lifted.",
+      },
+      {
+        name: "Lower and Progress",
+        text: "Return to straight arms under control. As it becomes easy, walk your feet forward to lower your body toward horizontal and increase the difficulty.",
+      },
+    ],
+  },
   vup_band: {
     content:
       '## Setup\n1. **Equipment**: Use a resistance band with handles.\n2. **Positioning**: Sit on the floor with your legs extended in front of you. Loop the band around your feet and hold a handle in each hand.\n\n## Execution\n1. **Starting Position**: Lean back slightly with your torso at a 45-degree angle. Your arms should be extended straight in front of you, parallel to the ground.\n2. **Engage Core**: Tighten your core muscles to stabilize your body throughout the movement.\n3. **Movement**: \n   - Simultaneously lift your legs off the ground while pulling the band towards your chest, forming a "V" shape with your body.\n   - Your torso should incline backward as your legs come up; maintain a strong core to keep balance.\n4. **Hold**: Keep this position briefly, ensuring your core is engaged and the band is taut.\n5. **Return**: Slowly lower your legs and arms back to the starting position while maintaining control.\n\n## Tips\n- Avoid straining your neck; keep your head aligned with your spine.\n- Maintain a steady breathing pattern throughout the exercise.\n- Adjust the tension on the band as needed for your fitness level.',
@@ -8170,6 +8837,56 @@ export const exerciseDescriptions: Record<
       },
     ],
   },
+  wallhandstand_bodyweight: {
+    content:
+      "## Starting Position\n1. **Setup**: Start in a plank or downward-dog shape with the balls of your feet against the base of the wall and your hands on the floor a couple of steps out from it.\n2. **Entry (chest-to-wall)**: Walk your feet up the wall while walking your hands in toward the base, until your chest and hips face the wall.\n3. **Body**: Stack your shoulders over your wrists with arms locked straight.\n\n## Movement\n1. **Entering the Hold**:\n   - Walk your feet up the wall and your hands in toward the base until your body is vertical.\n   - Press the floor away and reach tall through your shoulders.\n\n2. **Holding**:\n   - Keep your body in one straight line from wrists to toes, ribs tucked and glutes tight.\n   - Press through your fingertips and keep your arms locked.\n   - Hold for the target time, breathing steadily.\n\n3. **Exiting the Hold**:\n   - Walk your hands out and your feet down the wall under control.\n   - Step back to kneeling rather than dropping.\n\n## Key Points\n- Chest-to-wall keeps you in a tall, straight line - the position that transfers to free-standing.\n- Push the floor away the whole time; do not let your shoulders sag toward the ground.\n- Keep a hollow body and avoid arching your lower back into the wall.",
+    video: "nuuvRjGpNKA",
+    description:
+      "Hold an inverted position against a wall with the Wall Handstand, the standard regression for building the shoulder strength and endurance needed for a free-standing handstand.",
+    howto: [
+      {
+        name: "Set Up at the Wall",
+        text: "Start in a plank or downward-dog shape with the balls of your feet against the base of the wall and your hands on the floor a couple of steps out. Keep your arms straight.",
+      },
+      {
+        name: "Walk Into Position",
+        text: "Walk your feet up the wall and your hands in toward the base as you go, until your chest and hips face the wall and your body is vertical.",
+      },
+      {
+        name: "Hold the Line",
+        text: "Keep one straight line from wrists to toes with ribs tucked and glutes tight. Press the floor away through your fingertips, keep your arms locked, and hold for the target time while breathing steadily.",
+      },
+      {
+        name: "Walk Back Down",
+        text: "Walk your hands out and your feet down the wall under control, returning to a kneeling position instead of dropping.",
+      },
+    ],
+  },
+  wallpushup_bodyweight: {
+    content:
+      "## Starting Position\n1. **Hands**: Place your hands on the wall at shoulder height, slightly wider than shoulder-width apart.\n2. **Feet**: Step back about arm's length so your body leans toward the wall.\n3. **Body**: Engage your core and keep a straight line from head to heels.\n\n## Movement\n1. **Lowering Phase**:\n   - Bend your elbows to bring your chest toward the wall.\n   - Keep your elbows angled back, not flared out to the sides.\n   - Lower until your face nearly touches the wall.\n\n2. **Raising Phase**:\n   - Press through your palms to push your body back away from the wall.\n   - Keep your body straight and core tight throughout the movement.\n\n## Key Points\n- The farther your feet are from the wall, the harder the exercise.\n- Keep your hips in line with your shoulders, not sagging or piking.\n- Move your whole body as one unit rather than leading with your head.",
+    video: "ZUuYbRgcHmg",
+    description:
+      "The Wall Push Up is the easiest push-up regression, done standing against a wall to build chest, shoulder, and tricep strength.",
+    howto: [
+      {
+        name: "Set Up Against the Wall",
+        text: "Place your hands on the wall at shoulder height, slightly wider than your shoulders. Step your feet back about an arm's length so you lean into the wall with a straight body.",
+      },
+      {
+        name: "Lower Toward the Wall",
+        text: "Bend your elbows to bring your chest toward the wall, keeping elbows angled back rather than flaring out. Lower until your face nearly touches the wall.",
+      },
+      {
+        name: "Press Back Out",
+        text: "Push through your palms to straighten your arms and return to the leaning start position, keeping your core tight and body in one line.",
+      },
+      {
+        name: "Adjust the Difficulty",
+        text: "Move your feet closer to the wall to make it easier, or farther away to make it harder as you get stronger.",
+      },
+    ],
+  },
   widepullup_bodyweight: {
     content:
       "## Setup\n1. **Grip the Bar**: Use an overhand grip with hands wider than shoulder-width apart.\n2. **Hang**: Let your body hang with arms fully extended, feet off the ground.\n\n## Execution\n1. **Engage Core**: Tighten your core to stabilize your body.\n2. **Pull Up**: Drive your elbows down and back to pull your chest up towards the bar.\n3. **Maintain Form**: Keep your shoulders down and avoid shrugging them up. Focus on using your back muscles.\n4. **Reach the Top**: Aim for your chin to clear the bar or bring your chest to the bar.\n5. **Lower Down**: Slowly lower your body back to the starting position with control.\n\n## Tips for Proper Form\n- **Avoid Swinging**: Keep your body still; don't use momentum.\n- **Breathing**: Exhale as you pull up and inhale while lowering down.\n- **Use Full Range of Motion**: Fully extend your arms at the bottom and pull all the way up.\n\n## Common Mistakes\n- **Too Narrow Grip**: It reduces the effectiveness for lat involvement.\n- **Inadequate Core Engagement**: Can lead to body swinging.\n- **Partial Range**: Not completing the pull or the descent reduces effectiveness. \n\nFocus on keeping a steady pace and maintaining control throughout the movement.",
@@ -8192,6 +8909,31 @@ export const exerciseDescriptions: Record<
       {
         name: "Lower with Control",
         text: "Slowly lower your body back to the fully extended hanging position, maintaining control and avoiding swinging.",
+      },
+    ],
+  },
+  widerow_bodyweight: {
+    content:
+      "## Starting Position\n1. **Grip**: Take an overhand grip on a low bar, hands well wider than shoulder-width.\n2. **Body**: Walk your feet forward and hang under the bar with straight arms.\n3. **Line**: Squeeze your glutes and brace your core so your body is a straight line from head to heels.\n\n## Movement\n1. **Pulling Phase**:\n   - Retract your shoulder blades first to fire the upper back.\n   - Pull your chest toward the bar with your elbows flaring out to the sides.\n   - Pull until your upper chest reaches the bar.\n\n2. **Lowering Phase**:\n   - Lower under control back to straight arms.\n   - Keep your hips up and your body rigid throughout.\n   - Reach a full stretch at the bottom before the next rep.\n\n## Key Points\n- The wide grip with flared elbows shifts the work to the upper back, rhomboids, and rear delts.\n- Start each rep by pulling the shoulder blades together, not by bending the arms.\n- Keep the ribcage down and the body straight; don't shrug toward your ears.",
+    video: "f3yfJ0RStQw",
+    description:
+      "Build a thick upper back and rear delts with the Wide Row, an inverted bodyweight row done on a bar with a wide overhand grip.",
+    howto: [
+      {
+        name: "Set Up Wide",
+        text: "Grip a low bar overhand with your hands well wider than shoulder-width. Walk your feet forward and hang with straight arms, body braced in a straight line.",
+      },
+      {
+        name: "Pull to the Bar",
+        text: "Retract your shoulder blades, then pull your upper chest to the bar with your elbows flaring out to the sides to load the upper back.",
+      },
+      {
+        name: "Squeeze the Upper Back",
+        text: "Bring your chest to the bar and squeeze your shoulder blades together at the top without shrugging.",
+      },
+      {
+        name: "Lower With Control",
+        text: "Return to straight arms under control, keeping your hips up and body rigid, and reach a full stretch before the next rep.",
       },
     ],
   },

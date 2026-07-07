@@ -225,8 +225,12 @@ async function main(): Promise<void> {
       )} -background transparent -gravity center -extent 800x600 ${finalFilenameLarge.toLowerCase()}`
     );
   }
-  await uploadToS3();
-  await listAvailableImages();
+  if (process.env.DRY_RUN) {
+    console.log(`DRY_RUN set — skipping S3 upload/listing. Local crops written under ${process.argv[3]}`);
+  } else {
+    await uploadToS3();
+    await listAvailableImages();
+  }
 }
 
 async function uploadToS3(): Promise<void> {
