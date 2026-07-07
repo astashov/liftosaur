@@ -12,10 +12,10 @@ import {
   Program_getProgramExercise,
   IEvaluatedProgram,
 } from "../models/program";
-import { Weight_parse } from "../models/weight";
+import { Weight_parse, Weight_build } from "../models/weight";
 import { LiftohistorySerializer_serialize } from "../liftohistory/liftohistorySerializer";
 import { IEither } from "../utils/types";
-import { Progress_completeSetAction } from "../models/progress";
+import { Progress_completeSetAction, Progress_changeAmrapAction } from "../models/progress";
 
 export interface IPlaygroundResult {
   workout: string;
@@ -222,7 +222,7 @@ function applyCommand(
     }
     const entry = progress.entries[entryIndex];
     const programExercise = Program_getProgramExercise(progress.day, evaluatedProgram, entry.programExerciseId);
-    const newProgress = Progress_completeSetAction(
+    let newProgress = Progress_completeSetAction(
       settings,
       stats,
       progress,
@@ -239,6 +239,33 @@ function applyCommand(
       },
       undefined
     );
+    // Completing an AMRAP set, a set with no weight, or one that logs RPE opens the AMRAP modal instead of
+    // finishing the set - the app waits for the user to fill it in. The playground has no modal, so answer it
+    // with the set's programmed target values so the set finalizes. A caller can then tweak the completed set
+    // with change_reps / change_weight / change_rpe (e.g. to test failure/deload or AMRAP progression paths).
+    if (newProgress.amrapModal != null) {
+      const modal = newProgress.amrapModal;
+      const set = newProgress.entries[modal.entryIndex].sets[modal.setIndex];
+      newProgress = Progress_changeAmrapAction(
+        settings,
+        stats,
+        newProgress,
+        {
+          type: "ChangeAMRAPAction",
+          entryIndex: modal.entryIndex,
+          setIndex: modal.setIndex,
+          isPlayground: true,
+          programExercise,
+          otherStates: evaluatedProgram.states,
+          amrapValue: modal.isAmrap ? (set.reps ?? undefined) : undefined,
+          logRpe: modal.logRpe,
+          rpeValue: modal.logRpe ? (set.rpe ?? undefined) : undefined,
+          askWeight: modal.askWeight,
+          weightValue: modal.askWeight ? (set.weight ?? Weight_build(0, settings.units)) : undefined,
+        },
+        undefined
+      );
+    }
     return { success: true, data: newProgress };
   } else if (parsed.type === "change_weight") {
     const err = checkEntryAndSetExist(progress, parsed.exerciseIndex, parsed.setIndex);

@@ -510,6 +510,46 @@ describe("MCP", () => {
       expect(data.updatedProgramText).to.include("Squat");
     });
 
+    it("completes a set with no weight and progresses it (auto-answers the ask-weight modal)", async () => {
+      // A bodyweight set has no weight, so completing it opens the ask-weight modal in the app. The playground
+      // must auto-answer it, otherwise the set never finalizes and progression can't fire.
+      const programText = "# Week 1\n## Day 1\nPull Up / 3x5 / progress: lp(1lb)";
+      const commands = JSON.stringify([
+        "complete_set(1, 1)",
+        "complete_set(1, 2)",
+        "complete_set(1, 3)",
+        "finish_workout()",
+      ]);
+      const result = await handler(
+        buildMcpEvent(toolCall("run_playground", { programText, commands }), authHeaders(token)),
+        ctx
+      );
+      expect(result.statusCode).to.equal(200);
+      const data = JSON.parse(parseBody(result).result.content[0].text);
+      // The completed exercise shows up in the serialized workout (empty before the fix).
+      expect(data.workout).to.include("Pull Up");
+      // lp(1lb) fired, bumping the weight from empty to 1lb.
+      expect(data.updatedProgramText).to.include("Pull Up / 3x5 / 1lb");
+    });
+
+    it("completes an AMRAP set and progresses it (auto-answers the AMRAP modal)", async () => {
+      const programText = "# Week 1\n## Day 1\nSquat / 2x5 100lb, 1x5+ 100lb / progress: lp(5lb)";
+      const commands = JSON.stringify([
+        "complete_set(1, 1)",
+        "complete_set(1, 2)",
+        "complete_set(1, 3)",
+        "finish_workout()",
+      ]);
+      const result = await handler(
+        buildMcpEvent(toolCall("run_playground", { programText, commands }), authHeaders(token)),
+        ctx
+      );
+      expect(result.statusCode).to.equal(200);
+      const data = JSON.parse(parseBody(result).result.content[0].text);
+      expect(data.workout).to.include("Squat");
+      expect(data.updatedProgramText).to.include("105lb");
+    });
+
     it("returns error for invalid playground program", async () => {
       const result = await handler(
         buildMcpEvent(toolCall("run_playground", { programText: "invalid" }), authHeaders(token)),

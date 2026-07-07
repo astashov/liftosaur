@@ -223,6 +223,7 @@ Reverse Curl, Barbell
 Reverse Curl, Cable
 Reverse Curl
 Reverse Curl, Band
+Renegade Row
 Reverse Fly
 Reverse Fly, Band
 Reverse Fly, Leverage Machine

@@ -1931,6 +1931,15 @@ export const allExercisesList: Record<IExerciseId, IExercise> = {
     startingWeightLb: { value: 0, unit: "lb" },
     startingWeightKg: { value: 0, unit: "kg" },
   },
+  renegadeRow: {
+    id: "renegadeRow",
+    name: "Renegade Row",
+    defaultWarmup: 10,
+    defaultEquipment: "dumbbell",
+    types: ["upper", "pull", "core"],
+    startingWeightLb: { value: 20, unit: "lb" },
+    startingWeightKg: { value: 10, unit: "kg" },
+  },
 };
 
 const nameToIdMapping = ObjectUtils_keys(allExercisesList).reduce<Partial<Record<string, IExerciseId>>>(
@@ -3980,6 +3989,20 @@ export const metadata: Record<IExerciseId, IMetaExercises> = {
     synergistMuscles: ["Rectus Abdominis"],
     bodyParts: ["Waist"],
     sortedEquipment: ["band"],
+  },
+  renegadeRow: {
+    targetMuscles: ["Latissimus Dorsi", "Obliques"],
+    synergistMuscles: [
+      "Trapezius Lower Fibers",
+      "Trapezius Middle Fibers",
+      "Teres Major",
+      "Deltoid Posterior",
+      "Brachialis",
+      "Brachioradialis",
+      "Rectus Abdominis",
+    ],
+    bodyParts: ["Back", "Waist"],
+    sortedEquipment: ["dumbbell"],
   },
 };
 

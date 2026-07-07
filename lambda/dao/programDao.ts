@@ -16,6 +16,7 @@ export const programOrder = [
   "the531bbb",
   "monolith531",
   "nsuns",
+  "recommended-routine",
   "pzerofullbody",
   "gzclp",
   "gzclp-blacknoir",
