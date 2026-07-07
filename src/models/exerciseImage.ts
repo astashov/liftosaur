@@ -362,6 +362,7 @@ const availableSmallImages = new Set([
   "archhang_bodyweight",
   "supporthold_bodyweight",
   "pallofpress_band",
+  "renegaderow_dumbbell",
   "romaniandeadlift_bodyweight",
   "bulgariansplitsquat_bodyweight",
 ]);
@@ -728,6 +729,7 @@ const availableLargeImages = new Set([
   "archhang_bodyweight",
   "supporthold_bodyweight",
   "pallofpress_band",
+  "renegaderow_dumbbell",
   "romaniandeadlift_bodyweight",
   "bulgariansplitsquat_bodyweight",
 ]);

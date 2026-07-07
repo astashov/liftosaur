@@ -5372,6 +5372,31 @@ export const exerciseDescriptions: Record<
       },
     ],
   },
+  renegaderow_dumbbell: {
+    content:
+      "## Starting Position\n1. **Setup**: Place two dumbbells shoulder-width apart on the floor and grip them with a neutral (palms-facing) grip.\n2. **Plank**: Get into the top of a push-up position over the dumbbells, arms straight, body in one line from head to heels.\n3. **Base**: Spread your feet wider than your hips for stability, and brace your core and glutes hard.\n\n## Movement\n1. **Rowing Phase**:\n   - Row one dumbbell up to the side of your ribcage, driving the elbow back and squeezing the shoulder blade.\n   - Keep your hips and shoulders square to the floor - do not let your torso rotate toward the working arm.\n\n2. **Lowering Phase**:\n   - Lower the dumbbell back to the floor under control, staying rigid.\n   - Repeat on the other side, alternating arms for the target reps.\n\n## Key Points\n- The whole point is anti-rotation - fight to keep your hips level and square the entire set.\n- Widen your stance to make balancing easier; narrow it to make the anti-rotation demand harder.\n- Use dumbbells with flat, hex-shaped ends so they don't roll, and start light - stability fails before your back does.",
+    video: "wTqlJ0aoJlM",
+    description:
+      "The Renegade Row is a dumbbell row done from a plank position - you row one dumbbell at a time while bracing hard to stop your torso from twisting, training the back and the anti-rotation core at once.",
+    howto: [
+      {
+        name: "Set Up in a Plank",
+        text: "Place two hex dumbbells shoulder-width apart and take the top push-up position gripping them, feet wider than your hips, body in a straight rigid line.",
+      },
+      {
+        name: "Row One Side",
+        text: "Brace your core and row one dumbbell to your ribcage, driving the elbow back, while keeping your hips and shoulders square to the floor.",
+      },
+      {
+        name: "Resist the Twist",
+        text: "Do not let your torso rotate toward the working arm - the anti-rotation brace is the exercise. Keep your hips level throughout.",
+      },
+      {
+        name: "Alternate Under Control",
+        text: "Lower the dumbbell to the floor, stay rigid, then row the other side, alternating for the target reps.",
+      },
+    ],
+  },
   reversecrunch_bodyweight: {
     content:
       "**Starting Position:**\n1. Lie on your back on a flat surface. \n2. Place your arms at your sides or under your hips for support.\n3. Lift your legs so that your thighs are perpendicular to the ground and your knees are bent at 90 degrees.\n\n**Execution:**\n1. Engage your core by pulling your navel towards your spine.\n2. Exhale and use your lower abs to lift your hips off the ground, curling your pelvis towards your belly button.\n3. Keep your knees bent and close to your chest as you lift.\n4. Pause for a second at the top of the movement.\n5. Inhale and slowly lower your hips back down to the starting position without letting your feet touch the ground.\n6. Maintain control throughout the movement to avoid using momentum.\n\n**Form Tips:**\n- Keep your lower back pressed against the ground.\n- Avoid using your hands to push off or assist; use your core strength.\n- Focus on a smooth, controlled motion both up and down.\n\n**Common Mistakes:**\n- Lifting your feet too high instead of keeping them close to the body.\n- Letting the lower back arch off the ground.\n- Using momentum instead of controlled movements.",

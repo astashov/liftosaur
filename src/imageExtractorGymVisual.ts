@@ -171,10 +171,16 @@ async function main(): Promise<void> {
     console.log("Bounding boxes", boundingBoxes);
     console.log("Index", boxIndex);
     const box = boundingBoxes[parseInt(boxIndex, 10)];
-    const minX = Math.min(...boundingBoxes.map((b) => b.x));
-    const minY = Math.min(...boundingBoxes.map((b) => b.y));
-    const maxX = Math.max(...boundingBoxes.map((b) => b.x + b.width));
-    const maxY = Math.max(...boundingBoxes.map((b) => b.y + b.height));
+    // LARGE_BOXES=0,1 limits the combined/large crop to those (0-based, left-to-right) poses; default is all.
+    const largeBoxes = process.env.LARGE_BOXES
+      ? process.env.LARGE_BOXES.split(",")
+          .map((s) => boundingBoxes[parseInt(s.trim(), 10)])
+          .filter((b) => b != null)
+      : boundingBoxes;
+    const minX = Math.min(...largeBoxes.map((b) => b.x));
+    const minY = Math.min(...largeBoxes.map((b) => b.y));
+    const maxX = Math.max(...largeBoxes.map((b) => b.x + b.width));
+    const maxY = Math.max(...largeBoxes.map((b) => b.y + b.height));
     const combinedBoundingBox: IBox = {
       x: minX,
       y: minY,
