@@ -83,6 +83,15 @@ export function Platform_onelink(noparams: boolean, type?: "ios" | "android"): s
       if (!url.searchParams.has("c")) {
         url.searchParams.set("c", `${landing.type}-pages`);
       }
+      // deep_link_value is only a routing param, so AppsFlyer aggregate reports can't split by program.
+      // Mirror the slug/type into af_ad/af_adset (real attribution dimensions) so per-program installs
+      // and conversions are groupable in the dashboard.
+      if (!url.searchParams.has("af_adset")) {
+        url.searchParams.set("af_adset", `${landing.type}-pages`);
+      }
+      if (!url.searchParams.has("af_ad")) {
+        url.searchParams.set("af_ad", landing.id);
+      }
     }
     if (afr) {
       url.searchParams.set("af_r", afr);
