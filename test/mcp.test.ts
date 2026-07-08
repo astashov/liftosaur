@@ -550,6 +550,51 @@ describe("MCP", () => {
       expect(data.updatedProgramText).to.include("105lb");
     });
 
+    it("completes a timed (isometric hold) set and records the held time so progression fires", async () => {
+      // Completing a timed set opens the set-timer clock in the app and finishes on a second "Stop & Record"
+      // signal. The playground must fire that second signal itself, recording the programmed hold duration -
+      // otherwise the set stays uncompleted and the hold progression never runs.
+      const programText =
+        "# Week 1\n## Day 1\nPlank / 3x1 0lb 20s|60s / progress: custom(hold: 20) {~\n  if (completedSetTime >= state.hold) {\n    state.hold += 5\n  }\n~}";
+      const commands = JSON.stringify([
+        "complete_set(1, 1)",
+        "complete_set(1, 2)",
+        "complete_set(1, 3)",
+        "finish_workout()",
+      ]);
+      const result = await handler(
+        buildMcpEvent(toolCall("run_playground", { programText, commands }), authHeaders(token)),
+        ctx
+      );
+      expect(result.statusCode).to.equal(200);
+      const data = JSON.parse(parseBody(result).result.content[0].text);
+      expect(data.workout).to.include("Plank");
+      // Held the full 20s target, so completedSetTime >= hold fired and bumped hold from 20 to 25.
+      expect(data.updatedProgramText).to.include("hold: 25");
+    });
+
+    it("change_set_time overrides the recorded held time on a timed set", async () => {
+      const programText =
+        "# Week 1\n## Day 1\nPlank / 3x1 0lb 20s|60s / progress: custom(hold: 20) {~\n  if (completedSetTime >= state.hold) {\n    state.hold += 5\n  }\n~}";
+      const commands = JSON.stringify([
+        "complete_set(1, 1)",
+        "complete_set(1, 2)",
+        "complete_set(1, 3)",
+        "change_set_time(1, 1, 10)",
+        "change_set_time(1, 2, 10)",
+        "change_set_time(1, 3, 10)",
+        "finish_workout()",
+      ]);
+      const result = await handler(
+        buildMcpEvent(toolCall("run_playground", { programText, commands }), authHeaders(token)),
+        ctx
+      );
+      expect(result.statusCode).to.equal(200);
+      const data = JSON.parse(parseBody(result).result.content[0].text);
+      // Only held 10s < 20s target, so the progression did not fire and hold stays at 20.
+      expect(data.updatedProgramText).to.include("hold: 20");
+    });
+
     it("returns error for invalid playground program", async () => {
       const result = await handler(
         buildMcpEvent(toolCall("run_playground", { programText: "invalid" }), authHeaders(token)),
