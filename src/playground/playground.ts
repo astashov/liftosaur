@@ -30,12 +30,20 @@ export interface IPlaygroundInput {
 }
 
 interface IParsedCommand {
-  type: "complete_set" | "change_weight" | "change_reps" | "change_rpe" | "set_state_variable" | "finish_workout";
+  type:
+    | "complete_set"
+    | "change_weight"
+    | "change_reps"
+    | "change_rpe"
+    | "change_set_time"
+    | "set_state_variable"
+    | "finish_workout";
   exerciseIndex: number;
   setIndex: number;
   weight?: IWeight;
   reps?: number;
   rpe?: number;
+  setTime?: number;
   varName?: string;
   varValue?: string;
 }
@@ -91,6 +99,16 @@ function parseCommand(cmd: string): IParsedCommand | undefined {
       exerciseIndex: parseInt(args[0], 10),
       setIndex: parseInt(args[1], 10),
       rpe: parseFloat(args[2]),
+    };
+  } else if (name === "change_set_time") {
+    if (args.length < 3) {
+      return undefined;
+    }
+    return {
+      type: "change_set_time",
+      exerciseIndex: parseInt(args[0], 10),
+      setIndex: parseInt(args[1], 10),
+      setTime: parseInt(args[2], 10),
     };
   } else if (name === "set_state_variable") {
     if (args.length < 3) {
@@ -239,6 +257,35 @@ function applyCommand(
       },
       undefined
     );
+    // The first "complete" on a timed set only starts its clock (opens the set-timer banner) - the app
+    // records the held time and finishes the set on a second "Stop & Record" signal. The playground has no
+    // real clock, so immediately fire that second signal here, recording the set's programmed hold duration
+    // (setTimer) as the held time. A caller can then tweak it with change_set_time to test hold progression.
+    if (
+      newProgress.setTimer != null &&
+      newProgress.setTimer.entryIndex === entryIndex &&
+      newProgress.setTimer.setIndex === setIndex
+    ) {
+      const timedSet = newProgress.entries[entryIndex].sets[setIndex];
+      newProgress = Progress_completeSetAction(
+        settings,
+        stats,
+        newProgress,
+        {
+          type: "CompleteSetAction",
+          entryIndex,
+          setIndex,
+          mode: "workout",
+          programExercise,
+          otherStates: evaluatedProgram.states,
+          isPlayground: true,
+          forceUpdateEntryIndex: false,
+          isExternal: false,
+          recordedSeconds: timedSet.setTimer,
+        },
+        undefined
+      );
+    }
     // Completing an AMRAP set, a set with no weight, or one that logs RPE opens the AMRAP modal instead of
     // finishing the set - the app waits for the user to fill it in. The playground has no modal, so answer it
     // with the set's programmed target values so the set finalizes. A caller can then tweak the completed set
@@ -293,6 +340,21 @@ function applyCommand(
     set.reps = parsed.reps!;
     if (set.isCompleted) {
       set.completedReps = parsed.reps!;
+    }
+    entry.sets[setIndex] = set;
+    newProgress.entries[entryIndex] = entry;
+    return { success: true, data: newProgress };
+  } else if (parsed.type === "change_set_time") {
+    const err = checkEntryAndSetExist(progress, parsed.exerciseIndex, parsed.setIndex);
+    if (err) {
+      return { success: false, error: err };
+    }
+    const newProgress = { ...progress, entries: [...progress.entries] };
+    const entry = { ...newProgress.entries[entryIndex], sets: [...newProgress.entries[entryIndex].sets] };
+    const set = { ...entry.sets[setIndex] };
+    set.setTimer = parsed.setTime!;
+    if (set.isCompleted) {
+      set.completedSetTimer = parsed.setTime!;
     }
     entry.sets[setIndex] = set;
     newProgress.entries[entryIndex] = entry;
