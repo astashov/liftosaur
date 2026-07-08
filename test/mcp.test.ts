@@ -554,8 +554,10 @@ describe("MCP", () => {
       // Completing a timed set opens the set-timer clock in the app and finishes on a second "Stop & Record"
       // signal. The playground must fire that second signal itself, recording the programmed hold duration -
       // otherwise the set stays uncompleted and the hold progression never runs.
+      // The progression graduates once the held time reaches the programmed target (completedSetTime >= setTime),
+      // which is the realistic hold pattern used by the Recommended Routine.
       const programText =
-        "# Week 1\n## Day 1\nPlank / 3x1 0lb 20s|60s / progress: custom(hold: 20) {~\n  if (completedSetTime >= state.hold) {\n    state.hold += 5\n  }\n~}";
+        "# Week 1\n## Day 1\nPlank / 3x1 0lb 20s|60s / progress: custom(hold: 0) {~\n  if (completedSetTime >= setTime) {\n    state.hold += 5\n  }\n~}";
       const commands = JSON.stringify([
         "complete_set(1, 1)",
         "complete_set(1, 2)",
@@ -569,13 +571,13 @@ describe("MCP", () => {
       expect(result.statusCode).to.equal(200);
       const data = JSON.parse(parseBody(result).result.content[0].text);
       expect(data.workout).to.include("Plank");
-      // Held the full 20s target, so completedSetTime >= hold fired and bumped hold from 20 to 25.
-      expect(data.updatedProgramText).to.include("hold: 25");
+      // Held the full 20s target, so completedSetTime >= setTime fired and bumped hold from 0 to 5.
+      expect(data.updatedProgramText).to.include("hold: 5");
     });
 
-    it("change_set_time overrides the recorded held time on a timed set", async () => {
+    it("change_set_time overrides only the recorded held time, not the target, so short holds fail progression", async () => {
       const programText =
-        "# Week 1\n## Day 1\nPlank / 3x1 0lb 20s|60s / progress: custom(hold: 20) {~\n  if (completedSetTime >= state.hold) {\n    state.hold += 5\n  }\n~}";
+        "# Week 1\n## Day 1\nPlank / 3x1 0lb 20s|60s / progress: custom(hold: 0) {~\n  if (completedSetTime >= setTime) {\n    state.hold += 5\n  }\n~}";
       const commands = JSON.stringify([
         "complete_set(1, 1)",
         "complete_set(1, 2)",
@@ -591,8 +593,9 @@ describe("MCP", () => {
       );
       expect(result.statusCode).to.equal(200);
       const data = JSON.parse(parseBody(result).result.content[0].text);
-      // Only held 10s < 20s target, so the progression did not fire and hold stays at 20.
-      expect(data.updatedProgramText).to.include("hold: 20");
+      // change_set_time lowered completedSetTime to 10 but left the 20s target intact, so
+      // completedSetTime (10) >= setTime (20) is false and the progression does not fire.
+      expect(data.updatedProgramText).to.include("hold: 0");
     });
 
     it("returns error for invalid playground program", async () => {
