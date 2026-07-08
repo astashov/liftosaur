@@ -322,10 +322,12 @@ function applyCommand(
     const newProgress = { ...progress, entries: [...progress.entries] };
     const entry = { ...newProgress.entries[entryIndex], sets: [...newProgress.entries[entryIndex].sets] };
     const set = { ...entry.sets[setIndex] };
-    set.weight = parsed.weight!;
-    if (set.isCompleted) {
-      set.completedWeight = parsed.weight!;
-    }
+    // change_* commands record what the user actually did (the completed value), never the programmed target.
+    // Overwriting the target would make progressions that compare completed-vs-target (e.g. completedReps >=
+    // reps) always pass, so a deliberately-failed set couldn't be simulated. For a not-yet-completed set the
+    // completed value seeds what complete_set finalizes (it keeps an already-set completed*), leaving the
+    // target intact either way.
+    set.completedWeight = parsed.weight!;
     entry.sets[setIndex] = set;
     newProgress.entries[entryIndex] = entry;
     return { success: true, data: newProgress };
@@ -337,10 +339,7 @@ function applyCommand(
     const newProgress = { ...progress, entries: [...progress.entries] };
     const entry = { ...newProgress.entries[entryIndex], sets: [...newProgress.entries[entryIndex].sets] };
     const set = { ...entry.sets[setIndex] };
-    set.reps = parsed.reps!;
-    if (set.isCompleted) {
-      set.completedReps = parsed.reps!;
-    }
+    set.completedReps = parsed.reps!;
     entry.sets[setIndex] = set;
     newProgress.entries[entryIndex] = entry;
     return { success: true, data: newProgress };
@@ -352,10 +351,7 @@ function applyCommand(
     const newProgress = { ...progress, entries: [...progress.entries] };
     const entry = { ...newProgress.entries[entryIndex], sets: [...newProgress.entries[entryIndex].sets] };
     const set = { ...entry.sets[setIndex] };
-    set.setTimer = parsed.setTime!;
-    if (set.isCompleted) {
-      set.completedSetTimer = parsed.setTime!;
-    }
+    set.completedSetTimer = parsed.setTime!;
     entry.sets[setIndex] = set;
     newProgress.entries[entryIndex] = entry;
     return { success: true, data: newProgress };
