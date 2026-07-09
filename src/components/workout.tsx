@@ -51,6 +51,7 @@ import { Dialog_alert, Dialog_confirm } from "../utils/dialog";
 import type RB from "rollbar";
 import { useEqual } from "../utils/useEqual";
 import { usePerfRenderCount } from "../utils/usePerfRenderCount";
+import { PerfProbeSubtree } from "../utils/perfProbeSubtree";
 import { NavScreenContent } from "../navigation/NavScreenContent";
 
 declare let Rollbar: RB | undefined;
@@ -227,41 +228,43 @@ function WorkoutInner(props: IWorkoutViewProps): JSX.Element {
       <View className="pb-8">
         {selectedEntry != null && (
           <View className="mt-2">
-            <WorkoutExercisePager
-              currentEntryIndex={currentEntryIndex}
-              entryCount={progressEntries.length}
-              windowWidth={windowWidth}
-              pageHeight={pagerHeight}
-              forceUpdateEntryIndex={forceUpdateEntryIndex}
-              onIndexChange={onPagerIndexChange}
-            >
-              {progressEntries.map((entry, entryIndex) => (
-                <WorkoutExercisePage
-                  key={entry.id}
-                  entry={entry}
-                  entryIndex={entryIndex}
-                  shouldRender={renderedIndices.has(entryIndex)}
-                  windowWidth={windowWidth}
-                  onPageLayout={onPageLayout}
-                  day={progressDay}
-                  stats={props.stats}
-                  history={props.history}
-                  otherStates={otherStates}
-                  program={props.program}
-                  programDay={props.programDay}
-                  progressId={progressId}
-                  progressStartTime={progressStartTime}
-                  userPromptedStateVars={progressUserPromptedStateVars}
-                  supersetEntry={supersetByEntryId.get(entry.id)}
-                  prevData={prevExerciseData[Exercise_toKey(entry.exercise)]}
-                  isCurrentProgress={isCurrentProgress}
-                  helps={props.helps}
-                  subscription={props.subscription}
-                  settings={props.settings}
-                  dispatch={dispatch}
-                />
-              ))}
-            </WorkoutExercisePager>
+            <PerfProbeSubtree id="workout-list">
+              <WorkoutExercisePager
+                currentEntryIndex={currentEntryIndex}
+                entryCount={progressEntries.length}
+                windowWidth={windowWidth}
+                pageHeight={pagerHeight}
+                forceUpdateEntryIndex={forceUpdateEntryIndex}
+                onIndexChange={onPagerIndexChange}
+              >
+                {progressEntries.map((entry, entryIndex) => (
+                  <WorkoutExercisePage
+                    key={entry.id}
+                    entry={entry}
+                    entryIndex={entryIndex}
+                    shouldRender={renderedIndices.has(entryIndex)}
+                    windowWidth={windowWidth}
+                    onPageLayout={onPageLayout}
+                    day={progressDay}
+                    stats={props.stats}
+                    history={props.history}
+                    otherStates={otherStates}
+                    program={props.program}
+                    programDay={props.programDay}
+                    progressId={progressId}
+                    progressStartTime={progressStartTime}
+                    userPromptedStateVars={progressUserPromptedStateVars}
+                    supersetEntry={supersetByEntryId.get(entry.id)}
+                    prevData={prevExerciseData[Exercise_toKey(entry.exercise)]}
+                    isCurrentProgress={isCurrentProgress}
+                    helps={props.helps}
+                    subscription={props.subscription}
+                    settings={props.settings}
+                    dispatch={dispatch}
+                  />
+                ))}
+              </WorkoutExercisePager>
+            </PerfProbeSubtree>
           </View>
         )}
       </View>

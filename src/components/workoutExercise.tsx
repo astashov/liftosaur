@@ -27,6 +27,7 @@ import { Reps_setsStatus } from "../models/set";
 import { Weight_build } from "../models/weight";
 import { WorkoutExerciseCard } from "./workoutExerciseCard";
 import { usePerfRenderCount } from "../utils/usePerfRenderCount";
+import { PerfProbeSubtree } from "../utils/perfProbeSubtree";
 
 interface IWorkoutExerciseProps {
   day: number;
@@ -129,26 +130,28 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
 
   return (
     <View data-testid={`exercise-progress-${status}`} testID={`exercise-progress-${status}`}>
-      <WorkoutExerciseCard
-        day={props.day}
-        stats={props.stats}
-        entry={props.entry}
-        entryIndex={props.entryIndex}
-        settings={props.settings}
-        dispatch={props.dispatch}
-        prevData={props.prevData}
-        program={props.program}
-        programDay={props.programDay}
-        otherStates={props.otherStates}
-        progressId={props.progressId}
-        supersetEntry={props.supersetEntry}
-        progressUserPromptedStateVars={props.userPromptedStateVars}
-        isCurrentProgress={props.isCurrentProgress}
-        showHelp={props.showHelp}
-        helps={props.helps}
-        subscription={props.subscription}
-        hidePlatesCalculator={props.hidePlatesCalculator}
-      />
+      <PerfProbeSubtree id="sets-grid">
+        <WorkoutExerciseCard
+          day={props.day}
+          stats={props.stats}
+          entry={props.entry}
+          entryIndex={props.entryIndex}
+          settings={props.settings}
+          dispatch={props.dispatch}
+          prevData={props.prevData}
+          program={props.program}
+          programDay={props.programDay}
+          otherStates={props.otherStates}
+          progressId={props.progressId}
+          supersetEntry={props.supersetEntry}
+          progressUserPromptedStateVars={props.userPromptedStateVars}
+          isCurrentProgress={props.isCurrentProgress}
+          showHelp={props.showHelp}
+          helps={props.helps}
+          subscription={props.subscription}
+          hidePlatesCalculator={props.hidePlatesCalculator}
+        />
+      </PerfProbeSubtree>
       {((props.prevData?.count ?? 0) > 1 || showPrs) && (
         <View className="items-center mt-2">
           <LinkButton className="text-sm" name="toggle-workout-graphs" onClick={onToggleGraphs}>
@@ -162,21 +165,23 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
             <View data-testid="workout-stats-graph" testID="workout-stats-graph" className="relative mx-4 mt-2">
               <Locker topic="Graphs" dispatch={props.dispatch} blur={8} subscription={props.subscription} />
               <ActiveGraphContext.Provider value={activeGraphValue}>
-                <GraphExercise
-                  id={`workout-graph-${Exercise_toKey(exerciseType)}`}
-                  isSameXAxis={false}
-                  minX={Math.round(minX / 1000)}
-                  maxX={Math.round(maxX / 1000)}
-                  isWithOneRm={true}
-                  key={`${Exercise_toKey(exerciseType)}_${props.settings.theme}`}
-                  settings={props.settings}
-                  isWithProgramLines={true}
-                  history={props.history}
-                  exercise={exerciseType}
-                  initialType={props.settings.graphsSettings.defaultType}
-                  dispatch={props.dispatch}
-                  isInteractive={Subscriptions_hasSubscription(props.subscription)}
-                />
+                <PerfProbeSubtree id="graph">
+                  <GraphExercise
+                    id={`workout-graph-${Exercise_toKey(exerciseType)}`}
+                    isSameXAxis={false}
+                    minX={Math.round(minX / 1000)}
+                    maxX={Math.round(maxX / 1000)}
+                    isWithOneRm={true}
+                    key={`${Exercise_toKey(exerciseType)}_${props.settings.theme}`}
+                    settings={props.settings}
+                    isWithProgramLines={true}
+                    history={props.history}
+                    exercise={exerciseType}
+                    initialType={props.settings.graphsSettings.defaultType}
+                    dispatch={props.dispatch}
+                    isInteractive={Subscriptions_hasSubscription(props.subscription)}
+                  />
+                </PerfProbeSubtree>
               </ActiveGraphContext.Provider>
             </View>
           )}
@@ -194,12 +199,14 @@ function WorkoutExerciseInner(props: IWorkoutExerciseProps): JSX.Element {
       )}
       {history.length > 0 && isHeavyContentReady && (
         <View className="mx-4 mt-2">
-          <ExerciseHistory
-            exerciseType={exerciseType}
-            settings={props.settings}
-            dispatch={props.dispatch}
-            history={history}
-          />
+          <PerfProbeSubtree id="history">
+            <ExerciseHistory
+              exerciseType={exerciseType}
+              settings={props.settings}
+              dispatch={props.dispatch}
+              history={history}
+            />
+          </PerfProbeSubtree>
         </View>
       )}
     </View>

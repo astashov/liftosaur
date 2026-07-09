@@ -123,6 +123,7 @@ import { UrlUtils_build } from "../utils/url";
 import { ImportFromLiftosaur_convertLiftosaurCsvToHistoryRecords } from "../utils/importFromLiftosaur";
 import { ImportFromHevy_convertHevyCsvToHistoryRecords } from "../utils/importFromHevy";
 import { Sync_getStorageUpdate2 } from "../utils/sync";
+import { PerfProbe_isTarget } from "../utils/perfSetCompleteProbe";
 import {
   ObjectUtils_values,
   ObjectUtils_filter,
@@ -399,7 +400,15 @@ async function _sync2(
         const historyVersions = result.storage._versions?.history as { deleted?: Record<string, number> } | undefined;
         const serverDeletedHistory = Object.keys(historyVersions?.deleted || {}).length;
 
+        const probeMergeTarget = PerfProbe_isTarget();
+        const probeMergeT0 = probeMergeTarget ? Date.now() : 0;
         const newStorage = Storage_mergeStorage(currentStorage, result.storage, getState().deviceId);
+        if (probeMergeTarget) {
+          lg("perf-sync-merge", {
+            merge_ms: Date.now() - probeMergeT0,
+            history_len: currentStorage.history?.length ?? 0,
+          });
+        }
         const mergedHistoryLen = newStorage.history?.length ?? 0;
 
         if (currentHistoryLen > 0 && mergedHistoryLen < currentHistoryLen) {
@@ -480,7 +489,15 @@ async function _sync2(
     }
   } else {
     dispatch(Thunk_postevent("sync-storage-update", { force: args?.force ? "true" : "false" }));
+    const probeSyncTarget = PerfProbe_isTarget();
+    const probeSyncT0 = probeSyncTarget ? Date.now() : 0;
     const storageUpdate = Sync_getStorageUpdate2(state.storage, state.lastSyncedStorage, state.deviceId);
+    if (probeSyncTarget) {
+      lg("perf-sync", {
+        build_ms: Date.now() - probeSyncT0,
+        has_update: storageUpdate.storage != null ? "true" : "false",
+      });
+    }
     if (args?.force || storageUpdate.storage) {
       const lastSyncedStorage = state.storage;
       const result = await env.service.postSync({

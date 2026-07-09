@@ -78,6 +78,7 @@ import { Stats_getCurrentMovingAverageBodyweight } from "../models/stats";
 import { Weight_build, Weight_eq } from "../models/weight";
 import { PerfTracker_recordEvent, PerfTracker_getSessionId } from "../utils/perfTracker";
 import { PerfEnabled_isEnabled, PerfEnabled_tier2 } from "../utils/perfEnabled";
+import { PerfProbe_onAction, PerfProbe_isTarget } from "../utils/perfSetCompleteProbe";
 import { PerfScorecard_recordAction } from "../utils/perfScorecard";
 
 declare let __COMMIT_HASH__: string;
@@ -591,7 +592,18 @@ export const reducerWrapper =
               lastSyncedStorage: newState2.lastSyncedStorage,
             };
             await IndexedDBUtils_set("current_account", userId);
-            await IndexedDBUtils_set(`liftosaur_${userId}`, JSON.stringify(localStorage));
+            const probeTarget = PerfProbe_isTarget();
+            const probeT0 = probeTarget ? Date.now() : 0;
+            const serialized = JSON.stringify(localStorage);
+            const probeT1 = probeTarget ? Date.now() : 0;
+            await IndexedDBUtils_set(`liftosaur_${userId}`, serialized);
+            if (probeTarget) {
+              lg("perf-persist", {
+                stringify_ms: probeT1 - probeT0,
+                write_ms: Date.now() - probeT1,
+                bytes: serialized.length,
+              });
+            }
           }, 100);
         }
       }
@@ -600,6 +612,13 @@ export const reducerWrapper =
     if (perfOn) {
       const perfDurationMs = Date.now() - perfSyncStart;
       PerfScorecard_recordAction(perfActionDesc ?? perfActionType, perfDurationMs);
+      if (
+        perfActionType === "CompleteSetAction" ||
+        perfActionType === "ChangeAMRAPAction" ||
+        perfActionType === "UpdateProgress"
+      ) {
+        PerfProbe_onAction(perfActionDesc ?? perfActionType, perfDurationMs);
+      }
       if (PerfEnabled_tier2()) {
         PerfTracker_recordEvent({
           type: "action",
