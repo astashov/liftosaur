@@ -1311,12 +1311,40 @@ export function Progress_getNextTimedSet(
       : progress.timerEntryIndex != null && progress.timerSetIndex != null
         ? { entryIndex: progress.timerEntryIndex, setIndex: progress.timerSetIndex }
         : undefined;
-  const next = Progress_getFirstIncompleteWorkoutSet(progress, current);
+  // In a superset the next timed set is the next group member's incomplete set (Crunch → Hollow → Crunch …),
+  // not the current exercise's own next set — otherwise the auto-advance opens a set for the exercise the
+  // clock just left instead of the one now shown. Fall back to raw order once the group is exhausted.
+  const next =
+    (current != null ? Progress_getNextTimedSetInSuperset(progress, current) : undefined) ??
+    Progress_getFirstIncompleteWorkoutSet(progress, current);
   if (next == null) {
     return undefined;
   }
   const set = progress.entries[next.entryIndex]?.sets[next.setIndex];
   return set?.setTimer != null ? next : undefined;
+}
+
+function Progress_getNextTimedSetInSuperset(
+  progress: IHistoryRecord,
+  current: { entryIndex: number; setIndex: number }
+): { entryIndex: number; setIndex: number } | undefined {
+  const entry = progress.entries[current.entryIndex];
+  if (entry?.superset == null) {
+    return undefined;
+  }
+  // Reuse the same superset resolver the pager uses (Progress_maybeApplySuperset), so the auto-advance
+  // opens a set for the very exercise now shown. It skips finished group members and returns undefined
+  // once the group is exhausted, letting the caller fall back to raw order for any later timed exercise.
+  const nextEntry = Progress_getNextEntry(progress, entry, "workout", false);
+  if (nextEntry == null || nextEntry.id === entry.id) {
+    return undefined;
+  }
+  const entryIndex = progress.entries.findIndex((e) => e.id === nextEntry.id);
+  const setIndex = nextEntry.sets.findIndex((s) => !s.isCompleted);
+  if (entryIndex < 0 || setIndex < 0) {
+    return undefined;
+  }
+  return { entryIndex, setIndex };
 }
 
 // Moves the set-timer banner to the next timed set (or closes it if there's none) and clears any rest

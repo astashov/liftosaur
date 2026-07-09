@@ -82,6 +82,40 @@ describe("Set timer triggering", () => {
     expect(Progress_getNextTimedSet(afterLast)).to.eql(undefined);
   });
 
+  it("advances to the paired superset exercise, not the current exercise's next set", () => {
+    // Superset A interleaves the two exercises: Squat s0 → Bench s0 → Squat s1 → Bench s1. When the auto
+    // rest after Squat s0 ends, "next" must be Bench's set (entry 1), not Squat's own set 1.
+    const progress = buildProgress(
+      `# Week 1\n## Day 1\n` +
+        `Squat / 2x1 60s|15s auto / superset: A\n` +
+        `Bench Press / 2x1 45s|15s auto / superset: A\n`
+    );
+
+    const withRestAfter = (entryIndex: number, setIndex: number): IHistoryRecord => ({
+      ...progress,
+      timerEntryIndex: entryIndex,
+      timerSetIndex: setIndex,
+      timer: 15,
+      timerSince: Date.now(),
+    });
+
+    // Squat set 0 done, its auto rest running → next is Bench set 0 (the paired exercise), not Squat set 1.
+    progress.entries[0].sets[0].isCompleted = true;
+    expect(Progress_getNextTimedSet(withRestAfter(0, 0))).to.eql({ entryIndex: 1, setIndex: 0 });
+
+    // Bench set 0 done → back to Squat set 1.
+    progress.entries[1].sets[0].isCompleted = true;
+    expect(Progress_getNextTimedSet(withRestAfter(1, 0))).to.eql({ entryIndex: 0, setIndex: 1 });
+
+    // Squat set 1 done → Bench set 1.
+    progress.entries[0].sets[1].isCompleted = true;
+    expect(Progress_getNextTimedSet(withRestAfter(0, 1))).to.eql({ entryIndex: 1, setIndex: 1 });
+
+    // Bench set 1 (last) done → chain stops.
+    progress.entries[1].sets[1].isCompleted = true;
+    expect(Progress_getNextTimedSet(withRestAfter(1, 1))).to.eql(undefined);
+  });
+
   it("opens immediately when the very first set is timed", () => {
     const progress = buildProgress(`# Week 1\n## Day 1\nPower Clean / 5x5 135lb 60s|0s auto\n`);
     expect(Progress_getNextTimedSet(progress)).to.eql({ entryIndex: 0, setIndex: 0 });
