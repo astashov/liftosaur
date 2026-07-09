@@ -8,6 +8,7 @@ import { SetTimerEditContent } from "../../components/setTimerEdit";
 import { Progress_getProgress } from "../../models/progress";
 import { updateProgress } from "../../models/state";
 import { buildPlaygroundDispatch, getPlaygroundProgress } from "./navModalPlaygroundUtils";
+import { useClearOnModalRemove } from "../useClearOnModalRemove";
 import { IHistoryRecord } from "../../types";
 import type { IRootStackParamList } from "../types";
 
@@ -51,17 +52,13 @@ export function NavModalSetTimerEdit(): JSX.Element {
     }
   }, [shouldGoBack]);
 
-  useEffect(() => {
-    const onBeforeRemove = (): void => {
-      updateProgress(
-        modalDispatch,
-        [lb<IHistoryRecord>().pi("ui", {}).p("setTimerEditModal").record(undefined)],
-        "close-set-timer-edit"
-      );
-    };
-    const unsubscribe = navigation.addListener("beforeRemove", onBeforeRemove);
-    return unsubscribe;
-  }, [navigation, modalDispatch]);
+  useClearOnModalRemove(() =>
+    updateProgress(
+      modalDispatch,
+      [lb<IHistoryRecord>().pi("ui", {}).p("setTimerEditModal").record(undefined)],
+      "close-set-timer-edit"
+    )
+  );
 
   if (shouldGoBack || editModal == null || set == null) {
     return <></>;

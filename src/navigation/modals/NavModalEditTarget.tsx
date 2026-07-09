@@ -11,6 +11,7 @@ import type { IRootStackParamList } from "../types";
 import { CustomKeyboardProvider, useCustomKeyboardAnimatedHeight } from "../CustomKeyboardContext";
 import { SheetScreenContainer } from "../SheetScreenContainer";
 import { FormSheet } from "../FormSheet";
+import { useClearOnModalRemove } from "../useClearOnModalRemove";
 
 export function NavModalEditTarget(): JSX.Element {
   const { state, dispatch } = useAppState();
@@ -41,36 +42,32 @@ export function NavModalEditTarget(): JSX.Element {
 
   const editSetModal = progress?.ui?.editSetModal;
 
-  useEffect(() => {
-    const clearEditSetModal = (): void => {
-      if (params.context === "workout") {
-        dispatch({
-          type: "UpdateProgress",
-          lensRecordings: [lb<IHistoryRecord>().pi("ui", {}).p("editSetModal").record(undefined)],
-          desc: "Close edit set modal",
-        });
-      } else {
-        updateState(
-          dispatch,
-          [
-            lb<IState>()
-              .pi("playgroundState")
-              .pi("progresses")
-              .pi(params.weekIndex)
-              .p("days")
-              .pi(params.dayIndex)
-              .p("progress")
-              .pi("ui", {})
-              .p("editSetModal")
-              .record(undefined),
-          ],
-          "Close edit set modal"
-        );
-      }
-    };
-    const unsubscribe = navigation.addListener("beforeRemove", clearEditSetModal);
-    return unsubscribe;
-  }, [navigation, dispatch, params]);
+  useClearOnModalRemove(() => {
+    if (params.context === "workout") {
+      dispatch({
+        type: "UpdateProgress",
+        lensRecordings: [lb<IHistoryRecord>().pi("ui", {}).p("editSetModal").record(undefined)],
+        desc: "Close edit set modal",
+      });
+    } else {
+      updateState(
+        dispatch,
+        [
+          lb<IState>()
+            .pi("playgroundState")
+            .pi("progresses")
+            .pi(params.weekIndex)
+            .p("days")
+            .pi(params.dayIndex)
+            .p("progress")
+            .pi("ui", {})
+            .p("editSetModal")
+            .record(undefined),
+        ],
+        "Close edit set modal"
+      );
+    }
+  });
 
   const onClose = (): void => {
     navigation.goBack();

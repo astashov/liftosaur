@@ -6,6 +6,7 @@ import { FormSheet } from "../FormSheet";
 import { SetTimerBannerContent } from "../../components/setTimerBanner";
 import { Program_evaluate, Program_fullProgram, Program_getProgramExercise } from "../../models/program";
 import { buildPlaygroundDispatch, getPlaygroundProgress } from "./navModalPlaygroundUtils";
+import { useClearOnModalRemove } from "../useClearOnModalRemove";
 import type { IRootStackParamList } from "../types";
 
 export function NavModalSetTimer(): JSX.Element {
@@ -53,13 +54,7 @@ export function NavModalSetTimer(): JSX.Element {
       ? Program_getProgramExercise(progress.day, evaluatedProgram, entry?.programExerciseId)
       : undefined;
 
-  useEffect(() => {
-    const onBeforeRemove = (): void => {
-      modalDispatch({ type: "CloseSetTimerAction", isPlayground });
-    };
-    const unsubscribe = navigation.addListener("beforeRemove", onBeforeRemove);
-    return unsubscribe;
-  }, [navigation, modalDispatch]);
+  useClearOnModalRemove(() => modalDispatch({ type: "CloseSetTimerAction", isPlayground }));
 
   const onClose = (): void => {
     navigation.goBack();

@@ -21,7 +21,7 @@ import { Thunk_updateLiveActivity, Thunk_deleteProgress } from "../ducks/thunks"
 import { Reps_findNextSetIndex } from "../models/set";
 import { Subscriptions_hasSubscription } from "../utils/subscriptions";
 import { workoutTourConfig } from "./tour/workoutTourConfig";
-import { navigateToModal } from "../navigation/navigationService";
+import { navigateToModal, getCurrentRouteName } from "../navigation/navigationService";
 import { Dialog_confirm } from "../utils/dialog";
 import { usePerfRenderCount } from "../utils/usePerfRenderCount";
 
@@ -84,23 +84,29 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
   }, [amrapModal]);
 
   const exercisePickerState = progress.ui?.exercisePicker?.state;
-  const prevExercisePickerState = useRef<typeof exercisePickerState>(undefined);
+  // Track the last state we navigated for by identity (not a truthy edge), which self-heals reopening even if a stale
+  // flag lingers (e.g. an app kill left it persisted, or a deferred open below was cancelled) where a `!last` edge
+  // would deadlock. The picker writes live UI (search/filters/selection) back into `state`, so its identity also
+  // changes on every keystroke — gate the actual navigation on the current route so those mutations don't re-push the
+  // modal while it's already open (same approach as the editProgram picker).
+  const navigatedExercisePickerState = useRef<typeof exercisePickerState>(undefined);
   useEffect(() => {
-    if (exercisePickerState && !prevExercisePickerState.current) {
-      const progressId = progress.id;
-      if (Platform.OS === "web") {
-        navigateToModal("exercisePickerModal", { progressId });
-        prevExercisePickerState.current = exercisePickerState;
-        return undefined;
-      }
-      const handle = InteractionManager.runAfterInteractions(() => {
-        navigateToModal("exercisePickerModal", { progressId });
-      });
-      prevExercisePickerState.current = exercisePickerState;
-      return () => handle.cancel();
+    const changed = navigatedExercisePickerState.current !== exercisePickerState;
+    navigatedExercisePickerState.current = exercisePickerState;
+    if (!exercisePickerState || !changed || getCurrentRouteName() === "exercisePickerModal") {
+      return undefined;
     }
-    prevExercisePickerState.current = exercisePickerState;
-    return undefined;
+    const progressId = progress.id;
+    if (Platform.OS === "web") {
+      navigateToModal("exercisePickerModal", { progressId });
+      return undefined;
+    }
+    const handle = InteractionManager.runAfterInteractions(() => {
+      if (getCurrentRouteName() !== "exercisePickerModal") {
+        navigateToModal("exercisePickerModal", { progressId });
+      }
+    });
+    return () => handle.cancel();
   }, [exercisePickerState, progress.id]);
 
   const editSetModal = progress.ui?.editSetModal;

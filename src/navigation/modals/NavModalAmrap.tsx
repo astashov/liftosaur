@@ -13,6 +13,7 @@ import {
   Program_fullProgram,
 } from "../../models/program";
 import { buildPlaygroundDispatch, getPlaygroundProgress } from "./navModalPlaygroundUtils";
+import { useClearOnModalRemove } from "../useClearOnModalRemove";
 import type { IRootStackParamList } from "../types";
 
 export function NavModalAmrap(): JSX.Element {
@@ -78,7 +79,7 @@ export function NavModalAmrap(): JSX.Element {
     navigation.goBack();
   };
 
-  const onClose = (): void => {
+  const cancelAmrap = (): void => {
     modalDispatch({
       type: "ChangeAMRAPAction",
       amrapValue: undefined,
@@ -98,8 +99,23 @@ export function NavModalAmrap(): JSX.Element {
     if (!isPlayground) {
       Progress_forceUpdateEntryIndex(dispatch);
     }
+  };
+
+  const onClose = (): void => {
+    cancelAmrap();
     goBackOnce();
   };
+
+  // A native back/gesture dismissal skips onClose/onDone (which set didGoBackRef via goBackOnce), so cancel here to
+  // clear amrapModal — otherwise the playground bridge's edge guard can never re-open it. Guard against clobbering a
+  // committed "Done" value, whose goBackOnce already ran.
+  useClearOnModalRemove(() => {
+    if (didGoBackRef.current) {
+      return;
+    }
+    didGoBackRef.current = true;
+    cancelAmrap();
+  });
 
   // Also dismiss when the synced amrapModal clears — e.g. the same prompt was answered on the watch. Playground
   // progress has no amrapModal field, so only gate on it for the workout context.

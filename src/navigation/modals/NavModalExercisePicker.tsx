@@ -23,6 +23,7 @@ import {
 import { Settings_toggleStarredExercise, Settings_changePickerSettings } from "../../models/settings";
 import { Exercise_handleCustomExerciseChange } from "../../models/exercise";
 import { updateState, updateProgress } from "../../models/state";
+import { useClearOnModalRemove } from "../useClearOnModalRemove";
 import { buildCustomDispatch } from "../../ducks/types";
 import { ICustomExercise, IExercisePickerSelectedExercise, IHistoryRecord } from "../../types";
 import { lb } from "lens-shmens";
@@ -73,14 +74,18 @@ export function NavModalExercisePicker(): JSX.Element {
   const exercisePickerStateRef = useRef(exercisePickerState);
   exercisePickerStateRef.current = exercisePickerState;
 
-  const onClose = useCallback((): void => {
+  const clearExercisePicker = useCallback((): void => {
     updateState(
       dispatch,
       [Progress_lbProgress(progressId).pi("ui", {}).p("exercisePicker").record(undefined)],
       "Close exercise picker"
     );
+  }, [dispatch, progressId]);
+  useClearOnModalRemove(clearExercisePicker);
+
+  const onClose = useCallback((): void => {
     navigation.goBack();
-  }, [dispatch, progressId, navigation]);
+  }, [navigation]);
 
   const onChoose = useCallback(
     (selectedExercises: IExercisePickerSelectedExercise[]) => {
@@ -153,17 +158,12 @@ export function NavModalExercisePicker(): JSX.Element {
           }
         }
       }
-      updateState(
-        dispatch,
-        [Progress_lbProgress(progressId).pi("ui", {}).p("exercisePicker").record(undefined)],
-        "Close exercise picker"
-      );
       setTimeout(() => {
         Progress_forceUpdateEntryIndex(dispatch);
       }, 0);
       navigation.goBack();
     },
-    [dispatch, progressId, navigation]
+    [dispatch, navigation]
   );
 
   const onChangeCustomExercise = useCallback(

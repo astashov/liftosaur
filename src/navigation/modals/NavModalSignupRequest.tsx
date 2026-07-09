@@ -11,6 +11,7 @@ import { IState, updateState } from "../../models/state";
 import { lb } from "lens-shmens";
 import { SendMessage_isIos, SendMessage_isAndroid } from "../../utils/sendMessage";
 import { Thunk_log, Thunk_pushScreen } from "../../ducks/thunks";
+import { useClearOnModalRemove } from "../useClearOnModalRemove";
 import { HostConfig_resolveUrl } from "../../utils/hostConfig";
 
 export function NavModalSignupRequest(): JSX.Element {
@@ -26,9 +27,10 @@ export function NavModalSignupRequest(): JSX.Element {
       .recordModify((r) => [...r, Date.now()]),
   ];
 
+  useClearOnModalRemove(() => updateState(dispatch, lbSaveSignupRequestDate, "Close signup request"));
+
   const onClose = (): void => {
     dispatch(Thunk_log("ls-signup-request-close"));
-    updateState(dispatch, lbSaveSignupRequestDate, "Close signup request");
     navigation.goBack();
   };
 
@@ -75,7 +77,6 @@ export function NavModalSignupRequest(): JSX.Element {
               testID="modal-signup-request-later"
               className="mr-3 ls-signup-request-maybe-later"
               onClick={() => {
-                updateState(dispatch, lbSaveSignupRequestDate, "Defer signup request");
                 navigation.goBack();
               }}
             >
@@ -88,7 +89,6 @@ export function NavModalSignupRequest(): JSX.Element {
               testID="modal-signup-request-submit"
               className="ls-signup-request-signup"
               onClick={() => {
-                updateState(dispatch, lbSaveSignupRequestDate, "Accept signup request");
                 dispatch(Thunk_pushScreen("account"));
                 navigation.goBack();
               }}
