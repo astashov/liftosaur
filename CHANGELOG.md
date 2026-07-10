@@ -14,7 +14,7 @@
 -->
 
 ---
-date: 2026-07-05
+date: 2026-07-10
 title: Added exercise variations (progression ladders)
 ---
 
