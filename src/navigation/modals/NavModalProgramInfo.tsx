@@ -6,7 +6,7 @@ import { FormSheet } from "../FormSheet";
 import { ModalProgramInfoContent } from "../../components/modalProgramInfo";
 import { Program_cloneProgram, Program_previewProgram } from "../../models/program";
 import { Settings_doesProgramHaveUnset1RMs } from "../../models/settings";
-import { Thunk_pushScreen } from "../../ducks/thunks";
+import { Thunk_postevent, Thunk_pushScreen } from "../../ducks/thunks";
 import type { IRootStackParamList } from "../types";
 
 export function NavModalProgramInfo(): JSX.Element {
@@ -32,6 +32,14 @@ export function NavModalProgramInfo(): JSX.Element {
     }
   }, [shouldGoBack]);
 
+  // Per-program browse signal - the list row tap has no durable log, so this is the only way to
+  // see which built-in programs users open vs actually add (see onSelect below).
+  useEffect(() => {
+    if (program?.id) {
+      dispatch(Thunk_postevent("program-info-open", { programId: program.id }));
+    }
+  }, [programId]);
+
   if (shouldGoBack) {
     return <></>;
   }
@@ -51,6 +59,9 @@ export function NavModalProgramInfo(): JSX.Element {
             }, 50);
           }}
           onSelect={() => {
+            if (program?.id) {
+              dispatch(Thunk_postevent("program-clone", { programId: program.id }));
+            }
             Program_cloneProgram(dispatch, program!, settings);
             onClose();
             setTimeout(() => {
