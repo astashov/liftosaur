@@ -11,7 +11,15 @@ import { IDispatch } from "../ducks/types";
 import { ObjectUtils_isEqual, ObjectUtils_values } from "../utils/object";
 import { DateUtils_formatYYYYMMDD } from "../utils/date";
 import { IStorageUpdate, IStorageUpdate2 } from "../utils/sync";
-import { IHistoryRecord, IStorage, IPartialStorage, STORAGE_VERSION_TYPES, VStorage, VHistoryRecord } from "../types";
+import {
+  IHistoryRecord,
+  IStorage,
+  IPartialStorage,
+  IHearAboutUs,
+  STORAGE_VERSION_TYPES,
+  VStorage,
+  VHistoryRecord,
+} from "../types";
 import {
   CollectionUtils_groupByKeyUniq,
   CollectionUtils_compact,
@@ -353,6 +361,19 @@ export function Storage_applyStorageUpdate2(storage: IStorage, update: IStorageU
   return sortedProgress === updatedStorage.progress ? updatedStorage : { ...updatedStorage, progress: sortedProgress };
 }
 
+function mergeHearAboutUs(a?: IHearAboutUs, b?: IHearAboutUs): IHearAboutUs | undefined {
+  if (a == null) {
+    return b;
+  }
+  if (b == null) {
+    return a;
+  }
+  const requests = Array.from(new Set([...(a.requests || []), ...(b.requests || [])]));
+  const done = a.done || b.done;
+  const result = (b.result?.ts ?? -1) >= (a.result?.ts ?? -1) ? (b.result ?? a.result) : (a.result ?? b.result);
+  return { result, requests, done };
+}
+
 export function Storage_applyUpdate(storage: IPartialStorage, updateWithStats: IStorageUpdate): IPartialStorage {
   const { stats, ...update } = updateWithStats;
 
@@ -367,6 +388,7 @@ export function Storage_applyUpdate(storage: IPartialStorage, updateWithStats: I
   const deletedStats = Array.from(new Set([...storage.deletedStats, ...(update.deletedStats || [])]));
   const reviewRequests = Array.from(new Set([...storage.reviewRequests, ...(update.reviewRequests || [])]));
   const signupRequests = Array.from(new Set([...storage.signupRequests, ...(update.signupRequests || [])]));
+  const hearAboutUs = mergeHearAboutUs(storage.hearAboutUs, update.hearAboutUs);
   const helps = Array.from(new Set([...storage.helps, ...(update.helps || [])]));
 
   const exercises = { ...storage.settings.exercises, ...(update.settings?.exercises || {}) };
@@ -380,6 +402,7 @@ export function Storage_applyUpdate(storage: IPartialStorage, updateWithStats: I
     deletedStats,
     reviewRequests,
     signupRequests,
+    hearAboutUs,
     helps,
     settings: {
       ...storage.settings,

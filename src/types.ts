@@ -1691,6 +1691,32 @@ const _VImportSessionMatches: IEquals<v.InferOutput<typeof _VImportSession>, IIm
 void _VImportSessionMatches;
 export const VImportSession: v.GenericSchema<IImportSession> = _VImportSession;
 
+export interface IHearAboutUs {
+  result?: {
+    source: string;
+    detail?: string;
+    freeform?: string;
+    ts: number;
+  };
+  requests: number[];
+  done?: boolean;
+}
+const _VHearAboutUs = v.object({
+  result: v.optional(
+    v.object({
+      source: v.string(),
+      detail: v.optional(v.string()),
+      freeform: v.optional(v.string()),
+      ts: v.number(),
+    })
+  ),
+  requests: v.array(v.number()),
+  done: v.optional(v.boolean()),
+});
+const _VHearAboutUsMatches: IEquals<v.InferOutput<typeof _VHearAboutUs>, IHearAboutUs> = true;
+void _VHearAboutUsMatches;
+export const VHearAboutUs: v.GenericSchema<IHearAboutUs> = _VHearAboutUs;
+
 interface IStorageRaw {
   history: IHistoryRecord[];
   deletedHistory: number[];
@@ -1703,6 +1729,7 @@ interface IStorageRaw {
   deletedPrograms: number[];
   reviewRequests: number[];
   signupRequests: number[];
+  hearAboutUs?: IHearAboutUs;
   helps: string[];
   tempUserId: string;
   email?: string;
@@ -1733,6 +1760,7 @@ const _VStorage = v.object({
   deletedPrograms: v.array(v.number()),
   reviewRequests: v.array(v.number()),
   signupRequests: v.array(v.number()),
+  hearAboutUs: v.optional(_VHearAboutUs),
   helps: v.array(v.string()),
   tempUserId: v.string(),
   email: v.optional(v.string()),

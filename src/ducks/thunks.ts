@@ -70,6 +70,7 @@ import { DateUtils_formatYYYYMMDD, DateUtils_format } from "../utils/date";
 import { getInitialState } from "./reducer";
 import { IndexedDBUtils_get, IndexedDBUtils_remove, IndexedDBUtils_set } from "../utils/indexeddb";
 import { WhatsNew_updateStorage } from "../models/whatsnewUtils";
+import { OnloadModal_getNext, OnloadModal_shouldShowHearAboutUs } from "../models/onloadModal";
 import { Screen_shouldConfirmNavigation } from "../models/screen";
 import {
   Subscriptions_listOfSubscriptions,
@@ -275,7 +276,7 @@ export function Thunk_appleSignIn(cb?: (state: IState) => void): IThunk {
   };
 }
 
-export function Thunk_log(action: string): IThunk {
+export function Thunk_log(action: string, detail?: string): IThunk {
   return async (dispatch, getState, env) => {
     const state = getState();
     if (!state.nosync) {
@@ -285,7 +286,8 @@ export function Thunk_log(action: string): IThunk {
         state.storage.affiliates,
         Subscriptions_listOfSubscriptions(state.storage.subscription),
         state.storage.referrer,
-        state.storage.landingPage
+        state.storage.landingPage,
+        detail
       );
     }
   };
@@ -1282,6 +1284,7 @@ export function Thunk_pushScreen<T extends IScreen>(
       "programPreview",
       "setupequipment",
       "setupplates",
+      "hearaboutus",
       "programselect",
     ];
     if (getState().storage.currentProgramId == null && screensWithoutCurrentProgram.indexOf(screen) === -1) {
@@ -1348,6 +1351,34 @@ export function Thunk_maybeRequestSignup(): IThunk {
     } catch (error) {
       const e = error as Error;
       Rollbar.error(e);
+    }
+  };
+}
+
+export function Thunk_maybeShowOnloadModal(): IThunk {
+  return async (dispatch, getState) => {
+    try {
+      const next = OnloadModal_getNext(getState());
+      if (next === "whatsnew") {
+        updateState(dispatch, [lb<IState>().p("showWhatsNew").record(true)], "Show what's new on load");
+      } else if (next === "hearaboutus") {
+        dispatch(Thunk_maybeRequestHearAboutUs());
+      }
+    } catch (error) {
+      Rollbar.error(error as Error);
+    }
+  };
+}
+
+export function Thunk_maybeRequestHearAboutUs(): IThunk {
+  return async (dispatch, getState) => {
+    try {
+      if (OnloadModal_shouldShowHearAboutUs(getState())) {
+        dispatch(Thunk_postevent("request-hear-about-us"));
+        updateState(dispatch, [lb<IState>().p("showHearAboutUs").record(true)], "Show hear-about-us");
+      }
+    } catch (error) {
+      Rollbar.error(error as Error);
     }
   };
 }

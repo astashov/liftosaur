@@ -26,7 +26,8 @@ import { IAudioInterface } from "../lib/audioInterface";
 import { Progress_getCurrentProgress, Progress_lbProgress } from "../models/progress";
 import { IAttributionData, IEnv, IState, updateState } from "../models/state";
 import { Notification } from "./notification";
-import { WhatsNew_doesHaveNewUpdates } from "../models/whatsnew";
+import { Toast } from "./toast";
+import { useOnloadModals } from "../navigation/useOnloadModals";
 import {
   Subscriptions_cleanupOutdatedAppleReceipts,
   Subscriptions_cleanupOutdatedGooglePurchaseTokens,
@@ -108,8 +109,6 @@ export function AppView(props: IProps): JSX.Element | null {
   useEffect(() => {
     stateRef.current = state;
   });
-  const shouldShowWhatsNew = WhatsNew_doesHaveNewUpdates(state.storage.whatsNew) || state.showWhatsNew;
-
   useEffect(() => {
     SendMessage_toAndroid({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
     SendMessage_toIos({ type: "setAlwaysOnDisplay", value: `${!!state.storage.settings.alwaysOnDisplay}` });
@@ -127,16 +126,7 @@ export function AppView(props: IProps): JSX.Element | null {
 
   const [isNavReady, setIsNavReady] = useState(false);
 
-  const prevShouldShowWhatsNew = useRef(false);
-  useEffect(() => {
-    if (!isNavReady) {
-      return;
-    }
-    if (shouldShowWhatsNew && state.storage.whatsNew != null && !prevShouldShowWhatsNew.current) {
-      navigateToModal("whatsnewModal");
-    }
-    prevShouldShowWhatsNew.current = !!(shouldShowWhatsNew && state.storage.whatsNew != null);
-  }, [isNavReady, shouldShowWhatsNew, state.storage.whatsNew]);
+  useOnloadModals(state, dispatch, isNavReady);
 
   const showCorruptedState = state.errors.corruptedstorage != null;
   const prevShowCorruptedState = useRef(false);
@@ -483,6 +473,7 @@ export function AppView(props: IProps): JSX.Element | null {
           />
         )}
         <Notification dispatch={dispatch} notification={state.notification} />
+        <Toast toast={state.toast} dispatch={dispatch} />
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

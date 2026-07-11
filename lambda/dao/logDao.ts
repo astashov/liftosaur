@@ -30,6 +30,7 @@ export interface ILogDao {
   day: number;
   referrer?: string;
   landingPage?: string;
+  detail?: string;
 }
 
 export class LogDao {
@@ -115,7 +116,8 @@ export class LogDao {
     subscriptions: ("apple" | "google")[],
     maybeAffiliates?: Partial<Record<string, IAffiliateData>>,
     referrer?: string,
-    landingPage?: string
+    landingPage?: string,
+    detail?: string
   ): Promise<void> {
     const env = Utils_getEnv();
     // Only write landingPage when present so cookieless calls (e.g. native app) don't overwrite the
@@ -123,6 +125,11 @@ export class LogDao {
     const landingPageExpr = landingPage ? ", #landingPage = :landingPage" : "";
     const landingPageAttrs: Record<string, string> = landingPage ? { "#landingPage": "landingPage" } : {};
     const landingPageValues: Record<string, string> = landingPage ? { ":landingPage": landingPage } : {};
+    // Same guard for detail: only write when present so unrelated increments to the same (user,action)
+    // row don't clobber a previously-captured value.
+    const detailExpr = detail != null ? ", #detail = :detail" : "";
+    const detailAttrs: Record<string, string> = detail != null ? { "#detail": "detail" } : {};
+    const detailValues: Record<string, string> = detail != null ? { ":detail": detail } : {};
     const item = await this.di.dynamo.get<ILogDao>({ tableName: logTableNames[env].logs, key: { userId, action } });
     const itemProgramAffiliates = item?.affiliates || {};
     const programAffiliates = ObjectUtils_mapValues(
@@ -183,7 +190,8 @@ export class LogDao {
         key: { userId, action },
         expression:
           "SET #ts = :timestamp, #cnt = :cnt, #affiliates = :affiliates, #affiliatesCoupons = :affiliatesCoupons, #platforms = :platforms, #subscriptions = :subscriptions, #year = :year, #month = :month, #day = :day, #referrer = :referrer" +
-          landingPageExpr,
+          landingPageExpr +
+          detailExpr,
         attrs: {
           "#ts": "ts",
           "#cnt": "cnt",
@@ -196,6 +204,7 @@ export class LogDao {
           "#day": "day",
           "#referrer": "referrer",
           ...landingPageAttrs,
+          ...detailAttrs,
         },
         values: {
           ":timestamp": Date.now(),
@@ -209,6 +218,7 @@ export class LogDao {
           ":day": day,
           ":referrer": referrer || "",
           ...landingPageValues,
+          ...detailValues,
         },
       });
     } else {
@@ -217,7 +227,8 @@ export class LogDao {
         key: { userId, action },
         expression:
           "SET #ts = :timestamp, #cnt = :cnt, #platforms = :platforms, #subscriptions = :subscriptions, #year = :year, #month = :month, #day = :day, #referrer = :referrer" +
-          landingPageExpr,
+          landingPageExpr +
+          detailExpr,
         attrs: {
           "#ts": "ts",
           "#cnt": "cnt",
@@ -228,6 +239,7 @@ export class LogDao {
           "#day": "day",
           "#referrer": "referrer",
           ...landingPageAttrs,
+          ...detailAttrs,
         },
         values: {
           ":timestamp": Date.now(),
@@ -239,6 +251,7 @@ export class LogDao {
           ":day": day,
           ":referrer": referrer || "",
           ...landingPageValues,
+          ...detailValues,
         },
       });
     }

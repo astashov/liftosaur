@@ -31,6 +31,7 @@ import {
   NavScreenUnits,
   NavScreenSetupEquipment,
   NavScreenSetupPlates,
+  NavScreenHearAboutUs,
   NavScreenProgramSelectOnboarding,
   NavScreenProgramsOnboarding,
   NavScreenProgramPreviewOnboarding,
@@ -79,6 +80,7 @@ import { NavModalDayFromAdhoc } from "./modals/NavModalDayFromAdhoc";
 import { NavModalNextWorkout } from "./modals/NavModalNextWorkout";
 import { NavModalWhatsnew } from "./modals/NavModalWhatsnew";
 import { NavModalSignupRequest } from "./modals/NavModalSignupRequest";
+import { NavModalHearAboutUs } from "./modals/NavModalHearAboutUs";
 import { NavModalCorruptedState } from "./modals/NavModalCorruptedState";
 import { NavModalDebug } from "./modals/NavModalDebug";
 import { NavModalWorkoutShare } from "./modals/NavModalWorkoutShare";
@@ -172,6 +174,11 @@ function OnboardingStackScreen(): JSX.Element {
       <OnboardingStack.Screen name="units" component={NavScreenUnits} />
       <OnboardingStack.Screen name="setupequipment" component={NavScreenSetupEquipment} />
       <OnboardingStack.Screen name="setupplates" component={NavScreenSetupPlates} />
+      <OnboardingStack.Screen
+        name="hearaboutus"
+        component={NavScreenHearAboutUs}
+        options={{ headerShown: true, header: NavHeader }}
+      />
       <OnboardingStack.Screen name="programselect" component={NavScreenProgramSelectOnboarding} />
       <OnboardingStack.Screen name="programs" component={NavScreenProgramsOnboarding} />
       <OnboardingStack.Screen name="programPreview" component={NavScreenProgramPreviewOnboarding} />
@@ -297,7 +304,14 @@ function MainTabsScreen(): JSX.Element {
   );
 }
 
-const onboardingScreens: IScreen[] = ["first", "units", "setupequipment", "setupplates", "programselect"];
+const onboardingScreens: IScreen[] = [
+  "first",
+  "units",
+  "setupequipment",
+  "setupplates",
+  "hearaboutus",
+  "programselect",
+];
 
 const InitialScreenContext = createContext<IScreen | undefined>(undefined);
 
@@ -352,6 +366,7 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="nextWorkoutModal" component={NavModalNextWorkout} />
           <RootStack.Screen name="whatsnewModal" component={NavModalWhatsnew} />
           <RootStack.Screen name="signupRequestModal" component={NavModalSignupRequest} />
+          <RootStack.Screen name="hearAboutUsModal" component={NavModalHearAboutUs} />
           <RootStack.Screen name="corruptedStateModal" component={NavModalCorruptedState} />
           <RootStack.Screen name="debugModal" component={NavModalDebug} />
           <RootStack.Screen name="workoutShareModal" component={NavModalWorkoutShare} />

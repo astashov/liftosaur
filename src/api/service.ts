@@ -141,6 +141,7 @@ export type IEventPayload =
       userId?: string;
       timestamp: number;
       action: string;
+      detail?: string;
       affiliates?: Partial<Record<string, IAffiliateData>>;
       subscriptions: string[];
       referrer?: string;

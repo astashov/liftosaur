@@ -21,6 +21,7 @@ export type IOnboardingStackParamList = {
   units: undefined;
   setupequipment: undefined;
   setupplates: undefined;
+  hearaboutus: undefined;
   programselect: undefined;
   programs: undefined;
   programPreview: undefined;
@@ -127,6 +128,7 @@ export type IRootStackParamList = {
   nextWorkoutModal: undefined;
   whatsnewModal: undefined;
   signupRequestModal: undefined;
+  hearAboutUsModal: undefined;
   corruptedStateModal: undefined;
   debugModal: undefined;
   workoutShareModal: { progressId: number };

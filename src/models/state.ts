@@ -159,6 +159,8 @@ export interface IState {
   adminKey?: string;
   showWhatsNew?: boolean;
   showSignupRequest?: boolean;
+  showHearAboutUs?: boolean;
+  toast?: string;
   tour?: IStateTour;
   scrollToHistoryRecordId?: number;
   freshMigrations: boolean;

@@ -15,7 +15,8 @@ export function LogUtils_log(
   affiliates: Partial<Record<string, IAffiliateData>>,
   subscriptions: string[],
   referrer?: string,
-  landingPage?: string
+  landingPage?: string,
+  detail?: string
 ): void {
   const platform = {
     name: Platform.OS,
@@ -28,6 +29,7 @@ export function LogUtils_log(
       userId: user,
       timestamp: Date.now(),
       action,
+      detail,
       affiliates,
       subscriptions,
       referrer,
@@ -43,7 +45,7 @@ export function LogUtils_log(
   try {
     fetch(url.toString(), {
       method: "POST",
-      body: JSON.stringify({ user, action, affiliates, platform, subscriptions, referrer, landingPage }),
+      body: JSON.stringify({ user, action, detail, affiliates, platform, subscriptions, referrer, landingPage }),
       credentials: "include",
     });
   } catch (e) {

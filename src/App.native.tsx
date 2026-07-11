@@ -27,9 +27,7 @@ declare let __HOST__: string;
 // Dev hosts come from localdomain.js so each git worktree's native build targets
 // its own dev/api/streaming ports (see scripts/worktree-create.sh).
 const useLocal = __DEV__;
-const nativeHost = useLocal
-  ? `https://${localdomain}.liftosaur.com:${localport}`
-  : "https://www.liftosaur.com";
+const nativeHost = useLocal ? `https://${localdomain}.liftosaur.com:${localport}` : "https://www.liftosaur.com";
 const nativeApiHost = useLocal
   ? `https://${localapidomain}.liftosaur.com:${localapiport}`
   : "https://api3.liftosaur.com";
@@ -232,6 +230,8 @@ import { TextSize_apply } from "./utils/textSize";
 import { AppContext } from "./components/appContext";
 import { ActionSheetHost } from "./components/actionSheetHost";
 import { PromptHost } from "./components/promptHost";
+import { Toast } from "./components/toast";
+import { useOnloadModals } from "./navigation/useOnloadModals";
 import { SystemBars } from "react-native-edge-to-edge";
 import { activateKeepAwake, deactivateKeepAwake } from "@sayem314/react-native-keep-awake";
 import { ImportExporter_handleUniversalLink } from "./lib/importexporter";
@@ -254,7 +254,6 @@ import {
 } from "./ducks/thunks";
 import { IapAdapter } from "./utils/iap";
 import { HealthAdapter } from "./utils/health";
-import { WhatsNew_doesHaveNewUpdates } from "./models/whatsnew";
 import { History_getGraphsAggregates, History_getHomeAggregates } from "./models/history";
 import { PerfLongTasks_start } from "./utils/perfLongTasks";
 import { usePerfFrameSampling, PerfFrameSampler_flush } from "./utils/perfFrameCallback";
@@ -645,17 +644,7 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
     prevShowCorruptedState.current = showCorruptedState;
   }, [isNavReady, showCorruptedState]);
 
-  const shouldShowWhatsNew = WhatsNew_doesHaveNewUpdates(state.storage.whatsNew) || state.showWhatsNew;
-  const prevShouldShowWhatsNew = useRef(false);
-  useEffect(() => {
-    if (!isNavReady) {
-      return;
-    }
-    if (shouldShowWhatsNew && state.storage.whatsNew != null && !prevShouldShowWhatsNew.current) {
-      navigateToModal("whatsnewModal");
-    }
-    prevShouldShowWhatsNew.current = !!(shouldShowWhatsNew && state.storage.whatsNew != null);
-  }, [isNavReady, shouldShowWhatsNew, state.storage.whatsNew]);
+  useOnloadModals(state, dispatch, isNavReady);
 
   useEffect(() => {
     if (!isNavReady || !currentScreenName) {
@@ -730,6 +719,7 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
                   )}
                   <ActionSheetHost />
                   <PromptHost />
+                  <Toast toast={state.toast} dispatch={dispatch} />
                 </CustomKeyboardProvider>
               </ActiveSheetHeightProvider>
             </ModalStateProvider>

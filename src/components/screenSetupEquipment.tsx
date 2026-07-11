@@ -150,7 +150,7 @@ export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Ele
             buttonSize="lg"
             data-testid="setup-equipment-skip"
             testID="setup-equipment-skip"
-            onClick={() => props.dispatch(Thunk_pushScreen("programselect"))}
+            onClick={() => props.dispatch(Thunk_pushScreen("hearaboutus"))}
           >
             Skip
           </Button>
@@ -314,7 +314,7 @@ export function ScreenSetupPlates(props: IScreenSetupPlatesProps): JSX.Element {
           name="setup-plates-continue"
           kind="purple"
           buttonSize="lg"
-          onClick={() => props.dispatch(Thunk_pushScreen("programselect"))}
+          onClick={() => props.dispatch(Thunk_pushScreen("hearaboutus"))}
           data-testid="setup-plates-continue"
           testID="setup-plates-continue"
         >

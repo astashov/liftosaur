@@ -10,6 +10,7 @@ import {
   ScreenSetupPlates as ScreenSetupPlatesComponent,
 } from "../../components/screenSetupEquipment";
 import { ScreenProgramSelect as ScreenProgramSelectComponent } from "../../components/screenProgramSelect";
+import { ScreenHearAboutUs as ScreenHearAboutUsComponent } from "../../components/screenHearAboutUs";
 import { ChooseProgramView } from "../../components/chooseProgram";
 import { ScreenProgramPreview as ScreenProgramPreviewComponent } from "../../components/screenProgramPreview";
 import { Progress_getCurrentProgress } from "../../models/progress";
@@ -57,6 +58,15 @@ export function NavScreenSetupPlates(): JSX.Element {
       dispatch={dispatch}
       settings={state.storage.settings}
     />
+  );
+}
+
+export function NavScreenHearAboutUs(): JSX.Element {
+  const { dispatch } = useAppState();
+  return (
+    <NavScreenContent>
+      <ScreenHearAboutUsComponent dispatch={dispatch} />
+    </NavScreenContent>
   );
 }
 

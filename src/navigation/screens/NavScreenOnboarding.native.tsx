@@ -15,6 +15,7 @@ import {
   ScreenSetupEquipment as ScreenSetupEquipmentComponent,
   ScreenSetupPlates as ScreenSetupPlatesComponent,
 } from "../../components/screenSetupEquipment";
+import { ScreenHearAboutUs as ScreenHearAboutUsComponent } from "../../components/screenHearAboutUs";
 
 export function NavScreenFirst(): React.JSX.Element {
   const dispatch = useTrackedDispatch();
@@ -60,6 +61,15 @@ export function NavScreenSetupPlates(): React.JSX.Element {
       dispatch={dispatch}
       settings={untrack(state.storage.settings)}
     />
+  );
+}
+
+export function NavScreenHearAboutUs(): React.JSX.Element {
+  const dispatch = useTrackedDispatch();
+  return (
+    <NavScreenContent>
+      <ScreenHearAboutUsComponent dispatch={dispatch} />
+    </NavScreenContent>
   );
 }
 

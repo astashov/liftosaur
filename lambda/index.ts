@@ -1593,6 +1593,7 @@ const logHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof logEndpoi
   const {
     user,
     action,
+    detail,
     affiliates,
     platform,
     subscriptions,
@@ -1605,7 +1606,16 @@ const logHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof logEndpoi
       : getLandingPageCookie(event);
   let data: { result: "ok" | "error" };
   if (user && action) {
-    await new LogDao(di).increment(user, action, platform, subscriptions, affiliates, referrer, landingPage);
+    await new LogDao(di).increment(
+      user,
+      action,
+      platform,
+      subscriptions,
+      affiliates,
+      referrer,
+      landingPage,
+      typeof detail === "string" ? detail : undefined
+    );
     data = { result: "ok" };
   } else {
     data = { result: "error" };
@@ -1699,7 +1709,8 @@ const postBatchEventsHandler: RouteHandler<IPayload, APIGatewayProxyResult, type
         e.subscriptions as ("apple" | "google")[],
         e.affiliates,
         e.referrer,
-        e.landingPage
+        e.landingPage,
+        e.detail
       );
       successfulIds = successfulIds.concat(id);
     } catch (error) {
