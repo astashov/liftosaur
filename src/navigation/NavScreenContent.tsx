@@ -26,6 +26,8 @@ export function NavScreenContent(props: {
   const scrollRef = useRef<ScrollView>(null);
   const scrollYRef = useRef(0);
   const scrollListenersRef = useRef<Set<INavScreenScrollListener>>(new Set());
+  const layoutSizeRef = useRef({ width: 0, height: 0 });
+  const contentSizeRef = useRef({ width: 0, height: 0 });
   const animatedKeyboardHeight = useCustomKeyboardAnimatedHeight();
   const [footerHeight, setFooterHeight] = useState(0);
 
@@ -33,6 +35,8 @@ export function NavScreenContent(props: {
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
       const y = e.nativeEvent.contentOffset.y;
       scrollYRef.current = y;
+      layoutSizeRef.current = e.nativeEvent.layoutMeasurement;
+      contentSizeRef.current = e.nativeEvent.contentSize;
       const isScrolled = y > 0;
       if (isScrolled !== isScrolledRef.current) {
         isScrolledRef.current = isScrolled;
@@ -47,12 +51,52 @@ export function NavScreenContent(props: {
     setFooterHeight(e.nativeEvent.layout.height);
   }, []);
 
-  const addScrollListener = useCallback((listener: INavScreenScrollListener) => {
-    scrollListenersRef.current.add(listener);
-    return () => {
-      scrollListenersRef.current.delete(listener);
-    };
+  // Listeners (e.g. useProgressiveItems) only ever see fresh onScroll events. When a screen isn't
+  // tall enough to scroll, no such event fires, so a listener that gates work on a near-bottom scroll
+  // would never advance. Replay the current scroll state on layout/content-size changes and on
+  // registration so those listeners can detect "already at the bottom / not scrollable".
+  const notifyListeners = useCallback((listeners: INavScreenScrollListener[]) => {
+    const layout = layoutSizeRef.current;
+    const content = contentSizeRef.current;
+    if (layout.height <= 0 || content.height <= 0) {
+      return;
+    }
+    const syntheticEvent = {
+      nativeEvent: {
+        contentOffset: { x: 0, y: scrollYRef.current },
+        contentSize: content,
+        layoutMeasurement: layout,
+      },
+    } as NativeSyntheticEvent<NativeScrollEvent>;
+    listeners.forEach((listener) => listener(syntheticEvent));
   }, []);
+
+  const onContentSizeChange = useCallback(
+    (width: number, height: number) => {
+      contentSizeRef.current = { width, height };
+      notifyListeners([...scrollListenersRef.current]);
+    },
+    [notifyListeners]
+  );
+
+  const onScrollViewLayout = useCallback(
+    (e: LayoutChangeEvent) => {
+      layoutSizeRef.current = { width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height };
+      notifyListeners([...scrollListenersRef.current]);
+    },
+    [notifyListeners]
+  );
+
+  const addScrollListener = useCallback(
+    (listener: INavScreenScrollListener) => {
+      scrollListenersRef.current.add(listener);
+      notifyListeners([listener]);
+      return () => {
+        scrollListenersRef.current.delete(listener);
+      };
+    },
+    [notifyListeners]
+  );
 
   const contextValue = useMemo(() => ({ scrollRef, scrollYRef, addScrollListener }), [addScrollListener]);
 
@@ -67,6 +111,8 @@ export function NavScreenContent(props: {
       contentContainerStyle={{ flexGrow: 1, paddingBottom: props.footer != null ? footerHeight : 0 }}
       automaticallyAdjustKeyboardInsets={true}
       onScroll={onScroll}
+      onLayout={onScrollViewLayout}
+      onContentSizeChange={onContentSizeChange}
       scrollEventThrottle={16}
       onScrollBeginDrag={scrollMarkers.onScrollBeginDrag}
       onScrollEndDrag={scrollMarkers.onScrollEndDrag}

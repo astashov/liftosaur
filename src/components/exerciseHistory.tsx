@@ -58,8 +58,11 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
   const visibleHistory = useProgressiveItems(history, {
     initialBatch: 5,
     batchSize: 15,
+    idleCap: 10,
     debugLabel: "ExerciseHistory",
-    resetKey: `${hideWithoutExerciseNotes ? 1 : 0}|${hideWithoutWorkoutNotes ? 1 : 0}|${ascendingSort ? 1 : 0}`,
+    resetKey: `${Exercise_toKey(props.exerciseType)}|${hideWithoutExerciseNotes ? 1 : 0}|${
+      hideWithoutWorkoutNotes ? 1 : 0
+    }|${ascendingSort ? 1 : 0}`,
   });
   const dispatch = props.dispatch;
   const onToggleFilters = useCallback(() => setShowFilters((s) => !s), []);
