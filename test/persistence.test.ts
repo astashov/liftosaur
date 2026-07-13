@@ -251,14 +251,75 @@ describe("Persistence", () => {
     expect(loadedNoBlob?.storage?.history.map((r) => r.id)).to.eql([1, 2]);
   });
 
-  it("degrades lastSyncedStorage to undefined when its shard group is incomplete", async () => {
+  it("recovers lastSyncedStorage from the legacy blob when its shard group is incomplete", async () => {
     const storage = buildStorage([1]);
     await persistence.save(BASE_KEY, { storage, lastSyncedStorage: storage });
     store.data.delete(`liftosaurshard:${BASE_KEY}:lastsynced_history`);
     const freshBoot = new Persistence(store, "sharded");
     const loaded = await freshBoot.load(BASE_KEY);
     expect(loaded?.storage?.history.map((r) => r.id)).to.eql([1]);
+    // A partial shard set (native saves aren't atomic) must not strand sync without a baseline -
+    // the blob still holds a valid one, so recover from it instead of returning undefined.
+    expect(loaded?.lastSyncedStorage?.history.map((r) => r.id)).to.eql([1]);
+  });
+
+  it("degrades lastSyncedStorage to undefined when its shard group is incomplete and no blob exists", async () => {
+    const storage = buildStorage([1]);
+    await persistence.save(BASE_KEY, { storage, lastSyncedStorage: storage });
+    store.data.delete(`liftosaurshard:${BASE_KEY}:lastsynced_history`);
+    store.data.delete(BASE_KEY);
+    const freshBoot = new Persistence(store, "sharded");
+    const loaded = await freshBoot.load(BASE_KEY);
+    expect(loaded?.storage?.history.map((r) => r.id)).to.eql([1]);
     expect(loaded?.lastSyncedStorage).to.equal(undefined);
+  });
+
+  it("does not restore lastSyncedStorage from the blob when a clear removed all lastsynced shards", async () => {
+    const storage = buildStorage([1]);
+    // First save establishes the shards + a frozen bootstrap blob that still holds a baseline.
+    await persistence.save(BASE_KEY, { storage, lastSyncedStorage: storage });
+    // A logout / not_authorized clear removes all four lastsynced_* shards; in sharded mode the
+    // frozen blob is left untouched (and thus stale).
+    await persistence.save(BASE_KEY, { storage, lastSyncedStorage: undefined });
+    const freshBoot = new Persistence(store, "sharded");
+    const loaded = await freshBoot.load(BASE_KEY);
+    expect(loaded?.storage?.history.map((r) => r.id)).to.eql([1]);
+    // "all absent" is a legitimate no-baseline state - it must NOT resurrect the stale frozen blob.
+    expect(loaded?.lastSyncedStorage).to.equal(undefined);
+  });
+
+  // Documents an ACCEPTED narrow edge case: a torn clear leaves the SAME partial-shard signature as
+  // a torn baseline write, so load() can't tell them apart and recovers from the blob - briefly
+  // undoing the intended no-baseline state. It requires a crash mid non-atomic MMKV clear loop, and
+  // the resurrected baseline is neutralized downstream (tempUserId re-fetch on account switch;
+  // idempotent version-reconciled re-sync for same-user logout / not_authorized). See discussion in
+  // withLastSyncedFallback. If this ever needs closing, order save() so the blob (which reflects the
+  // cleared lastSynced) is written before the lastsynced_* shard mutations.
+  it("resurrects the baseline on a torn clear (partial shards) - accepted edge case", async () => {
+    const storage = buildStorage([1]);
+    // Establish the shards + a frozen blob that still holds the baseline.
+    await persistence.save(BASE_KEY, { storage, lastSyncedStorage: storage });
+    // A clear that crashed mid-loop: some lastsynced_* shards removed, the rest (and the blob) stale.
+    store.data.delete(`liftosaurshard:${BASE_KEY}:lastsynced_history`);
+    store.data.delete(`liftosaurshard:${BASE_KEY}:lastsynced_programs`);
+    const freshBoot = new Persistence(store, "sharded");
+    const loaded = await freshBoot.load(BASE_KEY);
+    expect(loaded?.lastSyncedStorage?.history.map((r) => r.id)).to.eql([1]);
+  });
+
+  it("heals the lastsynced shard set on the next save after a blob fallback", async () => {
+    const storage = buildStorage([1]);
+    await persistence.save(BASE_KEY, { storage, lastSyncedStorage: storage });
+    store.data.delete(`liftosaurshard:${BASE_KEY}:lastsynced_history`);
+    const freshBoot = new Persistence(store, "sharded");
+    const loaded = await freshBoot.load(BASE_KEY);
+    expect(loaded?.lastSyncedStorage?.history.map((r) => r.id)).to.eql([1]);
+    // The next save must rewrite the full lastsynced_* group so disk stops depending on the blob.
+    await freshBoot.save(BASE_KEY, { storage, lastSyncedStorage: loaded!.lastSyncedStorage });
+    store.data.delete(BASE_KEY);
+    const reboot = new Persistence(store, "sharded");
+    const reloaded = await reboot.load(BASE_KEY);
+    expect(reloaded?.lastSyncedStorage?.history.map((r) => r.id)).to.eql([1]);
   });
 
   it("deletes legacy blob, all shards and manifest", async () => {

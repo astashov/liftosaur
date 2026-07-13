@@ -35,6 +35,14 @@ interface IWriteCacheEntry {
   lastSyncedStorage?: IStorage;
 }
 
+type ILastSyncedStatus = "absent" | "partial" | "complete";
+
+interface IAssembled {
+  storage: IStorage;
+  lastSyncedStorage?: IStorage;
+  lastSyncedStatus: ILastSyncedStatus;
+}
+
 // Rollout ladder: "legacy" (single blob, as before) → "dual" (shards + legacy blob on
 // every save, so any rollback or stale tab still finds a current blob) → "sharded"
 // (shards only, legacy blob stays frozen as a backup). Flip the default to "sharded"
@@ -224,13 +232,9 @@ export class Persistence {
       // without one means the manifest key was lost — the shards are newer than the
       // (possibly stale or absent) blob and must win.
       const assembledWithoutManifest = await this.assemble(baseKey);
-      if (assembledWithoutManifest?.storage != null) {
+      if (assembledWithoutManifest != null) {
         lg("ls-persistence-manifest-missing");
-        this.writeCache[baseKey] = {
-          storage: assembledWithoutManifest.storage,
-          lastSyncedStorage: assembledWithoutManifest.lastSyncedStorage,
-        };
-        return assembledWithoutManifest;
+        return this.withLastSyncedFallback(baseKey, assembledWithoutManifest, legacy);
       }
       if (legacy == null) {
         return undefined;
@@ -243,7 +247,7 @@ export class Persistence {
     }
 
     const assembled = await this.assemble(baseKey);
-    if (assembled?.storage == null) {
+    if (assembled == null) {
       lg("ls-persistence-shards-unreadable");
       if (legacy == null) {
         return undefined;
@@ -255,8 +259,37 @@ export class Persistence {
       }
     }
 
-    this.writeCache[baseKey] = { storage: assembled.storage, lastSyncedStorage: assembled.lastSyncedStorage };
-    return assembled;
+    return this.withLastSyncedFallback(baseKey, assembled, legacy);
+  }
+
+  // A non-atomic multi-shard save (MMKV has no transaction) can crash mid-write and leave a PARTIAL
+  // lastsynced_* shard set, which assemble() can't turn into a baseline. Sync then can't diff, so it
+  // stays in its never-synced fetch path and — if the re-fetch doesn't cleanly reseed — stops
+  // uploading entirely. The dual-mode legacy blob still carries a valid (at worst slightly stale,
+  // which sync reconciles) lastSyncedStorage, so recover it from there. Crucially, this only fires on
+  // a "partial" set: an "absent" set is a legitimate no-baseline state (logout / not_authorized clear
+  // all four shards) and must NOT resurrect the stale frozen blob. writeCache is seeded as if no
+  // lastsynced shards exist, so the next save rewrites the full set and heals disk — also lifting the
+  // dependency on the blob for the future frozen-blob "sharded" mode.
+  private withLastSyncedFallback(baseKey: string, assembled: IAssembled, legacy: string | undefined): ILocalStorage {
+    const passthrough = { storage: assembled.storage, lastSyncedStorage: assembled.lastSyncedStorage };
+    if (assembled.lastSyncedStatus !== "partial" || legacy == null) {
+      this.writeCache[baseKey] = passthrough;
+      return passthrough;
+    }
+    let blobLastSynced: IStorage | undefined;
+    try {
+      blobLastSynced = (JSON.parse(legacy) as ILocalStorage).lastSyncedStorage;
+    } catch {
+      blobLastSynced = undefined;
+    }
+    if (blobLastSynced == null) {
+      this.writeCache[baseKey] = { storage: assembled.storage, lastSyncedStorage: undefined };
+      return { storage: assembled.storage, lastSyncedStorage: undefined };
+    }
+    lg("ls-persistence-lastsynced-blob-fallback");
+    this.writeCache[baseKey] = { storage: assembled.storage, lastSyncedStorage: undefined };
+    return { storage: assembled.storage, lastSyncedStorage: blobLastSynced };
   }
 
   public async delete(baseKey: string): Promise<void> {
@@ -314,7 +347,7 @@ export class Persistence {
     return results;
   }
 
-  private async assemble(baseKey: string): Promise<ILocalStorage | undefined> {
+  private async assemble(baseKey: string): Promise<IAssembled | undefined> {
     const [partialRaw, historyRaw, programsRaw, statsRaw, lsPartialRaw, lsHistoryRaw, lsProgramsRaw, lsStatsRaw] =
       await Promise.all([
         this.store.get(shardKey(baseKey, "storage")),
@@ -339,16 +372,24 @@ export class Persistence {
     }
     try {
       const storage = assembleStorage(partialRaw, historyRaw, programsRaw, statsRaw);
-      // For lastSynced, undefined is the safe degraded value: sync falls back to its
-      // conservative never-synced path instead of diffing against a fabricated baseline
+      // The lastsynced_* group is tri-state: "complete" (all 4) → real baseline; "absent" (0) → a
+      // legitimate no-baseline state (logout / not_authorized deliberately clear all four); "partial"
+      // (1-3) → a crash mid non-atomic save. Only "partial" is corruption to repair from the blob -
+      // "absent" must NOT resurrect a stale frozen blob, or it'd undo those clears.
+      const presentCount = [lsPartialRaw, lsHistoryRaw, lsProgramsRaw, lsStatsRaw].filter(
+        (r) => typeof r === "string"
+      ).length;
+      const lastSyncedStatus: ILastSyncedStatus =
+        presentCount === 0 ? "absent" : presentCount === 4 ? "complete" : "partial";
       const lastSyncedStorage =
+        lastSyncedStatus === "complete" &&
         typeof lsPartialRaw === "string" &&
         typeof lsHistoryRaw === "string" &&
         typeof lsProgramsRaw === "string" &&
         typeof lsStatsRaw === "string"
           ? assembleStorage(lsPartialRaw, lsHistoryRaw, lsProgramsRaw, lsStatsRaw)
           : undefined;
-      return { storage, lastSyncedStorage };
+      return { storage, lastSyncedStorage, lastSyncedStatus };
     } catch (e) {
       lg("ls-persistence-assemble-error", { error: String(e) });
       return undefined;
