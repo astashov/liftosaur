@@ -1527,7 +1527,7 @@ class LiftosaurWatch {
 
       // Calculate stats using History helpers
       const timeMs = History_workoutTime(record);
-      const volume = History_totalRecordWeight(record, settings.units);
+      const volume = History_totalRecordWeight(record, settings);
       const totalSets = History_totalRecordSets(record);
       const totalReps = History_totalRecordReps(record);
 

@@ -33,7 +33,7 @@ export function WorkoutShareOutput(props: IWorkoutShareOutputProps): JSX.Element
   const numberOfRecordPrs = ObjectUtils_keys(recordPrs).length;
   const entries = record.entries.filter((e) => e.sets.filter((s) => (s.completedReps ?? 0) > 0).length > 0);
   const time = TimeUtils_formatHHMM(History_workoutTime(record));
-  const totalWeight = History_totalRecordWeight(record, props.settings.units);
+  const totalWeight = History_totalRecordWeight(record, props.settings);
   const totalReps = History_totalRecordReps(record);
   const totalSets = History_totalRecordSets(record);
   return (

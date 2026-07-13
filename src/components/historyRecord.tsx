@@ -169,7 +169,7 @@ interface IHistoryRecordStats {
 function HistoryRecordStats(props: IHistoryRecordStats): JSX.Element {
   const record = props.historyRecord;
   const { value: time, unit: timeUnit } = TimeUtils_formatHOrMin(History_workoutTime(record));
-  const totalWeight = History_totalRecordWeight(record, props.settings.units);
+  const totalWeight = History_totalRecordWeight(record, props.settings);
   const totalReps = History_totalRecordReps(record);
   const totalSets = History_totalRecordSets(record);
   const setsUnit = StringUtils_pluralize("set", totalSets);

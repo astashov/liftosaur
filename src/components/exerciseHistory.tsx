@@ -4,11 +4,18 @@ import { Text } from "./primitives/text";
 import { Pressable } from "react-native";
 import { IDispatch } from "../ducks/types";
 import { IExerciseType, IHistoryRecord, ISettings, IUnit } from "../types";
-import { Weight_print, Weight_is, Weight_isPct, Weight_display } from "../models/weight";
+import { Weight_print, Weight_is, Weight_isPct, Weight_display, Weight_multiply } from "../models/weight";
 import { DateUtils_format } from "../utils/date";
 import { MenuItemWrapper } from "./menuItem";
 import { useProgressiveItems } from "../utils/useProgressiveItems";
-import { Exercise_get, Exercise_fullName, Exercise_eq, Exercise_toKey, IExercise } from "../models/exercise";
+import {
+  Exercise_get,
+  Exercise_fullName,
+  Exercise_eq,
+  Exercise_toKey,
+  Exercise_getVolumeMultiplier,
+  IExercise,
+} from "../models/exercise";
 import { Reps_volume } from "../models/set";
 import { History_getPersonalRecords, IPersonalRecords } from "../models/history";
 import { ObjectUtils_keys } from "../utils/object";
@@ -137,6 +144,7 @@ export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element 
           historyRecord={historyRecord}
           fullExercise={fullExercise}
           units={props.settings.units}
+          settings={props.settings}
           prs={allPrs[historyRecord.id]}
           dispatch={props.dispatch}
         />
@@ -149,12 +157,13 @@ interface IExerciseHistoryRecordProps {
   historyRecord: IHistoryRecord;
   fullExercise: IExercise;
   units: IUnit;
+  settings: ISettings;
   prs: IPersonalRecords[string];
   dispatch: IDispatch;
 }
 
 const ExerciseHistoryRecord = memo((props: IExerciseHistoryRecordProps): JSX.Element => {
-  const { historyRecord, fullExercise, units, prs, dispatch } = props;
+  const { historyRecord, fullExercise, units, settings, prs, dispatch } = props;
   const rem = useRem();
   const secondary = Tailwind_semantic().text.secondary;
   const xs = StyledText_remToPx("xs", rem);
@@ -183,7 +192,10 @@ const ExerciseHistoryRecord = memo((props: IExerciseHistoryRecordProps): JSX.Ele
                   const name = { rm1: "1 Rep Max" }[key] || key;
                   state[name] = vars[key];
                 }
-                const volume = Reps_volume(entry.sets, units);
+                const volume = Weight_multiply(
+                  Reps_volume(entry.sets, units),
+                  Exercise_getVolumeMultiplier(entry.exercise, settings)
+                );
                 return (
                   <View key={ei} className="pt-1">
                     <View className="items-end">

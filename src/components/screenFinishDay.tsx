@@ -77,7 +77,7 @@ export function ScreenFinishDay(props: IProps): JSX.Element {
   }
 
   const allPrs = History_getPersonalRecords(props.history);
-  const totalWeight = History_totalRecordWeight(record, props.settings.units);
+  const totalWeight = History_totalRecordWeight(record, props.settings);
 
   const startedEntries = History_getStartedEntries(record);
   const totalReps = History_totalRecordReps(record);

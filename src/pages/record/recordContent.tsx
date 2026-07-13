@@ -114,7 +114,7 @@ function Entry(props: IEntryProps): JSX.Element {
   const prSet = History_findPersonalRecord(props.recordId, props.entry, props.history);
   const setGroups = Reps_group(props.entry.sets);
 
-  const totalWeight = History_totalEntryWeight(props.entry, props.settings.units);
+  const totalWeight = History_totalEntryWeight(props.entry, props.settings);
   const totalReps = History_totalEntryReps(props.entry);
 
   return (

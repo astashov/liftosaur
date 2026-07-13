@@ -1,5 +1,6 @@
 import {
   Exercise_getIsUnilateral,
+  Exercise_getVolumeMultiplier,
   Exercise_onerm,
   Exercise_toKey,
   Exercise_get,
@@ -23,6 +24,7 @@ import {
   Weight_gte,
   Weight_add,
   Weight_eq,
+  Weight_multiply,
 } from "./weight";
 import {
   IHistoryEntry,
@@ -377,7 +379,9 @@ export function History_collectMuscleGroups(
             }
           }
           muscleGroupAcc[1][muscleGroupAcc[1].length - 1] +=
-            Reps_volume(finishedSets, settings.units).value * multiplier;
+            Reps_volume(finishedSets, settings.units).value *
+            multiplier *
+            Exercise_getVolumeMultiplier(entry.exercise, settings);
           muscleGroupAcc[2][muscleGroupAcc[2].length - 1] += finishedSets.length * multiplier;
         }
       }
@@ -666,8 +670,11 @@ export function History_findPersonalRecord(
   }
 }
 
-export function History_totalRecordWeight(record: IHistoryRecord, unit: IUnit): IWeight {
-  return record.entries.reduce((memo, e) => Weight_add(memo, History_totalEntryWeight(e, unit)), Weight_build(0, unit));
+export function History_totalRecordWeight(record: IHistoryRecord, settings: ISettings): IWeight {
+  return record.entries.reduce(
+    (memo, e) => Weight_add(memo, History_totalEntryWeight(e, settings)),
+    Weight_build(0, settings.units)
+  );
 }
 
 export function History_totalRecordReps(record: IHistoryRecord): number {
@@ -678,10 +685,12 @@ export function History_totalRecordSets(record: IHistoryRecord): number {
   return record.entries.reduce((memo, e) => memo + History_totalEntrySets(e), 0);
 }
 
-export function History_totalEntryWeight(entry: IHistoryEntry, unit: IUnit): IWeight {
-  return entry.sets
+export function History_totalEntryWeight(entry: IHistoryEntry, settings: ISettings): IWeight {
+  const unit = settings.units;
+  const volume = entry.sets
     .filter((s) => (s.completedReps || 0) > 0)
     .reduce((memo, set) => Weight_add(memo, Reps_setVolume(set, unit)), Weight_build(0, unit));
+  return Weight_multiply(volume, Exercise_getVolumeMultiplier(entry.exercise, settings));
 }
 
 export function History_totalEntryReps(entry: IHistoryEntry): number {

@@ -1,12 +1,13 @@
 import {
   IExercise,
   Exercise_get,
+  Exercise_getVolumeMultiplier,
   Exercise_targetMusclesGroups,
   Exercise_synergistMusclesGroupMultipliers,
   Exercise_synergistMusclesGroups,
 } from "../models/exercise";
 import { Reps_setVolume } from "../models/set";
-import { Weight_build, Weight_add } from "../models/weight";
+import { Weight_build, Weight_add, Weight_multiply } from "../models/weight";
 import { ISetResults, ISetSplit } from "../pages/planner/models/types";
 import { IHistoryRecord, IScreenMuscle, ISettings } from "../types";
 
@@ -37,10 +38,14 @@ export function WeekInsightsUtils_calculateSetResults(
       if (exercise == null) {
         continue;
       }
+      const volumeMultiplier = Exercise_getVolumeMultiplier(entry.exercise, settings);
       for (const set of entry.sets) {
         const completedReps = set.completedReps || 0;
         if (completedReps > 0) {
-          results.volume = Weight_add(results.volume, Reps_setVolume(set, settings.units));
+          results.volume = Weight_add(
+            results.volume,
+            Weight_multiply(Reps_setVolume(set, settings.units), volumeMultiplier)
+          );
           results.total += 1;
           if (completedReps < 8) {
             results.strength += 1;

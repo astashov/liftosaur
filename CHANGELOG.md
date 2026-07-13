@@ -14,6 +14,17 @@
 -->
 
 ---
+date: 2026-07-13
+title: More accurate volume for two-dumbbell exercises
+---
+
+Volume and total weight now count both dumbbells for exercises you load with a pair - like dumbbell shoulder press, bench press, rows, lunges, and split squats. The weight you enter for these is per-dumbbell, so previously we only counted one and undercounted the volume by half. Now it's doubled to reflect the real load moved.
+
+This changes how numbers look in your volume graphs - your dumbbell volume will double compared to before. So, it's somewhat a breaking change.
+
+If a particular exercise doesn't fit (say you do a single-dumbbell variation), you can turn this off per-exercise: go to Exercise Stats, and toggle "Two weights (count both)".
+
+---
 date: 2026-07-10
 title: Added exercise variations (progression ladders)
 ---

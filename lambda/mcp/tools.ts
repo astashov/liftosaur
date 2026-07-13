@@ -134,6 +134,11 @@ const EXERCISE_DATA_FIELD_SCHEMAS: Record<string, IMcpJsonSchema> = {
     type: ["boolean", "null"],
     description: "Whether the exercise is unilateral (performed one side at a time). null clears the override.",
   },
+  volumeMultiplier: {
+    type: ["number", "null"],
+    description:
+      "Multiplier applied to this exercise's volume/total-weight (not to prescribed weights), clamped to 1-10. Set to 2 for exercises loaded with two dumbbells simultaneously (e.g. dumbbell shoulder press), where the displayed weight is per-dumbbell. null clears the override.",
+  },
 };
 
 export const mcpTools: IMcpToolDef[] = [

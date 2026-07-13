@@ -121,6 +121,7 @@ const EXERCISE_DATA_ARG_PARSERS: Record<IWritableExerciseDataField, (raw: unknow
   notes: (raw) => raw,
   muscleMultipliers: asJson,
   isUnilateral: asBool,
+  volumeMultiplier: asNumber,
 };
 
 function parseExerciseDataArgs(args: Record<string, unknown>): {

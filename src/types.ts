@@ -1407,6 +1407,7 @@ export interface IExerciseDataValue {
   notes?: string;
   muscleMultipliers?: Record<string, number | undefined>;
   isUnilateral?: boolean;
+  volumeMultiplier?: number;
 }
 const _VExerciseDataValue = v.object({
   rm1: v.optional(VWeight),
@@ -1415,6 +1416,7 @@ const _VExerciseDataValue = v.object({
   notes: v.optional(v.string()),
   muscleMultipliers: v.optional(v.record(v.string(), v.optional(v.number()))),
   isUnilateral: v.optional(v.boolean()),
+  volumeMultiplier: v.optional(v.number()),
 });
 const _VExerciseDataValueMatches: IEquals<v.InferOutput<typeof _VExerciseDataValue>, IExerciseDataValue> = true;
 void _VExerciseDataValueMatches;

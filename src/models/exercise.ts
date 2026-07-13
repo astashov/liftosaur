@@ -4433,6 +4433,60 @@ export function Exercise_getIsUnilateral(exerciseType: IExerciseType, settings: 
   }
 }
 
+// The number of implements loaded per rep — orthogonal to unilaterality. Unilateral rep-summing
+// (left+right) accounts for the *sides*; this accounts for the *implements*. A dumbbell lunge is
+// both: worked one leg at a time (reps summed) AND holding two dumbbells (multiplier 2).
+export function Exercise_getVolumeMultiplier(exerciseType: IExerciseType, settings: ISettings): number {
+  const key = Exercise_toKey(exerciseType);
+  const override = settings.exerciseData[key]?.volumeMultiplier;
+  if (override !== undefined) {
+    return override;
+  }
+  // Only dumbbells load two implements per rep at a per-implement displayed weight.
+  // Kettlebell is excluded on purpose: the default is a single bell (swing, goblet,
+  // turkish get up) — double-kettlebell users can override.
+  if (exerciseType.equipment !== "dumbbell") {
+    return 1;
+  }
+  switch (exerciseType.id) {
+    case "arnoldPress":
+    case "overheadPress":
+    case "shoulderPress":
+    case "shoulderPressParallelGrip":
+    case "lateralRaise":
+    case "frontRaise":
+    case "seatedFrontRaise":
+    case "reverseFly":
+    case "uprightRow":
+    case "benchPress":
+    case "inclineBenchPress":
+    case "declineBenchPress":
+    case "inclineChestPress":
+    case "chestFly":
+    case "inclineChestFly":
+    case "aroundTheWorld":
+    case "bentOverRow":
+    case "chestSupportedRow":
+    case "inclineRow":
+    case "renegadeRow":
+    case "deadlift":
+    case "romanianDeadlift":
+    case "straightLegDeadlift":
+    case "stiffLegDeadlift":
+    case "shrug":
+    case "skullcrusher":
+    // unilateral, but both dumbbells are loaded through the whole rep (reps are summed left+right on top)
+    case "lunge":
+    case "reverseLunge":
+    case "splitSquat":
+    case "bulgarianSplitSquat":
+    case "stepUp":
+      return 2;
+    default:
+      return 1;
+  }
+}
+
 export function Exercise_findByName(name: string, customExercises: IAllCustomExercises): IExercise | undefined {
   const exerciseId = Exercise_findIdByName(name.trim(), customExercises);
   if (exerciseId != null) {

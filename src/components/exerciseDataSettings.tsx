@@ -8,6 +8,7 @@ import {
   IExercise,
   Exercise_defaultRounding,
   Exercise_getIsUnilateral,
+  Exercise_getVolumeMultiplier,
   Exercise_toKey,
 } from "../models/exercise";
 import { updateState, IState, updateSettings } from "../models/state";
@@ -105,6 +106,25 @@ function ExerciseDataSettingsInner(props: IExerciseDataSettingsProps): JSX.Eleme
           );
         }}
       />
+      <MenuItemEditable
+        type="boolean"
+        name="Two weights (count both)"
+        value={Exercise_getVolumeMultiplier(fullExercise, props.settings) === 2 ? "true" : "false"}
+        onChange={(value) => {
+          const volumeMultiplier = value === "true" ? 2 : 1;
+          updateSettings(
+            props.dispatch,
+            lb<ISettings>()
+              .p("exerciseData")
+              .recordModify((exerciseData) => {
+                const k = Exercise_toKey(fullExercise);
+                return { ...exerciseData, [k]: { ...exerciseData[k], volumeMultiplier } };
+              }),
+            "Set exercise two-weights setting"
+          );
+        }}
+      />
+
       {props.show1RM && (
         <ExerciseRM
           name="1 Rep Max"

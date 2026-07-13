@@ -1323,6 +1323,21 @@ describe("MCP", () => {
       expect(bad.isError).to.equal(true);
     });
 
+    it("clamps volumeMultiplier into a sane range and neutralizes garbage", async () => {
+      const set = toolData(await callTool("set_exercise_data", { key: "shoulderPress_dumbbell", volumeMultiplier: 2 }));
+      expect(set.volumeMultiplier).to.equal(2);
+
+      const huge = toolData(
+        await callTool("set_exercise_data", { key: "shoulderPress_dumbbell", volumeMultiplier: 1000 })
+      );
+      expect(huge.volumeMultiplier).to.equal(10);
+
+      const negative = toolData(
+        await callTool("set_exercise_data", { key: "shoulderPress_dumbbell", volumeMultiplier: -5 })
+      );
+      expect(negative.volumeMultiplier).to.equal(1);
+    });
+
     it("rejects an unknown exercise key", async () => {
       const res = await callTool("set_exercise_data", { key: "notARealExercise", rm1: "100lb" });
       expect(res.isError).to.equal(true);

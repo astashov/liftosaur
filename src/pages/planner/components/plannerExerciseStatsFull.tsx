@@ -2,7 +2,7 @@ import { useMemo, useState, type JSX } from "react";
 import { lb } from "lens-shmens";
 import { LinkButton } from "../../../components/linkButton";
 import { ActiveGraphContext, IActiveGraphContext } from "../../../components/activeGraphContext";
-import { Exercise_findByName, Exercise_find } from "../../../models/exercise";
+import { Exercise_findByName, Exercise_find, Exercise_getVolumeMultiplier } from "../../../models/exercise";
 import { Weight_evaluateWeight, Weight_build, Weight_multiply } from "../../../models/weight";
 import { ISettings } from "../../../types";
 import { ILensDispatch } from "../../../utils/useLensReducer";
@@ -180,9 +180,10 @@ function getVolumePerWeeks(
       continue;
     }
     const setVariation = PlannerProgramExercise_currentEvaluatedSetVariation(exercise);
+    const volumeMultiplier = Exercise_getVolumeMultiplier(exercise.exerciseType, settings);
     const volume = Number(
-      setVariation.sets
-        .reduce((acc, s) => {
+      (
+        setVariation.sets.reduce((acc, s) => {
           const reps = s.maxrep ?? 0;
           const weight = Weight_evaluateWeight(
             s.weight ?? Weight_build(0, settings.units),
@@ -190,8 +191,8 @@ function getVolumePerWeeks(
             settings
           );
           return acc + Weight_multiply(weight, reps).value;
-        }, 0)
-        .toFixed(2)
+        }, 0) * volumeMultiplier
+      ).toFixed(2)
     );
     data[0].push(weekIndex + 1);
     data[1].push(volume);
