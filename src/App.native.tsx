@@ -224,7 +224,8 @@ import { navigationRef } from "./navigation/navigationRef";
 import { ScreenRemovalCleanup_subscribe } from "./navigation/screenRemovalCleanup";
 import { navigateToModal } from "./navigation/navigationService";
 import { getCurrentScreenData } from "./navigation/navigationService";
-import { IndexedDBUtils_initializeForSafari, IndexedDBUtils_get } from "./utils/indexeddb";
+import { IndexedDBUtils_initializeForSafari } from "./utils/indexeddb";
+import { Persistence } from "./utils/persistence";
 import { Settings_applyTheme, Settings_getTheme } from "./models/settings";
 import { TextSize_apply } from "./utils/textSize";
 import { AppContext } from "./components/appContext";
@@ -272,21 +273,23 @@ GoogleSignin.configure({
   offlineAccess: false,
 });
 
-function AppInner(props: { initialState: IState }): React.JSX.Element {
+function AppInner(props: { initialState: IState; persistence: Persistence }): React.JSX.Element {
+  const persistence = props.persistence;
   const env = useMemo<IEnv>(
     () => ({
       service: new Service(fetch),
       audio: new AudioInterface(),
       queue: new AsyncQueue(),
+      persistence,
       navigationRef,
       getCurrentScreenData,
       iap: new IapAdapter(),
       health: new HealthAdapter(),
     }),
-    []
+    [persistence]
   );
   const service = env.service;
-  const reducer = useMemo(() => reducerWrapper(true), []);
+  const reducer = useMemo(() => reducerWrapper(true, persistence), [persistence]);
   const onActions = useMemo(() => defaultOnActions(env), [env]);
   const [state, dispatch] = useThunkReducer<IState, IAction, IEnv>(reducer, props.initialState, env, onActions);
   const stateRef = useRef(state);
@@ -732,14 +735,15 @@ function AppInner(props: { initialState: IState }): React.JSX.Element {
 
 export function App(): React.JSX.Element {
   const [initialState, setInitialState] = useState<IState | null>(null);
+  const [persistence] = useState(() => new Persistence());
 
   useEffect(() => {
     async function load(): Promise<void> {
       await IndexedDBUtils_initializeForSafari();
       const key = await getIdbKey();
-      const rawStorage = await IndexedDBUtils_get(key);
+      const localStorage = await persistence.load(key);
       const url = new URL(`${__HOST__}/app/`);
-      const state = await getInitialState(fetch, { rawStorage: rawStorage as string | undefined, url });
+      const state = await getInitialState(fetch, { localStorage, url });
       Settings_applyTheme(Settings_getTheme(state.storage.settings));
       TextSize_apply(state.storage.settings.textSize ?? 16);
       if (state.storage.history.length > 0) {
@@ -767,7 +771,7 @@ export function App(): React.JSX.Element {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-        <AppInner initialState={initialState} />
+        <AppInner initialState={initialState} persistence={persistence} />
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

@@ -5,11 +5,11 @@ type ITransactionMode = "readonly" | "readwrite";
 
 export let nativeStorage: NativeStorage | undefined;
 
-async function withTransaction<T>(
+function runTransaction<T>(
   mode: ITransactionMode,
   operation: (objectStore: IDBObjectStore) => IDBRequest<T>
-): Promise<T | undefined> {
-  const promise = new Promise<T>(async (resolve, reject) => {
+): Promise<T> {
+  return new Promise<T>(async (resolve, reject) => {
     const db = await IndexedDBUtils_initialize();
     if (db == null) {
       lg("ls-indexeddb-empty");
@@ -54,18 +54,27 @@ async function withTransaction<T>(
       reject(error || new Error("IndexedDB transaction aborted"));
     });
   });
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function logIndexedDBError(e: any): void {
+  const errorDetails = {
+    name: e?.name,
+    message: e?.message,
+    stack: e?.stack,
+  };
+  lg("ls-indexeddb-error", { json: JSON.stringify(e), details: JSON.stringify(errorDetails) });
+  console.error("IndexedDB error:", e);
+}
+
+async function withTransaction<T>(
+  mode: ITransactionMode,
+  operation: (objectStore: IDBObjectStore) => IDBRequest<T>
+): Promise<T | undefined> {
   try {
-    const result = await promise;
-    return result;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (e: any) {
-    const errorDetails = {
-      name: e?.name,
-      message: e?.message,
-      stack: e?.stack,
-    };
-    lg("ls-indexeddb-error", { json: JSON.stringify(e), details: JSON.stringify(errorDetails) });
-    console.error("IndexedDB error:", e);
+    return await runTransaction(mode, operation);
+  } catch (e) {
+    logIndexedDBError(e);
     return undefined;
   }
 }
@@ -210,4 +219,37 @@ export async function IndexedDBUtils_set(key: string, value?: string): Promise<v
     }),
     withNative(() => nativeStorage?.set(key, value)),
   ]);
+}
+
+// Unlike IndexedDBUtils_set, REJECTS on transaction failure (e.g. quota abort): the
+// persistence layer's reference-diff cache must only record refs after a confirmed write,
+// otherwise a silently failed shard write would be skipped as "unchanged" forever.
+export async function IndexedDBUtils_setMany(pairs: Array<[string, string | undefined]>): Promise<void> {
+  if (pairs.length === 0) {
+    return;
+  }
+  const nativeMirror = withNative(async () => {
+    for (const [key, value] of pairs) {
+      if (value != null) {
+        await nativeStorage?.set(key, value);
+      } else {
+        await nativeStorage?.delete(key);
+      }
+    }
+  });
+  try {
+    // Single transaction so concurrent tabs always observe a consistent set of shards
+    await runTransaction("readwrite", (objectStore) => {
+      let lastRequest: IDBRequest | undefined;
+      for (const [key, value] of pairs) {
+        lastRequest = value != null ? objectStore.put(value, key) : objectStore.delete(key);
+      }
+      return lastRequest!;
+    });
+  } catch (e) {
+    logIndexedDBError(e);
+    throw e;
+  } finally {
+    await nativeMirror;
+  }
 }

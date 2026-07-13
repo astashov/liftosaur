@@ -23,6 +23,7 @@ import {
 } from "../ducks/thunks";
 import { Service } from "../api/service";
 import { IAudioInterface } from "../lib/audioInterface";
+import { Persistence } from "../utils/persistence";
 import { Progress_getCurrentProgress, Progress_lbProgress } from "../models/progress";
 import { IAttributionData, IEnv, IState, updateState } from "../models/state";
 import { Notification } from "./notification";
@@ -66,6 +67,7 @@ interface IProps {
   audio: IAudioInterface;
   initialState: IState;
   queue: AsyncQueue;
+  persistence: Persistence;
 }
 
 function getScreenNameFromNavState(navState: NavigationState | undefined): IScreen {
@@ -96,13 +98,13 @@ function getScreenNameFromNavState(navState: NavigationState | undefined): IScre
 }
 
 export function AppView(props: IProps): JSX.Element | null {
-  const { client, audio, queue } = props;
+  const { client, audio, queue, persistence } = props;
   const env = useMemo<IEnv>(
-    () => ({ service: new Service(client), audio, queue, navigationRef, getCurrentScreenData }),
-    [client, audio, queue]
+    () => ({ service: new Service(client), audio, queue, persistence, navigationRef, getCurrentScreenData }),
+    [client, audio, queue, persistence]
   );
   const service = env.service;
-  const reducer = useMemo(() => reducerWrapper(true), []);
+  const reducer = useMemo(() => reducerWrapper(true, persistence), [persistence]);
   const onActions = useMemo(() => defaultOnActions(env), [env]);
   const [state, dispatch] = useThunkReducer<IState, IAction, IEnv>(reducer, props.initialState, env, onActions);
   const stateRef = useRef<IState>(state);

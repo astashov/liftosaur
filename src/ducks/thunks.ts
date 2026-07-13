@@ -68,7 +68,8 @@ import { CSV_toString } from "../utils/csv";
 import { Exporter_toFile } from "../utils/exporter";
 import { DateUtils_formatYYYYMMDD, DateUtils_format } from "../utils/date";
 import { getInitialState } from "./reducer";
-import { IndexedDBUtils_get, IndexedDBUtils_remove, IndexedDBUtils_set } from "../utils/indexeddb";
+import { IndexedDBUtils_get, IndexedDBUtils_set } from "../utils/indexeddb";
+import { Account_getAll, IAccount } from "../models/account";
 import { WhatsNew_updateStorage } from "../models/whatsnewUtils";
 import { OnloadModal_getNext, OnloadModal_shouldShowHearAboutUs } from "../models/onloadModal";
 import { Screen_shouldConfirmNavigation } from "../models/screen";
@@ -1136,7 +1137,7 @@ export function Thunk_handleWatchStorageMerge(storageJson: string, isLiveActivit
 }
 
 export function Thunk_reloadStorageFromDisk(): IThunk {
-  return async (dispatch, getState) => {
+  return async (dispatch, getState, env) => {
     try {
       const currentAccount = (await IndexedDBUtils_get("current_account")) as string | undefined;
       if (!currentAccount) {
@@ -1144,15 +1145,14 @@ export function Thunk_reloadStorageFromDisk(): IThunk {
         return;
       }
 
-      const rawStorage = (await IndexedDBUtils_get(`liftosaur_${currentAccount}`)) as string | undefined;
-      if (!rawStorage) {
+      const parsed = await env.persistence.load(`liftosaur_${currentAccount}`);
+      if (parsed == null) {
         SendMessage_print("reloadStorageFromDisk: no storage found");
         return;
       }
 
-      const parsed = JSON.parse(rawStorage);
-      const storage: IStorage = parsed?.storage;
-      const lastSyncedStorage: IStorage | undefined = parsed?.lastSyncedStorage;
+      const storage: IStorage | undefined = parsed.storage;
+      const lastSyncedStorage: IStorage | undefined = parsed.lastSyncedStorage;
 
       if (!storage) {
         SendMessage_print("reloadStorageFromDisk: invalid storage format");
@@ -1879,10 +1879,16 @@ export function Thunk_createAccount(): IThunk {
 export function Thunk_deleteAccount(id: string, cb?: () => void): IThunk {
   return async (dispatch, getState, env) => {
     dispatch(Thunk_postevent("delete-local-account"));
-    await IndexedDBUtils_remove(`liftosaur_${id}`);
+    await env.persistence.delete(`liftosaur_${id}`);
     if (cb) {
       cb();
     }
+  };
+}
+
+export function Thunk_fetchAccounts(cb: (accounts: IAccount[]) => void): IThunk {
+  return async (dispatch, getState, env) => {
+    cb(await Account_getAll(env.persistence));
   };
 }
 
@@ -1910,11 +1916,11 @@ export function Thunk_switchAccount(id: string): IThunk {
     dispatch(
       Thunk_logOut(async () => {
         dispatch(Thunk_postevent("switch-account"));
-        const rawStorage = (await IndexedDBUtils_get(`liftosaur_${id}`)) as string | undefined;
-        if (rawStorage != null) {
-          const result = Storage_get(JSON.parse(rawStorage)?.storage);
+        const localStorage = await env.persistence.load(`liftosaur_${id}`);
+        if (localStorage?.storage != null) {
+          const result = Storage_get(localStorage.storage);
           if (result.success) {
-            const newState = await getInitialState(env.service.client, { rawStorage, deviceId: getState().deviceId });
+            const newState = await getInitialState(env.service.client, { localStorage, deviceId: getState().deviceId });
             dispatch({ type: "ReplaceState", state: newState });
             dispatch(Thunk_fetchInitial());
           } else {
@@ -1973,10 +1979,9 @@ export function Thunk_adminLoginAsUser(
     // request can be attributed to anyone. The admin's local account stays in IndexedDB.
     await env.service.signout();
     const localStorage: ILocalStorage = { storage: debugStorage };
-    const rawStorage = JSON.stringify(localStorage);
     await IndexedDBUtils_set("current_account", debugStorage.tempUserId);
-    await IndexedDBUtils_set(`liftosaur_${debugStorage.tempUserId}`, rawStorage);
-    const newState = await getInitialState(env.service.client, { rawStorage, deviceId: getState().deviceId });
+    await env.persistence.saveFull(`liftosaur_${debugStorage.tempUserId}`, localStorage);
+    const newState = await getInitialState(env.service.client, { localStorage, deviceId: getState().deviceId });
     dispatch({ type: "ReplaceState", state: newState });
     dispatch(Thunk_fetchInitial());
     const { navigateTo } = await getNavigationService();

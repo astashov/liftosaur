@@ -4,6 +4,7 @@ import { IAccount } from "../../models/account";
 import { IEnv } from "../../models/state";
 import { IStorage } from "../../types";
 import { AsyncQueue } from "../../utils/asyncQueue";
+import { Persistence } from "../../utils/persistence";
 import { ProgramContentList } from "../program/programContentList";
 import { Service } from "../../api/service";
 
@@ -18,7 +19,7 @@ export function ProgramsListContent(props: IProgramsListContentProps): JSX.Eleme
   const queue = new AsyncQueue();
   const audio = new MockAudioInterface();
   const service = new Service(props.client);
-  const env: IEnv = { queue, audio, service };
+  const env: IEnv = { queue, audio, service, persistence: new Persistence() };
   return (
     <ProgramContentList
       service={service}

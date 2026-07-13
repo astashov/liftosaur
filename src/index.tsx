@@ -31,12 +31,9 @@ import { AppView } from "./components/app";
 import { AudioInterface } from "./lib/audioInterface";
 import { getInitialState, getIdbKey } from "./ducks/reducer";
 import { DateUtils_formatYYYYMMDDHHMM } from "./utils/date";
-import {
-  IndexedDBUtils_initializeForSafari,
-  IndexedDBUtils_getAllKeys,
-  IndexedDBUtils_get,
-  IndexedDBUtils_set,
-} from "./utils/indexeddb";
+import { IndexedDBUtils_initializeForSafari, IndexedDBUtils_getAllKeys } from "./utils/indexeddb";
+import { Persistence } from "./utils/persistence";
+import { ILocalStorage } from "./models/state";
 import { Service } from "./api/service";
 import { UrlUtils_build } from "./utils/url";
 import { AsyncQueue } from "./utils/asyncQueue";
@@ -51,15 +48,16 @@ if ("serviceWorker" in navigator && (typeof window === "undefined" || window.loc
 console.log(DateUtils_formatYYYYMMDDHHMM(Date.now()));
 const client = window.fetch.bind(window);
 const audio = new AudioInterface();
+const persistence = new Persistence();
 const url = UrlUtils_build(document.location.href);
 const userId = url.searchParams.get("userid") || undefined;
 const adminKey = url.searchParams.get("admin");
 
-async function initialize(loadedData: unknown): Promise<void> {
+async function initialize(loadedData: ILocalStorage | undefined): Promise<void> {
   try {
     (window as any).loadedData = loadedData;
     const deviceId = await DeviceId_get();
-    const initialState = await getInitialState(client, { url, rawStorage: loadedData as string | undefined, deviceId });
+    const initialState = await getInitialState(client, { url, localStorage: loadedData, deviceId });
     if (adminKey) {
       initialState.adminKey = adminKey;
     }
@@ -70,7 +68,7 @@ async function initialize(loadedData: unknown): Promise<void> {
     const queue = new AsyncQueue();
     (window as any).queue = queue;
     createRoot(document.getElementById("app")!).render(
-      <AppView initialState={initialState} client={client} audio={audio} queue={queue} />
+      <AppView initialState={initialState} client={client} audio={audio} queue={queue} persistence={persistence} />
     );
   } catch (e) {
     console.error(e);
@@ -81,7 +79,8 @@ async function initialize(loadedData: unknown): Promise<void> {
 IndexedDBUtils_getAllKeys();
 
 async function main(): Promise<void> {
-  IndexedDBUtils_get(await getIdbKey(userId, !!adminKey))
+  persistence
+    .load(await getIdbKey(userId, !!adminKey))
     .then(initialize)
     .catch((e) => {
       console.error(e);
@@ -99,15 +98,18 @@ setTimeout(() => {
 }, 10000);
 
 (window as any).storeData = async (data: any) => {
-  IndexedDBUtils_set(await getIdbKey(userId, !!adminKey), typeof data === "string" ? data : JSON.stringify(data)).catch(
-    (e) => {
-      console.error(e);
-    }
-  );
+  try {
+    const localStorage: ILocalStorage = typeof data === "string" ? JSON.parse(data) : data;
+    await persistence.saveFull(await getIdbKey(userId, !!adminKey), localStorage);
+  } catch (e) {
+    console.error(e);
+  }
 };
 
 (window as any).clearData = async (data: any) => {
-  IndexedDBUtils_set(await getIdbKey(userId, !!adminKey), undefined).catch((e) => {
+  try {
+    await persistence.delete(await getIdbKey(userId, !!adminKey));
+  } catch (e) {
     console.error(e);
-  });
+  }
 };

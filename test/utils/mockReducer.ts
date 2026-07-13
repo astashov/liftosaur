@@ -20,7 +20,7 @@ export class MockReducer<TState, TAction extends Record<string, unknown>, TEnv> 
   }
 
   public static build(state: IState, env: IEnv): MockReducer<IState, IAction, IEnv> {
-    return new MockReducer(reducerWrapper(true), state, env, [
+    return new MockReducer(reducerWrapper(true, env.persistence), state, env, [
       async (dispatch, action, oldState, newState) => {
         if (Storage_isChanged(oldState.storage, newState.storage)) {
           try {

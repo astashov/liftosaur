@@ -13,11 +13,12 @@ import {
   Thunk_pushScreen,
   Thunk_openManageSubscriptions,
   Thunk_iapRefreshActiveSubscriptions,
+  Thunk_fetchAccounts,
 } from "../ducks/thunks";
 import { INavCommon } from "../models/state";
 import { useNavOptions } from "../navigation/useNavOptions";
 import { Button } from "./button";
-import { IAccount, Account_getAll } from "../models/account";
+import { IAccount } from "../models/account";
 import { AdminDebug_isDebugAccountId } from "../models/adminDebug";
 import { IPartialStorage } from "../types";
 import { GroupHeader } from "./groupHeader";
@@ -65,9 +66,11 @@ export function ScreenAccount(props: IProps): JSX.Element {
   };
 
   function refetchAccounts(): void {
-    Account_getAll().then((accounts) => {
-      setOtherAccounts(accounts.filter((a) => a.id !== currentAccountId));
-    });
+    props.dispatch(
+      Thunk_fetchAccounts((accounts) => {
+        setOtherAccounts(accounts.filter((a) => a.id !== currentAccountId));
+      })
+    );
   }
 
   useEffect(() => {

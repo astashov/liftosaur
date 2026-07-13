@@ -70,3 +70,19 @@ export async function IndexedDBUtils_set(key: string, value?: string): Promise<v
     mmkv.remove(key);
   }
 }
+
+// MMKV has no multi-key transaction. Callers order pairs so the manifest comes last —
+// that makes the FIRST-EVER write crash-safe (no manifest → boot re-reads the legacy
+// blob), but a crash mid-loop on a later incremental save can still leave a mix of
+// old/new shards under the existing manifest. Accepted risk: the window is a
+// sub-millisecond synchronous loop, and sync's vector clocks reconcile the mix (see
+// lambda/scripts/plans/sharded-local-storage.md).
+export async function IndexedDBUtils_setMany(pairs: Array<[string, string | undefined]>): Promise<void> {
+  for (const [key, value] of pairs) {
+    if (value != null) {
+      mmkv.set(key, value);
+    } else {
+      mmkv.remove(key);
+    }
+  }
+}

@@ -44,6 +44,7 @@ import {
   IStats,
 } from "../types";
 import { IndexedDBUtils_get, IndexedDBUtils_set } from "../utils/indexeddb";
+import { Persistence } from "../utils/persistence";
 import { basicBeginnerProgram } from "../programs/basicBeginnerProgram";
 import { AdminDebug_isDebugAccountId } from "../models/adminDebug";
 import { LogUtils_log } from "../utils/log";
@@ -67,7 +68,6 @@ import { Exercise_toKey } from "../models/exercise";
 import { NativeWorkoutBridge_discardWorkout } from "../utils/nativeWorkoutBridge";
 import { NativeWatchBridge_sendDiscardWorkoutToWatch } from "../utils/nativeWatchBridge";
 import { NativeWorkoutMirroring_resetWatchWorkoutState } from "../utils/nativeWorkoutMirroringBridge";
-import { SendMessage_isIos } from "../utils/sendMessage";
 import { IPlannerProgramExercise } from "../pages/planner/models/types";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
 import { EditProgramUiHelpers_getChangedKeys } from "../components/editProgram/editProgramUi/editProgramUiHelpers";
@@ -101,7 +101,7 @@ declare let __HOST__: string;
 
 export async function getInitialState(
   client: Window["fetch"],
-  args?: { url?: URL; rawStorage?: string; storage?: IStorage; deviceId?: string }
+  args?: { url?: URL; rawStorage?: string; localStorage?: ILocalStorage; storage?: IStorage; deviceId?: string }
 ): Promise<IState> {
   const url =
     args?.url ||
@@ -112,6 +112,8 @@ export async function getInitialState(
   let storage: ILocalStorage | undefined;
   if (args?.storage) {
     storage = { storage: args.storage };
+  } else if (args?.localStorage != null) {
+    storage = args.localStorage;
   } else if (args?.rawStorage != null) {
     try {
       storage = JSON.parse(args.rawStorage);
@@ -538,7 +540,7 @@ export function defaultOnActions(env: IEnv): IReducerOnAction[] {
 }
 
 export const reducerWrapper =
-  (storeToLocalStorage: boolean): Reducer<IState, IAction> =>
+  (storeToLocalStorage: boolean, persistence: Persistence): Reducer<IState, IAction> =>
   (state, action) => {
     Diagnostics_setLastState(state);
     Diagnostics_recordAction({ ...action, time: DateUtils_formatHHMMSS(Date.now(), true) });
@@ -570,42 +572,41 @@ export const reducerWrapper =
       newState = { ...newState, storage: { ...newState.storage, _versions: versions } };
     }
 
-    if (SendMessage_isIos()) {
-      newStorageApproach(state, newState, isStorageChanged);
-    } else {
-      if (typeof window !== "undefined" && window.setTimeout && window.clearTimeout) {
-        window.tempUserId = newState.storage.tempUserId;
-        if (timerId != null) {
-          window.clearTimeout(timerId);
-        }
+    if (typeof window !== "undefined" && window.setTimeout && window.clearTimeout) {
+      window.tempUserId = newState.storage.tempUserId;
+      if (timerId != null) {
+        window.clearTimeout(timerId);
+      }
 
-        (window as any).state = newState;
-        if (storeToLocalStorage && newState.errors.corruptedstorage == null) {
-          timerId = window.setTimeout(async () => {
-            clearTimeout(timerId);
+      (window as any).state = newState;
+      if (storeToLocalStorage && newState.errors.corruptedstorage == null) {
+        timerId = window.setTimeout(async () => {
+          clearTimeout(timerId);
 
-            const newState2: IState = (window as any).state;
-            timerId = undefined;
-            const userId = newState2.user?.id || newState2.storage.tempUserId;
-            const localStorage: ILocalStorage = {
+          const newState2: IState = (window as any).state;
+          timerId = undefined;
+          const userId = newState2.user?.id || newState2.storage.tempUserId;
+          await IndexedDBUtils_set("current_account", userId);
+          const probeTarget = PerfProbe_isTarget();
+          try {
+            const stats = await persistence.save(`liftosaur_${userId}`, {
               storage: newState2.storage,
               lastSyncedStorage: newState2.lastSyncedStorage,
-            };
-            await IndexedDBUtils_set("current_account", userId);
-            const probeTarget = PerfProbe_isTarget();
-            const probeT0 = probeTarget ? Date.now() : 0;
-            const serialized = JSON.stringify(localStorage);
-            const probeT1 = probeTarget ? Date.now() : 0;
-            await IndexedDBUtils_set(`liftosaur_${userId}`, serialized);
+            });
             if (probeTarget) {
               lg("perf-persist", {
-                stringify_ms: probeT1 - probeT0,
-                write_ms: Date.now() - probeT1,
-                bytes: serialized.length,
+                stringify_ms: stats.stringifyMs,
+                write_ms: stats.writeMs,
+                bytes: stats.bytes,
+                shards: stats.shards.join(","),
               });
             }
-          }, 100);
-        }
+          } catch (e) {
+            // Write failed (e.g. quota) — the write cache wasn't updated, so the next
+            // save retries these shards instead of skipping them as "unchanged"
+            lg("ls-persistence-save-error", { error: String(e) });
+          }
+        }, 100);
       }
     }
 
@@ -632,30 +633,6 @@ export const reducerWrapper =
     }
     return newState;
   };
-
-function newStorageApproach(oldState: IState, newState: IState, isStorageChanged: boolean): IState {
-  if (typeof window !== "undefined") {
-    window.tempUserId = newState.storage.tempUserId;
-    (window as any).state = newState;
-    const isLastSyncChanged = Storage_isChanged(oldState.lastSyncedStorage, newState.lastSyncedStorage);
-    const isLocalStorageChanged = isStorageChanged || isLastSyncChanged;
-    if (isLocalStorageChanged && newState.errors.corruptedstorage == null) {
-      const userId = newState.user?.id || newState.storage.tempUserId;
-      const localStorage: ILocalStorage = {
-        storage: newState.storage,
-        lastSyncedStorage: newState.lastSyncedStorage,
-      };
-      const json = JSON.stringify(localStorage);
-      Promise.all([
-        IndexedDBUtils_set("current_account", userId),
-        IndexedDBUtils_set(`liftosaur_${userId}`, json),
-      ]).then(() => {
-        lg("saved-to-storage", undefined, undefined, userId);
-      });
-    }
-  }
-  return newState;
-}
 
 export function buildCardsReducer(
   settings: ISettings,

@@ -26,11 +26,13 @@ import type { IScreenData } from "./screen";
 import type { IProgramPreviewPlaygroundState } from "../components/preview/programPreviewPlaygroundSetup";
 import type { IIapActiveSubscription, IIapAdapter } from "../utils/iapAdapter";
 import type { IHealthAdapter } from "../utils/healthAdapter";
+import type { Persistence } from "../utils/persistence";
 
 export type IEnv = {
   service: Service;
   audio: IAudioInterface;
   queue: AsyncQueue;
+  persistence: Persistence;
   navigationRef?: NavigationContainerRef<IRootStackParamList>;
   getCurrentScreenData?: () => IScreenData | undefined;
   iap?: IIapAdapter;

@@ -26,6 +26,7 @@ import { lb } from "lens-shmens";
 import { Progress_getProgress } from "../../src/models/progress";
 import { MockIapAdapter } from "./mockIapAdapter";
 import { MockHealthAdapter } from "./mockHealthAdapter";
+import { Persistence } from "../../src/utils/persistence";
 
 export function SyncTestUtils_mockDispatch(cb: (ds: IDispatch) => void): IAction | IThunk {
   let extractedAction: IAction | IThunk | undefined;
@@ -176,7 +177,14 @@ export async function SyncTestUtils_initTheApp(deviceId: string): Promise<{
   const queue = new AsyncQueue();
   const iapAdapter = new MockIapAdapter();
   const healthAdapter = new MockHealthAdapter();
-  const env: IEnv = { service, audio: new MockAudioInterface(), queue, iap: iapAdapter, health: healthAdapter };
+  const env: IEnv = {
+    service,
+    audio: new MockAudioInterface(),
+    queue,
+    iap: iapAdapter,
+    health: healthAdapter,
+    persistence: new Persistence(),
+  };
   const url = UrlUtils_build("https://www.liftosaur.com");
   const initialState = await getInitialState(fetch, { url, storage: aStorage, deviceId });
   const mockReducer = MockReducer.build(initialState, env);
