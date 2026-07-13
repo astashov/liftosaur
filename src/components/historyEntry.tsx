@@ -43,7 +43,7 @@ export const HistoryEntryView = memo((props: IHistoryEntryProps): JSX.Element =>
         }`}
       >
         <View className="flex-row items-center gap-2 min-h-8">
-          <View className="flex-1 flex-shrink">
+          <View className="flex-1 shrink" style={{ minWidth: "45%" }}>
             <Text
               data-testid="history-entry-exercise-name"
               testID="history-entry-exercise-name"
@@ -53,7 +53,7 @@ export const HistoryEntryView = memo((props: IHistoryEntryProps): JSX.Element =>
               {isPr && " \u{1F3C6}"}
             </Text>
           </View>
-          <View>
+          <View className="shrink">
             <HistoryRecordSetsView
               sets={entry.sets.map((set) => ({
                 ...set,
