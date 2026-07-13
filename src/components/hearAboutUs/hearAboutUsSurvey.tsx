@@ -6,6 +6,7 @@ import { LinkButton } from "../linkButton";
 import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { ImagePreloader_uri } from "../../utils/imagePreloader";
 import { IconReddit } from "../icons/iconReddit";
+import { IconAi } from "../icons/iconAi";
 import { IconDiscord } from "../icons/iconDiscord";
 import { IconUser } from "../icons/iconUser";
 import { IconDoc } from "../icons/iconDoc";
@@ -52,6 +53,8 @@ function sourceIcon(source: IHearAboutUsSource, color: string): ReactNode {
   switch (source) {
     case "reddit":
       return <IconReddit size={size} color={color} secondaryColor={color} />;
+    case "ai":
+      return <IconAi size={size} color={color} />;
     case "discord":
       return <IconDiscord size={size} color={color} />;
     case "friend":

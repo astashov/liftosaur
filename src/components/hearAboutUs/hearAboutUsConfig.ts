@@ -1,4 +1,4 @@
-export type IHearAboutUsSource = "reddit" | "discord" | "friend" | "program" | "ad" | "other" | "github";
+export type IHearAboutUsSource = "reddit" | "ai" | "discord" | "friend" | "program" | "ad" | "other" | "github";
 
 export interface IHearAboutUsChip {
   value: string;
@@ -39,6 +39,25 @@ export const HEAR_ABOUT_US_OPTIONS: IHearAboutUsOption[] = [
         { value: "reddit-ad", label: "It was a Reddit ad", variant: "coral", icon: "speaker" },
       ],
       freeformPlaceholder: "Type a subreddit...",
+    },
+  },
+  {
+    source: "ai",
+    label: "Asked AI",
+    eyebrow: "An AI recommended us",
+    drill: {
+      kind: "chips",
+      title: "Which AI?",
+      sub: "Optional - tap one, or type it in.",
+      chips: [
+        { value: "ChatGPT", label: "ChatGPT" },
+        { value: "Claude", label: "Claude" },
+        { value: "Gemini", label: "Gemini" },
+        { value: "Perplexity", label: "Perplexity" },
+        { value: "Copilot", label: "Copilot" },
+        { value: "Grok", label: "Grok" },
+      ],
+      freeformPlaceholder: "Another AI...",
     },
   },
   {
