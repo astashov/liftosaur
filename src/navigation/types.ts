@@ -132,7 +132,7 @@ export type IRootStackParamList = {
   corruptedStateModal: undefined;
   debugModal: undefined;
   workoutShareModal: { progressId: number };
-  socialShareModal: { type: "igstory" | "igfeed" | "tiktok"; progressId?: number };
+  socialShareModal: { type: "igstory" | "igfeed" | "tiktok"; progressId?: number; historyRecordId?: number };
   customExerciseModal: { exerciseId?: string };
   musclesOverrideModal: { exerciseType: IExerciseType };
   tourModal: undefined;

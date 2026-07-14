@@ -10,14 +10,16 @@ export function NavModalSocialShare(): JSX.Element {
   const { state } = useAppState();
   const navigation = useNavigation();
   const route = useRoute<{ key: string; name: "socialShareModal"; params: IRootStackParamList["socialShareModal"] }>();
-  const { type, progressId } = route.params;
+  const { type, progressId, historyRecordId } = route.params;
 
   const record =
-    progressId == null
-      ? state.storage.history[0]
-      : progressId === 0
-        ? state.storage.progress?.[0]
-        : state.progress[progressId];
+    historyRecordId != null
+      ? state.storage.history.find((h) => h.id === historyRecordId)
+      : progressId == null
+        ? state.storage.history[0]
+        : progressId === 0
+          ? state.storage.progress?.[0]
+          : state.progress[progressId];
 
   const content = (
     <WorkoutSocialShareSheet
