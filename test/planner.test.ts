@@ -2068,9 +2068,8 @@ Bench Press / ...Squat / 30s|45s`;
         const { program } = PlannerTestUtils_get(text);
         const evaluated = Program_evaluate(program, Settings_build());
         const result = new ProgramToPlanner(evaluated, Settings_build()).convertToPlanner();
-        // Override materializes the diverged sets; overflow drops (no `+`), auto is inherited from Squat
         expect(result.weeks[0].days[0].exerciseText).to.equal(
-          `Squat / 3x8 60s+|10s auto\nBench Press / ...Squat / 3x8 30s|45s auto`
+          `Squat / 3x8 60s+|10s auto\nBench Press / ...Squat / 30s|45s`
         );
       });
     });
@@ -2088,6 +2087,28 @@ Plank / 1x1 30s|60s / progress: custom() {~
 Plank / 1x1 35s|60s / progress: custom() {~
   setTime[1] += 5
 ~}
+
+
+`);
+    });
+
+    it("moves a uniform setTime change back into a global override on a reuse line", () => {
+      const programText = `# Week 1
+## Day 1
+plank_progression / used: none / 2x1 / 70s|90s 0lb / progress: custom(completions: 1) {~
+  setTime = 80
+~}
+
+Plank / ...plank_progression`;
+      const { program } = PlannerTestUtils_finish(programText, { completedReps: [[1, 1]] });
+      const newText = PlannerProgram_generateFullText(program.planner!.weeks);
+      expect(newText).to.equal(`# Week 1
+## Day 1
+plank_progression / used: none / 2x1 / 0lb 70s|90s / progress: custom(completions: 1) {~
+  setTime = 80
+~}
+
+Plank / ...plank_progression / 80s|90s
 
 
 `);

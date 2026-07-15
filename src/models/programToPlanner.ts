@@ -49,11 +49,13 @@ interface IPlannerToProgram2Globals {
   weight?: IWeight | IPercentage;
   rpe?: number;
   timer?: number;
+  setTimer?: number;
+  isOverflowSetTimer?: boolean;
   logRpe?: boolean;
   askWeight?: boolean;
 }
 
-type IDereuseDecision = "sets" | "weight" | "rpe" | "timer" | "progress" | "update";
+type IDereuseDecision = "sets" | "weight" | "rpe" | "timer" | "setTimer" | "progress" | "update";
 
 export interface IPlannerToProgramConvertOpts {
   renameMapping?: Record<string, { to: string; dayData?: Required<IDayData> }>;
@@ -172,7 +174,11 @@ export class ProgramToPlanner {
             programSet.setTimer !== reuseSet?.setTimer ||
             !!programSet.isOverflowSetTimer !== !!reuseSet?.isOverflowSetTimer
           ) {
-            dereuseDecisions.add("sets");
+            if (globals.setTimer != null) {
+              dereuseDecisions.add("setTimer");
+            } else {
+              dereuseDecisions.add("sets");
+            }
           }
         }
       }
@@ -452,7 +458,16 @@ export class ProgramToPlanner {
                   if (dereuseDecisions.includes("rpe") && globals.rpe != null) {
                     overriddenGlobals.push(`@${n(globals.rpe)}${globals.logRpe ? "+" : ""}`);
                   }
-                  if (dereuseDecisions.includes("timer") && globals.timer != null) {
+                  if (
+                    globals.setTimer != null &&
+                    (dereuseDecisions.includes("setTimer") ||
+                      dereuseDecisions.includes("timer") ||
+                      dereuseDecisions.includes("sets"))
+                  ) {
+                    // The rest timer is embedded in the setTimer|rest token, so any timer-ish change
+                    // (and materialized sets, which skip per-set timer tokens) restates the whole token.
+                    overriddenGlobals.push(this.setTimerGlobalToStr(globals));
+                  } else if (dereuseDecisions.includes("timer") && globals.timer != null) {
                     overriddenGlobals.push(`${n(globals.timer)}s`);
                   }
                   if (overriddenGlobals.length > 0) {
@@ -474,7 +489,9 @@ export class ProgramToPlanner {
                   if (globals.rpe != null) {
                     globalsStr.push(`@${globals.rpe}${globals.logRpe ? "+" : ""}`);
                   }
-                  if (globals.timer != null) {
+                  if (globals.setTimer != null) {
+                    globalsStr.push(this.setTimerGlobalToStr(globals));
+                  } else if (globals.timer != null) {
                     globalsStr.push(`${globals.timer}s`);
                   }
                   if (globalsStr.length > 0) {
@@ -718,6 +735,8 @@ export class ProgramToPlanner {
         weight: globals?.weight ?? reusedGlobals.weight,
         rpe: globals?.rpe ?? reusedGlobals.rpe,
         timer: globals?.timer ?? reusedGlobals.timer,
+        setTimer: globals?.setTimer ?? reusedGlobals.setTimer,
+        isOverflowSetTimer: globals?.isOverflowSetTimer ?? reusedGlobals.isOverflowSetTimer,
         logRpe: globals?.logRpe ?? reusedGlobals.logRpe,
         askWeight: globals?.askWeight ?? reusedGlobals.askWeight,
       };
@@ -730,7 +749,26 @@ export class ProgramToPlanner {
     // When any set carries a set timer, its rest is embedded in the setTimer|rest token, so the rest
     // timer must not also be lifted to a global (a global would override the embedded rest on re-parse).
     const hasAnySetTimer = variations.some((v) => v.sets.some((s) => s.setTimer != null));
+    const firstSetTimer = variations[0]?.sets[0]?.setTimer;
+    const firstIsOverflowSetTimer = !!variations[0]?.sets[0]?.isOverflowSetTimer;
+    // A set timer is only liftable to a global together with its embedded rest, so the whole
+    // setTimer/overflow/rest tuple must be uniform across every set. Even then, keep the source's
+    // style: lift only if it was written as a global, or the sets are reused (where a global
+    // override is the only way to express a timer change without materializing the set list).
+    const setTimerIsGlobal =
+      firstSetTimer != null &&
+      (exercise.globals.setTimer != null || exercise.reuse != null) &&
+      variations.every((v) =>
+        v.sets.every(
+          (s) =>
+            s.setTimer === firstSetTimer &&
+            !!s.isOverflowSetTimer === firstIsOverflowSetTimer &&
+            s.timer === firstTimer
+        )
+      );
     return {
+      setTimer: setTimerIsGlobal ? firstSetTimer : undefined,
+      isOverflowSetTimer: setTimerIsGlobal ? firstIsOverflowSetTimer : undefined,
       weight:
         firstWeight != null &&
         variations.every((v) =>
@@ -746,7 +784,9 @@ export class ProgramToPlanner {
           : undefined,
       logRpe: variations.every((v) => v.sets.every((s) => s.rpe === firstRpe && !!s.logRpe)),
       timer:
-        !hasAnySetTimer && firstTimer != null && variations.every((v) => v.sets.every((s) => s.timer === firstTimer))
+        (setTimerIsGlobal || !hasAnySetTimer) &&
+        firstTimer != null &&
+        variations.every((v) => v.sets.every((s) => s.timer === firstTimer))
           ? firstTimer
           : undefined,
     };
@@ -828,6 +868,12 @@ export class ProgramToPlanner {
     return "";
   }
 
+  private setTimerGlobalToStr(globals: IPlannerToProgram2Globals): string {
+    const overflow = globals.isOverflowSetTimer ? "+" : "";
+    const restPart = globals.timer != null ? `${n(Math.max(0, globals.timer))}s` : "?";
+    return `${n(Math.max(0, globals.setTimer ?? 0))}s${overflow}|${restPart}`;
+  }
+
   private variationToString(
     variation: IPlannerProgramExerciseEvaluatedSetVariation,
     globals: IPlannerToProgram2Globals,
@@ -855,12 +901,11 @@ export class ProgramToPlanner {
         setStr += set.rpe != null ? ` @${n(Math.max(0, set.rpe))}` : "";
         setStr += set.rpe != null && set.logRpe ? "+" : "";
       }
-      if (set.setTimer != null) {
-        // SetTimer embeds the rest timer, so it's always rendered per-set (never lifted to a global)
+      if (set.setTimer != null && globals.setTimer == null) {
         const overflow = set.isOverflowSetTimer ? "+" : "";
         const restPart = set.timer != null ? `${n(Math.max(0, set.timer))}s` : "?";
         setStr += ` ${n(Math.max(0, set.setTimer))}s${overflow}|${restPart}`;
-      } else if (globals.timer == null) {
+      } else if (set.setTimer == null && globals.timer == null) {
         setStr += set.timer ? ` ${n(Math.max(0, set.timer))}s` : "";
       }
       if (set.auto) {
