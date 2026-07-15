@@ -2093,6 +2093,28 @@ Plank / 1x1 35s|60s / progress: custom() {~
 `);
     });
 
+    it("dereuses sets when setTime changes on an exercise with reused sets", () => {
+      const programText = `# Week 1
+## Day 1
+plank_progression / used: none / 1x1 70s|90s, 1x1 60s+|90s / 0lb / progress: custom(completions: 1) {~
+  setTime[2] = 70
+~}
+
+Plank / ...plank_progression / progress: custom(completions: 0) { ...plank_progression }`;
+      const { program } = PlannerTestUtils_finish(programText, { completedReps: [[1, 1]] });
+      const newText = PlannerProgram_generateFullText(program.planner!.weeks);
+      expect(newText).to.equal(`# Week 1
+## Day 1
+plank_progression / used: none / 1x1 70s|90s, 1x1 60s+|90s / 0lb / progress: custom(completions: 1) {~
+  setTime[2] = 70
+~}
+
+Plank / ...plank_progression / 1x1 70s|90s, 1x1 70s+|90s / progress: custom(completions: 0) { ...plank_progression }
+
+
+`);
+    });
+
     it("exposes completedSetTime to progress scripts", () => {
       const programText = `# Week 1
 ## Day 1

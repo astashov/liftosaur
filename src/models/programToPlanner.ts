@@ -168,6 +168,12 @@ export class ProgramToPlanner {
               dereuseDecisions.add("sets");
             }
           }
+          if (
+            programSet.setTimer !== reuseSet?.setTimer ||
+            !!programSet.isOverflowSetTimer !== !!reuseSet?.isOverflowSetTimer
+          ) {
+            dereuseDecisions.add("sets");
+          }
         }
       }
     }
