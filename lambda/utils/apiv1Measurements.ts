@@ -5,12 +5,15 @@ import {
   ILengthUnit,
   IPercentage,
   IStats,
+  IStatsHealth,
+  IStatsHealthValue,
   IStatsLengthValue,
   IStatsPercentageValue,
   IStatsWeightValue,
   IUnit,
   IWeight,
   lengthUnits,
+  statsHealthDef,
   statsLengthDef,
   statsPercentageDef,
   statsWeightDef,
@@ -21,18 +24,32 @@ import { Length_build } from "../../src/models/length";
 import { MathUtils_roundFloat, MathUtils_clamp } from "../../src/utils/math";
 import { IApiResult, err, ok } from "./apiv1Common";
 
-type IMeasurementCategory = "weight" | "length" | "percentage";
+type IMeasurementCategory = "weight" | "length" | "percentage" | "health";
+// Health values are imported daily aggregates from Apple Health / Health Connect — the API exposes them
+// read-only (the app itself only hides them, never edits; an edit would just be overwritten by re-sync).
+type IMeasurementWriteCategory = Exclude<IMeasurementCategory, "health">;
 
-// The three stat categories share a single flat key namespace because their keys never collide:
-// weight -> "weight", percentage -> "bodyfat", length -> the 13 body-part keys. Resolving a key to its
-// category lets the REST/MCP surface address every measurement by key alone (e.g. "chest", "bodyfat").
+// The stat categories share a single flat key namespace because their keys never collide:
+// weight -> "weight", percentage -> "bodyfat", length -> the 13 body-part keys, health -> sleep/calories/
+// protein. Resolving a key to its category lets the REST/MCP surface address every measurement by key
+// alone (e.g. "chest", "bodyfat", "sleep").
 const MEASUREMENT_CATEGORY_BY_KEY: Record<string, IMeasurementCategory> = {
   ...statsWeightDef.reduce<Record<string, IMeasurementCategory>>((memo, k) => ({ ...memo, [k]: "weight" }), {}),
   ...statsLengthDef.reduce<Record<string, IMeasurementCategory>>((memo, k) => ({ ...memo, [k]: "length" }), {}),
   ...statsPercentageDef.reduce<Record<string, IMeasurementCategory>>((memo, k) => ({ ...memo, [k]: "percentage" }), {}),
+  ...statsHealthDef.reduce<Record<string, IMeasurementCategory>>((memo, k) => ({ ...memo, [k]: "health" }), {}),
 };
 
 export const MEASUREMENT_KEYS = Object.keys(MEASUREMENT_CATEGORY_BY_KEY);
+export const MEASUREMENT_WRITE_KEYS = MEASUREMENT_KEYS.filter((k) => MEASUREMENT_CATEGORY_BY_KEY[k] !== "health");
+
+// The stored value is a plain number whose unit is implied by the key; the suffix is only a formatting
+// concern of this API surface (mirroring the "180lb" style of the other categories).
+const HEALTH_UNIT_BY_KEY: Record<(typeof statsHealthDef)[number], string> = {
+  sleep: "min",
+  calories: "kcal",
+  protein: "g",
+};
 
 // Length values are clamped to a generous range that covers both cm and inches (no body part exceeds it),
 // rejecting obviously-bad input without coupling the limit to the unit.
@@ -40,7 +57,7 @@ const MAX_WEIGHT = 5000;
 const MAX_LENGTH = 1000;
 const MAX_PERCENTAGE = 100;
 
-const UNITS_BY_CATEGORY: Record<IMeasurementCategory, readonly string[]> = {
+const UNITS_BY_CATEGORY: Record<IMeasurementWriteCategory, readonly string[]> = {
   weight: units,
   length: lengthUnits,
   percentage: ["%"],
@@ -60,13 +77,13 @@ function parseStrictTimestamp(raw: unknown): number | undefined {
   return undefined;
 }
 
-const VALUE_EXAMPLE_BY_CATEGORY: Record<IMeasurementCategory, string> = {
+const VALUE_EXAMPLE_BY_CATEGORY: Record<IMeasurementWriteCategory, string> = {
   weight: "'180lb' or '82kg'",
   length: "'37cm' or '14.75in'",
   percentage: "'18%'",
 };
 
-function maxValueFor(category: IMeasurementCategory): number {
+function maxValueFor(category: IMeasurementWriteCategory): number {
   switch (category) {
     case "weight":
       return MAX_WEIGHT;
@@ -105,7 +122,7 @@ interface IMeasurementWriteInput {
 // matching how the rest of the API represents weights (exerciseData.rm1, equipment). The suffix is required —
 // there's no defaulting to the user's units setting — so a value is unambiguous on its own.
 function parseMeasurementValue(
-  category: IMeasurementCategory,
+  category: IMeasurementWriteCategory,
   raw: unknown
 ): IApiResult<IWeight | ILength | IPercentage> {
   if (typeof raw !== "string") {
@@ -162,7 +179,8 @@ interface IMeasurementPageResponse {
   nextCursor?: number;
 }
 
-type IAnyStatValue = IStatsWeightValue | IStatsLengthValue | IStatsPercentageValue;
+type IAnyStatValue = IStatsWeightValue | IStatsLengthValue | IStatsPercentageValue | IStatsHealthValue;
+type IWriteStatValue = IStatsWeightValue | IStatsLengthValue | IStatsPercentageValue;
 
 function valuesForKey(stats: IStats, key: string, category: IMeasurementCategory): IAnyStatValue[] {
   switch (category) {
@@ -172,16 +190,23 @@ function valuesForKey(stats: IStats, key: string, category: IMeasurementCategory
       return stats.length[key as keyof typeof stats.length] || [];
     case "percentage":
       return stats.percentage[key as keyof typeof stats.percentage] || [];
+    case "health":
+      // Hidden records are the user's "delete" for read-only imported data — never surface them here.
+      return (stats.health?.[key as keyof IStatsHealth] || []).filter((v) => !v.hidden);
   }
 }
 
-function formatValue(stat: IAnyStatValue): IMeasurementValueResponse {
+function formatValue(key: string, stat: IAnyStatValue): IMeasurementValueResponse {
   return {
     timestamp: stat.timestamp,
     date: new Date(stat.timestamp).toISOString(),
-    // Compact "<number><unit>" form, e.g. "180lb"/"37cm"/"18%". Not Length_print, which renders inches as
-    // a `"` suffix — we keep the canonical 'in'/'cm'/'lb'/'kg'/'%' suffixes used everywhere on this surface.
-    value: `${stat.value.value}${stat.value.unit}`,
+    // Compact "<number><unit>" form, e.g. "180lb"/"37cm"/"18%"/"432min". Not Length_print, which renders
+    // inches as a `"` suffix — we keep the canonical suffixes used everywhere on this surface. Health
+    // values are stored as plain numbers, so their unit comes from the key.
+    value:
+      typeof stat.value === "number"
+        ? `${stat.value}${HEALTH_UNIT_BY_KEY[key as keyof typeof HEALTH_UNIT_BY_KEY]}`
+        : `${stat.value.value}${stat.value.unit}`,
   };
 }
 
@@ -203,6 +228,14 @@ function invalidTimestampError<T>(): IApiResult<T> {
   return err(400, "invalid_input", "Invalid measurement timestamp; expected a unix epoch ms identifier.");
 }
 
+function healthReadOnlyError<T>(key: string): IApiResult<T> {
+  return err(
+    400,
+    "invalid_input",
+    `'${key}' is imported automatically from Apple Health / Health Connect and can't be added or edited through the API. To remove a record from view, delete it — imported records are hidden rather than deleted, and can be unhidden from the app's Sleep & Nutrition screen.`
+  );
+}
+
 export async function ApiV1_listMeasurements(
   userId: string,
   user: ILimitedUserDao,
@@ -217,7 +250,7 @@ export async function ApiV1_listMeasurements(
       key,
       category,
       count: values.length,
-      latest: values.length > 0 ? formatValue(values[0]) : undefined,
+      latest: values.length > 0 ? formatValue(key, values[0]) : undefined,
     };
   }).filter((m) => m.count > 0);
   return ok({ measurements });
@@ -257,11 +290,14 @@ export async function ApiV1_getMeasurement(
   const hasMore = rows.length > limit;
   const page = rows.slice(0, limit);
   const nextCursor = hasMore && page.length > 0 ? page[page.length - 1].timestamp : undefined;
+  // User-hidden health records are dropped AFTER hasMore/nextCursor are computed from the raw page, so
+  // the cursor still advances past them (a page may return fewer than `limit` values, which is fine).
+  const visible = page.filter((v) => !("hidden" in v && v.hidden));
 
   return ok({
     key,
     category,
-    values: page.map(formatValue),
+    values: visible.map((v) => formatValue(key, v)),
     hasMore,
     nextCursor,
   });
@@ -284,7 +320,12 @@ async function writeStatChange(
   await userDao.applyStorageUpdate(user, (old) => ({ ...old, stats: newStats }), sideEffects(userDao));
 }
 
-function setValuesForKey(stats: IStats, key: string, category: IMeasurementCategory, values: IAnyStatValue[]): IStats {
+function setValuesForKey(
+  stats: IStats,
+  key: string,
+  category: IMeasurementWriteCategory,
+  values: IAnyStatValue[]
+): IStats {
   switch (category) {
     case "weight":
       return { ...stats, weight: { ...stats.weight, [key]: values as IStatsWeightValue[] } };
@@ -305,6 +346,9 @@ export async function ApiV1_addMeasurement(
   const category = categoryForKey(key);
   if (!category) {
     return unknownKeyError(key);
+  }
+  if (category === "health") {
+    return healthReadOnlyError(key);
   }
   const built = parseMeasurementValue(category, input.value);
   if (!built.success) {
@@ -331,7 +375,7 @@ export async function ApiV1_addMeasurement(
     );
   }
 
-  const stat = { vtype: "stat" as const, value: built.data, timestamp, updatedAt: timestamp } as IAnyStatValue;
+  const stat = { vtype: "stat" as const, value: built.data, timestamp, updatedAt: timestamp } as IWriteStatValue;
   await writeStatChange(
     userId,
     user,
@@ -339,7 +383,7 @@ export async function ApiV1_addMeasurement(
     (stats) => setValuesForKey(stats, key, category, [stat, ...valuesForKey(stats, key, category)]),
     (dao) => [dao.saveStat(userId, key, category, stat)]
   );
-  return ok(formatValue(stat));
+  return ok(formatValue(key, stat));
 }
 
 export async function ApiV1_updateMeasurement(
@@ -353,6 +397,9 @@ export async function ApiV1_updateMeasurement(
   const category = categoryForKey(key);
   if (!category) {
     return unknownKeyError(key);
+  }
+  if (category === "health") {
+    return healthReadOnlyError(key);
   }
   const timestamp = parseStrictTimestamp(timestampRaw);
   if (timestamp == null) {
@@ -372,7 +419,7 @@ export async function ApiV1_updateMeasurement(
     return err(404, "not_found", "Measurement not found");
   }
 
-  const updated = { vtype: "stat" as const, value: built.data, timestamp, updatedAt: Date.now() } as IAnyStatValue;
+  const updated = { vtype: "stat" as const, value: built.data, timestamp, updatedAt: Date.now() } as IWriteStatValue;
   await writeStatChange(
     userId,
     user,
@@ -387,7 +434,7 @@ export async function ApiV1_updateMeasurement(
     (dao) => [dao.saveStat(userId, key, category, updated)]
   );
 
-  return ok(formatValue(updated));
+  return ok(formatValue(key, updated));
 }
 
 export async function ApiV1_deleteMeasurement(
@@ -410,6 +457,30 @@ export async function ApiV1_deleteMeasurement(
   const current = valuesForKey(stats, key, category).find((s) => s.timestamp === timestamp);
   if (!current) {
     return err(404, "not_found", "Measurement not found");
+  }
+
+  // For imported health records "delete" means hide: a true delete would just be re-created by the next
+  // windowed re-read, while `hidden` is excluded from every API read and survives re-imports — so the
+  // observable contract of DELETE holds. (An already-hidden record 404s above, since reads filter hidden.)
+  // Unhide is only possible from the app's Sleep & Nutrition screen.
+  if (category === "health") {
+    const hiddenStat: IStatsHealthValue = { ...(current as IStatsHealthValue), hidden: true };
+    await writeStatChange(
+      userId,
+      user,
+      di,
+      (st) => ({
+        ...st,
+        health: {
+          ...st.health,
+          [key]: (st.health?.[key as keyof IStatsHealth] || []).map((v) =>
+            v.timestamp === timestamp ? hiddenStat : v
+          ),
+        },
+      }),
+      (dao) => [dao.saveStat(userId, key, "health", hiddenStat)]
+    );
+    return ok({ deleted: true as const });
   }
 
   await writeStatChange(

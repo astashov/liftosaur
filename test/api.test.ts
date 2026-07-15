@@ -1006,6 +1006,110 @@ Squat / 3x5 / 100lb`;
       const res = await req("PUT", "/api/v1/measurements/weight/1700000000000", {});
       expect(res.status).to.equal(400);
     });
+
+    describe("health measurements", () => {
+      const day1 = 1700000000000;
+      const day2 = day1 + 86400000;
+      const day3 = day1 + 2 * 86400000;
+
+      function healthRow(key: string, timestamp: number, value: number, extra?: Record<string, unknown>): void {
+        const name = `${timestamp}_${key}`;
+        di.dynamo.addMockData({
+          [userTableNames.prod.stats]: {
+            [JSON.stringify({ name, userId })]: {
+              userId,
+              name,
+              type: "health",
+              vtype: "stat",
+              value,
+              timestamp,
+              updatedAt: timestamp + 1,
+              appleUuid: `${key}-${timestamp}`,
+              ...extra,
+            },
+          },
+        });
+      }
+
+      it("lists and pages health keys with unit-suffixed values, excluding hidden records", async () => {
+        healthRow("sleep", day1, 432);
+        healthRow("sleep", day2, 401, { hidden: true });
+        healthRow("sleep", day3, 455);
+        healthRow("calories", day1, 2150);
+        healthRow("protein", day1, 150.5);
+
+        const list = await req("GET", "/api/v1/measurements");
+        expect(list.status).to.equal(200);
+        const byKey = Object.fromEntries(list.data.data.measurements.map((m: any) => [m.key, m]));
+        expect(byKey.sleep.category).to.equal("health");
+        expect(byKey.sleep.count).to.equal(2);
+        expect(byKey.sleep.latest.value).to.equal("455min");
+        expect(byKey.sleep.latest.timestamp).to.equal(day3);
+        expect(byKey.calories.latest.value).to.equal("2150kcal");
+        expect(byKey.protein.latest.value).to.equal("150.5g");
+
+        const get = await req("GET", "/api/v1/measurements/sleep");
+        expect(get.status).to.equal(200);
+        expect(get.data.data.category).to.equal("health");
+        expect(get.data.data.values.map((v: any) => v.value)).to.deep.equal(["455min", "432min"]);
+        expect(get.data.data.hasMore).to.equal(false);
+      });
+
+      it("keeps the cursor advancing across hidden records when paging", async () => {
+        healthRow("sleep", day1, 432);
+        healthRow("sleep", day2, 401, { hidden: true });
+        healthRow("sleep", day3, 455);
+
+        const page1 = await req("GET", "/api/v1/measurements/sleep", undefined, { limit: "2" });
+        expect(page1.data.data.values.map((v: any) => v.value)).to.deep.equal(["455min"]);
+        expect(page1.data.data.hasMore).to.equal(true);
+        expect(page1.data.data.nextCursor).to.equal(day2);
+
+        const page2 = await req("GET", "/api/v1/measurements/sleep", undefined, {
+          limit: "2",
+          cursor: String(page1.data.data.nextCursor),
+        });
+        expect(page2.data.data.values.map((v: any) => v.value)).to.deep.equal(["432min"]);
+        expect(page2.data.data.hasMore).to.equal(false);
+      });
+
+      it("rejects adding and editing health keys", async () => {
+        healthRow("sleep", day1, 432);
+        for (const [method, path, body] of [
+          ["POST", "/api/v1/measurements/sleep", { value: "400min" }],
+          ["PUT", `/api/v1/measurements/calories/${day1}`, { value: "2000kcal" }],
+        ] as const) {
+          const res = await req(method, path, body);
+          expect(res.status, `${method} ${path}`).to.equal(400);
+          expect(res.data.error.message).to.include("can't be added or edited");
+        }
+        const get = await req("GET", "/api/v1/measurements/sleep");
+        expect(get.data.data.values.length).to.equal(1);
+      });
+
+      it("hides (not deletes) an imported health record on delete", async () => {
+        healthRow("sleep", day1, 432);
+        healthRow("sleep", day3, 455);
+
+        const del = await req("DELETE", `/api/v1/measurements/sleep/${day1}`);
+        expect(del.status).to.equal(200);
+        expect(del.data.data.deleted).to.equal(true);
+
+        const get = await req("GET", "/api/v1/measurements/sleep");
+        expect(get.data.data.values.map((v: any) => v.timestamp)).to.deep.equal([day3]);
+
+        // The row survives with hidden=true and its source uuid intact, so the next Health re-import
+        // keeps it hidden instead of resurrecting it.
+        const row = di.dynamo.data[userTableNames.prod.stats][JSON.stringify({ name: `${day1}_sleep`, userId })] as any;
+        expect(row.hidden).to.equal(true);
+        expect(row.value).to.equal(432);
+        expect(row.appleUuid).to.equal(`sleep-${day1}`);
+
+        // Deleting an already-hidden record behaves like deleting a deleted one.
+        const again = await req("DELETE", `/api/v1/measurements/sleep/${day1}`);
+        expect(again.status).to.equal(404);
+      });
+    });
   });
 
   describe("CORS", () => {
