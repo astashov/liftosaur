@@ -1192,6 +1192,7 @@ export interface IStatsWeightValue {
   timestamp: number;
   updatedAt?: number;
   appleUuid?: string;
+  googleUuid?: string;
 }
 const _VStatsWeightValue = v.object({
   vtype: v.literal("stat"),
@@ -1199,6 +1200,7 @@ const _VStatsWeightValue = v.object({
   timestamp: v.number(),
   updatedAt: v.optional(v.number()),
   appleUuid: v.optional(v.string()),
+  googleUuid: v.optional(v.string()),
 });
 const _VStatsWeightValueMatches: IEquals<v.InferOutput<typeof _VStatsWeightValue>, IStatsWeightValue> = true;
 void _VStatsWeightValueMatches;
@@ -1215,6 +1217,7 @@ export interface IStatsLengthValue {
   timestamp: number;
   updatedAt?: number;
   appleUuid?: string;
+  googleUuid?: string;
 }
 const _VStatsLengthValue = v.object({
   vtype: v.literal("stat"),
@@ -1222,6 +1225,7 @@ const _VStatsLengthValue = v.object({
   timestamp: v.number(),
   updatedAt: v.optional(v.number()),
   appleUuid: v.optional(v.string()),
+  googleUuid: v.optional(v.string()),
 });
 const _VStatsLengthValueMatches: IEquals<v.InferOutput<typeof _VStatsLengthValue>, IStatsLengthValue> = true;
 void _VStatsLengthValueMatches;
@@ -1241,6 +1245,7 @@ export interface IStatsPercentageValue {
   timestamp: number;
   updatedAt?: number;
   appleUuid?: string;
+  googleUuid?: string;
 }
 const _VStatsPercentageValue = v.object({
   vtype: v.literal("stat"),
@@ -1248,6 +1253,7 @@ const _VStatsPercentageValue = v.object({
   timestamp: v.number(),
   updatedAt: v.optional(v.number()),
   appleUuid: v.optional(v.string()),
+  googleUuid: v.optional(v.string()),
 });
 const _VStatsPercentageValueMatches: IEquals<
   v.InferOutput<typeof _VStatsPercentageValue>,

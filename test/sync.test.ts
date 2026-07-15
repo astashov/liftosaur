@@ -8,7 +8,12 @@ import { IHistoryRecord, ISettings } from "../src/types";
 import { userTableNames, IUserDao } from "../lambda/dao/userDao";
 import { lb } from "lens-shmens";
 import sinon from "sinon";
-import { EditStats_deleteWeightStat } from "../src/models/editStats";
+import {
+  EditStats_deleteWeightStat,
+  EditStats_setHealthStatHidden,
+  EditStats_uploadDailyMetrics,
+  EditStats_uploadHealthStats,
+} from "../src/models/editStats";
 import * as encoder from "../src/utils/encoder";
 import { NodeEncoder_encode } from "../lambda/utils/nodeEncoder";
 import {
@@ -150,6 +155,91 @@ describe("sync", () => {
     expect((mockReducer2.state.storage.stats.weight.weight || []).map((w) => w.value.value)).to.eql([100, 120, 150]);
     await mockReducer.run([Thunk_sync2({ force: true })]);
     expect((mockReducer.state.storage.stats.weight.weight || []).map((w) => w.value.value)).to.eql([100, 120, 150]);
+  });
+
+  it("syncs health stats to the server and across devices, preserving hidden and source uuids", async () => {
+    const { mockReducer, env, di } = await SyncTestUtils_initTheAppAndRecordWorkout("web_123");
+    const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
+    const day1 = 1700000000000;
+    const day2 = day1 + 86400000;
+    await mockReducer.run([
+      SyncTestUtils_mockDispatch((ds) =>
+        EditStats_uploadDailyMetrics("ios", ds, {
+          values: [
+            { type: "sleep", timestamp: day1, value: 432, uuid: "sleep-day1" },
+            { type: "sleep", timestamp: day2, value: 401, uuid: "sleep-day2" },
+            { type: "protein", timestamp: day1, value: 150.5, uuid: "protein-day1" },
+          ],
+        })
+      ),
+    ]);
+    await mockReducer.run([Thunk_sync2({ force: true })]);
+
+    const statsRows = Object.values(di.dynamo.data[userTableNames.prod.stats] || {}) as {
+      name: string;
+      type: string;
+      value: number;
+      appleUuid?: string;
+    }[];
+    const sleepRow = statsRows.find((r) => r.name === `${day1}_sleep`);
+    expect(sleepRow?.type).to.equal("health");
+    expect(sleepRow?.value).to.equal(432);
+    expect(sleepRow?.appleUuid).to.equal("sleep-day1");
+    expect(statsRows.find((r) => r.name === `${day1}_protein`)?.value).to.equal(150.5);
+
+    await mockReducer2.run([Thunk_sync2({ force: true })]);
+    const sleep2 = mockReducer2.state.storage.stats.health?.sleep || [];
+    expect(sleep2.find((v) => v.timestamp === day1)?.value).to.equal(432);
+    expect(sleep2.find((v) => v.timestamp === day1)?.appleUuid).to.equal("sleep-day1");
+    expect(sleep2.find((v) => v.timestamp === day2)?.value).to.equal(401);
+    expect((mockReducer2.state.storage.stats.health?.protein || [])[0]?.value).to.equal(150.5);
+
+    await mockReducer2.run([
+      SyncTestUtils_mockDispatch((ds) => EditStats_setHealthStatHidden(ds, "sleep", day1, true)),
+    ]);
+    await mockReducer2.run([Thunk_sync2({ force: true })]);
+    await mockReducer.run([Thunk_sync2({ force: true })]);
+    const sleep1 = mockReducer.state.storage.stats.health?.sleep || [];
+    expect(sleep1.find((v) => v.timestamp === day1)?.hidden).to.equal(true);
+    expect(sleep1.find((v) => v.timestamp === day2)?.hidden).to.equal(undefined);
+  });
+
+  it("preserves measurement source uuids across the server round-trip", async () => {
+    const { mockReducer, env, di } = await SyncTestUtils_initTheAppAndRecordWorkout("web_123");
+    const mockReducer2 = MockReducer.clone(mockReducer, "web_456", env);
+    const ts = 1700000000000;
+    const settings = mockReducer.state.storage.settings;
+    await mockReducer.run([
+      SyncTestUtils_mockDispatch((ds) =>
+        EditStats_uploadHealthStats(
+          "android",
+          ds,
+          {
+            data: {
+              added: [
+                { type: "bodyweight", timestamp: ts, uuid: "hc-bw-1", value: { value: 80, unit: settings.units } },
+              ],
+              deleted: [],
+              anchor: "a1",
+            },
+          },
+          settings,
+          []
+        )
+      ),
+    ]);
+    await mockReducer.run([Thunk_sync2({ force: true })]);
+
+    const statsRows = Object.values(di.dynamo.data[userTableNames.prod.stats] || {}) as {
+      name: string;
+      googleUuid?: string;
+    }[];
+    expect(statsRows.find((r) => r.name === `${ts}_weight`)?.googleUuid).to.equal("hc-bw-1");
+
+    await mockReducer2.run([Thunk_sync2({ force: true })]);
+    const weight = (mockReducer2.state.storage.stats.weight.weight || []).find((v) => v.timestamp === ts);
+    expect(weight?.value.value).to.equal(80);
+    expect(weight?.googleUuid).to.equal("hc-bw-1");
   });
 
   it("cancels sync if not the latest version", async () => {
