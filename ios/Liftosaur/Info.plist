@@ -301,6 +301,23 @@ BiDw26hvNggLnwpjAGwi9OMXa1Qo4CoMK7Dz9rNYcpy7FHN9X3sXNNjFhDOylU0a
 sgxkvn64/GZy9Y8o1A5+qUWZ6N9rFU/Fw30Yhpo0g4DMXqdBBb+CPQf9OmriQXDt
 pIUWwHOqm45uFmSi7fzX5KbgOugdAFb1uhz+uaxATSs93rnAHQ==
 -----END CERTIFICATE-----</string>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneConfigurationName</key>
+					<string>Default Configuration</string>
+					<key>UISceneDelegateClassName</key>
+					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>
