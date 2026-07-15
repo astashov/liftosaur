@@ -61,8 +61,8 @@ export function ScreenSetupEquipment(props: IScreenSetupEquipmentProps): JSX.Ele
   useNavOptions({ navHidden: true });
 
   return (
-    <View className="flex flex-col flex-1 h-screen bg-background-default" style={{ paddingTop: insets.top }}>
-      <ScrollView className="flex-1 px-4 pt-8 pb-4">
+    <View className="flex flex-col flex-1 bg-background-default" style={{ paddingTop: insets.top }}>
+      <ScrollView className="flex-1" contentContainerClassName="px-4 pt-8 pb-4">
         <View className="items-center p-4">
           <Image
             source={{ uri: ImagePreloader_uri("/images/dinoequipment.png") }}
