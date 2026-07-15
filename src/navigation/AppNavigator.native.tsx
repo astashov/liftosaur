@@ -48,6 +48,7 @@ import {
   NavScreenMuscleGroups,
   NavScreenStats,
   NavScreenMeasurements,
+  NavScreenSleepNutrition,
   NavScreenExerciseStats,
   NavScreenApiKeys,
   NavScreenRecentImports,
@@ -300,6 +301,7 @@ function MeStackScreen(): JSX.Element {
       <MeStack.Screen name="muscleGroups" component={NavScreenMuscleGroups} />
       <MeStack.Screen name="stats" component={NavScreenStats} />
       <MeStack.Screen name="measurements" component={NavScreenMeasurements} />
+      <MeStack.Screen name="sleepNutrition" component={NavScreenSleepNutrition} />
       <MeStack.Screen name="exerciseStats" component={NavScreenExerciseStats} />
       <MeStack.Screen name="apiKeys" component={NavScreenApiKeys} />
       <MeStack.Screen name="recentImports" component={NavScreenRecentImports} />

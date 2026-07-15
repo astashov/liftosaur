@@ -14,21 +14,45 @@ import {
 } from "react-native-health-connect";
 import {
   IHealthAdapter,
+  IHealthDailyArgs,
+  IHealthDailyMetric,
+  IHealthDailyResult,
+  IHealthDailyValue,
   IHealthMeasurement,
   IHealthMeasurementsPayload,
   IHealthSyncArgs,
   IHealthSyncResult,
   IHealthWorkoutPayload,
 } from "./healthAdapter";
+import {
+  HealthDaily_buildValues,
+  HealthDaily_sleepMinutesByDay,
+  HealthDaily_sumByDay,
+  HealthDaily_windowStartMs,
+  IHealthDailyInterval,
+  IHealthDailySample,
+} from "./healthDaily";
 import { IUnit } from "../types";
 import { HealthAndroidFilter_isSelfOrigin } from "./healthAndroidFilter";
 
 const FIVE_YEARS_MS = 5 * 365 * 24 * 60 * 60 * 1000;
 const MAX_PAGES = 25;
+// Health Connect won't return records older than 30 days before the first permission grant unless we
+// also request READ_HEALTH_DATA_HISTORY; we cap the daily window to 30 days instead of taking on that
+// extra permission. With the keep-existing upsert, older days still accumulate in storage over time.
+const ANDROID_DAILY_MAX_WINDOW_DAYS = 30;
+
+// SleepStageType: SLEEPING=2, LIGHT=4, DEEP=5, REM=6 (excludes AWAKE=1, OUT_OF_BED=3, UNKNOWN=0).
+const ASLEEP_STAGES = new Set<number>([2, 4, 5, 6]);
 
 const READ_PERMISSIONS: Permission[] = [
   { accessType: "read", recordType: "Weight" },
   { accessType: "read", recordType: "BodyFat" },
+];
+
+const DAILY_READ_PERMISSIONS: Permission[] = [
+  { accessType: "read", recordType: "SleepSession" },
+  { accessType: "read", recordType: "Nutrition" },
 ];
 
 const MEASUREMENT_WRITE_PERMISSIONS: Permission[] = [
@@ -72,9 +96,37 @@ async function ensureInitialized(): Promise<boolean> {
   return initialized;
 }
 
+interface ISleepStageResult {
+  startTime: string;
+  endTime: string;
+  stage: number;
+}
+interface ISleepSessionResult {
+  startTime: string;
+  endTime: string;
+  stages?: ISleepStageResult[];
+}
+interface INutritionResult {
+  startTime: string;
+  endTime: string;
+  energy?: { inKilocalories: number };
+  protein?: { inGrams: number };
+}
+
 function clampWorkoutEnd(startMs: number, endMs: number): number {
   const maxEnd = startMs + 3 * 24 * 60 * 60 * 1000;
   return Math.min(Math.max(endMs, startMs), maxEnd);
+}
+
+// Asleep intervals for a session: its asleep stages when present, otherwise the whole session. These
+// are merged across all sessions/sources downstream so overlapping records aren't double-counted.
+function asleepIntervals(session: ISleepSessionResult): IHealthDailyInterval[] {
+  if (session.stages && session.stages.length > 0) {
+    return session.stages
+      .filter((stage) => ASLEEP_STAGES.has(stage.stage))
+      .map((stage) => ({ start: new Date(stage.startTime).getTime(), end: new Date(stage.endTime).getTime() }));
+  }
+  return [{ start: new Date(session.startTime).getTime(), end: new Date(session.endTime).getTime() }];
 }
 
 function workoutBounds(
@@ -131,6 +183,65 @@ export class HealthAdapter implements IHealthAdapter {
       return this.fullSync(args);
     }
     return this.incrementalSync(args, args.anchor);
+  }
+
+  public async syncDailyMetrics(args: IHealthDailyArgs): Promise<IHealthDailyResult> {
+    if (args.metrics.length === 0 || !(await ensureInitialized())) {
+      return { values: [] };
+    }
+    // Request both daily read perms up front, but import whatever the user actually granted - a user
+    // can grant sleep and deny nutrition (or vice versa), and we shouldn't drop the granted metric.
+    if (!(await this.ensurePermissions(DAILY_READ_PERMISSIONS))) {
+      await requestPermission(DAILY_READ_PERMISSIONS);
+    }
+    const granted = await getGrantedPermissions();
+    const isReadGranted = (recordType: "SleepSession" | "Nutrition"): boolean =>
+      granted.some((g) => (g as Permission).accessType === "read" && (g as Permission).recordType === recordType);
+    const sleepGranted = isReadGranted("SleepSession");
+    const nutritionGranted = isReadGranted("Nutrition");
+    if (!sleepGranted && !nutritionGranted) {
+      return { values: [] };
+    }
+
+    const windowDays = Math.min(args.windowDays, ANDROID_DAILY_MAX_WINDOW_DAYS);
+    const now = Date.now();
+    const timeRangeFilter = {
+      operator: "between" as const,
+      startTime: new Date(HealthDaily_windowStartMs(now, windowDays)).toISOString(),
+      endTime: new Date(now).toISOString(),
+    };
+    const values: IHealthDailyValue[] = [];
+
+    if (sleepGranted && args.metrics.indexOf("sleep") !== -1) {
+      const sessions = (await this.readAllInWindow("SleepSession", timeRangeFilter)) as ISleepSessionResult[];
+      const intervals: IHealthDailyInterval[] = [];
+      for (const session of sessions) {
+        intervals.push(...asleepIntervals(session));
+      }
+      values.push(...HealthDaily_buildValues("sleep", HealthDaily_sleepMinutesByDay(intervals)));
+    }
+
+    const needsNutrition = args.metrics.indexOf("calories") !== -1 || args.metrics.indexOf("protein") !== -1;
+    if (nutritionGranted && needsNutrition) {
+      const records = (await this.readAllInWindow("Nutrition", timeRangeFilter)) as INutritionResult[];
+      const nutritionDaily = (metric: IHealthDailyMetric, pick: (r: INutritionResult) => number | undefined): void => {
+        const samples: IHealthDailySample[] = [];
+        for (const r of records) {
+          const value = pick(r);
+          if (value != null) {
+            samples.push({ timestamp: new Date(r.startTime).getTime(), value });
+          }
+        }
+        values.push(...HealthDaily_buildValues(metric, HealthDaily_sumByDay(samples)));
+      };
+      if (args.metrics.indexOf("calories") !== -1) {
+        nutritionDaily("calories", (r) => r.energy?.inKilocalories);
+      }
+      if (args.metrics.indexOf("protein") !== -1) {
+        nutritionDaily("protein", (r) => r.protein?.inGrams);
+      }
+    }
+    return { values };
   }
 
   public async saveWorkout(args: IHealthWorkoutPayload): Promise<void> {
@@ -247,6 +358,25 @@ export class HealthAdapter implements IHealthAdapter {
 
   private async readAllPages<T extends "Weight" | "BodyFat">(
     recordType: T,
+    timeRangeFilter: { operator: "between"; startTime: string; endTime: string }
+  ): Promise<unknown[]> {
+    const all: unknown[] = [];
+    let pageToken: string | undefined;
+    for (let i = 0; i < MAX_PAGES; i++) {
+      const res = await readRecords(recordType, { timeRangeFilter, pageToken });
+      for (const r of res.records) {
+        all.push(r);
+      }
+      if (!res.pageToken) {
+        break;
+      }
+      pageToken = res.pageToken;
+    }
+    return all;
+  }
+
+  private async readAllInWindow(
+    recordType: "SleepSession" | "Nutrition",
     timeRangeFilter: { operator: "between"; startTime: string; endTime: string }
   ): Promise<unknown[]> {
     const all: unknown[] = [];

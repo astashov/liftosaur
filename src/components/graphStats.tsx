@@ -6,6 +6,8 @@ import { Weight_convertTo } from "../models/weight";
 import {
   ILengthUnit,
   ISettings,
+  IStatsHealthKey,
+  IStatsHealthValue,
   IStatsKey,
   IStatsLengthValue,
   IStatsPercentageValue,
@@ -23,8 +25,8 @@ import { GraphLegendOverlay, useGraphActiveCursor } from "./graphLegendOverlay";
 interface IGraphStatsProps {
   id?: string;
   collection: [number, number][];
-  units: IUnit | ILengthUnit | IPercentageUnit;
-  statsKey: IStatsKey;
+  units: IUnit | ILengthUnit | IPercentageUnit | string;
+  statsKey: IStatsKey | IStatsHealthKey;
   settings: ISettings;
   title?: string | null;
   isSameXAxis?: boolean;
@@ -55,6 +57,13 @@ export function getPercentageDataForGraph(coll: IStatsPercentageValue[], setting
   });
 }
 
+export function getHealthDataForGraph(coll: IStatsHealthValue[], key: IStatsHealthKey): [number, number][] {
+  const sortedCollection = CollectionUtils_sort(coll, (a, b) => a.timestamp - b.timestamp);
+  // Sleep is stored in minutes; graph it in hours so the axis stays readable.
+  const divisor = key === "sleep" ? 60 : 1;
+  return sortedCollection.map((i) => [i.timestamp / 1000, Math.round((i.value / divisor) * 10) / 10]);
+}
+
 function GraphStatsInner(props: IGraphStatsProps): JSX.Element {
   const { cursorIdx, chartRef, handleCursorChange, onCloseOverlay, overlayVisible } = useGraphActiveCursor(props.id);
   const movingAverageWindowSize = props.movingAverageWindowSize;
@@ -82,7 +91,14 @@ function GraphStatsInner(props: IGraphStatsProps): JSX.Element {
   }, [props.collection, movingAverageWindowSize]);
 
   const series: ILineChartSeries[] = useMemo(() => {
-    const label = props.statsKey === "weight" ? "Weight" : props.statsKey === "bodyfat" ? "Percentage" : "Size";
+    const label =
+      props.statsKey === "weight"
+        ? "Weight"
+        : props.statsKey === "bodyfat"
+          ? "Percentage"
+          : props.statsKey === "sleep" || props.statsKey === "calories" || props.statsKey === "protein"
+            ? Stats_name(props.statsKey)
+            : "Size";
     const out: ILineChartSeries[] = [
       {
         label,

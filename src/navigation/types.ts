@@ -63,6 +63,7 @@ export type IMeStackParamList = {
   muscleGroups: undefined;
   stats: undefined;
   measurements: { key: IStatsKey } | undefined;
+  sleepNutrition: undefined;
   exerciseStats: undefined;
   apiKeys: undefined;
   recentImports: undefined;

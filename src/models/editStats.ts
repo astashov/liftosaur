@@ -4,6 +4,9 @@ import {
   ILength,
   IPercentage,
   ISettings,
+  IStatsHealth,
+  IStatsHealthKey,
+  IStatsHealthValue,
   IStatsLength,
   IStatsLengthValue,
   IStatsPercentage,
@@ -11,7 +14,9 @@ import {
   IStatsWeight,
   IStatsWeightValue,
   IWeight,
+  statsHealthDef,
 } from "../types";
+import { IHealthDailyResult, IHealthDailyValue } from "../utils/healthAdapter";
 import { IState } from "./state";
 import { ObjectUtils_keys } from "../utils/object";
 import { CollectionUtils_sort, CollectionUtils_sortBy, CollectionUtils_uniqBy } from "../utils/collection";
@@ -437,5 +442,103 @@ export function EditStats_uploadHealthStats(
         : lb<IState>().p("storage").p("settings").p("googleHealthAnchor").record(data.anchor),
     ],
     desc: `Upload health stats from ${platform}`,
+  });
+}
+
+export function EditStats_setHealthStatHidden(
+  dispatch: IDispatch,
+  key: IStatsHealthKey,
+  timestamp: number,
+  hidden: boolean
+): void {
+  dispatch({
+    type: "UpdateState",
+    desc: hidden ? "Hide health stat" : "Unhide health stat",
+    lensRecording: [
+      lb<IState>()
+        .p("storage")
+        .p("stats")
+        .p("health")
+        .recordModify((health) => {
+          const next: IStatsHealth = { ...(health || {}) };
+          next[key] = [...(next[key] || [])].map((v) => (v.timestamp === timestamp ? { ...v, hidden } : v));
+          return next;
+        }),
+    ],
+  });
+}
+
+export function EditStats_uploadDailyMetrics(
+  platform: "ios" | "android",
+  dispatch: IDispatch,
+  result: IHealthDailyResult
+): void {
+  const byKey: Record<IStatsHealthKey, IHealthDailyValue[]> = { sleep: [], calories: [], protein: [] };
+  for (const v of result.values) {
+    byKey[v.type].push(v);
+  }
+  const now = Date.now();
+
+  // Daily aggregates are re-read over a rolling window each sync, so a day's total can change.
+  // Upsert by timestamp (replace same-day) rather than dedup-keep-first like measurements, carrying
+  // the user's `hidden` flag forward so hidden records stay hidden across re-syncs. When a day's value
+  // and source uuid are unchanged we keep the exact previous object (with its `updatedAt`) so
+  // VersionTracker doesn't treat the whole rolling window as changed on every sync.
+  //
+  // We intentionally KEEP existing days that are absent from the latest read rather than treating
+  // absence as a source-side deletion. HealthKit doesn't expose read-authorization status, so an
+  // empty/partial read is indistinguishable from revoked permission - auto-deleting on absence would
+  // risk silently wiping a user's history. Edits to a day ARE mirrored (same-day replace); a fully
+  // deleted source day lingers until the user hides it in the app.
+  const upsert = (
+    existing: IStatsHealthValue[] | undefined,
+    incoming: IHealthDailyValue[]
+  ): IStatsHealthValue[] | undefined => {
+    if (incoming.length === 0) {
+      return existing;
+    }
+    const existingByTimestamp = new Map((existing || []).map((v) => [v.timestamp, v]));
+    const incomingByTimestamp = new Set(incoming.map((v) => v.timestamp));
+    const merged = incoming.map((inc): IStatsHealthValue => {
+      const prev = existingByTimestamp.get(inc.timestamp);
+      const prevUuid = platform === "ios" ? prev?.appleUuid : prev?.googleUuid;
+      if (prev != null && prev.value === inc.value && prevUuid === inc.uuid) {
+        return prev;
+      }
+      const next: IStatsHealthValue = {
+        vtype: "stat",
+        value: inc.value,
+        timestamp: inc.timestamp,
+        updatedAt: now,
+        ...(platform === "ios" ? { appleUuid: inc.uuid } : { googleUuid: inc.uuid }),
+      };
+      if (prev?.hidden) {
+        next.hidden = true;
+      }
+      return next;
+    });
+    const kept = (existing || []).filter((v) => !incomingByTimestamp.has(v.timestamp));
+    return CollectionUtils_sortBy([...kept, ...merged], "timestamp", true);
+  };
+
+  dispatch({
+    type: "UpdateState",
+    lensRecording: [
+      lb<IState>()
+        .p("storage")
+        .p("stats")
+        .p("health")
+        .recordModify((health) => {
+          const next: IStatsHealth = { ...(health || {}) };
+          for (const key of statsHealthDef) {
+            const upserted = upsert(next[key], byKey[key]);
+            if (upserted != null) {
+              next[key] = upserted;
+            }
+          }
+          return next;
+        }),
+    ],
+    desc: `Upload daily health metrics from ${platform}`,
   });
 }

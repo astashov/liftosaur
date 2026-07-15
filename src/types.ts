@@ -278,6 +278,7 @@ export const statsLengthDef = [
   "calfRight",
 ] as const;
 export const statsPercentageDef = ["bodyfat"] as const;
+export const statsHealthDef = ["sleep", "calories", "protein"] as const;
 
 export const VUnit = v.picklist(units);
 export type IUnit = v.InferOutput<typeof VUnit>;
@@ -1270,6 +1271,43 @@ export const VStatsPercentage = v.object({
 });
 export type IStatsPercentage = v.InferOutput<typeof VStatsPercentage>;
 
+// Read-only daily metrics imported from Apple Health / Health Connect (sleep minutes, dietary
+// calories, protein grams). Unlike body measurements these are daily aggregates, keyed by the
+// local-midnight timestamp of the day they belong to; the value is a plain number whose unit is
+// implied by the key.
+export interface IStatsHealthValue {
+  vtype: "stat";
+  value: number;
+  timestamp: number;
+  updatedAt?: number;
+  appleUuid?: string;
+  googleUuid?: string;
+  // Read-only imported records can't be truly deleted (they'd just re-sync), so the user hides them
+  // instead; the record stays in storage and re-syncs normally, it's just filtered out of the UI.
+  hidden?: boolean;
+}
+const _VStatsHealthValue = v.object({
+  vtype: v.literal("stat"),
+  value: v.number(),
+  timestamp: v.number(),
+  updatedAt: v.optional(v.number()),
+  appleUuid: v.optional(v.string()),
+  googleUuid: v.optional(v.string()),
+  hidden: v.optional(v.boolean()),
+});
+const _VStatsHealthValueMatches: IEquals<v.InferOutput<typeof _VStatsHealthValue>, IStatsHealthValue> = true;
+void _VStatsHealthValueMatches;
+export const VStatsHealthValue: v.GenericSchema<IStatsHealthValue> = _VStatsHealthValue;
+
+export type IStatsHealthKey = (typeof statsHealthDef)[number];
+export type IStatsHealth = Partial<Record<IStatsHealthKey, IStatsHealthValue[]>>;
+export const VStatsHealth: v.GenericSchema<IStatsHealth> = v.object(
+  statsHealthDef.reduce<Record<string, v.GenericSchema<IStatsHealthValue[] | undefined>>>((memo, key) => {
+    memo[key] = v.optional(v.array(VStatsHealthValue));
+    return memo;
+  }, {})
+);
+
 export type IStatsKey = keyof IStatsLength | keyof IStatsWeight | keyof IStatsPercentage;
 
 export type IExerciseSelectedType = "weight" | "volume";
@@ -1551,9 +1589,11 @@ export interface ISettings {
   muscleGroups: IMuscleGroupsSettings;
   appleHealthSyncWorkout?: boolean;
   appleHealthSyncMeasurements?: boolean;
+  appleHealthSyncSleepNutrition?: boolean;
   appleHealthAnchor?: string;
   googleHealthSyncWorkout?: boolean;
   googleHealthSyncMeasurements?: boolean;
+  googleHealthSyncSleepNutrition?: boolean;
   googleHealthAnchor?: string;
   healthConfirmation?: boolean;
   ignoreDoNotDisturb?: boolean;
@@ -1599,9 +1639,11 @@ const _VSettings = v.object({
   muscleGroups: VMuscleGroupsSettings,
   appleHealthSyncWorkout: v.optional(v.boolean()),
   appleHealthSyncMeasurements: v.optional(v.boolean()),
+  appleHealthSyncSleepNutrition: v.optional(v.boolean()),
   appleHealthAnchor: v.optional(v.string()),
   googleHealthSyncWorkout: v.optional(v.boolean()),
   googleHealthSyncMeasurements: v.optional(v.boolean()),
+  googleHealthSyncSleepNutrition: v.optional(v.boolean()),
   googleHealthAnchor: v.optional(v.string()),
   healthConfirmation: v.optional(v.boolean()),
   ignoreDoNotDisturb: v.optional(v.boolean()),
@@ -1625,11 +1667,13 @@ export interface IStats {
   weight: IStatsWeight;
   length: IStatsLength;
   percentage: IStatsPercentage;
+  health?: IStatsHealth;
 }
 const _VStats = v.object({
   weight: VStatsWeight,
   length: VStatsLength,
   percentage: VStatsPercentage,
+  health: v.optional(VStatsHealth),
 });
 const _VStatsMatches: IEquals<v.InferOutput<typeof _VStats>, IStats> = true;
 void _VStatsMatches;

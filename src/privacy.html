@@ -68,8 +68,10 @@
 
     <h2 id="healthconnect">2. GOOGLE HEALTH CONNECT INTEGRATION</h2>
     <p>
-      Our app integrates with Google Health Connect to access and store specific health-related data, including body
-      weight and body fat. Here's how we handle this data:
+      Our app integrates with Google Health Connect to access and store specific health-related data. It reads and
+      writes your body weight and body fat, and additionally reads sleep duration and nutrition data (dietary calories
+      and protein) as read-only to display alongside your workouts; the app never writes sleep or nutrition data back to
+      Health Connect. Here's how we handle this data:
     </p>
 
     <h3>1. Data Collection</h3>
@@ -98,8 +100,10 @@
 
     <h3>5. User Control</h3>
     <p>
-      You retain control over your data. You can choose to delete or update your body weight and body fat data at any
-      time within the app. If you wish to delete your data stored on our servers, you can request this through the app's
+      You retain control over your data. You can delete or update your body weight and body fat data at any time within
+      the app. Sleep and nutrition records are read-only mirrors of your Health Connect data: you can hide any imported
+      day from view in the app (Me -> Sleep &amp; Nutrition), and you manage or remove the underlying records in Health
+      Connect itself. If you wish to delete your data stored on our servers, you can request this through the app's
       settings.
     </p>
 

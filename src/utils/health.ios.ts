@@ -1,14 +1,19 @@
 import type { AnyMap } from "react-native-nitro-modules";
 import {
+  CategoryValueSleepAnalysis,
   isHealthDataAvailableAsync,
+  queryCategorySamples,
+  queryQuantitySamples,
   queryQuantitySamplesWithAnchor,
   requestAuthorization,
   saveQuantitySample,
   saveWorkoutSample,
   WorkoutActivityType,
+  type CategoryTypeIdentifier,
   type MassUnit,
   type LengthUnit,
   type ObjectTypeIdentifier,
+  type QuantityTypeIdentifier,
   type QuantityTypeIdentifierWriteable,
   type SampleTypeIdentifierWriteable,
   type MetadataForQuantityIdentifier,
@@ -16,12 +21,22 @@ import {
 } from "@kingstinct/react-native-healthkit";
 import {
   IHealthAdapter,
+  IHealthDailyArgs,
+  IHealthDailyResult,
+  IHealthDailyValue,
   IHealthMeasurement,
   IHealthMeasurementsPayload,
   IHealthSyncArgs,
   IHealthSyncResult,
   IHealthWorkoutPayload,
 } from "./healthAdapter";
+import {
+  HealthDaily_buildValues,
+  HealthDaily_sleepMinutesByDay,
+  HealthDaily_sumByDay,
+  HealthDaily_windowStartMs,
+  IHealthDailyInterval,
+} from "./healthDaily";
 import { ILength, ILengthUnit, IPercentage, IUnit, IWeight } from "../types";
 import { HealthIosAnchors_decode, HealthIosAnchors_encode, IHealthIosAnchors } from "./healthIosAnchors";
 
@@ -30,6 +45,17 @@ const BODY_FAT = "HKQuantityTypeIdentifierBodyFatPercentage" satisfies QuantityT
 const WAIST = "HKQuantityTypeIdentifierWaistCircumference" satisfies QuantityTypeIdentifierWriteable;
 const ENERGY_BURNED = "HKQuantityTypeIdentifierActiveEnergyBurned" satisfies QuantityTypeIdentifierWriteable;
 const WORKOUT = "HKWorkoutTypeIdentifier" satisfies SampleTypeIdentifierWriteable;
+const SLEEP = "HKCategoryTypeIdentifierSleepAnalysis" satisfies CategoryTypeIdentifier;
+const DIETARY_ENERGY = "HKQuantityTypeIdentifierDietaryEnergyConsumed" satisfies QuantityTypeIdentifier;
+const DIETARY_PROTEIN = "HKQuantityTypeIdentifierDietaryProtein" satisfies QuantityTypeIdentifier;
+
+const DAILY_READ_TYPES: ObjectTypeIdentifier[] = [SLEEP, DIETARY_ENERGY, DIETARY_PROTEIN];
+const ASLEEP_VALUES = new Set<number>([
+  CategoryValueSleepAnalysis.asleepUnspecified,
+  CategoryValueSleepAnalysis.asleepCore,
+  CategoryValueSleepAnalysis.asleepDeep,
+  CategoryValueSleepAnalysis.asleepREM,
+]);
 
 // Active energy is only read by the watchOS app and the native phone workout-mirroring path, each of
 // which requests its own authorization. Keeping it out of the RN read request avoids a recurring
@@ -60,6 +86,7 @@ function metaFor<T extends QuantityTypeIdentifierWriteable>(): MetadataForQuanti
 
 export class HealthAdapter implements IHealthAdapter {
   private askedReadThisSession = false;
+  private askedDailyReadThisSession = false;
 
   public async isAvailable(): Promise<boolean> {
     return isHealthDataAvailableAsync();
@@ -83,6 +110,44 @@ export class HealthAdapter implements IHealthAdapter {
       }
       throw e;
     }
+  }
+
+  public async syncDailyMetrics(args: IHealthDailyArgs): Promise<IHealthDailyResult> {
+    if (args.metrics.length === 0) {
+      return { values: [] };
+    }
+    if (!this.askedDailyReadThisSession) {
+      this.askedDailyReadThisSession = true;
+      await requestAuthorization({ toRead: DAILY_READ_TYPES, toShare: [] });
+    }
+    const now = Date.now();
+    const startDate = new Date(HealthDaily_windowStartMs(now, args.windowDays));
+    const endDate = new Date(now);
+    const filter = { date: { startDate, endDate } };
+    const values: IHealthDailyValue[] = [];
+
+    if (args.metrics.indexOf("sleep") !== -1) {
+      const samples = await queryCategorySamples(SLEEP, { filter, limit: 0 });
+      const intervals: IHealthDailyInterval[] = [];
+      for (const s of samples) {
+        if (!ASLEEP_VALUES.has(Number(s.value))) {
+          continue;
+        }
+        intervals.push({ start: new Date(s.startDate).getTime(), end: new Date(s.endDate).getTime() });
+      }
+      values.push(...HealthDaily_buildValues("sleep", HealthDaily_sleepMinutesByDay(intervals)));
+    }
+    if (args.metrics.indexOf("calories") !== -1) {
+      const samples = await queryQuantitySamples(DIETARY_ENERGY, { filter, limit: 0, unit: "kcal" });
+      const daily = samples.map((s) => ({ timestamp: new Date(s.startDate).getTime(), value: s.quantity }));
+      values.push(...HealthDaily_buildValues("calories", HealthDaily_sumByDay(daily)));
+    }
+    if (args.metrics.indexOf("protein") !== -1) {
+      const samples = await queryQuantitySamples(DIETARY_PROTEIN, { filter, limit: 0, unit: "g" });
+      const daily = samples.map((s) => ({ timestamp: new Date(s.startDate).getTime(), value: s.quantity }));
+      values.push(...HealthDaily_buildValues("protein", HealthDaily_sumByDay(daily)));
+    }
+    return { values };
   }
 
   public async saveWorkout(args: IHealthWorkoutPayload): Promise<void> {

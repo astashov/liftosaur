@@ -62,9 +62,9 @@
 	<key>NSCameraUsageDescription</key>
 	<string>Liftosaur needs access to your camera to take photos for use as workout share backgrounds.</string>
 	<key>NSHealthShareUsageDescription</key>
-	<string>App will sync this data with Apple Health.</string>
+	<string>Liftosaur reads your bodyweight, body fat, waist, sleep, and nutrition (calories and protein) from Apple Health to show them alongside your workouts.</string>
 	<key>NSHealthUpdateUsageDescription</key>
-	<string>App will read this data from Apple Health and add to measurements inside the app.</string>
+	<string>Liftosaur writes your bodyweight, body fat, and waist measurements, plus completed workouts and their active energy, to Apple Health.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Liftosaur needs access to your photo library to pick photos for use as workout share backgrounds.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
