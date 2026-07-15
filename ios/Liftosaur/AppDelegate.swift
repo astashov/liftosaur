@@ -3,15 +3,11 @@ import OSLog
 import React
 import React_RCTAppDelegate
 import ReactAppDependencyProvider
-import TikTokOpenSDKCore
 import RollbarNotifier
 import GoogleAdsOnDeviceConversion
-import AppsFlyerLib
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
-  var window: UIWindow?
-
   var reactNativeDelegate: ReactNativeDelegate?
   var reactNativeFactory: RCTReactNativeFactory?
 
@@ -55,49 +51,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     reactNativeDelegate = delegate
     reactNativeFactory = factory
 
-    window = UIWindow(frame: UIScreen.main.bounds)
-
-    factory.startReactNative(
-      withModuleName: "Liftosaur",
-      in: window,
-      launchOptions: launchOptions
-    )
-
     return true
-  }
-
-  func applicationWillTerminate(_ application: UIApplication) {
-    LiftosaurEventReporterImpl.shared.markGracefulTermination()
-  }
-
-  func application(
-    _ app: UIApplication,
-    open url: URL,
-    options: [UIApplication.OpenURLOptionsKey: Any] = [:]
-  ) -> Bool {
-    AppsFlyerLib.shared().handleOpen(url, options: options)
-    if TikTokURLHandler.handleOpenURL(url) {
-      return true
-    }
-    if RCTLinkingManager.application(app, open: url, options: options) {
-      return true
-    }
-    return false
   }
 
   func application(
     _ application: UIApplication,
-    continue userActivity: NSUserActivity,
-    restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
-  ) -> Bool {
-    AppsFlyerLib.shared().continue(userActivity, restorationHandler: nil)
-    if TikTokURLHandler.handleOpenURL(userActivity.webpageURL) {
-      return true
-    }
-    if RCTLinkingManager.application(application, continue: userActivity, restorationHandler: restorationHandler) {
-      return true
-    }
-    return false
+    configurationForConnecting connectingSceneSession: UISceneSession,
+    options: UIScene.ConnectionOptions
+  ) -> UISceneConfiguration {
+    UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
+  }
+
+  func applicationWillTerminate(_ application: UIApplication) {
+    LiftosaurEventReporterImpl.shared.markGracefulTermination()
   }
 }
 

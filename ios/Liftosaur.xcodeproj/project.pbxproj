@@ -120,6 +120,7 @@
 		5C9210548D8DDE45FAA805DE /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		6D02DF56F7CB78E851242DEC /* RCTLiftosaurImageResizer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 12E13E911BF89F2F732F0E35 /* RCTLiftosaurImageResizer.mm */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
+		3AACC7412FB4B001001C68AA /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC7422FB4B001001C68AA /* SceneDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		8B7AE7DA350672DAFF7AFA16 /* LiftosaurImageResizerImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = A75D3E4A16A1FE2BA878A07B /* LiftosaurImageResizerImpl.swift */; };
 		95D0C1ECBFE44A7CB61734C1 /* Iosevka-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1A72802BA6B84B4A91C55832 /* Iosevka-Regular.ttf */; };
@@ -303,6 +304,7 @@
 		6932EE9394B77D111CEA7C57 /* RCTLiftosaurShare.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTLiftosaurShare.mm; path = Liftosaur/RCTLiftosaurShare.mm; sourceTree = "<group>"; };
 		6CDE7A4672A3F2BF6A135AE9 /* RCTLiftosaurLiveActivity.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTLiftosaurLiveActivity.mm; path = Liftosaur/RCTLiftosaurLiveActivity.mm; sourceTree = "<group>"; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = Liftosaur/AppDelegate.swift; sourceTree = "<group>"; };
+		3AACC7422FB4B001001C68AA /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SceneDelegate.swift; path = Liftosaur/SceneDelegate.swift; sourceTree = "<group>"; };
 		7FF1B3BD2B6C6730C0BDC0DC /* RCTFastTextRegistrar.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTFastTextRegistrar.mm; path = Liftosaur/FastText/RCTFastTextRegistrar.mm; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Liftosaur/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		839BEAD642ED44672AEE54D7 /* RCTFastTextView.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTFastTextView.mm; path = Liftosaur/FastText/RCTFastTextView.mm; sourceTree = "<group>"; };
@@ -392,6 +394,7 @@
 				3AACC6252FB35CFD001C68AA /* RCTLiftosaurWatch.h */,
 				3AACC6262FB35CFD001C68AA /* RCTLiftosaurWatch.mm */,
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
+				3AACC7422FB4B001001C68AA /* SceneDelegate.swift */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				EE0020000000000000000020 /* codesigning.pem */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
@@ -949,6 +952,7 @@
 				3AACC62B2FB35DA2001C68AA /* Settings.swift in Sources */,
 				3AACC6282FB35CFD001C68AA /* LiftosaurWatchImpl.swift in Sources */,
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
+				3AACC7412FB4B001001C68AA /* SceneDelegate.swift in Sources */,
 				438B6645A9C600CDF5BC2E07 /* RCTLiftosaurShare.mm in Sources */,
 				ABAB4E16DB2DC920D7412751 /* LiftosaurShareImpl.swift in Sources */,
 				6D02DF56F7CB78E851242DEC /* RCTLiftosaurImageResizer.mm in Sources */,
