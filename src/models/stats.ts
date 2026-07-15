@@ -1,9 +1,9 @@
-import { IPercentage, ISettings, IStats, IStatsKey, IWeight } from "../types";
+import { IPercentage, ISettings, IStats, IStatsHealthKey, IStatsKey, IWeight } from "../types";
 import { CollectionUtils_sortBy } from "../utils/collection";
 import { ObjectUtils_keys } from "../utils/object";
 import { Weight_add, Weight_build, Weight_divide } from "./weight";
 
-export function Stats_name(key: IStatsKey): string {
+export function Stats_name(key: IStatsKey | IStatsHealthKey): string {
   switch (key) {
     case "bicepLeft":
       return "Left Bicep";
@@ -35,6 +35,12 @@ export function Stats_name(key: IStatsKey): string {
       return "Bodyweight";
     case "bodyfat":
       return "Bodyfat";
+    case "sleep":
+      return "Sleep";
+    case "calories":
+      return "Calories";
+    case "protein":
+      return "Protein";
   }
 }
 

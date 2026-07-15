@@ -16,6 +16,7 @@ import { ScreenGoogleHealthSettings as ScreenGoogleHealthSettingsComponent } fro
 import { ScreenMuscleGroups as ScreenMuscleGroupsComponent } from "../../components/screenMuscleGroups";
 import { ScreenStats as ScreenStatsComponent } from "../../components/screenStats";
 import { ScreenMeasurements as ScreenMeasurementsComponent } from "../../components/screenMeasurements";
+import { ScreenSleepNutrition as ScreenSleepNutritionComponent } from "../../components/screenSleepNutrition";
 import { ScreenExerciseStats as ScreenExerciseStatsComponent } from "../../components/screenExerciseStats";
 import { ScreenRecentImports as ScreenRecentImportsComponent } from "../../components/screenRecentImports";
 import { ScreenImportPreview as ScreenImportPreviewComponent } from "../../components/screenImportPreview";
@@ -209,6 +210,22 @@ export function NavScreenMeasurements(): JSX.Element {
         settings={state.storage.settings}
         stats={state.storage.stats}
         initialKey={route.params?.key}
+      />
+    </NavScreenContent>
+  );
+}
+
+export function NavScreenSleepNutrition(): JSX.Element {
+  const { state, dispatch } = useAppState();
+  const navCommon = buildNavCommon(state);
+  return (
+    <NavScreenContent>
+      <ScreenSleepNutritionComponent
+        navCommon={navCommon}
+        dispatch={dispatch}
+        settings={state.storage.settings}
+        subscription={state.storage.subscription}
+        stats={state.storage.stats}
       />
     </NavScreenContent>
   );

@@ -1,5 +1,7 @@
 import {
   IHealthAdapter,
+  IHealthDailyArgs,
+  IHealthDailyResult,
   IHealthMeasurementsPayload,
   IHealthSyncArgs,
   IHealthSyncResult,
@@ -11,10 +13,12 @@ export class MockHealthAdapter implements IHealthAdapter {
   public permissionsGranted: boolean = true;
   public requestPermissionsCalls: number = 0;
   public syncCalls: IHealthSyncArgs[] = [];
+  public dailyCalls: IHealthDailyArgs[] = [];
   public saveWorkoutCalls: IHealthWorkoutPayload[] = [];
   public saveMeasurementsCalls: IHealthMeasurementsPayload[] = [];
   public syncResultsQueue: Array<IHealthSyncResult | Error> = [];
   public defaultSyncResult: IHealthSyncResult = { added: [], deleted: [], anchor: "anchor-default" };
+  public defaultDailyResult: IHealthDailyResult = { values: [] };
 
   public async isAvailable(): Promise<boolean> {
     return this.available;
@@ -35,6 +39,11 @@ export class MockHealthAdapter implements IHealthAdapter {
       return next;
     }
     return this.defaultSyncResult;
+  }
+
+  public async syncDailyMetrics(args: IHealthDailyArgs): Promise<IHealthDailyResult> {
+    this.dailyCalls.push(args);
+    return this.defaultDailyResult;
   }
 
   public async saveWorkout(args: IHealthWorkoutPayload): Promise<void> {

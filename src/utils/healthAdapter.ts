@@ -35,10 +35,32 @@ export interface IHealthMeasurementsPayload {
   timestamp: number;
 }
 
+export type IHealthDailyMetric = "sleep" | "calories" | "protein";
+
+// A daily-aggregated value imported from the platform health store. `value` is sleep minutes,
+// dietary calories (kcal) or protein grams depending on `type`; `timestamp` is the local-midnight
+// ms of the day it belongs to; `uuid` is a stable per-day id so re-syncs upsert instead of dup.
+export interface IHealthDailyValue {
+  type: IHealthDailyMetric;
+  timestamp: number;
+  value: number;
+  uuid: string;
+}
+
+export interface IHealthDailyArgs {
+  windowDays: number;
+  metrics: IHealthDailyMetric[];
+}
+
+export interface IHealthDailyResult {
+  values: IHealthDailyValue[];
+}
+
 export interface IHealthAdapter {
   isAvailable(): Promise<boolean>;
   requestPermissions(): Promise<boolean>;
   syncMeasurements(args: IHealthSyncArgs): Promise<IHealthSyncResult>;
+  syncDailyMetrics(args: IHealthDailyArgs): Promise<IHealthDailyResult>;
   saveWorkout(args: IHealthWorkoutPayload): Promise<void>;
   saveMeasurements(args: IHealthMeasurementsPayload): Promise<void>;
 }

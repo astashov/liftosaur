@@ -14,6 +14,7 @@ import { ScreenMuscleGroups as ScreenMuscleGroupsComponent } from "../../compone
 import { ScreenApiKeys as ScreenApiKeysComponent } from "../../components/screenApiKeys";
 import { ScreenAccount as ScreenAccountComponent } from "../../components/screenAccount";
 import { ScreenMeasurements as ScreenMeasurementsComponent } from "../../components/screenMeasurements";
+import { ScreenSleepNutrition as ScreenSleepNutritionComponent } from "../../components/screenSleepNutrition";
 import { ScreenStats as ScreenStatsComponent } from "../../components/screenStats";
 import { ScreenExercises as ScreenExercisesComponent } from "../../components/screenExercises";
 import { ScreenExerciseStats as ScreenExerciseStatsComponent } from "../../components/screenExerciseStats";
@@ -254,6 +255,25 @@ export function NavScreenMeasurements(): React.JSX.Element {
           settings={untrack(state.storage.settings)}
           stats={untrack(state.storage.stats)}
           initialKey={route.params?.key}
+        />
+      </NavScreenContent>
+    </View>
+  );
+}
+
+export function NavScreenSleepNutrition(): React.JSX.Element {
+  const state = useTrackedState();
+  const dispatch = useTrackedDispatch();
+  const navCommon = untrack(buildNavCommon(state));
+  return (
+    <View className="flex-1 bg-background-default">
+      <NavScreenContent>
+        <ScreenSleepNutritionComponent
+          navCommon={navCommon}
+          dispatch={dispatch}
+          settings={untrack(state.storage.settings)}
+          subscription={untrack(state.storage.subscription)}
+          stats={untrack(state.storage.stats)}
         />
       </NavScreenContent>
     </View>

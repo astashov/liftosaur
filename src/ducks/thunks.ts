@@ -85,7 +85,6 @@ import {
 import {
   SendMessage_isIos,
   SendMessage_toIosWithResult,
-  SendMessage_toAndroidWithResult,
   SendMessage_toIos,
   SendMessage_print,
   SendMessage_toAndroid,
@@ -133,7 +132,7 @@ import {
   ObjectUtils_omit,
   ObjectUtils_keys,
 } from "../utils/object";
-import { EditStats_uploadHealthStats } from "../models/editStats";
+import { EditStats_uploadDailyMetrics, EditStats_uploadHealthStats } from "../models/editStats";
 import { HealthSync_eligibleForAppleHealth, HealthSync_eligibleForGoogleHealth } from "../lib/healthSync";
 import {
   PlannerProgram_generateFullText,
@@ -531,56 +530,40 @@ function getDeletedStats(state: IState): number[] {
 
 async function _syncHealthKit(dispatch: IDispatch, getState: () => IState, env: IEnv): Promise<void> {
   const settings = getState().storage.settings;
-  if (SendMessage_isIos()) {
-    dispatch(Thunk_postevent("read-apple-health"));
-    const result = await SendMessage_toIosWithResult({
-      type: "getHealthKitData",
-      weightunit: settings.units,
-      lengthunit: settings.lengthUnits,
-      anchor: settings.appleHealthAnchor,
-    });
-    if (result != null) {
-      EditStats_uploadHealthStats("ios", dispatch, result, getState().storage.settings, getDeletedStats(getState()));
-    }
-    return;
-  }
-  if (SendMessage_isAndroid()) {
-    dispatch(Thunk_postevent("read-google-health"));
-    const result = await SendMessage_toAndroidWithResult({
-      type: "getHealthKitData",
-      weightunit: settings.units,
-      lengthunit: settings.lengthUnits,
-      anchor: settings.googleHealthAnchor,
-    });
-    if (result != null) {
-      EditStats_uploadHealthStats(
-        "android",
-        dispatch,
-        result,
-        getState().storage.settings,
-        getDeletedStats(getState())
-      );
-    }
-    return;
-  }
   if (!env.health) {
     return;
   }
   const platform: "ios" | "android" = Platform.OS === "ios" ? "ios" : "android";
-  dispatch(Thunk_postevent(platform === "ios" ? "read-apple-health" : "read-google-health"));
-  const anchor = platform === "ios" ? settings.appleHealthAnchor : settings.googleHealthAnchor;
-  const result = await env.health.syncMeasurements({
-    anchor,
-    weightUnit: settings.units,
-    lengthUnit: settings.lengthUnits,
-  });
-  EditStats_uploadHealthStats(
-    platform,
-    dispatch,
-    { data: result },
-    getState().storage.settings,
-    getDeletedStats(getState())
-  );
+  const syncMeasurements =
+    platform === "ios" ? settings.appleHealthSyncMeasurements : settings.googleHealthSyncMeasurements;
+  const syncSleepNutrition =
+    platform === "ios" ? settings.appleHealthSyncSleepNutrition : settings.googleHealthSyncSleepNutrition;
+
+  if (syncMeasurements) {
+    dispatch(Thunk_postevent(platform === "ios" ? "read-apple-health" : "read-google-health"));
+    const anchor = platform === "ios" ? settings.appleHealthAnchor : settings.googleHealthAnchor;
+    const result = await env.health.syncMeasurements({
+      anchor,
+      weightUnit: settings.units,
+      lengthUnit: settings.lengthUnits,
+    });
+    EditStats_uploadHealthStats(
+      platform,
+      dispatch,
+      { data: result },
+      getState().storage.settings,
+      getDeletedStats(getState())
+    );
+  }
+
+  if (syncSleepNutrition) {
+    dispatch(Thunk_postevent(platform === "ios" ? "read-apple-health-daily" : "read-google-health-daily"));
+    // iOS reads a 90-day rolling window; Android is 30 because Health Connect won't return records older
+    // than 30 days without the READ_HEALTH_DATA_HISTORY permission (which we don't request).
+    const windowDays = platform === "android" ? 30 : 90;
+    const daily = await env.health.syncDailyMetrics({ windowDays, metrics: ["sleep", "calories", "protein"] });
+    EditStats_uploadDailyMetrics(platform, dispatch, daily);
+  }
 }
 
 export function Thunk_saveWorkoutToHealth(args: {
@@ -665,9 +648,12 @@ export function Thunk_syncHealthKit(cb?: () => void): IThunk {
       }
       return;
     }
+    const s = state.storage.settings;
+    const appleSyncEnabled = s.appleHealthSyncMeasurements || s.appleHealthSyncSleepNutrition;
+    const googleSyncEnabled = s.googleHealthSyncMeasurements || s.googleHealthSyncSleepNutrition;
     if (
-      !(state.storage.settings.appleHealthSyncMeasurements && HealthSync_eligibleForAppleHealth()) &&
-      !(state.storage.settings.googleHealthSyncMeasurements && HealthSync_eligibleForGoogleHealth())
+      !(appleSyncEnabled && HealthSync_eligibleForAppleHealth()) &&
+      !(googleSyncEnabled && HealthSync_eligibleForGoogleHealth())
     ) {
       if (cb != null) {
         cb();
