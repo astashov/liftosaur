@@ -101,6 +101,8 @@
 		3AACC6192FB355BA001C68AA /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC6132FB355BA001C68AA /* Notifications.swift */; };
 		3AACC61A2FB355BA001C68AA /* SharedMessageHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC6152FB355BA001C68AA /* SharedMessageHandler.swift */; };
 		3AACC61B2FB355BA001C68AA /* Logger+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC6122FB355BA001C68AA /* Logger+Extension.swift */; };
+		3AACC75C00000000000C0002 /* StoragePayloadCompression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC75C00000000000C0001 /* StoragePayloadCompression.swift */; };
+		3AACC75C00000000000C0003 /* StoragePayloadCompression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC75C00000000000C0001 /* StoragePayloadCompression.swift */; };
 		3AACC61C2FB355BA001C68AA /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC6112FB355BA001C68AA /* FlowLayout.swift */; };
 		3AACC61E2FB35653001C68AA /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC61D2FB35653001C68AA /* Settings.swift */; };
 		3AACC6272FB35CFD001C68AA /* RCTLiftosaurWatch.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC6262FB35CFD001C68AA /* RCTLiftosaurWatch.mm */; };
@@ -287,6 +289,7 @@
 		3AACC6102FB355BA001C68AA /* EventManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventManager.swift; sourceTree = "<group>"; };
 		3AACC6112FB355BA001C68AA /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
 		3AACC6122FB355BA001C68AA /* Logger+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Logger+Extension.swift"; sourceTree = "<group>"; };
+		3AACC75C00000000000C0001 /* StoragePayloadCompression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoragePayloadCompression.swift; sourceTree = "<group>"; };
 		3AACC6132FB355BA001C68AA /* Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
 		3AACC6142FB355BA001C68AA /* SetInfoViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetInfoViews.swift; sourceTree = "<group>"; };
 		3AACC6152FB355BA001C68AA /* SharedMessageHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedMessageHandler.swift; sourceTree = "<group>"; };
@@ -586,6 +589,7 @@
 				3AACC6102FB355BA001C68AA /* EventManager.swift */,
 				3AACC6112FB355BA001C68AA /* FlowLayout.swift */,
 				3AACC6122FB355BA001C68AA /* Logger+Extension.swift */,
+				3AACC75C00000000000C0001 /* StoragePayloadCompression.swift */,
 				3AACC6132FB355BA001C68AA /* Notifications.swift */,
 				3AACC6142FB355BA001C68AA /* SetInfoViews.swift */,
 				3AACC6152FB355BA001C68AA /* SharedMessageHandler.swift */,
@@ -949,6 +953,7 @@
 			files = (
 				3AACC6272FB35CFD001C68AA /* RCTLiftosaurWatch.mm in Sources */,
 				3AACC6292FB35D3A001C68AA /* Logger+Extension.swift in Sources */,
+				3AACC75C00000000000C0002 /* StoragePayloadCompression.swift in Sources */,
 				3AACC62B2FB35DA2001C68AA /* Settings.swift in Sources */,
 				3AACC6282FB35CFD001C68AA /* LiftosaurWatchImpl.swift in Sources */,
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
@@ -1012,6 +1017,7 @@
 				3AACC6192FB355BA001C68AA /* Notifications.swift in Sources */,
 				3AACC61A2FB355BA001C68AA /* SharedMessageHandler.swift in Sources */,
 				3AACC61B2FB355BA001C68AA /* Logger+Extension.swift in Sources */,
+				3AACC75C00000000000C0003 /* StoragePayloadCompression.swift in Sources */,
 				3AACC61C2FB355BA001C68AA /* FlowLayout.swift in Sources */,
 				3AACC5FC2FB3526B001C68AA /* RestTimerScreen.swift in Sources */,
 				3ABEEF0100000000000000A2 /* SetTimerScreen.swift in Sources */,

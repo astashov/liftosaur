@@ -58,15 +58,21 @@ class WatchConnectivityManager: NSObject, ObservableObject {
             return
         }
 
-        let message: [String: Any] = [
+        var message: [String: Any] = [
             "type": "watchStorage",
-            "storage": storageJson,
             "deviceId": deviceId
         ]
+        if let compressed = StoragePayloadCompression.compressIfLarge(storageJson) {
+            Logger.wc.info(" compressing storage payload: \(storageJson.utf8.count) -> \(compressed.count) bytes")
+            message["storageZ"] = compressed
+        } else {
+            message["storage"] = storageJson
+        }
 
         if self.isReachable {
             session.sendMessage(message, replyHandler: nil, errorHandler: { error in
                 Logger.wc.info(" failed to send storage: \(error)")
+                Self.logPayloadTooLarge(error: error, storageJson: storageJson, path: "sendMessage")
             })
         } else {
             // Use updateApplicationContext to keep only the latest (not transferUserInfo which queues all)
@@ -77,9 +83,24 @@ class WatchConnectivityManager: NSObject, ObservableObject {
             } catch {
                 // Fall back to transferUserInfo if applicationContext fails (e.g., size limit)
                 Logger.wc.info(" applicationContext failed (\(error)), falling back to transferUserInfo")
+                Self.logPayloadTooLarge(error: error, storageJson: storageJson, path: "applicationContext")
                 session.transferUserInfo(message)
             }
         }
+    }
+
+    /// The ~64KB WCSession payload cap silently kills the direct watch->phone sync channel once
+    /// storage outgrows it, so log WHAT outgrew it (per-top-level-key sizes), not just that it did.
+    private static func logPayloadTooLarge(error: Error, storageJson: String, path: String) {
+        guard (error as? WCError)?.code == .payloadTooLarge else { return }
+        let size = storageJson.utf8.count
+        let breakdown = StoragePayloadCompression.sizeBreakdown(storageJson)
+        Logger.wc.info(" storage payload too large via \(path): total=\(size) bytes, \(breakdown)")
+        WatchEventManager.shared.logNativeEvent(name: "watch-storage-too-large", extra: [
+            "path": path,
+            "size": String(size),
+            "breakdown": breakdown,
+        ])
     }
 
     func sendLiveActivityUpdate(_ message: [String: String]) {
@@ -157,7 +178,7 @@ extension WatchConnectivityManager: WCSessionDelegate {
         if activationState == .activated {
             let context = session.receivedApplicationContext
             Logger.wc.info(" receivedApplicationContext has \(context.count) keys: \(context.keys)")
-            if let storageJson = context["storage"] as? String {
+            if let storageJson = StoragePayloadCompression.extractStorageJson(context) {
                 Logger.wc.info(" found storage in receivedApplicationContext (\(storageJson.count) bytes)")
                 Task { @MainActor in
                     await WatchSyncManager.shared.handleIncomingStorage(storageJson)
@@ -288,7 +309,7 @@ extension WatchConnectivityManager: WCSessionDelegate {
         }
 
         // Handle storage
-        if let storageJson = data["storage"] as? String {
+        if let storageJson = StoragePayloadCompression.extractStorageJson(data) {
             Logger.wc.info(" received storage (\(storageJson.count) bytes)")
             Task { @MainActor in
                 await WatchSyncManager.shared.handleIncomingStorage(storageJson)
