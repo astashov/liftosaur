@@ -65,20 +65,30 @@ import WatchConnectivity
       return
     }
 
-    var message: [String: Any] = ["storage": filteredStorageJson]
+    var message: [String: Any] = [:]
+    if let compressed = StoragePayloadCompression.compressIfLarge(filteredStorageJson) {
+      Logger.wc.info("sendStorage: compressing payload \(filteredStorageJson.utf8.count) -> \(compressed.count) bytes")
+      message["storageZ"] = compressed
+    } else {
+      message["storage"] = filteredStorageJson
+    }
     if pendingClearAuth {
       pendingClearAuth = false
       message["clearAuth"] = true
     }
 
     if session.isReachable {
-      session.sendMessage(message, replyHandler: nil)
+      session.sendMessage(message, replyHandler: nil, errorHandler: { error in
+        Logger.wc.error("sendStorage: sendMessage failed: \(error)")
+        Self.logPayloadTooLarge(error: error, storageJson: filteredStorageJson, path: "sendMessage")
+      })
       Logger.wc.info("sendStorage: sendMessage (reachable)")
     } else {
       do {
         try session.updateApplicationContext(message)
         Logger.wc.info("sendStorage: updateApplicationContext")
       } catch {
+        Self.logPayloadTooLarge(error: error, storageJson: filteredStorageJson, path: "applicationContext")
         if session.isPaired {
           session.transferUserInfo(message)
           Logger.wc.info("sendStorage: transferUserInfo fallback")
@@ -88,6 +98,18 @@ import WatchConnectivity
       }
     }
     lastStorageSentToWatch = filteredStorageJson
+  }
+
+  private static func logPayloadTooLarge(error: Error, storageJson: String, path: String) {
+    guard (error as? WCError)?.code == .payloadTooLarge else { return }
+    let size = storageJson.utf8.count
+    let breakdown = StoragePayloadCompression.sizeBreakdown(storageJson)
+    Logger.wc.info("sendStorage: payload too large via \(path): total=\(size) bytes, \(breakdown)")
+    LiftosaurEventReporterImpl.shared.logTelemetry(name: "phone-storage-too-large", extra: [
+      "path": path,
+      "size": String(size),
+      "breakdown": breakdown,
+    ])
   }
 
   @objc public func sendAuth(token: String, expiresAt: Double, userId: String?) {
@@ -297,7 +319,7 @@ extension LiftosaurWatchImpl {
       replyHandler?(["success": true])
 
     case "watchStorage":
-      if let storageJson = message["storage"] as? String {
+      if let storageJson = StoragePayloadCompression.extractStorageJson(message) {
         if lastStorageReceivedFromWatch == storageJson {
           replyHandler?(["success": true])
           return
