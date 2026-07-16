@@ -232,18 +232,30 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
 
     /// Serializes HealthKit session changes (a simple async semaphore-1 with FIFO baton-passing)
     /// so a start can never interleave with a stop across an await.
-    private func withHealthLock(_ body: () async -> Void) async {
+    private func withHealthLock<T>(_ body: () async -> T) async -> T {
         if healthOpBusy {
             await withCheckedContinuation { healthOpWaiters.append($0) }
         } else {
             healthOpBusy = true
         }
-        await body()
+        let result = await body()
         if let next = healthOpWaiters.first {
             healthOpWaiters.removeFirst()
             next.resume()
         } else {
             healthOpBusy = false
+        }
+        return result
+    }
+
+    /// Like reconcileHealth(.finish) but returns the real HealthKit outcome, so a finish can be
+    /// answered with what actually happened instead of a prediction.
+    func finishHealthSession(save: Bool) async -> HKFinishResult {
+        await withHealthLock {
+            // The workout is over — authoritative. Recover first so a session left running across
+            // a relaunch (not yet held locally) is actually ended.
+            _ = await HealthKitManager.shared.recoverActiveSession()
+            return await HealthKitManager.shared.endWorkoutSession(save: save)
         }
     }
 
@@ -263,8 +275,8 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
                     await HealthKitManager.shared.reconcileSession(hasActiveWorkout: true)
                 }
             case .finish(let save):
-                // The phone says the workout is over — authoritative. Recover first so a session
-                // left running across a relaunch (not yet held locally) is actually ended.
+                // The workout is over — authoritative. Recover first so a session left running
+                // across a relaunch (not yet held locally) is actually ended.
                 _ = await HealthKitManager.shared.recoverActiveSession()
                 await HealthKitManager.shared.endWorkoutSession(save: save)
             case .discard:
@@ -387,7 +399,12 @@ class WorkoutManager: NSObject, ObservableObject, AVAudioPlayerDelegate {
         // new next workout instead of the one that was just finished.
         await loadNextWorkout()
 
-        Task { await reconcileHealth(.finish(save: saveToHealth)) }
+        Task {
+            let result = await finishHealthSession(save: saveToHealth)
+            var extra = ["saved": String(result.saved), "trigger": "watch"]
+            if let reason = result.reason { extra["reason"] = reason }
+            WatchEventManager.shared.logNativeEvent(name: "watch-hk-finish", extra: extra)
+        }
         WatchConnectivityManager.shared.sendEndWorkout()
         activeWorkout = nil
         workoutStartTime = nil
