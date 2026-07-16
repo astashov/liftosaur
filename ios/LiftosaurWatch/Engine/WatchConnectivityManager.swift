@@ -205,14 +205,22 @@ extension WatchConnectivityManager: WCSessionDelegate {
             let saveToHealth = message["saveToHealth"] as? Bool ?? true
             Logger.wc.info(" received finishWorkout from phone (with reply), saveToHealth: \(saveToHealth)")
             Task { @MainActor in
-                // Predict whether we'll save (a held, running session + health-sync on) and reply
-                // IMMEDIATELY — don't wait for the slow finishWorkout(), or the phone's 5s fallback
-                // could fire and double-save. The actual end/save happens in the background below.
-                let willSave = HealthKitManager.shared.isSessionActive && saveToHealth
-                Logger.wc.info(" replied watchSaved=\(willSave), ending session in background")
-                replyHandler(["watchSaved": willSave])
                 WorkoutManager.shared.clearWorkoutState()
-                await WorkoutManager.shared.reconcileHealth(.finish(save: willSave))
+                // Hold the reply until the session is ACTUALLY ended/saved, so the phone decides
+                // its estimated-calories fallback on the real outcome instead of a prediction (the
+                // old optimistic reply lost the workout entirely when the save later failed). The
+                // phone waits 20s, well within WCSession's reply window; "final" marks the reply
+                // as a real result vs the old protocol's prediction.
+                let result = await WorkoutManager.shared.finishHealthSession(save: saveToHealth)
+                let saved = saveToHealth && result.saved
+                let reason = saveToHealth ? result.reason : "save-disabled"
+                var reply: [String: Any] = ["watchSaved": saved, "final": true]
+                if let reason = reason { reply["reason"] = reason }
+                Logger.wc.info(" replying watchSaved=\(saved), reason=\(reason ?? "none")")
+                replyHandler(reply)
+                var extra = ["saved": String(saved), "trigger": "phone"]
+                if let reason = reason { extra["reason"] = reason }
+                WatchEventManager.shared.logNativeEvent(name: "watch-hk-finish", extra: extra)
             }
             return
         }

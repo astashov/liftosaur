@@ -12,6 +12,11 @@ extension Logger {
     static let healthKit = Logger(subsystem: "com.liftosaur.watch", category: "HealthKit")
 }
 
+struct HKFinishResult {
+    let saved: Bool
+    let reason: String?
+}
+
 @MainActor
 class HealthKitManager: NSObject, ObservableObject {
     static let shared = HealthKitManager()
@@ -361,7 +366,8 @@ class HealthKitManager: NSObject, ObservableObject {
         }
     }
 
-    func endWorkoutSession(save: Bool) async {
+    @discardableResult
+    func endWorkoutSession(save: Bool) async -> HKFinishResult {
         Logger.sync.info(">>> endWorkoutSession called, save: \(save), session=\(self.session != nil), builder=\(self.builder != nil), isSessionActive=\(self.isSessionActive)")
         guard let session = session else {
             Logger.sync.info(">>> endWorkoutSession: no active session to end")
@@ -370,7 +376,7 @@ class HealthKitManager: NSObject, ObservableObject {
             sessionStartedAt = nil
             heartRate = nil
             isSessionActive = false
-            return
+            return HKFinishResult(saved: false, reason: "no-session")
         }
 
         // Capture the builder BEFORE session.end(): ending can fire the .ended delegate which
@@ -390,21 +396,43 @@ class HealthKitManager: NSObject, ObservableObject {
         // Only finish (save) a session that was actually running; a mid-start session has no
         // meaningful data, so discard it regardless of `save` to avoid writing an empty workout.
         let shouldSave = save && wasRunning
+        var saved = false
+        var reason: String? = save && !wasRunning ? "not-running-discarded" : nil
         if let builder = builder {
             do {
                 Logger.sync.info(">>> endWorkoutSession: ending collection...")
                 try await builder.endCollection(at: Date())
                 if shouldSave {
-                    try await builder.finishWorkout()
-                    Logger.sync.info(">>> endWorkoutSession: workout SAVED to HealthKit")
+                    do {
+                        try await builder.finishWorkout()
+                        saved = true
+                        Logger.sync.info(">>> endWorkoutSession: workout SAVED to HealthKit")
+                    } catch {
+                        // finishWorkout can fail transiently right after end(); retry once before
+                        // giving up so the phone's estimated fallback stays a last resort.
+                        Logger.sync.error(">>> endWorkoutSession: finishWorkout failed, retrying: \(error.localizedDescription)")
+                        do {
+                            try await Task.sleep(nanoseconds: 1_000_000_000)
+                            try await builder.finishWorkout()
+                            saved = true
+                            Logger.sync.info(">>> endWorkoutSession: workout SAVED to HealthKit (retry)")
+                        } catch {
+                            reason = "finish-workout-failed:\(Self.errorCode(error))"
+                            Logger.sync.error(">>> endWorkoutSession: finishWorkout retry FAILED: \(error.localizedDescription)")
+                            builder.discardWorkout()
+                        }
+                    }
                 } else {
                     builder.discardWorkout()
                     Logger.sync.info(">>> endWorkoutSession: workout DISCARDED (save=\(save), wasRunning=\(wasRunning))")
                 }
             } catch {
-                Logger.sync.error(">>> endWorkoutSession: FAILED: \(error.localizedDescription)")
+                reason = shouldSave ? "end-collection-failed:\(Self.errorCode(error))" : reason
+                Logger.sync.error(">>> endWorkoutSession: endCollection FAILED: \(error.localizedDescription)")
                 builder.discardWorkout()
             }
+        } else if shouldSave {
+            reason = "no-builder"
         }
 
         self.session = nil
@@ -413,7 +441,15 @@ class HealthKitManager: NSObject, ObservableObject {
         sessionStartedAt = nil
         heartRate = nil
         isSessionActive = false
-        Logger.sync.info(">>> endWorkoutSession: completed")
+        Logger.sync.info(">>> endWorkoutSession: completed, saved=\(saved), reason=\(reason ?? "none")")
+        return HKFinishResult(saved: saved, reason: reason)
+    }
+
+    // Reasons feed low-cardinality telemetry, so report errors as domain.code instead of
+    // free-form localized descriptions.
+    private static func errorCode(_ error: Error) -> String {
+        let nsError = error as NSError
+        return "\(nsError.domain).\(nsError.code)"
     }
 
     func pauseWorkoutSession() {
