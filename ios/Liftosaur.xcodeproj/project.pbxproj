@@ -101,8 +101,6 @@
 		3AACC6192FB355BA001C68AA /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC6132FB355BA001C68AA /* Notifications.swift */; };
 		3AACC61A2FB355BA001C68AA /* SharedMessageHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC6152FB355BA001C68AA /* SharedMessageHandler.swift */; };
 		3AACC61B2FB355BA001C68AA /* Logger+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC6122FB355BA001C68AA /* Logger+Extension.swift */; };
-		3AACC75C00000000000C0002 /* StoragePayloadCompression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC75C00000000000C0001 /* StoragePayloadCompression.swift */; };
-		3AACC75C00000000000C0003 /* StoragePayloadCompression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC75C00000000000C0001 /* StoragePayloadCompression.swift */; };
 		3AACC61C2FB355BA001C68AA /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC6112FB355BA001C68AA /* FlowLayout.swift */; };
 		3AACC61E2FB35653001C68AA /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC61D2FB35653001C68AA /* Settings.swift */; };
 		3AACC6272FB35CFD001C68AA /* RCTLiftosaurWatch.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC6262FB35CFD001C68AA /* RCTLiftosaurWatch.mm */; };
@@ -111,6 +109,9 @@
 		3AACC62A2FB35D68001C68AA /* Logger+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC6122FB355BA001C68AA /* Logger+Extension.swift */; };
 		3AACC62B2FB35DA2001C68AA /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC61D2FB35653001C68AA /* Settings.swift */; };
 		3AACC62C2FB35DA3001C68AA /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC61D2FB35653001C68AA /* Settings.swift */; };
+		3AACC7412FB4B001001C68AA /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC7422FB4B001001C68AA /* SceneDelegate.swift */; };
+		3AACC75C00000000000C0002 /* StoragePayloadCompression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC75C00000000000C0001 /* StoragePayloadCompression.swift */; };
+		3AACC75C00000000000C0003 /* StoragePayloadCompression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC75C00000000000C0001 /* StoragePayloadCompression.swift */; };
 		3ABEEF0100000000000000A2 /* SetTimerScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ABEEF0100000000000000A1 /* SetTimerScreen.swift */; };
 		3ABEEF0100000000000000B2 /* SetTimerEditScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3ABEEF0100000000000000B1 /* SetTimerEditScreen.swift */; };
 		3ABEEF0100000000000000C2 /* set-timer-end.m4r in Resources */ = {isa = PBXBuildFile; fileRef = 3ABEEF0100000000000000C1 /* set-timer-end.m4r */; };
@@ -122,7 +123,6 @@
 		5C9210548D8DDE45FAA805DE /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
 		6D02DF56F7CB78E851242DEC /* RCTLiftosaurImageResizer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 12E13E911BF89F2F732F0E35 /* RCTLiftosaurImageResizer.mm */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
-		3AACC7412FB4B001001C68AA /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AACC7422FB4B001001C68AA /* SceneDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		8B7AE7DA350672DAFF7AFA16 /* LiftosaurImageResizerImpl.swift in Sources */ = {isa = PBXBuildFile; fileRef = A75D3E4A16A1FE2BA878A07B /* LiftosaurImageResizerImpl.swift */; };
 		95D0C1ECBFE44A7CB61734C1 /* Iosevka-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 1A72802BA6B84B4A91C55832 /* Iosevka-Regular.ttf */; };
@@ -289,7 +289,6 @@
 		3AACC6102FB355BA001C68AA /* EventManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventManager.swift; sourceTree = "<group>"; };
 		3AACC6112FB355BA001C68AA /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
 		3AACC6122FB355BA001C68AA /* Logger+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Logger+Extension.swift"; sourceTree = "<group>"; };
-		3AACC75C00000000000C0001 /* StoragePayloadCompression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoragePayloadCompression.swift; sourceTree = "<group>"; };
 		3AACC6132FB355BA001C68AA /* Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
 		3AACC6142FB355BA001C68AA /* SetInfoViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetInfoViews.swift; sourceTree = "<group>"; };
 		3AACC6152FB355BA001C68AA /* SharedMessageHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedMessageHandler.swift; sourceTree = "<group>"; };
@@ -297,6 +296,8 @@
 		3AACC6242FB35CFD001C68AA /* LiftosaurWatchImpl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LiftosaurWatchImpl.swift; path = Liftosaur/LiftosaurWatchImpl.swift; sourceTree = "<group>"; };
 		3AACC6252FB35CFD001C68AA /* RCTLiftosaurWatch.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTLiftosaurWatch.h; path = Liftosaur/RCTLiftosaurWatch.h; sourceTree = "<group>"; };
 		3AACC6262FB35CFD001C68AA /* RCTLiftosaurWatch.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTLiftosaurWatch.mm; path = Liftosaur/RCTLiftosaurWatch.mm; sourceTree = "<group>"; };
+		3AACC7422FB4B001001C68AA /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SceneDelegate.swift; path = Liftosaur/SceneDelegate.swift; sourceTree = "<group>"; };
+		3AACC75C00000000000C0001 /* StoragePayloadCompression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoragePayloadCompression.swift; sourceTree = "<group>"; };
 		3ABEEF0100000000000000A1 /* SetTimerScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetTimerScreen.swift; sourceTree = "<group>"; };
 		3ABEEF0100000000000000B1 /* SetTimerEditScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetTimerEditScreen.swift; sourceTree = "<group>"; };
 		3ABEEF0100000000000000C1 /* set-timer-end.m4r */ = {isa = PBXFileReference; lastKnownFileType = file; path = "set-timer-end.m4r"; sourceTree = "<group>"; };
@@ -307,7 +308,6 @@
 		6932EE9394B77D111CEA7C57 /* RCTLiftosaurShare.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTLiftosaurShare.mm; path = Liftosaur/RCTLiftosaurShare.mm; sourceTree = "<group>"; };
 		6CDE7A4672A3F2BF6A135AE9 /* RCTLiftosaurLiveActivity.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTLiftosaurLiveActivity.mm; path = Liftosaur/RCTLiftosaurLiveActivity.mm; sourceTree = "<group>"; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = Liftosaur/AppDelegate.swift; sourceTree = "<group>"; };
-		3AACC7422FB4B001001C68AA /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SceneDelegate.swift; path = Liftosaur/SceneDelegate.swift; sourceTree = "<group>"; };
 		7FF1B3BD2B6C6730C0BDC0DC /* RCTFastTextRegistrar.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTFastTextRegistrar.mm; path = Liftosaur/FastText/RCTFastTextRegistrar.mm; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Liftosaur/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		839BEAD642ED44672AEE54D7 /* RCTFastTextView.mm */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTFastTextView.mm; path = Liftosaur/FastText/RCTFastTextView.mm; sourceTree = "<group>"; };
@@ -765,7 +765,7 @@
 			);
 			mainGroup = 83CBB9F61A601CBA00E9B192;
 			packageReferences = (
-				3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "Packages/QuickJSCore" */,
+				3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "QuickJSCore" */,
 			);
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
 			projectDirPath = "";
@@ -888,13 +888,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-frameworks-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Embed Pods Frameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -931,13 +927,9 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			inputPaths = (
-			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-Liftosaur/Pods-Liftosaur-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -1343,6 +1335,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CC = "$(SRCROOT)/scripts/ccache-clang.sh";
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_CXX_LIBRARY = "libc++";
@@ -1370,6 +1363,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
+				CXX = "$(SRCROOT)/scripts/ccache-clang++.sh";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";
@@ -1412,6 +1406,8 @@
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers/react/renderer/graphics/platform/ios",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD = "$(SRCROOT)/scripts/ccache-clang.sh";
+				LDPLUSPLUS = "$(SRCROOT)/scripts/ccache-clang++.sh";
 				LD_RUNPATH_SEARCH_PATHS = (
 					/usr/lib/swift,
 					"$(inherited)",
@@ -1448,6 +1444,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CC = "$(SRCROOT)/scripts/ccache-clang.sh";
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_CXX_LIBRARY = "libc++";
@@ -1475,6 +1472,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = YES;
+				CXX = "$(SRCROOT)/scripts/ccache-clang++.sh";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";
@@ -1510,6 +1508,8 @@
 					"${PODS_CONFIGURATION_BUILD_DIR}/React-graphics/React_graphics.framework/Headers/react/renderer/graphics/platform/ios",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD = "$(SRCROOT)/scripts/ccache-clang.sh";
+				LDPLUSPLUS = "$(SRCROOT)/scripts/ccache-clang++.sh";
 				LD_RUNPATH_SEARCH_PATHS = (
 					/usr/lib/swift,
 					"$(inherited)",
@@ -1681,7 +1681,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "Packages/QuickJSCore" */ = {
+		3AACC60D2FB35357001C68AA /* XCLocalSwiftPackageReference "QuickJSCore" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Packages/QuickJSCore;
 		};

@@ -37,8 +37,34 @@ target 'Liftosaur' do
       installer,
       config[:reactNativePath],
       :mac_catalyst_enabled => false,
-      # :ccache_enabled => true
     )
+
+    # RN's :ccache_enabled integration is broken under Xcode 26: it passes the
+    # ccache binary and config via build settings, which Xcode doesn't export to
+    # compiler invocations (so it silently compiles without caching), and its
+    # $(REACT_NATIVE_PATH) wrapper path expands through $(PODS_ROOT), which is
+    # empty in pod-less targets (widget/watch) and breaks their link step.
+    # Our wrappers in scripts/ resolve ccache and the config themselves.
+    unless `command -v ccache`.strip.empty?
+      set_ccache_wrappers = lambda do |project, wrapper_dir|
+        project.build_configurations.each do |config|
+          config.build_settings['CC'] = "#{wrapper_dir}/ccache-clang.sh"
+          config.build_settings['LD'] = "#{wrapper_dir}/ccache-clang.sh"
+          config.build_settings['CXX'] = "#{wrapper_dir}/ccache-clang++.sh"
+          config.build_settings['LDPLUSPLUS'] = "#{wrapper_dir}/ccache-clang++.sh"
+          # The wrappers resolve these themselves; as build settings they never
+          # reach the compiler env anyway, and RN's :ccache_enabled leaves a
+          # machine-specific CCACHE_BINARY behind if it was ever turned on.
+          config.build_settings.delete('CCACHE_BINARY')
+          config.build_settings.delete('CCACHE_CONFIGPATH')
+        end
+        project.save
+      end
+      set_ccache_wrappers.call(installer.pods_project, '$(SRCROOT)/../scripts')
+      installer.aggregate_targets.map(&:user_project).uniq.each do |project|
+        set_ccache_wrappers.call(project, '$(SRCROOT)/scripts')
+      end
+    end
 
     # RNLiveMarkdown 0.1.x podspec is missing the ReactCommon/jsitooling header search path
     # required by RN 0.84 (its transitive include of <jsireact/JSIExecutor.h> pulls in

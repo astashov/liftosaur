@@ -61,6 +61,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3AACC5BB2FB351CF001C68AA"
             BuildableName = "LiftosaurWatch.app"
+            BlueprintName = "LiftosaurWatch"
             ReferencedContainer = "container:Liftosaur.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -77,6 +78,7 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "3AACC5BB2FB351CF001C68AA"
             BuildableName = "LiftosaurWatch.app"
+            BlueprintName = "LiftosaurWatch"
             ReferencedContainer = "container:Liftosaur.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
