@@ -10,7 +10,7 @@ import {
 
 test("Muscle Groups", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
-  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_disableTours(page);
   await PlaywrightUtils_createProgram(page, "My Program");
 
   await page.getByTestId("tab-edit").click();

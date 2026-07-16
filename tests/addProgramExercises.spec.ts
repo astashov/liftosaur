@@ -10,9 +10,9 @@ import {
 
 test("add program exercises to workout", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1&nosync=true");
-  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_disableTours(page);
   await PlaywrightUtils_createProgram(page, "My Program");
-  PlaywrightUtils_disableSubscriptions(page);
+  await PlaywrightUtils_disableSubscriptions(page);
 
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-full-program").click();
@@ -44,7 +44,11 @@ Bicep Curl / ...t1 / used: none`
   await page.getByTestId("exercise-swap").first().click();
 
   await page.getByTestId("tab-from-program").click();
-  await page.getByTestId("tab-week-2").click();
+  // Under load the tab tap can land before the picker is interactive and get swallowed — retry it.
+  await expect(async () => {
+    await page.getByTestId("tab-week-2").click();
+    await expect(page.getByTestId("exercise-picker-program-bicep-curl-2-1")).toBeVisible({ timeout: 2000 });
+  }).toPass();
 
   await page.getByTestId("exercise-picker-program-bicep-curl-2-1").click();
   await page.getByTestId("exercise-picker-confirm").click();

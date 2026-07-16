@@ -3,7 +3,7 @@ import { startpage, PlaywrightUtils_selectBuiltin, PlaywrightUtils_disableTours 
 
 test("rest timer", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
-  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_disableTours(page);
   await PlaywrightUtils_selectBuiltin(page);
   await page.getByRole("button", { name: "Basic Beginner Routine" }).click();
   await page.getByTestId("clone-program").click();

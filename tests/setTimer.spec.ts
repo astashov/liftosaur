@@ -10,7 +10,7 @@ import {
 
 async function createSetTimerProgram(page: Page, exercise: string): Promise<void> {
   await page.goto(startpage + "?skipintro=1");
-  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_disableTours(page);
   await PlaywrightUtils_createProgramWithCode(
     page,
     "My Program",
@@ -116,7 +116,7 @@ test("set timer - clear recorded time", async ({ page }) => {
 
 test("set timer - editor Set Time column and overflow round-trip to liftoscript", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
-  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_disableTours(page);
   await PlaywrightUtils_createProgram(page, "My Program");
 
   await page.getByTestId("tab-edit").click();
@@ -148,7 +148,7 @@ test("set timer - editor Set Time column and overflow round-trip to liftoscript"
 
 test("set timer - editor bottom sheet renames Timer to Rest", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
-  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_disableTours(page);
   await PlaywrightUtils_createProgram(page, "My Program");
 
   await page.getByTestId("tab-edit").click();

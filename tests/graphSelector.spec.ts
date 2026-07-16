@@ -9,7 +9,7 @@ import {
 
 test("Graphs", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1&nosync=true");
-  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_disableTours(page);
   await PlaywrightUtils_selectBuiltin(page);
   await page.click("button:has-text('Basic Beginner Routine')");
   await PlaywrightUtils_disableSubscriptions(page);

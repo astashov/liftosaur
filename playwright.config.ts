@@ -8,6 +8,10 @@ export default defineConfig({
   // Run all tests in parallel.
   fullyParallel: true,
 
+  // Long E2E flows (basicBeginner, addProgramExercises) legitimately exceed the default
+  // 30s when several workers share the machine with the webpack dev server.
+  timeout: 60000,
+
   // Fail the build on CI if you accidentally left test.only in the source code.
   forbidOnly: !!process.env.CI,
 

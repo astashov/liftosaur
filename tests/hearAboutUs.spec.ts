@@ -5,7 +5,12 @@ import { test, expect } from "@playwright/test";
 // is inserted between the equipment setup and program selection.
 async function gotoSurvey(page: import("@playwright/test").Page): Promise<void> {
   await page.goto(startpage + "?nosync=true");
-  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_disableTours(page);
+  // disableTours pre-marks the survey done to keep it from interfering with other tests —
+  // undo that here since these tests exercise the real survey flow.
+  await page.evaluate(() => {
+    delete (window as unknown as { state: { storage: { hearAboutUs?: unknown } } }).state.storage.hearAboutUs;
+  });
   await page.getByRole("button", { name: "Get started" }).click();
   await page.getByRole("button", { name: "Continue" }).click(); // units screen
   await page.getByTestId("setup-equipment-skip").click(); // equipment -> hearaboutus

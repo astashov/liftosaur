@@ -1,9 +1,14 @@
-import { startpage, PlaywrightUtils_selectBuiltin, PlaywrightUtils_disableTours } from "./playwrightUtils";
+import {
+  startpage,
+  PlaywrightUtils_selectBuiltin,
+  PlaywrightUtils_disableTours,
+  PlaywrightUtils_selectFromBarrel,
+} from "./playwrightUtils";
 import { test, expect } from "@playwright/test";
 
 test("converts length units properly", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
-  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_disableTours(page);
   await PlaywrightUtils_selectBuiltin(page);
   await page.click("button:has-text('Basic Beginner Routine')");
   await page.getByTestId("clone-program").click();
@@ -23,8 +28,7 @@ test("converts length units properly", async ({ page }) => {
 
   await page.getByTestId("navbar-back").click();
   await expect(page.getByTestId("menu-item-value-length-units")).toHaveText("in");
-  await page.getByTestId("menu-item-name-length-units").click();
-  await page.getByTestId("menu-item-length-units").getByTestId("scroll-barrel-item-cm").click();
+  await PlaywrightUtils_selectFromBarrel(page, "length-units", "cm");
   await page.getByTestId("menu-item-measurements").click();
 
   await page.getByTestId("add-measurements").click();
@@ -33,8 +37,7 @@ test("converts length units properly", async ({ page }) => {
   await page.getByTestId("input-stats-shoulders").fill("40");
   await page.getByTestId("add-stats").click();
 
-  await page.getByTestId("menu-item-name-type").click();
-  await page.getByTestId("menu-item-type").getByTestId("scroll-barrel-item-shoulders").click();
+  await PlaywrightUtils_selectFromBarrel(page, "type", "shoulders");
   await expect(page.getByTestId("input-stats-value")).toHaveCount(2);
   await expect(
     page.getByTestId("stats-list-shoulders").locator("[data-testid='input-stats-value']").nth(0)
@@ -45,13 +48,11 @@ test("converts length units properly", async ({ page }) => {
 
   await page.getByTestId("navbar-back").click();
   await expect(page.getByTestId("menu-item-value-length-units")).toHaveText("cm");
-  await page.getByTestId("menu-item-name-length-units").click();
-  await page.getByTestId("menu-item-length-units").getByTestId("scroll-barrel-item-in").click();
+  await PlaywrightUtils_selectFromBarrel(page, "length-units", "in");
   await page.waitForTimeout(200);
   await page.getByTestId("menu-item-measurements").click();
 
-  await page.getByTestId("menu-item-name-type").click();
-  await page.getByTestId("menu-item-type").getByTestId("scroll-barrel-item-shoulders").click();
+  await PlaywrightUtils_selectFromBarrel(page, "type", "shoulders");
   await expect(page.getByTestId("input-stats-value")).toHaveCount(2);
   await expect(
     page.getByTestId("stats-list-shoulders").locator("[data-testid='input-stats-value']").nth(0)

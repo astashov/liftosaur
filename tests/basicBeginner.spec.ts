@@ -12,10 +12,10 @@ import { test, expect } from "@playwright/test";
 test("Basic Beginner Program", async ({ page }) => {
   page.on("dialog", (dialog) => dialog.accept());
   await page.goto(startpage + "?skipintro=1&nosync=true");
-  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_disableTours(page);
   await PlaywrightUtils_selectBuiltin(page);
   await page.getByRole("button", { name: "Basic Beginner Routine" }).click();
-  PlaywrightUtils_disableSubscriptions(page);
+  await PlaywrightUtils_disableSubscriptions(page);
   await page.getByTestId("clone-program").click();
   await page.getByTestId("footer-workout").click();
   await page.getByTestId("bottom-sheet").getByTestId("start-workout").click();

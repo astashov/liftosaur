@@ -9,11 +9,11 @@ import {
 
 test("CRUD custom exercises", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
-  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_disableTours(page);
   page.on("dialog", (dialog) => dialog.accept());
 
   await PlaywrightUtils_createProgram(page, "My Program");
-  PlaywrightUtils_disableSubscriptions(page);
+  await PlaywrightUtils_disableSubscriptions(page);
 
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("add-exercise").click();

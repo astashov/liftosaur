@@ -9,7 +9,7 @@ import {
 
 test("updates reps in a workout", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
-  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_disableTours(page);
   await PlaywrightUtils_createProgram(page, "My Program");
   await page.getByTestId("tab-edit").click();
   await page.getByTestId("editor-v2-perday-program").click();

@@ -18,7 +18,7 @@ async function switchBackToFirstDay(page: Page): Promise<void> {
 
 test("works", async ({ page }) => {
   await page.goto(startpage + "?skipintro=1");
-  PlaywrightUtils_disableTours(page);
+  await PlaywrightUtils_disableTours(page);
   await PlaywrightUtils_selectBuiltin(page);
   await page.locator("button:has-text('Basic Beginner Routine')").click();
   await page.getByTestId("clone-program").click();

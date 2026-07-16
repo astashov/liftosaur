@@ -704,9 +704,14 @@ export class Service {
   public async verifySubscriptionKey(userId: string, key: string): Promise<{ clear: boolean }> {
     try {
       const url = UrlUtils_build(`${__API_HOST__}/api/verifysubscriptionkey`);
+      // The server only verifies keys outside of prod when `enforce` is set — tests rely on it
+      const enforce =
+        typeof window !== "undefined" && window.location?.href
+          ? !!UrlUtils_build(window.location.href).searchParams.get("enforce")
+          : false;
       const result = await this.client(url.toString(), {
         method: "POST",
-        body: JSON.stringify({ user: userId, key }),
+        body: JSON.stringify({ user: userId, key, enforce }),
         credentials: "include",
       });
       if (result.status !== 200) {
