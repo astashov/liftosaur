@@ -45,8 +45,10 @@ interface IAssembled {
 
 // Rollout ladder: "legacy" (single blob, as before) → "dual" (shards + legacy blob on
 // every save, so any rollback or stale tab still finds a current blob) → "sharded"
-// (shards only, legacy blob stays frozen as a backup). Flip the default to "sharded"
-// once ls-persistence-* telemetry is quiet for a week.
+// (shards only; the legacy blob stays frozen as a disaster spare, and is still written
+// once per cold key — see save()). Flipped to "sharded" on 2026-07-17 after 5 days of
+// dual-mode bake at ~77% adoption with zero read-path errors. Rolling back to a
+// dual-mode build remains safe: dual reads shards natively and re-freshes the blob.
 export type IPersistenceMode = "legacy" | "dual" | "sharded";
 
 const PERSISTENCE_FORMAT_VERSION = 1;
@@ -128,7 +130,7 @@ export class Persistence {
 
   constructor(
     private readonly store: IPersistenceStore = indexedDBStore,
-    private readonly mode: IPersistenceMode = "dual"
+    private readonly mode: IPersistenceMode = "sharded"
   ) {}
 
   public async save(baseKey: string, data: ILocalStorage): Promise<IPersistenceSaveStats> {
