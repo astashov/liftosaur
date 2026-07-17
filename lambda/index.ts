@@ -1870,18 +1870,20 @@ interface IPaymentsPage {
   paymentsData: IPaymentsDashboardData[];
   userAffiliates: Partial<Record<string, IPaymentsDashboardUserAffiliate>>;
   summary: IPaymentsSummary;
+  serverTimestamp: number;
   nextBefore: number;
   hasMore: boolean;
 }
 
 async function buildPaymentsPage(di: IDI, before: number | undefined, months: number): Promise<IPaymentsPage> {
   const allPayments = (await new PaymentDao(di).getAllPayments()).filter((p) => !p.isTest);
-  const summary = computePaymentsSummary([{ date: "all", payments: allPayments }]);
+  const serverTimestamp = Date.now();
+  const summary = computePaymentsSummary([{ date: "all", payments: allPayments }], serverTimestamp);
 
   const start =
     before != null
       ? DateUtils_addUTCMonths(before, -months)
-      : DateUtils_addUTCMonths(DateUtils_startOfUTCMonth(Date.now()), -(months - 1));
+      : DateUtils_addUTCMonths(DateUtils_startOfUTCMonth(serverTimestamp), -(months - 1));
 
   const windowed = allPayments.filter((p) => p.timestamp >= start && (before == null || p.timestamp < before));
   const hasMore = allPayments.some((p) => p.timestamp < start);
@@ -1919,7 +1921,7 @@ async function buildPaymentsPage(di: IDI, before: number | undefined, months: nu
     }
   }
 
-  return { paymentsData, userAffiliates, summary, nextBefore: start, hasMore };
+  return { paymentsData, userAffiliates, summary, serverTimestamp, nextBefore: start, hasMore };
 }
 
 const getDashboardsPaymentsEndpoint = Endpoint.build("/dashboards/payments", {
@@ -1949,6 +1951,7 @@ const getDashboardsPaymentsHandler: RouteHandler<
       page.paymentsData,
       page.userAffiliates,
       page.summary,
+      page.serverTimestamp,
       page.nextBefore,
       page.hasMore
     ),
