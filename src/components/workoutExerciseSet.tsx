@@ -231,6 +231,19 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
       "open-set-timer-edit"
     );
   }, [dispatch, entryIndex, setIndex]);
+  const onOpenRoundingInfo = useCallback(() => {
+    updateProgress(
+      dispatch,
+      [lb<IHistoryRecord>().pi("ui", {}).p("roundingModal").record({ entryIndex, setIndex })],
+      "open-rounding-info"
+    );
+  }, [dispatch, entryIndex, setIndex]);
+  const isRoundedWeight =
+    props.type !== "warmup" &&
+    props.settings.workoutSettings.targetType === "target" &&
+    set.weight != null &&
+    set.originalWeight != null &&
+    !Weight_eq(set.weight, set.originalWeight);
 
   return (
     <SwipeableRow
@@ -267,7 +280,13 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
               </View>
             </View>
 
-            <View className="flex-1" data-testid="workout-set-target" testID="workout-set-target">
+            <Pressable
+              className="flex-1"
+              data-testid="workout-set-target"
+              testID="workout-set-target"
+              disabled={!isRoundedWeight}
+              onPress={onOpenRoundingInfo}
+            >
               <WorkoutExerciseSetTargetField
                 set={set}
                 lastSet={props.lastSet}
@@ -280,8 +299,9 @@ function WorkoutExerciseSetInner(props: IWorkoutExerciseSet): JSX.Element {
                 }
                 settings={props.settings}
                 exerciseType={props.exerciseType}
+                underlineRounded={isRoundedWeight}
               />
-            </View>
+            </Pressable>
 
             <View className="items-center justify-center py-2" style={{ width: props.columnWidths.reps }}>
               {isUnilateral && (
@@ -484,6 +504,7 @@ export const WorkoutExerciseSet = memo(WorkoutExerciseSetInner);
 interface IWorkoutExerciseSetTargetProps {
   setType: "program" | "warmup" | "adhoc";
   set: ISet;
+  underlineRounded?: boolean;
 }
 
 export function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps): JSX.Element {
@@ -535,9 +556,10 @@ export function WorkoutExerciseSetTarget(props: IWorkoutExerciseSetTargetProps):
         }
       }
       if (aSet.weight && isDiffWeight) {
+        const underline = props.underlineRounded ? " underline" : "";
         builder.add(" ");
-        builder.add(n(aSet.weight.value), cls("font-semibold text-syntax-weight"));
-        builder.add(aSet.weight.unit, cls("text-xs text-syntax-weight"));
+        builder.add(n(aSet.weight.value), cls(`font-semibold text-syntax-weight${underline}`));
+        builder.add(aSet.weight.unit, cls(`text-xs text-syntax-weight${underline}`));
       }
       builder.add(
         `${aSet.originalWeight == null && aSet.askWeight ? " ?" : ""}${aSet.askWeight ? "+" : ""}${
@@ -674,12 +696,15 @@ interface IWorkoutExerciseSetTargetFieldProps {
   lastSet?: ISet;
   settings: ISettings;
   exerciseType: IExerciseType;
+  underlineRounded?: boolean;
 }
 
 function WorkoutExerciseSetTargetField(props: IWorkoutExerciseSetTargetFieldProps): JSX.Element {
   switch (props.settings.workoutSettings.targetType) {
     case "target": {
-      return <WorkoutExerciseSetTarget set={props.set} setType={props.setType} />;
+      return (
+        <WorkoutExerciseSetTarget set={props.set} setType={props.setType} underlineRounded={props.underlineRounded} />
+      );
     }
     case "lasttime": {
       return <WorkoutExerciseLastSet set={props.lastSet} />;

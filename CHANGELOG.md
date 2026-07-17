@@ -14,6 +14,19 @@
 -->
 
 ---
+date: 2026-07-17
+title: Tap a crossed-out weight to see why it was rounded
+---
+
+When a set's target shows a crossed-out weight next to another one - that's the app rounding the program's exact weight to what you can actually load with your equipment. It's been a common source of confusion: why is my working weight different from the target? Why is it suddenly 0?
+
+Now the rounded weight is underlined, and you can tap it to get the full explanation: how the target was calculated (e.g. as a percentage of your 1RM), how it was converted between kg and lb, and how it was matched to your equipment - the bar weight, the plates per side, or the closest fixed dumbbell.
+
+If the equipment is marked as "Is Assisting" (like an assisted pull-up machine, where added weight makes the exercise easier), the explanation will call that out too - accidentally enabling it is the usual reason weights unexpectedly drop to 0.
+
+Hopefully that'll help to understand why it crosses out the weights!
+
+---
 date: 2026-07-13
 title: More accurate volume for two-dumbbell exercises
 ---

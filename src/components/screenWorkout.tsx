@@ -136,6 +136,15 @@ function ScreenWorkoutInner(props: IScreenWorkoutProps): JSX.Element | null {
     prevSetTimerEditModal.current = setTimerEditModal;
   }, [setTimerEditModal, progress.id]);
 
+  const roundingModal = progress.ui?.roundingModal;
+  const prevRoundingModal = useRef<typeof roundingModal>(undefined);
+  useEffect(() => {
+    if (roundingModal && !prevRoundingModal.current) {
+      navigateToModal("roundingInfoModal", { context: "workout", progressId: progress.id });
+    }
+    prevRoundingModal.current = roundingModal;
+  }, [roundingModal, progress.id]);
+
   const dispatch = props.dispatch;
   const isCurrent = Progress_isCurrent(progress);
   const onDeletePress = useCallback(async (): Promise<void> => {

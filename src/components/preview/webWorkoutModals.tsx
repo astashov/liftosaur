@@ -5,6 +5,7 @@ import { ModalAmrap } from "../modalAmrap";
 import { Modal } from "../modal";
 import { SetTimerBannerContent } from "../setTimerBanner";
 import { SetTimerEditContent } from "../setTimerEdit";
+import { WeightRoundingInfoContent } from "../weightRoundingInfo";
 import { BottomSheetEditTarget } from "../bottomSheetEditTarget";
 import { ProgramPreviewPlaygroundExerciseEditModal } from "./programPreviewPlaygroundExerciseEditModal";
 import { lb } from "lens-shmens";
@@ -55,6 +56,17 @@ export function WebWorkoutModals(props: IWebWorkoutModalsProps): JSX.Element {
     });
   };
 
+  const roundingModal = props.progress.ui?.roundingModal;
+  const roundingEntry = roundingModal ? props.progress.entries[roundingModal.entryIndex] : undefined;
+  const roundingSet = roundingModal ? roundingEntry?.sets[roundingModal.setIndex] : undefined;
+  const closeRoundingModal = (): void => {
+    props.dispatch({
+      type: "UpdateProgress",
+      lensRecordings: [lb<IHistoryRecord>().pi("ui", {}).p("roundingModal").record(undefined)],
+      desc: "close-rounding-info",
+    });
+  };
+
   return (
     <>
       {showSetTimerModal && setTimerModal && (
@@ -88,6 +100,15 @@ export function WebWorkoutModals(props: IWebWorkoutModalsProps): JSX.Element {
             entryIndex={setTimerEditModal.entryIndex}
             setIndex={setTimerEditModal.setIndex}
             dispatch={props.dispatch}
+          />
+        </Modal>
+      )}
+      {roundingModal && roundingEntry && roundingSet && (
+        <Modal maxWidth="480px" isHidden={false} isFullWidth={true} shouldShowClose={true} onClose={closeRoundingModal}>
+          <WeightRoundingInfoContent
+            set={roundingSet}
+            exerciseType={roundingEntry.exercise}
+            settings={props.settings}
           />
         </Modal>
       )}
