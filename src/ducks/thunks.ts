@@ -152,6 +152,7 @@ import { NativeWatchBridge_sendAuthToWatch, NativeWatchBridge_sendClearAuthToWat
 import { Analytics_trackPurchase, Analytics_trackSignUp } from "../utils/analytics";
 
 declare let Rollbar: RB;
+declare let __HOST__: string;
 
 export class NoRetryError extends Error {
   public noretry = true;
@@ -255,6 +256,12 @@ export function Thunk_appleSignIn(cb?: (state: IState) => void): IThunk {
         }
         return;
       }
+      window.AppleID.auth.init({
+        clientId: "com.liftosaur.www.signinapple",
+        scope: "email",
+        redirectURI: `${__HOST__}/appleauthcallback.html`,
+        usePopup: true,
+      });
       const response = await window.AppleID.auth.signIn();
       ({ id_token, code } = response.authorization);
     }
