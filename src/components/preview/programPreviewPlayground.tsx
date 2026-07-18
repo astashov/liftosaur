@@ -319,7 +319,10 @@ function ProgramPreviewPlaygroundInner(p: IProgramPreviewPlaygroundInnerProps): 
     (weekIndex: number, dayIndex: number) => {
       const s = stateRef.current;
       const pp = propsRef.current;
-      const d = s.progresses[weekIndex].days[dayIndex];
+      const d = s.progresses[weekIndex]?.days[dayIndex];
+      if (!d) {
+        return;
+      }
       onFinish(dispatch, pp, s, d);
     },
     [dispatch]
