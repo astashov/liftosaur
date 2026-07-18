@@ -3,6 +3,7 @@ import * as path from "path";
 
 let cachedLiftoscriptReference: string | undefined;
 let cachedLiftoscriptExamples: string | undefined;
+let cachedProgramDesignGuide: string | undefined;
 let cachedLiftohistoryReference: string | undefined;
 let cachedExercisesList: string[] | undefined;
 
@@ -38,6 +39,15 @@ export function McpReference_getLiftoscriptExamples(): string {
   ].join("\n");
 
   return cachedLiftoscriptExamples;
+}
+
+export function McpReference_getProgramDesignGuide(): string {
+  if (cachedProgramDesignGuide) {
+    return cachedProgramDesignGuide;
+  }
+
+  cachedProgramDesignGuide = readFile("llms/program_design.md");
+  return cachedProgramDesignGuide;
 }
 
 export function McpReference_getLiftohistoryReference(): string {

@@ -10,6 +10,7 @@ import {
   McpReference_getLiftoscriptReference,
   McpReference_getLiftoscriptExamples,
   McpReference_getLiftohistoryReference,
+  McpReference_getProgramDesignGuide,
   McpReference_listBuiltinPrograms,
   McpReference_getBuiltinProgram,
   McpReference_listExercises,
@@ -190,6 +191,17 @@ async function handleToolCall(
       200,
       jsonRpcResponse(req.id, {
         content: [{ type: "text", text: McpReference_getLiftoscriptExamples() }],
+      })
+    );
+  }
+
+  if (toolName === "get_program_design_guide") {
+    fireEvent();
+    di.log.log(`[MCP] ${toolName} -> ok (design guide)`);
+    return mcpJson(
+      200,
+      jsonRpcResponse(req.id, {
+        content: [{ type: "text", text: McpReference_getProgramDesignGuide() }],
       })
     );
   }

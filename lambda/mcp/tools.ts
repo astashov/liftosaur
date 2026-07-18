@@ -239,7 +239,7 @@ export const mcpTools: IMcpToolDef[] = [
   {
     name: "create_program",
     description:
-      "Create a new weightlifting program from Liftoscript source code.\n\nIMPORTANT: You MUST call get_liftoscript_reference BEFORE using this tool. Liftoscript is a custom DSL with specific syntax — programs written without reading the reference will have errors. Use run_playground to validate the program before saving.\n\nBefore writing the program, call list_custom_exercises to check for existing custom exercises. Reuse them by name instead of creating duplicates — this preserves workout history.",
+      "Create a new weightlifting program from Liftoscript source code.\n\nIMPORTANT: You MUST call get_liftoscript_reference BEFORE using this tool. Liftoscript is a custom DSL with specific syntax — programs written without reading the reference will have errors. Use run_playground to validate the program before saving.\n\nWhen designing a program from scratch (not transcribing a published one), also call get_program_design_guide first for volume, intensity, and progression targets.\n\nBefore writing the program, call list_custom_exercises to check for existing custom exercises. Reuse them by name instead of creating duplicates — this preserves workout history.",
     annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
     inputSchema: {
       type: "object",
@@ -253,7 +253,7 @@ export const mcpTools: IMcpToolDef[] = [
   {
     name: "update_program",
     description:
-      'Update an existing program\'s Liftoscript source code. Use id="current" to update the active program.\n\nIMPORTANT: You MUST call get_liftoscript_reference BEFORE using this tool. Liftoscript is a custom DSL with specific syntax — programs written without reading the reference will have errors. Use run_playground to validate before saving.\n\nBefore writing the program, call list_custom_exercises to check for existing custom exercises. Reuse them by name instead of creating duplicates — this preserves workout history.',
+      'Update an existing program\'s Liftoscript source code. Use id="current" to update the active program.\n\nIMPORTANT: You MUST call get_liftoscript_reference BEFORE using this tool. Liftoscript is a custom DSL with specific syntax — programs written without reading the reference will have errors. Use run_playground to validate before saving.\n\nWhen redesigning a program\'s structure (volume, splits, progressions) rather than making a targeted edit, also call get_program_design_guide for volume, intensity, and progression targets.\n\nBefore writing the program, call list_custom_exercises to check for existing custom exercises. Reuse them by name instead of creating duplicates — this preserves workout history.',
     annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
     inputSchema: {
       type: "object",
@@ -316,6 +316,16 @@ export const mcpTools: IMcpToolDef[] = [
     name: "get_liftoscript_examples",
     description:
       "Get complete Liftoscript program examples. Call this after get_liftoscript_reference to see full working programs demonstrating various features (linear progression, 5/3/1, GZCL, PPL, etc.).",
+    annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+    inputSchema: {
+      type: "object",
+      properties: {},
+    },
+  },
+  {
+    name: "get_program_design_guide",
+    description:
+      "Get the evidence-based program design guide: weekly volume targets per muscle group, intensity and rep ranges, progression schemes, splits by days per week, deloads, and calisthenics — mapped to Liftoscript constructs and get_program_stats semantics.\n\nCall this BEFORE designing a program from scratch (e.g. \"make me a 3-day hypertrophy program\") so the program hits effective volume and progression targets. Do NOT use it when transcribing a published program (5/3/1, GZCLP, etc.) — transcribe those faithfully.",
     annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
     inputSchema: {
       type: "object",

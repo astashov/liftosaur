@@ -272,6 +272,13 @@ describe("MCP", () => {
       expect(body.result.content[0].text).to.include("Liftoscript");
     });
 
+    it("returns program design guide", async () => {
+      const result = await handler(buildMcpEvent(toolCall("get_program_design_guide")), ctx);
+      expect(result.statusCode).to.equal(200);
+      const body = parseBody(result);
+      expect(body.result.content[0].text).to.include("Program Design Guide");
+    });
+
     it("returns liftohistory reference", async () => {
       const result = await handler(buildMcpEvent(toolCall("get_liftohistory_reference")), ctx);
       expect(result.statusCode).to.equal(200);

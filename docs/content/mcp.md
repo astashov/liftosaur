@@ -288,6 +288,7 @@ These tools don't need authentication - the AI can call them anytime:
 |------|-------------|
 | `get_liftoscript_reference` | Liftoscript language reference - syntax, progressions, templates |
 | `get_liftoscript_examples` | Complete program examples (5/3/1, GZCLP, PPL, etc.) |
+| `get_program_design_guide` | Evidence-based program design guide - volume targets, progressions, splits, deloads |
 | `get_liftohistory_reference` | Liftoscript Workouts format reference for workout records |
 | `list_exercises` | All built-in exercise names and equipment variants |
 | `list_builtin_programs` | List of built-in programs available in the app |
