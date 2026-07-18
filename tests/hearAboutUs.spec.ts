@@ -64,11 +64,11 @@ test("How did you hear about us - skipping marks it done (no backfill later)", a
 test("How did you hear about us - immediate resolve for a no-drill option", async ({ page }) => {
   await gotoSurvey(page);
 
-  // "Github" has no drill-down — picking it should finalize immediately and advance.
-  await page.getByTestId("hear-about-us-option-github").click();
+  // "App Store / Play Store" has no drill-down — picking it should finalize immediately and advance.
+  await page.getByTestId("hear-about-us-option-appstore").click();
 
   await expect(page.getByTestId("program-select-builtin")).toBeVisible();
 
   const result = await page.evaluate(() => (window as unknown as { state?: any }).state?.storage?.hearAboutUs?.result);
-  expect(result?.source).toBe("github");
+  expect(result?.source).toBe("appstore");
 });

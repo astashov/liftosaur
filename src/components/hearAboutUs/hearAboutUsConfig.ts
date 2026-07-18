@@ -1,4 +1,13 @@
-export type IHearAboutUsSource = "reddit" | "ai" | "discord" | "friend" | "program" | "ad" | "other" | "github";
+export type IHearAboutUsSource =
+  | "reddit"
+  | "ai"
+  | "friend"
+  | "program"
+  | "search"
+  | "appstore"
+  | "youtube"
+  | "ad"
+  | "other";
 
 export interface IHearAboutUsChip {
   value: string;
@@ -61,30 +70,6 @@ export const HEAR_ABOUT_US_OPTIONS: IHearAboutUsOption[] = [
     },
   },
   {
-    source: "discord",
-    label: "Discord",
-    eyebrow: "You found us on Discord",
-    drill: {
-      kind: "chips",
-      title: "Which server?",
-      sub: "Optional - tap one, or type it in.",
-      chips: [{ value: "Homegym", label: "Homegym" }],
-      freeformPlaceholder: "Type a server...",
-    },
-  },
-  {
-    source: "github",
-    label: "Github",
-    eyebrow: "Github",
-    drill: { kind: "none" },
-  },
-  {
-    source: "friend",
-    label: "Friend or coach",
-    eyebrow: "Friend or coach",
-    drill: { kind: "none" },
-  },
-  {
     source: "program",
     label: "Googled a program",
     eyebrow: "Specific program",
@@ -101,6 +86,40 @@ export const HEAR_ABOUT_US_OPTIONS: IHearAboutUsOption[] = [
         { value: "Mentzer", label: "Mentzer" },
       ],
       freeformPlaceholder: "Type a program...",
+    },
+  },
+  {
+    source: "friend",
+    label: "Friend or family",
+    eyebrow: "Friend or family",
+    drill: { kind: "none" },
+  },
+  {
+    source: "search",
+    label: "Web search",
+    eyebrow: "You searched the web",
+    drill: {
+      kind: "freeform",
+      title: "What were you searching for?",
+      sub: "Optional - roughly what you typed.",
+      placeholder: "e.g. customizable workout tracker...",
+    },
+  },
+  {
+    source: "appstore",
+    label: "App Store / Play Store",
+    eyebrow: "You found us in the store",
+    drill: { kind: "none" },
+  },
+  {
+    source: "youtube",
+    label: "YouTube",
+    eyebrow: "You found us on YouTube",
+    drill: {
+      kind: "freeform",
+      title: "Remember which video or channel?",
+      sub: "Optional - type it in.",
+      placeholder: "Channel or video...",
     },
   },
   {

@@ -7,10 +7,12 @@ import { Tailwind_semantic } from "../../utils/tailwindConfig";
 import { ImagePreloader_uri } from "../../utils/imagePreloader";
 import { IconReddit } from "../icons/iconReddit";
 import { IconAi } from "../icons/iconAi";
-import { IconDiscord } from "../icons/iconDiscord";
 import { IconUser } from "../icons/iconUser";
 import { IconDoc } from "../icons/iconDoc";
-import { IconGithub } from "../icons/iconGithub";
+import { IconMagnifyingGlass } from "../icons/iconMagnifyingGlass";
+import { IconApple } from "../icons/iconApple";
+import { IconGooglePlay } from "../icons/iconGooglePlay";
+import { IconYoutube } from "../icons/iconYoutube";
 import { IconSpeaker } from "../icons/iconSpeaker";
 import { IconKebab } from "../icons/iconKebab";
 import { IconBack } from "../icons/iconBack";
@@ -55,14 +57,20 @@ function sourceIcon(source: IHearAboutUsSource, color: string): ReactNode {
       return <IconReddit size={size} color={color} secondaryColor={color} />;
     case "ai":
       return <IconAi size={size} color={color} />;
-    case "discord":
-      return <IconDiscord size={size} color={color} />;
     case "friend":
       return <IconUser size={size} color={color} />;
     case "program":
       return <IconDoc width={size} height={size} color={color} />;
-    case "github":
-      return <IconGithub width={size} height={size} color={color} />;
+    case "search":
+      return <IconMagnifyingGlass size={size} color={color} />;
+    case "appstore":
+      return Platform.OS === "android" ? (
+        <IconGooglePlay size={size} color={color} />
+      ) : (
+        <IconApple size={size} color={color} />
+      );
+    case "youtube":
+      return <IconYoutube size={size} color={color} />;
     case "ad":
       return <IconSpeaker size={size} color={color} />;
     case "other":
