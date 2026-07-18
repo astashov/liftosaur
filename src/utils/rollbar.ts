@@ -48,6 +48,7 @@ export const exceptionIgnores = [
   "_AutofillCallbackHandler",
   "Incorrect locale information provided",
   "chrome-extension://",
+  "Failed to parse the rule '@layer",
 ];
 
 export async function RollbarUtils_load(item: string | number, token: string): Promise<void> {
