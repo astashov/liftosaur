@@ -333,6 +333,10 @@ const mainConfig = {
         to: `terms.html`,
       },
       {
+        from: `src/support.html`,
+        to: `support.html`,
+      },
+      {
         from: `src/licenses.html`,
         to: `licenses.html`,
       },

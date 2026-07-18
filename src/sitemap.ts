@@ -45,6 +45,7 @@ const urls: ISitemapUrl[] = [
   { loc: "https://www.liftosaur.com/planner" },
   { loc: "https://www.liftosaur.com/privacy.html" },
   { loc: "https://www.liftosaur.com/terms.html" },
+  { loc: "https://www.liftosaur.com/support.html" },
   { loc: "https://www.liftosaur.com/affiliates" },
   { loc: "https://www.liftosaur.com/rep-max-calculator" },
   { loc: "https://www.liftosaur.com/ai/prompt" },
