@@ -380,6 +380,11 @@ const mainConfig = {
         from: "apple-app-site-association",
         to: ".well-known",
       },
+      {
+        from: "openai-apps-challenge",
+        to: ".well-known/openai-apps-challenge",
+        toType: "file",
+      },
     ]),
   ],
   mode: process.env.NODE_ENV === "production" ? "production" : "development",
