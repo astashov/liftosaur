@@ -147,6 +147,9 @@ describe("MCP", () => {
       expect(toolNames).to.include("get_history");
       expect(toolNames).to.include("run_playground");
       expect(toolNames).to.include("get_liftoscript_reference");
+      for (const tool of body.result.tools) {
+        expect(tool.outputSchema?.type).to.equal("object");
+      }
     });
 
     it("returns error for unknown method", async () => {
@@ -270,6 +273,7 @@ describe("MCP", () => {
       expect(result.statusCode).to.equal(200);
       const body = parseBody(result);
       expect(body.result.content[0].text).to.include("Liftoscript");
+      expect(body.result.structuredContent.text).to.include("Liftoscript");
     });
 
     it("returns program design guide", async () => {
@@ -341,6 +345,7 @@ describe("MCP", () => {
       const data = JSON.parse(body.result.content[0].text);
       expect(data.id).to.be.a("string");
       expect(data.stats).to.not.be.undefined;
+      expect(body.result.structuredContent.id).to.equal(data.id);
     });
 
     it("creates and gets a program", async () => {

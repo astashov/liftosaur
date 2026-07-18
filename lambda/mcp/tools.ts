@@ -16,6 +16,7 @@ export interface IMcpJsonSchema {
   items?: IMcpJsonSchema;
   properties?: Record<string, IMcpJsonSchema>;
   required?: string[];
+  additionalProperties?: boolean | IMcpJsonSchema;
 }
 
 export interface IMcpToolDef {
@@ -27,6 +28,7 @@ export interface IMcpToolDef {
     properties: Record<string, IMcpJsonSchema>;
     required?: string[];
   };
+  outputSchema?: IMcpJsonSchema & { type: "object" };
 }
 
 // Imported from the API layer (derived from statsWeightDef/statsLengthDef/statsPercentageDef in
@@ -34,6 +36,18 @@ export interface IMcpToolDef {
 const MEASUREMENT_KEYS_DESC = `Valid keys: ${MEASUREMENT_KEYS.join(", ")} ('weight' is bodyweight, 'bodyfat' is a percentage, the rest are body lengths).`;
 const MEASUREMENT_VALUE_DESC =
   'A number with an explicit unit suffix: weight as "180lb"/"82kg", a body length as "37cm"/"14.75in", bodyfat as "18%". The suffix is required and must match the key\'s category.';
+
+const MCP_OUTPUT_SCHEMA: IMcpToolDef["outputSchema"] = {
+  type: "object",
+  description:
+    "Structured tool result. Successful API tools return their result fields at the top level; text/reference tools return text; errors return error and message.",
+  properties: {
+    text: { type: "string", description: "Human-readable text result, or a serialized JSON result for compatibility." },
+    error: { type: "boolean", description: "True when the tool result is an application-level error." },
+    message: { type: "string", description: "Human-readable error message when error is true." },
+  },
+  additionalProperties: true,
+};
 
 const EQUIPMENT_WEIGHT_DESC = 'Weight string like "45lb" or "20kg"';
 const BUILTIN_EQUIPMENT_KEYS = [
@@ -141,7 +155,7 @@ const EXERCISE_DATA_FIELD_SCHEMAS: Record<string, IMcpJsonSchema> = {
   },
 };
 
-export const mcpTools: IMcpToolDef[] = [
+const mcpToolsWithoutOutputSchema: Omit<IMcpToolDef, "outputSchema">[] = [
   // --- History ---
   {
     name: "get_history",
@@ -715,3 +729,8 @@ export const mcpTools: IMcpToolDef[] = [
     },
   },
 ];
+
+export const mcpTools: IMcpToolDef[] = mcpToolsWithoutOutputSchema.map((tool) => ({
+  outputSchema: MCP_OUTPUT_SCHEMA,
+  ...tool,
+}));

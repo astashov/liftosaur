@@ -136,6 +136,7 @@ export const postMcpHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeo
           name: t.name,
           description: t.description,
           inputSchema: t.inputSchema,
+          outputSchema: t.outputSchema,
           annotations: t.annotations,
         })),
       })
@@ -163,6 +164,17 @@ async function handleToolCall(
 
   di.log.log(`[MCP] tools/call: ${toolName}`, JSON.stringify(args));
 
+  function textResult(id: number | string | undefined, text: string, extra?: { isError?: boolean }): APIGatewayProxyResult {
+    return mcpJson(
+      200,
+      jsonRpcResponse(id, {
+        content: [{ type: "text", text }],
+        structuredContent: extra?.isError ? { error: true, message: text } : { text },
+        ...(extra?.isError ? { isError: true } : {}),
+      })
+    );
+  }
+
   function fireEvent(userId?: string): void {
     new EventDao(di).post({
       type: "event",
@@ -176,45 +188,25 @@ async function handleToolCall(
   if (toolName === "get_liftoscript_reference") {
     fireEvent();
     di.log.log(`[MCP] ${toolName} -> ok (reference)`);
-    return mcpJson(
-      200,
-      jsonRpcResponse(req.id, {
-        content: [{ type: "text", text: McpReference_getLiftoscriptReference() }],
-      })
-    );
+    return textResult(req.id, McpReference_getLiftoscriptReference());
   }
 
   if (toolName === "get_liftoscript_examples") {
     fireEvent();
     di.log.log(`[MCP] ${toolName} -> ok (examples)`);
-    return mcpJson(
-      200,
-      jsonRpcResponse(req.id, {
-        content: [{ type: "text", text: McpReference_getLiftoscriptExamples() }],
-      })
-    );
+    return textResult(req.id, McpReference_getLiftoscriptExamples());
   }
 
   if (toolName === "get_program_design_guide") {
     fireEvent();
     di.log.log(`[MCP] ${toolName} -> ok (design guide)`);
-    return mcpJson(
-      200,
-      jsonRpcResponse(req.id, {
-        content: [{ type: "text", text: McpReference_getProgramDesignGuide() }],
-      })
-    );
+    return textResult(req.id, McpReference_getProgramDesignGuide());
   }
 
   if (toolName === "get_liftohistory_reference") {
     fireEvent();
     di.log.log(`[MCP] ${toolName} -> ok (reference)`);
-    return mcpJson(
-      200,
-      jsonRpcResponse(req.id, {
-        content: [{ type: "text", text: McpReference_getLiftohistoryReference() }],
-      })
-    );
+    return textResult(req.id, McpReference_getLiftohistoryReference());
   }
 
   if (toolName === "list_builtin_programs") {
@@ -222,12 +214,7 @@ async function handleToolCall(
     const programs = McpReference_listBuiltinPrograms();
     const text = programs.map((p) => `${p.id}: ${p.name}`).join("\n");
     di.log.log(`[MCP] ${toolName} -> ok (${programs.length} programs)`);
-    return mcpJson(
-      200,
-      jsonRpcResponse(req.id, {
-        content: [{ type: "text", text }],
-      })
-    );
+    return textResult(req.id, text);
   }
 
   if (toolName === "get_builtin_program") {
@@ -236,21 +223,10 @@ async function handleToolCall(
     const content = McpReference_getBuiltinProgram(id);
     if (!content) {
       di.log.log(`[MCP] ${toolName} -> error: not found`);
-      return mcpJson(
-        200,
-        jsonRpcResponse(req.id, {
-          content: [{ type: "text", text: `Built-in program not found: ${id}` }],
-          isError: true,
-        })
-      );
+      return textResult(req.id, `Built-in program not found: ${id}`, { isError: true });
     }
     di.log.log(`[MCP] ${toolName} -> ok`);
-    return mcpJson(
-      200,
-      jsonRpcResponse(req.id, {
-        content: [{ type: "text", text: content }],
-      })
-    );
+    return textResult(req.id, content);
   }
 
   if (toolName === "list_exercises") {
@@ -258,12 +234,7 @@ async function handleToolCall(
     const exercises = McpReference_listExercises();
     const text = exercises.join("\n");
     di.log.log(`[MCP] ${toolName} -> ok (${exercises.length} exercises)`);
-    return mcpJson(
-      200,
-      jsonRpcResponse(req.id, {
-        content: [{ type: "text", text }],
-      })
-    );
+    return textResult(req.id, text);
   }
 
   const tool = mcpTools.find((t) => t.name === toolName);
@@ -326,26 +297,14 @@ async function handleToolCall(
   const user = await userDao.getLimitedById(userId);
   if (!user) {
     di.log.log(`[MCP] ${toolName} -> error: user not found`);
-    return mcpJson(
-      200,
-      jsonRpcResponse(req.id, {
-        content: [{ type: "text", text: "User not found" }],
-        isError: true,
-      })
-    );
+    return textResult(req.id, "User not found", { isError: true });
   }
 
   const subscriptions = new Subscriptions(di.log, di.secrets);
   const hasSub = await subscriptions.hasSubscription(di, userId, user.storage.subscription);
   if (!hasSub) {
     di.log.log(`[MCP] ${toolName} -> 403: no subscription`);
-    return mcpJson(
-      200,
-      jsonRpcResponse(req.id, {
-        content: [{ type: "text", text: "Active subscription required to use MCP tools" }],
-        isError: true,
-      })
-    );
+    return textResult(req.id, "Active subscription required to use MCP tools", { isError: true });
   }
 
   const result = await McpToolExecutor_execute(toolName, args, userId, user, di);
@@ -360,16 +319,14 @@ async function handleToolCall(
       toolName === "create_program" || toolName === "update_program" || toolName === "run_playground"
         ? "\n\nHint: If you haven't read the Liftoscript reference yet, call get_liftoscript_reference first."
         : "";
-    return mcpJson(
-      200,
-      jsonRpcResponse(req.id, {
-        content: [{ type: "text", text: `${errorText}${hint}` }],
-        isError: true,
-      })
-    );
+    return textResult(req.id, `${errorText}${hint}`, { isError: true });
   }
 
   const text = typeof result.data === "string" ? result.data : JSON.stringify(result.data);
   di.log.log(`[MCP] ${toolName} -> ok:\n${text}`);
-  return mcpJson(200, jsonRpcResponse(req.id, { content: [{ type: "text", text }] }));
+  const structuredContent =
+    typeof result.data === "object" && result.data != null && !Array.isArray(result.data)
+      ? result.data
+      : { text };
+  return mcpJson(200, jsonRpcResponse(req.id, { content: [{ type: "text", text }], structuredContent }));
 }
