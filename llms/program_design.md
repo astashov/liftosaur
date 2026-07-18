@@ -2,6 +2,8 @@
 
 How to design effective weightlifting programs from scratch, distilled from evidence-based strength and hypertrophy research (Helms, Israetel, Nuckols, and the broader exercise science consensus).
 
+This guide is scoped to BEGINNER and INTERMEDIATE lifters — the audience that doesn't yet have personal data on what works for them. Advanced programming is individualization and pattern-finding over a long horizon, not a rule set; see the Advanced Lifters note below.
+
 Use this guide when DESIGNING a program (e.g. "make me a 3-day hypertrophy program"). Do NOT use it to second-guess a published program the user asked you to transcribe (5/3/1, GZCLP, etc.) — transcribe those faithfully.
 
 These are defaults, not laws. Explicit user requests always win. If the user wants something outside these guidelines, build what they asked for and briefly note the tradeoff.
@@ -23,7 +25,7 @@ Establish (ask if unknown, otherwise use defaults):
 | Input | Default if unknown |
 |---|---|
 | Goal | Hypertrophy with some strength work |
-| Experience | Beginner: <1 year lifting. Intermediate: 1-3 years. Advanced: 3+ years |
+| Experience | Classify by how they progress, not years trained. Beginner: new to structured lifting, or still able to add weight every session. Intermediate: session-to-session progress has stalled; progresses week to week. Advanced: progress only comes over months and blocks |
 | Days per week | 3 |
 | Session length | 45-75 min |
 | Equipment | Full gym (barbell, dumbbells, cables, machines) |
@@ -32,7 +34,8 @@ Establish (ask if unknown, otherwise use defaults):
 Training age drives more decisions than anything else:
 - **Beginners** progress every session, need less volume, benefit from simple full-body plans with few exercises. Do not give beginners RPE-based loading, percentage schemes, or 6-day splits.
 - **Intermediates** progress weekly, need moderate volume, benefit from rep ranges and double progression.
-- **Advanced** progress over weeks/blocks, need higher volume and variation, tolerate percentage/RPE-based loading.
+
+**Advanced lifters: individualize instead.** Advanced lifters mostly self-identify — they talk in terms of blocks, PRs, RPE, and programs they've already run, and their progress comes over months, not weeks. For them there is no singular system — what drives progress diverges per lifter, and the answer lives in their history, not in defaults. The principles here (volume landmarks, effort, movement coverage) still hold as boundaries, but the program shape should come from evidence: fetch their training history (`get_history`, `get_exercise_data`), look at what volumes, intensities, and block structures preceded their past PRs, and ask about previous successful programs. An advanced lifter asking for a program usually brings that context — build from it, not from this guide's defaults.
 
 ## Split by Days per Week
 
@@ -223,9 +226,13 @@ Squat / 5x3 / 6x2 / 10x1 / 150lb / 180s / progress: custom() {~
 ```
 - `sum(totalReps, increment)` for total-rep schemes (e.g. `3x10+ / progress: sum(30, 5lb)`). For a bidirectional version (Doggcrapp-style rep window), use `sum(completedReps)` in a `custom()`: add weight above the window, subtract below it, and count stalls in a state variable to trigger an exercise swap or deload.
 
-**Advanced** — percentage or RPE-based loading organized in 3-6 week blocks with planned intensity waves and a deload week.
+**Advanced** — individualize from their history (see Advanced Lifters note in Before Designing). Structurally these programs are usually percentage or RPE-based 3-6 week blocks with planned intensity waves, but the specifics should come from what has worked for that lifter before.
 
 Periodization model (linear vs undulating vs block) matters far less than consistent progression and effort. Pick the simplest structure the user will follow; don't build a 12-week block scheme for someone who asked for "a 3-day program".
+
+**Adjusting volume — the second lever.** Load/rep progression is the default lever, but volume progresses too, and reactively — don't front-load it at program creation (starting at the low end of the Weekly Volume Targets is precisely what keeps this lever available):
+- Stalled despite good recovery (sleep, nutrition, no injury or aches)? Add ~20% more weekly sets to the stalled lift or muscle (e.g. 10 → 12) instead of reaching for yet another weight increase. Re-run `get_program_stats` after and confirm the muscle stays within its volume range.
+- Stalled WITH recovery problems (persistent fatigue, aching joints, bad sleep)? Cut volume ~20% instead — more work is not the answer there.
 
 Builtin programs are worked examples of these patterns — fetch them with `get_builtin_program` when implementing one: `gzclp` (stage progression), `nsuns` (tiered AMRAP, plus rep-max retest weeks that recompute `rm1` with `rpeMultiplier()`), `madcow` (weekly ramp with cycle increment), `doggcrapp` (rep windows + stall-triggered exercise rotation), `recommended-routine` (bodyweight variation ladders).
 
@@ -255,6 +262,8 @@ Squat[1-4] / 3x5 / 200lb / 180s / update: custom() {~
   }
 ~}
 ```
+
+**Tapering for a meet or 1RM test** is not a deload — it's a planned fatigue-shedding phase before a known test date, not a reaction to stalling. Over the final 1-3 weeks (longer after harder blocks), cut volume progressively ~40-60% while keeping intensity high — heavy singles/doubles around 85-95% early in the taper, dropping load only in the final days. Keep frequency roughly unchanged. Last very heavy session lands ~7-10 days out; the final week is light and crisp so the lifter arrives recovered, not detrained. Only include a taper when the user has an actual meet or test date — write it as explicit final weeks in a multiweek program.
 
 ## Rest Times
 
