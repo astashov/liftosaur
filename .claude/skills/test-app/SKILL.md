@@ -17,6 +17,33 @@ Three tools do the work:
 
 Focus: $ARGUMENTS
 
+## Auth preflight (throwaway test account)
+
+The simulator app and the `liftosaur-local` MCP must be on the SAME account. The MCP's API key
+is static (in `~/.claude.json` → this project's `mcpServers.liftosaur-local.headers`), and
+`debugLogin` rebinds that key server-side to a freshly created account — one call aligns both.
+
+1. Get the key:
+   ```bash
+   python3 -c "import json,os;c=json.load(open(os.path.expanduser('~/.claude.json')));print(c['projects']['/Users/anton/projects/liftosaur']['mcpServers']['liftosaur-local']['headers']['Authorization'].split()[-1])"
+   ```
+2. Check the current account: `node scripts/dump-rn-state.js --eval "globalThis.state.user"`.
+   If it's already the `test_` account you're mid-scenario with, skip step 3 — each `debugLogin`
+   call starts a NEW empty account.
+3. Create a fresh throwaway account (empty storage, active subscription — premium features work)
+   and rebind the MCP key to it:
+   ```bash
+   node scripts/dump-rn-state.js --eval "globalThis.debugLogin('<key>')"
+   # → {"userId":"test_xxxxxxxx","email":"test_xxxxxxxx@test.liftosaur.com","apiKeyBound":true}
+   ```
+4. Verify: `list_programs` via MCP should reflect the same empty account the sim now shows.
+
+Requires the local dev server (`npm run start:server`) — the sign-in bypass and key-rebind
+endpoint are `Utils_isLocal()`-gated, and `globalThis.debugLogin` exists only in `__DEV__`
+builds. This signs the simulator out of whatever account it was on (that account's local data
+stays on-device; a normal sign-in restores it) — leave the sim on the test account when done
+and tell the user which account you left it on.
+
 ## The core loop
 
 1. **Set up** the scenario via `liftosaur-local` MCP (or by driving the UI).
@@ -24,6 +51,7 @@ Focus: $ARGUMENTS
 3. **Verify** with `dump-rn-state.js`: does the live state match what the screen shows and what
    you intended? A mismatch between control ↔ state ↔ intent is a bug.
 4. **Reset** between cases (in-app undo/discard, or re-seed via MCP) so each test starts clean.
+   Nuclear option: `globalThis.debugLogin('<key>')` again — brand-new empty account, MCP follows.
 
 ## Tools
 

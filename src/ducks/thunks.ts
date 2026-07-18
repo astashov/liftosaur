@@ -2019,6 +2019,44 @@ export function Thunk_adminEnableServerSync(adminKey: string): IThunk {
   };
 }
 
+export function Thunk_debugTestLogin(
+  apiKey?: string,
+  cb?: (result: { userId: string; email: string; apiKeyBound: boolean } | { error: string }) => void
+): IThunk {
+  return async (dispatch, getState, env) => {
+    try {
+      const userId = `test_${UidFactory_generateUid(8)}`;
+      const email = `${userId}@test.liftosaur.com`;
+      const result = await env.service.googleSignIn(email, userId, { forcedUserEmail: email });
+      if (result.email == null) {
+        cb?.({ error: "Sign in failed - forceuseremail only works against a local dev server" });
+        return;
+      }
+      // Setup before handleLogin so a failure (e.g. non-local backend without the dev route)
+      // doesn't leave the app committed to a half-provisioned account. The signin above already
+      // replaced the session cookie though, so on failure also sign out rather than keep
+      // HTTP-layer auth pointing at the throwaway account.
+      let setup: { apiKeyBound: boolean; key: string };
+      try {
+        setup = await env.service.postSetupTestAccount(apiKey, result.session);
+      } catch (e) {
+        await env.service.signout().catch(() => undefined);
+        throw e;
+      }
+      await handleLogin(dispatch, result, env.service.client, getState().user?.id || getState().storage.tempUserId);
+      updateState(
+        dispatch,
+        [lb<IState>().p("storage").p("subscription").p("key").record(setup.key)],
+        "Set test account subscription key"
+      );
+      dispatch(Thunk_sync2());
+      cb?.({ userId: result.user_id, email: result.email, apiKeyBound: setup.apiKeyBound });
+    } catch (e) {
+      cb?.({ error: e instanceof Error ? e.message : String(e) });
+    }
+  };
+}
+
 export function Thunk_claimkey(): IThunk {
   return async (dispatch, getState, env) => {
     const claim = await env.service.postClaimKey(getState().storage.tempUserId);

@@ -39,6 +39,13 @@ export class ApiKeyDao {
     return dao;
   }
 
+  public async bindKey(key: string, userId: string, name: string): Promise<IApiKeyDao> {
+    const env = Utils_getEnv();
+    const dao: IApiKeyDao = { key, userId, name, createdAt: Date.now() };
+    await this.di.dynamo.put({ tableName: apiKeyTableNames[env].apiKeys, item: dao });
+    return dao;
+  }
+
   public async getByKey(key: string): Promise<IApiKeyDao | undefined> {
     const env = Utils_getEnv();
     return this.di.dynamo.get<IApiKeyDao>({

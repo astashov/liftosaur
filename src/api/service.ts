@@ -400,6 +400,25 @@ export class Service {
     return response.json();
   }
 
+  public async postSetupTestAccount(apiKey?: string, session?: string): Promise<{ apiKeyBound: boolean; key: string }> {
+    const response = await this.client(`${__API_HOST__}/api/dev/setuptestaccount`, {
+      method: "POST",
+      body: JSON.stringify({ apiKey }),
+      credentials: "include",
+      headers: {
+        ...Service_nativeClientHeaders(),
+        ...(session ? { authorization: `Bearer ${session}` } : {}),
+      },
+    });
+    const json: { data?: { apiKeyBound: boolean; key: string }; error?: string } = await response
+      .json()
+      .catch(() => ({}));
+    if (response.status !== 200 || json.data == null) {
+      throw new Error(`Test account setup failed (${response.status}): ${json.error || "unknown error"}`);
+    }
+    return json.data;
+  }
+
   public async postDebug(id: string, state: string, meta: Record<string, string>): Promise<boolean> {
     try {
       const compressed = await Encoder_encode(JSON.stringify({ state, meta }));

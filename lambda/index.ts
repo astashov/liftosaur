@@ -8,7 +8,7 @@ import { ApiKeyDao } from "./dao/apiKeyDao";
 import * as Cookie from "cookie";
 import JWT from "jsonwebtoken";
 import { UidFactory_generateUid } from "./utils/generator";
-import { Utils_getEnv } from "./utils";
+import { Utils_getEnv, Utils_isLocal } from "./utils";
 import { ApplePromotionalOfferSigner } from "./utils/applePromotionalOfferSigner";
 import rsaPemFromModExp from "rsa-pem-from-mod-exp";
 import { IPartialStorage, IStorage } from "../src/types";
@@ -909,6 +909,38 @@ const postDebugSessionHandler: RouteHandler<IPayload, APIGatewayProxyResult, typ
     expires: new Date(new Date().getFullYear() + 10, 0, 1),
   });
   return ResponseUtils_json(200, event, { session, userId: debugId, email }, { "set-cookie": setCookie });
+};
+
+const postSetupTestAccountEndpoint = Endpoint.build("/api/dev/setuptestaccount");
+const postSetupTestAccountHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof postSetupTestAccountEndpoint
+> = async ({ payload }) => {
+  const { event, di } = payload;
+  if (!Utils_isLocal()) {
+    return ResponseUtils_json(404, event, { error: "not_found" });
+  }
+  const userId = await getCurrentUserId(event, di);
+  if (userId == null) {
+    return ResponseUtils_json(401, event, { error: "not_authorized" });
+  }
+  if (!userId.startsWith("test_")) {
+    return ResponseUtils_json(400, event, { error: "userid must be a test_ account" });
+  }
+  const { apiKey } = getBodyJson(event);
+  if (apiKey != null && (typeof apiKey !== "string" || !/^lftsk_[a-zA-Z0-9]{8,64}$/.test(apiKey))) {
+    return ResponseUtils_json(400, event, { error: "invalid apiKey" });
+  }
+  // Claimed free key = active subscription for both hasSubscription() and the app (re-injected on sync)
+  const tenYears = Date.now() + 10 * 365 * 24 * 60 * 60 * 1000;
+  const freeUser = await new FreeUserDao(di).create(userId, tenYears, true);
+  let apiKeyBound = false;
+  if (apiKey != null) {
+    await new ApiKeyDao(di).bindKey(apiKey, userId, "local-test-agent");
+    apiKeyBound = true;
+  }
+  return ResponseUtils_json(200, event, { data: { apiKeyBound, key: freeUser.key } });
 };
 
 const postWatchCrashReportEndpoint = Endpoint.build("/api/watchcrashreport");
@@ -3476,6 +3508,7 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .post(postSyncEndpoint, postSyncHandler)
       .post(postSync2Endpoint, postSync2Handler)
       .post(postDebugSessionEndpoint, postDebugSessionHandler)
+      .post(postSetupTestAccountEndpoint, postSetupTestAccountHandler)
       .get(getStorageEndpoint, getStorageHandler)
       .get(getDebugInfoEndpoint, getDebugInfoHandler)
       .get(getPlannerEndpoint, getPlannerHandler)

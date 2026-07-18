@@ -252,6 +252,7 @@ import {
   Thunk_handleWatchStorageMerge,
   Thunk_reloadStorageFromDisk,
   Thunk_postevent,
+  Thunk_debugTestLogin,
 } from "./ducks/thunks";
 import { IapAdapter } from "./utils/iap";
 import { HealthAdapter } from "./utils/health";
@@ -310,6 +311,16 @@ function AppInner(props: { initialState: IState; persistence: Persistence }): Re
 
   useEffect(() => {
     return ScreenRemovalCleanup_subscribe(dispatch);
+  }, []);
+
+  useEffect(() => {
+    if (__DEV__) {
+      // setTimeout so a CDP-eval caller returns before the heavy login work saturates the JS
+      // thread — evaluating it inline can segfault Hermes' debugger VM
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (globalThis as any).debugLogin = (apiKey?: string) =>
+        new Promise((resolve) => setTimeout(() => dispatch(Thunk_debugTestLogin(apiKey, resolve)), 0));
+    }
   }, []);
 
   useEffect(() => {

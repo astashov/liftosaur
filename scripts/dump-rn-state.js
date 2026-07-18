@@ -34,7 +34,20 @@ function parseArgs(argv) {
 // Hermes' JSON.stringify drops `undefined`/functions, which is what we want for IState.
 // Guarding each hop keeps a bad path from throwing inside the runtime.
 function buildExpression({ path, evalExpr }) {
-  if (evalExpr) return `JSON.stringify(${evalExpr})`;
+  // Hermes' CDP ignores awaitPromise, so promise results are parked on a global and polled.
+  if (evalExpr)
+    return `(function () {
+      var v = (${evalExpr});
+      if (v && typeof v.then === "function") {
+        globalThis.__dumpRnStateAsync = { done: false };
+        v.then(
+          function (r) { globalThis.__dumpRnStateAsync = { done: true, value: r }; },
+          function (e) { globalThis.__dumpRnStateAsync = { done: true, error: String((e && e.message) || e) }; }
+        );
+        return JSON.stringify({ __dumpRnStatePending: true });
+      }
+      return JSON.stringify(v);
+    })()`;
   const base = "globalThis.state";
   if (!path) return `JSON.stringify(${base})`;
   const access = path
@@ -60,10 +73,11 @@ async function findTarget() {
 function evaluate(wsUrl, expression) {
   return new Promise((resolve, reject) => {
     const ws = new WebSocket(wsUrl);
+    // Generous timeout: closing the socket while Hermes is mid-eval can segfault its debugger VM
     const timer = setTimeout(() => {
       ws.close();
-      reject(new Error("Timed out waiting for CDP response (10s)"));
-    }, 10000);
+      reject(new Error("Timed out waiting for CDP response (30s)"));
+    }, 30000);
 
     ws.onopen = () => {
       ws.send(
@@ -102,7 +116,27 @@ function evaluate(wsUrl, expression) {
       console.error("(no value — path missing or state not set yet)");
       process.exit(2);
     }
-    const value = JSON.parse(raw);
+    let value = JSON.parse(raw);
+    if (value && value.__dumpRnStatePending) {
+      const deadline = Date.now() + 120000;
+      for (;;) {
+        await new Promise((r) => setTimeout(r, 300));
+        const pollRaw = await evaluate(wsUrl, "JSON.stringify(globalThis.__dumpRnStateAsync)");
+        const poll = JSON.parse(pollRaw);
+        if (poll && poll.done) {
+          if (poll.error != null) {
+            console.error(`Error: ${poll.error}`);
+            process.exit(1);
+          }
+          value = poll.value;
+          break;
+        }
+        if (Date.now() > deadline) {
+          console.error("Timed out waiting for the promise to resolve (120s)");
+          process.exit(1);
+        }
+      }
+    }
     if (args.raw && (typeof value !== "object" || value === null)) {
       console.log(value);
     } else {

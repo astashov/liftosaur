@@ -20,6 +20,7 @@ import {
   Thunk_handleWatchStorageMerge,
   Thunk_reloadStorageFromDisk,
   Thunk_fetchInitial,
+  Thunk_debugTestLogin,
 } from "../ducks/thunks";
 import { Service } from "../api/service";
 import { IAudioInterface } from "../lib/audioInterface";
@@ -42,6 +43,9 @@ import { AsyncQueue } from "../utils/asyncQueue";
 import { useLoopCatcher } from "../utils/useLoopCatcher";
 import RB from "rollbar";
 import { exceptionIgnores } from "../utils/rollbar";
+
+// typeof-guarded: Metro/webpack define __DEV__, but this module also runs under node (tests).
+declare let __DEV__: boolean | undefined;
 import { Settings_applyTheme } from "../models/settings";
 import { TextSize_apply } from "../utils/textSize";
 import { AppContext } from "./appContext";
@@ -118,6 +122,16 @@ export function AppView(props: IProps): JSX.Element | null {
 
   useEffect(() => {
     return ScreenRemovalCleanup_subscribe(dispatch);
+  }, []);
+
+  useEffect(() => {
+    if (typeof __DEV__ !== "undefined" && __DEV__) {
+      // setTimeout so a CDP-eval caller returns before the heavy login work saturates the JS
+      // thread — evaluating it inline can segfault Hermes' debugger VM
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (globalThis as any).debugLogin = (apiKey?: string) =>
+        new Promise((resolve) => setTimeout(() => dispatch(Thunk_debugTestLogin(apiKey, resolve)), 0));
+    }
   }, []);
 
   useEffect(() => {
