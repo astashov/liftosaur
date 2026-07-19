@@ -60,12 +60,18 @@ function parseHits(html: string): IHit[] {
   const blocks = html.split(/<div class="product-container/).slice(1);
   for (const block of blocks) {
     const anchorMatch = block.match(/<a class="product-name"[^>]*>/i);
-    if (!anchorMatch) continue;
+    if (!anchorMatch) {
+      continue;
+    }
     const href = attr(anchorMatch[0], "href");
     const title = attr(anchorMatch[0], "title");
-    if (!href || !title) continue;
+    if (!href || !title) {
+      continue;
+    }
     const urlMatch = href.match(/\/(illustrations|animated-gifs|videos)\/(\d+)-[^"?]+\.html/i);
-    if (!urlMatch) continue;
+    if (!urlMatch) {
+      continue;
+    }
     const imageMatch = block.match(/https:\/\/gymvisual\.com\/\d+-[a-z_]+\/[^"'\s]+\.(?:jpg|png)/i);
     hits.push({
       category: urlMatch[1] as ICategory,
@@ -91,9 +97,13 @@ async function searchTerm(term: string, max: number): Promise<IHit[]> {
       break;
     }
     const pageHits = parseHits(await res.text());
-    if (pageHits.length === 0) break;
+    if (pageHits.length === 0) {
+      break;
+    }
     hits.push(...pageHits);
-    if (pageHits.length < perPage) break;
+    if (pageHits.length < perPage) {
+      break;
+    }
   }
   return hits.slice(0, max);
 }
@@ -136,7 +146,9 @@ async function main(): Promise<void> {
     console.log(`\n▸ ${primary.title}   [${formats}]`);
     if (illustration) {
       console.log(`  illustration: ${illustration.url}`);
-      if (illustration.image) console.log(`  preview:      ${illustration.image}`);
+      if (illustration.image) {
+        console.log(`  preview:      ${illustration.image}`);
+      }
     } else {
       console.log(`  (no illustration — not extractable) ${primary.url}`);
     }

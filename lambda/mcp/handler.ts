@@ -164,7 +164,11 @@ async function handleToolCall(
 
   di.log.log(`[MCP] tools/call: ${toolName}`, JSON.stringify(args));
 
-  function textResult(id: number | string | undefined, text: string, extra?: { isError?: boolean }): APIGatewayProxyResult {
+  function textResult(
+    id: number | string | undefined,
+    text: string,
+    extra?: { isError?: boolean }
+  ): APIGatewayProxyResult {
     return mcpJson(
       200,
       jsonRpcResponse(id, {
@@ -325,8 +329,6 @@ async function handleToolCall(
   const text = typeof result.data === "string" ? result.data : JSON.stringify(result.data);
   di.log.log(`[MCP] ${toolName} -> ok:\n${text}`);
   const structuredContent =
-    typeof result.data === "object" && result.data != null && !Array.isArray(result.data)
-      ? result.data
-      : { text };
+    typeof result.data === "object" && result.data != null && !Array.isArray(result.data) ? result.data : { text };
   return mcpJson(200, jsonRpcResponse(req.id, { content: [{ type: "text", text }], structuredContent }));
 }

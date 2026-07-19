@@ -303,10 +303,7 @@ export function EditProgramExerciseSet(props: IEditProgramExerciseSetProps): JSX
             {props.opts.hasSetTimer &&
               (set.setTimer != null ? (
                 <View style={columnWidths.setTimer} className="items-center justify-center py-2">
-                  <View
-                    style={{ opacity: reusingSetTimer ? 0.3 : 1 }}
-                    className="flex-row items-center justify-center"
-                  >
+                  <View style={{ opacity: reusingSetTimer ? 0.3 : 1 }} className="flex-row items-center justify-center">
                     <InputNumber2
                       width={setTimerInputWidth}
                       data-testid="set-time"

@@ -761,9 +761,7 @@ export class ProgramToPlanner {
       variations.every((v) =>
         v.sets.every(
           (s) =>
-            s.setTimer === firstSetTimer &&
-            !!s.isOverflowSetTimer === firstIsOverflowSetTimer &&
-            s.timer === firstTimer
+            s.setTimer === firstSetTimer && !!s.isOverflowSetTimer === firstIsOverflowSetTimer && s.timer === firstTimer
         )
       );
     return {

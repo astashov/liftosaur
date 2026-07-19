@@ -800,7 +800,11 @@ export function PlannerEvaluator_checkUnknownExercises(
       }
     }
   } else if (exercise.exerciseType == null) {
-    throw PlannerSyntaxError.fromPoint(exercise.fullName, `Unknown exercise ${exercise.name}`, exercise.points.fullName);
+    throw PlannerSyntaxError.fromPoint(
+      exercise.fullName,
+      `Unknown exercise ${exercise.name}`,
+      exercise.points.fullName
+    );
   }
 }
 

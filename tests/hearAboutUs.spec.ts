@@ -1,3 +1,4 @@
+import { IState } from "../src/models/state";
 import { startpage, PlaywrightUtils_disableTours } from "./playwrightUtils";
 import { test, expect } from "@playwright/test";
 
@@ -28,7 +29,9 @@ test("How did you hear about us - answer via a drill-down chip", async ({ page }
 
   await expect(page.getByTestId("program-select-builtin")).toBeVisible();
 
-  const result = await page.evaluate(() => (window as unknown as { state?: any }).state?.storage?.hearAboutUs?.result);
+  const result = await page.evaluate(
+    () => (window as unknown as { state?: IState }).state?.storage?.hearAboutUs?.result
+  );
   expect(result?.source).toBe("reddit");
   expect(result?.detail).toBe("r/gzcl");
 });
@@ -42,7 +45,9 @@ test("How did you hear about us - answer via freeform + Done", async ({ page }) 
 
   await expect(page.getByTestId("program-select-builtin")).toBeVisible();
 
-  const result = await page.evaluate(() => (window as unknown as { state?: any }).state?.storage?.hearAboutUs?.result);
+  const result = await page.evaluate(
+    () => (window as unknown as { state?: IState }).state?.storage?.hearAboutUs?.result
+  );
   expect(result?.source).toBe("reddit");
   expect(result?.freeform).toBe("r/somethingelse");
 });
@@ -56,7 +61,7 @@ test("How did you hear about us - skipping marks it done (no backfill later)", a
   await expect(page.getByTestId("program-select-builtin")).toBeVisible();
 
   // Explicit skip is terminal: no answer, and done=true so the backfill modal never re-asks.
-  const hearAboutUs = await page.evaluate(() => (window as unknown as { state?: any }).state?.storage?.hearAboutUs);
+  const hearAboutUs = await page.evaluate(() => (window as unknown as { state?: IState }).state?.storage?.hearAboutUs);
   expect(hearAboutUs?.result).toBeFalsy();
   expect(hearAboutUs?.done).toBe(true);
 });
@@ -69,6 +74,8 @@ test("How did you hear about us - immediate resolve for a no-drill option", asyn
 
   await expect(page.getByTestId("program-select-builtin")).toBeVisible();
 
-  const result = await page.evaluate(() => (window as unknown as { state?: any }).state?.storage?.hearAboutUs?.result);
+  const result = await page.evaluate(
+    () => (window as unknown as { state?: IState }).state?.storage?.hearAboutUs?.result
+  );
   expect(result?.source).toBe("appstore");
 });
