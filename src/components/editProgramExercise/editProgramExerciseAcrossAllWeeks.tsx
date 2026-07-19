@@ -207,8 +207,8 @@ function Tab(props: ITabProps): JSX.Element {
     <View className="px-4">
       {Object.entries(groups).map(([key, group]) => {
         const first = group[0];
-        const day = props.evaluatedProgram.weeks[first.week - 1].days[first.dayInWeek - 1];
-        const exercise = Program_getProgramExerciseFromDay(day, props.plannerExercise.key);
+        const day = props.evaluatedProgram.weeks[first.week - 1]?.days[first.dayInWeek - 1];
+        const exercise = day ? Program_getProgramExerciseFromDay(day, props.plannerExercise.key) : undefined;
         if (!exercise) {
           return (
             <View key={key}>
@@ -216,7 +216,10 @@ function Tab(props: ITabProps): JSX.Element {
             </View>
           );
         }
-        const set = exercise.evaluatedSetVariations[first.setVariation - 1].sets[first.set - 1];
+        const set = exercise.evaluatedSetVariations[first.setVariation - 1]?.sets[first.set - 1];
+        if (!set) {
+          return null;
+        }
         return (
           <View
             key={key}
