@@ -20,7 +20,11 @@ interface IEditProgramExerciseDaysListProps {
 }
 
 export function EditProgramExerciseDaysList(props: IEditProgramExerciseDaysListProps): JSX.Element {
-  const days = props.evaluatedProgram.weeks[props.weekIndex].days;
+  const week = props.evaluatedProgram.weeks[props.weekIndex];
+  if (!week) {
+    return <View />;
+  }
+  const days = week.days;
 
   return (
     <View>
