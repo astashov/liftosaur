@@ -24,7 +24,7 @@ import {
   Progress_isCurrent,
   Progress_editNotes,
   Progress_getColorToSupersetGroup,
-  Progress_isFullyFinishedSet,
+  Progress_isFullyEmptyOrFinishedSet,
   Progress_getNextSupersetEntry,
 } from "../models/progress";
 import { IconPlus2 } from "./icons/iconPlus2";
@@ -362,7 +362,7 @@ function WorkoutHeaderInner(props: IWorkoutHeaderProps): JSX.Element {
   const [isFinishing, setIsFinishing] = useState(false);
 
   const onFinish = async (): Promise<void> => {
-    const isFullyFinished = isCurrent && Progress_isFullyFinishedSet(props.progress);
+    const isFullyFinished = isCurrent && Progress_isFullyEmptyOrFinishedSet(props.progress);
     if (!isFullyFinished) {
       const confirmed = await Dialog_confirm(
         isCurrent

@@ -10,7 +10,6 @@ import {
   Reps_isEmptyOrFinished,
   Reps_isCompleted,
   Reps_isEmpty,
-  Reps_isFinished,
 } from "./set";
 import {
   Weight_build,
@@ -816,16 +815,8 @@ export function Progress_isCompletedSet(entry: IHistoryEntry): boolean {
   return Reps_isCompleted(entry.sets);
 }
 
-export function Progress_isFullyFinishedSet(progress: IHistoryRecord): boolean {
-  return progress.entries.every((entry) => Progress_isFinishedSet(entry));
-}
-
 export function Progress_isFullyEmptySet(progress: IHistoryRecord): boolean {
   return progress.entries.every((entry) => Reps_isEmpty(entry.sets));
-}
-
-export function Progress_isFinishedSet(entry: IHistoryEntry): boolean {
-  return Reps_isFinished(entry.sets);
 }
 
 export function Progress_isFullyEmptyOrFinishedSet(progress: IHistoryRecord): boolean {
@@ -1888,7 +1879,7 @@ export function Progress_changeAmrapAction(
       stats
     );
   }
-  if (Progress_isFullyFinishedSet(newProgress)) {
+  if (Progress_isFullyEmptyOrFinishedSet(newProgress)) {
     newProgress = Progress_stopTimer(newProgress);
   }
   newProgress = Progress_maybeApplySuperset(newProgress, action.entryIndex, "workout");
@@ -2059,7 +2050,7 @@ export function Progress_completeSetAction(
     );
   }
 
-  if (Progress_isFullyFinishedSet(newProgress)) {
+  if (Progress_isFullyEmptyOrFinishedSet(newProgress)) {
     newProgress = Progress_stopTimer(newProgress);
   }
   if (didFinish) {
