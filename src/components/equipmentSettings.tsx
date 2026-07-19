@@ -513,7 +513,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
           valueUnits={barWeight.unit}
           onChange={(newValue?: string) => {
             const v = newValue != null && newValue !== "" ? parseFloat(newValue) : null;
-            if (v != null) {
+            if (v != null && !isNaN(v)) {
               const lensRecording = props.lensPrefix
                 .then(lb<IAllEquipment>().pi(props.name).p("bar").p(units).get())
                 .record(Weight_build(v, units));
@@ -555,7 +555,7 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
         value={equipmentData.multiplier.toString()}
         onChange={(newValue?: string) => {
           const v = newValue != null && newValue !== "" ? parseInt(newValue, 10) : null;
-          if (v != null) {
+          if (v != null && !isNaN(v)) {
             const value = Math.min(Math.max(1, v), 4);
             const lensRecording = [
               props.lensPrefix.then(lb<IAllEquipment>().pi(props.name).p("multiplier").get()).record(value),
@@ -602,6 +602,9 @@ function EquipmentSettingsPlates<T>(props: IEquipmentSettingsPlatesProps<T>): JS
             hasClear={true}
             onChange={(newValue?: string) => {
               const v = newValue != null && newValue !== "" ? parseInt(newValue, 10) : null;
+              if (v != null && isNaN(v)) {
+                return;
+              }
               const lensRecording = props.lensPrefix
                 .then(lb<IAllEquipment>().pi(props.name).p("plates").get())
                 .recordModify((pl) => {
