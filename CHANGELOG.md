@@ -14,6 +14,19 @@
 -->
 
 ---
+date: 2026-07-19
+title: Added Sleep & Nutrition tracking
+---
+
+Liftosaur can now import your sleep duration, dietary calories, and protein from Apple Health or Google Health Connect. To turn it on, go to the Me screen, then scroll to "Apple Health" (or "Google Health Connect" on Android), and there enable "Sync Sleep & Nutrition".
+
+There's a new "Sleep & Nutrition" screen you can enter from the Me tab, with a trend graph and history for each metric. The import is read-only and happens on app open, daily aggregated. You can also soft-delete (hide) it from the list, and unhide if necessary.
+
+The data also syncs to your account like the rest of your measurements, so it's available through the [REST API](internal:/docs/api) and the [MCP server](internal:/docs/mcp) as a new `health` measurements category. So you can e.g. ask an AI assistant to correlate your sleep or protein intake with your training performance.
+
+You need an iOS/Android native app update (from App Store / Google Play) to get this feature.
+
+---
 date: 2026-07-17
 title: Tap a crossed-out weight to see why it was rounded
 ---
