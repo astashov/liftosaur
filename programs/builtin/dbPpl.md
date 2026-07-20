@@ -50,7 +50,7 @@ The core philosophy is simple: take a well-established training split (Push/Pull
 - **Split type:** Push/Pull/Legs (PPL)
 - **Periodization style:** Double progression (increase reps to 12, then increase weight)
 - **Schedule:** Fixed 3-day cycle repeated. Run it 3 days per week minimum (Push/Pull/Legs), or up to 6 days per week (Push/Pull/Legs/Push/Pull/Legs) with one rest day. A 6-day schedule hits each muscle group twice per week, which is optimal for hypertrophy in beginners.
-- Core work ([{Hanging Leg Raise}]) is included on Push and Legs days.
+- Core work ([{Hanging Leg Raise}]) is added to the end of every other workout.
 
 ## Exercise Selection & Rationale
 
@@ -59,7 +59,6 @@ The core philosophy is simple: take a well-established training split (Push/Pull
 - [{Incline Chest Fly}] — stretches the chest through a deep range of motion at an incline angle, emphasizing upper chest fibers
 - [{Arnold Press}] — the rotation hits all three deltoid heads, giving broader shoulder coverage than a standard press
 - [{Triceps Extension}] — isolates the long head of the triceps, which the pressing movements don't fully train
-- [{Hanging Leg Raise}] — direct core work
 
 **Pull Day** targets back, rear delts, traps, and biceps:
 - [{Pull Up}] — vertical pull that builds lats and overall back width; the only bodyweight exercise in the program
@@ -73,6 +72,8 @@ The core philosophy is simple: take a well-established training split (Push/Pull
 - [{Lunge, Dumbbell}] — unilateral movement that builds each leg independently and improves balance
 - [{Single Leg Deadlift}] — hip hinge pattern targeting hamstrings and glutes while building single-leg stability
 - [{Standing Calf Raise}] — direct calf work
+
+**Every Other Day**
 - [{Hanging Leg Raise}] — additional core work
 
 ## Set & Rep Scheme
@@ -201,4 +202,44 @@ Lunge, Dumbbell / ...main / 20lb
 Single Leg Deadlift / ...main / 25lb
 Standing Calf Raise / ...main / 30lb
 Hanging Leg Raise / ...main / 0lb / warmup: none
+
+# Week 2
+## Push Day
+main / used: none / 3x12 / progress: custom(increment: 5lb, lastReps: 0, failures: 0) {~
+  if (completedReps >= reps) {
+    weights += state.increment
+    state.failures = 0
+    state.lastReps = 0
+  } else {
+    if (sum(completedReps) <= state.lastReps) {
+      state.failures += 1
+    } else {
+      state.lastReps = sum(completedReps)
+    }
+    if (state.failures >= 3) {
+      weights -= state.increment * 2
+      state.lastReps = 0
+      state.failures = 0
+    }
+  }
+~}
+
+Bench Press, Dumbbell / ...main / 30lb
+Incline Chest Fly / ...main / 20lb
+Arnold Press / ...main / 20lb
+Triceps Extension / ...main / 20lb
+
+## Pull Day
+Pull Up / ...main / 0lb / warmup: none
+Bent Over Row, Dumbbell / ...main / 30lb
+Reverse Fly / ...main / 10lb
+Shrug / ...main / 35lb
+Bicep Curl / ...main / 20lb
+Hanging Leg Raise / ...main / 0lb / warmup: none
+
+## Legs Day
+Goblet Squat / ...main / 35lb
+Lunge, Dumbbell / ...main / 20lb
+Single Leg Deadlift / ...main / 25lb
+Standing Calf Raise / ...main / 30lb
 ```
