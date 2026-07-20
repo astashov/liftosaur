@@ -163,7 +163,7 @@ Yes, it's one of the best structured home gym programs. You only need adjustable
 
 ```liftoscript
 # Week 1
-## Push Day
+## Push Day with Hanging Leg Raises
 main / used: none / 3x12 / progress: custom(increment: 5lb, lastReps: 0, failures: 0) {~
   if (completedReps >= reps) {
     weights += state.increment
@@ -196,40 +196,20 @@ Reverse Fly / ...main / 10lb / progress: custom(increment: 2.5lb) { ...main }
 Shrug / ...main / 35lb
 Bicep Curl / ...main / 20lb / progress: custom(increment: 2.5lb) { ...main }
 
-## Legs Day
+## Legs Day with Hanging Leg Raises
 Goblet Squat / ...main / 35lb
 Lunge, Dumbbell / ...main / 20lb
 Single Leg Deadlift / ...main / 25lb
 Standing Calf Raise / ...main / 30lb
 Hanging Leg Raise / ...main / 0lb / warmup: none
 
-# Week 2
 ## Push Day
-main / used: none / 3x12 / progress: custom(increment: 5lb, lastReps: 0, failures: 0) {~
-  if (completedReps >= reps) {
-    weights += state.increment
-    state.failures = 0
-    state.lastReps = 0
-  } else {
-    if (sum(completedReps) <= state.lastReps) {
-      state.failures += 1
-    } else {
-      state.lastReps = sum(completedReps)
-    }
-    if (state.failures >= 3) {
-      weights -= state.increment * 2
-      state.lastReps = 0
-      state.failures = 0
-    }
-  }
-~}
-
 Bench Press, Dumbbell / ...main / 30lb
 Incline Chest Fly / ...main / 20lb
 Arnold Press / ...main / 20lb
 Triceps Extension / ...main / 20lb
 
-## Pull Day
+## Pull Day with Hanging Leg Raises
 Pull Up / ...main / 0lb / warmup: none
 Bent Over Row, Dumbbell / ...main / 30lb
 Reverse Fly / ...main / 10lb
