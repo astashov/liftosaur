@@ -48,6 +48,7 @@ export const exceptionIgnores = [
   "_AutofillCallbackHandler",
   "Incorrect locale information provided",
   "chrome-extension://",
+  "The database connection is closing",
 ];
 
 export async function RollbarUtils_load(item: string | number, token: string): Promise<void> {
