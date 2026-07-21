@@ -2183,4 +2183,15 @@ customLogic[1-3] / used: none / 2x5-30 / 5lb / warmup: none / update: custom() {
       expect(record.entries[0].sets.length).to.equal(2);
     });
   });
+
+  it("does not crash when PlannerProgram_evaluateText encounters a Day before any Week", () => {
+    const programText = `## Day 1
+Squat / 3x5 100lb
+`;
+    const weeks = PlannerProgram_evaluateText(programText);
+    expect(weeks.length).to.equal(1);
+    expect(weeks[0].name).to.equal("Week 1");
+    expect(weeks[0].days.length).to.equal(1);
+    expect(weeks[0].days[0].name).to.equal("Day 1");
+  });
 });
