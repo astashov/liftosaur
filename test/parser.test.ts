@@ -27,6 +27,17 @@ describe("Parser", () => {
     expect(ParserTestUtils_run(`state.foo > 3 ? state.foo < 7 ? 4 : 5 : 6`, { foo: 8 })).to.eql(5);
   });
 
+  it("division and modulo by zero return 0", () => {
+    expect(ParserTestUtils_run(`state.foo / 0`, { foo: 5 })).to.eql(0);
+    expect(ParserTestUtils_run(`state.foo / (state.foo - 5)`, { foo: 5 })).to.eql(0);
+    expect(ParserTestUtils_run(`(state.foo - 5) / (state.foo - 5)`, { foo: 5 })).to.eql(0);
+    expect(ParserTestUtils_run(`state.foo % 0`, { foo: 5 })).to.eql(0);
+    expect(ParserTestUtils_run(`state.weight / 0`, { weight: Weight_build(150, "lb") })).to.eql(Weight_build(0, "lb"));
+    const state = { weight: Weight_build(150, "lb") };
+    ParserTestUtils_run(`state.weight = state.weight / 0`, state);
+    expect(state.weight).to.eql(Weight_build(0, "lb"));
+  });
+
   it("Standard progression and deload", () => {
     const program = `
 // Simple Exercise Progression script '5lb,2'

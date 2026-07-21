@@ -1186,18 +1186,20 @@ export class LiftoscriptEvaluator {
     return this.operation(this.bindings.rm1, one, two, (a, b) => a * b);
   }
 
+  // Division/modulo by zero returns 0 instead of NaN - NaN serializes to null in JSON
+  // and corrupts storage (fails schema validation on the server)
   private divide(
     one: IWeight | number | IPercentage,
     two: IWeight | number | IPercentage
   ): IWeight | number | IPercentage {
-    return this.operation(this.bindings.rm1, one, two, (a, b) => a / b);
+    return this.operation(this.bindings.rm1, one, two, (a, b) => (b === 0 ? 0 : a / b));
   }
 
   private modulo(
     one: IWeight | number | IPercentage,
     two: IWeight | number | IPercentage
   ): IWeight | number | IPercentage {
-    return this.operation(undefined, one, two, (a, b) => a % b);
+    return this.operation(undefined, one, two, (a, b) => (b === 0 ? 0 : a % b));
   }
 
   private operation(
