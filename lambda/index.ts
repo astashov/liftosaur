@@ -3,7 +3,11 @@ import * as fs from "fs";
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { Endpoint, Method, Router, RouteHandler } from "yatro";
 import { GoogleAuthTokenDao } from "./dao/googleAuthTokenDao";
-import { UserDao, ILimitedUserDao } from "./dao/userDao";
+import { UserDao, ILimitedUserDao, IUserDao } from "./dao/userDao";
+import { EmailAuthTokenDao } from "./dao/emailAuthTokenDao";
+import { PasswordHash_hash, PasswordHash_verify } from "./utils/passwordHash";
+import { renderResetPasswordHtml } from "./resetPassword";
+import { renderVerifyEmailHtml } from "./verifyEmail";
 import { ApiKeyDao } from "./dao/apiKeyDao";
 import * as Cookie from "cookie";
 import JWT from "jsonwebtoken";
@@ -36,6 +40,7 @@ import { c, IEither } from "../src/utils/types";
 import {
   ResponseUtils_json,
   ResponseUtils_getHeaders,
+  ResponseUtils_getReferer,
   ResponseUtils_getHost,
   ResponseUtils_clearSessionCookie,
 } from "./utils/response";
@@ -208,6 +213,7 @@ import { TestimonialDao } from "./dao/testimonialDao";
 interface IOpenIdResponseSuccess {
   sub: string;
   email: string;
+  email_verified?: boolean | string;
 }
 
 interface IOpenIdResponseError {
@@ -988,6 +994,103 @@ interface IAppleKeysResponse {
   }>;
 }
 
+async function signInResponse(
+  di: IDI,
+  event: APIGatewayProxyEvent,
+  user: IUserDao,
+  isNewUser: boolean
+): Promise<APIGatewayProxyResult> {
+  const cookieSecret = await di.secrets.getCookieSecret();
+  const session = JWT.sign({ userId: user.id }, cookieSecret);
+  const isNativeClient = (event.headers["x-client"] || event.headers["X-Client"] || "").startsWith("liftosaur-native");
+  const resp: Record<string, unknown> = {
+    email: user.email,
+    user_id: user.id,
+    storage: user.storage,
+    is_new_user: isNewUser,
+  };
+  if (isNativeClient) {
+    resp.session = session;
+  }
+
+  const landingPage = getLandingPageCookie(event);
+  if (landingPage && !isNativeClient) {
+    await new LogDao(di).recordAction(user.id, "ls-web-signin", landingPage);
+  }
+
+  return {
+    statusCode: 200,
+    body: JSON.stringify(resp),
+    headers: {
+      ...ResponseUtils_getHeaders(event),
+      "set-cookie": Cookie.serialize("session", session, {
+        httpOnly: true,
+        domain: ".liftosaur.com",
+        path: "/",
+        expires: new Date(new Date().getFullYear() + 10, 0, 1),
+      }),
+    },
+  };
+}
+
+// Linking by email is only safe when the email is verified: OAuth ids imply
+// IdP-verified emails; password-only accounts must have clicked a link we sent
+// (emailVerifiedAt), otherwise pre-registering someone's email + password would
+// capture their future OAuth sign-ins.
+function pickEmailLinkTarget(di: IDI, candidates: ILimitedUserDao[]): ILimitedUserDao | undefined {
+  const eligible = candidates.filter((u) => u.googleId != null || u.appleId != null || u.emailVerifiedAt != null);
+  if (eligible.length === 0) {
+    return undefined;
+  }
+  const sorted = [...eligible].sort((a, b) => {
+    const workoutDiff = UserDao.lastWorkoutTs(b) - UserDao.lastWorkoutTs(a);
+    return workoutDiff !== 0 ? workoutDiff : (b.createdAt || 0) - (a.createdAt || 0);
+  });
+  if (eligible.length > 1) {
+    di.log.log(
+      "Multiple accounts for email, picking by latest workout",
+      sorted.map((u) => ({ id: u.id, lastWorkout: UserDao.lastWorkoutTs(u), createdAt: u.createdAt }))
+    );
+  }
+  return sorted[0];
+}
+
+// The client suggests its anonymous local id so a new cloud account keeps it
+// (sync continuity), but it's unauthenticated input: only honor it for a
+// conditional CREATE. If the id exists, mint a server-side one - an
+// unconditional put would let anyone overwrite an existing user and take over
+// that account.
+async function createNewUser(
+  userDao: UserDao,
+  di: IDI,
+  clientId: unknown,
+  email: string,
+  opts: { appleId?: string; googleId?: string; passwordHash?: string }
+): Promise<IUserDao> {
+  const suggestedId =
+    typeof clientId === "string" && /^[a-zA-Z0-9_-]{4,40}$/.test(clientId) ? clientId : UidFactory_generateUid(10);
+  let user = UserDao.build(suggestedId, email, opts);
+  if (!(await userDao.create(user))) {
+    di.log.log("Signup with already-taken user id, generating a server-side id instead", suggestedId);
+    user = UserDao.build(UidFactory_generateUid(12), email, opts);
+    if (!(await userDao.create(user))) {
+      throw new Error("Failed to create a new user");
+    }
+  }
+  return user;
+}
+
+function getWebUrl(event: APIGatewayProxyEvent): string {
+  if (Utils_getEnv() === "prod") {
+    return "https://www.liftosaur.com";
+  }
+  const referer = ResponseUtils_getReferer(event);
+  const originResult = UrlUtils_buildSafe(referer);
+  return originResult.success ? originResult.data.origin : "https://local.liftosaur.com:8080";
+}
+
+const noEmail = "noemail@example.com";
+
 const appleLoginEndpoint = Endpoint.build("/api/signin/apple");
 const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof appleLoginEndpoint> = async ({
   payload,
@@ -1009,68 +1112,35 @@ const appleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof ap
       const result = JWT.verify(idToken, pem, {
         issuer: "https://appleid.apple.com",
         audience: content.aud,
-      }) as { sub?: string; email?: string } | undefined;
+      }) as { sub?: string; email?: string; email_verified?: boolean | string } | undefined;
       if (result?.sub) {
-        const email = result.email || "noemail@example.com";
-        const cookieSecret = await di.secrets.getCookieSecret();
+        // Apple sends email_verified as the string "true" in some tokens
+        const emailVerified = result.email_verified === true || result.email_verified === "true";
+        // Only trust (and store) the email if the provider verified it - an
+        // unverified claim must never become a link/reset target. Normalize so
+        // lookups match the lowercased emails stored by email/password signup.
+        const email = result.email && emailVerified ? normalizeEmail(result.email) : noEmail;
 
         await new AppleAuthTokenDao(di).store(env, idToken, result.sub);
         const userDao = new UserDao(di);
         let user = await userDao.getByAppleId(result.sub, { historyLimit: historylimit });
-        let userId = user?.id;
         let isNewUser = false;
 
-        if (userId == null) {
-          const existingUser =
-            email !== "noemail@example.com"
-              ? await userDao.getByEmail(email, { historyLimit: historylimit })
-              : undefined;
-          di.log.log("Existing user with same email", existingUser?.id);
-          if (existingUser && existingUser.appleId) {
-            userId = existingUser.id;
-            user = existingUser;
-            user.appleId = result.sub;
-            await userDao.store(user);
+        if (user == null) {
+          const linkTarget =
+            email !== noEmail ? pickEmailLinkTarget(di, await userDao.getAllByEmail(email)) : undefined;
+          if (linkTarget) {
+            di.log.log("Linking appleId to existing user with same email", linkTarget.id);
+            user = await userDao.getById(linkTarget.id, { historyLimit: historylimit });
+            user!.appleId = result.sub;
+            await userDao.store(user!);
           } else {
-            userId = (id as string) || UidFactory_generateUid(12);
-            user = UserDao.build(userId, email, { appleId: result.sub });
+            user = await createNewUser(userDao, di, id, email, { appleId: result.sub });
             isNewUser = true;
-            await userDao.store(user);
           }
         }
 
-        const session = JWT.sign({ userId: userId }, cookieSecret);
-        const isNativeClient = (event.headers["x-client"] || event.headers["X-Client"] || "").startsWith(
-          "liftosaur-native"
-        );
-        const resp: Record<string, unknown> = {
-          email: email,
-          user_id: userId,
-          storage: user!.storage,
-          is_new_user: isNewUser,
-        };
-        if (isNativeClient) {
-          resp.session = session;
-        }
-
-        const landingPage = getLandingPageCookie(event);
-        if (userId && landingPage && !isNativeClient) {
-          await new LogDao(di).recordAction(userId, "ls-web-signin", landingPage);
-        }
-
-        return {
-          statusCode: 200,
-          body: JSON.stringify(resp),
-          headers: {
-            ...ResponseUtils_getHeaders(event),
-            "set-cookie": Cookie.serialize("session", session, {
-              httpOnly: true,
-              domain: ".liftosaur.com",
-              path: "/",
-              expires: new Date(new Date().getFullYear() + 10, 0, 1),
-            }),
-          },
-        };
+        return signInResponse(di, event, user!, isNewUser);
       }
     }
   }
@@ -1125,19 +1195,19 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
   const { event, di } = payload;
   const env = Utils_getEnv();
   const bodyJson = getBodyJson(event);
-  const { token, id, forceuseremail, historylimit } = bodyJson;
+  const { token, id, forceuseremail, forceunverified, historylimit } = bodyJson;
   let openIdJson: IOpenIdResponseSuccess | IOpenIdResponseError;
   if (env === "dev" && forceuseremail != null) {
     openIdJson = {
       email: forceuseremail,
       sub: `${forceuseremail}googleId`,
+      email_verified: forceunverified !== true,
     };
   } else {
     const url = `https://openidconnect.googleapis.com/v1/userinfo?access_token=${token}`;
     const googleApiResponse = await di.fetch(url);
     openIdJson = await googleApiResponse.json();
   }
-  const cookieSecret = await di.secrets.getCookieSecret();
 
   if ("error" in openIdJson) {
     const url = `https://www.googleapis.com/oauth2/v1/tokeninfo?id_token=${token}`;
@@ -1149,60 +1219,329 @@ const googleLoginHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof g
       openIdJson = {
         sub: response.user_id,
         email: response.email,
+        email_verified: response.verified_email ?? response.email_verified,
       };
     }
   }
 
   await new GoogleAuthTokenDao(di).store(env, token, openIdJson.sub);
+  const emailVerified = openIdJson.email_verified === true || openIdJson.email_verified === "true";
+  // Normalize the IdP email so lookups match the lowercased emails stored by
+  // email/password signup (getAllByEmail is an exact GSI match). Only trust the
+  // email if the provider verified it: an unverified claim (federated/Workspace
+  // tokens can assert an email the holder doesn't own) must never be stored as
+  // the account email, or pickEmailLinkTarget would later treat it as a verified
+  // link/reset target via the googleId.
+  const email = emailVerified ? normalizeEmail(openIdJson.email) : noEmail;
   const userDao = new UserDao(di);
   let user = await userDao.getByGoogleId(openIdJson.sub, { historyLimit: historylimit });
-  let userId = user?.id;
   let isNewUser = false;
 
-  if (userId == null) {
-    const existingUser = await userDao.getByEmail(openIdJson.email, { historyLimit: historylimit });
-    if (existingUser && existingUser.googleId) {
-      userId = existingUser.id;
-      user = existingUser;
-      user.googleId = openIdJson.sub;
-      await userDao.store(user);
+  if (user == null) {
+    const linkTarget = email !== noEmail ? pickEmailLinkTarget(di, await userDao.getAllByEmail(email)) : undefined;
+    if (linkTarget) {
+      di.log.log("Linking googleId to existing user with same email", linkTarget.id);
+      user = await userDao.getById(linkTarget.id, { historyLimit: historylimit });
+      user!.googleId = openIdJson.sub;
+      await userDao.store(user!);
     } else {
-      userId = (id as string) || UidFactory_generateUid(12);
-      user = UserDao.build(userId, openIdJson.email, { googleId: openIdJson.sub });
+      user = await createNewUser(userDao, di, id, email, { googleId: openIdJson.sub });
       isNewUser = true;
-      await userDao.store(user);
     }
   }
 
-  const session = JWT.sign({ userId: userId }, cookieSecret);
-  const isNativeClient = (event.headers["x-client"] || event.headers["X-Client"] || "").startsWith("liftosaur-native");
-  const resp: Record<string, unknown> = {
-    email: openIdJson.email,
-    user_id: userId,
-    storage: user!.storage,
-    is_new_user: isNewUser,
-  };
-  if (isNativeClient) {
-    resp.session = session;
-  }
+  return signInResponse(di, event, user!, isNewUser);
+};
 
-  const landingPage = getLandingPageCookie(event);
-  if (userId && landingPage && !isNativeClient) {
-    await new LogDao(di).recordAction(userId, "ls-web-signin", landingPage);
-  }
+const emailRegex = /^[^\s@]+@[^\s@]+$/;
+const minPasswordLength = 8;
+// Not a security rule - just bounds scrypt input so absurd payloads don't burn CPU
+const maxPasswordLength = 256;
 
+function normalizeEmail(raw: unknown): string {
+  return typeof raw === "string" ? raw.trim().toLowerCase() : "";
+}
+
+const emailSignupEndpoint = Endpoint.build("/api/signup/email");
+const emailSignupHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof emailSignupEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const env = Utils_getEnv();
+  const bodyJson = getBodyJson(event);
+  const { password, id } = bodyJson;
+  const email = normalizeEmail(bodyJson.email);
+  if (!emailRegex.test(email)) {
+    return ResponseUtils_json(400, event, { error: "invalid_email" });
+  }
+  if (typeof password !== "string" || password.length < minPasswordLength) {
+    return ResponseUtils_json(400, event, { error: "invalid_password" });
+  }
+  if (password.length > maxPasswordLength) {
+    return ResponseUtils_json(400, event, { error: "password_too_long" });
+  }
+  const userDao = new UserDao(di);
+  const emailAuthTokenDao = new EmailAuthTokenDao(di);
+  const candidates = await userDao.getAllByEmail(email);
+  if (candidates.some((u) => u.passwordHash != null)) {
+    return ResponseUtils_json(400, event, { error: "account_exists" });
+  }
+  const webUrl = getWebUrl(event);
+  const linkTarget = pickEmailLinkTarget(di, candidates);
+  if (linkTarget) {
+    // Existing OAuth account. Never store the requester's password (an attacker
+    // could submit a victim's email + a known password). Instead email the owner
+    // a link that lets THEM choose a password on the reset page - proving both
+    // inbox ownership and password ownership. Rate-limit so it can't be used to
+    // spam/phish the inbox, and return the same response regardless.
+    if (!(await emailAuthTokenDao.bumpAttemptsAndCheckLimit(env, `sendmail:${email}`))) {
+      const token = await emailAuthTokenDao.create(env, { type: "reset", userId: linkTarget.id }, 60 * 60);
+      try {
+        await di.ses.sendEmail({
+          destination: email,
+          source: "info@liftosaur.com",
+          subject: "Liftosaur - set a password for your account",
+          body:
+            `You (or someone else) tried to add an email/password login to the Liftosaur account for ${email}.\n\n` +
+            `This account currently signs in with Google or Apple. If you'd like to add a password, choose one here:\n\n` +
+            `${webUrl}/resetpassword?token=${token}\n\n` +
+            `The link expires in 1 hour. If that wasn't you, just ignore this email - nothing will change and no password is set.`,
+        });
+      } catch (e) {
+        di.log.log("Failed to send set-password email", e instanceof Error ? e.message : e);
+      }
+    }
+    return ResponseUtils_json(200, event, { status: "confirmation_sent" });
+  }
+  const passwordHash = await PasswordHash_hash(password);
+  const user = await createNewUser(userDao, di, id, email, { passwordHash });
+  try {
+    const token = await emailAuthTokenDao.create(env, { type: "verify", userId: user.id }, 7 * 24 * 60 * 60);
+    await di.ses.sendEmail({
+      destination: email,
+      source: "info@liftosaur.com",
+      subject: "Liftosaur - verify your email",
+      body:
+        `Welcome to Liftosaur!\n\n` +
+        `Please verify your email by opening this link:\n\n` +
+        `${webUrl}/verifyemail?token=${token}\n\n` +
+        `Verifying makes sure you can reset your password later if you forget it.`,
+    });
+  } catch (e) {
+    di.log.log("Failed to send verification email", e instanceof Error ? e.message : e);
+  }
+  return signInResponse(di, event, user, true);
+};
+
+const emailSigninEndpoint = Endpoint.build("/api/signin/email");
+const emailSigninHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof emailSigninEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const env = Utils_getEnv();
+  const bodyJson = getBodyJson(event);
+  const { password, historylimit } = bodyJson;
+  const email = normalizeEmail(bodyJson.email);
+  // No account can have a >max password, so rejecting early (before any scrypt
+  // work) keeps the uniform error while avoiding hashing huge payloads
+  if (!email || typeof password !== "string" || password.length > maxPasswordLength) {
+    return ResponseUtils_json(403, event, { error: "invalid_credentials" });
+  }
+  const emailAuthTokenDao = new EmailAuthTokenDao(di);
+  if (await emailAuthTokenDao.bumpAttemptsAndCheckLimit(env, email)) {
+    return ResponseUtils_json(429, event, { error: "too_many_attempts" });
+  }
+  const userDao = new UserDao(di);
+  const candidates = await userDao.getAllByEmail(email);
+  const match = candidates.find((u) => u.passwordHash != null);
+  // Deliberately distinct errors: signup already discloses account existence,
+  // so a uniform message here would cost UX without hiding anything
+  if (match?.passwordHash == null) {
+    const providers = Array.from(
+      new Set(candidates.flatMap((u) => [...(u.googleId ? ["Google"] : []), ...(u.appleId ? ["Apple"] : [])]))
+    );
+    if (providers.length > 0) {
+      return ResponseUtils_json(403, event, { error: "use_oauth", providers });
+    }
+    return ResponseUtils_json(403, event, { error: "account_not_found" });
+  }
+  if (!(await PasswordHash_verify(password, match.passwordHash))) {
+    return ResponseUtils_json(403, event, { error: "wrong_password" });
+  }
+  await emailAuthTokenDao.clearAttempts(env, email);
+  const user = await userDao.getById(match.id, { historyLimit: historylimit });
+  if (user == null) {
+    return ResponseUtils_json(403, event, { error: "account_not_found" });
+  }
+  return signInResponse(di, event, user, false);
+};
+
+const verifyEmailEndpoint = Endpoint.build("/api/auth/verifyemail");
+const verifyEmailHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof verifyEmailEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const env = Utils_getEnv();
+  const bodyJson = getBodyJson(event);
+  const { token } = bodyJson;
+  if (typeof token !== "string" || !token) {
+    return ResponseUtils_json(400, event, { error: "invalid_token" });
+  }
+  const tokenPayload = await new EmailAuthTokenDao(di).consume(env, token, ["verify"]);
+  if (tokenPayload == null) {
+    return ResponseUtils_json(400, event, { error: "invalid_token" });
+  }
+  const userDao = new UserDao(di);
+  const user = await userDao.getLimitedById(tokenPayload.userId);
+  if (user == null) {
+    return ResponseUtils_json(400, event, { error: "invalid_token" });
+  }
+  user.emailVerifiedAt = Date.now();
+  await userDao.store(user);
+  return ResponseUtils_json(200, event, { status: "verified" });
+};
+
+const forgotPasswordEndpoint = Endpoint.build("/api/auth/forgotpassword");
+const forgotPasswordHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof forgotPasswordEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const env = Utils_getEnv();
+  const email = normalizeEmail(getBodyJson(event).email);
+  if (!emailRegex.test(email)) {
+    return ResponseUtils_json(400, event, { error: "invalid_email" });
+  }
+  const emailAuthTokenDao = new EmailAuthTokenDao(di);
+  // Silently pretend to send while rate-limited so the limiter can't be used to
+  // spam an inbox with reset emails
+  if (await emailAuthTokenDao.bumpAttemptsAndCheckLimit(env, `forgot:${email}`)) {
+    return ResponseUtils_json(200, event, { status: "ok" });
+  }
+  const userDao = new UserDao(di);
+  const candidates = await userDao.getAllByEmail(email);
+  const match = candidates.find((u) => u.passwordHash != null);
+  if (match == null) {
+    const providers = Array.from(
+      new Set(candidates.flatMap((u) => [...(u.googleId ? ["Google"] : []), ...(u.appleId ? ["Apple"] : [])]))
+    );
+    if (providers.length > 0) {
+      return ResponseUtils_json(403, event, { error: "use_oauth", providers });
+    }
+    return ResponseUtils_json(403, event, { error: "account_not_found" });
+  }
+  const token = await emailAuthTokenDao.create(env, { type: "reset", userId: match.id }, 60 * 60);
+  try {
+    await di.ses.sendEmail({
+      destination: email,
+      source: "info@liftosaur.com",
+      subject: "Liftosaur - reset your password",
+      body:
+        `You (or someone else) requested a password reset for the Liftosaur account ${email}.\n\n` +
+        `To set a new password, open this link:\n\n` +
+        `${getWebUrl(event)}/resetpassword?token=${token}\n\n` +
+        `The link expires in 1 hour. If that wasn't you, just ignore this email - your password won't change.`,
+    });
+  } catch (e) {
+    di.log.log("Failed to send forgot-password email", e instanceof Error ? e.message : e);
+    return ResponseUtils_json(502, event, { error: "email_send_failed" });
+  }
+  return ResponseUtils_json(200, event, { status: "ok" });
+};
+
+const resetPasswordEndpoint = Endpoint.build("/api/auth/resetpassword");
+const resetPasswordHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof resetPasswordEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const env = Utils_getEnv();
+  const bodyJson = getBodyJson(event);
+  const { token, password } = bodyJson;
+  if (typeof password !== "string" || password.length < minPasswordLength) {
+    return ResponseUtils_json(400, event, { error: "invalid_password" });
+  }
+  if (password.length > maxPasswordLength) {
+    return ResponseUtils_json(400, event, { error: "password_too_long" });
+  }
+  if (typeof token !== "string" || !token) {
+    return ResponseUtils_json(400, event, { error: "invalid_token" });
+  }
+  const tokenPayload = await new EmailAuthTokenDao(di).consume(env, token, ["reset"]);
+  if (tokenPayload == null || tokenPayload.type !== "reset") {
+    return ResponseUtils_json(400, event, { error: "invalid_token" });
+  }
+  const userDao = new UserDao(di);
+  const user = await userDao.getById(tokenPayload.userId, { historyLimit: 20 });
+  if (user == null) {
+    return ResponseUtils_json(400, event, { error: "invalid_token" });
+  }
+  user.passwordHash = await PasswordHash_hash(password);
+  // completing an emailed link proves inbox ownership just like the verify flow
+  user.emailVerifiedAt = user.emailVerifiedAt || Date.now();
+  await userDao.store(user);
+  await new EmailAuthTokenDao(di).clearAttempts(env, user.email);
+  // Deliberately no session: reset happens on a web page reached from an email
+  // link, so a web session wouldn't sign the (native-first) user into the app
+  // anyway and only confuses. They sign in fresh with the new password.
+  return ResponseUtils_json(200, event, { status: "ok" });
+};
+
+const changePasswordEndpoint = Endpoint.build("/api/auth/changepassword");
+const changePasswordHandler: RouteHandler<IPayload, APIGatewayProxyResult, typeof changePasswordEndpoint> = async ({
+  payload,
+}) => {
+  const { event, di } = payload;
+  const bodyJson = getBodyJson(event);
+  const { currentPassword, newPassword } = bodyJson;
+  const currentUserId = await getCurrentUserId(event, di);
+  if (currentUserId == null) {
+    return ResponseUtils_json(401, event, { error: "not_authorized" });
+  }
+  if (typeof newPassword !== "string" || newPassword.length < minPasswordLength) {
+    return ResponseUtils_json(400, event, { error: "invalid_password" });
+  }
+  if (newPassword.length > maxPasswordLength) {
+    return ResponseUtils_json(400, event, { error: "password_too_long" });
+  }
+  const userDao = new UserDao(di);
+  const user = await userDao.getLimitedById(currentUserId);
+  if (user == null) {
+    return ResponseUtils_json(401, event, { error: "not_authorized" });
+  }
+  if (user.passwordHash != null) {
+    if (typeof currentPassword !== "string" || !(await PasswordHash_verify(currentPassword, user.passwordHash))) {
+      return ResponseUtils_json(403, event, { error: "invalid_credentials" });
+    }
+  }
+  user.passwordHash = await PasswordHash_hash(newPassword);
+  await userDao.store(user);
+  return ResponseUtils_json(200, event, { status: "ok" });
+};
+
+const getVerifyEmailPageEndpoint = Endpoint.build("/verifyemail", { token: "string?" });
+const getVerifyEmailPageHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getVerifyEmailPageEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { di } = payload;
   return {
     statusCode: 200,
-    body: JSON.stringify(resp),
-    headers: {
-      ...ResponseUtils_getHeaders(event),
-      "set-cookie": Cookie.serialize("session", session, {
-        httpOnly: true,
-        domain: ".liftosaur.com",
-        path: "/",
-        expires: new Date(new Date().getFullYear() + 10, 0, 1),
-      }),
-    },
+    body: renderVerifyEmailHtml(di.fetch, params.token),
+    headers: { "content-type": "text/html" },
+  };
+};
+
+const getResetPasswordPageEndpoint = Endpoint.build("/resetpassword", { token: "string?" });
+const getResetPasswordPageHandler: RouteHandler<
+  IPayload,
+  APIGatewayProxyResult,
+  typeof getResetPasswordPageEndpoint
+> = async ({ payload, match: { params } }) => {
+  const { di } = payload;
+  return {
+    statusCode: 200,
+    body: renderResetPasswordHtml(di.fetch, params.token),
+    headers: { "content-type": "text/html" },
   };
 };
 
@@ -3525,6 +3864,14 @@ export const getRawHandler = (diBuilder: () => IDI): IHandler => {
       .post(postGoogleWebhookEndpoint, postGoogleWebhookHandler)
       .post(googleLoginEndpoint, googleLoginHandler)
       .post(appleLoginEndpoint, appleLoginHandler)
+      .post(emailSignupEndpoint, emailSignupHandler)
+      .post(emailSigninEndpoint, emailSigninHandler)
+      .post(verifyEmailEndpoint, verifyEmailHandler)
+      .post(forgotPasswordEndpoint, forgotPasswordHandler)
+      .post(resetPasswordEndpoint, resetPasswordHandler)
+      .post(changePasswordEndpoint, changePasswordHandler)
+      .get(getVerifyEmailPageEndpoint, getVerifyEmailPageHandler)
+      .get(getResetPasswordPageEndpoint, getResetPasswordPageHandler)
       .post(appleCallbackMobileEndpoint, appleCallbackMobileHandler)
       .post(signoutEndpoint, signoutHandler)
       .get(getProgramsEndpoint, getProgramsHandler)

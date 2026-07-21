@@ -22,6 +22,7 @@ const idKeys: Partial<Record<string, string[]>> = {
   [freeUsersTableNames.prod.freeUsers]: ["id"],
   lftSubscriptionDetails: ["userId"],
   lftPayments: ["userId", "transactionId"],
+  lftEmailAuthTokens: ["token"],
 };
 
 // Sort key used to order results when a query passes scanIndexForward. GSIs sort by a different attribute
@@ -220,8 +221,66 @@ export class MockDynamoUtil implements IDynamoUtil {
     expression: string;
     attrs?: Record<string, string>;
     values?: Partial<Record<string, unknown>>;
-  }): Promise<void> {
-    // console.log("update", args);
+    returnValues?: "ALL_NEW" | "UPDATED_NEW";
+  }): Promise<Record<string, NativeAttributeValue> | undefined> {
+    const tableData = (this.data[args.tableName] = this.data[args.tableName] || {});
+    const storeKey = this.getKey(args.key);
+    const item: Record<string, unknown> = { ...args.key, ...((tableData[storeKey] as Record<string, unknown>) || {}) };
+    const resolveName = (n: string): string => args.attrs?.[n.trim()] ?? n.trim();
+    const resolveVal = (v: string): unknown => (args.values ? args.values[v.trim()] : undefined);
+
+    // Split on top-level commas only, so commas inside if_not_exists(a, b) don't split
+    const splitClauses = (s: string): string[] => {
+      const parts: string[] = [];
+      let depth = 0;
+      let current = "";
+      for (const ch of s) {
+        if (ch === "(") {
+          depth++;
+        } else if (ch === ")") {
+          depth--;
+        }
+        if (ch === "," && depth === 0) {
+          parts.push(current);
+          current = "";
+        } else {
+          current += ch;
+        }
+      }
+      if (current.trim()) {
+        parts.push(current);
+      }
+      return parts;
+    };
+
+    const addMatch = args.expression.match(/ADD\s+(.+?)(?:\s+SET\s+|$)/i);
+    if (addMatch) {
+      for (const part of splitClauses(addMatch[1])) {
+        const [nameTok, valTok] = part.trim().split(/\s+/);
+        const name = resolveName(nameTok);
+        item[name] = (Number(item[name]) || 0) + (Number(resolveVal(valTok)) || 0);
+      }
+    }
+    const setMatch = args.expression.match(/SET\s+(.+?)(?:\s+ADD\s+|$)/i);
+    if (setMatch) {
+      for (const part of splitClauses(setMatch[1])) {
+        const m = part.trim().match(/^(\S+)\s*=\s*(.+)$/);
+        if (!m) {
+          continue;
+        }
+        const name = resolveName(m[1]);
+        const ifne = m[2].trim().match(/^if_not_exists\(\s*(\S+)\s*,\s*(\S+)\s*\)$/i);
+        if (ifne) {
+          if (item[resolveName(ifne[1])] === undefined) {
+            item[name] = resolveVal(ifne[2]);
+          }
+        } else {
+          item[name] = resolveVal(m[2]);
+        }
+      }
+    }
+    tableData[storeKey] = item;
+    return args.returnValues ? (ObjectUtils_clone(item) as Record<string, NativeAttributeValue>) : undefined;
   }
 
   public async remove(args: { tableName: string; key: Record<string, NativeAttributeValue> }): Promise<void> {

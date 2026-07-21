@@ -62,6 +62,6 @@ export function ResponseUtils_getReferer(event: APIGatewayProxyEvent): string {
     event.headers.Origin ||
     event.headers.referer ||
     event.headers.Referer ||
-    "https://liftosaur.com"
+    "https://www.liftosaur.com"
   );
 }

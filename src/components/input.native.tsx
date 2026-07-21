@@ -177,11 +177,14 @@ export const Input = memo(
               setTouched(true);
               runValidation({ applyClamp: true, displayMode: "snapshot" });
             }}
-            keyboardType={props.type === "number" ? "numeric" : "default"}
+            keyboardType={props.type === "number" ? "numeric" : props.type === "email" ? "email-address" : "default"}
+            secureTextEntry={props.type === "password"}
             // Android's selectAllOnFocus re-applies selection after the first keystroke
             // (second char overwrites first), and setNativeProps({selection}) is a no-op
-            // on Fabric — no working select-on-focus on Android, so iOS only
-            selectTextOnFocus={Platform.OS === "ios"}
+            // on Fabric — no working select-on-focus on Android, so iOS only.
+            // Select-on-focus suits short numeric workout fields, but on email/password
+            // fields it wipes the value when the user taps back in to fix a typo
+            selectTextOnFocus={Platform.OS === "ios" && props.type !== "email" && props.type !== "password"}
             testID={props.identifier}
           />
         </Pressable>

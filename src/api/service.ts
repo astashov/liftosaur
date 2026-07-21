@@ -37,6 +37,11 @@ export interface IProgramDetail {
   };
 }
 
+export type IEmailAuthResponse =
+  | { type: "success"; response: IGetStorageResponse }
+  | { type: "confirmation_sent" }
+  | { type: "error"; error: string; providers?: string[] };
+
 export interface IGetStorageResponse {
   email: string;
   storage: IStorage;
@@ -288,6 +293,123 @@ export class Service {
       is_new_user: json.is_new_user,
       session: json.session,
     };
+  }
+
+  public async emailSignUp(email: string, password: string, id: string): Promise<IEmailAuthResponse> {
+    return this.emailAuth(`${__API_HOST__}/api/signup/email`, { email, password, id });
+  }
+
+  public async emailSignIn(email: string, password: string, id: string): Promise<IEmailAuthResponse> {
+    return this.emailAuth(`${__API_HOST__}/api/signin/email`, { email, password, id });
+  }
+
+  private async emailAuth(url: string, body: Record<string, string>): Promise<IEmailAuthResponse> {
+    const historylimit = 20;
+    let response: Response;
+    let json: IGetStorageResponse & { status?: string; error?: string; providers?: string[] };
+    try {
+      response = await this.client(url, {
+        method: "POST",
+        body: JSON.stringify({ ...body, historylimit }),
+        credentials: "include",
+        headers: Service_nativeClientHeaders(),
+      });
+      json = await response.json();
+    } catch (e) {
+      return { type: "error", error: "network_error" };
+    }
+    if (!response.ok) {
+      return { type: "error", error: json.error || "unknown_error", providers: json.providers };
+    }
+    if (json.status === "confirmation_sent") {
+      return { type: "confirmation_sent" };
+    }
+    json.storage.history = await this.getAllHistoryRecords({
+      alreadyFetchedHistory: json.storage.history,
+      historyLimit: historylimit,
+    });
+    return {
+      type: "success",
+      response: {
+        email: json.email,
+        storage: json.storage,
+        user_id: json.user_id,
+        is_new_user: json.is_new_user,
+        session: json.session,
+      },
+    };
+  }
+
+  public async forgotPassword(email: string): Promise<{ error?: string; providers?: string[] }> {
+    try {
+      const response = await this.client(`${__API_HOST__}/api/auth/forgotpassword`, {
+        method: "POST",
+        body: JSON.stringify({ email }),
+        credentials: "include",
+        headers: Service_nativeClientHeaders(),
+      });
+      if (response.ok) {
+        return {};
+      }
+      const json = await response.json().catch(() => ({}));
+      return { error: json.error || "unknown_error", providers: json.providers };
+    } catch (e) {
+      return { error: "network_error" };
+    }
+  }
+
+  public async resetPassword(token: string, password: string): Promise<{ error?: string }> {
+    try {
+      const response = await this.client(`${__API_HOST__}/api/auth/resetpassword`, {
+        method: "POST",
+        body: JSON.stringify({ token, password }),
+        credentials: "include",
+        headers: Service_nativeClientHeaders(),
+      });
+      if (response.ok) {
+        return {};
+      }
+      const json = await response.json().catch(() => ({}));
+      return { error: json.error || "unknown_error" };
+    } catch (e) {
+      return { error: "network_error" };
+    }
+  }
+
+  public async verifyEmail(token: string): Promise<{ error?: string }> {
+    try {
+      const response = await this.client(`${__API_HOST__}/api/auth/verifyemail`, {
+        method: "POST",
+        body: JSON.stringify({ token }),
+        credentials: "include",
+        headers: Service_nativeClientHeaders(),
+      });
+      if (response.ok) {
+        return {};
+      }
+      const json = await response.json().catch(() => ({}));
+      return { error: json.error || "unknown_error" };
+    } catch (e) {
+      return { error: "network_error" };
+    }
+  }
+
+  public async changePassword(currentPassword: string | undefined, newPassword: string): Promise<string | undefined> {
+    try {
+      const response = await this.client(`${__API_HOST__}/api/auth/changepassword`, {
+        method: "POST",
+        body: JSON.stringify({ currentPassword, newPassword }),
+        credentials: "include",
+        headers: Service_nativeClientHeaders(),
+      });
+      if (response.ok) {
+        return undefined;
+      }
+      const json = await response.json().catch(() => ({}));
+      return json.error || "unknown_error";
+    } catch (e) {
+      return "network_error";
+    }
   }
 
   public async signout(): Promise<void> {

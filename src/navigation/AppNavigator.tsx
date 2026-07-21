@@ -101,6 +101,8 @@ import { NavModalEditProgressScript } from "./modals/NavModalEditProgressScript"
 import { NavModalEditUpdateScript } from "./modals/NavModalEditUpdateScript";
 import { NavModalMonthCalendar } from "./modals/NavModalMonthCalendar";
 import { NavModalAccount } from "./modals/NavModalAccount";
+import { NavModalEmailAuth } from "./modals/NavModalEmailAuth";
+import { NavModalChangePassword } from "./modals/NavModalChangePassword";
 import { NavModalSubscriptionInfo } from "./modals/NavModalSubscriptionInfo";
 import { NavModalWeekInsightsDetails } from "./modals/NavModalWeekInsightsDetails";
 import { NavModalSetSplit } from "./modals/NavModalSetSplit";
@@ -389,6 +391,8 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="editUpdateScriptModal" component={NavModalEditUpdateScript} />
           <RootStack.Screen name="monthCalendarModal" component={NavModalMonthCalendar} />
           <RootStack.Screen name="accountModal" component={NavModalAccount} />
+          <RootStack.Screen name="emailAuthModal" component={NavModalEmailAuth} />
+          <RootStack.Screen name="changePasswordModal" component={NavModalChangePassword} />
           <RootStack.Screen name="subscriptionInfoModal" component={NavModalSubscriptionInfo} />
           <RootStack.Screen name="weekInsightsDetailsModal" component={NavModalWeekInsightsDetails} />
           <RootStack.Screen name="setSplitModal" component={NavModalSetSplit} />
