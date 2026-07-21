@@ -39,7 +39,7 @@ import { LftS3Buckets } from "./buckets";
 import JWT from "jsonwebtoken";
 import { DateUtils_formatYYYYMMDDHHMM } from "../../src/utils/date";
 import * as path from "path";
-import { ICollectionVersions, VersionTracker } from "../../src/models/versionTracker";
+import { ICollectionVersions, isCollectionVersions, VersionTracker } from "../../src/models/versionTracker";
 import { DebugDao } from "./debugDao";
 import { EventDao } from "./eventDao";
 
@@ -87,6 +87,8 @@ export type IUserDao = {
   createdAt: number;
   googleId?: string;
   appleId?: string;
+  passwordHash?: string;
+  emailVerifiedAt?: number;
   storage: IStorage;
   nickname?: string;
 };
@@ -555,12 +557,53 @@ export class UserDao {
     }
   }
 
-  public static build(id: string, email: string, opts: { appleId?: string; googleId?: string }): IUserDao {
+  public async getAllByEmail(email: string): Promise<ILimitedUserDao[]> {
+    const env = Utils_getEnv();
+    return (
+      (await this.di.dynamo.query<ILimitedUserDao>({
+        tableName: userTableNames[env].users,
+        indexName: userTableNames[env].usersEmail,
+        expression: "#email = :email",
+        attrs: { "#email": "email" },
+        values: { ":email": email },
+      })) || []
+    );
+  }
+
+  // History record ids are timestamp-based, so the max non-deleted key in
+  // _versions.history.items is the latest workout date without querying the
+  // history table. The vector-clock `t` values are modification times bumped
+  // by edits/sync churn, so the keys are the more truthful activity signal.
+  public static lastWorkoutTs(user: ILimitedUserDao): number {
+    const history = user.storage._versions?.history;
+    if (history == null || !isCollectionVersions(history) || history.items == null) {
+      return 0;
+    }
+    const deleted = history.deleted || {};
+    let max = 0;
+    for (const key of Object.keys(history.items)) {
+      if (deleted[key] == null) {
+        const ts = parseInt(key, 10);
+        if (Number.isFinite(ts) && ts > max) {
+          max = ts;
+        }
+      }
+    }
+    return max;
+  }
+
+  public static build(
+    id: string,
+    email: string,
+    opts: { appleId?: string; googleId?: string; passwordHash?: string; emailVerifiedAt?: number }
+  ): IUserDao {
     return {
       id,
       email,
       googleId: opts.googleId,
       appleId: opts.appleId,
+      passwordHash: opts.passwordHash,
+      emailVerifiedAt: opts.emailVerifiedAt,
       createdAt: Date.now(),
       storage: {
         progress: [],
@@ -662,6 +705,19 @@ export class UserDao {
     delete storage.stats;
     const item = { ...user, storage, nickname: storage.settings.nickname?.toLowerCase() };
     await this.di.dynamo.put({ tableName: userTableNames[env].users, item });
+  }
+
+  // New-account writes must be conditional: signup/signin endpoints accept a
+  // client-suggested id (anonymous-account continuity), and an unconditional
+  // put would let anyone overwrite an existing user row and take over that id
+  public async create(user: ILimitedUserDao): Promise<boolean> {
+    const env = Utils_getEnv();
+    const storage = ObjectUtils_clone(user.storage);
+    delete storage.programs;
+    delete storage.history;
+    delete storage.stats;
+    const item = { ...user, storage, nickname: storage.settings.nickname?.toLowerCase() };
+    return this.di.dynamo.putIfNotExists({ tableName: userTableNames[env].users, item, partitionKey: "id" });
   }
 
   public async applyStorageUpdate(
@@ -904,6 +960,10 @@ export class UserDao {
       } else {
         fromUser.googleId = token;
         delete fromUser.appleId;
+      }
+      if (toUser.passwordHash != null) {
+        fromUser.passwordHash = toUser.passwordHash;
+        fromUser.emailVerifiedAt = toUser.emailVerifiedAt;
       }
       fromUser.email = toUser.email;
       fromUser.storage.email = toUser.email;

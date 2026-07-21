@@ -212,6 +212,47 @@ export function Thunk_googleSignIn(cb?: (state: IState) => void): IThunk {
   };
 }
 
+export interface IEmailAuthResult {
+  error?: string;
+  providers?: string[];
+  confirmationSent?: boolean;
+}
+
+export function Thunk_emailAuth(
+  mode: "signin" | "signup",
+  email: string,
+  password: string,
+  cb: (result: IEmailAuthResult, state: IState) => void
+): IThunk {
+  return async (dispatch, getState, env) => {
+    dispatch(Thunk_postevent(`email-${mode}`));
+    const state = getState();
+    const userId = state.user?.id || state.storage.tempUserId;
+    const result = await load(dispatch, "Logging in", () => {
+      return mode === "signup"
+        ? env.service.emailSignUp(email, password, userId)
+        : env.service.emailSignIn(email, password, userId);
+    });
+    if (result.type === "success") {
+      await load(dispatch, "Signing in", () => handleLogin(dispatch, result.response, env.service.client, userId));
+      dispatch(Thunk_sync2());
+      cb({}, getState());
+    } else if (result.type === "confirmation_sent") {
+      cb({ confirmationSent: true }, getState());
+    } else {
+      cb({ error: result.error, providers: result.providers }, getState());
+    }
+  };
+}
+
+export function Thunk_forgotPassword(email: string, cb: (result: IEmailAuthResult) => void): IThunk {
+  return async (dispatch, getState, env) => {
+    dispatch(Thunk_postevent("email-forgot-password"));
+    const result = await load(dispatch, "Sending email", () => env.service.forgotPassword(email));
+    cb(result);
+  };
+}
+
 export function Thunk_postevent(action: string, extra?: Record<string, string | number>): IThunk {
   return async (dispatch, getState, env) => {
     lg(action, extra, env.service, getState().user?.id || getState().storage.tempUserId);

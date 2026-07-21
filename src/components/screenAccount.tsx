@@ -31,6 +31,8 @@ import { IconTrash } from "./icons/iconTrash";
 import { IconApple } from "./icons/iconApple";
 import { IconSpinner } from "./icons/iconSpinner";
 import { Dialog_confirm, Dialog_prompt, Dialog_alert } from "../utils/dialog";
+import { EmailAuthButton } from "./account";
+import { navigateToModal } from "../navigation/navigationService";
 import { Tailwind_colors, Tailwind_semantic } from "../utils/tailwindConfig";
 import { IIapActiveSubscription } from "../utils/iapAdapter";
 import { SubscriptionPlan_derive, ISubscriptionPlanKind, IDerivedSubscriptionPlan } from "../utils/subscriptionPlan";
@@ -182,6 +184,15 @@ export function ScreenAccount(props: IProps): JSX.Element {
           >
             Sign Out
           </Button>
+          <View className="mt-3">
+            <LinkButton
+              name="account-change-password"
+              className="text-sm"
+              onPress={() => navigateToModal("changePasswordModal")}
+            >
+              Change password
+            </LinkButton>
+          </View>
         </View>
       ) : (
         <View>
@@ -206,6 +217,7 @@ export function ScreenAccount(props: IProps): JSX.Element {
             </View>
             <Text className="flex-1 ml-2 text-base text-center text-text-alwayswhite">Sign in with Apple</Text>
           </Pressable>
+          <EmailAuthButton onPress={() => navigateToModal("emailAuthModal")} />
         </View>
       )}
       <GroupHeader name="🌟 Liftosaur Premium" topPadding={true} />

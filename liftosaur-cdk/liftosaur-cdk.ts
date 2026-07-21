@@ -248,6 +248,14 @@ export class LiftosaurCdkStack extends cdk.Stack {
       projectionType: dynamodb.ProjectionType.ALL,
     });
 
+    const emailAuthTokensTable = new dynamodb.Table(this, `LftEmailAuthTokens${suffix}`, {
+      tableName: `lftEmailAuthTokens${suffix}`,
+      partitionKey: { name: "token", type: dynamodb.AttributeType.STRING },
+      timeToLiveAttribute: "ttl",
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+    });
+
     const debugTable = new dynamodb.Table(this, `LftDebug${suffix}`, {
       tableName: `lftDebug${suffix}`,
       partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
@@ -535,6 +543,7 @@ export class LiftosaurCdkStack extends cdk.Stack {
     oauthClientsTable.grantReadWriteData(lambdaFunction);
     oauthAuthCodesTable.grantReadWriteData(lambdaFunction);
     oauthTokensTable.grantReadWriteData(lambdaFunction);
+    emailAuthTokensTable.grantReadWriteData(lambdaFunction);
     debugTable.grantReadWriteData(lambdaFunction);
     lambdaFunction.addToRolePolicy(
       new iam.PolicyStatement({

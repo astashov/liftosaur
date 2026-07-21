@@ -72,6 +72,8 @@ import { NavModalSetSplit } from "./modals/NavModalSetSplit";
 import { NavModalPlannerSettings } from "./modals/NavModalPlannerSettings";
 import { NavModalMuscleGroupMusclePicker } from "./modals/NavModalMuscleGroupMusclePicker";
 import { NavModalAccount } from "./modals/NavModalAccount";
+import { NavModalEmailAuth } from "./modals/NavModalEmailAuth";
+import { NavModalChangePassword } from "./modals/NavModalChangePassword";
 import { NavModalCreateProgram } from "./modals/NavModalCreateProgram";
 import { NavModalImportFromLink } from "./modals/NavModalImportFromLink";
 import { NavModalProgramInfo } from "./modals/NavModalProgramInfo";
@@ -389,6 +391,8 @@ export function AppNavigator(props: { initialScreen?: IScreen }): JSX.Element {
           <RootStack.Screen name="plannerSettingsModal" component={NavModalPlannerSettings} />
           <RootStack.Screen name="muscleGroupMusclePickerModal" component={NavModalMuscleGroupMusclePicker} />
           <RootStack.Screen name="accountModal" component={NavModalAccount} />
+          <RootStack.Screen name="emailAuthModal" component={NavModalEmailAuth} />
+          <RootStack.Screen name="changePasswordModal" component={NavModalChangePassword} />
           <RootStack.Screen name="createProgramModal" component={NavModalCreateProgram} />
           <RootStack.Screen name="importFromLinkModal" component={NavModalImportFromLink} />
           <RootStack.Screen name="programInfoModal" component={NavModalProgramInfo} />

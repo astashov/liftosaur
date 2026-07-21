@@ -5,6 +5,7 @@ import { useAppContext } from "../../components/appContext";
 import { ModalScreenContainer } from "../ModalScreenContainer";
 import { FormSheet } from "../FormSheet";
 import { Account } from "../../components/account";
+import { navigateToModal } from "../navigationService";
 import { Account_getFromStorage } from "../../models/account";
 import { IState } from "../../models/state";
 import { Thunk_pushScreen } from "../../ducks/thunks";
@@ -31,7 +32,13 @@ export function NavModalAccount(): JSX.Element {
   return (
     <ModalScreenContainer onClose={onClose} shouldShowClose={true}>
       <FormSheet>
-        <Account account={account} client={service.client} dispatch={dispatch} onSignIn={onSignIn} />
+        <Account
+          account={account}
+          client={service.client}
+          dispatch={dispatch}
+          onSignIn={onSignIn}
+          onOpenEmailAuth={() => navigateToModal("emailAuthModal")}
+        />
       </FormSheet>
     </ModalScreenContainer>
   );
