@@ -1,4 +1,5 @@
 import { JSX, memo, useCallback, useMemo, useState } from "react";
+import { usePerfWhyRender } from "../utils/usePerfWhyRender";
 import { View } from "react-native";
 import { Text } from "./primitives/text";
 import { Pressable } from "react-native";
@@ -40,6 +41,7 @@ interface IExerciseHistoryProps {
 }
 
 export const ExerciseHistory = memo((props: IExerciseHistoryProps): JSX.Element => {
+  usePerfWhyRender("history", props as unknown as Record<string, unknown>);
   const fullExercise = useMemo(
     () => Exercise_get(props.exerciseType, props.settings.exercises),
     [props.exerciseType, props.settings.exercises]

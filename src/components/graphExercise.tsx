@@ -1,4 +1,5 @@
 import { JSX, memo, useMemo, useState } from "react";
+import { usePerfWhyRender } from "../utils/usePerfWhyRender";
 import { View, Pressable } from "react-native";
 import { Text } from "./primitives/text";
 import { Select } from "./primitives/select";
@@ -136,6 +137,7 @@ function getData(
 }
 
 function GraphExerciseInner(props: IGraphProps): JSX.Element {
+  usePerfWhyRender("graph", props as unknown as Record<string, unknown>);
   const [selectedType, setSelectedType] = useState<IExerciseSelectedType>(props.initialType || "weight");
   const eqName = equipmentName(props.exercise.equipment);
   const units = props.settings.units;

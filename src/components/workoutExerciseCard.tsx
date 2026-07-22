@@ -51,6 +51,7 @@ import { IconReorder } from "./icons/iconReorder";
 import { navigateToModal } from "../navigation/navigationService";
 import { Dialog_confirm } from "../utils/dialog";
 import { usePerfRenderCount } from "../utils/usePerfRenderCount";
+import { usePerfWhyRender } from "../utils/usePerfWhyRender";
 
 interface IWorkoutExerciseCardProps {
   entry: IHistoryEntry;
@@ -77,6 +78,7 @@ type IKebabAction = "edit" | "swap" | "superset" | "remove";
 
 function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element {
   usePerfRenderCount("WorkoutExerciseCard");
+  usePerfWhyRender("sets-grid", props as unknown as Record<string, unknown>);
   const programExerciseId = props.entry.programExerciseId;
   const programExercise = useMemo(
     () =>
