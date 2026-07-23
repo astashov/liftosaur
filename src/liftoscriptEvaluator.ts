@@ -1,6 +1,17 @@
 // import util from "util";
 import { SyntaxNode } from "@lezer/common";
-import { IScriptBindings, IScriptFnContext, IScriptFunctions } from "./models/progress";
+import { IScriptBindings, IScriptFnContext } from "./models/progress";
+import {
+  IScriptFunctions,
+  IScriptFnName,
+  IScriptStaticType,
+  LiftoscriptFns_isFnName,
+  LiftoscriptFns_arity,
+  LiftoscriptFns_argSignature,
+  LiftoscriptFns_isValidArg,
+  LiftoscriptFns_acceptsTypeAt,
+  LiftoscriptFns_bindingStaticType,
+} from "./liftoscriptFns";
 import {
   Weight_gt,
   Weight_lt,
@@ -198,6 +209,48 @@ export class LiftoscriptEvaluator {
     throw new LiftoscriptSyntaxError(`${message} (${line}:${offset})`, line, offset, node.from, node.to);
   }
 
+  private staticTypeOfNode(node: SyntaxNode): IScriptStaticType | undefined {
+    if (node.type.name === NodeName.NumberExpression) {
+      return "number";
+    } else if (node.type.name === NodeName.WeightExpression) {
+      return "weight";
+    } else if (node.type.name === NodeName.Percentage) {
+      return "percentage";
+    } else if (node.type.name === NodeName.VariableExpression) {
+      if (node.getChildren(NodeName.VariableIndex).length > 0) {
+        return undefined;
+      }
+      const nameNode = node.getChild(NodeName.Keyword);
+      const name = nameNode != null ? this.getValue(nameNode) : undefined;
+      return name != null ? LiftoscriptFns_bindingStaticType(name) : undefined;
+    }
+    return undefined;
+  }
+
+  private validateFnArg(name: IScriptFnName, index: number, node: SyntaxNode, value: unknown): void {
+    if (LiftoscriptFns_isValidArg(name, index, value)) {
+      return;
+    }
+    if (Array.isArray(value) && !LiftoscriptFns_acceptsTypeAt(name, index, "array")) {
+      const argText = this.getValue(node);
+      this.error(
+        `Function '${name}' doesn't accept arrays. Use an index to pick one value, like '${argText}[1]'`,
+        node
+      );
+    }
+    const argSignature = LiftoscriptFns_argSignature(name, index);
+    const printedValue =
+      Weight_is(value) || Weight_isPct(value)
+        ? `${Weight_print(value)}`
+        : Array.isArray(value)
+          ? "an array"
+          : String(value);
+    this.error(
+      `Argument ${index + 1} (${argSignature?.name}) of '${name}' should be ${argSignature?.hint}, but got ${printedValue}`,
+      node
+    );
+  }
+
   private getLineAndOffset(node: SyntaxNode): [number, number] {
     const linesLengths = this.script.split("\n").map((l) => l.length + 1);
     let offset = 0;
@@ -300,12 +353,35 @@ export class LiftoscriptEvaluator {
           assert(NodeName.BuiltinFunctionExpression);
         }
         const name = this.getValue(keyword);
-        if (!(name in this.fns)) {
+        if (!LiftoscriptFns_isFnName(name)) {
           this.error(`Unknown function '${name}'`, keyword);
         }
-        if (name === "sets" && fnArgs.length !== 9) {
-          this.error(`'sets' function should have 9 arguments`, keyword);
+        const arity = LiftoscriptFns_arity(name);
+        if (fnArgs.length < arity.min || (arity.max != null && fnArgs.length > arity.max)) {
+          const expected = arity.max == null || arity.max === arity.min ? `${arity.min}` : `${arity.min}-${arity.max}`;
+          this.error(
+            `Function '${name}' expects ${expected} argument${arity.max === 1 ? "" : "s"}, but got ${fnArgs.length}`,
+            keyword
+          );
         }
+        fnArgs.forEach((fnArg, index) => {
+          const staticType = this.staticTypeOfNode(fnArg);
+          if (staticType != null && !LiftoscriptFns_acceptsTypeAt(name, index, staticType)) {
+            if (staticType === "array") {
+              const argText = this.getValue(fnArg);
+              this.error(
+                `Function '${name}' doesn't accept arrays, and '${argText}' is an array. Use an index to pick one value, like '${argText}[1]'`,
+                fnArg
+              );
+            } else {
+              const argSignature = LiftoscriptFns_argSignature(name, index);
+              this.error(
+                `Argument ${index + 1} (${argSignature?.name}) of '${name}' should be ${argSignature?.hint}, but '${this.getValue(fnArg)}' is a ${staticType}`,
+                fnArg
+              );
+            }
+          }
+        });
       } else if (cursor.node.type.name === NodeName.ForExpression) {
         const variableNode = cursor.node.getChild(NodeName.Variable);
         if (variableNode != null) {
@@ -538,7 +614,7 @@ export class LiftoscriptEvaluator {
           );
           value = Weight_convertToWeight(this.bindings.rm1, newValue, this.unit);
           this.bindings.originalWeights[i] = value;
-          this.bindings.weights[i] = this.fns.roundWeight(value, this.fnContext);
+          this.bindings.weights[i] = this.fns.roundWeight([value], this.fnContext, this.bindings);
         }
       }
     } else {
@@ -1076,12 +1152,16 @@ export class LiftoscriptEvaluator {
       if (keyword == null || keyword.type.name !== NodeName.Keyword) {
         assert(NodeName.BuiltinFunctionExpression);
       }
-      const name = this.getValue(keyword) as keyof typeof fns;
-      if (name != null && this.fns[name] != null) {
-        const argValues = args.map((a) => this.evaluate(a));
-        const fn = this.fns[name];
+      const name = this.getValue(keyword);
+      if (LiftoscriptFns_isFnName(name) && fns[name] != null) {
+        const argValues = args.map((a, index) => {
+          const value = this.evaluate(a);
+          this.validateFnArg(name, index, a, value);
+          return value;
+        });
+        const fn = fns[name];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (fn as any).apply(undefined, [...argValues, this.fnContext, this.bindings]);
+        return (fn as any)(argValues, this.fnContext, this.bindings);
       } else {
         this.error(`Unknown function '${name}'`, keyword);
       }

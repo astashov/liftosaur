@@ -1,7 +1,13 @@
 import "mocha";
 import { expect } from "chai";
-import { PlannerProgram_generateFullText } from "../src/pages/planner/models/plannerProgram";
+import {
+  PlannerProgram_generateFullText,
+  PlannerProgram_evaluateText,
+  PlannerProgram_evaluate,
+} from "../src/pages/planner/models/plannerProgram";
 import { PlannerTestUtils_finish } from "./utils/plannerTestUtils";
+import { Settings_build } from "../src/models/settings";
+import { IPlannerProgram } from "../src/types";
 
 describe("Script functions: sum, min, max", () => {
   describe("sum", () => {
@@ -172,6 +178,30 @@ Squat / 1x5 100lb, 1x5 200lb / progress: custom(val: 0lb) {~
       const { program } = PlannerTestUtils_finish(programText, { completedReps: [[5, 5]] });
       const newText = PlannerProgram_generateFullText(program.planner!.weeks);
       expect(newText).to.contain("val: 200lb");
+    });
+  });
+
+  describe("array arguments to scalar functions", () => {
+    it("shows a syntax error when passing an array to a function that doesn't accept arrays", () => {
+      const programText = `# Week 1
+## Day 1
+Squat / 2x8+ / 100lb / progress: custom(reps: 24) {~
+  if (sum(completedReps) >= state.reps) {
+    weights = increment(weights)
+  }
+~}`;
+      const planner: IPlannerProgram = {
+        vtype: "planner",
+        name: "MyProgram",
+        weeks: PlannerProgram_evaluateText(programText),
+      };
+      const result = PlannerProgram_evaluate(planner, Settings_build()).evaluatedWeeks[0][0];
+      expect(result.success).to.equal(false);
+      if (!result.success) {
+        expect(result.error.message).to.contain(
+          "Function 'increment' doesn't accept arrays, and 'weights' is an array"
+        );
+      }
     });
   });
 });

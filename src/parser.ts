@@ -4,10 +4,10 @@ import { parser as LiftoscriptParser } from "./liftoscript";
 import {
   IScriptBindings,
   IScriptFnContext,
-  IScriptFunctions,
   Progress_createEmptyScriptBindings,
   Progress_createScriptFunctions,
 } from "./models/progress";
+import { IScriptFunctions } from "./liftoscriptFns";
 import { Weight_build } from "./models/weight";
 import { IUnit, IWeight, IProgramState, IPercentage, IDayData, IExerciseType, ISettings } from "./types";
 import type { Tree } from "@lezer/common";

@@ -38,6 +38,60 @@ describe("Parser", () => {
     expect(state.weight).to.eql(Weight_build(0, "lb"));
   });
 
+  it("errors when passing an array to a function that doesn't accept arrays", () => {
+    expect(() => ParserTestUtils_run(`state.foo = increment(weights)`, { foo: 0 })).to.throw(
+      "Function 'increment' doesn't accept arrays, and 'weights' is an array"
+    );
+    expect(() => ParserTestUtils_run(`weights = increment(weights)`, { foo: 0 })).to.throw(
+      "Function 'increment' doesn't accept arrays, and 'weights' is an array"
+    );
+    expect(() => ParserTestUtils_run(`state.foo = increment((completedReps))`, { foo: 0 })).to.throw(
+      "Function 'increment' doesn't accept arrays"
+    );
+    expect(ParserTestUtils_run(`state.foo = sum(completedReps)`, { foo: 0 })).to.eql(6);
+    expect(ParserTestUtils_run(`state.foo = increment(weights[1])`, { foo: 0 })).to.eql(Weight_build(41, "lb"));
+  });
+
+  it("errors on wrong number of function arguments", () => {
+    expect(() => ParserTestUtils_run(`state.foo = increment()`, { foo: 0 })).to.throw(
+      "Function 'increment' expects 1 argument, but got 0"
+    );
+    expect(() => ParserTestUtils_run(`state.foo = increment(5lb, 3)`, { foo: 0 })).to.throw(
+      "Function 'increment' expects 1 argument, but got 2"
+    );
+    expect(() => ParserTestUtils_run(`state.foo = calculateTrainingMax(100lb)`, { foo: 0 })).to.throw(
+      "Function 'calculateTrainingMax' expects 2 arguments, but got 1"
+    );
+  });
+
+  it("errors on statically known wrong argument types", () => {
+    expect(() => ParserTestUtils_run(`state.foo = calculateTrainingMax(100lb, 5lb)`, { foo: 0 })).to.throw(
+      "Argument 2 (reps) of 'calculateTrainingMax' should be a number of reps, but '5lb' is a weight"
+    );
+  });
+
+  it("errors at runtime on wrong argument types from dynamic values", () => {
+    expect(() =>
+      ParserTestUtils_run(`state.out = calculateTrainingMax(100lb, state.w)`, {
+        out: 0,
+        w: Weight_build(5, "lb"),
+      })
+    ).to.throw("Argument 2 (reps) of 'calculateTrainingMax' should be a number of reps, but got 5lb");
+  });
+
+  it("print returns its first argument, including booleans", () => {
+    const state = { foo: 0 };
+    ParserTestUtils_run(`if (print(completedReps >= reps)) { state.foo = 42 }`, state);
+    expect(state.foo).to.eql(42);
+    expect(ParserTestUtils_run(`state.foo = print(5)`, { foo: 0 })).to.eql(5);
+  });
+
+  it("treats rpe argument of rpeMultiplier as optional", () => {
+    const withDefault = ParserTestUtils_run(`state.foo = rpeMultiplier(5)`, { foo: 0 });
+    const explicit = ParserTestUtils_run(`state.foo = rpeMultiplier(5, 10)`, { foo: 0 });
+    expect(withDefault).to.eql(explicit);
+  });
+
   it("Standard progression and deload", () => {
     const program = `
 // Simple Exercise Progression script '5lb,2'

@@ -1035,6 +1035,92 @@ Bench Press[1-5] / ...tmp: Squat / progress: custom() { ...tmp: Squat }
     });
   });
 
+  it("shows a positioned syntax error when passing an array to a scalar function in a progress script", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 2x8+ / 100lb / progress: custom(reps: 24) {~
+  if (sum(completedReps) >= state.reps) {
+    weights = increment(weights)
+  }
+~}`;
+    const planner: IPlannerProgram = {
+      vtype: "planner",
+      name: "MyProgram",
+      weeks: PlannerProgram_evaluateText(programText),
+    };
+    const result = PlannerProgram_evaluate(planner, Settings_build()).evaluatedWeeks[0][0];
+    expect(result).to.deep.equal({
+      success: false,
+      error: new PlannerSyntaxError(
+        "Function 'increment' doesn't accept arrays, and 'weights' is an array. Use an index to pick one value, like 'weights[1]' (3:24)",
+        0,
+        0,
+        0,
+        0
+      ),
+    });
+  });
+
+  it("shows a positioned syntax error on wrong number of function arguments in a progress script", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 2x8+ / 100lb / progress: custom(foo: 0) {~
+  state.foo = rpeMultiplier()
+~}`;
+    const planner: IPlannerProgram = {
+      vtype: "planner",
+      name: "MyProgram",
+      weeks: PlannerProgram_evaluateText(programText),
+    };
+    const result = PlannerProgram_evaluate(planner, Settings_build()).evaluatedWeeks[0][0];
+    expect(result).to.deep.equal({
+      success: false,
+      error: new PlannerSyntaxError("Function 'rpeMultiplier' expects 1-2 arguments, but got 0 (2:14)", 0, 0, 0, 0),
+    });
+  });
+
+  it("shows a positioned syntax error on a statically known wrong argument type in a progress script", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 2x8+ / 100lb / progress: custom(foo: 0) {~
+  state.foo = calculateTrainingMax(100lb, 5lb)
+~}`;
+    const planner: IPlannerProgram = {
+      vtype: "planner",
+      name: "MyProgram",
+      weeks: PlannerProgram_evaluateText(programText),
+    };
+    const result = PlannerProgram_evaluate(planner, Settings_build()).evaluatedWeeks[0][0];
+    expect(result).to.deep.equal({
+      success: false,
+      error: new PlannerSyntaxError(
+        "Argument 2 (reps) of 'calculateTrainingMax' should be a number of reps, but '5lb' is a weight (2:42)",
+        0,
+        0,
+        0,
+        0
+      ),
+    });
+  });
+
+  it("shows a positioned syntax error on wrong number of 'sets' arguments in an update script", () => {
+    const programText = `# Week 1
+## Day 1
+Squat / 2x8+ / 100lb / update: custom() {~
+  sets(1, 3, 5, 5, 0, 100lb, 60, 0)
+~}`;
+    const planner: IPlannerProgram = {
+      vtype: "planner",
+      name: "MyProgram",
+      weeks: PlannerProgram_evaluateText(programText),
+    };
+    const result = PlannerProgram_evaluate(planner, Settings_build()).evaluatedWeeks[0][0];
+    expect(result).to.deep.equal({
+      success: false,
+      error: new PlannerSyntaxError("Function 'sets' expects 9 arguments, but got 8 (2:2)", 0, 0, 0, 0),
+    });
+  });
+
   it("preserves order of exercises", () => {
     const programText = `# Week 1
 ## Day 1

@@ -5,14 +5,10 @@ import {
   Exercise_getWarmupSets,
   Exercise_toKey,
 } from "./exercise";
-import {
-  Reps_findNextEntryAndSet,
-  Reps_isEmptyOrFinished,
-  Reps_isCompleted,
-  Reps_isEmpty,
-} from "./set";
+import { Reps_findNextEntryAndSet, Reps_isEmptyOrFinished, Reps_isCompleted, Reps_isEmpty } from "./set";
 import {
   Weight_build,
+  Weight_buildAny,
   Weight_eq,
   Weight_lt,
   Weight_increment,
@@ -101,45 +97,11 @@ import {
   LiveActivityManager_updateLiveActivityForNextEntry,
 } from "../utils/liveActivityManager";
 import { ProgramExercise_hasUserPromptedVars } from "./programExercise";
+import type { IScriptFunctions, IScriptBindings } from "../liftoscriptFns";
 import deepmerge from "deepmerge";
 import { Dialog_alert } from "../utils/dialog";
 
-export interface IScriptBindings {
-  day: number;
-  week: number;
-  dayInWeek: number;
-  originalWeights: (IWeight | IPercentage)[];
-  weights: (IWeight | undefined)[];
-  completedWeights: (IWeight | undefined)[];
-  rm1: IWeight;
-  reps: (number | undefined)[];
-  minReps: (number | undefined)[];
-  amraps: (number | undefined)[];
-  askweights: (number | undefined)[];
-  logrpes: (number | undefined)[];
-  timers: (number | undefined)[];
-  setTime: (number | undefined)[];
-  completedSetTime: (number | undefined)[];
-  RPE: (number | undefined)[];
-  completedRPE: (number | undefined)[];
-  completedReps: (number | undefined)[];
-  completedRepsLeft: (number | undefined)[];
-  isCompleted: (0 | 1)[];
-  w: (IWeight | undefined)[];
-  r: (number | undefined)[];
-  mr: (number | undefined)[];
-  cr: (number | undefined)[];
-  cw: (IWeight | undefined)[];
-  ns: number;
-  programNumberOfSets: number;
-  numberOfSets: number;
-  completedNumberOfSets: number;
-  setVariationIndex: number;
-  exerciseVariationIndex: number;
-  bodyweight: IWeight;
-  descriptionIndex: number;
-  setIndex: number;
-}
+export type { IScriptBindings } from "../liftoscriptFns";
 
 export interface IScriptFnContext {
   prints: (number | IWeight | IPercentage)[][];
@@ -159,78 +121,14 @@ export interface IScriptUpdateContext {
   equipment?: IEquipment;
 }
 
-export interface IScriptFunctions {
-  roundWeight: (num: IWeight, context: IScriptFnContext) => IWeight;
-  roundConvertWeight: (num: IWeight, context: IScriptFnContext) => IWeight;
-  calculateTrainingMax: (weight: IWeight, reps: number, context: IScriptFnContext) => IWeight;
-  calculate1RM: (weight: IWeight, reps: number, context: IScriptFnContext) => IWeight;
-  rpeMultiplier: (reps: number, rpe: number, context: IScriptFnContext) => number;
-  floor(num: number): number;
-  floor(num: IWeight): IWeight;
-  ceil(num: number): number;
-  ceil(num: IWeight): IWeight;
-  round(num: number): number;
-  round(num: IWeight): IWeight;
-  sum(
-    ...vals: (number | number[] | IWeight | IWeight[] | IPercentage | IPercentage[])[]
-  ): number | IWeight | IPercentage;
-  min(
-    ...vals: (number | number[] | IWeight | IWeight[] | IPercentage | IPercentage[])[]
-  ): number | IWeight | IPercentage;
-  max(
-    ...vals: (number | number[] | IWeight | IWeight[] | IPercentage | IPercentage[])[]
-  ): number | IWeight | IPercentage;
-  zeroOrGte(a: number[] | IWeight[], b: number[] | IWeight[]): boolean;
-  print(...args: unknown[]): (typeof args)[0];
-  increment(val: IWeight, context: IScriptFnContext): IWeight;
-  increment(val: IPercentage, context: IScriptFnContext): IPercentage;
-  increment(val: number, context: IScriptFnContext): number;
-  decrement(val: IWeight, context: IScriptFnContext): IWeight;
-  decrement(val: IPercentage, context: IScriptFnContext): IPercentage;
-  decrement(val: number, context: IScriptFnContext): number;
-  sets(
-    from: number,
-    to: number,
-    minReps: number,
-    reps: number,
-    isAmrap: number,
-    weight: IWeight | IPercentage | number,
-    timer: number,
-    rpe: number,
-    logRpe: number,
-    context: IScriptFnContext,
-    bindings: IScriptBindings
-  ): number;
-}
-
-function floor(num: number): number;
-function floor(num: IWeight): IWeight;
-function floor(num: IWeight | number): IWeight | number {
-  if (num == null) {
-    return 0;
-  }
-  return typeof num === "number" ? Math.floor(num) : Weight_build(Math.floor(num.value), num.unit);
-}
-
-function ceil(num: number): number;
-function ceil(num: IWeight): IWeight;
-function ceil(num: IWeight | number): IWeight | number {
-  if (num == null) {
-    return 0;
-  }
-  return typeof num === "number" ? Math.ceil(num) : Weight_build(Math.ceil(num.value), num.unit);
-}
-
-function round(num: number): number;
-function round(num: IWeight): IWeight;
-function round(num: IWeight | number): IWeight | number {
-  if (num == null) {
-    return 0;
-  }
-  return typeof num === "number" ? Math.round(num) : Weight_build(Math.round(num.value), num.unit);
-}
-
 type IScriptArg = number | IWeight | IPercentage;
+
+function applyRounding(num: IScriptArg | undefined, rounder: (n: number) => number): IScriptArg {
+  if (num == null) {
+    return 0;
+  }
+  return typeof num === "number" ? rounder(num) : Weight_buildAny(rounder(num.value), num.unit);
+}
 
 function isScriptValue(v: unknown): v is IScriptArg {
   return typeof v === "number" || Weight_is(v) || Weight_isPct(v);
@@ -252,7 +150,7 @@ function flattenScriptArgs(args: unknown[]): IScriptArg[] {
   return result;
 }
 
-function sum(...args: unknown[]): IWeight | IPercentage | number {
+function sum(args: unknown[]): IWeight | IPercentage | number {
   const flat = flattenScriptArgs(args);
   if (flat.length === 0) {
     return 0;
@@ -260,7 +158,7 @@ function sum(...args: unknown[]): IWeight | IPercentage | number {
   return flat.reduce<IScriptArg>((acc, a) => Weight_op(undefined, acc, a, (x, y) => x + y), 0);
 }
 
-function min(...args: unknown[]): IWeight | IPercentage | number {
+function min(args: unknown[]): IWeight | IPercentage | number {
   const flat = flattenScriptArgs(args);
   if (flat.length === 0) {
     return 0;
@@ -268,7 +166,7 @@ function min(...args: unknown[]): IWeight | IPercentage | number {
   return flat.reduce<IScriptArg>((acc, a) => (Weight_lt(a, acc) ? a : acc), flat[0]);
 }
 
-function max(...args: unknown[]): IWeight | IPercentage | number {
+function max(args: unknown[]): IWeight | IPercentage | number {
   const flat = flattenScriptArgs(args);
   if (flat.length === 0) {
     return 0;
@@ -276,7 +174,7 @@ function max(...args: unknown[]): IWeight | IPercentage | number {
   return flat.reduce<IScriptArg>((acc, a) => (Weight_lt(acc, a) ? a : acc), flat[0]);
 }
 
-function zeroOrGte(a: IWeight[] | number[], b: IWeight[] | number[]): boolean {
+function zeroOrGte(a: (IWeight | number | undefined | null)[], b: (IWeight | number | undefined | null)[]): boolean {
   for (let i = 0; i < Math.max(a.length, b.length); i++) {
     const aVal = a[i];
     const bVal = b[i];
@@ -379,9 +277,10 @@ export function Progress_createScriptBindings(
 }
 
 export function Progress_createScriptFunctions(settings: ISettings): IScriptFunctions {
-  function increment(vals: number, context: IScriptFnContext): number;
-  function increment(vals: IWeight, context: IScriptFnContext): IWeight;
-  function increment(vals: IPercentage, context: IScriptFnContext): IPercentage;
+  function toWeight(value: IWeight | number): IWeight {
+    return Weight_is(value) ? value : Weight_build(value, settings.units);
+  }
+
   function increment(vals: IWeight | IPercentage | number, context: IScriptFnContext): IWeight | IPercentage | number {
     if (typeof vals === "number") {
       const weight = Weight_build(vals, context.unit);
@@ -393,9 +292,6 @@ export function Progress_createScriptFunctions(settings: ISettings): IScriptFunc
     }
   }
 
-  function decrement(vals: number, context: IScriptFnContext): number;
-  function decrement(vals: IWeight, context: IScriptFnContext): IWeight;
-  function decrement(vals: IPercentage, context: IScriptFnContext): IPercentage;
   function decrement(vals: IWeight | IPercentage | number, context: IScriptFnContext): IWeight | IPercentage | number {
     if (typeof vals === "number") {
       const weight = Weight_build(vals, context.unit);
@@ -408,74 +304,42 @@ export function Progress_createScriptFunctions(settings: ISettings): IScriptFunc
   }
 
   const fns: IScriptFunctions = {
-    roundWeight: (num, context) => {
-      if (!Weight_is(num)) {
-        num = Weight_build(num, settings.units);
-      }
+    roundWeight: ([num], context) => {
       const unit = Equipment_getUnitForExerciseType(settings, context?.exerciseType);
-      return Weight_round(num, settings, unit ?? settings.units, context?.exerciseType);
+      return Weight_round(toWeight(num), settings, unit ?? settings.units, context?.exerciseType);
     },
-    roundConvertWeight: (num, context) => {
-      if (!Weight_is(num)) {
-        num = Weight_build(num, settings.units);
-      }
+    roundConvertWeight: ([num], context) => {
       const unit = Equipment_getUnitForExerciseType(settings, context?.exerciseType);
-      return Weight_roundConvertTo(num, settings, unit ?? settings.units, context?.exerciseType);
+      return Weight_roundConvertTo(toWeight(num), settings, unit ?? settings.units, context?.exerciseType);
     },
-    calculateTrainingMax: (weight, reps, context) => {
-      if (!Weight_is(weight)) {
-        weight = Weight_build(weight, settings.units);
-      }
-      return Weight_getTrainingMax(weight, reps || 0, settings);
+    calculateTrainingMax: ([weight, reps]) => {
+      return Weight_getTrainingMax(toWeight(weight), reps || 0, settings);
     },
-    calculate1RM: (weight, reps, context) => {
-      if (!Weight_is(weight)) {
-        weight = Weight_build(weight, settings.units);
-      }
-      return Weight_getOneRepMax(weight, reps);
+    calculate1RM: ([weight, reps]) => {
+      return Weight_getOneRepMax(toWeight(weight), reps);
     },
-    rpeMultiplier: (repsRaw, rpeRawOrContext, context) => {
-      const reps = Weight_is(repsRaw) ? repsRaw.value : typeof repsRaw === "number" ? repsRaw : 1;
-      const rpe =
-        typeof rpeRawOrContext === "number" && context != null
-          ? Weight_is(rpeRawOrContext)
-            ? rpeRawOrContext.value
-            : typeof rpeRawOrContext === "number"
-              ? rpeRawOrContext
-              : 10
-          : 10;
+    rpeMultiplier: ([repsRaw, rpeRaw]) => {
+      const reps = Weight_is(repsRaw) ? repsRaw.value : repsRaw;
+      const rpe = rpeRaw == null ? 10 : Weight_is(rpeRaw) ? rpeRaw.value : rpeRaw;
       return Weight_rpeMultiplier(reps, rpe);
     },
-    floor,
-    ceil,
-    round,
-    sum,
-    min,
-    max,
-    increment,
-    decrement,
-    zeroOrGte,
-    print: (...fnArgs) => {
-      fnArgs.pop();
-      const context = fnArgs.pop() as IScriptFnContext;
-      const args = [...fnArgs.flat()] as (number | IWeight | IPercentage)[];
+    floor: ([num]) => applyRounding(num, Math.floor),
+    ceil: ([num]) => applyRounding(num, Math.ceil),
+    round: ([num]) => applyRounding(num, Math.round),
+    sum: (args) => sum(args),
+    min: (args) => min(args),
+    max: (args) => max(args),
+    increment: ([vals], context) => increment(vals, context),
+    decrement: ([vals], context) => decrement(vals, context),
+    zeroOrGte: ([a, b]) => zeroOrGte(a, b),
+    print: (args, context) => {
+      // flat() without filtering: booleans must survive so `if (print(cond))` keeps working
+      const flatArgs = [...args.flat()] as (number | IWeight | IPercentage)[];
       context.prints = context.prints || [];
-      context.prints.push(args);
-      return args[0];
+      context.prints.push(flatArgs);
+      return flatArgs[0];
     },
-    sets(
-      from: number,
-      to: number,
-      minReps: number,
-      reps: number,
-      isAmrap: number,
-      weight: IWeight | IPercentage | number,
-      timer: number,
-      rpe: number,
-      logRpe: number,
-      context: IScriptFnContext,
-      bindings: IScriptBindings
-    ): number {
+    sets: ([from, to, minReps, reps, isAmrap, weight, timer, rpe, logRpe], context, bindings) => {
       for (let i = 0; i < bindings.numberOfSets; i++) {
         if (i >= from - 1 && i < to) {
           const weightValue = Weight_convertToWeight(bindings.rm1, weight, context.unit);

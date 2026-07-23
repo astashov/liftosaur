@@ -5,6 +5,18 @@ import { PlannerNodeName } from "./pages/planner/plannerExerciseStyles";
 import { SyntaxNode } from "@lezer/common";
 import { liftoscriptLanguage } from "./liftoscriptLanguage";
 import { PlannerStateVars_fromArgs } from "./pages/planner/models/plannerStateVars";
+import { liftoscriptFnSignatures, VScriptBindings, IScriptFnSignature, IScriptFnName } from "./liftoscriptFns";
+
+// In autocomplete the short aliases (w = weights, cr = completedReps, ...) are noise —
+// they'd pop up on almost every keystroke while saving no typing over the completion itself.
+const bindingAliases = new Set(["w", "r", "cr", "cw", "mr", "ns"]);
+
+function fnSignatureDetail(signature: IScriptFnSignature): string {
+  if (signature.variadic != null) {
+    return "(...values)";
+  }
+  return `(${(signature.args || []).map((a) => (a.optional ? `${a.name}?` : a.name)).join(", ")})`;
+}
 
 function findStateInScope(context: CompletionContext, script: string): IProgramState | undefined {
   const nodeBefore = syntaxTree(context.state).resolveInner(context.pos, -1);
@@ -38,52 +50,19 @@ export function buildLiftoscriptLanguageSupport(codeEditor: { state: IProgramSta
         };
         return result;
       } else {
+        const bindingOptions = Object.keys(VScriptBindings.entries)
+          .filter((key) => !bindingAliases.has(key))
+          .map((key) => ({ label: key, type: "keyword liftoscript" }));
+        const fnOptions = (Object.keys(liftoscriptFnSignatures) as IScriptFnName[]).map((name) => ({
+          label: name,
+          type: "function liftoscript",
+          detail: fnSignatureDetail(liftoscriptFnSignatures[name]),
+        }));
         return completeFromList([
           { label: "state", type: "keyword liftoscript" },
           { label: "var", type: "keyword liftoscript" },
-          { label: "originalWeights", type: "keyword liftoscript" },
-          { label: "weights", type: "keyword liftoscript" },
-          { label: "reps", type: "keyword liftoscript" },
-          { label: "minReps", type: "keyword liftoscript" },
-          { label: "RPE", type: "keyword liftoscript" },
-          { label: "amraps", type: "keyword liftoscript" },
-          { label: "logrpes", type: "keyword liftoscript" },
-          { label: "askweights", type: "keyword liftoscript" },
-          { label: "timers", type: "keyword liftoscript" },
-          { label: "setTime", type: "keyword liftoscript" },
-          { label: "completedReps", type: "keyword liftoscript" },
-          { label: "completedRepsLeft", type: "keyword liftoscript" },
-          { label: "completedRPE", type: "keyword liftoscript" },
-          { label: "completedWeights", type: "keyword liftoscript" },
-          { label: "completedSetTime", type: "keyword liftoscript" },
-          { label: "setVariationIndex", type: "keyword liftoscript" },
-          { label: "exerciseVariationIndex", type: "keyword liftoscript" },
-          { label: "bodyweight", type: "keyword liftoscript" },
-          { label: "descriptionIndex", type: "keyword liftoscript" },
-          { label: "rm1", type: "keyword liftoscript" },
-          { label: "day", type: "keyword liftoscript" },
-          { label: "week", type: "keyword liftoscript" },
-          { label: "dayInWeek", type: "keyword liftoscript" },
-          { label: "setIndex", type: "keyword liftoscript" },
-          { label: "programNumberOfSets", type: "keyword liftoscript" },
-          { label: "numberOfSets", type: "keyword liftoscript" },
-          { label: "completedNumberOfSets", type: "keyword liftoscript" },
-          { label: "roundWeight", type: "function liftoscript" },
-          { label: "roundConvertWeight", type: "function liftoscript" },
-          { label: "calculateTrainingMax", type: "function liftoscript" },
-          { label: "increment", type: "function liftoscript" },
-          { label: "decrement", type: "function liftoscript" },
-          { label: "calculate1RM", type: "function liftoscript" },
-          { label: "zeroOrGte", type: "function liftoscript" },
-          { label: "print", type: "function liftoscript" },
-          { label: "sets", type: "function liftoscript" },
-          { label: "rpeMultiplier", type: "function liftoscript" },
-          { label: "floor", type: "function liftoscript" },
-          { label: "round", type: "function liftoscript" },
-          { label: "ceil", type: "function liftoscript" },
-          { label: "sum", type: "function liftoscript" },
-          { label: "min", type: "function liftoscript" },
-          { label: "max", type: "function liftoscript" },
+          ...bindingOptions,
+          ...fnOptions,
         ])(context);
       }
     },
