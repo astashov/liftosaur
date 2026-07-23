@@ -25,6 +25,7 @@ import { Exercise_handleCustomExerciseChange } from "../../models/exercise";
 import { updateState, updateProgress } from "../../models/state";
 import { useClearOnModalRemove } from "../useClearOnModalRemove";
 import { buildCustomDispatch } from "../../ducks/types";
+import { Thunk_postevent } from "../../ducks/thunks";
 import { ICustomExercise, IExercisePickerSelectedExercise, IHistoryRecord } from "../../types";
 import { lb } from "lens-shmens";
 import type { IRootStackParamList } from "../types";
@@ -156,6 +157,13 @@ export function NavModalExercisePicker(): JSX.Element {
               );
             }
           }
+        }
+      }
+      if (selectedExercises.length > 0) {
+        if (currentPickerState.entryIndex == null) {
+          dispatch(Thunk_postevent("workout-add-exercise", { count: selectedExercises.length }));
+        } else {
+          dispatch(Thunk_postevent("workout-swap-exercise"));
         }
       }
       setTimeout(() => {

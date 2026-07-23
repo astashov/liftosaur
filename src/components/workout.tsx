@@ -53,6 +53,7 @@ import { useEqual } from "../utils/useEqual";
 import { usePerfRenderCount } from "../utils/usePerfRenderCount";
 import { PerfProbeSubtree } from "../utils/perfProbeSubtree";
 import { NavScreenContent } from "../navigation/NavScreenContent";
+import { useTrackClick } from "../utils/clickTracking";
 
 declare let Rollbar: RB | undefined;
 
@@ -557,6 +558,7 @@ interface IWorkoutThumbnailsStripProps {
 
 function WorkoutThumbnailsStripInner(props: IWorkoutThumbnailsStripProps): JSX.Element {
   usePerfRenderCount("WorkoutThumbnailsStrip");
+  const trackClick = useTrackClick();
   const { enableReorder, onClick, dispatch } = props;
   const progressId = props.progress.id;
   const colorToSupersetGroup = useEqual(
@@ -576,6 +578,7 @@ function WorkoutThumbnailsStripInner(props: IWorkoutThumbnailsStripProps): JSX.E
   }, [props.progress.entries.length]);
 
   const onAddExercise = useCallback(() => {
+    trackClick("workout-add-exercise-button");
     updateState(
       dispatch,
       [
@@ -594,7 +597,7 @@ function WorkoutThumbnailsStripInner(props: IWorkoutThumbnailsStripProps): JSX.E
       ],
       "Open exercise picker"
     );
-  }, [dispatch, progressId]);
+  }, [dispatch, progressId, trackClick]);
 
   const onDragEnd = useCallback(
     (startIndex: number, endIndex: number) => {

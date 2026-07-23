@@ -47,6 +47,7 @@ import {
 } from "../models/equipment";
 import { PlannerProgramExercise_currentDescription } from "../pages/planner/models/plannerProgramExercise";
 import { IByExercise } from "../pages/planner/plannerEvaluator";
+import { useTrackClick } from "../utils/clickTracking";
 import { IconReorder } from "./icons/iconReorder";
 import { navigateToModal } from "../navigation/navigationService";
 import { Dialog_confirm } from "../utils/dialog";
@@ -79,6 +80,7 @@ type IKebabAction = "edit" | "swap" | "superset" | "remove";
 function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element {
   usePerfRenderCount("WorkoutExerciseCard");
   usePerfWhyRender("sets-grid", props as unknown as Record<string, unknown>);
+  const trackClick = useTrackClick();
   const programExerciseId = props.entry.programExerciseId;
   const programExercise = useMemo(
     () =>
@@ -213,6 +215,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
 
   const runKebabAction = useCallback(
     (action: IKebabAction): void => {
+      trackClick(`workout-kebab-${action}`);
       setIsKebabMenuOpen(false);
       if (action === "edit") {
         editProgramExercise();
@@ -224,7 +227,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
         removeExercise().catch(() => undefined);
       }
     },
-    [editProgramExercise, swapExercise, editSuperset, removeExercise]
+    [editProgramExercise, swapExercise, editSuperset, removeExercise, trackClick]
   );
 
   const kebabActions = useMemo<Array<{ action: IKebabAction; label: string }>>(() => {
@@ -256,6 +259,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
 
   const subscription = props.subscription;
   const onTargetClick = useCallback((): void => {
+    trackClick("workout-target-type");
     updateSettings(
       dispatch,
       lb<ISettings>()
@@ -266,9 +270,10 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
         ),
       "Change target type"
     );
-  }, [dispatch, subscription, currentEquipmentName]);
+  }, [dispatch, subscription, currentEquipmentName, trackClick]);
 
   const onKebabPress = useCallback((): void => {
+    trackClick("workout-exercise-kebab");
     if (Platform.OS === "web") {
       setIsKebabMenuOpen(true);
       return;
@@ -286,7 +291,7 @@ function WorkoutExerciseCardInner(props: IWorkoutExerciseCardProps): JSX.Element
         }
       }
     );
-  }, [kebabActions, runKebabAction]);
+  }, [kebabActions, runKebabAction, trackClick]);
 
   const onPressExerciseStats = useCallback(() => {
     dispatch(Thunk_pushExerciseStatsScreen(entryExercise));
