@@ -576,8 +576,17 @@ export function PlannerEvaluator_fillProgressReuses(
       if (!originalProgress || !dayData) {
         throw PlannerSyntaxError.fromPoint(exercise.fullName, "Original exercise should specify progress", point);
       }
-      if (originalProgress.reuse?.fullName != null && !originalProgress.reuse?.exercise?.notused) {
-        throw PlannerSyntaxError.fromPoint(exercise.fullName, `Original exercise cannot reuse another progress`, point);
+      if (originalProgress.reuse?.fullName != null) {
+        // originalProgress.reuse.exercise may not be resolved yet (resolution goes in document
+        // order), so check notused via metadata, which is complete before this pass.
+        const originalReuseKey = PlannerKey_fromFullName(originalProgress.reuse.fullName, settings.exercises);
+        if (!metadata.notused.has(originalReuseKey)) {
+          throw PlannerSyntaxError.fromPoint(
+            exercise.fullName,
+            `Original exercise cannot reuse another progress`,
+            point
+          );
+        }
       }
       if (originalProgress.type !== "custom") {
         throw PlannerSyntaxError.fromPoint(
@@ -680,8 +689,12 @@ export function PlannerEvaluator_fillUpdateReuses(
       if (!originalUpdate || !dayData) {
         throw PlannerSyntaxError.fromPoint(exercise.fullName, "Original exercise should specify update", point);
       }
-      if (originalUpdate.reuse?.fullName != null && !originalUpdate.reuse?.exercise?.notused) {
-        throw PlannerSyntaxError.fromPoint(exercise.fullName, `Original exercise cannot reuse another update`, point);
+      if (originalUpdate.reuse?.fullName != null) {
+        // Same as the progress check above: reuse.exercise may not be resolved yet.
+        const originalReuseKey = PlannerKey_fromFullName(originalUpdate.reuse.fullName, settings.exercises);
+        if (!metadata.notused.has(originalReuseKey)) {
+          throw PlannerSyntaxError.fromPoint(exercise.fullName, `Original exercise cannot reuse another update`, point);
+        }
       }
       if (originalUpdate.type !== "custom") {
         throw PlannerSyntaxError.fromPoint(exercise.fullName, "Original exercise should specify custom update", point);
@@ -762,12 +775,14 @@ export function PlannerEvaluator_postProcess(
   for (const week of evaluatedWeeks) {
     for (const day of week) {
       if (day.success) {
+        // Mirrors the sort in PlannerProgram_groupedTopLines: repeat-materialized exercises
+        // (pushed to the end by fillRepeats) move to their source week's position - before the
+        // used exercise sharing their exerciseIndex. Other ties keep document order.
         day.data.sort((ex1, ex2) => {
-          if (ex1.exerciseIndex === ex2.exerciseIndex) {
-            return (ex1.repeating[0] ?? 0) - (ex2.repeating[0] ?? 0);
-          } else {
+          if (ex1.exerciseIndex !== ex2.exerciseIndex) {
             return ex1.exerciseIndex - ex2.exerciseIndex;
           }
+          return (ex1.isRepeat ? 0 : 1) - (ex2.isRepeat ? 0 : 1);
         });
       }
     }

@@ -486,11 +486,15 @@ export function PlannerProgram_groupedTopLines(topLine: IPlannerTopLineItem[][][
         if (ex1 == null || ex2 == null) {
           return 0;
         }
-        if (ex1.exerciseIndex === ex2.exerciseIndex) {
-          return (ex1.repeat?.[0] ?? 0) - (ex2.repeat?.[0] ?? 0);
-        } else {
+        if ((ex1.exerciseIndex ?? 0) !== (ex2.exerciseIndex ?? 0)) {
           return (ex1.exerciseIndex ?? 0) - (ex2.exerciseIndex ?? 0);
         }
+        // A repeat-materialized copy (appended at the end of the day) shares exerciseIndex with
+        // the used exercise that follows the original in the source week, so it goes before that
+        // exercise to match the source week's position. Other ties (used: none templates before
+        // the used exercise that shares their exerciseIndex) keep document order - the sort is
+        // stable.
+        return (ex1.isRepeat ? 0 : 1) - (ex2.isRepeat ? 0 : 1);
       });
     }
   }
@@ -532,7 +536,7 @@ export function PlannerProgram_topLineItems(
                 reuseDay.push({ type: "description", value: exercise.descriptions[di] });
               }
             }
-            reuseDay.push({ ...exercise, repeat: undefined });
+            reuseDay.push({ ...exercise, repeat: undefined, isRepeat: true });
           }
         }
       }

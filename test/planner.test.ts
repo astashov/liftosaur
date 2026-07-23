@@ -36,6 +36,68 @@ Squat / 2x5 / 105lb / progress: lp(5lb)
 `);
   });
 
+  it("keeps 'used: none' templates with repeat ranges in place on finish", () => {
+    const programText = `# Week 1
+## Day 1
+base / used: none / 2x5 / progress: custom(increment: 5lb) {~
+  weights += state.increment
+~}
+tpl[1-2] / used: none / 2x8 / progress: custom(increment: 2.5lb) { ...base }
+Bench Press[1] / ...tpl / 100lb
+Squat[2] / ...tpl / 200lb
+
+# Week 2
+## Day 1
+Bench Press[1] / ...tpl / 110lb
+Squat[2] / ...tpl / 210lb`;
+    const { program } = PlannerTestUtils_finish(programText, {
+      completedReps: [
+        [8, 8],
+        [8, 8],
+      ],
+    });
+    const newText = PlannerProgram_generateFullText(program.planner!.weeks);
+    expect(newText).to.equal(`# Week 1
+## Day 1
+base / used: none / 2x5 / progress: custom(increment: 5lb) {~
+  weights += state.increment
+~}
+tpl[1-2] / used: none / 2x8 / progress: custom(increment: 2.5lb) { ...base }
+Bench Press[1] / ...tpl / 102.5lb
+Squat[2] / ...tpl / 202.5lb
+
+
+# Week 2
+## Day 1
+Bench Press[1] / ...tpl / 112.5lb
+Squat[2] / ...tpl / 212.5lb
+
+
+`);
+  });
+
+  it("evaluates progress reuse chains regardless of exercise order", () => {
+    const programText = `# Week 1
+## Day 1
+base / used: none / 2x5 / progress: custom(increment: 5lb) {~
+  weights += state.increment
+~}
+Bench Press / ...tpl / 100lb
+tpl[1-2] / used: none / 2x8 / progress: custom(increment: 2.5lb) { ...base }
+
+# Week 2
+## Day 1
+Bench Press / ...tpl / 110lb`;
+    const planner: IPlannerProgram = {
+      vtype: "planner",
+      name: "MyProgram",
+      weeks: PlannerProgram_evaluateText(programText),
+    };
+    const evaluatedWeeks = PlannerProgram_evaluate(planner, Settings_build()).evaluatedWeeks;
+    const errors = evaluatedWeeks.flat().flatMap((day) => (day.success ? [] : [day.error.message]));
+    expect(errors).to.eql([]);
+  });
+
   it("updates empty weight after completing", () => {
     const programText = `# Week 1
 ## Day 1

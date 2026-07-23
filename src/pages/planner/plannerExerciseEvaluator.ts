@@ -54,6 +54,7 @@ export interface IPlannerTopLineItem {
   fullName?: string;
   repeat?: number[];
   repeatRanges?: string[];
+  isRepeat?: boolean;
   descriptions?: string[];
   sections?: string;
   sectionsToReuse?: string;
