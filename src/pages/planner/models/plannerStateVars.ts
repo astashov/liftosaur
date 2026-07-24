@@ -11,8 +11,11 @@ export function PlannerStateVars_fromArgs(
   for (const value of fnArgs) {
     // eslint-disable-next-line prefer-const
     let [fnArgKey, fnArgValStr] = value.split(":").map((v) => v.trim());
-    if (onError && (!fnArgKey || !fnArgValStr)) {
-      onError(`Invalid argument ${value}`);
+    if (!fnArgKey || !fnArgValStr) {
+      if (onError) {
+        onError(`Invalid argument ${value}`);
+      }
+      continue;
     }
     if (fnArgKey.endsWith("+")) {
       fnArgKey = fnArgKey.replace("+", "");
